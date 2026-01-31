@@ -12,7 +12,10 @@ export async function POST(request: Request) {
   }
   if (!isDatabaseReady()) {
     return NextResponse.json(
-      { error: "Database not configured. Set DATABASE_URL." },
+      {
+        error:
+          "Database not configured. Set DATABASE_URL (or NETLIFY_DATABASE_URL) to a postgres:// URL.",
+      },
       { status: 500 }
     );
   }
