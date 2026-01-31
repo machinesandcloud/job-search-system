@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 import { leadCompleteSchema } from "@/lib/validation";
 import { computeScore } from "@/lib/scoring";
 import { buildResults } from "@/lib/results";
@@ -20,6 +21,7 @@ export async function POST(request: Request) {
   }
 
   const { answers, leadId } = parsed.data;
+  const answersJson = JSON.parse(JSON.stringify(answers)) as Prisma.InputJsonValue;
   const { score, subscores, route } = computeScore(answers);
 
   const ipHash = hashIp(getClientIp(request));
@@ -28,7 +30,7 @@ export async function POST(request: Request) {
     ? await prisma.lead.update({
         where: { id: leadId },
         data: {
-          answers,
+          answers: answersJson,
           score,
           subscores,
           route,
@@ -37,7 +39,7 @@ export async function POST(request: Request) {
       })
     : await prisma.lead.create({
         data: {
-          answers,
+          answers: answersJson,
           score,
           subscores,
           route,
