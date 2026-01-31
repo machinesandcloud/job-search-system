@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { prisma, isDatabaseReady } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { leadCompleteSchema, sanitizeAnswers } from "@/lib/validation";
 import { computeScore } from "@/lib/scoring";
@@ -10,6 +10,12 @@ import { logEvent } from "@/lib/events";
 export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) {
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
+  }
+  if (!isDatabaseReady()) {
+    return NextResponse.json(
+      { error: "Database not configured. Set DATABASE_URL." },
+      { status: 500 }
+    );
   }
   const body = await request.json();
   const normalizedBody = {
