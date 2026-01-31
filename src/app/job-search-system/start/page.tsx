@@ -232,11 +232,10 @@ export default function JobSearchWizard() {
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Timeline</h2>
             <Select value={answers.timeline} onChange={(e) => updateAnswers({ timeline: e.target.value as LeadAnswers["timeline"] })}>
-              {(["ASAP", "30", "60", "90+"] as const).map((timeline) => (
-                <option key={timeline} value={timeline}>
-                  {timeline}
-                </option>
-              ))}
+              <option value="ASAP">ASAP (0-14 days)</option>
+              <option value="30">30 days</option>
+              <option value="60">60 days</option>
+              <option value="90+">90+ days</option>
             </Select>
           </div>
         )}

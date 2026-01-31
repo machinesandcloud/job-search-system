@@ -11,6 +11,20 @@ export type CompanyOption = {
   size?: string | null;
 };
 
+const getInitials = (name: string) => {
+  const parts = name.trim().split(/\s+/).slice(0, 2);
+  return parts.map((part) => part[0]).join("").toUpperCase();
+};
+
+const makeInitialsSvg = (name: string) => {
+  const initials = getInitials(name) || "CO";
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64">
+    <rect width="100%" height="100%" rx="32" ry="32" fill="#0f172a"/>
+    <text x="50%" y="52%" text-anchor="middle" dominant-baseline="middle" font-family="Arial, sans-serif" font-size="22" fill="#e2e8f0">${initials}</text>
+  </svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+};
+
 export function CompanySelect({
   value,
   onChange,
@@ -87,6 +101,10 @@ export function CompanySelect({
                 }
                 alt=""
                 className="h-8 w-8 rounded-full border border-slate-100"
+                onError={(event) => {
+                  const target = event.currentTarget as HTMLImageElement;
+                  target.src = makeInitialsSvg(company.name);
+                }}
               />
               <div>
                 <p className="text-sm font-semibold text-slate-900">{company.name}</p>

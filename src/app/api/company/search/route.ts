@@ -10,6 +10,11 @@ function getLogo(domain?: string | null) {
   return `https://logo.clearbit.com/${domain}`;
 }
 
+function getFavicon(domain?: string | null) {
+  if (!domain) return null;
+  return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128`;
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get("q") || "";
@@ -60,16 +65,16 @@ async function handleSearch(query: string) {
         take: 8,
       });
       if (dbResults.length) {
-        results = dbResults.map((company) => ({
-          name: company.name,
-          domain: company.domain,
-          logoUrl: company.logoUrl || getLogo(company.domain),
-          industry: company.industry,
-          size: company.sizeRange,
-        }));
-      }
-    } catch {
-      results = [];
+      results = dbResults.map((company) => ({
+        name: company.name,
+        domain: company.domain,
+        logoUrl: company.logoUrl || getLogo(company.domain) || getFavicon(company.domain),
+        industry: company.industry,
+        size: company.sizeRange,
+      }));
+    }
+  } catch {
+    results = [];
     }
   }
 
@@ -80,7 +85,7 @@ async function handleSearch(query: string) {
       .map((company) => ({
         name: company.name,
         domain: company.domain,
-        logoUrl: getLogo(company.domain),
+        logoUrl: getFavicon(company.domain) || getLogo(company.domain),
         industry: company.industry,
         size: company.size,
       }));
