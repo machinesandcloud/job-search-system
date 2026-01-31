@@ -62,5 +62,5 @@ Then trigger a test checkout session.
 
 ## Notes
 - Company autocomplete uses Clearbit if `CLEARBIT_API_KEY` is set; otherwise it falls back to local seed data.
-- Results are accessed via a tokenized link; users don’t need accounts.
+- Results are accessed via a tokenized link; users don't need accounts.
 - Admin login uses magic links and an email allowlist.
