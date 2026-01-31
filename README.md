@@ -32,6 +32,7 @@ Production-ready landing + assessment flow that generates a personalized job sea
 ```
 DATABASE_URL=postgresql://user:pass@localhost:5432/job_search
 RESEND_API_KEY=your_resend_key
+RESEND_FROM=your-verified-sender@yourdomain.com
 STRIPE_SECRET_KEY=your_stripe_key
 STRIPE_WEBHOOK_SECRET=your_webhook_secret
 STRIPE_PRICE_ID=price_123

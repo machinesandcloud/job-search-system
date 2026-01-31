@@ -2,6 +2,7 @@ import { Resend } from "resend";
 import { getBaseUrl } from "./utils";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+const fromAddress = process.env.RESEND_FROM || "onboarding@resend.dev";
 
 export async function sendResultsEmail(email: string, token: string, hasPro: boolean) {
   if (!resend) return { skipped: true, reason: "RESEND_API_KEY missing" } as const;
@@ -19,12 +20,20 @@ export async function sendResultsEmail(email: string, token: string, hasPro: boo
       }
     </div>
   `;
-  return resend.emails.send({
-    from: "Job Search System <no-reply@askia.tech>",
-    to: email,
-    subject,
-    html,
-  });
+  try {
+    const result = await resend.emails.send({
+      from: `Job Search System <${fromAddress}>`,
+      to: email,
+      subject,
+      html,
+    });
+    if ("error" in result && result.error) {
+      return { ok: false, error: result.error.message || "Resend error" } as const;
+    }
+    return { ok: true } as const;
+  } catch (err: any) {
+    return { ok: false, error: err?.message || "Email send failed" } as const;
+  }
 }
 
 export async function sendAdminMagicLink(email: string, token: string) {

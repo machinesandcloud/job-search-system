@@ -36,5 +36,12 @@ export async function POST(request: Request) {
     lead.token,
     lead.purchases.some((p) => p.status === "SUCCEEDED")
   );
+  if (result && "ok" in result && result.ok === false) {
+    console.error("Resend error:", result);
+    return NextResponse.json(
+      { ok: false, token: lead.token, emailStatus: result },
+      { status: 500 }
+    );
+  }
   return NextResponse.json({ ok: true, token: lead.token, emailStatus: result });
 }
