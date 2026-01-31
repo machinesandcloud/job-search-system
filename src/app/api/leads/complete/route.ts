@@ -1,0 +1,93 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { leadCompleteSchema } from "@/lib/validation";
+import { computeScore } from "@/lib/scoring";
+import { buildResults } from "@/lib/results";
+import { generateToken, getClientIp, hashIp, ensureSameOrigin } from "@/lib/utils";
+import { logEvent } from "@/lib/events";
+
+export async function POST(request: Request) {
+  if (!ensureSameOrigin(request)) {
+    return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
+  }
+  const body = await request.json();
+  const parsed = leadCompleteSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+  }
+
+  const { answers, leadId } = parsed.data;
+  const { score, subscores, route } = computeScore(answers);
+
+  const ipHash = hashIp(getClientIp(request));
+
+  const lead = leadId
+    ? await prisma.lead.update({
+        where: { id: leadId },
+        data: {
+          answers,
+          score,
+          subscores,
+          route,
+          ipHash,
+        },
+      })
+    : await prisma.lead.create({
+        data: {
+          answers,
+          score,
+          subscores,
+          route,
+          token: generateToken(16),
+          ipHash,
+          userAgent: request.headers.get("user-agent") || "",
+        },
+      });
+
+  const companyIds: string[] = [];
+  for (const company of answers.companyTargets) {
+    const existing = await prisma.company.findFirst({
+      where: {
+        OR: [
+          { name: company.name },
+          company.domain ? { domain: company.domain } : undefined,
+        ].filter(Boolean) as any,
+      },
+    });
+    if (existing) {
+      companyIds.push(existing.id);
+      continue;
+    }
+    const logoUrl = company.domain
+      ? `https://logo.clearbit.com/${company.domain}`
+      : `https://www.google.com/s2/favicons?domain=${encodeURIComponent(company.name)}&sz=128`;
+    const created = await prisma.company.create({
+      data: {
+        name: company.name,
+        domain: company.domain || null,
+        logoUrl,
+        industry: company.industry || null,
+        sizeRange: company.size || null,
+        source: company.domain ? "MANUAL" : "MANUAL",
+      },
+    });
+    companyIds.push(created.id);
+  }
+  if (companyIds.length) {
+    await prisma.leadCompany.createMany({
+      data: companyIds.map((companyId) => ({ leadId: lead.id, companyId })),
+      skipDuplicates: true,
+    });
+  }
+
+  await logEvent("wizard_completed", { score, route }, lead.id);
+  const results = buildResults(answers);
+  return NextResponse.json({
+    token: lead.token,
+    teaser: {
+      score: results.score,
+      insights: results.insights,
+      cadencePreview: results.cadence[0]?.actions[0],
+    },
+  });
+}

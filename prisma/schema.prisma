@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum LeadRoute {
+  DIY
+  GUIDED
+  FAST_TRACK
+}
+
+enum CompanySource {
+  CLEARBIT
+  LOCAL
+  MANUAL
+}
+
+enum PurchaseStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  CANCELED
+}
+
+model Lead {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  email     String?  @db.Text
+  answers   Json
+  score     Int
+  subscores Json
+  route     LeadRoute
+  token     String   @unique
+  ipHash    String
+  userAgent String?
+  purchases Purchase[]
+  companies LeadCompany[]
+  events    Event[]
+}
+
+model Company {
+  id        String         @id @default(cuid())
+  name      String
+  domain    String?
+  logoUrl   String?
+  industry  String?
+  sizeRange String?
+  source    CompanySource
+  createdAt DateTime       @default(now())
+  leads     LeadCompany[]
+
+  @@index([name])
+  @@index([domain])
+}
+
+model LeadCompany {
+  leadId    String
+  companyId String
+  lead      Lead    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@id([leadId, companyId])
+}
+
+model Purchase {
+  id                      String         @id @default(cuid())
+  leadId                  String
+  stripeCheckoutSessionId String
+  stripePaymentIntentId   String?
+  amount                  Int
+  currency                String
+  status                  PurchaseStatus
+  createdAt               DateTime       @default(now())
+  lead                    Lead           @relation(fields: [leadId], references: [id], onDelete: Cascade)
+}
+
+model Event {
+  id        String   @id @default(cuid())
+  leadId    String?
+  type      String
+  metadata  Json
+  createdAt DateTime @default(now())
+  lead      Lead?    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([type])
+}
+
+model AdminToken {
+  id        String   @id @default(cuid())
+  email     String
+  tokenHash String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
