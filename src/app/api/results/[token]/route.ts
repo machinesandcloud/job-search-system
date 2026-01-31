@@ -3,9 +3,10 @@ import { prisma } from "@/lib/db";
 import { buildResults } from "@/lib/results";
 import { logEvent } from "@/lib/events";
 
-export async function GET(_request: Request, { params }: { params: { token: string } }) {
+export async function GET(_request: Request, { params }: { params: Promise<{ token: string }> }) {
+  const { token } = await params;
   const lead = await prisma.lead.findUnique({
-    where: { token: params.token },
+    where: { token },
     include: { purchases: true, companies: { include: { company: true } } },
   });
   if (!lead) return NextResponse.json({ error: "Not found" }, { status: 404 });
