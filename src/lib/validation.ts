@@ -53,6 +53,37 @@ export const leadCompleteSchema = z.object({
   answers: leadAnswersSchema,
 });
 
+export function sanitizeAnswers(input: any) {
+  if (!input || typeof input !== "object") return input;
+  const copy = { ...input };
+  if (Array.isArray(copy.roles)) {
+    copy.roles = copy.roles.map((role: any) =>
+      typeof role === "string" ? role : role?.name || role?.title || String(role)
+    );
+  }
+  if (Array.isArray(copy.companyTargets)) {
+    copy.companyTargets = copy.companyTargets
+      .map((item: any) => {
+        if (typeof item === "string") return { name: item };
+        if (!item || typeof item !== "object") return null;
+        const name = item.name || item.company || item.title || item.domain || item.slug;
+        if (!name) return null;
+        return {
+          name,
+          domain: item.domain || null,
+          logoUrl: item.logoUrl || item.logo || null,
+          industry: item.industry || item.category || null,
+          size: item.size || item.sizeRange || null,
+        };
+      })
+      .filter(Boolean);
+  }
+  if (typeof copy.city === "string" && copy.city.trim() === "") {
+    copy.city = null;
+  }
+  return copy;
+}
+
 export const emailSchema = z.object({
   leadId: z.string(),
   email: z.string().email(),

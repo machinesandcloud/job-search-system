@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
-import { leadCompleteSchema } from "@/lib/validation";
+import { leadCompleteSchema, sanitizeAnswers } from "@/lib/validation";
 import { computeScore } from "@/lib/scoring";
 import { buildResults } from "@/lib/results";
 import { generateToken, getClientIp, hashIp, ensureSameOrigin } from "@/lib/utils";
@@ -12,7 +12,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
   }
   const body = await request.json();
-  const parsed = leadCompleteSchema.safeParse(body);
+  const normalizedBody = {
+    ...body,
+    answers: sanitizeAnswers(body?.answers),
+  };
+  const parsed = leadCompleteSchema.safeParse(normalizedBody);
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Invalid payload", details: parsed.error.flatten() },
