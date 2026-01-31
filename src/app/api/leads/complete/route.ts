@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error:
-          "Database not configured. Set DATABASE_URL (or NETLIFY_DATABASE_URL) to a postgres:// URL.",
+          "Database URL is invalid. Ensure DATABASE_URL (or NETLIFY_DATABASE_URL) starts with postgresql://",
       },
       { status: 500 }
     );
