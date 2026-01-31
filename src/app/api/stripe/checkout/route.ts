@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { stripe, getStripePriceId } from "@/lib/stripe";
+import { getStripeClient, getStripePriceId } from "@/lib/stripe";
 import { prisma } from "@/lib/db";
 import { stripeCheckoutSchema } from "@/lib/validation";
 import { getBaseUrl, ensureSameOrigin } from "@/lib/utils";
@@ -23,6 +23,7 @@ export async function POST(request: Request) {
   const priceId = getStripePriceId();
   const baseUrl = getBaseUrl();
 
+  const stripe = getStripeClient();
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
     line_items: priceId
