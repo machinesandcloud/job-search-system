@@ -50,6 +50,8 @@ export default function JobSearchWizard() {
   const [token, setToken] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [emailSent, setEmailSent] = useState(false);
+  const [emailStatus, setEmailStatus] = useState<{ skipped?: boolean; reason?: string } | null>(null);
+  const [sendingEmail, setSendingEmail] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [blockerNote, setBlockerNote] = useState("");
@@ -97,6 +99,7 @@ export default function JobSearchWizard() {
 
   const submitEmail = async () => {
     if (!leadId || !email) return;
+    setSendingEmail(true);
     const res = await fetch("/api/leads/email", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -104,12 +107,15 @@ export default function JobSearchWizard() {
     });
     const data = await res.json();
     if (res.ok) {
+      setEmailSent(true);
+      setEmailStatus(data.emailStatus || null);
       if (data.emailStatus?.skipped) {
         setError(data.emailStatus.reason || "Email delivery not configured.");
-      } else {
-        setEmailSent(true);
       }
+    } else {
+      setError(data.error || "Unable to send email.");
     }
+    setSendingEmail(false);
   };
 
   const canNext = useMemo(() => {
@@ -147,12 +153,14 @@ export default function JobSearchWizard() {
             <Label>Email address</Label>
             <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@domain.com" />
             <p className="mt-2 text-xs text-slate-500">We'll send your plan link instantly.</p>
-            <Button className="mt-4 w-full" onClick={submitEmail}>
-              Send my plan
+            <Button className="mt-4 w-full" onClick={submitEmail} disabled={sendingEmail}>
+              {sendingEmail ? "Sending..." : "Send my plan"}
             </Button>
             {emailSent && (
               <div className="mt-4 rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-700">
-                Email sent. You can also view it now.
+                {emailStatus?.skipped
+                  ? "Email service not configured - use the direct link below."
+                  : "Email sent. You can also view it now."}
                 <div className="mt-2">
                   <Link
                     href={`/job-search-system/results/${token}`}
@@ -163,6 +171,7 @@ export default function JobSearchWizard() {
                 </div>
               </div>
             )}
+            {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
           </div>
         </div>
       </main>
