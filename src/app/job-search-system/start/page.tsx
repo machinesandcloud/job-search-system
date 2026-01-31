@@ -82,7 +82,10 @@ export default function JobSearchWizard() {
         body: JSON.stringify({ leadId, answers }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Something went wrong");
+      if (!res.ok) {
+        const detail = data.details ? JSON.stringify(data.details) : "";
+        throw new Error(data.error || detail || "Something went wrong");
+      }
       setTeaser(data.teaser);
       setToken(data.token);
     } catch (err: any) {

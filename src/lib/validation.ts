@@ -19,13 +19,15 @@ export const leadAnswersSchema = z.object({
   outreachComfort: z.enum(["Low", "Medium", "High"]),
   companyTargets: z
     .array(
-      z.object({
-        name: z.string().min(2).max(80),
-        domain: z.string().max(120).optional().nullable(),
-        logoUrl: z.string().max(200).optional().nullable(),
-        industry: z.string().max(120).optional().nullable(),
-        size: z.string().max(40).optional().nullable(),
-      })
+      z
+        .object({
+          name: z.string().min(2).max(80),
+          domain: z.string().max(200).optional().nullable(),
+          logoUrl: z.string().max(500).optional().nullable(),
+          industry: z.string().max(200).optional().nullable(),
+          size: z.string().max(60).optional().nullable(),
+        })
+        .passthrough()
     )
     .max(30),
   biggestBlocker: z.enum([

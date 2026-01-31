@@ -49,23 +49,27 @@ async function handleSearch(query: string) {
   }
 
   if (!results.length) {
-    const dbResults = await prisma.company.findMany({
-      where: {
-        OR: [
-          { name: { contains: query, mode: "insensitive" } },
-          { domain: { contains: query, mode: "insensitive" } },
-        ],
-      },
-      take: 8,
-    });
-    if (dbResults.length) {
-      results = dbResults.map((company) => ({
-        name: company.name,
-        domain: company.domain,
-        logoUrl: company.logoUrl || getLogo(company.domain),
-        industry: company.industry,
-        size: company.sizeRange,
-      }));
+    try {
+      const dbResults = await prisma.company.findMany({
+        where: {
+          OR: [
+            { name: { contains: query, mode: "insensitive" } },
+            { domain: { contains: query, mode: "insensitive" } },
+          ],
+        },
+        take: 8,
+      });
+      if (dbResults.length) {
+        results = dbResults.map((company) => ({
+          name: company.name,
+          domain: company.domain,
+          logoUrl: company.logoUrl || getLogo(company.domain),
+          industry: company.industry,
+          size: company.sizeRange,
+        }));
+      }
+    } catch {
+      results = [];
     }
   }
 
