@@ -4,7 +4,7 @@ import { getBaseUrl } from "./utils";
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 export async function sendResultsEmail(email: string, token: string, hasPro: boolean) {
-  if (!resend) return { skipped: true } as const;
+  if (!resend) return { skipped: true, reason: "RESEND_API_KEY missing" } as const;
   const url = `${getBaseUrl()}/job-search-system/results/${token}`;
   const subject = "Your Job Search System is ready";
   const html = `

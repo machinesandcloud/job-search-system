@@ -31,6 +31,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Lead not found" }, { status: 404 });
   }
   await logEvent("email_submitted", { email }, leadId);
-  await sendResultsEmail(email, lead.token, lead.purchases.some((p) => p.status === "SUCCEEDED"));
-  return NextResponse.json({ ok: true, token: lead.token });
+  const result = await sendResultsEmail(
+    email,
+    lead.token,
+    lead.purchases.some((p) => p.status === "SUCCEEDED")
+  );
+  return NextResponse.json({ ok: true, token: lead.token, emailStatus: result });
 }

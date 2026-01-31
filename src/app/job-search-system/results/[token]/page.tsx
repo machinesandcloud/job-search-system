@@ -1,4 +1,7 @@
 import Link from "next/link";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { buildResults } from "@/lib/results";

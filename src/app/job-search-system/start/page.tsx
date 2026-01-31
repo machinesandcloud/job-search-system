@@ -102,7 +102,14 @@ export default function JobSearchWizard() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ leadId, email, website: "" }),
     });
-    if (res.ok) setEmailSent(true);
+    const data = await res.json();
+    if (res.ok) {
+      if (data.emailStatus?.skipped) {
+        setError(data.emailStatus.reason || "Email delivery not configured.");
+      } else {
+        setEmailSent(true);
+      }
+    }
   };
 
   const canNext = useMemo(() => {
