@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 import { leadStartSchema } from "@/lib/validation";
 import { generateToken, getClientIp, hashIp, ensureSameOrigin } from "@/lib/utils";
 import { rateLimit } from "@/lib/rate-limit";
@@ -20,10 +21,13 @@ export async function POST(request: Request) {
   if (!limit.ok) {
     return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
   }
+  const answersJson = parsed.data.answers
+    ? (JSON.parse(JSON.stringify(parsed.data.answers)) as Prisma.InputJsonValue)
+    : {};
   const lead = await prisma.lead.create({
     data: {
       email: null,
-      answers: parsed.data.answers ?? {},
+      answers: answersJson,
       score: 0,
       subscores: {},
       route: "DIY",
