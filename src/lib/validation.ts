@@ -22,6 +22,7 @@ export const leadAnswersSchema = z.object({
       z.object({
         name: z.string().min(2).max(80),
         domain: z.string().max(120).optional().nullable(),
+        logoUrl: z.string().max(200).optional().nullable(),
         industry: z.string().max(120).optional().nullable(),
         size: z.string().max(40).optional().nullable(),
       })
