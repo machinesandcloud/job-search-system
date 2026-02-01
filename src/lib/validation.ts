@@ -32,6 +32,8 @@ export const leadAnswersSchema = z.object({
     interview: z.enum(["Not ready", "Some practice", "Confident"]),
     portfolio: z.enum(["None", "Some", "Strong"]),
   }),
+  linkedinUrl: z.string().url().optional().nullable(),
+  resumeUploaded: z.boolean(),
   networkStrength: z.enum(["Low", "Medium", "Strong"]),
   outreachComfort: z.enum(["Low", "Medium", "High"]),
   companyTargets: z
@@ -119,6 +121,9 @@ export function sanitizeAnswers(input: any) {
   }
   if (typeof copy.blockerNote === "string" && copy.blockerNote.trim() === "") {
     copy.blockerNote = null;
+  }
+  if (typeof copy.linkedinUrl === "string" && copy.linkedinUrl.trim() === "") {
+    copy.linkedinUrl = null;
   }
   return copy;
 }

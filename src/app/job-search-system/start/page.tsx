@@ -28,6 +28,8 @@ const defaultAnswers: LeadAnswers = {
   companyStage: "Growth",
   hoursPerWeek: "5",
   assets: { resume: "Draft", linkedin: "Draft", interview: "Some practice", portfolio: "Some" },
+  linkedinUrl: "",
+  resumeUploaded: false,
   networkStrength: "Medium",
   outreachComfort: "Medium",
   companyTargets: [],
@@ -64,6 +66,8 @@ export default function JobSearchWizard() {
   const [sendingEmail, setSendingEmail] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [resumeStatus, setResumeStatus] = useState<"idle" | "uploading" | "uploaded" | "error">("idle");
+  const [resumeError, setResumeError] = useState<string | null>(null);
 
   const progress = ((step + 1) / steps.length) * 100;
 
@@ -125,6 +129,31 @@ export default function JobSearchWizard() {
       setError(data.error || "Unable to send email.");
     }
     setSendingEmail(false);
+  };
+
+  const uploadResume = async (file: File | null) => {
+    if (!file || !leadId) return;
+    setResumeError(null);
+    setResumeStatus("uploading");
+    const form = new FormData();
+    form.append("leadId", leadId);
+    form.append("kind", "resume");
+    form.append("file", file);
+    try {
+      const res = await fetch("/api/leads/upload", {
+        method: "POST",
+        body: form,
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Upload failed");
+      }
+      setResumeStatus("uploaded");
+      updateAnswers({ resumeUploaded: true });
+    } catch (err: any) {
+      setResumeStatus("error");
+      setResumeError(err.message || "Upload failed");
+    }
   };
 
   const canNext = useMemo(() => {
@@ -195,6 +224,7 @@ export default function JobSearchWizard() {
                   <li>- No account required. Results delivered by link.</li>
                   <li>- Inputs are only used to build your plan.</li>
                   <li>- Built for high-signal, targeted searches.</li>
+                  <li>- Resume + LinkedIn inputs sharpen the coach feedback.</li>
                 </ul>
               </div>
             </div>
@@ -500,6 +530,30 @@ export default function JobSearchWizard() {
                     </option>
                   ))}
                 </Select>
+              </div>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <Label>LinkedIn profile URL (optional)</Label>
+                <Input
+                  placeholder="https://www.linkedin.com/in/yourname"
+                  value={answers.linkedinUrl || ""}
+                  onChange={(e) => updateAnswers({ linkedinUrl: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Upload resume (PDF or DOCX)</Label>
+                <Input
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  onChange={(e) => uploadResume(e.target.files?.[0] || null)}
+                />
+                <p className="mt-2 text-xs text-slate-400">
+                  {resumeStatus === "uploading" && "Uploading resume..."}
+                  {resumeStatus === "uploaded" && "Resume uploaded."}
+                  {resumeStatus === "error" && resumeError}
+                  {resumeStatus === "idle" && "Optional, but helps us give sharper feedback."}
+                </p>
               </div>
             </div>
           </div>

@@ -94,10 +94,10 @@ export function CompanySelect({
             >
               <img
                 src={
-                  company.logoUrl ||
-                  (company.domain
-                    ? `https://logo.clearbit.com/${company.domain}`
-                    : `https://www.google.com/s2/favicons?domain=${encodeURIComponent(company.name)}&sz=128`)
+                  company.domain
+                    ? `https://icons.duckduckgo.com/ip3/${encodeURIComponent(company.domain)}.ico`
+                    : company.logoUrl ||
+                      `https://www.google.com/s2/favicons?domain=${encodeURIComponent(company.name)}&sz=128`
                 }
                 alt=""
                 className="h-8 w-8 rounded-full border border-slate-700 bg-white"
@@ -105,7 +105,14 @@ export function CompanySelect({
                 loading="lazy"
                 onError={(event) => {
                   const target = event.currentTarget as HTMLImageElement;
-                  target.src = makeInitialsSvg(company.name);
+                  const fallback = company.domain
+                    ? `https://www.google.com/s2/favicons?domain=${encodeURIComponent(company.domain)}&sz=128`
+                    : makeInitialsSvg(company.name);
+                  if (target.src !== fallback) {
+                    target.src = fallback;
+                  } else {
+                    target.src = makeInitialsSvg(company.name);
+                  }
                 }}
               />
               <div>

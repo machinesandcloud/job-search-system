@@ -17,6 +17,8 @@ const baseAnswers: LeadAnswers = {
   companyStage: "Growth",
   hoursPerWeek: "5",
   assets: { resume: "Draft", linkedin: "Draft", interview: "Some practice", portfolio: "Some" },
+  linkedinUrl: "https://www.linkedin.com/in/example",
+  resumeUploaded: false,
   networkStrength: "Medium",
   outreachComfort: "Medium",
   companyTargets: [],

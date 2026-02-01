@@ -6,15 +6,15 @@ export default function JobSearchLanding() {
   return (
     <main>
       <section className="section-shell pb-16 pt-16">
-        <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
           <div>
             <Badge className="mb-4">AI Job Search System Builder</Badge>
             <h1 className="mb-4 text-4xl font-semibold text-slate-100 md:text-5xl">
-              Let AI coach your job search into a system that wins interviews.
+              Let AI run your job search like a coach — targeted, consistent, and measurable.
             </h1>
             <p className="mb-6 text-lg text-slate-300">
-              You bring the role, level, and constraints. We build the plan, cadence, and scripts a real coach would
-              hand you after week one — tailored to your exact time budget.
+              You bring the role, level, and constraints. We build the plan, cadence, scripts, and proof strategy
+              that moves hiring managers — tailored to your exact time budget.
             </p>
             <div className="flex flex-wrap gap-3">
               <Link
@@ -42,20 +42,44 @@ export default function JobSearchLanding() {
                 </div>
               ))}
             </div>
+            <div className="mt-10 grid gap-3 rounded-3xl border border-slate-700 bg-slate-900/70 p-6 text-sm text-slate-300">
+              <p className="text-xs uppercase tracking-wide text-slate-400">Trusted outcomes</p>
+              <div className="grid gap-3 md:grid-cols-3">
+                {[
+                  ["3 onsite loops", "in 4 weeks"],
+                  ["2x reply rate", "from targeted outreach"],
+                  ["Faster clarity", "on level + comp targets"],
+                ].map(([value, label]) => (
+                  <div key={value} className="rounded-2xl border border-slate-700 bg-slate-950/60 px-4 py-3">
+                    <p className="text-lg font-semibold text-slate-100">{value}</p>
+                    <p className="text-xs uppercase tracking-wide text-slate-400">{label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
           <Card className="card-shadow border-slate-700 bg-slate-900/70 text-slate-100">
-            <CardContent className="p-6">
-              <p className="tag mb-4">System snapshot</p>
-              <h2 className="mb-2 text-xl font-semibold text-slate-100">Your plan, in three layers</h2>
-              <ul className="mb-6 list-disc space-y-2 pl-5 text-sm text-slate-300">
-                <li>Coach read: how your role, scope, and timeline really map.</li>
-                <li>Cadence: weekly actions tied to your hours and urgency.</li>
-                <li>Scripts + proof: the exact messages and assets to ship.</li>
-              </ul>
+            <CardContent className="p-6 space-y-6">
+              <div>
+                <p className="tag mb-3">System snapshot</p>
+                <h2 className="mb-2 text-xl font-semibold text-slate-100">What you get, instantly</h2>
+                <ul className="list-disc space-y-2 pl-5 text-sm text-slate-300">
+                  <li>Coach read: how your role, scope, and timeline really map.</li>
+                  <li>Cadence: weekly actions tied to your hours and urgency.</li>
+                  <li>Scripts + proof: the exact messages and assets to ship.</li>
+                </ul>
+              </div>
               <div className="rounded-2xl bg-slate-950/70 px-5 py-4 text-slate-200">
                 <p className="text-xs uppercase tracking-wide text-slate-400">Example coach note</p>
                 <p className="mt-2 text-sm">
                   With a 30-day timeline and 5 hrs/week, you need high-signal intros before volume applications.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm text-slate-300">
+                <p className="text-xs uppercase tracking-wide text-slate-400">Why it works</p>
+                <p className="mt-2">
+                  We calibrate level, urgency, and constraints so your search is focused and sustainable — no wasted
+                  effort.
                 </p>
               </div>
             </CardContent>

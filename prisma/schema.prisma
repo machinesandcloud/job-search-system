@@ -39,6 +39,7 @@ model Lead {
   userAgent String?
   purchases Purchase[]
   companies LeadCompany[]
+  assets    LeadAsset[]
   events    Event[]
 }
 
@@ -76,6 +77,20 @@ model Purchase {
   status                  PurchaseStatus
   createdAt               DateTime       @default(now())
   lead                    Lead           @relation(fields: [leadId], references: [id], onDelete: Cascade)
+}
+
+model LeadAsset {
+  id        String   @id @default(cuid())
+  leadId    String
+  kind      String
+  filename  String
+  mimeType  String
+  size      Int
+  content   Bytes
+  createdAt DateTime @default(now())
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
 }
 
 model Event {

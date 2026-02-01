@@ -103,6 +103,12 @@ export function buildResults(answers: LeadAnswers): ResultsPayload {
   if (answers.blockerNote) {
     insights.push(`Coach note: "${answers.blockerNote}".`);
   }
+  if (!answers.resumeUploaded) {
+    insights.push("Resume not uploaded yet — upload it to get sharper, role-specific feedback.");
+  }
+  if (answers.linkedinUrl) {
+    insights.push("LinkedIn URL captured — we'll calibrate headline and proof positioning accordingly.");
+  }
 
   const checklist = [
     "Finalize role scope statement and success metrics.",

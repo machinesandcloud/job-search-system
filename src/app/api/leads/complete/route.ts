@@ -77,7 +77,7 @@ export async function POST(request: Request) {
       continue;
     }
     const logoUrl = company.domain
-      ? `https://logo.clearbit.com/${company.domain}`
+      ? `https://icons.duckduckgo.com/ip3/${encodeURIComponent(company.domain)}.ico`
       : `https://www.google.com/s2/favicons?domain=${encodeURIComponent(company.name)}&sz=128`;
     const created = await prisma.company.create({
       data: {

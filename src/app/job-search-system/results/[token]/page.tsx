@@ -196,6 +196,8 @@ export default async function ResultsPage({ params }: { params: { token: string 
                 <li><strong>Constraints:</strong> {answers.constraints?.length ? answers.constraints.join(", ") : "None"}</li>
                 <li><strong>Biggest blocker:</strong> {answers.biggestBlocker}</li>
                 <li><strong>Blocker note:</strong> {answers.blockerNote || "—"}</li>
+                <li><strong>LinkedIn:</strong> {answers.linkedinUrl || "—"}</li>
+                <li><strong>Resume uploaded:</strong> {answers.resumeUploaded ? "Yes" : "No"}</li>
               </ul>
             </CardContent>
           </Card>
@@ -210,7 +212,7 @@ export default async function ResultsPage({ params }: { params: { token: string 
                         src={
                           company.logoUrl ||
                           (company.domain
-                            ? `https://www.google.com/s2/favicons?domain=${encodeURIComponent(company.domain)}&sz=128`
+                            ? `https://icons.duckduckgo.com/ip3/${encodeURIComponent(company.domain)}.ico`
                             : `https://www.google.com/s2/favicons?domain=${encodeURIComponent(company.name)}&sz=128`)
                         }
                         alt=""

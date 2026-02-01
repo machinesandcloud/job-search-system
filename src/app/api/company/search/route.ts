@@ -5,14 +5,9 @@ import { companySeed } from "@/lib/company-data";
 
 const cache = new Map<string, { results: any[]; expiresAt: number }>();
 
-function getLogo(domain?: string | null) {
-  if (!domain) return null;
-  return `https://logo.clearbit.com/${domain}`;
-}
-
 function getFavicon(domain?: string | null) {
   if (!domain) return null;
-  return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128`;
+  return `https://icons.duckduckgo.com/ip3/${encodeURIComponent(domain)}.ico`;
 }
 
 export async function GET(request: Request) {
@@ -46,7 +41,7 @@ async function handleSearch(query: string) {
       results = data.slice(0, 8).map((item: any) => ({
         name: item.name,
         domain: item.domain,
-        logoUrl: item.logo || getLogo(item.domain),
+        logoUrl: getFavicon(item.domain) || item.logo || null,
         industry: item.category?.industry || null,
         size: item.metrics?.employees ? `${item.metrics.employees}+` : null,
       }));
@@ -65,16 +60,16 @@ async function handleSearch(query: string) {
         take: 8,
       });
       if (dbResults.length) {
-      results = dbResults.map((company) => ({
-        name: company.name,
-        domain: company.domain,
-        logoUrl: company.logoUrl || getLogo(company.domain) || getFavicon(company.domain),
-        industry: company.industry,
-        size: company.sizeRange,
-      }));
-    }
-  } catch {
-    results = [];
+        results = dbResults.map((company) => ({
+          name: company.name,
+          domain: company.domain,
+          logoUrl: company.logoUrl || getFavicon(company.domain),
+          industry: company.industry,
+          size: company.sizeRange,
+        }));
+      }
+    } catch {
+      results = [];
     }
   }
 
@@ -85,7 +80,7 @@ async function handleSearch(query: string) {
       .map((company) => ({
         name: company.name,
         domain: company.domain,
-        logoUrl: getFavicon(company.domain) || getLogo(company.domain),
+        logoUrl: getFavicon(company.domain),
         industry: company.industry,
         size: company.size,
       }));
