@@ -10,11 +10,11 @@ export default function JobSearchLanding() {
           <div>
             <Badge className="mb-4">AI Job Search System Builder</Badge>
             <h1 className="mb-4 text-4xl font-semibold text-slate-100 md:text-5xl">
-              Get a coach‑style job search plan that actually fits your life.
+              A job search system that feels like a real coach built it with you.
             </h1>
             <p className="mb-6 text-lg text-slate-300">
-              Tell us your role, timeline, and constraints. We’ll translate that into a step‑by‑step plan, weekly
-              cadence, scripts, and proof strategy — so you know exactly what to do next.
+              You tell me your role, timeline, and constraints. I’ll translate that into a clear plan, weekly cadence,
+              scripts, and proof strategy — so you know exactly what to do next.
             </p>
             <div className="flex flex-wrap gap-3">
               <Link
@@ -43,7 +43,7 @@ export default function JobSearchLanding() {
               ))}
             </div>
             <div className="mt-10 grid gap-3 rounded-3xl border border-slate-700 bg-slate-900/70 p-6 text-sm text-slate-300">
-              <p className="text-xs uppercase tracking-wide text-slate-400">Trusted outcomes</p>
+              <p className="text-xs uppercase tracking-wide text-slate-400">Recent outcomes (examples)</p>
               <div className="grid gap-3 md:grid-cols-3">
                 {[
                   ["3 onsite loops", "in 4 weeks"],
@@ -57,7 +57,7 @@ export default function JobSearchLanding() {
                 ))}
               </div>
               <div className="mt-4 overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/60 px-4 py-3">
-                <p className="mb-3 text-xs uppercase tracking-wide text-slate-400">Companies clients landed at</p>
+                <p className="mb-3 text-xs uppercase tracking-wide text-slate-400">Companies people landed at</p>
                 <div className="logo-marquee" aria-hidden="true">
                   {[
                     ["Google", "google.com"],
@@ -109,18 +109,36 @@ export default function JobSearchLanding() {
               <div className="rounded-2xl bg-slate-950/70 px-5 py-4 text-slate-200">
                 <p className="text-xs uppercase tracking-wide text-slate-400">Example coach note</p>
                 <p className="mt-2 text-sm">
-                  With a 30-day timeline and 5 hrs/week, you need high-signal intros before volume applications.
+                  With a 30‑day timeline and 5 hrs/week, you need warm intros + proof before volume applications.
                 </p>
               </div>
               <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm text-slate-300">
                 <p className="text-xs uppercase tracking-wide text-slate-400">Why it works</p>
                 <p className="mt-2">
-                  We calibrate level, urgency, and constraints so your search is focused and sustainable — no wasted
-                  effort.
+                  We translate your constraints into an execution plan that’s focused and sustainable — no wasted
+                  effort, no guesswork.
                 </p>
               </div>
             </CardContent>
           </Card>
+        </div>
+      </section>
+
+      <section className="section-shell py-10">
+        <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="rounded-3xl border border-slate-700 bg-slate-900/70 p-6 text-sm text-slate-300">
+            <p className="tag mb-3">Visual preview</p>
+            <h3 className="text-xl font-semibold text-slate-100">What the system looks like</h3>
+            <p className="mt-2">
+              You’ll see a coach summary, your 4‑week cadence, and the exact scripts we’d run for your role.
+            </p>
+            <ul className="mt-4 space-y-2">
+              <li>- Snapshot of your role positioning and scope.</li>
+              <li>- Weekly plan tied to your hours and timeline.</li>
+              <li>- Outreach scripts + proof asset prompts.</li>
+            </ul>
+          </div>
+          <div className="image-frame">Image placeholder: Coach system preview (nanobanana)</div>
         </div>
       </section>
 

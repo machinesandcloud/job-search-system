@@ -12,32 +12,7 @@ import { RoleSelect } from "@/components/role-select";
 import { CompanySelect, type CompanyOption } from "@/components/company-select";
 import { ScoreGauge } from "@/components/score-gauge";
 import type { LeadAnswers } from "@/lib/validation";
-
-const defaultAnswers: LeadAnswers = {
-  roles: [],
-  currentTitle: "",
-  experienceYears: "6-9",
-  leadershipScope: "IC",
-  level: "Senior",
-  compTarget: "140k-180k",
-  compensationPriority: "Balanced",
-  timeline: "30",
-  locationType: "Remote",
-  city: "",
-  targetIndustry: "B2B SaaS",
-  companyStage: "Growth",
-  hoursPerWeek: "5",
-  assets: { resume: "Draft", linkedin: "Draft", interview: "Some practice", portfolio: "Some" },
-  linkedinUrl: "",
-  resumeUploaded: false,
-  networkStrength: "Medium",
-  outreachComfort: "Medium",
-  companyTargets: [],
-  constraints: [],
-  biggestBlocker: "Clarity",
-  blockerNote: "",
-  pipeline: "Some",
-};
+import { defaultAnswers } from "@/lib/defaults";
 
 const steps = [
   "Target role",
@@ -68,6 +43,8 @@ export default function JobSearchWizard() {
   const [error, setError] = useState<string | null>(null);
   const [resumeStatus, setResumeStatus] = useState<"idle" | "uploading" | "uploaded" | "error">("idle");
   const [resumeError, setResumeError] = useState<string | null>(null);
+  const [coachPulse, setCoachPulse] = useState<string | null>(null);
+  const [pulseLoading, setPulseLoading] = useState(false);
 
   const progress = ((step + 1) / steps.length) * 100;
 
@@ -83,6 +60,37 @@ export default function JobSearchWizard() {
     };
     createLead();
   }, []);
+
+  useEffect(() => {
+    if (teaser) return;
+    const controller = new AbortController();
+    const fetchPulse = async () => {
+      setPulseLoading(true);
+      try {
+        const res = await fetch("/api/coach/pulse", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ answers, step: steps[step] }),
+          signal: controller.signal,
+        });
+        if (!res.ok) {
+          setCoachPulse(null);
+        } else {
+          const data = await res.json();
+          setCoachPulse(data.message || null);
+        }
+      } catch {
+        setCoachPulse(null);
+      } finally {
+        setPulseLoading(false);
+      }
+    };
+    const timer = setTimeout(fetchPulse, 600);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [answers, step, teaser]);
 
   const updateAnswers = (patch: Partial<LeadAnswers>) =>
     setAnswers((prev) => ({ ...prev, ...patch }));
@@ -225,7 +233,7 @@ export default function JobSearchWizard() {
             </div>
             <div className="mt-6 grid gap-4 rounded-3xl border border-slate-700 bg-slate-900/70 p-6 text-sm text-slate-300">
               <div>
-                <p className="text-xs uppercase tracking-wide text-slate-400">Why this is personal</p>
+                <p className="text-xs uppercase tracking-wide text-slate-400">What I’m optimizing for</p>
                 <ul className="mt-2 space-y-1">
                   <li>- Your role, level, and constraints drive the plan.</li>
                   <li>- Timeline + hours/week set your weekly cadence.</li>
@@ -252,7 +260,7 @@ export default function JobSearchWizard() {
                 </ul>
               </div>
               <div>
-                <p className="text-xs uppercase tracking-wide text-slate-400">Trust notes</p>
+                <p className="text-xs uppercase tracking-wide text-slate-400">Delivery details</p>
                 <ul className="mt-2 space-y-1">
                   <li>- No account required. Results delivered by link.</li>
                   <li>- Inputs are only used to build your plan.</li>
@@ -315,69 +323,70 @@ export default function JobSearchWizard() {
         Step {step + 1} of {steps.length}: {steps[step]}
       </p>
 
-      <div className="mt-8 rounded-3xl border border-slate-700 bg-slate-900/70 p-6 shadow-sm">
-        {step === 0 && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Target role(s)</h2>
-            <p className="text-sm text-slate-400">Be specific — we tailor scripts and proof strategy to this role.</p>
-            <RoleSelect value={answers.roles} onChange={(roles) => updateAnswers({ roles })} />
-          </div>
-        )}
-        {step === 1 && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Background snapshot</h2>
-            <p className="text-sm text-slate-400">This helps me calibrate scope and seniority.</p>
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="md:col-span-3">
-                <Label>Current title (optional)</Label>
-                <Input
-                  placeholder="e.g., Senior DevOps Engineer"
-                  value={answers.currentTitle || ""}
-                  onChange={(e) => updateAnswers({ currentTitle: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Years of experience</Label>
-                <Select
-                  value={answers.experienceYears}
-                  onChange={(e) => updateAnswers({ experienceYears: e.target.value as LeadAnswers["experienceYears"] })}
-                >
-                  {(["0-2", "3-5", "6-9", "10+"] as const).map((value) => (
-                    <option key={value} value={value}>
-                      {value} years
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              <div>
-                <Label>Leadership scope</Label>
-                <Select
-                  value={answers.leadershipScope}
-                  onChange={(e) => updateAnswers({ leadershipScope: e.target.value as LeadAnswers["leadershipScope"] })}
-                >
-                  {(["IC", "Lead", "Manager", "Director+"] as const).map((value) => (
-                    <option key={value} value={value}>
-                      {value === "IC" ? "Individual contributor" : value}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              <div>
-                <Label>Current pipeline</Label>
-                <Select
-                  value={answers.pipeline}
-                  onChange={(e) => updateAnswers({ pipeline: e.target.value as LeadAnswers["pipeline"] })}
-                >
-                  {(["None", "Some", "Active"] as const).map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </Select>
+      <div className="mt-8 grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="rounded-3xl border border-slate-700 bg-slate-900/70 p-6 shadow-sm">
+          {step === 0 && (
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">Target role(s)</h2>
+              <p className="text-sm text-slate-400">Be specific — I tailor scripts and proof strategy to this role.</p>
+              <RoleSelect value={answers.roles} onChange={(roles) => updateAnswers({ roles })} />
+            </div>
+          )}
+          {step === 1 && (
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">Background snapshot</h2>
+              <p className="text-sm text-slate-400">This helps me calibrate scope and seniority.</p>
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="md:col-span-3">
+                  <Label>Current title (optional)</Label>
+                  <Input
+                    placeholder="e.g., Senior DevOps Engineer"
+                    value={answers.currentTitle || ""}
+                    onChange={(e) => updateAnswers({ currentTitle: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label>Years of experience</Label>
+                  <Select
+                    value={answers.experienceYears}
+                    onChange={(e) => updateAnswers({ experienceYears: e.target.value as LeadAnswers["experienceYears"] })}
+                  >
+                    {(["0-2", "3-5", "6-9", "10+"] as const).map((value) => (
+                      <option key={value} value={value}>
+                        {value} years
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+                <div>
+                  <Label>Leadership scope</Label>
+                  <Select
+                    value={answers.leadershipScope}
+                    onChange={(e) => updateAnswers({ leadershipScope: e.target.value as LeadAnswers["leadershipScope"] })}
+                  >
+                    {(["IC", "Lead", "Manager", "Director+"] as const).map((value) => (
+                      <option key={value} value={value}>
+                        {value === "IC" ? "Individual contributor" : value}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+                <div>
+                  <Label>Current pipeline</Label>
+                  <Select
+                    value={answers.pipeline}
+                    onChange={(e) => updateAnswers({ pipeline: e.target.value as LeadAnswers["pipeline"] })}
+                  >
+                    {(["None", "Some", "Active"] as const).map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
         {step === 2 && (
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Level + compensation</h2>
@@ -718,6 +727,36 @@ export default function JobSearchWizard() {
             />
           </div>
         )}
+        </div>
+        <aside className="space-y-4">
+          <div className="rounded-3xl border border-slate-700 bg-slate-900/70 p-6">
+            <p className="tag mb-3">Coach pulse</p>
+            {pulseLoading && <p className="text-sm text-slate-400">Reading your inputs...</p>}
+            {!pulseLoading && coachPulse && (
+              <p className="text-sm text-slate-200">{coachPulse}</p>
+            )}
+            {!pulseLoading && !coachPulse && (
+              <p className="text-sm text-slate-400">
+                I’ll summarize what I’m hearing once you’ve filled a few prompts.
+              </p>
+            )}
+          </div>
+          <div className="rounded-3xl border border-slate-700 bg-slate-900/70 p-6 text-sm text-slate-300">
+            <p className="text-xs uppercase tracking-wide text-slate-400">What I’m building for you</p>
+            <ul className="mt-2 space-y-1">
+              <li>- Role positioning + scope statement.</li>
+              <li>- Weekly cadence tied to your hours + urgency.</li>
+              <li>- Outreach scripts + proof assets.</li>
+              <li>- Company shortlist and execution checklist.</li>
+            </ul>
+          </div>
+          <div className="rounded-3xl border border-slate-700 bg-slate-900/70 p-6 text-sm text-slate-300">
+            <p className="text-xs uppercase tracking-wide text-slate-400">How I translate your inputs</p>
+            <p className="mt-2">
+              I use your level, urgency, and constraints to set the cadence and decide where to go deep first — no filler.
+            </p>
+          </div>
+        </aside>
       </div>
 
       {error && <p className="mt-4 text-sm text-red-400">{error}</p>}

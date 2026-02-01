@@ -51,3 +51,43 @@ Biggest blocker: ${answers.biggestBlocker}${answers.blockerNote ? ` (${answers.b
     return null;
   }
 }
+
+export async function generateCoachPulse(answers: LeadAnswers, step?: string) {
+  if (!apiKey) return null;
+  const prompt = `You are a senior career coach. Write a short, conversational pulse (1-2 sentences) reacting to the user's inputs so far. Mention their role, timeline, and one priority. End with a gentle prompt for the current step: ${step || "next step"}. Keep it under 40 words.
+
+Inputs:
+Role(s): ${answers.roles.join(", ")}
+Level: ${answers.level}
+Timeline: ${answers.timeline}
+Hours/week: ${answers.hoursPerWeek}
+Constraints: ${(answers.constraints || []).join(", ") || "None"}
+Biggest blocker: ${answers.biggestBlocker}${answers.blockerNote ? ` (${answers.blockerNote})` : ""}
+`;
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.4,
+            maxOutputTokens: 120,
+          },
+        }),
+      }
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    const text = data?.candidates?.[0]?.content?.parts
+      ?.map((part: { text?: string }) => part.text || "")
+      .join("")
+      .trim();
+    return text ? text.slice(0, 220) : null;
+  } catch {
+    return null;
+  }
+}

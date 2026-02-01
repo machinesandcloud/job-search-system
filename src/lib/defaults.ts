@@ -1,0 +1,28 @@
+import type { LeadAnswers } from "@/lib/validation";
+
+export const defaultAnswers: LeadAnswers = {
+  roles: [],
+  currentTitle: "",
+  experienceYears: "6-9",
+  leadershipScope: "IC",
+  level: "Senior",
+  compTarget: "140k-180k",
+  compensationPriority: "Balanced",
+  timeline: "30",
+  locationType: "Remote",
+  city: "",
+  targetIndustry: "B2B SaaS",
+  companyStage: "Growth",
+  hoursPerWeek: "5",
+  assets: { resume: "Draft", linkedin: "Draft", interview: "Some practice", portfolio: "Some" },
+  linkedinUrl: "",
+  resumeUploaded: false,
+  networkStrength: "Medium",
+  outreachComfort: "Medium",
+  companyTargets: [],
+  constraints: [],
+  biggestBlocker: "Clarity",
+  blockerNote: "",
+  coachFeedback: "",
+  pipeline: "Some",
+};

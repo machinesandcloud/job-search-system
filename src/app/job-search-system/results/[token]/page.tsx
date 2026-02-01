@@ -52,7 +52,8 @@ export default async function ResultsPage({ params }: { params: { token: string 
           </div>
           <h1 className="mb-2 text-3xl font-semibold text-slate-100">Your Job Search System</h1>
           <p className="mb-6 text-slate-300">
-            Based on your timeline and time budget, here's the plan that will actually work.
+            Here’s the plan I’d run with you based on your timeline, constraints, and available hours. It’s focused,
+            realistic, and built to generate traction fast.
           </p>
           <div className="mb-6 rounded-2xl border border-slate-700 bg-slate-900/70 p-4 text-sm text-slate-300">
             <span className="font-semibold text-slate-100">Recommended route:</span> {results.route.replace("_", " ")}
