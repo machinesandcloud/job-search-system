@@ -5,7 +5,7 @@ const model = process.env.GEMINI_MODEL || "gemini-2.0-flash";
 
 export async function generateCoachFeedback(answers: LeadAnswers) {
   if (!apiKey) return null;
-  const prompt = `You are a senior career coach. Write a concise, specific, encouraging coach note (3-5 sentences) based on the user's inputs. Use direct "you" language, mention their role, timeline, hours/week, and one constraint or blocker if present. End with a clear first focus area. Keep it under 120 words.
+  const prompt = `You are a senior career coach. Write a concise, specific, encouraging coach note (4-6 sentences) based on the user's inputs. Use direct "you" language, mention their role, timeline, hours/week, and one constraint or blocker if present. Include a one‑sentence overview of the plan (week 1 focus). End with a clear first focus area. Keep it under 140 words.
 
 Inputs:
 Role(s): ${answers.roles.join(", ")}

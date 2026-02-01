@@ -110,6 +110,7 @@ export async function POST(request: Request) {
       subscores: results.subscores,
       coachRead: results.coachRead,
       coachFeedback: results.coachFeedback,
+      planOverview: results.planOverview,
       positioningSummary: results.positioningSummary,
       insights: results.insights,
       cadencePreview: results.cadence[0]?.actions[0],

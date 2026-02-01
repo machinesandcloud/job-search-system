@@ -103,6 +103,18 @@ export default async function ResultsPage({ params }: { params: { token: string 
                 <p className="text-sm text-slate-300">{results.positioningSummary}</p>
               </CardContent>
             </Card>
+            {results.planOverview?.length > 0 && (
+              <Card>
+                <CardContent className="p-6">
+                  <p className="tag mb-3">Plan overview</p>
+                  <ul className="space-y-2 text-sm text-slate-300">
+                    {results.planOverview.map((item) => (
+                      <li key={item}>- {item}</li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
             <Card>
               <CardContent className="p-6">
                 <p className="tag mb-3">Insights</p>

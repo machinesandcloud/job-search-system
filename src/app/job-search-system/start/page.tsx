@@ -171,7 +171,8 @@ export default function JobSearchWizard() {
           <div>
             <h1 className="mb-3 text-3xl font-semibold text-slate-100">Your quick preview</h1>
             <p className="text-slate-300">
-              Here&apos;s my initial coach read based on your inputs. Enter your email to unlock the full plan + scripts.
+              Based on what you shared, here’s the high‑level plan I’d build for you. It’s short, specific, and tuned
+              to your timeline — just a preview of the full system.
             </p>
             <div className="mt-6 rounded-3xl border border-slate-700 bg-slate-900/70 p-6">
               <ScoreGauge score={teaser.score} />
@@ -231,6 +232,16 @@ export default function JobSearchWizard() {
                   <li>- Industry + company stage shape the proof strategy.</li>
                 </ul>
               </div>
+              {Array.isArray(teaser.planOverview) && teaser.planOverview.length > 0 && (
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Plan overview</p>
+                  <ul className="mt-2 space-y-1">
+                    {teaser.planOverview.map((item: string) => (
+                      <li key={item}>- {item}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               <div>
                 <p className="text-xs uppercase tracking-wide text-slate-400">What you unlock</p>
                 <ul className="mt-2 space-y-1">

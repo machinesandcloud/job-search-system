@@ -19,6 +19,7 @@ export type ResultsPayload = {
   route: "DIY" | "GUIDED" | "FAST_TRACK";
   coachRead: string;
   coachFeedback?: string;
+  planOverview: string[];
   positioningSummary: string;
   insights: string[];
   cadence: WeeklyCadence[];
@@ -124,14 +125,22 @@ export function buildResults(answers: LeadAnswers): ResultsPayload {
 
   const coachFeedback =
     answers.coachFeedback ||
-    `You’re in a ${answers.timeline === "ASAP" ? "fast" : "focused"} search window. The fastest wins will come from tightening your ${role} narrative, shipping proof tied to ${answers.targetIndustry}, and running a weekly outreach rhythm that matches your ${hours} hrs/week budget.`;
+    `I hear you: you want ${answers.level} ${role} roles on a ${timelineLabel} timeline, with ${hours} hrs/week to work with. That means we’ll keep the plan tight, high-signal, and realistic — no busywork. We’ll sharpen your positioning first, then move into targeted outreach and proof that matches ${answers.targetIndustry} teams. Your first wins will come from clarity + consistent outreach, not volume applications.`;
+
+  const planOverview = [
+    `Week 1: lock positioning, target list, and headline (resume + LinkedIn).`,
+    `Week 2: launch outreach cadence and secure warm intros.`,
+    `Week 3: build proof assets and rehearse interviews.`,
+    `Week 4+: push interviews and prep for negotiation.`,
+  ];
 
   return {
     score,
     subscores,
     route,
-    coachRead: `You're targeting ${answers.level} ${role} roles with ${answers.experienceYears} years of experience and ${leadershipLabel}. We'll run a ${timelineLabel} plan built to your ${hours} hrs/week reality.`,
+    coachRead: `You’re targeting ${answers.level} ${role} roles with ${answers.experienceYears} years of experience and ${leadershipLabel}. I’m going to build a ${timelineLabel} plan that fits your ${hours} hrs/week reality and focuses on high‑signal progress.`,
     coachFeedback,
+    planOverview,
     positioningSummary: `${answers.currentTitle ? `${answers.currentTitle} → ` : ""}${answers.level} ${role} | ${answers.targetIndustry} | ${answers.companyStage} | ${answers.compensationPriority} comp priority | ${answers.leadershipScope} scope`,
     insights,
     cadence,

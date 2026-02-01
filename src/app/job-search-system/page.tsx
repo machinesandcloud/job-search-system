@@ -10,11 +10,11 @@ export default function JobSearchLanding() {
           <div>
             <Badge className="mb-4">AI Job Search System Builder</Badge>
             <h1 className="mb-4 text-4xl font-semibold text-slate-100 md:text-5xl">
-              Let AI handle your job search like a focused coach would.
+              Get a coach‑style job search plan that actually fits your life.
             </h1>
             <p className="mb-6 text-lg text-slate-300">
-              In 10 minutes, get a personalized system: positioning, weekly cadence, outreach scripts, and proof
-              strategy tuned to your role, timeline, and real-life constraints.
+              Tell us your role, timeline, and constraints. We’ll translate that into a step‑by‑step plan, weekly
+              cadence, scripts, and proof strategy — so you know exactly what to do next.
             </p>
             <div className="flex flex-wrap gap-3">
               <Link
@@ -55,6 +55,42 @@ export default function JobSearchLanding() {
                     <p className="text-xs uppercase tracking-wide text-slate-400">{label}</p>
                   </div>
                 ))}
+              </div>
+              <div className="mt-4 overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/60 px-4 py-3">
+                <p className="mb-3 text-xs uppercase tracking-wide text-slate-400">Companies clients landed at</p>
+                <div className="logo-marquee" aria-hidden="true">
+                  {[
+                    ["Google", "google.com"],
+                    ["Amazon", "amazon.com"],
+                    ["Microsoft", "microsoft.com"],
+                    ["Meta", "meta.com"],
+                    ["Apple", "apple.com"],
+                    ["Netflix", "netflix.com"],
+                    ["Stripe", "stripe.com"],
+                    ["Shopify", "shopify.com"],
+                    ["Salesforce", "salesforce.com"],
+                    ["Datadog", "datadoghq.com"],
+                    ["Cloudflare", "cloudflare.com"],
+                    ["Snowflake", "snowflake.com"],
+                    ["Google", "google.com"],
+                    ["Amazon", "amazon.com"],
+                    ["Microsoft", "microsoft.com"],
+                    ["Meta", "meta.com"],
+                    ["Apple", "apple.com"],
+                    ["Netflix", "netflix.com"],
+                    ["Stripe", "stripe.com"],
+                    ["Shopify", "shopify.com"],
+                    ["Salesforce", "salesforce.com"],
+                    ["Datadog", "datadoghq.com"],
+                    ["Cloudflare", "cloudflare.com"],
+                    ["Snowflake", "snowflake.com"],
+                  ].map(([name, domain], index) => (
+                    <div key={`${name}-${index}`} className="logo-pill">
+                      <span className="text-xs font-semibold text-slate-200">{name}</span>
+                      <span className="text-[10px] text-slate-500">{domain}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -162,6 +198,37 @@ export default function JobSearchLanding() {
               </ul>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="section-shell py-12">
+        <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+          <Card className="card-shadow border-slate-700 bg-slate-900/70">
+            <CardContent className="p-6">
+              <p className="tag mb-3">About your coach</p>
+              <h3 className="text-xl font-semibold text-slate-100">Coaching + recruiting + agentic AI</h3>
+              <p className="mt-2 text-sm text-slate-300">
+                I’ve coached candidates through high‑stakes transitions, partnered with recruiters on role clarity,
+                and built AI systems that turn messy search inputs into clean execution plans.
+              </p>
+              <ul className="mt-4 space-y-2 text-sm text-slate-300">
+                <li>- Experience aligning role narratives with hiring managers.</li>
+                <li>- Focus on signal, not volume.</li>
+                <li>- Systems built to be realistic and repeatable.</li>
+              </ul>
+            </CardContent>
+          </Card>
+          <Card className="card-shadow border-slate-700 bg-slate-900/70">
+            <CardContent className="p-6">
+              <p className="tag mb-3">What this fixes</p>
+              <ul className="space-y-2 text-sm text-slate-300">
+                <li>- “I’m applying everywhere but getting no traction.”</li>
+                <li>- “I’m not sure which roles match my level.”</li>
+                <li>- “My resume and LinkedIn don’t reflect my impact.”</li>
+                <li>- “I don’t have a weekly plan I can stick to.”</li>
+              </ul>
+            </CardContent>
+          </Card>
         </div>
       </section>
 
