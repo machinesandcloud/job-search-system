@@ -12,6 +12,7 @@ import { ScoreGauge } from "@/components/score-gauge";
 import { UpgradeButton } from "@/components/upgrade-button";
 import { ProPackActions } from "@/components/pro-pack-actions";
 import { ResultsViewLogger } from "@/components/results-view-logger";
+import { CompanyLogo } from "@/components/company-logo";
 
 export default async function ResultsPage({ params }: { params: { token: string } }) {
   const lead = await prisma.lead.findUnique({
@@ -29,16 +30,14 @@ export default async function ResultsPage({ params }: { params: { token: string 
   const proPack = buildProPack(answers);
 
   const proEligible = results.score >= 70 && (answers.timeline === "ASAP" || answers.timeline === "30");
-  const initialsSvg = (name: string) =>
-    `data:image/svg+xml;utf8,${encodeURIComponent(
-      `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="100%" height="100%" rx="32" ry="32" fill="#0f172a"/><text x="50%" y="52%" text-anchor="middle" dominant-baseline="middle" font-family="Arial, sans-serif" font-size="22" fill="#e2e8f0">${name
-        .split(" ")
-        .slice(0, 2)
-        .map((part) => part[0])
-        .join("")
-        .toUpperCase()}</text></svg>`
-    )}`;
-
+  const timelineLabel =
+    answers.timeline === "ASAP"
+      ? "ASAP (0-14 days)"
+      : answers.timeline === "30"
+      ? "30 days"
+      : answers.timeline === "60"
+      ? "60 days"
+      : "90+ days";
   return (
     <main className="section-shell pb-20 pt-12">
       <ResultsViewLogger leadId={lead.id} />
@@ -94,6 +93,12 @@ export default async function ResultsPage({ params }: { params: { token: string 
               <CardContent className="p-6">
                 <p className="tag mb-3">Coach read</p>
                 <p className="text-sm text-slate-300">{results.coachRead}</p>
+                {results.coachFeedback && (
+                  <>
+                    <p className="mt-4 text-xs uppercase tracking-wide text-slate-400">Coach feedback</p>
+                    <p className="text-sm text-slate-300">{results.coachFeedback}</p>
+                  </>
+                )}
                 <p className="mt-3 text-xs uppercase tracking-wide text-slate-400">Positioning</p>
                 <p className="text-sm text-slate-300">{results.positioningSummary}</p>
               </CardContent>
@@ -188,7 +193,7 @@ export default async function ResultsPage({ params }: { params: { token: string 
                 <li><strong>Level:</strong> {answers.level}</li>
                 <li><strong>Comp target:</strong> {answers.compTarget}</li>
                 <li><strong>Comp priority:</strong> {answers.compensationPriority}</li>
-                <li><strong>Timeline:</strong> {answers.timeline}</li>
+                <li><strong>Timeline:</strong> {timelineLabel}</li>
                 <li><strong>Location:</strong> {answers.locationType}{answers.city ? ` - ${answers.city}` : ""}</li>
                 <li><strong>Industry:</strong> {answers.targetIndustry}</li>
                 <li><strong>Company stage:</strong> {answers.companyStage}</li>
@@ -208,21 +213,12 @@ export default async function ResultsPage({ params }: { params: { token: string 
                 {companies.length > 0 ? (
                   companies.map((company) => (
                     <div key={company.id} className="flex items-center gap-3">
-                      <img
-                        src={
-                          company.logoUrl ||
-                          (company.domain
-                            ? `https://icons.duckduckgo.com/ip3/${encodeURIComponent(company.domain)}.ico`
-                            : `https://www.google.com/s2/favicons?domain=${encodeURIComponent(company.name)}&sz=128`)
-                        }
-                        alt=""
-                        className="h-10 w-10 rounded-full border border-slate-700 bg-white"
-                        referrerPolicy="no-referrer"
-                        loading="lazy"
-                        onError={(event) => {
-                          const target = event.currentTarget as HTMLImageElement;
-                          target.src = initialsSvg(company.name);
-                        }}
+                      <CompanyLogo
+                        name={company.name}
+                        domain={company.domain}
+                        logoUrl={company.logoUrl}
+                        size={40}
+                        className="h-10 w-10 rounded-full border border-slate-700 bg-slate-950"
                       />
                       <div>
                         <p className="text-sm font-semibold text-slate-100">{company.name}</p>
@@ -236,6 +232,9 @@ export default async function ResultsPage({ params }: { params: { token: string 
                   <p className="text-sm text-slate-400">No companies selected yet.</p>
                 )}
               </div>
+              {process.env.NEXT_PUBLIC_LOGO_DEV_PUBLISHABLE_KEY && (
+                <p className="mt-3 text-xs text-slate-500">Logos provided by Logo.dev</p>
+              )}
             </CardContent>
           </Card>
 

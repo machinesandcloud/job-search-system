@@ -171,7 +171,7 @@ export default function JobSearchWizard() {
           <div>
             <h1 className="mb-3 text-3xl font-semibold text-slate-100">Your quick preview</h1>
             <p className="text-slate-300">
-              Here&apos;s the immediate read based on your inputs. Enter your email to unlock the full plan + scripts.
+              Here&apos;s my initial coach read based on your inputs. Enter your email to unlock the full plan + scripts.
             </p>
             <div className="mt-6 rounded-3xl border border-slate-700 bg-slate-900/70 p-6">
               <ScoreGauge score={teaser.score} />
@@ -180,6 +180,12 @@ export default function JobSearchWizard() {
                   <p className="text-xs uppercase tracking-wide text-slate-400">Coach read</p>
                   <p className="mt-1">{teaser.coachRead}</p>
                 </div>
+                {teaser.coachFeedback && (
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-slate-400">Coach feedback</p>
+                    <p className="mt-1">{teaser.coachFeedback}</p>
+                  </div>
+                )}
                 <div>
                   <p className="text-xs uppercase tracking-wide text-slate-400">Positioning</p>
                   <p className="mt-1">{teaser.positioningSummary}</p>
@@ -207,15 +213,31 @@ export default function JobSearchWizard() {
               <div className="mt-4 rounded-2xl bg-slate-950/70 p-4 text-sm">
                 <p className="font-semibold text-slate-100">Cadence preview</p>
                 <p className="text-slate-300">Week 1: {teaser.cadencePreview}</p>
+                {Array.isArray(teaser.previewActions) && teaser.previewActions.length > 0 && (
+                  <ul className="mt-2 space-y-1 text-slate-300">
+                    {teaser.previewActions.map((action: string) => (
+                      <li key={action}>- {action}</li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </div>
             <div className="mt-6 grid gap-4 rounded-3xl border border-slate-700 bg-slate-900/70 p-6 text-sm text-slate-300">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-slate-400">Why this is personal</p>
+                <ul className="mt-2 space-y-1">
+                  <li>- Your role, level, and constraints drive the plan.</li>
+                  <li>- Timeline + hours/week set your weekly cadence.</li>
+                  <li>- Industry + company stage shape the proof strategy.</li>
+                </ul>
+              </div>
               <div>
                 <p className="text-xs uppercase tracking-wide text-slate-400">What you unlock</p>
                 <ul className="mt-2 space-y-1">
                   <li>- Full weekly cadence mapped to your hours and urgency.</li>
                   <li>- Role-specific scripts + follow-up sequence.</li>
                   <li>- 14-day execution checklist and proof strategy.</li>
+                  <li>- Company shortlist and ATS keyword map.</li>
                 </ul>
               </div>
               <div>
@@ -223,7 +245,6 @@ export default function JobSearchWizard() {
                 <ul className="mt-2 space-y-1">
                   <li>- No account required. Results delivered by link.</li>
                   <li>- Inputs are only used to build your plan.</li>
-                  <li>- Built for high-signal, targeted searches.</li>
                   <li>- Resume + LinkedIn inputs sharpen the coach feedback.</li>
                 </ul>
               </div>
@@ -253,6 +274,14 @@ export default function JobSearchWizard() {
               </div>
             )}
             {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
+            <div className="mt-6 rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm text-slate-300">
+              <p className="text-xs uppercase tracking-wide text-slate-400">What happens next</p>
+              <ul className="mt-2 space-y-1">
+                <li>- Full report link delivered instantly.</li>
+                <li>- Weekly plan mapped to your hours + urgency.</li>
+                <li>- Role-specific scripts and proof strategy.</li>
+              </ul>
+            </div>
           </div>
         </div>
       </main>
@@ -264,7 +293,7 @@ export default function JobSearchWizard() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-semibold text-slate-100">Build your Job Search System</h1>
-          <p className="text-slate-300">Coach-style prompts, then your personalized plan.</p>
+          <p className="text-slate-300">Coach-style prompts, then a system tailored to you.</p>
         </div>
         <Link href="/job-search-system" className="text-sm text-slate-400">
           Exit
@@ -534,7 +563,7 @@ export default function JobSearchWizard() {
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <Label>LinkedIn profile URL (optional)</Label>
+                <Label>LinkedIn profile URL (recommended)</Label>
                 <Input
                   placeholder="https://www.linkedin.com/in/yourname"
                   value={answers.linkedinUrl || ""}
@@ -621,12 +650,15 @@ export default function JobSearchWizard() {
                   <label
                     key={constraint}
                     className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm ${
-                      checked ? "border-emerald-300/60 bg-emerald-500/10 text-emerald-100" : "border-slate-700 bg-slate-950/60 text-slate-200"
+                      checked
+                        ? "border-emerald-300/60 bg-emerald-500/15 text-emerald-100"
+                        : "border-slate-600 bg-slate-900/60 text-slate-100"
                     }`}
                   >
                     <input
                       type="checkbox"
                       checked={checked}
+                      className="h-4 w-4 accent-emerald-400"
                       onChange={(e) => {
                         if (e.target.checked) {
                           updateAnswers({ constraints: [...answers.constraints, constraint] });

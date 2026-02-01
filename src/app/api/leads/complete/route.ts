@@ -4,8 +4,10 @@ import { Prisma } from "@prisma/client";
 import { leadCompleteSchema, sanitizeAnswers } from "@/lib/validation";
 import { computeScore } from "@/lib/scoring";
 import { buildResults } from "@/lib/results";
+import { generateCoachFeedback } from "@/lib/coach-ai";
 import { generateToken, getClientIp, hashIp, ensureSameOrigin } from "@/lib/utils";
 import { logEvent } from "@/lib/events";
+import { buildLogoCandidates } from "@/lib/logo";
 
 export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) {
@@ -34,7 +36,9 @@ export async function POST(request: Request) {
   }
 
   const { answers, leadId } = parsed.data;
-  const answersJson = JSON.parse(JSON.stringify(answers)) as Prisma.InputJsonValue;
+  const coachFeedback = await generateCoachFeedback(answers);
+  const answersWithFeedback = coachFeedback ? { ...answers, coachFeedback } : answers;
+  const answersJson = JSON.parse(JSON.stringify(answersWithFeedback)) as Prisma.InputJsonValue;
   const { score, subscores, route } = computeScore(answers);
 
   const ipHash = hashIp(getClientIp(request));
@@ -76,9 +80,8 @@ export async function POST(request: Request) {
       companyIds.push(existing.id);
       continue;
     }
-    const logoUrl = company.domain
-      ? `https://icons.duckduckgo.com/ip3/${encodeURIComponent(company.domain)}.ico`
-      : `https://www.google.com/s2/favicons?domain=${encodeURIComponent(company.name)}&sz=128`;
+    const logoUrl = buildLogoCandidates(company.domain, company.name)[0] ||
+      `https://www.google.com/s2/favicons?domain=${encodeURIComponent(company.name)}&sz=128`;
     const created = await prisma.company.create({
       data: {
         name: company.name,
@@ -99,16 +102,18 @@ export async function POST(request: Request) {
   }
 
   await logEvent("wizard_completed", { score, route }, lead.id);
-  const results = buildResults(answers);
+  const results = buildResults(answersWithFeedback);
   return NextResponse.json({
     token: lead.token,
     teaser: {
       score: results.score,
       subscores: results.subscores,
       coachRead: results.coachRead,
+      coachFeedback: results.coachFeedback,
       positioningSummary: results.positioningSummary,
       insights: results.insights,
       cadencePreview: results.cadence[0]?.actions[0],
+      previewActions: results.previewActions,
     },
   });
 }

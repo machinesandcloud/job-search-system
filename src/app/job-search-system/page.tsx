@@ -10,11 +10,11 @@ export default function JobSearchLanding() {
           <div>
             <Badge className="mb-4">AI Job Search System Builder</Badge>
             <h1 className="mb-4 text-4xl font-semibold text-slate-100 md:text-5xl">
-              Let AI run your job search like a coach — targeted, consistent, and measurable.
+              Let AI handle your job search like a focused coach would.
             </h1>
             <p className="mb-6 text-lg text-slate-300">
-              You bring the role, level, and constraints. We build the plan, cadence, scripts, and proof strategy
-              that moves hiring managers — tailored to your exact time budget.
+              In 10 minutes, get a personalized system: positioning, weekly cadence, outreach scripts, and proof
+              strategy tuned to your role, timeline, and real-life constraints.
             </p>
             <div className="flex flex-wrap gap-3">
               <Link
@@ -33,8 +33,8 @@ export default function JobSearchLanding() {
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
               {[
                 ["10 minutes", "to finish"],
-                ["Coach read", "role + timeline calibration"],
-                ["No account", "results delivered by link"],
+                ["Coach read", "tailored to your inputs"],
+                ["Resume + LinkedIn", "optional upload for sharper feedback"],
               ].map(([value, label]) => (
                 <div key={value} className="rounded-2xl border border-slate-700 bg-slate-900/60 px-4 py-3">
                   <p className="text-lg font-semibold text-slate-100">{value}</p>
@@ -64,9 +64,10 @@ export default function JobSearchLanding() {
                 <p className="tag mb-3">System snapshot</p>
                 <h2 className="mb-2 text-xl font-semibold text-slate-100">What you get, instantly</h2>
                 <ul className="list-disc space-y-2 pl-5 text-sm text-slate-300">
-                  <li>Coach read: how your role, scope, and timeline really map.</li>
+                  <li>Coach read: how your role, scope, and timeline map.</li>
                   <li>Cadence: weekly actions tied to your hours and urgency.</li>
                   <li>Scripts + proof: the exact messages and assets to ship.</li>
+                  <li>Company targets + ATS keywords tied to your role.</li>
                 </ul>
               </div>
               <div className="rounded-2xl bg-slate-950/70 px-5 py-4 text-slate-200">
@@ -111,6 +112,56 @@ export default function JobSearchLanding() {
               </CardContent>
             </Card>
           ))}
+        </div>
+      </section>
+
+      <section className="section-shell py-12">
+        <div className="rounded-3xl border border-slate-700 bg-slate-900/70 p-8">
+          <p className="tag mb-4">Program-style timeline</p>
+          <h2 className="text-2xl font-semibold text-slate-100">Your 5-week career plan (example)</h2>
+          <p className="mt-2 text-sm text-slate-300">
+            Inspired by our coaching program cadence — adapted to your role, level, and hours/week.
+          </p>
+          <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {[
+              ["Week 1", "Targeting & job search strategy", ["Define role + comp guardrails", "Build smart company list", "Set outreach cadence"]],
+              ["Week 2", "Resume strategy that wins interviews", ["Refine bullets + impact", "Align ATS keywords", "Polish formatting"]],
+              ["Week 3", "LinkedIn that gets you noticed", ["Upgrade headline + summary", "Add proof assets", "Craft connection scripts"]],
+              ["Week 4", "Interview & negotiation strategy", ["Practice stories + pitch", "Mock interview drill", "Negotiation prep"]],
+              ["Week 5", "Final review + mock interview", ["Plan review + next steps", "Mock interview session", "Execution handoff"]],
+            ].map(([week, title, items]) => (
+              <div key={week as string} className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4">
+                <p className="text-xs uppercase tracking-wide text-slate-400">{week}</p>
+                <p className="mt-1 text-sm font-semibold text-slate-100">{title}</p>
+                <ul className="mt-2 space-y-1 text-xs text-slate-300">
+                  {(items as string[]).map((item) => (
+                    <li key={item}>- {item}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <div className="mt-8 grid gap-6 lg:grid-cols-2">
+            <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-5">
+              <p className="text-xs uppercase tracking-wide text-slate-400">What you'll walk away with</p>
+              <ul className="mt-3 space-y-2 text-sm text-slate-300">
+                <li>- Positioning statement tailored to your target role.</li>
+                <li>- Resume + LinkedIn upgrades that signal seniority.</li>
+                <li>- Outreach scripts + follow-up cadence.</li>
+                <li>- A job search plan you can follow step-by-step.</li>
+                <li>- Interview + negotiation prep checklist.</li>
+              </ul>
+            </div>
+            <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-5">
+              <p className="text-xs uppercase tracking-wide text-slate-400">Program support included</p>
+              <ul className="mt-3 space-y-2 text-sm text-slate-300">
+                <li>- Weekly accountability checkpoints.</li>
+                <li>- Targeted networking event recommendations.</li>
+                <li>- Proof assets to improve recruiter response.</li>
+                <li>- Interview drills and post-interview debriefs.</li>
+              </ul>
+            </div>
+          </div>
         </div>
       </section>
 

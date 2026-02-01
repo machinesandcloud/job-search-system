@@ -18,10 +18,12 @@ export type ResultsPayload = {
   };
   route: "DIY" | "GUIDED" | "FAST_TRACK";
   coachRead: string;
+  coachFeedback?: string;
   positioningSummary: string;
   insights: string[];
   cadence: WeeklyCadence[];
   checklist: string[];
+  previewActions: string[];
   scripts: {
     referral: string;
     recruiter: string;
@@ -120,15 +122,21 @@ export function buildResults(answers: LeadAnswers): ResultsPayload {
     "Create offer strategy and decision checklist.",
   ];
 
+  const coachFeedback =
+    answers.coachFeedback ||
+    `You’re in a ${answers.timeline === "ASAP" ? "fast" : "focused"} search window. The fastest wins will come from tightening your ${role} narrative, shipping proof tied to ${answers.targetIndustry}, and running a weekly outreach rhythm that matches your ${hours} hrs/week budget.`;
+
   return {
     score,
     subscores,
     route,
     coachRead: `You're targeting ${answers.level} ${role} roles with ${answers.experienceYears} years of experience and ${leadershipLabel}. We'll run a ${timelineLabel} plan built to your ${hours} hrs/week reality.`,
+    coachFeedback,
     positioningSummary: `${answers.currentTitle ? `${answers.currentTitle} → ` : ""}${answers.level} ${role} | ${answers.targetIndustry} | ${answers.companyStage} | ${answers.compensationPriority} comp priority | ${answers.leadershipScope} scope`,
     insights,
     cadence,
     checklist,
+    previewActions: cadence[0]?.actions.slice(0, 3) || [],
     scripts: profile.scripts,
     proofStrategy: profile.proofStrategy,
     interviewFocus: profile.interviewTopics,

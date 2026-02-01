@@ -2,12 +2,12 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { companySearchSchema } from "@/lib/validation";
 import { companySeed } from "@/lib/company-data";
+import { buildLogoCandidates } from "@/lib/logo";
 
 const cache = new Map<string, { results: any[]; expiresAt: number }>();
 
-function getFavicon(domain?: string | null) {
-  if (!domain) return null;
-  return `https://icons.duckduckgo.com/ip3/${encodeURIComponent(domain)}.ico`;
+function getLogo(domain?: string | null, name?: string | null, logoUrl?: string | null) {
+  return buildLogoCandidates(domain, name, logoUrl)[0] || null;
 }
 
 export async function GET(request: Request) {
@@ -41,7 +41,7 @@ async function handleSearch(query: string) {
       results = data.slice(0, 8).map((item: any) => ({
         name: item.name,
         domain: item.domain,
-        logoUrl: getFavicon(item.domain) || item.logo || null,
+        logoUrl: getLogo(item.domain, item.name, item.logo) || item.logo || null,
         industry: item.category?.industry || null,
         size: item.metrics?.employees ? `${item.metrics.employees}+` : null,
       }));
@@ -63,7 +63,7 @@ async function handleSearch(query: string) {
         results = dbResults.map((company) => ({
           name: company.name,
           domain: company.domain,
-          logoUrl: company.logoUrl || getFavicon(company.domain),
+          logoUrl: company.logoUrl || getLogo(company.domain, company.name),
           industry: company.industry,
           size: company.sizeRange,
         }));
@@ -80,7 +80,7 @@ async function handleSearch(query: string) {
       .map((company) => ({
         name: company.name,
         domain: company.domain,
-        logoUrl: getFavicon(company.domain),
+        logoUrl: getLogo(company.domain, company.name),
         industry: company.industry,
         size: company.size,
       }));

@@ -74,6 +74,7 @@ export const leadAnswersSchema = z.object({
     "Positioning",
   ]),
   blockerNote: z.string().max(240).optional().nullable(),
+  coachFeedback: z.string().max(1200).optional().nullable(),
   pipeline: z.enum(["None", "Some", "Active"]),
 });
 
@@ -121,6 +122,9 @@ export function sanitizeAnswers(input: any) {
   }
   if (typeof copy.blockerNote === "string" && copy.blockerNote.trim() === "") {
     copy.blockerNote = null;
+  }
+  if (typeof copy.coachFeedback === "string" && copy.coachFeedback.trim() === "") {
+    copy.coachFeedback = null;
   }
   if (typeof copy.linkedinUrl === "string" && copy.linkedinUrl.trim() === "") {
     copy.linkedinUrl = null;

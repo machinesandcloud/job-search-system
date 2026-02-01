@@ -37,8 +37,9 @@ export function RoleSelect({
           }
         }}
       />
+      <p className="text-xs text-slate-400">Browse {roleOptions.length}+ roles or add a custom role.</p>
       <div className="flex flex-wrap gap-2">
-        {filtered.slice(0, 12).map((role) => (
+        {filtered.slice(0, 24).map((role) => (
           <button
             key={role}
             type="button"
@@ -58,6 +59,9 @@ export function RoleSelect({
           </button>
         )}
       </div>
+      {filtered.length > 24 && (
+        <p className="text-xs text-slate-400">Showing 24 of {filtered.length} matching roles.</p>
+      )}
       {value.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {value.map((role) => (
