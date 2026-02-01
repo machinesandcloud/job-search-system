@@ -17,6 +17,8 @@ export type ResultsPayload = {
     execution: number;
   };
   route: "DIY" | "GUIDED" | "FAST_TRACK";
+  coachRead: string;
+  positioningSummary: string;
   insights: string[];
   cadence: WeeklyCadence[];
   checklist: string[];
@@ -39,6 +41,16 @@ export function buildResults(answers: LeadAnswers): ResultsPayload {
   const profile = getRoleProfile(role);
   const weeks = timelineWeeks(answers.timeline);
   const hours = hoursNumber(answers.hoursPerWeek);
+  const timelineLabel =
+    answers.timeline === "ASAP"
+      ? "next 2-4 weeks"
+      : answers.timeline === "30"
+      ? "next 30 days"
+      : answers.timeline === "60"
+      ? "next 60 days"
+      : "next 90+ days";
+  const leadershipLabel =
+    answers.leadershipScope === "IC" ? "IC scope" : `${answers.leadershipScope.toLowerCase()} scope`;
 
   const cadence: WeeklyCadence[] = [
     {
@@ -80,10 +92,17 @@ export function buildResults(answers: LeadAnswers): ResultsPayload {
   ];
 
   const insights = [
-    `Based on your ${answers.timeline} timeline and ${hours} hrs/week, prioritize high-signal outreach before volume applications.`,
+    `Based on your ${timelineLabel} and ${hours} hrs/week, we'll focus on high-signal outreach before volume applications.`,
     `Your strongest lever is ${subscores.assets >= subscores.network ? "assets" : "network"}; we will focus there first.`,
-    `Target roles align with ${profile.focus}.`,
+    `Target roles align with ${profile.focus}, with emphasis on ${answers.targetIndustry} teams.`,
+    `Company focus: ${answers.companyStage} stage, ${answers.compensationPriority.toLowerCase()}-weighted comp strategy.`,
   ];
+  if (answers.constraints.length) {
+    insights.push(`Non-negotiables: ${answers.constraints.join(", ")}.`);
+  }
+  if (answers.blockerNote) {
+    insights.push(`Coach note: "${answers.blockerNote}".`);
+  }
 
   const checklist = [
     "Finalize role scope statement and success metrics.",
@@ -99,6 +118,8 @@ export function buildResults(answers: LeadAnswers): ResultsPayload {
     score,
     subscores,
     route,
+    coachRead: `You're targeting ${answers.level} ${role} roles with ${answers.experienceYears} years of experience and ${leadershipLabel}. We'll run a ${timelineLabel} plan built to your ${hours} hrs/week reality.`,
+    positioningSummary: `${answers.currentTitle ? `${answers.currentTitle} → ` : ""}${answers.level} ${role} | ${answers.targetIndustry} | ${answers.companyStage} | ${answers.compensationPriority} comp priority | ${answers.leadershipScope} scope`,
     insights,
     cadence,
     checklist,

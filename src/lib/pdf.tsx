@@ -33,6 +33,12 @@ export function ResultsPdf({
           <Text>Score: {results.score}/100</Text>
         </View>
         <View style={styles.section}>
+          <Text style={styles.subtitle}>Coach read</Text>
+          <Text>{results.coachRead}</Text>
+          <Text style={styles.subtitle}>Positioning</Text>
+          <Text>{results.positioningSummary}</Text>
+        </View>
+        <View style={styles.section}>
           <Text style={styles.subtitle}>Key insights</Text>
           {results.insights.map((insight) => (
             <Text key={insight} style={styles.listItem}>- {insight}</Text>

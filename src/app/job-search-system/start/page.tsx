@@ -15,30 +15,40 @@ import type { LeadAnswers } from "@/lib/validation";
 
 const defaultAnswers: LeadAnswers = {
   roles: [],
+  currentTitle: "",
+  experienceYears: "6-9",
+  leadershipScope: "IC",
   level: "Senior",
   compTarget: "140k-180k",
+  compensationPriority: "Balanced",
   timeline: "30",
   locationType: "Remote",
   city: "",
+  targetIndustry: "B2B SaaS",
+  companyStage: "Growth",
   hoursPerWeek: "5",
-  assets: { resume: "Draft", linkedin: "Draft", interview: "Some practice" },
+  assets: { resume: "Draft", linkedin: "Draft", interview: "Some practice", portfolio: "Some" },
   networkStrength: "Medium",
   outreachComfort: "Medium",
   companyTargets: [],
+  constraints: [],
   biggestBlocker: "Clarity",
+  blockerNote: "",
   pipeline: "Some",
 };
 
 const steps = [
   "Target role",
-  "Level",
-  "Comp target",
+  "Background",
+  "Level + comp",
   "Timeline",
   "Location",
+  "Company focus",
   "Time available",
   "Assets",
   "Network",
   "Company targets",
+  "Constraints",
   "Biggest blocker",
 ];
 
@@ -54,7 +64,6 @@ export default function JobSearchWizard() {
   const [sendingEmail, setSendingEmail] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [blockerNote, setBlockerNote] = useState("");
 
   const progress = ((step + 1) / steps.length) * 100;
 
@@ -126,52 +135,52 @@ export default function JobSearchWizard() {
   if (teaser && token) {
     return (
       <main className="section-shell pb-16 pt-14">
-        <Link href="/job-search-system" className="text-sm text-slate-500">
+        <Link href="/job-search-system" className="text-sm text-slate-400">
           Back to landing
         </Link>
         <div className="mt-8 grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
           <div>
-            <h1 className="mb-3 text-3xl font-semibold text-slate-900">Your quick preview</h1>
-            <p className="text-slate-600">
+            <h1 className="mb-3 text-3xl font-semibold text-slate-100">Your quick preview</h1>
+            <p className="text-slate-300">
               Here's the immediate read based on your inputs. Enter your email to unlock the full plan + scripts.
             </p>
-            <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-6">
+            <div className="mt-6 rounded-3xl border border-slate-700 bg-slate-900/70 p-6">
               <ScoreGauge score={teaser.score} />
-              <div className="mt-4 grid gap-3 text-sm text-slate-600">
+              <div className="mt-4 grid gap-3 text-sm text-slate-300">
                 {teaser.insights?.slice(0, 2).map((insight: string) => (
                   <p key={insight}>- {insight}</p>
                 ))}
               </div>
-              <div className="mt-4 rounded-2xl bg-slate-50 p-4 text-sm">
-                <p className="font-semibold text-slate-900">Cadence preview</p>
-                <p className="text-slate-600">Week 1: {teaser.cadencePreview}</p>
+              <div className="mt-4 rounded-2xl bg-slate-950/70 p-4 text-sm">
+                <p className="font-semibold text-slate-100">Cadence preview</p>
+                <p className="text-slate-300">Week 1: {teaser.cadencePreview}</p>
               </div>
             </div>
           </div>
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="rounded-3xl border border-slate-700 bg-slate-900/70 p-6 shadow-sm">
             <p className="tag mb-4">Unlock full report</p>
-            <Label>Email address</Label>
+            <Label className="text-slate-200">Email address</Label>
             <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@domain.com" />
-            <p className="mt-2 text-xs text-slate-500">We'll send your plan link instantly.</p>
+            <p className="mt-2 text-xs text-slate-400">We'll send your plan link instantly.</p>
             <Button className="mt-4 w-full" onClick={submitEmail} disabled={sendingEmail}>
               {sendingEmail ? "Sending..." : "Send my plan"}
             </Button>
             {emailSent && (
-              <div className="mt-4 rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-700">
+              <div className="mt-4 rounded-2xl bg-emerald-500/10 p-4 text-sm text-emerald-200">
                 {emailStatus?.skipped
                   ? "Email service not configured - use the direct link below."
                   : "Email sent. You can also view it now."}
                 <div className="mt-2">
                   <Link
                     href={`/job-search-system/results/${token}`}
-                    className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white"
+                    className="rounded-full bg-emerald-400 px-4 py-2 text-xs font-semibold text-slate-900"
                   >
                     View full report
                   </Link>
                 </div>
               </div>
             )}
-            {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+            {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
           </div>
         </div>
       </main>
@@ -182,50 +191,122 @@ export default function JobSearchWizard() {
     <main className="section-shell pb-16 pt-14">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-semibold text-slate-900">Build your Job Search System</h1>
-          <p className="text-slate-600">10 quick prompts, then your personalized plan.</p>
+          <h1 className="text-3xl font-semibold text-slate-100">Build your Job Search System</h1>
+          <p className="text-slate-300">Coach-style prompts, then your personalized plan.</p>
         </div>
-        <Link href="/job-search-system" className="text-sm text-slate-500">
+        <Link href="/job-search-system" className="text-sm text-slate-400">
           Exit
         </Link>
       </div>
       <Progress value={progress} />
-      <p className="mt-2 text-xs text-slate-500">
+      <p className="mt-2 text-xs text-slate-400">
         Step {step + 1} of {steps.length}: {steps[step]}
       </p>
 
-      <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="mt-8 rounded-3xl border border-slate-700 bg-slate-900/70 p-6 shadow-sm">
         {step === 0 && (
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Target role(s)</h2>
+            <p className="text-sm text-slate-400">Be specific — we tailor scripts and proof strategy to this role.</p>
             <RoleSelect value={answers.roles} onChange={(roles) => updateAnswers({ roles })} />
           </div>
         )}
         {step === 1 && (
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Level</h2>
-            <Select value={answers.level} onChange={(e) => updateAnswers({ level: e.target.value as LeadAnswers["level"] })}>
-              {(["Mid", "Senior", "Staff", "Manager", "Director"] as const).map((level) => (
-                <option key={level} value={level}>
-                  {level}
-                </option>
-              ))}
-            </Select>
+            <h2 className="text-xl font-semibold">Background snapshot</h2>
+            <p className="text-sm text-slate-400">This helps me calibrate scope and seniority.</p>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="md:col-span-3">
+                <Label>Current title (optional)</Label>
+                <Input
+                  placeholder="e.g., Senior DevOps Engineer"
+                  value={answers.currentTitle || ""}
+                  onChange={(e) => updateAnswers({ currentTitle: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Years of experience</Label>
+                <Select
+                  value={answers.experienceYears}
+                  onChange={(e) => updateAnswers({ experienceYears: e.target.value as LeadAnswers["experienceYears"] })}
+                >
+                  {(["0-2", "3-5", "6-9", "10+"] as const).map((value) => (
+                    <option key={value} value={value}>
+                      {value} years
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div>
+                <Label>Leadership scope</Label>
+                <Select
+                  value={answers.leadershipScope}
+                  onChange={(e) => updateAnswers({ leadershipScope: e.target.value as LeadAnswers["leadershipScope"] })}
+                >
+                  {(["IC", "Lead", "Manager", "Director+"] as const).map((value) => (
+                    <option key={value} value={value}>
+                      {value === "IC" ? "Individual contributor" : value}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div>
+                <Label>Current pipeline</Label>
+                <Select
+                  value={answers.pipeline}
+                  onChange={(e) => updateAnswers({ pipeline: e.target.value as LeadAnswers["pipeline"] })}
+                >
+                  {(["None", "Some", "Active"] as const).map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            </div>
           </div>
         )}
         {step === 2 && (
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Comp target</h2>
-            <Select
-              value={answers.compTarget}
-              onChange={(e) => updateAnswers({ compTarget: e.target.value as LeadAnswers["compTarget"] })}
-            >
-              {(["<100k", "100k-140k", "140k-180k", "180k-220k", "220k+"] as const).map((comp) => (
-                <option key={comp} value={comp}>
-                  {comp}
-                </option>
-              ))}
-            </Select>
+            <h2 className="text-xl font-semibold">Level + compensation</h2>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div>
+                <Label>Level target</Label>
+                <Select value={answers.level} onChange={(e) => updateAnswers({ level: e.target.value as LeadAnswers["level"] })}>
+                  {(["Mid", "Senior", "Staff", "Manager", "Director"] as const).map((level) => (
+                    <option key={level} value={level}>
+                      {level}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div>
+                <Label>Comp target</Label>
+                <Select
+                  value={answers.compTarget}
+                  onChange={(e) => updateAnswers({ compTarget: e.target.value as LeadAnswers["compTarget"] })}
+                >
+                  {(["<100k", "100k-140k", "140k-180k", "180k-220k", "220k+"] as const).map((comp) => (
+                    <option key={comp} value={comp}>
+                      {comp}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div>
+                <Label>Comp priority</Label>
+                <Select
+                  value={answers.compensationPriority}
+                  onChange={(e) => updateAnswers({ compensationPriority: e.target.value as LeadAnswers["compensationPriority"] })}
+                >
+                  {(["Cash", "Equity", "Balanced"] as const).map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            </div>
           </div>
         )}
         {step === 3 && (
@@ -237,6 +318,7 @@ export default function JobSearchWizard() {
               <option value="60">60 days</option>
               <option value="90+">90+ days</option>
             </Select>
+            <p className="text-sm text-slate-400">Timeline drives cadence, outreach volume, and interview prep pacing.</p>
           </div>
         )}
         {step === 4 && (
@@ -263,6 +345,51 @@ export default function JobSearchWizard() {
         )}
         {step === 5 && (
           <div className="space-y-4">
+            <h2 className="text-xl font-semibold">Company focus</h2>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <Label>Target industry</Label>
+                <Select
+                  value={answers.targetIndustry}
+                  onChange={(e) => updateAnswers({ targetIndustry: e.target.value as LeadAnswers["targetIndustry"] })}
+                >
+                  {(
+                    [
+                      "Infrastructure",
+                      "Security",
+                      "Data/AI",
+                      "Fintech",
+                      "Consumer",
+                      "B2B SaaS",
+                      "Healthcare",
+                      "Marketplace",
+                      "Other",
+                    ] as const
+                  ).map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div>
+                <Label>Company stage</Label>
+                <Select
+                  value={answers.companyStage}
+                  onChange={(e) => updateAnswers({ companyStage: e.target.value as LeadAnswers["companyStage"] })}
+                >
+                  {(["Startup", "Growth", "Enterprise", "Public", "Consulting"] as const).map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            </div>
+          </div>
+        )}
+        {step === 6 && (
+          <div className="space-y-4">
             <h2 className="text-xl font-semibold">Time available per week</h2>
             <Select
               value={answers.hoursPerWeek}
@@ -276,10 +403,10 @@ export default function JobSearchWizard() {
             </Select>
           </div>
         )}
-        {step === 6 && (
+        {step === 7 && (
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Current assets</h2>
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-4">
               <div>
                 <Label>Resume</Label>
                 <Select
@@ -319,10 +446,23 @@ export default function JobSearchWizard() {
                   ))}
                 </Select>
               </div>
+              <div>
+                <Label>Proof assets</Label>
+                <Select
+                  value={answers.assets.portfolio}
+                  onChange={(e) => updateAnswers({ assets: { ...answers.assets, portfolio: e.target.value as LeadAnswers["assets"]["portfolio"] } })}
+                >
+                  {(["None", "Some", "Strong"] as const).map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </Select>
+              </div>
             </div>
           </div>
         )}
-        {step === 7 && (
+        {step === 8 && (
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Network + outreach comfort</h2>
             <div className="grid gap-4 md:grid-cols-2">
@@ -352,23 +492,10 @@ export default function JobSearchWizard() {
                   ))}
                 </Select>
               </div>
-              <div>
-                <Label>Current pipeline</Label>
-                <Select
-                  value={answers.pipeline}
-                  onChange={(e) => updateAnswers({ pipeline: e.target.value as LeadAnswers["pipeline"] })}
-                >
-                  {(["None", "Some", "Active"] as const).map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </Select>
-              </div>
             </div>
           </div>
         )}
-        {step === 8 && (
+        {step === 9 && (
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Company targets</h2>
             <CompanySelect
@@ -377,14 +504,68 @@ export default function JobSearchWizard() {
             />
           </div>
         )}
-        {step === 9 && (
+        {step === 10 && (
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">Constraints & non-negotiables</h2>
+            <p className="text-sm text-slate-400">These help me tailor the plan to your real-world limits.</p>
+            <div className="grid gap-3 md:grid-cols-2">
+              {(
+                [
+                  "Visa sponsorship",
+                  "Remote only",
+                  "No relocation",
+                  "Confidential search",
+                  "Comp floor",
+                  "Limited time",
+                  "Industry switch",
+                ] as const
+              ).map((constraint) => {
+                const checked = answers.constraints.includes(constraint);
+                return (
+                  <label
+                    key={constraint}
+                    className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm ${
+                      checked ? "border-slate-400 bg-slate-50" : "border-slate-200 bg-white"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          updateAnswers({ constraints: [...answers.constraints, constraint] });
+                        } else {
+                          updateAnswers({ constraints: answers.constraints.filter((item) => item !== constraint) });
+                        }
+                      }}
+                    />
+                    {constraint}
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        )}
+        {step === 11 && (
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Biggest blocker</h2>
             <Select
               value={answers.biggestBlocker}
               onChange={(e) => updateAnswers({ biggestBlocker: e.target.value as LeadAnswers["biggestBlocker"] })}
             >
-              {(["Clarity", "Resume", "LinkedIn", "Interviews", "Networking", "Confidence", "Time"] as const).map((value) => (
+              {(
+                [
+                  "Clarity",
+                  "Resume",
+                  "LinkedIn",
+                  "Interviews",
+                  "Networking",
+                  "Confidence",
+                  "Time",
+                  "Scope",
+                  "Positioning",
+                ] as const
+              ).map((value) => (
                 <option key={value} value={value}>
                   {value}
                 </option>
@@ -393,14 +574,14 @@ export default function JobSearchWizard() {
             <Textarea
               placeholder="Optional: tell us what's holding you back (short note)"
               rows={4}
-              value={blockerNote}
-              onChange={(event) => setBlockerNote(event.target.value)}
+              value={answers.blockerNote || ""}
+              onChange={(event) => updateAnswers({ blockerNote: event.target.value })}
             />
           </div>
         )}
       </div>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
 
       <div className="mt-6 flex items-center justify-between">
         <Button

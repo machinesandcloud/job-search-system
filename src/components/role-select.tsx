@@ -38,12 +38,12 @@ export function RoleSelect({
         }}
       />
       <div className="flex flex-wrap gap-2">
-        {filtered.slice(0, 8).map((role) => (
+        {filtered.slice(0, 12).map((role) => (
           <button
             key={role}
             type="button"
             onClick={() => addRole(role)}
-            className="rounded-full border border-slate-200 px-3 py-1 text-sm text-slate-700 hover:border-slate-400"
+            className="rounded-full border border-slate-600 px-3 py-1 text-sm text-slate-200 hover:border-slate-300"
           >
             {role}
           </button>
@@ -52,7 +52,7 @@ export function RoleSelect({
           <button
             type="button"
             onClick={() => addRole(query)}
-            className="rounded-full border border-dashed border-slate-300 px-3 py-1 text-sm text-slate-700"
+            className="rounded-full border border-dashed border-slate-500 px-3 py-1 text-sm text-slate-200"
           >
             Add "{query}"
           </button>
@@ -61,7 +61,7 @@ export function RoleSelect({
       {value.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {value.map((role) => (
-            <span key={role} className="rounded-full bg-slate-900 px-3 py-1 text-xs text-white">
+            <span key={role} className="rounded-full bg-emerald-400 px-3 py-1 text-xs font-semibold text-slate-900">
               {role}
             </span>
           ))}

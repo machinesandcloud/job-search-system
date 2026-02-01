@@ -4,16 +4,33 @@ export const roleSchema = z.string().min(2).max(80);
 
 export const leadAnswersSchema = z.object({
   roles: z.array(roleSchema).min(1),
+  currentTitle: z.string().max(80).optional().nullable(),
+  experienceYears: z.enum(["0-2", "3-5", "6-9", "10+"]),
+  leadershipScope: z.enum(["IC", "Lead", "Manager", "Director+"]),
   level: z.enum(["Mid", "Senior", "Staff", "Manager", "Director"]),
   compTarget: z.enum(["<100k", "100k-140k", "140k-180k", "180k-220k", "220k+"] ),
+  compensationPriority: z.enum(["Cash", "Equity", "Balanced"]),
   timeline: z.enum(["ASAP", "30", "60", "90+"] ),
   locationType: z.enum(["Remote", "Hybrid", "Onsite"]),
   city: z.string().max(80).optional().nullable(),
+  targetIndustry: z.enum([
+    "Infrastructure",
+    "Security",
+    "Data/AI",
+    "Fintech",
+    "Consumer",
+    "B2B SaaS",
+    "Healthcare",
+    "Marketplace",
+    "Other",
+  ]),
+  companyStage: z.enum(["Startup", "Growth", "Enterprise", "Public", "Consulting"]),
   hoursPerWeek: z.enum(["3", "5", "8", "12+"] ),
   assets: z.object({
     resume: z.enum(["None", "Draft", "Strong"]),
     linkedin: z.enum(["None", "Draft", "Strong"]),
     interview: z.enum(["Not ready", "Some practice", "Confident"]),
+    portfolio: z.enum(["None", "Some", "Strong"]),
   }),
   networkStrength: z.enum(["Low", "Medium", "Strong"]),
   outreachComfort: z.enum(["Low", "Medium", "High"]),
@@ -30,6 +47,19 @@ export const leadAnswersSchema = z.object({
         .passthrough()
     )
     .max(30),
+  constraints: z
+    .array(
+      z.enum([
+        "Visa sponsorship",
+        "Remote only",
+        "No relocation",
+        "Confidential search",
+        "Comp floor",
+        "Limited time",
+        "Industry switch",
+      ])
+    )
+    .max(5),
   biggestBlocker: z.enum([
     "Clarity",
     "Resume",
@@ -38,7 +68,10 @@ export const leadAnswersSchema = z.object({
     "Networking",
     "Confidence",
     "Time",
+    "Scope",
+    "Positioning",
   ]),
+  blockerNote: z.string().max(240).optional().nullable(),
   pipeline: z.enum(["None", "Some", "Active"]),
 });
 
@@ -78,8 +111,14 @@ export function sanitizeAnswers(input: any) {
       })
       .filter(Boolean);
   }
+  if (Array.isArray(copy.constraints)) {
+    copy.constraints = copy.constraints.filter((item: any) => typeof item === "string");
+  }
   if (typeof copy.city === "string" && copy.city.trim() === "") {
     copy.city = null;
+  }
+  if (typeof copy.blockerNote === "string" && copy.blockerNote.trim() === "") {
+    copy.blockerNote = null;
   }
   return copy;
 }

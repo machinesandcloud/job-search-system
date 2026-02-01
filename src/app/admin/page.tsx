@@ -41,16 +41,16 @@ export default async function AdminPage({
   return (
     <main className="section-shell min-h-screen py-10">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Admin dashboard</h1>
-        <p className="text-sm text-slate-500">Signed in as {session.email}</p>
+        <h1 className="text-2xl font-semibold text-slate-100">Admin dashboard</h1>
+        <p className="text-sm text-slate-400">Signed in as {session.email}</p>
       </div>
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="rounded-3xl border border-slate-700 bg-slate-900/70 p-6 shadow-sm text-slate-100">
         <div className="mb-4 grid gap-2 md:grid-cols-5">
-          <Link href="/admin?route=DIY" className="text-sm text-slate-600">DIY</Link>
-          <Link href="/admin?route=GUIDED" className="text-sm text-slate-600">Guided</Link>
-          <Link href="/admin?route=FAST_TRACK" className="text-sm text-slate-600">Fast Track</Link>
-          <Link href="/admin?purchased=true" className="text-sm text-slate-600">Purchased</Link>
-          <Link href="/admin" className="text-sm text-slate-600">Reset</Link>
+          <Link href="/admin?route=DIY" className="text-sm text-slate-300">DIY</Link>
+          <Link href="/admin?route=GUIDED" className="text-sm text-slate-300">Guided</Link>
+          <Link href="/admin?route=FAST_TRACK" className="text-sm text-slate-300">Fast Track</Link>
+          <Link href="/admin?purchased=true" className="text-sm text-slate-300">Purchased</Link>
+          <Link href="/admin" className="text-sm text-slate-300">Reset</Link>
         </div>
         <div className="overflow-auto">
           <table className="w-full text-left text-sm">
@@ -65,9 +65,9 @@ export default async function AdminPage({
             </thead>
             <tbody>
               {leads.map((lead) => (
-                <tr key={lead.id} className="border-t border-slate-100">
+                <tr key={lead.id} className="border-t border-slate-800">
                   <td className="py-2">
-                    <Link href={`/admin/leads/${lead.id}`} className="text-slate-900">
+                    <Link href={`/admin/leads/${lead.id}`} className="text-slate-100">
                       {lead.email || "(no email)"}
                     </Link>
                   </td>

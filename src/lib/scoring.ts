@@ -41,13 +41,17 @@ export function computeSubscores(answers: LeadAnswers): Subscores {
     answers.level ? 5 : 0,
     answers.compTarget ? 5 : 0,
     answers.timeline ? 5 : 0,
-    answers.locationType ? 5 : 0,
+    answers.locationType ? 3 : 0,
+    answers.companyStage ? 3 : 0,
+    answers.targetIndustry ? 2 : 0,
+    answers.leadershipScope ? 2 : 0,
   ].reduce((sum, val) => sum + val, 0);
 
   const assetsPoints = [
     answers.assets.resume === "Strong" ? 10 : answers.assets.resume === "Draft" ? 6 : 2,
     answers.assets.linkedin === "Strong" ? 8 : answers.assets.linkedin === "Draft" ? 5 : 2,
     answers.assets.interview === "Confident" ? 7 : answers.assets.interview === "Some practice" ? 4 : 2,
+    answers.assets.portfolio === "Strong" ? 6 : answers.assets.portfolio === "Some" ? 4 : 1,
   ].reduce((sum, val) => sum + val, 0);
 
   const networkPoints = [

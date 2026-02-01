@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import type { ResultsPayload } from "@/lib/results";
 
 function buildMarkdown(results: ResultsPayload) {
-  return `# Job Search System\n\n## Score\n${results.score}/100\n\n## Weekly cadence\n${results.cadence
+  return `# Job Search System\n\n## Coach read\n${results.coachRead}\n\n## Positioning\n${results.positioningSummary}\n\n## Score\n${results.score}/100\n\n## Weekly cadence\n${results.cadence
     .map((week) => `- **${week.week}** (${week.focus})\n  ${week.actions.map((action) => `- ${action}`).join("\n  ")}`)
     .join("\n")}\n\n## Checklist\n${results.checklist.map((item) => `- ${item}`).join("\n")}\n\n## Scripts\n- Referral: ${results.scripts.referral}\n- Recruiter: ${results.scripts.recruiter}\n- Follow-ups:\n${results.scripts.followup.map((line) => `  - ${line}`).join("\n")}\n\n## Proof strategy\n${results.proofStrategy.map((item) => `- ${item}`).join("\n")}\n`;
 }

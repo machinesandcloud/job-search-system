@@ -82,15 +82,15 @@ export function CompanySelect({
         value={query}
         onChange={(event) => setQuery(event.target.value)}
       />
-      {loading && <p className="text-xs text-slate-500">Searching...</p>}
+      {loading && <p className="text-xs text-slate-400">Searching...</p>}
       {results.length > 0 && (
-        <div className="grid gap-2 rounded-xl border border-slate-200 bg-white p-2">
+        <div className="grid gap-2 rounded-xl border border-slate-700 bg-slate-950/60 p-2">
           {results.map((company) => (
             <button
               key={company.name}
               type="button"
               onClick={() => addCompany(company)}
-              className="flex items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-slate-50"
+              className="flex items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-slate-800/60"
             >
               <img
                 src={
@@ -107,8 +107,8 @@ export function CompanySelect({
                 }}
               />
               <div>
-                <p className="text-sm font-semibold text-slate-900">{company.name}</p>
-                <p className="text-xs text-slate-500">
+                <p className="text-sm font-semibold text-slate-100">{company.name}</p>
+                <p className="text-xs text-slate-400">
                   {company.domain ? company.domain : "Add manually"} - {company.industry || ""} {company.size || ""}
                 </p>
               </div>
@@ -120,7 +120,7 @@ export function CompanySelect({
         <button
           type="button"
           onClick={() => addCompany({ name: query })}
-          className="rounded-full border border-dashed border-slate-300 px-3 py-1 text-sm text-slate-700"
+          className="rounded-full border border-dashed border-slate-500 px-3 py-1 text-sm text-slate-200"
         >
           Add "{query}"
         </button>
@@ -130,7 +130,7 @@ export function CompanySelect({
           {value.map((company) => (
             <span
               key={company.name}
-              className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-3 py-1 text-xs text-white"
+              className="inline-flex items-center gap-2 rounded-full bg-emerald-400 px-3 py-1 text-xs font-semibold text-slate-900"
             >
               {company.name}
               <button type="button" onClick={() => removeCompany(company.name)} className="text-white">
@@ -140,7 +140,7 @@ export function CompanySelect({
           ))}
         </div>
       )}
-      <p className="text-xs text-slate-500">Select 5-30 companies for the strongest plan.</p>
+      <p className="text-xs text-slate-400">Select 5-30 companies for the strongest plan.</p>
     </div>
   );
 }
