@@ -29,6 +29,15 @@ export default async function ResultsPage({ params }: { params: { token: string 
   const proPack = buildProPack(answers);
 
   const proEligible = results.score >= 70 && (answers.timeline === "ASAP" || answers.timeline === "30");
+  const initialsSvg = (name: string) =>
+    `data:image/svg+xml;utf8,${encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="100%" height="100%" rx="32" ry="32" fill="#0f172a"/><text x="50%" y="52%" text-anchor="middle" dominant-baseline="middle" font-family="Arial, sans-serif" font-size="22" fill="#e2e8f0">${name
+        .split(" ")
+        .slice(0, 2)
+        .map((part) => part[0])
+        .join("")
+        .toUpperCase()}</text></svg>`
+    )}`;
 
   return (
     <main className="section-shell pb-20 pt-12">
@@ -206,6 +215,12 @@ export default async function ResultsPage({ params }: { params: { token: string 
                         }
                         alt=""
                         className="h-10 w-10 rounded-full border border-slate-700 bg-white"
+                        referrerPolicy="no-referrer"
+                        loading="lazy"
+                        onError={(event) => {
+                          const target = event.currentTarget as HTMLImageElement;
+                          target.src = initialsSvg(company.name);
+                        }}
                       />
                       <div>
                         <p className="text-sm font-semibold text-slate-100">{company.name}</p>

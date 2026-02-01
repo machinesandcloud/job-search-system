@@ -142,18 +142,60 @@ export default function JobSearchWizard() {
           <div>
             <h1 className="mb-3 text-3xl font-semibold text-slate-100">Your quick preview</h1>
             <p className="text-slate-300">
-              Here's the immediate read based on your inputs. Enter your email to unlock the full plan + scripts.
+              Here&apos;s the immediate read based on your inputs. Enter your email to unlock the full plan + scripts.
             </p>
             <div className="mt-6 rounded-3xl border border-slate-700 bg-slate-900/70 p-6">
               <ScoreGauge score={teaser.score} />
-              <div className="mt-4 grid gap-3 text-sm text-slate-300">
-                {teaser.insights?.slice(0, 2).map((insight: string) => (
-                  <p key={insight}>- {insight}</p>
+              <div className="mt-4 space-y-3 text-sm text-slate-300">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Coach read</p>
+                  <p className="mt-1">{teaser.coachRead}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Positioning</p>
+                  <p className="mt-1">{teaser.positioningSummary}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Top insights</p>
+                  {teaser.insights?.slice(0, 3).map((insight: string) => (
+                    <p key={insight}>- {insight}</p>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {[
+                  ["Clarity", teaser.subscores?.clarity],
+                  ["Assets", teaser.subscores?.assets],
+                  ["Network", teaser.subscores?.network],
+                  ["Execution", teaser.subscores?.execution],
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-2xl border border-slate-700 bg-slate-950/60 p-3 text-xs">
+                    <p className="text-slate-400">{label}</p>
+                    <p className="text-lg font-semibold text-slate-100">{value ?? "--"}/25</p>
+                  </div>
                 ))}
               </div>
               <div className="mt-4 rounded-2xl bg-slate-950/70 p-4 text-sm">
                 <p className="font-semibold text-slate-100">Cadence preview</p>
                 <p className="text-slate-300">Week 1: {teaser.cadencePreview}</p>
+              </div>
+            </div>
+            <div className="mt-6 grid gap-4 rounded-3xl border border-slate-700 bg-slate-900/70 p-6 text-sm text-slate-300">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-slate-400">What you unlock</p>
+                <ul className="mt-2 space-y-1">
+                  <li>- Full weekly cadence mapped to your hours and urgency.</li>
+                  <li>- Role-specific scripts + follow-up sequence.</li>
+                  <li>- 14-day execution checklist and proof strategy.</li>
+                </ul>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-slate-400">Trust notes</p>
+                <ul className="mt-2 space-y-1">
+                  <li>- No account required. Results delivered by link.</li>
+                  <li>- Inputs are only used to build your plan.</li>
+                  <li>- Built for high-signal, targeted searches.</li>
+                </ul>
               </div>
             </div>
           </div>
@@ -525,7 +567,7 @@ export default function JobSearchWizard() {
                   <label
                     key={constraint}
                     className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm ${
-                      checked ? "border-slate-400 bg-slate-50" : "border-slate-200 bg-white"
+                      checked ? "border-emerald-300/60 bg-emerald-500/10 text-emerald-100" : "border-slate-700 bg-slate-950/60 text-slate-200"
                     }`}
                   >
                     <input

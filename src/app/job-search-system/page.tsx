@@ -10,11 +10,11 @@ export default function JobSearchLanding() {
           <div>
             <Badge className="mb-4">AI Job Search System Builder</Badge>
             <h1 className="mb-4 text-4xl font-semibold text-slate-100 md:text-5xl">
-              Build a job search system that reads like it was coached by a human.
+              Let AI coach your job search into a system that wins interviews.
             </h1>
             <p className="mb-6 text-lg text-slate-300">
-              This isn&apos;t a generic checklist. We turn your role, level, timeline, and constraints into a real
-              execution plan — the exact moves a coach would give you in week one.
+              You bring the role, level, and constraints. We build the plan, cadence, and scripts a real coach would
+              hand you after week one — tailored to your exact time budget.
             </p>
             <div className="flex flex-wrap gap-3">
               <Link
@@ -33,7 +33,7 @@ export default function JobSearchLanding() {
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
               {[
                 ["10 minutes", "to finish"],
-                ["4 subscores", "clarity + assets + network + execution"],
+                ["Coach read", "role + timeline calibration"],
                 ["No account", "results delivered by link"],
               ].map(([value, label]) => (
                 <div key={value} className="rounded-2xl border border-slate-700 bg-slate-900/60 px-4 py-3">
@@ -45,12 +45,12 @@ export default function JobSearchLanding() {
           </div>
           <Card className="card-shadow border-slate-700 bg-slate-900/70 text-slate-100">
             <CardContent className="p-6">
-              <p className="tag mb-4">Live preview</p>
-              <h2 className="mb-2 text-xl font-semibold text-slate-100">What you get for free</h2>
+              <p className="tag mb-4">System snapshot</p>
+              <h2 className="mb-2 text-xl font-semibold text-slate-100">Your plan, in three layers</h2>
               <ul className="mb-6 list-disc space-y-2 pl-5 text-sm text-slate-300">
-                <li>Personalized score + coach-style read</li>
-                <li>Weekly cadence tied to your hours and urgency</li>
-                <li>Role-specific scripts + proof strategy</li>
+                <li>Coach read: how your role, scope, and timeline really map.</li>
+                <li>Cadence: weekly actions tied to your hours and urgency.</li>
+                <li>Scripts + proof: the exact messages and assets to ship.</li>
               </ul>
               <div className="rounded-2xl bg-slate-950/70 px-5 py-4 text-slate-200">
                 <p className="text-xs uppercase tracking-wide text-slate-400">Example coach note</p>
@@ -68,15 +68,15 @@ export default function JobSearchLanding() {
           {[
             {
               title: "Offer momentum",
-              body: "Went from scattered apps to 3 onsite loops in 4 weeks.",
+              body: "Turned scattered apps into 3 onsite loops in 4 weeks.",
             },
             {
               title: "Clear positioning",
-              body: "The plan nailed my level and made my LinkedIn actually convert.",
+              body: "Calibrated level and rewired LinkedIn to actually convert.",
             },
             {
               title: "Shorter timelines",
-              body: "Cut my search time in half by focusing on targeted outreach.",
+              body: "Cut search time in half with targeted outreach.",
             },
           ].map((item) => (
             <Card key={item.title} className="card-shadow border-slate-700 bg-slate-900/70">
@@ -90,6 +90,42 @@ export default function JobSearchLanding() {
         </div>
       </section>
 
+      <section className="section-shell py-12">
+        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+          <Card className="card-shadow border-slate-700 bg-slate-900/70">
+            <CardContent className="p-6">
+              <p className="tag mb-3">What makes it specific</p>
+              <h3 className="text-xl font-semibold text-slate-100">We calibrate to your actual reality.</h3>
+              <ul className="mt-4 space-y-2 text-sm text-slate-300">
+                <li>- Role + level target drive the scripts, proof, and positioning.</li>
+                <li>- Timeline + hours/week set the cadence and outreach volume.</li>
+                <li>- Industry + company stage shape the proof strategy.</li>
+                <li>- Constraints and blockers shape the next 14 days.</li>
+              </ul>
+            </CardContent>
+          </Card>
+          <Card className="card-shadow border-slate-700 bg-slate-900/70">
+            <CardContent className="p-6">
+              <p className="tag mb-3">Deliverables</p>
+              <div className="grid gap-3 text-sm text-slate-300">
+                <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-3">
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Coach read</p>
+                  <p className="mt-1">A clear summary of your positioning + fastest path to traction.</p>
+                </div>
+                <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-3">
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Weekly cadence</p>
+                  <p className="mt-1">A realistic plan tied to your hours + urgency.</p>
+                </div>
+                <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-3">
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Scripts + proof</p>
+                  <p className="mt-1">Outreach scripts, follow-ups, and proof assets to build.</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
       <section id="how" className="section-shell py-14">
         <div className="grid gap-6 lg:grid-cols-3">
           {[
@@ -99,7 +135,7 @@ export default function JobSearchLanding() {
             },
             {
               title: "2. Get a coach-style preview",
-              body: "You see your score and the first week of your plan immediately.",
+              body: "You see your score, coach read, and first week immediately.",
             },
             {
               title: "3. Unlock the full system",

@@ -104,6 +104,9 @@ export async function POST(request: Request) {
     token: lead.token,
     teaser: {
       score: results.score,
+      subscores: results.subscores,
+      coachRead: results.coachRead,
+      positioningSummary: results.positioningSummary,
       insights: results.insights,
       cadencePreview: results.cadence[0]?.actions[0],
     },

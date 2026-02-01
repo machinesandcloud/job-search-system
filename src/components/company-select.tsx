@@ -100,7 +100,9 @@ export function CompanySelect({
                     : `https://www.google.com/s2/favicons?domain=${encodeURIComponent(company.name)}&sz=128`)
                 }
                 alt=""
-                className="h-8 w-8 rounded-full border border-slate-100"
+                className="h-8 w-8 rounded-full border border-slate-700 bg-white"
+                referrerPolicy="no-referrer"
+                loading="lazy"
                 onError={(event) => {
                   const target = event.currentTarget as HTMLImageElement;
                   target.src = makeInitialsSvg(company.name);
