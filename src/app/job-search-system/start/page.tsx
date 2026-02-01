@@ -780,7 +780,7 @@ export default function JobSearchWizard() {
           <div className="rounded-3xl border border-slate-700 bg-slate-900/70 p-6 text-sm text-slate-300">
             <p className="text-xs uppercase tracking-wide text-slate-400">Your snapshot</p>
             <ul className="mt-2 space-y-1">
-              <li>- Role: {answers.roles?.[0] || \"-\"}</li>
+              <li>- Role: {answers.roles?.[0] || "-"}</li>
               <li>- Level: {answers.level}</li>
               <li>- Timeline: {timelineLabel}</li>
               <li>- Hours/week: {answers.hoursPerWeek}</li>
