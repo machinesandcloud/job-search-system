@@ -91,3 +91,48 @@ Biggest blocker: ${answers.biggestBlocker}${answers.blockerNote ? ` (${answers.b
     return null;
   }
 }
+
+export async function generateAssetReview(answers: LeadAnswers) {
+  if (!apiKey) return null;
+  const prompt = `You are a senior career coach and recruiter. Review the user's resume notes and LinkedIn details and provide:
+1) 2-3 specific resume improvements,
+2) 2-3 specific LinkedIn improvements,
+3) one credibility gap to close,
+4) one immediate action for this week.
+Keep it concise and supportive. Use bullets. If inputs are missing, mention what to add.
+
+Role: ${answers.roles.join(", ")}
+Level: ${answers.level}
+Timeline: ${answers.timeline}
+Resume notes: ${answers.resumeText || "Not provided"}
+LinkedIn headline: ${answers.linkedinHeadline || "Not provided"}
+LinkedIn summary: ${answers.linkedinSummary || "Not provided"}
+LinkedIn URL: ${answers.linkedinUrl || "Not provided"}
+`;
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.4,
+            maxOutputTokens: 320,
+          },
+        }),
+      }
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    const text = data?.candidates?.[0]?.content?.parts
+      ?.map((part: { text?: string }) => part.text || "")
+      .join("")
+      .trim();
+    return text ? text.slice(0, 1500) : null;
+  } catch {
+    return null;
+  }
+}

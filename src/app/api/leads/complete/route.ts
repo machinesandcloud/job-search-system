@@ -4,7 +4,7 @@ import { Prisma } from "@prisma/client";
 import { leadCompleteSchema, sanitizeAnswers } from "@/lib/validation";
 import { computeScore } from "@/lib/scoring";
 import { buildResults } from "@/lib/results";
-import { generateCoachFeedback } from "@/lib/coach-ai";
+import { generateAssetReview, generateCoachFeedback } from "@/lib/coach-ai";
 import { generateToken, getClientIp, hashIp, ensureSameOrigin } from "@/lib/utils";
 import { logEvent } from "@/lib/events";
 import { buildLogoCandidates } from "@/lib/logo";
@@ -37,7 +37,12 @@ export async function POST(request: Request) {
 
   const { answers, leadId } = parsed.data;
   const coachFeedback = await generateCoachFeedback(answers);
-  const answersWithFeedback = coachFeedback ? { ...answers, coachFeedback } : answers;
+  const assetReview = await generateAssetReview(answers);
+  const answersWithFeedback = {
+    ...answers,
+    coachFeedback: coachFeedback || answers.coachFeedback,
+    assetReview: assetReview || (answers as any).assetReview,
+  };
   const answersJson = JSON.parse(JSON.stringify(answersWithFeedback)) as Prisma.InputJsonValue;
   const { score, subscores, route } = computeScore(answers);
 
@@ -111,6 +116,7 @@ export async function POST(request: Request) {
       coachRead: results.coachRead,
       coachFeedback: results.coachFeedback,
       planOverview: results.planOverview,
+      assetReview: results.assetReview,
       positioningSummary: results.positioningSummary,
       insights: results.insights,
       cadencePreview: results.cadence[0]?.actions[0],

@@ -14,6 +14,8 @@ export async function POST(request: Request) {
   if (!Array.isArray(merged.roles) || merged.roles.length === 0) {
     merged.roles = ["your target role"];
   }
-  const message = await generateCoachPulse(merged, body?.step);
-  return NextResponse.json({ message: message || null });
+  const aiMessage = await generateCoachPulse(merged, body?.step);
+  if (aiMessage) return NextResponse.json({ message: aiMessage });
+  const fallback = `So far I’m hearing ${merged.level} ${merged.roles[0]} targets on a ${merged.timeline} timeline. I’ll keep the plan focused on what moves the needle first — let’s finish ${body?.step || "this step"}.`;
+  return NextResponse.json({ message: fallback });
 }

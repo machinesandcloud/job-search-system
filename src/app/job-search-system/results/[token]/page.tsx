@@ -55,8 +55,41 @@ export default async function ResultsPage({ params }: { params: { token: string 
             Here’s the plan I’d run with you based on your timeline, constraints, and available hours. It’s focused,
             realistic, and built to generate traction fast.
           </p>
-          <div className="mb-6 rounded-2xl border border-slate-700 bg-slate-900/70 p-4 text-sm text-slate-300">
-            <span className="font-semibold text-slate-100">Recommended route:</span> {results.route.replace("_", " ")}
+          <div className="mb-6 grid gap-4 lg:grid-cols-2">
+            <Card className="card-shadow">
+              <CardContent className="p-6">
+                <p className="tag mb-3">Coach summary</p>
+                <p className="text-sm text-slate-300">{results.coachRead}</p>
+                {results.coachFeedback && (
+                  <p className="mt-3 text-sm text-slate-300">{results.coachFeedback}</p>
+                )}
+                <div className="mt-4 rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm text-slate-300">
+                  <p className="text-xs uppercase tracking-wide text-slate-400">What I heard</p>
+                  <ul className="mt-2 space-y-1">
+                    <li>- Target role: {answers.level} {answers.roles?.[0]}</li>
+                    <li>- Timeline: {timelineLabel}</li>
+                    <li>- Hours/week: {answers.hoursPerWeek}</li>
+                    <li>- Constraints: {answers.constraints?.length ? answers.constraints.join(", ") : "None"}</li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="card-shadow">
+              <CardContent className="p-6">
+                <p className="tag mb-3">Recommended route</p>
+                <p className="text-2xl font-semibold text-slate-100">{results.route.replace("_", " ")}</p>
+                <p className="mt-2 text-sm text-slate-300">
+                  This route fits your urgency and current assets. We’ll scale it up once the first week lands.
+                </p>
+                {results.planOverview?.length > 0 && (
+                  <ul className="mt-4 space-y-2 text-sm text-slate-300">
+                    {results.planOverview.map((item) => (
+                      <li key={item}>- {item}</li>
+                    ))}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
           </div>
 
           <Card className="card-shadow">
@@ -90,29 +123,11 @@ export default async function ResultsPage({ params }: { params: { token: string 
           </Card>
 
           <div className="mt-8 grid gap-4">
-            <Card>
-              <CardContent className="p-6">
-                <p className="tag mb-3">Coach read</p>
-                <p className="text-sm text-slate-300">{results.coachRead}</p>
-                {results.coachFeedback && (
-                  <>
-                    <p className="mt-4 text-xs uppercase tracking-wide text-slate-400">Coach feedback</p>
-                    <p className="text-sm text-slate-300">{results.coachFeedback}</p>
-                  </>
-                )}
-                <p className="mt-3 text-xs uppercase tracking-wide text-slate-400">Positioning</p>
-                <p className="text-sm text-slate-300">{results.positioningSummary}</p>
-              </CardContent>
-            </Card>
-            {results.planOverview?.length > 0 && (
+            {results.assetReview && (
               <Card>
                 <CardContent className="p-6">
-                  <p className="tag mb-3">Plan overview</p>
-                  <ul className="space-y-2 text-sm text-slate-300">
-                    {results.planOverview.map((item) => (
-                      <li key={item}>- {item}</li>
-                    ))}
-                  </ul>
+                  <p className="tag mb-3">AI resume + LinkedIn review</p>
+                  <div className="text-sm text-slate-300 whitespace-pre-line">{results.assetReview}</div>
                 </CardContent>
               </Card>
             )}
@@ -143,6 +158,16 @@ export default async function ResultsPage({ params }: { params: { token: string 
                     </div>
                   ))}
                 </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-6">
+                <p className="tag mb-3">Your first 7 days</p>
+                <ul className="space-y-2 text-sm text-slate-300">
+                  {(results.cadence[0]?.actions || []).slice(0, 4).map((action) => (
+                    <li key={action}>- {action}</li>
+                  ))}
+                </ul>
               </CardContent>
             </Card>
             <Card>
@@ -215,6 +240,9 @@ export default async function ResultsPage({ params }: { params: { token: string 
                 <li><strong>Biggest blocker:</strong> {answers.biggestBlocker}</li>
                 <li><strong>Blocker note:</strong> {answers.blockerNote || "—"}</li>
                 <li><strong>LinkedIn:</strong> {answers.linkedinUrl || "—"}</li>
+                <li><strong>LinkedIn headline:</strong> {answers.linkedinHeadline || "—"}</li>
+                <li><strong>LinkedIn summary:</strong> {answers.linkedinSummary || "—"}</li>
+                <li><strong>Resume highlights:</strong> {answers.resumeText || "—"}</li>
                 <li><strong>Resume uploaded:</strong> {answers.resumeUploaded ? "Yes" : "No"}</li>
               </ul>
             </CardContent>

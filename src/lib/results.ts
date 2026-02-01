@@ -21,6 +21,7 @@ export type ResultsPayload = {
   coachFeedback?: string;
   planOverview: string[];
   positioningSummary: string;
+  assetReview?: string;
   insights: string[];
   cadence: WeeklyCadence[];
   checklist: string[];
@@ -142,6 +143,7 @@ export function buildResults(answers: LeadAnswers): ResultsPayload {
     coachFeedback,
     planOverview,
     positioningSummary: `${answers.currentTitle ? `${answers.currentTitle} → ` : ""}${answers.level} ${role} | ${answers.targetIndustry} | ${answers.companyStage} | ${answers.compensationPriority} comp priority | ${answers.leadershipScope} scope`,
+    assetReview: (answers as any).assetReview || undefined,
     insights,
     cadence,
     checklist,

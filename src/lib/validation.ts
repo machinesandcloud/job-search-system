@@ -33,6 +33,9 @@ export const leadAnswersSchema = z.object({
     portfolio: z.enum(["None", "Some", "Strong"]),
   }),
   linkedinUrl: z.string().url().optional().nullable(),
+  linkedinHeadline: z.string().max(140).optional().nullable(),
+  linkedinSummary: z.string().max(1200).optional().nullable(),
+  resumeText: z.string().max(2000).optional().nullable(),
   resumeUploaded: z.boolean(),
   networkStrength: z.enum(["Low", "Medium", "Strong"]),
   outreachComfort: z.enum(["Low", "Medium", "High"]),
@@ -75,6 +78,7 @@ export const leadAnswersSchema = z.object({
   ]),
   blockerNote: z.string().max(240).optional().nullable(),
   coachFeedback: z.string().max(1200).optional().nullable(),
+  assetReview: z.string().max(2000).optional().nullable(),
   pipeline: z.enum(["None", "Some", "Active"]),
 });
 
@@ -128,6 +132,15 @@ export function sanitizeAnswers(input: any) {
   }
   if (typeof copy.linkedinUrl === "string" && copy.linkedinUrl.trim() === "") {
     copy.linkedinUrl = null;
+  }
+  if (typeof copy.linkedinHeadline === "string" && copy.linkedinHeadline.trim() === "") {
+    copy.linkedinHeadline = null;
+  }
+  if (typeof copy.linkedinSummary === "string" && copy.linkedinSummary.trim() === "") {
+    copy.linkedinSummary = null;
+  }
+  if (typeof copy.resumeText === "string" && copy.resumeText.trim() === "") {
+    copy.resumeText = null;
   }
   return copy;
 }

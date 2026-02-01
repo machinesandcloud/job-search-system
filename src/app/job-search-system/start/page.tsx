@@ -47,6 +47,14 @@ export default function JobSearchWizard() {
   const [pulseLoading, setPulseLoading] = useState(false);
 
   const progress = ((step + 1) / steps.length) * 100;
+  const timelineLabel =
+    answers.timeline === "ASAP"
+      ? "0-14 days"
+      : answers.timeline === "30"
+      ? "30 days"
+      : answers.timeline === "60"
+      ? "60 days"
+      : "90+ days";
 
   useEffect(() => {
     const createLead = async () => {
@@ -231,15 +239,21 @@ export default function JobSearchWizard() {
                 )}
               </div>
             </div>
-            <div className="mt-6 grid gap-4 rounded-3xl border border-slate-700 bg-slate-900/70 p-6 text-sm text-slate-300">
-              <div>
-                <p className="text-xs uppercase tracking-wide text-slate-400">What I’m optimizing for</p>
-                <ul className="mt-2 space-y-1">
-                  <li>- Your role, level, and constraints drive the plan.</li>
-                  <li>- Timeline + hours/week set your weekly cadence.</li>
-                  <li>- Industry + company stage shape the proof strategy.</li>
-                </ul>
-              </div>
+              <div className="mt-6 grid gap-4 rounded-3xl border border-slate-700 bg-slate-900/70 p-6 text-sm text-slate-300">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-slate-400">What I’m optimizing for</p>
+                  <ul className="mt-2 space-y-1">
+                    <li>- Your role, level, and constraints drive the plan.</li>
+                    <li>- Timeline + hours/week set your weekly cadence.</li>
+                    <li>- Industry + company stage shape the proof strategy.</li>
+                  </ul>
+                </div>
+              {teaser.assetReview && (
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Resume + LinkedIn review (preview)</p>
+                  <p className="mt-2 text-sm text-slate-300">{teaser.assetReview}</p>
+                </div>
+              )}
               {Array.isArray(teaser.planOverview) && teaser.planOverview.length > 0 && (
                 <div>
                   <p className="text-xs uppercase tracking-wide text-slate-400">Plan overview</p>
@@ -264,7 +278,7 @@ export default function JobSearchWizard() {
                 <ul className="mt-2 space-y-1">
                   <li>- No account required. Results delivered by link.</li>
                   <li>- Inputs are only used to build your plan.</li>
-                  <li>- Resume + LinkedIn inputs sharpen the coach feedback.</li>
+                  <li>- Resume + LinkedIn notes generate a tailored review.</li>
                 </ul>
               </div>
             </div>
@@ -589,6 +603,12 @@ export default function JobSearchWizard() {
                   value={answers.linkedinUrl || ""}
                   onChange={(e) => updateAnswers({ linkedinUrl: e.target.value })}
                 />
+                <Label className="mt-4 block">LinkedIn headline (optional)</Label>
+                <Input
+                  placeholder="e.g., Senior Backend Engineer | APIs & Reliability"
+                  value={answers.linkedinHeadline || ""}
+                  onChange={(e) => updateAnswers({ linkedinHeadline: e.target.value })}
+                />
               </div>
               <div>
                 <Label>Upload resume (PDF or DOCX)</Label>
@@ -603,7 +623,23 @@ export default function JobSearchWizard() {
                   {resumeStatus === "error" && resumeError}
                   {resumeStatus === "idle" && "Optional, but helps us give sharper feedback."}
                 </p>
+                <Label className="mt-4 block">Resume highlights (paste a few bullets)</Label>
+                <Textarea
+                  rows={4}
+                  placeholder="Paste 3-5 strongest bullets or a short summary."
+                  value={answers.resumeText || ""}
+                  onChange={(e) => updateAnswers({ resumeText: e.target.value })}
+                />
               </div>
+            </div>
+            <div>
+              <Label>LinkedIn summary/About (optional)</Label>
+              <Textarea
+                rows={4}
+                placeholder="Paste your current LinkedIn summary or the key points you want reviewed."
+                value={answers.linkedinSummary || ""}
+                onChange={(e) => updateAnswers({ linkedinSummary: e.target.value })}
+              />
             </div>
           </div>
         )}
@@ -740,6 +776,16 @@ export default function JobSearchWizard() {
                 I’ll summarize what I’m hearing once you’ve filled a few prompts.
               </p>
             )}
+          </div>
+          <div className="rounded-3xl border border-slate-700 bg-slate-900/70 p-6 text-sm text-slate-300">
+            <p className="text-xs uppercase tracking-wide text-slate-400">Your snapshot</p>
+            <ul className="mt-2 space-y-1">
+              <li>- Role: {answers.roles?.[0] || \"—\"}</li>
+              <li>- Level: {answers.level}</li>
+              <li>- Timeline: {timelineLabel}</li>
+              <li>- Hours/week: {answers.hoursPerWeek}</li>
+              <li>- Industry: {answers.targetIndustry}</li>
+            </ul>
           </div>
           <div className="rounded-3xl border border-slate-700 bg-slate-900/70 p-6 text-sm text-slate-300">
             <p className="text-xs uppercase tracking-wide text-slate-400">What I’m building for you</p>
