@@ -121,6 +121,8 @@ export async function POST(request: Request) {
       insights: results.insights,
       cadencePreview: results.cadence[0]?.actions[0],
       previewActions: results.previewActions,
+      sampleScript: results.scripts.recruiter,
+      targetCompanies: answers.companyTargets?.slice(0, 6).map((c) => c.name) || [],
     },
   });
 }

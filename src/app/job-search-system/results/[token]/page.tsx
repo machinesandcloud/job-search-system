@@ -52,7 +52,7 @@ export default async function ResultsPage({ params }: { params: { token: string 
           </div>
           <h1 className="mb-2 text-3xl font-semibold text-slate-100">Your Job Search System</h1>
           <p className="mb-6 text-slate-300">
-            Here’s the plan I’d run with you based on your timeline, constraints, and available hours. It’s focused,
+            Here's the plan I'd run with you based on your timeline, constraints, and available hours. It's focused,
             realistic, and built to generate traction fast.
           </p>
           <div className="mb-6 grid gap-4 lg:grid-cols-2">
@@ -79,7 +79,7 @@ export default async function ResultsPage({ params }: { params: { token: string 
                 <p className="tag mb-3">Recommended route</p>
                 <p className="text-2xl font-semibold text-slate-100">{results.route.replace("_", " ")}</p>
                 <p className="mt-2 text-sm text-slate-300">
-                  This route fits your urgency and current assets. We’ll scale it up once the first week lands.
+                  This route fits your urgency and current assets. We'll scale it up once the first week lands.
                 </p>
                 {results.planOverview?.length > 0 && (
                   <ul className="mt-4 space-y-2 text-sm text-slate-300">
@@ -225,7 +225,7 @@ export default async function ResultsPage({ params }: { params: { token: string 
               <p className="tag mb-4">Your inputs</p>
               <ul className="space-y-2 text-sm text-slate-300">
                 <li><strong>Role:</strong> {answers.roles?.[0]}</li>
-                <li><strong>Current title:</strong> {answers.currentTitle || "—"}</li>
+                <li><strong>Current title:</strong> {answers.currentTitle || "-"}</li>
                 <li><strong>Experience:</strong> {answers.experienceYears} years</li>
                 <li><strong>Leadership scope:</strong> {answers.leadershipScope}</li>
                 <li><strong>Level:</strong> {answers.level}</li>
@@ -238,11 +238,11 @@ export default async function ResultsPage({ params }: { params: { token: string 
                 <li><strong>Hours/week:</strong> {answers.hoursPerWeek}</li>
                 <li><strong>Constraints:</strong> {answers.constraints?.length ? answers.constraints.join(", ") : "None"}</li>
                 <li><strong>Biggest blocker:</strong> {answers.biggestBlocker}</li>
-                <li><strong>Blocker note:</strong> {answers.blockerNote || "—"}</li>
-                <li><strong>LinkedIn:</strong> {answers.linkedinUrl || "—"}</li>
-                <li><strong>LinkedIn headline:</strong> {answers.linkedinHeadline || "—"}</li>
-                <li><strong>LinkedIn summary:</strong> {answers.linkedinSummary || "—"}</li>
-                <li><strong>Resume highlights:</strong> {answers.resumeText || "—"}</li>
+                <li><strong>Blocker note:</strong> {answers.blockerNote || "-"}</li>
+                <li><strong>LinkedIn:</strong> {answers.linkedinUrl || "-"}</li>
+                <li><strong>LinkedIn headline:</strong> {answers.linkedinHeadline || "-"}</li>
+                <li><strong>LinkedIn summary:</strong> {answers.linkedinSummary || "-"}</li>
+                <li><strong>Resume highlights:</strong> {answers.resumeText || "-"}</li>
                 <li><strong>Resume uploaded:</strong> {answers.resumeUploaded ? "Yes" : "No"}</li>
               </ul>
             </CardContent>

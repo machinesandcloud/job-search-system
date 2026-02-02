@@ -45,6 +45,7 @@ export default function JobSearchWizard() {
   const [resumeError, setResumeError] = useState<string | null>(null);
   const [coachPulse, setCoachPulse] = useState<string | null>(null);
   const [pulseLoading, setPulseLoading] = useState(false);
+  const [pulseEnabled, setPulseEnabled] = useState(true);
 
   const progress = ((step + 1) / steps.length) * 100;
   const timelineLabel =
@@ -86,6 +87,7 @@ export default function JobSearchWizard() {
         } else {
           const data = await res.json();
           setCoachPulse(data.message || null);
+          setPulseEnabled(data.aiEnabled !== false);
         }
       } catch {
         setCoachPulse(null);
@@ -183,114 +185,83 @@ export default function JobSearchWizard() {
         <Link href="/job-search-system" className="text-sm text-slate-400">
           Back to landing
         </Link>
-        <div className="mt-8 grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="mt-8 grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
           <div>
-            <h1 className="mb-3 text-3xl font-semibold text-slate-100">Your quick preview</h1>
+            <h1 className="mb-2 text-3xl font-semibold text-slate-100">Your 30-day Job Search System (Preview)</h1>
             <p className="text-slate-300">
-              Based on what you shared, here’s the high‑level plan I’d build for you. It’s short, specific, and tuned
-              to your timeline — just a preview of the full system.
+              Based on your timeline ({timelineLabel}) and bandwidth ({answers.hoursPerWeek} hrs/week), here is the
+              highest-signal plan I would run with you. This is the short version.
             </p>
             <div className="mt-6 rounded-3xl border border-slate-700 bg-slate-900/70 p-6">
-              <ScoreGauge score={teaser.score} />
-              <div className="mt-4 space-y-3 text-sm text-slate-300">
+              <div className="flex flex-wrap items-center gap-4">
+                <ScoreGauge score={teaser.score} />
                 <div>
                   <p className="text-xs uppercase tracking-wide text-slate-400">Coach read</p>
-                  <p className="mt-1">{teaser.coachRead}</p>
-                </div>
-                {teaser.coachFeedback && (
-                  <div>
-                    <p className="text-xs uppercase tracking-wide text-slate-400">Coach feedback</p>
-                    <p className="mt-1">{teaser.coachFeedback}</p>
-                  </div>
-                )}
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-slate-400">Positioning</p>
-                  <p className="mt-1">{teaser.positioningSummary}</p>
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-slate-400">Top insights</p>
-                  {teaser.insights?.slice(0, 3).map((insight: string) => (
-                    <p key={insight}>- {insight}</p>
-                  ))}
+                  <p className="mt-1 text-sm text-slate-300">{teaser.coachRead}</p>
                 </div>
               </div>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                {[
-                  ["Clarity", teaser.subscores?.clarity],
-                  ["Assets", teaser.subscores?.assets],
-                  ["Network", teaser.subscores?.network],
-                  ["Execution", teaser.subscores?.execution],
-                ].map(([label, value]) => (
-                  <div key={label} className="rounded-2xl border border-slate-700 bg-slate-950/60 p-3 text-xs">
-                    <p className="text-slate-400">{label}</p>
-                    <p className="text-lg font-semibold text-slate-100">{value ?? "--"}/25</p>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4 rounded-2xl bg-slate-950/70 p-4 text-sm">
-                <p className="font-semibold text-slate-100">Cadence preview</p>
-                <p className="text-slate-300">Week 1: {teaser.cadencePreview}</p>
-                {Array.isArray(teaser.previewActions) && teaser.previewActions.length > 0 && (
-                  <ul className="mt-2 space-y-1 text-slate-300">
-                    {teaser.previewActions.map((action: string) => (
+              <div className="mt-5 grid gap-3 md:grid-cols-3">
+                <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm">
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Your fastest win</p>
+                  <p className="mt-2 text-slate-200">
+                    {teaser.insights?.[0] || "Tighten positioning and launch a warm outreach cadence."}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm">
+                  <p className="text-xs uppercase tracking-wide text-slate-400">This week</p>
+                  <ul className="mt-2 space-y-1 text-slate-200">
+                    {(teaser.previewActions || []).slice(0, 3).map((action: string) => (
                       <li key={action}>- {action}</li>
                     ))}
                   </ul>
-                )}
-              </div>
-            </div>
-              <div className="mt-6 grid gap-4 rounded-3xl border border-slate-700 bg-slate-900/70 p-6 text-sm text-slate-300">
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-slate-400">What I’m optimizing for</p>
-                  <ul className="mt-2 space-y-1">
-                    <li>- Your role, level, and constraints drive the plan.</li>
-                    <li>- Timeline + hours/week set your weekly cadence.</li>
-                    <li>- Industry + company stage shape the proof strategy.</li>
+                </div>
+                <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm">
+                  <p className="text-xs uppercase tracking-wide text-slate-400">What you unlock</p>
+                  <ul className="mt-2 space-y-1 text-slate-200">
+                    <li>- Full 30-day plan</li>
+                    <li>- Scripts + follow-ups</li>
+                    <li>- Company shortlist + ATS map</li>
                   </ul>
                 </div>
+              </div>
+              <div className="mt-5 grid gap-3 md:grid-cols-2">
+                <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm">
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Sample script</p>
+                  <p className="mt-2 text-slate-200">{teaser.sampleScript || "Templates included in the full plan."}</p>
+                </div>
+                <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm">
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Target companies</p>
+                  <div className="mt-2 flex flex-wrap gap-2 text-slate-200">
+                    {(teaser.targetCompanies || []).length
+                      ? teaser.targetCompanies.map((name: string) => (
+                          <span key={name} className="rounded-full bg-slate-800 px-3 py-1 text-xs">
+                            {name}
+                          </span>
+                        ))
+                      : "Add your targets to see them here."}
+                  </div>
+                </div>
+              </div>
               {teaser.assetReview && (
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-slate-400">Resume + LinkedIn review (preview)</p>
-                  <p className="mt-2 text-sm text-slate-300">{teaser.assetReview}</p>
-                </div>
+                <details className="mt-5 rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm text-slate-200">
+                  <summary className="cursor-pointer text-xs uppercase tracking-wide text-slate-400">
+                    Resume + LinkedIn review (preview)
+                  </summary>
+                  <p className="mt-2 whitespace-pre-line">{teaser.assetReview}</p>
+                </details>
               )}
-              {Array.isArray(teaser.planOverview) && teaser.planOverview.length > 0 && (
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-slate-400">Plan overview</p>
-                  <ul className="mt-2 space-y-1">
-                    {teaser.planOverview.map((item: string) => (
-                      <li key={item}>- {item}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              <div>
-                <p className="text-xs uppercase tracking-wide text-slate-400">What you unlock</p>
-                <ul className="mt-2 space-y-1">
-                  <li>- Full weekly cadence mapped to your hours and urgency.</li>
-                  <li>- Role-specific scripts + follow-up sequence.</li>
-                  <li>- 14-day execution checklist and proof strategy.</li>
-                  <li>- Company shortlist and ATS keyword map.</li>
-                </ul>
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-wide text-slate-400">Delivery details</p>
-                <ul className="mt-2 space-y-1">
-                  <li>- No account required. Results delivered by link.</li>
-                  <li>- Inputs are only used to build your plan.</li>
-                  <li>- Resume + LinkedIn notes generate a tailored review.</li>
-                </ul>
-              </div>
             </div>
           </div>
           <div className="rounded-3xl border border-slate-700 bg-slate-900/70 p-6 shadow-sm">
-            <p className="tag mb-4">Unlock full report</p>
-            <Label className="text-slate-200">Email address</Label>
+            <p className="tag mb-3">Get your full plan + scripts</p>
+            <h3 className="text-xl font-semibold text-slate-100">Email me my plan + templates</h3>
+            <p className="mt-2 text-sm text-slate-300">No account. No spam. Instant delivery.</p>
+            <Label className="mt-4 text-slate-200">Email address</Label>
             <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@domain.com" />
-            <p className="mt-2 text-xs text-slate-400">We'll send your plan link instantly.</p>
             <Button className="mt-4 w-full" onClick={submitEmail} disabled={sendingEmail}>
-              {sendingEmail ? "Sending..." : "Send my plan"}
+              {sendingEmail ? "Sending..." : "Email me my plan + templates"}
             </Button>
+            <p className="mt-2 text-xs text-slate-400">Delivered instantly. Check Promotions if you do not see it.</p>
             {emailSent && (
               <div className="mt-4 rounded-2xl bg-emerald-500/10 p-4 text-sm text-emerald-200">
                 {emailStatus?.skipped
@@ -307,13 +278,23 @@ export default function JobSearchWizard() {
               </div>
             )}
             {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
-            <div className="mt-6 rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm text-slate-300">
-              <p className="text-xs uppercase tracking-wide text-slate-400">What happens next</p>
-              <ul className="mt-2 space-y-1">
-                <li>- Full report link delivered instantly.</li>
-                <li>- Weekly plan mapped to your hours + urgency.</li>
-                <li>- Role-specific scripts and proof strategy.</li>
-              </ul>
+            <div className="mt-6 grid gap-3 rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm text-slate-300">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-slate-400">Why this works</p>
+                <ul className="mt-2 space-y-1">
+                  <li>- Designed for high-signal outreach.</li>
+                  <li>- Mapped to your hours/week and timeline.</li>
+                  <li>- Privacy-first. We never sell your data.</li>
+                </ul>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-slate-400">What you get</p>
+                <ul className="mt-2 space-y-1">
+                  <li>- Full 30-day plan + scripts.</li>
+                  <li>- Company shortlist + ATS map (Pro).</li>
+                  <li>- Export to Notion + PDF.</li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
@@ -342,7 +323,7 @@ export default function JobSearchWizard() {
           {step === 0 && (
             <div className="space-y-4">
               <h2 className="text-xl font-semibold">Target role(s)</h2>
-              <p className="text-sm text-slate-400">Be specific — I tailor scripts and proof strategy to this role.</p>
+            <p className="text-sm text-slate-400">Be specific - I tailor scripts and proof strategy to this role.</p>
               <RoleSelect value={answers.roles} onChange={(roles) => updateAnswers({ roles })} />
             </div>
           )}
@@ -773,7 +754,12 @@ export default function JobSearchWizard() {
             )}
             {!pulseLoading && !coachPulse && (
               <p className="text-sm text-slate-400">
-                I’ll summarize what I’m hearing once you’ve filled a few prompts.
+                I'll summarize what I'm hearing once you've filled a few prompts.
+              </p>
+            )}
+            {!pulseEnabled && (
+              <p className="mt-3 text-xs text-slate-400">
+                AI coach pulse is running in preview mode.
               </p>
             )}
           </div>
@@ -788,7 +774,7 @@ export default function JobSearchWizard() {
             </ul>
           </div>
           <div className="rounded-3xl border border-slate-700 bg-slate-900/70 p-6 text-sm text-slate-300">
-            <p className="text-xs uppercase tracking-wide text-slate-400">What I’m building for you</p>
+            <p className="text-xs uppercase tracking-wide text-slate-400">What I'm building for you</p>
             <ul className="mt-2 space-y-1">
               <li>- Role positioning + scope statement.</li>
               <li>- Weekly cadence tied to your hours + urgency.</li>
@@ -799,7 +785,7 @@ export default function JobSearchWizard() {
           <div className="rounded-3xl border border-slate-700 bg-slate-900/70 p-6 text-sm text-slate-300">
             <p className="text-xs uppercase tracking-wide text-slate-400">How I translate your inputs</p>
             <p className="mt-2">
-              I use your level, urgency, and constraints to set the cadence and decide where to go deep first — no filler.
+              I use your level, urgency, and constraints to set the cadence and decide where to go deep first - no filler.
             </p>
           </div>
         </aside>

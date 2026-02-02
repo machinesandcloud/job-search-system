@@ -30,8 +30,8 @@ export default function JobSearchLanding() {
               A job search system that feels like a real coach built it with you.
             </h1>
             <p className="mb-6 text-lg text-slate-300">
-              Tell me your role, timeline, and constraints. I’ll translate that into a clear weekly plan, scripts,
-              proof strategy, and a realistic cadence — so you always know what to do next.
+              Tell me your role, timeline, and constraints. I'll translate that into a clear weekly plan, scripts,
+              proof strategy, and a realistic cadence - so you always know what to do next.
             </p>
             <div className="flex flex-wrap gap-3">
               <Link
@@ -90,13 +90,13 @@ export default function JobSearchLanding() {
               <div className="rounded-2xl bg-slate-950/70 px-5 py-4 text-slate-200">
                 <p className="text-xs uppercase tracking-wide text-slate-400">Example coach note</p>
                 <p className="mt-2 text-sm">
-                  With a 30‑day timeline and 5 hrs/week, you need warm intros + proof before volume applications.
+                  With a 30-day timeline and 5 hrs/week, you need warm intros + proof before volume applications.
                 </p>
               </div>
               <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm text-slate-300">
                 <p className="text-xs uppercase tracking-wide text-slate-400">Why this works</p>
                 <p className="mt-2">
-                  We translate your constraints into an execution plan that’s focused and sustainable — no wasted
+                  We translate your constraints into an execution plan that's focused and sustainable - no wasted
                   effort, no guesswork.
                 </p>
               </div>
@@ -136,8 +136,8 @@ export default function JobSearchLanding() {
               body: "We capture your role, level, constraints, and the reality of your time budget.",
             },
             {
-              title: "2. Get a coach‑style preview",
-              body: "You see your score, coach read, and first‑week plan immediately.",
+              title: "2. Get a coach-style preview",
+              body: "You see your score, coach read, and first-week plan immediately.",
             },
             {
               title: "3. Unlock the full system",
@@ -160,7 +160,7 @@ export default function JobSearchLanding() {
             <p className="tag mb-3">Visual preview</p>
             <h3 className="text-xl font-semibold text-slate-100">What the system looks like</h3>
             <p className="mt-2">
-              You’ll see a coach summary, your 4‑week cadence, and the exact scripts we’d run for your role.
+              You'll see a coach summary, your 4-week cadence, and the exact scripts we'd run for your role.
             </p>
             <ul className="mt-4 space-y-2">
               <li>- Snapshot of your role positioning and scope.</li>
@@ -174,10 +174,10 @@ export default function JobSearchLanding() {
 
       <section className="section-shell py-12">
         <div className="rounded-3xl border border-slate-700 bg-slate-900/70 p-8">
-          <p className="tag mb-4">Program‑style timeline</p>
-          <h2 className="text-2xl font-semibold text-slate-100">Your 5‑week career plan (example)</h2>
+          <p className="tag mb-4">Program-style timeline</p>
+          <h2 className="text-2xl font-semibold text-slate-100">Your 5-week career plan (example)</h2>
           <p className="mt-2 text-sm text-slate-300">
-            Inspired by our coaching program cadence — adapted to your role, level, and hours/week.
+            Inspired by our coaching program cadence - adapted to your role, level, and hours/week.
           </p>
           <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {[
@@ -208,7 +208,7 @@ export default function JobSearchLanding() {
               <p className="tag mb-3">About your coach</p>
               <h3 className="text-xl font-semibold text-slate-100">Coaching + recruiting + agentic AI</h3>
               <p className="mt-2 text-sm text-slate-300">
-                I’ve coached candidates through high‑stakes transitions, partnered with recruiters on role clarity,
+                I've coached candidates through high-stakes transitions, partnered with recruiters on role clarity,
                 and built AI systems that turn messy search inputs into clean execution plans.
               </p>
               <ul className="mt-4 space-y-2 text-sm text-slate-300">
@@ -222,10 +222,10 @@ export default function JobSearchLanding() {
             <CardContent className="p-6">
               <p className="tag mb-3">What this fixes</p>
               <ul className="space-y-2 text-sm text-slate-300">
-                <li>- “I’m applying everywhere but getting no traction.”</li>
-                <li>- “I’m not sure which roles match my level.”</li>
-                <li>- “My resume and LinkedIn don’t reflect my impact.”</li>
-                <li>- “I don’t have a weekly plan I can stick to.”</li>
+                <li>- "I'm applying everywhere but getting no traction."</li>
+                <li>- "I'm not sure which roles match my level."</li>
+                <li>- "My resume and LinkedIn don't reflect my impact."</li>
+                <li>- "I don't have a weekly plan I can stick to."</li>
               </ul>
             </CardContent>
           </Card>
@@ -240,7 +240,7 @@ export default function JobSearchLanding() {
               <div className="space-y-4 text-sm text-slate-300">
                 <div>
                   <p className="font-semibold text-slate-100">How long does this take?</p>
-                  <p>About 10 minutes. You’ll see the preview instantly and the full plan after email.</p>
+                  <p>About 10 minutes. You'll see the preview instantly and the full plan after email.</p>
                 </div>
                 <div>
                   <p className="font-semibold text-slate-100">Do I need an account?</p>
@@ -248,7 +248,7 @@ export default function JobSearchLanding() {
                 </div>
                 <div>
                   <p className="font-semibold text-slate-100">Will the plan match my constraints?</p>
-                  <p>Yes — we calibrate to your hours/week, timeline, and non‑negotiables.</p>
+                  <p>Yes - we calibrate to your hours/week, timeline, and non-negotiables.</p>
                 </div>
               </div>
             </CardContent>
@@ -257,7 +257,7 @@ export default function JobSearchLanding() {
             <CardContent className="p-6">
               <p className="tag mb-3">Ready?</p>
               <h3 className="text-2xl font-semibold text-slate-100">Start free and build your system today.</h3>
-              <p className="mt-2 text-sm text-slate-300">No fluff. Just a clear, coach‑led execution plan.</p>
+              <p className="mt-2 text-sm text-slate-300">No fluff. Just a clear, coach-led execution plan.</p>
               <Link
                 href="/job-search-system/start"
                 className="mt-4 inline-flex rounded-full bg-emerald-400 px-6 py-3 text-sm font-semibold text-slate-900"
