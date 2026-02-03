@@ -13,6 +13,7 @@ type CountUpProps = {
   easing?: "bounce" | "linear";
   revealSuffix?: boolean;
   className?: string;
+  dataValue?: string;
 };
 
 export function CountUp({
@@ -26,6 +27,7 @@ export function CountUp({
   easing = "linear",
   revealSuffix = false,
   className,
+  dataValue,
 }: CountUpProps) {
   const [display, setDisplay] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
@@ -103,7 +105,7 @@ export function CountUp({
   }, []);
 
   return (
-    <span ref={ref} className={className}>
+    <span ref={ref} className={className} data-value={dataValue}>
       {display}
       {suffix ? (
         <span className={`cmd-suffix ${showSuffix ? "is-visible" : ""}`}>{suffix}</span>

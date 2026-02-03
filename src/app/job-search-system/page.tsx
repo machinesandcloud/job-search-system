@@ -318,17 +318,17 @@ export default function JobSearchLanding() {
                 ))}
               </div>
             </div>
-            <div className="stats-grid">
+              <div className="stats-grid">
               <div className="stat-card">
-                <CountUp value={300} suffix="+" revealSuffix delay={0} duration={1500} className="stat-number" />
+                <CountUp value={300} suffix="+" revealSuffix delay={0} duration={1500} className="stat-number" dataValue="300+" />
                 <p className="stat-label">Placements</p>
               </div>
               <div className="stat-card">
-                <CountUp value={40} suffix="%" delay={200} duration={1800} className="stat-number" />
+                <CountUp value={40} suffix="%" delay={200} duration={1800} className="stat-number" dataValue="40%" />
                 <p className="stat-label">Avg comp increase</p>
               </div>
               <div className="stat-card">
-                <CountUp value={87} suffix="%" delay={400} duration={2000} className="stat-number" />
+                <CountUp value={87} suffix="%" delay={400} duration={2000} className="stat-number" dataValue="87%" />
                 <p className="stat-label">Interview→offer</p>
               </div>
             </div>
@@ -358,17 +358,17 @@ export default function JobSearchLanding() {
                 className="cmd-cta cmd-cta-animated cmd-cta-pulse cmd-cta-primary mt-6"
               />
               <p className="mt-3 text-xs text-slate-400">No sales call. No payment. Clarity.</p>
-              <p className="mt-2 text-xs text-slate-400">🔒 Your data is private and never shared.</p>
+              <p className="privacy-note mt-4">Your data is private and never shared.</p>
             </div>
-            <div className="relative overflow-hidden rounded-3xl border border-slate-700 bg-slate-950/60">
+            <div className="dashboard-preview relative overflow-hidden rounded-3xl border border-slate-700 bg-slate-950/60">
               <img
                 src="/images/command-center-office.jpg"
                 alt="Career readiness dashboard showing score, weekly focus, and blocker analysis"
-                className="cmd-dashboard-preview h-full w-full object-cover blur-[1px] brightness-125"
+                className="dashboard-preview-image h-full w-full object-cover"
                 loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
-              <div className="absolute bottom-4 left-4 rounded-full border border-white/10 bg-black/40 px-3 py-1 text-xs text-slate-200">
+              <div className="dashboard-preview-label absolute bottom-4 left-4 rounded-full border border-white/10 bg-black/40 px-3 py-1 text-xs text-slate-200">
                 Preview of your dashboard
               </div>
             </div>
