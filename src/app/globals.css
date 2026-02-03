@@ -13,6 +13,13 @@
   --cmd-cyan: #38bdf8;
   --cmd-mint: #2dd4bf;
   --cmd-rose: #fb7185;
+  --cmd-accent: #5ad0ff;
+  --cmd-accent-2: #6f7bff;
+  --cmd-accent-3: #2ea7d7;
+  --cmd-accent-soft: rgba(90, 208, 255, 0.35);
+  --cmd-accent-soft-2: rgba(111, 123, 255, 0.35);
+  --cmd-bg-main: rgba(8, 14, 28, 0.96);
+  --cmd-bg-alt: rgba(12, 20, 40, 0.96);
 }
 
 body {
@@ -94,11 +101,11 @@ body {
 
 .lp-bg {
   background:
-    radial-gradient(circle at 18% 16%, rgba(56, 189, 248, 0.14), transparent 45%),
-    radial-gradient(circle at 80% 12%, rgba(99, 102, 241, 0.18), transparent 46%),
-    radial-gradient(circle at 72% 85%, rgba(14, 165, 233, 0.1), transparent 52%),
-    radial-gradient(circle at 8% 80%, rgba(139, 92, 246, 0.1), transparent 50%),
-    linear-gradient(135deg, rgba(8, 12, 32, 0.96), rgba(14, 19, 42, 0.96));
+    radial-gradient(circle at 18% 16%, rgba(90, 208, 255, 0.18), transparent 45%),
+    radial-gradient(circle at 80% 12%, rgba(111, 123, 255, 0.18), transparent 46%),
+    radial-gradient(circle at 72% 85%, rgba(46, 167, 215, 0.14), transparent 52%),
+    radial-gradient(circle at 8% 80%, rgba(116, 150, 255, 0.12), transparent 50%),
+    linear-gradient(135deg, var(--cmd-bg-main), var(--cmd-bg-alt));
 }
 
 .cmd-shell {
@@ -165,14 +172,14 @@ body {
 }
 
 .cmd-gradient-text {
-  background: linear-gradient(120deg, #38bdf8, #7c3aed, #a855f7);
+  background: linear-gradient(120deg, var(--cmd-accent), var(--cmd-accent-2));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
 .cmd-gradient-strong {
-  background: linear-gradient(120deg, #3b82f6 0%, #a855f7 50%, #8b5cf6 100%);
+  background: linear-gradient(120deg, var(--cmd-accent) 0%, var(--cmd-accent-2) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -229,7 +236,7 @@ body {
 }
 
 .cmd-cta {
-  background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, var(--cmd-accent) 0%, var(--cmd-accent-2) 100%);
   box-shadow: 0 8px 24px rgba(6, 182, 212, 0.4);
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   border-radius: 999px;
@@ -392,12 +399,12 @@ body {
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  background: rgba(6, 182, 212, 0.15);
-  border: 1px solid rgba(6, 182, 212, 0.4);
+  background: rgba(90, 208, 255, 0.18);
+  border: 1px solid rgba(90, 208, 255, 0.5);
   border-radius: 999px;
   font-size: 13px;
   font-weight: 700;
-  color: #22d3ee;
+  color: #a6e9ff;
   backdrop-filter: blur(10px);
   white-space: nowrap;
 }
@@ -427,19 +434,19 @@ body {
 .case-study-outcome {
   font-size: 15px;
   font-weight: 600;
-  color: #22d3ee;
+  color: var(--cmd-accent);
   letter-spacing: 0.02em;
 }
 
 .section-divider {
   width: 80px;
   height: 4px;
-  background: linear-gradient(90deg, #06b6d4 0%, #8b5cf6 100%);
+  background: linear-gradient(90deg, var(--cmd-accent) 0%, var(--cmd-accent-2) 100%);
   margin: 100px auto;
   border-radius: 999px;
   opacity: 0.4;
   position: relative;
-  box-shadow: 0 4px 16px rgba(6, 182, 212, 0.4);
+  box-shadow: 0 4px 16px rgba(90, 208, 255, 0.4);
 }
 
 .section-divider::before,
@@ -450,7 +457,7 @@ body {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #06b6d4;
+  background: var(--cmd-accent);
   transform: translateY(-50%);
 }
 
@@ -471,7 +478,7 @@ body {
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(99, 179, 237, 0.6);
+  color: rgba(90, 208, 255, 0.75);
   margin-bottom: 32px;
 }
 
@@ -497,19 +504,19 @@ body {
 }
 
 .company-logo {
-  height: 28px;
+  height: 30px;
   width: auto;
   max-width: 120px;
   object-fit: contain;
-  opacity: 0.25;
-  filter: grayscale(100%) brightness(3) contrast(0.8);
+  opacity: 0.5;
+  filter: invert(1) grayscale(100%) brightness(1.5) contrast(1);
   transition: all 0.4s ease;
   flex-shrink: 0;
 }
 
 .company-logo:hover {
-  opacity: 0.5;
-  filter: grayscale(80%) brightness(2.5);
+  opacity: 0.7;
+  filter: invert(1) grayscale(80%) brightness(1.7);
   transform: scale(1.05);
 }
 
@@ -560,7 +567,7 @@ body {
   color: #ffffff;
   line-height: 1;
   margin-bottom: 12px;
-  background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, var(--cmd-accent) 0%, var(--cmd-accent-2) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 4px 12px rgba(6, 182, 212, 0.3));
@@ -571,7 +578,7 @@ body {
   content: attr(data-value);
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, var(--cmd-accent) 0%, var(--cmd-accent-2) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   filter: blur(20px);
@@ -601,13 +608,13 @@ body {
 .cmd-hero-orb-left {
   top: 20px;
   left: -80px;
-  background: radial-gradient(circle, rgba(56, 189, 248, 0.35), transparent 65%);
+  background: radial-gradient(circle, rgba(90, 208, 255, 0.35), transparent 65%);
 }
 
 .cmd-hero-orb-right {
   top: 130px;
   right: -90px;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.35), transparent 65%);
+  background: radial-gradient(circle, rgba(111, 123, 255, 0.35), transparent 65%);
 }
 
 .cmd-divider {
@@ -634,8 +641,8 @@ body {
   letter-spacing: 0.1em;
   font-size: 0.75rem;
   font-weight: 600;
-  color: rgba(99, 179, 237, 0.8);
-  text-shadow: 0 2px 8px rgba(6, 182, 212, 0.3);
+  color: rgba(90, 208, 255, 0.85);
+  text-shadow: 0 2px 8px rgba(90, 208, 255, 0.35);
   margin-bottom: 16px;
 }
 
@@ -676,7 +683,7 @@ body {
   font-size: 20px;
   font-weight: 800;
   color: white;
-  background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, var(--cmd-accent) 0%, var(--cmd-accent-2) 100%);
   box-shadow:
     0 6px 20px rgba(6, 182, 212, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
@@ -857,7 +864,7 @@ body {
   height: 44px;
   padding: 0 18px;
   border-radius: 999px;
-  background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, var(--cmd-accent) 0%, var(--cmd-accent-2) 100%);
   font-size: 16px;
   font-weight: 700;
   color: #0b1020;
@@ -890,8 +897,9 @@ body {
 
 .cmd-system-connector {
   position: absolute;
-  inset: 0 6%;
-  top: 50%;
+  inset: 0 5%;
+  top: 52%;
+  transform: translateY(-50%);
   height: 120px;
   pointer-events: none;
   opacity: 0;
@@ -955,15 +963,15 @@ body {
 .cmd-carousel-dots {
   display: flex;
   justify-content: center;
-  gap: 6px;
+  gap: clamp(6px, 1.5vw, 12px);
   margin-top: 12px;
 }
 
 .cmd-carousel-dots span {
-  height: 6px;
-  width: 6px;
+  height: clamp(6px, 1.4vw, 12px);
+  width: clamp(6px, 1.4vw, 12px);
   border-radius: 999px;
-  background: rgba(148, 163, 184, 0.4);
+  background: rgba(90, 208, 255, 0.45);
 }
 
 .cmd-swipe-hint {
@@ -1003,7 +1011,7 @@ body {
 .cmd-system-path {
   stroke-dasharray: 6 8;
   stroke-dashoffset: 140;
-  stroke: rgba(6, 182, 212, 0.45);
+  stroke: rgba(90, 208, 255, 0.7);
   stroke-width: 2;
 }
 
