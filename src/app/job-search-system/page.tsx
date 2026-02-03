@@ -147,7 +147,7 @@ export default function JobSearchLanding() {
                     value={78}
                     duration={1200}
                     startOnMount
-                    easing={(t) => 1 + (Math.pow(t - 1, 3) * 1.7)}
+                    easing="bounce"
                   />
                   <span className="text-slate-400">/ 100</span>
                 </p>

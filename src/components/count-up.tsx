@@ -10,7 +10,7 @@ type CountUpProps = {
   live?: boolean;
   liveIntervalMs?: number;
   startOnMount?: boolean;
-  easing?: (t: number) => number;
+  easing?: "bounce" | "linear";
   revealSuffix?: boolean;
   className?: string;
 };
@@ -23,7 +23,7 @@ export function CountUp({
   live = false,
   liveIntervalMs = 3000,
   startOnMount = false,
-  easing,
+  easing = "linear",
   revealSuffix = false,
   className,
 }: CountUpProps) {
@@ -65,7 +65,10 @@ export function CountUp({
       const start = performance.now();
       const animate = (time: number) => {
         const progress = Math.min(1, (time - start) / duration);
-        const easedRaw = easing ? easing(progress) : progress;
+        const easedRaw =
+          easing === "bounce"
+            ? 1 + Math.pow(progress - 1, 3) * 1.7
+            : progress;
         const eased = Math.min(1, Math.max(0, easedRaw));
         const next = Math.round(value * eased);
         setDisplay(next);
