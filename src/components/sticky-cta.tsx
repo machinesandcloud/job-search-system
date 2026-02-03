@@ -7,7 +7,6 @@ export function StickyCTA() {
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const lastScrollY = useRef(0);
-  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const onScroll = () => {
@@ -15,34 +14,13 @@ export function StickyCTA() {
       const scrolled = window.scrollY + window.innerHeight;
       const total = document.documentElement.scrollHeight || 1;
       const pct = scrolled / total;
-      const current = window.scrollY;
-      const direction = current > lastScrollY.current ? "down" : "up";
-      lastScrollY.current = current;
-
-      if (direction === "up") {
-        setVisible(false);
-        if (hideTimer.current) {
-          clearTimeout(hideTimer.current);
-          hideTimer.current = null;
-        }
-        return;
-      }
-
-      if (pct >= 0.4) {
-        setVisible(true);
-        if (!hideTimer.current) {
-          hideTimer.current = setTimeout(() => {
-            setVisible(false);
-            hideTimer.current = null;
-          }, 10000);
-        }
-      }
+      lastScrollY.current = window.scrollY;
+      setVisible(pct >= 0.3);
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", onScroll);
-      if (hideTimer.current) clearTimeout(hideTimer.current);
     };
   }, [dismissed]);
 
@@ -51,16 +29,18 @@ export function StickyCTA() {
   return (
     <div className={`cmd-sticky ${visible ? "is-visible" : ""}`} aria-hidden={!visible}>
       <div className="cmd-shell flex h-full items-center gap-3">
-        <span className="cmd-sticky-icon" aria-hidden="true" />
-        <span className="cmd-sticky-text flex-1">Get your score in 8 questions — it&apos;s free</span>
+        <span className="cmd-sticky-icon" aria-hidden="true">
+          ⚡
+        </span>
+        <span className="cmd-sticky-text flex-1">See your exact career gaps in 10 minutes</span>
         <div className="ml-auto flex items-center gap-3">
           <Link
             href="/job-search-system/start"
             data-cta="sticky"
             aria-label="Start assessment"
-            className="cmd-cta cmd-cta-animated cmd-cta-pulse rounded-full px-4 py-2 text-xs font-semibold text-slate-950"
+            className="cmd-sticky-button"
           >
-            Start Assessment →
+            Get My Score
           </Link>
           <button
             type="button"

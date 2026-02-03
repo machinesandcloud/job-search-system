@@ -4,6 +4,8 @@ import { Reveal } from "@/components/reveal";
 import { LandingAnalytics } from "@/components/landing-analytics";
 import { StickyCTA } from "@/components/sticky-cta";
 import { CountUp } from "@/components/count-up";
+import { TickerMarquee } from "@/components/ticker-marquee";
+import { LiveCounter } from "@/components/live-counter";
 
 export const metadata: Metadata = {
   title: "Tech Career Coaching System | Land Senior Roles Faster | Steve Ngoumnai",
@@ -47,11 +49,12 @@ const logoCompanies = [
 ];
 
 const tickerItems = [
-  "John L. started",
-  "Maria K. scored 78/100",
-  "DevOps IC → Staff in 60 days",
-  "Offer strategy unlocked",
-  "SRE Lead completed assessment",
+  "Devon just scored 82/100",
+  "Platform Lead → Staff at Stripe • 45 days",
+  "Maria unlocked her execution plan",
+  "$165k → $240k offer accepted",
+  "SRE Manager completed assessment",
+  "John started his 30-day system",
 ];
 
 export default function JobSearchLanding() {
@@ -63,15 +66,11 @@ export default function JobSearchLanding() {
       <div className="border-b border-slate-800/60 bg-slate-950/40 text-xs text-slate-300">
         <div className="cmd-shell flex items-center gap-6 overflow-hidden py-2">
           <span className="cmd-eyebrow text-slate-400">Live signals</span>
-          <div className="cmd-ticker flex gap-6 whitespace-nowrap">
-            {tickerItems.concat(tickerItems).map((item, index) => (
-              <span key={`${item}-${index}`}>• {item}</span>
-            ))}
-          </div>
+          <TickerMarquee items={tickerItems} />
         </div>
       </div>
 
-      <section className="cmd-shell relative min-h-screen pb-20 pt-16" data-section="hero">
+      <section className="cmd-shell relative min-h-screen cmd-gap-hero" data-section="hero">
         <div className="cmd-hero-orb cmd-hero-orb-left" />
         <div className="cmd-hero-orb cmd-hero-orb-right" />
 
@@ -106,19 +105,19 @@ export default function JobSearchLanding() {
                 <span className="cmd-gradient-strong">operating system</span>.
               </h1>
               <p className="max-w-[36rem] text-lg text-slate-300">
-                I work with experienced engineers, managers, and operators to break through plateaus, land stronger
+                I work with experienced engineers and managers to break through plateaus, land stronger
                 roles, and increase compensation 30–60% using a deliberate, repeatable system — not mass applications.
               </p>
               <p className="max-w-lg text-sm text-slate-400 cmd-glow-soft">
                 300+ placements (2023–2025) • 10+ years leading DevOps &amp; platform teams
               </p>
             </div>
-            <div className="flex flex-wrap gap-4 pt-2">
+            <div className="flex flex-wrap items-center gap-4 pt-2">
               <Link
                 href="/job-search-system/start"
                 data-cta="hero"
                 aria-label="Start free assessment"
-                className="cmd-cta cmd-cta-animated cmd-cta-pulse h-[70px] px-10 text-base font-semibold text-slate-950"
+                className="cmd-cta cmd-cta-animated cmd-cta-pulse cmd-cta-primary"
               >
                 Start Free Assessment
               </Link>
@@ -126,7 +125,7 @@ export default function JobSearchLanding() {
                 href="#offer"
                 data-cta="hero-secondary"
                 aria-label="See the assessment"
-                className="cmd-ghost h-[70px] px-10 text-base font-semibold"
+                className="cmd-ghost cmd-cta-secondary"
               >
                 See the assessment
               </Link>
@@ -138,13 +137,18 @@ export default function JobSearchLanding() {
             </div>
           </div>
 
-          <div data-preview-card className="cmd-panel cmd-glow cmd-preview rounded-3xl p-6">
+          <div data-preview-card className="cmd-panel cmd-glow cmd-preview rounded-3xl p-6 text-center sm:text-left">
             <p className="text-xs uppercase tracking-wide text-slate-400">Preview</p>
             <div className="mt-4 grid gap-3">
               <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4">
                 <p className="text-xs uppercase tracking-wide text-slate-400">Career readiness score</p>
                 <p className="mt-2 flex items-baseline gap-2 text-xl font-semibold text-slate-100 cmd-score-pulse cmd-score-text sm:text-2xl">
-                  <CountUp value={78} duration={1500} />
+                  <CountUp
+                    value={78}
+                    duration={1200}
+                    startOnMount
+                    easing={(t) => 1 + (Math.pow(t - 1, 3) * 1.7)}
+                  />
                   <span className="text-slate-400">/ 100</span>
                 </p>
               </div>
@@ -165,13 +169,13 @@ export default function JobSearchLanding() {
         </div>
       </section>
 
-      <section id="problem" className="cmd-shell cmd-section-tight cmd-vignette" data-section="problem">
+      <section id="problem" className="cmd-shell cmd-gap-problem cmd-vignette" data-section="problem">
         <Reveal>
           <div className="grid items-center gap-6 lg:grid-cols-[1.05fr_auto_0.95fr]">
             <div className="cmd-panel cmd-bad rounded-3xl p-6">
               <p className="cmd-eyebrow">The broken playbook</p>
-              <h2 className="mt-3 text-2xl font-semibold text-slate-100">
-                Most job search advice is optimized for volume, not outcomes.
+            <h2 className="mt-3 text-2xl font-semibold text-slate-100">
+                Most job search advice optimizes for volume, not outcomes.
               </h2>
               <div className="mt-4 space-y-3 text-sm text-slate-300">
                 <p>❌ Spray 200 applications → 2% response rate</p>
@@ -198,46 +202,64 @@ export default function JobSearchLanding() {
         </Reveal>
       </section>
 
-      <section id="system" className="cmd-shell cmd-section" data-section="system">
+      <section id="system" className="cmd-shell cmd-gap-system" data-section="system">
         <Reveal>
           <div className="text-center">
             <p className="cmd-eyebrow">The system</p>
-            <h2 className="mt-3 text-3xl font-semibold text-slate-100">Four levers. One repeatable system.</h2>
+            <h2 className="mt-3 text-3xl font-semibold text-slate-100">Four Levers. One Repeatable System.</h2>
             <p className="mt-3 text-sm text-slate-300">
               Designed for senior ICs and managers who want leverage, not noise.
             </p>
           </div>
-          <div className="cmd-system-grid mt-10 flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory lg:grid lg:grid-cols-4 lg:overflow-visible">
-            {[
-              ["01", "Positioning", "3x higher response rates vs generic profiles"],
-              ["02", "Targeting", "Most land offers within first 15 companies"],
-              ["03", "Assets", "ATS + human optimized (87% pass rate)"],
-              ["04", "Execution", "14-day cycles, not 90-day chaos"],
-            ].map(([number, title, stat], index) => (
-              <div
-                key={title}
-                className={`cmd-panel cmd-card-link cmd-system-card snap-start min-w-[82%] rounded-3xl p-6 sm:min-w-[60%] lg:min-w-0 ${
-                  index % 2 === 0 ? "translate-y-0" : "translate-y-4"
-                }`}
-              >
-                <span className="cmd-number-badge">{number}</span>
-                <p className="mt-10 text-base font-semibold text-slate-100">{title}</p>
-                <p className="mt-3 text-sm text-slate-300">{stat}</p>
+            <div className="cmd-system-wrap mt-10">
+              <div className="cmd-system-grid flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory lg:grid lg:grid-cols-4 lg:overflow-visible">
+                {[
+                  ["01", "Positioning", "3x higher response rates vs generic profiles"],
+                  ["02", "Targeting", "Most land offers within first 15 companies"],
+                  ["03", "Assets", "ATS + human optimized (87% pass rate)"],
+                  ["04", "Execution", "14-day cycles, not 90-day chaos"],
+                ].map(([number, title, stat], index) => (
+                  <div
+                    key={title}
+                    className={`cmd-panel cmd-card-link cmd-system-card snap-start min-w-[82%] rounded-3xl p-6 sm:min-w-[60%] lg:min-w-0 ${
+                      index % 2 === 0 ? "translate-y-0" : "translate-y-4"
+                    }`}
+                  >
+                    <span className="cmd-number-badge">{number}</span>
+                    <p className="mt-10 text-base font-semibold text-slate-100">{title}</p>
+                    <p className="mt-3 text-sm text-slate-300">{stat}</p>
+                  </div>
+                ))}
               </div>
-            ))}
+              <div className="cmd-carousel-dots lg:hidden">
+                <span />
+                <span />
+                <span />
+                <span />
+              </div>
+              <svg className="cmd-system-connector" viewBox="0 0 1000 120" preserveAspectRatio="none" aria-hidden="true">
+                <path
+                  className="cmd-system-path"
+                  d="M80 60 L310 60 L310 60 L540 60 L540 60 L770 60"
+                  fill="none"
+                  stroke="rgba(99, 179, 237, 0.3)"
+                  strokeWidth="2"
+                />
+              <polygon points="770,54 786,60 770,66" fill="rgba(99, 179, 237, 0.3)" />
+            </svg>
           </div>
         </Reveal>
       </section>
 
-      <section id="proof" className="cmd-shell cmd-section-tight cmd-vignette" data-section="proof">
+      <section id="proof" className="cmd-shell cmd-gap-proof cmd-vignette" data-section="proof">
         <Reveal>
           <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-            <div className="cmd-panel rounded-3xl p-6">
-              <p className="cmd-eyebrow">Clients placed at:</p>
-              <div className="cmd-logo-carousel mt-4">
-                <div className="cmd-logo-track">
-                  {logoCompanies.concat(logoCompanies).map(([name, domain], index) => (
-                    <div key={`${name}-${index}`} className="cmd-logo-pill">
+          <div className="cmd-panel rounded-3xl p-6">
+            <p className="cmd-eyebrow cmd-logo-label">Clients placed at:</p>
+            <div className="cmd-logo-carousel mt-4">
+              <div className="cmd-logo-track">
+                {logoCompanies.concat(logoCompanies).map(([name, domain], index) => (
+                  <div key={`${name}-${index}`} className="cmd-logo-pill">
                       <img
                         src={
                           logoKey
@@ -249,21 +271,29 @@ export default function JobSearchLanding() {
                         loading="lazy"
                       />
                       <span className="text-xs font-semibold text-slate-200">{name}</span>
-                    </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
-              <div className="mt-6 grid gap-4 grid-cols-2 sm:grid-cols-3">
+            </div>
+            <p className="cmd-swipe-hint">Swipe to see more</p>
+            <div className="mt-6 grid gap-4 grid-cols-2 sm:grid-cols-3">
                 <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-center">
-                  <CountUp value={300} suffix="+" delay={0} duration={1200} className="text-2xl font-semibold text-slate-100" />
+                  <CountUp
+                    value={300}
+                    suffix="+"
+                    revealSuffix
+                    delay={0}
+                    duration={1500}
+                    className="text-2xl font-semibold text-slate-100"
+                  />
                   <p className="text-xs uppercase tracking-wide text-slate-400">placements</p>
                 </div>
                 <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-center">
-                  <CountUp value={40} suffix="%" delay={200} duration={1200} className="text-2xl font-semibold text-slate-100" />
+                  <CountUp value={40} suffix="%" delay={200} duration={1800} className="text-2xl font-semibold text-slate-100" />
                   <p className="text-xs uppercase tracking-wide text-slate-400">avg comp increase</p>
                 </div>
                 <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-center">
-                  <CountUp value={87} suffix="%" delay={400} duration={1200} className="text-2xl font-semibold text-slate-100" />
+                  <CountUp value={87} suffix="%" delay={400} duration={2000} className="text-2xl font-semibold text-slate-100" />
                   <p className="text-xs uppercase tracking-wide text-slate-400">interview→offer conversion</p>
                 </div>
               </div>
@@ -313,7 +343,9 @@ export default function JobSearchLanding() {
                           ? "Platform Lead → Staff Engineer"
                           : "Engineering Manager → Director"}
                       </p>
-                      <span className="cmd-pill cmd-pill-cyan text-xs">{timeline}</span>
+                      <span className="cmd-time-badge">
+                        ⏱️ {timeline}
+                      </span>
                     </div>
                     <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-300">
                       {idx === 0 && (
@@ -398,11 +430,11 @@ export default function JobSearchLanding() {
         </Reveal>
       </section>
 
-      <section id="offer" className="cmd-shell cmd-section" data-section="offer">
+      <section id="offer" className="cmd-shell cmd-gap-offer" data-section="offer">
         <Reveal>
           <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
             <div className="cmd-panel rounded-3xl p-6">
-              <p className="cmd-eyebrow">Get your Career System Audit</p>
+              <p className="cmd-eyebrow">Your 10-Minute Career System Audit</p>
               <h2 className="mt-3 text-3xl font-semibold text-slate-100">Answer 8 questions. Get clarity fast.</h2>
               <div className="mt-4 space-y-2 text-sm text-slate-300">
                 <p>1. Career Readiness Score (0-100)</p>
@@ -436,10 +468,13 @@ export default function JobSearchLanding() {
         </Reveal>
       </section>
 
-      <section id="about" className="cmd-shell cmd-section-tight cmd-vignette" data-section="about">
+      <section id="about" className="cmd-shell cmd-gap-about cmd-vignette" data-section="about">
         <Reveal>
           <div className="cmd-panel rounded-3xl p-6">
             <p className="cmd-eyebrow">About Steve J. Ngoumnai</p>
+            <div className="cmd-quote">
+              Careers work like systems: clarity beats chaos, leverage beats volume, good inputs compound.
+            </div>
             <div className="mt-6 grid gap-6 lg:grid-cols-3">
               <div className="space-y-4">
                 <div className="cmd-panel cmd-panel-strong rounded-3xl p-4 text-center">
@@ -474,17 +509,11 @@ export default function JobSearchLanding() {
                 </div>
               </div>
             </div>
-            <div className="mt-6 cmd-panel cmd-panel-strong rounded-3xl p-4 text-sm text-slate-300">
-              <p className="font-semibold text-slate-100">
-                “Careers work like systems: clarity beats chaos, leverage beats volume, good inputs compound.” — Steve J.
-                Ngoumnai
-              </p>
-            </div>
           </div>
         </Reveal>
       </section>
 
-      <section className="cmd-shell pb-20" data-section="final-cta">
+      <section className="cmd-shell cmd-gap-final" data-section="final-cta">
         <Reveal>
           <div className="cmd-panel cmd-panel-strong relative overflow-hidden rounded-3xl p-8 text-center">
             <img
@@ -501,8 +530,8 @@ export default function JobSearchLanding() {
               No credit card. No catch. Clarity. Results delivered instantly.
             </p>
             <p className="relative mt-4 text-sm text-slate-400">
-              <CountUp value={347} live liveIntervalMs={3000} className="font-semibold text-slate-100" /> engineers already
-              ahead. Join them.
+              <LiveCounter start={381} className="font-semibold text-slate-100" /> engineers already building their
+              systems. Join them.
             </p>
             <Link
               href="/job-search-system/start"

@@ -9,6 +9,9 @@ type CountUpProps = {
   delay?: number;
   live?: boolean;
   liveIntervalMs?: number;
+  startOnMount?: boolean;
+  easing?: (t: number) => number;
+  revealSuffix?: boolean;
   className?: string;
 };
 
@@ -19,10 +22,14 @@ export function CountUp({
   delay = 0,
   live = false,
   liveIntervalMs = 3000,
+  startOnMount = false,
+  easing,
+  revealSuffix = false,
   className,
 }: CountUpProps) {
   const [display, setDisplay] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
+  const [showSuffix, setShowSuffix] = useState(!revealSuffix);
   const started = useRef(false);
   const completed = useRef(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -32,9 +39,13 @@ export function CountUp({
   useEffect(() => {
     const node = ref.current;
     if (!node) return;
+    if (startOnMount) {
+      setIsVisible(true);
+      return;
+    }
     const observer = new IntersectionObserver(
       ([entry]) => setIsVisible(entry.isIntersecting),
-      { threshold: 0.4 }
+      { threshold: 0.5 }
     );
     observer.observe(node);
     return () => observer.disconnect();
@@ -54,12 +65,15 @@ export function CountUp({
       const start = performance.now();
       const animate = (time: number) => {
         const progress = Math.min(1, (time - start) / duration);
-        const next = Math.round(value * progress);
+        const easedRaw = easing ? easing(progress) : progress;
+        const eased = Math.min(1, Math.max(0, easedRaw));
+        const next = Math.round(value * eased);
         setDisplay(next);
         if (progress < 1) {
           requestAnimationFrame(animate);
         } else {
           completed.current = true;
+          if (revealSuffix) setShowSuffix(true);
           if (live && !intervalRef.current) {
             intervalRef.current = setInterval(() => {
               setDisplay((current) => current + 1);
@@ -88,7 +102,9 @@ export function CountUp({
   return (
     <span ref={ref} className={className}>
       {display}
-      {suffix}
+      {suffix ? (
+        <span className={`cmd-suffix ${showSuffix ? "is-visible" : ""}`}>{suffix}</span>
+      ) : null}
     </span>
   );
 }
