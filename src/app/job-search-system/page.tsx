@@ -34,21 +34,19 @@ export const metadata: Metadata = {
   },
 };
 
-const logoKey = process.env.NEXT_PUBLIC_LOGO_DEV_PUBLISHABLE_KEY;
-
 const logoCompanies = [
-  ["Google", "google.com"],
-  ["Amazon", "amazon.com"],
-  ["Microsoft", "microsoft.com"],
-  ["Apple", "apple.com"],
-  ["Netflix", "netflix.com"],
-  ["Stripe", "stripe.com"],
-  ["Shopify", "shopify.com"],
-  ["Datadog", "datadoghq.com"],
-  ["Snowflake", "snowflake.com"],
-  ["Airbnb", "airbnb.com"],
-  ["Uber", "uber.com"],
-  ["LinkedIn", "linkedin.com"],
+  { name: "Google", slug: "google" },
+  { name: "Amazon", slug: "amazon" },
+  { name: "Microsoft", slug: "microsoft" },
+  { name: "Apple", slug: "apple" },
+  { name: "Netflix", slug: "netflix" },
+  { name: "Stripe", slug: "stripe" },
+  { name: "Shopify", slug: "shopify" },
+  { name: "Datadog", slug: "datadog" },
+  { name: "Snowflake", slug: "snowflake" },
+  { name: "Airbnb", slug: "airbnb" },
+  { name: "Uber", slug: "uber" },
+  { name: "LinkedIn", slug: "linkedin" },
 ];
 
 const tickerItems = [
@@ -303,15 +301,11 @@ export default function JobSearchLanding() {
             <p className="clients-eyebrow">Clients placed at:</p>
             <div className="logo-carousel">
               <div className="logo-track">
-                {logoCompanies.concat(logoCompanies).map(([name, domain], index) => (
+                {logoCompanies.concat(logoCompanies).map((company, index) => (
                   <img
-                    key={`${name}-${index}`}
-                    src={
-                      logoKey
-                        ? `https://img.logo.dev/${domain}?token=${logoKey}`
-                        : `https://logo.clearbit.com/${domain}`
-                    }
-                    alt={`${name} logo`}
+                    key={`${company.slug}-${index}`}
+                    src={`/logos/${company.slug}.svg`}
+                    alt={`${company.name} logo`}
                     className="company-logo"
                     loading="lazy"
                   />
@@ -367,8 +361,8 @@ export default function JobSearchLanding() {
                 className="dashboard-preview-image h-full w-full object-cover"
                 loading="lazy"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
-              <div className="dashboard-preview-label absolute bottom-4 left-4 rounded-full border border-white/10 bg-black/40 px-3 py-1 text-xs text-slate-200">
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/45 via-transparent to-transparent" />
+              <div className="dashboard-preview-label absolute bottom-4 left-4 rounded-full border border-white/10 bg-black/35 px-3 py-1 text-xs text-slate-200">
                 Preview of your dashboard
               </div>
             </div>
