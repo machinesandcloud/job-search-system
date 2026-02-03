@@ -6,7 +6,6 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { buildResults } from "@/lib/results";
 import { buildProPack } from "@/lib/pro-pack";
-import { getUserSession } from "@/lib/user-auth";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ScoreGauge } from "@/components/score-gauge";
@@ -14,10 +13,9 @@ import { UpgradeButton } from "@/components/upgrade-button";
 import { ProPackActions } from "@/components/pro-pack-actions";
 import { ResultsViewLogger } from "@/components/results-view-logger";
 import { CompanyLogo } from "@/components/company-logo";
-import { AccountGate } from "@/components/account-gate";
+import { EmailGate } from "@/components/email-gate";
 
 export default async function ResultsPage({ params }: { params: { token: string } }) {
-  const user = await getUserSession();
   const lead = await prisma.lead.findUnique({
     where: { token: params.token },
     include: {
@@ -28,46 +26,48 @@ export default async function ResultsPage({ params }: { params: { token: string 
   if (!lead) return notFound();
   const answers = lead.answers as any;
   const results = buildResults(answers);
-  if (user && !lead.userId) {
-    await prisma.lead.update({ where: { id: lead.id }, data: { userId: user.id, email: user.email } });
-    lead.userId = user.id;
-  }
-  const ownsLead = !!user && lead.userId === user.id;
 
-  if (!ownsLead) {
+  if (!lead.email) {
     return (
       <main className="cmd-shell pb-20 pt-12">
-        <div className="mx-auto max-w-4xl space-y-6">
-          <div>
+        <ResultsViewLogger leadId={lead.id} />
+        <Link href="/job-search-system" className="text-sm text-slate-400">
+          Back to landing
+        </Link>
+        <div className="mt-8 grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="cmd-panel rounded-3xl p-6">
             <p className="tag mb-3">Preview</p>
-            <h1 className="text-3xl font-semibold text-slate-100">Your job search preview is ready.</h1>
+            <h1 className="text-3xl font-semibold text-slate-100">Your Career System Preview</h1>
             <p className="mt-2 text-slate-300">
-              Create your account to unlock the full plan, scripts, and templates. Your data stays private and
-              controlled.
+              Here’s a short preview. Enter your email to unlock the full plan and templates.
             </p>
-          </div>
-          <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="rounded-3xl border border-slate-700 bg-slate-900/70 p-6">
-              <p className="text-xs uppercase tracking-wide text-slate-400">Score preview</p>
-              <div className="mt-4 flex items-center gap-4">
-                <ScoreGauge score={results.score} />
-                <div>
-                  <p className="text-2xl font-semibold text-slate-100">{results.score}/100</p>
-                  <p className="text-sm text-slate-400">Full breakdown unlocked after signup.</p>
-                </div>
-              </div>
-              <div className="mt-4 space-y-2 text-sm text-slate-300">
-                {results.insights.slice(0, 2).map((insight) => (
-                  <p key={insight}>- {insight}</p>
-                ))}
+            <div className="mt-6 flex items-center gap-4">
+              <ScoreGauge score={results.score} />
+              <div>
+                <p className="text-2xl font-semibold text-slate-100">{results.score}/100</p>
+                <p className="text-sm text-slate-400">Full score breakdown unlocked after email.</p>
               </div>
             </div>
-            <AccountGate leadId={lead.id} token={lead.token} />
+            <div className="mt-4 space-y-2 text-sm text-slate-300">
+              {results.insights.slice(0, 2).map((insight) => (
+                <p key={insight}>- {insight}</p>
+              ))}
+            </div>
+            <div className="mt-5 rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm">
+              <p className="text-xs uppercase tracking-wide text-slate-400">Week 1 cadence</p>
+              <ul className="mt-2 space-y-1 text-slate-200">
+                {(results.cadence[0]?.actions || []).slice(0, 3).map((action) => (
+                  <li key={action}>- {action}</li>
+                ))}
+              </ul>
+            </div>
           </div>
+          <EmailGate leadId={lead.id} />
         </div>
       </main>
     );
   }
+
   const purchased = lead.purchases.some((purchase) => purchase.status === "SUCCEEDED");
   const companies = lead.companies.map((link) => link.company);
   const proPack = buildProPack(answers);
@@ -91,7 +91,7 @@ export default async function ResultsPage({ params }: { params: { token: string 
         <div>
           <div className="mb-6 flex flex-wrap items-center gap-3">
             <Badge>Results</Badge>
-            <span className="text-sm text-slate-400">Tokenized report link</span>
+            <span className="text-sm text-slate-400">Private report</span>
           </div>
           <h1 className="mb-2 text-3xl font-semibold text-slate-100">Your Job Search System</h1>
           <p className="mb-6 text-slate-300">
@@ -166,14 +166,6 @@ export default async function ResultsPage({ params }: { params: { token: string 
           </Card>
 
           <div className="mt-8 grid gap-4">
-            {results.assetReview && (
-              <Card>
-                <CardContent className="p-6">
-                  <p className="tag mb-3">AI resume + LinkedIn review</p>
-                  <div className="text-sm text-slate-300 whitespace-pre-line">{results.assetReview}</div>
-                </CardContent>
-              </Card>
-            )}
             <Card>
               <CardContent className="p-6">
                 <p className="tag mb-3">Insights</p>
@@ -201,16 +193,6 @@ export default async function ResultsPage({ params }: { params: { token: string 
                     </div>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6">
-                <p className="tag mb-3">Your first 7 days</p>
-                <ul className="space-y-2 text-sm text-slate-300">
-                  {(results.cadence[0]?.actions || []).slice(0, 4).map((action) => (
-                    <li key={action}>- {action}</li>
-                  ))}
-                </ul>
               </CardContent>
             </Card>
             <Card>
@@ -250,16 +232,6 @@ export default async function ResultsPage({ params }: { params: { token: string 
                 </ul>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="p-6">
-                <p className="tag mb-3">Interview focus</p>
-                <ul className="space-y-2 text-sm text-slate-300">
-                  {results.interviewFocus.map((item) => (
-                    <li key={item}>- {item}</li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
           </div>
         </div>
         <div className="space-y-6">
@@ -268,25 +240,12 @@ export default async function ResultsPage({ params }: { params: { token: string 
               <p className="tag mb-4">Your inputs</p>
               <ul className="space-y-2 text-sm text-slate-300">
                 <li><strong>Role:</strong> {answers.roles?.[0]}</li>
-                <li><strong>Current title:</strong> {answers.currentTitle || "-"}</li>
-                <li><strong>Experience:</strong> {answers.experienceYears} years</li>
-                <li><strong>Leadership scope:</strong> {answers.leadershipScope}</li>
                 <li><strong>Level:</strong> {answers.level}</li>
                 <li><strong>Comp target:</strong> {answers.compTarget}</li>
-                <li><strong>Comp priority:</strong> {answers.compensationPriority}</li>
                 <li><strong>Timeline:</strong> {timelineLabel}</li>
                 <li><strong>Location:</strong> {answers.locationType}{answers.city ? ` - ${answers.city}` : ""}</li>
-                <li><strong>Industry:</strong> {answers.targetIndustry}</li>
-                <li><strong>Company stage:</strong> {answers.companyStage}</li>
                 <li><strong>Hours/week:</strong> {answers.hoursPerWeek}</li>
-                <li><strong>Constraints:</strong> {answers.constraints?.length ? answers.constraints.join(", ") : "None"}</li>
                 <li><strong>Biggest blocker:</strong> {answers.biggestBlocker}</li>
-                <li><strong>Blocker note:</strong> {answers.blockerNote || "-"}</li>
-                <li><strong>LinkedIn:</strong> {answers.linkedinUrl || "-"}</li>
-                <li><strong>LinkedIn headline:</strong> {answers.linkedinHeadline || "-"}</li>
-                <li><strong>LinkedIn summary:</strong> {answers.linkedinSummary || "-"}</li>
-                <li><strong>Resume highlights:</strong> {answers.resumeText || "-"}</li>
-                <li><strong>Resume uploaded:</strong> {answers.resumeUploaded ? "Yes" : "No"}</li>
               </ul>
             </CardContent>
           </Card>
@@ -316,9 +275,6 @@ export default async function ResultsPage({ params }: { params: { token: string 
                   <p className="text-sm text-slate-400">No companies selected yet.</p>
                 )}
               </div>
-              {process.env.NEXT_PUBLIC_LOGO_DEV_PUBLISHABLE_KEY && (
-                <p className="mt-3 text-xs text-slate-500">Logos provided by Logo.dev</p>
-              )}
             </CardContent>
           </Card>
 
@@ -407,33 +363,33 @@ export default async function ResultsPage({ params }: { params: { token: string 
           {proEligible &&
             (process.env.NEXT_PUBLIC_ENABLE_RAPID_REVIEW === "true" ||
               process.env.NEXT_PUBLIC_ENABLE_COACHING_APPLY === "true") && (
-            <Card>
-              <CardContent className="p-6">
-                <p className="tag mb-4">Next step</p>
-                <p className="text-sm text-slate-300">
-                  Based on your score and timeline, you may be a fit for higher-touch support.
-                </p>
-                <div className="mt-4 flex flex-wrap gap-3">
-                  {process.env.NEXT_PUBLIC_ENABLE_RAPID_REVIEW === "true" && (
-                    <Link
-                      href="/job-search-system/rapid-review"
-                      className="rounded-full border border-slate-500 px-4 py-2 text-xs font-semibold text-slate-100"
-                    >
-                      Rapid Review ($99)
-                    </Link>
-                  )}
-                  {process.env.NEXT_PUBLIC_ENABLE_COACHING_APPLY === "true" && (
-                    <Link
-                      href="/job-search-system/coaching-apply"
-                      className="rounded-full bg-emerald-400 px-4 py-2 text-xs font-semibold text-slate-900"
-                    >
-                      Apply for Coaching
-                    </Link>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+              <Card>
+                <CardContent className="p-6">
+                  <p className="tag mb-4">Next step</p>
+                  <p className="text-sm text-slate-300">
+                    Based on your score and timeline, you may be a fit for higher-touch support.
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    {process.env.NEXT_PUBLIC_ENABLE_RAPID_REVIEW === "true" && (
+                      <Link
+                        href="/job-search-system/rapid-review"
+                        className="rounded-full border border-slate-500 px-4 py-2 text-xs font-semibold text-slate-100"
+                      >
+                        Rapid Review ($99)
+                      </Link>
+                    )}
+                    {process.env.NEXT_PUBLIC_ENABLE_COACHING_APPLY === "true" && (
+                      <Link
+                        href="/job-search-system/coaching-apply"
+                        className="rounded-full bg-emerald-400 px-4 py-2 text-xs font-semibold text-slate-900"
+                      >
+                        Apply for Coaching
+                      </Link>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
         </div>
       </div>
     </main>

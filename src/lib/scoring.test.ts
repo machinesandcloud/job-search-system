@@ -8,7 +8,7 @@ const baseAnswers: LeadAnswers = {
   experienceYears: "6-9",
   leadershipScope: "IC",
   level: "Senior",
-  compTarget: "140k-180k",
+  compTarget: "150k-200k",
   compensationPriority: "Balanced",
   timeline: "60",
   locationType: "Remote",
@@ -26,7 +26,7 @@ const baseAnswers: LeadAnswers = {
   outreachComfort: "Medium",
   companyTargets: [],
   constraints: [],
-  biggestBlocker: "Clarity",
+  biggestBlocker: "Not getting responses",
   pipeline: "Some",
 };
 
@@ -41,7 +41,7 @@ describe("computeScore", () => {
     const result = computeScore({
       ...baseAnswers,
       timeline: "30",
-      compTarget: "220k+",
+      compTarget: "300k+",
       hoursPerWeek: "12+",
       assets: { resume: "Strong", linkedin: "Strong", interview: "Confident", portfolio: "Strong" },
       networkStrength: "Strong",

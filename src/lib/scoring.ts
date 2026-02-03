@@ -65,7 +65,7 @@ export function computeScore(answers: LeadAnswers): ScoreResult {
   const subscores = computeSubscores(answers);
   let total = subscores.clarity + subscores.assets + subscores.network + subscores.execution;
 
-  if (answers.compTarget === "180k-220k" || answers.compTarget === "220k+") total += 10;
+  if (answers.compTarget === "200k-300k" || answers.compTarget === "300k+") total += 10;
   if (answers.timeline === "ASAP" || answers.timeline === "30") total += 10;
   if (answers.hoursPerWeek === "3") total -= 10;
 

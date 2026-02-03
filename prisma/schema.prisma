@@ -37,14 +37,10 @@ model Lead {
   token     String   @unique
   ipHash    String
   userAgent String?
-  userId    String?
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   purchases Purchase[]
   companies LeadCompany[]
   assets    LeadAsset[]
   events    Event[]
-
-  @@index([userId])
 }
 
 model Company {
@@ -117,24 +113,4 @@ model AdminToken {
   createdAt DateTime @default(now())
 
   @@index([email])
-}
-
-model User {
-  id        String        @id @default(cuid())
-  email     String        @unique
-  password  String
-  createdAt DateTime      @default(now())
-  leads     Lead[]
-  sessions  UserSession[]
-}
-
-model UserSession {
-  id        String   @id @default(cuid())
-  userId    String
-  tokenHash String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
 }

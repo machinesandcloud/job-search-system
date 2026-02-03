@@ -7,26 +7,19 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { RoleSelect } from "@/components/role-select";
-import { CompanySelect, type CompanyOption } from "@/components/company-select";
 import { ScoreGauge } from "@/components/score-gauge";
-import { AccountGate } from "@/components/account-gate";
 import type { LeadAnswers } from "@/lib/validation";
 import { defaultAnswers } from "@/lib/defaults";
 
 const steps = [
   "Target role",
-  "Background",
-  "Level + comp",
+  "Level",
+  "Comp target",
   "Timeline",
   "Location",
-  "Company focus",
   "Time available",
-  "Assets",
-  "Network",
-  "Company targets",
-  "Constraints",
+  "Current assets",
   "Biggest blocker",
 ];
 
@@ -36,23 +29,14 @@ export default function JobSearchWizard() {
   const [leadId, setLeadId] = useState<string | null>(null);
   const [teaser, setTeaser] = useState<any>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
+  const [emailSent, setEmailSent] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [resumeStatus, setResumeStatus] = useState<"idle" | "uploading" | "uploaded" | "error">("idle");
-  const [resumeError, setResumeError] = useState<string | null>(null);
-  const [coachPulse, setCoachPulse] = useState<string | null>(null);
-  const [pulseLoading, setPulseLoading] = useState(false);
-  const [pulseEnabled, setPulseEnabled] = useState(true);
 
   const progress = ((step + 1) / steps.length) * 100;
-  const timelineLabel =
-    answers.timeline === "ASAP"
-      ? "0-14 days"
-      : answers.timeline === "30"
-      ? "30 days"
-      : answers.timeline === "60"
-      ? "60 days"
-      : "90+ days";
 
   useEffect(() => {
     const createLead = async () => {
@@ -66,38 +50,6 @@ export default function JobSearchWizard() {
     };
     createLead();
   }, []);
-
-  useEffect(() => {
-    if (teaser) return;
-    const controller = new AbortController();
-    const fetchPulse = async () => {
-      setPulseLoading(true);
-      try {
-        const res = await fetch("/api/coach/pulse", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ answers, step: steps[step] }),
-          signal: controller.signal,
-        });
-        if (!res.ok) {
-          setCoachPulse(null);
-        } else {
-          const data = await res.json();
-          setCoachPulse(data.message || null);
-          setPulseEnabled(data.aiEnabled !== false);
-        }
-      } catch {
-        setCoachPulse(null);
-      } finally {
-        setPulseLoading(false);
-      }
-    };
-    const timer = setTimeout(fetchPulse, 600);
-    return () => {
-      clearTimeout(timer);
-      controller.abort();
-    };
-  }, [answers, step, teaser]);
 
   const updateAnswers = (patch: Partial<LeadAnswers>) =>
     setAnswers((prev) => ({ ...prev, ...patch }));
@@ -125,29 +77,25 @@ export default function JobSearchWizard() {
     }
   };
 
-
-  const uploadResume = async (file: File | null) => {
-    if (!file || !leadId) return;
-    setResumeError(null);
-    setResumeStatus("uploading");
-    const form = new FormData();
-    form.append("leadId", leadId);
-    form.append("kind", "resume");
-    form.append("file", file);
+  const submitEmail = async () => {
+    if (!leadId || !email) return;
+    setSendingEmail(true);
+    setEmailError(null);
     try {
-      const res = await fetch("/api/leads/upload", {
+      const res = await fetch("/api/leads/email", {
         method: "POST",
-        body: form,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leadId, email, website: "" }),
       });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "Upload failed");
+        throw new Error(data.error || "Unable to send email.");
       }
-      setResumeStatus("uploaded");
-      updateAnswers({ resumeUploaded: true });
+      setEmailSent(true);
     } catch (err: any) {
-      setResumeStatus("error");
-      setResumeError(err.message || "Upload failed");
+      setEmailError(err.message || "Unable to send email.");
+    } finally {
+      setSendingEmail(false);
     }
   };
 
@@ -164,96 +112,69 @@ export default function JobSearchWizard() {
         </Link>
         <div className="mt-8 grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
           <div>
-            <h1 className="mb-2 text-3xl font-semibold text-slate-100">Your 30-day Job Search System (Preview)</h1>
+            <h1 className="mb-2 text-3xl font-semibold text-slate-100">Your Career System Preview</h1>
             <p className="text-slate-300">
-              Based on your timeline ({timelineLabel}) and bandwidth ({answers.hoursPerWeek} hrs/week), here is the
-              highest-signal plan I would run with you. This is the short version.
+              Here’s a preview of your system. Unlock the full plan, templates, and scripts by email.
             </p>
-            <div className="cmd-panel mt-6 rounded-3xl p-6">
+            <div className="mt-6 cmd-panel rounded-3xl p-6">
               <div className="flex flex-wrap items-center gap-4">
                 <ScoreGauge score={teaser.score} />
                 <div>
-                  <p className="text-xs uppercase tracking-wide text-slate-400">Coach read</p>
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Preview score</p>
                   <p className="mt-1 text-sm text-slate-300">{teaser.coachRead}</p>
-                </div>
-              </div>
-              <div className="mt-5 grid gap-3 md:grid-cols-3">
-                <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm">
-                  <p className="text-xs uppercase tracking-wide text-slate-400">Your fastest win</p>
-                  <p className="mt-2 text-slate-200">
-                    {teaser.insights?.[0] || "Tighten positioning and launch a warm outreach cadence."}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm">
-                  <p className="text-xs uppercase tracking-wide text-slate-400">This week</p>
-                  <ul className="mt-2 space-y-1 text-slate-200">
-                    {(teaser.previewActions || []).slice(0, 3).map((action: string) => (
-                      <li key={action}>- {action}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm">
-                  <p className="text-xs uppercase tracking-wide text-slate-400">What you unlock</p>
-                  <ul className="mt-2 space-y-1 text-slate-200">
-                    <li>- Full 30-day plan</li>
-                    <li>- Scripts + follow-ups</li>
-                    <li>- Company shortlist + ATS map</li>
-                  </ul>
                 </div>
               </div>
               <div className="mt-5 grid gap-3 md:grid-cols-2">
                 <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm">
-                  <p className="text-xs uppercase tracking-wide text-slate-400">Sample script</p>
-                  <p className="mt-2 text-slate-200">{teaser.sampleScript || "Templates included in the full plan."}</p>
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Key insight</p>
+                  <p className="mt-2 text-slate-200">{teaser.insights?.[0]}</p>
                 </div>
                 <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm">
-                  <p className="text-xs uppercase tracking-wide text-slate-400">Target companies</p>
-                  <div className="mt-2 flex flex-wrap gap-2 text-slate-200">
-                    {(teaser.targetCompanies || []).length
-                      ? teaser.targetCompanies.map((name: string) => (
-                          <span key={name} className="rounded-full bg-slate-800 px-3 py-1 text-xs">
-                            {name}
-                          </span>
-                        ))
-                      : "Add your targets to see them here."}
-                  </div>
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Key insight</p>
+                  <p className="mt-2 text-slate-200">{teaser.insights?.[1]}</p>
                 </div>
               </div>
-              {teaser.assetReview && (
-                <details className="mt-5 rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm text-slate-200">
-                  <summary className="cursor-pointer text-xs uppercase tracking-wide text-slate-400">
-                    Resume + LinkedIn review (preview)
-                  </summary>
-                  <p className="mt-2 whitespace-pre-line">{teaser.assetReview}</p>
-                </details>
-              )}
+              <div className="mt-5 rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm">
+                <p className="text-xs uppercase tracking-wide text-slate-400">Week 1 cadence</p>
+                <ul className="mt-2 space-y-1 text-slate-200">
+                  {(teaser.previewActions || []).slice(0, 3).map((action: string) => (
+                    <li key={action}>- {action}</li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
           <div className="cmd-panel rounded-3xl p-6">
-            <p className="tag mb-3">Unlock the full plan</p>
-            <h3 className="text-xl font-semibold text-slate-100">Create your private account</h3>
+            <p className="tag mb-3">Unlock full results</p>
+            <h3 className="text-xl font-semibold text-slate-100">Email me my full plan + templates</h3>
             <p className="mt-2 text-sm text-slate-300">
-              Your preview is ready. Create an account to unlock the full plan, scripts, and templates.
+              Get your full 30-day system, role-specific scripts, and templates delivered to your inbox.
             </p>
-            <div className="mt-4">
-              {leadId ? <AccountGate leadId={leadId} token={token} /> : <p className="text-sm text-slate-400">Loading...</p>}
-            </div>
-            {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
+            <Label className="mt-4 text-slate-200">Email address</Label>
+            <Input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@domain.com" />
+            <Button className="mt-4 w-full" onClick={submitEmail} disabled={sendingEmail}>
+              {sendingEmail ? "Sending..." : "Send my full plan"}
+            </Button>
+            {emailSent && (
+              <p className="mt-3 text-sm text-emerald-200">
+                Email sent. Check your inbox for the full plan link.
+              </p>
+            )}
+            {emailError && <p className="mt-3 text-sm text-red-400">{emailError}</p>}
             <div className="mt-6 grid gap-3 rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm text-slate-300">
-              <div>
-                <p className="text-xs uppercase tracking-wide text-slate-400">Why this works</p>
-                <ul className="mt-2 space-y-1">
-                  <li>- Designed for high-signal outreach.</li>
-                  <li>- Mapped to your hours/week and timeline.</li>
-                  <li>- Private by design. Your data stays controlled.</li>
-                </ul>
-              </div>
               <div>
                 <p className="text-xs uppercase tracking-wide text-slate-400">What you unlock</p>
                 <ul className="mt-2 space-y-1">
                   <li>- Full 30-day plan + scripts.</li>
-                  <li>- Company shortlist + ATS map (Pro).</li>
-                  <li>- Export to Notion + PDF.</li>
+                  <li>- Company targeting strategy.</li>
+                  <li>- Export to Notion + PDF (Pro).</li>
+                </ul>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-slate-400">Privacy</p>
+                <ul className="mt-2 space-y-1">
+                  <li>- No spam. No selling your data.</li>
+                  <li>- One email with your results link.</li>
                 </ul>
               </div>
             </div>
@@ -267,8 +188,8 @@ export default function JobSearchWizard() {
     <main className="cmd-shell pb-16 pt-14">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-semibold text-slate-100">Build your Job Search System</h1>
-          <p className="text-slate-300">Coach-style prompts, then a system tailored to you.</p>
+          <h1 className="text-3xl font-semibold text-slate-100">Build your Career System</h1>
+          <p className="text-slate-300">8 focused questions to generate your plan.</p>
         </div>
         <Link href="/job-search-system" className="text-sm text-slate-400">
           Exit
@@ -280,474 +201,183 @@ export default function JobSearchWizard() {
       </p>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="cmd-panel rounded-3xl p-6">
+        <div className="cmd-panel rounded-3xl p-6 shadow-sm">
           {step === 0 && (
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold">Target role(s)</h2>
-            <p className="text-sm text-slate-400">Be specific - I tailor scripts and proof strategy to this role.</p>
+              <h2 className="text-xl font-semibold">Target role</h2>
+              <p className="text-sm text-slate-400">Choose the role you want to land next.</p>
               <RoleSelect value={answers.roles} onChange={(roles) => updateAnswers({ roles })} />
             </div>
           )}
           {step === 1 && (
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold">Background snapshot</h2>
-              <p className="text-sm text-slate-400">This helps me calibrate scope and seniority.</p>
-              <div className="grid gap-4 md:grid-cols-3">
-                <div className="md:col-span-3">
-                  <Label>Current title (optional)</Label>
-                  <Input
-                    placeholder="e.g., Senior DevOps Engineer"
-                    value={answers.currentTitle || ""}
-                    onChange={(e) => updateAnswers({ currentTitle: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label>Years of experience</Label>
-                  <Select
-                    value={answers.experienceYears}
-                    onChange={(e) => updateAnswers({ experienceYears: e.target.value as LeadAnswers["experienceYears"] })}
-                  >
-                    {(["0-2", "3-5", "6-9", "10+"] as const).map((value) => (
-                      <option key={value} value={value}>
-                        {value} years
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-                <div>
-                  <Label>Leadership scope</Label>
-                  <Select
-                    value={answers.leadershipScope}
-                    onChange={(e) => updateAnswers({ leadershipScope: e.target.value as LeadAnswers["leadershipScope"] })}
-                  >
-                    {(["IC", "Lead", "Manager", "Director+"] as const).map((value) => (
-                      <option key={value} value={value}>
-                        {value === "IC" ? "Individual contributor" : value}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-                <div>
-                  <Label>Current pipeline</Label>
-                  <Select
-                    value={answers.pipeline}
-                    onChange={(e) => updateAnswers({ pipeline: e.target.value as LeadAnswers["pipeline"] })}
-                  >
-                    {(["None", "Some", "Active"] as const).map((value) => (
-                      <option key={value} value={value}>
-                        {value}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
+              <h2 className="text-xl font-semibold">Level</h2>
+              <Select value={answers.level} onChange={(event) => updateAnswers({ level: event.target.value as LeadAnswers["level"] })}>
+                {(["Mid", "Senior", "Staff", "Principal", "Manager", "Director"] as const).map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </Select>
+            </div>
+          )}
+          {step === 2 && (
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">Compensation target</h2>
+              <Select
+                value={answers.compTarget}
+                onChange={(event) => updateAnswers({ compTarget: event.target.value as LeadAnswers["compTarget"] })}
+              >
+              {(["100k-150k", "150k-200k", "200k-300k", "300k+"] as const).map((comp) => (
+                  <option key={comp} value={comp}>
+                    {comp}
+                  </option>
+                ))}
+              </Select>
+            </div>
+          )}
+          {step === 3 && (
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">Timeline</h2>
+              <Select value={answers.timeline} onChange={(event) => updateAnswers({ timeline: event.target.value as LeadAnswers["timeline"] })}>
+                <option value="ASAP">ASAP (&lt;30 days)</option>
+                <option value="30">1-2 months</option>
+                <option value="60">2-3 months</option>
+                <option value="90+">3+ months</option>
+              </Select>
+            </div>
+          )}
+          {step === 4 && (
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">Location preference</h2>
+              <Select
+                value={answers.locationType}
+                onChange={(event) => updateAnswers({ locationType: event.target.value as LeadAnswers["locationType"] })}
+              >
+                {(["Remote", "Hybrid", "Onsite"] as const).map((loc) => (
+                  <option key={loc} value={loc}>
+                    {loc}
+                  </option>
+                ))}
+              </Select>
+              {(answers.locationType === "Hybrid" || answers.locationType === "Onsite") && (
+                <Input
+                  placeholder="City (optional)"
+                  value={answers.city || ""}
+                  onChange={(event) => updateAnswers({ city: event.target.value })}
+                />
+              )}
+            </div>
+          )}
+          {step === 5 && (
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">Time available</h2>
+              <Select
+                value={answers.hoursPerWeek}
+                onChange={(event) => updateAnswers({ hoursPerWeek: event.target.value as LeadAnswers["hoursPerWeek"] })}
+              >
+                {(["3", "5", "8", "12+"] as const).map((hours) => (
+                  <option key={hours} value={hours}>
+                    {hours} hours / week
+                  </option>
+                ))}
+              </Select>
+            </div>
+          )}
+          {step === 6 && (
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">Current assets</h2>
+              <div className="grid gap-3 md:grid-cols-2">
+                {([
+                  ["resume", "Resume updated in last 30 days"],
+                  ["linkedin", "LinkedIn optimized for target role"],
+                  ["portfolio", "Portfolio/GitHub maintained"],
+                  ["interview", "Interview prep in last 60 days"],
+                ] as const).map(([key, label]) => {
+                  const checked =
+                    key === "resume"
+                      ? answers.assets.resume === "Strong"
+                      : key === "linkedin"
+                      ? answers.assets.linkedin === "Strong"
+                      : key === "portfolio"
+                      ? answers.assets.portfolio === "Strong"
+                      : answers.assets.interview === "Confident";
+                  return (
+                    <label
+                      key={key}
+                      className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm ${
+                        checked
+                          ? "border-emerald-300/60 bg-emerald-500/10 text-emerald-100"
+                          : "border-slate-600 bg-slate-900/60 text-slate-100"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        className="h-4 w-4 accent-emerald-400"
+                        onChange={(event) => {
+                          if (key === "resume") {
+                            updateAnswers({ assets: { ...answers.assets, resume: event.target.checked ? "Strong" : "Draft" } });
+                          }
+                          if (key === "linkedin") {
+                            updateAnswers({ assets: { ...answers.assets, linkedin: event.target.checked ? "Strong" : "Draft" } });
+                          }
+                          if (key === "portfolio") {
+                            updateAnswers({ assets: { ...answers.assets, portfolio: event.target.checked ? "Strong" : "Some" } });
+                          }
+                          if (key === "interview") {
+                            updateAnswers({ assets: { ...answers.assets, interview: event.target.checked ? "Confident" : "Some practice" } });
+                          }
+                        }}
+                      />
+                      {label}
+                    </label>
+                  );
+                })}
               </div>
             </div>
           )}
-        {step === 2 && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Level + compensation</h2>
-            <div className="grid gap-4 md:grid-cols-3">
-              <div>
-                <Label>Level target</Label>
-                <Select value={answers.level} onChange={(e) => updateAnswers({ level: e.target.value as LeadAnswers["level"] })}>
-                  {(["Mid", "Senior", "Staff", "Manager", "Director"] as const).map((level) => (
-                    <option key={level} value={level}>
-                      {level}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              <div>
-                <Label>Comp target</Label>
-                <Select
-                  value={answers.compTarget}
-                  onChange={(e) => updateAnswers({ compTarget: e.target.value as LeadAnswers["compTarget"] })}
-                >
-                  {(["<100k", "100k-140k", "140k-180k", "180k-220k", "220k+"] as const).map((comp) => (
-                    <option key={comp} value={comp}>
-                      {comp}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              <div>
-                <Label>Comp priority</Label>
-                <Select
-                  value={answers.compensationPriority}
-                  onChange={(e) => updateAnswers({ compensationPriority: e.target.value as LeadAnswers["compensationPriority"] })}
-                >
-                  {(["Cash", "Equity", "Balanced"] as const).map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </Select>
-              </div>
+          {step === 7 && (
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">Biggest blocker</h2>
+              <Select
+                value={answers.biggestBlocker}
+                onChange={(event) => updateAnswers({ biggestBlocker: event.target.value as LeadAnswers["biggestBlocker"] })}
+              >
+                {([
+                  "Not getting responses",
+                  "Failing interviews",
+                  "Low comp offers",
+                  "Dont know where to start",
+                  "Time/energy management",
+                ] as const).map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </Select>
             </div>
-          </div>
-        )}
-        {step === 3 && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Timeline</h2>
-            <Select value={answers.timeline} onChange={(e) => updateAnswers({ timeline: e.target.value as LeadAnswers["timeline"] })}>
-              <option value="ASAP">ASAP (0-14 days)</option>
-              <option value="30">30 days</option>
-              <option value="60">60 days</option>
-              <option value="90+">90+ days</option>
-            </Select>
-            <p className="text-sm text-slate-400">Timeline drives cadence, outreach volume, and interview prep pacing.</p>
-          </div>
-        )}
-        {step === 4 && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Location preference</h2>
-            <Select
-              value={answers.locationType}
-              onChange={(e) => updateAnswers({ locationType: e.target.value as LeadAnswers["locationType"] })}
-            >
-              {(["Remote", "Hybrid", "Onsite"] as const).map((loc) => (
-                <option key={loc} value={loc}>
-                  {loc}
-                </option>
-              ))}
-            </Select>
-            {(answers.locationType === "Hybrid" || answers.locationType === "Onsite") && (
-              <Input
-                placeholder="Preferred city (optional)"
-                value={answers.city || ""}
-                onChange={(e) => updateAnswers({ city: e.target.value })}
-              />
-            )}
-          </div>
-        )}
-        {step === 5 && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Company focus</h2>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <Label>Target industry</Label>
-                <Select
-                  value={answers.targetIndustry}
-                  onChange={(e) => updateAnswers({ targetIndustry: e.target.value as LeadAnswers["targetIndustry"] })}
-                >
-                  {(
-                    [
-                      "Infrastructure",
-                      "Security",
-                      "Data/AI",
-                      "Fintech",
-                      "Consumer",
-                      "B2B SaaS",
-                      "Healthcare",
-                      "Marketplace",
-                      "Other",
-                    ] as const
-                  ).map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              <div>
-                <Label>Company stage</Label>
-                <Select
-                  value={answers.companyStage}
-                  onChange={(e) => updateAnswers({ companyStage: e.target.value as LeadAnswers["companyStage"] })}
-                >
-                  {(["Startup", "Growth", "Enterprise", "Public", "Consulting"] as const).map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-            </div>
-          </div>
-        )}
-        {step === 6 && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Time available per week</h2>
-            <Select
-              value={answers.hoursPerWeek}
-              onChange={(e) => updateAnswers({ hoursPerWeek: e.target.value as LeadAnswers["hoursPerWeek"] })}
-            >
-              {(["3", "5", "8", "12+"] as const).map((hours) => (
-                <option key={hours} value={hours}>
-                  {hours} hours
-                </option>
-              ))}
-            </Select>
-          </div>
-        )}
-        {step === 7 && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Current assets</h2>
-            <div className="grid gap-4 md:grid-cols-4">
-              <div>
-                <Label>Resume</Label>
-                <Select
-                  value={answers.assets.resume}
-                  onChange={(e) => updateAnswers({ assets: { ...answers.assets, resume: e.target.value as LeadAnswers["assets"]["resume"] } })}
-                >
-                  {(["None", "Draft", "Strong"] as const).map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              <div>
-                <Label>LinkedIn</Label>
-                <Select
-                  value={answers.assets.linkedin}
-                  onChange={(e) => updateAnswers({ assets: { ...answers.assets, linkedin: e.target.value as LeadAnswers["assets"]["linkedin"] } })}
-                >
-                  {(["None", "Draft", "Strong"] as const).map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              <div>
-                <Label>Interview readiness</Label>
-                <Select
-                  value={answers.assets.interview}
-                  onChange={(e) => updateAnswers({ assets: { ...answers.assets, interview: e.target.value as LeadAnswers["assets"]["interview"] } })}
-                >
-                  {(["Not ready", "Some practice", "Confident"] as const).map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              <div>
-                <Label>Proof assets</Label>
-                <Select
-                  value={answers.assets.portfolio}
-                  onChange={(e) => updateAnswers({ assets: { ...answers.assets, portfolio: e.target.value as LeadAnswers["assets"]["portfolio"] } })}
-                >
-                  {(["None", "Some", "Strong"] as const).map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <Label>LinkedIn profile URL (recommended)</Label>
-                <Input
-                  placeholder="https://www.linkedin.com/in/yourname"
-                  value={answers.linkedinUrl || ""}
-                  onChange={(e) => updateAnswers({ linkedinUrl: e.target.value })}
-                />
-                <Label className="mt-4 block">LinkedIn headline (optional)</Label>
-                <Input
-                  placeholder="e.g., Senior Backend Engineer | APIs & Reliability"
-                  value={answers.linkedinHeadline || ""}
-                  onChange={(e) => updateAnswers({ linkedinHeadline: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Upload resume (PDF or DOCX)</Label>
-                <Input
-                  type="file"
-                  accept=".pdf,.doc,.docx"
-                  onChange={(e) => uploadResume(e.target.files?.[0] || null)}
-                />
-                <p className="mt-2 text-xs text-slate-400">
-                  {resumeStatus === "uploading" && "Uploading resume..."}
-                  {resumeStatus === "uploaded" && "Resume uploaded."}
-                  {resumeStatus === "error" && resumeError}
-                  {resumeStatus === "idle" && "Optional, but helps us give sharper feedback."}
-                </p>
-                <Label className="mt-4 block">Resume highlights (paste a few bullets)</Label>
-                <Textarea
-                  rows={4}
-                  placeholder="Paste 3-5 strongest bullets or a short summary."
-                  value={answers.resumeText || ""}
-                  onChange={(e) => updateAnswers({ resumeText: e.target.value })}
-                />
-              </div>
-            </div>
-            <div>
-              <Label>LinkedIn summary/About (optional)</Label>
-              <Textarea
-                rows={4}
-                placeholder="Paste your current LinkedIn summary or the key points you want reviewed."
-                value={answers.linkedinSummary || ""}
-                onChange={(e) => updateAnswers({ linkedinSummary: e.target.value })}
-              />
-            </div>
-          </div>
-        )}
-        {step === 8 && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Network + outreach comfort</h2>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <Label>Network strength</Label>
-                <Select
-                  value={answers.networkStrength}
-                  onChange={(e) => updateAnswers({ networkStrength: e.target.value as LeadAnswers["networkStrength"] })}
-                >
-                  {(["Low", "Medium", "Strong"] as const).map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              <div>
-                <Label>Outreach comfort</Label>
-                <Select
-                  value={answers.outreachComfort}
-                  onChange={(e) => updateAnswers({ outreachComfort: e.target.value as LeadAnswers["outreachComfort"] })}
-                >
-                  {(["Low", "Medium", "High"] as const).map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-            </div>
-          </div>
-        )}
-        {step === 9 && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Company targets</h2>
-            <CompanySelect
-              value={answers.companyTargets as CompanyOption[]}
-              onChange={(companyTargets) => updateAnswers({ companyTargets })}
-            />
-          </div>
-        )}
-        {step === 10 && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Constraints & non-negotiables</h2>
-            <p className="text-sm text-slate-400">These help me tailor the plan to your real-world limits.</p>
-            <div className="grid gap-3 md:grid-cols-2">
-              {(
-                [
-                  "Visa sponsorship",
-                  "Remote only",
-                  "No relocation",
-                  "Confidential search",
-                  "Comp floor",
-                  "Limited time",
-                  "Industry switch",
-                ] as const
-              ).map((constraint) => {
-                const checked = answers.constraints.includes(constraint);
-                return (
-                  <label
-                    key={constraint}
-                    className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm ${
-                      checked
-                        ? "border-emerald-300/60 bg-emerald-500/15 text-emerald-100"
-                        : "border-slate-600 bg-slate-900/60 text-slate-100"
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      className="h-4 w-4 accent-emerald-400"
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          updateAnswers({ constraints: [...answers.constraints, constraint] });
-                        } else {
-                          updateAnswers({ constraints: answers.constraints.filter((item) => item !== constraint) });
-                        }
-                      }}
-                    />
-                    {constraint}
-                  </label>
-                );
-              })}
-            </div>
-          </div>
-        )}
-        {step === 11 && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Biggest blocker</h2>
-            <Select
-              value={answers.biggestBlocker}
-              onChange={(e) => updateAnswers({ biggestBlocker: e.target.value as LeadAnswers["biggestBlocker"] })}
-            >
-              {(
-                [
-                  "Clarity",
-                  "Resume",
-                  "LinkedIn",
-                  "Interviews",
-                  "Networking",
-                  "Confidence",
-                  "Time",
-                  "Scope",
-                  "Positioning",
-                ] as const
-              ).map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </Select>
-            <Textarea
-              placeholder="Optional: tell us what's holding you back (short note)"
-              rows={4}
-              value={answers.blockerNote || ""}
-              onChange={(event) => updateAnswers({ blockerNote: event.target.value })}
-            />
-          </div>
-        )}
+          )}
         </div>
+
         <aside className="space-y-4">
-          <div className="cmd-panel rounded-3xl p-6">
-            <p className="tag mb-3">Coach pulse</p>
-            {pulseLoading && <p className="text-sm text-slate-400">Reading your inputs...</p>}
-            {!pulseLoading && coachPulse && (
-              <p className="text-sm text-slate-200">{coachPulse}</p>
-            )}
-            {!pulseLoading && !coachPulse && (
-              <p className="text-sm text-slate-400">
-                I'll summarize what I'm hearing once you've filled a few prompts.
-              </p>
-            )}
-            {!pulseEnabled && (
-              <p className="mt-3 text-xs text-slate-400">
-                AI coach pulse is running in preview mode.
-              </p>
-            )}
-          </div>
           <div className="cmd-panel rounded-3xl p-6 text-sm text-slate-300">
             <p className="text-xs uppercase tracking-wide text-slate-400">Your snapshot</p>
             <ul className="mt-2 space-y-1">
               <li>- Role: {answers.roles?.[0] || "-"}</li>
               <li>- Level: {answers.level}</li>
-              <li>- Timeline: {timelineLabel}</li>
+              <li>- Timeline: {answers.timeline}</li>
               <li>- Hours/week: {answers.hoursPerWeek}</li>
-              <li>- Industry: {answers.targetIndustry}</li>
+              <li>- Location: {answers.locationType}</li>
             </ul>
           </div>
           <div className="cmd-panel rounded-3xl p-6 text-sm text-slate-300">
-            <p className="text-xs uppercase tracking-wide text-slate-400">What I'm building for you</p>
+            <p className="text-xs uppercase tracking-wide text-slate-400">What you’ll get</p>
             <ul className="mt-2 space-y-1">
-              <li>- Role positioning + scope statement.</li>
-              <li>- Weekly cadence tied to your hours + urgency.</li>
-              <li>- Outreach scripts + proof assets.</li>
-              <li>- Company shortlist and execution checklist.</li>
+              <li>- Career readiness score (0–100).</li>
+              <li>- Week-by-week execution plan.</li>
+              <li>- Role-specific scripts + templates.</li>
             </ul>
-          </div>
-          <div className="cmd-panel rounded-3xl p-6 text-sm text-slate-300">
-            <p className="text-xs uppercase tracking-wide text-slate-400">How I translate your inputs</p>
-            <p className="mt-2">
-              I use your level, urgency, and constraints to set the cadence and decide where to go deep first - no filler.
-            </p>
           </div>
         </aside>
       </div>
@@ -755,11 +385,7 @@ export default function JobSearchWizard() {
       {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
 
       <div className="mt-6 flex items-center justify-between">
-        <Button
-          variant="outline"
-          onClick={() => setStep((prev) => Math.max(0, prev - 1))}
-          disabled={step === 0}
-        >
+        <Button variant="outline" onClick={() => setStep((prev) => Math.max(0, prev - 1))} disabled={step === 0}>
           Back
         </Button>
         {step < steps.length - 1 ? (
