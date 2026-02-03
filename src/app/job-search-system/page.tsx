@@ -122,7 +122,6 @@ export default function JobSearchLanding() {
                 <span className="cmd-rotator-ink">
                   <RotatingWords words={systemSynonyms} />
                 </span>
-                .
               </h1>
               <p className="cmd-hero-lede max-w-[36rem] text-lg text-slate-300">
                 I work with experienced engineers and managers who break through plateaus, land stronger roles, and
