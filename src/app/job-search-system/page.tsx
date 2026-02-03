@@ -114,9 +114,6 @@ export default function JobSearchLanding() {
                 I work with experienced engineers and managers who break through plateaus, land stronger roles, and
                 increase compensation 30–60% using a deliberate, repeatable system — not mass applications.
               </p>
-              <p className="max-w-lg text-sm text-slate-400 cmd-glow-soft">
-                300+ placements (2023–2025) • 10+ years leading DevOps &amp; platform teams
-              </p>
             </div>
             <div className="cmd-hero-highlights">
               <span>40% avg comp lift</span>
@@ -131,11 +128,6 @@ export default function JobSearchLanding() {
                 label="Start Free Assessment"
                 className="cmd-cta cmd-cta-animated cmd-cta-pulse cmd-cta-primary"
               />
-            </div>
-            <div className="flex flex-wrap items-center gap-4 pt-2 text-sm text-slate-400">
-              <span className="cmd-pill">8-question assessment</span>
-              <span className="cmd-pill">10 minutes</span>
-              <span className="cmd-pill">No credit card</span>
             </div>
           </div>
 
@@ -248,14 +240,6 @@ export default function JobSearchLanding() {
                 <span />
                 <span />
               </div>
-              <svg className="cmd-system-connector" viewBox="0 0 1000 60" preserveAspectRatio="none" aria-hidden="true">
-                <path
-                  className="cmd-system-path"
-                  d="M80 30 L310 30 L310 30 L540 30 L540 30 L770 30"
-                  fill="none"
-                />
-              <polygon points="770,24 786,30 770,36" fill="rgba(90, 208, 255, 0.7)" />
-            </svg>
           </div>
         </Reveal>
       </section>
