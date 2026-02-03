@@ -2,13 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { RoleSelect } from "@/components/role-select";
 import { ScoreGauge } from "@/components/score-gauge";
+import { AccountGate } from "@/components/account-gate";
 import type { LeadAnswers } from "@/lib/validation";
 import { defaultAnswers } from "@/lib/defaults";
 
@@ -24,15 +25,12 @@ const steps = [
 ];
 
 export default function JobSearchWizard() {
+  const router = useRouter();
   const [answers, setAnswers] = useState<LeadAnswers>(defaultAnswers);
   const [step, setStep] = useState(0);
   const [leadId, setLeadId] = useState<string | null>(null);
   const [teaser, setTeaser] = useState<any>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [email, setEmail] = useState("");
-  const [emailSent, setEmailSent] = useState(false);
-  const [sendingEmail, setSendingEmail] = useState(false);
-  const [emailError, setEmailError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -77,28 +75,6 @@ export default function JobSearchWizard() {
     }
   };
 
-  const submitEmail = async () => {
-    if (!leadId || !email) return;
-    setSendingEmail(true);
-    setEmailError(null);
-    try {
-      const res = await fetch("/api/leads/email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ leadId, email, website: "" }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Unable to send email.");
-      }
-      setEmailSent(true);
-    } catch (err: any) {
-      setEmailError(err.message || "Unable to send email.");
-    } finally {
-      setSendingEmail(false);
-    }
-  };
-
   const canNext = useMemo(() => {
     if (step === 0) return answers.roles.length > 0;
     return true;
@@ -114,7 +90,7 @@ export default function JobSearchWizard() {
           <div>
             <h1 className="mb-2 text-3xl font-semibold text-slate-100">Your Career System Preview</h1>
             <p className="text-slate-300">
-              Here’s a preview of your system. Unlock the full plan, templates, and scripts by email.
+              Here’s a preview of your system. Create an account to unlock the full plan, templates, and scripts.
             </p>
             <div className="mt-6 cmd-panel rounded-3xl p-6">
               <div className="flex flex-wrap items-center gap-4">
@@ -144,41 +120,14 @@ export default function JobSearchWizard() {
               </div>
             </div>
           </div>
-          <div className="cmd-panel rounded-3xl p-6">
-            <p className="tag mb-3">Unlock full results</p>
-            <h3 className="text-xl font-semibold text-slate-100">Email me my full plan + templates</h3>
-            <p className="mt-2 text-sm text-slate-300">
-              Get your full 30-day system, role-specific scripts, and templates delivered to your inbox.
-            </p>
-            <Label className="mt-4 text-slate-200">Email address</Label>
-            <Input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@domain.com" />
-            <Button className="mt-4 w-full" onClick={submitEmail} disabled={sendingEmail}>
-              {sendingEmail ? "Sending..." : "Send my full plan"}
-            </Button>
-            {emailSent && (
-              <p className="mt-3 text-sm text-emerald-200">
-                Email sent. Check your inbox for the full plan link.
-              </p>
-            )}
-            {emailError && <p className="mt-3 text-sm text-red-400">{emailError}</p>}
-            <div className="mt-6 grid gap-3 rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm text-slate-300">
-              <div>
-                <p className="text-xs uppercase tracking-wide text-slate-400">What you unlock</p>
-                <ul className="mt-2 space-y-1">
-                  <li>- Full 30-day plan + scripts.</li>
-                  <li>- Company targeting strategy.</li>
-                  <li>- Export to Notion + PDF (Pro).</li>
-                </ul>
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-wide text-slate-400">Privacy</p>
-                <ul className="mt-2 space-y-1">
-                  <li>- No spam. No selling your data.</li>
-                  <li>- One email with your results link.</li>
-                </ul>
-              </div>
-            </div>
-          </div>
+          {leadId && (
+            <AccountGate
+              leadId={leadId}
+              onSuccess={() => {
+                if (token) router.push(`/job-search-system/results/${token}`);
+              }}
+            />
+          )}
         </div>
       </main>
     );

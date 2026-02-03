@@ -3,6 +3,7 @@ import { prisma, isDatabaseReady } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { leadStartSchema, sanitizeAnswers } from "@/lib/validation";
 import { generateToken, getClientIp, hashIp, ensureSameOrigin } from "@/lib/utils";
+import { getUserSession } from "@/lib/user-auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { logEvent } from "@/lib/events";
 
@@ -30,6 +31,7 @@ export async function POST(request: Request) {
   }
   const ip = getClientIp(request);
   const ipHash = hashIp(ip);
+  const session = await getUserSession();
   const limit = rateLimit(ipHash, 10);
   if (!limit.ok) {
     return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
@@ -47,6 +49,8 @@ export async function POST(request: Request) {
       token: generateToken(16),
       ipHash,
       userAgent: request.headers.get("user-agent") || "",
+      userId: session?.userId || null,
+      ...(session?.email ? { email: session.email } : {}),
     },
   });
   await logEvent("wizard_started", {}, lead.id);

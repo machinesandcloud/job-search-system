@@ -13,7 +13,8 @@ import { UpgradeButton } from "@/components/upgrade-button";
 import { ProPackActions } from "@/components/pro-pack-actions";
 import { ResultsViewLogger } from "@/components/results-view-logger";
 import { CompanyLogo } from "@/components/company-logo";
-import { EmailGate } from "@/components/email-gate";
+import { AccountGate } from "@/components/account-gate";
+import { getUserSession } from "@/lib/user-auth";
 
 export default async function ResultsPage({ params }: { params: { token: string } }) {
   const lead = await prisma.lead.findUnique({
@@ -26,8 +27,9 @@ export default async function ResultsPage({ params }: { params: { token: string 
   if (!lead) return notFound();
   const answers = lead.answers as any;
   const results = buildResults(answers);
+  const session = await getUserSession();
 
-  if (!lead.email) {
+  if (!session || !lead.userId || session.userId !== lead.userId) {
     return (
       <main className="cmd-shell pb-20 pt-12">
         <ResultsViewLogger leadId={lead.id} />
@@ -39,13 +41,13 @@ export default async function ResultsPage({ params }: { params: { token: string 
             <p className="tag mb-3">Preview</p>
             <h1 className="text-3xl font-semibold text-slate-100">Your Career System Preview</h1>
             <p className="mt-2 text-slate-300">
-              Here’s a short preview. Enter your email to unlock the full plan and templates.
+              Here’s a short preview. Create an account to unlock the full plan and templates.
             </p>
             <div className="mt-6 flex items-center gap-4">
               <ScoreGauge score={results.score} />
               <div>
                 <p className="text-2xl font-semibold text-slate-100">{results.score}/100</p>
-                <p className="text-sm text-slate-400">Full score breakdown unlocked after email.</p>
+                <p className="text-sm text-slate-400">Full score breakdown unlocked after signup.</p>
               </div>
             </div>
             <div className="mt-4 space-y-2 text-sm text-slate-300">
@@ -62,7 +64,7 @@ export default async function ResultsPage({ params }: { params: { token: string 
               </ul>
             </div>
           </div>
-          <EmailGate leadId={lead.id} />
+          <AccountGate leadId={lead.id} />
         </div>
       </main>
     );

@@ -1,6 +1,10 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Reveal } from "@/components/reveal";
+import { LandingAnalytics } from "@/components/landing-analytics";
+import { ExitIntent } from "@/components/exit-intent";
+import { StickyCTA } from "@/components/sticky-cta";
+import { CountUp } from "@/components/count-up";
 
 export const metadata: Metadata = {
   title: "Tech Career Coaching System | Land Senior Roles Faster | Steve Ngoumnai",
@@ -35,10 +39,33 @@ const logoCompanies = [
   ["Shopify", "shopify.com"],
 ];
 
+const tickerItems = [
+  "John L. started",
+  "Maria K. scored 78/100",
+  "DevOps IC → Staff in 60 days",
+  "Offer strategy unlocked",
+  "SRE Lead completed assessment",
+];
+
 export default function JobSearchLanding() {
   return (
     <main className="lp-bg">
-      <section className="cmd-shell relative min-h-screen pb-20 pt-16">
+      <LandingAnalytics />
+      <ExitIntent />
+      <StickyCTA />
+
+      <div className="border-b border-slate-800/60 bg-slate-950/40 text-xs text-slate-300">
+        <div className="cmd-shell flex items-center gap-6 overflow-hidden py-2">
+          <span className="cmd-eyebrow text-slate-400">Live signals</span>
+          <div className="cmd-ticker flex gap-6 whitespace-nowrap">
+            {tickerItems.concat(tickerItems).map((item, index) => (
+              <span key={`${item}-${index}`}>• {item}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <section className="cmd-shell relative min-h-screen pb-20 pt-16" data-section="hero">
         <div className="cmd-hero-orb cmd-hero-orb-left" />
         <div className="cmd-hero-orb cmd-hero-orb-right" />
 
@@ -56,6 +83,8 @@ export default function JobSearchLanding() {
           </div>
           <Link
             href="/job-search-system/start"
+            data-cta="nav"
+            aria-label="Start free assessment"
             className="rounded-full border border-slate-700 px-4 py-2 text-xs font-semibold text-slate-100"
           >
             Start free
@@ -66,24 +95,32 @@ export default function JobSearchLanding() {
           <div className="space-y-6">
             <span className="cmd-kicker">AI career command center</span>
             <div className="space-y-4">
-              <h1 className="cmd-title text-4xl font-semibold text-slate-100 md:text-6xl">
-                Senior engineers don’t need more skills. They need a career <span className="cmd-gradient-text">operating system</span>.
+              <h1 className="cmd-title cmd-hero-title text-[clamp(2.4rem,6vw,4rem)] font-semibold text-slate-100 md:text-[clamp(3.2rem,5vw,4.2rem)]">
+                Senior engineers don’t need more skills. They need a career{" "}
+                <span className="cmd-gradient-strong">operating system</span>.
               </h1>
               <p className="max-w-xl text-lg text-slate-300">
-                I help experienced engineers, managers, and operators break through plateaus, land stronger roles, and
-                increase compensation 30–60% using a deliberate, repeatable system — not mass applications.
+                I work with experienced engineers, managers, and operators to break through plateaus, land stronger
+                roles, and increase compensation 30–60% using a deliberate, repeatable system — not mass applications.
+              </p>
+              <p className="text-sm text-slate-400 cmd-glow-soft">
+                300+ placements (2023–2025) • 10+ years leading DevOps &amp; platform teams
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/job-search-system/start"
-                className="cmd-cta rounded-full px-6 py-3 text-sm font-semibold text-slate-950"
+                data-cta="hero"
+                aria-label="Start free assessment"
+                className="cmd-cta cmd-cta-animated h-[70px] px-10 text-base font-semibold text-slate-950"
               >
                 Start Free Assessment
               </Link>
               <Link
                 href="#offer"
-                className="rounded-full border border-slate-600 px-6 py-3 text-sm font-semibold text-slate-200"
+                data-cta="hero-secondary"
+                aria-label="See the assessment"
+                className="cmd-ghost h-[70px] px-10 text-base font-semibold"
               >
                 See the assessment
               </Link>
@@ -93,17 +130,14 @@ export default function JobSearchLanding() {
               <span className="cmd-pill">10 minutes</span>
               <span className="cmd-pill">No credit card</span>
             </div>
-            <div className="text-sm text-slate-400">
-              300+ placements · 10+ years leading DevOps &amp; platform teams
-            </div>
           </div>
 
-          <div className="cmd-panel cmd-glow rounded-3xl p-6">
+          <div data-preview-card className="cmd-panel cmd-glow cmd-preview rounded-3xl p-6">
             <p className="text-xs uppercase tracking-wide text-slate-400">Preview</p>
             <div className="mt-4 grid gap-3">
               <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4">
                 <p className="text-xs uppercase tracking-wide text-slate-400">Career readiness score</p>
-                <p className="mt-2 text-2xl font-semibold text-slate-100">78 / 100</p>
+                <p className="mt-2 text-3xl font-semibold text-slate-100 cmd-score-pulse">78 / 100</p>
               </div>
               <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm text-slate-300">
                 <p className="text-xs uppercase tracking-wide text-slate-400">Week 1 focus</p>
@@ -122,11 +156,11 @@ export default function JobSearchLanding() {
         </div>
       </section>
 
-      <section id="problem" className="cmd-shell cmd-section-tight">
+      <section id="problem" className="cmd-shell cmd-section-tight" data-section="problem">
         <Reveal>
-          <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-            <div className="cmd-panel rounded-3xl p-6">
-              <p className="text-xs uppercase tracking-wide text-slate-400">The broken playbook</p>
+          <div className="grid items-center gap-6 lg:grid-cols-[1.05fr_auto_0.95fr]">
+            <div className="cmd-panel cmd-bad rounded-3xl p-6">
+              <p className="cmd-eyebrow">The broken playbook</p>
               <h2 className="mt-3 text-2xl font-semibold text-slate-100">
                 Most job search advice is optimized for volume, not outcomes.
               </h2>
@@ -134,80 +168,66 @@ export default function JobSearchLanding() {
                 <p>❌ Spray 200 applications → 2% response rate</p>
                 <p>❌ Generic LinkedIn tweaks → lost in noise</p>
                 <p>❌ “Just keep trying” → burnout and desperation</p>
-                <div className="cmd-divider my-4" />
-                <p className="text-slate-200">What works instead:</p>
+              </div>
+            </div>
+            <div className="mx-auto hidden lg:block">
+              <div className="cmd-arrow">→</div>
+            </div>
+            <div className="cmd-panel cmd-good rounded-3xl p-6">
+              <p className="cmd-eyebrow">The system</p>
+              <div className="mt-3 space-y-3 text-sm text-slate-300">
                 <p>✓ Targeted positioning (not shotgun applying)</p>
                 <p>✓ Narrative control (not resume spam)</p>
                 <p>✓ System design (not chaos)</p>
               </div>
-            </div>
-            <div className="cmd-panel cmd-panel-strong rounded-3xl p-6">
-              <p className="text-xs uppercase tracking-wide text-slate-400">Systems thinking</p>
+              <div className="cmd-divider-animated mt-5" />
               <p className="mt-4 text-sm text-slate-300">
-                Careers work like systems: clarity beats chaos, leverage beats volume, and good inputs compound. This is
-                how experienced operators win markets and hiring loops.
+                This is how systems engineers think. It’s also how careers should work.
               </p>
-              <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                {[
-                  ["Signal", "Your story is tuned to the level you want."],
-                  ["Leverage", "Warm intros + proof assets beat volume."],
-                  ["Cadence", "Weekly execution avoids drop-off."],
-                  ["Decision", "Offer strategy before offer time."],
-                ].map(([title, body]) => (
-                  <div key={title} className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4">
-                    <p className="text-sm font-semibold text-slate-100">{title}</p>
-                    <p className="mt-2 text-xs text-slate-300">{body}</p>
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
         </Reveal>
       </section>
 
-      <section id="system" className="cmd-shell cmd-section">
+      <section id="system" className="cmd-shell cmd-section" data-section="system">
         <Reveal>
           <div className="text-center">
-            <p className="text-xs uppercase tracking-wide text-slate-400">The system</p>
+            <p className="cmd-eyebrow">The system</p>
             <h2 className="mt-3 text-3xl font-semibold text-slate-100">Four levers. One repeatable system.</h2>
             <p className="mt-3 text-sm text-slate-300">
-              This is the same framework I used to coach 300+ professionals into senior, staff, and leadership roles.
+              Designed for senior ICs and managers who want leverage, not noise.
             </p>
           </div>
-          <div className="mt-10 grid gap-4 lg:grid-cols-4">
+          <div className="mt-10 flex gap-4 overflow-x-auto pb-4 lg:grid lg:grid-cols-4">
             {[
-              ["Positioning", "Define your narrative by level and scope."],
-              ["Targeting", "5–30 dream companies, not 500 postings."],
-              ["Assets", "Resume, LinkedIn, proof of work tuned to ATS + humans."],
-              ["Execution", "Weekly cadence, outreach scripts, negotiation playbooks."],
-            ].map(([title, body]) => (
-              <div key={title} className="cmd-panel rounded-3xl p-6">
-                <p className="text-sm font-semibold text-slate-100">{title}</p>
-                <p className="mt-3 text-xs text-slate-300">{body}</p>
+              ["01", "Positioning", "3x higher response rates vs generic profiles"],
+              ["02", "Targeting", "Most land offers within first 15 companies"],
+              ["03", "Assets", "ATS + human optimized (87% pass rate)"],
+              ["04", "Execution", "14-day cycles, not 90-day chaos"],
+            ].map(([number, title, stat], index) => (
+              <div
+                key={title}
+                className={`cmd-panel cmd-card-link min-w-[240px] rounded-3xl p-6 ${
+                  index % 2 === 0 ? "translate-y-0" : "translate-y-4"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="cmd-number-badge">{number}</span>
+                </div>
+                <p className="mt-4 text-sm font-semibold text-slate-100">{title}</p>
+                <p className="mt-3 text-xs text-slate-300">{stat}</p>
               </div>
             ))}
           </div>
         </Reveal>
       </section>
 
-      <section id="proof" className="cmd-shell cmd-section-tight">
+      <section id="proof" className="cmd-shell cmd-section-tight" data-section="proof">
         <Reveal>
           <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
             <div className="cmd-panel rounded-3xl p-6">
-              <p className="text-xs uppercase tracking-wide text-slate-400">Results that matter</p>
-              <div className="mt-4 grid gap-4 sm:grid-cols-3">
-                {[
-                  ["300+", "placements"],
-                  ["40%", "avg comp increase"],
-                  ["87%", "interview-to-offer"],
-                ].map(([value, label]) => (
-                  <div key={label} className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-center">
-                    <p className="text-2xl font-semibold text-slate-100">{value}</p>
-                    <p className="text-xs uppercase tracking-wide text-slate-400">{label}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-6 flex flex-wrap gap-3">
+              <p className="cmd-eyebrow">Clients placed at:</p>
+              <div className="mt-4 flex flex-wrap gap-3">
                 {logoCompanies.map(([name, domain]) => (
                   <div key={name} className="flex items-center gap-2 rounded-full border border-slate-700 bg-slate-950/60 px-3 py-2">
                     {logoKey ? (
@@ -224,56 +244,81 @@ export default function JobSearchLanding() {
                   </div>
                 ))}
               </div>
+              <div className="mt-6 grid gap-4 grid-cols-2 sm:grid-cols-3">
+                <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-center">
+                  <CountUp value={300} suffix="+" className="text-2xl font-semibold text-slate-100" />
+                  <p className="text-xs uppercase tracking-wide text-slate-400">placements</p>
+                </div>
+                <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-center">
+                  <CountUp value={40} suffix="%" className="text-2xl font-semibold text-slate-100" />
+                  <p className="text-xs uppercase tracking-wide text-slate-400">avg comp increase</p>
+                </div>
+                <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-center">
+                  <CountUp value={87} suffix="%" className="text-2xl font-semibold text-slate-100" />
+                  <p className="text-xs uppercase tracking-wide text-slate-400">interview→offer conversion</p>
+                </div>
+              </div>
             </div>
             <div className="cmd-panel cmd-panel-strong rounded-3xl p-6">
-              <p className="text-xs uppercase tracking-wide text-slate-400">Mini case studies</p>
+              <p className="cmd-eyebrow">Mini case studies</p>
               <div className="mt-4 space-y-3 text-sm text-slate-300">
-                <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4">
-                  <p className="font-semibold text-slate-100">Mid-level → Senior SRE at Datadog</p>
-                  <p className="mt-2">$145k → $220k + equity in 60 days.</p>
-                </div>
-                <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4">
-                  <p className="font-semibold text-slate-100">Platform Lead → Staff at Stripe</p>
-                  <p className="mt-2">3 loops in 4 weeks after narrative reset.</p>
-                </div>
-                <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4">
-                  <p className="font-semibold text-slate-100">Engineering Manager → Director</p>
-                  <p className="mt-2">Increased comp 45% with offer strategy.</p>
-                </div>
+                {["60 days", "45 days", "30 days"].map((timeline, idx) => (
+                  <div key={timeline} className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4">
+                    <div className="flex items-center justify-between">
+                      <p className="font-semibold text-slate-100">
+                        {idx === 0
+                          ? "Mid-level → Senior SRE at Datadog"
+                          : idx === 1
+                          ? "Platform Lead → Staff at Stripe"
+                          : "Engineering Manager → Director"}
+                      </p>
+                      <span className="cmd-pill text-xs">{timeline}</span>
+                    </div>
+                    <p className="mt-2">
+                      {idx === 0
+                        ? "Kohl’s → Datadog · $145k → $220k + equity"
+                        : idx === 1
+                        ? "iSeatz → Stripe · 3 loops in 4 weeks"
+                        : "Offer comp +45% with negotiation system"}
+                    </p>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </Reveal>
       </section>
 
-      <section id="offer" className="cmd-shell cmd-section">
+      <section id="offer" className="cmd-shell cmd-section" data-section="offer">
         <Reveal>
           <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
             <div className="cmd-panel rounded-3xl p-6">
-              <p className="text-xs uppercase tracking-wide text-slate-400">Your 10-minute career system audit</p>
+              <p className="cmd-eyebrow">Get your Career System Audit</p>
               <h2 className="mt-3 text-3xl font-semibold text-slate-100">Answer 8 questions. Get clarity fast.</h2>
               <div className="mt-4 space-y-2 text-sm text-slate-300">
-                <p>✓ Career readiness score (0–100)</p>
-                <p>✓ Customized 30-day execution plan</p>
-                <p>✓ Role-specific templates (outreach + interview prep)</p>
-                <p>✓ Company targeting strategy</p>
+                <p>1. Career Readiness Score (0-100)</p>
+                <p>2. Customized 30-day execution plan</p>
+                <p>3. Role-specific templates (outreach, interview prep)</p>
+                <p>4. Company targeting strategy</p>
               </div>
               <Link
                 href="/job-search-system/start"
-                className="cmd-cta mt-6 inline-flex rounded-full px-6 py-3 text-sm font-semibold text-slate-950"
+                data-cta="offer"
+                aria-label="Start my assessment"
+              className="cmd-cta cmd-cta-animated mt-6 inline-flex h-[70px] px-10 text-base font-semibold text-slate-950"
               >
-                Start Free Assessment
+                Start My Assessment
               </Link>
-              <p className="mt-3 text-xs text-slate-400">No sales call. No payment. Just clarity.</p>
+              <p className="mt-3 text-xs text-slate-400">No sales call. No payment. Clarity.</p>
             </div>
             <div className="relative overflow-hidden rounded-3xl border border-slate-700 bg-slate-950/60">
               <img
                 src="/images/command-center-office.jpg"
                 alt="Career readiness score dashboard preview"
-                className="h-full w-full object-cover"
+                className="h-full w-full object-cover blur-[2px]"
                 loading="lazy"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
               <div className="absolute bottom-4 left-4 rounded-full border border-white/10 bg-black/40 px-3 py-1 text-xs text-slate-200">
                 Preview of your dashboard
               </div>
@@ -282,36 +327,62 @@ export default function JobSearchLanding() {
         </Reveal>
       </section>
 
-      <section id="about" className="cmd-shell cmd-section-tight">
+      <section id="about" className="cmd-shell cmd-section-tight" data-section="about">
         <Reveal>
           <div className="cmd-panel rounded-3xl p-6">
-            <p className="text-xs uppercase tracking-wide text-slate-400">About Steve J. Ngoumnai</p>
-            <div className="mt-4 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-              <div className="text-sm text-slate-300">
-                <p>
-                  10 years leading DevOps, platform, and engineering teams. Made hiring decisions. Built real systems in
-                  production. Since 2023, I’ve coached 300+ professionals into senior, staff, and leadership roles.
-                </p>
-                <div className="mt-4 space-y-2">
-                  <p>• Career Coach · Askia Coaching</p>
-                  <p>• Agentic AI Solutions Consultant · Machines &amp; Cloud</p>
-                  <p>• Sr. DevOps Manager · Foundation Finance</p>
-                  <p>• DevOps Manager · iSeatz</p>
-                  <p>• Lead Platform Engineer · Kohl’s</p>
+            <p className="cmd-eyebrow">About Steve J. Ngoumnai</p>
+            <div className="mt-6 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+              <div className="space-y-4">
+                <div className="cmd-panel cmd-panel-strong rounded-3xl p-4 text-center">
+                  <img
+                    src="/images/steve.jpg"
+                    alt="Steve J. Ngoumnai, tech career coach"
+                    className="cmd-avatar mx-auto h-56 w-56 object-cover"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="cmd-panel cmd-panel-strong rounded-3xl p-4 text-sm text-slate-300">
+                  <p className="font-semibold text-slate-100">"Careers work like systems: clarity beats chaos, leverage beats volume, good inputs compound."</p>
                 </div>
               </div>
-              <div className="cmd-panel cmd-panel-strong rounded-3xl p-6 text-sm text-slate-300">
-                <p className="font-semibold text-slate-100">Systems thinking for careers:</p>
-                <p className="mt-2">→ clarity beats chaos</p>
-                <p>→ leverage beats volume</p>
-                <p>→ good inputs compound</p>
+              <div className="space-y-4 text-sm text-slate-300">
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <div className="cmd-panel rounded-3xl p-4">
+                    <p className="text-xs uppercase tracking-wide text-slate-400">Operator background</p>
+                    <p className="mt-2">10+ years leading DevOps &amp; platform teams.</p>
+                  </div>
+                  <div className="cmd-panel rounded-3xl p-4">
+                    <p className="text-xs uppercase tracking-wide text-slate-400">Coaching results</p>
+                    <p className="mt-2">300+ professionals placed since 2023.</p>
+                  </div>
+                  <div className="cmd-panel rounded-3xl p-4">
+                    <p className="text-xs uppercase tracking-wide text-slate-400">Current work</p>
+                    <p className="mt-2">Agentic AI + automation for startups.</p>
+                  </div>
+                </div>
+                <div className="cmd-panel cmd-panel-strong rounded-3xl p-4">
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Credentials</p>
+                  <div className="mt-3 space-y-3">
+                    {["Career Coach · Askia Coaching", "Agentic AI Consultant · Machines & Cloud", "Sr. DevOps Manager · Foundation Finance", "DevOps Manager · iSeatz", "Lead Platform Engineer · Kohl’s"].map((role) => (
+                      <details key={role} className="cmd-accordion">
+                        <summary className="text-sm text-slate-100">{role}</summary>
+                        <p className="mt-2 text-xs text-slate-400">
+                          Focused on systems, leverage, and operational excellence.
+                        </p>
+                      </details>
+                    ))}
+                  </div>
+                </div>
+                <div className="cmd-panel rounded-3xl p-4 text-xs text-slate-400">
+                  As seen on: Private workshops, invited panels, and technical leadership roundtables.
+                </div>
               </div>
             </div>
           </div>
         </Reveal>
       </section>
 
-      <section className="cmd-shell pb-20">
+      <section className="cmd-shell pb-20" data-section="final-cta">
         <Reveal>
           <div className="cmd-panel cmd-panel-strong relative overflow-hidden rounded-3xl p-8 text-center">
             <img
@@ -322,20 +393,24 @@ export default function JobSearchLanding() {
               aria-hidden="true"
             />
             <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-slate-950/70 to-slate-950/90" />
-            <p className="text-xs uppercase tracking-wide text-slate-400">Ready to build your system?</p>
+            <p className="cmd-eyebrow">Your System Is Waiting. Start Now.</p>
             <h3 className="relative mt-3 text-3xl font-semibold text-slate-100">
               Start the assessment now. See your plan in 10 minutes.
             </h3>
             <p className="relative mt-2 text-sm text-slate-300">
-              No credit card. No catch. Just results.
+              No credit card. No catch. Clarity. Results delivered instantly.
+            </p>
+            <p className="relative mt-4 text-sm text-slate-400">
+              <CountUp value={300} suffix="+" className="font-semibold text-slate-100" /> engineers already ahead. Join them.
             </p>
             <Link
               href="/job-search-system/start"
-              className="cmd-cta relative mt-6 inline-flex rounded-full px-6 py-3 text-sm font-semibold text-slate-950"
+              data-cta="footer"
+              aria-label="Start free assessment"
+              className="cmd-cta cmd-cta-animated cmd-cta-pulse relative mt-6 inline-flex h-[70px] px-10 text-base font-semibold text-slate-950"
             >
               Start Free Assessment
             </Link>
-            <p className="relative mt-4 text-xs text-slate-400">Join 300+ professionals who already leveled up.</p>
           </div>
         </Reveal>
       </section>
@@ -344,18 +419,25 @@ export default function JobSearchLanding() {
         <div className="cmd-divider mb-4" />
         <div className="flex flex-wrap items-center justify-between gap-3">
           <span>© {new Date().getFullYear()} Askia Coaching. All rights reserved.</span>
-          <span>
-            Imagery by{" "}
-            <a
-              className="underline decoration-slate-600 underline-offset-4 hover:text-slate-300"
-              href="https://unsplash.com"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Unsplash contributors
-            </a>
-            .
-          </span>
+          <div className="flex flex-wrap items-center gap-4">
+            <span>
+              <a className="underline decoration-slate-600 underline-offset-4 hover:text-slate-300" href="#">
+                Privacy Policy
+              </a>
+            </span>
+            <span>
+              Imagery by{" "}
+              <a
+                className="underline decoration-slate-600 underline-offset-4 hover:text-slate-300"
+                href="https://unsplash.com"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Unsplash contributors
+              </a>
+              .
+            </span>
+          </div>
         </div>
       </footer>
 
@@ -365,17 +447,25 @@ export default function JobSearchLanding() {
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             "@context": "https://schema.org",
-            "@type": "Service",
-            name: "Tech Career Coaching System",
-            description:
-              "Free 10-min assessment + personalized job search plan for experienced engineers by Steve J Ngoumnai.",
-            provider: {
-              "@type": "Person",
-              name: "Steve J Ngoumnai",
-              jobTitle: "Tech Career Coach",
-            },
-            areaServed: "US",
-            serviceType: "Career Coaching",
+            "@graph": [
+              {
+                "@type": "Person",
+                "@id": "#steve-ngoumnai",
+                name: "Steve J Ngoumnai",
+                jobTitle: "Tech Career Coach",
+                description:
+                  "DevOps and platform leader helping experienced engineers build repeatable career systems.",
+              },
+              {
+                "@type": "Service",
+                name: "Tech Career Coaching System",
+                description:
+                  "Free 10-min assessment + personalized job search plan for experienced engineers by Steve J Ngoumnai.",
+                provider: { "@id": "#steve-ngoumnai" },
+                areaServed: "US",
+                serviceType: "Career Coaching",
+              },
+            ],
           }),
         }}
       />
