@@ -1,36 +1,76 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 export function StickyCTA() {
   const [visible, setVisible] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+  const lastScrollY = useRef(0);
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const onScroll = () => {
+      if (dismissed) return;
       const scrolled = window.scrollY + window.innerHeight;
       const total = document.documentElement.scrollHeight || 1;
       const pct = scrolled / total;
-      setVisible(pct >= 0.6);
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+      const current = window.scrollY;
+      const direction = current > lastScrollY.current ? "down" : "up";
+      lastScrollY.current = current;
 
-  if (!visible) return null;
+      if (direction === "up") {
+        setVisible(false);
+        if (hideTimer.current) {
+          clearTimeout(hideTimer.current);
+          hideTimer.current = null;
+        }
+        return;
+      }
+
+      if (pct >= 0.4) {
+        setVisible(true);
+        if (!hideTimer.current) {
+          hideTimer.current = setTimeout(() => {
+            setVisible(false);
+            hideTimer.current = null;
+          }, 10000);
+        }
+      }
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (hideTimer.current) clearTimeout(hideTimer.current);
+    };
+  }, [dismissed]);
+
+  if (dismissed) return null;
 
   return (
-    <div className="fixed bottom-4 left-1/2 z-40 w-[90%] max-w-3xl -translate-x-1/2 rounded-full border border-slate-700 bg-slate-950/80 px-4 py-3 backdrop-blur">
-      <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-slate-200">
-        <span>Ready? Start your assessment →</span>
-        <Link
-          href="/job-search-system/start"
-          data-cta="sticky"
-          aria-label="Start free assessment"
-          className="cmd-cta rounded-full px-5 py-2 text-xs font-semibold text-slate-950"
-        >
-          Start Free Assessment
-        </Link>
+    <div className={`cmd-sticky ${visible ? "is-visible" : ""}`} aria-hidden={!visible}>
+      <div className="cmd-shell flex h-full items-center gap-3">
+        <span className="cmd-sticky-icon" aria-hidden="true" />
+        <span className="cmd-sticky-text flex-1">Get your score in 8 questions — it&apos;s free</span>
+        <div className="ml-auto flex items-center gap-3">
+          <Link
+            href="/job-search-system/start"
+            data-cta="sticky"
+            aria-label="Start assessment"
+            className="cmd-cta cmd-cta-animated cmd-cta-pulse rounded-full px-4 py-2 text-xs font-semibold text-slate-950"
+          >
+            Start Assessment →
+          </Link>
+          <button
+            type="button"
+            aria-label="Dismiss sticky bar"
+            onClick={() => setDismissed(true)}
+            className="cmd-sticky-close"
+          >
+            ×
+          </button>
+        </div>
       </div>
     </div>
   );

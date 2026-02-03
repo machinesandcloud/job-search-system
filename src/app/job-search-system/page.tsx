@@ -2,7 +2,6 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Reveal } from "@/components/reveal";
 import { LandingAnalytics } from "@/components/landing-analytics";
-import { ExitIntent } from "@/components/exit-intent";
 import { StickyCTA } from "@/components/sticky-cta";
 import { CountUp } from "@/components/count-up";
 
@@ -10,19 +9,22 @@ export const metadata: Metadata = {
   title: "Tech Career Coaching System | Land Senior Roles Faster | Steve Ngoumnai",
   description:
     "Free 10-min assessment + personalized job search plan for experienced engineers. Built by a DevOps leader who's placed 300+ into top tech companies.",
+  alternates: {
+    canonical: "https://askiacoaching.com",
+  },
   openGraph: {
-    title: "Tech Career Coaching System | Steve Ngoumnai",
+    title: "Tech Career Coaching System | Askia Coaching",
     description:
-      "Free 10-min assessment + personalized job search plan for experienced engineers. Build your 30-day system now.",
+      "Get your free career readiness score. Built for senior engineers and managers. 300+ placements, 40% avg comp increase.",
     type: "website",
-    images: ["/images/command-center-office.jpg"],
+    images: ["/og-image.png"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Tech Career Coaching System | Steve Ngoumnai",
+    title: "Tech Career Coaching System | Askia Coaching",
     description:
-      "Free 10-min assessment + personalized job search plan for experienced engineers.",
-    images: ["/images/command-center-office.jpg"],
+      "Get your free career readiness score. Built for senior engineers and managers.",
+    images: ["/og-image.png"],
   },
 };
 
@@ -51,7 +53,6 @@ export default function JobSearchLanding() {
   return (
     <main className="lp-bg">
       <LandingAnalytics />
-      <ExitIntent />
       <StickyCTA />
 
       <div className="border-b border-slate-800/60 bg-slate-950/40 text-xs text-slate-300">
@@ -112,7 +113,7 @@ export default function JobSearchLanding() {
                 href="/job-search-system/start"
                 data-cta="hero"
                 aria-label="Start free assessment"
-                className="cmd-cta cmd-cta-animated h-[70px] px-10 text-base font-semibold text-slate-950"
+                className="cmd-cta cmd-cta-animated cmd-cta-pulse h-[70px] px-10 text-base font-semibold text-slate-950"
               >
                 Start Free Assessment
               </Link>
@@ -137,7 +138,9 @@ export default function JobSearchLanding() {
             <div className="mt-4 grid gap-3">
               <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4">
                 <p className="text-xs uppercase tracking-wide text-slate-400">Career readiness score</p>
-                <p className="mt-2 text-3xl font-semibold text-slate-100 cmd-score-pulse">78 / 100</p>
+                <p className="mt-2 text-3xl font-semibold text-slate-100 cmd-score-pulse">
+                  <CountUp value={78} duration={1500} /> <span className="text-slate-400">/ 100</span>
+                </p>
               </div>
               <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm text-slate-300">
                 <p className="text-xs uppercase tracking-wide text-slate-400">Week 1 focus</p>
@@ -156,7 +159,7 @@ export default function JobSearchLanding() {
         </div>
       </section>
 
-      <section id="problem" className="cmd-shell cmd-section-tight" data-section="problem">
+      <section id="problem" className="cmd-shell cmd-section-tight cmd-vignette" data-section="problem">
         <Reveal>
           <div className="grid items-center gap-6 lg:grid-cols-[1.05fr_auto_0.95fr]">
             <div className="cmd-panel cmd-bad rounded-3xl p-6">
@@ -198,7 +201,7 @@ export default function JobSearchLanding() {
               Designed for senior ICs and managers who want leverage, not noise.
             </p>
           </div>
-          <div className="mt-10 flex gap-4 overflow-x-auto pb-4 lg:grid lg:grid-cols-4">
+          <div className="cmd-system-grid mt-10 flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory lg:grid lg:grid-cols-4 lg:overflow-visible">
             {[
               ["01", "Positioning", "3x higher response rates vs generic profiles"],
               ["02", "Targeting", "Most land offers within first 15 companies"],
@@ -207,22 +210,20 @@ export default function JobSearchLanding() {
             ].map(([number, title, stat], index) => (
               <div
                 key={title}
-                className={`cmd-panel cmd-card-link min-w-[240px] rounded-3xl p-6 ${
+                className={`cmd-panel cmd-card-link cmd-system-card snap-start min-w-[82%] rounded-3xl p-6 sm:min-w-[60%] lg:min-w-0 ${
                   index % 2 === 0 ? "translate-y-0" : "translate-y-4"
                 }`}
               >
-                <div className="flex items-center justify-between">
-                  <span className="cmd-number-badge">{number}</span>
-                </div>
-                <p className="mt-4 text-sm font-semibold text-slate-100">{title}</p>
-                <p className="mt-3 text-xs text-slate-300">{stat}</p>
+                <span className="cmd-number-badge">{number}</span>
+                <p className="mt-10 text-base font-semibold text-slate-100">{title}</p>
+                <p className="mt-3 text-sm text-slate-300">{stat}</p>
               </div>
             ))}
           </div>
         </Reveal>
       </section>
 
-      <section id="proof" className="cmd-shell cmd-section-tight" data-section="proof">
+      <section id="proof" className="cmd-shell cmd-section-tight cmd-vignette" data-section="proof">
         <Reveal>
           <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
             <div className="cmd-panel rounded-3xl p-6">
@@ -246,15 +247,15 @@ export default function JobSearchLanding() {
               </div>
               <div className="mt-6 grid gap-4 grid-cols-2 sm:grid-cols-3">
                 <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-center">
-                  <CountUp value={300} suffix="+" className="text-2xl font-semibold text-slate-100" />
+                  <CountUp value={300} suffix="+" delay={0} duration={1200} className="text-2xl font-semibold text-slate-100" />
                   <p className="text-xs uppercase tracking-wide text-slate-400">placements</p>
                 </div>
                 <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-center">
-                  <CountUp value={40} suffix="%" className="text-2xl font-semibold text-slate-100" />
+                  <CountUp value={40} suffix="%" delay={200} duration={1200} className="text-2xl font-semibold text-slate-100" />
                   <p className="text-xs uppercase tracking-wide text-slate-400">avg comp increase</p>
                 </div>
                 <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-center">
-                  <CountUp value={87} suffix="%" className="text-2xl font-semibold text-slate-100" />
+                  <CountUp value={87} suffix="%" delay={400} duration={1200} className="text-2xl font-semibold text-slate-100" />
                   <p className="text-xs uppercase tracking-wide text-slate-400">interview→offer conversion</p>
                 </div>
               </div>
@@ -267,19 +268,19 @@ export default function JobSearchLanding() {
                     <div className="flex items-center justify-between">
                       <p className="font-semibold text-slate-100">
                         {idx === 0
-                          ? "Mid-level → Senior SRE at Datadog"
+                          ? "Mid-level → Senior SRE"
                           : idx === 1
-                          ? "Platform Lead → Staff at Stripe"
+                          ? "Platform Lead → Staff Engineer"
                           : "Engineering Manager → Director"}
                       </p>
-                      <span className="cmd-pill text-xs">{timeline}</span>
+                      <span className="cmd-pill cmd-pill-cyan text-xs">{timeline}</span>
                     </div>
                     <p className="mt-2">
                       {idx === 0
-                        ? "Kohl’s → Datadog · $145k → $220k + equity"
+                        ? "Kohl’s → Datadog • $145k → $220k • 60 days"
                         : idx === 1
-                        ? "iSeatz → Stripe · 3 loops in 4 weeks"
-                        : "Offer comp +45% with negotiation system"}
+                        ? "iSeatz → Stripe • 3 loops • 45 days"
+                        : "Offer comp +45% • 30 days"}
                     </p>
                   </div>
                 ))}
@@ -305,7 +306,7 @@ export default function JobSearchLanding() {
                 href="/job-search-system/start"
                 data-cta="offer"
                 aria-label="Start my assessment"
-              className="cmd-cta cmd-cta-animated mt-6 inline-flex h-[70px] px-10 text-base font-semibold text-slate-950"
+              className="cmd-cta cmd-cta-animated cmd-cta-pulse mt-6 inline-flex h-[70px] px-10 text-base font-semibold text-slate-950"
               >
                 Start My Assessment
               </Link>
@@ -327,11 +328,11 @@ export default function JobSearchLanding() {
         </Reveal>
       </section>
 
-      <section id="about" className="cmd-shell cmd-section-tight" data-section="about">
+      <section id="about" className="cmd-shell cmd-section-tight cmd-vignette" data-section="about">
         <Reveal>
           <div className="cmd-panel rounded-3xl p-6">
             <p className="cmd-eyebrow">About Steve J. Ngoumnai</p>
-            <div className="mt-6 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+            <div className="mt-6 grid gap-6 lg:grid-cols-3">
               <div className="space-y-4">
                 <div className="cmd-panel cmd-panel-strong rounded-3xl p-4 text-center">
                   <img
@@ -341,42 +342,35 @@ export default function JobSearchLanding() {
                     loading="lazy"
                   />
                 </div>
-                <div className="cmd-panel cmd-panel-strong rounded-3xl p-4 text-sm text-slate-300">
-                  <p className="font-semibold text-slate-100">"Careers work like systems: clarity beats chaos, leverage beats volume, good inputs compound."</p>
+              </div>
+              <div className="space-y-4 text-sm text-slate-300">
+                <div className="cmd-panel rounded-3xl p-4">
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Operator background</p>
+                  <p className="mt-2 text-slate-200">10+ years leading DevOps &amp; platform teams.</p>
+                </div>
+                <div className="cmd-panel rounded-3xl p-4">
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Systems mindset</p>
+                  <p className="mt-2 text-slate-200">
+                    Built and scaled real production systems. Makes hiring decisions in high-stakes environments.
+                  </p>
                 </div>
               </div>
               <div className="space-y-4 text-sm text-slate-300">
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <div className="cmd-panel rounded-3xl p-4">
-                    <p className="text-xs uppercase tracking-wide text-slate-400">Operator background</p>
-                    <p className="mt-2">10+ years leading DevOps &amp; platform teams.</p>
-                  </div>
-                  <div className="cmd-panel rounded-3xl p-4">
-                    <p className="text-xs uppercase tracking-wide text-slate-400">Coaching results</p>
-                    <p className="mt-2">300+ professionals placed since 2023.</p>
-                  </div>
-                  <div className="cmd-panel rounded-3xl p-4">
-                    <p className="text-xs uppercase tracking-wide text-slate-400">Current work</p>
-                    <p className="mt-2">Agentic AI + automation for startups.</p>
-                  </div>
+                <div className="cmd-panel rounded-3xl p-4">
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Coaching results</p>
+                  <p className="mt-2 text-slate-200">300+ professionals placed since 2023.</p>
                 </div>
-                <div className="cmd-panel cmd-panel-strong rounded-3xl p-4">
-                  <p className="text-xs uppercase tracking-wide text-slate-400">Credentials</p>
-                  <div className="mt-3 space-y-3">
-                    {["Career Coach · Askia Coaching", "Agentic AI Consultant · Machines & Cloud", "Sr. DevOps Manager · Foundation Finance", "DevOps Manager · iSeatz", "Lead Platform Engineer · Kohl’s"].map((role) => (
-                      <details key={role} className="cmd-accordion">
-                        <summary className="text-sm text-slate-100">{role}</summary>
-                        <p className="mt-2 text-xs text-slate-400">
-                          Focused on systems, leverage, and operational excellence.
-                        </p>
-                      </details>
-                    ))}
-                  </div>
-                </div>
-                <div className="cmd-panel rounded-3xl p-4 text-xs text-slate-400">
-                  As seen on: Private workshops, invited panels, and technical leadership roundtables.
+                <div className="cmd-panel rounded-3xl p-4">
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Current work</p>
+                  <p className="mt-2 text-slate-200">Agentic AI consulting + workflow automation for startups.</p>
                 </div>
               </div>
+            </div>
+            <div className="mt-6 cmd-panel cmd-panel-strong rounded-3xl p-4 text-sm text-slate-300">
+              <p className="font-semibold text-slate-100">
+                “Careers work like systems: clarity beats chaos, leverage beats volume, good inputs compound.” — Steve J.
+                Ngoumnai
+              </p>
             </div>
           </div>
         </Reveal>
@@ -393,15 +387,14 @@ export default function JobSearchLanding() {
               aria-hidden="true"
             />
             <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-slate-950/70 to-slate-950/90" />
-            <p className="cmd-eyebrow">Your System Is Waiting. Start Now.</p>
-            <h3 className="relative mt-3 text-3xl font-semibold text-slate-100">
-              Start the assessment now. See your plan in 10 minutes.
-            </h3>
+            <p className="cmd-eyebrow">Final invite</p>
+            <h3 className="relative mt-3 text-3xl font-semibold text-slate-100">Your System Is Waiting. Start Now.</h3>
             <p className="relative mt-2 text-sm text-slate-300">
               No credit card. No catch. Clarity. Results delivered instantly.
             </p>
             <p className="relative mt-4 text-sm text-slate-400">
-              <CountUp value={300} suffix="+" className="font-semibold text-slate-100" /> engineers already ahead. Join them.
+              <CountUp value={347} live liveIntervalMs={3000} className="font-semibold text-slate-100" /> engineers already
+              ahead. Join them.
             </p>
             <Link
               href="/job-search-system/start"

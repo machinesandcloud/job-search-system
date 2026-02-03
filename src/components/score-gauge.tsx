@@ -6,7 +6,7 @@ export function ScoreGauge({ score }: { score: number }) {
     <div className="relative flex h-28 w-56 items-end justify-center">
       <div className="absolute inset-0 overflow-hidden rounded-t-full border border-slate-700 bg-slate-950/60">
         <div
-          className="absolute bottom-0 left-0 h-full w-full origin-bottom rounded-t-full bg-gradient-to-r from-emerald-400 via-cyan-400 to-emerald-400"
+          className="absolute bottom-0 left-0 h-full w-full origin-bottom rounded-t-full bg-gradient-to-r from-cyan-300 via-cyan-400 to-blue-500"
           style={{ transform: `rotate(${rotation}deg)` }}
         />
       </div>
