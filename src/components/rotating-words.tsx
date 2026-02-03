@@ -13,6 +13,8 @@ export function RotatingWords({ words, intervalMs = 2400, className }: RotatingW
   const [phase, setPhase] = useState<"in" | "out">("in");
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const longest = words.reduce((max, word) => Math.max(max, word.length), 0);
+  const minWidth = `${Math.max(longest + 1, 16)}ch`;
 
   useEffect(() => {
     if (!words.length) return;
@@ -34,7 +36,11 @@ export function RotatingWords({ words, intervalMs = 2400, className }: RotatingW
   if (!words.length) return null;
 
   return (
-    <span className={`cmd-rotator ${className ?? ""}`.trim()} aria-live="polite">
+    <span
+      className={`cmd-rotator ${className ?? ""}`.trim()}
+      style={{ minWidth }}
+      aria-live="polite"
+    >
       <span className={`cmd-rotator-word ${phase === "out" ? "is-out" : "is-in"}`.trim()}>
         {words[index]}
       </span>
