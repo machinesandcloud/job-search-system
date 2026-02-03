@@ -225,18 +225,15 @@ body {
 
 .cmd-rotator-word {
   display: inline-block;
-  transition: opacity 0.4s ease, transform 0.4s ease;
-  text-shadow: 0 10px 28px rgba(90, 208, 255, 0.35);
+  transition: opacity 0.35s ease;
 }
 
 .cmd-rotator-word.is-out {
   opacity: 0;
-  transform: translateY(10px) scale(0.98);
 }
 
 .cmd-rotator-word.is-in {
   opacity: 1;
-  transform: translateY(0);
 }
 
 .cmd-hero-lede {
