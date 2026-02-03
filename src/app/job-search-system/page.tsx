@@ -119,7 +119,7 @@ export default function JobSearchLanding() {
             <div className="space-y-6">
               <h1 className="cmd-title cmd-hero-title max-w-2xl text-[clamp(2.4rem,6vw,4rem)] font-semibold text-slate-100 md:text-[clamp(3.2rem,5vw,4.2rem)]">
                 Senior engineers don’t need more skills. They need a career{" "}
-                <span className="cmd-gradient-strong">
+                <span className="cmd-rotator-ink">
                   <RotatingWords words={systemSynonyms} />
                 </span>
                 .

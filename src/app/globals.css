@@ -223,9 +223,17 @@ body {
   min-width: 8ch;
 }
 
+.cmd-rotator-ink {
+  color: #9fe4ff;
+  text-shadow: 0 14px 28px rgba(90, 208, 255, 0.35);
+}
+
 .cmd-rotator-word {
   display: inline-block;
   transition: opacity 0.35s ease;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+  will-change: opacity;
 }
 
 .cmd-rotator-word.is-out {
