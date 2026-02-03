@@ -10,6 +10,7 @@ import { ScrollProgress } from "@/components/scroll-progress";
 import { AnchorScroll } from "@/components/anchor-scroll";
 import { CTAButton } from "@/components/cta-button";
 import { MobileNav } from "@/components/mobile-nav";
+import { RotatingWords } from "@/components/rotating-words";
 
 export const metadata: Metadata = {
   title: "Tech Career Coaching System | Land Senior Roles Faster | Steve Ngoumnai",
@@ -56,6 +57,16 @@ const tickerItems = [
   "$165k → $240k offer accepted",
   "SRE Manager completed assessment",
   "John started his 30-day system",
+];
+
+const systemSynonyms = [
+  "execution engine",
+  "control system",
+  "strategy core",
+  "decision stack",
+  "command layer",
+  "operating framework",
+  "navigation suite",
 ];
 
 export default function JobSearchLanding() {
@@ -108,7 +119,10 @@ export default function JobSearchLanding() {
             <div className="space-y-6">
               <h1 className="cmd-title cmd-hero-title max-w-2xl text-[clamp(2.4rem,6vw,4rem)] font-semibold text-slate-100 md:text-[clamp(3.2rem,5vw,4.2rem)]">
                 Senior engineers don’t need more skills. They need a career{" "}
-                <span className="cmd-gradient-strong">operating system</span>.
+                <span className="cmd-gradient-strong">
+                  <RotatingWords words={systemSynonyms} />
+                </span>
+                .
               </h1>
               <p className="cmd-hero-lede max-w-[36rem] text-lg text-slate-300">
                 I work with experienced engineers and managers who break through plateaus, land stronger roles, and

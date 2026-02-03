@@ -217,6 +217,30 @@ body {
   text-shadow: 0 12px 30px rgba(10, 20, 40, 0.35);
 }
 
+.cmd-rotator {
+  display: inline-block;
+  position: relative;
+  min-width: 8ch;
+}
+
+.cmd-rotator-word {
+  display: inline-block;
+  transition: opacity 0.4s ease, transform 0.4s ease, filter 0.4s ease;
+  text-shadow: 0 10px 28px rgba(90, 208, 255, 0.35);
+}
+
+.cmd-rotator-word.is-out {
+  opacity: 0;
+  transform: translateY(10px) scale(0.98);
+  filter: blur(6px);
+}
+
+.cmd-rotator-word.is-in {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
 .cmd-hero-lede {
   color: rgba(226, 232, 240, 0.82);
 }
