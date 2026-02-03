@@ -110,13 +110,18 @@ export default function JobSearchLanding() {
                 Senior engineers don’t need more skills. They need a career{" "}
                 <span className="cmd-gradient-strong">operating system</span>.
               </h1>
-              <p className="max-w-[36rem] text-lg text-slate-300">
+              <p className="cmd-hero-lede max-w-[36rem] text-lg text-slate-300">
                 I work with experienced engineers and managers who break through plateaus, land stronger roles, and
                 increase compensation 30–60% using a deliberate, repeatable system — not mass applications.
               </p>
               <p className="max-w-lg text-sm text-slate-400 cmd-glow-soft">
                 300+ placements (2023–2025) • 10+ years leading DevOps &amp; platform teams
               </p>
+            </div>
+            <div className="cmd-hero-highlights">
+              <span>40% avg comp lift</span>
+              <span>87% interview→offer</span>
+              <span>10‑minute assessment</span>
             </div>
             <div className="flex flex-wrap items-center gap-4 pt-2">
               <CTAButton
@@ -243,15 +248,13 @@ export default function JobSearchLanding() {
                 <span />
                 <span />
               </div>
-              <svg className="cmd-system-connector" viewBox="0 0 1000 120" preserveAspectRatio="none" aria-hidden="true">
+              <svg className="cmd-system-connector" viewBox="0 0 1000 60" preserveAspectRatio="none" aria-hidden="true">
                 <path
                   className="cmd-system-path"
-                  d="M80 60 L310 60 L310 60 L540 60 L540 60 L770 60"
+                  d="M80 30 L310 30 L310 30 L540 30 L540 30 L770 30"
                   fill="none"
-                  stroke="rgba(99, 179, 237, 0.3)"
-                  strokeWidth="2"
                 />
-              <polygon points="770,54 786,60 770,66" fill="rgba(99, 179, 237, 0.3)" />
+              <polygon points="770,24 786,30 770,36" fill="rgba(90, 208, 255, 0.7)" />
             </svg>
           </div>
         </Reveal>
