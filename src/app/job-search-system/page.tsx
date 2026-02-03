@@ -40,7 +40,6 @@ const logoCompanies = [
   ["Google", "google.com"],
   ["Amazon", "amazon.com"],
   ["Microsoft", "microsoft.com"],
-  ["Meta", "meta.com"],
   ["Apple", "apple.com"],
   ["Netflix", "netflix.com"],
   ["Stripe", "stripe.com"],
@@ -260,93 +259,79 @@ export default function JobSearchLanding() {
         </Reveal>
       </section>
 
-      <section id="proof" className="cmd-shell cmd-gap-proof cmd-vignette" data-section="proof">
+      <section id="proof" className="cmd-shell social-proof-section cmd-vignette" data-section="proof">
         <Reveal>
-          <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-          <div className="cmd-panel rounded-3xl p-6">
-              <p className="cmd-eyebrow cmd-logo-label">Clients placed at:</p>
-            <div className="cmd-logo-carousel mt-4">
-              <div className="cmd-logo-track">
+          <div className="case-studies-container">
+            <div className="section-header">
+              <p className="section-eyebrow">Results that matter</p>
+              <h2 className="section-title">Real Outcomes. Real People.</h2>
+            </div>
+            <div className="case-studies-grid">
+              {[
+                {
+                  title: "Mid-level → Senior SRE at Datadog",
+                  timeline: "60 days",
+                  transition: "Kohl's → Datadog",
+                  outcome: "$145k → $220k + equity",
+                },
+                {
+                  title: "Platform Lead → Staff at Stripe",
+                  timeline: "45 days",
+                  transition: "iSeatz → Stripe",
+                  outcome: "3 loops in 4 weeks",
+                },
+                {
+                  title: "Engineering Manager → Director",
+                  timeline: "30 days",
+                  transition: "Offer strategy",
+                  outcome: "Increased comp 45%",
+                },
+              ].map((item) => (
+                <div key={item.title} className="case-study-card">
+                  <span className="timeline-badge">{item.timeline}</span>
+                  <h3 className="case-study-title">{item.title}</h3>
+                  <p className="case-study-transition">{item.transition}</p>
+                  <p className="case-study-outcome">{item.outcome}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="section-divider" />
+
+          <div className="clients-stats-container">
+            <p className="clients-eyebrow">Clients placed at:</p>
+            <div className="logo-carousel">
+              <div className="logo-track">
                 {logoCompanies.concat(logoCompanies).map(([name, domain], index) => (
-                  <div key={`${name}-${index}`} className="cmd-logo-pill">
-                      <img
-                        src={
-                          logoKey
-                            ? `https://img.logo.dev/${domain}?token=${logoKey}`
-                            : `https://logo.clearbit.com/${domain}`
-                        }
-                        alt={`${name} logo`}
-                        className="h-5 w-5"
-                        loading="lazy"
-                      />
-                      <span className="text-xs font-semibold text-slate-200">{name}</span>
-                  </div>
+                  <img
+                    key={`${name}-${index}`}
+                    src={
+                      logoKey
+                        ? `https://img.logo.dev/${domain}?token=${logoKey}`
+                        : `https://logo.clearbit.com/${domain}`
+                    }
+                    alt={`${name} logo`}
+                    className="company-logo"
+                    loading="lazy"
+                  />
                 ))}
               </div>
             </div>
-            <p className="cmd-swipe-hint">Swipe to see more</p>
-              <div className="mt-6 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                <div className="cmd-stat-card rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-center">
-                  <CountUp
-                    value={300}
-                    suffix="+"
-                    revealSuffix
-                    delay={0}
-                    duration={1500}
-                    className="text-2xl font-semibold text-slate-100"
-                  />
-                  <p className="text-xs uppercase tracking-wide text-slate-400">placements</p>
-                </div>
-                <div className="cmd-stat-card rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-center">
-                  <CountUp value={40} suffix="%" delay={200} duration={1800} className="text-2xl font-semibold text-slate-100" />
-                  <p className="text-xs uppercase tracking-wide text-slate-400">avg comp increase</p>
-                </div>
-                <div className="cmd-stat-card rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-center">
-                  <CountUp value={87} suffix="%" delay={400} duration={2000} className="text-2xl font-semibold text-slate-100" />
-                  <p className="text-xs uppercase tracking-wide text-slate-400">interview→offer conversion</p>
-                </div>
+            <div className="stats-grid">
+              <div className="stat-card">
+                <CountUp value={300} suffix="+" revealSuffix delay={0} duration={1500} className="stat-number" />
+                <p className="stat-label">Placements</p>
+              </div>
+              <div className="stat-card">
+                <CountUp value={40} suffix="%" delay={200} duration={1800} className="stat-number" />
+                <p className="stat-label">Avg comp increase</p>
+              </div>
+              <div className="stat-card">
+                <CountUp value={87} suffix="%" delay={400} duration={2000} className="stat-number" />
+                <p className="stat-label">Interview→offer</p>
               </div>
             </div>
-            <div className="cmd-panel cmd-panel-strong rounded-3xl p-6">
-              <p className="cmd-eyebrow">Impact snapshot</p>
-              <p className="text-sm text-slate-300">
-                The system is engineered for speed, leverage, and high-signal outcomes. The case studies below show what
-                happens when the playbook is executed with focus.
-              </p>
-            </div>
-          </div>
-        </Reveal>
-      </section>
-
-      <section id="case-studies" className="cmd-shell cmd-gap-proof" data-section="case-studies">
-        <Reveal>
-          <p className="cmd-eyebrow">Mini case studies</p>
-          <div className="grid gap-4 md:grid-cols-3">
-            {[
-              {
-                title: "Mid-level → Senior SRE at Datadog",
-                timeline: "60 days",
-                detail: "Kohl’s → Datadog • $145k → $220k + equity",
-              },
-              {
-                title: "Platform Lead → Staff at Stripe",
-                timeline: "45 days",
-                detail: "iSeatz → Stripe • 3 loops in 4 weeks",
-              },
-              {
-                title: "Engineering Manager → Director",
-                timeline: "30 days",
-                detail: "Increased comp 45% with offer strategy",
-              },
-            ].map((item) => (
-              <div key={item.title} className="cmd-panel rounded-3xl p-8 cmd-hover">
-                <div className="flex items-center justify-between">
-                  <p className="text-base font-semibold text-slate-100">{item.title}</p>
-                  <span className="cmd-time-badge">⏱️ {item.timeline}</span>
-                </div>
-                <p className="mt-3 text-sm text-slate-300">{item.detail}</p>
-              </div>
-            ))}
           </div>
         </Reveal>
       </section>
