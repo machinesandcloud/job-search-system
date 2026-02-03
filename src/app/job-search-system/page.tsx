@@ -1,5 +1,26 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { Reveal } from "@/components/reveal";
+
+export const metadata: Metadata = {
+  title: "Askia Coaching Command Center | Build a 30-day job search plan in 10 minutes",
+  description:
+    "A private, premium job search command center for high-earning tech professionals. Build your 30-day job search plan in 10 minutes with AI-guided strategy, scripts, and proof assets.",
+  openGraph: {
+    title: "Askia Coaching Command Center",
+    description:
+      "Build a 30-day job search plan in 10 minutes. A private, premium command center for experienced tech professionals.",
+    type: "website",
+    images: ["/images/command-center-office.jpg"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Askia Coaching Command Center",
+    description:
+      "Build a 30-day job search plan in 10 minutes with a private, premium career command center.",
+    images: ["/images/command-center-office.jpg"],
+  },
+};
 
 const logoKey = process.env.NEXT_PUBLIC_LOGO_DEV_PUBLISHABLE_KEY;
 
@@ -20,73 +41,70 @@ const logoCompanies = [
 
 export default function JobSearchLanding() {
   return (
-    <main className="lp-bg lp-grid">
-      <section className="section-shell relative pb-20 pt-14">
-        <div className="lp-hero-orb lp-hero-orb-left" />
-        <div className="lp-hero-orb lp-hero-orb-right" />
+    <main className="lp-bg">
+      <section className="cmd-shell relative pb-16 pt-14">
+        <div className="cmd-hero-orb cmd-hero-orb-left" />
+        <div className="cmd-hero-orb cmd-hero-orb-right" />
 
-        <nav className="lp-nav relative z-10">
+        <nav className="relative z-10 flex items-center justify-between gap-6 text-sm">
           <div className="flex items-center gap-3">
             <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.2em] text-slate-200">
-              Askia Labs
+              Askia Coaching
             </span>
-            <span className="text-xs text-slate-400">Private Command Center</span>
+            <span className="text-xs text-slate-400">Command Center</span>
           </div>
-          <div className="lp-nav-links">
-            <Link href="#proof" className="lp-nav-link">
-              Proof
-            </Link>
-            <Link href="#workflow" className="lp-nav-link">
-              Workflow
-            </Link>
-            <Link href="#capture" className="lp-nav-link">
-              Get plan
-            </Link>
+          <div className="hidden items-center gap-6 text-xs uppercase tracking-[0.2em] text-slate-400 md:flex">
+            <Link href="#proof">Proof</Link>
+            <Link href="#personalized">Personalized</Link>
+            <Link href="#capture">Get plan</Link>
           </div>
+          <Link
+            href="/job-search-system/start"
+            className="rounded-full border border-slate-700 px-4 py-2 text-xs font-semibold text-slate-100"
+          >
+            Start free
+          </Link>
         </nav>
 
         <div className="relative z-10 mt-12 grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="space-y-6">
-            <span className="lp-kicker lp-fade-in">Private Command Center</span>
+            <span className="cmd-kicker">Private command center</span>
             <div className="space-y-4">
-              <h1 className="lp-title lp-fade-in-delay text-4xl font-semibold text-slate-100 md:text-6xl">
-                The job search system for high-earning tech professionals who move with{" "}
-                <span className="lp-gradient-text">intent</span>.
+              <h1 className="cmd-title text-4xl font-semibold text-slate-100 md:text-6xl">
+                Build your 30-day job search plan in 10 minutes — with a system that compounds.
               </h1>
-              <p className="lp-fade-in-delay-2 max-w-xl text-lg text-slate-300">
-                A discreet, high-performance environment that turns your role, compensation targets, and time
-                constraints into a precision plan with scripts, proof assets, and a weekly execution cadence.
+              <p className="max-w-xl text-lg text-slate-300">
+                Most talented tech professionals don’t struggle because they lack skills. They struggle because they
+                don’t have a system. This command center combines AI-guided strategy with human coaching insight to
+                turn your role, targets, and constraints into a precise plan with scripts, proof assets, and a weekly
+                cadence.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/job-search-system/start"
-                className="lp-cta rounded-full px-6 py-3 text-sm font-semibold text-slate-950"
+                className="cmd-cta rounded-full px-6 py-3 text-sm font-semibold text-slate-950"
               >
-                Start the 10-minute assessment
+                Start free assessment
               </Link>
               <Link
                 href="#proof"
                 className="rounded-full border border-slate-600 px-6 py-3 text-sm font-semibold text-slate-200"
               >
-                See the system
+                See how it works
               </Link>
             </div>
             <div className="flex flex-wrap items-center gap-4 text-sm text-slate-400">
-              <span className="lp-pill">No account required</span>
-              <span className="lp-pill">Private by design</span>
-              <span className="lp-pill">Built for 30-90 day searches</span>
-            </div>
-            <div className="flex items-center gap-3 text-xs uppercase tracking-[0.28em] text-slate-400">
-              <span>Scroll for clarity</span>
-              <span className="lp-arrow">↓</span>
+              <span className="cmd-pill">No account required for preview</span>
+              <span className="cmd-pill">Private by design</span>
+              <span className="cmd-pill">Built for 30–90 day searches</span>
             </div>
           </div>
 
-          <div className="lp-hero-panel lp-glass lp-glow rounded-3xl p-6">
+          <div className="cmd-panel cmd-glow rounded-3xl p-6">
             <div className="flex items-center justify-between">
               <p className="text-xs uppercase tracking-wide text-slate-400">Command Center Preview</p>
-              <span className="lp-pill text-xs">Confidential</span>
+              <span className="cmd-pill text-xs">Confidential</span>
             </div>
             <div className="mt-6 grid gap-4">
               <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4">
@@ -116,16 +134,16 @@ export default function JobSearchLanding() {
               </div>
             </div>
             <div className="mt-5 rounded-2xl border border-slate-700 bg-slate-950/60 p-4">
-              <p className="text-xs uppercase tracking-wide text-slate-400">Command script</p>
+              <p className="text-xs uppercase tracking-wide text-slate-400">Command log</p>
               <div className="mt-2 space-y-2">
-                <p className="lp-terminal-line">
-                  <span className="lp-terminal-key">&gt;</span> calibrate(role="Staff Platform Engineer", timeline="30 days", hours=5)
+                <p className="cmd-terminal-line">
+                  <span className="cmd-terminal-key">&gt;</span> calibrate(role="Staff Platform Engineer", timeline="30 days", hours=5)
                 </p>
-                <p className="lp-terminal-line">
-                  <span className="lp-terminal-key">&gt;</span> output: weekly plan + scripts + proof assets
+                <p className="cmd-terminal-line">
+                  <span className="cmd-terminal-key">&gt;</span> output: weekly plan + scripts + proof assets
                 </p>
-                <p className="lp-terminal-line">
-                  <span className="lp-terminal-accent">status:</span> ready
+                <p className="cmd-terminal-line">
+                  <span className="cmd-terminal-accent">status:</span> ready
                 </p>
               </div>
             </div>
@@ -133,158 +151,52 @@ export default function JobSearchLanding() {
         </div>
       </section>
 
-      <section className="section-shell pb-10">
+      <section className="cmd-shell pb-8">
         <Reveal>
           <div className="rounded-3xl border border-slate-800 bg-slate-900/60 px-6 py-5">
-            <p className="mb-3 text-xs uppercase tracking-wide text-slate-400">Used by operators from</p>
-            <div className="overflow-hidden">
-              <div className="logo-marquee">
-                {[...logoCompanies, ...logoCompanies].map(([name, domain], index) => (
-                  <div
-                    key={`${name}-${index}`}
-                    className="flex items-center gap-2 rounded-full border border-slate-700 bg-slate-950/60 px-4 py-2"
-                  >
-                    {logoKey ? (
-                      <img
-                        src={`https://img.logo.dev/${domain}?token=${logoKey}`}
-                        alt=""
-                        className="h-5 w-5"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <span className="h-5 w-5 rounded-full bg-slate-700" />
-                    )}
-                    <span className="text-xs font-semibold text-slate-200">{name}</span>
-                  </div>
-                ))}
-              </div>
+            <p className="mb-3 text-xs uppercase tracking-wide text-slate-400">Trusted outcomes</p>
+            <div className="flex flex-wrap items-center gap-3">
+              {logoCompanies.map(([name, domain]) => (
+                <div
+                  key={name}
+                  className="flex items-center gap-2 rounded-full border border-slate-700 bg-slate-950/60 px-3 py-2"
+                >
+                  {logoKey ? (
+                    <img
+                      src={`https://img.logo.dev/${domain}?token=${logoKey}`}
+                      alt={`${name} logo`}
+                      className="h-5 w-5"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <span className="h-5 w-5 rounded-full bg-slate-700" />
+                  )}
+                  <span className="text-xs font-semibold text-slate-200">{name}</span>
+                </div>
+              ))}
             </div>
           </div>
         </Reveal>
       </section>
 
-      <section className="section-shell pb-6">
-        <Reveal>
-          <div className="grid gap-4 md:grid-cols-3">
-            {[
-              ["10 min", "Assessment time"],
-              ["5 hrs/wk", "Cadence baseline"],
-              ["30-90 days", "Typical timeline"],
-            ].map(([value, label]) => (
-              <div key={label} className="lp-stat lp-card-hover">
-                <p className="text-3xl font-semibold text-slate-100">{value}</p>
-                <p className="mt-2 text-xs uppercase tracking-wide text-slate-400">{label}</p>
-              </div>
-            ))}
-          </div>
-        </Reveal>
-      </section>
-
-      <section className="section-shell py-12">
-        <Reveal>
-          <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-            <div className="lp-surface rounded-3xl p-6">
-              <p className="lp-eyebrow text-xs text-slate-400">Muscle Memory</p>
-              <h2 className="mt-3 text-2xl font-semibold text-slate-100">
-                For career leverage that compounds every week.
-              </h2>
-            </div>
-            <div className="lp-glass rounded-3xl p-6 text-sm text-slate-300">
-              <p>
-                In a market of high-volume applications, the real advantage is focused repetition. We build the
-                habits—positioning, outreach, proof—so your job search becomes a system that gets stronger with every
-                cycle.
-              </p>
-              <Link
-                href="#workflow"
-                className="mt-6 inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-slate-200"
-              >
-                See the workflow <span aria-hidden=\"true\">→</span>
-              </Link>
-            </div>
-          </div>
-        </Reveal>
-      </section>
-
-      <section id="proof" className="section-shell py-12">
+      <section id="proof" className="cmd-shell py-12">
         <Reveal>
           <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-            <div className="lp-surface rounded-3xl p-6">
-              <p className="lp-eyebrow text-xs text-slate-400">Why it works</p>
+            <div className="cmd-panel rounded-3xl p-6">
+              <p className="text-xs uppercase tracking-wide text-slate-400">Proof of leverage</p>
               <h2 className="mt-3 text-2xl font-semibold text-slate-100">
-                Precision focus beats volume. Every step is designed to protect your time and signal.
+                300+ professionals coached into stronger roles by focusing on what actually moves the needle.
               </h2>
-              <div className="mt-5 space-y-4 text-sm text-slate-300">
-                <p>
-                  We remove distractions, enforce a weekly cadence, and deliver the assets hiring teams actually respond
-                  to. The system stays tight, private, and aligned to your level.
-                </p>
-                <div className="lp-divider" />
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {[
-                    ["Message match", "Your headline and outreach mirror the exact roles you target."],
-                    ["Above-the-fold clarity", "Action, proof, and next steps show immediately."],
-                    ["Directional cues", "Guided scan paths keep attention on your CTA."],
-                    ["Proof in action", "Real assets, scripts, and plan previews before you commit."],
-                  ].map(([title, body]) => (
-                    <div key={title} className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4">
-                      <p className="text-sm font-semibold text-slate-100">{title}</p>
-                      <p className="mt-2 text-xs text-slate-300">{body}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="lp-glass lp-shimmer rounded-3xl p-6">
-              <p className="text-xs uppercase tracking-wide text-slate-400">Proof panel</p>
-              <div className="mt-5 grid gap-4">
-                <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4">
-                  <p className="text-xs uppercase tracking-wide text-slate-400">Results that matter</p>
-                  <div className="mt-3 grid gap-3 sm:grid-cols-3">
-                    {[
-                      ["3", "on-site loops"],
-                      ["2x", "reply rate"],
-                      ["4 weeks", "to clarity"],
-                    ].map(([value, label]) => (
-                      <div key={label} className="rounded-2xl border border-slate-700 bg-slate-950/70 px-3 py-2">
-                        <p className="text-lg font-semibold text-slate-100">{value}</p>
-                        <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm text-slate-200">
-                  “I finally had a system that matched my schedule and made recruiters respond.”
-                  <p className="mt-3 text-xs uppercase tracking-wide text-slate-500">
-                    Senior platform engineer · 30-day timeline
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4">
-                  <p className="text-xs uppercase tracking-wide text-slate-400">Discretion first</p>
-                  <p className="mt-2 text-sm text-slate-200">
-                    No public profiles, no noise. You control what you share and when.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Reveal>
-      </section>
-
-      <section id="workflow" className="section-shell py-12">
-        <Reveal>
-          <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-            <div className="lp-glass rounded-3xl p-6">
-              <p className="text-xs uppercase tracking-wide text-slate-400">Workflow</p>
-              <h3 className="mt-3 text-2xl font-semibold text-slate-100">From intent to execution in three steps.</h3>
-              <p className="mt-2 text-sm text-slate-300">
-                The command center stays minimal: assess, calibrate, execute. No distractions, only a tight cadence.
+              <p className="mt-3 text-sm text-slate-300">
+                Positioning. Narrative. Targeting. Interview execution. Decision-making under pressure. Not generic
+                advice—deliberate, repeatable systems.
               </p>
-              <div className="mt-5 grid gap-3">
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 {[
-                  ["1. Assess", "Capture role, timeline, constraints, and current signal."],
-                  ["2. Calibrate", "Generate plan, scripts, and proof assets tuned to your week."],
-                  ["3. Execute", "Follow the cadence with a clear checklist and follow-ups."],
+                  ["2x reply rates", "From precision targeting + proof assets."],
+                  ["3 on-site loops", "Typical within the first 4–6 weeks."],
+                  ["Clarity in 10 min", "Plan delivered immediately after assessment."],
+                  ["Private by design", "No public profiles or noise."],
                 ].map(([title, body]) => (
                   <div key={title} className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4">
                     <p className="text-sm font-semibold text-slate-100">{title}</p>
@@ -293,150 +205,167 @@ export default function JobSearchLanding() {
                 ))}
               </div>
             </div>
-            <div className="lp-terminal p-6">
-              <p className="text-xs uppercase tracking-wide text-slate-400">Command log</p>
-              <div className="mt-4 space-y-3">
-                <p className="lp-terminal-line">
-                  <span className="lp-terminal-key">$</span> capture --role "Staff Engineer" --timeline 30d
-                </p>
-                <p className="lp-terminal-line">
-                  <span className="lp-terminal-key">$</span> calibrate --hours 5 --constraints "remote only"
-                </p>
-                <p className="lp-terminal-line">
-                  <span className="lp-terminal-key">$</span> generate --plan --scripts --proof
-                </p>
-                <p className="lp-terminal-line">
-                  <span className="lp-terminal-accent">✓</span> plan ready · 4 week cadence · 3 scripts
-                </p>
+            <div className="cmd-panel cmd-panel-strong rounded-3xl p-6">
+              <p className="text-xs uppercase tracking-wide text-slate-400">Mini case studies</p>
+              <div className="mt-4 space-y-4 text-sm text-slate-300">
+                <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4">
+                  <p className="font-semibold text-slate-100">Senior Platform Engineer · 30 days</p>
+                  <p className="mt-2">Reframed narrative, built proof asset, landed 3 loops in 4 weeks.</p>
+                </div>
+                <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4">
+                  <p className="font-semibold text-slate-100">Engineering Manager · 60 days</p>
+                  <p className="mt-2">Targeted outreach and leadership framing lifted interview conversion.</p>
+                </div>
+                <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4">
+                  <p className="font-semibold text-slate-100">SRE Lead · 45 days</p>
+                  <p className="mt-2">Negotiated from strength, secured a comp increase + scope upgrade.</p>
+                </div>
+              </div>
+              <div className="mt-6 cmd-divider" />
+              <p className="mt-4 text-xs uppercase tracking-wide text-slate-400">Who this is for</p>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-xs text-slate-300">
+                  Experienced engineers, managers, and operators with real production impact.
+                </div>
+                <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-xs text-slate-300">
+                  Professionals ready to invest time in a deliberate, repeatable system.
+                </div>
+              </div>
+              <p className="mt-4 text-xs uppercase tracking-wide text-slate-400">Not for</p>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-xs text-slate-300">
+                  Anyone chasing mass applications or shortcuts without strategy.
+                </div>
+                <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-xs text-slate-300">
+                  Early-career candidates without foundational experience.
+                </div>
               </div>
             </div>
           </div>
         </Reveal>
       </section>
 
-      <section className="section-shell py-12">
+      <section id="personalized" className="cmd-shell py-12">
         <Reveal>
           <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-            <div className="lp-glass rounded-3xl p-6">
-              <p className="text-xs uppercase tracking-wide text-slate-400">The environment</p>
-              <h3 className="mt-3 text-2xl font-semibold text-slate-100">A focused studio for high-stakes decisions.</h3>
+            <div className="cmd-panel rounded-3xl p-6">
+              <p className="text-xs uppercase tracking-wide text-slate-400">Personalized value</p>
+              <h3 className="mt-3 text-2xl font-semibold text-slate-100">Your plan is calibrated to your reality.</h3>
               <p className="mt-2 text-sm text-slate-300">
-                The command center experience is intentionally quiet—like stepping into a private, precision-built
-                studio where every element supports clarity, confidence, and action.
+                We map your role, level, compensation targets, and time constraints into a cadence you can actually run.
+                The output is precise, not generic.
+              </p>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                {[
+                  ["Role clarity", "Define scope + next-step targets."],
+                  ["Signal design", "Craft proof assets that trigger interviews."],
+                  ["Targeting", "Build a company list and outreach plan."],
+                  ["Execution", "Weekly cadence tied to hours available."],
+                ].map(([title, body]) => (
+                  <div key={title} className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4">
+                    <p className="text-sm font-semibold text-slate-100">{title}</p>
+                    <p className="mt-2 text-xs text-slate-300">{body}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="cmd-panel cmd-panel-strong rounded-3xl p-6">
+              <p className="text-xs uppercase tracking-wide text-slate-400">About Steve J. Ngoumnai</p>
+              <p className="mt-3 text-sm text-slate-300">
+                10+ years leading DevOps, platform, and engineering teams in production. 300+ professionals coached into
+                stronger roles by focusing on leverage, signal, and decisive execution.
+              </p>
+              <div className="mt-5 space-y-3 text-sm text-slate-300">
+                <p>• Career Coach · Askia Coaching (2023–present)</p>
+                <p>• Agentic AI Solutions Consultant · Machines &amp; Cloud (2022–present)</p>
+                <p>• Sr. DevOps Manager · Foundation Finance Company</p>
+                <p>• DevOps Manager · iSeatz</p>
+                <p>• Lead Platform Engineer · Kohl’s</p>
+              </div>
+              <div className="mt-6 rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-xs text-slate-300">
+                Systems thinking for careers: clarity beats chaos, leverage beats volume, good inputs compound.
+              </div>
+            </div>
+          </div>
+        </Reveal>
+      </section>
+
+      <section className="cmd-shell py-12">
+        <Reveal>
+          <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+            <div className="cmd-panel rounded-3xl p-6">
+              <p className="text-xs uppercase tracking-wide text-slate-400">Designed environment</p>
+              <h3 className="mt-3 text-2xl font-semibold text-slate-100">
+                A calm, premium studio for focused decisions.
+              </h3>
+              <p className="mt-2 text-sm text-slate-300">
+                The experience feels like a private command room: quiet, deliberate, and built to keep your attention
+                on what matters—clarity, leverage, and action.
               </p>
               <div className="mt-5 space-y-2 text-sm text-slate-300">
-                <p>- High-contrast surfaces with restrained glow.</p>
-                <p>- Glass panels that reveal only what matters.</p>
-                <p>- A calm cadence that keeps decisions crisp.</p>
+                <p>- High-contrast surfaces with subtle glow.</p>
+                <p>- Glass panels that reveal only the essentials.</p>
+                <p>- A clean narrative flow that reduces decision fatigue.</p>
               </div>
             </div>
             <div className="relative overflow-hidden rounded-3xl border border-slate-700 bg-slate-950/60">
               <img
-                src="/images/command-center-lobby.jpg"
-                alt="Modern studio interior with calm lighting and refined materials"
+                src="/images/command-center-office.jpg"
+                alt="Modern studio workspace with refined lighting and minimal design"
                 className="h-full w-full object-cover"
                 loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
               <div className="absolute bottom-4 left-4 rounded-full border border-white/10 bg-black/40 px-3 py-1 text-xs text-slate-200">
-                Designed for high-signal focus
+                Precision-focused space
               </div>
             </div>
           </div>
         </Reveal>
       </section>
 
-      <section className="section-shell py-12">
+      <section id="capture" className="cmd-shell py-12">
         <Reveal>
-          <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="rounded-3xl border border-slate-700 bg-slate-900/70 p-6">
-              <p className="text-xs uppercase tracking-wide text-slate-400">Personalized value</p>
-              <h3 className="mt-3 text-2xl font-semibold text-slate-100">Built around your constraints.</h3>
+          <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+            <div className="cmd-panel rounded-3xl p-6">
+              <p className="text-xs uppercase tracking-wide text-slate-400">Frictionless capture</p>
+              <h3 className="mt-3 text-2xl font-semibold text-slate-100">10 minutes to clarity. 30 days to momentum.</h3>
               <p className="mt-2 text-sm text-slate-300">
-                The assessment captures your role, timeline, and availability. Your plan adapts to your actual week,
-                not a generic template.
+                Complete a focused assessment, get a preview instantly, then create an account to unlock the full
+                command center with scripts, proof assets, and your weekly cadence.
               </p>
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                {[
-                  ["Role focus", "Align scope, level, and comp guardrails."],
-                  ["Time budget", "Cadence that fits 3-8 hours per week."],
-                  ["Constraint-aware", "Visa, location, confidentiality, and timing."],
-                  ["Signal design", "Assets that prove impact quickly."],
-                ].map(([title, body]) => (
-                  <div key={title} className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4">
-                    <p className="text-sm font-semibold text-slate-100">{title}</p>
-                    <p className="mt-2 text-xs text-slate-300">{body}</p>
-                  </div>
-                ))}
+              <div className="mt-5 space-y-2 text-sm text-slate-300">
+                <p>- Answer 10–12 targeted prompts.</p>
+                <p>- See your score + first-week cadence immediately.</p>
+                <p>- Create your account to unlock the full plan + templates.</p>
               </div>
             </div>
-            <div className="lp-glass rounded-3xl p-6">
-              <p className="text-xs uppercase tracking-wide text-slate-400">Plan anatomy</p>
+            <div className="cmd-terminal p-6">
+              <p className="text-xs uppercase tracking-wide text-slate-400">How it works</p>
               <div className="mt-4 space-y-3">
-                {[
-                  ["Coach read", "A short, direct assessment of your current signal."],
-                  ["Weekly cadence", "Exact actions mapped to your timeline."],
-                  ["Script pack", "Warm intros, recruiter follow-ups, referrals."],
-                  ["Proof assets", "Resume bullets, LinkedIn upgrade, case study prompts."],
-                ].map(([title, body]) => (
-                  <div key={title} className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4">
-                    <p className="text-sm font-semibold text-slate-100">{title}</p>
-                    <p className="mt-2 text-xs text-slate-300">{body}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </Reveal>
-      </section>
-
-      <section id="capture" className="section-shell py-12">
-        <Reveal>
-          <div className="rounded-3xl border border-slate-700 bg-slate-900/70 p-8">
-            <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-              <div>
-                <p className="text-xs uppercase tracking-wide text-slate-400">Frictionless capture</p>
-                <h3 className="mt-3 text-2xl font-semibold text-slate-100">10 minutes. No fluff. Immediate clarity.</h3>
-                <p className="mt-2 text-sm text-slate-300">
-                  Your assessment is focused, private, and built to surface your fastest path. You see the preview
-                  instantly, then unlock the full system.
+                <p className="cmd-terminal-line">
+                  <span className="cmd-terminal-key">$</span> assess --role "SRE" --timeline 60d
                 </p>
-                <div className="mt-5 space-y-2 text-sm text-slate-300">
-                  <p>- Answer 12 targeted prompts.</p>
-                  <p>- Receive your coach read and week-one plan.</p>
-                  <p>- Unlock scripts, assets, and a full roadmap.</p>
-                </div>
-              </div>
-              <div className="lp-glass rounded-3xl p-6">
-                <p className="text-xs uppercase tracking-wide text-slate-400">Discreet by design</p>
-                <div className="mt-4 space-y-4 text-sm text-slate-300">
-                  <div>
-                    <p className="font-semibold text-slate-100">Privacy-first</p>
-                    <p className="mt-1">We never sell data. You control what you share.</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-slate-100">Fast delivery</p>
-                    <p className="mt-1">Preview instantly. Full plan by secure link.</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-slate-100">Minimal lift</p>
-                    <p className="mt-1">Short prompts, no long forms.</p>
-                  </div>
-                </div>
-                <div className="mt-6 rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-xs text-slate-300">
-                  Average completion time: 9 minutes
-                </div>
+                <p className="cmd-terminal-line">
+                  <span className="cmd-terminal-key">$</span> score --clarity 18 --assets 20
+                </p>
+                <p className="cmd-terminal-line">
+                  <span className="cmd-terminal-key">$</span> unlock --account
+                </p>
+                <p className="cmd-terminal-line">
+                  <span className="cmd-terminal-accent">✓</span> full plan · scripts · proof assets
+                </p>
               </div>
             </div>
           </div>
         </Reveal>
       </section>
 
-      <section className="section-shell pb-16">
+      <section className="cmd-shell pb-16">
         <Reveal>
-          <div className="lp-surface lp-shimmer relative overflow-hidden rounded-3xl p-8 text-center">
+          <div className="cmd-panel cmd-panel-strong relative overflow-hidden rounded-3xl p-8 text-center">
             <img
-              src="/images/abstract-ribbed-texture.jpg"
+              src="/images/command-texture.jpg"
               alt=""
               className="absolute inset-0 h-full w-full object-cover opacity-30"
               loading="lazy"
@@ -445,20 +374,60 @@ export default function JobSearchLanding() {
             <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-slate-950/70 to-slate-950/90" />
             <p className="text-xs uppercase tracking-wide text-slate-400">Decisive next step</p>
             <h3 className="relative mt-3 text-3xl font-semibold text-slate-100">
-              Step into the command center and run a job search built for results.
+              Step into a command center designed for serious career outcomes.
             </h3>
             <p className="relative mt-2 text-sm text-slate-300">
               A confident invitation, not a sales push. Get your plan and move with clarity.
             </p>
             <Link
               href="/job-search-system/start"
-              className="lp-cta relative mt-6 inline-flex rounded-full px-6 py-3 text-sm font-semibold text-slate-950"
+              className="cmd-cta relative mt-6 inline-flex rounded-full px-6 py-3 text-sm font-semibold text-slate-950"
             >
-              Begin the assessment
+              Start the assessment
             </Link>
           </div>
         </Reveal>
       </section>
+
+      <footer className="cmd-shell pb-10 text-xs text-slate-500">
+        <div className="cmd-divider mb-4" />
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <span>© {new Date().getFullYear()} Askia Coaching. All rights reserved.</span>
+          <span>
+            Imagery by{" "}
+            <a
+              className="underline decoration-slate-600 underline-offset-4 hover:text-slate-300"
+              href="https://unsplash.com"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Unsplash contributors
+            </a>
+            .
+          </span>
+        </div>
+      </footer>
+
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Service",
+            name: "Askia Coaching Command Center",
+            description:
+              "Private, premium job search command center that builds a 30-day plan in 10 minutes for experienced tech professionals.",
+            provider: {
+              "@type": "Person",
+              name: "Steve J Ngoumnai",
+              jobTitle: "Tech Career Coach",
+            },
+            areaServed: "US",
+            serviceType: "Career Coaching",
+          }),
+        }}
+      />
     </main>
   );
 }

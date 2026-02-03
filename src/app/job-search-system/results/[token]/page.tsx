@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { buildResults } from "@/lib/results";
 import { buildProPack } from "@/lib/pro-pack";
+import { getUserSession } from "@/lib/user-auth";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ScoreGauge } from "@/components/score-gauge";
@@ -13,8 +14,10 @@ import { UpgradeButton } from "@/components/upgrade-button";
 import { ProPackActions } from "@/components/pro-pack-actions";
 import { ResultsViewLogger } from "@/components/results-view-logger";
 import { CompanyLogo } from "@/components/company-logo";
+import { AccountGate } from "@/components/account-gate";
 
 export default async function ResultsPage({ params }: { params: { token: string } }) {
+  const user = await getUserSession();
   const lead = await prisma.lead.findUnique({
     where: { token: params.token },
     include: {
@@ -25,6 +28,46 @@ export default async function ResultsPage({ params }: { params: { token: string 
   if (!lead) return notFound();
   const answers = lead.answers as any;
   const results = buildResults(answers);
+  if (user && !lead.userId) {
+    await prisma.lead.update({ where: { id: lead.id }, data: { userId: user.id, email: user.email } });
+    lead.userId = user.id;
+  }
+  const ownsLead = !!user && lead.userId === user.id;
+
+  if (!ownsLead) {
+    return (
+      <main className="cmd-shell pb-20 pt-12">
+        <div className="mx-auto max-w-4xl space-y-6">
+          <div>
+            <p className="tag mb-3">Preview</p>
+            <h1 className="text-3xl font-semibold text-slate-100">Your job search preview is ready.</h1>
+            <p className="mt-2 text-slate-300">
+              Create your account to unlock the full plan, scripts, and templates. Your data stays private and
+              controlled.
+            </p>
+          </div>
+          <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="rounded-3xl border border-slate-700 bg-slate-900/70 p-6">
+              <p className="text-xs uppercase tracking-wide text-slate-400">Score preview</p>
+              <div className="mt-4 flex items-center gap-4">
+                <ScoreGauge score={results.score} />
+                <div>
+                  <p className="text-2xl font-semibold text-slate-100">{results.score}/100</p>
+                  <p className="text-sm text-slate-400">Full breakdown unlocked after signup.</p>
+                </div>
+              </div>
+              <div className="mt-4 space-y-2 text-sm text-slate-300">
+                {results.insights.slice(0, 2).map((insight) => (
+                  <p key={insight}>- {insight}</p>
+                ))}
+              </div>
+            </div>
+            <AccountGate leadId={lead.id} token={lead.token} />
+          </div>
+        </div>
+      </main>
+    );
+  }
   const purchased = lead.purchases.some((purchase) => purchase.status === "SUCCEEDED");
   const companies = lead.companies.map((link) => link.company);
   const proPack = buildProPack(answers);
@@ -39,7 +82,7 @@ export default async function ResultsPage({ params }: { params: { token: string 
       ? "60 days"
       : "90+ days";
   return (
-    <main className="section-shell pb-20 pt-12">
+    <main className="cmd-shell pb-20 pt-12">
       <ResultsViewLogger leadId={lead.id} />
       <Link href="/job-search-system" className="text-sm text-slate-400">
         Back to landing
@@ -312,7 +355,15 @@ export default async function ResultsPage({ params }: { params: { token: string 
                   </div>
                   <div>
                     <p className="font-semibold text-slate-100">ATS keyword map</p>
-                    <p className="text-xs text-slate-400">Missing keywords to add:</p>
+                    <div className="mt-2 grid gap-2 text-xs text-slate-300">
+                      {proPack.keywordMap.map((item) => (
+                        <div key={item.keyword} className="flex items-center justify-between rounded-full bg-slate-800 px-3 py-1">
+                          <span>{item.keyword}</span>
+                          <span className="text-slate-400">{item.priority}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="mt-3 text-xs text-slate-400">Missing keywords to add:</p>
                     <ul className="mt-2 flex flex-wrap gap-2">
                       {proPack.missingKeywords.map((keyword) => (
                         <li key={keyword} className="rounded-full bg-slate-800 px-3 py-1 text-xs">
@@ -353,7 +404,9 @@ export default async function ResultsPage({ params }: { params: { token: string 
             </Card>
           )}
 
-          {(process.env.NEXT_PUBLIC_ENABLE_RAPID_REVIEW === "true" || process.env.NEXT_PUBLIC_ENABLE_COACHING_APPLY === "true") && (
+          {proEligible &&
+            (process.env.NEXT_PUBLIC_ENABLE_RAPID_REVIEW === "true" ||
+              process.env.NEXT_PUBLIC_ENABLE_COACHING_APPLY === "true") && (
             <Card>
               <CardContent className="p-6">
                 <p className="tag mb-4">Next step</p>
@@ -369,7 +422,7 @@ export default async function ResultsPage({ params }: { params: { token: string 
                       Rapid Review ($99)
                     </Link>
                   )}
-                  {process.env.NEXT_PUBLIC_ENABLE_COACHING_APPLY === "true" && proEligible && (
+                  {process.env.NEXT_PUBLIC_ENABLE_COACHING_APPLY === "true" && (
                     <Link
                       href="/job-search-system/coaching-apply"
                       className="rounded-full bg-emerald-400 px-4 py-2 text-xs font-semibold text-slate-900"

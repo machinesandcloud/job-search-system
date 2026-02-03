@@ -2,24 +2,22 @@
 
 :root {
   color-scheme: light;
-  --lp-ink: #0b1220;
-  --lp-ink-soft: #0e1828;
-  --lp-card: rgba(11, 18, 32, 0.82);
-  --lp-border: rgba(148, 163, 184, 0.18);
-  --lp-accent: #f5b04b;
-  --lp-accent-strong: #f59e0b;
-  --lp-teal: #2dd4bf;
-  --lp-sky: #38bdf8;
-  --lp-amber: #fbbf24;
-  --lp-rose: #fb7185;
-  --lp-graphite: #0a0f1a;
-  --lp-slate: #111827;
-  --lp-white: #f8fafc;
+  --cmd-ink: #070b12;
+  --cmd-ink-deep: #05070d;
+  --cmd-surface: rgba(9, 14, 22, 0.78);
+  --cmd-surface-strong: rgba(9, 14, 22, 0.92);
+  --cmd-border: rgba(148, 163, 184, 0.18);
+  --cmd-soft: rgba(226, 232, 240, 0.6);
+  --cmd-white: #f8fafc;
+  --cmd-amber: #fbbf24;
+  --cmd-cyan: #38bdf8;
+  --cmd-mint: #2dd4bf;
+  --cmd-rose: #fb7185;
 }
 
 body {
   font-family: var(--font-sans), system-ui, sans-serif;
-  background: #0b1423;
+  background: #060a12;
   color: #e2e8f0;
 }
 
@@ -95,11 +93,141 @@ body {
 
 .lp-bg {
   background:
-    radial-gradient(circle at 18% 18%, rgba(45, 212, 191, 0.12), transparent 45%),
-    radial-gradient(circle at 78% 12%, rgba(251, 191, 36, 0.2), transparent 46%),
-    radial-gradient(circle at 70% 85%, rgba(56, 189, 248, 0.12), transparent 52%),
-    radial-gradient(circle at 12% 80%, rgba(251, 113, 133, 0.08), transparent 50%),
-    linear-gradient(135deg, rgba(7, 10, 18, 0.95), rgba(12, 18, 32, 0.96));
+    radial-gradient(circle at 18% 16%, rgba(45, 212, 191, 0.12), transparent 45%),
+    radial-gradient(circle at 80% 12%, rgba(251, 191, 36, 0.18), transparent 46%),
+    radial-gradient(circle at 72% 85%, rgba(56, 189, 248, 0.1), transparent 52%),
+    radial-gradient(circle at 8% 80%, rgba(251, 113, 133, 0.08), transparent 50%),
+    linear-gradient(135deg, rgba(5, 7, 13, 0.96), rgba(9, 14, 24, 0.96));
+}
+
+.cmd-shell {
+  @apply mx-auto w-full max-w-6xl px-6;
+}
+
+.cmd-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  background: rgba(251, 191, 36, 0.12);
+  color: #fde6c2;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.cmd-title {
+  letter-spacing: -0.02em;
+}
+
+.cmd-gradient-text {
+  background: linear-gradient(120deg, #fbbf24, #38bdf8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.cmd-panel {
+  background: var(--cmd-surface);
+  border: 1px solid var(--cmd-border);
+  box-shadow: 0 30px 80px rgba(2, 6, 23, 0.45);
+  backdrop-filter: blur(20px);
+}
+
+.cmd-panel-strong {
+  background: var(--cmd-surface-strong);
+}
+
+.cmd-panel-strong {
+  background: var(--cmd-surface-strong);
+}
+
+.cmd-glow {
+  box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.2), 0 28px 60px rgba(251, 191, 36, 0.18);
+}
+
+.cmd-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(15, 23, 42, 0.55);
+  padding: 6px 12px;
+  color: rgba(226, 232, 240, 0.9);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.cmd-cta {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.98), rgba(245, 158, 11, 0.98));
+  box-shadow: 0 20px 50px rgba(251, 191, 36, 0.28);
+}
+
+.cmd-hero-orb {
+  position: absolute;
+  width: 340px;
+  height: 340px;
+  border-radius: 999px;
+  filter: blur(6px);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.cmd-hero-orb-left {
+  top: 20px;
+  left: -80px;
+  background: radial-gradient(circle, rgba(45, 212, 191, 0.35), transparent 65%);
+}
+
+.cmd-hero-orb-right {
+  top: 130px;
+  right: -90px;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.35), transparent 65%);
+}
+
+.cmd-divider {
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(90deg, rgba(148, 163, 184, 0.12), rgba(148, 163, 184, 0.4), rgba(148, 163, 184, 0.12));
+}
+
+.cmd-micro {
+  color: rgba(226, 232, 240, 0.6);
+  font-size: 0.85rem;
+}
+
+.cmd-terminal {
+  border-radius: 20px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: linear-gradient(135deg, rgba(7, 12, 22, 0.95), rgba(13, 22, 40, 0.85));
+  box-shadow: 0 24px 60px rgba(2, 6, 23, 0.45);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.cmd-terminal-line {
+  color: rgba(226, 232, 240, 0.78);
+  font-size: 0.78rem;
+}
+
+.cmd-terminal-key {
+  color: #38bdf8;
+}
+
+.cmd-terminal-accent {
+  color: #fbbf24;
+}
+
+.cmd-hover {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.cmd-hover:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 24px 60px rgba(2, 6, 23, 0.4);
 }
 
 .lp-surface {

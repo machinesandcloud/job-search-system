@@ -13,26 +13,18 @@ export type ScoreResult = {
   route: "DIY" | "GUIDED" | "FAST_TRACK";
 };
 
-const compScoreMap: Record<LeadAnswers["compTarget"], number> = {
-  "<100k": 0,
-  "100k-140k": 10,
-  "140k-180k": 15,
-  "180k-220k": 20,
-  "220k+": 25,
-};
-
 const timelineScoreMap: Record<LeadAnswers["timeline"], number> = {
-  ASAP: 25,
-  "30": 22,
-  "60": 18,
-  "90+": 10,
+  ASAP: 12,
+  "30": 10,
+  "60": 7,
+  "90+": 4,
 };
 
 const hoursScoreMap: Record<LeadAnswers["hoursPerWeek"], number> = {
-  "3": 6,
-  "5": 12,
-  "8": 18,
-  "12+": 25,
+  "3": 4,
+  "5": 7,
+  "8": 10,
+  "12+": 12,
 };
 
 export function computeSubscores(answers: LeadAnswers): Subscores {
@@ -41,17 +33,13 @@ export function computeSubscores(answers: LeadAnswers): Subscores {
     answers.level ? 5 : 0,
     answers.compTarget ? 5 : 0,
     answers.timeline ? 5 : 0,
-    answers.locationType ? 3 : 0,
-    answers.companyStage ? 3 : 0,
-    answers.targetIndustry ? 2 : 0,
-    answers.leadershipScope ? 2 : 0,
+    answers.locationType ? 5 : 0,
   ].reduce((sum, val) => sum + val, 0);
 
   const assetsPoints = [
     answers.assets.resume === "Strong" ? 10 : answers.assets.resume === "Draft" ? 6 : 2,
     answers.assets.linkedin === "Strong" ? 8 : answers.assets.linkedin === "Draft" ? 5 : 2,
     answers.assets.interview === "Confident" ? 7 : answers.assets.interview === "Some practice" ? 4 : 2,
-    answers.assets.portfolio === "Strong" ? 6 : answers.assets.portfolio === "Some" ? 4 : 1,
   ].reduce((sum, val) => sum + val, 0);
 
   const networkPoints = [
@@ -60,9 +48,9 @@ export function computeSubscores(answers: LeadAnswers): Subscores {
   ].reduce((sum, val) => sum + val, 0);
 
   const executionPoints = [
-    hoursScoreMap[answers.hoursPerWeek] * 0.4,
-    timelineScoreMap[answers.timeline] * 0.4,
-    answers.pipeline === "Active" ? 5 : answers.pipeline === "Some" ? 3 : 1,
+    hoursScoreMap[answers.hoursPerWeek],
+    timelineScoreMap[answers.timeline],
+    answers.pipeline === "Active" ? 6 : answers.pipeline === "Some" ? 4 : 2,
   ].reduce((sum, val) => sum + val, 0);
 
   return {

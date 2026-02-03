@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { RoleSelect } from "@/components/role-select";
 import { CompanySelect, type CompanyOption } from "@/components/company-select";
 import { ScoreGauge } from "@/components/score-gauge";
+import { AccountGate } from "@/components/account-gate";
 import type { LeadAnswers } from "@/lib/validation";
 import { defaultAnswers } from "@/lib/defaults";
 
@@ -35,10 +36,6 @@ export default function JobSearchWizard() {
   const [leadId, setLeadId] = useState<string | null>(null);
   const [teaser, setTeaser] = useState<any>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [email, setEmail] = useState("");
-  const [emailSent, setEmailSent] = useState(false);
-  const [emailStatus, setEmailStatus] = useState<{ skipped?: boolean; reason?: string } | null>(null);
-  const [sendingEmail, setSendingEmail] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resumeStatus, setResumeStatus] = useState<"idle" | "uploading" | "uploaded" | "error">("idle");
@@ -128,26 +125,6 @@ export default function JobSearchWizard() {
     }
   };
 
-  const submitEmail = async () => {
-    if (!leadId || !email) return;
-    setSendingEmail(true);
-    const res = await fetch("/api/leads/email", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ leadId, email, website: "" }),
-    });
-    const data = await res.json();
-    if (res.ok) {
-      setEmailSent(true);
-      setEmailStatus(data.emailStatus || null);
-      if (data.emailStatus?.skipped) {
-        setError(data.emailStatus.reason || "Email delivery not configured.");
-      }
-    } else {
-      setError(data.error || "Unable to send email.");
-    }
-    setSendingEmail(false);
-  };
 
   const uploadResume = async (file: File | null) => {
     if (!file || !leadId) return;
@@ -181,7 +158,7 @@ export default function JobSearchWizard() {
 
   if (teaser && token) {
     return (
-      <main className="section-shell pb-16 pt-14">
+      <main className="cmd-shell pb-16 pt-14">
         <Link href="/job-search-system" className="text-sm text-slate-400">
           Back to landing
         </Link>
@@ -192,7 +169,7 @@ export default function JobSearchWizard() {
               Based on your timeline ({timelineLabel}) and bandwidth ({answers.hoursPerWeek} hrs/week), here is the
               highest-signal plan I would run with you. This is the short version.
             </p>
-            <div className="mt-6 rounded-3xl border border-slate-700 bg-slate-900/70 p-6">
+            <div className="cmd-panel mt-6 rounded-3xl p-6">
               <div className="flex flex-wrap items-center gap-4">
                 <ScoreGauge score={teaser.score} />
                 <div>
@@ -252,31 +229,15 @@ export default function JobSearchWizard() {
               )}
             </div>
           </div>
-          <div className="rounded-3xl border border-slate-700 bg-slate-900/70 p-6 shadow-sm">
-            <p className="tag mb-3">Get your full plan + scripts</p>
-            <h3 className="text-xl font-semibold text-slate-100">Email me my plan + templates</h3>
-            <p className="mt-2 text-sm text-slate-300">No account. No spam. Instant delivery.</p>
-            <Label className="mt-4 text-slate-200">Email address</Label>
-            <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@domain.com" />
-            <Button className="mt-4 w-full" onClick={submitEmail} disabled={sendingEmail}>
-              {sendingEmail ? "Sending..." : "Email me my plan + templates"}
-            </Button>
-            <p className="mt-2 text-xs text-slate-400">Delivered instantly. Check Promotions if you do not see it.</p>
-            {emailSent && (
-              <div className="mt-4 rounded-2xl bg-emerald-500/10 p-4 text-sm text-emerald-200">
-                {emailStatus?.skipped
-                  ? "Email service not configured - use the direct link below."
-                  : "Email sent. You can also view it now."}
-                <div className="mt-2">
-                  <Link
-                    href={`/job-search-system/results/${token}`}
-                    className="rounded-full bg-emerald-400 px-4 py-2 text-xs font-semibold text-slate-900"
-                  >
-                    View full report
-                  </Link>
-                </div>
-              </div>
-            )}
+          <div className="cmd-panel rounded-3xl p-6">
+            <p className="tag mb-3">Unlock the full plan</p>
+            <h3 className="text-xl font-semibold text-slate-100">Create your private account</h3>
+            <p className="mt-2 text-sm text-slate-300">
+              Your preview is ready. Create an account to unlock the full plan, scripts, and templates.
+            </p>
+            <div className="mt-4">
+              {leadId ? <AccountGate leadId={leadId} token={token} /> : <p className="text-sm text-slate-400">Loading...</p>}
+            </div>
             {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
             <div className="mt-6 grid gap-3 rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm text-slate-300">
               <div>
@@ -284,11 +245,11 @@ export default function JobSearchWizard() {
                 <ul className="mt-2 space-y-1">
                   <li>- Designed for high-signal outreach.</li>
                   <li>- Mapped to your hours/week and timeline.</li>
-                  <li>- Privacy-first. We never sell your data.</li>
+                  <li>- Private by design. Your data stays controlled.</li>
                 </ul>
               </div>
               <div>
-                <p className="text-xs uppercase tracking-wide text-slate-400">What you get</p>
+                <p className="text-xs uppercase tracking-wide text-slate-400">What you unlock</p>
                 <ul className="mt-2 space-y-1">
                   <li>- Full 30-day plan + scripts.</li>
                   <li>- Company shortlist + ATS map (Pro).</li>
@@ -303,7 +264,7 @@ export default function JobSearchWizard() {
   }
 
   return (
-    <main className="section-shell pb-16 pt-14">
+    <main className="cmd-shell pb-16 pt-14">
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-semibold text-slate-100">Build your Job Search System</h1>
@@ -319,7 +280,7 @@ export default function JobSearchWizard() {
       </p>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="rounded-3xl border border-slate-700 bg-slate-900/70 p-6 shadow-sm">
+        <div className="cmd-panel rounded-3xl p-6">
           {step === 0 && (
             <div className="space-y-4">
               <h2 className="text-xl font-semibold">Target role(s)</h2>
@@ -746,7 +707,7 @@ export default function JobSearchWizard() {
         )}
         </div>
         <aside className="space-y-4">
-          <div className="rounded-3xl border border-slate-700 bg-slate-900/70 p-6">
+          <div className="cmd-panel rounded-3xl p-6">
             <p className="tag mb-3">Coach pulse</p>
             {pulseLoading && <p className="text-sm text-slate-400">Reading your inputs...</p>}
             {!pulseLoading && coachPulse && (
@@ -763,7 +724,7 @@ export default function JobSearchWizard() {
               </p>
             )}
           </div>
-          <div className="rounded-3xl border border-slate-700 bg-slate-900/70 p-6 text-sm text-slate-300">
+          <div className="cmd-panel rounded-3xl p-6 text-sm text-slate-300">
             <p className="text-xs uppercase tracking-wide text-slate-400">Your snapshot</p>
             <ul className="mt-2 space-y-1">
               <li>- Role: {answers.roles?.[0] || "-"}</li>
@@ -773,7 +734,7 @@ export default function JobSearchWizard() {
               <li>- Industry: {answers.targetIndustry}</li>
             </ul>
           </div>
-          <div className="rounded-3xl border border-slate-700 bg-slate-900/70 p-6 text-sm text-slate-300">
+          <div className="cmd-panel rounded-3xl p-6 text-sm text-slate-300">
             <p className="text-xs uppercase tracking-wide text-slate-400">What I'm building for you</p>
             <ul className="mt-2 space-y-1">
               <li>- Role positioning + scope statement.</li>
@@ -782,7 +743,7 @@ export default function JobSearchWizard() {
               <li>- Company shortlist and execution checklist.</li>
             </ul>
           </div>
-          <div className="rounded-3xl border border-slate-700 bg-slate-900/70 p-6 text-sm text-slate-300">
+          <div className="cmd-panel rounded-3xl p-6 text-sm text-slate-300">
             <p className="text-xs uppercase tracking-wide text-slate-400">How I translate your inputs</p>
             <p className="mt-2">
               I use your level, urgency, and constraints to set the cadence and decide where to go deep first - no filler.
