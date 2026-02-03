@@ -20,18 +20,42 @@ const logoCompanies = [
 
 export default function JobSearchLanding() {
   return (
-    <main className="lp-bg">
-      <section className="section-shell pb-16 pt-16">
-        <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr]">
+    <main className="lp-bg lp-grid">
+      <section className="section-shell relative pb-20 pt-14">
+        <div className="lp-hero-orb lp-hero-orb-left" />
+        <div className="lp-hero-orb lp-hero-orb-right" />
+
+        <nav className="lp-nav relative z-10">
+          <div className="flex items-center gap-3">
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.2em] text-slate-200">
+              Askia Labs
+            </span>
+            <span className="text-xs text-slate-400">Private Command Center</span>
+          </div>
+          <div className="lp-nav-links">
+            <Link href="#proof" className="lp-nav-link">
+              Proof
+            </Link>
+            <Link href="#workflow" className="lp-nav-link">
+              Workflow
+            </Link>
+            <Link href="#capture" className="lp-nav-link">
+              Get plan
+            </Link>
+          </div>
+        </nav>
+
+        <div className="relative z-10 mt-12 grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="space-y-6">
             <span className="lp-kicker lp-fade-in">Private Command Center</span>
             <div className="space-y-4">
-              <h1 className="lp-title lp-fade-in-delay text-4xl font-semibold text-slate-100 md:text-5xl">
-                A discreet, high-performance job search system built for serious operators.
+              <h1 className="lp-title lp-fade-in-delay text-4xl font-semibold text-slate-100 md:text-6xl">
+                The job search system for high-earning tech professionals who move with{" "}
+                <span className="lp-gradient-text">intent</span>.
               </h1>
               <p className="lp-fade-in-delay-2 max-w-xl text-lg text-slate-300">
-                We translate your role, compensation targets, and time constraints into a precision plan with
-                coach-grade scripts, proof assets, and a weekly execution cadence. Clear, controlled, and built to win.
+                A discreet, high-performance environment that turns your role, compensation targets, and time
+                constraints into a precision plan with scripts, proof assets, and a weekly execution cadence.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -49,21 +73,20 @@ export default function JobSearchLanding() {
               </Link>
             </div>
             <div className="flex flex-wrap items-center gap-4 text-sm text-slate-400">
-              <span className="rounded-full border border-slate-700 px-3 py-1">No account required</span>
-              <span className="rounded-full border border-slate-700 px-3 py-1">Built for high-earning tech talent</span>
-              <span className="rounded-full border border-slate-700 px-3 py-1">Private by design</span>
+              <span className="lp-pill">No account required</span>
+              <span className="lp-pill">Private by design</span>
+              <span className="lp-pill">Built for 30-90 day searches</span>
             </div>
             <div className="flex items-center gap-3 text-xs uppercase tracking-[0.28em] text-slate-400">
               <span>Scroll for clarity</span>
               <span className="lp-arrow">↓</span>
             </div>
           </div>
+
           <div className="lp-hero-panel lp-glass lp-glow rounded-3xl p-6">
             <div className="flex items-center justify-between">
               <p className="text-xs uppercase tracking-wide text-slate-400">Command Center Preview</p>
-              <span className="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-300">
-                Confidential
-              </span>
+              <span className="lp-pill text-xs">Confidential</span>
             </div>
             <div className="mt-6 grid gap-4">
               <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4">
@@ -91,20 +114,19 @@ export default function JobSearchLanding() {
                   </ul>
                 </div>
               </div>
-              <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4">
-                <p className="text-xs uppercase tracking-wide text-slate-400">Signals dashboard</p>
-                <div className="mt-3 grid gap-3 sm:grid-cols-3">
-                  {[
-                    ["Readiness", "82"],
-                    ["Cadence", "5h/wk"],
-                    ["Target fit", "Strong"],
-                  ].map(([label, value]) => (
-                    <div key={label} className="rounded-2xl border border-slate-700 bg-slate-950/70 px-3 py-2">
-                      <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
-                      <p className="text-sm font-semibold text-slate-100">{value}</p>
-                    </div>
-                  ))}
-                </div>
+            </div>
+            <div className="mt-5 rounded-2xl border border-slate-700 bg-slate-950/60 p-4">
+              <p className="text-xs uppercase tracking-wide text-slate-400">Command script</p>
+              <div className="mt-2 space-y-2">
+                <p className="lp-terminal-line">
+                  <span className="lp-terminal-key">&gt;</span> calibrate(role="Staff Platform Engineer", timeline="30 days", hours=5)
+                </p>
+                <p className="lp-terminal-line">
+                  <span className="lp-terminal-key">&gt;</span> output: weekly plan + scripts + proof assets
+                </p>
+                <p className="lp-terminal-line">
+                  <span className="lp-terminal-accent">status:</span> ready
+                </p>
               </div>
             </div>
           </div>
@@ -114,26 +136,71 @@ export default function JobSearchLanding() {
       <section className="section-shell pb-10">
         <Reveal>
           <div className="rounded-3xl border border-slate-800 bg-slate-900/60 px-6 py-5">
-            <p className="mb-3 text-xs uppercase tracking-wide text-slate-400">Trusted outcomes</p>
-            <div className="flex flex-wrap items-center gap-3">
-              {logoCompanies.map(([name, domain]) => (
-                <div
-                  key={name}
-                  className="flex items-center gap-2 rounded-full border border-slate-700 bg-slate-950/60 px-3 py-2"
-                >
-                  {logoKey ? (
-                    <img
-                      src={`https://img.logo.dev/${domain}?token=${logoKey}`}
-                      alt=""
-                      className="h-5 w-5"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <span className="h-5 w-5 rounded-full bg-slate-700" />
-                  )}
-                  <span className="text-xs font-semibold text-slate-200">{name}</span>
-                </div>
-              ))}
+            <p className="mb-3 text-xs uppercase tracking-wide text-slate-400">Used by operators from</p>
+            <div className="overflow-hidden">
+              <div className="logo-marquee">
+                {[...logoCompanies, ...logoCompanies].map(([name, domain], index) => (
+                  <div
+                    key={`${name}-${index}`}
+                    className="flex items-center gap-2 rounded-full border border-slate-700 bg-slate-950/60 px-4 py-2"
+                  >
+                    {logoKey ? (
+                      <img
+                        src={`https://img.logo.dev/${domain}?token=${logoKey}`}
+                        alt=""
+                        className="h-5 w-5"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <span className="h-5 w-5 rounded-full bg-slate-700" />
+                    )}
+                    <span className="text-xs font-semibold text-slate-200">{name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Reveal>
+      </section>
+
+      <section className="section-shell pb-6">
+        <Reveal>
+          <div className="grid gap-4 md:grid-cols-3">
+            {[
+              ["10 min", "Assessment time"],
+              ["5 hrs/wk", "Cadence baseline"],
+              ["30-90 days", "Typical timeline"],
+            ].map(([value, label]) => (
+              <div key={label} className="lp-stat lp-card-hover">
+                <p className="text-3xl font-semibold text-slate-100">{value}</p>
+                <p className="mt-2 text-xs uppercase tracking-wide text-slate-400">{label}</p>
+              </div>
+            ))}
+          </div>
+        </Reveal>
+      </section>
+
+      <section className="section-shell py-12">
+        <Reveal>
+          <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+            <div className="lp-surface rounded-3xl p-6">
+              <p className="lp-eyebrow text-xs text-slate-400">Muscle Memory</p>
+              <h2 className="mt-3 text-2xl font-semibold text-slate-100">
+                For career leverage that compounds every week.
+              </h2>
+            </div>
+            <div className="lp-glass rounded-3xl p-6 text-sm text-slate-300">
+              <p>
+                In a market of high-volume applications, the real advantage is focused repetition. We build the
+                habits—positioning, outreach, proof—so your job search becomes a system that gets stronger with every
+                cycle.
+              </p>
+              <Link
+                href="#workflow"
+                className="mt-6 inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-slate-200"
+              >
+                See the workflow <span aria-hidden=\"true\">→</span>
+              </Link>
             </div>
           </div>
         </Reveal>
@@ -198,6 +265,49 @@ export default function JobSearchLanding() {
                     No public profiles, no noise. You control what you share and when.
                   </p>
                 </div>
+              </div>
+            </div>
+          </div>
+        </Reveal>
+      </section>
+
+      <section id="workflow" className="section-shell py-12">
+        <Reveal>
+          <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+            <div className="lp-glass rounded-3xl p-6">
+              <p className="text-xs uppercase tracking-wide text-slate-400">Workflow</p>
+              <h3 className="mt-3 text-2xl font-semibold text-slate-100">From intent to execution in three steps.</h3>
+              <p className="mt-2 text-sm text-slate-300">
+                The command center stays minimal: assess, calibrate, execute. No distractions, only a tight cadence.
+              </p>
+              <div className="mt-5 grid gap-3">
+                {[
+                  ["1. Assess", "Capture role, timeline, constraints, and current signal."],
+                  ["2. Calibrate", "Generate plan, scripts, and proof assets tuned to your week."],
+                  ["3. Execute", "Follow the cadence with a clear checklist and follow-ups."],
+                ].map(([title, body]) => (
+                  <div key={title} className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4">
+                    <p className="text-sm font-semibold text-slate-100">{title}</p>
+                    <p className="mt-2 text-xs text-slate-300">{body}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="lp-terminal p-6">
+              <p className="text-xs uppercase tracking-wide text-slate-400">Command log</p>
+              <div className="mt-4 space-y-3">
+                <p className="lp-terminal-line">
+                  <span className="lp-terminal-key">$</span> capture --role "Staff Engineer" --timeline 30d
+                </p>
+                <p className="lp-terminal-line">
+                  <span className="lp-terminal-key">$</span> calibrate --hours 5 --constraints "remote only"
+                </p>
+                <p className="lp-terminal-line">
+                  <span className="lp-terminal-key">$</span> generate --plan --scripts --proof
+                </p>
+                <p className="lp-terminal-line">
+                  <span className="lp-terminal-accent">✓</span> plan ready · 4 week cadence · 3 scripts
+                </p>
               </div>
             </div>
           </div>
@@ -280,7 +390,7 @@ export default function JobSearchLanding() {
         </Reveal>
       </section>
 
-      <section className="section-shell py-12">
+      <section id="capture" className="section-shell py-12">
         <Reveal>
           <div className="rounded-3xl border border-slate-700 bg-slate-900/70 p-8">
             <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
