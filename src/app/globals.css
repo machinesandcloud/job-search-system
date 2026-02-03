@@ -171,12 +171,18 @@ body {
 }
 
 .cmd-preview {
-  transform: scale(1.2);
+  transform: scale(1.08);
   max-width: 520px;
 }
 
 .cmd-score-pulse {
   animation: scorePulse 2.8s ease-in-out infinite;
+}
+
+.cmd-score-text {
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  white-space: nowrap;
 }
 
 .cmd-pill {
@@ -196,6 +202,10 @@ body {
   background: linear-gradient(135deg, rgba(34, 211, 238, 0.98), rgba(59, 130, 246, 0.98));
   box-shadow: 0 20px 50px rgba(34, 211, 238, 0.32);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 999px;
+  border: 1px solid rgba(125, 211, 252, 0.4);
+  position: relative;
+  overflow: hidden;
 }
 
 .cmd-cta:hover {
@@ -217,15 +227,47 @@ body {
 }
 
 .cmd-ghost {
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  color: rgba(226, 232, 240, 0.9);
-  background: rgba(15, 23, 42, 0.3);
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  color: rgba(226, 232, 240, 0.95);
+  background: rgba(15, 23, 42, 0.35);
+  box-shadow: 0 16px 40px rgba(2, 6, 23, 0.35);
+  backdrop-filter: blur(12px);
   transition: transform 0.3s ease, border-color 0.3s ease;
 }
 
 .cmd-ghost:hover {
   transform: scale(1.03);
   border-color: rgba(56, 189, 248, 0.6);
+}
+
+.cmd-logo-carousel {
+  overflow: hidden;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(6, 11, 20, 0.6);
+  mask-image: linear-gradient(90deg, transparent 0%, black 8%, black 92%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 8%, black 92%, transparent 100%);
+}
+
+.cmd-logo-track {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 14px;
+  animation: logoMarquee 24s linear infinite;
+  width: max-content;
+}
+
+.cmd-logo-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(15, 23, 42, 0.7);
+  white-space: nowrap;
 }
 
 .cmd-hero-orb {
@@ -887,5 +929,14 @@ body {
   }
   100% {
     transform: translateX(-40%);
+  }
+}
+
+@keyframes logoMarquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
   }
 }

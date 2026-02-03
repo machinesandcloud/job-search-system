@@ -39,6 +39,11 @@ const logoCompanies = [
   ["Netflix", "netflix.com"],
   ["Stripe", "stripe.com"],
   ["Shopify", "shopify.com"],
+  ["Datadog", "datadoghq.com"],
+  ["Snowflake", "snowflake.com"],
+  ["Airbnb", "airbnb.com"],
+  ["Uber", "uber.com"],
+  ["LinkedIn", "linkedin.com"],
 ];
 
 const tickerItems = [
@@ -93,22 +98,22 @@ export default function JobSearchLanding() {
         </nav>
 
         <div className="relative z-10 mt-16 grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
-          <div className="space-y-6">
+          <div className="space-y-8">
             <span className="cmd-kicker">AI career command center</span>
-            <div className="space-y-4">
-              <h1 className="cmd-title cmd-hero-title text-[clamp(2.4rem,6vw,4rem)] font-semibold text-slate-100 md:text-[clamp(3.2rem,5vw,4.2rem)]">
+            <div className="space-y-6">
+              <h1 className="cmd-title cmd-hero-title max-w-2xl text-[clamp(2.4rem,6vw,4rem)] font-semibold text-slate-100 md:text-[clamp(3.2rem,5vw,4.2rem)]">
                 Senior engineers don’t need more skills. They need a career{" "}
                 <span className="cmd-gradient-strong">operating system</span>.
               </h1>
-              <p className="max-w-xl text-lg text-slate-300">
+              <p className="max-w-[36rem] text-lg text-slate-300">
                 I work with experienced engineers, managers, and operators to break through plateaus, land stronger
                 roles, and increase compensation 30–60% using a deliberate, repeatable system — not mass applications.
               </p>
-              <p className="text-sm text-slate-400 cmd-glow-soft">
+              <p className="max-w-lg text-sm text-slate-400 cmd-glow-soft">
                 300+ placements (2023–2025) • 10+ years leading DevOps &amp; platform teams
               </p>
             </div>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-4 pt-2">
               <Link
                 href="/job-search-system/start"
                 data-cta="hero"
@@ -126,7 +131,7 @@ export default function JobSearchLanding() {
                 See the assessment
               </Link>
             </div>
-            <div className="flex flex-wrap items-center gap-4 text-sm text-slate-400">
+            <div className="flex flex-wrap items-center gap-4 pt-2 text-sm text-slate-400">
               <span className="cmd-pill">8-question assessment</span>
               <span className="cmd-pill">10 minutes</span>
               <span className="cmd-pill">No credit card</span>
@@ -138,8 +143,9 @@ export default function JobSearchLanding() {
             <div className="mt-4 grid gap-3">
               <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4">
                 <p className="text-xs uppercase tracking-wide text-slate-400">Career readiness score</p>
-                <p className="mt-2 text-3xl font-semibold text-slate-100 cmd-score-pulse">
-                  <CountUp value={78} duration={1500} /> <span className="text-slate-400">/ 100</span>
+                <p className="mt-2 flex items-baseline gap-2 text-xl font-semibold text-slate-100 cmd-score-pulse cmd-score-text sm:text-2xl">
+                  <CountUp value={78} duration={1500} />
+                  <span className="text-slate-400">/ 100</span>
                 </p>
               </div>
               <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm text-slate-300">
@@ -228,22 +234,24 @@ export default function JobSearchLanding() {
           <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
             <div className="cmd-panel rounded-3xl p-6">
               <p className="cmd-eyebrow">Clients placed at:</p>
-              <div className="mt-4 flex flex-wrap gap-3">
-                {logoCompanies.map(([name, domain]) => (
-                  <div key={name} className="flex items-center gap-2 rounded-full border border-slate-700 bg-slate-950/60 px-3 py-2">
-                    {logoKey ? (
+              <div className="cmd-logo-carousel mt-4">
+                <div className="cmd-logo-track">
+                  {logoCompanies.concat(logoCompanies).map(([name, domain], index) => (
+                    <div key={`${name}-${index}`} className="cmd-logo-pill">
                       <img
-                        src={`https://img.logo.dev/${domain}?token=${logoKey}`}
+                        src={
+                          logoKey
+                            ? `https://img.logo.dev/${domain}?token=${logoKey}`
+                            : `https://logo.clearbit.com/${domain}`
+                        }
                         alt={`${name} logo`}
                         className="h-5 w-5"
                         loading="lazy"
                       />
-                    ) : (
-                      <span className="h-5 w-5 rounded-full bg-slate-700" />
-                    )}
-                    <span className="text-xs font-semibold text-slate-200">{name}</span>
-                  </div>
-                ))}
+                      <span className="text-xs font-semibold text-slate-200">{name}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
               <div className="mt-6 grid gap-4 grid-cols-2 sm:grid-cols-3">
                 <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-center">
@@ -266,7 +274,39 @@ export default function JobSearchLanding() {
                 {["60 days", "45 days", "30 days"].map((timeline, idx) => (
                   <div key={timeline} className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4">
                     <div className="flex items-center justify-between">
-                      <p className="font-semibold text-slate-100">
+                      <p className="flex items-center gap-2 font-semibold text-slate-100">
+                        {idx === 0 && (
+                          <img
+                            src={
+                              logoKey
+                                ? `https://img.logo.dev/datadoghq.com?token=${logoKey}`
+                                : "https://logo.clearbit.com/datadoghq.com"
+                            }
+                            alt="Datadog logo"
+                            className="h-5 w-5"
+                            loading="lazy"
+                          />
+                        )}
+                        {idx === 1 && (
+                          <img
+                            src={
+                              logoKey ? `https://img.logo.dev/stripe.com?token=${logoKey}` : "https://logo.clearbit.com/stripe.com"
+                            }
+                            alt="Stripe logo"
+                            className="h-5 w-5"
+                            loading="lazy"
+                          />
+                        )}
+                        {idx === 2 && (
+                          <img
+                            src={
+                              logoKey ? `https://img.logo.dev/meta.com?token=${logoKey}` : "https://logo.clearbit.com/meta.com"
+                            }
+                            alt="Meta logo"
+                            className="h-5 w-5"
+                            loading="lazy"
+                          />
+                        )}
                         {idx === 0
                           ? "Mid-level → Senior SRE"
                           : idx === 1
@@ -275,13 +315,81 @@ export default function JobSearchLanding() {
                       </p>
                       <span className="cmd-pill cmd-pill-cyan text-xs">{timeline}</span>
                     </div>
-                    <p className="mt-2">
-                      {idx === 0
-                        ? "Kohl’s → Datadog • $145k → $220k • 60 days"
-                        : idx === 1
-                        ? "iSeatz → Stripe • 3 loops • 45 days"
-                        : "Offer comp +45% • 30 days"}
-                    </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-300">
+                      {idx === 0 && (
+                        <>
+                          <img
+                            src={
+                              logoKey ? `https://img.logo.dev/kohls.com?token=${logoKey}` : "https://logo.clearbit.com/kohls.com"
+                            }
+                            alt="Kohl's logo"
+                            className="h-4 w-4"
+                            loading="lazy"
+                          />
+                          <span>Kohl’s</span>
+                          <span>→</span>
+                          <img
+                            src={
+                              logoKey
+                                ? `https://img.logo.dev/datadoghq.com?token=${logoKey}`
+                                : "https://logo.clearbit.com/datadoghq.com"
+                            }
+                            alt="Datadog logo"
+                            className="h-4 w-4"
+                            loading="lazy"
+                          />
+                          <span>Datadog</span>
+                          <span>•</span>
+                          <span>$145k → $220k</span>
+                          <span>•</span>
+                          <span>60 days</span>
+                        </>
+                      )}
+                      {idx === 1 && (
+                        <>
+                          <img
+                            src={
+                              logoKey ? `https://img.logo.dev/iseatz.com?token=${logoKey}` : "https://logo.clearbit.com/iseatz.com"
+                            }
+                            alt="iSeatz logo"
+                            className="h-4 w-4"
+                            loading="lazy"
+                          />
+                          <span>iSeatz</span>
+                          <span>→</span>
+                          <img
+                            src={
+                              logoKey ? `https://img.logo.dev/stripe.com?token=${logoKey}` : "https://logo.clearbit.com/stripe.com"
+                            }
+                            alt="Stripe logo"
+                            className="h-4 w-4"
+                            loading="lazy"
+                          />
+                          <span>Stripe</span>
+                          <span>•</span>
+                          <span>3 loops</span>
+                          <span>•</span>
+                          <span>45 days</span>
+                        </>
+                      )}
+                      {idx === 2 && (
+                        <>
+                          <img
+                            src={logoKey ? `https://img.logo.dev/meta.com?token=${logoKey}` : "https://logo.clearbit.com/meta.com"}
+                            alt="Meta logo"
+                            className="h-4 w-4"
+                            loading="lazy"
+                          />
+                          <span>Meta</span>
+                          <span>→</span>
+                          <span>Director</span>
+                          <span>•</span>
+                          <span>Offer comp +45%</span>
+                          <span>•</span>
+                          <span>30 days</span>
+                        </>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
