@@ -6,7 +6,7 @@ import Link from "next/link";
 export function StickyCTA() {
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
-  const lastScrollY = useRef(0);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const onScroll = () => {
@@ -14,13 +14,16 @@ export function StickyCTA() {
       const scrolled = window.scrollY + window.innerHeight;
       const total = document.documentElement.scrollHeight || 1;
       const pct = scrolled / total;
-      lastScrollY.current = window.scrollY;
-      setVisible(pct >= 0.3);
+      setVisible(pct >= 0.2);
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
+    timerRef.current = setTimeout(() => {
+      if (!dismissed) setVisible(true);
+    }, 15000);
     return () => {
       window.removeEventListener("scroll", onScroll);
+      if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, [dismissed]);
 
@@ -32,7 +35,15 @@ export function StickyCTA() {
         <span className="cmd-sticky-icon" aria-hidden="true">
           ⚡
         </span>
-        <span className="cmd-sticky-text flex-1">See your exact career gaps in 10 minutes</span>
+        <span className="cmd-sticky-text cmd-sticky-text-desktop flex-1">
+          See your exact career gaps in 10 minutes
+        </span>
+        <span className="cmd-sticky-text cmd-sticky-text-tablet flex-1">
+          See your career gaps in 10 minutes
+        </span>
+        <span className="cmd-sticky-text cmd-sticky-text-mobile flex-1">
+          Get your score in 10 min
+        </span>
         <div className="ml-auto flex items-center gap-3">
           <Link
             href="/job-search-system/start"

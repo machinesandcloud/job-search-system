@@ -172,11 +172,12 @@ body {
 }
 
 .cmd-gradient-strong {
-  background: linear-gradient(120deg, #3b82f6 0%, #8b5cf6 100%);
+  background: linear-gradient(120deg, #3b82f6 0%, #a855f7 50%, #8b5cf6 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   text-shadow: 0 0 24px rgba(99, 102, 241, 0.35);
+  filter: saturate(1.4) brightness(1.1);
 }
 
 .cmd-panel {
@@ -352,14 +353,18 @@ body {
 
 .cmd-bad {
   border: 1px solid rgba(248, 113, 113, 0.35);
-  box-shadow: 0 0 40px rgba(248, 113, 113, 0.12);
-  filter: saturate(0.85);
+  border-left: 3px solid rgba(239, 68, 68, 0.6);
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.15);
+  background: rgba(15, 23, 42, 0.7);
+  filter: saturate(0.9);
 }
 
 .cmd-good {
   border: 1px solid rgba(56, 189, 248, 0.45);
-  box-shadow: 0 0 40px rgba(56, 189, 248, 0.18);
-  filter: saturate(1.15);
+  border-left: 3px solid rgba(6, 182, 212, 0.6);
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.15);
+  background: rgba(15, 23, 42, 0.7);
+  filter: saturate(1.1);
 }
 
 .cmd-arrow {
@@ -377,16 +382,17 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 40px;
-  width: 40px;
+  height: 48px;
+  width: 48px;
   border-radius: 999px;
-  font-size: 0.75rem;
+  font-size: 18px;
   font-weight: 700;
-  color: #0b0f1d;
-  background: linear-gradient(135deg, #38bdf8, #a855f7);
+  color: white;
+  background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
   position: absolute;
-  top: 18px;
-  left: 18px;
+  top: 24px;
+  left: 24px;
 }
 
 .cmd-system-card {
@@ -536,6 +542,15 @@ body {
   text-overflow: ellipsis;
 }
 
+.cmd-sticky-text-desktop {
+  display: block;
+}
+
+.cmd-sticky-text-tablet,
+.cmd-sticky-text-mobile {
+  display: none;
+}
+
 .cmd-sticky-close {
   display: inline-flex;
   align-items: center;
@@ -627,6 +642,23 @@ body {
   gap: 4px;
 }
 
+.cmd-stat-card {
+  min-height: 80px;
+}
+
+.cmd-arrow-curve {
+  width: 120px;
+  height: 40px;
+}
+
+.cmd-arrow-curve path {
+  stroke-dashoffset: 120;
+}
+
+.lp-reveal.is-visible .cmd-arrow-curve path {
+  animation: drawLine 1.2s ease forwards;
+}
+
 .cmd-carousel-dots {
   display: flex;
   justify-content: center;
@@ -673,20 +705,21 @@ body {
   font-style: italic;
   color: rgba(226, 232, 240, 0.92);
   position: relative;
-  padding: 18px 16px;
+  padding: 40px 80px;
 }
 
 .cmd-quote::before,
 .cmd-quote::after {
-  content: "“";
+  content: "\"";
   position: absolute;
-  font-size: 48px;
+  font-size: 120px;
   opacity: 0.2;
-  top: -10px;
+  line-height: 1;
 }
 
 .cmd-quote::before {
   left: 0;
+  top: 0;
   background: linear-gradient(135deg, #06b6d4, #8b5cf6);
   -webkit-background-clip: text;
   background-clip: text;
@@ -694,8 +727,8 @@ body {
 }
 
 .cmd-quote::after {
-  content: "”";
   right: 0;
+  bottom: -40px;
   background: linear-gradient(135deg, #8b5cf6, #06b6d4);
   -webkit-background-clip: text;
   background-clip: text;
@@ -1120,11 +1153,179 @@ body {
 
   .cmd-quote {
     font-size: 18px;
+    padding: 32px 40px;
+  }
+
+  .cmd-stat-card {
+    min-height: 80px;
+    padding: 24px;
   }
 }
 
+@media (max-width: 768px) {
+  .cmd-sticky-text-desktop {
+    display: none;
+  }
+
+  .cmd-sticky-text-tablet {
+    display: block;
+  }
+}
+
+@media (max-width: 480px) {
+  .cmd-sticky-text-tablet {
+    display: none;
+  }
+
+  .cmd-sticky-text-mobile {
+    display: block;
+  }
+}
+
+.cmd-hamburger {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 28px;
+  height: 28px;
+  justify-content: center;
+  align-items: center;
+}
+
+.cmd-hamburger span {
+  width: 20px;
+  height: 2px;
+  background: rgba(226, 232, 240, 0.8);
+  border-radius: 999px;
+}
+
+.cmd-mobile-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 10, 18, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 60;
+  display: grid;
+  place-items: center;
+}
+
+.cmd-mobile-panel {
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 24px;
+  display: grid;
+  gap: 16px;
+  width: min(90vw, 320px);
+  text-align: center;
+}
+
+.cmd-mobile-link {
+  color: rgba(226, 232, 240, 0.85);
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.cmd-mobile-cta {
+  background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
+  color: #0b1020;
+  padding: 12px 16px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.cmd-mobile-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  color: rgba(226, 232, 240, 0.7);
+  font-size: 24px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.cmd-sticky-text-tablet,
+.cmd-sticky-text-mobile {
+  display: none;
+}
+
+.cmd-sticky-button {
+
 .cmd-shell .text-sm {
   font-size: 1rem;
+}
+
+.cmd-cta.is-loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.cmd-cta.is-loading::after {
+  content: "";
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-top-color: transparent;
+  border-radius: 999px;
+  display: inline-block;
+  margin-left: 12px;
+  animation: spin 0.6s linear infinite;
+}
+
+.cmd-scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  z-index: 100;
+}
+
+.cmd-scroll-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #06b6d4 0%, #8b5cf6 100%);
+  width: 0%;
+  transition: width 0.1s ease;
+}
+
+.cmd-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(10, 14, 39, 0.8);
+  padding: 40px 0;
+  color: rgba(226, 232, 240, 0.5);
+  font-size: 13px;
+}
+
+.cmd-footer .cmd-shell {
+  display: grid;
+  gap: 16px;
+  text-align: center;
+}
+
+.cmd-footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.cmd-footer-link {
+  color: rgba(226, 232, 240, 0.5);
+  text-decoration: none;
+}
+
+.cmd-footer-link:hover {
+  text-decoration: underline;
+  color: rgba(226, 232, 240, 0.8);
+}
+
+.cmd-dashboard-preview {
+  box-shadow: 0 0 60px rgba(6, 182, 212, 0.3);
 }
 
 @keyframes float {
