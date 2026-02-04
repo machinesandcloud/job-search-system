@@ -426,12 +426,12 @@ export default function JobSearchWizard() {
   };
 
   const uploadFile = async (file: File, kind: "resume" | "linkedin") => {
-    const id = await ensureAssessment();
-    const form = new FormData();
-    form.append("assessmentId", id);
-    form.append("kind", kind);
-    form.append("file", file);
     try {
+      const id = await ensureAssessment();
+      const form = new FormData();
+      form.append("assessmentId", id);
+      form.append("kind", kind);
+      form.append("file", file);
       const res = await fetch("/api/leads/upload", { method: "POST", body: form });
       const text = await res.text();
       let data: any = {};
@@ -451,7 +451,7 @@ export default function JobSearchWizard() {
       }
       return;
     } catch (err: any) {
-      // Fallback: allow progression even if upload storage fails.
+      // Fallback: allow progression even if upload storage fails or assessmentId missing.
       if (kind === "resume") {
         updateAnswers({
           resumeFileUrl: `local://${encodeURIComponent(file.name)}`,
@@ -471,14 +471,21 @@ export default function JobSearchWizard() {
     setLoading(true);
     setError(null);
     try {
+      const payload: any = { answers };
+      if (assessmentId) payload.assessmentId = assessmentId;
       const res = await fetch("/api/leads/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ assessmentId, answers }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "Something went wrong");
+        const details =
+          data?.details?.fieldErrors &&
+          Object.entries(data.details.fieldErrors)
+            .map(([field, messages]: any) => `${field}: ${messages?.[0] || "invalid"}`)
+            .join("; ");
+        throw new Error(details || data.error || "Something went wrong");
       }
       setTeaser(data.teaser);
       setToken(data.token);
