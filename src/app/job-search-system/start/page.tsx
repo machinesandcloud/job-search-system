@@ -1,10 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AccountGate } from "@/components/account-gate";
-import { ScoreGauge } from "@/components/score-gauge";
 import type { AssessmentAnswers } from "@/lib/validation";
 import { defaultAnswers } from "@/lib/defaults";
 
@@ -35,8 +32,6 @@ export default function JobSearchWizard() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<AssessmentAnswers>(defaultAnswers);
   const [assessmentId, setAssessmentId] = useState<string | null>(null);
-  const [teaser, setTeaser] = useState<any>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [validationTouched, setValidationTouched] = useState(false);
@@ -487,8 +482,11 @@ export default function JobSearchWizard() {
             .join("; ");
         throw new Error(details || data.error || "Something went wrong");
       }
-      setTeaser(data.teaser);
-      setToken(data.token);
+      if (data.token) {
+        router.push(`/job-search-system/results/preview?token=${data.token}`);
+        return;
+      }
+      throw new Error("Unable to load preview");
     } catch (err: any) {
       setError(err.message || "Unable to complete");
     } finally {
@@ -542,56 +540,7 @@ export default function JobSearchWizard() {
   const validationError = validateStep();
   const showError = Boolean(validationTouched && validationError);
 
-  if (teaser && token && assessmentId) {
-    return (
-      <main className="min-h-screen bg-[#0A0E27] px-6 pb-16 pt-20">
-        <div className="mx-auto w-full max-w-6xl">
-          <Link href="/job-search-system" className="text-sm text-slate-400">
-            Back to landing
-          </Link>
-          <div className="mt-8 grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
-            <div>
-              <h1 className="mb-2 text-3xl font-semibold text-slate-100">Your Career System Preview</h1>
-              <p className="text-slate-300">
-                Here’s a preview of your system. Create an account to unlock the full plan, templates, and scripts.
-              </p>
-              <div className="mt-6 cmd-panel rounded-3xl p-6">
-                <div className="flex flex-wrap items-center gap-4">
-                  <ScoreGauge score={teaser.score} />
-                  <div>
-                    <p className="text-xs uppercase tracking-wide text-slate-400">Preview score</p>
-                    <p className="mt-1 text-sm text-slate-300">{teaser.coachRead}</p>
-                  </div>
-                </div>
-                <div className="mt-5 grid gap-3 md:grid-cols-2">
-                  {(teaser.insights || []).map((item: string) => (
-                    <div key={item} className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm">
-                      <p className="text-xs uppercase tracking-wide text-slate-400">Key insight</p>
-                      <p className="mt-2 text-slate-200">{item}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-5 rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm">
-                  <p className="text-xs uppercase tracking-wide text-slate-400">Week 1 cadence</p>
-                  <ul className="mt-2 space-y-1 text-slate-200">
-                    {(teaser.previewActions || []).slice(0, 3).map((action: string) => (
-                      <li key={action}>- {action}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
-            <AccountGate
-              assessmentId={assessmentId}
-              onSuccess={() => {
-                if (token) router.push(`/job-search-system/results/${token}`);
-              }}
-            />
-          </div>
-        </div>
-      </main>
-    );
-  }
+  // Preview is now handled on /job-search-system/results/preview
 
   return (
     <main className="relative min-h-screen bg-[#0A0E27] px-6 pb-20 pt-32 text-white">
