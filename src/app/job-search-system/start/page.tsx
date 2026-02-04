@@ -52,6 +52,7 @@ export default function JobSearchWizard() {
   const [popularCompanies, setPopularCompanies] = useState<CompanyOption[]>([]);
 
   const [resumeUploading, setResumeUploading] = useState(false);
+  const [resumeUploadError, setResumeUploadError] = useState<string | null>(null);
   const [linkedinUploading, setLinkedinUploading] = useState(false);
   const [linkedinMode, setLinkedinMode] = useState<"url" | "upload">("url");
 
@@ -296,10 +297,25 @@ export default function JobSearchWizard() {
     });
   };
 
+  const ensureAssessment = async () => {
+    if (assessmentId) return assessmentId;
+    const res = await fetch("/api/leads/start", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ answers: {} }),
+    });
+    const data = await res.json();
+    if (data.assessmentId) {
+      setAssessmentId(data.assessmentId);
+      return data.assessmentId as string;
+    }
+    throw new Error("Unable to start assessment.");
+  };
+
   const uploadFile = async (file: File, kind: "resume" | "linkedin") => {
-    if (!assessmentId) return;
+    const id = await ensureAssessment();
     const form = new FormData();
-    form.append("assessmentId", assessmentId);
+    form.append("assessmentId", id);
     form.append("kind", kind);
     form.append("file", file);
     const res = await fetch("/api/leads/upload", { method: "POST", body: form });
@@ -776,10 +792,12 @@ export default function JobSearchWizard() {
                       const file = event.target.files?.[0];
                       if (!file) return;
                       setResumeUploading(true);
+                      setResumeUploadError(null);
                       try {
                         await uploadFile(file, "resume");
                       } catch (err: any) {
                         setError(err.message || "Upload failed");
+                        setResumeUploadError(err.message || "Upload failed");
                       } finally {
                         setResumeUploading(false);
                       }
@@ -789,7 +807,13 @@ export default function JobSearchWizard() {
                   {answers.resumeFileName && (
                     <p className="mt-2 text-xs text-white/60">{answers.resumeFileName}</p>
                   )}
+                  {answers.resumeFileUrl && !resumeUploading && (
+                    <p className="mt-2 text-xs text-emerald-300">Resume uploaded.</p>
+                  )}
                 </div>
+                {resumeUploadError && (
+                  <p className="mt-2 text-xs text-red-300">{resumeUploadError}</p>
+                )}
                 {validationTouched && !answers.resumeFileUrl && (
                   <p className="mt-2 text-xs text-red-300">Resume upload is required to continue.</p>
                 )}
