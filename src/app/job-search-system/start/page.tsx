@@ -69,14 +69,140 @@ export default function JobSearchWizard() {
     boot();
   }, []);
 
+  const roleLibrary = useMemo(() => {
+    const baseRoles = [
+      "DevOps Engineer",
+      "Site Reliability Engineer",
+      "Platform Engineer",
+      "Backend Engineer",
+      "Frontend Engineer",
+      "Full Stack Engineer",
+      "Mobile Engineer",
+      "iOS Engineer",
+      "Android Engineer",
+      "Data Engineer",
+      "ML Engineer",
+      "AI Engineer",
+      "MLOps Engineer",
+      "Security Engineer",
+      "Cloud Engineer",
+      "Cloud Architect",
+      "Infrastructure Engineer",
+      "Systems Engineer",
+      "SRE Manager",
+      "Platform Lead",
+      "Infrastructure Lead",
+      "Engineering Manager",
+      "Senior Engineering Manager",
+      "Director of Engineering",
+      "VP of Engineering",
+      "Technical Program Manager",
+      "Program Manager",
+      "Product Manager",
+      "Solutions Architect",
+      "Solutions Engineer",
+      "Sales Engineer",
+      "DevSecOps Engineer",
+      "QA Engineer",
+      "Automation Engineer",
+      "Release Engineer",
+      "Build Engineer",
+      "Observability Engineer",
+      "Reliability Engineer",
+      "Performance Engineer",
+      "Database Engineer",
+      "Data Platform Engineer",
+      "Analytics Engineer",
+      "Data Scientist",
+      "Applied Scientist",
+      "Research Engineer",
+      "Network Engineer",
+      "Network Security Engineer",
+      "Security Architect",
+      "IAM Engineer",
+      "Identity Engineer",
+      "Incident Response Engineer",
+      "Privacy Engineer",
+      "Compliance Engineer",
+      "FinOps Engineer",
+      "Cloud Security Engineer",
+      "Edge Engineer",
+      "DevTools Engineer",
+      "Tooling Engineer",
+      "Developer Experience Engineer",
+      "Developer Advocate",
+      "Site Operations Engineer",
+      "Support Engineer",
+      "Customer Engineer",
+      "Implementation Engineer",
+      "Technical Account Manager",
+      "Solutions Consultant",
+      "Enterprise Architect",
+      "Data Architect",
+      "Systems Administrator",
+      "Storage Engineer",
+      "Streaming Engineer",
+      "Kafka Engineer",
+      "Search Engineer",
+      "Payments Engineer",
+      "Fraud Engineer",
+      "Blockchain Engineer",
+      "Quant Engineer",
+      "Embedded Engineer",
+      "Firmware Engineer",
+      "IoT Engineer",
+      "Robotics Engineer",
+      "Game Engineer",
+      "Graphics Engineer",
+      "AR/VR Engineer",
+      "UX Engineer",
+      "Accessibility Engineer",
+      "Design Systems Engineer",
+      "Product Designer",
+      "QA Lead",
+      "Test Engineer",
+      "Release Manager",
+      "Scrum Master",
+      "Agile Coach",
+      "Service Delivery Manager",
+      "IT Manager",
+      "IT Director",
+      "CTO",
+    ];
+    const levels = ["Senior", "Staff", "Principal", "Lead"];
+    const expanded = new Set<string>(baseRoles);
+    baseRoles.forEach((role) => {
+      if (/Senior|Staff|Principal|Lead|Director|VP|Manager/i.test(role)) return;
+      levels.forEach((level) => expanded.add(`${level} ${role}`));
+    });
+    const list = Array.from(expanded).slice(0, 200);
+    return list.map((name, index) => {
+      const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+      return { id: slug, name, slug, isPopular: index < 12 };
+    });
+  }, []);
+
   useEffect(() => {
     const loadPopular = async () => {
-      const res = await fetch("/api/roles/popular");
-      const data = await res.json();
-      setPopularRoles(data.roles || []);
+      try {
+        const res = await fetch("/api/roles/popular");
+        const data = await res.json();
+        if (Array.isArray(data.roles) && data.roles.length > 0) {
+          const merged = [...data.roles, ...roleLibrary].reduce<RoleOption[]>((acc, role) => {
+            if (acc.some((item) => item.name === role.name)) return acc;
+            acc.push(role);
+            return acc;
+          }, []);
+          setPopularRoles(merged.slice(0, 12));
+          return;
+        }
+      } catch (_err) {
+        // ignore
+      }
+      setPopularRoles(roleLibrary.slice(0, 12));
     };
     loadPopular();
-  }, []);
+  }, [roleLibrary]);
 
   useEffect(() => {
     const loadPopular = async () => {
@@ -93,12 +219,23 @@ export default function JobSearchWizard() {
       return;
     }
     const timer = setTimeout(async () => {
-      const res = await fetch(`/api/roles/search?q=${encodeURIComponent(roleSearch)}`);
-      const data = await res.json();
-      setRoleResults(data.roles || []);
-    }, 250);
+      try {
+        const res = await fetch(`/api/roles/search?q=${encodeURIComponent(roleSearch)}`);
+        const data = await res.json();
+        if (Array.isArray(data.roles) && data.roles.length > 0) {
+          setRoleResults(data.roles);
+          return;
+        }
+      } catch (_err) {
+        // ignore
+      }
+      const filtered = roleLibrary.filter((role) =>
+        role.name.toLowerCase().includes(roleSearch.toLowerCase())
+      );
+      setRoleResults(filtered.slice(0, 12));
+    }, 200);
     return () => clearTimeout(timer);
-  }, [roleSearch]);
+  }, [roleSearch, roleLibrary]);
 
   useEffect(() => {
     if (!companySearch) {
@@ -195,12 +332,48 @@ export default function JobSearchWizard() {
     }
   };
 
-  const canNext = useMemo(() => {
-    if (step === 0) return answers.targetRoles.length >= 1 && answers.targetRoles.length <= 3;
-    if (step === 6) return Boolean(answers.resumeFileUrl);
-    if (step === 7) return answers.targetCompanies.length >= 5 && answers.targetCompanies.length <= 30;
-    return true;
-  }, [step, answers]);
+  const validateStep = () => {
+    if (step === 0 && answers.targetRoles.length === 0) {
+      return "Select at least one role to continue.";
+    }
+    if (step === 0 && answers.targetRoles.length > 3) {
+      return "You can select up to 3 roles.";
+    }
+    if (step === 1 && !answers.level) {
+      return "Select a target level to continue.";
+    }
+    if (step === 2 && !answers.compTarget) {
+      return "Select a compensation target to continue.";
+    }
+    if (step === 3 && !answers.timeline) {
+      return "Select a timeline to continue.";
+    }
+    if (step === 4 && !answers.locationPreference) {
+      return "Select a location preference to continue.";
+    }
+    if (step === 5 && !answers.hoursPerWeek) {
+      return "Select your weekly time commitment to continue.";
+    }
+    if (step === 6 && !answers.resumeFileUrl) {
+      return "Upload your resume to continue.";
+    }
+    if (step === 7 && !answers.networkStrength) {
+      return "Select your network strength to continue.";
+    }
+    if (step === 7 && !answers.outreachComfort) {
+      return "Select your outreach comfort level to continue.";
+    }
+    if (step === 7 && answers.targetCompanies.length < 5) {
+      return "Select at least 5 companies to continue.";
+    }
+    if (step === 7 && answers.targetCompanies.length > 30) {
+      return "Select no more than 30 companies.";
+    }
+    if (step === 8 && !answers.biggestBlocker) {
+      return "Select your biggest blocker to continue.";
+    }
+    return null;
+  };
 
   if (teaser && token && assessmentId) {
     return (
@@ -324,6 +497,29 @@ export default function JobSearchWizard() {
                   );
                 })}
               </div>
+              {answers.targetRoles.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {answers.targetRoles.map((role) => (
+                    <span
+                      key={role.name}
+                      className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs"
+                    >
+                      {role.name}
+                      <button
+                        type="button"
+                        className="text-white/60 hover:text-white"
+                        onClick={() =>
+                          updateAnswers({
+                            targetRoles: answers.targetRoles.filter((item) => item.name !== role.name),
+                          })
+                        }
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
               <div>
                 <input
                   className="h-[52px] w-full rounded-xl border border-white/10 bg-white/5 px-4 text-sm"
@@ -341,7 +537,9 @@ export default function JobSearchWizard() {
                         onClick={() => toggleRole(role)}
                       >
                         <span>{role.name}</span>
-                        <span className="text-xs text-white/40">Add</span>
+                        <span className="text-xs text-white/40">
+                          {answers.targetRoles.some((item) => item.name === role.name) ? "Selected" : "Add"}
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -787,7 +985,10 @@ export default function JobSearchWizard() {
             <button
               type="button"
               className="h-14 rounded-full border border-white/20 px-6 text-sm font-semibold text-white/80"
-              onClick={() => setStep((prev) => Math.max(0, prev - 1))}
+              onClick={() => {
+                setError(null);
+                setStep((prev) => Math.max(0, prev - 1));
+              }}
               disabled={step === 0}
             >
               Back
@@ -796,8 +997,15 @@ export default function JobSearchWizard() {
               <button
                 type="button"
                 className="h-14 flex-1 rounded-full bg-gradient-to-r from-[#06B6D4] to-[#8B5CF6] text-sm font-bold"
-                onClick={() => setStep((prev) => prev + 1)}
-                disabled={!canNext}
+                onClick={() => {
+                  const message = validateStep();
+                  if (message) {
+                    setError(message);
+                    return;
+                  }
+                  setError(null);
+                  setStep((prev) => prev + 1);
+                }}
               >
                 Continue
               </button>
@@ -805,7 +1013,14 @@ export default function JobSearchWizard() {
               <button
                 type="button"
                 className="h-14 flex-1 rounded-full bg-gradient-to-r from-[#06B6D4] to-[#8B5CF6] text-sm font-bold"
-                onClick={submitWizard}
+                onClick={() => {
+                  const message = validateStep();
+                  if (message) {
+                    setError(message);
+                    return;
+                  }
+                  submitWizard();
+                }}
                 disabled={loading}
               >
                 {loading ? "Analyzing..." : "Get my preview"}
