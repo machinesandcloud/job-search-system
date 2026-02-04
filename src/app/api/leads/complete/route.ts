@@ -61,8 +61,8 @@ export async function POST(request: Request) {
   const targetCompaniesJson = JSON.parse(JSON.stringify(answers.targetCompanies)) as Prisma.InputJsonValue;
 
   const aiInsights = await generateCoachFeedback(answers);
-  const recommendedRoute: Prisma.RecommendedRoute =
-    route === "Fast Track" ? "FastTrack" : route === "Guided" ? "Guided" : "DIY";
+  const recommendedRoute =
+    (route === "Fast Track" ? "FastTrack" : route === "Guided" ? "Guided" : "DIY") as Prisma.AssessmentCreateInput["recommendedRoute"];
 
   const data = {
     ...answers,
