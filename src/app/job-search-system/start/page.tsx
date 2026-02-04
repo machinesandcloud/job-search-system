@@ -1186,8 +1186,12 @@ export default function JobSearchWizard() {
                   className="mt-2 min-h-[100px] w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm"
                   placeholder="Tell us about your situation, concerns, or questions..."
                   value={answers.additionalContext || ""}
-                  onChange={(event) => updateAnswers({ additionalContext: event.target.value })}
+                  onChange={(event) => updateAnswers({ additionalContext: event.target.value.slice(0, 500) })}
+                  maxLength={500}
                 />
+                <p className="mt-2 text-xs text-white/50">
+                  {(answers.additionalContext || "").length}/500 characters
+                </p>
               </div>
             </div>
           )}
