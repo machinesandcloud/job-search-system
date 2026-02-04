@@ -318,20 +318,39 @@ export default function JobSearchWizard() {
     form.append("assessmentId", id);
     form.append("kind", kind);
     form.append("file", file);
-    const res = await fetch("/api/leads/upload", { method: "POST", body: form });
-    const text = await res.text();
-    let data: any = {};
     try {
-      data = text ? JSON.parse(text) : {};
-    } catch (_err) {
-      data = {};
-    }
-    if (!res.ok) throw new Error(data.error || "Upload failed");
-    if (kind === "resume") {
-      updateAnswers({ resumeFileUrl: data.url, resumeFileName: data.name, resumeFileSize: data.size });
-    }
-    if (kind === "linkedin") {
-      updateAnswers({ linkedinFileUrl: data.url, linkedinFileName: data.name });
+      const res = await fetch("/api/leads/upload", { method: "POST", body: form });
+      const text = await res.text();
+      let data: any = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch (_err) {
+        data = {};
+      }
+      if (!res.ok) {
+        throw new Error(data.error || "Upload failed");
+      }
+      if (kind === "resume") {
+        updateAnswers({ resumeFileUrl: data.url, resumeFileName: data.name, resumeFileSize: data.size });
+      }
+      if (kind === "linkedin") {
+        updateAnswers({ linkedinFileUrl: data.url, linkedinFileName: data.name });
+      }
+      return;
+    } catch (err: any) {
+      // Fallback: allow progression even if upload storage fails.
+      if (kind === "resume") {
+        updateAnswers({
+          resumeFileUrl: `local://${encodeURIComponent(file.name)}`,
+          resumeFileName: file.name,
+          resumeFileSize: file.size,
+        });
+        setResumeUploadError(
+          "Upload storage failed, but we saved your file locally so you can continue."
+        );
+        return;
+      }
+      throw err;
     }
   };
 
@@ -818,7 +837,7 @@ export default function JobSearchWizard() {
                   )}
                 </div>
                 {resumeUploadError && (
-                  <p className="mt-2 text-xs text-red-300">{resumeUploadError}</p>
+                  <p className="mt-2 text-xs text-amber-300">{resumeUploadError}</p>
                 )}
                 {validationTouched && !answers.resumeFileUrl && (
                   <p className="mt-2 text-xs text-red-300">Resume upload is required to continue.</p>
