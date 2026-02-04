@@ -10,6 +10,41 @@ type AssessmentInput = {
   interviewReady?: boolean;
   hoursPerWeek?: number;
   totalScore?: number;
+  resumeFileUrl?: string | null;
+  linkedinFileUrl?: string | null;
+};
+
+type ResumeParsed = {
+  fullName?: string;
+  email?: string;
+  phone?: string;
+  currentRole?: string | null;
+  currentCompany?: string | null;
+  yearsExperience?: number | null;
+  topSkills?: string[];
+  recentProjects?: Array<{
+    title: string;
+    description?: string;
+    impact?: string;
+    technologies?: string[];
+  }>;
+  achievements?: string[];
+  certifications?: string[];
+  education?: {
+    degree?: string;
+    school?: string;
+    graduationYear?: number | null;
+  };
+};
+
+type LinkedInParsed = {
+  headline?: string;
+  about?: string;
+  skills?: string[];
+  endorsements?: number | null;
+  recommendations?: number | null;
+  connectionCount?: number | null;
+  activityLevel?: "high" | "medium" | "low";
 };
 
 type MatchRow = {
@@ -78,137 +113,124 @@ function estimateYears(level?: string) {
 }
 
 function getPrimaryRole(input: AssessmentInput) {
-  return input.targetRoles?.[0]?.name || "Senior DevOps Engineer";
+  return input.targetRoles?.[0]?.name || "Target role";
 }
 
 function matchScore(skills: string[], required: string[], compTarget?: string) {
   const overlap = required.filter((skill) => skills.includes(skill)).length;
-  const skillMatch = required.length ? overlap / required.length : 0.6;
+  const skillMatch = required.length ? overlap / required.length : 0;
   const compBoost = compTarget?.includes("200") || compTarget?.includes("300") ? 0.1 : 0.0;
   const score = Math.min(1, skillMatch + compBoost);
   return Math.round(score * 100);
 }
 
-export function buildProfileData(input: AssessmentInput) {
-  const primaryRole = getPrimaryRole(input);
-  const yearsExperience = estimateYears(input.level);
-  const baseSkills = ROLE_SKILLS[primaryRole] || ROLE_SKILLS["DevOps Engineer"];
-  const topSkills = baseSkills.slice(0, 5);
+export function buildProfileData(input: AssessmentInput, resumeParsed?: ResumeParsed | null, linkedinParsed?: LinkedInParsed | null) {
+  if (!resumeParsed && !linkedinParsed) return null;
+  const primaryRole = resumeParsed?.currentRole || getPrimaryRole(input);
+  const yearsExperience =
+    resumeParsed?.yearsExperience && resumeParsed.yearsExperience > 0
+      ? resumeParsed.yearsExperience
+      : estimateYears(input.level);
+  const topSkills = resumeParsed?.topSkills?.length
+    ? resumeParsed.topSkills
+    : linkedinParsed?.skills?.length
+    ? linkedinParsed.skills
+    : [];
 
   return {
-    currentRole: primaryRole,
-    currentCompany: "Current company",
+    fullName: resumeParsed?.fullName,
+    email: resumeParsed?.email,
+    currentRole: resumeParsed?.currentRole || null,
+    currentCompany: resumeParsed?.currentCompany || null,
     yearsExperience,
+    yearsSource: resumeParsed?.yearsExperience ? "resume" : "estimated",
+    targetRole: primaryRole,
     topSkills,
-    recentProjects: [
-      {
-        title: "Migrated monolith to microservices",
-        impact: "35% deployment speed increase",
-        technologies: ["Docker", "Kubernetes", "Terraform"],
-      },
-    ],
-    achievements: [
-      "99.9% uptime across 500+ servers",
-      "Reduced deployment time by 40%",
-      "Built CI/CD automation for multi-team platform",
-    ],
-    certifications: ["AWS Solutions Architect", "CKA"],
-    education: {
-      degree: "BS Computer Science",
-      school: "University of Wisconsin",
-    },
+    recentProjects: resumeParsed?.recentProjects || [],
+    achievements: resumeParsed?.achievements || [],
+    certifications: resumeParsed?.certifications || [],
+    education: resumeParsed?.education || null,
     linkedin: {
-      headline: `${primaryRole} | Cloud Infrastructure`,
-      about: `Senior technical leader specializing in ${topSkills.join(", ")}.`,
-      endorsements: 40,
-      recommendations: 6,
-      activityLevel: "Moderate",
-      connectionCount: 850,
-      completeness: 78,
+      headline: linkedinParsed?.headline || null,
+      about: linkedinParsed?.about || null,
+      endorsements: linkedinParsed?.endorsements ?? null,
+      recommendations: linkedinParsed?.recommendations ?? null,
+      connectionCount: linkedinParsed?.connectionCount ?? null,
+      activityLevel: linkedinParsed?.activityLevel || null,
     },
   };
 }
 
-export function buildResumeHealthData(input: AssessmentInput) {
+export function buildResumeHealthData(input: AssessmentInput, resumeParsed?: ResumeParsed | null) {
   const base = input.resumeStatus === "updated_30" ? 0.35 : input.resumeStatus === "needs_work" ? 0.2 : 0.05;
   const linkedin = input.linkedinStatus === "optimized" ? 0.25 : input.linkedinStatus === "basic" ? 0.1 : 0.05;
   const portfolio = input.portfolioStatus ? 0.15 : 0.0;
   const interview = input.interviewReady ? 0.1 : 0.0;
   const score = Math.min(1, base + linkedin + portfolio + interview + 0.15);
 
+  const issues: string[] = [];
+  if (!resumeParsed?.topSkills?.length) {
+    issues.push("No skills detected from resume yet");
+  }
+  if (!resumeParsed?.achievements?.length) {
+    issues.push("Add quantified achievements to strengthen signal");
+  }
+
   return {
     score: Math.round(score * 100),
-    issues: [
-      "Missing keywords: Observability, SLO/SLI",
-      "Add leadership examples for Staff-level roles",
-      "Skills section could list 5 more tools",
-    ],
+    issues,
     quickWins: [
-      { label: "Add Observability to skills section", impact: "+8% ATS match", time: "2 min" },
-      { label: "Rewrite summary for Staff roles", impact: "+20% recruiter interest", time: "10 min" },
+      { label: "Add 2 quantified achievements", impact: "+10% signal strength", time: "10 min" },
+      { label: "Update skills section with top tools", impact: "+8% ATS match", time: "5 min" },
     ],
   };
 }
 
-export function buildSkillMatchData(input: AssessmentInput): MatchRow[] {
+export function buildSkillMatchData(input: AssessmentInput, resumeParsed?: ResumeParsed | null): MatchRow[] {
   const primaryRole = getPrimaryRole(input);
-  const baseSkills = ROLE_SKILLS[primaryRole] || ROLE_SKILLS["DevOps Engineer"];
-  const topSkills = baseSkills.slice(0, 5);
-  const companies = input.targetCompanies?.length
-    ? input.targetCompanies.slice(0, 3).map((c) => c.name)
-    : ["Stripe", "Google", "Datadog"];
+  const required = ROLE_SKILLS[primaryRole] || ROLE_SKILLS["DevOps Engineer"];
+  const topSkills = resumeParsed?.topSkills || [];
+  const companies = input.targetCompanies?.length ? input.targetCompanies.slice(0, 3).map((c) => c.name) : [];
 
   return companies.map((company) => ({
     company,
     role: primaryRole,
-    score: matchScore(topSkills, baseSkills, input.compTarget),
+    score: matchScore(topSkills, required, input.compTarget),
     strong: topSkills,
-    missing: baseSkills.filter((skill) => !topSkills.includes(skill)).slice(0, 3),
+    missing: required.filter((skill) => !topSkills.includes(skill)).slice(0, 3),
   }));
 }
 
 export function buildTaskProgress(input: AssessmentInput) {
+  const points = input.resumeFileUrl ? 5 : 0;
   return {
-    streakDays: 3,
-    points: 42,
-    level: "Active Searcher",
+    streakDays: 0,
+    points,
+    level: points > 0 ? "Getting Started" : "New User",
     milestones: {
-      applicationsSent: 3,
-      connectionRequests: 7,
+      applicationsSent: 0,
+      connectionRequests: 0,
       interviews: 0,
     },
   };
 }
 
-export function buildAchievements(_input: AssessmentInput) {
+export function buildAchievements(input: AssessmentInput) {
   return [
-    { id: "resume", label: "Resume Master", unlocked: true },
-    { id: "week1", label: "Week 1 Done", unlocked: false },
-    { id: "apps", label: "5 Apps Sent", unlocked: true },
-    { id: "interview", label: "Interview Ready", unlocked: false },
-    { id: "offer", label: "Offer Getter", unlocked: false },
+    { id: "resume-uploaded", label: "Resume Uploaded", unlocked: Boolean(input.resumeFileUrl) },
+    { id: "linkedin-added", label: "LinkedIn Added", unlocked: Boolean(input.linkedinFileUrl) },
+    { id: "targets", label: "5 Targets Selected", unlocked: (input.targetCompanies?.length || 0) >= 5 },
+    { id: "portfolio", label: "Portfolio Ready", unlocked: Boolean(input.portfolioStatus) },
+    { id: "interview-ready", label: "Interview Ready", unlocked: Boolean(input.interviewReady) },
   ];
 }
 
-export function buildApplications(input: AssessmentInput) {
-  const companies = input.targetCompanies?.length ? input.targetCompanies.slice(0, 2) : [{ name: "Stripe" }, { name: "Google" }];
-  const primaryRole = getPrimaryRole(input);
-  return companies.map((company, index) => ({
-    id: `app-${index + 1}`,
-    company: company.name,
-    role: primaryRole,
-    status: index === 0 ? "Interview" : "Applied",
-    appliedAt: "Jan 20",
-    lastUpdate: index === 0 ? "Jan 28" : "Jan 22",
-    nextStep: index === 0 ? "Onsite scheduled Feb 5" : "Follow up in 6 days",
-    checklist: [
-      "Review system design patterns",
-      "Prepare 3 STAR stories",
-      "Research company architecture",
-    ],
-  }));
+export function buildApplications(_input: AssessmentInput) {
+  return [];
 }
 
 export function buildProofProjects() {
   return DEFAULT_PROJECTS;
 }
+
+export type { ResumeParsed, LinkedInParsed };

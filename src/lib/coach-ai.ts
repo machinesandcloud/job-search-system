@@ -67,8 +67,33 @@ function buildWeeklyPlan(answers: AssessmentAnswers) {
   };
 }
 
-export async function generateCoachFeedback(answers: AssessmentAnswers) {
+type ParsedPayload = {
+  resumeParsedData?: any;
+  linkedinParsedData?: any;
+};
+
+async function tryFreeLlm(prompt: string) {
+  const endpoint = process.env.OLLAMA_URL || process.env.FREE_LLM_URL;
+  const model = process.env.OLLAMA_MODEL || process.env.FREE_LLM_MODEL;
+  if (!endpoint || !model) return null;
+  try {
+    const res = await fetch(`${endpoint}/api/generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model, prompt, stream: false }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.response as string;
+  } catch {
+    return null;
+  }
+}
+
+export async function generateCoachFeedback(answers: AssessmentAnswers, parsed?: ParsedPayload) {
   const { score, subscores, route } = computeScore(answers);
+  const resumeParsed = parsed?.resumeParsedData || null;
+  const linkedinParsed = parsed?.linkedinParsedData || null;
   const lowest = Object.entries(subscores).sort((a, b) => a[1] - b[1])[0]?.[0] || "clarity";
   const primaryGap =
     lowest === "clarity"
@@ -79,10 +104,9 @@ export async function generateCoachFeedback(answers: AssessmentAnswers) {
       ? "Your network leverage is limiting reach. Prioritize warm outreach."
       : "Execution cadence is too light. Increase weekly reps and tracking.";
 
-  const secondaryGap =
-    answers.interviewReady
-      ? "Conversion can improve with tighter interview loops and practice."
-      : "Interview readiness is a risk. Build reps before late-stage loops.";
+  const secondaryGap = answers.interviewReady
+    ? "Conversion can improve with tighter interview loops and practice."
+    : "Interview readiness is a risk. Build reps before late-stage loops.";
 
   const quickWin = answers.linkedinStatus === "optimized"
     ? "Send 5 targeted connection requests with a specific 2-line ask."
@@ -101,7 +125,7 @@ export async function generateCoachFeedback(answers: AssessmentAnswers) {
       ? "You have solid fundamentals but need tighter execution to convert."
       : "Your timeline or clarity needs work before a fast-track push.";
 
-  return {
+  const fallback = {
     primaryGap,
     secondaryGap,
     quickWin,
@@ -112,8 +136,25 @@ export async function generateCoachFeedback(answers: AssessmentAnswers) {
       score,
       subscores,
       keywords: pickRoleKeywords(answers),
+      parsed: Boolean(resumeParsed || linkedinParsed),
     },
   };
+
+  const llmPrompt = `Provide brief, specific coaching insights in JSON for a ${answers.level} targeting ${answers.targetRoles
+    .map((r) => r.name)
+    .join(", ")}. Use resume data if present. Resume: ${JSON.stringify(resumeParsed)}. LinkedIn: ${JSON.stringify(
+    linkedinParsed
+  )}. Return JSON with primaryGap, secondaryGap, quickWin, weeklyPlan, companyFit, routeReasoning.`;
+
+  const llmResponse = await tryFreeLlm(llmPrompt);
+  if (llmResponse) {
+    try {
+      return JSON.parse(llmResponse);
+    } catch {
+      return fallback;
+    }
+  }
+  return fallback;
 }
 
 export async function generateCoachPulse(answers: AssessmentAnswers, step?: string) {

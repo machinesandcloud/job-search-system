@@ -46,9 +46,11 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
   const ai = assessment?.aiInsights || {};
   const week1 = ai?.weeklyPlan?.week1 || [];
   const week2 = ai?.weeklyPlan?.week2 || [];
-  const profile = assessment.profileData || buildProfileData(assessment);
-  const resumeHealth = assessment.resumeHealthData || buildResumeHealthData(assessment);
-  const skillMatches = assessment.skillMatchData || buildSkillMatchData(assessment);
+  const resumeParsed = assessment.resumeParsedData || null;
+  const linkedinParsed = assessment.linkedinParsedData || null;
+  const profile = assessment.profileData || buildProfileData(assessment, resumeParsed, linkedinParsed);
+  const resumeHealth = assessment.resumeHealthData || buildResumeHealthData(assessment, resumeParsed);
+  const skillMatches = assessment.skillMatchData || buildSkillMatchData(assessment, resumeParsed);
   const taskProgress = assessment.taskProgress || buildTaskProgress(assessment);
   const achievements = assessment.achievements || buildAchievements(assessment);
   const applications = assessment.applications || buildApplications(assessment);
@@ -62,7 +64,7 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
   ];
 
   const targetCompanies = Array.isArray(assessment.targetCompanies) ? assessment.targetCompanies : [];
-  const targetRole = profile.currentRole || "Senior DevOps Engineer";
+  const targetRole = profile?.targetRole || assessment?.targetRoles?.[0]?.name || "Target role";
 
   const statusLabel = useMemo(() => {
     if (assessment.totalScore >= 70) return "Fast Track";
@@ -71,9 +73,17 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
   }, [assessment.totalScore]);
 
   const routeLabel = assessment?.recommendedRoute === "FastTrack" ? "Fast Track" : assessment?.recommendedRoute || "Growth Ready";
-  const headlineCurrent = profile.linkedin?.headline || `${targetRole} | Cloud Infrastructure`;
-  const headlineSuggested = `${targetRole} & Platform Engineer | ${profile.topSkills?.slice(0, 3).join(" • ")} | ${profile.yearsExperience}+ yrs`;
-  const firstName = profile.firstName || userEmail?.split("@")[0] || "there";
+  const headlineCurrent = profile?.linkedin?.headline || "LinkedIn headline unavailable";
+  const headlineSuggested = profile?.topSkills?.length
+    ? `${targetRole} | ${profile.topSkills.slice(0, 3).join(" • ")} | ${profile.yearsExperience}+ yrs`
+    : "Add skills to unlock AI headline suggestions";
+  const firstName = profile?.fullName?.split(" ")[0] || userEmail?.split("@")[0] || "there";
+  const daysSinceStart = assessment?.createdAt
+    ? Math.max(0, Math.floor((Date.now() - new Date(assessment.createdAt).getTime()) / (1000 * 60 * 60 * 24)))
+    : 0;
+  const targetRoleNames = assessment?.targetRoles?.length
+    ? assessment.targetRoles.map((role: any) => role.name).join(", ")
+    : "your target roles";
 
   const actionTasks = [
     {
@@ -111,6 +121,26 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
     window.localStorage.setItem("cc-weekly-digest", String(digestEnabled));
   }, [digestEnabled]);
 
+  useEffect(() => {
+    const assessmentId = assessment?.id;
+    if (!assessmentId) return;
+    const ids = actionTasks.map((task) => task.id);
+    Promise.all(
+      ids.map((id) =>
+        fetch(`/api/tasks/${assessmentId}/${id}/status`)
+          .then((res) => res.json())
+          .then((data) => ({ id, completed: data.completed }))
+          .catch(() => ({ id, completed: false }))
+      )
+    ).then((results) => {
+      const nextState: Record<string, boolean> = {};
+      results.forEach((result) => {
+        nextState[result.id] = result.completed;
+      });
+      setTaskState(nextState);
+    });
+  }, [assessment?.id]);
+
   const handleSendChat = () => {
     if (!chatInput.trim()) return;
     const newMessage = { role: "user" as const, content: chatInput };
@@ -120,6 +150,20 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
     };
     setChatHistory((prev) => [...prev, newMessage, response]);
     setChatInput("");
+  };
+
+  const toggleTask = async (taskId: string) => {
+    const assessmentId = assessment?.id;
+    if (!assessmentId) return;
+    setTaskState((prev) => ({ ...prev, [taskId]: !prev[taskId] }));
+    try {
+      const res = await fetch(`/api/tasks/${assessmentId}/${taskId}/toggle`, { method: "POST" });
+      if (!res.ok) throw new Error("Failed");
+      const data = await res.json();
+      setTaskState((prev) => ({ ...prev, [taskId]: data.completed }));
+    } catch {
+      setTaskState((prev) => ({ ...prev, [taskId]: !prev[taskId] }));
+    }
   };
 
   return (
@@ -164,18 +208,25 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
             <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
               <h1 className="text-2xl font-semibold">{getGreeting()}, {firstName}! 👋</h1>
               <p className="mt-2 text-white/70">
-                You're 3 days into your transition from {profile.currentRole} to senior roles at top companies.
+                You're {daysSinceStart} {daysSinceStart === 1 ? "day" : "days"} into your transition toward {targetRoleNames}.
               </p>
-              <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-white/80">
-                🎯 Based on your {profile.yearsExperience} years of experience and {profile.topSkills?.join(", ")} expertise, you're well-positioned for:
-                <ul className="mt-2 space-y-1">
-                  {skillMatches.slice(0, 3).map((match: any) => (
-                    <li key={match.company}>
-                      • {match.role} at {match.company} ({match.score}% skill match)
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              {!resumeParsed && (
+                <div className="mt-4 rounded-xl border border-[#F59E0B]/30 bg-[#F59E0B]/10 p-4 text-sm text-white/80">
+                  Resume parsing hasn’t completed yet. Upload a PDF/DOCX resume to unlock skill matching and personalization.
+                </div>
+              )}
+              {resumeParsed && (
+                <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-white/80">
+                  🎯 Based on your {profile?.yearsExperience} years of experience and {profile?.topSkills?.join(", ")} expertise, you're well-positioned for:
+                  <ul className="mt-2 space-y-1">
+                    {skillMatches.slice(0, 3).map((match: any) => (
+                      <li key={match.company}>
+                        • {match.role} at {match.company} ({match.score}% skill match)
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               <span className="mt-4 inline-flex items-center rounded-full bg-gradient-to-r from-[#06B6D4] to-[#8B5CF6] px-4 py-2 text-xs font-semibold shadow-lg">
                 Next Action → {actionTasks[0]?.title}
               </span>
@@ -231,19 +282,25 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
             <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">Skill match analyzer</p>
               <div className="mt-4 space-y-4">
-                {skillMatches.map((match: any) => (
-                  <div key={match.company} className="rounded-xl border border-white/10 bg-white/5 p-4">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold">{match.role} at {match.company}</p>
-                      <span className="text-sm font-semibold text-[#06B6D4]">{match.score}% match</span>
-                    </div>
-                    <div className="mt-2 h-2 w-full rounded-full bg-white/10">
-                      <div className="h-full rounded-full bg-gradient-to-r from-[#06B6D4] to-[#8B5CF6]" style={{ width: `${match.score}%` }} />
-                    </div>
-                    <p className="mt-2 text-xs text-white/60">Strong: {match.strong?.join(", ")}</p>
-                    <p className="mt-1 text-xs text-white/60">Add: {match.missing?.join(", ")}</p>
+                {skillMatches.length === 0 ? (
+                  <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
+                    Skill matching will appear once we parse your resume and you’ve selected target companies.
                   </div>
-                ))}
+                ) : (
+                  skillMatches.map((match: any) => (
+                    <div key={match.company} className="rounded-xl border border-white/10 bg-white/5 p-4">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-semibold">{match.role} at {match.company}</p>
+                        <span className="text-sm font-semibold text-[#06B6D4]">{match.score}% match</span>
+                      </div>
+                      <div className="mt-2 h-2 w-full rounded-full bg-white/10">
+                        <div className="h-full rounded-full bg-gradient-to-r from-[#06B6D4] to-[#8B5CF6]" style={{ width: `${match.score}%` }} />
+                      </div>
+                      <p className="mt-2 text-xs text-white/60">Strong: {match.strong?.join(", ") || "No skills detected yet"}</p>
+                      <p className="mt-1 text-xs text-white/60">Add: {match.missing?.join(", ") || "We’ll identify gaps after parsing"}</p>
+                    </div>
+                  ))
+                )}
               </div>
             </section>
 
@@ -292,7 +349,7 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
                     <button
                       type="button"
                       className="flex items-start gap-3 text-left"
-                      onClick={() => setTaskState((prev) => ({ ...prev, [task.id]: !prev[task.id] }))}
+                      onClick={() => toggleTask(task.id)}
                     >
                       <span
                         className={`mt-1 flex h-6 w-6 items-center justify-center rounded-full border ${
@@ -395,9 +452,19 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
                   {actionTasks.map((task) => (
                     <div key={task.id} className="rounded-xl border border-white/10 bg-white/5 p-4">
                       <div className="flex items-start gap-3">
-                        <span className="mt-1 h-5 w-5 rounded-full border border-white/30" />
+                        <button
+                          type="button"
+                          onClick={() => toggleTask(task.id)}
+                          className={`mt-1 flex h-5 w-5 items-center justify-center rounded-full border ${
+                            taskState[task.id] ? "border-transparent bg-gradient-to-r from-[#06B6D4] to-[#8B5CF6]" : "border-white/30"
+                          }`}
+                        >
+                          {taskState[task.id] && <span className="h-2 w-2 rounded-full bg-white" />}
+                        </button>
                         <div className="flex-1">
-                          <p className="text-sm font-semibold text-white/90">{task.title}</p>
+                          <p className={`text-sm font-semibold ${taskState[task.id] ? "line-through text-white/60" : "text-white/90"}`}>
+                            {task.title}
+                          </p>
                           <div className="mt-2 flex items-center gap-3 text-xs text-white/60">
                             <span>⏱ {task.time}</span>
                             <span>Impact: {task.impact}</span>
@@ -486,25 +553,31 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
           <div className="space-y-6">
             <h2 className="text-2xl font-semibold">Your Applications</h2>
             <div className="space-y-4">
-              {applications.map((app: any) => (
-                <div key={app.id} className="rounded-2xl border border-white/10 bg-white/5 p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-semibold">{app.company} — {app.role}</p>
-                      <p className="text-xs text-white/60">Applied: {app.appliedAt} • Last update: {app.lastUpdate}</p>
-                    </div>
-                    <span className="rounded-full bg-[#06B6D4]/20 px-3 py-1 text-xs font-semibold">{app.status}</span>
-                  </div>
-                  <p className="mt-4 text-sm text-white/70">Next step: {app.nextStep}</p>
-                  <div className="mt-4 grid gap-2 md:grid-cols-3">
-                    {app.checklist.map((item: string) => (
-                      <div key={item} className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/70">
-                        □ {item}
-                      </div>
-                    ))}
-                  </div>
+              {applications.length === 0 ? (
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-white/70">
+                  No applications logged yet. Add one to start tracking your pipeline.
                 </div>
-              ))}
+              ) : (
+                applications.map((app: any) => (
+                  <div key={app.id} className="rounded-2xl border border-white/10 bg-white/5 p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold">{app.company} — {app.role}</p>
+                        <p className="text-xs text-white/60">Applied: {app.appliedAt} • Last update: {app.lastUpdate}</p>
+                      </div>
+                      <span className="rounded-full bg-[#06B6D4]/20 px-3 py-1 text-xs font-semibold">{app.status}</span>
+                    </div>
+                    <p className="mt-4 text-sm text-white/70">Next step: {app.nextStep}</p>
+                    <div className="mt-4 grid gap-2 md:grid-cols-3">
+                      {app.checklist.map((item: string) => (
+                        <div key={item} className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/70">
+                          □ {item}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         )}

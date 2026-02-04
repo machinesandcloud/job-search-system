@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import path from "path";
 import fs from "fs/promises";
 import { ensureSameOrigin } from "@/lib/utils";
+import { extractTextFromBuffer, parseLinkedInText, parseResumeText } from "@/lib/parse-doc";
 
 export const runtime = "nodejs";
 
@@ -44,22 +45,48 @@ export async function POST(request: Request) {
     const dataUrl = storedUrl || `inline://${encodeURIComponent(file.name)}`;
 
     if (kind === "resume") {
+      let resumeParsedData = null;
+      let resumeParseStatus = "complete";
+      let resumeParseError = null;
+      try {
+        const text = await extractTextFromBuffer(buffer, file.name);
+        resumeParsedData = parseResumeText(text);
+      } catch (parseErr: any) {
+        resumeParseStatus = "failed";
+        resumeParseError = parseErr?.message || "Resume parsing failed";
+      }
       await prisma.assessment.update({
         where: { id: assessmentId },
         data: {
           resumeFileUrl: dataUrl,
           resumeFileName: file.name,
           resumeFileSize: file.size,
+          resumeParsedData,
+          resumeParseStatus,
+          resumeParseError,
         },
       });
     }
 
     if (kind === "linkedin") {
+      let linkedinParsedData = null;
+      let linkedinParseStatus = "complete";
+      let linkedinParseError = null;
+      try {
+        const text = await extractTextFromBuffer(buffer, file.name);
+        linkedinParsedData = parseLinkedInText(text);
+      } catch (parseErr: any) {
+        linkedinParseStatus = "failed";
+        linkedinParseError = parseErr?.message || "LinkedIn parsing failed";
+      }
       await prisma.assessment.update({
         where: { id: assessmentId },
         data: {
           linkedinFileUrl: dataUrl,
           linkedinFileName: file.name,
+          linkedinParsedData,
+          linkedinParseStatus,
+          linkedinParseError,
         },
       });
     }

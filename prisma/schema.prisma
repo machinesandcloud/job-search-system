@@ -94,6 +94,13 @@ model Assessment {
   resultsEmailSent Boolean @default(false)
   proPackEmailSent Boolean @default(false)
 
+  resumeParsedData   Json?
+  linkedinParsedData Json?
+  resumeParseStatus  String?
+  linkedinParseStatus String?
+  resumeParseError   String?
+  linkedinParseError String?
+
   profileData      Json?
   resumeHealthData Json?
   skillMatchData   Json?
@@ -113,6 +120,19 @@ model Assessment {
   @@index([userId])
   @@index([aiAnalysisStatus])
   @@index([createdAt])
+}
+
+model TaskCompletion {
+  id           String   @id @default(uuid()) @db.Uuid
+  assessmentId String   @db.Uuid
+  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  taskId       String
+  completed    Boolean  @default(false)
+  completedAt  DateTime?
+  createdAt    DateTime @default(now())
+
+  @@unique([assessmentId, taskId])
+  @@index([assessmentId])
 }
 
 model Role {

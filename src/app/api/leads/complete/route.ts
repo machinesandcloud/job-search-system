@@ -68,13 +68,30 @@ export async function POST(request: Request) {
   const targetRolesJson = JSON.parse(JSON.stringify(answers.targetRoles)) as Prisma.InputJsonValue;
   const targetCompaniesJson = JSON.parse(JSON.stringify(answers.targetCompanies)) as Prisma.InputJsonValue;
 
-  const aiInsights = await generateCoachFeedback(answers);
+  const existingAssessment = assessmentId
+    ? await prisma.assessment.findUnique({
+        where: { id: assessmentId },
+        select: {
+          resumeParsedData: true,
+          linkedinParsedData: true,
+        },
+      })
+    : null;
+
+  const aiInsights = await generateCoachFeedback(answers, {
+    resumeParsedData: existingAssessment?.resumeParsedData,
+    linkedinParsedData: existingAssessment?.linkedinParsedData,
+  });
   const recommendedRoute =
     (route === "Fast Track" ? "FastTrack" : route === "Guided" ? "Guided" : "DIY") as Prisma.AssessmentCreateInput["recommendedRoute"];
 
-  const profileData = buildProfileData(answers);
-  const resumeHealthData = buildResumeHealthData(answers);
-  const skillMatchData = buildSkillMatchData(answers);
+  const profileData = buildProfileData(
+    answers,
+    (existingAssessment?.resumeParsedData as any) || null,
+    (existingAssessment?.linkedinParsedData as any) || null
+  );
+  const resumeHealthData = buildResumeHealthData(answers, (existingAssessment?.resumeParsedData as any) || null);
+  const skillMatchData = buildSkillMatchData(answers, (existingAssessment?.resumeParsedData as any) || null);
   const taskProgress = buildTaskProgress(answers);
   const achievements = buildAchievements(answers);
   const applications = buildApplications(answers);
