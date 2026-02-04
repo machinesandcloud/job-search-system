@@ -319,7 +319,13 @@ export default function JobSearchWizard() {
     form.append("kind", kind);
     form.append("file", file);
     const res = await fetch("/api/leads/upload", { method: "POST", body: form });
-    const data = await res.json();
+    const text = await res.text();
+    let data: any = {};
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch (_err) {
+      data = {};
+    }
     if (!res.ok) throw new Error(data.error || "Upload failed");
     if (kind === "resume") {
       updateAnswers({ resumeFileUrl: data.url, resumeFileName: data.name, resumeFileSize: data.size });
