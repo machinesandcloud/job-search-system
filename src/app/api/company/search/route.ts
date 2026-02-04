@@ -32,6 +32,12 @@ async function handleSearch(query: string) {
       name: { contains: query, mode: "insensitive" },
     },
     take: 8,
+    select: {
+      id: true,
+      name: true,
+      logoUrl: true,
+      category: true,
+    },
   });
 
   const results = dbResults.map((company) => ({

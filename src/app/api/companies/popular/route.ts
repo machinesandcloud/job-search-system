@@ -6,6 +6,13 @@ export async function GET() {
     where: { isPopular: true },
     orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
     take: 16,
+    select: {
+      id: true,
+      name: true,
+      logoUrl: true,
+      category: true,
+      isPopular: true,
+    },
   });
   return NextResponse.json({ companies });
 }

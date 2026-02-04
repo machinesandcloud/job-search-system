@@ -9,6 +9,11 @@ export async function GET(request: Request) {
     where: { name: { contains: q, mode: "insensitive" } },
     orderBy: [{ isPopular: "desc" }, { sortOrder: "asc" }],
     take: 8,
+    select: {
+      id: true,
+      name: true,
+      isPopular: true,
+    },
   });
   return NextResponse.json({ roles });
 }
