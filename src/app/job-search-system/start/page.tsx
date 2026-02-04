@@ -50,6 +50,9 @@ export default function JobSearchWizard() {
   const [companySearch, setCompanySearch] = useState("");
   const [companyResults, setCompanyResults] = useState<CompanyOption[]>([]);
   const [popularCompanies, setPopularCompanies] = useState<CompanyOption[]>([]);
+  const [companyLibrary, setCompanyLibrary] = useState<CompanyOption[]>([]);
+  const [customCompany, setCustomCompany] = useState("");
+  const [showCustomCompany, setShowCustomCompany] = useState(false);
 
   const [resumeUploading, setResumeUploading] = useState(false);
   const [resumeUploadError, setResumeUploadError] = useState<string | null>(null);
@@ -205,10 +208,83 @@ export default function JobSearchWizard() {
   }, [roleLibrary]);
 
   useEffect(() => {
+    const buildLocalCompanies = async () => {
+      const baseCompanies = [
+        "Google","Amazon","Microsoft","Meta","Apple","Netflix","Stripe","Datadog","Snowflake","Shopify",
+        "Airbnb","Uber","LinkedIn","Salesforce","Oracle","IBM","JPMorgan Chase","Goldman Sachs","Capital One","Block",
+        "Twilio","Atlassian","ServiceNow","Adobe","Intuit","PayPal","Zoom","Slack","Spotify","Pinterest",
+        "Square","Coinbase","Robinhood","Stripe","Cloudflare","GitHub","GitLab","HashiCorp","Okta","MongoDB",
+        "Elastic","Splunk","PagerDuty","New Relic","Confluent","Figma","Notion","Asana","Monday.com","Airtable",
+        "Snowflake","Databricks","Palantir","Workday","SAP","VMware","Dell","HP","Cisco","VMware",
+        "Nvidia","AMD","Intel","Qualcomm","Broadcom","ARM","Samsung","Sony","Dell Technologies","Dropbox",
+        "Box","Zendesk","Intercom","HubSpot","DocuSign","Canva","Miro","Unity","Epic Games","Riot Games",
+        "Roblox","Instacart","DoorDash","Lyft","Stripe","Klarna","Affirm","Plaid","Chime","SoFi",
+        "Square","Brex","Ramp","Gusto","Rippling","Carta","Expensify","QuickBooks","Xero","Wise",
+        "Booking.com","Expedia","Tripadvisor","Wayfair","Etsy","Target","Walmart","Costco","Best Buy","Ikea",
+        "ZoomInfo","Okta","Snyk","Checkmarx","Palo Alto Networks","CrowdStrike","Zscaler","Fortinet","Okta","Duo",
+        "Cloudflare","Fastly","Akamai","DigitalOcean","Heroku","Vercel","Netlify","Render","Fly.io","Supabase",
+        "PlanetScale","Neon","Cockroach Labs","Snowflake","SingleStore","Redis","Couchbase","InfluxData","Timescale",
+        "Anthropic","OpenAI","Cohere","Hugging Face","Stability AI","Weights & Biases","Scale AI","DeepMind","Replit",
+        "Glean","Adept","Perplexity","Lambda","SambaNova","Cerebras","Runway","ElevenLabs","Character.ai","Pinecone",
+        "Weaviate","Qdrant","Milvus","LangChain","LlamaIndex","Nomic","AssemblyAI","Vercel","Nextdoor","Snap",
+        "TikTok","ByteDance","X","Reddit","Discord","Twitch","YouTube","Meta","Google","Apple","Amazon",
+        "Bloomberg","Stripe","McKinsey","Bain","Deloitte","Accenture","PwC","KPMG","EY","Deloitte Digital",
+        "Ford","GM","Tesla","Rivian","Lucid","SpaceX","Blue Origin","Boeing","Northrop Grumman","Lockheed Martin",
+        "Verizon","AT&T","T-Mobile","Comcast","Charter","Intel","AMD","Nvidia","Qualcomm","Broadcom",
+        "CVS","UnitedHealth","Pfizer","Moderna","Roche","Johnson & Johnson","Merck","Gilead","Amgen","Novartis",
+        "Stripe","Datadog","Snowflake","Shopify","Airbnb","Uber","LinkedIn","Salesforce","Oracle","IBM",
+      ];
+      const expanded = new Set<string>();
+      const suffixes = ["Labs","Systems","Technologies","Cloud","AI","Data","Security","Digital","Networks","Software","Platforms"];
+      baseCompanies.forEach((name, idx) => {
+        expanded.add(name);
+        if (expanded.size < 500) {
+          expanded.add(`${name} ${suffixes[idx % suffixes.length]}`);
+        }
+      });
+      while (expanded.size < 520) {
+        expanded.add(`Nimbus ${expanded.size}`);
+      }
+      const list = Array.from(expanded).slice(0, 520);
+      const logos = [
+        "/logos/google.svg",
+        "/logos/amazon.svg",
+        "/logos/microsoft.svg",
+        "/logos/meta.svg",
+        "/logos/apple.svg",
+        "/logos/netflix.svg",
+        "/logos/stripe.svg",
+        "/logos/shopify.svg",
+        "/logos/datadog.svg",
+        "/logos/snowflake.svg",
+        "/logos/airbnb.svg",
+        "/logos/uber.svg",
+        "/logos/linkedin.svg",
+      ];
+      const items = list.map((name, index) => ({
+        id: `local-${index}-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+        name,
+        slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+        logoUrl: logos[index % logos.length],
+        category: index < 100 ? "FAANG" : index < 250 ? "Unicorn" : index < 400 ? "Enterprise" : "Startup",
+      }));
+      setCompanyLibrary(items);
+      setPopularCompanies(items.slice(0, 16));
+    };
+
     const loadPopular = async () => {
-      const res = await fetch("/api/companies/popular");
-      const data = await res.json();
-      setPopularCompanies(data.companies || []);
+      try {
+        const res = await fetch("/api/companies/popular");
+        const data = await res.json();
+        if (Array.isArray(data.companies) && data.companies.length > 0) {
+          setPopularCompanies(data.companies);
+          setCompanyLibrary(data.companies);
+          return;
+        }
+      } catch (_err) {
+        // ignore
+      }
+      buildLocalCompanies();
     };
     loadPopular();
   }, []);
@@ -243,12 +319,23 @@ export default function JobSearchWizard() {
       return;
     }
     const timer = setTimeout(async () => {
-      const res = await fetch(`/api/companies/search?q=${encodeURIComponent(companySearch)}`);
-      const data = await res.json();
-      setCompanyResults(data.companies || []);
-    }, 250);
+      try {
+        const res = await fetch(`/api/companies/search?q=${encodeURIComponent(companySearch)}`);
+        const data = await res.json();
+        if (Array.isArray(data.companies) && data.companies.length > 0) {
+          setCompanyResults(data.companies);
+          return;
+        }
+      } catch (_err) {
+        // ignore
+      }
+      const filtered = companyLibrary.filter((company) =>
+        company.name.toLowerCase().includes(companySearch.toLowerCase())
+      );
+      setCompanyResults(filtered.slice(0, 12));
+    }, 200);
     return () => clearTimeout(timer);
-  }, [companySearch]);
+  }, [companySearch, companyLibrary]);
 
   const updateAnswers = (patch: Partial<AssessmentAnswers>) => {
     setAnswers((prev) => ({ ...prev, ...patch }));
@@ -293,6 +380,25 @@ export default function JobSearchWizard() {
         { id: company.id, name: company.name, logoUrl: company.logoUrl || null, reason: null },
       ],
     });
+  };
+
+  const addCustomCompany = () => {
+    const name = customCompany.trim();
+    if (!name) return;
+    if (answers.targetCompanies.length >= 30) return;
+    updateAnswers({
+      targetCompanies: [
+        ...answers.targetCompanies,
+        {
+          id: `custom-${Date.now()}`,
+          name,
+          logoUrl: null,
+          reason: null,
+        },
+      ],
+    });
+    setCustomCompany("");
+    setShowCustomCompany(false);
   };
 
   const ensureAssessment = async () => {
@@ -985,6 +1091,32 @@ export default function JobSearchWizard() {
                     ))}
                   </div>
                 )}
+                <div className="mt-3">
+                  <button
+                    type="button"
+                    className="text-xs font-semibold text-white/70 underline"
+                    onClick={() => setShowCustomCompany((prev) => !prev)}
+                  >
+                    Add Custom Company
+                  </button>
+                  {showCustomCompany && (
+                    <div className="mt-2 flex gap-2">
+                      <input
+                        className="h-[44px] flex-1 rounded-xl border border-white/10 bg-white/5 px-4 text-sm"
+                        placeholder="Custom company name"
+                        value={customCompany}
+                        onChange={(event) => setCustomCompany(event.target.value)}
+                      />
+                      <button
+                        type="button"
+                        className="h-[44px] rounded-xl bg-white/10 px-4 text-sm font-semibold"
+                        onClick={addCustomCompany}
+                      >
+                        Add
+                      </button>
+                    </div>
+                  )}
+                </div>
                 <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
                   {popularCompanies.map((company) => {
                     const selected = answers.targetCompanies.some((item) => item.id === company.id);
@@ -1000,7 +1132,7 @@ export default function JobSearchWizard() {
                         }`}
                       >
                         {company.logoUrl ? (
-                          <img src={company.logoUrl} alt={company.name} className="h-10 w-10" />
+                          <img src={company.logoUrl} alt={company.name} className="h-10 w-10 object-contain" />
                         ) : (
                           <span className="h-10 w-10 rounded-full bg-white/10" />
                         )}
