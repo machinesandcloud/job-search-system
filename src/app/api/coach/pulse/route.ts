@@ -10,12 +10,12 @@ export async function POST(request: Request) {
   }
   const body = await request.json();
   const normalized = sanitizeAnswers(body?.answers || {});
-  const merged = { ...defaultAnswers, ...normalized };
-  if (!Array.isArray(merged.roles) || merged.roles.length === 0) {
-    merged.roles = ["your target role"];
+  const merged: any = { ...defaultAnswers, ...normalized };
+  if (!Array.isArray(merged.targetRoles) || merged.targetRoles.length === 0) {
+    merged.targetRoles = [{ name: "your target role", isCustom: true, id: null }];
   }
   const aiMessage = await generateCoachPulse(merged, body?.step);
   if (aiMessage) return NextResponse.json({ message: aiMessage, aiEnabled: true });
-  const fallback = `So far I’m hearing ${merged.level} ${merged.roles[0]} targets on a ${merged.timeline} timeline. I’ll keep the plan focused on what moves the needle first — let’s finish ${body?.step || "this step"}.`;
+  const fallback = `So far I’m hearing ${merged.level} ${merged.targetRoles[0].name} targets on a ${merged.timeline} timeline. I’ll keep the plan focused on what moves the needle first — let’s finish ${body?.step || "this step"}.`;
   return NextResponse.json({ message: fallback, aiEnabled: false });
 }

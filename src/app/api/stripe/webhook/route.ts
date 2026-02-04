@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getStripeClient } from "@/lib/stripe";
 import { prisma } from "@/lib/db";
 import { logEvent } from "@/lib/events";
+import { buildProPack } from "@/lib/pro-pack";
 
 export const runtime = "nodejs";
 
@@ -11,26 +12,55 @@ export async function POST(request: Request) {
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!signature || !secret) return NextResponse.json({ error: "Missing signature" }, { status: 400 });
 
-  const stripe = getStripeClient();
+  let stripe;
+  try {
+    stripe = getStripeClient();
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message || "Stripe not configured" }, { status: 501 });
+  }
   let event;
   try {
     event = stripe.webhooks.constructEvent(body, signature, secret);
-  } catch (err) {
+  } catch (_err) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
+  const existing = await prisma.stripeWebhook.findUnique({ where: { eventId: event.id } });
+  if (existing) {
+    return NextResponse.json({ received: true });
+  }
+
+  await prisma.stripeWebhook.create({
+    data: {
+      eventId: event.id,
+      eventType: event.type,
+      payload: event as any,
+      processed: false,
+    },
+  });
+
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as any;
-    const leadId = session.metadata?.leadId;
-    if (leadId) {
-      await prisma.purchase.updateMany({
-        where: { stripeCheckoutSessionId: session.id },
+    const assessmentId = session.metadata?.assessmentId;
+    if (assessmentId) {
+      const assessment = await prisma.assessment.findUnique({ where: { id: assessmentId } });
+      const proPackData =
+        assessment && assessment.targetRoles ? buildProPack(assessment as any) : null;
+      await prisma.assessment.update({
+        where: { id: assessmentId },
         data: {
-          status: "SUCCEEDED",
-          stripePaymentIntentId: session.payment_intent,
+          hasPurchasedPro: true,
+          stripePaymentIntent: session.payment_intent,
+          purchaseDate: new Date(),
+          purchaseAmount: session.amount_total || 4900,
+          proPackData: proPackData ? (proPackData as any) : undefined,
         },
       });
-      await logEvent("purchase_completed", { sessionId: session.id }, leadId);
+      await prisma.stripeWebhook.update({
+        where: { eventId: event.id },
+        data: { assessmentId, processed: true },
+      });
+      await logEvent("purchase_completed", { sessionId: session.id }, assessmentId);
     }
   }
 

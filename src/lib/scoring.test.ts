@@ -1,33 +1,35 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { computeScore } from "./scoring";
-import type { LeadAnswers } from "./validation";
+import type { AssessmentAnswers } from "./validation";
 
-const baseAnswers: LeadAnswers = {
-  roles: ["DevOps Engineer"],
-  currentTitle: "Senior DevOps Engineer",
-  experienceYears: "6-9",
-  leadershipScope: "IC",
+const baseAnswers: AssessmentAnswers = {
+  targetRoles: [{ name: "DevOps Engineer", isCustom: false, id: null }],
   level: "Senior",
-  compTarget: "150k-200k",
-  compensationPriority: "Balanced",
-  timeline: "60",
-  locationType: "Remote",
-  city: "",
-  targetIndustry: "Infrastructure",
-  companyStage: "Growth",
-  hoursPerWeek: "5",
-  assets: { resume: "Draft", linkedin: "Draft", interview: "Some practice", portfolio: "Some" },
-  linkedinUrl: "https://www.linkedin.com/in/example",
-  linkedinHeadline: "",
-  linkedinSummary: "",
-  resumeText: "",
-  resumeUploaded: false,
-  networkStrength: "Medium",
-  outreachComfort: "Medium",
-  companyTargets: [],
-  constraints: [],
-  biggestBlocker: "Not getting responses",
-  pipeline: "Some",
+  compTarget: "$150k-$200k",
+  timeline: "1-2 months",
+  locationPreference: "Remote",
+  locationCity: null,
+  hoursPerWeek: 5,
+  resumeStatus: "needs_work",
+  linkedinStatus: "basic",
+  portfolioStatus: false,
+  interviewReady: false,
+  resumeFileUrl: null,
+  resumeFileName: null,
+  resumeFileSize: null,
+  linkedinFileUrl: null,
+  linkedinFileName: null,
+  networkStrength: "moderate",
+  outreachComfort: "neutral",
+  targetCompanies: [
+    { id: null, name: "Google", logoUrl: null, reason: null },
+    { id: null, name: "Amazon", logoUrl: null, reason: null },
+    { id: null, name: "Microsoft", logoUrl: null, reason: null },
+    { id: null, name: "Apple", logoUrl: null, reason: null },
+    { id: null, name: "Netflix", logoUrl: null, reason: null },
+  ],
+  biggestBlocker: "responses",
+  additionalContext: null,
 };
 
 describe("computeScore", () => {
@@ -35,19 +37,5 @@ describe("computeScore", () => {
     const result = computeScore(baseAnswers);
     expect(result.score).toBeGreaterThanOrEqual(0);
     expect(result.score).toBeLessThanOrEqual(100);
-  });
-
-  it("assigns fast track for high score + urgent timeline", () => {
-    const result = computeScore({
-      ...baseAnswers,
-      timeline: "30",
-      compTarget: "300k+",
-      hoursPerWeek: "12+",
-      assets: { resume: "Strong", linkedin: "Strong", interview: "Confident", portfolio: "Strong" },
-      networkStrength: "Strong",
-      outreachComfort: "High",
-      pipeline: "Active",
-    });
-    expect(result.route).toBe("FAST_TRACK");
   });
 });

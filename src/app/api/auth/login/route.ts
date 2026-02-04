@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma, isDatabaseReady } from "@/lib/db";
-import { attachLeadToUser, createUserSession, verifyPassword } from "@/lib/user-auth";
+import { attachAssessmentToUser, createUserSession, verifyPassword } from "@/lib/user-auth";
 import { ensureSameOrigin } from "@/lib/utils";
 
 export async function POST(request: Request) {
@@ -13,19 +13,24 @@ export async function POST(request: Request) {
   const body = await request.json();
   const email = String(body?.email || "").trim().toLowerCase();
   const password = String(body?.password || "");
-  const leadId = String(body?.leadId || "");
+  const assessmentId = String(body?.assessmentId || "");
 
   if (!email || !password) {
     return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
   }
 
   const user = await prisma.user.findUnique({ where: { email } });
-  if (!user || !verifyPassword(password, user.password)) {
-    return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+  if (!user) {
+    return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
   }
 
-  if (leadId) {
-    await attachLeadToUser(leadId, user.id);
+  const ok = await verifyPassword(password, user.passwordHash);
+  if (!ok) {
+    return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+  }
+
+  if (assessmentId) {
+    await attachAssessmentToUser(assessmentId, user.id);
   }
   await createUserSession(user.id);
   return NextResponse.json({ ok: true });

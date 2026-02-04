@@ -1,138 +1,143 @@
-import type { LeadAnswers } from "@/lib/validation";
+import type { AssessmentAnswers } from "@/lib/validation";
+import { computeScore } from "@/lib/scoring";
 
-const apiKey = process.env.GEMINI_API_KEY;
-const model = process.env.GEMINI_MODEL || "gemini-2.0-flash";
+const ROLE_KEYWORDS: Record<string, { must: string[]; nice: string[] }> = {
+  "DevOps Engineer": {
+    must: ["CI/CD", "Docker", "Kubernetes", "AWS", "Terraform", "Monitoring", "Automation"],
+    nice: ["Ansible", "Prometheus", "Helm", "GitLab CI", "Observability"],
+  },
+  "Site Reliability Engineer": {
+    must: ["Reliability", "SLO/SLA", "Incident response", "Kubernetes", "Monitoring", "Automation"],
+    nice: ["Chaos engineering", "Prometheus", "Grafana", "Python", "Go"],
+  },
+  "Platform Engineer": {
+    must: ["Platform", "Kubernetes", "Infrastructure", "CI/CD", "Terraform", "Developer experience"],
+    nice: ["Helm", "ArgoCD", "Internal tools", "Service catalog"],
+  },
+  "Engineering Manager": {
+    must: ["People management", "Delivery", "Hiring", "Roadmaps", "Execution"],
+    nice: ["Stakeholder management", "Metrics", "Cross-functional leadership"],
+  },
+  "Director of Engineering": {
+    must: ["Org leadership", "Strategy", "Scaling teams", "Hiring", "Execution"],
+    nice: ["Budgeting", "Cross-org alignment", "Operating cadence"],
+  },
+  "Senior Backend Engineer": {
+    must: ["APIs", "Databases", "Distributed systems", "Performance", "Testing"],
+    nice: ["System design", "Caching", "Observability", "Go/Java/Node"],
+  },
+  "Senior Frontend Engineer": {
+    must: ["React", "TypeScript", "Performance", "Accessibility", "Design systems"],
+    nice: ["Next.js", "Testing", "Animation", "SEO"],
+  },
+  "Staff Engineer": {
+    must: ["System design", "Technical leadership", "Mentoring", "Architecture"],
+    nice: ["Cross-team alignment", "RFCs", "Platform strategy"],
+  },
+  "Principal Engineer": {
+    must: ["Architecture", "Influence", "Cross-org impact", "System design"],
+    nice: ["Operating model", "Platform vision", "Risk management"],
+  },
+  "Cloud Architect": {
+    must: ["AWS/Azure/GCP", "Networking", "Security", "Infrastructure", "Architecture"],
+    nice: ["Cost optimization", "Governance", "IaC"],
+  },
+};
 
-export async function generateCoachFeedback(answers: LeadAnswers) {
-  if (!apiKey) return null;
-  const prompt = `You are a senior career coach. Write a concise, specific, encouraging coach note (4-6 sentences) based on the user's inputs. Use direct "you" language, mention their role, timeline, hours/week, and one constraint or blocker if present. Include a one‑sentence overview of the plan (week 1 focus). End with a clear first focus area. Keep it under 140 words.
-
-Inputs:
-Role(s): ${answers.roles.join(", ")}
-Level: ${answers.level}
-Current title: ${answers.currentTitle || "N/A"}
-Experience: ${answers.experienceYears} years
-Leadership scope: ${answers.leadershipScope}
-Comp target: ${answers.compTarget} (${answers.compensationPriority})
-Timeline: ${answers.timeline}
-Location: ${answers.locationType} ${answers.city || ""}
-Industry: ${answers.targetIndustry}
-Company stage: ${answers.companyStage}
-Hours/week: ${answers.hoursPerWeek}
-Assets: resume ${answers.assets.resume}, LinkedIn ${answers.assets.linkedin}, interview ${answers.assets.interview}, portfolio ${answers.assets.portfolio}
-Network: ${answers.networkStrength}, outreach comfort ${answers.outreachComfort}
-Constraints: ${(answers.constraints || []).join(", ") || "None"}
-Biggest blocker: ${answers.biggestBlocker}${answers.blockerNote ? ` (${answers.blockerNote})` : ""}
-`;
-
-  try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.4,
-            maxOutputTokens: 220,
-          },
-        }),
-      }
-    );
-    if (!res.ok) return null;
-    const data = await res.json();
-    const text = data?.candidates?.[0]?.content?.parts
-      ?.map((part: { text?: string }) => part.text || "")
-      .join("")
-      .trim();
-    return text ? text.slice(0, 1000) : null;
-  } catch {
-    return null;
-  }
+function pickRoleKeywords(answers: AssessmentAnswers) {
+  const roleName = answers.targetRoles[0]?.name || "DevOps Engineer";
+  return ROLE_KEYWORDS[roleName] || ROLE_KEYWORDS["DevOps Engineer"];
 }
 
-export async function generateCoachPulse(answers: LeadAnswers, step?: string) {
-  if (!apiKey) return null;
-  const prompt = `You are a senior career coach. Write a short, conversational pulse (1-2 sentences) reacting to the user's inputs so far. Mention their role, timeline, and one priority. End with a gentle prompt for the current step: ${step || "next step"}. Keep it under 40 words.
-
-Inputs:
-Role(s): ${answers.roles.join(", ")}
-Level: ${answers.level}
-Timeline: ${answers.timeline}
-Hours/week: ${answers.hoursPerWeek}
-Constraints: ${(answers.constraints || []).join(", ") || "None"}
-Biggest blocker: ${answers.biggestBlocker}${answers.blockerNote ? ` (${answers.blockerNote})` : ""}
-`;
-
-  try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.4,
-            maxOutputTokens: 120,
-          },
-        }),
-      }
-    );
-    if (!res.ok) return null;
-    const data = await res.json();
-    const text = data?.candidates?.[0]?.content?.parts
-      ?.map((part: { text?: string }) => part.text || "")
-      .join("")
-      .trim();
-    return text ? text.slice(0, 220) : null;
-  } catch {
-    return null;
-  }
+function buildWeeklyPlan(answers: AssessmentAnswers) {
+  const role = answers.targetRoles[0]?.name || "your target role";
+  const companies = answers.targetCompanies.slice(0, 6).map((c) => c.name);
+  const companyList = companies.length ? companies.join(", ") : "your top companies";
+  return {
+    week1: [
+      `Refine LinkedIn headline to match ${role} keywords.`,
+      `Build a 20-company target list including ${companyList}.`,
+      "Draft 3 outreach scripts (referral ask, recruiter opener, follow-up).",
+    ],
+    week2: [
+      "Customize your resume for your top 5 roles.",
+      "Send 10 warm connection requests with personalized notes.",
+      "Apply to 3 high-fit roles using tailored materials.",
+    ],
+  };
 }
 
-export async function generateAssetReview(answers: LeadAnswers) {
-  if (!apiKey) return null;
-  const prompt = `You are a senior career coach and recruiter. Review the user's resume notes and LinkedIn details and provide:
-1) 2-3 specific resume improvements,
-2) 2-3 specific LinkedIn improvements,
-3) one credibility gap to close,
-4) one immediate action for this week.
-Keep it concise and supportive. Use bullets. If inputs are missing, mention what to add.
+export async function generateCoachFeedback(answers: AssessmentAnswers) {
+  const { score, subscores, route } = computeScore(answers);
+  const lowest = Object.entries(subscores).sort((a, b) => a[1] - b[1])[0]?.[0] || "clarity";
+  const primaryGap =
+    lowest === "clarity"
+      ? "Your focus is still diffuse. Tighten role + level + target list."
+      : lowest === "assets"
+      ? "Your assets aren’t signal-strong yet. Fix resume + LinkedIn first."
+      : lowest === "network"
+      ? "Your network leverage is limiting reach. Prioritize warm outreach."
+      : "Execution cadence is too light. Increase weekly reps and tracking.";
 
-Role: ${answers.roles.join(", ")}
-Level: ${answers.level}
-Timeline: ${answers.timeline}
-Resume notes: ${answers.resumeText || "Not provided"}
-LinkedIn headline: ${answers.linkedinHeadline || "Not provided"}
-LinkedIn summary: ${answers.linkedinSummary || "Not provided"}
-LinkedIn URL: ${answers.linkedinUrl || "Not provided"}
-`;
+  const secondaryGap =
+    answers.interviewReady
+      ? "Conversion can improve with tighter interview loops and practice."
+      : "Interview readiness is a risk. Build reps before late-stage loops.";
 
-  try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.4,
-            maxOutputTokens: 320,
-          },
-        }),
-      }
-    );
-    if (!res.ok) return null;
-    const data = await res.json();
-    const text = data?.candidates?.[0]?.content?.parts
-      ?.map((part: { text?: string }) => part.text || "")
-      .join("")
-      .trim();
-    return text ? text.slice(0, 1500) : null;
-  } catch {
-    return null;
+  const quickWin = answers.linkedinStatus === "optimized"
+    ? "Send 5 targeted connection requests with a specific 2-line ask."
+    : "Update your LinkedIn headline + About section to match your target role.";
+
+  const weeklyPlan = buildWeeklyPlan(answers);
+  const companyFit =
+    answers.targetCompanies.length >= 10
+      ? "Strong list. Add 3-5 mid-stage companies to increase response rate."
+      : "Expand to 15-20 companies to diversify response rate while staying focused.";
+
+  const routeReasoning =
+    route === "Fast Track"
+      ? "Your score + urgency suggest you can move fast with structured support."
+      : route === "Guided"
+      ? "You have solid fundamentals but need tighter execution to convert."
+      : "Your timeline or clarity needs work before a fast-track push.";
+
+  return {
+    primaryGap,
+    secondaryGap,
+    quickWin,
+    weeklyPlan,
+    companyFit,
+    routeReasoning,
+    meta: {
+      score,
+      subscores,
+      keywords: pickRoleKeywords(answers),
+    },
+  };
+}
+
+export async function generateCoachPulse(answers: AssessmentAnswers, step?: string) {
+  const role = answers.targetRoles[0]?.name || "your target role";
+  if (step === "roles") {
+    return `Focus on 1–3 ${role} targets. Precision beats volume here.`;
   }
+  if (step === "assets") {
+    return "We’ll tighten assets first so every application converts at higher rates.";
+  }
+  if (step === "companies") {
+    return "Pick companies you’d actually accept. Fit drives faster offers.";
+  }
+  return `We’ll design a ${answers.timeline} plan for ${role} roles with clear leverage points.`;
+}
+
+export async function generateAssetReview(answers: AssessmentAnswers) {
+  const keywords = pickRoleKeywords(answers);
+  return {
+    role: answers.targetRoles[0]?.name || "DevOps Engineer",
+    mustHaveKeywords: keywords.must,
+    niceToHaveKeywords: keywords.nice,
+    missingFromYourResume: keywords.must.slice(0, 3),
+    howToAdd:
+      "Add a Technical Skills section and weave key tools into recent project bullets.",
+  };
 }

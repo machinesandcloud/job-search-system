@@ -3,54 +3,175 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Progress } from "@/components/ui/progress";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
-import { RoleSelect } from "@/components/role-select";
-import { ScoreGauge } from "@/components/score-gauge";
 import { AccountGate } from "@/components/account-gate";
-import type { LeadAnswers } from "@/lib/validation";
+import { ScoreGauge } from "@/components/score-gauge";
+import type { AssessmentAnswers } from "@/lib/validation";
 import { defaultAnswers } from "@/lib/defaults";
 
 const steps = [
-  "Target role",
-  "Level",
-  "Comp target",
+  "Target Roles",
+  "Experience Level",
+  "Compensation",
   "Timeline",
   "Location",
-  "Time available",
-  "Current assets",
-  "Biggest blocker",
+  "Time Commitment",
+  "Assets",
+  "Network & Companies",
+  "Biggest Blocker",
 ];
+
+type RoleOption = { id: string; name: string; slug: string; isPopular: boolean };
+
+type CompanyOption = {
+  id: string;
+  name: string;
+  slug: string;
+  logoUrl?: string | null;
+  category: string;
+};
 
 export default function JobSearchWizard() {
   const router = useRouter();
-  const [answers, setAnswers] = useState<LeadAnswers>(defaultAnswers);
   const [step, setStep] = useState(0);
-  const [leadId, setLeadId] = useState<string | null>(null);
+  const [answers, setAnswers] = useState<AssessmentAnswers>(defaultAnswers);
+  const [assessmentId, setAssessmentId] = useState<string | null>(null);
   const [teaser, setTeaser] = useState<any>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const progress = ((step + 1) / steps.length) * 100;
+  const [roleSearch, setRoleSearch] = useState("");
+  const [roleResults, setRoleResults] = useState<RoleOption[]>([]);
+  const [popularRoles, setPopularRoles] = useState<RoleOption[]>([]);
+  const [customRole, setCustomRole] = useState("");
+  const [showCustomRole, setShowCustomRole] = useState(false);
+
+  const [companySearch, setCompanySearch] = useState("");
+  const [companyResults, setCompanyResults] = useState<CompanyOption[]>([]);
+  const [popularCompanies, setPopularCompanies] = useState<CompanyOption[]>([]);
+
+  const [resumeUploading, setResumeUploading] = useState(false);
+  const [linkedinUploading, setLinkedinUploading] = useState(false);
+  const [linkedinMode, setLinkedinMode] = useState<"url" | "upload">("url");
+
+  const progress = Math.round(((step + 1) / steps.length) * 100);
 
   useEffect(() => {
-    const createLead = async () => {
+    const boot = async () => {
       const res = await fetch("/api/leads/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ answers: {} }),
       });
       const data = await res.json();
-      setLeadId(data.leadId);
+      if (data.assessmentId) setAssessmentId(data.assessmentId);
     };
-    createLead();
+    boot();
   }, []);
 
-  const updateAnswers = (patch: Partial<LeadAnswers>) =>
+  useEffect(() => {
+    const loadPopular = async () => {
+      const res = await fetch("/api/roles/popular");
+      const data = await res.json();
+      setPopularRoles(data.roles || []);
+    };
+    loadPopular();
+  }, []);
+
+  useEffect(() => {
+    const loadPopular = async () => {
+      const res = await fetch("/api/companies/popular");
+      const data = await res.json();
+      setPopularCompanies(data.companies || []);
+    };
+    loadPopular();
+  }, []);
+
+  useEffect(() => {
+    if (!roleSearch) {
+      setRoleResults([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      const res = await fetch(`/api/roles/search?q=${encodeURIComponent(roleSearch)}`);
+      const data = await res.json();
+      setRoleResults(data.roles || []);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [roleSearch]);
+
+  useEffect(() => {
+    if (!companySearch) {
+      setCompanyResults([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      const res = await fetch(`/api/companies/search?q=${encodeURIComponent(companySearch)}`);
+      const data = await res.json();
+      setCompanyResults(data.companies || []);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [companySearch]);
+
+  const updateAnswers = (patch: Partial<AssessmentAnswers>) =>
     setAnswers((prev) => ({ ...prev, ...patch }));
+
+  const toggleRole = (role: RoleOption) => {
+    const exists = answers.targetRoles.find((item) => item.name === role.name);
+    if (exists) {
+      updateAnswers({ targetRoles: answers.targetRoles.filter((item) => item.name !== role.name) });
+      return;
+    }
+    if (answers.targetRoles.length >= 3) return;
+    updateAnswers({
+      targetRoles: [...answers.targetRoles, { name: role.name, isCustom: false, id: role.id }],
+    });
+  };
+
+  const addCustomRole = () => {
+    if (!customRole.trim() || answers.targetRoles.length >= 3) return;
+    updateAnswers({
+      targetRoles: [
+        ...answers.targetRoles,
+        { name: customRole.trim(), isCustom: true, id: null },
+      ],
+    });
+    setCustomRole("");
+  };
+
+  const toggleCompany = (company: CompanyOption) => {
+    const exists = answers.targetCompanies.find((item) => item.id === company.id);
+    if (exists) {
+      updateAnswers({
+        targetCompanies: answers.targetCompanies.filter((item) => item.id !== company.id),
+      });
+      return;
+    }
+    if (answers.targetCompanies.length >= 30) return;
+    updateAnswers({
+      targetCompanies: [
+        ...answers.targetCompanies,
+        { id: company.id, name: company.name, logoUrl: company.logoUrl || null, reason: null },
+      ],
+    });
+  };
+
+  const uploadFile = async (file: File, kind: "resume" | "linkedin") => {
+    if (!assessmentId) return;
+    const form = new FormData();
+    form.append("assessmentId", assessmentId);
+    form.append("kind", kind);
+    form.append("file", file);
+    const res = await fetch("/api/leads/upload", { method: "POST", body: form });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Upload failed");
+    if (kind === "resume") {
+      updateAnswers({ resumeFileUrl: data.url, resumeFileName: data.name, resumeFileSize: data.size });
+    }
+    if (kind === "linkedin") {
+      updateAnswers({ linkedinFileUrl: data.url, linkedinFileName: data.name });
+    }
+  };
 
   const submitWizard = async () => {
     setLoading(true);
@@ -59,12 +180,11 @@ export default function JobSearchWizard() {
       const res = await fetch("/api/leads/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ leadId, answers }),
+        body: JSON.stringify({ assessmentId, answers }),
       });
       const data = await res.json();
       if (!res.ok) {
-        const detail = data.details ? JSON.stringify(data.details) : "";
-        throw new Error(data.error || detail || "Something went wrong");
+        throw new Error(data.error || "Something went wrong");
       }
       setTeaser(data.teaser);
       setToken(data.token);
@@ -76,276 +196,623 @@ export default function JobSearchWizard() {
   };
 
   const canNext = useMemo(() => {
-    if (step === 0) return answers.roles.length > 0;
+    if (step === 0) return answers.targetRoles.length >= 1 && answers.targetRoles.length <= 3;
+    if (step === 6) return Boolean(answers.resumeFileUrl);
+    if (step === 7) return answers.targetCompanies.length >= 5 && answers.targetCompanies.length <= 30;
     return true;
   }, [step, answers]);
 
-  if (teaser && token) {
+  if (teaser && token && assessmentId) {
     return (
-      <main className="cmd-shell pb-16 pt-14">
-        <Link href="/job-search-system" className="text-sm text-slate-400">
-          Back to landing
-        </Link>
-        <div className="mt-8 grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
-          <div>
-            <h1 className="mb-2 text-3xl font-semibold text-slate-100">Your Career System Preview</h1>
-            <p className="text-slate-300">
-              Here’s a preview of your system. Create an account to unlock the full plan, templates, and scripts.
-            </p>
-            <div className="mt-6 cmd-panel rounded-3xl p-6">
-              <div className="flex flex-wrap items-center gap-4">
-                <ScoreGauge score={teaser.score} />
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-slate-400">Preview score</p>
-                  <p className="mt-1 text-sm text-slate-300">{teaser.coachRead}</p>
+      <main className="min-h-screen bg-[#0A0E27] px-6 pb-16 pt-20">
+        <div className="mx-auto w-full max-w-6xl">
+          <Link href="/job-search-system" className="text-sm text-slate-400">
+            Back to landing
+          </Link>
+          <div className="mt-8 grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
+            <div>
+              <h1 className="mb-2 text-3xl font-semibold text-slate-100">Your Career System Preview</h1>
+              <p className="text-slate-300">
+                Here’s a preview of your system. Create an account to unlock the full plan, templates, and scripts.
+              </p>
+              <div className="mt-6 cmd-panel rounded-3xl p-6">
+                <div className="flex flex-wrap items-center gap-4">
+                  <ScoreGauge score={teaser.score} />
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-slate-400">Preview score</p>
+                    <p className="mt-1 text-sm text-slate-300">{teaser.coachRead}</p>
+                  </div>
                 </div>
-              </div>
-              <div className="mt-5 grid gap-3 md:grid-cols-2">
-                <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm">
-                  <p className="text-xs uppercase tracking-wide text-slate-400">Key insight</p>
-                  <p className="mt-2 text-slate-200">{teaser.insights?.[0]}</p>
-                </div>
-                <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm">
-                  <p className="text-xs uppercase tracking-wide text-slate-400">Key insight</p>
-                  <p className="mt-2 text-slate-200">{teaser.insights?.[1]}</p>
-                </div>
-              </div>
-              <div className="mt-5 rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm">
-                <p className="text-xs uppercase tracking-wide text-slate-400">Week 1 cadence</p>
-                <ul className="mt-2 space-y-1 text-slate-200">
-                  {(teaser.previewActions || []).slice(0, 3).map((action: string) => (
-                    <li key={action}>- {action}</li>
+                <div className="mt-5 grid gap-3 md:grid-cols-2">
+                  {(teaser.insights || []).map((item: string) => (
+                    <div key={item} className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm">
+                      <p className="text-xs uppercase tracking-wide text-slate-400">Key insight</p>
+                      <p className="mt-2 text-slate-200">{item}</p>
+                    </div>
                   ))}
-                </ul>
+                </div>
+                <div className="mt-5 rounded-2xl border border-slate-700 bg-slate-950/60 p-4 text-sm">
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Week 1 cadence</p>
+                  <ul className="mt-2 space-y-1 text-slate-200">
+                    {(teaser.previewActions || []).slice(0, 3).map((action: string) => (
+                      <li key={action}>- {action}</li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             </div>
-          </div>
-          {leadId && (
             <AccountGate
-              leadId={leadId}
+              assessmentId={assessmentId}
               onSuccess={() => {
                 if (token) router.push(`/job-search-system/results/${token}`);
               }}
             />
-          )}
+          </div>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="cmd-shell pb-16 pt-14">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-semibold text-slate-100">Build your Career System</h1>
-          <p className="text-slate-300">8 focused questions to generate your plan.</p>
+    <main className="relative min-h-screen bg-[#0A0E27] px-6 pb-20 pt-32 text-white">
+      <div className="fixed left-0 right-0 top-0 z-[100] border-b border-white/10 bg-[#0A0E27]/95 backdrop-blur-xl">
+        <div className="mx-auto flex w-full max-w-[800px] flex-col gap-3 px-6 py-4">
+          <div className="flex items-center justify-between text-sm font-semibold">
+            <span>Step {step + 1} of {steps.length}</span>
+            <span>{progress}%</span>
+          </div>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-[#06B6D4] to-[#8B5CF6] transition-all"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            {steps.map((_, index) => (
+              <span
+                key={index}
+                className={`h-2 ${index === step ? "w-6" : "w-2"} rounded-full ${
+                  index <= step ? "bg-[#06B6D4]" : "bg-white/20"
+                } transition-all`}
+              />
+            ))}
+          </div>
         </div>
-        <Link href="/job-search-system" className="text-sm text-slate-400">
-          Exit
-        </Link>
       </div>
-      <Progress value={progress} />
-      <p className="mt-2 text-xs text-slate-400">
-        Step {step + 1} of {steps.length}: {steps[step]}
-      </p>
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="cmd-panel rounded-3xl p-6 shadow-sm">
+      <div className="pointer-events-none absolute right-[-200px] top-[-120px] h-[600px] w-[600px] rounded-full bg-[#06B6D4]/20 blur-[140px]" />
+      <div className="pointer-events-none absolute bottom-[-160px] left-[-140px] h-[500px] w-[500px] rounded-full bg-[#8B5CF6]/20 blur-[160px]" />
+
+      <div className="mx-auto flex w-full max-w-[700px] flex-col items-center justify-center">
+        <div className="w-full rounded-[24px] border border-white/10 bg-[rgba(15,23,42,0.8)] p-10 backdrop-blur-[16px]">
+          <div className="mb-10">
+            <span className="inline-flex items-center rounded-full bg-[#06B6D4]/20 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#06B6D4]">
+              Step {step + 1}
+            </span>
+            <h1 className="mt-4 text-3xl font-bold leading-tight">{steps[step]}</h1>
+            <p className="mt-3 text-base text-white/70">
+              {step === 0 && "Select 1-3 roles. You can add custom roles if needed."}
+              {step === 1 && "Choose the seniority level you're aiming for."}
+              {step === 2 && "Total compensation including base, bonus, and equity."}
+              {step === 3 && "Your timeline impacts strategy urgency and pacing."}
+              {step === 4 && "Select your preferred work arrangement."}
+              {step === 5 && "To job searching, applications, and interview prep."}
+              {step === 6 && "We’ll help you optimize what you have and fill the gaps."}
+              {step === 7 && "This helps us recommend the right outreach strategy."}
+              {step === 8 && "This helps us prioritize your action plan."}
+            </p>
+          </div>
+
           {step === 0 && (
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold">Target role</h2>
-              <p className="text-sm text-slate-400">Choose the role you want to land next.</p>
-              <RoleSelect value={answers.roles} onChange={(roles) => updateAnswers({ roles })} />
+            <div className="space-y-6">
+              <div className="grid gap-3 sm:grid-cols-2">
+                {popularRoles.map((role) => {
+                  const selected = answers.targetRoles.some((item) => item.name === role.name);
+                  return (
+                    <button
+                      key={role.id}
+                      type="button"
+                      onClick={() => toggleRole(role)}
+                      className={`h-11 rounded-full px-5 text-sm font-semibold transition ${
+                        selected
+                          ? "bg-gradient-to-r from-[#06B6D4] to-[#8B5CF6] text-white"
+                          : "bg-white/10 text-white/80 hover:scale-[1.02]"
+                      }`}
+                    >
+                      {role.name}
+                    </button>
+                  );
+                })}
+              </div>
+              <div>
+                <input
+                  className="h-[52px] w-full rounded-xl border border-white/10 bg-white/5 px-4 text-sm"
+                  placeholder="Search for other roles..."
+                  value={roleSearch}
+                  onChange={(event) => setRoleSearch(event.target.value)}
+                />
+                {roleResults.length > 0 && (
+                  <div className="mt-2 rounded-xl border border-white/10 bg-[#0F172A]">
+                    {roleResults.map((role) => (
+                      <button
+                        key={role.id}
+                        type="button"
+                        className="flex w-full items-center justify-between px-4 py-2 text-left text-sm hover:bg-white/5"
+                        onClick={() => toggleRole(role)}
+                      >
+                        <span>{role.name}</span>
+                        <span className="text-xs text-white/40">Add</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div>
+                <button
+                  type="button"
+                  className="text-sm font-semibold text-white/70 underline"
+                  onClick={() => setShowCustomRole((prev) => !prev)}
+                >
+                  Add Custom Role
+                </button>
+                {showCustomRole && (
+                  <div className="mt-3 flex gap-2">
+                    <input
+                      className="h-[52px] flex-1 rounded-xl border border-white/10 bg-white/5 px-4 text-sm"
+                      placeholder="Custom role title"
+                      value={customRole}
+                      onChange={(event) => setCustomRole(event.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="h-[52px] rounded-xl bg-white/10 px-4 text-sm font-semibold"
+                      onClick={addCustomRole}
+                    >
+                      Add
+                    </button>
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-white/50">{answers.targetRoles.length}/3 roles selected</p>
             </div>
           )}
+
           {step === 1 && (
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold">Level</h2>
-              <Select value={answers.level} onChange={(event) => updateAnswers({ level: event.target.value as LeadAnswers["level"] })}>
-                {(["Mid", "Senior", "Staff", "Principal", "Manager", "Director"] as const).map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </Select>
+            <div className="space-y-3">
+              {(["Mid-Level", "Senior", "Staff", "Principal", "Manager", "Director"] as const).map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => updateAnswers({ level: value })}
+                  className={`flex h-16 w-full items-center rounded-xl border px-5 text-left text-sm font-semibold transition ${
+                    answers.level === value
+                      ? "border-[#06B6D4] bg-[#06B6D4]/15"
+                      : "border-white/10 bg-white/5 hover:border-[#06B6D4]/50"
+                  }`}
+                >
+                  <span className={`mr-4 flex h-5 w-5 items-center justify-center rounded-full border ${
+                    answers.level === value ? "border-[#06B6D4] bg-[#06B6D4]" : "border-white/30"
+                  }`}>
+                    {answers.level === value && <span className="h-2 w-2 rounded-full bg-white" />}
+                  </span>
+                  {value}
+                </button>
+              ))}
             </div>
           )}
+
           {step === 2 && (
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold">Compensation target</h2>
-              <Select
-                value={answers.compTarget}
-                onChange={(event) => updateAnswers({ compTarget: event.target.value as LeadAnswers["compTarget"] })}
-              >
-              {(["100k-150k", "150k-200k", "200k-300k", "300k+"] as const).map((comp) => (
-                  <option key={comp} value={comp}>
-                    {comp}
-                  </option>
-                ))}
-              </Select>
+            <div className="space-y-3">
+              {(["$100k-$150k", "$150k-$200k", "$200k-$300k", "$300k+"] as const).map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => updateAnswers({ compTarget: value })}
+                  className={`flex h-16 w-full items-center rounded-xl border px-5 text-left text-sm font-semibold transition ${
+                    answers.compTarget === value
+                      ? "border-[#06B6D4] bg-[#06B6D4]/15"
+                      : "border-white/10 bg-white/5 hover:border-[#06B6D4]/50"
+                  }`}
+                >
+                  <span className={`mr-4 flex h-5 w-5 items-center justify-center rounded-full border ${
+                    answers.compTarget === value ? "border-[#06B6D4] bg-[#06B6D4]" : "border-white/30"
+                  }`}>
+                    {answers.compTarget === value && <span className="h-2 w-2 rounded-full bg-white" />}
+                  </span>
+                  {value}
+                </button>
+              ))}
+              <p className="text-xs text-white/50">
+                This helps us calibrate your search strategy and company targets.
+              </p>
             </div>
           )}
+
           {step === 3 && (
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold">Timeline</h2>
-              <Select value={answers.timeline} onChange={(event) => updateAnswers({ timeline: event.target.value as LeadAnswers["timeline"] })}>
-                <option value="ASAP">ASAP (&lt;30 days)</option>
-                <option value="30">1-2 months</option>
-                <option value="60">2-3 months</option>
-                <option value="90+">3+ months</option>
-              </Select>
+            <div className="space-y-3">
+              {(["ASAP (<30 days)", "1-2 months", "2-3 months", "3+ months"] as const).map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => updateAnswers({ timeline: value })}
+                  className={`flex h-16 w-full items-center justify-between rounded-xl border px-5 text-left text-sm font-semibold transition ${
+                    answers.timeline === value
+                      ? "border-[#06B6D4] bg-[#06B6D4]/15"
+                      : "border-white/10 bg-white/5 hover:border-[#06B6D4]/50"
+                  }`}
+                >
+                  <div className="flex items-center">
+                    <span className={`mr-4 flex h-5 w-5 items-center justify-center rounded-full border ${
+                      answers.timeline === value ? "border-[#06B6D4] bg-[#06B6D4]" : "border-white/30"
+                    }`}>
+                      {answers.timeline === value && <span className="h-2 w-2 rounded-full bg-white" />}
+                    </span>
+                    {value}
+                  </div>
+                  <span className="text-sm">📅</span>
+                </button>
+              ))}
             </div>
           )}
+
           {step === 4 && (
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold">Location preference</h2>
-              <Select
-                value={answers.locationType}
-                onChange={(event) => updateAnswers({ locationType: event.target.value as LeadAnswers["locationType"] })}
-              >
-                {(["Remote", "Hybrid", "Onsite"] as const).map((loc) => (
-                  <option key={loc} value={loc}>
-                    {loc}
-                  </option>
-                ))}
-              </Select>
-              {(answers.locationType === "Hybrid" || answers.locationType === "Onsite") && (
-                <Input
-                  placeholder="City (optional)"
-                  value={answers.city || ""}
-                  onChange={(event) => updateAnswers({ city: event.target.value })}
-                />
+              {(["Remote", "Hybrid", "On-site"] as const).map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => updateAnswers({ locationPreference: value })}
+                  className={`flex h-16 w-full items-center rounded-xl border px-5 text-left text-sm font-semibold transition ${
+                    answers.locationPreference === value
+                      ? "border-[#06B6D4] bg-[#06B6D4]/15"
+                      : "border-white/10 bg-white/5 hover:border-[#06B6D4]/50"
+                  }`}
+                >
+                  <span className={`mr-4 flex h-5 w-5 items-center justify-center rounded-full border ${
+                    answers.locationPreference === value ? "border-[#06B6D4] bg-[#06B6D4]" : "border-white/30"
+                  }`}>
+                    {answers.locationPreference === value && <span className="h-2 w-2 rounded-full bg-white" />}
+                  </span>
+                  {value}
+                </button>
+              ))}
+              {(answers.locationPreference === "Hybrid" || answers.locationPreference === "On-site") && (
+                <div>
+                  <label className="text-sm font-semibold">Preferred city or region</label>
+                  <input
+                    className="mt-2 h-[52px] w-full rounded-xl border border-white/10 bg-white/5 px-4 text-sm"
+                    placeholder="e.g., San Francisco, Austin"
+                    value={answers.locationCity || ""}
+                    onChange={(event) => updateAnswers({ locationCity: event.target.value })}
+                  />
+                </div>
               )}
             </div>
           )}
+
           {step === 5 && (
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold">Time available</h2>
-              <Select
-                value={answers.hoursPerWeek}
-                onChange={(event) => updateAnswers({ hoursPerWeek: event.target.value as LeadAnswers["hoursPerWeek"] })}
-              >
-                {(["3", "5", "8", "12+"] as const).map((hours) => (
-                  <option key={hours} value={hours}>
-                    {hours} hours / week
-                  </option>
-                ))}
-              </Select>
+            <div className="space-y-3">
+              {([3, 5, 8, 12] as const).map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => updateAnswers({ hoursPerWeek: value })}
+                  className={`flex h-16 w-full items-center rounded-xl border px-5 text-left text-sm font-semibold transition ${
+                    answers.hoursPerWeek === value
+                      ? "border-[#06B6D4] bg-[#06B6D4]/15"
+                      : "border-white/10 bg-white/5 hover:border-[#06B6D4]/50"
+                  }`}
+                >
+                  <span className={`mr-4 flex h-5 w-5 items-center justify-center rounded-full border ${
+                    answers.hoursPerWeek === value ? "border-[#06B6D4] bg-[#06B6D4]" : "border-white/30"
+                  }`}>
+                    {answers.hoursPerWeek === value && <span className="h-2 w-2 rounded-full bg-white" />}
+                  </span>
+                  {value === 12 ? "12+ hours/week" : `${value}-${value + 2} hours/week`}
+                </button>
+              ))}
+              <p className="text-xs text-white/50">
+                More time = faster results. Even 5 hours/week is enough with the right system.
+              </p>
             </div>
           )}
+
           {step === 6 && (
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold">Current assets</h2>
-              <div className="grid gap-3 md:grid-cols-2">
+            <div className="space-y-6">
+              <div className="space-y-4">
                 {([
-                  ["resume", "Resume updated in last 30 days"],
-                  ["linkedin", "LinkedIn optimized for target role"],
-                  ["portfolio", "Portfolio/GitHub maintained"],
-                  ["interview", "Interview prep in last 60 days"],
-                ] as const).map(([key, label]) => {
+                  { key: "resumeStatus", label: "Resume updated in last 30 days" },
+                  { key: "linkedinStatus", label: "LinkedIn optimized for target role" },
+                  { key: "portfolioStatus", label: "Active portfolio or GitHub" },
+                  { key: "interviewReady", label: "Practiced interviews in last 60 days" },
+                ] as const).map((item) => {
                   const checked =
-                    key === "resume"
-                      ? answers.assets.resume === "Strong"
-                      : key === "linkedin"
-                      ? answers.assets.linkedin === "Strong"
-                      : key === "portfolio"
-                      ? answers.assets.portfolio === "Strong"
-                      : answers.assets.interview === "Confident";
+                    item.key === "resumeStatus"
+                      ? answers.resumeStatus === "updated_30"
+                      : item.key === "linkedinStatus"
+                      ? answers.linkedinStatus === "optimized"
+                      : item.key === "portfolioStatus"
+                      ? answers.portfolioStatus
+                      : answers.interviewReady;
                   return (
-                    <label
-                      key={key}
-                      className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm ${
-                        checked
-                          ? "border-emerald-300/60 bg-emerald-500/10 text-emerald-100"
-                          : "border-slate-600 bg-slate-900/60 text-slate-100"
-                      }`}
-                    >
+                    <label key={item.key} className="flex items-center gap-3 text-sm text-white/80">
                       <input
                         type="checkbox"
                         checked={checked}
-                        className="h-4 w-4 accent-emerald-400"
                         onChange={(event) => {
-                          if (key === "resume") {
-                            updateAnswers({ assets: { ...answers.assets, resume: event.target.checked ? "Strong" : "Draft" } });
+                          if (item.key === "resumeStatus") {
+                            updateAnswers({ resumeStatus: event.target.checked ? "updated_30" : "needs_work" });
                           }
-                          if (key === "linkedin") {
-                            updateAnswers({ assets: { ...answers.assets, linkedin: event.target.checked ? "Strong" : "Draft" } });
+                          if (item.key === "linkedinStatus") {
+                            updateAnswers({ linkedinStatus: event.target.checked ? "optimized" : "basic" });
                           }
-                          if (key === "portfolio") {
-                            updateAnswers({ assets: { ...answers.assets, portfolio: event.target.checked ? "Strong" : "Some" } });
+                          if (item.key === "portfolioStatus") {
+                            updateAnswers({ portfolioStatus: event.target.checked });
                           }
-                          if (key === "interview") {
-                            updateAnswers({ assets: { ...answers.assets, interview: event.target.checked ? "Confident" : "Some practice" } });
+                          if (item.key === "interviewReady") {
+                            updateAnswers({ interviewReady: event.target.checked });
                           }
                         }}
+                        className="h-4 w-4 rounded border-white/30 bg-transparent accent-[#06B6D4]"
                       />
-                      {label}
+                      {item.label}
                     </label>
                   );
                 })}
               </div>
+
+              <div>
+                <label className="text-sm font-semibold">Upload your resume</label>
+                <p className="text-xs text-white/50">PDF or DOCX, max 5MB</p>
+                <div className="mt-3 rounded-xl border border-dashed border-white/20 bg-white/5 p-6 text-center">
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                    onChange={async (event) => {
+                      const file = event.target.files?.[0];
+                      if (!file) return;
+                      setResumeUploading(true);
+                      try {
+                        await uploadFile(file, "resume");
+                      } catch (err: any) {
+                        setError(err.message || "Upload failed");
+                      } finally {
+                        setResumeUploading(false);
+                      }
+                    }}
+                  />
+                  {resumeUploading && <p className="mt-2 text-xs text-white/60">Uploading...</p>}
+                  {answers.resumeFileName && (
+                    <p className="mt-2 text-xs text-white/60">{answers.resumeFileName}</p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold">LinkedIn profile (optional but recommended)</label>
+                <div className="mt-3 flex gap-3 text-xs">
+                  <button
+                    type="button"
+                    className={`rounded-full px-4 py-2 ${linkedinMode === "url" ? "bg-white/15" : "bg-white/5"}`}
+                    onClick={() => setLinkedinMode("url")}
+                  >
+                    Enter profile URL
+                  </button>
+                  <button
+                    type="button"
+                    className={`rounded-full px-4 py-2 ${linkedinMode === "upload" ? "bg-white/15" : "bg-white/5"}`}
+                    onClick={() => setLinkedinMode("upload")}
+                  >
+                    Upload LinkedIn PDF
+                  </button>
+                </div>
+                {linkedinMode === "url" ? (
+                  <input
+                    className="mt-3 h-[52px] w-full rounded-xl border border-white/10 bg-white/5 px-4 text-sm"
+                    placeholder="https://linkedin.com/in/yourname"
+                    value={answers.linkedinFileUrl || ""}
+                    onChange={(event) => updateAnswers({ linkedinFileUrl: event.target.value })}
+                  />
+                ) : (
+                  <div className="mt-3 rounded-xl border border-dashed border-white/20 bg-white/5 p-6 text-center">
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      onChange={async (event) => {
+                        const file = event.target.files?.[0];
+                        if (!file) return;
+                        setLinkedinUploading(true);
+                        try {
+                          await uploadFile(file, "linkedin");
+                        } catch (err: any) {
+                          setError(err.message || "Upload failed");
+                        } finally {
+                          setLinkedinUploading(false);
+                        }
+                      }}
+                    />
+                    {linkedinUploading && <p className="mt-2 text-xs text-white/60">Uploading...</p>}
+                    {answers.linkedinFileName && (
+                      <p className="mt-2 text-xs text-white/60">{answers.linkedinFileName}</p>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           )}
+
           {step === 7 && (
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold">Biggest blocker</h2>
-              <Select
-                value={answers.biggestBlocker}
-                onChange={(event) => updateAnswers({ biggestBlocker: event.target.value as LeadAnswers["biggestBlocker"] })}
-              >
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <label className="text-sm font-semibold">How strong is your professional network?</label>
                 {([
-                  "Not getting responses",
-                  "Failing interviews",
-                  "Low comp offers",
-                  "Dont know where to start",
-                  "Time/energy management",
-                ] as const).map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
+                  { value: "strong", label: "Strong (I know people at target companies)" },
+                  { value: "moderate", label: "Moderate (Some connections, could expand)" },
+                  { value: "weak", label: "Weak (Starting from scratch)" },
+                ] as const).map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => updateAnswers({ networkStrength: option.value })}
+                    className={`flex h-16 w-full items-center rounded-xl border px-5 text-left text-sm font-semibold transition ${
+                      answers.networkStrength === option.value
+                        ? "border-[#06B6D4] bg-[#06B6D4]/15"
+                        : "border-white/10 bg-white/5 hover:border-[#06B6D4]/50"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
                 ))}
-              </Select>
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-sm font-semibold">How comfortable are you with outreach?</label>
+                {([
+                  { value: "comfortable", label: "Comfortable (I regularly reach out)" },
+                  { value: "neutral", label: "Neutral (I'll do it if needed)" },
+                  { value: "uncomfortable", label: "Uncomfortable (This is hard for me)" },
+                ] as const).map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => updateAnswers({ outreachComfort: option.value })}
+                    className={`flex h-16 w-full items-center rounded-xl border px-5 text-left text-sm font-semibold transition ${
+                      answers.outreachComfort === option.value
+                        ? "border-[#06B6D4] bg-[#06B6D4]/15"
+                        : "border-white/10 bg-white/5 hover:border-[#06B6D4]/50"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold">Select 5-30 target companies</label>
+                <p className="text-xs text-white/50">Choose companies you'd be excited to join</p>
+                <input
+                  className="mt-3 h-[52px] w-full rounded-xl border border-white/10 bg-white/5 px-4 text-sm"
+                  placeholder="Search companies..."
+                  value={companySearch}
+                  onChange={(event) => setCompanySearch(event.target.value)}
+                />
+                {companyResults.length > 0 && (
+                  <div className="mt-2 rounded-xl border border-white/10 bg-[#0F172A]">
+                    {companyResults.map((company) => (
+                      <button
+                        key={company.id}
+                        type="button"
+                        className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm hover:bg-white/5"
+                        onClick={() => toggleCompany(company)}
+                      >
+                        {company.logoUrl ? (
+                          <img src={company.logoUrl} alt={company.name} className="h-6 w-6" />
+                        ) : (
+                          <span className="h-6 w-6 rounded-full bg-white/10" />
+                        )}
+                        <span>{company.name}</span>
+                        <span className="ml-auto text-xs text-white/40">{company.category}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+                  {popularCompanies.map((company) => {
+                    const selected = answers.targetCompanies.some((item) => item.id === company.id);
+                    return (
+                      <button
+                        key={company.id}
+                        type="button"
+                        onClick={() => toggleCompany(company)}
+                        className={`flex h-[100px] flex-col items-center justify-center gap-2 rounded-xl border text-xs font-semibold transition ${
+                          selected
+                            ? "border-[#06B6D4] bg-[#06B6D4]/15"
+                            : "border-white/10 bg-white/5 hover:border-[#06B6D4]/50"
+                        }`}
+                      >
+                        {company.logoUrl ? (
+                          <img src={company.logoUrl} alt={company.name} className="h-10 w-10" />
+                        ) : (
+                          <span className="h-10 w-10 rounded-full bg-white/10" />
+                        )}
+                        <span>{company.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className={`mt-3 text-xs ${answers.targetCompanies.length >= 5 ? "text-[#06B6D4]" : "text-red-400"}`}>
+                  {answers.targetCompanies.length}/30 companies selected
+                </p>
+              </div>
             </div>
           )}
+
+          {step === 8 && (
+            <div className="space-y-4">
+              {([
+                { value: "responses", label: "Not getting responses to applications" },
+                { value: "interviews", label: "Failing at interviews" },
+                { value: "offers", label: "Getting lowball offers" },
+                { value: "direction", label: "Don't know where to start" },
+                { value: "time", label: "Not enough time/energy" },
+              ] as const).map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => updateAnswers({ biggestBlocker: option.value })}
+                  className={`flex w-full flex-col rounded-xl border px-5 py-4 text-left text-sm font-semibold transition ${
+                    answers.biggestBlocker === option.value
+                      ? "border-[#06B6D4] bg-[#06B6D4]/15"
+                      : "border-white/10 bg-white/5 hover:border-[#06B6D4]/50"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+              <div>
+                <label className="text-sm font-semibold">Anything else we should know? (optional)</label>
+                <textarea
+                  className="mt-2 min-h-[100px] w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm"
+                  placeholder="Tell us about your situation, concerns, or questions..."
+                  value={answers.additionalContext || ""}
+                  onChange={(event) => updateAnswers({ additionalContext: event.target.value })}
+                />
+              </div>
+            </div>
+          )}
+
+          {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
+
+          <div className="mt-10 flex items-center justify-between gap-4">
+            <button
+              type="button"
+              className="h-14 rounded-full border border-white/20 px-6 text-sm font-semibold text-white/80"
+              onClick={() => setStep((prev) => Math.max(0, prev - 1))}
+              disabled={step === 0}
+            >
+              Back
+            </button>
+            {step < steps.length - 1 ? (
+              <button
+                type="button"
+                className="h-14 flex-1 rounded-full bg-gradient-to-r from-[#06B6D4] to-[#8B5CF6] text-sm font-bold"
+                onClick={() => setStep((prev) => prev + 1)}
+                disabled={!canNext}
+              >
+                Continue
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="h-14 flex-1 rounded-full bg-gradient-to-r from-[#06B6D4] to-[#8B5CF6] text-sm font-bold"
+                onClick={submitWizard}
+                disabled={loading}
+              >
+                {loading ? "Analyzing..." : "Get my preview"}
+              </button>
+            )}
+          </div>
         </div>
-
-        <aside className="space-y-4">
-          <div className="cmd-panel rounded-3xl p-6 text-sm text-slate-300">
-            <p className="text-xs uppercase tracking-wide text-slate-400">Your snapshot</p>
-            <ul className="mt-2 space-y-1">
-              <li>- Role: {answers.roles?.[0] || "-"}</li>
-              <li>- Level: {answers.level}</li>
-              <li>- Timeline: {answers.timeline}</li>
-              <li>- Hours/week: {answers.hoursPerWeek}</li>
-              <li>- Location: {answers.locationType}</li>
-            </ul>
-          </div>
-          <div className="cmd-panel rounded-3xl p-6 text-sm text-slate-300">
-            <p className="text-xs uppercase tracking-wide text-slate-400">What you’ll get</p>
-            <ul className="mt-2 space-y-1">
-              <li>- Career readiness score (0–100).</li>
-              <li>- Week-by-week execution plan.</li>
-              <li>- Role-specific scripts + templates.</li>
-            </ul>
-          </div>
-        </aside>
-      </div>
-
-      {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
-
-      <div className="mt-6 flex items-center justify-between">
-        <Button variant="outline" onClick={() => setStep((prev) => Math.max(0, prev - 1))} disabled={step === 0}>
-          Back
-        </Button>
-        {step < steps.length - 1 ? (
-          <Button onClick={() => setStep((prev) => prev + 1)} disabled={!canNext}>
-            Next
-          </Button>
-        ) : (
-          <Button onClick={submitWizard} disabled={loading}>
-            {loading ? "Building..." : "Get my preview"}
-          </Button>
-        )}
       </div>
     </main>
   );

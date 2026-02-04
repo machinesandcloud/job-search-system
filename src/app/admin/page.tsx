@@ -3,11 +3,7 @@ import { prisma } from "@/lib/db";
 import { getAdminSession } from "@/lib/auth";
 import { AdminLoginForm } from "@/components/admin-login-form";
 
-export default async function AdminPage({
-  searchParams,
-}: {
-  searchParams?: Record<string, string | string[] | undefined>;
-}) {
+export default async function AdminPage() {
   const session = await getAdminSession();
   if (!session) {
     return (
@@ -17,25 +13,9 @@ export default async function AdminPage({
     );
   }
 
-  const params = searchParams || {};
-  const route = typeof params.route === "string" ? params.route : undefined;
-  const purchased = typeof params.purchased === "string" ? params.purchased : undefined;
-  const minScore = typeof params.minScore === "string" ? Number(params.minScore) : undefined;
-  const maxScore = typeof params.maxScore === "string" ? Number(params.maxScore) : undefined;
-
-  const where: any = {};
-  if (route) where.route = route;
-  if (minScore !== undefined) where.score = { ...(where.score || {}), gte: minScore };
-  if (maxScore !== undefined) where.score = { ...(where.score || {}), lte: maxScore };
-  if (purchased) {
-    where.purchases = { some: { status: purchased === "true" ? "SUCCEEDED" : undefined } };
-  }
-
-  const leads = await prisma.lead.findMany({
-    where,
+  const assessments = await prisma.assessment.findMany({
     orderBy: { createdAt: "desc" },
     take: 50,
-    include: { purchases: true },
   });
 
   return (
@@ -45,18 +25,11 @@ export default async function AdminPage({
         <p className="text-sm text-slate-400">Signed in as {session.email}</p>
       </div>
       <div className="rounded-3xl border border-slate-700 bg-slate-900/70 p-6 shadow-sm text-slate-100">
-        <div className="mb-4 grid gap-2 md:grid-cols-5">
-          <Link href="/admin?route=DIY" className="text-sm text-slate-300">DIY</Link>
-          <Link href="/admin?route=GUIDED" className="text-sm text-slate-300">Guided</Link>
-          <Link href="/admin?route=FAST_TRACK" className="text-sm text-slate-300">Fast Track</Link>
-          <Link href="/admin?purchased=true" className="text-sm text-slate-300">Purchased</Link>
-          <Link href="/admin" className="text-sm text-slate-300">Reset</Link>
-        </div>
         <div className="overflow-auto">
           <table className="w-full text-left text-sm">
             <thead className="text-xs uppercase text-slate-400">
               <tr>
-                <th className="py-2">Email</th>
+                <th className="py-2">Assessment</th>
                 <th>Score</th>
                 <th>Route</th>
                 <th>Purchased</th>
@@ -64,17 +37,17 @@ export default async function AdminPage({
               </tr>
             </thead>
             <tbody>
-              {leads.map((lead) => (
-                <tr key={lead.id} className="border-t border-slate-800">
+              {assessments.map((assessment) => (
+                <tr key={assessment.id} className="border-t border-slate-800">
                   <td className="py-2">
-                    <Link href={`/admin/leads/${lead.id}`} className="text-slate-100">
-                      {lead.email || "(no email)"}
+                    <Link href={`/admin/leads/${assessment.id}`} className="text-slate-100">
+                      {assessment.id.slice(0, 8)}
                     </Link>
                   </td>
-                  <td>{lead.score}</td>
-                  <td>{lead.route}</td>
-                  <td>{lead.purchases.some((p) => p.status === "SUCCEEDED") ? "Yes" : "No"}</td>
-                  <td>{lead.createdAt.toISOString().slice(0, 10)}</td>
+                  <td>{assessment.totalScore}</td>
+                  <td>{assessment.recommendedRoute || "-"}</td>
+                  <td>{assessment.hasPurchasedPro ? "Yes" : "No"}</td>
+                  <td>{assessment.createdAt.toISOString().slice(0, 10)}</td>
                 </tr>
               ))}
             </tbody>

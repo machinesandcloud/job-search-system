@@ -6,11 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 type AccountGateProps = {
-  leadId: string;
+  assessmentId: string;
   onSuccess?: () => void;
 };
 
-export function AccountGate({ leadId, onSuccess }: AccountGateProps) {
+export function AccountGate({ assessmentId, onSuccess }: AccountGateProps) {
   const [mode, setMode] = useState<"signup" | "login">("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,7 +24,7 @@ export function AccountGate({ leadId, onSuccess }: AccountGateProps) {
       const res = await fetch(`/api/auth/${mode}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, leadId }),
+        body: JSON.stringify({ email, password, assessmentId }),
       });
       const data = await res.json();
       if (!res.ok) {

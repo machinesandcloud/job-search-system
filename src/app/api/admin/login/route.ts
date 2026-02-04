@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server";
-import crypto from "crypto";
-import { prisma } from "@/lib/db";
 import { adminLoginSchema } from "@/lib/validation";
-import { sendAdminMagicLink } from "@/lib/email";
 import { isAdminAllowed } from "@/lib/auth";
 import { ensureSameOrigin } from "@/lib/utils";
 
@@ -19,16 +16,10 @@ export async function POST(request: Request) {
   if (!isAdminAllowed(email)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
-  const token = crypto.randomBytes(20).toString("hex");
-  const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
-  const expiresAt = new Date(Date.now() + 1000 * 60 * 15);
-  await prisma.adminToken.create({
-    data: {
-      email,
-      tokenHash,
-      expiresAt,
+  return NextResponse.json(
+    {
+      error: "Admin login is disabled in this build. Set up admin auth when needed.",
     },
-  });
-  await sendAdminMagicLink(email, token);
-  return NextResponse.json({ ok: true });
+    { status: 501 }
+  );
 }

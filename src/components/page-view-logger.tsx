@@ -2,13 +2,14 @@
 
 import { useEffect } from "react";
 
-export function PageViewLogger({ type, leadId }: { type: string; leadId?: string }) {
+export function PageViewLogger({ type, assessmentId }: { type: string; assessmentId?: string }) {
   useEffect(() => {
     fetch("/api/events", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type, leadId }),
+      body: JSON.stringify({ type, assessmentId }),
     });
-  }, [type, leadId]);
+  }, [type, assessmentId]);
+
   return null;
 }

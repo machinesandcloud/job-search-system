@@ -10,13 +10,13 @@ function hashToken(token: string) {
   return crypto.createHash("sha256").update(token).digest("hex");
 }
 
-export function hashPassword(password: string) {
+export async function hashPassword(password: string) {
   const salt = crypto.randomBytes(16).toString("hex");
   const hashed = crypto.scryptSync(password, salt, 64).toString("hex");
   return `${PASSWORD_PREFIX}:${salt}:${hashed}`;
 }
 
-export function verifyPassword(password: string, stored: string) {
+export async function verifyPassword(password: string, stored: string) {
   const [prefix, salt, hashed] = stored.split(":");
   if (prefix !== PASSWORD_PREFIX || !salt || !hashed) return false;
   const computed = crypto.scryptSync(password, salt, 64).toString("hex");
@@ -68,10 +68,9 @@ export async function getUserSession() {
   return { userId: session.userId, email: session.user.email };
 }
 
-export async function attachLeadToUser(leadId: string, userId: string) {
-  const user = await prisma.user.findUnique({ where: { id: userId } });
-  await prisma.lead.update({
-    where: { id: leadId },
-    data: { userId, email: user?.email || undefined },
+export async function attachAssessmentToUser(assessmentId: string, userId: string) {
+  await prisma.assessment.update({
+    where: { id: assessmentId },
+    data: { userId },
   });
 }

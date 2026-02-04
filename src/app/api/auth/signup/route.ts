@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma, isDatabaseReady } from "@/lib/db";
-import { attachLeadToUser, createUserSession, hashPassword } from "@/lib/user-auth";
+import { attachAssessmentToUser, createUserSession, hashPassword } from "@/lib/user-auth";
 import { ensureSameOrigin } from "@/lib/utils";
 
 export async function POST(request: Request) {
@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   const body = await request.json();
   const email = String(body?.email || "").trim().toLowerCase();
   const password = String(body?.password || "");
-  const leadId = String(body?.leadId || "");
+  const assessmentId = String(body?.assessmentId || "");
 
   if (!email || !password) {
     return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
@@ -30,12 +30,12 @@ export async function POST(request: Request) {
   const user = await prisma.user.create({
     data: {
       email,
-      password: hashPassword(password),
+      passwordHash: await hashPassword(password),
     },
   });
 
-  if (leadId) {
-    await attachLeadToUser(leadId, user.id);
+  if (assessmentId) {
+    await attachAssessmentToUser(assessmentId, user.id);
   }
   await createUserSession(user.id);
   return NextResponse.json({ ok: true });

@@ -7,134 +7,147 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum LeadRoute {
+enum AiAnalysisStatus {
+  pending
+  processing
+  complete
+  failed
+}
+
+enum RecommendedRoute {
   DIY
-  GUIDED
-  FAST_TRACK
-}
-
-enum CompanySource {
-  CLEARBIT
-  LOCAL
-  MANUAL
-}
-
-enum PurchaseStatus {
-  PENDING
-  SUCCEEDED
-  FAILED
-  CANCELED
-}
-
-model Lead {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  email     String?  @db.Text
-  answers   Json
-  score     Int
-  subscores Json
-  route     LeadRoute
-  token     String   @unique
-  ipHash    String
-  userAgent String?
-  userId    String?
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  purchases Purchase[]
-  companies LeadCompany[]
-  assets    LeadAsset[]
-  events    Event[]
-
-  @@index([userId])
-}
-
-model Company {
-  id        String         @id @default(cuid())
-  name      String
-  domain    String?
-  logoUrl   String?
-  industry  String?
-  sizeRange String?
-  source    CompanySource
-  createdAt DateTime       @default(now())
-  leads     LeadCompany[]
-
-  @@index([name])
-  @@index([domain])
-}
-
-model LeadCompany {
-  leadId    String
-  companyId String
-  lead      Lead    @relation(fields: [leadId], references: [id], onDelete: Cascade)
-  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-
-  @@id([leadId, companyId])
-}
-
-model Purchase {
-  id                      String         @id @default(cuid())
-  leadId                  String
-  stripeCheckoutSessionId String
-  stripePaymentIntentId   String?
-  amount                  Int
-  currency                String
-  status                  PurchaseStatus
-  createdAt               DateTime       @default(now())
-  lead                    Lead           @relation(fields: [leadId], references: [id], onDelete: Cascade)
-}
-
-model LeadAsset {
-  id        String   @id @default(cuid())
-  leadId    String
-  kind      String
-  filename  String
-  mimeType  String
-  size      Int
-  content   Bytes
-  createdAt DateTime @default(now())
-  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
-
-  @@index([leadId])
-}
-
-model Event {
-  id        String   @id @default(cuid())
-  leadId    String?
-  type      String
-  metadata  Json
-  createdAt DateTime @default(now())
-  lead      Lead?    @relation(fields: [leadId], references: [id], onDelete: Cascade)
-
-  @@index([type])
-}
-
-model AdminToken {
-  id        String   @id @default(cuid())
-  email     String
-  tokenHash String
-  expiresAt DateTime
-  usedAt    DateTime?
-  createdAt DateTime @default(now())
-
-  @@index([email])
+  Guided
+  FastTrack
 }
 
 model User {
-  id        String        @id @default(cuid())
-  email     String        @unique
-  password  String
-  createdAt DateTime      @default(now())
-  leads     Lead[]
-  sessions  UserSession[]
+  id           String        @id @default(uuid()) @db.Uuid
+  email        String        @unique
+  passwordHash String
+  firstName    String?
+  lastName     String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  assessments  Assessment[]
+  sessions     UserSession[]
 }
 
 model UserSession {
-  id        String   @id @default(cuid())
-  userId    String
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
   tokenHash String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model Assessment {
+  id                 String            @id @default(uuid()) @db.Uuid
+  token              String            @unique @default(uuid())
+  userId             String?           @db.Uuid
+  user               User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  targetRoles        Json
+  level              String
+  compTarget         String
+  timeline           String
+  locationPreference String
+  locationCity       String?
+  hoursPerWeek       Int
+  resumeStatus       String
+  linkedinStatus     String
+  portfolioStatus    Boolean
+  interviewReady     Boolean
+  resumeFileUrl      String?
+  resumeFileName     String?
+  resumeFileSize     Int?
+  linkedinFileUrl    String?
+  linkedinFileName   String?
+  networkStrength    String
+  outreachComfort    String
+  targetCompanies    Json
+  biggestBlocker     String
+  additionalContext  String?
+
+  totalScore     Int @default(0)
+  clarityScore   Int @default(0)
+  assetsScore    Int @default(0)
+  networkScore   Int @default(0)
+  executionScore Int @default(0)
+
+  aiInsights       Json?
+  aiAnalysisStatus AiAnalysisStatus @default(pending)
+  aiProcessedAt    DateTime?
+  aiModel          String?
+  recommendedRoute RecommendedRoute?
+
+  hasPurchasedPro     Boolean  @default(false)
+  stripeSessionId     String?
+  stripePaymentIntent String?
+  purchaseDate        DateTime?
+  purchaseAmount      Int?
+  proPackData         Json?
+
+  welcomeEmailSent Boolean @default(false)
+  resultsEmailSent Boolean @default(false)
+  proPackEmailSent Boolean @default(false)
+
+  ipAddress      String?
+  userAgent      String?
+  referralSource String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  completedAt    DateTime?
+
+  @@index([token])
+  @@index([userId])
+  @@index([aiAnalysisStatus])
+  @@index([createdAt])
+}
+
+model Role {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
+  slug        String   @unique
+  category    String
+  description String?
+  avgSalary   String?
+  isPopular   Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([isPopular])
+  @@index([category])
+}
+
+model Company {
+  id            String   @id @default(uuid()) @db.Uuid
+  name          String   @unique
+  slug          String   @unique
+  logoUrl       String?
+  website       String?
+  category      String
+  employeeCount String?
+  headquarters  String?
+  isPopular     Boolean  @default(false)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  @@index([isPopular])
+  @@index([category])
+}
+
+model StripeWebhook {
+  id           String   @id @default(uuid()) @db.Uuid
+  eventType    String
+  eventId      String   @unique
+  payload      Json
+  assessmentId String?  @db.Uuid
+  processed    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  @@index([eventType])
+  @@index([processed])
 }

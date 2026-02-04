@@ -1,6 +1,5 @@
 import crypto from "crypto";
 import { cookies } from "next/headers";
-import { prisma } from "./db";
 
 const COOKIE_NAME = "admin_session";
 
@@ -49,21 +48,8 @@ export async function clearAdminSession() {
   store.set(COOKIE_NAME, "", { path: "/", maxAge: 0 });
 }
 
-export async function verifyAdminMagicToken(token: string) {
-  const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
-  const record = await prisma.adminToken.findFirst({
-    where: {
-      tokenHash,
-      usedAt: null,
-      expiresAt: { gt: new Date() },
-    },
-  });
-  if (!record) return null;
-  await prisma.adminToken.update({
-    where: { id: record.id },
-    data: { usedAt: new Date() },
-  });
-  return record.email;
+export async function verifyAdminMagicToken(_token: string) {
+  return null;
 }
 
 export function isAdminAllowed(email: string) {

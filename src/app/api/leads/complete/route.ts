@@ -1,13 +1,32 @@
 import { NextResponse } from "next/server";
 import { prisma, isDatabaseReady } from "@/lib/db";
 import { Prisma } from "@prisma/client";
-import { leadCompleteSchema, sanitizeAnswers } from "@/lib/validation";
+import { assessmentCompleteSchema, sanitizeAnswers } from "@/lib/validation";
 import { computeScore } from "@/lib/scoring";
-import { buildResults } from "@/lib/results";
-import { generateAssetReview, generateCoachFeedback } from "@/lib/coach-ai";
-import { generateToken, getClientIp, hashIp, ensureSameOrigin } from "@/lib/utils";
+import { generateCoachFeedback } from "@/lib/coach-ai";
+import { ensureSameOrigin } from "@/lib/utils";
 import { logEvent } from "@/lib/events";
-import { buildLogoCandidates } from "@/lib/logo";
+
+function buildTeaser(answers: any, score: number, subscores: any) {
+  return {
+    score,
+    subscores,
+    coachRead: `Your score is ${score}/100. We’ll focus on the highest-leverage gaps first.`,
+    insights: [
+      answers.networkStrength === "weak"
+        ? "Your network strength is limiting reach. Prioritize warm outreach over cold applications."
+        : "Your targeting is solid. Tighten your narrative to boost response rates.",
+      answers.interviewReady
+        ? "You’re close. Improve conversion by refining interview execution."
+        : "Interview readiness is a risk. Build reps early to avoid late-stage stalls.",
+    ],
+    previewActions: [
+      "Audit LinkedIn headline for target role keywords",
+      "Build a 20-company target list",
+      "Draft 3 outreach scripts",
+    ],
+  };
+}
 
 export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) {
@@ -27,7 +46,7 @@ export async function POST(request: Request) {
     ...body,
     answers: sanitizeAnswers(body?.answers),
   };
-  const parsed = leadCompleteSchema.safeParse(normalizedBody);
+  const parsed = assessmentCompleteSchema.safeParse(normalizedBody);
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Invalid payload", details: parsed.error.flatten() },
@@ -35,94 +54,48 @@ export async function POST(request: Request) {
     );
   }
 
-  const { answers, leadId } = parsed.data;
-  const coachFeedback = await generateCoachFeedback(answers);
-  const assetReview = await generateAssetReview(answers);
-  const answersWithFeedback = {
-    ...answers,
-    coachFeedback: coachFeedback || answers.coachFeedback,
-    assetReview: assetReview || (answers as any).assetReview,
-  };
-  const answersJson = JSON.parse(JSON.stringify(answersWithFeedback)) as Prisma.InputJsonValue;
+  const { answers, assessmentId } = parsed.data;
   const { score, subscores, route } = computeScore(answers);
 
-  const ipHash = hashIp(getClientIp(request));
+  const targetRolesJson = JSON.parse(JSON.stringify(answers.targetRoles)) as Prisma.InputJsonValue;
+  const targetCompaniesJson = JSON.parse(JSON.stringify(answers.targetCompanies)) as Prisma.InputJsonValue;
 
-  const lead = leadId
-    ? await prisma.lead.update({
-        where: { id: leadId },
-        data: {
-          answers: answersJson,
-          score,
-          subscores,
-          route,
-          ipHash,
-        },
+  const aiInsights = await generateCoachFeedback(answers);
+  const data = {
+    ...answers,
+    targetRoles: targetRolesJson,
+    targetCompanies: targetCompaniesJson,
+    totalScore: score,
+    clarityScore: subscores.clarity,
+    assetsScore: subscores.assets,
+    networkScore: subscores.network,
+    executionScore: subscores.execution,
+    recommendedRoute: route === "Fast Track" ? "FastTrack" : route === "Guided" ? "Guided" : "DIY",
+    aiInsights: aiInsights ? (aiInsights as Prisma.InputJsonValue) : undefined,
+    aiAnalysisStatus: aiInsights ? ("complete" as const) : ("failed" as const),
+    aiProcessedAt: aiInsights ? new Date() : null,
+    aiModel: aiInsights ? "local-heuristic" : null,
+    completedAt: new Date(),
+  };
+
+  const assessment = assessmentId
+    ? await prisma.assessment.update({
+        where: { id: assessmentId },
+        data,
       })
-    : await prisma.lead.create({
+    : await prisma.assessment.create({
         data: {
-          answers: answersJson,
-          score,
-          subscores,
-          route,
-          token: generateToken(16),
-          ipHash,
+          ...data,
+          ipAddress: request.headers.get("x-forwarded-for") || "",
           userAgent: request.headers.get("user-agent") || "",
         },
       });
 
-  const companyIds: string[] = [];
-  for (const company of answers.companyTargets) {
-    const existing = await prisma.company.findFirst({
-      where: {
-        OR: [
-          { name: company.name },
-          company.domain ? { domain: company.domain } : undefined,
-        ].filter(Boolean) as any,
-      },
-    });
-    if (existing) {
-      companyIds.push(existing.id);
-      continue;
-    }
-    const logoUrl = buildLogoCandidates(company.domain, company.name)[0] ||
-      `https://www.google.com/s2/favicons?domain=${encodeURIComponent(company.name)}&sz=128`;
-    const created = await prisma.company.create({
-      data: {
-        name: company.name,
-        domain: company.domain || null,
-        logoUrl,
-        industry: company.industry || null,
-        sizeRange: company.size || null,
-        source: company.domain ? "MANUAL" : "MANUAL",
-      },
-    });
-    companyIds.push(created.id);
-  }
-  if (companyIds.length) {
-    await prisma.leadCompany.createMany({
-      data: companyIds.map((companyId) => ({ leadId: lead.id, companyId })),
-      skipDuplicates: true,
-    });
-  }
+  await logEvent("assessment_completed", { score, route }, assessment.id);
 
-  await logEvent("wizard_completed", { score, route }, lead.id);
-  const results = buildResults(answersWithFeedback);
   return NextResponse.json({
-    token: lead.token,
-    teaser: {
-      score: results.score,
-      subscores: results.subscores,
-      coachRead: results.coachRead,
-      coachFeedback: results.coachFeedback,
-      planOverview: results.planOverview,
-      assetReview: results.assetReview,
-      positioningSummary: results.positioningSummary,
-      insights: results.insights,
-      cadencePreview: results.cadence[0]?.actions[0],
-      previewActions: results.previewActions,
-      sampleScript: results.scripts.recruiter,
-      targetCompanies: answers.companyTargets?.slice(0, 6).map((c) => c.name) || [],
-    },
+    token: assessment.token,
+    assessmentId: assessment.id,
+    teaser: buildTeaser(answers, score, subscores),
   });
 }
