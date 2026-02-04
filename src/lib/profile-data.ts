@@ -1,6 +1,6 @@
 type AssessmentInput = {
   targetRoles?: Array<{ name: string }>;
-  targetCompanies?: Array<{ name: string; logoUrl?: string }>;
+  targetCompanies?: Array<{ name: string; logoUrl?: string | null }>;
   level?: string;
   compTarget?: string;
   locationPreference?: string;
