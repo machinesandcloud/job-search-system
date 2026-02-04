@@ -81,18 +81,26 @@ export async function POST(request: Request) {
     completedAt: new Date(),
   };
 
-  const assessment = assessmentId
-    ? await prisma.assessment.update({
+  let assessment = null;
+  if (assessmentId) {
+    try {
+      assessment = await prisma.assessment.update({
         where: { id: assessmentId },
         data,
-      })
-    : await prisma.assessment.create({
-        data: {
-          ...data,
-          ipAddress: request.headers.get("x-forwarded-for") || "",
-          userAgent: request.headers.get("user-agent") || "",
-        },
       });
+    } catch (_err) {
+      assessment = null;
+    }
+  }
+  if (!assessment) {
+    assessment = await prisma.assessment.create({
+      data: {
+        ...data,
+        ipAddress: request.headers.get("x-forwarded-for") || "",
+        userAgent: request.headers.get("user-agent") || "",
+      },
+    });
+  }
 
   await logEvent("assessment_completed", { score, route }, assessment.id);
 

@@ -60,13 +60,11 @@ export default function JobSearchWizard() {
 
   useEffect(() => {
     const boot = async () => {
-      const res = await fetch("/api/leads/start", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answers: {} }),
-      });
-      const data = await res.json();
-      if (data.assessmentId) setAssessmentId(data.assessmentId);
+      try {
+        await ensureAssessment();
+      } catch (_err) {
+        // ignore boot failures; retry when needed
+      }
     };
     boot();
   }, []);
@@ -304,7 +302,16 @@ export default function JobSearchWizard() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ answers: {} }),
     });
-    const data = await res.json();
+    const text = await res.text();
+    let data: any = {};
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch (_err) {
+      data = {};
+    }
+    if (!res.ok) {
+      throw new Error(data.error || text || "Unable to start assessment.");
+    }
     if (data.assessmentId) {
       setAssessmentId(data.assessmentId);
       return data.assessmentId as string;
