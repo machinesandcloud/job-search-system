@@ -61,6 +61,9 @@ export async function POST(request: Request) {
   const targetCompaniesJson = JSON.parse(JSON.stringify(answers.targetCompanies)) as Prisma.InputJsonValue;
 
   const aiInsights = await generateCoachFeedback(answers);
+  const recommendedRoute: Prisma.RecommendedRoute =
+    route === "Fast Track" ? "FastTrack" : route === "Guided" ? "Guided" : "DIY";
+
   const data = {
     ...answers,
     targetRoles: targetRolesJson,
@@ -70,7 +73,7 @@ export async function POST(request: Request) {
     assetsScore: subscores.assets,
     networkScore: subscores.network,
     executionScore: subscores.execution,
-    recommendedRoute: route === "Fast Track" ? "FastTrack" : route === "Guided" ? "Guided" : "DIY",
+    recommendedRoute,
     aiInsights: aiInsights ? (aiInsights as Prisma.InputJsonValue) : undefined,
     aiAnalysisStatus: aiInsights ? ("complete" as const) : ("failed" as const),
     aiProcessedAt: aiInsights ? new Date() : null,
