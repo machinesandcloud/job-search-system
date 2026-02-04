@@ -4,6 +4,7 @@ import path from "path";
 import fs from "fs/promises";
 import { ensureSameOrigin } from "@/lib/utils";
 import { extractTextFromBuffer, parseLinkedInText, parseResumeText } from "@/lib/parse-doc";
+import { Prisma } from "@prisma/client";
 
 export const runtime = "nodejs";
 
@@ -61,7 +62,7 @@ export async function POST(request: Request) {
           resumeFileUrl: dataUrl,
           resumeFileName: file.name,
           resumeFileSize: file.size,
-          resumeParsedData,
+          resumeParsedData: resumeParsedData ?? Prisma.JsonNull,
           resumeParseStatus,
           resumeParseError,
         },
@@ -84,7 +85,7 @@ export async function POST(request: Request) {
         data: {
           linkedinFileUrl: dataUrl,
           linkedinFileName: file.name,
-          linkedinParsedData,
+          linkedinParsedData: linkedinParsedData ?? Prisma.JsonNull,
           linkedinParseStatus,
           linkedinParseError,
         },
