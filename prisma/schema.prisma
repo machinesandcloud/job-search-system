@@ -109,6 +109,8 @@ model Assessment {
   achievements     Json?
   chatHistory      Json?
 
+  taskCompletions TaskCompletion[]
+
   ipAddress      String?
   userAgent      String?
   referralSource String?
