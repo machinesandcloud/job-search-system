@@ -3,11 +3,11 @@ import { z } from "zod";
 export const targetRoleSchema = z.object({
   name: z.string().min(2).max(80),
   isCustom: z.boolean().default(false),
-  id: z.string().uuid().optional().nullable(),
+  id: z.string().max(120).optional().nullable(),
 });
 
 export const targetCompanySchema = z.object({
-  id: z.string().uuid().optional().nullable(),
+  id: z.string().max(120).optional().nullable(),
   name: z.string().min(2).max(80),
   logoUrl: z.string().max(500).optional().nullable(),
   reason: z.string().max(240).optional().nullable(),
