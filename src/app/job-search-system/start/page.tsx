@@ -39,6 +39,7 @@ export default function JobSearchWizard() {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [validationTouched, setValidationTouched] = useState(false);
 
   const [roleSearch, setRoleSearch] = useState("");
   const [roleResults, setRoleResults] = useState<RoleOption[]>([]);
@@ -250,8 +251,10 @@ export default function JobSearchWizard() {
     return () => clearTimeout(timer);
   }, [companySearch]);
 
-  const updateAnswers = (patch: Partial<AssessmentAnswers>) =>
+  const updateAnswers = (patch: Partial<AssessmentAnswers>) => {
     setAnswers((prev) => ({ ...prev, ...patch }));
+    setError(null);
+  };
 
   const toggleRole = (role: RoleOption) => {
     const exists = answers.targetRoles.find((item) => item.name === role.name);
@@ -374,6 +377,9 @@ export default function JobSearchWizard() {
     }
     return null;
   };
+
+  const validationError = validateStep();
+  const showError = Boolean(validationTouched && validationError);
 
   if (teaser && token && assessmentId) {
     return (
@@ -784,6 +790,9 @@ export default function JobSearchWizard() {
                     <p className="mt-2 text-xs text-white/60">{answers.resumeFileName}</p>
                   )}
                 </div>
+                {validationTouched && !answers.resumeFileUrl && (
+                  <p className="mt-2 text-xs text-red-300">Resume upload is required to continue.</p>
+                )}
               </div>
 
               <div>
@@ -861,6 +870,9 @@ export default function JobSearchWizard() {
                     {option.label}
                   </button>
                 ))}
+                {validationTouched && !answers.networkStrength && (
+                  <p className="text-xs text-red-300">Select one network strength option.</p>
+                )}
               </div>
 
               <div className="space-y-3">
@@ -883,6 +895,9 @@ export default function JobSearchWizard() {
                     {option.label}
                   </button>
                 ))}
+                {validationTouched && !answers.outreachComfort && (
+                  <p className="text-xs text-red-300">Select your outreach comfort level.</p>
+                )}
               </div>
 
               <div>
@@ -941,6 +956,9 @@ export default function JobSearchWizard() {
                 <p className={`mt-3 text-xs ${answers.targetCompanies.length >= 5 ? "text-[#06B6D4]" : "text-red-400"}`}>
                   {answers.targetCompanies.length}/30 companies selected
                 </p>
+                {validationTouched && answers.targetCompanies.length < 5 && (
+                  <p className="mt-1 text-xs text-red-300">Select at least 5 companies to continue.</p>
+                )}
               </div>
             </div>
           )}
@@ -979,13 +997,18 @@ export default function JobSearchWizard() {
             </div>
           )}
 
-          {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
+          {(error || showError) && (
+            <div className="mt-4 rounded-xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+              {error || validationError}
+            </div>
+          )}
 
           <div className="mt-10 flex items-center justify-between gap-4">
             <button
               type="button"
               className="h-14 rounded-full border border-white/20 px-6 text-sm font-semibold text-white/80"
               onClick={() => {
+                setValidationTouched(false);
                 setError(null);
                 setStep((prev) => Math.max(0, prev - 1));
               }}
@@ -998,6 +1021,7 @@ export default function JobSearchWizard() {
                 type="button"
                 className="h-14 flex-1 rounded-full bg-gradient-to-r from-[#06B6D4] to-[#8B5CF6] text-sm font-bold"
                 onClick={() => {
+                  setValidationTouched(true);
                   const message = validateStep();
                   if (message) {
                     setError(message);
@@ -1006,14 +1030,16 @@ export default function JobSearchWizard() {
                   setError(null);
                   setStep((prev) => prev + 1);
                 }}
+                disabled={step === 6 && resumeUploading}
               >
-                Continue
+                {step === 6 && resumeUploading ? "Uploading..." : "Continue"}
               </button>
             ) : (
               <button
                 type="button"
                 className="h-14 flex-1 rounded-full bg-gradient-to-r from-[#06B6D4] to-[#8B5CF6] text-sm font-bold"
                 onClick={() => {
+                  setValidationTouched(true);
                   const message = validateStep();
                   if (message) {
                     setError(message);
