@@ -13,30 +13,15 @@ const styles = StyleSheet.create({
 
 export function ResultsPdf({
   results,
-  proPack,
 }: {
   results: ResultsPayload;
-  proPack?: {
-    shortlist: { name: string }[];
-    missingKeywords: string[];
-    outreachScripts: string[];
-    interviewPrep: string[];
-    negotiationScripts: string[];
-  };
 }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.section}>
           <Text style={styles.title}>Job Search System</Text>
-          <Text>Role: {results.role}</Text>
           <Text>Score: {results.score}/100</Text>
-        </View>
-        <View style={styles.section}>
-          <Text style={styles.subtitle}>Coach read</Text>
-          <Text>{results.coachRead}</Text>
-          <Text style={styles.subtitle}>Positioning</Text>
-          <Text>{results.positioningSummary}</Text>
         </View>
         <View style={styles.section}>
           <Text style={styles.subtitle}>Key insights</Text>
@@ -55,45 +40,6 @@ export function ResultsPdf({
             </View>
           ))}
         </View>
-        <View style={styles.section}>
-          <Text style={styles.subtitle}>14-day execution checklist</Text>
-          {results.checklist.map((item) => (
-            <Text key={item} style={styles.listItem}>- {item}</Text>
-          ))}
-        </View>
-        <View style={styles.section}>
-          <Text style={styles.subtitle}>Scripts</Text>
-          <Text>Referral ask: {results.scripts.referral}</Text>
-          <Text>Recruiter opener: {results.scripts.recruiter}</Text>
-          {results.scripts.followup.map((line) => (
-            <Text key={line} style={styles.listItem}>- {line}</Text>
-          ))}
-        </View>
-        {proPack && (
-          <View style={styles.section}>
-            <Text style={styles.subtitle}>Pro Pack</Text>
-            <Text>Shortlist:</Text>
-            {proPack.shortlist.map((item) => (
-              <Text key={item.name} style={styles.listItem}>- {item.name}</Text>
-            ))}
-            <Text>Missing keywords:</Text>
-            {proPack.missingKeywords.map((keyword) => (
-              <Text key={keyword} style={styles.listItem}>- {keyword}</Text>
-            ))}
-            <Text>Outreach scripts:</Text>
-            {proPack.outreachScripts.map((script) => (
-              <Text key={script} style={styles.listItem}>- {script}</Text>
-            ))}
-            <Text>Interview prep:</Text>
-            {proPack.interviewPrep.map((item) => (
-              <Text key={item} style={styles.listItem}>- {item}</Text>
-            ))}
-            <Text>Negotiation scripts:</Text>
-            {proPack.negotiationScripts.map((item) => (
-              <Text key={item} style={styles.listItem}>- {item}</Text>
-            ))}
-          </View>
-        )}
       </Page>
     </Document>
   );
