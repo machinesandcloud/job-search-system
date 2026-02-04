@@ -94,6 +94,14 @@ model Assessment {
   resultsEmailSent Boolean @default(false)
   proPackEmailSent Boolean @default(false)
 
+  profileData      Json?
+  resumeHealthData Json?
+  skillMatchData   Json?
+  taskProgress     Json?
+  applications     Json?
+  achievements     Json?
+  chatHistory      Json?
+
   ipAddress      String?
   userAgent      String?
   referralSource String?

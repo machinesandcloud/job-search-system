@@ -6,6 +6,14 @@ import { computeScore } from "@/lib/scoring";
 import { generateCoachFeedback } from "@/lib/coach-ai";
 import { ensureSameOrigin } from "@/lib/utils";
 import { logEvent } from "@/lib/events";
+import {
+  buildAchievements,
+  buildApplications,
+  buildProfileData,
+  buildResumeHealthData,
+  buildSkillMatchData,
+  buildTaskProgress,
+} from "@/lib/profile-data";
 
 function buildTeaser(answers: any, score: number, subscores: any) {
   return {
@@ -64,6 +72,13 @@ export async function POST(request: Request) {
   const recommendedRoute =
     (route === "Fast Track" ? "FastTrack" : route === "Guided" ? "Guided" : "DIY") as Prisma.AssessmentCreateInput["recommendedRoute"];
 
+  const profileData = buildProfileData(answers);
+  const resumeHealthData = buildResumeHealthData(answers);
+  const skillMatchData = buildSkillMatchData(answers);
+  const taskProgress = buildTaskProgress(answers);
+  const achievements = buildAchievements(answers);
+  const applications = buildApplications(answers);
+
   const data = {
     ...answers,
     targetRoles: targetRolesJson,
@@ -79,6 +94,12 @@ export async function POST(request: Request) {
     aiProcessedAt: aiInsights ? new Date() : null,
     aiModel: aiInsights ? "local-heuristic" : null,
     completedAt: new Date(),
+    profileData: profileData as Prisma.InputJsonValue,
+    resumeHealthData: resumeHealthData as Prisma.InputJsonValue,
+    skillMatchData: skillMatchData as Prisma.InputJsonValue,
+    taskProgress: taskProgress as Prisma.InputJsonValue,
+    achievements: achievements as Prisma.InputJsonValue,
+    applications: applications as Prisma.InputJsonValue,
   };
 
   let assessment = null;

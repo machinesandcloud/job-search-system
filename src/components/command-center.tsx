@@ -1,6 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  buildAchievements,
+  buildApplications,
+  buildProfileData,
+  buildProofProjects,
+  buildResumeHealthData,
+  buildSkillMatchData,
+  buildTaskProgress,
+} from "@/lib/profile-data";
 
 type CommandCenterProps = {
   assessment: any;
@@ -11,56 +20,12 @@ const NAV_ITEMS = [
   { id: "dashboard", label: "Dashboard", icon: "✦" },
   { id: "action", label: "Action Plan", icon: "⚡" },
   { id: "progress", label: "Progress Tracker", icon: "📊" },
+  { id: "applications", label: "Applications", icon: "🗂️" },
   { id: "scripts", label: "Scripts Library", icon: "📝" },
   { id: "companies", label: "Target Companies", icon: "🎯" },
   { id: "pro", label: "Pro Pack", icon: "💼" },
   { id: "settings", label: "Settings", icon: "⚙️" },
 ];
-
-const ROLE_SKILL_MAP: Record<string, string[]> = {
-  "DevOps Engineer": ["Kubernetes", "AWS", "Terraform", "CI/CD", "Docker", "Python", "Monitoring"],
-  "Site Reliability Engineer": ["SLO/SLI", "Incident Response", "Kubernetes", "Observability", "Linux", "Automation"],
-  "Platform Engineer": ["Kubernetes", "Infrastructure as Code", "Developer Experience", "Terraform", "CI/CD"],
-  "Engineering Manager": ["Leadership", "Delivery", "Hiring", "Roadmaps", "Execution"],
-  "Director of Engineering": ["Org Leadership", "Strategy", "Scaling Teams", "Hiring", "Execution"],
-  "Senior Backend Engineer": ["APIs", "Databases", "Distributed Systems", "Performance", "Testing"],
-  "Senior Frontend Engineer": ["React", "TypeScript", "Performance", "Accessibility", "Design Systems"],
-  "Staff Engineer": ["System Design", "Architecture", "Technical Leadership", "Mentoring", "Influence"],
-  "Principal Engineer": ["Architecture", "Cross-org Impact", "System Design", "Influence", "Strategy"],
-  "Cloud Architect": ["AWS", "Azure", "GCP", "Networking", "Security", "Infrastructure"],
-};
-
-function estimateYears(level: string) {
-  switch (level) {
-    case "Mid-Level":
-      return 4;
-    case "Senior":
-      return 8;
-    case "Staff":
-      return 10;
-    case "Principal":
-      return 12;
-    case "Manager":
-      return 10;
-    case "Director":
-      return 14;
-    default:
-      return 8;
-  }
-}
-
-function matchScore(skills: string[], required: string[], compTarget: string) {
-  const overlap = required.filter((skill) => skills.includes(skill)).length;
-  const skillMatch = required.length ? overlap / required.length : 0.6;
-  const compBoost = compTarget.includes("200") || compTarget.includes("300") ? 0.1 : 0.0;
-  const score = Math.min(1, skillMatch + compBoost);
-  return Math.round(score * 100);
-}
-
-function buildHeadline(role: string, skills: string[], years: number) {
-  const top = skills.slice(0, 3).join(" • ");
-  return `${role} | ${top} | ${years}+ yrs`;
-}
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -73,16 +38,21 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [taskState, setTaskState] = useState<Record<string, boolean>>({});
   const [showWhy, setShowWhy] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [chatInput, setChatInput] = useState("");
+  const [chatHistory, setChatHistory] = useState<Array<{ role: "user" | "assistant"; content: string }>>([]);
+  const [digestEnabled, setDigestEnabled] = useState(true);
 
   const ai = assessment?.aiInsights || {};
   const week1 = ai?.weeklyPlan?.week1 || [];
   const week2 = ai?.weeklyPlan?.week2 || [];
-  const tasks = [
-    { id: "task-1", label: week1[0] || "Audit LinkedIn headline for target role keywords" },
-    { id: "task-2", label: week1[1] || "Build a 20-company target list" },
-    { id: "task-3", label: week1[2] || "Draft 3 outreach scripts" },
-    { id: "task-4", label: week2[0] || "Customize resume for top 5 roles" },
-  ];
+  const profile = assessment.profileData || buildProfileData(assessment);
+  const resumeHealth = assessment.resumeHealthData || buildResumeHealthData(assessment);
+  const skillMatches = assessment.skillMatchData || buildSkillMatchData(assessment);
+  const taskProgress = assessment.taskProgress || buildTaskProgress(assessment);
+  const achievements = assessment.achievements || buildAchievements(assessment);
+  const applications = assessment.applications || buildApplications(assessment);
+  const projects = buildProofProjects();
 
   const scoreCards = [
     { label: "Clarity", score: assessment.clarityScore, max: 25 },
@@ -92,19 +62,7 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
   ];
 
   const targetCompanies = Array.isArray(assessment.targetCompanies) ? assessment.targetCompanies : [];
-  const targetRoles = Array.isArray(assessment.targetRoles) ? assessment.targetRoles : [];
-  const targetRole = targetRoles[0]?.name || "Senior DevOps Engineer";
-  const yearsExperience = estimateYears(assessment.level);
-  const baseSkills = ROLE_SKILL_MAP[targetRole] || ROLE_SKILL_MAP["DevOps Engineer"];
-  const skills = baseSkills.slice(0, 5);
-  const headlineCurrent = `${targetRole} | Cloud Infrastructure`;
-  const headlineSuggested = buildHeadline(`${targetRole} & Platform`, skills, yearsExperience);
-  const topMatches = targetCompanies.slice(0, 3).map((company) => ({
-    name: company.name,
-    score: matchScore(skills, baseSkills, assessment.compTarget),
-  }));
-
-  const routeLabel = assessment?.recommendedRoute === "FastTrack" ? "Fast Track" : assessment?.recommendedRoute || "Growth Ready";
+  const targetRole = profile.currentRole || "Senior DevOps Engineer";
 
   const statusLabel = useMemo(() => {
     if (assessment.totalScore >= 70) return "Fast Track";
@@ -112,16 +70,57 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
     return "Foundation Phase";
   }, [assessment.totalScore]);
 
-  const resumeHealth = useMemo(() => {
-    const base = assessment.resumeStatus === "updated_30" ? 0.35 : assessment.resumeStatus === "needs_work" ? 0.2 : 0.05;
-    const linkedin = assessment.linkedinStatus === "optimized" ? 0.25 : assessment.linkedinStatus === "basic" ? 0.1 : 0.05;
-    const portfolio = assessment.portfolioStatus ? 0.15 : 0.0;
-    const interview = assessment.interviewReady ? 0.1 : 0.0;
-    const score = Math.min(1, base + linkedin + portfolio + interview + 0.15);
-    return Math.round(score * 100);
-  }, [assessment]);
+  const routeLabel = assessment?.recommendedRoute === "FastTrack" ? "Fast Track" : assessment?.recommendedRoute || "Growth Ready";
+  const headlineCurrent = profile.linkedin?.headline || `${targetRole} | Cloud Infrastructure`;
+  const headlineSuggested = `${targetRole} & Platform Engineer | ${profile.topSkills?.slice(0, 3).join(" • ")} | ${profile.yearsExperience}+ yrs`;
+  const firstName = profile.firstName || userEmail?.split("@")[0] || "there";
 
-  const missingKeywords = baseSkills.filter((skill) => !skills.includes(skill)).slice(0, 3);
+  const actionTasks = [
+    {
+      id: "action-1",
+      title: week1[0] || "Audit LinkedIn headline for target role keywords",
+      time: "10 minutes",
+      impact: "+3x recruiter views",
+      example: {
+        current: headlineCurrent,
+        optimized: headlineSuggested,
+      },
+    },
+    {
+      id: "action-2",
+      title: week1[1] || "Build a 20-company target list",
+      time: "45 minutes",
+      impact: "Sharper targeting",
+    },
+    {
+      id: "action-3",
+      title: week1[2] || "Draft 3 outreach scripts",
+      time: "60 minutes",
+      impact: "Warm responses faster",
+    },
+  ];
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem("cc-weekly-digest");
+    if (stored) {
+      setDigestEnabled(stored === "true");
+    }
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem("cc-weekly-digest", String(digestEnabled));
+  }, [digestEnabled]);
+
+  const handleSendChat = () => {
+    if (!chatInput.trim()) return;
+    const newMessage = { role: "user" as const, content: chatInput };
+    const response = {
+      role: "assistant" as const,
+      content: `Based on your ${profile.currentRole} experience and ${profile.topSkills?.[0]} expertise, lead with outcomes like "${profile.achievements?.[0] || "impactful delivery"}" and tie it to your target roles. Want a tailored script?`,
+    };
+    setChatHistory((prev) => [...prev, newMessage, response]);
+    setChatInput("");
+  };
 
   return (
     <div className="flex min-h-screen bg-[#0A0E27] text-white">
@@ -159,33 +158,35 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
         </div>
       </aside>
 
-      <main className="flex-1 px-6 py-10 lg:px-10">
+      <main className="relative flex-1 px-6 py-10 lg:px-10">
         {activeTab === "dashboard" && (
           <div className="space-y-8">
             <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
-              <h1 className="text-2xl font-semibold">{getGreeting()}, Steve! 👋</h1>
+              <h1 className="text-2xl font-semibold">{getGreeting()}, {firstName}! 👋</h1>
               <p className="mt-2 text-white/70">
-                You're 3 days into your transition toward {targetRole} roles.
+                You're 3 days into your transition from {profile.currentRole} to senior roles at top companies.
               </p>
               <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-white/80">
-                🎯 Based on your {yearsExperience} years of experience and {skills.join(", ")} expertise, you're well-positioned for:
+                🎯 Based on your {profile.yearsExperience} years of experience and {profile.topSkills?.join(", ")} expertise, you're well-positioned for:
                 <ul className="mt-2 space-y-1">
-                  {topMatches.map((match) => (
-                    <li key={match.name}>
-                      • {targetRole} at {match.name} ({match.score}% skill match)
+                  {skillMatches.slice(0, 3).map((match: any) => (
+                    <li key={match.company}>
+                      • {match.role} at {match.company} ({match.score}% skill match)
                     </li>
                   ))}
                 </ul>
               </div>
               <span className="mt-4 inline-flex items-center rounded-full bg-gradient-to-r from-[#06B6D4] to-[#8B5CF6] px-4 py-2 text-xs font-semibold shadow-lg">
-                Next Action → {tasks[0]?.label}
+                Next Action → {actionTasks[0]?.title}
               </span>
             </section>
 
             <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
               <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#06B6D4]">Priority action</p>
-                <p className="mt-3 text-sm text-white/70">Your LinkedIn headline is missing key target keywords.</p>
+                <p className="mt-3 text-sm text-white/70">
+                  Your LinkedIn headline is missing key target keywords.
+                </p>
                 <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-4 text-sm">
                   <p className="text-xs text-white/50">Current headline</p>
                   <p className="mt-1 text-white/80">{headlineCurrent}</p>
@@ -213,13 +214,12 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
               <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#06B6D4]">Resume health check</p>
                 <p className="mt-3 text-3xl font-bold text-transparent bg-gradient-to-r from-[#06B6D4] to-[#8B5CF6] bg-clip-text">
-                  {resumeHealth}% optimized
+                  {resumeHealth.score}% optimized
                 </p>
                 <ul className="mt-4 space-y-2 text-sm text-white/70">
-                  <li>✓ ATS-friendly format</li>
-                  <li>✓ Quantified achievements</li>
-                  <li>✗ Missing keywords: {missingKeywords.join(", ")}</li>
-                  <li>⚠ Add leadership examples for Staff-level roles</li>
+                  {resumeHealth.issues?.slice(0, 4).map((issue: string) => (
+                    <li key={issue}>• {issue}</li>
+                  ))}
                 </ul>
                 <div className="mt-4 flex gap-3">
                   <button className="rounded-full bg-white/10 px-4 py-2 text-xs font-semibold">Fix issues</button>
@@ -231,17 +231,17 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
             <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">Skill match analyzer</p>
               <div className="mt-4 space-y-4">
-                {topMatches.map((match) => (
-                  <div key={match.name} className="rounded-xl border border-white/10 bg-white/5 p-4">
+                {skillMatches.map((match: any) => (
+                  <div key={match.company} className="rounded-xl border border-white/10 bg-white/5 p-4">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold">{targetRole} at {match.name}</p>
+                      <p className="text-sm font-semibold">{match.role} at {match.company}</p>
                       <span className="text-sm font-semibold text-[#06B6D4]">{match.score}% match</span>
                     </div>
                     <div className="mt-2 h-2 w-full rounded-full bg-white/10">
                       <div className="h-full rounded-full bg-gradient-to-r from-[#06B6D4] to-[#8B5CF6]" style={{ width: `${match.score}%` }} />
                     </div>
-                    <p className="mt-2 text-xs text-white/60">Strong: {skills.join(", ")}</p>
-                    <p className="mt-1 text-xs text-white/60">Add: {missingKeywords.join(", ")}</p>
+                    <p className="mt-2 text-xs text-white/60">Strong: {match.strong?.join(", ")}</p>
+                    <p className="mt-1 text-xs text-white/60">Add: {match.missing?.join(", ")}</p>
                   </div>
                 ))}
               </div>
@@ -287,7 +287,7 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
                 <span className="rounded-full bg-[#06B6D4]/20 px-3 py-1 text-xs font-semibold">Week 1 of 2</span>
               </div>
               <div className="mt-4 grid gap-4 md:grid-cols-2">
-                {tasks.map((task) => (
+                {actionTasks.map((task) => (
                   <div key={task.id} className="rounded-xl border border-white/10 bg-white/5 p-4">
                     <button
                       type="button"
@@ -302,9 +302,33 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
                         {taskState[task.id] && <span className="h-2 w-2 rounded-full bg-white" />}
                       </span>
                       <span className={`text-sm ${taskState[task.id] ? "line-through text-white/60" : "text-white/80"}`}>
-                        {task.label}
+                        {task.title}
                       </span>
                     </button>
+                    <div className="mt-3 flex items-center gap-3 text-xs text-white/60">
+                      <span>⏱ {task.time}</span>
+                      <span>Impact: {task.impact}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/60">Build your proof</p>
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                {projects.map((project) => (
+                  <div key={project.title} className="rounded-xl border border-white/10 bg-white/5 p-4">
+                    <p className="text-sm font-semibold">{project.title}</p>
+                    <p className="mt-2 text-xs text-white/60">
+                      {project.time} • {project.difficulty}
+                    </p>
+                    <p className="mt-3 text-xs text-white/70">Skills: {project.skills.join(", ")}</p>
+                    <ul className="mt-3 space-y-1 text-xs text-white/60">
+                      {project.steps.map((step) => (
+                        <li key={step}>- {step}</li>
+                      ))}
+                    </ul>
                   </div>
                 ))}
               </div>
@@ -328,9 +352,29 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
                 <p className="mt-3 text-sm text-white/80"><strong>Primary Gap:</strong> {ai.primaryGap || "Pending"}</p>
                 <div className="my-4 h-px bg-white/10" />
                 <p className="text-sm text-white/80"><strong>Quick Win:</strong> {ai.quickWin || "Pending"}</p>
-                <button type="button" className="mt-4 text-sm font-semibold text-[#A78BFA]">
+                <button type="button" className="mt-4 text-sm font-semibold text-[#A78BFA]" onClick={() => setShowChat(true)}>
                   Ask AI for help →
                 </button>
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/60">Achievements</p>
+              <div className="mt-4 flex flex-wrap gap-4">
+                {achievements.map((badge: any) => (
+                  <div
+                    key={badge.id}
+                    className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-sm ${
+                      badge.unlocked ? "border-[#06B6D4]/40 bg-[#06B6D4]/10 text-white" : "border-white/10 bg-white/5 text-white/50"
+                    }`}
+                  >
+                    <span>{badge.unlocked ? "✓" : "🔒"}</span>
+                    <span>{badge.label}</span>
+                  </div>
+                ))}
+                <div className="ml-auto rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/70">
+                  🔥 Streak: {taskProgress.streakDays} days active
+                </div>
               </div>
             </section>
           </div>
@@ -348,19 +392,23 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
               <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
                 <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#06B6D4]">Week 1: Foundation</p>
                 <div className="mt-4 space-y-3">
-                  {week1.map((item: string, index: number) => (
-                    <div key={item} className="rounded-xl border border-white/10 bg-white/5 p-4">
+                  {actionTasks.map((task) => (
+                    <div key={task.id} className="rounded-xl border border-white/10 bg-white/5 p-4">
                       <div className="flex items-start gap-3">
                         <span className="mt-1 h-5 w-5 rounded-full border border-white/30" />
-                        <div>
-                          <p className="text-sm font-semibold text-white/90">{item}</p>
-                          {index === 0 && (
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold text-white/90">{task.title}</p>
+                          <div className="mt-2 flex items-center gap-3 text-xs text-white/60">
+                            <span>⏱ {task.time}</span>
+                            <span>Impact: {task.impact}</span>
+                          </div>
+                          {task.example && (
                             <div className="mt-3 rounded-lg border border-white/10 bg-white/5 p-3 text-xs text-white/70">
-                              <p className="text-white/80">Current headline: {headlineCurrent}</p>
-                              <p className="mt-2 text-white">AI-optimized: {headlineSuggested}</p>
+                              <p className="text-white/80">Current headline: {task.example.current}</p>
+                              <p className="mt-2 text-white">AI-optimized: {task.example.optimized}</p>
                               <div className="mt-3 flex gap-2">
                                 <button className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold">Copy headline</button>
-                                <button className="rounded-full bg-white/5 px-3 py-1 text-xs font-semibold">Why this works?</button>
+                                <button className="rounded-full bg-white/5 px-3 py-1 text-xs font-semibold">Customize</button>
                               </div>
                             </div>
                           )}
@@ -378,6 +426,85 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
                   ))}
                 </ul>
               </div>
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/60">Live editor</p>
+                <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                  <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+                    <p className="text-xs uppercase text-white/50">Your current headline</p>
+                    <textarea
+                      className="mt-2 h-28 w-full rounded-lg border border-white/10 bg-white/5 p-3 text-sm text-white/80"
+                      defaultValue={headlineCurrent}
+                    />
+                  </div>
+                  <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+                    <p className="text-xs uppercase text-white/50">AI suggestion</p>
+                    <textarea
+                      className="mt-2 h-28 w-full rounded-lg border border-white/10 bg-white/5 p-3 text-sm text-white/80"
+                      defaultValue={headlineSuggested}
+                    />
+                  </div>
+                </div>
+                <div className="mt-4 flex gap-3">
+                  <button className="rounded-full bg-white/10 px-4 py-2 text-xs font-semibold">Use AI version</button>
+                  <button className="rounded-full bg-white/10 px-4 py-2 text-xs font-semibold">Save changes</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "progress" && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-semibold">Your Progress</h2>
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/60">Progress timeline</p>
+              <div className="mt-6 flex items-center gap-6">
+                {["Start", "Today", "Week 1", "Week 2", "Target"].map((label, idx) => (
+                  <div key={label} className="flex items-center gap-3">
+                    <span className={`h-3 w-3 rounded-full ${idx < 2 ? "bg-[#06B6D4]" : "border border-white/30"}`} />
+                    <span className="text-xs text-white/60">{label}</span>
+                    {idx < 4 && <span className={`h-px w-10 ${idx < 1 ? "bg-[#06B6D4]" : "bg-white/20"}`} />}
+                  </div>
+                ))}
+              </div>
+              <div className="mt-6 grid gap-4 md:grid-cols-3">
+                <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
+                  🔥 Streak: {taskProgress.streakDays} days active
+                </div>
+                <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
+                  Level: {taskProgress.level}
+                </div>
+                <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
+                  Points: {taskProgress.points}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "applications" && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-semibold">Your Applications</h2>
+            <div className="space-y-4">
+              {applications.map((app: any) => (
+                <div key={app.id} className="rounded-2xl border border-white/10 bg-white/5 p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold">{app.company} — {app.role}</p>
+                      <p className="text-xs text-white/60">Applied: {app.appliedAt} • Last update: {app.lastUpdate}</p>
+                    </div>
+                    <span className="rounded-full bg-[#06B6D4]/20 px-3 py-1 text-xs font-semibold">{app.status}</span>
+                  </div>
+                  <p className="mt-4 text-sm text-white/70">Next step: {app.nextStep}</p>
+                  <div className="mt-4 grid gap-2 md:grid-cols-3">
+                    {app.checklist.map((item: string) => (
+                      <div key={item} className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/70">
+                        □ {item}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -386,7 +513,7 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
           <div className="space-y-6">
             <h2 className="text-2xl font-semibold">Scripts & Templates Library</h2>
             <div className="grid gap-4 md:grid-cols-2">
-              {["Referral Ask", "Recruiter Cold Email", "Hiring Manager Note"].map((title) => (
+              {["Referral Ask", "Recruiter Cold Email", "Hiring Manager Note", "Follow-up Sequence"].map((title) => (
                 <div key={title} className="rounded-2xl border border-white/10 bg-white/5 p-5">
                   <p className="text-lg font-semibold">{title}</p>
                   <p className="mt-2 text-sm text-white/70">
@@ -440,6 +567,76 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
                 <p className="text-white/70">Your premium content is ready.</p>
               </div>
             )}
+          </div>
+        )}
+
+        {activeTab === "settings" && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-semibold">Settings</h2>
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+              <p className="text-sm font-semibold">Weekly digest email</p>
+              <p className="mt-2 text-sm text-white/70">Receive a personalized progress summary every Monday.</p>
+              <button
+                type="button"
+                onClick={() => setDigestEnabled((prev) => !prev)}
+                className={`mt-4 rounded-full px-4 py-2 text-xs font-semibold ${
+                  digestEnabled ? "bg-[#06B6D4]/20 text-white" : "bg-white/10 text-white/60"
+                }`}
+              >
+                {digestEnabled ? "Enabled" : "Disabled"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={() => setShowChat(true)}
+          className="fixed bottom-6 right-6 rounded-full bg-gradient-to-r from-[#06B6D4] to-[#8B5CF6] px-4 py-3 text-sm font-semibold shadow-lg"
+        >
+          💬 Ask AI Coach
+        </button>
+
+        {showChat && (
+          <div className="fixed inset-0 z-50 flex items-end justify-end bg-black/60 p-6">
+            <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#0F172A] p-6">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold">AI Career Coach</p>
+                <button className="text-white/60" onClick={() => setShowChat(false)} type="button">✕</button>
+              </div>
+              <div className="mt-4 max-h-60 space-y-3 overflow-y-auto text-sm">
+                {chatHistory.length === 0 && (
+                  <p className="text-white/70">
+                    Hi {firstName}! I have your resume signals, target roles, and company list. Ask me anything.
+                  </p>
+                )}
+                {chatHistory.map((msg, idx) => (
+                  <div
+                    key={`${msg.role}-${idx}`}
+                    className={`rounded-xl px-3 py-2 ${
+                      msg.role === "user" ? "bg-[#06B6D4]/20 text-white" : "bg-white/5 text-white/80"
+                    }`}
+                  >
+                    {msg.content}
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 flex gap-2">
+                <input
+                  value={chatInput}
+                  onChange={(event) => setChatInput(event.target.value)}
+                  placeholder="Type your question..."
+                  className="flex-1 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white"
+                />
+                <button
+                  type="button"
+                  onClick={handleSendChat}
+                  className="rounded-xl bg-gradient-to-r from-[#06B6D4] to-[#8B5CF6] px-4 py-2 text-sm font-semibold"
+                >
+                  Send
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </main>

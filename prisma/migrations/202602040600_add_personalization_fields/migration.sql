@@ -1,0 +1,8 @@
+ALTER TABLE "Assessment"
+  ADD COLUMN IF NOT EXISTS "profileData" JSONB,
+  ADD COLUMN IF NOT EXISTS "resumeHealthData" JSONB,
+  ADD COLUMN IF NOT EXISTS "skillMatchData" JSONB,
+  ADD COLUMN IF NOT EXISTS "taskProgress" JSONB,
+  ADD COLUMN IF NOT EXISTS "applications" JSONB,
+  ADD COLUMN IF NOT EXISTS "achievements" JSONB,
+  ADD COLUMN IF NOT EXISTS "chatHistory" JSONB;
