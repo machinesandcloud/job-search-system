@@ -40,7 +40,8 @@ export async function POST(request: Request) {
       storedUrl = null;
     }
 
-    const dataUrl = storedUrl || `data:${file.type};base64,${buffer.toString("base64")}`;
+    // Never return raw base64 (too large for validation and DB). Use a short placeholder instead.
+    const dataUrl = storedUrl || `inline://${encodeURIComponent(file.name)}`;
 
     if (kind === "resume") {
       await prisma.assessment.update({
