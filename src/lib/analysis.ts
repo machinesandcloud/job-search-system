@@ -1,6 +1,7 @@
 import type { AssessmentAnswers } from "@/lib/validation";
 import { computeScore } from "@/lib/scoring";
 import { groqChatJSON } from "@/lib/llm";
+import { gatherMarketIntel } from "@/lib/market-intel";
 
 type ParsedData = {
   resumeParsedData?: any;
@@ -21,6 +22,48 @@ export async function runFullAnalysis(answers: AssessmentAnswers, parsed?: Parse
   const scoreResult = computeScore(answers);
   const resumeParsed = parsed?.resumeParsedData || null;
   const linkedinParsed = parsed?.linkedinParsedData || null;
+  const targetRole = answers.targetRoles?.[0]?.name;
+  if (!targetRole) {
+    return {
+      aiInsights: null,
+      resumeAnalysis: null,
+      linkedinAnalysis: null,
+      companyMatches: null,
+      actionPlan: null,
+      personalizedScripts: null,
+      coverLetterKit: null,
+      interviewPrep: null,
+      companyStrategies: null,
+      careerAnalysis: null,
+      aiModel: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
+      aiFailed: true,
+      aiFailureReason: "Missing target role for AI analysis.",
+    };
+  }
+
+  let marketIntel: any = null;
+  try {
+    marketIntel = await gatherMarketIntel(
+      targetRole,
+      (answers.targetCompanies || []).map((company) => company.name).filter(Boolean)
+    );
+  } catch (err: any) {
+    return {
+      aiInsights: null,
+      resumeAnalysis: null,
+      linkedinAnalysis: null,
+      companyMatches: null,
+      actionPlan: null,
+      personalizedScripts: null,
+      coverLetterKit: null,
+      interviewPrep: null,
+      companyStrategies: null,
+      careerAnalysis: null,
+      aiModel: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
+      aiFailed: true,
+      aiFailureReason: err?.message || "Market intelligence unavailable.",
+    };
+  }
 
   const systemPrompt =
     "You are a senior tech career coach. Return ONLY valid JSON. Every recommendation must reference the user's real data (resume, LinkedIn, assessment).";
@@ -39,6 +82,9 @@ ${safeStringify(linkedinParsed, 4000)}
 
 SCORES:
 ${safeStringify(scoreResult, 1500)}
+
+MARKET INTEL (current):
+${safeStringify(marketIntel, 6000)}
 
 WEEK 1 REQUIREMENTS:
 - Provide 15-20 ultra-detailed tasks for Week 1 (resume, LinkedIn, company research, positioning, networking)
