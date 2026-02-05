@@ -52,6 +52,12 @@ export async function POST(request: Request) {
       try {
         const text = await extractTextFromBuffer(buffer, file.name);
         resumeParsedData = parseResumeText(text);
+        await prisma.assessment.update({
+          where: { id: assessmentId },
+          data: {
+            resumeRawText: text,
+          },
+        });
       } catch (parseErr: any) {
         resumeParseStatus = "failed";
         resumeParseError = parseErr?.message || "Resume parsing failed";
@@ -76,6 +82,12 @@ export async function POST(request: Request) {
       try {
         const text = await extractTextFromBuffer(buffer, file.name);
         linkedinParsedData = parseLinkedInText(text);
+        await prisma.assessment.update({
+          where: { id: assessmentId },
+          data: {
+            linkedinRawText: text,
+          },
+        });
       } catch (parseErr: any) {
         linkedinParseStatus = "failed";
         linkedinParseError = parseErr?.message || "LinkedIn parsing failed";

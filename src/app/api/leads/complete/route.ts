@@ -6,6 +6,7 @@ import { computeScore } from "@/lib/scoring";
 import { generateCoachFeedback } from "@/lib/coach-ai";
 import { ensureSameOrigin } from "@/lib/utils";
 import { logEvent } from "@/lib/events";
+import { runFullAnalysis } from "@/lib/analysis";
 import {
   buildAchievements,
   buildApplications,
@@ -78,10 +79,17 @@ export async function POST(request: Request) {
       })
     : null;
 
-  const aiInsights = await generateCoachFeedback(answers, {
-    resumeParsedData: existingAssessment?.resumeParsedData,
-    linkedinParsedData: existingAssessment?.linkedinParsedData,
+  const analysis = await runFullAnalysis(answers, {
+    resumeParsedData: existingAssessment?.resumeParsedData || null,
+    linkedinParsedData: existingAssessment?.linkedinParsedData || null,
   });
+
+  const aiInsights =
+    analysis.aiInsights ||
+    (await generateCoachFeedback(answers, {
+      resumeParsedData: existingAssessment?.resumeParsedData,
+      linkedinParsedData: existingAssessment?.linkedinParsedData,
+    }));
   const recommendedRoute =
     (route === "Fast Track" ? "FastTrack" : route === "Guided" ? "Guided" : "DIY") as Prisma.AssessmentCreateInput["recommendedRoute"];
 
@@ -117,6 +125,10 @@ export async function POST(request: Request) {
     taskProgress: taskProgress as Prisma.InputJsonValue,
     achievements: achievements as Prisma.InputJsonValue,
     applications: applications as Prisma.InputJsonValue,
+    resumeAnalysis: analysis.resumeAnalysis ? (analysis.resumeAnalysis as Prisma.InputJsonValue) : undefined,
+    linkedinAnalysis: analysis.linkedinAnalysis ? (analysis.linkedinAnalysis as Prisma.InputJsonValue) : undefined,
+    companyMatches: analysis.companyMatches ? (analysis.companyMatches as Prisma.InputJsonValue) : undefined,
+    actionPlan: analysis.actionPlan ? (analysis.actionPlan as Prisma.InputJsonValue) : undefined,
   };
 
   let assessment = null;

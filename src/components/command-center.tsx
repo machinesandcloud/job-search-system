@@ -42,12 +42,17 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
   const [chatInput, setChatInput] = useState("");
   const [chatHistory, setChatHistory] = useState<Array<{ role: "user" | "assistant"; content: string }>>([]);
   const [digestEnabled, setDigestEnabled] = useState(true);
+  const [resumeFixApplied, setResumeFixApplied] = useState<Record<string, boolean>>({});
 
   const ai = assessment?.aiInsights || {};
   const week1 = ai?.weeklyPlan?.week1 || [];
   const week2 = ai?.weeklyPlan?.week2 || [];
   const resumeParsed = assessment.resumeParsedData || null;
   const linkedinParsed = assessment.linkedinParsedData || null;
+  const resumeAnalysis = assessment.resumeAnalysis || null;
+  const linkedinAnalysis = assessment.linkedinAnalysis || null;
+  const companyMatches = assessment.companyMatches || [];
+  const actionPlan = assessment.actionPlan || null;
   const profile = assessment.profileData || buildProfileData(assessment, resumeParsed, linkedinParsed);
   const resumeHealth = assessment.resumeHealthData || buildResumeHealthData(assessment, resumeParsed);
   const skillMatches = assessment.skillMatchData || buildSkillMatchData(assessment, resumeParsed);
@@ -150,6 +155,40 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
     };
     setChatHistory((prev) => [...prev, newMessage, response]);
     setChatInput("");
+  };
+
+  const applyResumeFix = async (issueId: string) => {
+    if (!assessment?.id) return;
+    setResumeFixApplied((prev) => ({ ...prev, [issueId]: true }));
+    try {
+      const res = await fetch("/api/resume/apply-fix", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ assessmentId: assessment.id, issueId }),
+      });
+      if (!res.ok) throw new Error("Failed");
+    } catch {
+      setResumeFixApplied((prev) => ({ ...prev, [issueId]: false }));
+    }
+  };
+
+  const downloadOptimizedResume = async () => {
+    if (!assessment?.id) return;
+    const res = await fetch("/api/resume/generate-optimized", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ assessmentId: assessment.id }),
+    });
+    if (!res.ok) return;
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "optimized_resume.txt";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
   };
 
   const toggleTask = async (taskId: string) => {
@@ -268,16 +307,43 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
                   {resumeHealth.score}% optimized
                 </p>
                 <ul className="mt-4 space-y-2 text-sm text-white/70">
-                  {resumeHealth.issues?.slice(0, 4).map((issue: string) => (
-                    <li key={issue}>• {issue}</li>
+                  {(resumeAnalysis?.issues || resumeHealth.issues || []).slice(0, 4).map((issue: any) => (
+                    <li key={issue.issue || issue}>• {issue.issue || issue}</li>
                   ))}
                 </ul>
-                <div className="mt-4 flex gap-3">
-                  <button className="rounded-full bg-white/10 px-4 py-2 text-xs font-semibold">Fix issues</button>
-                  <button className="rounded-full bg-white/10 px-4 py-2 text-xs font-semibold">Download optimized</button>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <button className="rounded-full bg-white/10 px-4 py-2 text-xs font-semibold" onClick={downloadOptimizedResume}>
+                    Download optimized resume
+                  </button>
                 </div>
               </div>
             </section>
+
+            {linkedinAnalysis && (
+              <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">LinkedIn optimization</p>
+                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                  <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm">
+                    <p className="text-xs uppercase text-white/50">Current headline</p>
+                    <p className="mt-2 text-white/80">{linkedinAnalysis.sections?.headline?.current || "Not provided"}</p>
+                  </div>
+                  <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm">
+                    <p className="text-xs uppercase text-white/50">Optimized headline</p>
+                    <p className="mt-2 text-white">{linkedinAnalysis.sections?.headline?.optimized || "Add a headline to unlock suggestions"}</p>
+                  </div>
+                </div>
+                <div className="mt-4 flex gap-3">
+                  <button
+                    className="rounded-full bg-white/10 px-4 py-2 text-xs font-semibold"
+                    onClick={() => {
+                      navigator.clipboard.writeText(linkedinAnalysis.sections?.headline?.optimized || "");
+                    }}
+                  >
+                    Copy optimized headline
+                  </button>
+                </div>
+              </section>
+            )}
 
             <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">Skill match analyzer</p>
@@ -434,6 +500,29 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
                 </div>
               </div>
             </section>
+
+            {resumeAnalysis && (
+              <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/60">Resume fixes</p>
+                <div className="mt-4 space-y-3">
+                  {resumeAnalysis.issues?.slice(0, 5).map((issue: any) => (
+                    <div key={issue.id} className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm">
+                      <p className="font-semibold">{issue.issue}</p>
+                      <p className="mt-2 text-white/70">{issue.suggestedFix}</p>
+                      <div className="mt-3 flex items-center gap-3">
+                        <button
+                          className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold"
+                          onClick={() => applyResumeFix(issue.id)}
+                        >
+                          {resumeFixApplied[issue.id] ? "Applied ✓" : "Mark applied"}
+                        </button>
+                        <span className="text-xs text-white/50">{issue.reasoning}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
         )}
 
@@ -445,6 +534,23 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
                 Tailored to your {assessment.hoursPerWeek || 8} hours/week commitment.
               </p>
             </header>
+            {actionPlan && (
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/60">AI-generated plan</p>
+                <div className="mt-4 space-y-3">
+                  {Object.entries(actionPlan).map(([weekKey, weekData]: any) => (
+                    <div key={weekKey} className="rounded-xl border border-white/10 bg-white/5 p-4">
+                      <p className="text-sm font-semibold">{weekData.title}</p>
+                      <ul className="mt-2 space-y-1 text-xs text-white/70">
+                        {weekData.tasks.map((task: any) => (
+                          <li key={task.task}>- {task.task} • {task.timeEstimate}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="space-y-4">
               <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
                 <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#06B6D4]">Week 1: Foundation</p>
@@ -604,6 +710,20 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
         {activeTab === "companies" && (
           <div className="space-y-6">
             <h2 className="text-2xl font-semibold">Your Target Companies</h2>
+            {companyMatches.length > 0 && (
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <p className="text-xs uppercase text-white/60">Match scores</p>
+                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                  {companyMatches.map((match: any) => (
+                    <div key={match.company?.name || match.company} className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm">
+                      <p className="font-semibold">{match.company?.name || match.company}</p>
+                      <p className="mt-2 text-white/70">Match score: {match.matchScore}%</p>
+                      <p className="mt-2 text-white/60">Missing: {match.missingSkills?.slice(0, 3).join(", ")}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 {targetCompanies.map((company: any) => (
