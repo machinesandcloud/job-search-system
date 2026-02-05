@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AssessmentAnswers } from "@/lib/validation";
 import { defaultAnswers } from "@/lib/defaults";
+import { companySeed } from "@/lib/company-data";
+import { toSlug } from "@/lib/utils";
 
 const steps = [
   "Target Roles",
@@ -180,11 +182,32 @@ export default function JobSearchWizard() {
     });
   }, []);
 
+  const localCompanyLibrary = useMemo(() => {
+    return companySeed.slice(0, 1000).map((company, index) => ({
+      id: `seed-${index}-${toSlug(company.name)}`,
+      name: company.name,
+      slug: toSlug(company.name),
+      logoUrl: company.domain ? `https://logo.clearbit.com/${company.domain}` : undefined,
+      category: company.industry || "Company",
+    }));
+  }, []);
+
+  const safeParseJson = async (res: Response) => {
+    const text = await res.text();
+    if (!text) return {};
+    try {
+      return JSON.parse(text);
+    } catch {
+      return {};
+    }
+  };
+
   useEffect(() => {
     const loadPopular = async () => {
       try {
         const res = await fetch("/api/roles/popular");
-        const data = await res.json();
+        if (!res.ok) throw new Error("Roles request failed");
+        const data: any = await safeParseJson(res);
         if (Array.isArray(data.roles) && data.roles.length > 0) {
           const merged = [...data.roles, ...roleLibrary].reduce<RoleOption[]>((acc, role) => {
             if (acc.some((item) => item.name === role.name)) return acc;
@@ -203,86 +226,23 @@ export default function JobSearchWizard() {
   }, [roleLibrary]);
 
   useEffect(() => {
-    const buildLocalCompanies = async () => {
-      const baseCompanies = [
-        "Google","Amazon","Microsoft","Meta","Apple","Netflix","Stripe","Datadog","Snowflake","Shopify",
-        "Airbnb","Uber","LinkedIn","Salesforce","Oracle","IBM","JPMorgan Chase","Goldman Sachs","Capital One","Block",
-        "Twilio","Atlassian","ServiceNow","Adobe","Intuit","PayPal","Zoom","Slack","Spotify","Pinterest",
-        "Square","Coinbase","Robinhood","Stripe","Cloudflare","GitHub","GitLab","HashiCorp","Okta","MongoDB",
-        "Elastic","Splunk","PagerDuty","New Relic","Confluent","Figma","Notion","Asana","Monday.com","Airtable",
-        "Snowflake","Databricks","Palantir","Workday","SAP","VMware","Dell","HP","Cisco","VMware",
-        "Nvidia","AMD","Intel","Qualcomm","Broadcom","ARM","Samsung","Sony","Dell Technologies","Dropbox",
-        "Box","Zendesk","Intercom","HubSpot","DocuSign","Canva","Miro","Unity","Epic Games","Riot Games",
-        "Roblox","Instacart","DoorDash","Lyft","Stripe","Klarna","Affirm","Plaid","Chime","SoFi",
-        "Square","Brex","Ramp","Gusto","Rippling","Carta","Expensify","QuickBooks","Xero","Wise",
-        "Booking.com","Expedia","Tripadvisor","Wayfair","Etsy","Target","Walmart","Costco","Best Buy","Ikea",
-        "ZoomInfo","Okta","Snyk","Checkmarx","Palo Alto Networks","CrowdStrike","Zscaler","Fortinet","Okta","Duo",
-        "Cloudflare","Fastly","Akamai","DigitalOcean","Heroku","Vercel","Netlify","Render","Fly.io","Supabase",
-        "PlanetScale","Neon","Cockroach Labs","Snowflake","SingleStore","Redis","Couchbase","InfluxData","Timescale",
-        "Anthropic","OpenAI","Cohere","Hugging Face","Stability AI","Weights & Biases","Scale AI","DeepMind","Replit",
-        "Glean","Adept","Perplexity","Lambda","SambaNova","Cerebras","Runway","ElevenLabs","Character.ai","Pinecone",
-        "Weaviate","Qdrant","Milvus","LangChain","LlamaIndex","Nomic","AssemblyAI","Vercel","Nextdoor","Snap",
-        "TikTok","ByteDance","X","Reddit","Discord","Twitch","YouTube","Meta","Google","Apple","Amazon",
-        "Bloomberg","Stripe","McKinsey","Bain","Deloitte","Accenture","PwC","KPMG","EY","Deloitte Digital",
-        "Ford","GM","Tesla","Rivian","Lucid","SpaceX","Blue Origin","Boeing","Northrop Grumman","Lockheed Martin",
-        "Verizon","AT&T","T-Mobile","Comcast","Charter","Intel","AMD","Nvidia","Qualcomm","Broadcom",
-        "CVS","UnitedHealth","Pfizer","Moderna","Roche","Johnson & Johnson","Merck","Gilead","Amgen","Novartis",
-        "Stripe","Datadog","Snowflake","Shopify","Airbnb","Uber","LinkedIn","Salesforce","Oracle","IBM",
-      ];
-      const expanded = new Set<string>();
-      const suffixes = ["Labs","Systems","Technologies","Cloud","AI","Data","Security","Digital","Networks","Software","Platforms"];
-      baseCompanies.forEach((name, idx) => {
-        expanded.add(name);
-        if (expanded.size < 500) {
-          expanded.add(`${name} ${suffixes[idx % suffixes.length]}`);
-        }
-      });
-      while (expanded.size < 520) {
-        expanded.add(`Nimbus ${expanded.size}`);
-      }
-      const list = Array.from(expanded).slice(0, 520);
-      const logos = [
-        "/logos/google.svg",
-        "/logos/amazon.svg",
-        "/logos/microsoft.svg",
-        "/logos/meta.svg",
-        "/logos/apple.svg",
-        "/logos/netflix.svg",
-        "/logos/stripe.svg",
-        "/logos/shopify.svg",
-        "/logos/datadog.svg",
-        "/logos/snowflake.svg",
-        "/logos/airbnb.svg",
-        "/logos/uber.svg",
-        "/logos/linkedin.svg",
-      ];
-      const items = list.map((name, index) => ({
-        id: `local-${index}-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
-        name,
-        slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-        logoUrl: logos[index % logos.length],
-        category: index < 100 ? "FAANG" : index < 250 ? "Unicorn" : index < 400 ? "Enterprise" : "Startup",
-      }));
-      setCompanyLibrary(items);
-      setPopularCompanies(items.slice(0, 16));
-    };
-
+    setCompanyLibrary(localCompanyLibrary);
+    setPopularCompanies(localCompanyLibrary.slice(0, 16));
     const loadPopular = async () => {
       try {
         const res = await fetch("/api/companies/popular");
-        const data = await res.json();
+        if (!res.ok) throw new Error("Companies request failed");
+        const data: any = await safeParseJson(res);
         if (Array.isArray(data.companies) && data.companies.length > 0) {
           setPopularCompanies(data.companies);
-          setCompanyLibrary(data.companies);
           return;
         }
       } catch (_err) {
         // ignore
       }
-      buildLocalCompanies();
     };
     loadPopular();
-  }, []);
+  }, [localCompanyLibrary]);
 
   useEffect(() => {
     if (!roleSearch) {
@@ -292,7 +252,8 @@ export default function JobSearchWizard() {
     const timer = setTimeout(async () => {
       try {
         const res = await fetch(`/api/roles/search?q=${encodeURIComponent(roleSearch)}`);
-        const data = await res.json();
+        if (!res.ok) throw new Error("Role search failed");
+        const data: any = await safeParseJson(res);
         if (Array.isArray(data.roles) && data.roles.length > 0) {
           setRoleResults(data.roles);
           return;
@@ -316,7 +277,8 @@ export default function JobSearchWizard() {
     const timer = setTimeout(async () => {
       try {
         const res = await fetch(`/api/companies/search?q=${encodeURIComponent(companySearch)}`);
-        const data = await res.json();
+        if (!res.ok) throw new Error("Company search failed");
+        const data: any = await safeParseJson(res);
         if (Array.isArray(data.companies) && data.companies.length > 0) {
           setCompanyResults(data.companies);
           return;
@@ -439,25 +401,18 @@ export default function JobSearchWizard() {
         throw new Error(data.error || "Upload failed");
       }
       if (kind === "resume") {
-        updateAnswers({ resumeFileUrl: data.url, resumeFileName: data.name, resumeFileSize: data.size });
+        const fallbackUrl = `inline://${encodeURIComponent(file.name)}`;
+        updateAnswers({ resumeFileUrl: data.url || fallbackUrl, resumeFileName: data.name || file.name, resumeFileSize: data.size || file.size });
+        if (data.parseStatus === "failed") {
+          setResumeUploadError(data.parseError || "Resume parsing failed. Please re-upload.");
+        }
       }
       if (kind === "linkedin") {
-        updateAnswers({ linkedinFileUrl: data.url, linkedinFileName: data.name });
+        const fallbackUrl = `inline://${encodeURIComponent(file.name)}`;
+        updateAnswers({ linkedinFileUrl: data.url || fallbackUrl, linkedinFileName: data.name || file.name });
       }
       return;
     } catch (err: any) {
-      // Fallback: allow progression even if upload storage fails or assessmentId missing.
-      if (kind === "resume") {
-        updateAnswers({
-          resumeFileUrl: `local://${encodeURIComponent(file.name)}`,
-          resumeFileName: file.name,
-          resumeFileSize: file.size,
-        });
-        setResumeUploadError(
-          "Upload storage failed, but we saved your file locally so you can continue."
-        );
-        return;
-      }
       throw err;
     }
   };
@@ -473,14 +428,20 @@ export default function JobSearchWizard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      const data = await res.json();
+      const text = await res.text();
+      let data: any = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch (_err) {
+        data = {};
+      }
       if (!res.ok) {
         const details =
           data?.details?.fieldErrors &&
           Object.entries(data.details.fieldErrors)
             .map(([field, messages]: any) => `${field}: ${messages?.[0] || "invalid"}`)
             .join("; ");
-        throw new Error(details || data.error || "Something went wrong");
+        throw new Error(details || data.error || text || "Something went wrong");
       }
       if (data.token) {
         router.push(`/job-search-system/results/preview?token=${data.token}`);
@@ -1135,11 +1096,11 @@ export default function JobSearchWizard() {
                   className="mt-2 min-h-[100px] w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm"
                   placeholder="Tell us about your situation, concerns, or questions..."
                   value={answers.additionalContext || ""}
-                  onChange={(event) => updateAnswers({ additionalContext: event.target.value.slice(0, 500) })}
-                  maxLength={500}
+                  onChange={(event) => updateAnswers({ additionalContext: event.target.value.slice(0, 2000) })}
+                  maxLength={2000}
                 />
                 <p className="mt-2 text-xs text-white/50">
-                  {(answers.additionalContext || "").length}/500 characters
+                  {(answers.additionalContext || "").length}/2000 characters
                 </p>
               </div>
             </div>

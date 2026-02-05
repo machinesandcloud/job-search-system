@@ -108,6 +108,10 @@ model Assessment {
   companyMatches     Json?
   actionPlan         Json?
   personalizedScripts Json?
+  coverLetterKit     Json?
+  interviewPrep      Json?
+  companyStrategies  Json?
+  careerAnalysis     Json?
   customHeadline     String?
   customAbout        String? @db.Text
 

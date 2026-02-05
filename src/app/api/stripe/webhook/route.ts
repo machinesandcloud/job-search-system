@@ -45,7 +45,7 @@ export async function POST(request: Request) {
     if (assessmentId) {
       const assessment = await prisma.assessment.findUnique({ where: { id: assessmentId } });
       const proPackData =
-        assessment && assessment.targetRoles ? buildProPack(assessment as any) : null;
+        assessment && assessment.targetRoles ? await buildProPack(assessment as any) : null;
       await prisma.assessment.update({
         where: { id: assessmentId },
         data: {

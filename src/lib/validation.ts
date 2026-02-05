@@ -34,7 +34,7 @@ export const assessmentAnswersSchema = z.object({
   outreachComfort: z.enum(["comfortable", "neutral", "uncomfortable"]),
   targetCompanies: z.array(targetCompanySchema).min(5).max(30),
   biggestBlocker: z.enum(["responses", "interviews", "offers", "direction", "time"]),
-  additionalContext: z.string().max(500).optional().nullable(),
+  additionalContext: z.string().max(2000).optional().nullable(),
 });
 
 export type AssessmentAnswers = z.infer<typeof assessmentAnswersSchema>;

@@ -3,14 +3,12 @@ import { prisma, isDatabaseReady } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { assessmentCompleteSchema, sanitizeAnswers } from "@/lib/validation";
 import { computeScore } from "@/lib/scoring";
-import { generateCoachFeedback } from "@/lib/coach-ai";
 import { ensureSameOrigin } from "@/lib/utils";
 import { logEvent } from "@/lib/events";
 import { runFullAnalysis } from "@/lib/analysis";
-import { groqChatText } from "@/lib/llm";
 
 async function buildTeaser(answers: any, score: number, subscores: any, aiInsights: any, actionPlan: any) {
-  const fallbackInsights = [
+  const insights = [
     aiInsights?.primaryGap,
     aiInsights?.quickWin,
   ].filter(Boolean);
@@ -19,27 +17,12 @@ async function buildTeaser(answers: any, score: number, subscores: any, aiInsigh
     ? actionPlan.week1.tasks.slice(0, 3).map((task: any) => task.task || task)
     : [];
 
-  if (fallbackInsights.length || previewActions.length) {
-    return {
-      score,
-      subscores,
-      coachRead: aiInsights?.primaryGapExplanation || `Your score is ${score}/100.`,
-      insights: fallbackInsights,
-      previewActions,
-    };
-  }
-
-  const aiFallback = await groqChatText(
-    "You are a tech career coach. Write a single sentence preview insight.",
-    `Provide one short preview insight for a ${answers.level} targeting ${answers.targetRoles?.[0]?.name || "their target role"}.`
-  );
-
   return {
     score,
     subscores,
-    coachRead: aiFallback || `Your score is ${score}/100.`,
-    insights: aiFallback ? [aiFallback] : [],
-    previewActions: [],
+    coachRead: aiInsights?.primaryGapExplanation || `Your score is ${score}/100.`,
+    insights,
+    previewActions,
   };
 }
 
@@ -90,12 +73,30 @@ export async function POST(request: Request) {
     linkedinParsedData: existingAssessment?.linkedinParsedData || null,
   });
 
-  const aiInsights =
-    analysis.aiInsights ||
-    (await generateCoachFeedback(answers, {
-      resumeParsedData: existingAssessment?.resumeParsedData,
-      linkedinParsedData: existingAssessment?.linkedinParsedData,
-    }));
+  if (analysis.aiFailed || !analysis.aiInsights) {
+    return NextResponse.json(
+      { error: analysis.aiFailureReason || "AI analysis failed. Please try again." },
+      { status: 503 }
+    );
+  }
+  if (!analysis.actionPlan) {
+    return NextResponse.json(
+      { error: "AI action plan unavailable. Please try again." },
+      { status: 503 }
+    );
+  }
+  if (!analysis.resumeAnalysis || !analysis.linkedinAnalysis || !analysis.companyMatches || !analysis.personalizedScripts) {
+    return NextResponse.json(
+      { error: "AI personalization incomplete. Please try again." },
+      { status: 503 }
+    );
+  }
+  if (!analysis.coverLetterKit || !analysis.interviewPrep || !analysis.companyStrategies || !analysis.careerAnalysis) {
+    return NextResponse.json(
+      { error: "AI strategy bundle incomplete. Please try again." },
+      { status: 503 }
+    );
+  }
   const recommendedRoute =
     (route === "Fast Track" ? "FastTrack" : route === "Guided" ? "Guided" : "DIY") as Prisma.AssessmentCreateInput["recommendedRoute"];
 
@@ -109,19 +110,21 @@ export async function POST(request: Request) {
     networkScore: subscores.network,
     executionScore: subscores.execution,
     recommendedRoute,
-    aiInsights: aiInsights ? (aiInsights as Prisma.InputJsonValue) : undefined,
-    aiAnalysisStatus: aiInsights && !analysis.aiFailed ? ("complete" as const) : ("failed" as const),
-    aiProcessedAt: aiInsights ? new Date() : null,
-    aiModel: aiInsights ? analysis.aiModel || "groq" : null,
-    aiFailureReason: analysis.aiFailed ? analysis.aiFailureReason : null,
+    aiInsights: analysis.aiInsights as Prisma.InputJsonValue,
+    aiAnalysisStatus: "complete" as const,
+    aiProcessedAt: new Date(),
+    aiModel: analysis.aiModel || "groq",
+    aiFailureReason: null,
     completedAt: new Date(),
-    resumeAnalysis: analysis.resumeAnalysis ? (analysis.resumeAnalysis as Prisma.InputJsonValue) : undefined,
-    linkedinAnalysis: analysis.linkedinAnalysis ? (analysis.linkedinAnalysis as Prisma.InputJsonValue) : undefined,
-    companyMatches: analysis.companyMatches ? (analysis.companyMatches as Prisma.InputJsonValue) : undefined,
-    actionPlan: analysis.actionPlan ? (analysis.actionPlan as Prisma.InputJsonValue) : undefined,
-    personalizedScripts: analysis.personalizedScripts
-      ? (analysis.personalizedScripts as Prisma.InputJsonValue)
-      : undefined,
+    resumeAnalysis: analysis.resumeAnalysis as Prisma.InputJsonValue,
+    linkedinAnalysis: analysis.linkedinAnalysis as Prisma.InputJsonValue,
+    companyMatches: analysis.companyMatches as Prisma.InputJsonValue,
+    actionPlan: analysis.actionPlan as Prisma.InputJsonValue,
+    personalizedScripts: analysis.personalizedScripts as Prisma.InputJsonValue,
+    coverLetterKit: analysis.coverLetterKit as Prisma.InputJsonValue,
+    interviewPrep: analysis.interviewPrep as Prisma.InputJsonValue,
+    companyStrategies: analysis.companyStrategies as Prisma.InputJsonValue,
+    careerAnalysis: analysis.careerAnalysis as Prisma.InputJsonValue,
   };
 
   let assessment = null;
@@ -150,6 +153,6 @@ export async function POST(request: Request) {
   return NextResponse.json({
     token: assessment.token,
     assessmentId: assessment.id,
-    teaser: await buildTeaser(answers, score, subscores, aiInsights, analysis.actionPlan),
+    teaser: await buildTeaser(answers, score, subscores, analysis.aiInsights, analysis.actionPlan),
   });
 }

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import path from "path";
 import fs from "fs/promises";
 import { ensureSameOrigin } from "@/lib/utils";
-import { extractTextFromBuffer, parseLinkedInText, parseResumeText } from "@/lib/parse-doc";
+import { extractTextFromBuffer } from "@/lib/parse-doc";
 import { Prisma } from "@prisma/client";
 import { groqChatJSON } from "@/lib/llm";
 
@@ -56,7 +56,10 @@ export async function POST(request: Request) {
           "You are an expert resume parser. Return valid JSON only.",
           `Extract structured resume data. Return JSON with: fullName, email, phone, currentRole, currentCompany, yearsExperience, topSkills (max 10), recentProjects (max 3), achievements (max 5), certifications, education. Resume text: ${text}`
         );
-        resumeParsedData = aiParsed || parseResumeText(text);
+        if (!aiParsed) {
+          throw new Error("AI resume parsing failed");
+        }
+        resumeParsedData = aiParsed;
         await prisma.assessment.update({
           where: { id: assessmentId },
           data: {
@@ -78,6 +81,13 @@ export async function POST(request: Request) {
           resumeParseError,
         },
       });
+      return NextResponse.json({
+        url: dataUrl,
+        name: file.name,
+        size: file.size,
+        parseStatus: resumeParseStatus,
+        parseError: resumeParseError,
+      });
     }
 
     if (kind === "linkedin") {
@@ -90,7 +100,10 @@ export async function POST(request: Request) {
           "You are an expert LinkedIn profile analyzer. Return valid JSON only.",
           `Extract LinkedIn data. Return JSON with: headline, about, skills (max 20), endorsements (number), recommendations (number), connectionCount, activityLevel. LinkedIn text: ${text}`
         );
-        linkedinParsedData = aiParsed || parseLinkedInText(text);
+        if (!aiParsed) {
+          throw new Error("AI LinkedIn parsing failed");
+        }
+        linkedinParsedData = aiParsed;
         await prisma.assessment.update({
           where: { id: assessmentId },
           data: {
@@ -111,13 +124,16 @@ export async function POST(request: Request) {
           linkedinParseError,
         },
       });
+      return NextResponse.json({
+        url: dataUrl,
+        name: file.name,
+        size: file.size,
+        parseStatus: linkedinParseStatus,
+        parseError: linkedinParseError,
+      });
     }
 
-    return NextResponse.json({
-      url: dataUrl,
-      name: file.name,
-      size: file.size,
-    });
+    return NextResponse.json({ url: dataUrl, name: file.name, size: file.size });
   } catch (err: any) {
     return NextResponse.json(
       { error: err?.message || "Upload failed" },
