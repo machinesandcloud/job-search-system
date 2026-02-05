@@ -5,6 +5,7 @@ import fs from "fs/promises";
 import { ensureSameOrigin } from "@/lib/utils";
 import { extractTextFromBuffer, parseLinkedInText, parseResumeText } from "@/lib/parse-doc";
 import { Prisma } from "@prisma/client";
+import { groqChatJSON } from "@/lib/llm";
 
 export const runtime = "nodejs";
 
@@ -51,7 +52,11 @@ export async function POST(request: Request) {
       let resumeParseError = null;
       try {
         const text = await extractTextFromBuffer(buffer, file.name);
-        resumeParsedData = parseResumeText(text);
+        const aiParsed = await groqChatJSON(
+          "You are an expert resume parser. Return valid JSON only.",
+          `Extract structured resume data. Return JSON with: fullName, email, phone, currentRole, currentCompany, yearsExperience, topSkills (max 10), recentProjects (max 3), achievements (max 5), certifications, education. Resume text: ${text}`
+        );
+        resumeParsedData = aiParsed || parseResumeText(text);
         await prisma.assessment.update({
           where: { id: assessmentId },
           data: {
@@ -81,7 +86,11 @@ export async function POST(request: Request) {
       let linkedinParseError = null;
       try {
         const text = await extractTextFromBuffer(buffer, file.name);
-        linkedinParsedData = parseLinkedInText(text);
+        const aiParsed = await groqChatJSON(
+          "You are an expert LinkedIn profile analyzer. Return valid JSON only.",
+          `Extract LinkedIn data. Return JSON with: headline, about, skills (max 20), endorsements (number), recommendations (number), connectionCount, activityLevel. LinkedIn text: ${text}`
+        );
+        linkedinParsedData = aiParsed || parseLinkedInText(text);
         await prisma.assessment.update({
           where: { id: assessmentId },
           data: {

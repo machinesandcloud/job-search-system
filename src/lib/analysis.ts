@@ -1,4 +1,5 @@
 import type { AssessmentAnswers } from "@/lib/validation";
+import { groqChatJSON } from "@/lib/llm";
 
 type ParsedData = {
   resumeParsedData?: any;
@@ -210,24 +211,6 @@ function generateCompanyMatches(answers: AssessmentAnswers, resumeParsedData?: a
   });
 }
 
-async function tryFreeLlm(prompt: string) {
-  const endpoint = process.env.OLLAMA_URL || process.env.FREE_LLM_URL;
-  const model = process.env.OLLAMA_MODEL || process.env.FREE_LLM_MODEL;
-  if (!endpoint || !model) return null;
-  try {
-    const res = await fetch(`${endpoint}/api/generate`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model, prompt, stream: false }),
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.response as string;
-  } catch {
-    return null;
-  }
-}
-
 export async function runFullAnalysis(answers: AssessmentAnswers, parsed?: ParsedData) {
   const resumeAnalysis = analyzeResume(answers, parsed?.resumeParsedData);
   const linkedinAnalysis = analyzeLinkedIn(answers, parsed?.linkedinParsedData, parsed?.resumeParsedData);
@@ -240,15 +223,10 @@ export async function runFullAnalysis(answers: AssessmentAnswers, parsed?: Parse
     parsed?.linkedinParsedData
   )}. Return JSON with primaryGap, secondaryGap, quickWin, routeReasoning, companyFit.`;
 
-  const llmResponse = await tryFreeLlm(prompt);
-  let aiInsights = null;
-  if (llmResponse) {
-    try {
-      aiInsights = JSON.parse(llmResponse);
-    } catch {
-      aiInsights = null;
-    }
-  }
+  const aiInsights = await groqChatJSON(
+    "You are a senior tech career coach. Return valid JSON only.",
+    prompt
+  );
 
   return {
     aiInsights,

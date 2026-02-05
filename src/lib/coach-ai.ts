@@ -1,5 +1,6 @@
 import type { AssessmentAnswers } from "@/lib/validation";
 import { computeScore } from "@/lib/scoring";
+import { groqChatJSON } from "@/lib/llm";
 
 const ROLE_KEYWORDS: Record<string, { must: string[]; nice: string[] }> = {
   "DevOps Engineer": {
@@ -72,24 +73,6 @@ type ParsedPayload = {
   linkedinParsedData?: any;
 };
 
-async function tryFreeLlm(prompt: string) {
-  const endpoint = process.env.OLLAMA_URL || process.env.FREE_LLM_URL;
-  const model = process.env.OLLAMA_MODEL || process.env.FREE_LLM_MODEL;
-  if (!endpoint || !model) return null;
-  try {
-    const res = await fetch(`${endpoint}/api/generate`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model, prompt, stream: false }),
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.response as string;
-  } catch {
-    return null;
-  }
-}
-
 export async function generateCoachFeedback(answers: AssessmentAnswers, parsed?: ParsedPayload) {
   const { score, subscores, route } = computeScore(answers);
   const resumeParsed = parsed?.resumeParsedData || null;
@@ -146,15 +129,11 @@ export async function generateCoachFeedback(answers: AssessmentAnswers, parsed?:
     linkedinParsed
   )}. Return JSON with primaryGap, secondaryGap, quickWin, weeklyPlan, companyFit, routeReasoning.`;
 
-  const llmResponse = await tryFreeLlm(llmPrompt);
-  if (llmResponse) {
-    try {
-      return JSON.parse(llmResponse);
-    } catch {
-      return fallback;
-    }
-  }
-  return fallback;
+  const llmResponse = await groqChatJSON(
+    "You are an expert tech career coach. Return valid JSON only.",
+    llmPrompt
+  );
+  return llmResponse || fallback;
 }
 
 export async function generateCoachPulse(answers: AssessmentAnswers, step?: string) {
