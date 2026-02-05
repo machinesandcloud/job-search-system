@@ -52,23 +52,28 @@ export async function POST(request: Request) {
       let resumeParseError = null;
       try {
         const text = await extractTextFromBuffer(buffer, file.name);
-        const aiParsed = await groqChatJSON(
-          "You are an expert resume parser. Return valid JSON only.",
-          `Extract structured resume data. Return JSON with: fullName, email, phone, currentRole, currentCompany, yearsExperience, topSkills (max 10), recentProjects (max 3), achievements (max 5), certifications, education. Resume text: ${text}`
-        );
-        if (!aiParsed) {
-          throw new Error("AI resume parsing failed");
+        if (text) {
+          const aiParsed = await groqChatJSON(
+            "You are an expert resume parser. Return valid JSON only.",
+            `Extract structured resume data. Return JSON with: fullName, email, phone, currentRole, currentCompany, yearsExperience, topSkills (max 10), recentProjects (max 3), achievements (max 5), certifications, education. Resume text: ${text}`
+          );
+          if (!aiParsed) {
+            throw new Error("AI resume parsing failed");
+          }
+          resumeParsedData = aiParsed;
+          await prisma.assessment.update({
+            where: { id: assessmentId },
+            data: {
+              resumeRawText: text,
+            },
+          });
+        } else {
+          resumeParseStatus = "processing";
+          resumeParseError = "Resume uploaded. Parsing is running in the background.";
         }
-        resumeParsedData = aiParsed;
-        await prisma.assessment.update({
-          where: { id: assessmentId },
-          data: {
-            resumeRawText: text,
-          },
-        });
       } catch (parseErr: any) {
-        resumeParseStatus = "failed";
-        resumeParseError = "Parsing failed. We'll retry in the background.";
+        resumeParseStatus = "processing";
+        resumeParseError = "Resume uploaded. Parsing is running in the background.";
       }
       await prisma.assessment.update({
         where: { id: assessmentId },
@@ -96,23 +101,28 @@ export async function POST(request: Request) {
       let linkedinParseError = null;
       try {
         const text = await extractTextFromBuffer(buffer, file.name);
-        const aiParsed = await groqChatJSON(
-          "You are an expert LinkedIn profile analyzer. Return valid JSON only.",
-          `Extract LinkedIn data. Return JSON with: headline, about, skills (max 20), endorsements (number), recommendations (number), connectionCount, activityLevel. LinkedIn text: ${text}`
-        );
-        if (!aiParsed) {
-          throw new Error("AI LinkedIn parsing failed");
+        if (text) {
+          const aiParsed = await groqChatJSON(
+            "You are an expert LinkedIn profile analyzer. Return valid JSON only.",
+            `Extract LinkedIn data. Return JSON with: headline, about, skills (max 20), endorsements (number), recommendations (number), connectionCount, activityLevel. LinkedIn text: ${text}`
+          );
+          if (!aiParsed) {
+            throw new Error("AI LinkedIn parsing failed");
+          }
+          linkedinParsedData = aiParsed;
+          await prisma.assessment.update({
+            where: { id: assessmentId },
+            data: {
+              linkedinRawText: text,
+            },
+          });
+        } else {
+          linkedinParseStatus = "processing";
+          linkedinParseError = "LinkedIn uploaded. Parsing is running in the background.";
         }
-        linkedinParsedData = aiParsed;
-        await prisma.assessment.update({
-          where: { id: assessmentId },
-          data: {
-            linkedinRawText: text,
-          },
-        });
       } catch (parseErr: any) {
-        linkedinParseStatus = "failed";
-        linkedinParseError = "Parsing failed. We'll retry in the background.";
+        linkedinParseStatus = "processing";
+        linkedinParseError = "LinkedIn uploaded. Parsing is running in the background.";
       }
       await prisma.assessment.update({
         where: { id: assessmentId },
@@ -141,8 +151,8 @@ export async function POST(request: Request) {
         url: null,
         name: null,
         size: null,
-        parseStatus: "failed",
-        parseError: "Parsing failed. We'll retry in the background.",
+        parseStatus: "processing",
+        parseError: "Resume uploaded. Parsing is running in the background.",
       });
     }
     return NextResponse.json({ error: message }, { status: 500 });

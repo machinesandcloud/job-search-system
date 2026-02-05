@@ -41,7 +41,7 @@ export default async function CoverLetterPage({ params }: { params: Promise<{ to
 
         {!coverLetterKit ? (
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white/70">
-            Cover letter kit is not ready yet. Complete your assessment and try again.
+            AI is generating your cover letter kit now. This section will populate automatically.
           </div>
         ) : (
           <div className="space-y-6">

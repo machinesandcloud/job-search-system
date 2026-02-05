@@ -41,7 +41,7 @@ export default async function ResumePage({ params }: { params: Promise<{ token: 
 
         {!resumeAnalysis ? (
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white/70">
-            AI resume analysis is not ready yet. Please re-upload your resume and try again.
+            AI is generating your resume insights now. This section will populate automatically.
           </div>
         ) : (
           <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">

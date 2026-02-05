@@ -41,7 +41,7 @@ export default async function CompanyStrategyPage({ params }: { params: Promise<
 
         {companyStrategies.length === 0 ? (
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white/70">
-            Company strategies are not ready yet. Complete your assessment and try again.
+            AI is generating your company strategies now. This section will populate automatically.
           </div>
         ) : (
           <div className="space-y-6">

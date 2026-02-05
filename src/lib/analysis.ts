@@ -25,6 +25,9 @@ export async function runFullAnalysis(answers: AssessmentAnswers, parsed?: Parse
   const targetRole = answers.targetRoles?.[0]?.name;
   if (!targetRole) {
     return {
+      marketIntelligence: null,
+      week1Plan: null,
+      personalizationData: null,
       aiInsights: null,
       resumeAnalysis: null,
       linkedinAnalysis: null,
@@ -49,6 +52,9 @@ export async function runFullAnalysis(answers: AssessmentAnswers, parsed?: Parse
     );
   } catch (err: any) {
     return {
+      marketIntelligence: null,
+      week1Plan: null,
+      personalizationData: null,
       aiInsights: null,
       resumeAnalysis: null,
       linkedinAnalysis: null,
@@ -466,6 +472,9 @@ Return JSON with this exact structure:
   const aiBundle = await groqChatJSON(systemPrompt, userPrompt);
   if (!aiBundle) {
     return {
+      marketIntelligence: marketIntel,
+      week1Plan: null,
+      personalizationData: buildPersonalizationData(answers, resumeParsed, scoreResult),
       aiInsights: null,
       resumeAnalysis: null,
       linkedinAnalysis: null,
@@ -483,6 +492,11 @@ Return JSON with this exact structure:
   }
 
   return {
+    marketIntelligence: marketIntel,
+    week1Plan: aiBundle.weeklyActionPlan
+      ? { week1: aiBundle.weeklyActionPlan.week1 || null, week2Preview: aiBundle.weeklyActionPlan.week2Preview || null }
+      : null,
+    personalizationData: buildPersonalizationData(answers, resumeParsed, scoreResult),
     aiInsights: aiBundle.aiInsights || null,
     resumeAnalysis: aiBundle.resumeAnalysis || null,
     linkedinAnalysis: aiBundle.linkedinAnalysis || null,
@@ -496,5 +510,28 @@ Return JSON with this exact structure:
     aiModel: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
     aiFailed: false,
     aiFailureReason: null,
+  };
+}
+
+function buildPersonalizationData(answers: AssessmentAnswers, resumeParsed: any, scoreResult: any) {
+  const fullName =
+    resumeParsed?.contact?.fullName ||
+    resumeParsed?.personalInfo?.fullName ||
+    resumeParsed?.fullName ||
+    "";
+  const firstName = fullName ? fullName.split(" ")[0] : "";
+  return {
+    firstName,
+    currentTitle: resumeParsed?.currentRole?.title || resumeParsed?.currentRole || "",
+    currentCompany: resumeParsed?.currentRole?.company || resumeParsed?.currentCompany || "",
+    yearsExperience: resumeParsed?.totalYearsExperience || resumeParsed?.yearsExperience || null,
+    topSkill: resumeParsed?.topSkills?.[0] || "",
+    targetRole: answers.targetRoles?.[0]?.name || "",
+    dreamCompany: answers.targetCompanies?.[0]?.name || "",
+    biggestGap: "",
+    quickestWin: "",
+    resumeScore: null,
+    linkedinScore: null,
+    readinessScore: scoreResult?.score ?? null,
   };
 }

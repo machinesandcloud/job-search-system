@@ -44,7 +44,7 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
   const actionPlan = assessment.actionPlan || null;
   const scripts = assessment.personalizedScripts?.scripts || [];
 
-  const week1Plan = actionPlan?.week1 || null;
+  const week1Plan = assessment.week1Plan?.week1 || actionPlan?.week1 || null;
   const week2Plan = actionPlan?.week2 || null;
 
   const profile = {
@@ -551,75 +551,64 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
         {activeTab === "action" && (
           <div className="space-y-6">
             <header>
-              <h2 className="text-2xl font-semibold">Your 14-Day Action Plan</h2>
+              <h2 className="text-2xl font-semibold">Your Action Plan</h2>
               <p className="text-white/70">
                 Tailored to your {assessment.hoursPerWeek || 8} hours/week commitment.
               </p>
             </header>
-            {actionPlan && (
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/60">AI-generated plan</p>
-                <div className="mt-4 space-y-3">
-                  {Object.entries(actionPlan).map(([weekKey, weekData]: any) => (
-                    <div key={weekKey} className="rounded-xl border border-white/10 bg-white/5 p-4">
-                      <p className="text-sm font-semibold">{weekData.title}</p>
-                      <ul className="mt-2 space-y-1 text-xs text-white/70">
-                        {weekData.tasks.map((task: any) => (
-                          <li key={task.task}>- {task.task} • {task.timeEstimate}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
             <div className="space-y-4">
               <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#06B6D4]">Week 1: Foundation</p>
-                <div className="mt-4 space-y-3">
-                  {actionTasks.map((task) => (
-                    <div key={task.id} className="rounded-xl border border-white/10 bg-white/5 p-4">
-                      <div className="flex items-start gap-3">
-                        <button
-                          type="button"
-                          onClick={() => toggleTask(task.id)}
-                          className={`mt-1 flex h-5 w-5 items-center justify-center rounded-full border ${
-                            taskState[task.id] ? "border-transparent bg-gradient-to-r from-[#06B6D4] to-[#8B5CF6]" : "border-white/30"
-                          }`}
-                        >
-                          {taskState[task.id] && <span className="h-2 w-2 rounded-full bg-white" />}
-                        </button>
-                        <div className="flex-1">
-                          <p className={`text-sm font-semibold ${taskState[task.id] ? "line-through text-white/60" : "text-white/90"}`}>
-                            {task.title}
-                          </p>
-                          <div className="mt-2 flex items-center gap-3 text-xs text-white/60">
-                            <span>⏱ {task.time}</span>
-                            <span>Impact: {task.impact}</span>
-                          </div>
-                          {task.example && (
-                            <div className="mt-3 rounded-lg border border-white/10 bg-white/5 p-3 text-xs text-white/70">
-                              <p className="text-white/80">Current headline: {task.example.current}</p>
-                              <p className="mt-2 text-white">AI-optimized: {task.example.optimized}</p>
-                              <div className="mt-3 flex gap-2">
-                                <button className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold">Copy headline</button>
-                                <button className="rounded-full bg-white/5 px-3 py-1 text-xs font-semibold">Customize</button>
-                              </div>
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#06B6D4]">Week 1: Deep Dive</p>
+                {!week1Plan ? (
+                  <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
+                    AI is generating your Week 1 plan now. This section will populate automatically.
+                  </div>
+                ) : (
+                  <div className="mt-4 space-y-3">
+                    {(week1Plan.tasks || []).slice(0, 8).map((task: any) => (
+                      <div key={task.id || task.title} className="rounded-xl border border-white/10 bg-white/5 p-4">
+                        <div className="flex items-start gap-3">
+                          <button
+                            type="button"
+                            onClick={() => toggleTask(task.id)}
+                            className={`mt-1 flex h-5 w-5 items-center justify-center rounded-full border ${
+                              taskState[task.id] ? "border-transparent bg-gradient-to-r from-[#06B6D4] to-[#8B5CF6]" : "border-white/30"
+                            }`}
+                          >
+                            {taskState[task.id] && <span className="h-2 w-2 rounded-full bg-white" />}
+                          </button>
+                          <div className="flex-1">
+                            <p className={`text-sm font-semibold ${taskState[task.id] ? "line-through text-white/60" : "text-white/90"}`}>
+                              {task.title || task.task}
+                            </p>
+                            <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-white/60">
+                              {task.timeEstimate && <span>⏱ {task.timeEstimate}</span>}
+                              {task.priority && <span>Priority: {task.priority}</span>}
+                              {task.category && <span>{task.category}</span>}
                             </div>
-                          )}
+                            {task.context?.whyNow && (
+                              <p className="mt-2 text-xs text-white/70">{task.context.whyNow}</p>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#06B6D4]">Week 2: Execution</p>
-                <ul className="mt-4 space-y-2 text-sm text-white/80">
-                  {(week2Plan?.tasks || []).map((item: any) => (
-                    <li key={item.id || item.task}>- {item.task || item}</li>
-                  ))}
-                </ul>
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#06B6D4]">Week 2+</p>
+                {assessment.hasPurchasedPro ? (
+                  <ul className="mt-4 space-y-2 text-sm text-white/80">
+                    {(week2Plan?.tasks || []).map((item: any) => (
+                      <li key={item.id || item.task}>- {item.task || item}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
+                    Unlock Week 2+ to get the full execution roadmap, scripts, and company-specific strategy.
+                  </div>
+                )}
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
                 <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/60">Live editor</p>

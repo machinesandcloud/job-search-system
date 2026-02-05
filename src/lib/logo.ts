@@ -2,8 +2,9 @@ const logoDevToken = process.env.NEXT_PUBLIC_LOGO_DEV_PUBLISHABLE_KEY;
 
 export const buildLogoCandidates = (domain?: string | null, name?: string | null, logoUrl?: string | null) => {
   const candidates: string[] = [];
-  if (logoUrl) candidates.push(logoUrl);
+  if (logoUrl && logoUrl.trim()) candidates.push(logoUrl);
   if (domain) {
+    candidates.push(`https://logo.clearbit.com/${encodeURIComponent(domain)}`);
     if (logoDevToken) {
       candidates.push(`https://img.logo.dev/${encodeURIComponent(domain)}?token=${logoDevToken}`);
     }

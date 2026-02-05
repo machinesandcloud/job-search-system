@@ -41,7 +41,7 @@ export default async function LinkedInPage({ params }: { params: Promise<{ token
 
         {!linkedinAnalysis ? (
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white/70">
-            LinkedIn analysis is not ready yet. Upload your LinkedIn PDF and try again.
+            AI is generating your LinkedIn insights now. This section will populate automatically.
           </div>
         ) : (
           <div className="grid gap-6">

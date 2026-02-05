@@ -83,6 +83,11 @@ model Assessment {
   aiModel          String?
   aiFailureReason  String?
   recommendedRoute RecommendedRoute?
+  marketIntelligence Json?
+  week1Plan          Json?
+  personalizationData Json?
+  progressPercentage Float?
+  lastActivityAt     DateTime?
 
   hasPurchasedPro     Boolean  @default(false)
   stripeSessionId     String?

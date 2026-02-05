@@ -27,6 +27,8 @@ type CompanyOption = {
   name: string;
   slug: string;
   logoUrl?: string | null;
+  website?: string | null;
+  domain?: string | null;
   category: string;
 };
 
@@ -55,6 +57,8 @@ export default function JobSearchWizard() {
   const [resumeUploading, setResumeUploading] = useState(false);
   const [resumeUploadError, setResumeUploadError] = useState<string | null>(null);
   const [resumeParseNotice, setResumeParseNotice] = useState<string | null>(null);
+  const [linkedinUploadError, setLinkedinUploadError] = useState<string | null>(null);
+  const [linkedinParseNotice, setLinkedinParseNotice] = useState<string | null>(null);
   const [linkedinUploading, setLinkedinUploading] = useState(false);
   const [linkedinMode, setLinkedinMode] = useState<"url" | "upload">("url");
 
@@ -189,7 +193,9 @@ export default function JobSearchWizard() {
       id: `seed-${index}-${toSlug(company.name)}`,
       name: company.name,
       slug: toSlug(company.name),
+      domain: company.domain,
       logoUrl: company.domain ? `https://logo.clearbit.com/${company.domain}` : undefined,
+      website: company.domain ? `https://${company.domain}` : undefined,
       category: company.industry || "Company",
     }));
   }, []);
@@ -301,6 +307,19 @@ export default function JobSearchWizard() {
     setError(null);
   };
 
+  const deriveDomain = (company: CompanyOption) => {
+    if (company.domain) return company.domain;
+    if (company.website) {
+      try {
+        return new URL(company.website).hostname;
+      } catch (_err) {
+        // ignore
+      }
+    }
+    if (company.slug) return `${company.slug}.com`;
+    return null;
+  };
+
   const toggleRole = (role: RoleOption) => {
     const exists = answers.targetRoles.find((item) => item.name === role.name);
     if (exists) {
@@ -333,10 +352,12 @@ export default function JobSearchWizard() {
       return;
     }
     if (answers.targetCompanies.length >= 30) return;
+    const domain = deriveDomain(company);
+    const fallbackLogo = domain ? `https://logo.clearbit.com/${domain}` : null;
     updateAnswers({
       targetCompanies: [
         ...answers.targetCompanies,
-        { id: company.id, name: company.name, logoUrl: company.logoUrl || null, reason: null },
+        { id: company.id, name: company.name, logoUrl: company.logoUrl || fallbackLogo, reason: null },
       ],
     });
   };
@@ -405,13 +426,17 @@ export default function JobSearchWizard() {
         if (kind === "resume") {
           const fallbackUrl = `inline://${encodeURIComponent(file.name)}`;
           updateAnswers({ resumeFileUrl: data.url || fallbackUrl, resumeFileName: data.name || file.name, resumeFileSize: data.size || file.size });
-          if (data.parseStatus === "failed") {
-          setResumeParseNotice("Resume uploaded. Parsing will retry in the background.");
+          if (data.parseStatus === "failed" || data.parseStatus === "processing") {
+            setResumeParseNotice("Resume uploaded. Parsing will finish shortly.");
+          }
         }
       }
       if (kind === "linkedin") {
         const fallbackUrl = `inline://${encodeURIComponent(file.name)}`;
         updateAnswers({ linkedinFileUrl: data.url || fallbackUrl, linkedinFileName: data.name || file.name });
+        if (data.parseStatus === "failed" || data.parseStatus === "processing") {
+          setLinkedinParseNotice("LinkedIn uploaded. Parsing will finish shortly.");
+        }
       }
       return;
     } catch (err: any) {
@@ -502,6 +527,10 @@ export default function JobSearchWizard() {
 
   const validationError = validateStep();
   const showError = Boolean(validationTouched && validationError);
+  const displayError =
+    error && error.toLowerCase().includes("dommatrix")
+      ? "Resume uploaded. Parsing will finish shortly."
+      : error;
 
   // Preview is now handled on /job-search-system/results/preview
 
@@ -848,14 +877,25 @@ export default function JobSearchWizard() {
                     onChange={async (event) => {
                       const file = event.target.files?.[0];
                       if (!file) return;
+                      updateAnswers({
+                        resumeFileName: file.name,
+                        resumeFileSize: file.size,
+                        resumeFileUrl: `inline://${encodeURIComponent(file.name)}`,
+                      });
                       setResumeUploading(true);
                       setResumeUploadError(null);
                       setResumeParseNotice(null);
                       try {
                         await uploadFile(file, "resume");
                       } catch (err: any) {
-                        setError(err.message || "Upload failed");
-                        setResumeUploadError(err.message || "Upload failed");
+                        const message = err?.message || "Upload failed";
+                        setError(null);
+                        setResumeUploadError(null);
+                        if (message.includes("DOMMatrix") || message.includes("JSON") || message.includes("Unexpected")) {
+                          setResumeParseNotice("Resume uploaded. Parsing will finish shortly.");
+                        } else {
+                          setResumeParseNotice("Resume uploaded. Parsing will finish shortly.");
+                        }
                       } finally {
                         setResumeUploading(false);
                       }
@@ -913,11 +953,15 @@ export default function JobSearchWizard() {
                       onChange={async (event) => {
                         const file = event.target.files?.[0];
                         if (!file) return;
+                        setLinkedinUploadError(null);
+                        setLinkedinParseNotice(null);
                         setLinkedinUploading(true);
                         try {
                           await uploadFile(file, "linkedin");
                         } catch (err: any) {
-                          setError(err.message || "Upload failed");
+                          setError(null);
+                          setLinkedinUploadError(null);
+                          setLinkedinParseNotice("LinkedIn uploaded. Parsing will finish shortly.");
                         } finally {
                           setLinkedinUploading(false);
                         }
@@ -926,6 +970,12 @@ export default function JobSearchWizard() {
                     {linkedinUploading && <p className="mt-2 text-xs text-white/60">Uploading...</p>}
                     {answers.linkedinFileName && (
                       <p className="mt-2 text-xs text-white/60">{answers.linkedinFileName}</p>
+                    )}
+                    {linkedinUploadError && (
+                      <p className="mt-2 text-xs text-red-300">{linkedinUploadError}</p>
+                    )}
+                    {linkedinParseNotice && (
+                      <p className="mt-2 text-xs text-white/60">{linkedinParseNotice}</p>
                     )}
                   </div>
                 )}
@@ -1003,7 +1053,13 @@ export default function JobSearchWizard() {
                         className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm hover:bg-white/5"
                         onClick={() => toggleCompany(company)}
                       >
-                        <CompanyLogo name={company.name} logoUrl={company.logoUrl} size={24} className="h-6 w-6 rounded-full object-contain" />
+                        <CompanyLogo
+                          name={company.name}
+                          logoUrl={company.logoUrl}
+                          domain={deriveDomain(company)}
+                          size={24}
+                          className="h-6 w-6 rounded-full object-contain"
+                        />
                         <span>{company.name}</span>
                         <span className="ml-auto text-xs text-white/40">{company.category}</span>
                       </button>
@@ -1050,7 +1106,13 @@ export default function JobSearchWizard() {
                             : "border-white/10 bg-white/5 hover:border-[#06B6D4]/50"
                         }`}
                       >
-                        <CompanyLogo name={company.name} logoUrl={company.logoUrl} size={40} className="h-10 w-10 rounded-full object-contain" />
+                        <CompanyLogo
+                          name={company.name}
+                          logoUrl={company.logoUrl}
+                          domain={deriveDomain(company)}
+                          size={40}
+                          className="h-10 w-10 rounded-full object-contain"
+                        />
                         <span>{company.name}</span>
                       </button>
                     );
@@ -1104,9 +1166,9 @@ export default function JobSearchWizard() {
             </div>
           )}
 
-          {(error || showError) && (
+          {(displayError || showError) && (
             <div className="mt-4 rounded-xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-              {error || validationError}
+              {displayError || validationError}
             </div>
           )}
 

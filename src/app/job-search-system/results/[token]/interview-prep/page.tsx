@@ -46,7 +46,7 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
 
         {!interviewPrep ? (
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white/70">
-            Interview prep is not ready yet. Complete your assessment and try again.
+            AI is generating your interview prep now. This section will populate automatically.
           </div>
         ) : (
           <div className="grid gap-6">

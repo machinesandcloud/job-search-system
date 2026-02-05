@@ -41,7 +41,7 @@ export default async function ScriptsPage({ params }: { params: Promise<{ token:
 
         {scripts.length === 0 ? (
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white/70">
-            Scripts are not ready yet. Complete your assessment and try again.
+            AI is generating your scripts now. This section will populate automatically.
           </div>
         ) : (
           <div className="grid gap-6 lg:grid-cols-2">

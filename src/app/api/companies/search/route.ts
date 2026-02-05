@@ -12,7 +12,9 @@ export async function GET(request: Request) {
     select: {
       id: true,
       name: true,
+      slug: true,
       logoUrl: true,
+      website: true,
       category: true,
       isPopular: true,
     },
