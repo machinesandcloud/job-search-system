@@ -40,6 +40,11 @@ ${safeStringify(linkedinParsed, 4000)}
 SCORES:
 ${safeStringify(scoreResult, 1500)}
 
+WEEK 1 REQUIREMENTS:
+- Provide 15-20 ultra-detailed tasks for Week 1 (resume, LinkedIn, company research, positioning, networking)
+- Each task must be actionable, specific to this user, and include clear steps + success criteria
+- Week 2 must be a preview only for non-pro users (use week2Preview fields)
+
 Return JSON with this exact structure:
 {
   "aiInsights": {
@@ -195,6 +200,12 @@ Return JSON with this exact structure:
       "dailyBreakdown": { "day1": ["week1_task1"] },
       "weeklyGoal": "",
       "checkpointQuestions": [""]
+    },
+    "week2Preview": {
+      "title": "",
+      "summary": "",
+      "previewTasks": [""],
+      "upgradeMessage": ""
     },
     "week2": {
       "title": "",

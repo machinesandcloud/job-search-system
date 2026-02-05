@@ -92,10 +92,14 @@ function normalizeText(text: string) {
 export async function extractTextFromBuffer(buffer: Buffer, filename: string) {
   const ext = path.extname(filename).toLowerCase();
   if (ext === ".pdf") {
-    const pdfParseModule = await import("pdf-parse");
-    const pdfParse = (pdfParseModule as any).default || (pdfParseModule as any);
-    const data = await pdfParse(buffer);
-    return normalizeText(data.text || "");
+    try {
+      const pdfParseModule = await import("pdf-parse");
+      const pdfParse = (pdfParseModule as any).default || (pdfParseModule as any);
+      const data = await pdfParse(buffer);
+      return normalizeText(data.text || "");
+    } catch (_err) {
+      return "";
+    }
   }
   if (ext === ".docx") {
     const mammoth = await import("mammoth");

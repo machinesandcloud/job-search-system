@@ -6,6 +6,7 @@ import type { AssessmentAnswers } from "@/lib/validation";
 import { defaultAnswers } from "@/lib/defaults";
 import { companySeed } from "@/lib/company-data";
 import { toSlug } from "@/lib/utils";
+import { CompanyLogo } from "@/components/company-logo";
 
 const steps = [
   "Target Roles",
@@ -53,6 +54,7 @@ export default function JobSearchWizard() {
 
   const [resumeUploading, setResumeUploading] = useState(false);
   const [resumeUploadError, setResumeUploadError] = useState<string | null>(null);
+  const [resumeParseNotice, setResumeParseNotice] = useState<string | null>(null);
   const [linkedinUploading, setLinkedinUploading] = useState(false);
   const [linkedinMode, setLinkedinMode] = useState<"url" | "upload">("url");
 
@@ -400,11 +402,11 @@ export default function JobSearchWizard() {
       if (!res.ok) {
         throw new Error(data.error || "Upload failed");
       }
-      if (kind === "resume") {
-        const fallbackUrl = `inline://${encodeURIComponent(file.name)}`;
-        updateAnswers({ resumeFileUrl: data.url || fallbackUrl, resumeFileName: data.name || file.name, resumeFileSize: data.size || file.size });
-        if (data.parseStatus === "failed") {
-          setResumeUploadError(data.parseError || "Resume parsing failed. Please re-upload.");
+        if (kind === "resume") {
+          const fallbackUrl = `inline://${encodeURIComponent(file.name)}`;
+          updateAnswers({ resumeFileUrl: data.url || fallbackUrl, resumeFileName: data.name || file.name, resumeFileSize: data.size || file.size });
+          if (data.parseStatus === "failed") {
+          setResumeParseNotice("Resume uploaded. Parsing will retry in the background.");
         }
       }
       if (kind === "linkedin") {
@@ -848,6 +850,7 @@ export default function JobSearchWizard() {
                       if (!file) return;
                       setResumeUploading(true);
                       setResumeUploadError(null);
+                      setResumeParseNotice(null);
                       try {
                         await uploadFile(file, "resume");
                       } catch (err: any) {
@@ -867,7 +870,10 @@ export default function JobSearchWizard() {
                   )}
                 </div>
                 {resumeUploadError && (
-                  <p className="mt-2 text-xs text-amber-300">{resumeUploadError}</p>
+                  <p className="mt-2 text-xs text-red-300">{resumeUploadError}</p>
+                )}
+                {resumeParseNotice && (
+                  <p className="mt-2 text-xs text-white/60">{resumeParseNotice}</p>
                 )}
                 {validationTouched && !answers.resumeFileUrl && (
                   <p className="mt-2 text-xs text-red-300">Resume upload is required to continue.</p>
@@ -997,11 +1003,7 @@ export default function JobSearchWizard() {
                         className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm hover:bg-white/5"
                         onClick={() => toggleCompany(company)}
                       >
-                        {company.logoUrl ? (
-                          <img src={company.logoUrl} alt={company.name} className="h-6 w-6" />
-                        ) : (
-                          <span className="h-6 w-6 rounded-full bg-white/10" />
-                        )}
+                        <CompanyLogo name={company.name} logoUrl={company.logoUrl} size={24} className="h-6 w-6 rounded-full object-contain" />
                         <span>{company.name}</span>
                         <span className="ml-auto text-xs text-white/40">{company.category}</span>
                       </button>
@@ -1048,11 +1050,7 @@ export default function JobSearchWizard() {
                             : "border-white/10 bg-white/5 hover:border-[#06B6D4]/50"
                         }`}
                       >
-                        {company.logoUrl ? (
-                          <img src={company.logoUrl} alt={company.name} className="h-10 w-10 object-contain" />
-                        ) : (
-                          <span className="h-10 w-10 rounded-full bg-white/10" />
-                        )}
+                        <CompanyLogo name={company.name} logoUrl={company.logoUrl} size={40} className="h-10 w-10 rounded-full object-contain" />
                         <span>{company.name}</span>
                       </button>
                     );

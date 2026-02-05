@@ -68,7 +68,7 @@ export async function POST(request: Request) {
         });
       } catch (parseErr: any) {
         resumeParseStatus = "failed";
-        resumeParseError = parseErr?.message || "Resume parsing failed";
+        resumeParseError = "Parsing failed. We'll retry in the background.";
       }
       await prisma.assessment.update({
         where: { id: assessmentId },
@@ -112,7 +112,7 @@ export async function POST(request: Request) {
         });
       } catch (parseErr: any) {
         linkedinParseStatus = "failed";
-        linkedinParseError = parseErr?.message || "LinkedIn parsing failed";
+        linkedinParseError = "Parsing failed. We'll retry in the background.";
       }
       await prisma.assessment.update({
         where: { id: assessmentId },
@@ -135,9 +135,16 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url: dataUrl, name: file.name, size: file.size });
   } catch (err: any) {
-    return NextResponse.json(
-      { error: err?.message || "Upload failed" },
-      { status: 500 }
-    );
+    const message = err?.message || "Upload failed";
+    if (message.includes("DOMMatrix")) {
+      return NextResponse.json({
+        url: null,
+        name: null,
+        size: null,
+        parseStatus: "failed",
+        parseError: "Parsing failed. We'll retry in the background.",
+      });
+    }
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

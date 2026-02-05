@@ -11,6 +11,7 @@ import { AnchorScroll } from "@/components/anchor-scroll";
 import { CTAButton } from "@/components/cta-button";
 import { MobileNav } from "@/components/mobile-nav";
 import { RotatingWords } from "@/components/rotating-words";
+import { LogoCarousel } from "@/components/logo-carousel";
 
 export const metadata: Metadata = {
   title: "Tech Career Coaching System | Land Senior Roles Faster | Steve Ngoumnai",
@@ -36,18 +37,18 @@ export const metadata: Metadata = {
 };
 
 const logoCompanies = [
-  { name: "Google", slug: "google" },
-  { name: "Amazon", slug: "amazon" },
-  { name: "Microsoft", slug: "microsoft" },
-  { name: "Apple", slug: "apple" },
-  { name: "Netflix", slug: "netflix" },
-  { name: "Stripe", slug: "stripe" },
-  { name: "Shopify", slug: "shopify" },
-  { name: "Datadog", slug: "datadog" },
-  { name: "Snowflake", slug: "snowflake" },
-  { name: "Airbnb", slug: "airbnb" },
-  { name: "Uber", slug: "uber" },
-  { name: "LinkedIn", slug: "linkedin" },
+  { name: "Google", domain: "google.com" },
+  { name: "Amazon", domain: "amazon.com" },
+  { name: "Microsoft", domain: "microsoft.com" },
+  { name: "Apple", domain: "apple.com" },
+  { name: "Netflix", domain: "netflix.com" },
+  { name: "Stripe", domain: "stripe.com" },
+  { name: "Shopify", domain: "shopify.com" },
+  { name: "Datadog", domain: "datadoghq.com" },
+  { name: "Snowflake", domain: "snowflake.com" },
+  { name: "Airbnb", domain: "airbnb.com" },
+  { name: "Uber", domain: "uber.com" },
+  { name: "LinkedIn", domain: "linkedin.com" },
 ];
 
 const tickerItems = [
@@ -299,19 +300,7 @@ export default function JobSearchLanding() {
 
           <div className="clients-stats-container">
             <p className="clients-eyebrow">Clients placed at:</p>
-            <div className="logo-carousel">
-              <div className="logo-track">
-                {logoCompanies.concat(logoCompanies).map((company, index) => (
-                  <img
-                    key={`${company.slug}-${index}`}
-                    src={`/logos/${company.slug}.svg`}
-                    alt={`${company.name} logo`}
-                    className="company-logo"
-                    loading="lazy"
-                  />
-                ))}
-              </div>
-            </div>
+            <LogoCarousel companies={logoCompanies} />
               <div className="stats-grid">
               <div className="stat-card">
                 <CountUp value={300} suffix="+" revealSuffix delay={0} duration={1500} className="stat-number" dataValue="300+" />

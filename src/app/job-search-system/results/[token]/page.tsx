@@ -46,7 +46,8 @@ export default async function ResultsPage({ params }: { params: Promise<{ token:
   const isPro = assessment.hasPurchasedPro;
 
   const week1Tasks = actionPlan?.week1?.tasks || [];
-  const tasksToShow = isPro ? week1Tasks : week1Tasks.slice(0, 3);
+  const week2Tasks = actionPlan?.week2?.tasks || [];
+  const week2Preview = actionPlan?.week2Preview || null;
 
   return (
     <PortalShell token={token} active="dashboard" userEmail={session?.email || null} score={assessment.totalScore} statusLabel={statusLabel}>
@@ -68,8 +69,6 @@ export default async function ResultsPage({ params }: { params: Promise<{ token:
             <p className="mt-3 text-white/80">{ai?.quickWin}</p>
             <p className="mt-3 text-sm text-white/60">{ai?.quickWinReasoning}</p>
           </div>
-        </section>
-
         <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">This Week's Focus</h2>
@@ -77,7 +76,7 @@ export default async function ResultsPage({ params }: { params: Promise<{ token:
           </div>
           <p className="mt-3 text-sm text-white/70">{actionPlan?.week1?.focusArea}</p>
           <div className="mt-4 space-y-3">
-            {tasksToShow.map((task: any) => (
+            {week1Tasks.map((task: any) => (
               <div key={task.id} className="rounded-xl border border-white/10 bg-[#0B1220] p-4">
                 <p className="text-sm font-semibold">{task.task}</p>
                 <p className="mt-1 text-xs text-white/60">{task.timeEstimate} • {task.priority}</p>
@@ -85,11 +84,44 @@ export default async function ResultsPage({ params }: { params: Promise<{ token:
               </div>
             ))}
           </div>
-          {!isPro && week1Tasks.length > tasksToShow.length && (
+        </section>
+
+        {!isPro ? (
+          <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Week 2 Preview</h2>
+              <span className="text-xs uppercase tracking-[0.2em] text-white/50">{week2Preview?.title || "Execution Week"}</span>
+            </div>
+            <p className="mt-3 text-sm text-white/70">{week2Preview?.summary || "Upgrade to unlock your full execution plan, scripts, and company strategies."}</p>
+            <div className="mt-4 space-y-3">
+              {(week2Preview?.previewTasks || ["Personalized applications", "Outreach sequences", "Interview prep loops"]).map((item: string, index: number) => (
+                <div key={index} className="rounded-xl border border-white/10 bg-[#0B1220] p-4 opacity-60 blur-[1.5px]">
+                  <p className="text-sm font-semibold">{item}</p>
+                </div>
+              ))}
+            </div>
             <p className="mt-4 text-sm text-white/60">
-              Upgrade to Pro Pack to unlock the full action plan and execution playbooks.
+              {week2Preview?.upgradeMessage || "Upgrade to Pro Pack to unlock Week 2+ with full execution details."}
             </p>
-          )}
+          </section>
+        ) : (
+          <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Week 2 Execution</h2>
+              <span className="text-xs uppercase tracking-[0.2em] text-white/50">{actionPlan?.week2?.title}</span>
+            </div>
+            <p className="mt-3 text-sm text-white/70">{actionPlan?.week2?.focusArea}</p>
+            <div className="mt-4 space-y-3">
+              {week2Tasks.map((task: any) => (
+                <div key={task.id} className="rounded-xl border border-white/10 bg-[#0B1220] p-4">
+                  <p className="text-sm font-semibold">{task.task}</p>
+                  <p className="mt-1 text-xs text-white/60">{task.timeEstimate} • {task.priority}</p>
+                  <p className="mt-2 text-sm text-white/80">{task.why}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
         </section>
 
         <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
