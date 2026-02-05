@@ -88,7 +88,7 @@ export async function POST(request: Request) {
     executionScore: subscores.execution,
     recommendedRoute,
     aiInsights: (analysis.aiInsights ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-    aiAnalysisStatus: aiReady ? "complete" : "processing",
+    aiAnalysisStatus: (aiReady ? "complete" : "processing") as Prisma.AiAnalysisStatus,
     aiProcessedAt: aiReady ? new Date() : null,
     aiModel: analysis.aiModel || "groq",
     aiFailureReason: analysis.aiFailed ? analysis.aiFailureReason : null,
