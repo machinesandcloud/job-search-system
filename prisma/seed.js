@@ -1,3 +1,4 @@
+require("ts-node/register/transpile-only");
 const { PrismaClient } = require("@prisma/client");
 const { companySeed } = require("../src/lib/company-data");
 const { roles: roleProfiles } = require("../src/lib/roles");
