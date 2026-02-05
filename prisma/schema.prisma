@@ -81,6 +81,7 @@ model Assessment {
   aiAnalysisStatus AiAnalysisStatus @default(pending)
   aiProcessedAt    DateTime?
   aiModel          String?
+  aiFailureReason  String?
   recommendedRoute RecommendedRoute?
 
   hasPurchasedPro     Boolean  @default(false)
@@ -106,6 +107,7 @@ model Assessment {
   linkedinAnalysis   Json?
   companyMatches     Json?
   actionPlan         Json?
+  personalizedScripts Json?
   customHeadline     String?
   customAbout        String? @db.Text
 

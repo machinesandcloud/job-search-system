@@ -1,4 +1,5 @@
 import type { AssessmentAnswers } from "@/lib/validation";
+import { computeScore } from "@/lib/scoring";
 import { groqChatJSON } from "@/lib/llm";
 
 type ParsedData = {
@@ -211,28 +212,339 @@ function generateCompanyMatches(answers: AssessmentAnswers, resumeParsedData?: a
   });
 }
 
+function generateScriptFallback(answers: AssessmentAnswers, resumeParsedData?: any) {
+  const targetRole = answers.targetRoles[0]?.name || "your target role";
+  const currentRole = resumeParsedData?.currentRole?.title || "your current role";
+  const currentCompany = resumeParsedData?.currentRole?.company || "your company";
+  const topSkill = resumeParsedData?.topSkills?.[0] || "your expertise";
+  const compTarget = answers.compTarget || "your target range";
+  const companies = answers.targetCompanies.slice(0, 2).map((c) => c.name).join(" and ") || "your target companies";
+  return {
+    scripts: [
+      {
+        id: "referral-ask",
+        category: "Outreach",
+        title: "Referral Ask",
+        description: "Use for warm introductions.",
+        content: `Subject: Quick question about [Company Name]\n\nHi [Name],\n\nI noticed you're at [Company Name] — congrats on the role!\n\nI'm a ${currentRole} at ${currentCompany} with a focus on ${topSkill}. I'm exploring ${targetRole} opportunities and [Company Name] is a top target. Would you be open to a quick 15-minute chat about your experience there?\n\nThanks,\n[Your Name]`,
+        whenToUse: "When you have a 1st/2nd degree connection.",
+        variables: [{ name: "[Name]", description: "Connection first name" }, { name: "[Company Name]", description: "Target company" }],
+        successTips: ["Keep the ask short", "Offer flexible times"],
+      },
+      {
+        id: "recruiter-cold",
+        category: "Outreach",
+        title: "Recruiter Cold Email",
+        description: "Cold outreach to recruiters.",
+        content: `Subject: ${answers.level} ${targetRole} — open to opportunities\n\nHi [Recruiter Name],\n\nI'm a ${answers.level} ${currentRole} at ${currentCompany} with ${topSkill} experience. I'm targeting roles in the ${compTarget} range and interested in companies like ${companies}. Are you working on anything that could be a fit?\n\nBest,\n[Your Name]`,
+        whenToUse: "When you don’t have a direct connection.",
+        variables: [{ name: "[Recruiter Name]", description: "Recruiter name" }],
+        successTips: ["Reference one achievement", "Keep it under 120 words"],
+      },
+    ],
+  };
+}
+
+function safeStringify(value: unknown, maxLength = 6000) {
+  try {
+    const raw = JSON.stringify(value ?? {});
+    if (raw.length <= maxLength) return raw;
+    return `${raw.slice(0, maxLength)}...`;
+  } catch {
+    return "{}";
+  }
+}
+
 export async function runFullAnalysis(answers: AssessmentAnswers, parsed?: ParsedData) {
-  const resumeAnalysis = analyzeResume(answers, parsed?.resumeParsedData);
-  const linkedinAnalysis = analyzeLinkedIn(answers, parsed?.linkedinParsedData, parsed?.resumeParsedData);
-  const companyMatches = generateCompanyMatches(answers, parsed?.resumeParsedData);
-  const actionPlan = generateActionPlan(answers);
+  const scoreResult = computeScore(answers);
+  const resumeParsed = parsed?.resumeParsedData || null;
+  const linkedinParsed = parsed?.linkedinParsedData || null;
 
-  const prompt = `Provide a short JSON insight summary for ${answers.targetRoles
-    .map((r) => r.name)
-    .join(", ")} based on resume: ${JSON.stringify(parsed?.resumeParsedData)} and LinkedIn: ${JSON.stringify(
-    parsed?.linkedinParsedData
-  )}. Return JSON with primaryGap, secondaryGap, quickWin, routeReasoning, companyFit.`;
+  const systemPrompt =
+    "You are a senior tech career coach. Return ONLY valid JSON. Every recommendation must reference the user's real data (resume, LinkedIn, assessment).";
 
-  const aiInsights = await groqChatJSON(
-    "You are a senior tech career coach. Return valid JSON only.",
-    prompt
-  );
+  const userPrompt = `
+Create a complete personalization bundle for this assessment. Use the user's real data and be specific.
+
+ASSESSMENT:
+${safeStringify(answers, 4000)}
+
+RESUME:
+${safeStringify(resumeParsed, 6000)}
+
+LINKEDIN:
+${safeStringify(linkedinParsed, 4000)}
+
+SCORES:
+${safeStringify(scoreResult, 1500)}
+
+Return JSON with this exact structure:
+{
+  "aiInsights": {
+    "primaryGap": "",
+    "primaryGapExplanation": "",
+    "secondaryGap": "",
+    "secondaryGapExplanation": "",
+    "quickWin": "",
+    "quickWinReasoning": "",
+    "strengthsToLeverage": [
+      { "strength": "", "evidence": "", "howToUse": "" }
+    ],
+    "criticalActions": [
+      { "action": "", "why": "", "impact": "", "timeframe": "" }
+    ],
+    "companyFitAnalysis": "",
+    "routeReasoning": "",
+    "realityCheck": ""
+  },
+  "resumeAnalysis": {
+    "overallScore": 0,
+    "atsScore": 0,
+    "issues": [
+      {
+        "id": "",
+        "category": "Keywords",
+        "severity": "HIGH",
+        "issue": "",
+        "location": "",
+        "currentText": "",
+        "suggestedFix": "",
+        "reasoning": "",
+        "impactScore": 0,
+        "timeToFix": "",
+        "stepByStepFix": [""]
+      }
+    ],
+    "missingKeywords": [
+      {
+        "keyword": "",
+        "importance": "high",
+        "currentlyPresent": false,
+        "whereToAdd": "",
+        "howToAdd": "",
+        "reason": ""
+      }
+    ],
+    "weakAchievements": [
+      {
+        "currentText": "",
+        "whyWeak": "",
+        "improvedText": "",
+        "metricsToAdd": "",
+        "location": ""
+      }
+    ],
+    "formatIssues": [
+      { "issue": "", "fix": "", "example": "" }
+    ],
+    "strengthsToEmphasize": [
+      { "strength": "", "currentPlacement": "", "suggestedPlacement": "", "newPhrasing": "" }
+    ],
+    "quickWins": [
+      { "fix": "", "impact": "", "instructions": [""] }
+    ]
+  },
+  "linkedinAnalysis": {
+    "overallScore": 0,
+    "headline": {
+      "current": "",
+      "score": 0,
+      "issues": [""],
+      "optimized": "",
+      "keywords": [""],
+      "reasoning": "",
+      "alternatives": [""]
+    },
+    "about": {
+      "current": "",
+      "score": 0,
+      "issues": [""],
+      "optimized": "",
+      "structure": {
+        "paragraph1": "",
+        "paragraph2": "",
+        "paragraph3": "",
+        "paragraph4": ""
+      },
+      "reasoning": "",
+      "keywordsUsed": [""]
+    },
+    "skills": {
+      "current": [""],
+      "currentCount": 0,
+      "score": 0,
+      "toAdd": [
+        { "skill": "", "reason": "", "priority": 1 }
+      ],
+      "toRemove": [""],
+      "reorderedTop5": [""],
+      "reasoning": ""
+    },
+    "experience": {
+      "score": 0,
+      "roleOptimizations": [
+        { "role": "", "currentDescription": "", "optimizedDescription": "", "reasoning": "" }
+      ]
+    },
+    "missingElements": [
+      { "element": "", "importance": "HIGH", "why": "", "howToAdd": [""] }
+    ],
+    "comparisonWithResume": {
+      "inconsistencies": [
+        { "issue": "", "location": "", "fix": "" }
+      ]
+    },
+    "actionChecklist": [
+      {
+        "task": "",
+        "section": "",
+        "timeEstimate": "",
+        "priority": 1,
+        "detailedSteps": [""],
+        "impact": ""
+      }
+    ],
+    "recruiterVisibility": {
+      "currentEstimate": "medium",
+      "afterOptimization": "high",
+      "keyChanges": [""]
+    }
+  },
+  "weeklyActionPlan": {
+    "week1": {
+      "title": "",
+      "focusArea": "",
+      "tasks": [
+        {
+          "id": "week1_task1",
+          "task": "",
+          "category": "",
+          "priority": "HIGH",
+          "timeEstimate": "",
+          "why": "",
+          "detailedSteps": [""],
+          "expectedOutcome": "",
+          "resources": [
+            { "type": "", "description": "", "howToUse": "" }
+          ],
+          "successCriteria": ""
+        }
+      ],
+      "dailyBreakdown": { "day1": ["week1_task1"] },
+      "weeklyGoal": "",
+      "checkpointQuestions": [""]
+    },
+    "week2": {
+      "title": "",
+      "focusArea": "",
+      "tasks": [
+        {
+          "id": "week2_task1",
+          "task": "",
+          "category": "",
+          "priority": "MEDIUM",
+          "timeEstimate": "",
+          "why": "",
+          "detailedSteps": [""],
+          "expectedOutcome": "",
+          "resources": [
+            { "type": "", "description": "", "howToUse": "" }
+          ],
+          "successCriteria": ""
+        }
+      ],
+      "dailyBreakdown": { "day1": ["week2_task1"] },
+      "weeklyGoal": "",
+      "checkpointQuestions": [""]
+    }
+  },
+  "companyMatches": {
+    "matches": [
+      {
+        "company": "",
+        "matchScore": 0,
+        "matchBreakdown": {
+          "skillMatch": 0,
+          "experienceMatch": 0,
+          "cultureMatch": 0,
+          "compensationMatch": 0
+        },
+        "whyGoodFit": "",
+        "matchingStrengths": [
+          { "strength": "", "why": "", "howToHighlight": "" }
+        ],
+        "gapsToAddress": [
+          { "gap": "", "importance": "HIGH", "howToFill": "", "timeframe": "" }
+        ],
+        "applicationStrategy": {
+          "bestApproach": "",
+          "reasoning": "",
+          "specificSteps": [""],
+          "timeline": ""
+        },
+        "talkingPoints": [
+          { "point": "", "relevance": "", "howToFrame": "" }
+        ],
+        "insiderTips": [""],
+        "estimatedCompensation": {
+          "range": "",
+          "reasoning": ""
+        },
+        "interviewPrep": {
+          "likelyQuestions": [""],
+          "howToAnswer": [""]
+        }
+      }
+    ],
+    "topMatches": [""],
+    "recommendedFocus": "",
+    "companyCategories": {
+      "highProbability": [""],
+      "mediumProbability": [""],
+      "reachCompanies": [""]
+    }
+  },
+  "personalizedScripts": {
+    "scripts": [
+      {
+        "id": "",
+        "category": "",
+        "title": "",
+        "description": "",
+        "content": "",
+        "variables": [{ "name": "", "description": "" }],
+        "whenToUse": "",
+        "successTips": [""]
+      }
+    ]
+  }
+}
+`;
+
+  const aiBundle = await groqChatJSON(systemPrompt, userPrompt);
+  if (aiBundle) {
+    return {
+      aiInsights: aiBundle.aiInsights || null,
+      resumeAnalysis: aiBundle.resumeAnalysis || null,
+      linkedinAnalysis: aiBundle.linkedinAnalysis || null,
+      companyMatches: aiBundle.companyMatches || null,
+      actionPlan: aiBundle.weeklyActionPlan || null,
+      personalizedScripts: aiBundle.personalizedScripts || null,
+      aiModel: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
+      aiFailed: false,
+      aiFailureReason: null,
+    };
+  }
 
   return {
-    aiInsights,
-    resumeAnalysis,
-    linkedinAnalysis,
-    companyMatches,
-    actionPlan,
+    aiInsights: null,
+    resumeAnalysis: analyzeResume(answers, resumeParsed),
+    linkedinAnalysis: analyzeLinkedIn(answers, linkedinParsed, resumeParsed),
+    companyMatches: generateCompanyMatches(answers, resumeParsed),
+    actionPlan: generateActionPlan(answers),
+    personalizedScripts: generateScriptFallback(answers, resumeParsed),
+    aiModel: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
+    aiFailed: true,
+    aiFailureReason: "Groq response unavailable or invalid JSON",
   };
 }

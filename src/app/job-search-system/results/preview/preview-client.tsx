@@ -62,7 +62,8 @@ export default function PreviewClient() {
   }, [score]);
 
   const insights = data?.assessment?.aiInsights || {};
-  const week1 = insights?.weeklyPlan?.week1 || [];
+  const actionPlan = data?.assessment?.actionPlan || null;
+  const week1 = actionPlan?.week1?.tasks || [];
 
   const ring = 240;
   const radius = ring / 2 - 16;
@@ -190,9 +191,9 @@ export default function PreviewClient() {
                   <div className="rounded-2xl border border-white/10 bg-[#0F172A]/60 p-5">
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">Week 1 cadence</p>
                     <ul className="mt-3 space-y-2 text-sm text-white/80">
-                      {week1.slice(0, 3).map((item: string) => (
-                        <li key={item}>
-                          <span className="text-[#06B6D4]">-</span> {item}
+                      {week1.slice(0, 3).map((item: any) => (
+                        <li key={item.id || item.task}>
+                          <span className="text-[#06B6D4]">-</span> {item.task || item}
                         </li>
                       ))}
                     </ul>

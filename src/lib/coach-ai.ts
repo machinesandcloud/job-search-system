@@ -1,6 +1,6 @@
 import type { AssessmentAnswers } from "@/lib/validation";
 import { computeScore } from "@/lib/scoring";
-import { groqChatJSON } from "@/lib/llm";
+import { groqChatJSON, groqChatText } from "@/lib/llm";
 
 const ROLE_KEYWORDS: Record<string, { must: string[]; nice: string[] }> = {
   "DevOps Engineer": {
@@ -138,26 +138,26 @@ export async function generateCoachFeedback(answers: AssessmentAnswers, parsed?:
 
 export async function generateCoachPulse(answers: AssessmentAnswers, step?: string) {
   const role = answers.targetRoles[0]?.name || "your target role";
-  if (step === "roles") {
-    return `Focus on 1–3 ${role} targets. Precision beats volume here.`;
-  }
-  if (step === "assets") {
-    return "We’ll tighten assets first so every application converts at higher rates.";
-  }
-  if (step === "companies") {
-    return "Pick companies you’d actually accept. Fit drives faster offers.";
-  }
-  return `We’ll design a ${answers.timeline} plan for ${role} roles with clear leverage points.`;
+  const prompt = `Write a one-sentence coaching nudge for step "${step || "current"}" for a ${answers.level} targeting ${role} on a ${answers.timeline} timeline. Use their actual answers.`;
+  const response = await groqChatText(
+    "You are a senior tech career coach. Keep it under 25 words. Be direct and specific.",
+    prompt
+  );
+  return response || `AI is unavailable. Keep moving — we’ll tailor this once analysis completes.`;
 }
 
 export async function generateAssetReview(answers: AssessmentAnswers) {
   const keywords = pickRoleKeywords(answers);
-  return {
+  const prompt = `Create a JSON asset review for ${answers.targetRoles[0]?.name || "DevOps Engineer"} with mustHaveKeywords, niceToHaveKeywords, missingFromYourResume, and howToAdd. Use concise, practical guidance.`;
+  const response = await groqChatJSON(
+    "You are a tech career coach. Return JSON only.",
+    prompt
+  );
+  return response || {
     role: answers.targetRoles[0]?.name || "DevOps Engineer",
     mustHaveKeywords: keywords.must,
     niceToHaveKeywords: keywords.nice,
     missingFromYourResume: keywords.must.slice(0, 3),
-    howToAdd:
-      "Add a Technical Skills section and weave key tools into recent project bullets.",
+    howToAdd: "AI unavailable. Add key tools to Skills and recent project bullets.",
   };
 }

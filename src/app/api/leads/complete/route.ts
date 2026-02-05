@@ -7,33 +7,39 @@ import { generateCoachFeedback } from "@/lib/coach-ai";
 import { ensureSameOrigin } from "@/lib/utils";
 import { logEvent } from "@/lib/events";
 import { runFullAnalysis } from "@/lib/analysis";
-import {
-  buildAchievements,
-  buildApplications,
-  buildProfileData,
-  buildResumeHealthData,
-  buildSkillMatchData,
-  buildTaskProgress,
-} from "@/lib/profile-data";
+import { groqChatText } from "@/lib/llm";
 
-function buildTeaser(answers: any, score: number, subscores: any) {
+async function buildTeaser(answers: any, score: number, subscores: any, aiInsights: any, actionPlan: any) {
+  const fallbackInsights = [
+    aiInsights?.primaryGap,
+    aiInsights?.quickWin,
+  ].filter(Boolean);
+
+  const previewActions = Array.isArray(actionPlan?.week1?.tasks)
+    ? actionPlan.week1.tasks.slice(0, 3).map((task: any) => task.task || task)
+    : [];
+
+  if (fallbackInsights.length || previewActions.length) {
+    return {
+      score,
+      subscores,
+      coachRead: aiInsights?.primaryGapExplanation || `Your score is ${score}/100.`,
+      insights: fallbackInsights,
+      previewActions,
+    };
+  }
+
+  const aiFallback = await groqChatText(
+    "You are a tech career coach. Write a single sentence preview insight.",
+    `Provide one short preview insight for a ${answers.level} targeting ${answers.targetRoles?.[0]?.name || "their target role"}.`
+  );
+
   return {
     score,
     subscores,
-    coachRead: `Your score is ${score}/100. We’ll focus on the highest-leverage gaps first.`,
-    insights: [
-      answers.networkStrength === "weak"
-        ? "Your network strength is limiting reach. Prioritize warm outreach over cold applications."
-        : "Your targeting is solid. Tighten your narrative to boost response rates.",
-      answers.interviewReady
-        ? "You’re close. Improve conversion by refining interview execution."
-        : "Interview readiness is a risk. Build reps early to avoid late-stage stalls.",
-    ],
-    previewActions: [
-      "Audit LinkedIn headline for target role keywords",
-      "Build a 20-company target list",
-      "Draft 3 outreach scripts",
-    ],
+    coachRead: aiFallback || `Your score is ${score}/100.`,
+    insights: aiFallback ? [aiFallback] : [],
+    previewActions: [],
   };
 }
 
@@ -93,17 +99,6 @@ export async function POST(request: Request) {
   const recommendedRoute =
     (route === "Fast Track" ? "FastTrack" : route === "Guided" ? "Guided" : "DIY") as Prisma.AssessmentCreateInput["recommendedRoute"];
 
-  const profileData = buildProfileData(
-    answers,
-    (existingAssessment?.resumeParsedData as any) || null,
-    (existingAssessment?.linkedinParsedData as any) || null
-  );
-  const resumeHealthData = buildResumeHealthData(answers, (existingAssessment?.resumeParsedData as any) || null);
-  const skillMatchData = buildSkillMatchData(answers, (existingAssessment?.resumeParsedData as any) || null);
-  const taskProgress = buildTaskProgress(answers);
-  const achievements = buildAchievements(answers);
-  const applications = buildApplications(answers);
-
   const data = {
     ...answers,
     targetRoles: targetRolesJson,
@@ -115,20 +110,18 @@ export async function POST(request: Request) {
     executionScore: subscores.execution,
     recommendedRoute,
     aiInsights: aiInsights ? (aiInsights as Prisma.InputJsonValue) : undefined,
-    aiAnalysisStatus: aiInsights ? ("complete" as const) : ("failed" as const),
+    aiAnalysisStatus: aiInsights && !analysis.aiFailed ? ("complete" as const) : ("failed" as const),
     aiProcessedAt: aiInsights ? new Date() : null,
-    aiModel: aiInsights ? "local-heuristic" : null,
+    aiModel: aiInsights ? analysis.aiModel || "groq" : null,
+    aiFailureReason: analysis.aiFailed ? analysis.aiFailureReason : null,
     completedAt: new Date(),
-    profileData: profileData as Prisma.InputJsonValue,
-    resumeHealthData: resumeHealthData as Prisma.InputJsonValue,
-    skillMatchData: skillMatchData as Prisma.InputJsonValue,
-    taskProgress: taskProgress as Prisma.InputJsonValue,
-    achievements: achievements as Prisma.InputJsonValue,
-    applications: applications as Prisma.InputJsonValue,
     resumeAnalysis: analysis.resumeAnalysis ? (analysis.resumeAnalysis as Prisma.InputJsonValue) : undefined,
     linkedinAnalysis: analysis.linkedinAnalysis ? (analysis.linkedinAnalysis as Prisma.InputJsonValue) : undefined,
     companyMatches: analysis.companyMatches ? (analysis.companyMatches as Prisma.InputJsonValue) : undefined,
     actionPlan: analysis.actionPlan ? (analysis.actionPlan as Prisma.InputJsonValue) : undefined,
+    personalizedScripts: analysis.personalizedScripts
+      ? (analysis.personalizedScripts as Prisma.InputJsonValue)
+      : undefined,
   };
 
   let assessment = null;
@@ -157,6 +150,6 @@ export async function POST(request: Request) {
   return NextResponse.json({
     token: assessment.token,
     assessmentId: assessment.id,
-    teaser: buildTeaser(answers, score, subscores),
+    teaser: await buildTeaser(answers, score, subscores, aiInsights, analysis.actionPlan),
   });
 }
