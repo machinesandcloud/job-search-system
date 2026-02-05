@@ -423,12 +423,15 @@ export default function JobSearchWizard() {
       if (!res.ok) {
         throw new Error(data.error || "Upload failed");
       }
-        if (kind === "resume") {
-          const fallbackUrl = `inline://${encodeURIComponent(file.name)}`;
-          updateAnswers({ resumeFileUrl: data.url || fallbackUrl, resumeFileName: data.name || file.name, resumeFileSize: data.size || file.size });
-          if (data.parseStatus === "failed" || data.parseStatus === "processing") {
-            setResumeParseNotice("Resume uploaded. Parsing will finish shortly.");
-          }
+      if (kind === "resume") {
+        const fallbackUrl = `inline://${encodeURIComponent(file.name)}`;
+        updateAnswers({
+          resumeFileUrl: data.url || fallbackUrl,
+          resumeFileName: data.name || file.name,
+          resumeFileSize: data.size || file.size,
+        });
+        if (data.parseStatus === "failed" || data.parseStatus === "processing") {
+          setResumeParseNotice("Resume uploaded. Parsing will finish shortly.");
         }
       }
       if (kind === "linkedin") {
