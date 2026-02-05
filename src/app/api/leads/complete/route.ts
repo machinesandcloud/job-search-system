@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma, isDatabaseReady } from "@/lib/db";
-import { Prisma } from "@prisma/client";
+import { Prisma, AiAnalysisStatus } from "@prisma/client";
 import { assessmentCompleteSchema, sanitizeAnswers } from "@/lib/validation";
 import { computeScore } from "@/lib/scoring";
 import { ensureSameOrigin } from "@/lib/utils";
@@ -88,7 +88,7 @@ export async function POST(request: Request) {
     executionScore: subscores.execution,
     recommendedRoute,
     aiInsights: (analysis.aiInsights ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-    aiAnalysisStatus: (aiReady ? "complete" : "processing") as Prisma.AiAnalysisStatus,
+    aiAnalysisStatus: aiReady ? AiAnalysisStatus.complete : AiAnalysisStatus.processing,
     aiProcessedAt: aiReady ? new Date() : null,
     aiModel: analysis.aiModel || "groq",
     aiFailureReason: analysis.aiFailed ? analysis.aiFailureReason : null,
