@@ -88,18 +88,27 @@ export async function POST(request: Request) {
       additionalContext: assessment.additionalContext,
     });
 
-    const analysis = await runFullAnalysis(
-      answers,
-      {
-        resumeParsedData: assessment.resumeParsedData,
-        linkedinParsedData: assessment.linkedinParsedData,
-        resumeRawText: assessment.resumeRawText,
-        linkedinRawText: assessment.linkedinRawText,
-      },
-      { includePro: assessment.hasPurchasedPro }
-    );
+    let analysis: any = null;
+    try {
+      analysis = await runFullAnalysis(
+        answers,
+        {
+          resumeParsedData: assessment.resumeParsedData,
+          linkedinParsedData: assessment.linkedinParsedData,
+          resumeRawText: assessment.resumeRawText,
+          linkedinRawText: assessment.linkedinRawText,
+        },
+        { includePro: assessment.hasPurchasedPro }
+      );
+    } catch (err: any) {
+      analysis = {
+        aiFailed: true,
+        aiFailureReason: err?.message || "AI generation failed",
+      };
+    }
 
     const aiReady =
+      analysis &&
       !analysis.aiFailed &&
       analysis.aiInsights &&
       analysis.resumeAnalysis &&
@@ -110,28 +119,28 @@ export async function POST(request: Request) {
     await prisma.assessment.update({
       where: { id: assessment.id },
       data: {
-        aiInsights: (analysis.aiInsights ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-        aiAnalysisStatus: aiReady ? AiAnalysisStatus.complete : AiAnalysisStatus.failed,
+        aiInsights: (analysis?.aiInsights ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+        aiAnalysisStatus: aiReady ? AiAnalysisStatus.complete : AiAnalysisStatus.processing,
         aiProcessedAt: aiReady ? new Date() : null,
-        aiModel: analysis.aiModel || "groq",
-        aiFailureReason: analysis.aiFailed ? analysis.aiFailureReason : null,
-        marketIntelligence: (analysis.marketIntelligence ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-        week1Plan: (analysis.week1Plan ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-        personalizationData: (analysis.personalizationData ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-        resumeAnalysis: (analysis.resumeAnalysis ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-        linkedinAnalysis: (analysis.linkedinAnalysis ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-        companyMatches: (analysis.companyMatches ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-        actionPlan: (analysis.actionPlan ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-        personalizedScripts: (analysis.personalizedScripts ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-        coverLetterKit: (analysis.coverLetterKit ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-        interviewPrep: (analysis.interviewPrep ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-        companyStrategies: (analysis.companyStrategies ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-        careerAnalysis: (analysis.careerAnalysis ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+        aiModel: analysis?.aiModel || "groq",
+        aiFailureReason: analysis?.aiFailed ? analysis.aiFailureReason : null,
+        marketIntelligence: (analysis?.marketIntelligence ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+        week1Plan: (analysis?.week1Plan ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+        personalizationData: (analysis?.personalizationData ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+        resumeAnalysis: (analysis?.resumeAnalysis ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+        linkedinAnalysis: (analysis?.linkedinAnalysis ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+        companyMatches: (analysis?.companyMatches ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+        actionPlan: (analysis?.actionPlan ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+        personalizedScripts: (analysis?.personalizedScripts ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+        coverLetterKit: (analysis?.coverLetterKit ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+        interviewPrep: (analysis?.interviewPrep ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+        companyStrategies: (analysis?.companyStrategies ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+        careerAnalysis: (analysis?.careerAnalysis ?? Prisma.JsonNull) as Prisma.InputJsonValue,
         lastActivityAt: new Date(),
       },
     });
 
-    return NextResponse.json({ status: aiReady ? "ready" : "failed" });
+    return NextResponse.json({ status: aiReady ? "ready" : "processing" });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "Failed to ensure AI" }, { status: 500 });
   }
