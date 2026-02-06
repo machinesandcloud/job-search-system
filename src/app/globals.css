@@ -198,6 +198,25 @@ body {
   background: var(--cmd-surface-strong);
 }
 
+@keyframes cmd-float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-16px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes cmd-progress {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+.animate-progress {
+  animation: cmd-progress 2.8s ease-in-out forwards;
+}
+
+.animate-float {
+  animation: cmd-float 6s ease-in-out infinite;
+}
+
 .cmd-glow {
   box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.28), 0 32px 70px rgba(56, 189, 248, 0.24);
 }

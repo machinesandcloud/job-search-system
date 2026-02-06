@@ -13,6 +13,18 @@ export const targetCompanySchema = z.object({
   reason: z.string().max(240).optional().nullable(),
 });
 
+export const linkedinManualSchema = z
+  .object({
+    profileUrl: z.string().max(200).optional().nullable(),
+    headline: z.string().max(220).optional().nullable(),
+    about: z.string().max(4000).optional().nullable(),
+    currentRole: z.string().max(120).optional().nullable(),
+    currentCompany: z.string().max(120).optional().nullable(),
+    skills: z.array(z.string().max(80)).max(15).optional().nullable(),
+  })
+  .optional()
+  .nullable();
+
 export const assessmentAnswersSchema = z.object({
   targetRoles: z.array(targetRoleSchema).min(1).max(3),
   level: z.enum(["Mid-Level", "Senior", "Staff", "Principal", "Manager", "Director"]),
@@ -30,6 +42,8 @@ export const assessmentAnswersSchema = z.object({
   resumeFileSize: z.number().int().optional().nullable(),
   linkedinFileUrl: z.string().optional().nullable(),
   linkedinFileName: z.string().max(200).optional().nullable(),
+  linkedinManualData: linkedinManualSchema,
+  jobDescription: z.string().max(8000).optional().nullable(),
   networkStrength: z.enum(["strong", "moderate", "weak"]),
   outreachComfort: z.enum(["comfortable", "neutral", "uncomfortable"]),
   targetCompanies: z.array(targetCompanySchema).min(5).max(30),
@@ -118,6 +132,21 @@ export function sanitizeAnswers(input: any) {
   }
   if (typeof copy.additionalContext === "string" && copy.additionalContext.trim() === "") {
     copy.additionalContext = null;
+  }
+  if (copy.linkedinManualData && typeof copy.linkedinManualData === "object") {
+    const manual = { ...copy.linkedinManualData };
+    if (typeof manual.profileUrl === "string" && manual.profileUrl.trim() === "") manual.profileUrl = null;
+    if (typeof manual.headline === "string" && manual.headline.trim() === "") manual.headline = null;
+    if (typeof manual.about === "string" && manual.about.trim() === "") manual.about = null;
+    if (typeof manual.currentRole === "string" && manual.currentRole.trim() === "") manual.currentRole = null;
+    if (typeof manual.currentCompany === "string" && manual.currentCompany.trim() === "") manual.currentCompany = null;
+    if (Array.isArray(manual.skills)) {
+      manual.skills = manual.skills.map((skill: any) => `${skill || ""}`.trim()).filter(Boolean);
+    }
+    copy.linkedinManualData = manual;
+  }
+  if (typeof copy.jobDescription === "string" && copy.jobDescription.trim() === "") {
+    copy.jobDescription = null;
   }
   return copy;
 }

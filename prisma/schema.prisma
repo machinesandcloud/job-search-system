@@ -65,6 +65,8 @@ model Assessment {
   resumeFileSize     Int?
   linkedinFileUrl    String?
   linkedinFileName   String?
+  linkedinManualData Json?
+  jobDescription     String? @db.Text
   networkStrength    String
   outreachComfort    String
   targetCompanies    Json

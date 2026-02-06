@@ -30,9 +30,17 @@ export default async function LinkedInPage({ params }: { params: Promise<{ token
   const linkedinAnalysis = assessment.linkedinAnalysis as any;
   const isPro = assessment.hasPurchasedPro;
   const statusLabel = assessment.totalScore >= 70 ? "Fast Track" : assessment.totalScore >= 45 ? "Growth Ready" : "Foundation Phase";
+  const aiReady = assessment.aiAnalysisStatus === "complete" && Boolean(assessment.week1Plan);
 
   return (
-    <PortalShell token={token} active="linkedin" userEmail={session?.email || null} score={assessment.totalScore} statusLabel={statusLabel}>
+    <PortalShell
+      token={token}
+      active="linkedin"
+      userEmail={session?.email || null}
+      score={assessment.totalScore}
+      statusLabel={statusLabel}
+      aiReady={aiReady}
+    >
       <div className="mx-auto w-full max-w-5xl space-y-6">
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
           <h1 className="text-3xl font-semibold">LinkedIn Optimization</h1>

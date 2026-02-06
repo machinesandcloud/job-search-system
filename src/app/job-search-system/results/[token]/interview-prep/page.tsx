@@ -30,6 +30,7 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
   const interviewPrep = assessment.interviewPrep as any;
   const statusLabel = assessment.totalScore >= 70 ? "Fast Track" : assessment.totalScore >= 45 ? "Growth Ready" : "Foundation Phase";
   const isPro = assessment.hasPurchasedPro;
+  const aiReady = assessment.aiAnalysisStatus === "complete" && Boolean(assessment.week1Plan);
 
   const starStories = interviewPrep?.starStories || [];
   const technicalQuestions = interviewPrep?.technicalQuestions || [];
@@ -37,7 +38,14 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
   const questionsToAsk = interviewPrep?.questionsToAsk || [];
 
   return (
-    <PortalShell token={token} active="interview-prep" userEmail={session?.email || null} score={assessment.totalScore} statusLabel={statusLabel}>
+    <PortalShell
+      token={token}
+      active="interview-prep"
+      userEmail={session?.email || null}
+      score={assessment.totalScore}
+      statusLabel={statusLabel}
+      aiReady={aiReady}
+    >
       <div className="mx-auto w-full max-w-6xl space-y-6">
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
           <h1 className="text-3xl font-semibold">Interview Prep</h1>

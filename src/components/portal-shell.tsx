@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AiResultsRefresh } from "@/components/ai-results-refresh";
 
 const NAV_ITEMS = [
   { id: "dashboard", label: "Dashboard", icon: "✦", path: "" },
@@ -16,6 +17,7 @@ export function PortalShell({
   userEmail,
   score,
   statusLabel,
+  aiReady,
   children,
 }: {
   token: string;
@@ -23,6 +25,7 @@ export function PortalShell({
   userEmail?: string | null;
   score: number;
   statusLabel: string;
+  aiReady?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -61,7 +64,10 @@ export function PortalShell({
         </div>
       </aside>
 
-      <main className="flex-1 px-6 py-10 lg:px-10">{children}</main>
+      <main className="flex-1 px-6 py-10 lg:px-10">
+        <AiResultsRefresh token={token} isReady={Boolean(aiReady)} />
+        {children}
+      </main>
     </div>
   );
 }

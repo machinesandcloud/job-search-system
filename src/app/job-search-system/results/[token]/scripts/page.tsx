@@ -30,9 +30,17 @@ export default async function ScriptsPage({ params }: { params: Promise<{ token:
   const scripts = (assessment.personalizedScripts as any)?.scripts || [];
   const statusLabel = assessment.totalScore >= 70 ? "Fast Track" : assessment.totalScore >= 45 ? "Growth Ready" : "Foundation Phase";
   const isPro = assessment.hasPurchasedPro;
+  const aiReady = assessment.aiAnalysisStatus === "complete" && Boolean(assessment.week1Plan);
 
   return (
-    <PortalShell token={token} active="scripts" userEmail={session?.email || null} score={assessment.totalScore} statusLabel={statusLabel}>
+    <PortalShell
+      token={token}
+      active="scripts"
+      userEmail={session?.email || null}
+      score={assessment.totalScore}
+      statusLabel={statusLabel}
+      aiReady={aiReady}
+    >
       <div className="mx-auto w-full max-w-6xl space-y-6">
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
           <h1 className="text-3xl font-semibold">Scripts Library</h1>

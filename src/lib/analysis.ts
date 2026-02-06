@@ -26,6 +26,8 @@ export async function runFullAnalysis(
   const scoreResult = computeScore(answers);
   const resumeParsed = parsed?.resumeParsedData || null;
   const linkedinParsed = parsed?.linkedinParsedData || null;
+  const linkedinManual = (answers as any).linkedinManualData || null;
+  const jobDescription = (answers as any).jobDescription || null;
   const targetRole = answers.targetRoles?.[0]?.name;
   if (!targetRole) {
     return {
@@ -74,6 +76,12 @@ ${safeStringify(resumeParsed, 6000)}
 
 LINKEDIN:
 ${safeStringify(linkedinParsed, 4000)}
+
+LINKEDIN MANUAL INPUT (if provided):
+${safeStringify(linkedinManual, 3000)}
+
+JOB DESCRIPTION (if provided):
+${safeStringify(jobDescription, 4000)}
 
 SCORES:
 ${safeStringify(scoreResult, 1500)}

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AccountGate } from "@/components/account-gate";
+import { AIAnalysisScreen } from "@/components/premium/ai-analysis-screen";
 
 type PreviewData = {
   assessmentId: string;
@@ -103,6 +104,7 @@ export default function PreviewClient() {
   const insights = data?.assessment?.aiInsights || {};
   const actionPlan = data?.assessment?.actionPlan || null;
   const week1 = data?.assessment?.week1Plan?.week1?.tasks || actionPlan?.week1?.tasks || [];
+  const aiReady = data?.assessment?.aiAnalysisStatus === "complete" && week1.length > 0;
 
   const ring = 240;
   const radius = ring / 2 - 16;
@@ -162,15 +164,9 @@ export default function PreviewClient() {
               ))}
             </div>
 
-            {loadingPhase ? (
-              <div className="relative z-10 flex min-h-[520px] flex-col items-center justify-center gap-6 text-center">
-                <div className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
-                  Analyzing your profile
-                </div>
-                <div className="h-1 w-52 overflow-hidden rounded-full bg-white/10">
-                  <div className="h-full w-full animate-progress bg-gradient-to-r from-[#06B6D4] to-[#8B5CF6]" />
-                </div>
-                <p className="text-sm text-white/60">Calculating your score...</p>
+            {loadingPhase || !aiReady ? (
+              <div className="relative z-10">
+                <AIAnalysisScreen />
               </div>
             ) : (
               <div className="relative z-10">

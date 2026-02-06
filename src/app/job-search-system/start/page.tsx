@@ -307,6 +307,18 @@ export default function JobSearchWizard() {
     setError(null);
   };
 
+  const updateLinkedinManual = (patch: Partial<NonNullable<AssessmentAnswers["linkedinManualData"]>>) => {
+    const current = answers.linkedinManualData || {
+      profileUrl: "",
+      headline: "",
+      about: "",
+      currentRole: "",
+      currentCompany: "",
+      skills: [],
+    };
+    updateAnswers({ linkedinManualData: { ...current, ...patch } });
+  };
+
   const deriveDomain = (company: CompanyOption) => {
     if (company.domain) return company.domain;
     if (company.website) {
@@ -992,6 +1004,108 @@ export default function JobSearchWizard() {
                     )}
                   </div>
                 )}
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold">LinkedIn details (manual input)</p>
+                    <p className="text-xs text-white/60">
+                      Paste key sections so the AI can personalize even if the PDF parse is slow.
+                    </p>
+                  </div>
+                  <span className="text-xs uppercase tracking-[0.2em] text-[#06B6D4]/70">optional</span>
+                </div>
+
+                <div className="mt-4 grid gap-4">
+                  <div>
+                    <label className="text-xs font-semibold uppercase tracking-[0.18em] text-white/60">Profile URL</label>
+                    <input
+                      className="mt-2 h-[48px] w-full rounded-xl border border-white/10 bg-white/5 px-4 text-sm"
+                      placeholder="https://linkedin.com/in/yourname"
+                      value={answers.linkedinManualData?.profileUrl || ""}
+                      onChange={(event) => updateLinkedinManual({ profileUrl: event.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold uppercase tracking-[0.18em] text-white/60">Headline</label>
+                    <input
+                      className="mt-2 h-[48px] w-full rounded-xl border border-white/10 bg-white/5 px-4 text-sm"
+                      placeholder="Senior DevOps Engineer | Kubernetes | AWS"
+                      value={answers.linkedinManualData?.headline || ""}
+                      onChange={(event) => updateLinkedinManual({ headline: event.target.value })}
+                    />
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="text-xs font-semibold uppercase tracking-[0.18em] text-white/60">Current Role</label>
+                      <input
+                        className="mt-2 h-[48px] w-full rounded-xl border border-white/10 bg-white/5 px-4 text-sm"
+                        placeholder="Current job title"
+                        value={answers.linkedinManualData?.currentRole || ""}
+                        onChange={(event) => updateLinkedinManual({ currentRole: event.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold uppercase tracking-[0.18em] text-white/60">Current Company</label>
+                      <input
+                        className="mt-2 h-[48px] w-full rounded-xl border border-white/10 bg-white/5 px-4 text-sm"
+                        placeholder="Company name"
+                        value={answers.linkedinManualData?.currentCompany || ""}
+                        onChange={(event) => updateLinkedinManual({ currentCompany: event.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold uppercase tracking-[0.18em] text-white/60">About section</label>
+                    <textarea
+                      rows={4}
+                      className="mt-2 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm"
+                      placeholder="Paste your LinkedIn About section here..."
+                      value={answers.linkedinManualData?.about || ""}
+                      onChange={(event) => updateLinkedinManual({ about: event.target.value })}
+                    />
+                    <p className="mt-2 text-xs text-white/50">Aim for 200-600 words for best AI guidance.</p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold uppercase tracking-[0.18em] text-white/60">Top skills (comma separated)</label>
+                    <input
+                      className="mt-2 h-[48px] w-full rounded-xl border border-white/10 bg-white/5 px-4 text-sm"
+                      placeholder="Kubernetes, AWS, Terraform, CI/CD, Python"
+                      value={(answers.linkedinManualData?.skills || []).join(", ")}
+                      onChange={(event) =>
+                        updateLinkedinManual({
+                          skills: event.target.value
+                            .split(",")
+                            .map((skill) => skill.trim())
+                            .filter(Boolean),
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-[#8B5CF6]/20 bg-gradient-to-br from-[#1B1B3A] to-[#0B1220] p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold">Optional job description</p>
+                    <p className="text-xs text-white/60">
+                      Paste a target job description to tailor every AI recommendation to that role.
+                    </p>
+                  </div>
+                  <span className="text-xs uppercase tracking-[0.2em] text-[#8B5CF6]/70">optional</span>
+                </div>
+                <textarea
+                  rows={5}
+                  className="mt-4 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm"
+                  placeholder="Paste the job description here..."
+                  value={answers.jobDescription || ""}
+                  onChange={(event) => updateAnswers({ jobDescription: event.target.value })}
+                />
+                <p className="mt-2 text-xs text-white/50">
+                  We'll extract required skills, keywords, and responsibilities to personalize your plan.
+                </p>
               </div>
             </div>
           )}

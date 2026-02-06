@@ -60,6 +60,8 @@ export async function POST(request: Request) {
       resumeFileSize: assessment.resumeFileSize,
       linkedinFileUrl: assessment.linkedinFileUrl,
       linkedinFileName: assessment.linkedinFileName,
+      linkedinManualData: assessment.linkedinManualData,
+      jobDescription: assessment.jobDescription,
       networkStrength: assessment.networkStrength,
       outreachComfort: assessment.outreachComfort,
       targetCompanies: assessment.targetCompanies,
