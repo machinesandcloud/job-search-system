@@ -29,9 +29,21 @@ const STAGES = [
   },
 ];
 
-export function AIAnalysisScreen({ onComplete }: { onComplete?: () => void }) {
+export function AIAnalysisScreen({
+  onComplete,
+  token,
+  assessmentId,
+  pollIntervalMs = 5000,
+}: {
+  onComplete?: () => void;
+  token?: string;
+  assessmentId?: string;
+  pollIntervalMs?: number;
+}) {
   const [stage, setStage] = useState(0);
   const [progress, setProgress] = useState(10);
+  const [longRunning, setLongRunning] = useState(false);
+  const simulatedMax = 96;
 
   useEffect(() => {
     const timers: number[] = [];
@@ -39,18 +51,59 @@ export function AIAnalysisScreen({ onComplete }: { onComplete?: () => void }) {
       timers.push(
         window.setTimeout(() => {
           setStage(index);
-          setProgress(Math.min(100, 10 + index * 18));
+          setProgress(Math.min(simulatedMax, 10 + index * 18));
         }, 800 + index * 1400)
       );
     });
     timers.push(
       window.setTimeout(() => {
-        setProgress(100);
-        if (onComplete) onComplete();
+        setProgress(Math.min(simulatedMax, 92));
       }, 9400)
     );
     return () => timers.forEach((timer) => window.clearTimeout(timer));
-  }, [onComplete]);
+  }, []);
+
+  useEffect(() => {
+    if (!token && !assessmentId) return;
+    let active = true;
+    let interval: number | undefined;
+    const startedAt = Date.now();
+
+    const poll = async () => {
+      try {
+        const res = await fetch("/api/ai/ensure", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token, assessmentId }),
+        });
+        const payload = await res.json();
+        if (!active) return;
+        if (payload?.status === "ready") {
+          setStage(STAGES.length - 1);
+          setProgress(100);
+          if (onComplete) {
+            onComplete();
+          } else {
+            window.location.reload();
+          }
+        }
+      } catch (_err) {
+        // best-effort polling
+      }
+    };
+
+    poll();
+    interval = window.setInterval(poll, pollIntervalMs);
+    const longTimer = window.setTimeout(() => {
+      if (active) setLongRunning(true);
+    }, 60000);
+
+    return () => {
+      active = false;
+      if (interval) window.clearInterval(interval);
+      window.clearTimeout(longTimer);
+    };
+  }, [token, assessmentId, pollIntervalMs, onComplete]);
 
   return (
     <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-gradient-to-br from-[#0B1220] via-[#0F172A] to-[#0B1220] p-10">
@@ -113,6 +166,12 @@ export function AIAnalysisScreen({ onComplete }: { onComplete?: () => void }) {
               style={{ width: `${progress}%` }}
             />
           </div>
+          {longRunning ? (
+            <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-white/70">
+              We’re still working on the final details. Keep this page open—your dashboard will
+              refresh automatically.
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

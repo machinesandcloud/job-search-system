@@ -45,9 +45,10 @@ export default async function CoverLetterPage({ params }: { params: Promise<{ to
         score={assessment.totalScore}
         statusLabel={statusLabel}
         aiReady={aiReady}
+        enableRefresh={false}
       >
         <div className="mx-auto w-full max-w-4xl">
-          <AIAnalysisScreen />
+          <AIAnalysisScreen token={token} />
         </div>
       </PortalShell>
     );

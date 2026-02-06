@@ -45,9 +45,10 @@ export default async function CompanyStrategyPage({ params }: { params: Promise<
         score={assessment.totalScore}
         statusLabel={statusLabel}
         aiReady={aiReady}
+        enableRefresh={false}
       >
         <div className="mx-auto w-full max-w-4xl">
-          <AIAnalysisScreen />
+          <AIAnalysisScreen token={token} />
         </div>
       </PortalShell>
     );

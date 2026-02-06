@@ -24,53 +24,26 @@ export default function PreviewClient() {
   const [data, setData] = useState<PreviewData | null>(null);
   const [loadingPhase, setLoadingPhase] = useState(true);
   const [displayScore, setDisplayScore] = useState(0);
-  const [lastAttemptAt, setLastAttemptAt] = useState<number | null>(null);
 
   useEffect(() => {
     if (!token) return;
     let active = true;
-    const ensureAi = async () => {
-      try {
-        setLastAttemptAt(Date.now());
-        await fetch("/api/ai/ensure", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token }),
-        });
-      } catch (_err) {
-        // best-effort
-      }
-    };
     const fetchResults = async () => {
       try {
         const res = await fetch(`/api/results/${token}`, { cache: "no-store" });
         const payload = await res.json();
         if (!active) return false;
         setData(payload);
-        const status = payload?.assessment?.aiAnalysisStatus;
-        const hasWeek1 = Boolean(payload?.assessment?.week1Plan?.week1?.tasks?.length);
-        if (status === "complete" && hasWeek1) {
-          return true;
-        }
       } catch (_err) {
         // ignore
       }
       return false;
     };
 
-    ensureAi();
     fetchResults();
-    const interval = setInterval(async () => {
-      await ensureAi();
-      const ready = await fetchResults();
-      if (ready) {
-        clearInterval(interval);
-      }
-    }, 8000);
 
     return () => {
       active = false;
-      clearInterval(interval);
     };
   }, [token]);
 
@@ -106,8 +79,6 @@ export default function PreviewClient() {
   const insights = data?.assessment?.aiInsights || {};
   const actionPlan = data?.assessment?.actionPlan || null;
   const week1 = data?.assessment?.week1Plan?.week1?.tasks || actionPlan?.week1?.tasks || [];
-  const aiReady = data?.assessment?.aiAnalysisStatus === "complete" && week1.length > 0;
-  const showLongRunning = !aiReady && lastAttemptAt && Date.now() - lastAttemptAt > 60000;
 
   const ring = 240;
   const radius = ring / 2 - 16;
@@ -167,14 +138,9 @@ export default function PreviewClient() {
               ))}
             </div>
 
-            {loadingPhase || !aiReady ? (
+            {loadingPhase || !data ? (
               <div className="relative z-10">
                 <AIAnalysisScreen />
-                {showLongRunning ? (
-                  <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
-                    This is taking longer than usual. We’re still working—please keep this page open.
-                  </div>
-                ) : null}
               </div>
             ) : (
               <div className="relative z-10">

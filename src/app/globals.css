@@ -1967,3 +1967,31 @@ body {
     transform: translateX(-50%);
   }
 }
+
+@keyframes gateDeckCycle {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  35% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.96);
+  }
+}
+
+.gate-deck-card {
+  animation: gateDeckCycle 12s ease-in-out infinite;
+  opacity: 0;
+}

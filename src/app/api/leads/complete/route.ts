@@ -5,7 +5,6 @@ import { assessmentCompleteSchema, sanitizeAnswers } from "@/lib/validation";
 import { computeScore } from "@/lib/scoring";
 import { ensureSameOrigin } from "@/lib/utils";
 import { logEvent } from "@/lib/events";
-import { runFullAnalysis } from "@/lib/analysis";
 
 async function buildTeaser(answers: any, score: number, subscores: any, aiInsights: any, actionPlan: any) {
   const insights = [
@@ -61,37 +60,7 @@ export async function POST(request: Request) {
     ? (JSON.parse(JSON.stringify(answers.linkedinManualData)) as Prisma.InputJsonValue)
     : Prisma.JsonNull;
 
-  const existingAssessment = assessmentId
-    ? await prisma.assessment.findUnique({
-        where: { id: assessmentId },
-      select: {
-        resumeParsedData: true,
-        linkedinParsedData: true,
-        resumeRawText: true,
-        linkedinRawText: true,
-      },
-    })
-    : null;
-
-  const analysis = await runFullAnalysis(
-    answers,
-    {
-      resumeParsedData: existingAssessment?.resumeParsedData || null,
-      linkedinParsedData: existingAssessment?.linkedinParsedData || null,
-      resumeRawText: existingAssessment?.resumeRawText || null,
-      linkedinRawText: existingAssessment?.linkedinRawText || null,
-    },
-    { includePro: false }
-  );
-
-  const aiReady =
-    !analysis.aiFailed &&
-    analysis.aiInsights &&
-    analysis.resumeAnalysis &&
-    analysis.linkedinAnalysis &&
-    analysis.careerAnalysis &&
-    analysis.marketIntelligence &&
-    analysis.week1Plan;
+  const aiReady = false;
   const recommendedRoute =
     (route === "Fast Track" ? "FastTrack" : route === "Guided" ? "Guided" : "DIY") as Prisma.AssessmentCreateInput["recommendedRoute"];
 
@@ -105,27 +74,27 @@ export async function POST(request: Request) {
     networkScore: subscores.network,
     executionScore: subscores.execution,
     recommendedRoute,
-    aiInsights: (analysis.aiInsights ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-    aiAnalysisStatus: aiReady ? AiAnalysisStatus.complete : AiAnalysisStatus.processing,
-    aiProcessedAt: aiReady ? new Date() : null,
-    aiModel: analysis.aiModel || "groq",
-    aiFailureReason: analysis.aiFailed ? analysis.aiFailureReason : null,
+    aiInsights: Prisma.JsonNull as Prisma.InputJsonValue,
+    aiAnalysisStatus: AiAnalysisStatus.pending,
+    aiProcessedAt: null,
+    aiModel: null,
+    aiFailureReason: null,
     completedAt: new Date(),
     linkedinManualData: linkedinManualJson,
-    marketIntelligence: (analysis.marketIntelligence ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-    week1Plan: (analysis.week1Plan ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-    personalizationData: (analysis.personalizationData ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+    marketIntelligence: Prisma.JsonNull as Prisma.InputJsonValue,
+    week1Plan: Prisma.JsonNull as Prisma.InputJsonValue,
+    personalizationData: Prisma.JsonNull as Prisma.InputJsonValue,
     progressPercentage: 0,
     lastActivityAt: new Date(),
-    resumeAnalysis: (analysis.resumeAnalysis ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-    linkedinAnalysis: (analysis.linkedinAnalysis ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-    companyMatches: (analysis.companyMatches ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-    actionPlan: (analysis.actionPlan ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-    personalizedScripts: (analysis.personalizedScripts ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-    coverLetterKit: (analysis.coverLetterKit ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-    interviewPrep: (analysis.interviewPrep ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-    companyStrategies: (analysis.companyStrategies ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-    careerAnalysis: (analysis.careerAnalysis ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+    resumeAnalysis: Prisma.JsonNull as Prisma.InputJsonValue,
+    linkedinAnalysis: Prisma.JsonNull as Prisma.InputJsonValue,
+    companyMatches: Prisma.JsonNull as Prisma.InputJsonValue,
+    actionPlan: Prisma.JsonNull as Prisma.InputJsonValue,
+    personalizedScripts: Prisma.JsonNull as Prisma.InputJsonValue,
+    coverLetterKit: Prisma.JsonNull as Prisma.InputJsonValue,
+    interviewPrep: Prisma.JsonNull as Prisma.InputJsonValue,
+    companyStrategies: Prisma.JsonNull as Prisma.InputJsonValue,
+    careerAnalysis: Prisma.JsonNull as Prisma.InputJsonValue,
   };
 
   let assessment = null;
@@ -154,7 +123,7 @@ export async function POST(request: Request) {
   return NextResponse.json({
     token: assessment.token,
     assessmentId: assessment.id,
-    teaser: await buildTeaser(answers, score, subscores, analysis.aiInsights, analysis.actionPlan),
-    aiStatus: aiReady ? "complete" : "processing",
+    teaser: await buildTeaser(answers, score, subscores, null, null),
+    aiStatus: aiReady ? "complete" : "pending",
   });
 }

@@ -18,6 +18,7 @@ export function PortalShell({
   score,
   statusLabel,
   aiReady,
+  enableRefresh = true,
   children,
 }: {
   token: string;
@@ -26,6 +27,7 @@ export function PortalShell({
   score: number;
   statusLabel: string;
   aiReady?: boolean;
+  enableRefresh?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -65,7 +67,7 @@ export function PortalShell({
       </aside>
 
       <main className="flex-1 px-6 py-10 lg:px-10">
-        <AiResultsRefresh token={token} isReady={Boolean(aiReady)} />
+        {enableRefresh ? <AiResultsRefresh token={token} isReady={Boolean(aiReady)} /> : null}
         {children}
       </main>
     </div>

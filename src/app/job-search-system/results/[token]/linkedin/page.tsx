@@ -46,9 +46,10 @@ export default async function LinkedInPage({ params }: { params: Promise<{ token
         score={assessment.totalScore}
         statusLabel={statusLabel}
         aiReady={aiReady}
+        enableRefresh={false}
       >
         <div className="mx-auto w-full max-w-4xl">
-          <AIAnalysisScreen />
+          <AIAnalysisScreen token={token} />
         </div>
       </PortalShell>
     );

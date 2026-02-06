@@ -52,19 +52,13 @@ export default async function ResultsPage({ params }: { params: Promise<{ token:
   const companyMatches = (assessment.companyMatches as any)?.matches || [];
   const aiPendingMessage = "";
   const isPro = assessment.hasPurchasedPro;
-  const hasEvidence =
-    Array.isArray(aiInsights?.primaryGapEvidence) && aiInsights.primaryGapEvidence.length > 0;
-  const hasCoachSummary = Boolean(careerAnalysis?.executiveSummary?.coachSummary);
   const aiReady =
     assessment.aiAnalysisStatus === "complete" &&
     Boolean((assessment.week1Plan as any)?.week1?.tasks?.length) &&
     Boolean(assessment.aiInsights) &&
     Boolean(assessment.resumeAnalysis) &&
     Boolean(assessment.linkedinAnalysis) &&
-    Boolean(assessment.careerAnalysis) &&
-    Boolean(assessment.marketIntelligence) &&
-    hasEvidence &&
-    hasCoachSummary;
+    Boolean(assessment.marketIntelligence);
   const week1Plan = (assessment.week1Plan as any)?.week1 || actionPlan?.week1 || null;
   const week2Preview = actionPlan?.week2Preview || null;
 
@@ -77,9 +71,10 @@ export default async function ResultsPage({ params }: { params: Promise<{ token:
         score={assessment.totalScore}
         statusLabel={statusLabel}
         aiReady={aiReady}
+        enableRefresh={false}
       >
         <div className="mx-auto w-full max-w-4xl">
-          <AIAnalysisScreen />
+          <AIAnalysisScreen token={token} />
         </div>
       </PortalShell>
     );
