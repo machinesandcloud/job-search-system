@@ -616,6 +616,81 @@ Return JSON with this exact structure:
   };
 }
 
+export async function enhanceEvidenceBundle(
+  answers: AssessmentAnswers,
+  parsed: ParsedData | undefined,
+  marketIntel: any,
+  aiInsights: any,
+  careerAnalysis: any
+) {
+  const resumeParsed = parsed?.resumeParsedData || null;
+  const linkedinParsed = parsed?.linkedinParsedData || null;
+  const resumeRawText = parsed?.resumeRawText || null;
+  const linkedinRawText = parsed?.linkedinRawText || null;
+  const linkedinManual = (answers as any).linkedinManualData || null;
+  const jobDescription = (answers as any).jobDescription || null;
+
+  const systemPrompt =
+    "You are a senior tech career coach. Return ONLY valid JSON. Add evidence and a coach-style summary grounded in the user's real data.";
+
+  const userPrompt = `
+Fill missing evidence and coach summary fields based on the user's real data.
+
+ASSESSMENT:
+${safeStringify(answers, 3000)}
+
+RESUME:
+${safeStringify(resumeParsed, 4000)}
+
+RESUME RAW TEXT:
+${safeText(resumeRawText, 4000)}
+
+LINKEDIN:
+${safeStringify(linkedinParsed, 3000)}
+
+LINKEDIN RAW TEXT:
+${safeText(linkedinRawText, 3000)}
+
+LINKEDIN MANUAL INPUT:
+${safeStringify(linkedinManual, 2000)}
+
+JOB DESCRIPTION:
+${safeStringify(jobDescription, 2000)}
+
+MARKET INTEL:
+${safeStringify(marketIntel, 3000)}
+
+EXISTING AI INSIGHTS:
+${safeStringify(aiInsights, 2000)}
+
+EXISTING CAREER ANALYSIS:
+${safeStringify(careerAnalysis, 2000)}
+
+Return JSON ONLY:
+{
+  "aiInsights": {
+    "primaryGapEvidence": [""],
+    "secondaryGapEvidence": [""],
+    "quickWinEvidence": [""]
+  },
+  "careerAnalysis": {
+    "executiveSummary": {
+      "coachSummary": "",
+      "evidenceHighlights": [""]
+    }
+  }
+}
+
+Rules:
+- Evidence items must quote or paraphrase concrete resume/LinkedIn lines, skills, roles, or achievements.
+- If job description exists, include at least one evidence line referencing it.
+- CoachSummary should be 3-5 sentences in a supportive coach tone.
+`;
+
+  const enhancement = await groqChatJSON(systemPrompt, userPrompt);
+  return enhancement || null;
+}
+
 function buildPersonalizationData(answers: AssessmentAnswers, resumeParsed: any, scoreResult: any) {
   const linkedinManual = (answers as any).linkedinManualData || null;
   const fullName =

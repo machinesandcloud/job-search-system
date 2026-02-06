@@ -21,6 +21,9 @@ export function CareerJourneyHero({ assessment }: { assessment: any }) {
   const currentRole =
     resume?.currentRole?.title ||
     resume?.currentRole ||
+    resume?.experience?.[0]?.title ||
+    resume?.workHistory?.[0]?.title ||
+    resume?.employmentHistory?.[0]?.title ||
     linkedinManual?.currentRole ||
     linkedinParsed?.experience?.[0]?.title ||
     headlineRole ||
@@ -28,6 +31,9 @@ export function CareerJourneyHero({ assessment }: { assessment: any }) {
   const currentCompany =
     resume?.currentRole?.company ||
     resume?.currentCompany ||
+    resume?.experience?.[0]?.company ||
+    resume?.workHistory?.[0]?.company ||
+    resume?.employmentHistory?.[0]?.company ||
     linkedinManual?.currentCompany ||
     linkedinParsed?.experience?.[0]?.company ||
     "your company";
