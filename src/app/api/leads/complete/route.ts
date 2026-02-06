@@ -68,10 +68,14 @@ export async function POST(request: Request) {
       })
     : null;
 
-  const analysis = await runFullAnalysis(answers, {
-    resumeParsedData: existingAssessment?.resumeParsedData || null,
-    linkedinParsedData: existingAssessment?.linkedinParsedData || null,
-  });
+  const analysis = await runFullAnalysis(
+    answers,
+    {
+      resumeParsedData: existingAssessment?.resumeParsedData || null,
+      linkedinParsedData: existingAssessment?.linkedinParsedData || null,
+    },
+    { includePro: false }
+  );
 
   const aiReady = !analysis.aiFailed && analysis.aiInsights && analysis.week1Plan;
   const recommendedRoute =

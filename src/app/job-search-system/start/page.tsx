@@ -530,10 +530,18 @@ export default function JobSearchWizard() {
 
   const validationError = validateStep();
   const showError = Boolean(validationTouched && validationError);
-  const displayError =
-    error && error.toLowerCase().includes("dommatrix")
-      ? "Resume uploaded. Parsing will finish shortly."
-      : error;
+  const displayError = (() => {
+    if (!error) return error;
+    const normalized = error.toLowerCase();
+    const isParseNoise =
+      normalized.includes("dommatrix") ||
+      normalized.includes("unexpected end of json") ||
+      normalized.includes("json");
+    if (isParseNoise && step === 6) {
+      return "Resume uploaded. Parsing will finish shortly.";
+    }
+    return error;
+  })();
 
   // Preview is now handled on /job-search-system/results/preview
 
@@ -880,6 +888,7 @@ export default function JobSearchWizard() {
                     onChange={async (event) => {
                       const file = event.target.files?.[0];
                       if (!file) return;
+                      setError(null);
                       updateAnswers({
                         resumeFileName: file.name,
                         resumeFileSize: file.size,
@@ -953,12 +962,13 @@ export default function JobSearchWizard() {
                     <input
                       type="file"
                       accept=".pdf"
-                      onChange={async (event) => {
-                        const file = event.target.files?.[0];
-                        if (!file) return;
-                        setLinkedinUploadError(null);
-                        setLinkedinParseNotice(null);
-                        setLinkedinUploading(true);
+                    onChange={async (event) => {
+                      const file = event.target.files?.[0];
+                      if (!file) return;
+                      setError(null);
+                      setLinkedinUploadError(null);
+                      setLinkedinParseNotice(null);
+                      setLinkedinUploading(true);
                         try {
                           await uploadFile(file, "linkedin");
                         } catch (err: any) {

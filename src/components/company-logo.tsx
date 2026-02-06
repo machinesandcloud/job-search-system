@@ -27,7 +27,16 @@ export function CompanyLogo({
   }, [domain, name, logoUrl]);
   const [index, setIndex] = useState(0);
   const [failed, setFailed] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const src = candidates[index] || initialsSvg(name);
+  const initials =
+    name
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase() || "CO";
 
   if (failed) {
     return (
@@ -35,33 +44,37 @@ export function CompanyLogo({
         className={`inline-flex items-center justify-center rounded-full bg-[#0f172a] text-xs font-semibold text-white/80 ${className}`}
         style={{ width: size, height: size }}
       >
-        {name
-          .trim()
-          .split(/\s+/)
-          .slice(0, 2)
-          .map((part) => part[0])
-          .join("")
-          .toUpperCase() || "CO"}
+        {initials}
       </span>
     );
   }
 
   return (
-    <img
-      src={src}
-      alt={name}
-      width={size}
-      height={size}
-      className={className}
-      loading="lazy"
-      referrerPolicy="no-referrer"
-      onError={() => {
-        if (index < candidates.length - 1) {
-          setIndex((prev) => prev + 1);
-          return;
-        }
-        setFailed(true);
-      }}
-    />
+    <span
+      className={`relative inline-flex items-center justify-center rounded-full bg-[#0f172a] ${className}`}
+      style={{ width: size, height: size }}
+    >
+      {!loaded && (
+        <span className="text-xs font-semibold text-white/80">{initials}</span>
+      )}
+      <img
+        src={src}
+        alt={name}
+        width={size}
+        height={size}
+        className={`absolute inset-0 h-full w-full rounded-full object-contain transition-opacity ${loaded ? "opacity-100" : "opacity-0"}`}
+        loading="lazy"
+        referrerPolicy="no-referrer"
+        onLoad={() => setLoaded(true)}
+        onError={() => {
+          if (index < candidates.length - 1) {
+            setLoaded(false);
+            setIndex((prev) => prev + 1);
+            return;
+          }
+          setFailed(true);
+        }}
+      />
+    </span>
   );
 }

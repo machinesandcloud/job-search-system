@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AccountGate } from "@/components/account-gate";
 import { PortalShell } from "@/components/portal-shell";
 import { getAuthorizedAssessment } from "@/lib/results-auth";
+import { AiResultsRefresh } from "@/components/ai-results-refresh";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -45,6 +46,7 @@ export default async function ResultsPage({ params }: { params: Promise<{ token:
   const companyMatches = (assessment.companyMatches as any)?.matches || [];
   const aiPendingMessage = "AI is generating this section now. Check back in a minute.";
   const isPro = assessment.hasPurchasedPro;
+  const aiReady = assessment.aiAnalysisStatus === "complete" && Boolean(assessment.week1Plan);
 
   const week1Tasks = actionPlan?.week1?.tasks || [];
   const week2Tasks = actionPlan?.week2?.tasks || [];
@@ -52,6 +54,7 @@ export default async function ResultsPage({ params }: { params: Promise<{ token:
 
   return (
     <PortalShell token={token} active="dashboard" userEmail={session?.email || null} score={assessment.totalScore} statusLabel={statusLabel}>
+      <AiResultsRefresh token={token} isReady={aiReady} />
       <div className="mx-auto w-full max-w-6xl space-y-8">
         <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
           <h1 className="text-3xl font-semibold">Career Command Center</h1>

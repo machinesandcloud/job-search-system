@@ -26,10 +26,49 @@ export default function PreviewClient() {
 
   useEffect(() => {
     if (!token) return;
-    fetch(`/api/results/${token}`)
-      .then((res) => res.json())
-      .then((payload) => setData(payload))
-      .catch(() => null);
+    let active = true;
+    const ensureAi = async () => {
+      try {
+        await fetch("/api/ai/ensure", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
+        });
+      } catch (_err) {
+        // best-effort
+      }
+    };
+    const fetchResults = async () => {
+      try {
+        const res = await fetch(`/api/results/${token}`, { cache: "no-store" });
+        const payload = await res.json();
+        if (!active) return false;
+        setData(payload);
+        const status = payload?.assessment?.aiAnalysisStatus;
+        const hasWeek1 = Boolean(payload?.assessment?.week1Plan?.week1?.tasks?.length);
+        if (status === "complete" && hasWeek1) {
+          return true;
+        }
+      } catch (_err) {
+        // ignore
+      }
+      return false;
+    };
+
+    ensureAi();
+    fetchResults();
+    const interval = setInterval(async () => {
+      await ensureAi();
+      const ready = await fetchResults();
+      if (ready) {
+        clearInterval(interval);
+      }
+    }, 8000);
+
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
   }, [token]);
 
   useEffect(() => {
@@ -63,7 +102,7 @@ export default function PreviewClient() {
 
   const insights = data?.assessment?.aiInsights || {};
   const actionPlan = data?.assessment?.actionPlan || null;
-  const week1 = actionPlan?.week1?.tasks || [];
+  const week1 = data?.assessment?.week1Plan?.week1?.tasks || actionPlan?.week1?.tasks || [];
 
   const ring = 240;
   const radius = ring / 2 - 16;

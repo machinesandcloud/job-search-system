@@ -18,7 +18,11 @@ function safeStringify(value: unknown, maxLength = 6000) {
   }
 }
 
-export async function runFullAnalysis(answers: AssessmentAnswers, parsed?: ParsedData) {
+export async function runFullAnalysis(
+  answers: AssessmentAnswers,
+  parsed?: ParsedData,
+  options?: { includePro?: boolean }
+) {
   const scoreResult = computeScore(answers);
   const resumeParsed = parsed?.resumeParsedData || null;
   const linkedinParsed = parsed?.linkedinParsedData || null;
@@ -51,28 +55,13 @@ export async function runFullAnalysis(answers: AssessmentAnswers, parsed?: Parse
       (answers.targetCompanies || []).map((company) => company.name).filter(Boolean)
     );
   } catch (err: any) {
-    return {
-      marketIntelligence: null,
-      week1Plan: null,
-      personalizationData: null,
-      aiInsights: null,
-      resumeAnalysis: null,
-      linkedinAnalysis: null,
-      companyMatches: null,
-      actionPlan: null,
-      personalizedScripts: null,
-      coverLetterKit: null,
-      interviewPrep: null,
-      companyStrategies: null,
-      careerAnalysis: null,
-      aiModel: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
-      aiFailed: true,
-      aiFailureReason: err?.message || "Market intelligence unavailable.",
-    };
+    marketIntel = null;
   }
 
   const systemPrompt =
     "You are a senior tech career coach. Return ONLY valid JSON. Every recommendation must reference the user's real data (resume, LinkedIn, assessment).";
+
+  const includePro = Boolean(options?.includePro);
 
   const userPrompt = `
 Create a complete personalization bundle for this assessment. Use the user's real data and be specific.
@@ -95,7 +84,9 @@ ${safeStringify(marketIntel, 6000)}
 WEEK 1 REQUIREMENTS:
 - Provide 15-20 ultra-detailed tasks for Week 1 (resume, LinkedIn, company research, positioning, networking)
 - Each task must be actionable, specific to this user, and include clear steps + success criteria
-- Week 2 must be a preview only for non-pro users (use week2Preview fields)
+- Each task must include: context, currentState, exactSteps, beforeAfter, template, validation, resources, successMetrics, nextSteps
+- Week 2 must be a preview only for non-pro users (use week2Preview fields and set week2 to null)
+- If includePro = ${includePro}, then include Week 2 full tasks (same structure as Week 1). If false, leave week2 as null.
 
 Return JSON with this exact structure:
 {
@@ -233,20 +224,53 @@ Return JSON with this exact structure:
     "week1": {
       "title": "",
       "focusArea": "",
+      "theme": "",
+      "objectives": [""],
+      "totalTime": "",
+      "expectedOutcomes": [""],
       "tasks": [
         {
           "id": "week1_task1",
+          "day": 1,
+          "title": "",
           "task": "",
           "category": "",
-          "priority": "HIGH",
+          "priority": "CRITICAL",
+          "difficulty": "Easy",
           "timeEstimate": "",
-          "why": "",
-          "detailedSteps": [""],
-          "expectedOutcome": "",
+          "order": 1,
+          "context": {
+            "whyNow": "",
+            "impact": "HIGH",
+            "marketData": ""
+          },
+          "currentState": {
+            "issue": "",
+            "location": "",
+            "consequence": ""
+          },
+          "exactSteps": [""],
+          "beforeAfter": {
+            "before": "",
+            "after": "",
+            "improvement": ""
+          },
+          "template": {
+            "example": ""
+          },
+          "validation": {
+            "checkpoints": [""],
+            "commonMistakes": [""]
+          },
           "resources": [
-            { "type": "", "description": "", "howToUse": "" }
+            { "type": "", "title": "", "content": "" }
           ],
-          "successCriteria": ""
+          "successMetrics": {
+            "immediate": "",
+            "shortTerm": "",
+            "longTerm": ""
+          },
+          "nextSteps": ""
         }
       ],
       "dailyBreakdown": { "day1": ["week1_task1"] },
@@ -259,29 +283,58 @@ Return JSON with this exact structure:
       "previewTasks": [""],
       "upgradeMessage": ""
     },
-    "week2": {
+    "week2": ${includePro ? `{
       "title": "",
       "focusArea": "",
       "tasks": [
         {
           "id": "week2_task1",
+          "day": 1,
+          "title": "",
           "task": "",
           "category": "",
           "priority": "MEDIUM",
           "timeEstimate": "",
-          "why": "",
-          "detailedSteps": [""],
-          "expectedOutcome": "",
+          "difficulty": "Medium",
+          "order": 1,
+          "context": {
+            "whyNow": "",
+            "impact": "MEDIUM",
+            "marketData": ""
+          },
+          "currentState": {
+            "issue": "",
+            "location": "",
+            "consequence": ""
+          },
+          "exactSteps": [""],
+          "beforeAfter": {
+            "before": "",
+            "after": "",
+            "improvement": ""
+          },
+          "template": {
+            "example": ""
+          },
+          "validation": {
+            "checkpoints": [""],
+            "commonMistakes": [""]
+          },
           "resources": [
-            { "type": "", "description": "", "howToUse": "" }
+            { "type": "", "title": "", "content": "" }
           ],
-          "successCriteria": ""
+          "successMetrics": {
+            "immediate": "",
+            "shortTerm": "",
+            "longTerm": ""
+          },
+          "nextSteps": ""
         }
       ],
       "dailyBreakdown": { "day1": ["week2_task1"] },
       "weeklyGoal": "",
       "checkpointQuestions": [""]
-    }
+    }` : "null"}
   },
   "companyMatches": {
     "matches": [
