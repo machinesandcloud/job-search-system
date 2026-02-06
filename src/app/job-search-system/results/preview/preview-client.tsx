@@ -24,12 +24,15 @@ export default function PreviewClient() {
   const [data, setData] = useState<PreviewData | null>(null);
   const [loadingPhase, setLoadingPhase] = useState(true);
   const [displayScore, setDisplayScore] = useState(0);
+  const [aiFailed, setAiFailed] = useState(false);
+  const [lastAttemptAt, setLastAttemptAt] = useState<number | null>(null);
 
   useEffect(() => {
     if (!token) return;
     let active = true;
     const ensureAi = async () => {
       try {
+        setLastAttemptAt(Date.now());
         await fetch("/api/ai/ensure", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -47,6 +50,7 @@ export default function PreviewClient() {
         setData(payload);
         const status = payload?.assessment?.aiAnalysisStatus;
         const hasWeek1 = Boolean(payload?.assessment?.week1Plan?.week1?.tasks?.length);
+        setAiFailed(status === "failed");
         if (status === "complete" && hasWeek1) {
           return true;
         }
@@ -105,6 +109,7 @@ export default function PreviewClient() {
   const actionPlan = data?.assessment?.actionPlan || null;
   const week1 = data?.assessment?.week1Plan?.week1?.tasks || actionPlan?.week1?.tasks || [];
   const aiReady = data?.assessment?.aiAnalysisStatus === "complete" && week1.length > 0;
+  const showLongRunning = !aiReady && !aiFailed && lastAttemptAt && Date.now() - lastAttemptAt > 60000;
 
   const ring = 240;
   const radius = ring / 2 - 16;
@@ -164,9 +169,35 @@ export default function PreviewClient() {
               ))}
             </div>
 
-            {loadingPhase || !aiReady ? (
+            {loadingPhase || (!aiReady && !aiFailed) ? (
               <div className="relative z-10">
                 <AIAnalysisScreen />
+                {showLongRunning ? (
+                  <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
+                    This is taking longer than usual. We’re still working—please keep this page open.
+                  </div>
+                ) : null}
+              </div>
+            ) : aiFailed ? (
+              <div className="relative z-10 rounded-2xl border border-red-500/30 bg-red-500/10 p-6">
+                <h2 className="text-lg font-semibold text-white">We hit a snag</h2>
+                <p className="mt-2 text-sm text-white/70">
+                  The AI analysis didn’t finish successfully. Please retry below.
+                </p>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setAiFailed(false);
+                    await fetch("/api/ai/ensure", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ token }),
+                    });
+                  }}
+                  className="mt-4 inline-flex rounded-full border border-white/20 bg-white/10 px-5 py-2 text-sm font-semibold text-white"
+                >
+                  Retry analysis
+                </button>
               </div>
             ) : (
               <div className="relative z-10">
