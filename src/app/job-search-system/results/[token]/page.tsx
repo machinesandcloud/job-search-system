@@ -114,7 +114,7 @@ export default async function ResultsPage({ params }: { params: Promise<{ token:
             aiPending={aiPendingMessage}
             targetCompanies={(assessment.targetCompanies as any)?.map((c: any) => c.name).filter(Boolean).slice(0, 3)}
           />
-        ) : null}
+        )}
 
         <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
           <h2 className="text-lg font-semibold">Top Company Matches</h2>
