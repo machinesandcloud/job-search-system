@@ -43,6 +43,7 @@ export function AIAnalysisScreen({
   const [stage, setStage] = useState(0);
   const [progress, setProgress] = useState(10);
   const [longRunning, setLongRunning] = useState(false);
+  const [failureReason, setFailureReason] = useState<string | null>(null);
   const simulatedMax = 96;
 
   useEffect(() => {
@@ -78,6 +79,13 @@ export function AIAnalysisScreen({
         });
         const payload = await res.json();
         if (!active) return;
+        if (payload?.status === "failed") {
+          setFailureReason(payload?.reason || "AI generation failed.");
+          setProgress(simulatedMax);
+          if (interval) window.clearInterval(interval);
+          active = false;
+          return;
+        }
         if (payload?.status === "ready") {
           setStage(STAGES.length - 1);
           setProgress(100);
@@ -103,7 +111,7 @@ export function AIAnalysisScreen({
       if (interval) window.clearInterval(interval);
       window.clearTimeout(longTimer);
     };
-  }, [token, assessmentId, pollIntervalMs, onComplete]);
+  }, [token, assessmentId, pollIntervalMs, onComplete, simulatedMax]);
 
   return (
     <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-gradient-to-br from-[#0B1220] via-[#0F172A] to-[#0B1220] p-10">
@@ -166,7 +174,12 @@ export function AIAnalysisScreen({
               style={{ width: `${progress}%` }}
             />
           </div>
-          {longRunning ? (
+          {failureReason ? (
+            <div className="mt-4 rounded-2xl border border-rose-400/20 bg-rose-500/10 p-4 text-xs text-rose-100">
+              We hit a snag while generating your dashboard. {failureReason} Please refresh or contact
+              support if this persists.
+            </div>
+          ) : longRunning ? (
             <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-white/70">
               We’re still working on the final details. Keep this page open—your dashboard will
               refresh automatically.

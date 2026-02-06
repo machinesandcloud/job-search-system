@@ -43,16 +43,17 @@ export async function POST(request: Request) {
     const hasWeek1 = Boolean((assessment.week1Plan as any)?.week1?.tasks?.length);
     const hasResumeAnalysis = Boolean(assessment.resumeAnalysis);
     const hasLinkedinAnalysis = Boolean(assessment.linkedinAnalysis);
-    const hasMarketIntel = Boolean(assessment.marketIntelligence);
-
     const baseReady =
       assessment.aiAnalysisStatus === AiAnalysisStatus.complete &&
       hasWeek1 &&
       hasResumeAnalysis &&
       hasLinkedinAnalysis &&
-      hasMarketIntel &&
       hasInsights;
     const needsEnhancement = !hasEvidence || !hasCoachSummary;
+
+    if (assessment.aiAnalysisStatus === AiAnalysisStatus.failed) {
+      return NextResponse.json({ status: "failed", reason: assessment.aiFailureReason || "AI generation failed." });
+    }
 
     if (baseReady) {
       if (needsEnhancement) {
@@ -175,23 +176,25 @@ export async function POST(request: Request) {
       };
     }
 
-    const aiReady =
-      analysis &&
-      !analysis.aiFailed &&
-      analysis.aiInsights &&
-      analysis.resumeAnalysis &&
-      analysis.linkedinAnalysis &&
-      analysis.marketIntelligence &&
-      analysis.week1Plan;
+    const requiredSections = Boolean(
+      analysis?.aiInsights && analysis?.resumeAnalysis && analysis?.linkedinAnalysis && analysis?.week1Plan
+    );
+    const aiFailed =
+      !analysis ||
+      analysis.aiFailed ||
+      !requiredSections;
+    const failureReason =
+      analysis?.aiFailureReason || (!requiredSections ? "AI response missing required sections." : null);
+    const aiReady = !aiFailed;
 
     const updatedAssessment = await prisma.assessment.update({
       where: { id: assessment.id },
       data: {
         aiInsights: (analysis?.aiInsights ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-        aiAnalysisStatus: aiReady ? AiAnalysisStatus.complete : AiAnalysisStatus.processing,
-        aiProcessedAt: aiReady ? new Date() : null,
+        aiAnalysisStatus: aiReady ? AiAnalysisStatus.complete : AiAnalysisStatus.failed,
+        aiProcessedAt: new Date(),
         aiModel: analysis?.aiModel || "groq",
-        aiFailureReason: analysis?.aiFailed ? analysis.aiFailureReason : null,
+        aiFailureReason: aiFailed ? failureReason : null,
         marketIntelligence: (analysis?.marketIntelligence ?? Prisma.JsonNull) as Prisma.InputJsonValue,
         week1Plan: (analysis?.week1Plan ?? Prisma.JsonNull) as Prisma.InputJsonValue,
         personalizationData: (analysis?.personalizationData ?? Prisma.JsonNull) as Prisma.InputJsonValue,
@@ -254,7 +257,7 @@ export async function POST(request: Request) {
       }
     }
 
-    return NextResponse.json({ status: aiReady ? "ready" : "processing" });
+    return NextResponse.json({ status: aiReady ? "ready" : "failed", reason: aiFailed ? failureReason : null });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || "Failed to ensure AI" }, { status: 500 });
   }

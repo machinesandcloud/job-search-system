@@ -67,7 +67,13 @@ export async function runFullAnalysis(
       (answers.targetCompanies || []).map((company) => company.name).filter(Boolean)
     );
   } catch (err: any) {
-    marketIntel = null;
+    marketIntel = {
+      roleKeywords: [],
+      salarySignals: null,
+      companyTrends: [],
+      sources: null,
+      unavailable: true,
+    };
   }
 
   const systemPrompt =
