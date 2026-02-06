@@ -57,6 +57,9 @@ export async function POST(request: Request) {
 
   const targetRolesJson = JSON.parse(JSON.stringify(answers.targetRoles)) as Prisma.InputJsonValue;
   const targetCompaniesJson = JSON.parse(JSON.stringify(answers.targetCompanies)) as Prisma.InputJsonValue;
+  const linkedinManualJson = answers.linkedinManualData
+    ? (JSON.parse(JSON.stringify(answers.linkedinManualData)) as Prisma.InputJsonValue)
+    : Prisma.JsonNull;
 
   const existingAssessment = assessmentId
     ? await prisma.assessment.findUnique({
@@ -97,6 +100,7 @@ export async function POST(request: Request) {
     aiModel: analysis.aiModel || "groq",
     aiFailureReason: analysis.aiFailed ? analysis.aiFailureReason : null,
     completedAt: new Date(),
+    linkedinManualData: linkedinManualJson,
     marketIntelligence: (analysis.marketIntelligence ?? Prisma.JsonNull) as Prisma.InputJsonValue,
     week1Plan: (analysis.week1Plan ?? Prisma.JsonNull) as Prisma.InputJsonValue,
     personalizationData: (analysis.personalizationData ?? Prisma.JsonNull) as Prisma.InputJsonValue,
