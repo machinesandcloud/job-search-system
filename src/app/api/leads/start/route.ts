@@ -43,12 +43,16 @@ export async function POST(request: Request) {
   };
   const rolesJson = JSON.parse(JSON.stringify(merged.targetRoles)) as Prisma.InputJsonValue;
   const companiesJson = JSON.parse(JSON.stringify(merged.targetCompanies)) as Prisma.InputJsonValue;
+  const linkedinManualJson = merged.linkedinManualData
+    ? (JSON.parse(JSON.stringify(merged.linkedinManualData)) as Prisma.InputJsonValue)
+    : Prisma.JsonNull;
 
   const assessment = await prisma.assessment.create({
     data: {
       ...merged,
       targetRoles: rolesJson,
       targetCompanies: companiesJson,
+      linkedinManualData: linkedinManualJson,
       ipAddress: ip,
       userAgent: request.headers.get("user-agent") || "",
       userId: session?.userId || null,
