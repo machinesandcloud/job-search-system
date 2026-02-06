@@ -46,11 +46,11 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
       statusLabel={statusLabel}
       aiReady={aiReady}
     >
-      <div className="mx-auto w-full max-w-6xl space-y-6">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+      <div className="mx-auto w-full max-w-6xl space-y-8">
+        <section className="rounded-[28px] border border-white/10 bg-gradient-to-br from-[#0B1220] via-[#131B2E] to-[#0B1220] p-8">
           <h1 className="text-3xl font-semibold">Interview Prep</h1>
-          <p className="mt-2 text-white/70">AI-generated stories, questions, and practice plan based on your profile.</p>
-        </div>
+          <p className="mt-2 text-white/70">Scripted STAR stories, technical prompts, and practice plans tailored to you.</p>
+        </section>
 
         {!interviewPrep ? (
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white/70">
@@ -112,6 +112,20 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
                 </div>
               </div>
             </div>
+
+            {interviewPrep.practiceSchedule && (
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+                <h2 className="text-lg font-semibold">Practice Schedule</h2>
+                <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                  {Object.entries(interviewPrep.practiceSchedule).map(([day, plan]: [string, any]) => (
+                    <div key={day} className="rounded-xl border border-white/10 bg-[#0B1220] p-4">
+                      <p className="text-xs uppercase tracking-[0.2em] text-white/50">{day}</p>
+                      <p className="mt-2 text-sm text-white/80">{plan}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {!isPro && (
               <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-white/70">

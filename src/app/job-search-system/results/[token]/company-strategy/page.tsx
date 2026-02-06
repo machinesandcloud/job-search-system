@@ -41,11 +41,11 @@ export default async function CompanyStrategyPage({ params }: { params: Promise<
       statusLabel={statusLabel}
       aiReady={aiReady}
     >
-      <div className="mx-auto w-full max-w-6xl space-y-6">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+      <div className="mx-auto w-full max-w-6xl space-y-8">
+        <section className="rounded-[28px] border border-white/10 bg-gradient-to-br from-[#0B1220] via-[#131B2E] to-[#0B1220] p-8">
           <h1 className="text-3xl font-semibold">Company Strategy</h1>
-          <p className="mt-2 text-white/70">AI-generated application strategies for each target company.</p>
-        </div>
+          <p className="mt-2 text-white/70">Company-by-company attack plan built from your profile and market data.</p>
+        </section>
 
         {companyStrategies.length === 0 ? (
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white/70">
@@ -83,6 +83,17 @@ export default async function CompanyStrategyPage({ params }: { params: Promise<
                     </ul>
                   </div>
                 </div>
+
+                {(company.talkingPoints || []).length > 0 && (
+                  <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-4">
+                    <p className="text-xs uppercase tracking-[0.2em] text-white/50">Talking Points</p>
+                    <ul className="mt-3 space-y-2 text-sm text-white/80">
+                      {company.talkingPoints.map((point: any, idx: number) => (
+                        <li key={idx}>• {point.point || point}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             ))}
 

@@ -41,11 +41,11 @@ export default async function ScriptsPage({ params }: { params: Promise<{ token:
       statusLabel={statusLabel}
       aiReady={aiReady}
     >
-      <div className="mx-auto w-full max-w-6xl space-y-6">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+      <div className="mx-auto w-full max-w-6xl space-y-8">
+        <section className="rounded-[28px] border border-white/10 bg-gradient-to-br from-[#0B1220] via-[#131B2E] to-[#0B1220] p-8">
           <h1 className="text-3xl font-semibold">Scripts Library</h1>
-          <p className="mt-2 text-white/70">AI-written outreach, follow-up, and negotiation scripts personalized to your background.</p>
-        </div>
+          <p className="mt-2 text-white/70">Outreach, follow-up, and negotiation scripts written for your exact background.</p>
+        </section>
 
         {scripts.length === 0 ? (
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white/70">

@@ -41,11 +41,11 @@ export default async function CoverLetterPage({ params }: { params: Promise<{ to
       statusLabel={statusLabel}
       aiReady={aiReady}
     >
-      <div className="mx-auto w-full max-w-5xl space-y-6">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+      <div className="mx-auto w-full max-w-6xl space-y-8">
+        <section className="rounded-[28px] border border-white/10 bg-gradient-to-br from-[#0B1220] via-[#131B2E] to-[#0B1220] p-8">
           <h1 className="text-3xl font-semibold">Cover Letter Kit</h1>
-          <p className="mt-2 text-white/70">AI-generated cover letter strategies for your target companies.</p>
-        </div>
+          <p className="mt-2 text-white/70">Personalized hooks, key points, and templates for your target companies.</p>
+        </section>
 
         {!coverLetterKit ? (
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white/70">
@@ -53,38 +53,43 @@ export default async function CoverLetterPage({ params }: { params: Promise<{ to
           </div>
         ) : (
           <div className="space-y-6">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-              <h2 className="text-lg font-semibold">Overview</h2>
+            <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
+              <h2 className="text-lg font-semibold">Overview Strategy</h2>
               <p className="mt-3 text-white/80 whitespace-pre-wrap">{coverLetterKit.overview}</p>
-            </div>
+            </section>
 
-            {(isPro ? coverLetterKit.companySpecific : (coverLetterKit.companySpecific || []).slice(0, 1)).map((item: any, index: number) => (
-              <div key={index} className="rounded-2xl border border-white/10 bg-[#0B1220] p-6">
-                <h3 className="text-lg font-semibold">{item.company}</h3>
-                <p className="mt-2 text-sm text-white/60">Hook</p>
-                <p className="mt-1 text-white/80">{item.hook}</p>
-                <p className="mt-4 text-sm text-white/60">Key Points</p>
-                <ul className="mt-2 space-y-2 text-white/80">
-                  {(item.keyPoints || []).map((point: string, idx: number) => (
-                    <li key={idx}>• {point}</li>
-                  ))}
-                </ul>
-                <p className="mt-4 text-sm text-white/60">Template</p>
-                <div className="mt-2 rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-white/80 whitespace-pre-wrap">
-                  {item.template}
+            <section className="grid gap-6 lg:grid-cols-2">
+              {(isPro ? coverLetterKit.companySpecific : (coverLetterKit.companySpecific || []).slice(0, 1)).map((item: any, index: number) => (
+                <div key={index} className="rounded-2xl border border-white/10 bg-white/5 p-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold">{item.company}</h3>
+                    <span className="text-xs uppercase tracking-[0.2em] text-white/50">Company hook</span>
+                  </div>
+                  <p className="mt-2 text-sm text-white/60">Hook</p>
+                  <p className="mt-1 text-white/80">{item.hook}</p>
+                  <p className="mt-4 text-sm text-white/60">Key Points</p>
+                  <ul className="mt-2 space-y-2 text-white/80">
+                    {(item.keyPoints || []).map((point: string, idx: number) => (
+                      <li key={idx}>• {point}</li>
+                    ))}
+                  </ul>
+                  <p className="mt-4 text-sm text-white/60">Template</p>
+                  <div className="mt-2 rounded-xl border border-white/10 bg-[#0B1220] p-4 text-sm text-white/80 whitespace-pre-wrap">
+                    {item.template}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </section>
 
             {(coverLetterKit.customizationChecklist || []).length > 0 && (
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+              <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
                 <h2 className="text-lg font-semibold">Customization Checklist</h2>
                 <ul className="mt-3 space-y-2 text-white/80">
                   {coverLetterKit.customizationChecklist.map((item: string, index: number) => (
                     <li key={index}>• {item}</li>
                   ))}
                 </ul>
-              </div>
+              </section>
             )}
             {!isPro && (
               <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-white/70">
