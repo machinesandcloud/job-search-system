@@ -119,7 +119,7 @@ export default function PreviewClient() {
           Back to landing
         </Link>
 
-        <div className="mt-8 grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+        <div className="mt-8 grid gap-8 lg:grid-cols-1 xl:grid-cols-[1.1fr_0.9fr]">
           <section className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[#0B1220] p-8">
             <div className="absolute inset-0 opacity-50">
               {particles.map((dot) => (

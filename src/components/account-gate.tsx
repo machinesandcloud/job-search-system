@@ -64,8 +64,8 @@ export function AccountGate({ assessmentId, onSuccess }: AccountGateProps) {
   };
 
   return (
-    <div className="rounded-[20px] border border-white/15 bg-[rgba(15,23,42,0.9)] p-8 text-white shadow-[0_24px_80px_rgba(0,0,0,0.6)] backdrop-blur-[20px]">
-      <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
+    <div className="rounded-[24px] border border-white/15 bg-[rgba(15,23,42,0.9)] p-8 text-white shadow-[0_24px_80px_rgba(0,0,0,0.6)] backdrop-blur-[20px]">
+      <div className="grid gap-8 2xl:grid-cols-[1.1fr_0.9fr] 2xl:items-start">
         <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#0F172A] via-[#101D35] to-[#0B1220] p-6">
           <div className="flex items-center justify-between">
             <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#06B6D4]">AI coach in action</p>
