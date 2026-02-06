@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AccountGate } from "@/components/account-gate";
 import { PortalShell } from "@/components/portal-shell";
 import { getAuthorizedAssessment } from "@/lib/results-auth";
+import { AIAnalysisScreen } from "@/components/premium/ai-analysis-screen";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,7 +31,27 @@ export default async function CompanyStrategyPage({ params }: { params: Promise<
   const statusLabel = assessment.totalScore >= 70 ? "Fast Track" : assessment.totalScore >= 45 ? "Growth Ready" : "Foundation Phase";
   const isPro = assessment.hasPurchasedPro;
   const companyStrategies = (assessment.companyStrategies as any)?.companyStrategies || [];
-  const aiReady = assessment.aiAnalysisStatus === "complete" && Boolean(assessment.week1Plan);
+  const aiReady =
+    assessment.aiAnalysisStatus === "complete" &&
+    Boolean((assessment.week1Plan as any)?.week1?.tasks?.length) &&
+    Boolean(assessment.companyStrategies);
+
+  if (!aiReady) {
+    return (
+      <PortalShell
+        token={token}
+        active="company-strategy"
+        userEmail={session?.email || null}
+        score={assessment.totalScore}
+        statusLabel={statusLabel}
+        aiReady={aiReady}
+      >
+        <div className="mx-auto w-full max-w-4xl">
+          <AIAnalysisScreen />
+        </div>
+      </PortalShell>
+    );
+  }
 
   return (
     <PortalShell
@@ -47,12 +68,7 @@ export default async function CompanyStrategyPage({ params }: { params: Promise<
           <p className="mt-2 text-white/70">Company-by-company attack plan built from your profile and market data.</p>
         </section>
 
-        {companyStrategies.length === 0 ? (
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white/70">
-            AI is generating your company strategies now. This section will populate automatically.
-          </div>
-        ) : (
-          <div className="space-y-6">
+        <div className="space-y-6">
             {(isPro ? companyStrategies : companyStrategies.slice(0, 3)).map((company: any, index: number) => (
               <div key={index} className="rounded-2xl border border-white/10 bg-[#0B1220] p-6">
                 <div className="flex items-center justify-between">
@@ -103,7 +119,6 @@ export default async function CompanyStrategyPage({ params }: { params: Promise<
               </div>
             )}
           </div>
-        )}
       </div>
     </PortalShell>
   );

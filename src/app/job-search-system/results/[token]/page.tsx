@@ -8,6 +8,7 @@ import { AIInsightsPanel } from "@/components/premium/ai-insights-panel";
 import { Week1Experience } from "@/components/premium/week1-experience";
 import { Week2Preview } from "@/components/premium/week2-preview";
 import { MarketIntelPanel } from "@/components/premium/market-intel-panel";
+import { AIAnalysisScreen } from "@/components/premium/ai-analysis-screen";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -46,13 +47,47 @@ export default async function ResultsPage({ params }: { params: Promise<{ token:
 
   const statusLabel = assessment.totalScore >= 70 ? "Fast Track" : assessment.totalScore >= 45 ? "Growth Ready" : "Foundation Phase";
   const careerAnalysis = assessment.careerAnalysis as any;
+  const aiInsights = assessment.aiInsights as any;
   const actionPlan = assessment.actionPlan as any;
   const companyMatches = (assessment.companyMatches as any)?.matches || [];
-  const aiPendingMessage = "AI is generating this section now. Check back in a minute.";
+  const aiPendingMessage = "";
   const isPro = assessment.hasPurchasedPro;
-  const aiReady = assessment.aiAnalysisStatus === "complete" && Boolean(assessment.week1Plan);
+  const hasEvidence =
+    Array.isArray(aiInsights?.primaryGapEvidence) && aiInsights.primaryGapEvidence.length > 0;
+  const hasCoachSummary = Boolean(careerAnalysis?.executiveSummary?.coachSummary);
+  const aiReady =
+    assessment.aiAnalysisStatus === "complete" &&
+    Boolean((assessment.week1Plan as any)?.week1?.tasks?.length) &&
+    Boolean(assessment.aiInsights) &&
+    Boolean(assessment.resumeAnalysis) &&
+    Boolean(assessment.linkedinAnalysis) &&
+    Boolean(assessment.careerAnalysis) &&
+    Boolean(assessment.marketIntelligence) &&
+    hasEvidence &&
+    hasCoachSummary;
   const week1Plan = (assessment.week1Plan as any)?.week1 || actionPlan?.week1 || null;
   const week2Preview = actionPlan?.week2Preview || null;
+
+  if (!aiReady) {
+    return (
+      <PortalShell
+        token={token}
+        active="dashboard"
+        userEmail={session?.email || null}
+        score={assessment.totalScore}
+        statusLabel={statusLabel}
+        aiReady={aiReady}
+      >
+        <div className="mx-auto w-full max-w-4xl">
+          <AIAnalysisScreen />
+        </div>
+      </PortalShell>
+    );
+  }
+
+  const executiveSummary = careerAnalysis?.executiveSummary || {};
+  const coachSummary = executiveSummary?.coachSummary || "";
+  const evidenceHighlights = executiveSummary?.evidenceHighlights || [];
 
   return (
     <PortalShell
@@ -68,8 +103,21 @@ export default async function ResultsPage({ params }: { params: Promise<{ token:
 
         <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
           <h2 className="text-xl font-semibold">Executive Summary</h2>
-          <p className="mt-2 text-white/70">{careerAnalysis?.executiveSummary?.currentState || aiPendingMessage}</p>
-          <p className="mt-2 text-white/70">{careerAnalysis?.executiveSummary?.targetState || aiPendingMessage}</p>
+          {coachSummary ? (
+            <p className="mt-3 text-sm text-white/80">{coachSummary}</p>
+          ) : (
+            <>
+              <p className="mt-2 text-white/70">{executiveSummary?.currentState || aiPendingMessage}</p>
+              <p className="mt-2 text-white/70">{executiveSummary?.targetState || aiPendingMessage}</p>
+            </>
+          )}
+          {evidenceHighlights.length ? (
+            <ul className="mt-4 space-y-1 text-xs text-white/60">
+              {evidenceHighlights.map((item: string, index: number) => (
+                <li key={`summary-evidence-${index}`}>• {item}</li>
+              ))}
+            </ul>
+          ) : null}
         </section>
 
         <ScoreBreakdown assessment={assessment} aiPending={aiPendingMessage} />
@@ -80,7 +128,6 @@ export default async function ResultsPage({ params }: { params: Promise<{ token:
           assessmentId={assessment.id}
           createdAt={assessment.createdAt.toISOString()}
           week1Plan={week1Plan}
-          aiPending={aiPendingMessage}
         />
 
         {isPro ? (

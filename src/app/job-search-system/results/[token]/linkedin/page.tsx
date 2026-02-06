@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AccountGate } from "@/components/account-gate";
 import { PortalShell } from "@/components/portal-shell";
 import { getAuthorizedAssessment } from "@/lib/results-auth";
+import { AIAnalysisScreen } from "@/components/premium/ai-analysis-screen";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,8 +31,28 @@ export default async function LinkedInPage({ params }: { params: Promise<{ token
   const linkedinAnalysis = assessment.linkedinAnalysis as any;
   const isPro = assessment.hasPurchasedPro;
   const statusLabel = assessment.totalScore >= 70 ? "Fast Track" : assessment.totalScore >= 45 ? "Growth Ready" : "Foundation Phase";
-  const aiReady = assessment.aiAnalysisStatus === "complete" && Boolean(assessment.week1Plan);
-  const aiPendingMessage = "AI is generating this section now. Check back in a minute.";
+  const aiReady =
+    assessment.aiAnalysisStatus === "complete" &&
+    Boolean((assessment.week1Plan as any)?.week1?.tasks?.length) &&
+    Boolean(assessment.linkedinAnalysis);
+  const aiPendingMessage = "";
+
+  if (!aiReady) {
+    return (
+      <PortalShell
+        token={token}
+        active="linkedin"
+        userEmail={session?.email || null}
+        score={assessment.totalScore}
+        statusLabel={statusLabel}
+        aiReady={aiReady}
+      >
+        <div className="mx-auto w-full max-w-4xl">
+          <AIAnalysisScreen />
+        </div>
+      </PortalShell>
+    );
+  }
 
   return (
     <PortalShell
@@ -48,12 +69,7 @@ export default async function LinkedInPage({ params }: { params: Promise<{ token
           <p className="mt-2 text-white/70">Headline, About, and skills optimized for recruiter search.</p>
         </section>
 
-        {!linkedinAnalysis ? (
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white/70">
-            AI is generating your LinkedIn insights now. This section will populate automatically.
-          </div>
-        ) : (
-          <>
+        <>
             <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
               <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
                 <h2 className="text-lg font-semibold">Headline</h2>
@@ -127,8 +143,7 @@ export default async function LinkedInPage({ params }: { params: Promise<{ token
                 )}
               </div>
             </section>
-          </>
-        )}
+        </>
       </div>
     </PortalShell>
   );

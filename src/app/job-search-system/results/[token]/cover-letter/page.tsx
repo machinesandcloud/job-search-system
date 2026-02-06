@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AccountGate } from "@/components/account-gate";
 import { PortalShell } from "@/components/portal-shell";
 import { getAuthorizedAssessment } from "@/lib/results-auth";
+import { AIAnalysisScreen } from "@/components/premium/ai-analysis-screen";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,7 +31,27 @@ export default async function CoverLetterPage({ params }: { params: Promise<{ to
   const coverLetterKit = assessment.coverLetterKit as any;
   const isPro = assessment.hasPurchasedPro;
   const statusLabel = assessment.totalScore >= 70 ? "Fast Track" : assessment.totalScore >= 45 ? "Growth Ready" : "Foundation Phase";
-  const aiReady = assessment.aiAnalysisStatus === "complete" && Boolean(assessment.week1Plan);
+  const aiReady =
+    assessment.aiAnalysisStatus === "complete" &&
+    Boolean((assessment.week1Plan as any)?.week1?.tasks?.length) &&
+    Boolean(assessment.coverLetterKit);
+
+  if (!aiReady) {
+    return (
+      <PortalShell
+        token={token}
+        active="cover-letter"
+        userEmail={session?.email || null}
+        score={assessment.totalScore}
+        statusLabel={statusLabel}
+        aiReady={aiReady}
+      >
+        <div className="mx-auto w-full max-w-4xl">
+          <AIAnalysisScreen />
+        </div>
+      </PortalShell>
+    );
+  }
 
   return (
     <PortalShell
@@ -47,12 +68,7 @@ export default async function CoverLetterPage({ params }: { params: Promise<{ to
           <p className="mt-2 text-white/70">Personalized hooks, key points, and templates for your target companies.</p>
         </section>
 
-        {!coverLetterKit ? (
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white/70">
-            AI is generating your cover letter kit now. This section will populate automatically.
-          </div>
-        ) : (
-          <div className="space-y-6">
+        <div className="space-y-6">
             <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
               <h2 className="text-lg font-semibold">Overview Strategy</h2>
               <p className="mt-3 text-white/80 whitespace-pre-wrap">{coverLetterKit.overview}</p>
@@ -97,7 +113,6 @@ export default async function CoverLetterPage({ params }: { params: Promise<{ to
               </div>
             )}
           </div>
-        )}
       </div>
     </PortalShell>
   );

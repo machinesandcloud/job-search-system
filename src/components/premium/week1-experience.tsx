@@ -9,12 +9,10 @@ export function Week1Experience({
   assessmentId,
   createdAt,
   week1Plan,
-  aiPending,
 }: {
   assessmentId: string;
   createdAt: string;
   week1Plan: WeekPlan | null;
-  aiPending: string;
 }) {
   const [completionMap, setCompletionMap] = useState<Record<string, boolean>>({});
   const tasks = week1Plan?.tasks || [];
@@ -59,11 +57,7 @@ export function Week1Experience({
   };
 
   if (!week1Plan) {
-    return (
-      <section className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-white/70">
-        {aiPending}
-      </section>
-    );
+    return null;
   }
 
   const dailyPlan = week1Plan?.dailyPlan?.[`day${currentDay}`];
@@ -76,9 +70,9 @@ export function Week1Experience({
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-white/50">Today</p>
             <h3 className="mt-2 text-2xl font-semibold text-white">
-              Day {currentDay}: {dailyPlan?.theme || "AI is generating today's focus"}
+              Day {currentDay}: {dailyPlan?.theme || "Today's focus"}
             </h3>
-            <p className="mt-2 text-sm text-white/70">{dailyPlan?.focus || aiPending}</p>
+            <p className="mt-2 text-sm text-white/70">{dailyPlan?.focus || ""}</p>
           </div>
           <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-white/60">
             {dailyPlan?.timeNeeded || "—"} • {todaysTasks.length} tasks
@@ -101,7 +95,7 @@ export function Week1Experience({
           ))
         ) : (
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-white/70">
-            {aiPending}
+            No tasks scheduled for today.
           </div>
         )}
       </div>

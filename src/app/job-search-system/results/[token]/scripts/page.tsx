@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AccountGate } from "@/components/account-gate";
 import { PortalShell } from "@/components/portal-shell";
 import { getAuthorizedAssessment } from "@/lib/results-auth";
+import { AIAnalysisScreen } from "@/components/premium/ai-analysis-screen";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,7 +31,27 @@ export default async function ScriptsPage({ params }: { params: Promise<{ token:
   const scripts = (assessment.personalizedScripts as any)?.scripts || [];
   const statusLabel = assessment.totalScore >= 70 ? "Fast Track" : assessment.totalScore >= 45 ? "Growth Ready" : "Foundation Phase";
   const isPro = assessment.hasPurchasedPro;
-  const aiReady = assessment.aiAnalysisStatus === "complete" && Boolean(assessment.week1Plan);
+  const aiReady =
+    assessment.aiAnalysisStatus === "complete" &&
+    Boolean((assessment.week1Plan as any)?.week1?.tasks?.length) &&
+    Boolean(assessment.personalizedScripts);
+
+  if (!aiReady) {
+    return (
+      <PortalShell
+        token={token}
+        active="scripts"
+        userEmail={session?.email || null}
+        score={assessment.totalScore}
+        statusLabel={statusLabel}
+        aiReady={aiReady}
+      >
+        <div className="mx-auto w-full max-w-4xl">
+          <AIAnalysisScreen />
+        </div>
+      </PortalShell>
+    );
+  }
 
   return (
     <PortalShell
@@ -47,12 +68,7 @@ export default async function ScriptsPage({ params }: { params: Promise<{ token:
           <p className="mt-2 text-white/70">Outreach, follow-up, and negotiation scripts written for your exact background.</p>
         </section>
 
-        {scripts.length === 0 ? (
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white/70">
-            AI is generating your scripts now. This section will populate automatically.
-          </div>
-        ) : (
-          <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-6 lg:grid-cols-2">
             {(isPro ? scripts : scripts.slice(0, 4)).map((script: any, index: number) => (
               <div key={script.id || index} className="rounded-2xl border border-white/10 bg-[#0B1220] p-6">
                 <div className="flex items-center justify-between">
@@ -66,7 +82,6 @@ export default async function ScriptsPage({ params }: { params: Promise<{ token:
               </div>
             ))}
           </div>
-        )}
 
         {!isPro && scripts.length > 0 && (
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-white/70">

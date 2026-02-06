@@ -15,18 +15,23 @@ export function AIInsightsPanel({
       tone: "border-red-500/30 bg-red-500/10",
       content: insights?.primaryGap,
       detail: insights?.primaryGapExplanation,
+      evidence: insights?.primaryGapEvidence,
     },
     {
       title: "Quick Win",
       tone: "border-emerald-500/30 bg-emerald-500/10",
       content: insights?.quickWin,
       detail: insights?.quickWinReasoning,
+      evidence: insights?.quickWinEvidence,
     },
     {
       title: "Hidden Strength",
       tone: "border-cyan-500/30 bg-cyan-500/10",
       content: insights?.strengthsToLeverage?.[0]?.strength,
       detail: insights?.strengthsToLeverage?.[0]?.howToUse,
+      evidence: insights?.strengthsToLeverage?.[0]?.evidence
+        ? [insights.strengthsToLeverage[0].evidence]
+        : null,
     },
     {
       title: "Market Reality",
@@ -36,6 +41,9 @@ export function AIInsightsPanel({
         marketIntel?.roleKeywords?.length
           ? `Based on ${marketIntel.roleKeywords.length}+ live job-skill signals.`
           : "",
+      evidence: marketIntel?.roleKeywords?.slice(0, 2)?.map((item: any) =>
+        `${item.keyword}: ${item.frequency}% of postings`
+      ),
     },
   ];
 
@@ -54,6 +62,13 @@ export function AIInsightsPanel({
             <p className="mt-3 text-sm text-white/90">{item.content || aiPending}</p>
             {item.detail ? (
               <p className="mt-2 text-xs text-white/60">{item.detail}</p>
+            ) : null}
+            {item.evidence && item.evidence.length ? (
+              <ul className="mt-3 space-y-1 text-xs text-white/60">
+                {item.evidence.map((line: string, index: number) => (
+                  <li key={`${item.title}-evidence-${index}`}>• {line}</li>
+                ))}
+              </ul>
             ) : null}
           </div>
         ))}

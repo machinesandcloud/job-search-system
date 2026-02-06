@@ -20,7 +20,7 @@ async function buildTeaser(answers: any, score: number, subscores: any, aiInsigh
   return {
     score,
     subscores,
-    coachRead: aiInsights?.primaryGapExplanation || "AI is generating your personalized insights now.",
+    coachRead: aiInsights?.primaryGapExplanation || "Your personalized coach read will appear in the dashboard.",
     insights,
     previewActions,
   };
@@ -64,11 +64,13 @@ export async function POST(request: Request) {
   const existingAssessment = assessmentId
     ? await prisma.assessment.findUnique({
         where: { id: assessmentId },
-        select: {
-          resumeParsedData: true,
-          linkedinParsedData: true,
-        },
-      })
+      select: {
+        resumeParsedData: true,
+        linkedinParsedData: true,
+        resumeRawText: true,
+        linkedinRawText: true,
+      },
+    })
     : null;
 
   const analysis = await runFullAnalysis(
@@ -76,11 +78,20 @@ export async function POST(request: Request) {
     {
       resumeParsedData: existingAssessment?.resumeParsedData || null,
       linkedinParsedData: existingAssessment?.linkedinParsedData || null,
+      resumeRawText: existingAssessment?.resumeRawText || null,
+      linkedinRawText: existingAssessment?.linkedinRawText || null,
     },
     { includePro: false }
   );
 
-  const aiReady = !analysis.aiFailed && analysis.aiInsights && analysis.week1Plan;
+  const aiReady =
+    !analysis.aiFailed &&
+    analysis.aiInsights &&
+    analysis.resumeAnalysis &&
+    analysis.linkedinAnalysis &&
+    analysis.careerAnalysis &&
+    analysis.marketIntelligence &&
+    analysis.week1Plan;
   const recommendedRoute =
     (route === "Fast Track" ? "FastTrack" : route === "Guided" ? "Guided" : "DIY") as Prisma.AssessmentCreateInput["recommendedRoute"];
 

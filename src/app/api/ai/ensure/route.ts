@@ -30,7 +30,26 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Assessment not found" }, { status: 404 });
     }
 
-    if (assessment.aiAnalysisStatus === AiAnalysisStatus.complete && assessment.week1Plan) {
+    const existingInsights = assessment.aiInsights as any;
+    const existingSummary = (assessment.careerAnalysis as any)?.executiveSummary;
+    const hasEvidence =
+      Array.isArray(existingInsights?.primaryGapEvidence) &&
+      existingInsights.primaryGapEvidence.length > 0;
+    const hasCoachSummary = Boolean(existingSummary?.coachSummary);
+    const hasWeek1 = Boolean((assessment.week1Plan as any)?.week1?.tasks?.length);
+    const hasResumeAnalysis = Boolean(assessment.resumeAnalysis);
+    const hasLinkedinAnalysis = Boolean(assessment.linkedinAnalysis);
+    const hasMarketIntel = Boolean(assessment.marketIntelligence);
+
+    if (
+      assessment.aiAnalysisStatus === AiAnalysisStatus.complete &&
+      hasWeek1 &&
+      hasResumeAnalysis &&
+      hasLinkedinAnalysis &&
+      hasMarketIntel &&
+      hasCoachSummary &&
+      hasEvidence
+    ) {
       return NextResponse.json({ status: "ready" });
     }
 
@@ -74,11 +93,20 @@ export async function POST(request: Request) {
       {
         resumeParsedData: assessment.resumeParsedData,
         linkedinParsedData: assessment.linkedinParsedData,
+        resumeRawText: assessment.resumeRawText,
+        linkedinRawText: assessment.linkedinRawText,
       },
       { includePro: assessment.hasPurchasedPro }
     );
 
-    const aiReady = !analysis.aiFailed && analysis.aiInsights && analysis.week1Plan;
+    const aiReady =
+      !analysis.aiFailed &&
+      analysis.aiInsights &&
+      analysis.resumeAnalysis &&
+      analysis.linkedinAnalysis &&
+      analysis.careerAnalysis &&
+      analysis.marketIntelligence &&
+      analysis.week1Plan;
     await prisma.assessment.update({
       where: { id: assessment.id },
       data: {

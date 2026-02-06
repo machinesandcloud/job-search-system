@@ -5,11 +5,32 @@ const getFirstName = (fullName?: string | null) => {
 
 export function CareerJourneyHero({ assessment }: { assessment: any }) {
   const resume = assessment.resumeParsedData as any;
+  const linkedinManual = assessment.linkedinManualData as any;
+  const linkedinParsed = assessment.linkedinParsedData as any;
+  const headline =
+    linkedinManual?.headline ||
+    linkedinParsed?.headline ||
+    linkedinParsed?.profileBasics?.headline ||
+    "";
+  const headlineRole = typeof headline === "string" && headline.includes("|")
+    ? headline.split("|")[0].trim()
+    : headline;
   const fullName =
     resume?.contact?.fullName || resume?.personalInfo?.fullName || resume?.fullName || "";
   const firstName = getFirstName(fullName);
-  const currentRole = resume?.currentRole?.title || resume?.currentRole || "your current role";
-  const currentCompany = resume?.currentRole?.company || resume?.currentCompany || "your company";
+  const currentRole =
+    resume?.currentRole?.title ||
+    resume?.currentRole ||
+    linkedinManual?.currentRole ||
+    linkedinParsed?.experience?.[0]?.title ||
+    headlineRole ||
+    "your current role";
+  const currentCompany =
+    resume?.currentRole?.company ||
+    resume?.currentCompany ||
+    linkedinManual?.currentCompany ||
+    linkedinParsed?.experience?.[0]?.company ||
+    "your company";
   const targetRole = assessment.targetRoles?.[0]?.name || "your target role";
   const targetCompany = assessment.targetCompanies?.[0]?.name || "your target company";
   const readinessScore = assessment.totalScore ?? 0;

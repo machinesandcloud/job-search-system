@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AccountGate } from "@/components/account-gate";
 import { PortalShell } from "@/components/portal-shell";
 import { getAuthorizedAssessment } from "@/lib/results-auth";
+import { AIAnalysisScreen } from "@/components/premium/ai-analysis-screen";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,12 +31,32 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
   const interviewPrep = assessment.interviewPrep as any;
   const statusLabel = assessment.totalScore >= 70 ? "Fast Track" : assessment.totalScore >= 45 ? "Growth Ready" : "Foundation Phase";
   const isPro = assessment.hasPurchasedPro;
-  const aiReady = assessment.aiAnalysisStatus === "complete" && Boolean(assessment.week1Plan);
+  const aiReady =
+    assessment.aiAnalysisStatus === "complete" &&
+    Boolean((assessment.week1Plan as any)?.week1?.tasks?.length) &&
+    Boolean(assessment.interviewPrep);
 
   const starStories = interviewPrep?.starStories || [];
   const technicalQuestions = interviewPrep?.technicalQuestions || [];
   const behavioralQuestions = interviewPrep?.behavioralQuestions || [];
   const questionsToAsk = interviewPrep?.questionsToAsk || [];
+
+  if (!aiReady) {
+    return (
+      <PortalShell
+        token={token}
+        active="interview-prep"
+        userEmail={session?.email || null}
+        score={assessment.totalScore}
+        statusLabel={statusLabel}
+        aiReady={aiReady}
+      >
+        <div className="mx-auto w-full max-w-4xl">
+          <AIAnalysisScreen />
+        </div>
+      </PortalShell>
+    );
+  }
 
   return (
     <PortalShell
@@ -52,12 +73,7 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
           <p className="mt-2 text-white/70">Scripted STAR stories, technical prompts, and practice plans tailored to you.</p>
         </section>
 
-        {!interviewPrep ? (
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white/70">
-            AI is generating your interview prep now. This section will populate automatically.
-          </div>
-        ) : (
-          <div className="grid gap-6">
+        <div className="grid gap-6">
             <div className="grid gap-6 lg:grid-cols-2">
               <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
                 <h2 className="text-lg font-semibold">STAR Stories</h2>
@@ -133,7 +149,6 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
               </div>
             )}
           </div>
-        )}
       </div>
     </PortalShell>
   );

@@ -6,6 +6,8 @@ import { gatherMarketIntel } from "@/lib/market-intel";
 type ParsedData = {
   resumeParsedData?: any;
   linkedinParsedData?: any;
+  resumeRawText?: string | null;
+  linkedinRawText?: string | null;
 };
 
 function safeStringify(value: unknown, maxLength = 6000) {
@@ -18,6 +20,12 @@ function safeStringify(value: unknown, maxLength = 6000) {
   }
 }
 
+function safeText(value: unknown, maxLength = 6000) {
+  if (typeof value !== "string") return "";
+  if (value.length <= maxLength) return value;
+  return `${value.slice(0, maxLength)}...`;
+}
+
 export async function runFullAnalysis(
   answers: AssessmentAnswers,
   parsed?: ParsedData,
@@ -26,6 +34,8 @@ export async function runFullAnalysis(
   const scoreResult = computeScore(answers);
   const resumeParsed = parsed?.resumeParsedData || null;
   const linkedinParsed = parsed?.linkedinParsedData || null;
+  const resumeRawText = parsed?.resumeRawText || null;
+  const linkedinRawText = parsed?.linkedinRawText || null;
   const linkedinManual = (answers as any).linkedinManualData || null;
   const jobDescription = (answers as any).jobDescription || null;
   const targetRole = answers.targetRoles?.[0]?.name;
@@ -61,7 +71,7 @@ export async function runFullAnalysis(
   }
 
   const systemPrompt =
-    "You are a senior tech career coach. Return ONLY valid JSON. Every recommendation must reference the user's real data (resume, LinkedIn, assessment).";
+    "You are a senior tech career coach with a clear niche in tech hiring. Return ONLY valid JSON. Your tone is direct, supportive, and coaching-focused. Every recommendation must reference specific evidence from the user's real data (resume, LinkedIn, assessment, market intel). Use explicit evidence strings that quote or paraphrase exact items from their resume/LinkedIn.";
 
   const includePro = Boolean(options?.includePro);
 
@@ -74,8 +84,14 @@ ${safeStringify(answers, 4000)}
 RESUME:
 ${safeStringify(resumeParsed, 6000)}
 
+RESUME RAW TEXT (for evidence quotes):
+${safeText(resumeRawText, 6000)}
+
 LINKEDIN:
 ${safeStringify(linkedinParsed, 4000)}
+
+LINKEDIN RAW TEXT (for evidence quotes):
+${safeText(linkedinRawText, 4000)}
 
 LINKEDIN MANUAL INPUT (if provided):
 ${safeStringify(linkedinManual, 3000)}
@@ -89,6 +105,22 @@ ${safeStringify(scoreResult, 1500)}
 MARKET INTEL (current):
 ${safeStringify(marketIntel, 6000)}
 
+EVIDENCE RULES (MANDATORY):
+- Quote or paraphrase exact resume bullets, LinkedIn headline/about lines, skills, and company targets.
+- Every insight must include at least 2 evidence strings that cite real items from the resume/LinkedIn/assessment.
+- Use marketIntel to add 1-2 current job-signal facts (keyword frequency, salary band, company news).
+- If a job description is provided, include at least one evidence string referencing it.
+
+RESUME ANALYSIS RULES:
+- For each resume issue, set currentText to a real snippet from RESUME RAW TEXT when available.
+- Missing keywords must come from marketIntel.roleKeywords where gap = true.
+- Before/after must use the user's actual text, not generic placeholders.
+
+LINKEDIN ANALYSIS RULES:
+- Headline.current must match their LinkedIn headline (manual or parsed).
+- About.current must reference their actual About text (manual or parsed).
+- Experience optimizations must reference real roles/titles from LinkedIn or resume.
+
 WEEK 1 REQUIREMENTS:
 - Provide 15-20 ultra-detailed tasks for Week 1 (resume, LinkedIn, company research, positioning, networking)
 - Each task must be actionable, specific to this user, and include clear steps + success criteria
@@ -96,15 +128,23 @@ WEEK 1 REQUIREMENTS:
 - Week 2 must be a preview only for non-pro users (use week2Preview fields and set week2 to null)
 - If includePro = ${includePro}, then include Week 2 full tasks (same structure as Week 1). If false, leave week2 as null.
 
+EXECUTIVE SUMMARY REQUIREMENTS:
+- Write like a real career coach: direct, supportive, and specific.
+- CoachSummary should be 3-5 sentences synthesizing resume + LinkedIn + assessment + market intel.
+- EvidenceHighlights must list concrete items (resume bullet, LinkedIn headline/about snippet, skills, company targets, market signals).
+
 Return JSON with this exact structure:
 {
   "aiInsights": {
     "primaryGap": "",
     "primaryGapExplanation": "",
+    "primaryGapEvidence": [""],
     "secondaryGap": "",
     "secondaryGapExplanation": "",
+    "secondaryGapEvidence": [""],
     "quickWin": "",
     "quickWinReasoning": "",
+    "quickWinEvidence": [""],
     "strengthsToLeverage": [
       { "strength": "", "evidence": "", "howToUse": "" }
     ],
@@ -503,11 +543,13 @@ Return JSON with this exact structure:
   },
   "careerAnalysis": {
     "executiveSummary": {
+      "coachSummary": "",
       "currentState": "",
       "targetState": "",
       "primaryChallenge": "",
       "estimatedTimeline": "",
-      "confidenceLevel": ""
+      "confidenceLevel": "",
+      "evidenceHighlights": [""]
     },
     "deepDive": {
       "strengths": [
@@ -575,6 +617,7 @@ Return JSON with this exact structure:
 }
 
 function buildPersonalizationData(answers: AssessmentAnswers, resumeParsed: any, scoreResult: any) {
+  const linkedinManual = (answers as any).linkedinManualData || null;
   const fullName =
     resumeParsed?.contact?.fullName ||
     resumeParsed?.personalInfo?.fullName ||
@@ -583,8 +626,16 @@ function buildPersonalizationData(answers: AssessmentAnswers, resumeParsed: any,
   const firstName = fullName ? fullName.split(" ")[0] : "";
   return {
     firstName,
-    currentTitle: resumeParsed?.currentRole?.title || resumeParsed?.currentRole || "",
-    currentCompany: resumeParsed?.currentRole?.company || resumeParsed?.currentCompany || "",
+    currentTitle:
+      resumeParsed?.currentRole?.title ||
+      resumeParsed?.currentRole ||
+      linkedinManual?.currentRole ||
+      "",
+    currentCompany:
+      resumeParsed?.currentRole?.company ||
+      resumeParsed?.currentCompany ||
+      linkedinManual?.currentCompany ||
+      "",
     yearsExperience: resumeParsed?.totalYearsExperience || resumeParsed?.yearsExperience || null,
     topSkill: resumeParsed?.topSkills?.[0] || "",
     targetRole: answers.targetRoles?.[0]?.name || "",
