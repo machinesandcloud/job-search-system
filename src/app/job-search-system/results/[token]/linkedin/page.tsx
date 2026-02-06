@@ -31,6 +31,7 @@ export default async function LinkedInPage({ params }: { params: Promise<{ token
   const isPro = assessment.hasPurchasedPro;
   const statusLabel = assessment.totalScore >= 70 ? "Fast Track" : assessment.totalScore >= 45 ? "Growth Ready" : "Foundation Phase";
   const aiReady = assessment.aiAnalysisStatus === "complete" && Boolean(assessment.week1Plan);
+  const aiPendingMessage = "AI is generating this section now. Check back in a minute.";
 
   return (
     <PortalShell
