@@ -46,7 +46,7 @@ export const assessmentAnswersSchema = z.object({
   jobDescription: z.string().min(50, "Job description is required").max(8000),
   networkStrength: z.enum(["strong", "moderate", "weak"]),
   outreachComfort: z.enum(["comfortable", "neutral", "uncomfortable"]),
-  targetCompanies: z.array(targetCompanySchema).min(5).max(30),
+  targetCompanies: z.array(targetCompanySchema).min(1).max(1),
   biggestBlocker: z.enum(["responses", "interviews", "offers", "direction", "time"]),
   additionalContext: z.string().max(2000).optional().nullable(),
 });

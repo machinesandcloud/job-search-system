@@ -13,6 +13,7 @@ import { MobileNav } from "@/components/mobile-nav";
 import { RotatingWords } from "@/components/rotating-words";
 import { LogoCarousel } from "@/components/logo-carousel";
 import { CompanyLogo } from "@/components/company-logo";
+import { BookCallCTA } from "@/components/book-call-cta";
 
 export const metadata: Metadata = {
   title: "Tech Career Coaching System | Land Senior Roles Faster | Steve Ngoumnai",
@@ -78,6 +79,7 @@ export default function JobSearchLanding() {
       <AnchorScroll />
       <LandingAnalytics />
       <StickyCTA />
+      <BookCallCTA />
 
       <div className="border-b border-slate-800/60 bg-slate-950/40 text-xs text-slate-300">
         <div className="cmd-shell flex items-center gap-6 overflow-hidden py-2">

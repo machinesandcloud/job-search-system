@@ -150,9 +150,6 @@ export function AccountGate({ assessmentId, onSuccess, showCoachBox = true }: Ac
               <li>
                 <span className="text-[#06B6D4]">-</span> Unlock scripts, templates, and updates
               </li>
-              <li>
-                <span className="text-[#06B6D4]">-</span> Upgrade to Pro Pack in one click
-              </li>
             </ul>
           </div>
         </div>

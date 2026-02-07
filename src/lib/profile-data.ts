@@ -219,7 +219,7 @@ export function buildAchievements(input: AssessmentInput) {
   return [
     { id: "resume-uploaded", label: "Resume Uploaded", unlocked: Boolean(input.resumeFileUrl) },
     { id: "linkedin-added", label: "LinkedIn Added", unlocked: Boolean(input.linkedinFileUrl) },
-    { id: "targets", label: "5 Targets Selected", unlocked: (input.targetCompanies?.length || 0) >= 5 },
+    { id: "targets", label: "Target Company Selected", unlocked: (input.targetCompanies?.length || 0) >= 1 },
     { id: "portfolio", label: "Portfolio Ready", unlocked: Boolean(input.portfolioStatus) },
     { id: "interview-ready", label: "Interview Ready", unlocked: Boolean(input.interviewReady) },
   ];

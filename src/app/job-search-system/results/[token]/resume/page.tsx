@@ -31,7 +31,6 @@ export default async function ResumePage({ params }: { params: Promise<{ token: 
   }
 
   const resumeAnalysis = assessment.resumeAnalysis as any;
-  const isPro = assessment.hasPurchasedPro;
   const statusLabel = assessment.totalScore >= 70 ? "Fast Track" : assessment.totalScore >= 45 ? "Growth Ready" : "Foundation Phase";
   const aiReady = assessment.aiAnalysisStatus === "complete";
 
@@ -86,19 +85,14 @@ export default async function ResumePage({ params }: { params: Promise<{ token: 
                 <h2 className="text-lg font-semibold">Priority Fixes</h2>
                 <ResumeChecklist
                   assessmentId={assessment.id}
-                  issues={isPro ? resumeAnalysis.issues || [] : (resumeAnalysis.issues || []).slice(0, 3)}
+                  issues={resumeAnalysis.issues || []}
                 />
-                  {!isPro && (
-                    <p className="text-xs text-white/50">
-                      Upgrade to Pro Pack to unlock the full list of resume fixes and custom rewrites.
-                    </p>
-                  )}
               </div>
 
               <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
                 <h2 className="text-lg font-semibold">Quick Wins</h2>
                 <div className="mt-4 space-y-3">
-                  {(isPro ? resumeAnalysis.quickWins : (resumeAnalysis.quickWins || []).slice(0, 2)).map((win: any, index: number) => (
+                  {(resumeAnalysis.quickWins || []).map((win: any, index: number) => (
                     <div key={index} className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4">
                       <p className="text-sm font-semibold text-white">{win.fix}</p>
                       <p className="mt-1 text-xs text-white/60">Impact: {win.impact}</p>
@@ -117,7 +111,7 @@ export default async function ResumePage({ params }: { params: Promise<{ token: 
               <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
                 <h2 className="text-lg font-semibold">Missing Keywords</h2>
                 <div className="mt-4 space-y-3">
-                  {(isPro ? resumeAnalysis.missingKeywords : (resumeAnalysis.missingKeywords || []).slice(0, 4)).map((item: any, index: number) => (
+                  {(resumeAnalysis.missingKeywords || []).map((item: any, index: number) => (
                     <div key={index} className="rounded-xl border border-white/10 bg-[#0B1220] p-4">
                       <p className="text-sm font-semibold">{item.keyword}</p>
                       <p className="mt-1 text-xs text-white/60">Add to: {item.whereToAdd}</p>
@@ -130,7 +124,7 @@ export default async function ResumePage({ params }: { params: Promise<{ token: 
               <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
                 <h2 className="text-lg font-semibold">Weak Achievements</h2>
                 <div className="mt-4 space-y-3">
-                  {(isPro ? resumeAnalysis.weakAchievements : (resumeAnalysis.weakAchievements || []).slice(0, 2)).map((item: any, index: number) => (
+                  {(resumeAnalysis.weakAchievements || []).map((item: any, index: number) => (
                     <div key={index} className="rounded-xl border border-white/10 bg-[#0B1220] p-4">
                       <p className="text-xs uppercase tracking-[0.2em] text-white/50">Current</p>
                       <p className="mt-1 text-sm text-white/70">{item.currentText}</p>

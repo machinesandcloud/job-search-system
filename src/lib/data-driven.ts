@@ -31,6 +31,10 @@ type ATSAnalysis = {
   matchedKeywords: ATSKeyword[];
   missingKeywords: ATSKeyword[];
   matchPercentage: number;
+  softSkillSignals?: {
+    matched: ATSKeyword[];
+    missing: ATSKeyword[];
+  };
 };
 
 type SkillsAnalysis = {
@@ -100,6 +104,19 @@ const COMMON_SKILLS = [
 ];
 
 const EDUCATION_KEYWORDS = ["bachelor", "bs", "ba", "master", "ms", "phd", "b.sc", "m.sc"];
+const SOFT_SKILLS = [
+  "communication",
+  "leadership",
+  "collaboration",
+  "stakeholder",
+  "teamwork",
+  "problem solving",
+  "problem-solving",
+  "ownership",
+  "mentorship",
+  "strategy",
+  "execution",
+];
 
 function normalizeSkill(value: string) {
   return value.trim().toLowerCase();
@@ -233,7 +250,8 @@ async function extractJobDescriptionKeywordsGroq(jobDescription: string): Promis
 
 Rules:
 - Return at most 25 keywords.
-- Include technical skills, tools, certifications, domain terms, and key soft skills.
+- Include technical skills, tools, certifications, domain terms, and soft skills.
+- Soft skills should be categorized as "soft" (communication, leadership, etc.).
 - Provide frequency (approximate count of mentions).
 - Importance levels: critical, important, nice-to-have.
 
@@ -274,7 +292,8 @@ async function extractResumeKeywordsGroq(resumeText: string): Promise<ATSKeyword
   const prompt = `Extract keywords from this resume.
 
 Rules:
-- Include technical skills, tools, certifications, methodologies, and key soft skills.
+- Include technical skills, tools, certifications, methodologies, and soft skills.
+- Categorize soft skills as "soft".
 - Return at most 40 keywords.
 
 Resume:
@@ -329,13 +348,20 @@ function calculateATSFromKeywords(jobKeywords: ATSKeyword[], resumeKeywords: ATS
       matchedKeywords: [],
       missingKeywords: [],
       matchPercentage: 0,
+      softSkillSignals: { matched: [], missing: [] },
     };
   }
 
+  const isSoft = (keyword: ATSKeyword) => keyword.category === "soft";
+  const technicalKeywords = jobKeywords.filter((keyword) => !isSoft(keyword));
+  const softKeywords = jobKeywords.filter((keyword) => isSoft(keyword));
+
   const matchedKeywords: ATSKeyword[] = [];
   const missingKeywords: ATSKeyword[] = [];
+  const matchedSoft: ATSKeyword[] = [];
+  const missingSoft: ATSKeyword[] = [];
 
-  jobKeywords.forEach((job) => {
+  technicalKeywords.forEach((job) => {
     const jobKey = normalizeKeyword(job.keyword);
     const match = resumeKeywords.find((res) => {
       const resKey = normalizeKeyword(res.keyword);
@@ -348,9 +374,22 @@ function calculateATSFromKeywords(jobKeywords: ATSKeyword[], resumeKeywords: ATS
     }
   });
 
-  const criticalTotal = jobKeywords.filter((k) => k.importance === "critical").length;
-  const importantTotal = jobKeywords.filter((k) => k.importance === "important").length;
-  const niceTotal = jobKeywords.filter((k) => k.importance === "nice-to-have").length;
+  softKeywords.forEach((job) => {
+    const jobKey = normalizeKeyword(job.keyword);
+    const match = resumeKeywords.find((res) => {
+      const resKey = normalizeKeyword(res.keyword);
+      return resKey === jobKey || resKey.includes(jobKey) || jobKey.includes(resKey);
+    });
+    if (match) {
+      matchedSoft.push(job);
+    } else {
+      missingSoft.push(job);
+    }
+  });
+
+  const criticalTotal = technicalKeywords.filter((k) => k.importance === "critical").length;
+  const importantTotal = technicalKeywords.filter((k) => k.importance === "important").length;
+  const niceTotal = technicalKeywords.filter((k) => k.importance === "nice-to-have").length;
 
   const criticalMatches = matchedKeywords.filter((k) => k.importance === "critical").length;
   const importantMatches = matchedKeywords.filter((k) => k.importance === "important").length;
@@ -372,16 +411,20 @@ function calculateATSFromKeywords(jobKeywords: ATSKeyword[], resumeKeywords: ATS
     : 0;
 
   const score = Math.round(weightedScore * 100);
-  const matchPercentage = jobKeywords.length
-    ? Math.round((matchedKeywords.length / jobKeywords.length) * 100)
+  const matchPercentage = technicalKeywords.length
+    ? Math.round((matchedKeywords.length / technicalKeywords.length) * 100)
     : 0;
 
   return {
     score,
-    totalKeywords: jobKeywords.length,
+    totalKeywords: technicalKeywords.length,
     matchedKeywords,
     missingKeywords,
     matchPercentage,
+    softSkillSignals: {
+      matched: matchedSoft,
+      missing: missingSoft,
+    },
   };
 }
 
@@ -572,7 +615,9 @@ export async function analyzeSkillsMatch(input: {
       foundIn: "market",
     })) || [];
 
-  const requiredSkills: SkillItem[] = [...jdSkills, ...marketSkills].filter((s) => s.name);
+  const requiredSkills: SkillItem[] = [...jdSkills, ...marketSkills]
+    .filter((s) => s.name)
+    .filter((s) => !SOFT_SKILLS.some((soft) => s.name.toLowerCase().includes(soft)));
 
   const matchingSkills: SkillItem[] = [];
   const missingCriticalSkills: SkillItem[] = [];
@@ -858,7 +903,11 @@ export function generateDataDrivenInsights(
 
 export function buildResumeAnalysis(assessment: any, skills: SkillsAnalysis, ats?: ATSAnalysis) {
   const overallScore = calculateResumeScore(assessment);
-  const atsMissing = ats?.missingKeywords?.filter((item) => item.importance === "critical") || [];
+  const atsMissing =
+    ats?.missingKeywords?.filter(
+      (item) => item.importance === "critical" && item.category !== "soft"
+    ) || [];
+  const isSoft = (value: string) => SOFT_SKILLS.some((skill) => value.toLowerCase().includes(skill));
   const missingKeywords = (atsMissing.length
     ? atsMissing.map((skill) => ({
         keyword: skill.keyword,
@@ -868,7 +917,9 @@ export function buildResumeAnalysis(assessment: any, skills: SkillsAnalysis, ats
         howToAdd: `Add "${skill.keyword}" to Skills and one experience bullet with context.`,
         reason: skill.context || "Required by the job description.",
       }))
-    : skills.missingCriticalSkills.map((skill) => ({
+    : skills.missingCriticalSkills
+        .filter((skill) => !isSoft(skill.name))
+        .map((skill) => ({
         keyword: skill.name,
         importance: "high",
         currentlyPresent: false,
@@ -1131,21 +1182,24 @@ function buildScriptsLibrary(assessment: any, skills: SkillsAnalysis) {
   };
 }
 
-function buildCompanyStrategies(assessment: any, skills: SkillsAnalysis) {
-  const companies = (assessment.targetCompanies || []).slice(0, 3);
+function buildCompanyStrategies(assessment: any, skills: SkillsAnalysis, marketIntel?: any) {
+  const companies = (assessment.targetCompanies || []).slice(0, 1);
   const keySkills = skills.matchingSkills.slice(0, 3).map((s) => s.name).join(", ");
+  const companyProfile = marketIntel?.companyProfile || null;
   return {
     companyStrategies: companies.map((company: any) => ({
       company: company.name || "Target Company",
       overallStrategy: {
-        approach: "Targeted outreach",
-        reasoning: "Align keywords + recent company initiatives to show fit.",
+        approach: "Company-specific outreach",
+        reasoning: "Align your proof with the company’s stack and current priorities.",
+        stackSignals: companyProfile?.stack || [],
+        focusSignal: companyProfile?.focus || "",
       },
       applicationTactics: {
         coverLetterPoints: [
           `Tie ${keySkills} to the company’s tech stack.`,
           "Use a quantified achievement in the first paragraph.",
-          "Reference a recent product or engineering initiative.",
+          "Reference a recent engineering or product initiative.",
         ],
       },
       networkingPath: {
@@ -1156,9 +1210,128 @@ function buildCompanyStrategies(assessment: any, skills: SkillsAnalysis) {
       },
       talkingPoints: [
         { point: "Reliability and velocity improvements with measurable impact." },
-        { point: "Alignment with team’s stack and roadmap." },
+        { point: "Alignment with the company’s stack and roadmap." },
       ],
     })),
+  };
+}
+
+function buildKeywordTaskTemplate(keyword: ATSKeyword, targetRole: string) {
+  const key = keyword.keyword.toLowerCase();
+  const templates = [
+    {
+      when: /aws|gcp|azure|cloud/.test(key),
+      before: "Cloud platform experience not explicitly stated.",
+      after: `Resume highlights ${keyword.keyword} ownership in a measurable win.`,
+      example: `Led ${keyword.keyword} platform improvements that cut cloud costs by 18% and reduced incident volume by 25%.`,
+    },
+    {
+      when: /kubernetes|docker|container|helm/.test(key),
+      before: "Container orchestration not surfaced in experience bullets.",
+      after: `${keyword.keyword} appears in Skills and a deployment-impact bullet.`,
+      example: `Migrated services to ${keyword.keyword}, reducing deploy time by 60% and improving rollback speed.`,
+    },
+    {
+      when: /terraform|cloudformation|iac|ansible/.test(key),
+      before: "Infrastructure-as-code experience missing from bullets.",
+      after: `${keyword.keyword} appears with automation impact.`,
+      example: `Automated provisioning with ${keyword.keyword}, cutting environment setup from days to hours.`,
+    },
+    {
+      when: /react|frontend|ui|typescript|javascript/.test(key),
+      before: "Frontend stack not anchored to outcomes.",
+      after: `${keyword.keyword} listed with a user-impact result.`,
+      example: `Built ${keyword.keyword} workflows that increased user activation by 22%.`,
+    },
+    {
+      when: /python|java|golang|go|node|api/.test(key),
+      before: "Core language/tooling not linked to product impact.",
+      after: `${keyword.keyword} appears in a delivery-focused bullet.`,
+      example: `Shipped ${keyword.keyword} services that improved request latency by 35%.`,
+    },
+    {
+      when: /sql|postgres|mysql|database|mongodb/.test(key),
+      before: "Data platform impact not explicit.",
+      after: `${keyword.keyword} appears in a performance or scale win.`,
+      example: `Optimized ${keyword.keyword} queries to cut report time from 12s to 2s.`,
+    },
+    {
+      when: /security|iam|compliance|risk/.test(key),
+      before: "Security ownership not connected to outcomes.",
+      after: `${keyword.keyword} appears with a risk reduction win.`,
+      example: `Implemented ${keyword.keyword} controls that reduced critical vulnerabilities by 40%.`,
+    },
+  ];
+
+  const match = templates.find((template) => template.when);
+  if (match) return match;
+
+  return {
+    before: "Required keyword missing from resume.",
+    after: `${keyword.keyword} appears in Skills + one impact bullet.`,
+    example: `Applied ${keyword.keyword} to deliver measurable reliability gains in ${targetRole} work.`,
+  };
+}
+
+function buildFiveWeekPlan(assessment: any) {
+  const targetRole = formatTargetRole(
+    assessment.targetRoles?.[0]?.name || "your target role",
+    assessment.level || "mid"
+  );
+  return {
+    title: "Your 5-Week Career Plan",
+    weeks: [
+      {
+        week: 1,
+        title: "Targeting & Job Search Strategy",
+        bullets: [
+          `Define your ideal ${targetRole} role and compensation target`,
+          "Build your opportunity pipeline and job search system",
+          "Set outreach cadence and accountability checkpoints",
+          "Assignments given",
+        ],
+      },
+      {
+        week: 2,
+        title: "Resume Strategy That Wins Interviews",
+        bullets: [
+          "Tailor resumes quickly for each role",
+          "Build a clean first draft with guidance",
+          "Implement ATS formatting and keyword coverage",
+          "Assignments given",
+        ],
+      },
+      {
+        week: 3,
+        title: "LinkedIn That Gets You Noticed",
+        bullets: [
+          "Rebuild your profile to attract recruiters",
+          "Optimize headline, summary, and skills",
+          "Get DM scripts and connection templates",
+          "Assignments given",
+        ],
+      },
+      {
+        week: 4,
+        title: "Interview & Salary Strategy",
+        bullets: [
+          "Practice your story and elevator pitch",
+          "Tackle common + tough questions",
+          "Negotiate without fear",
+          "Assignments given",
+        ],
+      },
+      {
+        week: 5,
+        title: "Final Review + Mock Interview",
+        bullets: [
+          "Full mock interview session with feedback",
+          "Resume and LinkedIn check-in",
+          "Review action plan + next steps",
+          "Assignments given",
+        ],
+      },
+    ],
   };
 }
 
@@ -1167,9 +1340,11 @@ export function buildWeek1Plan(assessment: any, skills: SkillsAnalysis, ats?: AT
     assessment.targetRoles?.[0]?.name || "your target role",
     assessment.level || "mid"
   );
-  const targetCompany = assessment.targetCompanies?.[0]?.name || "target companies";
+  const targetCompany = assessment.targetCompanies?.[0]?.name || "target company";
   const criticalMissing =
-    ats?.missingKeywords?.filter((item) => item.importance === "critical") ||
+    ats?.missingKeywords?.filter(
+      (item) => item.importance === "critical" && item.category !== "soft"
+    ) ||
     skills.missingCriticalSkills.map((skill) => ({
       keyword: skill.name,
       context: skill.whereInJobDescription,
@@ -1182,6 +1357,7 @@ export function buildWeek1Plan(assessment: any, skills: SkillsAnalysis, ats?: AT
   let taskId = 1;
 
   criticalMissing.slice(0, 3).forEach((keyword) => {
+    const template = buildKeywordTaskTemplate(keyword, targetRole);
     tasks.push({
       id: `week1-task-${taskId++}`,
       day: 1,
@@ -1197,8 +1373,8 @@ export function buildWeek1Plan(assessment: any, skills: SkillsAnalysis, ats?: AT
         consequence: "ATS filters may reject your application.",
       },
       beforeAfter: {
-        before: "Skills section missing required keyword.",
-        after: `Skills section includes ${keyword.keyword} + one experience bullet.`,
+        before: template.before,
+        after: template.after,
       },
       exactSteps: [
         "Open your resume",
@@ -1207,7 +1383,7 @@ export function buildWeek1Plan(assessment: any, skills: SkillsAnalysis, ats?: AT
         "Add the keyword to LinkedIn Skills",
       ],
       template: {
-        example: `Implemented ${keyword.keyword} to improve deployment reliability.`,
+        example: template.example,
       },
       validation: {
         checkpoints: [
@@ -1465,6 +1641,7 @@ export async function buildDataDrivenBundle(answers: any, parsed?: ParsedData, o
   );
   const linkedinAnalysis = buildLinkedinAnalysis({ ...answers, linkedinParsedData: parsed?.linkedinParsedData }, skillsAnalysis);
   const week1Plan = buildWeek1Plan(answers, skillsAnalysis, atsAnalysis);
+  const careerPlan = buildFiveWeekPlan(answers);
   const salaryData = await getSalaryIntelligence({
     targetRole: answers.targetRoles?.[0]?.name || "target role",
     level: answers.level || "mid",
@@ -1488,8 +1665,9 @@ export async function buildDataDrivenBundle(answers: any, parsed?: ParsedData, o
     personalizedScripts: buildScriptsLibrary(answers, skillsAnalysis),
     coverLetterKit: buildCoverLetterKit(answers, skillsAnalysis),
     interviewPrep: buildInterviewPrep(answers, skillsAnalysis),
-    companyStrategies: buildCompanyStrategies(answers, skillsAnalysis),
+    companyStrategies: buildCompanyStrategies(answers, skillsAnalysis, marketIntel),
     careerAnalysis,
+    careerPlan,
     aiModel: "data-driven",
     aiFailed: false,
     aiFailureReason: null,

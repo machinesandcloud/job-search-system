@@ -23,6 +23,10 @@ export function ATSKeywordPanel({
 
   const matched = (atsAnalysis.matchedKeywords || []) as ATSKeyword[];
   const missing = (atsAnalysis.missingKeywords || []) as ATSKeyword[];
+  const softSignals = (atsAnalysis.softSkillSignals || { matched: [], missing: [] }) as {
+    matched: ATSKeyword[];
+    missing: ATSKeyword[];
+  };
   const criticalMissing = missing.filter((item) => item.importance === "critical");
   const importantMissing = missing.filter((item) => item.importance === "important");
 
@@ -124,6 +128,25 @@ export function ATSKeywordPanel({
           </div>
         </div>
       </div>
+
+      {(softSignals.matched.length || softSignals.missing.length) && (
+        <div className="mt-6 rounded-2xl border border-white/10 bg-[#0B1220] p-5">
+          <p className="text-xs uppercase tracking-[0.2em] text-white/50">Soft-skill signals</p>
+          <p className="mt-2 text-xs text-white/60">
+            Soft skills don’t need to be explicit keywords. We look for evidence in accomplishments.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {(softSignals.matched.length ? softSignals.matched : softSignals.missing).slice(0, 10).map((item, index) => (
+              <span
+                key={`soft-${item.keyword}-${index}`}
+                className="rounded-full border border-slate-500/30 bg-slate-500/10 px-3 py-1 text-xs text-slate-200"
+              >
+                {item.keyword}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
     </section>
   );
 }

@@ -9,6 +9,7 @@ import { defaultAnswers } from "@/lib/defaults";
 import { companySeed } from "@/lib/company-data";
 import { toSlug } from "@/lib/utils";
 import { CompanyLogo } from "@/components/company-logo";
+import { BookCallCTA } from "@/components/book-call-cta";
 
 const steps = [
   "Target Roles",
@@ -418,12 +419,10 @@ function JobSearchWizard() {
       });
       return;
     }
-    if (answers.targetCompanies.length >= 30) return;
     const domain = deriveDomain(company);
     const fallbackLogo = domain ? `https://logo.clearbit.com/${domain}` : null;
     updateAnswers({
       targetCompanies: [
-        ...answers.targetCompanies,
         { id: company.id, name: company.name, logoUrl: company.logoUrl || fallbackLogo, reason: null },
       ],
     });
@@ -432,10 +431,8 @@ function JobSearchWizard() {
   const addCustomCompany = () => {
     const name = customCompany.trim();
     if (!name) return;
-    if (answers.targetCompanies.length >= 30) return;
     updateAnswers({
       targetCompanies: [
-        ...answers.targetCompanies,
         {
           id: `custom-${Date.now()}`,
           name,
@@ -589,11 +586,8 @@ function JobSearchWizard() {
     if (step === 7 && !answers.outreachComfort) {
       return "Select your outreach comfort level to continue.";
     }
-    if (step === 7 && answers.targetCompanies.length < 5) {
-      return "Select at least 5 companies to continue.";
-    }
-    if (step === 7 && answers.targetCompanies.length > 30) {
-      return "Select no more than 30 companies.";
+    if (step === 7 && answers.targetCompanies.length < 1) {
+      return "Select one company to continue.";
     }
     if (step === 8 && !answers.biggestBlocker) {
       return "Select your biggest blocker to continue.";
@@ -620,6 +614,7 @@ function JobSearchWizard() {
 
   return (
     <main className="relative min-h-screen bg-[#0A0E27] px-6 pb-20 pt-32 text-white">
+      <BookCallCTA />
       <div className="fixed left-0 right-0 top-0 z-[100] border-b border-white/10 bg-[#0A0E27]/95 backdrop-blur-xl">
         <div className="mx-auto flex w-full max-w-[800px] flex-col gap-3 px-6 py-4">
           <div className="flex items-center justify-between text-sm font-semibold">
@@ -1232,7 +1227,7 @@ function JobSearchWizard() {
               </div>
 
               <div>
-                <label className="text-sm font-semibold">Select 5-30 target companies</label>
+                <label className="text-sm font-semibold">Select the company you’re applying to</label>
                 <p className="text-xs text-white/50">Choose companies you'd be excited to join</p>
                 <input
                   className="mt-3 h-[52px] w-full rounded-xl border border-white/10 bg-white/5 px-4 text-sm"
@@ -1314,11 +1309,11 @@ function JobSearchWizard() {
                     );
                   })}
                 </div>
-                <p className={`mt-3 text-xs ${answers.targetCompanies.length >= 5 ? "text-[#06B6D4]" : "text-red-400"}`}>
-                  {answers.targetCompanies.length}/30 companies selected
+                <p className={`mt-3 text-xs ${answers.targetCompanies.length >= 1 ? "text-[#06B6D4]" : "text-red-400"}`}>
+                  {answers.targetCompanies.length}/1 company selected
                 </p>
-                {validationTouched && answers.targetCompanies.length < 5 && (
-                  <p className="mt-1 text-xs text-red-300">Select at least 5 companies to continue.</p>
+                {validationTouched && answers.targetCompanies.length < 1 && (
+                  <p className="mt-1 text-xs text-red-300">Select one company to continue.</p>
                 )}
               </div>
             </div>

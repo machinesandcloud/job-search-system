@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { PageViewLogger } from "@/components/page-view-logger";
+import { BookCallCTA } from "@/components/book-call-cta";
 
 export default function RapidReviewPage() {
   return (
     <main className="lp-bg">
       <PageViewLogger type="rapid_review_viewed" />
+      <BookCallCTA />
       <section className="cmd-shell pb-16 pt-16">
         <div className="cmd-panel rounded-3xl p-8">
           <p className="text-xs uppercase tracking-wide text-slate-400">Rapid Review</p>

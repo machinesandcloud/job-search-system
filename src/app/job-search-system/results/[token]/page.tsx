@@ -7,9 +7,9 @@ import { ScoreBreakdown } from "@/components/premium/score-breakdown";
 import { ATSKeywordPanel } from "@/components/premium/ats-keyword-panel";
 import { AIInsightsPanel } from "@/components/premium/ai-insights-panel";
 import { Week1Experience } from "@/components/premium/week1-experience";
-import { Week2Preview } from "@/components/premium/week2-preview";
 import { MarketIntelPanel } from "@/components/premium/market-intel-panel";
 import { AIAnalysisScreen } from "@/components/premium/ai-analysis-screen";
+import { FiveWeekPlan } from "@/components/premium/five-week-plan";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -52,10 +52,9 @@ export default async function ResultsPage({ params }: { params: Promise<{ token:
   const actionPlan = assessment.actionPlan as any;
   const companyMatches = (assessment.companyMatches as any)?.matches || [];
   const aiPendingMessage = "";
-  const isPro = assessment.hasPurchasedPro;
   const aiReady = assessment.aiAnalysisStatus === "complete";
   const week1Plan = (assessment.week1Plan as any)?.week1 || actionPlan?.week1 || null;
-  const week2Preview = actionPlan?.week2Preview || null;
+  const careerPlan = assessment.careerPlan as any;
 
   if (!aiReady) {
     return (
@@ -124,44 +123,13 @@ export default async function ResultsPage({ params }: { params: Promise<{ token:
           week1Plan={week1Plan}
         />
 
-        {isPro ? (
-          <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Week 2 Execution</h3>
-              <span className="text-xs uppercase tracking-[0.2em] text-white/50">
-                {actionPlan?.week2?.title || "Execution Week"}
-              </span>
-            </div>
-            <p className="mt-2 text-sm text-white/70">{actionPlan?.week2?.focusArea || aiPendingMessage}</p>
-            <div className="mt-4 space-y-3">
-              {(actionPlan?.week2?.tasks || []).length ? (
-                actionPlan.week2.tasks.map((task: any) => (
-                  <div key={task.id} className="rounded-xl border border-white/10 bg-[#0B1220] p-4">
-                    <p className="text-sm font-semibold">{task.title || task.task}</p>
-                    <p className="mt-1 text-xs text-white/60">{task.timeEstimate} • {task.priority}</p>
-                    <p className="mt-2 text-sm text-white/80">{task.why || task.context?.whyNow}</p>
-                  </div>
-                ))
-              ) : (
-                <div className="rounded-xl border border-white/10 bg-[#0B1220] p-4 text-sm text-white/70">
-                  {aiPendingMessage}
-                </div>
-              )}
-            </div>
-          </section>
-        ) : (
-          <Week2Preview
-            preview={week2Preview}
-            aiPending={aiPendingMessage}
-            targetCompanies={(assessment.targetCompanies as any)?.map((c: any) => c.name).filter(Boolean).slice(0, 3)}
-          />
-        )}
+        <FiveWeekPlan plan={careerPlan} />
 
         <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
           <h2 className="text-lg font-semibold">Top Company Matches</h2>
           <div className="mt-4 grid gap-4 lg:grid-cols-3">
-            {(isPro ? companyMatches : companyMatches.slice(0, 3)).length ? (
-              (isPro ? companyMatches : companyMatches.slice(0, 3)).map((match: any, index: number) => (
+            {companyMatches.length ? (
+              companyMatches.map((match: any, index: number) => (
                 <div key={index} className="rounded-xl border border-white/10 bg-[#0B1220] p-4">
                   <p className="text-sm font-semibold">{match.company}</p>
                   <p className="mt-2 text-xs text-white/60">{match.matchScore}% match</p>

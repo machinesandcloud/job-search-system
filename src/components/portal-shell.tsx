@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AiResultsRefresh } from "@/components/ai-results-refresh";
+import { BookCallCTA } from "@/components/book-call-cta";
 
 const NAV_ITEMS = [
   { id: "dashboard", label: "Dashboard", icon: "✦", path: "" },
@@ -70,6 +71,7 @@ export function PortalShell({
         {enableRefresh ? <AiResultsRefresh token={token} isReady={Boolean(aiReady)} /> : null}
         {children}
       </main>
+      <BookCallCTA />
     </div>
   );
 }

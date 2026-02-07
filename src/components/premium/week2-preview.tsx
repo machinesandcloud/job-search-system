@@ -28,8 +28,7 @@ export function Week2Preview({
           )}
         </div>
         <div className="mt-4 rounded-xl border border-[#06B6D4]/30 bg-[#06B6D4]/10 p-4 text-sm text-white/80">
-          {preview?.upgradeMessage ||
-            `Upgrade to unlock the full 14-day plan, company strategy for ${targetCompanies.join(", ")}, and interview prep.`}
+          {preview?.upgradeMessage || "Your full execution plan is unlocked below."}
         </div>
       </div>
     </section>

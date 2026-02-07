@@ -31,7 +31,6 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
 
   const interviewPrep = assessment.interviewPrep as any;
   const statusLabel = assessment.totalScore >= 70 ? "Fast Track" : assessment.totalScore >= 45 ? "Growth Ready" : "Foundation Phase";
-  const isPro = assessment.hasPurchasedPro;
   const aiReady = assessment.aiAnalysisStatus === "complete";
 
   const starStories = interviewPrep?.starStories || [];
@@ -78,7 +77,7 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
               <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
                 <h2 className="text-lg font-semibold">STAR Stories</h2>
                 <div className="mt-4 space-y-4">
-                  {(isPro ? starStories : starStories.slice(0, 2)).map((story: any, index: number) => (
+                  {starStories.map((story: any, index: number) => (
                     <div key={index} className="rounded-xl border border-white/10 bg-[#0B1220] p-4">
                       <p className="text-xs uppercase tracking-[0.2em] text-white/50">{story.category}</p>
                       <p className="mt-2 text-sm font-semibold text-white">{story.prompt}</p>
@@ -96,7 +95,7 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
               <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
                 <h2 className="text-lg font-semibold">Technical Focus</h2>
                 <div className="mt-4 space-y-4">
-                  {(isPro ? technicalQuestions : technicalQuestions.slice(0, 3)).map((question: any, index: number) => (
+                  {technicalQuestions.map((question: any, index: number) => (
                     <div key={index} className="rounded-xl border border-white/10 bg-[#0B1220] p-4">
                       <p className="text-sm font-semibold text-white">{question.question}</p>
                       <p className="mt-2 text-xs text-white/60">{question.topicArea}</p>
@@ -116,7 +115,7 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
               <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
                 <h2 className="text-lg font-semibold">Behavioral Questions</h2>
                 <div className="mt-4 space-y-4">
-                  {(isPro ? behavioralQuestions : behavioralQuestions.slice(0, 3)).map((question: any, index: number) => (
+                  {behavioralQuestions.map((question: any, index: number) => (
                     <div key={index} className="rounded-xl border border-white/10 bg-[#0B1220] p-4">
                       <p className="text-sm font-semibold text-white">{question.question}</p>
                       <p className="mt-2 text-xs text-white/60">Why they ask</p>
@@ -133,7 +132,7 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
               <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
                 <h2 className="text-lg font-semibold">Questions to Ask</h2>
                 <div className="mt-4 space-y-3">
-                  {(isPro ? questionsToAsk : questionsToAsk.slice(0, 4)).map((item: any, index: number) => (
+                  {questionsToAsk.map((item: any, index: number) => (
                     <div key={index} className="rounded-xl border border-white/10 bg-[#0B1220] p-4">
                       <p className="text-sm font-semibold text-white">{item.question}</p>
                       <p className="mt-1 text-xs text-white/60">{item.category}</p>
@@ -163,11 +162,6 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
               </div>
             )}
 
-            {!isPro && (
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-white/70">
-                Upgrade to Pro Pack to unlock the full interview prep library, expanded STAR stories, and full practice schedule.
-              </div>
-            )}
           </div>
       </div>
     </PortalShell>

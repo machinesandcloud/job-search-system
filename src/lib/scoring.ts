@@ -33,7 +33,7 @@ export function computeSubscores(answers: AssessmentAnswers): Subscores {
   const networkPoints = [
     answers.networkStrength === "strong" ? 10 : answers.networkStrength === "moderate" ? 6 : 2,
     answers.outreachComfort === "comfortable" ? 10 : answers.outreachComfort === "neutral" ? 6 : 2,
-    answers.targetCompanies.length >= 10 ? 5 : 0,
+    answers.targetCompanies.length >= 1 ? 5 : 0,
   ].reduce((sum, val) => sum + val, 0);
 
   const hoursPoints = answers.hoursPerWeek === 3 ? 4 : answers.hoursPerWeek === 5 ? 7 : answers.hoursPerWeek === 8 ? 10 : 12;

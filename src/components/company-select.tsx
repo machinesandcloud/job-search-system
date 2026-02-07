@@ -51,8 +51,7 @@ export function CompanySelect({
 
   const addCompany = (company: CompanyOption) => {
     if (value.find((item) => item.name === company.name)) return;
-    if (value.length >= 30) return;
-    onChange([...value, company]);
+    onChange([company]);
     setQuery("");
     setResults([]);
   };
@@ -70,7 +69,7 @@ export function CompanySelect({
         value={query}
         onChange={(event) => setQuery(event.target.value)}
       />
-      <p className="text-xs text-slate-400">Search across 1000+ companies or add your own.</p>
+      <p className="text-xs text-slate-400">Search and select the one company you’re applying to.</p>
       {loading && <p className="text-xs text-slate-400">Searching...</p>}
       {results.length > 0 && (
         <div className="grid gap-2 rounded-xl border border-slate-700 bg-slate-950/60 p-2">
@@ -122,7 +121,7 @@ export function CompanySelect({
           ))}
         </div>
       )}
-      <p className="text-xs text-slate-400">Select 5-30 companies for the strongest plan.</p>
+      <p className="text-xs text-slate-400">Only one company can be selected.</p>
       {logoDevKey && (
         <a href="https://logo.dev" className="text-[11px] text-slate-500 underline">
           Logos provided by Logo.dev

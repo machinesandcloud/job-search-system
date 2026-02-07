@@ -30,7 +30,6 @@ export default async function CompanyStrategyPage({ params }: { params: Promise<
   }
 
   const statusLabel = assessment.totalScore >= 70 ? "Fast Track" : assessment.totalScore >= 45 ? "Growth Ready" : "Foundation Phase";
-  const isPro = assessment.hasPurchasedPro;
   const companyStrategies = (assessment.companyStrategies as any)?.companyStrategies || [];
   const aiReady = assessment.aiAnalysisStatus === "complete";
 
@@ -69,7 +68,7 @@ export default async function CompanyStrategyPage({ params }: { params: Promise<
         </section>
 
         <div className="space-y-6">
-            {(isPro ? companyStrategies : companyStrategies.slice(0, 3)).map((company: any, index: number) => (
+            {companyStrategies.map((company: any, index: number) => (
               <div key={index} className="rounded-2xl border border-white/10 bg-[#0B1220] p-6">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-semibold">{company.company}</h2>
@@ -78,6 +77,14 @@ export default async function CompanyStrategyPage({ params }: { params: Promise<
                   </span>
                 </div>
                 <p className="mt-3 text-sm text-white/70">{company.overallStrategy?.reasoning}</p>
+                {(company.overallStrategy?.stackSignals || []).length > 0 && (
+                  <p className="mt-3 text-xs text-white/60">
+                    Stack signals: {(company.overallStrategy.stackSignals || []).join(", ")}
+                  </p>
+                )}
+                {company.overallStrategy?.focusSignal && (
+                  <p className="mt-2 text-xs text-white/60">Focus: {company.overallStrategy.focusSignal}</p>
+                )}
 
                 <div className="mt-6 grid gap-4 lg:grid-cols-2">
                   <div className="rounded-xl border border-white/10 bg-white/5 p-4">
@@ -115,12 +122,7 @@ export default async function CompanyStrategyPage({ params }: { params: Promise<
 
             {companyStrategies.length === 0 && (
               <div className="rounded-2xl border border-white/10 bg-[#0B1220] p-6 text-sm text-white/70">
-                Add 3 target companies to unlock company-specific strategy and networking paths.
-              </div>
-            )}
-            {!isPro && (
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-white/70">
-                Upgrade to Pro Pack to unlock full company strategies, deep-dive interview prep, and compensation guidance.
+                Add your target company to unlock company-specific strategy and networking paths.
               </div>
             )}
           </div>

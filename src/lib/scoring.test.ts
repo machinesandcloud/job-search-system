@@ -21,13 +21,7 @@ const baseAnswers: AssessmentAnswers = {
   linkedinFileName: null,
   networkStrength: "moderate",
   outreachComfort: "neutral",
-  targetCompanies: [
-    { id: null, name: "Google", logoUrl: null, reason: null },
-    { id: null, name: "Amazon", logoUrl: null, reason: null },
-    { id: null, name: "Microsoft", logoUrl: null, reason: null },
-    { id: null, name: "Apple", logoUrl: null, reason: null },
-    { id: null, name: "Netflix", logoUrl: null, reason: null },
-  ],
+  targetCompanies: [{ id: null, name: "Google", logoUrl: null, reason: null }],
   biggestBlocker: "responses",
   additionalContext: null,
 };

@@ -30,7 +30,6 @@ export default async function CoverLetterPage({ params }: { params: Promise<{ to
   }
 
   const coverLetterKit = assessment.coverLetterKit as any;
-  const isPro = assessment.hasPurchasedPro;
   const statusLabel = assessment.totalScore >= 70 ? "Fast Track" : assessment.totalScore >= 45 ? "Growth Ready" : "Foundation Phase";
   const aiReady = assessment.aiAnalysisStatus === "complete";
 
@@ -64,7 +63,7 @@ export default async function CoverLetterPage({ params }: { params: Promise<{ to
       <div className="mx-auto w-full max-w-6xl space-y-8">
         <section className="rounded-[28px] border border-white/10 bg-gradient-to-br from-[#0B1220] via-[#131B2E] to-[#0B1220] p-8">
           <h1 className="text-3xl font-semibold">Cover Letter Kit</h1>
-          <p className="mt-2 text-white/70">Personalized hooks, key points, and templates for your target companies.</p>
+          <p className="mt-2 text-white/70">Personalized hooks, key points, and templates for your target company.</p>
           <ProfileUpdateActions assessmentId={assessment.id} token={token} />
         </section>
 
@@ -77,7 +76,7 @@ export default async function CoverLetterPage({ params }: { params: Promise<{ to
             </section>
 
             <section className="grid gap-6 lg:grid-cols-2">
-              {(isPro ? coverLetterKit.companySpecific : (coverLetterKit.companySpecific || []).slice(0, 1)).map((item: any, index: number) => (
+              {(coverLetterKit.companySpecific || []).map((item: any, index: number) => (
                 <div key={index} className="rounded-2xl border border-white/10 bg-white/5 p-6">
                   <div className="flex items-center justify-between">
                     <h3 className="text-lg font-semibold">{item.company}</h3>
@@ -113,11 +112,6 @@ export default async function CoverLetterPage({ params }: { params: Promise<{ to
                   ))}
                 </ul>
               </section>
-            )}
-            {!isPro && (
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-white/70">
-                Upgrade to Pro Pack to unlock cover letter templates for all target companies.
-              </div>
             )}
           </div>
       </div>

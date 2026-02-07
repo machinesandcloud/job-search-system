@@ -5,6 +5,22 @@ const getFirstName = (fullName?: string | null) => {
   return fullName.split(" ")[0];
 };
 
+const sanitizeCompany = (value?: string | null) => {
+  if (!value) return null;
+  const cleaned = value.replace(/^@/, "").trim();
+  if (!cleaned) return null;
+  if (cleaned.includes("@")) return null;
+  return cleaned;
+};
+
+const pickFirstCompany = (...candidates: Array<string | null | undefined>) => {
+  for (const candidate of candidates) {
+    const cleaned = sanitizeCompany(candidate);
+    if (cleaned) return cleaned;
+  }
+  return null;
+};
+
 export function CareerJourneyHero({ assessment }: { assessment: any }) {
   const resume = assessment.resumeParsedData as any;
   const linkedinManual = assessment.linkedinManualData as any;
@@ -30,15 +46,22 @@ export function CareerJourneyHero({ assessment }: { assessment: any }) {
     linkedinParsed?.experience?.[0]?.title ||
     headlineRole ||
     "your current role";
+  const manualCompany = sanitizeCompany(linkedinManual?.currentCompany);
+  const parsedCompany = pickFirstCompany(
+    resume?.currentRole?.company,
+    resume?.currentCompany,
+    resume?.experience?.[0]?.company,
+    resume?.workHistory?.[0]?.company,
+    resume?.employmentHistory?.[0]?.company,
+    linkedinParsed?.experience?.[0]?.company
+  );
+  const targetCompanyRaw = sanitizeCompany(assessment.targetCompanies?.[0]?.name || "");
   const currentCompany =
-    resume?.currentRole?.company ||
-    resume?.currentCompany ||
-    resume?.experience?.[0]?.company ||
-    resume?.workHistory?.[0]?.company ||
-    resume?.employmentHistory?.[0]?.company ||
-    linkedinManual?.currentCompany ||
-    linkedinParsed?.experience?.[0]?.company ||
-    "your company";
+    manualCompany ||
+    (parsedCompany && targetCompanyRaw && parsedCompany.toLowerCase() === targetCompanyRaw.toLowerCase()
+      ? null
+      : parsedCompany) ||
+    null;
   const targetRole = formatTargetRole(
     assessment.targetRoles?.[0]?.name || "your target role",
     assessment.level || "mid"
@@ -69,7 +92,11 @@ export function CareerJourneyHero({ assessment }: { assessment: any }) {
           <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
             <p className="text-xs uppercase tracking-[0.2em] text-white/50">Where you are</p>
             <p className="mt-3 text-lg font-semibold text-white">{currentRole}</p>
-            <p className="text-sm text-[#06B6D4]">@ {currentCompany}</p>
+            {currentCompany ? (
+              <p className="text-sm text-[#06B6D4]">@ {currentCompany}</p>
+            ) : (
+              <p className="text-sm text-white/50">Company not provided</p>
+            )}
           </div>
           <div className="rounded-2xl border border-[#8B5CF6]/30 bg-gradient-to-br from-[#1B1B3A] to-[#0B1220] p-5 text-center">
             <p className="text-xs uppercase tracking-[0.2em] text-[#8B5CF6]/80">The journey</p>

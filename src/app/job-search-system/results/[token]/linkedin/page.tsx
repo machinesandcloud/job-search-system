@@ -30,7 +30,6 @@ export default async function LinkedInPage({ params }: { params: Promise<{ token
   }
 
   const linkedinAnalysis = assessment.linkedinAnalysis as any;
-  const isPro = assessment.hasPurchasedPro;
   const statusLabel = assessment.totalScore >= 70 ? "Fast Track" : assessment.totalScore >= 45 ? "Growth Ready" : "Foundation Phase";
   const aiReady = assessment.aiAnalysisStatus === "complete";
   const aiPendingMessage = "";
@@ -91,7 +90,7 @@ export default async function LinkedInPage({ params }: { params: Promise<{ token
               <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
                 <h2 className="text-lg font-semibold">Skills Alignment</h2>
                 <div className="mt-4 space-y-3">
-                  {(linkedinAnalysis.skills?.toAdd || []).slice(0, isPro ? 6 : 3).map((skill: any, index: number) => (
+                  {(linkedinAnalysis.skills?.toAdd || []).map((skill: any, index: number) => (
                     <div key={index} className="rounded-xl border border-white/10 bg-[#0B1220] p-4">
                       <p className="text-sm font-semibold">{skill.skill}</p>
                       <p className="mt-1 text-xs text-white/60">{skill.reason}</p>
@@ -101,11 +100,6 @@ export default async function LinkedInPage({ params }: { params: Promise<{ token
                     <div className="rounded-xl border border-white/10 bg-[#0B1220] p-4 text-sm text-white/70">
                       Add 5–10 high-signal technical skills that match your target role and job description.
                     </div>
-                  )}
-                  {!isPro && (
-                    <p className="text-xs text-white/50">
-                      Upgrade to Pro Pack to unlock the full LinkedIn skills map and endorsement strategy.
-                    </p>
                   )}
                 </div>
               </div>
@@ -120,7 +114,7 @@ export default async function LinkedInPage({ params }: { params: Promise<{ token
               <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
                 <h2 className="text-lg font-semibold">Experience Enhancements</h2>
                 <div className="mt-4 space-y-3">
-                  {(linkedinAnalysis.experience?.roleOptimizations || []).slice(0, isPro ? 4 : 2).map((role: any, index: number) => (
+                  {(linkedinAnalysis.experience?.roleOptimizations || []).map((role: any, index: number) => (
                     <div key={index} className="rounded-xl border border-white/10 bg-[#0B1220] p-4">
                       <p className="text-sm font-semibold">{role.role}</p>
                       <p className="mt-2 text-xs text-white/60">Optimized Description</p>
@@ -138,7 +132,7 @@ export default async function LinkedInPage({ params }: { params: Promise<{ token
               <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
                 <h2 className="text-lg font-semibold">Action Checklist</h2>
                 <div className="mt-3 space-y-3">
-                  {(isPro ? linkedinAnalysis.actionChecklist : (linkedinAnalysis.actionChecklist || []).slice(0, 3)).map((item: any, index: number) => (
+                  {(linkedinAnalysis.actionChecklist || []).map((item: any, index: number) => (
                     <div key={index} className="rounded-xl border border-white/10 bg-[#0B1220] p-4">
                       <p className="text-sm font-semibold">{item.task}</p>
                       <p className="mt-1 text-xs text-white/60">{item.timeEstimate} • Priority {item.priority}</p>
@@ -151,11 +145,6 @@ export default async function LinkedInPage({ params }: { params: Promise<{ token
                     </div>
                   )}
                 </div>
-                {!isPro && (
-                  <p className="mt-4 text-sm text-white/60">
-                    Upgrade to Pro Pack to unlock the full LinkedIn action checklist and advanced optimization.
-                  </p>
-                )}
               </div>
             </section>
         </>

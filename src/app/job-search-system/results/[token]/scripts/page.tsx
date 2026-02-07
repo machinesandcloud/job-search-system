@@ -31,7 +31,6 @@ export default async function ScriptsPage({ params }: { params: Promise<{ token:
 
   const scripts = (assessment.personalizedScripts as any)?.scripts || [];
   const statusLabel = assessment.totalScore >= 70 ? "Fast Track" : assessment.totalScore >= 45 ? "Growth Ready" : "Foundation Phase";
-  const isPro = assessment.hasPurchasedPro;
   const aiReady = assessment.aiAnalysisStatus === "complete";
 
   if (!aiReady) {
@@ -69,7 +68,7 @@ export default async function ScriptsPage({ params }: { params: Promise<{ token:
         </section>
 
         <div className="grid gap-6 lg:grid-cols-2">
-            {(isPro ? scripts : scripts.slice(0, 4)).map((script: any, index: number) => (
+            {scripts.map((script: any, index: number) => (
               <div key={script.id || index} className="rounded-2xl border border-white/10 bg-[#0B1220] p-6">
                 <div className="flex items-center justify-between">
                   <h2 className="text-lg font-semibold">{script.title}</h2>
@@ -88,11 +87,6 @@ export default async function ScriptsPage({ params }: { params: Promise<{ token:
             )}
           </div>
 
-        {!isPro && scripts.length > 0 && (
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-white/70">
-            Upgrade to Pro Pack to unlock the full script library and advanced follow-up sequences.
-          </div>
-        )}
       </div>
     </PortalShell>
   );

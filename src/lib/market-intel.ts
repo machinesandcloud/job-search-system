@@ -38,12 +38,15 @@ async function braveSearch(query: string, count = 5) {
 export async function gatherMarketIntel(targetRole: string, companies: string[]) {
   const roleQuery = `${targetRole} job requirements 2024`;
   const salaryQuery = `${targetRole} salary 2024 total compensation`;
-  const newsQuery = `${companies.slice(0, 3).join(" ")} hiring news 2024`;
+  const primaryCompany = companies[0] || "";
+  const newsQuery = primaryCompany ? `${primaryCompany} hiring news 2024` : "tech hiring news 2024";
+  const companyQuery = primaryCompany ? `${primaryCompany} engineering tech stack` : "";
 
-  const [roleResults, salaryResults, newsResults] = await Promise.all([
+  const [roleResults, salaryResults, newsResults, companyResults] = await Promise.all([
     braveSearch(roleQuery, 6),
     braveSearch(salaryQuery, 6),
     braveSearch(newsQuery, 6),
+    companyQuery ? braveSearch(companyQuery, 6) : Promise.resolve([]),
   ]);
 
   const analysis = await groqChatJSON(
@@ -59,11 +62,15 @@ ${JSON.stringify(salaryResults)}
 NEWS RESULTS:
 ${JSON.stringify(newsResults)}
 
+COMPANY RESULTS:
+${JSON.stringify(companyResults)}
+
 Return JSON with:
 {
   "roleKeywords": [{ "keyword": "", "frequency": "", "notes": "" }],
   "salarySignals": { "range": "", "sources": [""], "notes": "" },
-  "companyTrends": [{ "company": "", "signal": "", "source": "" }]
+  "companyTrends": [{ "company": "", "signal": "", "source": "" }],
+  "companyProfile": { "stack": [""], "focus": "", "notes": "" }
 }`
   );
 
@@ -75,10 +82,12 @@ Return JSON with:
     roleKeywords: analysis.roleKeywords || [],
     salarySignals: analysis.salarySignals || null,
     companyTrends: analysis.companyTrends || [],
+    companyProfile: analysis.companyProfile || null,
     sources: {
       roleResults,
       salaryResults,
       newsResults,
+      companyResults,
     },
   };
 }

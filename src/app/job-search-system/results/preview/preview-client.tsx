@@ -6,6 +6,7 @@ import Link from "next/link";
 import { AccountGate, CoachActionPanel } from "@/components/account-gate";
 import { AIAnalysisScreen } from "@/components/premium/ai-analysis-screen";
 import { formatTargetRole } from "@/lib/helpers/role-formatter";
+import { BookCallCTA } from "@/components/book-call-cta";
 
 type PreviewData = {
   assessmentId: string;
@@ -157,6 +158,7 @@ export default function PreviewClient() {
   if (!token) {
     return (
       <main className="min-h-screen bg-[#0A0E27] px-6 py-24 text-white">
+        <BookCallCTA />
         <div className="mx-auto max-w-3xl text-center">
           <h1 className="text-3xl font-semibold">Preview unavailable</h1>
           <p className="mt-3 text-white/70">Return to the assessment to generate a preview.</p>
@@ -170,6 +172,7 @@ export default function PreviewClient() {
 
   return (
     <main className="min-h-screen bg-[#0A0E27] px-6 pb-24 pt-12 text-white">
+      <BookCallCTA />
       <div className="mx-auto w-full max-w-6xl">
         <Link href="/job-search-system" className="text-sm text-white/50">
           Back to landing
@@ -267,7 +270,7 @@ export default function PreviewClient() {
                       onClick={() => router.push(`/job-search-system/results/${token}`)}
                       className="mt-4 text-sm font-semibold text-[#06B6D4]"
                     >
-                      View full 14-day plan →
+                      View full 5-week plan →
                     </button>
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-[#0F172A]/60 p-6">

@@ -15,7 +15,6 @@ const NAV_ITEMS = [
   { id: "applications", label: "Applications", icon: "🗂️" },
   { id: "scripts", label: "Scripts Library", icon: "📝" },
   { id: "companies", label: "Target Companies", icon: "🎯" },
-  { id: "pro", label: "Pro Pack", icon: "💼" },
   { id: "settings", label: "Settings", icon: "⚙️" },
 ];
 
@@ -391,7 +390,7 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
               <div className="mt-4 space-y-4">
                 {skillMatches.length === 0 ? (
                   <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
-                    Skill matching will appear once we parse your resume and you’ve selected target companies.
+                    Skill matching will appear once we parse your resume and you’ve selected your target company.
                   </div>
                 ) : (
                   skillMatches.map((match: any) => (
@@ -786,25 +785,6 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
                 ))}
               </div>
             </div>
-          </div>
-        )}
-
-        {activeTab === "pro" && (
-          <div className="space-y-6">
-            {!assessment.hasPurchasedPro ? (
-              <div className="rounded-2xl border border-[#8B5CF6]/40 bg-[#8B5CF6]/10 p-8 text-center">
-                <h2 className="text-2xl font-semibold">Unlock your full career system</h2>
-                <p className="mt-2 text-white/70">Upgrade to Pro Pack — $49</p>
-                <button className="mt-6 h-14 rounded-full bg-gradient-to-r from-[#06B6D4] to-[#8B5CF6] px-8 text-sm font-bold">
-                  Upgrade to Pro Pack →
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <h2 className="text-2xl font-semibold">Pro Pack Unlocked</h2>
-                <p className="text-white/70">Your premium content is ready.</p>
-              </div>
-            )}
           </div>
         )}
 
