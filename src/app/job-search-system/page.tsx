@@ -345,42 +345,53 @@ export default function JobSearchLanding() {
               <p className="privacy-note mt-4">Your data is private and never shared.</p>
             </div>
             <div className="cmd-panel rounded-3xl border border-slate-700 bg-slate-950/60 p-6">
-              <p className="cmd-eyebrow">Coaching credentials</p>
+              <p className="cmd-eyebrow">Operator credibility</p>
               <h3 className="mt-3 text-2xl font-semibold text-slate-100">
-                Operator-led coaching. Proven outcomes.
+                Built by a hiring operator.
               </h3>
               <p className="mt-3 text-sm text-slate-300">
-                You’re guided by a systems-minded coach who has hired, led, and built real teams — not just reviewed resumes.
+                Designed by someone who has built teams, hired talent, and shipped systems — not just reviewed resumes.
               </p>
-              <div className="mt-6 grid gap-4">
+
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <p className="text-xs uppercase tracking-wide text-slate-400">Experience</p>
-                  <p className="mt-2 text-slate-200">10+ years leading DevOps &amp; platform teams.</p>
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Leadership</p>
+                  <p className="mt-2 text-slate-200">10+ years leading DevOps &amp; platform orgs.</p>
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <p className="text-xs uppercase tracking-wide text-slate-400">Results</p>
-                  <p className="mt-2 text-slate-200">300+ professionals placed since 2023.</p>
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Outcomes</p>
+                  <p className="mt-2 text-slate-200">300+ placements since 2023.</p>
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <p className="text-xs uppercase tracking-wide text-slate-400">What you get</p>
-                  <p className="mt-2 text-slate-200">Clarity, positioning, and a tailored execution plan.</p>
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Hiring lens</p>
+                  <p className="mt-2 text-slate-200">Evaluates senior ICs and managers in technical roles.</p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Operating system</p>
+                  <p className="mt-2 text-slate-200">Positioning, execution, and targeted outreach.</p>
                 </div>
               </div>
+
               <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
-                <p className="text-xs uppercase tracking-wide text-slate-400">Clients placed at</p>
+                <p className="text-xs uppercase tracking-wide text-slate-400">Placed at</p>
                 <div className="mt-3 flex flex-wrap items-center gap-4">
                   {logoCompanies.slice(0, 8).map((company) => (
-                    <div key={`cred-${company.name}`} className="flex items-center gap-2 text-xs text-slate-300">
+                    <div
+                      key={`cred-${company.name}`}
+                      className="flex items-center gap-2 text-xs text-slate-300"
+                      title={company.name}
+                    >
                       <CompanyLogo name={company.name} domain={company.domain} size={26} className="bg-white/10" />
-                      <span className="hidden sm:inline">{company.name}</span>
+                      <span className="text-slate-400 md:hidden">{company.name}</span>
                     </div>
                   ))}
                 </div>
               </div>
+
               <div className="mt-6 flex flex-wrap items-center gap-3 text-xs text-slate-400">
-                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Hiring manager perspective</span>
-                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Systems + strategy</span>
-                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">High-signal guidance</span>
+                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Hiring manager lens</span>
+                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Operator-first strategy</span>
+                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Signal over noise</span>
               </div>
             </div>
           </div>
