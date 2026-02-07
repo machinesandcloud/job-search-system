@@ -31,10 +31,7 @@ export default async function ResumePage({ params }: { params: Promise<{ token: 
   const resumeAnalysis = assessment.resumeAnalysis as any;
   const isPro = assessment.hasPurchasedPro;
   const statusLabel = assessment.totalScore >= 70 ? "Fast Track" : assessment.totalScore >= 45 ? "Growth Ready" : "Foundation Phase";
-  const aiReady =
-    assessment.aiAnalysisStatus === "complete" &&
-    Boolean((assessment.week1Plan as any)?.week1?.tasks?.length) &&
-    Boolean(assessment.resumeAnalysis);
+  const aiReady = assessment.aiAnalysisStatus === "complete";
 
   if (!aiReady) {
     return (

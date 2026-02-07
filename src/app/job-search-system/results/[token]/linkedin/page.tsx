@@ -31,10 +31,7 @@ export default async function LinkedInPage({ params }: { params: Promise<{ token
   const linkedinAnalysis = assessment.linkedinAnalysis as any;
   const isPro = assessment.hasPurchasedPro;
   const statusLabel = assessment.totalScore >= 70 ? "Fast Track" : assessment.totalScore >= 45 ? "Growth Ready" : "Foundation Phase";
-  const aiReady =
-    assessment.aiAnalysisStatus === "complete" &&
-    Boolean((assessment.week1Plan as any)?.week1?.tasks?.length) &&
-    Boolean(assessment.linkedinAnalysis);
+  const aiReady = assessment.aiAnalysisStatus === "complete";
   const aiPendingMessage = "";
 
   if (!aiReady) {

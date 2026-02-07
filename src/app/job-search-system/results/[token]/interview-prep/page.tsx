@@ -31,10 +31,7 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
   const interviewPrep = assessment.interviewPrep as any;
   const statusLabel = assessment.totalScore >= 70 ? "Fast Track" : assessment.totalScore >= 45 ? "Growth Ready" : "Foundation Phase";
   const isPro = assessment.hasPurchasedPro;
-  const aiReady =
-    assessment.aiAnalysisStatus === "complete" &&
-    Boolean((assessment.week1Plan as any)?.week1?.tasks?.length) &&
-    Boolean(assessment.interviewPrep);
+  const aiReady = assessment.aiAnalysisStatus === "complete";
 
   const starStories = interviewPrep?.starStories || [];
   const technicalQuestions = interviewPrep?.technicalQuestions || [];

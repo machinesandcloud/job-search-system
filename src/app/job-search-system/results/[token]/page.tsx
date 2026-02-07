@@ -53,13 +53,7 @@ export default async function ResultsPage({ params }: { params: Promise<{ token:
   const companyMatches = (assessment.companyMatches as any)?.matches || [];
   const aiPendingMessage = "";
   const isPro = assessment.hasPurchasedPro;
-  const aiReady =
-    assessment.aiAnalysisStatus === "complete" &&
-    Boolean((assessment.week1Plan as any)?.week1?.tasks?.length) &&
-    Boolean(assessment.aiInsights) &&
-    Boolean(assessment.resumeAnalysis) &&
-    Boolean(assessment.linkedinAnalysis) &&
-    Boolean(assessment.marketIntelligence);
+  const aiReady = assessment.aiAnalysisStatus === "complete";
   const week1Plan = (assessment.week1Plan as any)?.week1 || actionPlan?.week1 || null;
   const week2Preview = actionPlan?.week2Preview || null;
 

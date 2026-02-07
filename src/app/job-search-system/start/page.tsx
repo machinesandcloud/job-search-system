@@ -413,6 +413,9 @@ export default function JobSearchWizard() {
     }
     if (data.assessmentId) {
       setAssessmentId(data.assessmentId);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("askia_last_assessment_id", data.assessmentId);
+      }
       return data.assessmentId as string;
     }
     throw new Error("Unable to start assessment.");

@@ -31,10 +31,7 @@ export default async function CoverLetterPage({ params }: { params: Promise<{ to
   const coverLetterKit = assessment.coverLetterKit as any;
   const isPro = assessment.hasPurchasedPro;
   const statusLabel = assessment.totalScore >= 70 ? "Fast Track" : assessment.totalScore >= 45 ? "Growth Ready" : "Foundation Phase";
-  const aiReady =
-    assessment.aiAnalysisStatus === "complete" &&
-    Boolean((assessment.week1Plan as any)?.week1?.tasks?.length) &&
-    Boolean(assessment.coverLetterKit);
+  const aiReady = assessment.aiAnalysisStatus === "complete";
 
   if (!aiReady) {
     return (

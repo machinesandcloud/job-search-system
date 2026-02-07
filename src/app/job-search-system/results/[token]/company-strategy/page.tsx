@@ -31,10 +31,7 @@ export default async function CompanyStrategyPage({ params }: { params: Promise<
   const statusLabel = assessment.totalScore >= 70 ? "Fast Track" : assessment.totalScore >= 45 ? "Growth Ready" : "Foundation Phase";
   const isPro = assessment.hasPurchasedPro;
   const companyStrategies = (assessment.companyStrategies as any)?.companyStrategies || [];
-  const aiReady =
-    assessment.aiAnalysisStatus === "complete" &&
-    Boolean((assessment.week1Plan as any)?.week1?.tasks?.length) &&
-    Boolean(assessment.companyStrategies);
+  const aiReady = assessment.aiAnalysisStatus === "complete";
 
   if (!aiReady) {
     return (

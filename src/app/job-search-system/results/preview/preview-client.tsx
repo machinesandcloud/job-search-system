@@ -35,6 +35,9 @@ export default function PreviewClient() {
         const payload = await res.json();
         if (!active) return false;
         setData(payload);
+        if (payload?.assessmentId && typeof window !== "undefined") {
+          window.localStorage.setItem("askia_last_assessment_id", payload.assessmentId);
+        }
       } catch (_err) {
         // ignore
       }

@@ -20,10 +20,18 @@ export default function LoginPage() {
     setError(null);
     setNotice(null);
     try {
+      const storedAssessmentId =
+        typeof window !== "undefined"
+          ? window.localStorage.getItem("askia_last_assessment_id")
+          : null;
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          email,
+          password,
+          assessmentId: storedAssessmentId || undefined,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {

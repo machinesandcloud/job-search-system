@@ -31,10 +31,7 @@ export default async function ScriptsPage({ params }: { params: Promise<{ token:
   const scripts = (assessment.personalizedScripts as any)?.scripts || [];
   const statusLabel = assessment.totalScore >= 70 ? "Fast Track" : assessment.totalScore >= 45 ? "Growth Ready" : "Foundation Phase";
   const isPro = assessment.hasPurchasedPro;
-  const aiReady =
-    assessment.aiAnalysisStatus === "complete" &&
-    Boolean((assessment.week1Plan as any)?.week1?.tasks?.length) &&
-    Boolean(assessment.personalizedScripts);
+  const aiReady = assessment.aiAnalysisStatus === "complete";
 
   if (!aiReady) {
     return (
