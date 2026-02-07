@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
@@ -34,7 +34,7 @@ type CompanyOption = {
   category: string;
 };
 
-export default function JobSearchWizard() {
+function JobSearchWizard() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [step, setStep] = useState(0);
@@ -1421,5 +1421,13 @@ export default function JobSearchWizard() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function JobSearchStartPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-950" />}>
+      <JobSearchWizard />
+    </Suspense>
   );
 }
