@@ -54,7 +54,7 @@ export default async function ResultsPage({ params }: { params: Promise<{ token:
   const aiPendingMessage = "";
   const aiReady = assessment.aiAnalysisStatus === "complete";
   const week1Plan = (assessment.week1Plan as any)?.week1 || actionPlan?.week1 || null;
-  const careerPlan = assessment.careerPlan as any;
+  const careerPlan = (assessment as any).careerPlan as any;
 
   if (!aiReady) {
     return (
