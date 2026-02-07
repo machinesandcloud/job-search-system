@@ -522,6 +522,9 @@ export default function JobSearchWizard() {
     if (step === 6 && !answers.resumeFileUrl) {
       return "Upload your resume to continue.";
     }
+    if (step === 6 && !answers.jobDescription) {
+      return "Paste a job description to continue.";
+    }
     if (step === 7 && !answers.networkStrength) {
       return "Select your network strength to continue.";
     }
@@ -1089,12 +1092,12 @@ export default function JobSearchWizard() {
               <div className="rounded-2xl border border-[#8B5CF6]/20 bg-gradient-to-br from-[#1B1B3A] to-[#0B1220] p-5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-semibold">Optional job description</p>
+                    <p className="text-sm font-semibold">Job description (required)</p>
                     <p className="text-xs text-white/60">
-                      Paste a target job description to tailor every AI recommendation to that role.
+                      Paste the exact job description so we can tailor skills, gaps, and tasks.
                     </p>
                   </div>
-                  <span className="text-xs uppercase tracking-[0.2em] text-[#8B5CF6]/70">optional</span>
+                  <span className="text-xs uppercase tracking-[0.2em] text-[#8B5CF6]/70">required</span>
                 </div>
                 <textarea
                   rows={5}

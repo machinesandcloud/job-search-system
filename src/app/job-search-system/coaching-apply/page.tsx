@@ -12,7 +12,7 @@ export default function CoachingApplyPage() {
             Build your system with weekly accountability and live feedback.
           </h1>
           <p className="mt-3 max-w-2xl text-sm text-slate-300">
-            For candidates on a 30-day timeline who want hands-on coaching. We co-build your plan, refine proof
+            For professionals on a 30-day timeline who want hands-on coaching. We co-build your plan, refine proof
             assets, and keep execution on track.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">

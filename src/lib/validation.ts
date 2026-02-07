@@ -43,7 +43,7 @@ export const assessmentAnswersSchema = z.object({
   linkedinFileUrl: z.string().optional().nullable(),
   linkedinFileName: z.string().max(200).optional().nullable(),
   linkedinManualData: linkedinManualSchema,
-  jobDescription: z.string().max(8000).optional().nullable(),
+  jobDescription: z.string().min(50, "Job description is required").max(8000),
   networkStrength: z.enum(["strong", "moderate", "weak"]),
   outreachComfort: z.enum(["comfortable", "neutral", "uncomfortable"]),
   targetCompanies: z.array(targetCompanySchema).min(5).max(30),
@@ -145,8 +145,8 @@ export function sanitizeAnswers(input: any) {
     }
     copy.linkedinManualData = manual;
   }
-  if (typeof copy.jobDescription === "string" && copy.jobDescription.trim() === "") {
-    copy.jobDescription = null;
+  if (typeof copy.jobDescription === "string") {
+    copy.jobDescription = copy.jobDescription.trim();
   }
   return copy;
 }

@@ -13,23 +13,41 @@ export async function POST(request: Request, { params }: { params: Promise<{ ass
   const existing = await prisma.taskCompletion.findUnique({
     where: { assessmentId_taskId: { assessmentId, taskId } },
   });
-  if (existing) {
-    const updated = await prisma.taskCompletion.update({
+  const completion = existing
+    ? await prisma.taskCompletion.update({
       where: { id: existing.id },
       data: {
         completed: !existing.completed,
         completedAt: !existing.completed ? new Date() : null,
       },
-    });
-    return NextResponse.json(updated);
-  }
-  const created = await prisma.taskCompletion.create({
-    data: {
-      assessmentId,
-      taskId,
-      completed: true,
-      completedAt: new Date(),
-    },
+    })
+    : await prisma.taskCompletion.create({
+        data: {
+          assessmentId,
+          taskId,
+          completed: true,
+          completedAt: new Date(),
+        },
+      });
+
+  const assessment = await prisma.assessment.findUnique({
+    where: { id: assessmentId },
+    select: { week1Plan: true, skillMatchData: true, totalScore: true },
   });
-  return NextResponse.json(created);
+
+  const tasks = (assessment?.week1Plan as any)?.week1?.tasks || [];
+  if (tasks.length) {
+    const completedCount = await prisma.taskCompletion.count({
+      where: { assessmentId, completed: true },
+    });
+    const baseScore =
+      (assessment?.skillMatchData as any)?.readinessScore?.overall ?? assessment?.totalScore ?? 0;
+    const bonus = Math.round((completedCount / tasks.length) * 5);
+    await prisma.assessment.update({
+      where: { id: assessmentId },
+      data: { totalScore: Math.min(100, baseScore + bonus) },
+    });
+  }
+
+  return NextResponse.json(completion);
 }

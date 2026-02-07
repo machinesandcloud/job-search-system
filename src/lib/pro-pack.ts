@@ -3,7 +3,7 @@ import { groqChatJSON } from "@/lib/llm";
 
 export async function buildProPack(answers: AssessmentAnswers) {
   const prompt = `
-Create Pro Pack content using ONLY the candidate's assessment data. Return JSON with:
+Create Pro Pack content using ONLY your assessment data. Return JSON with:
 {
   "topCompanies": [{ "name": "", "logoUrl": "", "whyGoodFit": "", "roleTypes": [""], "avgComp": "", "keyContacts": "", "researchNotes": "", "applicationStrategy": "", "interviewProcess": "" }],
   "atsKeywords": { "role": "", "mustHaveKeywords": [""], "niceToHaveKeywords": [""], "missingFromYourResume": [""], "howToAdd": "" },

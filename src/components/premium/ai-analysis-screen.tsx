@@ -180,8 +180,8 @@ export function AIAnalysisScreen({
           {failureReason ? (
             <div className="mt-4 rounded-2xl border border-rose-400/20 bg-rose-500/10 p-4 text-xs text-rose-100">
               <p>
-                We hit a snag while generating your dashboard. {failureReason} Please refresh or
-                contact support if this persists.
+                Sorry for the inconvenience. Due to extremely high demand, Askia AI is currently
+                unavailable. Join the waitlist to get notified when it’s available again.
               </p>
               <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-3 text-[11px] text-white/80">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">Join the waitlist</p>

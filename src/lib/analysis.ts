@@ -2,6 +2,7 @@ import type { AssessmentAnswers } from "@/lib/validation";
 import { computeScore } from "@/lib/scoring";
 import { groqChatJSON } from "@/lib/llm";
 import { gatherMarketIntel } from "@/lib/market-intel";
+import { buildDataDrivenBundle } from "@/lib/data-driven";
 
 type ParsedData = {
   resumeParsedData?: any;
@@ -31,6 +32,12 @@ export async function runFullAnalysis(
   parsed?: ParsedData,
   options?: { includePro?: boolean }
 ) {
+  const dataDriven = await buildDataDrivenBundle(answers, parsed, options);
+  if (!dataDriven?.aiFailed) {
+    return {
+      ...dataDriven,
+    };
+  }
   const scoreResult = computeScore(answers);
   const resumeParsed = parsed?.resumeParsedData || null;
   const linkedinParsed = parsed?.linkedinParsedData || null;
