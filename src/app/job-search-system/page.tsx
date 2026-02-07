@@ -400,7 +400,7 @@ export default function JobSearchLanding() {
               <div className="mt-6 flex flex-wrap items-center gap-3 text-xs text-slate-400">
                 <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Conversion-first copy</span>
                 <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Proof over claims</span>
-                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Signal > noise</span>
+                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Signal &gt; noise</span>
               </div>
             </div>
           </div>
