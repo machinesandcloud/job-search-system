@@ -890,7 +890,7 @@ body {
 @media (max-width: 640px) {
   .cmd-preview {
     transform: scale(1);
-    width: 85vw;
+    width: 92vw;
     margin-left: auto;
     margin-right: auto;
   }
@@ -1527,6 +1527,10 @@ body {
     padding-right: 20px;
   }
 
+  .cmd-shell .text-sm {
+    font-size: 0.92rem;
+  }
+
   .cmd-hero-title {
     font-size: 2rem;
     line-height: 1.1;
@@ -1539,12 +1543,30 @@ body {
   .cmd-hero-highlights {
     gap: 10px;
     font-size: 11px;
-    justify-content: center;
+    justify-content: flex-start;
+    letter-spacing: 0.08em;
   }
 
   .cmd-preview {
     transform: scale(1);
     max-width: 100%;
+  }
+
+  .cmd-system-grid {
+    gap: 12px;
+    padding-bottom: 10px;
+  }
+
+  .cmd-number-badge {
+    height: 44px;
+    width: 44px;
+    font-size: 16px;
+    top: 18px;
+    left: 18px;
+  }
+
+  .cmd-system-card {
+    padding-top: 54px;
   }
 }
 
@@ -1579,22 +1601,43 @@ body {
 }
 
 @media (max-width: 640px) {
+  .book-call-cta {
+    right: 14px;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 88px);
+  }
+
+  .book-call-cta > a {
+    padding: 10px 14px;
+    font-size: 13px;
+    gap: 8px;
+  }
+
+  .book-call-cta > a span {
+    height: 28px;
+    width: 28px;
+    font-size: 0.9rem;
+  }
+
   .cmd-preview.cmd-panel {
     padding: 20px;
   }
 
   .cmd-sticky {
-    height: 56px;
+    height: 52px;
+  }
+
+  .cmd-sticky .cmd-shell {
+    padding: 12px 16px;
   }
 
   .cmd-sticky-text {
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .cmd-sticky-button {
-    height: 40px;
-    font-size: 14px;
-    padding: 0 14px;
+    height: 38px;
+    font-size: 13px;
+    padding: 0 12px;
   }
 
   .cmd-cta-primary,
@@ -1610,8 +1653,8 @@ body {
   }
 
   .cmd-quote {
-    font-size: 18px;
-    padding: 32px 40px;
+    font-size: 17px;
+    padding: 28px 28px;
   }
 
   .cmd-stat-card {
@@ -1671,6 +1714,20 @@ body {
 
   .cmd-sticky-text-mobile {
     display: block;
+  }
+}
+
+@media (max-width: 380px) {
+  .cmd-hero-title {
+    font-size: 1.85rem;
+  }
+
+  .cmd-hero-lede {
+    font-size: 0.9rem;
+  }
+
+  .book-call-cta {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 96px);
   }
 }
 
