@@ -322,6 +322,16 @@ function buildATSFallback(jobDescription: string, resumeParsed: any): ATSAnalysi
 }
 
 function calculateATSFromKeywords(jobKeywords: ATSKeyword[], resumeKeywords: ATSKeyword[]): ATSAnalysis {
+  if (!jobKeywords.length) {
+    return {
+      score: 0,
+      totalKeywords: 0,
+      matchedKeywords: [],
+      missingKeywords: [],
+      matchPercentage: 0,
+    };
+  }
+
   const matchedKeywords: ATSKeyword[] = [];
   const missingKeywords: ATSKeyword[] = [];
 
@@ -338,19 +348,30 @@ function calculateATSFromKeywords(jobKeywords: ATSKeyword[], resumeKeywords: ATS
     }
   });
 
-  const criticalTotal = jobKeywords.filter((k) => k.importance === "critical").length || 0;
-  const importantTotal = jobKeywords.filter((k) => k.importance === "important").length || 0;
-  const niceTotal = jobKeywords.filter((k) => k.importance === "nice-to-have").length || 0;
+  const criticalTotal = jobKeywords.filter((k) => k.importance === "critical").length;
+  const importantTotal = jobKeywords.filter((k) => k.importance === "important").length;
+  const niceTotal = jobKeywords.filter((k) => k.importance === "nice-to-have").length;
 
   const criticalMatches = matchedKeywords.filter((k) => k.importance === "critical").length;
   const importantMatches = matchedKeywords.filter((k) => k.importance === "important").length;
   const niceMatches = matchedKeywords.filter((k) => k.importance === "nice-to-have").length;
 
-  const criticalScore = criticalTotal ? (criticalMatches / criticalTotal) * 60 : 60;
-  const importantScore = importantTotal ? (importantMatches / importantTotal) * 30 : 30;
-  const niceScore = niceTotal ? (niceMatches / niceTotal) * 10 : 10;
+  const weights = {
+    critical: criticalTotal ? 0.6 : 0,
+    important: importantTotal ? 0.3 : 0,
+    nice: niceTotal ? 0.1 : 0,
+  };
+  const totalWeight = weights.critical + weights.important + weights.nice;
 
-  const score = Math.round(criticalScore + importantScore + niceScore);
+  const criticalRatio = criticalTotal ? criticalMatches / criticalTotal : 0;
+  const importantRatio = importantTotal ? importantMatches / importantTotal : 0;
+  const niceRatio = niceTotal ? niceMatches / niceTotal : 0;
+
+  const weightedScore = totalWeight
+    ? (criticalRatio * weights.critical + importantRatio * weights.important + niceRatio * weights.nice) / totalWeight
+    : 0;
+
+  const score = Math.round(weightedScore * 100);
   const matchPercentage = jobKeywords.length
     ? Math.round((matchedKeywords.length / jobKeywords.length) * 100)
     : 0;

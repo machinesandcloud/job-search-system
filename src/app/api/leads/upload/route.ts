@@ -97,14 +97,14 @@ export async function POST(request: Request) {
       let resumeParseStatus = "complete";
       let resumeParseError = null;
       try {
+        let aiParsed = null;
+        try {
+          aiParsed = await parseResumeWithApilayer(buffer);
+        } catch (_err) {
+          aiParsed = null;
+        }
         const text = await extractTextFromBuffer(buffer, file.name);
         if (text) {
-          let aiParsed = null;
-          try {
-            aiParsed = await parseResumeWithApilayer(buffer);
-          } catch (_err) {
-            aiParsed = null;
-          }
           if (!aiParsed) {
             aiParsed = await groqChatJSON(
               "You are an expert resume parser. Return valid JSON only.",
@@ -121,6 +121,8 @@ export async function POST(request: Request) {
               resumeRawText: text,
             },
           });
+        } else if (aiParsed) {
+          resumeParsedData = aiParsed;
         } else {
           resumeParseStatus = "processing";
           resumeParseError = "Resume uploaded. Parsing is running in the background.";
