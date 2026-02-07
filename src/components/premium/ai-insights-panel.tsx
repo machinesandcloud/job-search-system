@@ -8,6 +8,8 @@ export function AIInsightsPanel({
   const insights = assessment.aiInsights as any;
   const resume = assessment.resumeParsedData as any;
   const marketIntel = assessment.marketIntelligence as any;
+  const skillMatch = assessment.skillMatchData as any;
+  const linkedin = assessment.linkedinParsedData as any;
 
   const items = [
     {
@@ -44,6 +46,32 @@ export function AIInsightsPanel({
       evidence: marketIntel?.roleKeywords?.slice(0, 2)?.map((item: any) =>
         `${item.keyword}: ${item.frequency}% of postings`
       ),
+    },
+    {
+      title: "Hiring Manager Check",
+      tone: "border-blue-500/30 bg-blue-500/10",
+      content: skillMatch?.educationMet === false
+        ? `Education requirement isn't verified yet.`
+        : "Minimum requirements look aligned. Next: proof + role alignment.",
+      detail: skillMatch?.requiredEducation
+        ? `Job description mentions: "${skillMatch.requiredEducation}"`
+        : "",
+      evidence: [
+        skillMatch?.roleAlignmentScore
+          ? `Role alignment score: ${skillMatch.roleAlignmentScore}/100`
+          : "Role alignment based on resume + LinkedIn titles.",
+      ],
+    },
+    {
+      title: "LinkedIn Consistency",
+      tone: "border-fuchsia-500/30 bg-fuchsia-500/10",
+      content: linkedin?.headline
+        ? "Your LinkedIn headline should match your target role and resume."
+        : "LinkedIn headline missing. Recruiters validate role fit here.",
+      detail: linkedin?.headline ? `Current headline: ${linkedin.headline}` : "Add a headline that mirrors your target role.",
+      evidence: [
+        resume?.currentRole ? `Resume role: ${resume.currentRole?.title || resume.currentRole}` : "Resume role not detected.",
+      ],
     },
   ];
 

@@ -3,11 +3,13 @@ export function ScoreBreakdown({ assessment, aiPending }: { assessment: any; aiP
   const linkedinScore = (assessment.linkedinAnalysis as any)?.overallScore;
   const skillsScore = (assessment.skillMatchData as any)?.overallScore ?? null;
   const networkScore = assessment.networkScore ?? null;
+  const atsPass = (assessment.skillMatchData as any)?.atsPass;
+  const atsScore = typeof skillsScore === "number" ? skillsScore : null;
 
   const cards = [
     { label: "Resume", score: resumeScore, color: "from-cyan-500 to-sky-500" },
     { label: "LinkedIn", score: linkedinScore, color: "from-indigo-500 to-purple-500" },
-    { label: "Skills Match", score: skillsScore, color: "from-emerald-500 to-teal-500" },
+    { label: "ATS Match", score: atsScore, color: "from-emerald-500 to-teal-500" },
     { label: "Network", score: networkScore, color: "from-amber-500 to-orange-500" },
   ];
 
@@ -16,6 +18,16 @@ export function ScoreBreakdown({ assessment, aiPending }: { assessment: any; aiP
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Score Breakdown</h2>
         <p className="text-xs uppercase tracking-[0.2em] text-white/40">Week 1 focus</p>
+      </div>
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-white/70">
+        <p className="text-xs uppercase tracking-[0.2em] text-white/50">ATS screening</p>
+        <p className="mt-2 text-sm text-white/90">
+          {atsPass === true
+            ? "Your resume clears ATS keyword screening. Next: hiring manager alignment."
+            : atsPass === false
+              ? "Your resume risks ATS rejection. Close missing keyword gaps first."
+              : aiPending}
+        </p>
       </div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {cards.map((card) => (
