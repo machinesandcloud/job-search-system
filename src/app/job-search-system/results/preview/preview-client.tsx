@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { AccountGate } from "@/components/account-gate";
+import { AccountGate, CoachActionPanel } from "@/components/account-gate";
 import { AIAnalysisScreen } from "@/components/premium/ai-analysis-screen";
 
 type PreviewData = {
@@ -98,6 +98,30 @@ export default function PreviewClient() {
     []
   );
 
+  const coachExamples = useMemo(
+    () => [
+      {
+        label: "Career story rewrite",
+        title: "Turns scattered experience into a crisp executive narrative.",
+        metric: "+32% interview response rate",
+        detail: "We refactor your story into 3 outcomes + a one-line positioning hook.",
+      },
+      {
+        label: "Resume surgery",
+        title: "Rebuilds bullets around measurable impact and scope.",
+        metric: "ATS +28 score lift",
+        detail: "Every bullet moves from task-based to outcome-led.",
+      },
+      {
+        label: "Outreach scripts",
+        title: "Writes tailored messages that feel human, not spam.",
+        metric: "4x reply rate",
+        detail: "Short, specific, and aligned with your target role.",
+      },
+    ],
+    []
+  );
+
   if (!token) {
     return (
       <main className="min-h-screen bg-[#0A0E27] px-6 py-24 text-white">
@@ -188,16 +212,16 @@ export default function PreviewClient() {
                   </span>
                 </div>
 
-                <div className="mt-10 grid gap-5">
-                  <div className="rounded-2xl border border-[#06B6D4]/40 bg-[#0F172A]/60 p-5">
+                <div className="mt-10 grid gap-6">
+                  <div className="rounded-2xl border border-[#06B6D4]/40 bg-[#0F172A]/60 p-6">
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#06B6D4]">Your Primary Gap</p>
                     <p className="mt-3 text-base text-white/90">{insights.primaryGap || "Your profile is being analyzed."}</p>
                   </div>
-                  <div className="rounded-2xl border border-[#8B5CF6]/40 bg-[#0F172A]/60 p-5">
+                  <div className="rounded-2xl border border-[#8B5CF6]/40 bg-[#0F172A]/60 p-6">
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#A78BFA]">Quick Win This Week</p>
                     <p className="mt-3 text-base text-white/90">{insights.quickWin || "We’ll surface your fastest win next."}</p>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-[#0F172A]/60 p-5">
+                  <div className="rounded-2xl border border-white/10 bg-[#0F172A]/60 p-6">
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">Week 1 cadence</p>
                     <ul className="mt-3 space-y-2 text-sm text-white/80">
                       {week1.slice(0, 3).map((item: any) => (
@@ -214,13 +238,20 @@ export default function PreviewClient() {
                       View full 14-day plan →
                     </button>
                   </div>
+                  <div className="rounded-2xl border border-white/10 bg-[#0F172A]/60 p-6">
+                    <CoachActionPanel examples={coachExamples} variant="embedded" />
+                  </div>
                 </div>
               </div>
             )}
           </section>
 
           <aside className="sticky top-28 h-fit">
-            <AccountGate assessmentId={data?.assessmentId || ""} onSuccess={() => router.push(`/job-search-system/results/${token}`)} />
+            <AccountGate
+              assessmentId={data?.assessmentId || ""}
+              onSuccess={() => router.push(`/job-search-system/results/${token}`)}
+              showCoachBox={false}
+            />
           </aside>
         </div>
       </div>

@@ -8,9 +8,10 @@ import { Label } from "@/components/ui/label";
 type AccountGateProps = {
   assessmentId: string;
   onSuccess?: () => void;
+  showCoachBox?: boolean;
 };
 
-export function AccountGate({ assessmentId, onSuccess }: AccountGateProps) {
+export function AccountGate({ assessmentId, onSuccess, showCoachBox = true }: AccountGateProps) {
   const [mode, setMode] = useState<"signup" | "login">("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -65,41 +66,8 @@ export function AccountGate({ assessmentId, onSuccess }: AccountGateProps) {
 
   return (
     <div className="rounded-[24px] border border-white/15 bg-[rgba(15,23,42,0.9)] p-8 text-white shadow-[0_24px_80px_rgba(0,0,0,0.6)] backdrop-blur-[20px]">
-      <div className="grid gap-8 2xl:grid-cols-[1.1fr_0.9fr] 2xl:items-start">
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#0F172A] via-[#101D35] to-[#0B1220] p-6">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#06B6D4]">AI coach in action</p>
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] uppercase tracking-[0.3em] text-white/60">
-              Live examples
-            </span>
-          </div>
-          <p className="mt-3 text-sm text-white/70">
-            Rotating examples of how the coach rewrites, scores, and builds outreach for your role.
-          </p>
-          <div className="relative mt-6 h-72 overflow-hidden rounded-2xl border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.2),_transparent_60%)] p-6">
-            <div className="absolute inset-0 bg-[linear-gradient(120deg,_rgba(255,255,255,0.03),_transparent_40%,_rgba(255,255,255,0.05))]" />
-            {examples.map((example, index) => (
-              <div
-                key={example.label}
-                className="gate-deck-card absolute inset-5 rounded-2xl border border-white/10 bg-[#0B1220]/80 p-5 shadow-[0_18px_50px_rgba(0,0,0,0.35)] backdrop-blur"
-                style={{ animationDelay: `${index * 4}s`, zIndex: examples.length - index }}
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] uppercase tracking-[0.32em] text-white/50">
-                  <span>{example.label}</span>
-                  <span className="rounded-full border border-[#06B6D4]/40 bg-[#06B6D4]/10 px-3 py-1 text-[10px] text-[#9BE8F5]">
-                    {example.metric}
-                  </span>
-                </div>
-                <p className="mt-4 text-xl font-semibold text-white">{example.title}</p>
-                <p className="mt-3 text-sm leading-relaxed text-white/70">{example.detail}</p>
-                <div className="mt-6 flex items-center gap-2 text-sm text-white/70">
-                  <span className="h-2.5 w-2.5 rounded-full bg-[#06B6D4]" />
-                  Personalized to your role + seniority
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+      <div className={`grid gap-8 ${showCoachBox ? "2xl:grid-cols-[1.1fr_0.9fr] 2xl:items-start" : ""}`}>
+        {showCoachBox ? <CoachActionPanel examples={examples} /> : null}
 
         <div className="rounded-2xl border border-white/10 bg-[#0B1220]/70 p-6">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#06B6D4]">Unlock full results</p>
@@ -188,6 +156,77 @@ export function AccountGate({ assessmentId, onSuccess }: AccountGateProps) {
             </ul>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+export function CoachActionPanel({
+  examples,
+  variant = "default",
+}: {
+  examples: {
+    label: string;
+    title: string;
+    metric: string;
+    detail: string;
+  }[];
+  variant?: "default" | "embedded";
+}) {
+  const isEmbedded = variant === "embedded";
+  return (
+    <div
+      className={
+        isEmbedded
+          ? "rounded-2xl border border-white/10 bg-[#0B1220]/70 p-5"
+          : "rounded-2xl border border-white/10 bg-gradient-to-br from-[#0F172A] via-[#101D35] to-[#0B1220] p-6"
+      }
+    >
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#06B6D4]">AI coach in action</p>
+        <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] uppercase tracking-[0.3em] text-white/60">
+          Live examples
+        </span>
+      </div>
+      <p className="mt-3 text-sm text-white/70">
+        Rotating examples of how the coach rewrites, scores, and builds outreach for your role.
+      </p>
+      <div
+        className={
+          isEmbedded
+            ? "relative mt-4 h-64 overflow-hidden rounded-2xl border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.15),_transparent_60%)] p-5"
+            : "relative mt-6 h-72 overflow-hidden rounded-2xl border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.2),_transparent_60%)] p-6"
+        }
+      >
+        <div className="absolute inset-0 bg-[linear-gradient(120deg,_rgba(255,255,255,0.03),_transparent_40%,_rgba(255,255,255,0.05))]" />
+        {examples.map((example, index) => (
+          <div
+            key={example.label}
+            className={
+              isEmbedded
+                ? "gate-deck-card absolute inset-4 rounded-2xl border border-white/10 bg-[#0B1220]/80 p-4 shadow-[0_18px_50px_rgba(0,0,0,0.35)] backdrop-blur"
+                : "gate-deck-card absolute inset-5 rounded-2xl border border-white/10 bg-[#0B1220]/80 p-5 shadow-[0_18px_50px_rgba(0,0,0,0.35)] backdrop-blur"
+            }
+            style={{ animationDelay: `${index * 4}s`, zIndex: examples.length - index }}
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] uppercase tracking-[0.32em] text-white/50">
+              <span>{example.label}</span>
+              <span className="rounded-full border border-[#06B6D4]/40 bg-[#06B6D4]/10 px-3 py-1 text-[10px] text-[#9BE8F5]">
+                {example.metric}
+              </span>
+            </div>
+            <p className={isEmbedded ? "mt-3 text-lg font-semibold text-white" : "mt-4 text-xl font-semibold text-white"}>
+              {example.title}
+            </p>
+            <p className={isEmbedded ? "mt-2 text-sm leading-relaxed text-white/70" : "mt-3 text-sm leading-relaxed text-white/70"}>
+              {example.detail}
+            </p>
+            <div className={isEmbedded ? "mt-4 flex items-center gap-2 text-xs text-white/70" : "mt-6 flex items-center gap-2 text-sm text-white/70"}>
+              <span className="h-2.5 w-2.5 rounded-full bg-[#06B6D4]" />
+              Personalized to your role + seniority
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
