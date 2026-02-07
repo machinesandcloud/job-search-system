@@ -30,7 +30,7 @@ async function parseResumeWithApilayer(buffer: Buffer) {
       "Content-Type": "application/octet-stream",
       apikey: apiKey,
     },
-    body: buffer,
+    body: new Uint8Array(buffer),
   });
   if (!res.ok) {
     const text = await res.text().catch(() => "");
