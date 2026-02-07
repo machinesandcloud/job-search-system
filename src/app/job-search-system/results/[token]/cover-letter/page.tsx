@@ -3,6 +3,7 @@ import { AccountGate } from "@/components/account-gate";
 import { PortalShell } from "@/components/portal-shell";
 import { getAuthorizedAssessment } from "@/lib/results-auth";
 import { AIAnalysisScreen } from "@/components/premium/ai-analysis-screen";
+import { ProfileUpdateActions } from "@/components/premium/profile-update-actions";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -64,12 +65,15 @@ export default async function CoverLetterPage({ params }: { params: Promise<{ to
         <section className="rounded-[28px] border border-white/10 bg-gradient-to-br from-[#0B1220] via-[#131B2E] to-[#0B1220] p-8">
           <h1 className="text-3xl font-semibold">Cover Letter Kit</h1>
           <p className="mt-2 text-white/70">Personalized hooks, key points, and templates for your target companies.</p>
+          <ProfileUpdateActions assessmentId={assessment.id} token={token} />
         </section>
 
         <div className="space-y-6">
             <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
               <h2 className="text-lg font-semibold">Overview Strategy</h2>
-              <p className="mt-3 text-white/80 whitespace-pre-wrap">{coverLetterKit.overview}</p>
+              <p className="mt-3 text-white/80 whitespace-pre-wrap">
+                {coverLetterKit.overview || "Lead with role-specific proof, tie to company mission, and reinforce 2–3 technical strengths."}
+              </p>
             </section>
 
             <section className="grid gap-6 lg:grid-cols-2">
@@ -93,6 +97,11 @@ export default async function CoverLetterPage({ params }: { params: Promise<{ to
                   </div>
                 </div>
               ))}
+              {(!coverLetterKit.companySpecific || coverLetterKit.companySpecific.length === 0) && (
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-white/70">
+                  Add company-specific hooks using the job description and recent product updates.
+                </div>
+              )}
             </section>
 
             {(coverLetterKit.customizationChecklist || []).length > 0 && (

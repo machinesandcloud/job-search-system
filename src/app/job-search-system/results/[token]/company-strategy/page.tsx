@@ -3,6 +3,7 @@ import { AccountGate } from "@/components/account-gate";
 import { PortalShell } from "@/components/portal-shell";
 import { getAuthorizedAssessment } from "@/lib/results-auth";
 import { AIAnalysisScreen } from "@/components/premium/ai-analysis-screen";
+import { ProfileUpdateActions } from "@/components/premium/profile-update-actions";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -64,6 +65,7 @@ export default async function CompanyStrategyPage({ params }: { params: Promise<
         <section className="rounded-[28px] border border-white/10 bg-gradient-to-br from-[#0B1220] via-[#131B2E] to-[#0B1220] p-8">
           <h1 className="text-3xl font-semibold">Company Strategy</h1>
           <p className="mt-2 text-white/70">Company-by-company attack plan built from your profile and market data.</p>
+          <ProfileUpdateActions assessmentId={assessment.id} token={token} />
         </section>
 
         <div className="space-y-6">
@@ -111,6 +113,11 @@ export default async function CompanyStrategyPage({ params }: { params: Promise<
               </div>
             ))}
 
+            {companyStrategies.length === 0 && (
+              <div className="rounded-2xl border border-white/10 bg-[#0B1220] p-6 text-sm text-white/70">
+                Add 3 target companies to unlock company-specific strategy and networking paths.
+              </div>
+            )}
             {!isPro && (
               <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-white/70">
                 Upgrade to Pro Pack to unlock full company strategies, deep-dive interview prep, and compensation guidance.

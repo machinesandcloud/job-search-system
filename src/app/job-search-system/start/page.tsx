@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import type { AssessmentAnswers } from "@/lib/validation";
 import { defaultAnswers } from "@/lib/defaults";
@@ -35,6 +36,7 @@ type CompanyOption = {
 
 export default function JobSearchWizard() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<AssessmentAnswers>(defaultAnswers);
   const [assessmentId, setAssessmentId] = useState<string | null>(null);
@@ -75,6 +77,58 @@ export default function JobSearchWizard() {
     };
     boot();
   }, []);
+
+  useEffect(() => {
+    const token = searchParams.get("token");
+    if (!token) return;
+    let active = true;
+    const hydrate = async () => {
+      try {
+        const res = await fetch(`/api/results/${token}`, { cache: "no-store" });
+        const payload = await res.json();
+        if (!active || !payload?.assessment) return;
+        const assessment = payload.assessment;
+        setAnswers((prev) => ({
+          ...prev,
+          targetRoles: assessment.targetRoles || prev.targetRoles,
+          level: assessment.level || prev.level,
+          compTarget: assessment.compTarget || prev.compTarget,
+          timeline: assessment.timeline || prev.timeline,
+          locationPreference: assessment.locationPreference || prev.locationPreference,
+          locationCity: assessment.locationCity || prev.locationCity,
+          hoursPerWeek: assessment.hoursPerWeek || prev.hoursPerWeek,
+          resumeStatus: assessment.resumeStatus || prev.resumeStatus,
+          linkedinStatus: assessment.linkedinStatus || prev.linkedinStatus,
+          portfolioStatus: assessment.portfolioStatus ?? prev.portfolioStatus,
+          interviewReady: assessment.interviewReady ?? prev.interviewReady,
+          resumeFileUrl: assessment.resumeFileUrl || prev.resumeFileUrl,
+          resumeFileName: assessment.resumeFileName || prev.resumeFileName,
+          resumeFileSize: assessment.resumeFileSize || prev.resumeFileSize,
+          linkedinFileUrl: assessment.linkedinFileUrl || prev.linkedinFileUrl,
+          linkedinFileName: assessment.linkedinFileName || prev.linkedinFileName,
+          linkedinManualData: assessment.linkedinManualData || prev.linkedinManualData,
+          jobDescription: assessment.jobDescription || prev.jobDescription,
+          networkStrength: assessment.networkStrength || prev.networkStrength,
+          outreachComfort: assessment.outreachComfort || prev.outreachComfort,
+          targetCompanies: assessment.targetCompanies || prev.targetCompanies,
+          biggestBlocker: assessment.biggestBlocker || prev.biggestBlocker,
+          additionalContext: assessment.additionalContext || prev.additionalContext,
+        }));
+        if (assessment.id) {
+          setAssessmentId(assessment.id);
+          if (typeof window !== "undefined") {
+            window.localStorage.setItem("askia_last_assessment_id", assessment.id);
+          }
+        }
+      } catch (_err) {
+        // ignore
+      }
+    };
+    hydrate();
+    return () => {
+      active = false;
+    };
+  }, [searchParams]);
 
   const roleLibrary = useMemo(() => {
     const baseRoles = [

@@ -3,6 +3,7 @@ import { AccountGate } from "@/components/account-gate";
 import { PortalShell } from "@/components/portal-shell";
 import { getAuthorizedAssessment } from "@/lib/results-auth";
 import { AIAnalysisScreen } from "@/components/premium/ai-analysis-screen";
+import { ProfileUpdateActions } from "@/components/premium/profile-update-actions";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -64,6 +65,7 @@ export default async function ScriptsPage({ params }: { params: Promise<{ token:
         <section className="rounded-[28px] border border-white/10 bg-gradient-to-br from-[#0B1220] via-[#131B2E] to-[#0B1220] p-8">
           <h1 className="text-3xl font-semibold">Scripts Library</h1>
           <p className="mt-2 text-white/70">Outreach, follow-up, and negotiation scripts written for your exact background.</p>
+          <ProfileUpdateActions assessmentId={assessment.id} token={token} />
         </section>
 
         <div className="grid gap-6 lg:grid-cols-2">
@@ -79,6 +81,11 @@ export default async function ScriptsPage({ params }: { params: Promise<{ token:
                 </div>
               </div>
             ))}
+            {scripts.length === 0 && (
+              <div className="rounded-2xl border border-white/10 bg-[#0B1220] p-6 text-sm text-white/70">
+                Add 2 outreach scripts: recruiter intro and hiring manager note tailored to your target role.
+              </div>
+            )}
           </div>
 
         {!isPro && scripts.length > 0 && (

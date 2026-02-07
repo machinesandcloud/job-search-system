@@ -3,6 +3,7 @@ import { AccountGate } from "@/components/account-gate";
 import { PortalShell } from "@/components/portal-shell";
 import { getAuthorizedAssessment } from "@/lib/results-auth";
 import { AIAnalysisScreen } from "@/components/premium/ai-analysis-screen";
+import { ProfileUpdateActions } from "@/components/premium/profile-update-actions";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -65,6 +66,7 @@ export default async function LinkedInPage({ params }: { params: Promise<{ token
         <section className="rounded-[28px] border border-white/10 bg-gradient-to-br from-[#0B1220] via-[#131B2E] to-[#0B1220] p-8">
           <h1 className="text-3xl font-semibold">LinkedIn Command Center</h1>
           <p className="mt-2 text-white/70">Headline, About, and skills optimized for recruiter search.</p>
+          <ProfileUpdateActions assessmentId={assessment.id} token={token} kind="linkedin" />
         </section>
 
         <>
@@ -95,6 +97,11 @@ export default async function LinkedInPage({ params }: { params: Promise<{ token
                       <p className="mt-1 text-xs text-white/60">{skill.reason}</p>
                     </div>
                   ))}
+                  {(!linkedinAnalysis.skills?.toAdd || linkedinAnalysis.skills.toAdd.length === 0) && (
+                    <div className="rounded-xl border border-white/10 bg-[#0B1220] p-4 text-sm text-white/70">
+                      Add 5–10 high-signal technical skills that match your target role and job description.
+                    </div>
+                  )}
                   {!isPro && (
                     <p className="text-xs text-white/50">
                       Upgrade to Pro Pack to unlock the full LinkedIn skills map and endorsement strategy.
@@ -120,6 +127,11 @@ export default async function LinkedInPage({ params }: { params: Promise<{ token
                       <p className="mt-1 text-sm text-white/80">{role.optimizedDescription}</p>
                     </div>
                   ))}
+                  {(!linkedinAnalysis.experience?.roleOptimizations || linkedinAnalysis.experience.roleOptimizations.length === 0) && (
+                    <div className="rounded-xl border border-white/10 bg-[#0B1220] p-4 text-sm text-white/70">
+                      Mirror your resume impact bullets in LinkedIn experience (add metrics + key tools).
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -133,6 +145,11 @@ export default async function LinkedInPage({ params }: { params: Promise<{ token
                       <p className="mt-2 text-sm text-white/80">{item.impact}</p>
                     </div>
                   ))}
+                  {(!linkedinAnalysis.actionChecklist || linkedinAnalysis.actionChecklist.length === 0) && (
+                    <div className="rounded-xl border border-white/10 bg-[#0B1220] p-4 text-sm text-white/70">
+                      Update headline, add missing skills, and rewrite About with quantified wins.
+                    </div>
+                  )}
                 </div>
                 {!isPro && (
                   <p className="mt-4 text-sm text-white/60">

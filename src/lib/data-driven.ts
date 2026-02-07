@@ -915,23 +915,39 @@ export function buildResumeAnalysis(assessment: any, skills: SkillsAnalysis, ats
         ]
       : [];
 
+  const quickWins = missingKeywords.slice(0, 3).map((item) => ({
+    fix: `Add "${item.keyword}" to Skills + one experience bullet`,
+    impact: "Improves ATS keyword coverage immediately.",
+  }));
+
+  const weakAchievements = (assessment.resumeParsedData?.experience || assessment.resumeParsedData?.raw?.experience || [])
+    .slice(0, 2)
+    .map((exp: any, index: number) => ({
+      currentText: exp?.description || exp?.summary || `Experience bullet ${index + 1}`,
+      improvedText: `Delivered measurable impact using ${missingKeywords[0]?.keyword || "core tools"} to improve outcomes by 25–40%.`,
+    }));
+
   return {
     overallScore,
     atsScore: Math.round(overallScore * 0.9),
     issues: [...issues, ...educationIssue],
     missingKeywords,
-    weakAchievements: [],
+    weakAchievements,
     formatIssues: [],
     strengthsToEmphasize: [],
-    quickWins: [],
+    quickWins,
   };
 }
 
 export function buildLinkedinAnalysis(assessment: any, skills: SkillsAnalysis) {
   const overallScore = calculateLinkedinScore(assessment);
-  const targetRole = assessment.targetRoles?.[0]?.name || "your target role";
+  const targetRole = formatTargetRole(
+    assessment.targetRoles?.[0]?.name || "your target role",
+    assessment.level || "mid"
+  );
   const topSkills = skills.matchingSkills.slice(0, 3).map((s) => s.name).join(" | ");
   const headline = `${targetRole} | ${topSkills}`;
+  const missing = skills.missingCriticalSkills.slice(0, 5);
 
   return {
     overallScore,
@@ -948,15 +964,201 @@ export function buildLinkedinAnalysis(assessment: any, skills: SkillsAnalysis) {
       current: getLinkedinData(assessment).about || "",
       score: overallScore,
       issues: [],
-      optimized: "",
+      optimized:
+        `I help teams ship reliable systems with measurable outcomes. As a ${targetRole}, I’ve delivered impact across ${skills.matchingSkills
+          .slice(0, 4)
+          .map((s) => s.name)
+          .join(", ")}. I focus on uptime, automation, and cross‑team execution.`,
       keywords: skills.matchingSkills.slice(0, 5).map((s) => s.name),
       reasoning: "",
       alternatives: [],
     },
+    skills: {
+      toAdd: missing.map((skill) => ({
+        skill: skill.name,
+        reason: "Required by your target role or job description.",
+      })),
+    },
+    experience: {
+      roleOptimizations: (assessment.resumeParsedData?.experience || []).slice(0, 2).map((exp: any) => ({
+        role: exp?.title || "Role",
+        optimizedDescription: `Led ${exp?.title || "key initiatives"} with measurable impact, highlighting ${skills.matchingSkills
+          .slice(0, 2)
+          .map((s) => s.name)
+          .join(" + ")}.`,
+      })),
+    },
     experienceOptimizations: [],
+    actionChecklist: [
+      {
+        task: `Update headline to include ${targetRole}`,
+        timeEstimate: "10 min",
+        priority: "HIGH",
+        impact: "Improve recruiter search visibility.",
+      },
+      {
+        task: "Add 3 quantified wins to About section",
+        timeEstimate: "30 min",
+        priority: "HIGH",
+        impact: "Build credibility and role fit.",
+      },
+      {
+        task: "Add missing technical skills to Skills section",
+        timeEstimate: "15 min",
+        priority: "MEDIUM",
+        impact: "Align with ATS and recruiter filters.",
+      },
+    ],
     quickWins: [],
     strengths: [],
     improvementAreas: [],
+  };
+}
+
+function buildCoverLetterKit(assessment: any, skills: SkillsAnalysis) {
+  const targetRole = formatTargetRole(
+    assessment.targetRoles?.[0]?.name || "your target role",
+    assessment.level || "mid"
+  );
+  const companies = (assessment.targetCompanies || []).slice(0, 2);
+  return {
+    overview: `Lead with role-specific proof, connect to the company’s mission, and reinforce 2–3 technical strengths (${skills.matchingSkills
+      .slice(0, 3)
+      .map((s) => s.name)
+      .join(", ")}). Keep it concise: 3 short paragraphs.`,
+    companySpecific: companies.map((company: any) => ({
+      company: company.name || "Target Company",
+      hook: `I’m excited about ${company.name || "your company"} because of its focus on scalable systems and product velocity.`,
+      keyPoints: [
+        `Proven ${targetRole} experience with ${skills.matchingSkills.slice(0, 2).map((s) => s.name).join(" + ")}.`,
+        "Delivered measurable impact (e.g., reliability, cost, or speed gains).",
+        "Strong cross‑team communication and execution cadence.",
+      ],
+      template: `Hi ${company.name || "Hiring Team"},\n\nI’m applying for the ${targetRole} role. I’ve led systems work that improved uptime and delivery speed while aligning stakeholders. My strengths in ${skills.matchingSkills
+        .slice(0, 3)
+        .map((s) => s.name)
+        .join(", ")} map directly to this role.\n\nI’d love to bring that impact to ${company.name || "your team"}.\n\nBest,\n${assessment.resumeParsedData?.fullName || "Your Name"}`,
+    })),
+    customizationChecklist: [
+      "Match 2–3 keywords from the job description",
+      "Reference company mission or product",
+      "Highlight one quantified result",
+      "Keep under 200 words",
+    ],
+  };
+}
+
+function buildInterviewPrep(assessment: any, skills: SkillsAnalysis) {
+  const targetRole = formatTargetRole(
+    assessment.targetRoles?.[0]?.name || "your target role",
+    assessment.level || "mid"
+  );
+  const keywords = skills.matchingSkills.slice(0, 3).map((s) => s.name);
+  return {
+    starStories: [
+      {
+        category: "Impact",
+        prompt: "Tell me about a time you improved reliability or performance.",
+        whyThisWorks: "Shows outcome focus and technical depth.",
+      },
+      {
+        category: "Leadership",
+        prompt: "Describe a time you led a cross-functional initiative.",
+        whyThisWorks: "Validates collaboration and stakeholder management.",
+      },
+    ],
+    technicalQuestions: [
+      {
+        question: `How would you design a scalable ${targetRole} system for high availability?`,
+        topicArea: "System design",
+        suggestedApproach: "Discuss architecture, tradeoffs, and monitoring strategy.",
+      },
+      {
+        question: `Explain your experience with ${keywords.join(", ")}.`,
+        topicArea: "Technical depth",
+        suggestedApproach: "Share concrete examples and metrics.",
+      },
+    ],
+    behavioralQuestions: [
+      {
+        question: "Tell me about a time you handled a production incident.",
+        whyTheyAskThis: "Assesses judgment under pressure and communication.",
+      },
+      {
+        question: "Describe a tough stakeholder alignment situation.",
+        whyTheyAskThis: "Evaluates collaboration and leadership.",
+      },
+    ],
+    questionsToAsk: [
+      { question: "What does success look like in the first 90 days?", category: "Expectations", whyAsk: "Clarifies priorities." },
+      { question: "How does the team measure reliability and delivery velocity?", category: "Metrics", whyAsk: "Shows systems mindset." },
+    ],
+    practiceSchedule: {
+      "Day 1": "Prepare 2 STAR stories (impact + leadership).",
+      "Day 2": "Review system design fundamentals.",
+      "Day 3": "Mock interview with peer or coach.",
+    },
+  };
+}
+
+function buildScriptsLibrary(assessment: any, skills: SkillsAnalysis) {
+  const targetRole = formatTargetRole(
+    assessment.targetRoles?.[0]?.name || "your target role",
+    assessment.level || "mid"
+  );
+  const keySkills = skills.matchingSkills.slice(0, 3).map((s) => s.name).join(", ");
+  return {
+    scripts: [
+      {
+        title: "Recruiter intro",
+        category: "Outreach",
+        description: "Initial message to a recruiter for your target role.",
+        content: `Hi [Name] — I’m targeting ${targetRole} roles and recently led work in ${keySkills}. Open to roles that value systems reliability and execution. Are you hiring for this?`,
+      },
+      {
+        title: "Hiring manager note",
+        category: "Outreach",
+        description: "Direct note to a hiring manager with proof.",
+        content: `Hi [Name], I’m a ${targetRole} who delivered measurable impact in ${keySkills}. I’d love to contribute to your team’s reliability and delivery velocity. Open to a quick intro?`,
+      },
+      {
+        title: "Follow-up",
+        category: "Follow-up",
+        description: "Polite follow-up if no response after a week.",
+        content: `Hi [Name], quick follow-up on my note about ${targetRole} roles. Happy to share a short summary of my impact if helpful.`,
+      },
+    ],
+  };
+}
+
+function buildCompanyStrategies(assessment: any, skills: SkillsAnalysis) {
+  const companies = (assessment.targetCompanies || []).slice(0, 3);
+  const keySkills = skills.matchingSkills.slice(0, 3).map((s) => s.name).join(", ");
+  return {
+    companyStrategies: companies.map((company: any) => ({
+      company: company.name || "Target Company",
+      overallStrategy: {
+        approach: "Targeted outreach",
+        reasoning: "Align keywords + recent company initiatives to show fit.",
+      },
+      applicationTactics: {
+        coverLetterPoints: [
+          `Tie ${keySkills} to the company’s tech stack.`,
+          "Use a quantified achievement in the first paragraph.",
+          "Reference a recent product or engineering initiative.",
+        ],
+      },
+      networkingPath: {
+        whoToTarget: [
+          { role: "Engineering Manager", whatToSay: "Ask about team priorities and role fit." },
+          { role: "Senior Engineer", whatToSay: "Ask about tech stack and current challenges." },
+        ],
+      },
+      talkingPoints: [
+        { point: "Reliability and velocity improvements with measurable impact." },
+        { point: "Alignment with team’s stack and roadmap." },
+      ],
+    })),
   };
 }
 
@@ -1283,10 +1485,10 @@ export async function buildDataDrivenBundle(answers: any, parsed?: ParsedData, o
     linkedinAnalysis,
     companyMatches: null,
     actionPlan: { week1: week1Plan, week2Preview: { title: "Execution Week", previewTasks: [] } },
-    personalizedScripts: null,
-    coverLetterKit: null,
-    interviewPrep: null,
-    companyStrategies: null,
+    personalizedScripts: buildScriptsLibrary(answers, skillsAnalysis),
+    coverLetterKit: buildCoverLetterKit(answers, skillsAnalysis),
+    interviewPrep: buildInterviewPrep(answers, skillsAnalysis),
+    companyStrategies: buildCompanyStrategies(answers, skillsAnalysis),
     careerAnalysis,
     aiModel: "data-driven",
     aiFailed: false,

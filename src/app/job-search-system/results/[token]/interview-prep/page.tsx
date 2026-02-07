@@ -3,6 +3,7 @@ import { AccountGate } from "@/components/account-gate";
 import { PortalShell } from "@/components/portal-shell";
 import { getAuthorizedAssessment } from "@/lib/results-auth";
 import { AIAnalysisScreen } from "@/components/premium/ai-analysis-screen";
+import { ProfileUpdateActions } from "@/components/premium/profile-update-actions";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -69,6 +70,7 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
         <section className="rounded-[28px] border border-white/10 bg-gradient-to-br from-[#0B1220] via-[#131B2E] to-[#0B1220] p-8">
           <h1 className="text-3xl font-semibold">Interview Prep</h1>
           <p className="mt-2 text-white/70">Scripted STAR stories, technical prompts, and practice plans tailored to you.</p>
+          <ProfileUpdateActions assessmentId={assessment.id} token={token} />
         </section>
 
         <div className="grid gap-6">
@@ -84,6 +86,11 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
                       <p className="mt-1 text-sm text-white/80">{story.whyThisWorks}</p>
                     </div>
                   ))}
+                  {starStories.length === 0 && (
+                    <div className="rounded-xl border border-white/10 bg-[#0B1220] p-4 text-sm text-white/70">
+                      Draft 2 STAR stories: one on impact and one on leadership under pressure.
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
@@ -96,6 +103,11 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
                       <p className="mt-3 text-sm text-white/80">{question.suggestedApproach}</p>
                     </div>
                   ))}
+                  {technicalQuestions.length === 0 && (
+                    <div className="rounded-xl border border-white/10 bg-[#0B1220] p-4 text-sm text-white/70">
+                      Prepare system design and troubleshooting questions aligned to your target role.
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -111,6 +123,11 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
                       <p className="mt-1 text-sm text-white/80">{question.whyTheyAskThis}</p>
                     </div>
                   ))}
+                  {behavioralQuestions.length === 0 && (
+                    <div className="rounded-xl border border-white/10 bg-[#0B1220] p-4 text-sm text-white/70">
+                      Prepare behavioral responses around ownership, conflict, and stakeholder alignment.
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
@@ -123,6 +140,11 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
                       <p className="mt-2 text-sm text-white/80">{item.whyAsk}</p>
                     </div>
                   ))}
+                  {questionsToAsk.length === 0 && (
+                    <div className="rounded-xl border border-white/10 bg-[#0B1220] p-4 text-sm text-white/70">
+                      Ask about success metrics, team priorities, and the system’s reliability goals.
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

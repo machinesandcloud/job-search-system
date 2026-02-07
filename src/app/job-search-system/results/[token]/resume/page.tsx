@@ -3,6 +3,8 @@ import { AccountGate } from "@/components/account-gate";
 import { PortalShell } from "@/components/portal-shell";
 import { getAuthorizedAssessment } from "@/lib/results-auth";
 import { AIAnalysisScreen } from "@/components/premium/ai-analysis-screen";
+import { ResumeChecklist } from "@/components/premium/resume-checklist";
+import { ProfileUpdateActions } from "@/components/premium/profile-update-actions";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -75,29 +77,22 @@ export default async function ResumePage({ params }: { params: Promise<{ token: 
               <p className="mt-1 text-xs text-white/60">ATS: {resumeAnalysis?.atsScore ?? "--"}/100</p>
             </div>
           </div>
+          <ProfileUpdateActions assessmentId={assessment.id} token={token} kind="resume" />
         </section>
 
         <>
             <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
               <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
                 <h2 className="text-lg font-semibold">Priority Fixes</h2>
-                <div className="mt-4 space-y-4">
-                  {(isPro ? resumeAnalysis.issues : (resumeAnalysis.issues || []).slice(0, 3)).map((issue: any, index: number) => (
-                    <div key={issue.id || index} className="rounded-xl border border-white/10 bg-[#0B1220] p-4">
-                      <div className="flex items-center justify-between text-xs text-white/60">
-                        <span className="uppercase tracking-[0.2em]">{issue.severity} priority</span>
-                        <span>{issue.location}</span>
-                      </div>
-                      <p className="mt-2 text-sm font-semibold text-white">{issue.issue}</p>
-                      <p className="mt-2 text-sm text-white/70">{issue.suggestedFix}</p>
-                    </div>
-                  ))}
+                <ResumeChecklist
+                  assessmentId={assessment.id}
+                  issues={isPro ? resumeAnalysis.issues || [] : (resumeAnalysis.issues || []).slice(0, 3)}
+                />
                   {!isPro && (
                     <p className="text-xs text-white/50">
                       Upgrade to Pro Pack to unlock the full list of resume fixes and custom rewrites.
                     </p>
                   )}
-                </div>
               </div>
 
               <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
@@ -109,6 +104,11 @@ export default async function ResumePage({ params }: { params: Promise<{ token: 
                       <p className="mt-1 text-xs text-white/60">Impact: {win.impact}</p>
                     </div>
                   ))}
+                  {(!resumeAnalysis.quickWins || resumeAnalysis.quickWins.length === 0) && (
+                    <div className="rounded-xl border border-white/10 bg-[#0B1220] p-4 text-sm text-white/70">
+                      Add 2-3 missing keywords to your Skills section and one experience bullet to lift ATS match.
+                    </div>
+                  )}
                 </div>
               </div>
             </section>
@@ -138,6 +138,11 @@ export default async function ResumePage({ params }: { params: Promise<{ token: 
                       <p className="mt-1 text-sm text-white">{item.improvedText}</p>
                     </div>
                   ))}
+                  {(!resumeAnalysis.weakAchievements || resumeAnalysis.weakAchievements.length === 0) && (
+                    <div className="rounded-xl border border-white/10 bg-[#0B1220] p-4 text-sm text-white/70">
+                      Add metrics to your top 3 experience bullets (%, $, time saved) to strengthen credibility.
+                    </div>
+                  )}
                 </div>
               </div>
             </section>
