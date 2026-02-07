@@ -170,12 +170,12 @@ export async function analyzeSkillsMatch(input: {
   jobDescription: string;
   marketIntel: any;
 }): Promise<SkillsAnalysis> {
-  const resumeSkills = extractResumeSkills(input.resumeParsed);
-  const linkedinSkills = (input.linkedinData.skills || []).map((name: string) => ({
+  const resumeSkills: SkillItem[] = extractResumeSkills(input.resumeParsed);
+  const linkedinSkills: SkillItem[] = (input.linkedinData.skills || []).map((name: string) => ({
     name,
     foundIn: resumeSkills.find((s) => normalizeSkill(s.name) === normalizeSkill(name)) ? "both" : "linkedin",
   }));
-  const yourSkills = [...resumeSkills, ...linkedinSkills].filter(Boolean);
+  const yourSkills: SkillItem[] = [...resumeSkills, ...linkedinSkills].filter(Boolean);
 
   const jdSkills = await extractJobDescriptionSkills(input.jobDescription);
   const marketSkills =
@@ -185,7 +185,7 @@ export async function analyzeSkillsMatch(input: {
       foundIn: "market",
     })) || [];
 
-  const requiredSkills = [...jdSkills, ...marketSkills].filter((s) => s.name);
+  const requiredSkills: SkillItem[] = [...jdSkills, ...marketSkills].filter((s) => s.name);
 
   const matchingSkills: SkillItem[] = [];
   const missingCriticalSkills: SkillItem[] = [];
@@ -198,7 +198,10 @@ export async function analyzeSkillsMatch(input: {
       return a === b || a.includes(b) || b.includes(a);
     });
     if (match) {
-      matchingSkills.push({ ...match, requiredLevel: required.requiredLevel });
+      matchingSkills.push({
+        ...(match as SkillItem),
+        requiredLevel: required.requiredLevel || "preferred",
+      });
     } else if (required.requiredLevel === "critical") {
       missingCriticalSkills.push(required);
     } else {
