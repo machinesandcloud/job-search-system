@@ -12,6 +12,7 @@ import { CTAButton } from "@/components/cta-button";
 import { MobileNav } from "@/components/mobile-nav";
 import { RotatingWords } from "@/components/rotating-words";
 import { LogoCarousel } from "@/components/logo-carousel";
+import { CompanyLogo } from "@/components/company-logo";
 
 export const metadata: Metadata = {
   title: "Tech Career Coaching System | Land Senior Roles Faster | Steve Ngoumnai",
@@ -343,16 +344,43 @@ export default function JobSearchLanding() {
               <p className="mt-3 text-xs text-slate-400">No sales call. No payment. Clarity.</p>
               <p className="privacy-note mt-4">Your data is private and never shared.</p>
             </div>
-            <div className="dashboard-preview relative overflow-hidden rounded-3xl border border-slate-700 bg-slate-950/60">
-              <img
-                src="/images/command-center-office.jpg"
-                alt="Career readiness dashboard showing score, weekly focus, and blocker analysis"
-                className="dashboard-preview-image h-full w-full object-cover"
-                loading="lazy"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/45 via-transparent to-transparent" />
-              <div className="dashboard-preview-label absolute bottom-4 left-4 rounded-full border border-white/10 bg-black/35 px-3 py-1 text-xs text-slate-200">
-                Preview of your dashboard
+            <div className="cmd-panel rounded-3xl border border-slate-700 bg-slate-950/60 p-6">
+              <p className="cmd-eyebrow">Coaching credentials</p>
+              <h3 className="mt-3 text-2xl font-semibold text-slate-100">
+                Operator-led coaching. Proven outcomes.
+              </h3>
+              <p className="mt-3 text-sm text-slate-300">
+                You’re guided by a systems-minded coach who has hired, led, and built real teams — not just reviewed resumes.
+              </p>
+              <div className="mt-6 grid gap-4">
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Experience</p>
+                  <p className="mt-2 text-slate-200">10+ years leading DevOps &amp; platform teams.</p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Results</p>
+                  <p className="mt-2 text-slate-200">300+ professionals placed since 2023.</p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <p className="text-xs uppercase tracking-wide text-slate-400">What you get</p>
+                  <p className="mt-2 text-slate-200">Clarity, positioning, and a tailored execution plan.</p>
+                </div>
+              </div>
+              <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
+                <p className="text-xs uppercase tracking-wide text-slate-400">Clients placed at</p>
+                <div className="mt-3 flex flex-wrap items-center gap-4">
+                  {logoCompanies.slice(0, 8).map((company) => (
+                    <div key={`cred-${company.name}`} className="flex items-center gap-2 text-xs text-slate-300">
+                      <CompanyLogo name={company.name} domain={company.domain} size={26} className="bg-white/10" />
+                      <span className="hidden sm:inline">{company.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-6 flex flex-wrap items-center gap-3 text-xs text-slate-400">
+                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Hiring manager perspective</span>
+                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Systems + strategy</span>
+                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">High-signal guidance</span>
               </div>
             </div>
           </div>
@@ -396,7 +424,7 @@ export default function JobSearchLanding() {
                 </div>
                 <div className="cmd-panel rounded-3xl p-4">
                   <p className="text-xs uppercase tracking-wide text-slate-400">Current work</p>
-                  <p className="mt-2 text-slate-200">Agentic AI consulting + workflow automation for startups.</p>
+                  <p className="mt-2 text-slate-200">Coaching senior engineers and managers through high-stakes career moves.</p>
                 </div>
               </div>
             </div>
