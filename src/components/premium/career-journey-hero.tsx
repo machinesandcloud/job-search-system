@@ -1,3 +1,5 @@
+import { formatTargetRole } from "@/lib/helpers/role-formatter";
+
 const getFirstName = (fullName?: string | null) => {
   if (!fullName) return "there";
   return fullName.split(" ")[0];
@@ -37,7 +39,10 @@ export function CareerJourneyHero({ assessment }: { assessment: any }) {
     linkedinManual?.currentCompany ||
     linkedinParsed?.experience?.[0]?.company ||
     "your company";
-  const targetRole = assessment.targetRoles?.[0]?.name || "your target role";
+  const targetRole = formatTargetRole(
+    assessment.targetRoles?.[0]?.name || "your target role",
+    assessment.level || "mid"
+  );
   const targetCompany = assessment.targetCompanies?.[0]?.name || "your target company";
   const readinessScore = assessment.totalScore ?? 0;
 

@@ -4,6 +4,7 @@ import { PortalShell } from "@/components/portal-shell";
 import { getAuthorizedAssessment } from "@/lib/results-auth";
 import { CareerJourneyHero } from "@/components/premium/career-journey-hero";
 import { ScoreBreakdown } from "@/components/premium/score-breakdown";
+import { ATSKeywordPanel } from "@/components/premium/ats-keyword-panel";
 import { AIInsightsPanel } from "@/components/premium/ai-insights-panel";
 import { Week1Experience } from "@/components/premium/week1-experience";
 import { Week2Preview } from "@/components/premium/week2-preview";
@@ -116,6 +117,10 @@ export default async function ResultsPage({ params }: { params: Promise<{ token:
         </section>
 
         <ScoreBreakdown assessment={assessment} aiPending={aiPendingMessage} />
+        <ATSKeywordPanel
+          atsAnalysis={(assessment.skillMatchData as any)?.atsAnalysis}
+          aiPending={aiPendingMessage}
+        />
         <AIInsightsPanel assessment={assessment} aiPending={aiPendingMessage} />
         <MarketIntelPanel marketIntel={assessment.marketIntelligence} aiPending={aiPendingMessage} />
 

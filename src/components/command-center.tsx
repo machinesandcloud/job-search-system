@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { formatTargetRole } from "@/lib/helpers/role-formatter";
 
 type CommandCenterProps = {
   assessment: any;
@@ -37,7 +38,10 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
 
   const ai = assessment?.aiInsights || {};
   const skillMatchData = assessment?.skillMatchData || {};
-  const targetRole = assessment?.targetRoles?.[0]?.name || "Target role";
+  const targetRole = formatTargetRole(
+    assessment?.targetRoles?.[0]?.name || "Target role",
+    assessment?.level || "mid"
+  );
   const resumeParsed = assessment.resumeParsedData || null;
   const linkedinParsed = assessment.linkedinParsedData || null;
   const resumeAnalysis = assessment.resumeAnalysis || null;

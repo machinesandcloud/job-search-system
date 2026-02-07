@@ -3,8 +3,12 @@ export function ScoreBreakdown({ assessment, aiPending }: { assessment: any; aiP
   const linkedinScore = (assessment.linkedinAnalysis as any)?.overallScore;
   const skillsScore = (assessment.skillMatchData as any)?.overallScore ?? null;
   const networkScore = assessment.networkScore ?? null;
-  const atsPass = (assessment.skillMatchData as any)?.atsPass;
-  const atsScore = typeof skillsScore === "number" ? skillsScore : null;
+  const atsScore =
+    (assessment.skillMatchData as any)?.atsAnalysis?.score ??
+    (assessment.skillMatchData as any)?.atsScore ??
+    (typeof skillsScore === "number" ? skillsScore : null);
+  const atsPass =
+    typeof atsScore === "number" ? atsScore >= 70 : (assessment.skillMatchData as any)?.atsPass;
 
   const cards = [
     { label: "Resume", score: resumeScore, color: "from-cyan-500 to-sky-500" },

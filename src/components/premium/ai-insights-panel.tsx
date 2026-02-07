@@ -1,3 +1,5 @@
+import { formatTargetRole } from "@/lib/helpers/role-formatter";
+
 export function AIInsightsPanel({
   assessment,
   aiPending,
@@ -10,7 +12,17 @@ export function AIInsightsPanel({
   const marketIntel = assessment.marketIntelligence as any;
   const skillMatch = assessment.skillMatchData as any;
   const linkedin = assessment.linkedinParsedData as any;
-  const targetRole = assessment.targetRoles?.[0]?.name || "your target role";
+  const targetRole = formatTargetRole(
+    assessment.targetRoles?.[0]?.name || "your target role",
+    assessment.level || "mid"
+  );
+  const atsAnalysis = skillMatch?.atsAnalysis;
+  const atsMatches = (atsAnalysis?.matchedKeywords || []).filter(
+    (item: any) => item.importance === "critical" || item.importance === "important"
+  );
+  const atsMissing = (atsAnalysis?.missingKeywords || []).filter(
+    (item: any) => item.importance === "critical"
+  );
 
   const fallbackPrimaryGap = (() => {
     const missing = skillMatch?.missingCriticalSkills || [];
@@ -52,11 +64,17 @@ export function AIInsightsPanel({
     {
       title: "Hidden Strength",
       tone: "border-cyan-500/30 bg-cyan-500/10",
-      content: insights?.strengthsToLeverage?.[0]?.strength,
-      detail: insights?.strengthsToLeverage?.[0]?.howToUse,
-      evidence: insights?.strengthsToLeverage?.[0]?.evidence
-        ? [insights.strengthsToLeverage[0].evidence]
-        : null,
+      content: atsMatches.length
+        ? `You already have ${atsMatches.slice(0, 3).map((item: any) => item.keyword).join(", ")}`
+        : insights?.strengthsToLeverage?.[0]?.strength,
+      detail: atsMatches.length
+        ? `These skills are explicitly required in the job description. Highlight them in your summary and headline.`
+        : insights?.strengthsToLeverage?.[0]?.howToUse,
+      evidence: atsMatches.length
+        ? atsMatches.slice(0, 3).map((item: any) => `✓ ${item.keyword} mentioned ${item.frequency || 1}x`)
+        : insights?.strengthsToLeverage?.[0]?.evidence
+          ? [insights.strengthsToLeverage[0].evidence]
+          : null,
     },
     {
       title: "Market Reality",
@@ -75,7 +93,9 @@ export function AIInsightsPanel({
       tone: "border-blue-500/30 bg-blue-500/10",
       content: skillMatch?.educationMet === false
         ? `Education requirement isn't verified yet.`
-        : "Minimum requirements look aligned. Next: proof + role alignment.",
+        : atsMissing.length
+          ? `You're missing ${atsMissing.length} critical keywords required for ATS.`
+          : "Minimum requirements look aligned. Next: proof + role alignment.",
       detail: skillMatch?.requiredEducation
         ? `Job description mentions: "${skillMatch.requiredEducation}"`
         : "",
@@ -91,7 +111,9 @@ export function AIInsightsPanel({
       content: linkedin?.headline
         ? "Your LinkedIn headline should match your target role and resume."
         : "LinkedIn headline missing. Recruiters validate role fit here.",
-      detail: linkedin?.headline ? `Current headline: ${linkedin.headline}` : "Add a headline that mirrors your target role.",
+      detail: linkedin?.headline
+        ? `Current headline: ${linkedin.headline}`
+        : `Add a headline that mirrors ${targetRole}.`,
       evidence: [
         resume?.currentRole ? `Resume role: ${resume.currentRole?.title || resume.currentRole}` : "Resume role not detected.",
       ],

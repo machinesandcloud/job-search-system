@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AccountGate, CoachActionPanel } from "@/components/account-gate";
 import { AIAnalysisScreen } from "@/components/premium/ai-analysis-screen";
+import { formatTargetRole } from "@/lib/helpers/role-formatter";
 
 type PreviewData = {
   assessmentId: string;
@@ -80,7 +81,10 @@ export default function PreviewClient() {
   const actionPlan = data?.assessment?.actionPlan || null;
   const week1 = data?.assessment?.week1Plan?.week1?.tasks || actionPlan?.week1?.tasks || [];
   const skillMatch = data?.assessment?.skillMatchData || null;
-  const targetRole = data?.assessment?.targetRoles?.[0]?.name || "your target role";
+  const targetRole = formatTargetRole(
+    data?.assessment?.targetRoles?.[0]?.name || "your target role",
+    data?.assessment?.level || "mid"
+  );
 
   const fallbackPrimaryGap = (() => {
     const missing = skillMatch?.missingCriticalSkills || [];

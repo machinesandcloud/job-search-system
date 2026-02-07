@@ -6,9 +6,17 @@ export function MarketIntelPanel({
   aiPending: string;
 }) {
   const keywords = marketIntel?.roleKeywords || [];
-  const salaryRanges = marketIntel?.salaryData?.ranges || null;
+  const salaryData = marketIntel?.salaryData || null;
+  const salaryRanges = salaryData?.ranges || null;
   const salarySignals = marketIntel?.salarySignals || null;
   const companyTrends = marketIntel?.companyTrends || [];
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: salaryData?.ranges?.currency || "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
 
   return (
     <section className="rounded-[28px] border border-white/10 bg-white/5 p-6">
@@ -43,13 +51,32 @@ export function MarketIntelPanel({
 
       <div className="mt-6 rounded-xl border border-white/10 bg-[#0B1220] p-4">
         <p className="text-xs uppercase tracking-[0.2em] text-white/50">Salary benchmark</p>
-        {salaryRanges && Object.keys(salaryRanges).length ? (
-          <div className="mt-2 text-sm text-white/70">
-            {Object.entries(salaryRanges).map(([level, range]: any) => (
-              <p key={level}>
-                {level}: ${range?.min ? range.min.toLocaleString() : "—"} - ${range?.max ? range.max.toLocaleString() : "—"}
-              </p>
-            ))}
+        {salaryRanges?.min && salaryRanges?.max ? (
+          <div className="mt-3 space-y-3">
+            <div className="flex items-end justify-between">
+              <div>
+                <p className="text-sm font-semibold text-white">{salaryData?.role || "Salary benchmark"}</p>
+                {salaryData?.level ? (
+                  <p className="text-xs text-white/60">{salaryData.level}</p>
+                ) : null}
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-white/50">Median</p>
+                <p className="text-lg font-semibold text-emerald-300">
+                  {formatCurrency(salaryRanges.median || Math.round((salaryRanges.min + salaryRanges.max) / 2))}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center justify-between text-xs text-white/60">
+              <span>{formatCurrency(salaryRanges.min)}</span>
+              <span>{formatCurrency(salaryRanges.max)}</span>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-white/10">
+              <div className="h-full bg-gradient-to-r from-emerald-400 to-teal-400" style={{ width: "100%" }} />
+            </div>
+            <div className="text-xs text-white/50">
+              {salaryData?.source ? `Source: ${salaryData.source}` : null}
+            </div>
           </div>
         ) : salarySignals?.range ? (
           <div className="mt-2 text-sm text-white/70">

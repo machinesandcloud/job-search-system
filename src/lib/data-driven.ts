@@ -1,4 +1,6 @@
 import { gatherMarketIntel } from "@/lib/market-intel";
+import { groqChatJSON } from "@/lib/llm";
+import { formatTargetRole } from "@/lib/helpers/role-formatter";
 
 type ParsedData = {
   resumeParsedData?: any;
@@ -13,6 +15,22 @@ type SkillItem = {
   requiredLevel?: "critical" | "preferred" | "nice-to-have";
   whereInJobDescription?: string;
   exampleUsage?: string;
+};
+
+type ATSKeyword = {
+  keyword: string;
+  category: "technical" | "soft" | "domain" | "tool" | "certification";
+  importance: "critical" | "important" | "nice-to-have";
+  frequency: number;
+  context?: string;
+};
+
+type ATSAnalysis = {
+  score: number;
+  totalKeywords: number;
+  matchedKeywords: ATSKeyword[];
+  missingKeywords: ATSKeyword[];
+  matchPercentage: number;
 };
 
 type SkillsAnalysis = {
@@ -84,6 +102,10 @@ const COMMON_SKILLS = [
 const EDUCATION_KEYWORDS = ["bachelor", "bs", "ba", "master", "ms", "phd", "b.sc", "m.sc"];
 
 function normalizeSkill(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function normalizeKeyword(value: string) {
   return value.trim().toLowerCase();
 }
 
@@ -197,6 +219,300 @@ function hasEducationMatch(resumeParsed: any, requirement: string | null) {
   const edu = resumeParsed?.education || resumeParsed?.raw?.education || [];
   const text = JSON.stringify(edu).toLowerCase();
   return EDUCATION_KEYWORDS.some((keyword) => requirement.toLowerCase().includes(keyword) && text.includes(keyword));
+}
+
+function getResumeText(parsed?: ParsedData, resumeParsed?: any) {
+  if (parsed?.resumeRawText) return parsed.resumeRawText;
+  if (resumeParsed?.rawText) return resumeParsed.rawText;
+  const fallback = resumeParsed || parsed?.resumeParsedData || {};
+  return JSON.stringify(fallback);
+}
+
+async function extractJobDescriptionKeywordsGroq(jobDescription: string): Promise<ATSKeyword[]> {
+  const prompt = `Analyze this job description and extract the most important ATS keywords.
+
+Rules:
+- Return at most 25 keywords.
+- Include technical skills, tools, certifications, domain terms, and key soft skills.
+- Provide frequency (approximate count of mentions).
+- Importance levels: critical, important, nice-to-have.
+
+Job Description:
+${jobDescription}
+
+Return JSON:
+{
+  "keywords": [
+    {
+      "keyword": "Kubernetes",
+      "category": "technical",
+      "importance": "critical",
+      "frequency": 5,
+      "context": "5+ years experience with Kubernetes required"
+    }
+  ]
+}`;
+
+  const response = await groqChatJSON(
+    "You extract ATS keywords from job descriptions. Return valid JSON only.",
+    prompt
+  );
+  const keywords = response?.keywords;
+  if (!Array.isArray(keywords)) return [];
+  return keywords
+    .filter((item: any) => item?.keyword)
+    .map((item: any) => ({
+      keyword: String(item.keyword),
+      category: item.category || "technical",
+      importance: item.importance || "important",
+      frequency: Number(item.frequency || 1),
+      context: item.context || item.whereInJobDescription || "",
+    }));
+}
+
+async function extractResumeKeywordsGroq(resumeText: string): Promise<ATSKeyword[]> {
+  const prompt = `Extract keywords from this resume.
+
+Rules:
+- Include technical skills, tools, certifications, methodologies, and key soft skills.
+- Return at most 40 keywords.
+
+Resume:
+${resumeText}
+
+Return JSON:
+{
+  "keywords": [
+    { "keyword": "Python", "category": "technical" }
+  ]
+}`;
+
+  const response = await groqChatJSON(
+    "You extract resume keywords for ATS matching. Return valid JSON only.",
+    prompt
+  );
+  const keywords = response?.keywords;
+  if (!Array.isArray(keywords)) return [];
+  return keywords
+    .filter((item: any) => item?.keyword)
+    .map((item: any) => ({
+      keyword: String(item.keyword),
+      category: item.category || "technical",
+      importance: "nice-to-have",
+      frequency: 0,
+    }));
+}
+
+function buildATSFallback(jobDescription: string, resumeParsed: any): ATSAnalysis {
+  const jdSkills = extractJobDescriptionSkills(jobDescription).map((skill) => ({
+    keyword: skill.name,
+    category: "technical" as const,
+    importance: skill.requiredLevel === "critical" ? "critical" : "important",
+    frequency: 1,
+    context: skill.whereInJobDescription,
+  }));
+  const resumeSkills = extractResumeSkills(resumeParsed).map((skill) => ({
+    keyword: skill.name,
+    category: "technical" as const,
+    importance: "nice-to-have" as const,
+    frequency: 0,
+  }));
+
+  return calculateATSFromKeywords(jdSkills, resumeSkills);
+}
+
+function calculateATSFromKeywords(jobKeywords: ATSKeyword[], resumeKeywords: ATSKeyword[]): ATSAnalysis {
+  const matchedKeywords: ATSKeyword[] = [];
+  const missingKeywords: ATSKeyword[] = [];
+
+  jobKeywords.forEach((job) => {
+    const jobKey = normalizeKeyword(job.keyword);
+    const match = resumeKeywords.find((res) => {
+      const resKey = normalizeKeyword(res.keyword);
+      return resKey === jobKey || resKey.includes(jobKey) || jobKey.includes(resKey);
+    });
+    if (match) {
+      matchedKeywords.push(job);
+    } else {
+      missingKeywords.push(job);
+    }
+  });
+
+  const criticalTotal = jobKeywords.filter((k) => k.importance === "critical").length || 0;
+  const importantTotal = jobKeywords.filter((k) => k.importance === "important").length || 0;
+  const niceTotal = jobKeywords.filter((k) => k.importance === "nice-to-have").length || 0;
+
+  const criticalMatches = matchedKeywords.filter((k) => k.importance === "critical").length;
+  const importantMatches = matchedKeywords.filter((k) => k.importance === "important").length;
+  const niceMatches = matchedKeywords.filter((k) => k.importance === "nice-to-have").length;
+
+  const criticalScore = criticalTotal ? (criticalMatches / criticalTotal) * 60 : 60;
+  const importantScore = importantTotal ? (importantMatches / importantTotal) * 30 : 30;
+  const niceScore = niceTotal ? (niceMatches / niceTotal) * 10 : 10;
+
+  const score = Math.round(criticalScore + importantScore + niceScore);
+  const matchPercentage = jobKeywords.length
+    ? Math.round((matchedKeywords.length / jobKeywords.length) * 100)
+    : 0;
+
+  return {
+    score,
+    totalKeywords: jobKeywords.length,
+    matchedKeywords,
+    missingKeywords,
+    matchPercentage,
+  };
+}
+
+async function calculateATSAnalysis(jobDescription: string, resumeText: string, resumeParsed: any): Promise<ATSAnalysis> {
+  const [jobKeywords, resumeKeywords] = await Promise.all([
+    extractJobDescriptionKeywordsGroq(jobDescription),
+    extractResumeKeywordsGroq(resumeText),
+  ]);
+
+  if (!jobKeywords.length || !resumeKeywords.length) {
+    return buildATSFallback(jobDescription, resumeParsed);
+  }
+  return calculateATSFromKeywords(jobKeywords, resumeKeywords);
+}
+
+type SalaryData = {
+  role: string;
+  level: string;
+  ranges: {
+    min: number;
+    max: number;
+    median: number;
+    currency: string;
+  };
+  source: string;
+  location?: string;
+  lastUpdated: string;
+  breakdown?: {
+    base?: { min: number; max: number };
+    bonus?: { min: number; max: number };
+    equity?: { min: number; max: number };
+  };
+};
+
+async function extractSalaryFromJobDescription(jobDescription: string): Promise<SalaryData | null> {
+  const response = await groqChatJSON(
+    "You extract salary information from job descriptions. Return valid JSON only.",
+    `Analyze the job description and extract salary info if present.
+
+Return JSON:
+{
+  "found": true,
+  "min": 150000,
+  "max": 200000,
+  "currency": "USD",
+  "notes": "Salary range mentioned in benefits section"
+}
+
+If none found: {"found": false}
+
+Job Description:
+${jobDescription}`
+  );
+
+  if (!response || response.found !== true) return null;
+  const min = Number(response.min || 0);
+  const max = Number(response.max || 0);
+  if (!min || !max) return null;
+  return {
+    role: "From Job Description",
+    level: "",
+    ranges: {
+      min,
+      max,
+      median: Math.round((min + max) / 2),
+      currency: response.currency || "USD",
+    },
+    source: "Job Description",
+    lastUpdated: new Date().toISOString(),
+  };
+}
+
+async function analyzeMarketSalary(results: any[], targetRole: string, level: string, location?: string) {
+  const response = await groqChatJSON(
+    "You analyze salary data from search results. Return valid JSON only.",
+    `Based on these search results, estimate the salary range for a ${level} ${targetRole}.
+
+Search Results:
+${JSON.stringify(results.slice(0, 5))}
+
+Return JSON:
+{
+  "min": 120000,
+  "max": 180000,
+  "median": 150000,
+  "source": "Levels.fyi, Glassdoor",
+  "currency": "USD"
+}`
+  );
+
+  if (!response?.min || !response?.max) return null;
+  return {
+    role: targetRole,
+    level,
+    ranges: {
+      min: Number(response.min),
+      max: Number(response.max),
+      median: Number(response.median || Math.round((response.min + response.max) / 2)),
+      currency: response.currency || "USD",
+    },
+    source: response.source || "Market research",
+    location,
+    lastUpdated: new Date().toISOString(),
+  } satisfies SalaryData;
+}
+
+function fallbackSalary(targetRole: string, level: string, location?: string): SalaryData {
+  const defaults: Record<string, { min: number; max: number }> = {
+    entry: { min: 60000, max: 90000 },
+    junior: { min: 80000, max: 110000 },
+    mid: { min: 100000, max: 140000 },
+    senior: { min: 140000, max: 190000 },
+    staff: { min: 180000, max: 250000 },
+    principal: { min: 220000, max: 320000 },
+    lead: { min: 160000, max: 220000 },
+    manager: { min: 150000, max: 210000 },
+    director: { min: 200000, max: 300000 },
+    vp: { min: 250000, max: 400000 },
+  };
+  const range = defaults[level?.toLowerCase?.() || ""] || { min: 100000, max: 150000 };
+  return {
+    role: targetRole,
+    level,
+    ranges: {
+      min: range.min,
+      max: range.max,
+      median: Math.round((range.min + range.max) / 2),
+      currency: "USD",
+    },
+    source: "Industry estimates",
+    location,
+    lastUpdated: new Date().toISOString(),
+  };
+}
+
+async function getSalaryIntelligence(input: {
+  targetRole: string;
+  level: string;
+  jobDescription?: string;
+  marketIntel?: any;
+  location?: string;
+}): Promise<SalaryData | null> {
+  if (input.jobDescription) {
+    const extracted = await extractSalaryFromJobDescription(input.jobDescription);
+    if (extracted) return extracted;
+  }
+  const salaryResults = input.marketIntel?.sources?.salaryResults || [];
+  if (Array.isArray(salaryResults) && salaryResults.length) {
+    const parsed = await analyzeMarketSalary(salaryResults, input.targetRole, input.level, input.location);
+    if (parsed) return parsed;
+  }
+  return fallbackSalary(input.targetRole, input.level, input.location);
 }
 
 function calculateRoleAlignment(targetRole: string | null | undefined, resumeParsed: any, linkedinData: ReturnType<typeof getLinkedinData>) {
@@ -397,11 +713,19 @@ export function calculateReadinessScore(assessment: any, skills: SkillsAnalysis)
   };
 }
 
-export function generateExecutiveSummary(assessment: any, scores: ReadinessScore, skills: SkillsAnalysis) {
-  const targetRole = assessment.targetRoles?.[0]?.name || "your target role";
+export function generateExecutiveSummary(
+  assessment: any,
+  scores: ReadinessScore,
+  skills: SkillsAnalysis,
+  ats?: ATSAnalysis
+) {
+  const targetRole = formatTargetRole(
+    assessment.targetRoles?.[0]?.name || "your target role",
+    assessment.level || "mid"
+  );
   const targetCompany = assessment.targetCompanies?.[0]?.name || "top companies";
   let coachSummary = "";
-  if (skills.atsPass) {
+  if (ats?.score ? ats.score >= 70 : skills.atsPass) {
     coachSummary = `You clear ATS screening for ${targetRole} roles. The next bottleneck is hiring-manager alignment: summary clarity, role relevance, and proof.`;
   } else {
     coachSummary = `You are at risk of ATS rejection for ${targetRole} roles. The immediate priority is adding missing technical keywords from the job description.`;
@@ -424,40 +748,63 @@ export function generateExecutiveSummary(assessment: any, scores: ReadinessScore
   };
 }
 
-export function generateDataDrivenInsights(assessment: any, scores: ReadinessScore, skills: SkillsAnalysis) {
-  const targetRole = assessment.targetRoles?.[0]?.name || "your target role";
+export function generateDataDrivenInsights(
+  assessment: any,
+  scores: ReadinessScore,
+  skills: SkillsAnalysis,
+  ats?: ATSAnalysis
+) {
+  const targetRole = formatTargetRole(
+    assessment.targetRoles?.[0]?.name || "your target role",
+    assessment.level || "mid"
+  );
   const targetCompany = assessment.targetCompanies?.[0]?.name || "your target company";
 
-  const missing = skills.missingCriticalSkills.slice(0, 3);
-  const primaryGap = missing.length
-    ? `You're missing ${missing.length} required skills`
+  const missing = (ats?.missingKeywords || []).filter((item) => item.importance === "critical").slice(0, 3);
+  const missingFallback = skills.missingCriticalSkills.slice(0, 3).map((skill) => ({
+    keyword: skill.name,
+    category: "technical" as const,
+    importance: "critical" as const,
+    frequency: 1,
+    context: skill.whereInJobDescription,
+  }));
+  const missingKeywords = missing.length ? missing : missingFallback;
+
+  const primaryGap = missingKeywords.length
+    ? `You're missing ${missingKeywords.length} required skills`
     : "Your ATS coverage is solid. The next gap is hiring-manager alignment.";
-  const primaryGapExplanation = missing.length
-    ? `The job description lists ${missing.map((s) => `"${s.name}"`).join(", ")} as required, but they're not in your resume or LinkedIn.`
+  const primaryGapExplanation = missingKeywords.length
+    ? `The job description lists ${missingKeywords.map((s) => `"${s.keyword}"`).join(", ")} as required, but they're not in your resume or LinkedIn.`
     : `Your resume and LinkedIn need clearer role alignment and proof for ${targetRole}.`;
 
-  const primaryGapEvidence = missing.length
+  const primaryGapEvidence = missingKeywords.length
     ? [
-      `Job description mentions: "${missing[0]?.whereInJobDescription || missing[0]?.name}"`,
+      `Job description mentions: "${missingKeywords[0]?.context || missingKeywords[0]?.keyword}"`,
       "Your resume: missing from Skills section",
       "Your LinkedIn: not listed in skills",
     ]
     : [];
 
-  const quickWin = missing.length
-    ? `Add ${missing[0]?.name} to your resume Skills section`
+  const quickWin = missingKeywords.length
+    ? `Add ${missingKeywords[0]?.keyword} to your resume Skills section`
     : `Align your summary to ${targetRole} with concrete proof`;
-  const quickWinReasoning = missing.length
+  const quickWinReasoning = missingKeywords.length
     ? "ATS systems prioritize exact keyword matches from the job description."
     : "Hiring managers scan the summary first to validate role fit.";
-  const quickWinEvidence = missing.length ? [`Missing: ${missing.map((s) => s.name).join(", ")}`] : [];
+  const quickWinEvidence = missingKeywords.length
+    ? [`Missing: ${missingKeywords.map((s) => s.keyword).join(", ")}`]
+    : [];
 
-  const strengthsToLeverage = skills.matchingSkills.length
+  const atsMatches = ats?.matchedKeywords?.filter((item) => item.importance !== "nice-to-have") || [];
+  const strengthsToLeverage = atsMatches.length
     ? [
         {
-          strength: `${skills.matchingSkills[0].name} experience`,
-          evidence: `Found in your ${skills.matchingSkills[0].foundIn}`,
-          howToUse: `Lead with ${skills.matchingSkills[0].name} in your headline and first resume bullets.`,
+          strength: `You have ${atsMatches.slice(0, 3).map((item) => item.keyword).join(", ")}`,
+          evidence: atsMatches.map((item) => `✓ ${item.keyword} mentioned ${item.frequency || 1}x in the job description`).join(" • "),
+          howToUse: `Move ${atsMatches[0]?.keyword} to your first resume bullet and add "${atsMatches
+            .slice(0, 3)
+            .map((item) => item.keyword)
+            .join(" | ")}" to your LinkedIn headline.`,
         },
       ]
     : scores.breakdown.experience >= 80
@@ -488,16 +835,26 @@ export function generateDataDrivenInsights(assessment: any, scores: ReadinessSco
   };
 }
 
-export function buildResumeAnalysis(assessment: any, skills: SkillsAnalysis) {
+export function buildResumeAnalysis(assessment: any, skills: SkillsAnalysis, ats?: ATSAnalysis) {
   const overallScore = calculateResumeScore(assessment);
-  const missingKeywords = skills.missingCriticalSkills.map((skill) => ({
-    keyword: skill.name,
-    importance: "high",
-    currentlyPresent: false,
-    whereToAdd: "Skills section + relevant experience bullet",
-    howToAdd: `Add "${skill.name}" to Skills and one experience bullet with context.`,
-    reason: skill.whereInJobDescription || "Required by the job description.",
-  }));
+  const atsMissing = ats?.missingKeywords?.filter((item) => item.importance === "critical") || [];
+  const missingKeywords = (atsMissing.length
+    ? atsMissing.map((skill) => ({
+        keyword: skill.keyword,
+        importance: "high",
+        currentlyPresent: false,
+        whereToAdd: "Skills section + relevant experience bullet",
+        howToAdd: `Add "${skill.keyword}" to Skills and one experience bullet with context.`,
+        reason: skill.context || "Required by the job description.",
+      }))
+    : skills.missingCriticalSkills.map((skill) => ({
+        keyword: skill.name,
+        importance: "high",
+        currentlyPresent: false,
+        whereToAdd: "Skills section + relevant experience bullet",
+        howToAdd: `Add "${skill.name}" to Skills and one experience bullet with context.`,
+        reason: skill.whereInJobDescription || "Required by the job description.",
+      })));
 
   const issues = missingKeywords.slice(0, 4).map((item, index) => ({
     id: `missing-keyword-${index}`,
@@ -582,87 +939,256 @@ export function buildLinkedinAnalysis(assessment: any, skills: SkillsAnalysis) {
   };
 }
 
-export function buildWeek1Plan(assessment: any, skills: SkillsAnalysis) {
-  const missing = skills.missingCriticalSkills.slice(0, 5);
-  const tasks = missing.map((skill, index) => ({
-    id: `skill-${skill.name}-${index}`,
-    day: Math.min(7, index + 1),
-    title: `Add ${skill.name} to resume + LinkedIn`,
-    category: "Resume Optimization",
-    priority: "CRITICAL",
-    timeEstimate: "2 hours",
-    context: {
-      whyNow: skill.whereInJobDescription
-        ? `Job description: "${skill.whereInJobDescription}"`
-        : `The job description requires ${skill.name}.`,
-    },
-    currentState: {
-      issue: `Missing ${skill.name} in your resume and LinkedIn`,
-      consequence: "ATS filters may reject your application.",
-    },
-    beforeAfter: {
-      before: "Resume does not mention the required skill.",
-      after: `Resume includes ${skill.name} in Skills and at least one impact bullet.`,
-    },
-    exactSteps: [
-      "Open your resume",
-      "Add the skill to your Skills section",
-      "Find one relevant experience bullet",
-      `Insert ${skill.name} with context`,
-      "Update LinkedIn Skills list",
-    ],
-    template: {
-      example: `Implemented ${skill.name} to improve deployment reliability.`,
-    },
-    validation: {
-      checkpoints: [
-        `☐ ${skill.name} appears in Skills section`,
-        `☐ ${skill.name} appears in one experience bullet`,
-      ],
-    },
-  }));
+export function buildWeek1Plan(assessment: any, skills: SkillsAnalysis, ats?: ATSAnalysis) {
+  const targetRole = formatTargetRole(
+    assessment.targetRoles?.[0]?.name || "your target role",
+    assessment.level || "mid"
+  );
+  const targetCompany = assessment.targetCompanies?.[0]?.name || "target companies";
+  const criticalMissing =
+    ats?.missingKeywords?.filter((item) => item.importance === "critical") ||
+    skills.missingCriticalSkills.map((skill) => ({
+      keyword: skill.name,
+      context: skill.whereInJobDescription,
+      importance: "critical" as const,
+      category: "technical" as const,
+      frequency: 1,
+    }));
 
-  const dailyPlan: Record<string, any> = {};
-  for (let day = 1; day <= 7; day += 1) {
-    dailyPlan[`day${day}`] = {
-      theme: day === 1 ? "Skills Alignment" : "Execution",
-      focus: "Address critical gaps and polish your profile.",
-      timeNeeded: "2-3 hours",
-      motivational: "Small improvements compound quickly.",
-    };
-  }
+  const tasks: any[] = [];
+  let taskId = 1;
 
-  while (tasks.length < 15) {
-    const index = tasks.length + 1;
+  criticalMissing.slice(0, 3).forEach((keyword) => {
     tasks.push({
-      id: `task-${index}`,
-      day: Math.min(7, (index % 7) + 1),
-      title: "Strengthen resume impact metrics",
+      id: `week1-task-${taskId++}`,
+      day: 1,
+      title: `Add critical keyword: "${keyword.keyword}" to your resume`,
       category: "Resume Optimization",
-      priority: "HIGH",
-      timeEstimate: "90 min",
-      context: { whyNow: "Quantified achievements improve ATS ranking." },
+      priority: "CRITICAL",
+      timeEstimate: "20 min",
+      context: {
+        whyNow: keyword.context ? `Job description: "${keyword.context}"` : "ATS screening depends on exact keyword matches.",
+      },
       currentState: {
-        issue: "Bullets lack measurable impact.",
-        consequence: "Recruiters can’t see your impact quickly.",
+        issue: `Missing ${keyword.keyword} in your resume and LinkedIn.`,
+        consequence: "ATS filters may reject your application.",
       },
       beforeAfter: {
-        before: "Improved reliability.",
-        after: "Improved reliability by 30% by automating deployments.",
+        before: "Skills section missing required keyword.",
+        after: `Skills section includes ${keyword.keyword} + one experience bullet.`,
       },
       exactSteps: [
-        "Identify top 3 resume bullets",
-        "Add a number/percentage to each",
-        "Rewrite using action + metric",
+        "Open your resume",
+        "Add the keyword to Skills",
+        "Update one relevant experience bullet",
+        "Add the keyword to LinkedIn Skills",
       ],
       template: {
-        example: "Reduced incident rate by 25% through automation.",
+        example: `Implemented ${keyword.keyword} to improve deployment reliability.`,
       },
       validation: {
-        checkpoints: ["☐ 3 bullets include metrics", "☐ Each bullet has action + impact"],
+        checkpoints: [
+          `☐ ${keyword.keyword} appears in Skills section`,
+          `☐ ${keyword.keyword} appears in one experience bullet`,
+        ],
       },
     });
-  }
+  });
+
+  tasks.push({
+    id: `week1-task-${taskId++}`,
+    day: 2,
+    title: `Rewrite your resume summary for ${targetRole}`,
+    category: "Resume Optimization",
+    priority: "HIGH",
+    timeEstimate: "30 min",
+    context: { whyNow: "Hiring managers scan the summary first." },
+    currentState: {
+      issue: "Summary doesn’t clearly position you for the target role.",
+      consequence: "Hiring managers doubt role fit.",
+    },
+    beforeAfter: {
+      before: "Experienced engineer with a background in infrastructure.",
+      after: `Senior ${targetRole} delivering measurable impact across infrastructure, reliability, and automation.`,
+    },
+    exactSteps: [
+      "Open resume summary",
+      "Write 3-4 lines aligned to target role",
+      "Include 2-3 top skills + impact metric",
+    ],
+    template: {
+      example: `Senior ${targetRole} with 8+ years scaling cloud platforms and reducing incident rates by 30%.`,
+    },
+    validation: {
+      checkpoints: ["☐ Summary includes target role", "☐ Summary includes 2-3 keywords", "☐ Summary includes one metric"],
+    },
+  });
+
+  tasks.push({
+    id: `week1-task-${taskId++}`,
+    day: 2,
+    title: "Add metrics to your top 3 resume bullets",
+    category: "Resume Optimization",
+    priority: "HIGH",
+    timeEstimate: "45 min",
+    context: { whyNow: "Quantified achievements increase interview rates." },
+    currentState: {
+      issue: "Impact is implied, not measured.",
+      consequence: "Your work looks smaller than it is.",
+    },
+    beforeAfter: {
+      before: "Improved reliability.",
+      after: "Improved reliability by 30% through automated failover.",
+    },
+    exactSteps: [
+      "Select 3 most important bullets",
+      "Add a number/percentage to each",
+      "Rewrite using action + metric",
+    ],
+    template: {
+      example: "Reduced incident rate by 25% through automation.",
+    },
+    validation: {
+      checkpoints: ["☐ 3 bullets include metrics", "☐ Each bullet has action + impact"],
+    },
+  });
+
+  tasks.push({
+    id: `week1-task-${taskId++}`,
+    day: 3,
+    title: `Update LinkedIn headline for ${targetRole} searches`,
+    category: "LinkedIn Profile",
+    priority: "CRITICAL",
+    timeEstimate: "15 min",
+    context: { whyNow: "Recruiters search by headline keywords." },
+    currentState: {
+      issue: "Headline doesn't include your target role + top skills.",
+      consequence: "You won’t appear in recruiter searches.",
+    },
+    beforeAfter: {
+      before: "DevOps leader | Cloud",
+      after: `${targetRole} | ${criticalMissing.slice(0, 3).map((item) => item.keyword).join(" | ")}`,
+    },
+    exactSteps: [
+      "Open LinkedIn profile",
+      "Edit headline",
+      "Add target role + 2-3 keywords",
+    ],
+    template: {
+      example: `${targetRole} | Kubernetes | Terraform | AWS`,
+    },
+    validation: {
+      checkpoints: ["☐ Headline includes target role", "☐ 2-3 keywords included"],
+    },
+  });
+
+  tasks.push({
+    id: `week1-task-${taskId++}`,
+    day: 4,
+    title: "Write a 500+ word LinkedIn About section",
+    category: "LinkedIn Profile",
+    priority: "HIGH",
+    timeEstimate: "60 min",
+    context: { whyNow: "Hiring managers validate story alignment on LinkedIn." },
+    currentState: {
+      issue: "About section is missing or generic.",
+      consequence: "Your story doesn’t build trust.",
+    },
+    beforeAfter: {
+      before: "Experienced engineer focused on cloud systems.",
+      after: `Senior ${targetRole} delivering measurable outcomes in reliability, automation, and scale.`,
+    },
+    exactSteps: [
+      "Open LinkedIn About section",
+      "Write 3 short paragraphs with impact",
+      "Include target role + 3 keywords",
+    ],
+    template: {
+      example: `Senior ${targetRole} with 8+ years building reliable, automated infrastructure. Recent wins include reducing incidents by 30% and cutting deploy time by 40%.`,
+    },
+    validation: {
+      checkpoints: ["☐ 500+ words", "☐ Includes target role", "☐ Includes 3 keywords"],
+    },
+  });
+
+  tasks.push({
+    id: `week1-task-${taskId++}`,
+    day: 5,
+    title: `Research ${targetCompany}'s engineering stack`,
+    category: "Company Research",
+    priority: "MEDIUM",
+    timeEstimate: "30 min",
+    context: { whyNow: "Tailor your resume and outreach to company tech stack." },
+    currentState: {
+      issue: "Company-specific context not collected.",
+      consequence: "Outreach feels generic.",
+    },
+    exactSteps: [
+      "Read engineering blog",
+      "List 5 key tools/technologies",
+      "Map overlap with your skills",
+    ],
+    validation: {
+      checkpoints: ["☐ 5 tools collected", "☐ 3 overlap points identified"],
+    },
+  });
+
+  tasks.push({
+    id: `week1-task-${taskId++}`,
+    day: 6,
+    title: "Send 10 targeted LinkedIn connection requests",
+    category: "Networking",
+    priority: "MEDIUM",
+    timeEstimate: "45 min",
+    context: { whyNow: "Warm connections raise response rates." },
+    currentState: {
+      issue: "No warm intros to target roles.",
+      consequence: "Low response rate on applications.",
+    },
+    exactSteps: [
+      "Find 10 employees in target role",
+      "Send personalized connection note",
+      "Track who accepts",
+    ],
+    template: {
+      example: "Hi [Name], I’m targeting ${targetRole} roles and loved your recent post on [topic]. Would love to connect.",
+    },
+    validation: {
+      checkpoints: ["☐ 10 requests sent", "☐ Personalization in each message"],
+    },
+  });
+
+  tasks.push({
+    id: `week1-task-${taskId++}`,
+    day: 7,
+    title: "Prepare a 60-second interview intro",
+    category: "Interview Prep",
+    priority: "MEDIUM",
+    timeEstimate: "30 min",
+    context: { whyNow: "Hiring managers want a clear, confident summary." },
+    currentState: {
+      issue: "Intro feels improvised.",
+      consequence: "First impression lacks clarity.",
+    },
+    exactSteps: [
+      "Write a 4-5 sentence intro",
+      "Include target role + 2 metrics",
+      "Practice out loud twice",
+    ],
+    validation: {
+      checkpoints: ["☐ 60 seconds or less", "☐ Includes target role", "☐ Includes 2 metrics"],
+    },
+  });
+
+  const dailyPlan: Record<string, any> = {
+    day1: { theme: "ATS Coverage", focus: "Fix critical keyword gaps.", timeNeeded: "1-2 hours", motivational: "Your highest leverage ATS fix." },
+    day2: { theme: "Resume Positioning", focus: "Rewrite summary + add metrics.", timeNeeded: "1-2 hours", motivational: "Clarity increases interview rate." },
+    day3: { theme: "LinkedIn Headline", focus: "Align headline with target role.", timeNeeded: "30-60 min", motivational: "Visibility = opportunity." },
+    day4: { theme: "LinkedIn Story", focus: "Build trust with your About section.", timeNeeded: "1 hour", motivational: "Consistency builds confidence." },
+    day5: { theme: "Company Intel", focus: "Collect stack + context.", timeNeeded: "30-60 min", motivational: "Specific outreach converts." },
+    day6: { theme: "Networking", focus: "Warm introductions.", timeNeeded: "45-60 min", motivational: "Relationships beat volume." },
+    day7: { theme: "Interview Prep", focus: "Practice your intro.", timeNeeded: "30 min", motivational: "Confidence wins interviews." },
+  };
 
   return {
     title: "Week 1 Execution",
@@ -699,20 +1225,36 @@ export async function buildDataDrivenBundle(answers: any, parsed?: ParsedData, o
     marketIntel,
     targetRole: answers.targetRoles?.[0]?.name || "",
   });
+  const atsAnalysis = await calculateATSAnalysis(
+    answers.jobDescription,
+    getResumeText(parsed, parsed?.resumeParsedData),
+    parsed?.resumeParsedData || {}
+  );
   const readiness = calculateReadinessScore(
     { ...answers, resumeParsedData: parsed?.resumeParsedData, linkedinParsedData: parsed?.linkedinParsedData },
     skillsAnalysis
   );
-  const aiInsights = generateDataDrivenInsights(answers, readiness, skillsAnalysis);
-  const resumeAnalysis = buildResumeAnalysis({ ...answers, resumeParsedData: parsed?.resumeParsedData }, skillsAnalysis);
+  const aiInsights = generateDataDrivenInsights(answers, readiness, skillsAnalysis, atsAnalysis);
+  const resumeAnalysis = buildResumeAnalysis(
+    { ...answers, resumeParsedData: parsed?.resumeParsedData },
+    skillsAnalysis,
+    atsAnalysis
+  );
   const linkedinAnalysis = buildLinkedinAnalysis({ ...answers, linkedinParsedData: parsed?.linkedinParsedData }, skillsAnalysis);
-  const week1Plan = buildWeek1Plan(answers, skillsAnalysis);
+  const week1Plan = buildWeek1Plan(answers, skillsAnalysis, atsAnalysis);
+  const salaryData = await getSalaryIntelligence({
+    targetRole: answers.targetRoles?.[0]?.name || "target role",
+    level: answers.level || "mid",
+    jobDescription: answers.jobDescription,
+    marketIntel,
+    location: answers.location || answers.workPreference || undefined,
+  });
   const careerAnalysis = {
-    executiveSummary: generateExecutiveSummary(answers, readiness, skillsAnalysis),
+    executiveSummary: generateExecutiveSummary(answers, readiness, skillsAnalysis, atsAnalysis),
   };
 
   return normalizeSecondPersonDeep({
-    marketIntelligence: marketIntel,
+    marketIntelligence: { ...marketIntel, salaryData },
     week1Plan: { week1: week1Plan, week2Preview: { title: "Execution Week", previewTasks: [] } },
     personalizationData: null,
     aiInsights,
@@ -729,6 +1271,6 @@ export async function buildDataDrivenBundle(answers: any, parsed?: ParsedData, o
     aiFailed: false,
     aiFailureReason: null,
     readinessScore: readiness,
-    skillMatchData: { ...skillsAnalysis, readinessScore: readiness },
+    skillMatchData: { ...skillsAnalysis, readinessScore: readiness, atsAnalysis, atsScore: atsAnalysis.score },
   });
 }
