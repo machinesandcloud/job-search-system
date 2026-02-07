@@ -307,7 +307,7 @@ function buildATSFallback(jobDescription: string, resumeParsed: any): ATSAnalysi
   const jdSkills = extractJobDescriptionSkills(jobDescription).map((skill) => ({
     keyword: skill.name,
     category: "technical" as const,
-    importance: skill.requiredLevel === "critical" ? "critical" : "important",
+    importance: (skill.requiredLevel === "critical" ? "critical" : "important") as ATSKeyword["importance"],
     frequency: 1,
     context: skill.whereInJobDescription,
   }));
