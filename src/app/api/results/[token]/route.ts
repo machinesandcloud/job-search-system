@@ -7,11 +7,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ tok
   const assessment = await prisma.assessment.findUnique({
     where: { token },
   });
-  if (!assessment) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!assessment) return NextResponse.json({ error: "Not found" }, { status: 404, headers: { "Cache-Control": "no-store" } });
   await logEvent("results_viewed", {}, assessment.id);
   return NextResponse.json({
     assessmentId: assessment.id,
     assessment,
     purchased: assessment.hasPurchasedPro,
-  });
+  }, { headers: { "Cache-Control": "no-store" } });
 }

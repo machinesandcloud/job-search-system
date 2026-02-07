@@ -32,7 +32,7 @@ export default function LoginPage() {
       const latest = await fetch("/api/results/latest");
       const latestData = await latest.json();
       if (latest.ok && latestData?.token) {
-        router.push(`/job-search-system/results/${latestData.token}`);
+        window.location.href = `/job-search-system/results/${latestData.token}`;
         return;
       }
       setNotice("No saved results yet. Start a new assessment to generate your dashboard.");

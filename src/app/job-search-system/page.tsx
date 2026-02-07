@@ -104,6 +104,12 @@ export default function JobSearchLanding() {
           </div>
           <div className="flex items-center gap-3">
             <Link
+              href="/job-search-system/login"
+              className="rounded-full border border-slate-700 px-4 py-2 text-xs font-semibold text-slate-200/90"
+            >
+              Log in
+            </Link>
+            <Link
               href="/job-search-system/start"
               data-cta="nav"
               aria-label="Start free assessment"
