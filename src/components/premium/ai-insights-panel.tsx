@@ -10,19 +10,42 @@ export function AIInsightsPanel({
   const marketIntel = assessment.marketIntelligence as any;
   const skillMatch = assessment.skillMatchData as any;
   const linkedin = assessment.linkedinParsedData as any;
+  const targetRole = assessment.targetRoles?.[0]?.name || "your target role";
+
+  const fallbackPrimaryGap = (() => {
+    const missing = skillMatch?.missingCriticalSkills || [];
+    if (missing.length) {
+      return `You're missing ${missing.length} required skills`;
+    }
+    if (!assessment.jobDescription) {
+      return "Add a job description to surface required skills.";
+    }
+    return "Your ATS coverage looks solid. Next: hiring-manager alignment.";
+  })();
+
+  const fallbackQuickWin = (() => {
+    const missing = skillMatch?.missingCriticalSkills || [];
+    if (missing.length) {
+      return `Add ${missing[0]?.name} to your resume Skills section`;
+    }
+    if (linkedin?.headline && !linkedin.headline.toLowerCase().includes(targetRole.toLowerCase())) {
+      return `Update your LinkedIn headline to include ${targetRole}`;
+    }
+    return "Add metrics to your top 3 resume bullets.";
+  })();
 
   const items = [
     {
       title: "Primary Gap",
       tone: "border-red-500/30 bg-red-500/10",
-      content: insights?.primaryGap,
+      content: insights?.primaryGap || fallbackPrimaryGap,
       detail: insights?.primaryGapExplanation,
       evidence: insights?.primaryGapEvidence,
     },
     {
       title: "Quick Win",
       tone: "border-emerald-500/30 bg-emerald-500/10",
-      content: insights?.quickWin,
+      content: insights?.quickWin || fallbackQuickWin,
       detail: insights?.quickWinReasoning,
       evidence: insights?.quickWinEvidence,
     },

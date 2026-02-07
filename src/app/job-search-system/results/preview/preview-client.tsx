@@ -79,6 +79,31 @@ export default function PreviewClient() {
   const insights = data?.assessment?.aiInsights || {};
   const actionPlan = data?.assessment?.actionPlan || null;
   const week1 = data?.assessment?.week1Plan?.week1?.tasks || actionPlan?.week1?.tasks || [];
+  const skillMatch = data?.assessment?.skillMatchData || null;
+  const targetRole = data?.assessment?.targetRoles?.[0]?.name || "your target role";
+
+  const fallbackPrimaryGap = (() => {
+    const missing = skillMatch?.missingCriticalSkills || [];
+    if (missing.length) {
+      return `You're missing ${missing.length} required skills`;
+    }
+    if (!data?.assessment?.jobDescription) {
+      return "Add a job description to surface required skills.";
+    }
+    return "Your ATS coverage looks solid. Next: hiring-manager alignment.";
+  })();
+
+  const fallbackQuickWin = (() => {
+    const missing = skillMatch?.missingCriticalSkills || [];
+    if (missing.length) {
+      return `Add ${missing[0]?.name} to your resume Skills section`;
+    }
+    const headline = data?.assessment?.linkedinParsedData?.headline || "";
+    if (headline && !headline.toLowerCase().includes(targetRole.toLowerCase())) {
+      return `Update your LinkedIn headline to include ${targetRole}`;
+    }
+    return "Add metrics to your top 3 resume bullets.";
+  })();
 
   const ring = 240;
   const radius = ring / 2 - 16;
@@ -215,11 +240,11 @@ export default function PreviewClient() {
                 <div className="mt-10 grid gap-6">
                   <div className="rounded-2xl border border-[#06B6D4]/40 bg-[#0F172A]/60 p-6">
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#06B6D4]">Your Primary Gap</p>
-                    <p className="mt-3 text-base text-white/90">{insights.primaryGap || "Your profile is being analyzed."}</p>
+                    <p className="mt-3 text-base text-white/90">{insights.primaryGap || fallbackPrimaryGap}</p>
                   </div>
                   <div className="rounded-2xl border border-[#8B5CF6]/40 bg-[#0F172A]/60 p-6">
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#A78BFA]">Quick Win This Week</p>
-                    <p className="mt-3 text-base text-white/90">{insights.quickWin || "We’ll surface your fastest win next."}</p>
+                    <p className="mt-3 text-base text-white/90">{insights.quickWin || fallbackQuickWin}</p>
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-[#0F172A]/60 p-6">
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">Week 1 cadence</p>

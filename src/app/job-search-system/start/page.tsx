@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { AssessmentAnswers } from "@/lib/validation";
 import { defaultAnswers } from "@/lib/defaults";
@@ -566,7 +567,15 @@ export default function JobSearchWizard() {
         <div className="mx-auto flex w-full max-w-[800px] flex-col gap-3 px-6 py-4">
           <div className="flex items-center justify-between text-sm font-semibold">
             <span>Step {step + 1} of {steps.length}</span>
-            <span>{progress}%</span>
+            <div className="flex items-center gap-4">
+              <span>{progress}%</span>
+              <Link
+                href="/job-search-system/login"
+                className="rounded-full border border-white/20 px-3 py-1 text-xs font-semibold text-white/80 transition hover:border-white/40 hover:text-white"
+              >
+                Log in
+              </Link>
+            </div>
           </div>
           <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
             <div

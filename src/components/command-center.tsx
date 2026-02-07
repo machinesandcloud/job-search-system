@@ -36,6 +36,8 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
   const [resumeFixApplied, setResumeFixApplied] = useState<Record<string, boolean>>({});
 
   const ai = assessment?.aiInsights || {};
+  const skillMatchData = assessment?.skillMatchData || {};
+  const targetRole = assessment?.targetRoles?.[0]?.name || "Target role";
   const resumeParsed = assessment.resumeParsedData || null;
   const linkedinParsed = assessment.linkedinParsedData || null;
   const resumeAnalysis = assessment.resumeAnalysis || null;
@@ -71,6 +73,18 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
   const applications = Array.isArray(assessment.applications) ? assessment.applications : [];
   const achievements = Array.isArray(ai?.strengthsToLeverage) ? ai.strengthsToLeverage : [];
   const projects = Array.isArray(ai?.proofProjects) ? ai.proofProjects : [];
+  const missingCriticalSkills = Array.isArray(skillMatchData?.missingCriticalSkills)
+    ? skillMatchData.missingCriticalSkills
+    : [];
+  const fallbackPrimaryGap = missingCriticalSkills.length
+    ? `Missing ${missingCriticalSkills.length} required skills: ${missingCriticalSkills
+        .slice(0, 3)
+        .map((skill: any) => skill.name)
+        .join(", ")}`
+    : "ATS coverage is solid. Next: hiring-manager alignment and proof.";
+  const fallbackQuickWin = missingCriticalSkills.length
+    ? `Add ${missingCriticalSkills[0]?.name} to your resume Skills section`
+    : `Align your summary to ${targetRole} with concrete proof`;
 
   const scoreCards = [
     { label: "Clarity", score: assessment.clarityScore, max: 25 },
@@ -80,7 +94,6 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
   ];
 
   const targetCompanies = Array.isArray(assessment.targetCompanies) ? assessment.targetCompanies : [];
-  const targetRole = assessment?.targetRoles?.[0]?.name || "Target role";
 
   const statusLabel = useMemo(() => {
     if (assessment.totalScore >= 70) return "Fast Track";
@@ -499,13 +512,14 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
                 </div>
               </div>
               <div className="rounded-2xl border border-[#8B5CF6]/40 bg-[#8B5CF6]/10 p-6">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">AI Insights</p>
-                <p className="mt-3 text-sm text-white/80"><strong>Primary Gap:</strong> {ai.primaryGap || "Pending"}</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">Focus Snapshot</p>
+                <p className="mt-3 text-sm text-white/80">
+                  <strong>Primary Gap:</strong> {ai.primaryGap || fallbackPrimaryGap}
+                </p>
                 <div className="my-4 h-px bg-white/10" />
-                <p className="text-sm text-white/80"><strong>Quick Win:</strong> {ai.quickWin || "Pending"}</p>
-                <button type="button" className="mt-4 text-sm font-semibold text-[#A78BFA]" onClick={() => setShowChat(true)}>
-                  Ask AI for help →
-                </button>
+                <p className="text-sm text-white/80">
+                  <strong>Quick Win:</strong> {ai.quickWin || fallbackQuickWin}
+                </p>
               </div>
             </section>
 
