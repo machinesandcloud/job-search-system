@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BookCallCTA } from "@/components/book-call-cta";
+import { HomeLink } from "@/components/home-link";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -55,6 +56,9 @@ export default function LoginPage() {
   return (
     <main className="relative min-h-screen bg-[#0A0E27] px-6 pb-20 pt-24 text-white">
       <BookCallCTA />
+      <div className="absolute left-6 top-5">
+        <HomeLink />
+      </div>
       <div className="pointer-events-none absolute right-[-200px] top-[-120px] h-[600px] w-[600px] rounded-full bg-[#06B6D4]/20 blur-[140px]" />
       <div className="pointer-events-none absolute bottom-[-160px] left-[-140px] h-[500px] w-[500px] rounded-full bg-[#8B5CF6]/20 blur-[160px]" />
 

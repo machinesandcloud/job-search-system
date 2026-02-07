@@ -14,6 +14,7 @@ import { RotatingWords } from "@/components/rotating-words";
 import { LogoCarousel } from "@/components/logo-carousel";
 import { CompanyLogo } from "@/components/company-logo";
 import { BookCallCTA } from "@/components/book-call-cta";
+import { HomeLink } from "@/components/home-link";
 
 export const metadata: Metadata = {
   title: "Tech Career Coaching System | Land Senior Roles Faster | Steve Ngoumnai",
@@ -80,6 +81,9 @@ export default function JobSearchLanding() {
       <LandingAnalytics />
       <StickyCTA />
       <BookCallCTA />
+      <div className="absolute left-6 top-6 z-40 hidden lg:flex">
+        <HomeLink />
+      </div>
 
       <div className="border-b border-slate-800/60 bg-slate-950/40 text-xs text-slate-300">
         <div className="cmd-shell flex items-center gap-6 overflow-hidden py-2">
@@ -353,53 +357,50 @@ export default function JobSearchLanding() {
               <p className="privacy-note mt-4">Your data is private and never shared.</p>
             </div>
             <div className="cmd-panel rounded-3xl border border-slate-700 bg-slate-950/60 p-6">
-              <p className="cmd-eyebrow">Operator credibility</p>
+              <p className="cmd-eyebrow">High-converting strategy</p>
               <h3 className="mt-3 text-2xl font-semibold text-slate-100">
-                Built by a hiring operator.
+                Positioning that converts, not just impresses.
               </h3>
               <p className="mt-3 text-sm text-slate-300">
-                Designed by someone who has built teams, hired talent, and shipped systems — not just reviewed resumes.
+                We teach you how to package your story, proof, and outreach so hiring teams say yes. Clear value, tight
+                narrative, and a repeatable system that scales.
               </p>
 
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <p className="text-xs uppercase tracking-wide text-slate-400">Leadership</p>
-                  <p className="mt-2 text-slate-200">10+ years leading DevOps &amp; platform orgs.</p>
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Message strategy</p>
+                  <p className="mt-2 text-slate-200">A crisp value prop that recruiters can repeat.</p>
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <p className="text-xs uppercase tracking-wide text-slate-400">Outcomes</p>
-                  <p className="mt-2 text-slate-200">300+ placements since 2023.</p>
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Proof packaging</p>
+                  <p className="mt-2 text-slate-200">Metrics + outcomes that make you obvious to hire.</p>
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <p className="text-xs uppercase tracking-wide text-slate-400">Hiring lens</p>
-                  <p className="mt-2 text-slate-200">Evaluates senior ICs and managers in technical roles.</p>
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Targeted outreach</p>
+                  <p className="mt-2 text-slate-200">Short, human messages that earn responses.</p>
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <p className="text-xs uppercase tracking-wide text-slate-400">Operating system</p>
-                  <p className="mt-2 text-slate-200">Positioning, execution, and targeted outreach.</p>
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Conversion system</p>
+                  <p className="mt-2 text-slate-200">Repeatable process you can run every week.</p>
                 </div>
               </div>
 
               <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
-                <p className="text-xs uppercase tracking-wide text-slate-400">Placed at</p>
-                <div className="mt-3 flex flex-wrap items-center gap-4">
-                  {logoCompanies.slice(0, 8).map((company) => (
-                    <div
-                      key={`cred-${company.name}`}
-                      className="flex items-center gap-2 text-xs text-slate-300"
-                      title={company.name}
-                    >
-                      <CompanyLogo name={company.name} domain={company.domain} size={26} className="bg-white/10" />
-                      <span className="text-slate-400 md:hidden">{company.name}</span>
-                    </div>
-                  ))}
+                <p className="text-xs uppercase tracking-wide text-slate-400">What changes</p>
+                <div className="mt-3 grid gap-3 text-xs text-slate-300 sm:grid-cols-2">
+                  <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                    Before: “I’m a senior engineer.”
+                  </div>
+                  <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                    After: “I cut incident volume 35% and sped deploys 60%.”
+                  </div>
                 </div>
               </div>
 
               <div className="mt-6 flex flex-wrap items-center gap-3 text-xs text-slate-400">
-                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Hiring manager lens</span>
-                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Operator-first strategy</span>
-                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Signal over noise</span>
+                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Conversion-first copy</span>
+                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Proof over claims</span>
+                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Signal > noise</span>
               </div>
             </div>
           </div>

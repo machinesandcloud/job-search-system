@@ -7,6 +7,7 @@ import { AccountGate, CoachActionPanel } from "@/components/account-gate";
 import { AIAnalysisScreen } from "@/components/premium/ai-analysis-screen";
 import { formatTargetRole } from "@/lib/helpers/role-formatter";
 import { BookCallCTA } from "@/components/book-call-cta";
+import { HomeLink } from "@/components/home-link";
 
 type PreviewData = {
   assessmentId: string;
@@ -173,6 +174,9 @@ export default function PreviewClient() {
   return (
     <main className="min-h-screen bg-[#0A0E27] px-6 pb-24 pt-12 text-white">
       <BookCallCTA />
+      <div className="absolute left-6 top-5">
+        <HomeLink />
+      </div>
       <div className="mx-auto w-full max-w-6xl">
         <Link href="/job-search-system" className="text-sm text-white/50">
           Back to landing

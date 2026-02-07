@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-const fallbackUrl = "/job-search-system/coaching-apply";
+const fallbackUrl = "https://calendly.com/ngoumnaisteve/clarity-call-with-steve";
 
 export function BookCallCTA({ className = "" }: { className?: string }) {
   const href = process.env.NEXT_PUBLIC_BOOK_CALL_URL || fallbackUrl;

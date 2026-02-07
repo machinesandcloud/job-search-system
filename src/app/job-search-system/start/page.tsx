@@ -10,6 +10,7 @@ import { companySeed } from "@/lib/company-data";
 import { toSlug } from "@/lib/utils";
 import { CompanyLogo } from "@/components/company-logo";
 import { BookCallCTA } from "@/components/book-call-cta";
+import { HomeLink } from "@/components/home-link";
 
 const steps = [
   "Target Roles",
@@ -615,6 +616,9 @@ function JobSearchWizard() {
   return (
     <main className="relative min-h-screen bg-[#0A0E27] px-6 pb-20 pt-32 text-white">
       <BookCallCTA />
+      <div className="fixed left-6 top-5 z-[110] hidden lg:flex">
+        <HomeLink />
+      </div>
       <div className="fixed left-0 right-0 top-0 z-[100] border-b border-white/10 bg-[#0A0E27]/95 backdrop-blur-xl">
         <div className="mx-auto flex w-full max-w-[800px] flex-col gap-3 px-6 py-4">
           <div className="flex items-center justify-between text-sm font-semibold">

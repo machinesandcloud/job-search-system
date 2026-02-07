@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AiResultsRefresh } from "@/components/ai-results-refresh";
+import { HomeLink } from "@/components/home-link";
 import { BookCallCTA } from "@/components/book-call-cta";
 
 const NAV_ITEMS = [
@@ -35,8 +36,8 @@ export function PortalShell({
     <div className="flex min-h-screen bg-[#0A0E27] text-white">
       <aside className="hidden w-64 flex-shrink-0 border-r border-white/10 bg-[#0A0E27]/95 p-5 lg:flex lg:flex-col">
         <div className="border-b border-white/10 pb-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">Askia Coaching</p>
-          <p className="text-xs text-white/50">Command Center</p>
+          <HomeLink />
+          <p className="mt-2 text-xs text-white/50">Command Center</p>
         </div>
         <nav className="mt-4 flex-1 space-y-1">
           {NAV_ITEMS.map((item) => {
@@ -68,6 +69,9 @@ export function PortalShell({
       </aside>
 
       <main className="flex-1 px-6 py-10 lg:px-10">
+        <div className="mb-4 flex lg:hidden">
+          <HomeLink />
+        </div>
         {enableRefresh ? <AiResultsRefresh token={token} isReady={Boolean(aiReady)} /> : null}
         {children}
       </main>
