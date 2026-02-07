@@ -10,6 +10,52 @@ import { groqChatJSON } from "@/lib/llm";
 export const runtime = "nodejs";
 
 const MAX_SIZE = 5 * 1024 * 1024;
+const RESUME_PARSER_ENDPOINT = "https://api.apilayer.com/resume_parser/upload";
+
+type ApilayerResume = {
+  name?: string;
+  email?: string;
+  skills?: string[];
+  education?: Array<{ name?: string; dates?: string }>;
+  experience?: Array<{ title?: string; dates?: string; location?: string; organization?: string }>;
+};
+
+async function parseResumeWithApilayer(buffer: Buffer) {
+  const apiKey = process.env.RESUME_PARSER_API_KEY || process.env.APILAYER_RESUME_PARSER_API_KEY;
+  if (!apiKey) return null;
+
+  const res = await fetch(RESUME_PARSER_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/octet-stream",
+      apikey: apiKey,
+    },
+    body: buffer,
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Resume parser failed: ${res.status} ${text}`);
+  }
+  const data = (await res.json()) as ApilayerResume;
+  if (!data) return null;
+
+  const primaryExperience = data.experience?.[0] || null;
+  const mapped = {
+    source: "apilayer",
+    fullName: data.name || null,
+    email: data.email || null,
+    currentRole: primaryExperience?.title || null,
+    currentCompany: primaryExperience?.organization || null,
+    yearsExperience: null,
+    topSkills: Array.isArray(data.skills) ? data.skills.slice(0, 10) : [],
+    recentProjects: [],
+    achievements: [],
+    certifications: [],
+    education: data.education || [],
+    raw: data,
+  };
+  return mapped;
+}
 
 export async function POST(request: Request) {
   try {
@@ -53,10 +99,18 @@ export async function POST(request: Request) {
       try {
         const text = await extractTextFromBuffer(buffer, file.name);
         if (text) {
-          const aiParsed = await groqChatJSON(
-            "You are an expert resume parser. Return valid JSON only.",
-            `Extract structured resume data. Return JSON with: fullName, email, phone, currentRole, currentCompany, yearsExperience, topSkills (max 10), recentProjects (max 3), achievements (max 5), certifications, education. Resume text: ${text}`
-          );
+          let aiParsed = null;
+          try {
+            aiParsed = await parseResumeWithApilayer(buffer);
+          } catch (_err) {
+            aiParsed = null;
+          }
+          if (!aiParsed) {
+            aiParsed = await groqChatJSON(
+              "You are an expert resume parser. Return valid JSON only.",
+              `Extract structured resume data. Return JSON with: fullName, email, phone, currentRole, currentCompany, yearsExperience, topSkills (max 10), recentProjects (max 3), achievements (max 5), certifications, education. Resume text: ${text}`
+            );
+          }
           if (!aiParsed) {
             throw new Error("AI resume parsing failed");
           }

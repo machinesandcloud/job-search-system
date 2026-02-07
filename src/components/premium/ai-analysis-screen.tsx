@@ -44,6 +44,9 @@ export function AIAnalysisScreen({
   const [progress, setProgress] = useState(10);
   const [longRunning, setLongRunning] = useState(false);
   const [failureReason, setFailureReason] = useState<string | null>(null);
+  const [waitlistEmail, setWaitlistEmail] = useState("");
+  const [waitlistStatus, setWaitlistStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [waitlistError, setWaitlistError] = useState<string | null>(null);
   const simulatedMax = 96;
 
   useEffect(() => {
@@ -176,8 +179,62 @@ export function AIAnalysisScreen({
           </div>
           {failureReason ? (
             <div className="mt-4 rounded-2xl border border-rose-400/20 bg-rose-500/10 p-4 text-xs text-rose-100">
-              We hit a snag while generating your dashboard. {failureReason} Please refresh or contact
-              support if this persists.
+              <p>
+                We hit a snag while generating your dashboard. {failureReason} Please refresh or
+                contact support if this persists.
+              </p>
+              <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-3 text-[11px] text-white/80">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">Join the waitlist</p>
+                <p className="mt-2 text-white/70">
+                  Get notified as soon as capacity opens up.
+                </p>
+                <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                  <input
+                    type="email"
+                    value={waitlistEmail}
+                    onChange={(event) => setWaitlistEmail(event.target.value)}
+                    placeholder="you@domain.com"
+                    className="h-10 flex-1 rounded-lg border border-white/10 bg-white/5 px-3 text-xs text-white placeholder:text-white/40"
+                  />
+                  <button
+                    type="button"
+                    className="h-10 rounded-lg bg-gradient-to-r from-[#06B6D4] to-[#8B5CF6] px-4 text-xs font-semibold text-white"
+                    onClick={async () => {
+                      setWaitlistStatus("loading");
+                      setWaitlistError(null);
+                      try {
+                        const res = await fetch("/api/waitlist", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            email: waitlistEmail,
+                            source: "ai_capacity",
+                            token,
+                            assessmentId,
+                          }),
+                        });
+                        const payload = await res.json().catch(() => ({}));
+                        if (!res.ok) {
+                          throw new Error(payload?.error || "Unable to join waitlist");
+                        }
+                        setWaitlistStatus("success");
+                      } catch (err: any) {
+                        setWaitlistStatus("error");
+                        setWaitlistError(err?.message || "Unable to join waitlist");
+                      }
+                    }}
+                    disabled={waitlistStatus === "loading"}
+                  >
+                    {waitlistStatus === "loading" ? "Saving..." : "Notify me"}
+                  </button>
+                </div>
+                {waitlistStatus === "success" ? (
+                  <p className="mt-2 text-emerald-200">You’re on the list. We’ll email you as soon as it’s live.</p>
+                ) : null}
+                {waitlistStatus === "error" ? (
+                  <p className="mt-2 text-rose-200">{waitlistError}</p>
+                ) : null}
+              </div>
             </div>
           ) : longRunning ? (
             <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-white/70">

@@ -38,7 +38,15 @@ export async function groqChatJSON(systemPrompt: string, userPrompt: string) {
         response_format: { type: "json_object" },
       }),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      if (res.status === 429 || text.toLowerCase().includes("rate") || text.toLowerCase().includes("limit")) {
+        throw new Error(
+          "Sorry for the inconvenience. Due to extremely high demand, Askia AI is currently unavailable. Join the waitlist to get notified when it's available again."
+        );
+      }
+      return null;
+    }
     const data = (await res.json()) as GroqResponse;
     const content = data.choices?.[0]?.message?.content;
     if (!content) return null;
@@ -77,7 +85,15 @@ export async function groqChatText(systemPrompt: string, userPrompt: string) {
         max_tokens: 1200,
       }),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      if (res.status === 429 || text.toLowerCase().includes("rate") || text.toLowerCase().includes("limit")) {
+        throw new Error(
+          "Sorry for the inconvenience. Due to extremely high demand, Askia AI is currently unavailable. Join the waitlist to get notified when it's available again."
+        );
+      }
+      return null;
+    }
     const data = (await res.json()) as GroqResponse;
     return data.choices?.[0]?.message?.content?.trim() || null;
   } catch {
