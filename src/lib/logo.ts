@@ -4,7 +4,8 @@ export const buildLogoCandidates = (domain?: string | null, name?: string | null
   const candidates: string[] = [];
   if (logoUrl && logoUrl.trim()) candidates.push(logoUrl);
   if (domain) {
-    candidates.push(`https://logo.clearbit.com/${encodeURIComponent(domain)}`);
+    candidates.push(`https://logo.clearbit.com/${encodeURIComponent(domain)}?size=128`);
+    candidates.push(`https://logo.clearbit.com/${encodeURIComponent(domain)}?size=256`);
     if (logoDevToken) {
       candidates.push(`https://img.logo.dev/${encodeURIComponent(domain)}?token=${logoDevToken}`);
     }

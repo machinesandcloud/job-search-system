@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { buildLogoCandidates } from "@/lib/logo";
 
 type LogoCompany = {
   name: string;
@@ -14,6 +15,8 @@ function LogoBadge({
   name: string;
   domain?: string;
 }) {
+  const candidates = useMemo(() => buildLogoCandidates(domain, name), [domain, name]);
+  const [index, setIndex] = useState(0);
   const [failed, setFailed] = useState(false);
   const initials = name
     .split(" ")
@@ -23,23 +26,29 @@ function LogoBadge({
     .join("")
     .toUpperCase();
 
-  if (!domain || failed) {
+  if (failed || !candidates.length) {
     return (
-      <div className="company-logo flex items-center justify-center rounded-full bg-white/10 text-[11px] font-semibold text-white/70">
+      <div className="company-logo logo-fallback flex items-center justify-center text-[11px] font-semibold text-white/80">
         {initials}
       </div>
     );
   }
 
-  const url = `https://logo.clearbit.com/${domain}`;
+  const url = candidates[index];
   return (
     <img
-      src={`${url}?size=96`}
+      src={url}
       alt={`${name} logo`}
       className="company-logo object-contain"
       loading="lazy"
       referrerPolicy="no-referrer"
-      onError={() => setFailed(true)}
+      onError={() => {
+        if (index < candidates.length - 1) {
+          setIndex((prev) => prev + 1);
+          return;
+        }
+        setFailed(true);
+      }}
     />
   );
 }
