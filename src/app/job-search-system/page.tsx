@@ -96,7 +96,7 @@ export default function JobSearchLanding() {
         <div className="cmd-hero-orb cmd-hero-orb-left" />
         <div className="cmd-hero-orb cmd-hero-orb-right" />
 
-        <nav className="relative z-10 flex flex-wrap items-center justify-between gap-3 text-sm sm:flex-nowrap sm:gap-4">
+        <nav className="cmd-nav relative z-10 flex flex-wrap items-center justify-between gap-3 text-sm sm:flex-nowrap sm:gap-4">
           <div className="flex items-center gap-2 sm:gap-3">
             <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] uppercase tracking-[0.2em] text-slate-200 sm:px-3 sm:text-xs">
               Askia Coaching
@@ -108,7 +108,7 @@ export default function JobSearchLanding() {
             <Link href="#system">System</Link>
             <Link href="#offer">Assessment</Link>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="cmd-nav-actions flex items-center gap-2 sm:gap-3">
             <Link
               href="/job-search-system/login"
               className="rounded-full border border-slate-700 px-3 py-1.5 text-[11px] font-semibold text-slate-200/90 sm:px-4 sm:py-2 sm:text-xs"

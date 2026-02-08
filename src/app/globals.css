@@ -1489,6 +1489,10 @@ body {
     font-size: 16px;
   }
 
+  .cmd-nav-actions {
+    display: none;
+  }
+
   .lp-bg {
     background:
       radial-gradient(circle at 18% 16%, rgba(56, 189, 248, 0.2), transparent 45%),
@@ -1556,6 +1560,10 @@ body {
     max-width: 100%;
   }
 
+  .cmd-preview {
+    margin-bottom: 96px;
+  }
+
   .cmd-system-grid {
     gap: 12px;
     padding-bottom: 10px;
@@ -1608,19 +1616,19 @@ body {
 @media (max-width: 640px) {
   .book-call-cta {
     right: 14px;
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 88px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 120px);
   }
 
   .book-call-cta > a {
-    padding: 10px 14px;
-    font-size: 13px;
-    gap: 8px;
+    padding: 8px 12px;
+    font-size: 12px;
+    gap: 6px;
   }
 
   .book-call-cta > a span {
-    height: 28px;
-    width: 28px;
-    font-size: 0.9rem;
+    height: 24px;
+    width: 24px;
+    font-size: 0.8rem;
   }
 
   .cmd-preview.cmd-panel {
@@ -1732,7 +1740,7 @@ body {
   }
 
   .book-call-cta {
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 92px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 112px);
   }
 }
 

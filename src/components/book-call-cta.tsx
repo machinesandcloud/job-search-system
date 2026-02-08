@@ -1,11 +1,34 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 const fallbackUrl = "https://calendly.com/ngoumnaisteve/clarity-call-with-steve";
 
 export function BookCallCTA({ className = "" }: { className?: string }) {
   const href = process.env.NEXT_PUBLIC_BOOK_CALL_URL || fallbackUrl;
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const updateVisibility = () => {
+      const isMobile = window.matchMedia("(max-width: 640px)").matches;
+      if (!isMobile) {
+        setVisible(true);
+        return;
+      }
+      setVisible(window.scrollY > 420);
+    };
+
+    updateVisibility();
+    window.addEventListener("scroll", updateVisibility, { passive: true });
+    window.addEventListener("resize", updateVisibility);
+    return () => {
+      window.removeEventListener("scroll", updateVisibility);
+      window.removeEventListener("resize", updateVisibility);
+    };
+  }, []);
+
+  if (!visible) return null;
 
   return (
     <div className={`book-call-cta fixed bottom-6 right-6 z-50 ${className}`}>
