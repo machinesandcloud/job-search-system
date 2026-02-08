@@ -7,6 +7,15 @@ export async function GET() {
   if (!session) {
     return NextResponse.json({ ok: false }, { status: 401, headers: { "Cache-Control": "no-store" } });
   }
+  const completedAssessment = await prisma.assessment.findFirst({
+    where: { userId: session.userId, aiAnalysisStatus: "complete" },
+    orderBy: { createdAt: "desc" },
+    select: { token: true },
+  });
+  if (completedAssessment) {
+    return NextResponse.json({ ok: true, token: completedAssessment.token }, { headers: { "Cache-Control": "no-store" } });
+  }
+
   const assessment = await prisma.assessment.findFirst({
     where: { userId: session.userId },
     orderBy: { createdAt: "desc" },

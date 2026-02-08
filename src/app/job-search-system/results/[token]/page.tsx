@@ -52,7 +52,13 @@ export default async function ResultsPage({ params }: { params: Promise<{ token:
   const actionPlan = assessment.actionPlan as any;
   const companyMatches = (assessment.companyMatches as any)?.matches || [];
   const aiPendingMessage = "";
-  const aiReady = assessment.aiAnalysisStatus === "complete";
+  const hasResultsData =
+    Boolean(assessment.aiInsights) ||
+    Boolean(assessment.resumeAnalysis) ||
+    Boolean(assessment.linkedinAnalysis) ||
+    Boolean(assessment.week1Plan) ||
+    Boolean(assessment.careerAnalysis);
+  const aiReady = assessment.aiAnalysisStatus === "complete" || hasResultsData;
   const week1Plan = (assessment.week1Plan as any)?.week1 || actionPlan?.week1 || null;
   const careerPlan = (assessment as any).careerPlan as any;
 
