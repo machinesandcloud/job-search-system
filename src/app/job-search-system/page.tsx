@@ -96,7 +96,7 @@ export default function JobSearchLanding() {
         <div className="cmd-hero-orb cmd-hero-orb-left" />
         <div className="cmd-hero-orb cmd-hero-orb-right" />
 
-        <nav className="relative z-10 flex items-center justify-between gap-4 text-sm">
+        <nav className="relative z-10 flex flex-wrap items-center justify-between gap-3 text-sm sm:flex-nowrap sm:gap-4">
           <div className="flex items-center gap-2 sm:gap-3">
             <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] uppercase tracking-[0.2em] text-slate-200 sm:px-3 sm:text-xs">
               Askia Coaching

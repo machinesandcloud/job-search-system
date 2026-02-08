@@ -1523,8 +1523,8 @@ body {
   }
 
   .cmd-shell {
-    padding-left: 20px;
-    padding-right: 20px;
+    padding-left: 16px;
+    padding-right: 16px;
   }
 
   .cmd-shell .text-sm {
@@ -1532,19 +1532,23 @@ body {
   }
 
   .cmd-hero-title {
-    font-size: 2rem;
-    line-height: 1.1;
+    font-size: 1.95rem;
+    line-height: 1.12;
   }
 
   .cmd-hero-lede {
-    font-size: 0.95rem;
+    font-size: 0.92rem;
   }
 
   .cmd-hero-highlights {
-    gap: 10px;
-    font-size: 11px;
+    gap: 8px;
+    font-size: 10px;
     justify-content: flex-start;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
+  }
+
+  .cmd-hero-highlights span {
+    white-space: normal;
   }
 
   .cmd-preview {
@@ -1567,12 +1571,13 @@ body {
 
   .cmd-system-card {
     padding-top: 54px;
+    transform: none !important;
   }
 }
 
 @media (max-width: 640px) {
   .cmd-gap-hero {
-    padding: 48px 0 96px;
+    padding: 40px 0 84px;
   }
 
   .cmd-gap-problem {
@@ -1580,7 +1585,7 @@ body {
   }
 
   .cmd-gap-system {
-    padding: 0 0 72px;
+    padding: 0 0 64px;
   }
 
   .cmd-gap-proof {
@@ -1596,7 +1601,7 @@ body {
   }
 
   .cmd-gap-final {
-    padding: 0 0 72px;
+    padding: 0 0 64px;
   }
 }
 
@@ -1619,7 +1624,7 @@ body {
   }
 
   .cmd-preview.cmd-panel {
-    padding: 20px;
+    padding: 18px;
   }
 
   .cmd-sticky {
@@ -1653,8 +1658,8 @@ body {
   }
 
   .cmd-quote {
-    font-size: 17px;
-    padding: 28px 28px;
+    font-size: 16px;
+    padding: 24px 24px;
   }
 
   .cmd-stat-card {
@@ -1719,15 +1724,15 @@ body {
 
 @media (max-width: 380px) {
   .cmd-hero-title {
-    font-size: 1.85rem;
+    font-size: 1.75rem;
   }
 
   .cmd-hero-lede {
-    font-size: 0.9rem;
+    font-size: 0.86rem;
   }
 
   .book-call-cta {
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 96px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 92px);
   }
 }
 
