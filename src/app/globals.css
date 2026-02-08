@@ -22,11 +22,25 @@
   --cmd-bg-alt: rgba(12, 20, 40, 0.96);
 }
 
+html {
+  width: 100%;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: var(--font-sans), system-ui, sans-serif;
   background: #0a0e27;
   color: #e2e8f0;
   font-size: 18px;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 .bg-aurora {
@@ -106,6 +120,7 @@ body {
     radial-gradient(circle at 72% 85%, rgba(46, 167, 215, 0.14), transparent 52%),
     radial-gradient(circle at 8% 80%, rgba(116, 150, 255, 0.12), transparent 50%),
     linear-gradient(135deg, var(--cmd-bg-main), var(--cmd-bg-alt));
+  overflow-x: hidden;
 }
 
 .cmd-shell {
@@ -877,6 +892,7 @@ body {
   font-size: 13px;
   font-weight: 400;
   opacity: 0.7;
+  min-width: 100%;
 }
 
 .cmd-ticker.is-paused {
@@ -885,6 +901,7 @@ body {
 
 .cmd-ticker-wrap {
   overflow: hidden;
+  max-width: 100%;
 }
 
 @media (max-width: 640px) {
