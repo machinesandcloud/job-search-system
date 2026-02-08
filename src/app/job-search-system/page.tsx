@@ -158,7 +158,7 @@ export default function JobSearchLanding() {
             </div>
           </div>
 
-          <div data-preview-card className="cmd-panel cmd-glow cmd-preview rounded-3xl p-4 text-center sm:p-6 sm:text-left">
+          <div data-preview-card className="cmd-panel cmd-glow cmd-preview mx-auto w-full max-w-md rounded-3xl p-4 text-center sm:mx-0 sm:max-w-none sm:p-6 sm:text-left">
             <p className="text-xs uppercase tracking-wide text-slate-400">Preview</p>
             <div className="mt-4 grid gap-3">
               <div className="rounded-2xl border border-slate-700 bg-slate-950/60 p-4">

@@ -1536,17 +1536,17 @@ body {
   }
 
   .cmd-hero-title {
-    font-size: 1.95rem;
-    line-height: 1.12;
+    font-size: 1.75rem;
+    line-height: 1.15;
   }
 
   .cmd-hero-lede {
-    font-size: 0.92rem;
+    font-size: 0.9rem;
   }
 
   .cmd-hero-highlights {
-    gap: 8px;
-    font-size: 10px;
+    gap: 6px;
+    font-size: 9px;
     justify-content: flex-start;
     letter-spacing: 0.06em;
   }
@@ -1561,7 +1561,7 @@ body {
   }
 
   .cmd-preview {
-    margin-bottom: 96px;
+    margin-bottom: 104px;
   }
 
   .cmd-system-grid {
@@ -1732,11 +1732,11 @@ body {
 
 @media (max-width: 380px) {
   .cmd-hero-title {
-    font-size: 1.75rem;
+    font-size: 1.6rem;
   }
 
   .cmd-hero-lede {
-    font-size: 0.86rem;
+    font-size: 0.84rem;
   }
 
   .book-call-cta {
