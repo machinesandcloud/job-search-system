@@ -1544,8 +1544,8 @@ body {
   }
 
   .cmd-shell {
-    padding-left: 24px;
-    padding-right: 24px;
+    padding-left: calc(28px + env(safe-area-inset-left, 0px));
+    padding-right: calc(28px + env(safe-area-inset-right, 0px));
   }
 
   .cmd-shell .text-sm {
