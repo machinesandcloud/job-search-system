@@ -92,7 +92,7 @@ export default function JobSearchLanding() {
         </div>
       </div>
 
-      <section className="cmd-shell relative min-h-screen cmd-gap-hero" data-section="hero">
+      <section className="cmd-shell relative min-h-[calc(100svh-120px)] cmd-gap-hero sm:min-h-screen" data-section="hero">
         <div className="cmd-hero-orb cmd-hero-orb-left" />
         <div className="cmd-hero-orb cmd-hero-orb-right" />
 
@@ -127,7 +127,7 @@ export default function JobSearchLanding() {
           </div>
         </nav>
 
-        <div className="relative z-10 mt-16 grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="relative z-10 mt-10 grid items-center gap-12 sm:mt-16 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="space-y-8">
             <span className="cmd-kicker">AI career command center</span>
             <div className="space-y-6">
