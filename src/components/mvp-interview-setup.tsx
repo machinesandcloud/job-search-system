@@ -4,6 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, Eyebrow } from "@/components/mvp";
 
+const inputClass =
+  "rounded-2xl border border-[var(--border)] bg-[var(--bg-soft)] px-4 py-3 text-[var(--ink)] outline-none";
+
 export function MvpInterviewSetup() {
   const router = useRouter();
   const [role, setRole] = useState("Technical Program Manager");
@@ -27,19 +30,19 @@ export function MvpInterviewSetup() {
     <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
       <Card>
         <Eyebrow>Interview Preparation</Eyebrow>
-        <h1 className="mt-5 text-4xl font-semibold tracking-tight">Configure the mock interview before the session starts.</h1>
+        <h1 className="mt-5 text-4xl font-semibold tracking-[-0.04em] text-[var(--ink)]">Configure the mock interview before the session starts.</h1>
         <div className="mt-5 grid gap-4">
-          <input className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none" value={role} onChange={(event) => setRole(event.target.value)} />
-          <input className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none" value={companyType} onChange={(event) => setCompanyType(event.target.value)} />
+          <input className={inputClass} value={role} onChange={(event) => setRole(event.target.value)} />
+          <input className={inputClass} value={companyType} onChange={(event) => setCompanyType(event.target.value)} />
           <div className="grid grid-cols-2 gap-3">
-            <input className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none" value={level} onChange={(event) => setLevel(event.target.value)} />
-            <input className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none" value={duration} onChange={(event) => setDuration(event.target.value)} />
+            <input className={inputClass} value={level} onChange={(event) => setLevel(event.target.value)} />
+            <input className={inputClass} value={duration} onChange={(event) => setDuration(event.target.value)} />
           </div>
-          <button onClick={startInterview} className="rounded-full bg-white px-5 py-3 text-sm font-semibold text-slate-950">Start mock interview</button>
+          <button onClick={startInterview} className="rounded-full bg-[var(--ink)] px-5 py-3 text-sm font-semibold text-[var(--bg-soft)] transition hover:bg-[var(--teal)]">Start mock interview</button>
         </div>
       </Card>
-      <Card>
-        <p className="text-sm uppercase tracking-[0.22em] text-white/45">Coach evaluation</p>
+      <Card className="bg-[var(--surface-strong)]">
+        <p className="text-sm uppercase tracking-[0.22em] text-[var(--muted)]">Coach evaluation</p>
         <div className="mt-5 grid gap-3">
           {[
             "Content quality and role fit",
@@ -47,7 +50,7 @@ export function MvpInterviewSetup() {
             "Evidence, specificity, and missed opportunities",
             "Confidence, pacing, and follow-up handling",
           ].map((item) => (
-            <div key={item} className="rounded-3xl border border-white/10 bg-black/15 px-4 py-4 text-sm text-white/74">{item}</div>
+            <div key={item} className="rounded-3xl border border-[var(--border)] bg-[var(--surface)] px-4 py-4 text-sm text-[var(--muted)]">{item}</div>
           ))}
         </div>
       </Card>

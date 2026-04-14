@@ -9,6 +9,9 @@ type ReviewResponse = {
   output: ReviewOutput;
 };
 
+const inputClass =
+  "rounded-2xl border border-[var(--border)] bg-[var(--bg-soft)] px-4 py-3 text-[var(--ink)] outline-none placeholder:text-[var(--muted)]";
+
 export function MvpReviewWorkspace({
   type,
   title,
@@ -49,10 +52,7 @@ export function MvpReviewWorkspace({
       const formData = new FormData();
       formData.set("file", selectedFile);
       formData.set("type", type);
-      uploadRes = await fetch("/api/uploads", {
-        method: "POST",
-        body: formData,
-      });
+      uploadRes = await fetch("/api/uploads", { method: "POST", body: formData });
     } else {
       uploadRes = await fetch("/api/uploads", {
         method: "POST",
@@ -92,77 +92,97 @@ export function MvpReviewWorkspace({
 
   return (
     <div className="grid gap-6">
-      <div>
-        <Eyebrow>{type === "resume" ? "Resume Workspace" : "LinkedIn Workspace"}</Eyebrow>
-        <h1 className="mt-5 text-4xl font-semibold tracking-tight">{title}</h1>
-        <p className="mt-3 text-base leading-7 text-white/70">{subtitle}</p>
-      </div>
-      <div className="grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
-        <Card>
-          <p className="text-sm uppercase tracking-[0.22em] text-white/45">Document workflow</p>
-          <div className="mt-5 grid gap-3">
-            <input className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none" value={documentTitle} onChange={(event) => setDocumentTitle(event.target.value)} />
-            <input className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none" value={targetRole} onChange={(event) => setTargetRole(event.target.value)} />
-            <input
-              type="file"
-              accept={type === "resume" ? ".pdf,.doc,.docx" : ".doc,.docx,.pdf,.txt"}
-              className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none file:mr-4 file:rounded-full file:border-0 file:bg-white file:px-4 file:py-2 file:text-sm file:font-semibold file:text-slate-950"
-              onChange={(event) => {
-                const file = event.target.files?.[0] || null;
-                setSelectedFile(file);
-                if (file) {
-                  setDocumentTitle(file.name);
-                }
-              }}
-            />
-            <button onClick={uploadAndReview} className="rounded-full bg-white px-5 py-3 text-sm font-semibold text-slate-950">Upload metadata and run review</button>
-            {error ? <p className="text-sm text-rose-300">{error}</p> : null}
-          </div>
-          <div className="mt-6 grid gap-3">
-            {documents.filter((document) => document.type === type).map((document) => (
-              <div key={document.id} className="rounded-2xl border border-white/10 bg-black/15 px-4 py-3 text-sm text-white/70">{document.title} • {document.status}</div>
+      <div className="grid gap-6 lg:grid-cols-[0.92fr_1.08fr]">
+        <div>
+          <Eyebrow>{type === "resume" ? "Resume Workspace" : "LinkedIn Workspace"}</Eyebrow>
+          <h1 className="mt-5 text-4xl font-semibold tracking-[-0.04em] text-[var(--ink)]">{title}</h1>
+          <p className="mt-3 text-base leading-7 text-[var(--muted)]">{subtitle}</p>
+        </div>
+        <Card className="bg-[var(--ink)] text-[var(--bg-soft)]">
+          <p className="text-sm uppercase tracking-[0.22em] text-[rgba(246,241,232,0.58)]">What a good review should do</p>
+          <div className="mt-5 grid gap-3 text-sm">
+            {[
+              "Show what is already strong",
+              "Name the missing proof directly",
+              "Rewrite the weakest positioning",
+              "End with the next move, not just a score",
+            ].map((item) => (
+              <div key={item} className="rounded-2xl bg-[rgba(255,255,255,0.08)] px-4 py-3">{item}</div>
             ))}
           </div>
         </Card>
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[0.82fr_1.18fr]">
+        <Card>
+          <p className="text-sm uppercase tracking-[0.22em] text-[var(--muted)]">Document workflow</p>
+          <div className="mt-5 grid gap-3">
+            <input className={inputClass} value={documentTitle} onChange={(event) => setDocumentTitle(event.target.value)} />
+            <input className={inputClass} value={targetRole} onChange={(event) => setTargetRole(event.target.value)} />
+            <input
+              type="file"
+              accept={type === "resume" ? ".pdf,.doc,.docx" : ".doc,.docx,.pdf,.txt"}
+              className="rounded-2xl border border-[var(--border)] bg-[var(--bg-soft)] px-4 py-3 text-sm text-[var(--ink)] outline-none file:mr-4 file:rounded-full file:border-0 file:bg-[var(--ink)] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[var(--bg-soft)]"
+              onChange={(event) => {
+                const file = event.target.files?.[0] || null;
+                setSelectedFile(file);
+                if (file) setDocumentTitle(file.name);
+              }}
+            />
+            <button onClick={uploadAndReview} className="rounded-full bg-[var(--ink)] px-5 py-3 text-sm font-semibold text-[var(--bg-soft)] transition hover:bg-[var(--teal)]">
+              Upload and run review
+            </button>
+            {error ? <p className="text-sm text-[var(--danger)]">{error}</p> : null}
+          </div>
+          <div className="mt-6 grid gap-3">
+            {documents.filter((document) => document.type === type).map((document) => (
+              <div key={document.id} className="rounded-2xl border border-[var(--border)] bg-[var(--bg-soft)] px-4 py-3 text-sm text-[var(--muted)]">
+                {document.title} • {document.status}
+              </div>
+            ))}
+          </div>
+        </Card>
+
         <div className="grid gap-6">
           {review ? (
             <>
               <Card>
-                <div className="flex items-end justify-between gap-4">
+                <div className="flex flex-wrap items-end justify-between gap-4">
                   <div>
-                    <p className="text-sm uppercase tracking-[0.22em] text-white/45">Review output</p>
-                    <h2 className="mt-3 text-5xl font-semibold tracking-tight">{review.output.overallScore}</h2>
+                    <p className="text-sm uppercase tracking-[0.22em] text-[var(--muted)]">Review output</p>
+                    <h2 className="mt-3 text-6xl font-semibold tracking-[-0.05em] text-[var(--ink)]">{review.output.overallScore}</h2>
+                    <p className="mt-2 text-sm text-[var(--muted)]">Overall score</p>
                   </div>
-                  <div className="grid gap-2 text-sm text-white/68">
+                  <div className="grid gap-2 text-sm text-[var(--muted)]">
                     {review.output.dimensionScores.map((score) => (
-                      <div key={score.label} className="flex items-center justify-between gap-8 rounded-2xl border border-white/10 bg-black/15 px-4 py-3">
+                      <div key={score.label} className="flex items-center justify-between gap-8 rounded-2xl border border-[var(--border)] bg-[var(--bg-soft)] px-4 py-3">
                         <span>{score.label}</span>
-                        <span>{score.score}</span>
+                        <span className="font-semibold text-[var(--ink)]">{score.score}</span>
                       </div>
                     ))}
                   </div>
                 </div>
               </Card>
               <Card>
-                <p className="text-sm uppercase tracking-[0.22em] text-white/45">Findings</p>
+                <p className="text-sm uppercase tracking-[0.22em] text-[var(--muted)]">Findings</p>
                 <div className="mt-5 grid gap-4 md:grid-cols-3">
                   <div>
-                    <p className="font-medium text-white">Strengths</p>
-                    <ul className="mt-3 grid gap-2 text-sm leading-6 text-white/68">{review.output.strengths.map((item) => <li key={item}>{item}</li>)}</ul>
+                    <p className="font-medium text-[var(--ink)]">Strengths</p>
+                    <ul className="mt-3 grid gap-2 text-sm leading-6 text-[var(--muted)]">{review.output.strengths.map((item) => <li key={item}>{item}</li>)}</ul>
                   </div>
                   <div>
-                    <p className="font-medium text-white">Issues</p>
-                    <ul className="mt-3 grid gap-2 text-sm leading-6 text-white/68">{review.output.issues.map((item) => <li key={item}>{item}</li>)}</ul>
+                    <p className="font-medium text-[var(--ink)]">Issues</p>
+                    <ul className="mt-3 grid gap-2 text-sm leading-6 text-[var(--muted)]">{review.output.issues.map((item) => <li key={item}>{item}</li>)}</ul>
                   </div>
                   <div>
-                    <p className="font-medium text-white">Suggestions</p>
-                    <ul className="mt-3 grid gap-2 text-sm leading-6 text-white/68">{review.output.tailoringSuggestions.map((item) => <li key={item}>{item}</li>)}</ul>
+                    <p className="font-medium text-[var(--ink)]">Suggestions</p>
+                    <ul className="mt-3 grid gap-2 text-sm leading-6 text-[var(--muted)]">{review.output.tailoringSuggestions.map((item) => <li key={item}>{item}</li>)}</ul>
                   </div>
                 </div>
               </Card>
             </>
           ) : (
-            <Card><p className="text-sm text-white/60">Run a {type} review to populate this workspace.</p></Card>
+            <Card><p className="text-sm text-[var(--muted)]">Run a {type} review to populate this workspace.</p></Card>
           )}
         </div>
       </div>

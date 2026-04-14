@@ -9,6 +9,9 @@ type SessionResponse = SessionRecord & {
   transcript?: Array<{ time: string; role: "coach" | "user"; message: string }>;
 };
 
+const inputClass =
+  "rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--ink)] outline-none placeholder:text-[var(--muted)]";
+
 export function MvpCoachRoom({ sessionId }: { sessionId: string | null }) {
   const [session, setSession] = useState<SessionResponse | null>(null);
   const [message, setMessage] = useState("");
@@ -69,11 +72,11 @@ export function MvpCoachRoom({ sessionId }: { sessionId: string | null }) {
   }, [session?.id]);
 
   if (error) {
-    return <Card><p className="text-sm text-rose-300">{error}</p></Card>;
+    return <Card><p className="text-sm text-[var(--danger)]">{error}</p></Card>;
   }
 
   if (!session) {
-    return <Card><p className="text-sm text-white/60">Create a session from the dashboard to start the live room.</p></Card>;
+    return <Card><p className="text-sm text-[var(--muted)]">Create a session from the dashboard to start the live room.</p></Card>;
   }
 
   const transcript = session.transcript || [];
@@ -81,52 +84,86 @@ export function MvpCoachRoom({ sessionId }: { sessionId: string | null }) {
 
   return (
     <div className="grid gap-6">
-      <div>
-        <Eyebrow>Live Coaching Room</Eyebrow>
-        <h1 className="mt-5 text-4xl font-semibold tracking-tight">{session.title}</h1>
-        <p className="mt-3 text-base leading-7 text-white/70">Realtime token and avatar session stubs are minted per session, and transcript events persist locally.</p>
-      </div>
-      <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <Card className="p-5">
-          <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-white/50">
-            <span>Mode: {session.mode}</span>
-            <span>Status: {session.status}</span>
-          </div>
-          <div className="mt-4 grid min-h-[480px] place-items-center rounded-[30px] border border-white/10 bg-[radial-gradient(circle_at_50%_10%,rgba(249,115,22,0.24),transparent_25%),linear-gradient(180deg,#111c2b,#0a1523)]">
-            <div className="text-center">
-              <div className="mx-auto grid h-36 w-36 place-items-center rounded-full border border-orange-200/30 bg-[linear-gradient(135deg,rgba(249,115,22,0.72),rgba(244,63,94,0.72))] text-4xl font-semibold shadow-[0_26px_70px_rgba(249,115,22,0.24)]">AI</div>
-              <p className="mt-6 text-2xl font-semibold">Provider session ready</p>
-              <p className="mt-3 text-sm text-white/60">Realtime token: {meta.token ? "ready" : "pending"} • Avatar session: {meta.avatar ? "ready" : "pending"}</p>
+      <div className="grid gap-6 lg:grid-cols-[0.92fr_1.08fr]">
+        <div>
+          <Eyebrow>Live Coaching Room</Eyebrow>
+          <h1 className="mt-5 text-4xl font-semibold tracking-[-0.04em] text-[var(--ink)]">{session.title}</h1>
+          <p className="mt-3 max-w-2xl text-base leading-7 text-[var(--muted)]">
+            The room should feel like a structured coaching workspace: transcript visible, task context visible, and a clear sense of what the coach is helping fix right now.
+          </p>
+        </div>
+        <Card className="bg-[var(--ink)] text-[var(--bg-soft)]">
+          <p className="text-sm uppercase tracking-[0.22em] text-[rgba(246,241,232,0.58)]">Session status</p>
+          <div className="mt-5 grid gap-3 text-sm">
+            <div className="flex items-center justify-between rounded-2xl bg-[rgba(255,255,255,0.08)] px-4 py-3">
+              <span>Mode</span>
+              <span className="font-semibold capitalize">{session.mode}</span>
+            </div>
+            <div className="flex items-center justify-between rounded-2xl bg-[rgba(255,255,255,0.08)] px-4 py-3">
+              <span>Realtime token</span>
+              <span className="font-semibold">{meta.token ? "Ready" : "Pending"}</span>
+            </div>
+            <div className="flex items-center justify-between rounded-2xl bg-[rgba(255,255,255,0.08)] px-4 py-3">
+              <span>Avatar provider</span>
+              <span className="font-semibold">{meta.avatar ? "Ready" : "Pending"}</span>
             </div>
           </div>
-          <div className="mt-4 flex gap-3">
-            <input className="flex-1 rounded-2xl border border-white/10 bg-black/15 px-4 py-3 text-sm text-white outline-none" value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Send a transcript event..." />
-            <button onClick={sendMessage} className="rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-slate-950">Send</button>
-            <button onClick={completeSession} className="rounded-2xl border border-white/12 px-4 py-3 text-sm text-white/82">Complete</button>
+        </Card>
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[1.18fr_0.82fr]">
+        <Card className="p-5">
+          <div className="rounded-[30px] border border-[var(--border)] bg-[linear-gradient(180deg,#efe7db,#e2d7c6)] p-5">
+            <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-[var(--muted)]">
+              <span>Coach surface</span>
+              <span>Status: {session.status}</span>
+            </div>
+            <div className="mt-5 grid min-h-[420px] gap-5 rounded-[24px] border border-[var(--border)] bg-[var(--surface)] p-6">
+              <div className="grid gap-3 md:grid-cols-[0.78fr_1.22fr]">
+                <div className="rounded-[22px] bg-[var(--bg-soft)] p-5">
+                  <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Coach mode</p>
+                  <div className="mt-6 grid h-28 w-28 place-items-center rounded-full bg-[var(--ink)] text-2xl font-semibold text-[var(--bg-soft)]">AC</div>
+                  <p className="mt-5 text-sm leading-6 text-[var(--muted)]">A warm, direct, practical coach is a better visual frame than an AI avatar gimmick.</p>
+                </div>
+                <div className="rounded-[22px] bg-[var(--bg-soft)] p-5">
+                  <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Current focus</p>
+                  <p className="mt-3 text-2xl font-semibold tracking-tight text-[var(--ink)]">Sharpen positioning and extract stronger proof.</p>
+                  <div className="mt-4 grid gap-3">
+                    <div className="rounded-2xl bg-[var(--surface)] px-4 py-3 text-sm text-[var(--muted)]">Transcript stays visible so the advice feels auditable.</div>
+                    <div className="rounded-2xl bg-[var(--surface)] px-4 py-3 text-sm text-[var(--muted)]">Action plan updates as the session evolves.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <input className={`flex-1 ${inputClass}`} value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Send a transcript event..." />
+            <button onClick={sendMessage} className="rounded-2xl bg-[var(--ink)] px-4 py-3 text-sm font-semibold text-[var(--bg-soft)] transition hover:bg-[var(--teal)]">Send</button>
+            <button onClick={completeSession} className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm font-semibold text-[var(--ink)]">Complete</button>
           </div>
         </Card>
 
         <div className="grid gap-6">
           <Card>
-            <p className="text-sm uppercase tracking-[0.22em] text-white/45">Context</p>
+            <p className="text-sm uppercase tracking-[0.22em] text-[var(--muted)]">Context</p>
             <div className="mt-5 grid gap-3">
               {notes.map((note) => (
-                <div key={note} className="rounded-2xl border border-white/10 bg-black/15 px-4 py-3 text-sm text-white/70">{note}</div>
+                <div key={note} className="rounded-2xl border border-[var(--border)] bg-[var(--bg-soft)] px-4 py-3 text-sm text-[var(--muted)]">{note}</div>
               ))}
             </div>
           </Card>
           <Card>
-            <p className="text-sm uppercase tracking-[0.22em] text-white/45">Transcript</p>
+            <p className="text-sm uppercase tracking-[0.22em] text-[var(--muted)]">Transcript</p>
             <div className="mt-5 grid gap-3">
               {transcript.length ? transcript.map((item) => (
-                <div key={`${item.time}_${item.role}_${item.message}`} className="rounded-2xl border border-white/10 bg-black/15 px-4 py-3">
-                  <div className="flex items-center justify-between text-xs uppercase tracking-[0.18em] text-white/45">
+                <div key={`${item.time}_${item.role}_${item.message}`} className={`rounded-2xl border border-[var(--border)] px-4 py-3 ${item.role === "user" ? "bg-[var(--teal-soft)]" : "bg-[var(--bg-soft)]"}`}>
+                  <div className="flex items-center justify-between text-xs uppercase tracking-[0.18em] text-[var(--muted)]">
                     <span>{item.role}</span>
                     <span>{item.time}</span>
                   </div>
-                  <p className="mt-2 text-sm leading-6 text-white/74">{item.message}</p>
+                  <p className="mt-2 text-sm leading-6 text-[var(--ink)]">{item.message}</p>
                 </div>
-              )) : <p className="text-sm text-white/55">No transcript events yet.</p>}
+              )) : <p className="text-sm text-[var(--muted)]">No transcript events yet.</p>}
             </div>
           </Card>
         </div>

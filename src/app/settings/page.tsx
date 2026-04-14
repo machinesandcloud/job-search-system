@@ -11,7 +11,7 @@ export default async function SettingsPage() {
     <PageFrame authenticated>
       <Section className="py-12">
         <Eyebrow>Settings and Privacy</Eyebrow>
-        <h1 className="mt-5 text-4xl font-semibold tracking-tight">Control retention, memory, and communication preferences.</h1>
+        <h1 className="mt-5 text-4xl font-semibold tracking-[-0.04em] text-[var(--ink)]">Control retention, memory, and communication preferences.</h1>
       </Section>
       <Section className="grid gap-6 py-4 lg:grid-cols-3">
         {[
@@ -29,8 +29,8 @@ export default async function SettingsPage() {
           },
         ].map((item) => (
           <Card key={item.title}>
-            <p className="text-sm uppercase tracking-[0.22em] text-white/45">{item.title}</p>
-            <p className="mt-4 text-base leading-7 text-white/70">{item.body}</p>
+            <p className="text-sm uppercase tracking-[0.22em] text-[var(--muted)]">{item.title}</p>
+            <p className="mt-4 text-base leading-7 text-[var(--muted)]">{item.body}</p>
           </Card>
         ))}
       </Section>

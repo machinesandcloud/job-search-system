@@ -6,27 +6,27 @@ import { getCurrentUserId } from "@/lib/mvp/auth";
 const useCases = [
   {
     title: "Resume review",
-    body: "Upload PDF or DOCX files and get structured feedback on ATS readiness, clarity, impact, and positioning.",
+    body: "Get direct feedback on clarity, metrics, ATS signals, and role fit without having to decode generic AI output.",
   },
   {
-    title: "LinkedIn review",
-    body: "Paste profile sections or upload an export to rewrite your headline, About section, and experience entries.",
+    title: "LinkedIn rewrite",
+    body: "Tighten headline, About section, and experience bullets so your profile reads like a deliberate career move.",
   },
   {
     title: "Mock interviews",
-    body: "Practice by voice or text, then get direct feedback on structure, specificity, and confidence.",
+    body: "Practice aloud, keep the transcript visible, and get concrete feedback on structure, specificity, and confidence.",
   },
   {
-    title: "Career guidance",
-    body: "Use session memory and coaching context to clarify role fit, positioning gaps, and next actions.",
+    title: "Career direction",
+    body: "Use session history and documents together to clarify fit, gaps, and the next highest-value move.",
   },
 ];
 
-const architecture = [
-  "OpenAI Realtime-ready session architecture with transcript and event ingestion",
-  "Avatar adapter layer prepared for Tavus with graceful audio-only fallback",
-  "Document-aware workflows for resume and LinkedIn analysis",
-  "Dashboard, action plans, usage limits, privacy controls, and saved session history",
+const principles = [
+  "Structured coaching over generic motivation",
+  "Visible transcript, saved notes, and action plans",
+  "Warm editorial design instead of generic AI sci-fi",
+  "Built to evolve into realtime voice and avatar sessions",
 ];
 
 export default async function HomePage() {
@@ -34,65 +34,81 @@ export default async function HomePage() {
 
   return (
     <PageFrame authenticated={Boolean(userId)}>
-      <Section className="grid gap-10 pb-10 pt-14 md:grid-cols-[1.15fr_0.85fr] md:pt-20">
+      <Section className="grid gap-8 pb-8 pt-12 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="max-w-3xl">
-          <Eyebrow>AI Career Coach MVP</Eyebrow>
-          <h1 className="mt-6 text-5xl font-semibold tracking-[-0.05em] text-white md:text-7xl">
-            Talk face-to-face with an AI coach that fixes your resume, sharpens your LinkedIn, and runs live interview prep.
+          <Eyebrow>AI Career Coach</Eyebrow>
+          <h1 className="mt-6 max-w-4xl text-5xl font-semibold tracking-[-0.055em] text-[var(--ink)] md:text-7xl">
+            Career coaching that fixes the materials, the message, and the interview.
           </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-white/72">
-            The old job-search funnel has been replaced with the new product shape from the April 13, 2026 build spec: onboarding, dashboard, live coaching room, document reviews, mock interviews, session recap, and privacy controls.
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--muted)]">
+            Askia Coach is a document-aware coaching workspace for resume review, LinkedIn positioning, mock interviews, and saved action plans. It should feel like a sharp, practical coach. Not a glowing chatbot.
           </p>
           <div className="mt-8 flex flex-wrap gap-4">
             {userId ? (
-              <Link href="/dashboard" className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-orange-100">
+              <Link href="/dashboard" className="rounded-full bg-[var(--ink)] px-6 py-3 text-sm font-semibold text-[var(--bg-soft)] transition hover:bg-[var(--teal)]">
                 Open dashboard
               </Link>
             ) : (
-              <DemoStartButton href="/dashboard" className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-orange-100">
+              <DemoStartButton href="/dashboard" className="rounded-full bg-[var(--ink)] px-6 py-3 text-sm font-semibold text-[var(--bg-soft)] transition hover:bg-[var(--teal)]">
                 Try demo instantly
               </DemoStartButton>
             )}
-            <Link href="/coach" className="rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-white/88 transition hover:border-white/28">
-              Enter live room
+            <Link href="/workspaces/resume" className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-6 py-3 text-sm font-semibold text-[var(--ink)] transition hover:border-[var(--teal)]">
+              Review resume
             </Link>
           </div>
           <div className="mt-10 grid gap-4 sm:grid-cols-3">
-            <Stat label="Core surfaces rebuilt" value="8" />
-            <Stat label="Spec-aligned APIs added" value="10" />
-            <Stat label="MVP modes" value="6" />
+            <Stat label="Use cases" value="4" />
+            <Stat label="Saved surfaces" value="8" />
+            <Stat label="Buildable MVP" value="Yes" />
           </div>
         </div>
 
         <Card className="overflow-hidden p-0">
-          <div className="border-b border-white/10 p-6">
-            <p className="text-sm uppercase tracking-[0.24em] text-white/45">Live coaching room</p>
-            <div className="mt-4 rounded-[24px] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(251,146,60,0.22),transparent_40%),#111c2b] p-5">
-              <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-white/48">
-                <span>Avatar online</span>
-                <span>Realtime connected</span>
-              </div>
-              <div className="mt-4 grid min-h-[260px] place-items-center rounded-[22px] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))]">
-                <div className="text-center">
-                  <div className="mx-auto grid h-28 w-28 place-items-center rounded-full border border-orange-200/30 bg-[linear-gradient(135deg,rgba(249,115,22,0.65),rgba(244,63,94,0.60))] text-3xl font-semibold shadow-[0_22px_55px_rgba(244,63,94,0.30)]">
-                    AI
+          <div className="border-b border-[var(--border)] p-6">
+            <p className="text-sm uppercase tracking-[0.24em] text-[var(--muted)]">Coaching workspace</p>
+            <div className="mt-5 rounded-[26px] border border-[var(--border)] bg-[var(--bg-soft)] p-5">
+              <div className="grid gap-4 md:grid-cols-[1.05fr_0.95fr]">
+                <div className="rounded-[24px] border border-[var(--border)] bg-[var(--surface)] p-5">
+                  <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-[var(--muted)]">
+                    <span>Live coaching room</span>
+                    <span>Resume mode</span>
                   </div>
-                  <p className="mt-5 text-xl font-semibold text-white">Structured coaching in voice, video, or text</p>
-                  <p className="mt-2 text-sm text-white/60">Listening, thinking, speaking, and reviewing document states are all visible.</p>
+                  <div className="mt-5 rounded-[22px] bg-[linear-gradient(180deg,#efe7db,#e3d8c8)] p-5">
+                    <div className="rounded-[20px] border border-[var(--border)] bg-[var(--surface)] p-4">
+                      <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Coach focus</p>
+                      <p className="mt-3 text-xl font-semibold text-[var(--ink)]">Translate customer-ops experience into TPM evidence.</p>
+                      <p className="mt-3 text-sm leading-6 text-[var(--muted)]">Three strongest gaps: vague scope, weak systems language, and missing cross-functional delivery proof.</p>
+                    </div>
+                    <div className="mt-4 flex gap-2 text-xs font-semibold text-[var(--muted)]">
+                      {["Mic", "Captions", "Notes", "Complete"].map((item) => (
+                        <div key={item} className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-2">{item}</div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="mt-4 grid grid-cols-5 gap-3 text-center text-xs text-white/62">
-                {["Mic", "Speaker", "Avatar", "Captions", "End"].map((item) => (
-                  <div key={item} className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3">
-                    {item}
+                <div className="grid gap-4">
+                  <div className="rounded-[24px] border border-[var(--border)] bg-[var(--surface)] p-5">
+                    <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Transcript</p>
+                    <div className="mt-4 space-y-3">
+                      <div className="rounded-2xl bg-[var(--bg-soft)] p-3 text-sm text-[var(--ink)]">What outcome matters most today: sharper stories, stronger positioning, or mock interview practice?</div>
+                      <div className="rounded-2xl bg-[var(--teal-soft)] p-3 text-sm text-[var(--ink)]">I need to reposition for TPM roles and stop sounding vague.</div>
+                    </div>
                   </div>
-                ))}
+                  <div className="rounded-[24px] border border-[var(--border)] bg-[var(--surface)] p-5">
+                    <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Action plan</p>
+                    <ul className="mt-4 grid gap-3 text-sm text-[var(--muted)]">
+                      <li className="rounded-2xl bg-[var(--bg-soft)] px-3 py-3">Rewrite top 3 bullets around scope, systems, and measurable outcomes.</li>
+                      <li className="rounded-2xl bg-[var(--bg-soft)] px-3 py-3">Refresh LinkedIn headline for delivery leadership and TPM transition.</li>
+                    </ul>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-          <div className="grid gap-4 p-6">
-            {architecture.map((item) => (
-              <div key={item} className="rounded-2xl border border-white/10 bg-black/15 px-4 py-3 text-sm text-white/74">
+          <div className="grid gap-3 p-6">
+            {principles.map((item) => (
+              <div key={item} className="rounded-2xl border border-[var(--border)] bg-[var(--bg-soft)] px-4 py-3 text-sm text-[var(--muted)]">
                 {item}
               </div>
             ))}
@@ -100,31 +116,29 @@ export default async function HomePage() {
         </Card>
       </Section>
 
-      <Section className="pt-4">
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-          {useCases.map((item) => (
-            <Card key={item.title}>
-              <p className="text-sm uppercase tracking-[0.22em] text-orange-100/80">{item.title}</p>
-              <p className="mt-4 text-base leading-7 text-white/70">{item.body}</p>
-            </Card>
-          ))}
-        </div>
+      <Section className="grid gap-5 pt-4 md:grid-cols-2 xl:grid-cols-4">
+        {useCases.map((item) => (
+          <Card key={item.title}>
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">{item.title}</p>
+            <p className="mt-4 text-base leading-7 text-[var(--muted)]">{item.body}</p>
+          </Card>
+        ))}
       </Section>
 
-      <Section className="grid gap-6 md:grid-cols-[0.9fr_1.1fr]">
-        <Card>
-          <Eyebrow>What changed</Eyebrow>
-          <h2 className="mt-5 text-3xl font-semibold tracking-tight">The product is now centered on ongoing coaching, not a one-off assessment funnel.</h2>
-          <p className="mt-4 text-base leading-7 text-white/70">
-            The new information architecture follows the spec directly: authentication, onboarding, dashboard, live session, specialized review workspaces, saved recaps, and settings/privacy. The old `job-search-system` experience now forwards into this rebuilt flow.
+      <Section className="grid gap-6 md:grid-cols-[0.85fr_1.15fr]">
+        <Card className="bg-[var(--ink)] text-[var(--bg-soft)]">
+          <Eyebrow>Why This Works</Eyebrow>
+          <h2 className="mt-5 text-3xl font-semibold tracking-tight">The best career tools look more like a premium workspace than an AI theme pack.</h2>
+          <p className="mt-4 text-base leading-7 text-[rgba(246,241,232,0.72)]">
+            This product needs trust, clarity, and visible outputs. That means strong typography, real UI framing, warm neutrals, and clear coaching structure. Not neon gradients, not faux command-center styling.
           </p>
         </Card>
         <Card>
-          <Eyebrow>MVP boundaries</Eyebrow>
-          <div className="mt-5 grid gap-3 text-sm text-white/72">
-            <div className="rounded-2xl border border-white/10 bg-black/15 px-4 py-4">In scope: browser-based coaching, voice/avatar-ready session architecture, document review, memory, analytics hooks, free-tier metering.</div>
-            <div className="rounded-2xl border border-white/10 bg-black/15 px-4 py-4">Out of scope: mobile apps, LinkedIn scraping, enterprise seats, ATS integrations, unlimited free usage.</div>
-            <div className="rounded-2xl border border-white/10 bg-black/15 px-4 py-4">Implementation note: provider integrations are abstracted and currently stubbed so the app shape is in place without hard-coding one vendor everywhere.</div>
+          <Eyebrow>Product Shape</Eyebrow>
+          <div className="mt-5 grid gap-3 text-sm text-[var(--muted)]">
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-soft)] px-4 py-4">Landing page that explains the offer without AI hype language.</div>
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-soft)] px-4 py-4">Dashboard with saved sessions, usage limits, and action plans.</div>
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-soft)] px-4 py-4">Resume, LinkedIn, and interview workspaces with outputs that feel coach-led and practical.</div>
           </div>
         </Card>
       </Section>

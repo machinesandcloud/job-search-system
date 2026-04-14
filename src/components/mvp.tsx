@@ -8,33 +8,33 @@ function cn(...values: Array<string | false | null | undefined>) {
 
 export function SiteHeader({ authenticated = false }: { authenticated?: boolean }) {
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-[rgba(9,18,29,0.82)] backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b border-[var(--border)]/80 bg-[rgba(251,248,242,0.88)] backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         <Link href="/" className="flex items-center gap-3">
-          <div className="grid h-10 w-10 place-items-center rounded-2xl bg-[linear-gradient(135deg,#f97316,#fb7185)] text-sm font-semibold text-white shadow-[0_18px_40px_rgba(249,115,22,0.25)]">
+          <div className="grid h-11 w-11 place-items-center rounded-2xl bg-[var(--ink)] text-sm font-semibold text-[var(--bg-soft)] shadow-[var(--shadow)]">
             AC
           </div>
           <div>
-            <p className="text-sm font-semibold tracking-[0.22em] text-white/90 uppercase">Askia Coach</p>
-            <p className="text-xs text-white/55">Voice, avatar, and document-aware career coaching</p>
+            <p className="text-sm font-semibold tracking-[0.18em] text-[var(--ink)] uppercase">Askia Coach</p>
+            <p className="text-xs text-[var(--muted)]">Career coaching with document review, interviews, and saved memory</p>
           </div>
         </Link>
-        <nav className="hidden items-center gap-6 text-sm text-white/72 md:flex">
-          <Link href="/dashboard">Dashboard</Link>
-          <Link href="/coach">Live room</Link>
-          <Link href="/workspaces/resume">Resume</Link>
-          <Link href="/workspaces/linkedin">LinkedIn</Link>
-          <Link href="/interview">Interview</Link>
+        <nav className="hidden items-center gap-6 text-sm text-[var(--muted)] md:flex">
+          <Link href="/dashboard" className="hover:text-[var(--ink)]">Dashboard</Link>
+          <Link href="/coach" className="hover:text-[var(--ink)]">Live room</Link>
+          <Link href="/workspaces/resume" className="hover:text-[var(--ink)]">Resume</Link>
+          <Link href="/workspaces/linkedin" className="hover:text-[var(--ink)]">LinkedIn</Link>
+          <Link href="/interview" className="hover:text-[var(--ink)]">Interview</Link>
         </nav>
         <div className="flex items-center gap-3">
           {authenticated ? (
-            <LogoutButton className="rounded-full border border-white/12 px-4 py-2 text-sm text-white/80 transition hover:border-white/24 hover:text-white" />
+            <LogoutButton className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm text-[var(--muted)] transition hover:border-[var(--ink)]/25 hover:text-[var(--ink)]" />
           ) : (
             <>
-              <Link href="/login" className="rounded-full border border-white/12 px-4 py-2 text-sm text-white/80 transition hover:border-white/24 hover:text-white">
+              <Link href="/login" className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm text-[var(--muted)] transition hover:border-[var(--ink)]/25 hover:text-[var(--ink)]">
                 Log in
               </Link>
-              <Link href="/signup" className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-orange-100">
+              <Link href="/signup" className="rounded-full bg-[var(--ink)] px-4 py-2 text-sm font-semibold text-[var(--bg-soft)] transition hover:bg-[var(--teal)]">
                 Start free
               </Link>
             </>
@@ -47,7 +47,7 @@ export function SiteHeader({ authenticated = false }: { authenticated?: boolean 
 
 export function PageFrame({ children, authenticated = false }: { children: ReactNode; authenticated?: boolean }) {
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.20),transparent_30%),radial-gradient(circle_at_80%_0%,rgba(244,63,94,0.16),transparent_28%),radial-gradient(circle_at_50%_100%,rgba(15,118,110,0.16),transparent_30%),#07111c] text-white">
+    <div className="min-h-screen text-[var(--ink)]">
       <SiteHeader authenticated={authenticated} />
       <main>{children}</main>
     </div>
@@ -55,49 +55,30 @@ export function PageFrame({ children, authenticated = false }: { children: React
 }
 
 export function Eyebrow({ children }: { children: ReactNode }) {
-  return <span className="inline-flex rounded-full border border-orange-300/25 bg-orange-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-orange-100">{children}</span>;
+  return (
+    <span className="inline-flex rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--accent)]">
+      {children}
+    </span>
+  );
 }
 
-export function Section({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
+export function Section({ children, className }: { children: ReactNode; className?: string }) {
   return <section className={cn("mx-auto max-w-7xl px-6 py-16 md:py-20", className)}>{children}</section>;
 }
 
-export function Card({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
+export function Card({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div
-      className={cn(
-        "rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.03))] p-6 shadow-[0_30px_90px_rgba(0,0,0,0.28)] backdrop-blur-xl",
-        className,
-      )}
-    >
+    <div className={cn("rounded-[28px] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow)]", className)}>
       {children}
     </div>
   );
 }
 
-export function Stat({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+export function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-3xl border border-white/10 bg-black/15 p-5">
-      <p className="text-sm text-white/60">{label}</p>
-      <p className="mt-2 text-3xl font-semibold tracking-tight text-white">{value}</p>
+    <div className="rounded-[24px] border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow)]">
+      <p className="text-sm text-[var(--muted)]">{label}</p>
+      <p className="mt-2 text-3xl font-semibold tracking-tight text-[var(--ink)]">{value}</p>
     </div>
   );
 }
@@ -105,8 +86,8 @@ export function Stat({
 export function Meter({ value, max }: { value: number; max: number }) {
   const width = `${Math.min((value / max) * 100, 100)}%`;
   return (
-    <div className="h-2 overflow-hidden rounded-full bg-white/10">
-      <div className="h-full rounded-full bg-[linear-gradient(90deg,#fb923c,#fb7185)]" style={{ width }} />
+    <div className="h-2 overflow-hidden rounded-full bg-[var(--surface-strong)]">
+      <div className="h-full rounded-full bg-[linear-gradient(90deg,var(--accent),var(--teal))]" style={{ width }} />
     </div>
   );
 }
