@@ -3,30 +3,26 @@ import { Card, Eyebrow, PageFrame, Section, Stat } from "@/components/mvp";
 import { DemoStartButton } from "@/components/mvp-session-actions";
 import { getCurrentUserId } from "@/lib/mvp/auth";
 
-const useCases = [
+const outcomes = [
   {
     title: "Resume review",
-    body: "Get direct feedback on clarity, metrics, ATS signals, and role fit without having to decode generic AI output.",
+    body: "See exactly which bullets are weak, what signals are missing, and how to rewrite them for the role you want.",
   },
   {
     title: "LinkedIn rewrite",
-    body: "Tighten headline, About section, and experience bullets so your profile reads like a deliberate career move.",
+    body: "Reposition headline, About, and experience so your profile reads like a coherent move, not a scattered history.",
   },
   {
-    title: "Mock interviews",
-    body: "Practice aloud, keep the transcript visible, and get concrete feedback on structure, specificity, and confidence.",
-  },
-  {
-    title: "Career direction",
-    body: "Use session history and documents together to clarify fit, gaps, and the next highest-value move.",
+    title: "Interview practice",
+    body: "Practice answers with the transcript visible and get feedback on structure, evidence, confidence, and missed opportunities.",
   },
 ];
 
-const principles = [
-  "Structured coaching over generic motivation",
-  "Visible transcript, saved notes, and action plans",
-  "Warm editorial design instead of generic AI sci-fi",
-  "Built to evolve into realtime voice and avatar sessions",
+const proof = [
+  "Structured coaching, not generic AI replies",
+  "Saved sessions, documents, and action plans",
+  "Built for resume, LinkedIn, interview, and career direction work",
+  "Designed to grow into realtime voice and avatar sessions later",
 ];
 
 export default async function HomePage() {
@@ -34,113 +30,118 @@ export default async function HomePage() {
 
   return (
     <PageFrame authenticated={Boolean(userId)}>
-      <Section className="grid gap-8 pb-8 pt-12 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="max-w-3xl">
-          <Eyebrow>AI Career Coach</Eyebrow>
-          <h1 className="mt-6 max-w-4xl text-5xl font-semibold tracking-[-0.055em] text-[var(--ink)] md:text-7xl">
-            Career coaching that fixes the materials, the message, and the interview.
-          </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--muted)]">
-            Askia Coach is a document-aware coaching workspace for resume review, LinkedIn positioning, mock interviews, and saved action plans. It should feel like a sharp, practical coach. Not a glowing chatbot.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-4">
-            {userId ? (
-              <Link href="/dashboard" className="rounded-full bg-[var(--ink)] px-6 py-3 text-sm font-semibold text-[var(--bg-soft)] transition hover:bg-[var(--teal)]">
-                Open dashboard
+      <Section className="pb-10 pt-10">
+        <div className="grid gap-6 xl:grid-cols-[1.04fr_0.96fr]">
+          <div className="rounded-[36px] bg-[var(--ink)] px-8 py-10 text-[var(--surface)] shadow-[var(--shadow)] md:px-10 md:py-12">
+            <Eyebrow>AI Career Coach</Eyebrow>
+            <h1 className="mt-6 max-w-4xl text-5xl font-semibold tracking-[-0.06em] md:text-7xl">
+              Fix the resume. Tighten the story. Practice the interview.
+            </h1>
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-[rgba(255,250,242,0.72)]">
+              Askia Coach is an AI career coaching workspace for resume review, LinkedIn positioning, mock interviews, and saved action plans. The product should feel like a sharp operator at your side, not a novelty chatbot.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-4">
+              {userId ? (
+                <Link href="/dashboard" className="rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[var(--accent-2)]">
+                  Open dashboard
+                </Link>
+              ) : (
+                <DemoStartButton href="/dashboard" className="rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[var(--accent-2)]">
+                  Try the product
+                </DemoStartButton>
+              )}
+              <Link href="/platform" className="rounded-full border border-white/20 px-6 py-3 text-sm font-semibold text-[var(--surface)] transition hover:border-white/40">
+                Explore platform
               </Link>
-            ) : (
-              <DemoStartButton href="/dashboard" className="rounded-full bg-[var(--ink)] px-6 py-3 text-sm font-semibold text-[var(--bg-soft)] transition hover:bg-[var(--teal)]">
-                Try demo instantly
-              </DemoStartButton>
-            )}
-            <Link href="/workspaces/resume" className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-6 py-3 text-sm font-semibold text-[var(--ink)] transition hover:border-[var(--teal)]">
-              Review resume
-            </Link>
+            </div>
+            <div className="mt-10 grid gap-4 sm:grid-cols-3">
+              <Stat label="Coaching jobs" value="4" />
+              <Stat label="Core pages" value="12+" />
+              <Stat label="Realtime-ready" value="Yes" />
+            </div>
           </div>
-          <div className="mt-10 grid gap-4 sm:grid-cols-3">
-            <Stat label="Use cases" value="4" />
-            <Stat label="Saved surfaces" value="8" />
-            <Stat label="Buildable MVP" value="Yes" />
-          </div>
-        </div>
 
-        <Card className="overflow-hidden p-0">
-          <div className="border-b border-[var(--border)] p-6">
-            <p className="text-sm uppercase tracking-[0.24em] text-[var(--muted)]">Coaching workspace</p>
-            <div className="mt-5 rounded-[26px] border border-[var(--border)] bg-[var(--bg-soft)] p-5">
-              <div className="grid gap-4 md:grid-cols-[1.05fr_0.95fr]">
-                <div className="rounded-[24px] border border-[var(--border)] bg-[var(--surface)] p-5">
+          <div className="grid gap-6">
+            <Card className="rounded-[36px] border-none bg-[var(--sand)] p-0 shadow-[var(--shadow)]">
+              <div className="grid gap-0 md:grid-cols-[1.2fr_0.8fr]">
+                <div className="border-b border-[var(--border)] p-7 md:border-b-0 md:border-r">
                   <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-[var(--muted)]">
                     <span>Live coaching room</span>
-                    <span>Resume mode</span>
+                    <span>Resume review</span>
                   </div>
-                  <div className="mt-5 rounded-[22px] bg-[linear-gradient(180deg,#efe7db,#e3d8c8)] p-5">
-                    <div className="rounded-[20px] border border-[var(--border)] bg-[var(--surface)] p-4">
-                      <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Coach focus</p>
-                      <p className="mt-3 text-xl font-semibold text-[var(--ink)]">Translate customer-ops experience into TPM evidence.</p>
-                      <p className="mt-3 text-sm leading-6 text-[var(--muted)]">Three strongest gaps: vague scope, weak systems language, and missing cross-functional delivery proof.</p>
-                    </div>
-                    <div className="mt-4 flex gap-2 text-xs font-semibold text-[var(--muted)]">
-                      {["Mic", "Captions", "Notes", "Complete"].map((item) => (
-                        <div key={item} className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-2">{item}</div>
-                      ))}
-                    </div>
+                  <div className="mt-5 rounded-[28px] bg-[var(--panel)] p-5">
+                    <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Coach focus</p>
+                    <p className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-[var(--ink)]">
+                      Translate customer-ops experience into credible TPM proof.
+                    </p>
+                    <p className="mt-4 text-sm leading-7 text-[var(--muted)]">
+                      The strongest examples here show scope, systems, and cross-functional delivery. The weakest ones sound busy but not consequential.
+                    </p>
+                  </div>
+                  <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold text-[var(--muted)]">
+                    {["Transcript", "Notes", "Captions", "Complete"].map((item) => (
+                      <div key={item} className="rounded-full border border-[var(--border)] bg-[var(--panel)] px-3 py-2">
+                        {item}
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <div className="grid gap-4">
-                  <div className="rounded-[24px] border border-[var(--border)] bg-[var(--surface)] p-5">
+                <div className="grid gap-4 p-7">
+                  <div className="rounded-[24px] bg-[var(--panel)] p-5">
                     <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Transcript</p>
                     <div className="mt-4 space-y-3">
-                      <div className="rounded-2xl bg-[var(--bg-soft)] p-3 text-sm text-[var(--ink)]">What outcome matters most today: sharper stories, stronger positioning, or mock interview practice?</div>
-                      <div className="rounded-2xl bg-[var(--teal-soft)] p-3 text-sm text-[var(--ink)]">I need to reposition for TPM roles and stop sounding vague.</div>
+                      <div className="rounded-2xl bg-[var(--surface-2)] p-3 text-sm leading-6 text-[var(--ink)]">
+                        What outcome matters most in this session: stronger positioning, sharper stories, or interview practice?
+                      </div>
+                      <div className="rounded-2xl bg-[rgba(45,102,103,0.14)] p-3 text-sm leading-6 text-[var(--ink)]">
+                        I need to reposition for TPM roles and stop sounding vague.
+                      </div>
                     </div>
                   </div>
-                  <div className="rounded-[24px] border border-[var(--border)] bg-[var(--surface)] p-5">
+                  <div className="rounded-[24px] bg-[var(--panel)] p-5">
                     <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Action plan</p>
-                    <ul className="mt-4 grid gap-3 text-sm text-[var(--muted)]">
-                      <li className="rounded-2xl bg-[var(--bg-soft)] px-3 py-3">Rewrite top 3 bullets around scope, systems, and measurable outcomes.</li>
-                      <li className="rounded-2xl bg-[var(--bg-soft)] px-3 py-3">Refresh LinkedIn headline for delivery leadership and TPM transition.</li>
+                    <ul className="mt-4 grid gap-3 text-sm leading-6 text-[var(--muted)]">
+                      <li>Rewrite top 3 bullets around scope, systems, and measurable outcomes.</li>
+                      <li>Refresh LinkedIn headline for delivery leadership and TPM transition.</li>
                     </ul>
                   </div>
                 </div>
               </div>
+            </Card>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              {proof.map((item, index) => (
+                <Card
+                  key={item}
+                  className={index === 0 ? "border-none bg-[var(--accent)] text-white" : index === 1 ? "border-none bg-[var(--accent-2)] text-white" : ""}
+                >
+                  <p className={`text-sm leading-7 ${index < 2 ? "text-white" : "text-[var(--muted)]"}`}>{item}</p>
+                </Card>
+              ))}
             </div>
           </div>
-          <div className="grid gap-3 p-6">
-            {principles.map((item) => (
-              <div key={item} className="rounded-2xl border border-[var(--border)] bg-[var(--bg-soft)] px-4 py-3 text-sm text-[var(--muted)]">
-                {item}
-              </div>
-            ))}
-          </div>
-        </Card>
+        </div>
       </Section>
 
-      <Section className="grid gap-5 pt-4 md:grid-cols-2 xl:grid-cols-4">
-        {useCases.map((item) => (
-          <Card key={item.title}>
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">{item.title}</p>
-            <p className="mt-4 text-base leading-7 text-[var(--muted)]">{item.body}</p>
-          </Card>
-        ))}
-      </Section>
-
-      <Section className="grid gap-6 md:grid-cols-[0.85fr_1.15fr]">
-        <Card className="bg-[var(--ink)] text-[var(--bg-soft)]">
-          <Eyebrow>Why This Works</Eyebrow>
-          <h2 className="mt-5 text-3xl font-semibold tracking-tight">The best career tools look more like a premium workspace than an AI theme pack.</h2>
-          <p className="mt-4 text-base leading-7 text-[rgba(246,241,232,0.72)]">
-            This product needs trust, clarity, and visible outputs. That means strong typography, real UI framing, warm neutrals, and clear coaching structure. Not neon gradients, not faux command-center styling.
+      <Section className="grid gap-6 pt-2 lg:grid-cols-[0.85fr_1.15fr]">
+        <div>
+          <Eyebrow>What The Product Does</Eyebrow>
+          <h2 className="mt-5 text-4xl font-semibold tracking-[-0.045em] text-[var(--ink)]">
+            Dedicated pages for the real coaching jobs.
+          </h2>
+          <p className="mt-4 max-w-xl text-base leading-7 text-[var(--muted)]">
+            The reference products don’t rely on one landing page. They explain the platform, break out use cases, and create trust with dedicated security and product pages. This site needs the same depth.
           </p>
-        </Card>
-        <Card>
-          <Eyebrow>Product Shape</Eyebrow>
-          <div className="mt-5 grid gap-3 text-sm text-[var(--muted)]">
-            <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-soft)] px-4 py-4">Landing page that explains the offer without AI hype language.</div>
-            <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-soft)] px-4 py-4">Dashboard with saved sessions, usage limits, and action plans.</div>
-            <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-soft)] px-4 py-4">Resume, LinkedIn, and interview workspaces with outputs that feel coach-led and practical.</div>
-          </div>
-        </Card>
+        </div>
+        <div className="grid gap-5 md:grid-cols-3">
+          {outcomes.map((item) => (
+            <Card key={item.title} className="min-h-[220px]">
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">{item.title}</p>
+              <p className="mt-5 text-lg font-semibold tracking-[-0.02em] text-[var(--ink)]">{item.title}</p>
+              <p className="mt-3 text-sm leading-7 text-[var(--muted)]">{item.body}</p>
+            </Card>
+          ))}
+        </div>
       </Section>
     </PageFrame>
   );
