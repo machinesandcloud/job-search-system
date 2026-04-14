@@ -40,7 +40,7 @@ async function handleSearch(query: string) {
     },
   });
 
-  const results = dbResults.map((company) => ({
+  const results = dbResults.map((company: any) => ({
     id: company.id,
     name: company.name,
     logoUrl: company.logoUrl,

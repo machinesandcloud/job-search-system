@@ -37,7 +37,7 @@ export default async function AdminPage() {
               </tr>
             </thead>
             <tbody>
-              {assessments.map((assessment) => (
+              {assessments.map((assessment: any) => (
                 <tr key={assessment.id} className="border-t border-slate-800">
                   <td className="py-2">
                     <Link href={`/admin/leads/${assessment.id}`} className="text-slate-100">
