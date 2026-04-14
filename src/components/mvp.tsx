@@ -18,15 +18,15 @@ const logoFiles = [
 
 export function SiteHeader({ authenticated = false }: { authenticated?: boolean }) {
   return (
-    <header className="sticky top-0 z-40 border-b border-[rgba(221,227,239,0.85)] bg-[rgba(245,246,251,0.82)] backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b border-[rgba(221,227,239,0.75)] bg-[rgba(245,246,251,0.86)] backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-5">
         <Link href="/" className="flex items-center gap-3">
-          <div className="grid h-11 w-11 place-items-center rounded-2xl bg-[var(--navy)] text-sm font-bold text-white shadow-[var(--shadow)]">
+          <div className="grid h-11 w-11 place-items-center rounded-2xl bg-[var(--navy)] text-sm font-bold text-white">
             AC
           </div>
           <div>
             <p className="text-[11px] font-extrabold uppercase tracking-[0.24em] text-[var(--blue)]">Askia Coach</p>
-            <p className="text-sm font-semibold text-[var(--ink)]">Career coaching for modern candidates</p>
+            <p className="text-sm font-semibold text-[var(--ink)]">AI career coaching for candidates in motion</p>
           </div>
         </Link>
         <nav className="hidden items-center gap-8 text-sm font-semibold text-[var(--muted)] lg:flex">
@@ -66,12 +66,7 @@ export function PageFrame({ children, authenticated = false }: { children: React
 
 export function Eyebrow({ children, dark = false }: { children: ReactNode; dark?: boolean }) {
   return (
-    <span
-      className={cn(
-        "inline-flex rounded-full border px-4 py-2 text-[11px] font-extrabold uppercase tracking-[0.22em]",
-        dark ? "border-white/16 bg-white/10 text-white" : "border-[var(--border)] bg-white text-[var(--blue)]",
-      )}
-    >
+    <span className={cn("inline-flex text-[11px] font-extrabold uppercase tracking-[0.24em]", dark ? "text-white/72" : "text-[var(--blue)]")}>
       {children}
     </span>
   );
@@ -82,25 +77,14 @@ export function Section({ children, className }: { children: ReactNode; classNam
 }
 
 export function Card({ children, className }: { children: ReactNode; className?: string }) {
-  return (
-    <div className={cn("rounded-[28px] border border-[var(--border)] bg-white p-7 shadow-[var(--shadow)]", className)}>
-      {children}
-    </div>
-  );
+  return <div className={cn("rounded-[28px] bg-white p-7 shadow-[var(--shadow)]", className)}>{children}</div>;
 }
 
-export function Stat({ label, value, inverted = false }: { label: string; value: string; inverted?: boolean }) {
+export function Stat({ label, value, dark = false }: { label: string; value: string; dark?: boolean }) {
   return (
-    <div
-      className={cn(
-        "rounded-[24px] border p-5",
-        inverted ? "border-white/10 bg-white/8 text-white" : "border-[var(--border)] bg-white text-[var(--ink)]",
-      )}
-    >
-      <p className={cn("text-[11px] font-extrabold uppercase tracking-[0.22em]", inverted ? "text-white/62" : "text-[var(--muted)]")}>
-        {label}
-      </p>
-      <p className="mt-3 text-3xl font-extrabold tracking-[-0.05em]">{value}</p>
+    <div className={cn("space-y-2", dark ? "text-white" : "text-[var(--ink)]")}>
+      <p className={cn("text-[11px] font-extrabold uppercase tracking-[0.22em]", dark ? "text-white/60" : "text-[var(--muted)]")}>{label}</p>
+      <p className="text-3xl font-extrabold tracking-[-0.05em]">{value}</p>
     </div>
   );
 }
@@ -116,9 +100,9 @@ export function Meter({ value, max }: { value: number; max: number }) {
 
 export function LogoStrip({ items }: { items: string[] }) {
   return (
-    <div className="flex flex-wrap gap-3">
+    <div className="flex flex-wrap gap-x-6 gap-y-3">
       {items.map((item) => (
-        <div key={item} className="rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--muted)]">
+        <div key={item} className="text-sm font-semibold text-[var(--muted)]">
           {item}
         </div>
       ))}
@@ -128,11 +112,9 @@ export function LogoStrip({ items }: { items: string[] }) {
 
 export function LogoCloud() {
   return (
-    <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-6">
+    <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-6 opacity-70">
       {logoFiles.map((logo) => (
-        <div key={logo.alt} className="flex h-16 items-center justify-center rounded-[20px] border border-[var(--border)] bg-white px-4">
-          <Image src={logo.src} alt={logo.alt} width={96} height={24} className="h-5 w-auto opacity-70" />
-        </div>
+        <Image key={logo.alt} src={logo.src} alt={logo.alt} width={108} height={28} className="h-5 w-auto" />
       ))}
     </div>
   );
