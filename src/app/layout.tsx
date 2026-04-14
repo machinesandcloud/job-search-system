@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
-import { DM_Serif_Display, Instrument_Sans } from "next/font/google";
+import { Manrope, Sora } from "next/font/google";
 import "./globals.css";
 
-const display = DM_Serif_Display({
+const display = Sora({
   subsets: ["latin"],
   variable: "--font-display",
-  weight: "400",
   display: "swap",
 });
 
-const body = Instrument_Sans({
+const body = Manrope({
   subsets: ["latin"],
   variable: "--font-body",
   display: "swap",

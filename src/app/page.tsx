@@ -6,56 +6,53 @@ import { getCurrentUserId } from "@/lib/mvp/auth";
 const pillars = [
   {
     title: "Resume review",
-    body: "Identify weak evidence, generic bullets, and missing role signals. Rewrite only the parts that change interview odds.",
+    body: "Find the bullets that still sound busy, surface what is missing, and rewrite around outcomes that hiring teams actually care about.",
   },
   {
     title: "LinkedIn positioning",
-    body: "Turn scattered experience into a coherent story with a sharper headline, stronger About section, and cleaner proof.",
+    body: "Tighten the headline, About section, and experience framing so your profile reads like a deliberate move instead of a timeline dump.",
   },
   {
     title: "Interview practice",
-    body: "Practice out loud, inspect the transcript, and leave with feedback on clarity, structure, and credibility.",
+    body: "Practice answers in a structured session, inspect the transcript, and leave with sharper stories and clearer proof.",
   },
 ];
 
 const workflow = [
   {
-    step: "01",
-    title: "Point the coach at the right target.",
-    body: "Start with your target role, current materials, and what keeps breaking in the process.",
+    step: "Target",
+    body: "Start with the role you want, the materials you already have, and the part of the process that keeps failing.",
   },
   {
-    step: "02",
-    title: "Work inside a dedicated coaching surface.",
-    body: "Each use case gets its own page so resume review, LinkedIn edits, and interview prep stay structured.",
+    step: "Coach",
+    body: "Work inside a dedicated surface for resume review, LinkedIn editing, mock interviews, or career direction.",
   },
   {
-    step: "03",
-    title: "Leave with concrete next moves.",
-    body: "Every session ends in saved notes, prioritized actions, and enough continuity for the next round.",
+    step: "Improve",
+    body: "Get rewrites, session notes, and a next-step plan you can actually use in the next application or interview round.",
   },
 ];
 
-const pages = [
+const sitePages = [
   {
     title: "Platform",
     href: "/platform",
-    body: "See the product architecture, session flow, and why the coaching experience is organized around workspaces.",
+    body: "See how sessions, documents, recaps, and memory fit together.",
   },
   {
     title: "Use cases",
     href: "/use-cases",
-    body: "Explore resume review, LinkedIn positioning, mock interviews, and career direction separately.",
+    body: "Explore resume review, LinkedIn positioning, interviews, and direction.",
   },
   {
     title: "Security",
     href: "/security",
-    body: "Understand what gets stored, how memory works, and how uploads and sessions stay scoped to the user.",
+    body: "Understand privacy, storage, and how session data is scoped.",
   },
   {
     title: "Pricing",
     href: "/pricing",
-    body: "Start with a clear free tier now, then layer in premium coaching and richer usage controls later.",
+    body: "Start free, then expand usage for active job search cycles.",
   },
 ];
 
@@ -64,145 +61,172 @@ export default async function HomePage() {
 
   return (
     <PageFrame authenticated={Boolean(userId)}>
-      <Section className="pb-12 pt-12">
-        <div className="grid gap-8 xl:grid-cols-[1.05fr_0.95fr]">
-          <div className="max-w-3xl">
-            <Eyebrow>AI Career Coach</Eyebrow>
-            <h1 className="mt-8 max-w-5xl text-6xl leading-[0.92] tracking-[-0.05em] text-[var(--ink)] md:text-8xl">
-              Career coaching for the materials, the message, and the interview.
-            </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--muted)]">
-              Askia Coach helps candidates tighten the resume, reposition the story, and practice the conversation. It is built to feel
-              like a practical coach with memory, structure, and follow-through, not a generic chatbot.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-4">
-              {userId ? (
-                <Link href="/dashboard" className="rounded-full bg-[var(--navy)] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[var(--blue)]">
-                  Open dashboard
-                </Link>
-              ) : (
-                <DemoStartButton href="/dashboard" className="rounded-full bg-[var(--navy)] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[var(--blue)]">
-                  Try the product
-                </DemoStartButton>
-              )}
-              <Link href="/platform" className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-6 py-3 text-sm font-semibold text-[var(--ink)] transition hover:border-[var(--blue)]">
-                Explore platform
-              </Link>
-            </div>
-            <p className="mt-6 text-sm leading-7 text-[var(--muted)]">
-              Best for candidates who need sharper proof, stronger positioning, and better interviews across one connected workflow.
-            </p>
-          </div>
-
-          <Card className="overflow-hidden border-none bg-[var(--navy)] p-0 text-white">
-            <div className="grid gap-0 md:grid-cols-[1.05fr_0.95fr]">
-              <div className="p-8 md:p-10">
-                <Eyebrow dark>Coaching workspace</Eyebrow>
-                <h2 className="mt-6 text-4xl leading-[1] tracking-[-0.04em] md:text-5xl">
-                  One system for review, rehearsal, and follow-through.
-                </h2>
-                <p className="mt-5 max-w-md text-base leading-8 text-white/72">
-                  The strongest coaching products make the outcome legible. This one is built around visible surfaces, saved context, and
-                  dedicated pages for the real coaching jobs.
+      <Section className="pb-10 pt-10">
+        <div className="overflow-hidden rounded-[40px] border border-[rgba(221,227,239,0.55)] bg-[linear-gradient(135deg,#0d1630_0%,#152652_100%)] shadow-[var(--shadow-lg)]">
+          <div className="grid gap-0 xl:grid-cols-[1.02fr_0.98fr]">
+            <div className="relative px-8 py-10 text-white md:px-12 md:py-14">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(56,102,255,0.24),transparent_32%),radial-gradient(circle_at_30%_80%,rgba(255,107,61,0.18),transparent_22%)]" />
+              <div className="relative">
+                <Eyebrow dark>AI Career Coach</Eyebrow>
+                <h1 className="mt-7 max-w-4xl text-5xl font-extrabold leading-[1.02] tracking-[-0.05em] md:text-7xl">
+                  Sharpen the resume. Tighten the story. Practice the interview.
+                </h1>
+                <p className="mt-6 max-w-2xl text-lg leading-8 text-white/72">
+                  Askia Coach is a career coaching workspace for candidates who need stronger materials, clearer positioning, and better
+                  interview performance without losing continuity from one session to the next.
                 </p>
-                <div className="mt-8 grid gap-4 sm:grid-cols-3">
-                  <Stat label="Use cases" value="4" />
-                  <Stat label="Saved recaps" value="Yes" />
-                  <Stat label="Voice-ready" value="Built in" />
+                <div className="mt-8 flex flex-wrap gap-4">
+                  {userId ? (
+                    <Link href="/dashboard" className="rounded-full bg-[var(--coral)] px-6 py-3 text-sm font-bold text-white transition hover:bg-white hover:text-[var(--navy)]">
+                      Open dashboard
+                    </Link>
+                  ) : (
+                    <DemoStartButton href="/dashboard" className="rounded-full bg-[var(--coral)] px-6 py-3 text-sm font-bold text-white transition hover:bg-white hover:text-[var(--navy)]">
+                      Try the product
+                    </DemoStartButton>
+                  )}
+                  <Link href="/platform" className="rounded-full border border-white/16 bg-white/8 px-6 py-3 text-sm font-bold text-white transition hover:bg-white hover:text-[var(--navy)]">
+                    Explore platform
+                  </Link>
+                </div>
+                <div className="mt-10 grid gap-4 sm:grid-cols-3">
+                  <Stat label="Use cases" value="4" inverted />
+                  <Stat label="Saved memory" value="Yes" inverted />
+                  <Stat label="Realtime ready" value="Built in" inverted />
                 </div>
               </div>
-              <div className="bg-[var(--bg-alt)] p-6 text-[var(--ink)] md:p-8">
-                <div className="rounded-[28px] bg-[var(--surface)] p-6 shadow-[var(--shadow)]">
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">Session focus</p>
-                  <p className="mt-4 text-3xl leading-[1.05] tracking-[-0.04em]">
-                    Translate customer operations work into credible TPM evidence.
-                  </p>
-                  <p className="mt-4 text-sm leading-7 text-[var(--muted)]">
-                    The coach points to where the proof is weak, what outcomes are undersold, and which stories should carry the interview.
-                  </p>
-                </div>
-                <div className="mt-4 grid gap-4 md:grid-cols-2">
-                  <div className="rounded-[24px] bg-[var(--surface)] p-5 shadow-[var(--shadow)]">
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--muted)]">Action plan</p>
-                    <ul className="mt-4 grid gap-3 text-sm leading-7 text-[var(--muted)]">
-                      <li>Rewrite three bullets around scale, systems, and measurable outcomes.</li>
-                      <li>Reframe the LinkedIn headline around delivery leadership and program ownership.</li>
-                    </ul>
+            </div>
+
+            <div className="bg-[linear-gradient(180deg,#eef3ff_0%,#f7f8fc_100%)] p-6 md:p-8">
+              <div className="grid gap-4">
+                <div className="rounded-[30px] border border-[var(--border)] bg-white p-6 shadow-[var(--shadow)]">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[var(--blue)]">Live coaching room</p>
+                      <p className="mt-2 text-3xl font-extrabold leading-[1.05] tracking-[-0.04em] text-[var(--ink)]">
+                        Turn vague experience into stronger proof.
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-[var(--surface-muted)] px-4 py-3 text-right">
+                      <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-[var(--muted)]">Session mode</p>
+                      <p className="mt-1 text-sm font-bold text-[var(--ink)]">TPM repositioning</p>
+                    </div>
                   </div>
-                  <div className="rounded-[24px] bg-[linear-gradient(135deg,#3559e6_0%,#8e85ff_100%)] p-5 text-white shadow-[var(--shadow)]">
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">What improves</p>
-                    <p className="mt-4 text-3xl leading-[1.05] tracking-[-0.04em]">Sharper proof. Better story. Stronger interview answers.</p>
+                  <div className="mt-6 grid gap-4 lg:grid-cols-[1.08fr_0.92fr]">
+                    <div className="rounded-[24px] bg-[var(--surface-muted)] p-5">
+                      <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-[var(--muted)]">Coach focus</p>
+                      <p className="mt-3 text-base font-bold leading-7 text-[var(--ink)]">
+                        The top bullets mention work but do not show scope, systems ownership, or delivery impact.
+                      </p>
+                      <div className="mt-4 space-y-3">
+                        <div className="rounded-2xl bg-white p-4 text-sm leading-7 text-[var(--muted)]">
+                          Reframe operations work around process scale, program complexity, and cross-functional delivery.
+                        </div>
+                        <div className="rounded-2xl bg-white p-4 text-sm leading-7 text-[var(--muted)]">
+                          Pull one example into interview prep so the rewritten narrative and spoken answer stay aligned.
+                        </div>
+                      </div>
+                    </div>
+                    <div className="grid gap-4">
+                      <div className="rounded-[24px] bg-[linear-gradient(135deg,#3866ff_0%,#6e8dff_100%)] p-5 text-white">
+                        <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-white/72">Transcript insight</p>
+                        <p className="mt-3 text-base font-bold leading-7">
+                          “I keep sounding helpful, not high ownership. I need the story to land closer to delivery leadership.”
+                        </p>
+                      </div>
+                      <div className="rounded-[24px] border border-[var(--border)] bg-white p-5">
+                        <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-[var(--muted)]">Action plan</p>
+                        <ul className="mt-3 grid gap-3 text-sm leading-7 text-[var(--muted)]">
+                          <li>Rewrite three experience bullets around systems and measurable outcomes.</li>
+                          <li>Refresh LinkedIn headline and About section before the next application round.</li>
+                          <li>Practice one delivery story in the interview workspace.</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="rounded-[24px] bg-[linear-gradient(135deg,#0e5d52_0%,#11806f_100%)] p-5 text-white shadow-[var(--shadow)]">
+                    <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-white/70">Resume</p>
+                    <p className="mt-3 text-sm leading-7">Spot weak evidence and rewrite the parts that actually affect response rates.</p>
+                  </div>
+                  <div className="rounded-[24px] bg-[linear-gradient(135deg,#ff6b3d_0%,#ff9366_100%)] p-5 text-white shadow-[var(--shadow)]">
+                    <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-white/70">Positioning</p>
+                    <p className="mt-3 text-sm leading-7">Align headline, story, and target role so your profile reads like a coherent move.</p>
+                  </div>
+                  <div className="rounded-[24px] border border-[var(--border)] bg-white p-5 shadow-[var(--shadow)]">
+                    <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-[var(--muted)]">Interview</p>
+                    <p className="mt-3 text-sm leading-7 text-[var(--muted)]">Rehearse answers in a session that keeps transcript, notes, and next moves together.</p>
                   </div>
                 </div>
               </div>
             </div>
-          </Card>
+          </div>
         </div>
       </Section>
 
-      <Section className="pt-0">
-        <p className="mb-5 text-center text-xs font-semibold uppercase tracking-[0.28em] text-[var(--muted)]">
-          Designed for candidates targeting teams at companies like
+      <Section className="pt-2">
+        <p className="mb-5 text-center text-[11px] font-extrabold uppercase tracking-[0.24em] text-[var(--muted)]">
+          Built for candidates aiming at teams like
         </p>
         <LogoCloud />
       </Section>
 
-      <Section className="grid gap-6 lg:grid-cols-[0.86fr_1.14fr]">
+      <Section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
         <div>
-          <Eyebrow>Core Coaching Jobs</Eyebrow>
-          <h2 className="mt-6 max-w-xl text-5xl leading-[0.98] tracking-[-0.04em] text-[var(--ink)]">
-            Three surfaces where candidates usually lose momentum.
+          <Eyebrow>What Askia Covers</Eyebrow>
+          <h2 className="mt-6 max-w-xl text-5xl font-extrabold leading-[1.02] tracking-[-0.04em] text-[var(--ink)]">
+            The three places where strong candidates still leak momentum.
           </h2>
           <p className="mt-5 max-w-lg text-base leading-8 text-[var(--muted)]">
-            Competitor sites make the value obvious fast: they separate distinct outcomes and explain why each one matters. This product
-            needs the same clarity.
+            The best competitor pages are explicit about outcomes. This product should be just as clear about the work it improves and the
+            decisions it helps users make.
           </p>
         </div>
         <div className="grid gap-5 md:grid-cols-3">
           {pillars.map((item, index) => (
             <Card key={item.title} className={index === 1 ? "bg-[var(--surface-muted)]" : ""}>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--blue)]">{item.title}</p>
-              <p className="mt-4 text-base leading-8 text-[var(--muted)]">{item.body}</p>
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[var(--blue)]">{item.title}</p>
+              <p className="mt-4 text-sm leading-7 text-[var(--muted)]">{item.body}</p>
             </Card>
           ))}
         </div>
       </Section>
 
-      <Section className="grid gap-6 xl:grid-cols-[1.02fr_0.98fr]">
-        <Card className="border-none bg-[linear-gradient(135deg,#111a2b_0%,#1b2941_100%)] p-10 text-white">
-          <Eyebrow dark>How it works</Eyebrow>
-          <h2 className="mt-6 max-w-2xl text-5xl leading-[0.98] tracking-[-0.04em]">A coaching flow that stays legible from first upload to saved recap.</h2>
-          <div className="mt-10 grid gap-5">
+      <Section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+        <Card className="border-none bg-[var(--navy)] text-white shadow-[var(--shadow-lg)]">
+          <Eyebrow dark>How the product works</Eyebrow>
+          <h2 className="mt-6 max-w-2xl text-4xl font-extrabold leading-[1.04] tracking-[-0.04em]">
+            A coaching workflow that stays structured from first upload to saved recap.
+          </h2>
+          <div className="mt-8 grid gap-4">
             {workflow.map((item) => (
-              <div key={item.step} className="grid gap-4 rounded-[28px] border border-white/10 bg-white/6 p-6 md:grid-cols-[72px_1fr]">
-                <div className="text-3xl leading-none tracking-[-0.05em] text-white/48">{item.step}</div>
-                <div>
-                  <p className="text-2xl leading-tight tracking-[-0.03em]">{item.title}</p>
-                  <p className="mt-3 text-sm leading-7 text-white/72">{item.body}</p>
-                </div>
+              <div key={item.step} className="grid gap-4 rounded-[24px] border border-white/10 bg-white/6 p-5 md:grid-cols-[110px_1fr]">
+                <p className="text-sm font-extrabold uppercase tracking-[0.22em] text-white/58">{item.step}</p>
+                <p className="text-sm leading-7 text-white/78">{item.body}</p>
               </div>
             ))}
           </div>
         </Card>
 
         <div className="grid gap-5">
-          <Card className="bg-[linear-gradient(135deg,#3559e6_0%,#6c7bff_100%)] text-white">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/72">Why this feels different</p>
-            <h3 className="mt-5 text-4xl leading-[1] tracking-[-0.04em]">The coach doesn’t just answer. It organizes the work.</h3>
-            <p className="mt-5 text-base leading-8 text-white/80">
-              Each page is built around a specific coaching job, so the product can review, rewrite, rehearse, and recap without collapsing
-              into a single generic thread.
+          <Card className="bg-[linear-gradient(135deg,#3866ff_0%,#6f89ff_100%)] text-white">
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-white/72">What makes it better</p>
+            <h3 className="mt-5 text-4xl font-extrabold leading-[1.04] tracking-[-0.04em]">It organizes the work instead of pretending one chat can do everything.</h3>
+            <p className="mt-4 text-base leading-8 text-white/82">
+              Resume edits, profile positioning, interview rehearsal, and saved recaps all get their own surfaces so the coaching stays
+              legible and reusable.
             </p>
           </Card>
           <Card>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--muted)]">What gets saved</p>
-            <div className="mt-5 grid gap-4">
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[var(--muted)]">What users keep</p>
+            <div className="mt-5 grid gap-3">
               {[
-                "Document reviews with issue lists and rewrite targets",
-                "Session summaries and action plans for the next round",
-                "Role goals and narrative notes that keep future coaching grounded",
+                "Document reviews with issue lists and rewrite priorities.",
+                "Session summaries and action plans for the next round.",
+                "Goal and narrative memory that makes future sessions smarter.",
               ].map((item) => (
-                <div key={item} className="rounded-[22px] border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-4 text-sm leading-7 text-[var(--muted)]">
+                <div key={item} className="rounded-[20px] border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-4 text-sm leading-7 text-[var(--muted)]">
                   {item}
                 </div>
               ))}
@@ -211,24 +235,24 @@ export default async function HomePage() {
         </div>
       </Section>
 
-      <Section className="pt-8">
+      <Section className="pt-10">
         <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
           <div>
-            <Eyebrow>Explore The Site</Eyebrow>
-            <h2 className="mt-6 max-w-2xl text-5xl leading-[0.98] tracking-[-0.04em] text-[var(--ink)]">
-              This needs real pages, not one oversized homepage.
+            <Eyebrow>Explore The Product</Eyebrow>
+            <h2 className="mt-6 max-w-2xl text-5xl font-extrabold leading-[1.02] tracking-[-0.04em] text-[var(--ink)]">
+              The site should help people understand the system, not just admire a hero.
             </h2>
           </div>
-          <Link href="/platform" className="rounded-full bg-[var(--coral)] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[var(--navy)]">
+          <Link href="/platform" className="rounded-full bg-[var(--navy)] px-6 py-3 text-sm font-bold text-white transition hover:bg-[var(--blue)]">
             Start with the platform
           </Link>
         </div>
         <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-          {pages.map((item) => (
+          {sitePages.map((item) => (
             <Card key={item.title}>
-              <p className="text-2xl leading-tight tracking-[-0.03em] text-[var(--ink)]">{item.title}</p>
+              <p className="text-2xl font-extrabold leading-tight tracking-[-0.03em] text-[var(--ink)]">{item.title}</p>
               <p className="mt-4 text-sm leading-7 text-[var(--muted)]">{item.body}</p>
-              <Link href={item.href} className="mt-6 inline-flex text-sm font-semibold text-[var(--blue)]">
+              <Link href={item.href} className="mt-6 inline-flex text-sm font-bold text-[var(--blue)]">
                 Visit page
               </Link>
             </Card>

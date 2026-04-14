@@ -47,6 +47,11 @@ export default async function PlatformPage() {
         "Visible session context so users can understand what the coach is responding to.",
         "Saved action plans and memory so each new session starts with continuity.",
       ]}
+      stats={[
+        { label: "Workspaces", value: "4" },
+        { label: "Dashboard", value: "Persistent" },
+        { label: "Recaps", value: "Saved" },
+      ]}
     >
       <Section className="grid gap-5 pt-8 md:grid-cols-2 xl:grid-cols-4">
         {modules.map((item, index) => (

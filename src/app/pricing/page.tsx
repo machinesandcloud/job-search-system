@@ -44,6 +44,11 @@ export default async function PricingPage() {
         "Straightforward Pro plan for active job searches and repeated practice.",
         "Future premium layer only after the self-serve product is clearly valuable.",
       ]}
+      stats={[
+        { label: "Free tier", value: "Yes" },
+        { label: "Pro", value: "$19" },
+        { label: "Premium", value: "Later" },
+      ]}
     >
       <Section className="grid gap-5 pt-8 lg:grid-cols-3">
         {tiers.map((tier) => (

@@ -44,6 +44,11 @@ export default async function UseCasesPage() {
         "LinkedIn rewriting for sharper positioning and cleaner narrative.",
         "Interview practice for stronger structure, confidence, and examples.",
       ]}
+      stats={[
+        { label: "Paths", value: "4" },
+        { label: "Reviews", value: "Structured" },
+        { label: "Interviews", value: "Practice" },
+      ]}
     >
       <Section className="grid gap-5 pt-8 md:grid-cols-2">
         {useCases.map((item, index) => (

@@ -36,6 +36,11 @@ export default async function SecurityPage() {
         "Make deletion and session scoping visible in the product.",
         "Keep provider usage narrow and explain it plainly.",
       ]}
+      stats={[
+        { label: "Memory", value: "Scoped" },
+        { label: "Uploads", value: "Owned" },
+        { label: "Providers", value: "Bounded" },
+      ]}
     >
       <Section className="grid gap-5 pt-8 lg:grid-cols-3">
         {controls.map((item) => (

@@ -2,19 +2,19 @@
 
 :root {
   color-scheme: light;
-  --bg: #f7f2ea;
-  --bg-alt: #efe6d9;
-  --surface: #fffdfa;
-  --surface-muted: #f4ece0;
+  --bg: #f5f6fb;
+  --bg-alt: #eceff8;
+  --surface: #ffffff;
+  --surface-muted: #f0f3fb;
   --panel: #ffffff;
-  --ink: #121826;
-  --muted: #5f6975;
-  --border: #ddd3c7;
-  --navy: #111a2b;
-  --blue: #3559e6;
-  --coral: #f16a3d;
-  --green: #153a35;
-  --lavender: #d9d8ff;
+  --ink: #111827;
+  --muted: #596579;
+  --border: #dde3ef;
+  --navy: #0d1630;
+  --blue: #3866ff;
+  --coral: #ff6b3d;
+  --green: #0e5d52;
+  --lavender: #d9deff;
   --accent: var(--coral);
   --accent-2: var(--blue);
   --bg-soft: var(--surface);
@@ -22,8 +22,9 @@
   --surface-2: var(--surface-muted);
   --sand: var(--bg-alt);
   --teal: var(--green);
-  --teal-soft: #e3f0eb;
-  --shadow: 0 22px 44px rgba(18, 24, 38, 0.08);
+  --teal-soft: #dff4ef;
+  --shadow: 0 24px 48px rgba(17, 24, 39, 0.08);
+  --shadow-lg: 0 36px 80px rgba(13, 22, 48, 0.16);
 }
 
 html {
@@ -34,7 +35,10 @@ body {
   margin: 0;
   min-width: 320px;
   font-family: var(--font-body), system-ui, sans-serif;
-  background: var(--bg);
+  background:
+    radial-gradient(circle at top left, rgba(56, 102, 255, 0.08), transparent 28%),
+    radial-gradient(circle at 85% 18%, rgba(255, 107, 61, 0.08), transparent 24%),
+    linear-gradient(180deg, #f7f8fc 0%, #f2f5fb 100%);
   color: var(--ink);
 }
 
@@ -45,6 +49,7 @@ h4,
 h5,
 h6 {
   font-family: var(--font-display), var(--font-body), system-ui, sans-serif;
+  font-weight: 700;
 }
 
 a {
