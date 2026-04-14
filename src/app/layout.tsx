@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, Instrument_Sans } from "next/font/google";
+import { DM_Serif_Display, Instrument_Sans } from "next/font/google";
 import "./globals.css";
 
-const display = Space_Grotesk({
+const display = DM_Serif_Display({
   subsets: ["latin"],
   variable: "--font-display",
+  weight: "400",
   display: "swap",
 });
 

@@ -1,6 +1,33 @@
-import { getCurrentUserId } from "@/lib/mvp/auth";
-import { Card, Section } from "@/components/mvp";
+import Link from "next/link";
+import { Card, Eyebrow, Section } from "@/components/mvp";
 import { MarketingShell } from "@/components/mvp-marketing";
+import { getCurrentUserId } from "@/lib/mvp/auth";
+
+const modules = [
+  {
+    title: "Live coaching room",
+    body: "Voice-first or text-first sessions with visible context, saved notes, and recap generation in one place.",
+  },
+  {
+    title: "Document workspaces",
+    body: "Resume and LinkedIn reviews live in dedicated surfaces so feedback stays structured and editable.",
+  },
+  {
+    title: "Dashboard memory",
+    body: "Goals, prior sessions, uploaded documents, and next steps stay connected instead of resetting each visit.",
+  },
+  {
+    title: "Interview prep",
+    body: "Practice responses, capture the transcript, and work back from weak answers into stronger evidence.",
+  },
+];
+
+const flow = [
+  "Choose a target role and tell the coach what is breaking: callbacks, narrative, confidence, or signal quality.",
+  "Upload the current resume or LinkedIn draft and open the right workspace.",
+  "Run a session that diagnoses issues, rewrites the highest-leverage parts, and prepares the next conversation.",
+  "Save the recap, return to the dashboard, and pick up from the last action instead of starting over.",
+];
 
 export default async function PlatformPage() {
   const userId = await getCurrentUserId();
@@ -9,55 +36,63 @@ export default async function PlatformPage() {
     <MarketingShell
       authenticated={Boolean(userId)}
       eyebrow="Platform"
-      title="One coaching platform for resume reviews, LinkedIn rewrites, interviews, and follow-through."
-      description="The strongest reference sites explain the product through dedicated pages and product modules. This page does the same: product architecture, workflows, and the surfaces that make the coach usable day to day."
+      title="A coaching platform organized around sessions, documents, and next steps."
+      description="Strong coaching products make the operating model obvious. Askia Coach is built around dedicated workspaces, persistent context, and saved follow-through so every session produces work you can actually use."
       primaryCta={{ href: "/dashboard", label: "Open dashboard" }}
-      secondaryCta={{ href: "/use-cases", label: "See use cases" }}
+      secondaryCta={{ href: "/use-cases", label: "Explore use cases" }}
+      spotlightTitle="Structured coaching that keeps moving."
+      spotlightBody="This page explains the system behind the experience: how sessions start, where documents live, and why the product is split into dedicated workspaces rather than one generic chat thread."
+      spotlightPoints={[
+        "Dedicated workspaces for resume review, LinkedIn rewriting, interview prep, and recaps.",
+        "Visible session context so users can understand what the coach is responding to.",
+        "Saved action plans and memory so each new session starts with continuity.",
+      ]}
     >
-      <Section className="grid gap-6 pt-4 lg:grid-cols-3">
-        {[
-          {
-            title: "Live coaching room",
-            body: "A focused session surface with transcript, context, session controls, and action-plan drafting in one place.",
-          },
-          {
-            title: "Review workspaces",
-            body: "Dedicated pages for resume and LinkedIn review outputs so the coach can diagnose, rewrite, and prioritize fixes clearly.",
-          },
-          {
-            title: "Saved memory",
-            body: "The coach stores relevant goals, prior notes, and session summaries so future interactions start with continuity instead of repetition.",
-          },
-        ].map((item) => (
-          <Card key={item.title}>
-            <p className="text-sm uppercase tracking-[0.2em] text-[var(--accent)]">{item.title}</p>
-            <p className="mt-4 text-base leading-7 text-[var(--muted)]">{item.body}</p>
+      <Section className="grid gap-5 pt-8 md:grid-cols-2 xl:grid-cols-4">
+        {modules.map((item, index) => (
+          <Card key={item.title} className={index === 0 ? "bg-[var(--surface-muted)]" : ""}>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--blue)]">{item.title}</p>
+            <p className="mt-4 text-sm leading-7 text-[var(--muted)]">{item.body}</p>
           </Card>
         ))}
       </Section>
 
-      <Section className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-        <Card>
-          <p className="text-sm uppercase tracking-[0.22em] text-[var(--muted)]">Platform flow</p>
-          <div className="mt-5 grid gap-4">
-            {[
-              "1. Start with onboarding so the coach knows your role direction and current blockers.",
-              "2. Choose a use case: resume, LinkedIn, interview practice, or career guidance.",
-              "3. Work in a dedicated surface with visible transcript, structured outputs, and next actions.",
-              "4. Save the recap back to the dashboard so the next session starts where the last one left off.",
-            ].map((step) => (
-              <div key={step} className="rounded-[24px] border border-[var(--border)] bg-[var(--bg-soft)] px-5 py-4 text-sm text-[var(--muted)]">{step}</div>
+      <Section className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
+        <Card className="border-none bg-[var(--navy)] text-white">
+          <Eyebrow dark>Platform flow</Eyebrow>
+          <div className="mt-7 grid gap-4">
+            {flow.map((item, index) => (
+              <div key={item} className="grid gap-4 rounded-[26px] border border-white/10 bg-white/6 p-6 md:grid-cols-[56px_1fr]">
+                <div className="text-3xl leading-none tracking-[-0.05em] text-white/45">{`0${index + 1}`}</div>
+                <p className="text-sm leading-7 text-white/78">{item}</p>
+              </div>
             ))}
           </div>
         </Card>
-        <Card className="bg-[var(--surface-strong)]">
-          <p className="text-sm uppercase tracking-[0.22em] text-[var(--muted)]">What this should feel like</p>
-          <div className="mt-5 grid gap-3 text-sm text-[var(--muted)]">
-            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-4">Coach-led, not AI-led</div>
-            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-4">Outcome-first, not prompt-first</div>
-            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-4">Workspace-oriented, not landing-page-only</div>
-          </div>
-        </Card>
+
+        <div className="grid gap-5">
+          <Card>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--muted)]">What the platform should feel like</p>
+            <div className="mt-5 grid gap-3">
+              {[
+                "Calm and high-trust, not gimmicky or over-animated.",
+                "Coach-led and outcome-led, not prompt-led.",
+                "Specific about the work being done on every page.",
+              ].map((item) => (
+                <div key={item} className="rounded-[22px] border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-4 text-sm leading-7 text-[var(--muted)]">
+                  {item}
+                </div>
+              ))}
+            </div>
+          </Card>
+          <Card className="bg-[linear-gradient(135deg,#3559e6_0%,#6e8dff_100%)] text-white">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/72">Next surface</p>
+            <h3 className="mt-5 text-4xl leading-[1] tracking-[-0.04em]">See the product through the jobs candidates actually need done.</h3>
+            <Link href="/use-cases" className="mt-6 inline-flex rounded-full bg-white px-5 py-3 text-sm font-semibold text-[var(--navy)] transition hover:bg-[var(--bg)]">
+              Go to use cases
+            </Link>
+          </Card>
+        </div>
       </Section>
     </MarketingShell>
   );
