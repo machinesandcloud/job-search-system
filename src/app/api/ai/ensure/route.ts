@@ -3,7 +3,14 @@ import { prisma, isDatabaseReady } from "@/lib/db";
 import { ensureSameOrigin } from "@/lib/utils";
 import { sanitizeAnswers } from "@/lib/validation";
 import { runFullAnalysis, enhanceEvidenceBundle } from "@/lib/analysis";
-import { AiAnalysisStatus, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+
+const AI_ANALYSIS_STATUS = {
+  pending: "pending",
+  processing: "processing",
+  complete: "complete",
+  failed: "failed",
+} as const;
 
 export const runtime = "nodejs";
 
@@ -44,14 +51,14 @@ export async function POST(request: Request) {
     const hasResumeAnalysis = Boolean(assessment.resumeAnalysis);
     const hasLinkedinAnalysis = Boolean(assessment.linkedinAnalysis);
     const baseReady =
-      assessment.aiAnalysisStatus === AiAnalysisStatus.complete &&
+      assessment.aiAnalysisStatus === AI_ANALYSIS_STATUS.complete &&
       hasWeek1 &&
       hasResumeAnalysis &&
       hasLinkedinAnalysis &&
       hasInsights;
     const needsEnhancement = !hasEvidence || !hasCoachSummary;
 
-    if (assessment.aiAnalysisStatus === AiAnalysisStatus.failed) {
+    if (assessment.aiAnalysisStatus === AI_ANALYSIS_STATUS.failed) {
       return NextResponse.json({ status: "failed", reason: assessment.aiFailureReason || "AI generation failed." });
     }
 
@@ -125,7 +132,7 @@ export async function POST(request: Request) {
     await prisma.assessment.update({
       where: { id: assessment.id },
       data: {
-        aiAnalysisStatus: AiAnalysisStatus.processing,
+        aiAnalysisStatus: AI_ANALYSIS_STATUS.processing,
         aiFailureReason: null,
         lastActivityAt: new Date(),
       },
@@ -193,7 +200,7 @@ export async function POST(request: Request) {
         totalScore: analysis?.readinessScore?.overall ?? assessment.totalScore,
         networkScore: analysis?.readinessScore?.breakdown?.network ?? assessment.networkScore,
         aiInsights: (analysis?.aiInsights ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-        aiAnalysisStatus: aiReady ? AiAnalysisStatus.complete : AiAnalysisStatus.failed,
+        aiAnalysisStatus: aiReady ? AI_ANALYSIS_STATUS.complete : AI_ANALYSIS_STATUS.failed,
         aiProcessedAt: new Date(),
         aiModel: analysis?.aiModel || "groq",
         aiFailureReason: aiFailed ? failureReason : null,

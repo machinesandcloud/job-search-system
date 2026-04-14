@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma, isDatabaseReady } from "@/lib/db";
-import { Prisma, AiAnalysisStatus } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { assessmentCompleteSchema, sanitizeAnswers } from "@/lib/validation";
 import { computeScore } from "@/lib/scoring";
 import { ensureSameOrigin } from "@/lib/utils";
 import { logEvent } from "@/lib/events";
+
+const AI_ANALYSIS_STATUS = {
+  pending: "pending",
+} as const;
 
 async function buildTeaser(answers: any, score: number, subscores: any, aiInsights: any, actionPlan: any) {
   const insights = [
@@ -62,7 +66,7 @@ export async function POST(request: Request) {
 
   const aiReady = false;
   const recommendedRoute =
-    (route === "Fast Track" ? "FastTrack" : route === "Guided" ? "Guided" : "DIY") as Prisma.AssessmentCreateInput["recommendedRoute"];
+    (route === "Fast Track" ? "FastTrack" : route === "Guided" ? "Guided" : "DIY") as "FastTrack" | "Guided" | "DIY";
 
   const data = {
     ...answers,
@@ -75,7 +79,7 @@ export async function POST(request: Request) {
     executionScore: subscores.execution,
     recommendedRoute,
     aiInsights: Prisma.JsonNull as unknown as Prisma.InputJsonValue,
-    aiAnalysisStatus: AiAnalysisStatus.pending,
+    aiAnalysisStatus: AI_ANALYSIS_STATUS.pending,
     aiProcessedAt: null,
     aiModel: null,
     aiFailureReason: null,
