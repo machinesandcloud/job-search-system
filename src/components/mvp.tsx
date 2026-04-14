@@ -20,11 +20,11 @@ export function SiteHeader({ authenticated = false }: { authenticated?: boolean 
           </div>
         </Link>
         <nav className="hidden items-center gap-6 text-sm text-[var(--muted)] md:flex">
+          <Link href="/platform" className="hover:text-[var(--ink)]">Platform</Link>
+          <Link href="/use-cases" className="hover:text-[var(--ink)]">Use cases</Link>
+          <Link href="/security" className="hover:text-[var(--ink)]">Security</Link>
+          <Link href="/pricing" className="hover:text-[var(--ink)]">Pricing</Link>
           <Link href="/dashboard" className="hover:text-[var(--ink)]">Dashboard</Link>
-          <Link href="/coach" className="hover:text-[var(--ink)]">Live room</Link>
-          <Link href="/workspaces/resume" className="hover:text-[var(--ink)]">Resume</Link>
-          <Link href="/workspaces/linkedin" className="hover:text-[var(--ink)]">LinkedIn</Link>
-          <Link href="/interview" className="hover:text-[var(--ink)]">Interview</Link>
         </nav>
         <div className="flex items-center gap-3">
           {authenticated ? (
@@ -88,6 +88,18 @@ export function Meter({ value, max }: { value: number; max: number }) {
   return (
     <div className="h-2 overflow-hidden rounded-full bg-[var(--surface-strong)]">
       <div className="h-full rounded-full bg-[linear-gradient(90deg,var(--accent),var(--teal))]" style={{ width }} />
+    </div>
+  );
+}
+
+export function LogoStrip({ items }: { items: string[] }) {
+  return (
+    <div className="flex flex-wrap gap-3">
+      {items.map((item) => (
+        <div key={item} className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--muted)] shadow-[var(--shadow)]">
+          {item}
+        </div>
+      ))}
     </div>
   );
 }
