@@ -1,12 +1,5 @@
-import { Suspense } from "react";
-import PreviewClient from "./preview-client";
+import { redirect } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-
-export default function ResultsPreviewPage() {
-  return (
-    <Suspense fallback={<div className="min-h-screen bg-[#0A0E27]" />}>
-      <PreviewClient />
-    </Suspense>
-  );
+export default function LegacyResultsPreviewPage() {
+  redirect("/dashboard");
 }

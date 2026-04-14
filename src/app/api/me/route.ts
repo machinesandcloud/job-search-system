@@ -1,0 +1,41 @@
+import { NextResponse } from "next/server";
+import { getCurrentUserId } from "@/lib/mvp/auth";
+import { getDashboardForUser, updateProfile } from "@/lib/mvp/store";
+
+export async function GET() {
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  const dashboard = await getDashboardForUser(userId);
+  if (!dashboard) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
+  return NextResponse.json({
+    user: dashboard.user,
+    plan: "free",
+    usage: dashboard.usage,
+    onboardingStatus: dashboard.user.onboardingComplete ? "complete" : "pending",
+  });
+}
+
+export async function POST(request: Request) {
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  const body = await request.json();
+  const profile = await updateProfile(userId, {
+    currentRole: String(body.currentRole || ""),
+    targetRole: String(body.targetRole || ""),
+    experienceLevel: String(body.experienceLevel || ""),
+    geography: String(body.geography || ""),
+    goals: Array.isArray(body.goals) ? body.goals.map(String) : [],
+    painPoints: Array.isArray(body.painPoints) ? body.painPoints.map(String) : [],
+  });
+
+  return NextResponse.json({ user: profile });
+}

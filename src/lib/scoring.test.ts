@@ -19,6 +19,7 @@ const baseAnswers: AssessmentAnswers = {
   resumeFileSize: null,
   linkedinFileUrl: null,
   linkedinFileName: null,
+  jobDescription: "Lead cross-functional platform work, manage stakeholders, and improve delivery execution across engineering and operations teams.",
   networkStrength: "moderate",
   outreachComfort: "neutral",
   targetCompanies: [{ id: null, name: "Google", logoUrl: null, reason: null }],

@@ -1,42 +1,28 @@
 import { NextResponse } from "next/server";
-import { prisma, isDatabaseReady } from "@/lib/db";
-import { attachAssessmentToUser, createUserSession, hashPassword } from "@/lib/user-auth";
-import { ensureSameOrigin } from "@/lib/utils";
+import { sessionCookieName } from "@/lib/mvp/auth";
+import { createUser } from "@/lib/mvp/store";
 
 export async function POST(request: Request) {
-  if (!ensureSameOrigin(request)) {
-    return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
-  }
-  if (!isDatabaseReady()) {
-    return NextResponse.json({ error: "Database not ready" }, { status: 500 });
-  }
-  const body = await request.json();
-  const email = String(body?.email || "").trim().toLowerCase();
-  const password = String(body?.password || "");
-  const assessmentId = String(body?.assessmentId || "");
+  const body = await request.json().catch(() => ({}));
+  const firstName = String(body.firstName || "").trim();
+  const lastName = String(body.lastName || "").trim();
+  const email = String(body.email || "").trim().toLowerCase();
+  const password = String(body.password || "");
 
-  if (!email || !password) {
-    return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
+  if (!firstName || !lastName || !email || !password) {
+    return NextResponse.json({ error: "All fields are required." }, { status: 400 });
   }
+
   if (password.length < 8) {
-    return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 });
+    return NextResponse.json({ error: "Password must be at least 8 characters." }, { status: 400 });
   }
 
-  const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing) {
-    return NextResponse.json({ error: "Account already exists. Log in instead." }, { status: 409 });
+  try {
+    const user = await createUser({ firstName, lastName, email, password });
+    const response = NextResponse.json({ ok: true, user: user.profile }, { status: 201 });
+    response.cookies.set(sessionCookieName, user.id, { httpOnly: true, sameSite: "lax", path: "/" });
+    return response;
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Unable to create account." }, { status: 409 });
   }
-
-  const user = await prisma.user.create({
-    data: {
-      email,
-      passwordHash: await hashPassword(password),
-    },
-  });
-
-  if (assessmentId) {
-    await attachAssessmentToUser(assessmentId, user.id);
-  }
-  await createUserSession(user.id);
-  return NextResponse.json({ ok: true });
 }

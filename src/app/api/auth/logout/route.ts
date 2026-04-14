@@ -1,11 +1,8 @@
 import { NextResponse } from "next/server";
-import { clearUserSession } from "@/lib/user-auth";
-import { ensureSameOrigin } from "@/lib/utils";
+import { sessionCookieName } from "@/lib/mvp/auth";
 
-export async function POST(request: Request) {
-  if (!ensureSameOrigin(request)) {
-    return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
-  }
-  await clearUserSession();
-  return NextResponse.json({ ok: true });
+export async function POST() {
+  const response = NextResponse.json({ ok: true });
+  response.cookies.set(sessionCookieName, "", { httpOnly: true, sameSite: "lax", path: "/", maxAge: 0 });
+  return response;
 }

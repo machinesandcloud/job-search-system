@@ -5,170 +5,257 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
 }
 
-enum AiAnalysisStatus {
-  pending
-  processing
+enum PlanTier {
+  free
+  pro
+  premium
+  team
+}
+
+enum SessionMode {
+  resume
+  linkedin
+  interview
+  career
+  confidence
+  recap
+}
+
+enum SessionStatus {
+  ready
+  live
+  reviewing
   complete
   failed
 }
 
-enum RecommendedRoute {
-  DIY
-  Guided
-  FastTrack
+enum MessageRole {
+  system
+  user
+  assistant
+  tool
+}
+
+enum DocumentType {
+  resume
+  linkedin
+  cover_letter
+  interview_notes
+  miscellaneous
+}
+
+enum DocumentStatus {
+  uploaded
+  parsing
+  indexed
+  reviewed
+  failed
+}
+
+enum ReviewType {
+  resume
+  linkedin
+}
+
+enum FeedbackType {
+  thumbs_up
+  thumbs_down
+  rating
 }
 
 model User {
-  id           String        @id @default(uuid()) @db.Uuid
-  email        String        @unique
-  passwordHash String
-  firstName    String?
-  lastName     String?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  assessments  Assessment[]
-  sessions     UserSession[]
+  id                  String         @id @default(uuid()) @db.Uuid
+  email               String         @unique
+  passwordHash        String?
+  firstName           String?
+  lastName            String?
+  locale              String?
+  planTier            PlanTier       @default(free)
+  consentPersonalize  Boolean        @default(true)
+  consentAnalytics    Boolean        @default(true)
+  marketingOptIn      Boolean        @default(false)
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  coachProfile        CoachProfile?
+  appSessions         AppSession[]
+  sessions            CoachingSession[]
+  documents           Document[]
+  actionPlans         ActionPlan[]
+  memories            Memory[]
+  usageEvents         UsageEvent[]
+  feedbackEntries     Feedback[]
 }
 
-model UserSession {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @db.Uuid
-  tokenHash String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+model AppSession {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @db.Uuid
+  tokenHash  String   @unique
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
 
-model Assessment {
-  id                 String            @id @default(uuid()) @db.Uuid
-  token              String            @unique @default(uuid())
-  userId             String?           @db.Uuid
-  user               User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  targetRoles        Json
-  level              String
-  compTarget         String
-  timeline           String
-  locationPreference String
-  locationCity       String?
-  hoursPerWeek       Int
-  resumeStatus       String
-  linkedinStatus     String
-  portfolioStatus    Boolean
-  interviewReady     Boolean
-  resumeFileUrl      String?
-  resumeFileName     String?
-  resumeFileSize     Int?
-  linkedinFileUrl    String?
-  linkedinFileName   String?
-  linkedinManualData Json?
-  jobDescription     String? @db.Text
-  networkStrength    String
-  outreachComfort    String
-  targetCompanies    Json
-  biggestBlocker     String
-  additionalContext  String?
-
-  totalScore     Int @default(0)
-  clarityScore   Int @default(0)
-  assetsScore    Int @default(0)
-  networkScore   Int @default(0)
-  executionScore Int @default(0)
-
-  aiInsights       Json?
-  aiAnalysisStatus AiAnalysisStatus @default(pending)
-  aiProcessedAt    DateTime?
-  aiModel          String?
-  aiFailureReason  String?
-  recommendedRoute RecommendedRoute?
-  marketIntelligence Json?
-  week1Plan          Json?
-  personalizationData Json?
-  progressPercentage Float?
-  lastActivityAt     DateTime?
-
-  hasPurchasedPro     Boolean  @default(false)
-  stripeSessionId     String?
-  stripePaymentIntent String?
-  purchaseDate        DateTime?
-  purchaseAmount      Int?
-  proPackData         Json?
-
-  welcomeEmailSent Boolean @default(false)
-  resultsEmailSent Boolean @default(false)
-  proPackEmailSent Boolean @default(false)
-
-  resumeParsedData   Json?
-  linkedinParsedData Json?
-  resumeParseStatus  String?
-  linkedinParseStatus String?
-  resumeParseError   String?
-  linkedinParseError String?
-  resumeRawText      String? @db.Text
-  linkedinRawText    String? @db.Text
-  resumeAnalysis     Json?
-  linkedinAnalysis   Json?
-  companyMatches     Json?
-  actionPlan         Json?
-  personalizedScripts Json?
-  coverLetterKit     Json?
-  interviewPrep      Json?
-  companyStrategies  Json?
-  careerAnalysis     Json?
-  customHeadline     String?
-  customAbout        String? @db.Text
-
-  profileData      Json?
-  resumeHealthData Json?
-  skillMatchData   Json?
-  taskProgress     Json?
-  applications     Json?
-  achievements     Json?
-  chatHistory      Json?
-
-  taskCompletions TaskCompletion[]
-  appliedFixes    AppliedFix[]
-
-  ipAddress      String?
-  userAgent      String?
-  referralSource String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  completedAt    DateTime?
-
-  @@index([token])
-  @@index([userId])
-  @@index([aiAnalysisStatus])
-  @@index([createdAt])
+model CoachProfile {
+  id               String   @id @default(uuid()) @db.Uuid
+  userId           String   @unique @db.Uuid
+  currentRole      String?
+  targetRole       String?
+  experienceLevel  String?
+  geography        String?
+  goals            Json
+  painPoints       Json
+  preferences      Json?
+  onboardingAnswers Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model TaskCompletion {
+model CoachingSession {
+  id                String           @id @default(uuid()) @db.Uuid
+  userId            String           @db.Uuid
+  mode              SessionMode
+  status            SessionStatus    @default(ready)
+  title             String
+  summary           String?          @db.Text
+  actionPlanDraft   Json?
+  transcriptSummary Json?
+  realtimeProvider  String?
+  realtimeSessionId String?
+  avatarProvider    String?
+  avatarSessionId   String?
+  startedAt         DateTime?
+  endedAt           DateTime?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages          SessionMessage[]
+  documents         Document[]
+  reviews           DocumentReview[]
+  feedbackEntries   Feedback[]
+
+  @@index([userId, createdAt])
+  @@index([status])
+}
+
+model SessionMessage {
+  id         String          @id @default(uuid()) @db.Uuid
+  sessionId  String          @db.Uuid
+  role       MessageRole
+  content    String          @db.Text
+  toolName   String?
+  metadata   Json?
+  createdAt  DateTime        @default(now())
+  session    CoachingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+}
+
+model Document {
+  id              String           @id @default(uuid()) @db.Uuid
+  userId          String           @db.Uuid
+  sessionId       String?          @db.Uuid
+  type            DocumentType
+  status          DocumentStatus   @default(uploaded)
+  fileName        String
+  mimeType        String
+  sizeBytes       Int
+  storagePath     String
+  extractedText   String?          @db.Text
+  extractedJson   Json?
+  pageMap         Json?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session         CoachingSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  reviews         DocumentReview[]
+
+  @@index([userId, createdAt])
+  @@index([sessionId])
+}
+
+model DocumentReview {
+  id                    String           @id @default(uuid()) @db.Uuid
+  sessionId             String?          @db.Uuid
+  documentId            String           @db.Uuid
+  type                  ReviewType
+  overallScore          Int?
+  atsScore              Int?
+  clarityScore          Int?
+  impactScore           Int?
+  positioningScore      Int?
+  findings              Json
+  rewrittenBullets      Json?
+  tailoringSuggestions  Json?
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  session               CoachingSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  document              Document         @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId, createdAt])
+  @@index([sessionId])
+}
+
+model ActionPlan {
   id           String   @id @default(uuid()) @db.Uuid
-  assessmentId String   @db.Uuid
-  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
-  taskId       String
-  completed    Boolean  @default(false)
+  userId       String   @db.Uuid
+  title        String
+  details      String?  @db.Text
+  priority     String
+  dueAt        DateTime?
   completedAt  DateTime?
+  source       String?
   createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([assessmentId, taskId])
-  @@index([assessmentId])
+  @@index([userId, createdAt])
 }
 
-model AppliedFix {
-  id           String   @id @default(uuid()) @db.Uuid
-  assessmentId String   @db.Uuid
-  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
-  issueId      String
-  appliedAt    DateTime @default(now())
+model Memory {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  label       String
+  content     String   @db.Text
+  relevance   String?
+  source      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([assessmentId, issueId])
-  @@index([assessmentId])
+  @@index([userId, createdAt])
+}
+
+model UsageEvent {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  eventType   String
+  quantity    Int      @default(1)
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([eventType])
+}
+
+model Feedback {
+  id          String           @id @default(uuid()) @db.Uuid
+  userId      String           @db.Uuid
+  sessionId   String?          @db.Uuid
+  type        FeedbackType
+  rating      Int?
+  note        String?          @db.Text
+  createdAt   DateTime         @default(now())
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session     CoachingSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([sessionId])
 }
 
 model Role {
@@ -201,17 +288,4 @@ model Company {
 
   @@index([isPopular])
   @@index([category])
-}
-
-model StripeWebhook {
-  id           String   @id @default(uuid()) @db.Uuid
-  eventType    String
-  eventId      String   @unique
-  payload      Json
-  assessmentId String?  @db.Uuid
-  processed    Boolean  @default(false)
-  createdAt    DateTime @default(now())
-
-  @@index([eventType])
-  @@index([processed])
 }
