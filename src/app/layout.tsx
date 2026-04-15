@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
-import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import { Inter, Sora } from "next/font/google";
 import "./globals.css";
 
-const display = Plus_Jakarta_Sans({
+// Sora — Askia brand display font (matches askia.tech)
+const display = Sora({
   subsets: ["latin"],
   variable: "--font-display",
   weight: ["600", "700", "800"],
   display: "swap",
 });
 
+// Inter — clean body / UI font
 const body = Inter({
   subsets: ["latin"],
   variable: "--font-body",
@@ -18,7 +20,7 @@ const body = Inter({
 export const metadata: Metadata = {
   title: "Askia Coach — AI Career Coaching",
   description:
-    "AI career coach with live coaching, document review, mock interviews, and session memory.",
+    "Talk face-to-face with an AI career coach that reviews your resume, sharpens your LinkedIn, and helps you practice interviews.",
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
   ),

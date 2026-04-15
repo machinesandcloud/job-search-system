@@ -3,42 +3,42 @@
 :root {
   color-scheme: light;
 
-  /* ── Base backgrounds ─────────────────────────────── */
-  --bg: #F8F9FE;
-  --bg-alt: #EEF0FA;
+  /* ── Light surfaces ───────────────────────────────── */
+  --bg: #F6F8FC;
+  --bg-alt: #ECF0F8;
   --surface: #FFFFFF;
-  --surface-muted: #F3F4FB;
+  --surface-muted: #F2F5FB;
   --panel: #FFFFFF;
 
   /* ── Text ─────────────────────────────────────────── */
-  --ink: #0C0E1D;
-  --ink-2: #363B57;
-  --muted: #6B7191;
+  --ink: #0A0C18;
+  --ink-2: #32374F;
+  --muted: #64698A;
 
   /* ── Borders ──────────────────────────────────────── */
-  --border: #E1E4F2;
+  --border: #DDE2F0;
 
-  /* ── Dark palette ─────────────────────────────────── */
-  --dark: #080C1C;
-  --dark-2: #0F1530;
-  --dark-3: #16203D;
-  --dark-border: rgba(255, 255, 255, 0.08);
-  --dark-muted: rgba(255, 255, 255, 0.5);
+  /* ── Dark palette — Askia dark navy ──────────────── */
+  --dark: #081019;
+  --dark-2: #0C1520;
+  --dark-3: #101D2C;
+  --dark-border: rgba(170, 205, 255, 0.10);
+  --dark-muted: rgba(231, 239, 249, 0.58);
 
-  /* ── Brand — electric indigo ──────────────────────── */
-  --brand: #4361EE;
-  --brand-hover: #3451D1;
-  --brand-light: #EBF0FF;
-  --brand-glow: rgba(67, 97, 238, 0.2);
+  /* ── Brand — Askia teal ───────────────────────────── */
+  --brand: #0D7182;
+  --brand-hover: #0A5C6B;
+  --brand-light: #DFF5F8;
+  --brand-glow: rgba(13, 113, 130, 0.22);
 
-  /* ── Secondary — vibrant teal ─────────────────────── */
-  --teal: #10B98E;
-  --teal-hover: #0EA07C;
-  --teal-soft: #E5F7EF;
+  /* ── Cyan accent (askia.tech signature) ──────────── */
+  --cyan: #72d6ff;
+  --cyan-dim: #4ca7e6;
+  --cyan-glow: rgba(114, 214, 255, 0.16);
 
-  /* ── Accent — warm amber ──────────────────────────── */
-  --amber: #F97316;
-  --amber-soft: #FFF3EA;
+  /* ── Purple accent ────────────────────────────────── */
+  --purple: #7a8dff;
+  --purple-glow: rgba(122, 141, 255, 0.16);
 
   /* ── Status ───────────────────────────────────────── */
   --success: #16A34A;
@@ -48,24 +48,29 @@
   --danger: #DC2626;
   --danger-soft: #FEE2E2;
 
-  /* ── Legacy aliases (used throughout existing code) ── */
-  --navy: #080C1C;
-  --blue: #4361EE;
+  /* ── Legacy aliases (keep existing components working) */
+  --navy: #081019;
+  --blue: #0D7182;
   --coral: #F97316;
-  --green: #10B98E;
-  --lavender: #EBF0FF;
+  --green: #0D7182;
+  --teal: #0D7182;
+  --teal-soft: #DFF5F8;
+  --lavender: #E8ECFF;
+  --amber: #F97316;
+  --amber-soft: #FFF3EA;
   --accent: var(--brand);
-  --accent-2: var(--teal);
+  --accent-2: var(--cyan);
   --bg-soft: var(--surface);
   --surface-strong: var(--surface-muted);
   --surface-2: var(--surface-muted);
   --sand: var(--bg-alt);
 
   /* ── Shadows ──────────────────────────────────────── */
-  --shadow: 0 4px 16px rgba(8, 12, 28, 0.07);
-  --shadow-md: 0 8px 32px rgba(8, 12, 28, 0.10);
-  --shadow-lg: 0 20px 60px rgba(8, 12, 28, 0.14);
-  --shadow-brand: 0 4px 24px rgba(67, 97, 238, 0.28);
+  --shadow: 0 2px 12px rgba(8, 16, 25, 0.06), 0 1px 3px rgba(8, 16, 25, 0.05);
+  --shadow-md: 0 8px 32px rgba(8, 16, 25, 0.10);
+  --shadow-lg: 0 20px 60px rgba(8, 16, 25, 0.14);
+  --shadow-brand: 0 4px 24px rgba(13, 113, 130, 0.30);
+  --shadow-cyan: 0 4px 32px rgba(114, 214, 255, 0.25);
 }
 
 html {
@@ -118,4 +123,20 @@ input,
 textarea,
 select {
   font-family: inherit;
+}
+
+/* ── Gradient text utility ──────────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, var(--cyan) 0%, var(--purple) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Subtle grid pattern for dark sections ──────────── */
+.grid-pattern {
+  background-image:
+    linear-gradient(rgba(170, 205, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(170, 205, 255, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
 }
