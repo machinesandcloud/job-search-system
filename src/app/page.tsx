@@ -4,6 +4,7 @@ import { PageFrame } from "@/components/mvp";
 import { DemoStartButton } from "@/components/mvp-session-actions";
 import { getCurrentUserId } from "@/lib/mvp/auth";
 import { WordCycle } from "@/components/mvp-word-cycle";
+import { MvpLiveDemo } from "@/components/mvp-live-demo";
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 
@@ -458,6 +459,11 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* ════════════════════════════════════════════════
+          LIVE DEMO — AI coaching engine
+      ════════════════════════════════════════════════ */}
+      <MvpLiveDemo />
 
       {/* ════════════════════════════════════════════════
           FEATURES — bento grid
