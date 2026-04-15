@@ -1,13 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Card, Eyebrow } from "@/components/mvp";
 
 type AuthMode = "login" | "signup";
 
-const inputClass =
-  "rounded-2xl border border-[var(--border)] bg-[var(--bg-soft)] px-4 py-3 text-[var(--ink)] outline-none placeholder:text-[var(--muted)]";
+const fieldClass =
+  "w-full rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-3 text-sm text-[var(--ink)] placeholder:text-[var(--muted)] outline-none transition-colors focus:border-[var(--brand)] focus:bg-white";
 
 export function MvpAuthForm({ mode }: { mode: AuthMode }) {
   const router = useRouter();
@@ -37,44 +37,148 @@ export function MvpAuthForm({ mode }: { mode: AuthMode }) {
   }
 
   return (
-    <Card className="mx-auto max-w-2xl border-none bg-transparent p-0 shadow-none">
-      <div className="grid gap-8 lg:grid-cols-[0.92fr_1.08fr]">
-        <div className="rounded-[32px] bg-[var(--ink)] p-8 text-[var(--bg-soft)] shadow-[var(--shadow)]">
-          <Eyebrow>{mode === "login" ? "Authentication" : "Get Started"}</Eyebrow>
-          <h1 className="mt-5 text-4xl font-semibold tracking-[-0.04em]">
-            {mode === "login" ? "Return to your coaching workspace." : "Set up your coaching profile."}
-          </h1>
-          <p className="mt-4 text-base leading-7 text-[rgba(246,241,232,0.72)]">
-            {mode === "login"
-              ? "Use the demo account or your own credentials to reopen the dashboard, live room, reviews, and saved session history."
-              : "Create an account first, then use onboarding to capture goals, role direction, and the friction points the coach should remember."}
-          </p>
-          {mode === "login" ? (
-            <div className="mt-6 rounded-[24px] bg-[rgba(255,255,255,0.08)] p-5 text-sm">
-              <p className="uppercase tracking-[0.18em] text-[rgba(246,241,232,0.55)]">Demo account</p>
-              <p className="mt-3 font-medium">steve@askiatech.com</p>
-              <p className="mt-1">demo12345</p>
+    <div className="mx-auto w-full max-w-4xl">
+      <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+        {/* Left panel — brand / messaging */}
+        <div className="flex flex-col justify-between rounded-2xl bg-[var(--dark)] p-8 text-white md:p-10">
+          <div>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--brand)] text-sm font-black text-white">
+              A
             </div>
-          ) : null}
+            <h1 className="mt-8 text-3xl font-extrabold leading-tight tracking-tight md:text-4xl">
+              {mode === "login"
+                ? "Welcome back to your coaching workspace."
+                : "Set up your coaching profile."}
+            </h1>
+            <p className="mt-4 text-sm leading-7 text-white/50">
+              {mode === "login"
+                ? "Use the demo account or your own credentials to reopen your dashboard, live room, document reviews, and saved session history."
+                : "Create an account, then complete onboarding to capture your goals, target roles, and the friction points the coach should remember between sessions."}
+            </p>
+          </div>
+
+          {mode === "login" && (
+            <div className="mt-8 rounded-xl border border-white/[0.07] bg-white/[0.04] p-5">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/30">
+                Demo account
+              </p>
+              <div className="mt-4 space-y-1.5">
+                <p className="flex items-center justify-between text-sm">
+                  <span className="text-white/45">Email</span>
+                  <span className="font-medium text-white/80">steve@askiatech.com</span>
+                </p>
+                <p className="flex items-center justify-between text-sm">
+                  <span className="text-white/45">Password</span>
+                  <span className="font-medium text-white/80">demo12345</span>
+                </p>
+              </div>
+            </div>
+          )}
+
+          {mode === "signup" && (
+            <div className="mt-8 space-y-3">
+              {["Free to start, no credit card", "Session memory built in", "Document reviews on day one"].map(
+                (item) => (
+                  <div key={item} className="flex items-center gap-3 text-sm text-white/50">
+                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[var(--teal-soft)]/10">
+                      <svg className="h-3 w-3 text-[var(--teal)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <polyline points="20,6 9,17 4,12" />
+                      </svg>
+                    </span>
+                    {item}
+                  </div>
+                )
+              )}
+            </div>
+          )}
         </div>
 
-        <div className="rounded-[32px] border border-[var(--border)] bg-[var(--surface)] p-8 shadow-[var(--shadow)]">
-          <div className="grid gap-3 md:grid-cols-2">
-            {mode === "signup" ? (
+        {/* Right panel — form */}
+        <div className="rounded-2xl border border-[var(--border)] bg-white p-8 shadow-[var(--shadow)] md:p-10">
+          <h2 className="text-xl font-bold tracking-tight text-[var(--ink)]">
+            {mode === "login" ? "Sign in to your account" : "Create your account"}
+          </h2>
+          <p className="mt-1.5 text-sm text-[var(--muted)]">
+            {mode === "login" ? (
               <>
-                <input className={inputClass} placeholder="First name" value={firstName} onChange={(event) => setFirstName(event.target.value)} />
-                <input className={inputClass} placeholder="Last name" value={lastName} onChange={(event) => setLastName(event.target.value)} />
+                New here?{" "}
+                <Link href="/signup" className="font-semibold text-[var(--brand)] hover:underline">
+                  Create an account
+                </Link>
               </>
-            ) : null}
-            <input className={`${inputClass} md:col-span-2`} placeholder="Email" value={email} onChange={(event) => setEmail(event.target.value)} />
-            <input className={`${inputClass} md:col-span-2`} placeholder="Password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} />
+            ) : (
+              <>
+                Already have an account?{" "}
+                <Link href="/login" className="font-semibold text-[var(--brand)] hover:underline">
+                  Sign in
+                </Link>
+              </>
+            )}
+          </p>
+
+          <div className="mt-7 space-y-3">
+            {mode === "signup" && (
+              <div className="grid gap-3 sm:grid-cols-2">
+                <input
+                  className={fieldClass}
+                  placeholder="First name"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                />
+                <input
+                  className={fieldClass}
+                  placeholder="Last name"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                />
+              </div>
+            )}
+            <input
+              className={fieldClass}
+              placeholder="Email address"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <input
+              className={fieldClass}
+              placeholder="Password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
           </div>
-          {error ? <p className="mt-4 text-sm text-[var(--danger)]">{error}</p> : null}
-          <button onClick={submit} disabled={loading} className="mt-8 rounded-full bg-[var(--ink)] px-5 py-3 text-sm font-semibold text-[var(--bg-soft)] transition hover:bg-[var(--teal)] disabled:opacity-60">
-            {loading ? "Working..." : mode === "login" ? "Continue" : "Continue to onboarding"}
+
+          {error && (
+            <div className="mt-4 rounded-xl border border-[var(--danger-soft)] bg-[var(--danger-soft)] px-4 py-3 text-sm text-[var(--danger)]">
+              {error}
+            </div>
+          )}
+
+          <button
+            onClick={submit}
+            disabled={loading}
+            className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--brand)] py-3.5 text-sm font-semibold text-white shadow-[var(--shadow-brand)] transition-colors hover:bg-[var(--brand-hover)] disabled:opacity-60"
+          >
+            {loading ? (
+              <>
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                Working…
+              </>
+            ) : mode === "login" ? (
+              "Continue to dashboard →"
+            ) : (
+              "Continue to onboarding →"
+            )}
           </button>
+
+          {mode === "login" && (
+            <p className="mt-5 text-center text-xs text-[var(--muted)]">
+              Demo credentials are pre-filled above.
+            </p>
+          )}
         </div>
       </div>
-    </Card>
+    </div>
   );
 }

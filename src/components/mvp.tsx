@@ -18,34 +18,53 @@ const logoFiles = [
 
 export function SiteHeader({ authenticated = false }: { authenticated?: boolean }) {
   return (
-    <header className="sticky top-0 z-40 border-b border-[rgba(221,227,239,0.75)] bg-[rgba(245,246,251,0.86)] backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-5">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="grid h-11 w-11 place-items-center rounded-2xl bg-[var(--navy)] text-sm font-bold text-white">
-            AC
+    <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-white/95 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--brand)] text-xs font-black text-white">
+            A
           </div>
-          <div>
-            <p className="text-[11px] font-extrabold uppercase tracking-[0.24em] text-[var(--blue)]">Askia Coach</p>
-            <p className="text-sm font-semibold text-[var(--ink)]">AI career coaching for candidates in motion</p>
-          </div>
+          <span className="text-[15px] font-bold tracking-tight text-[var(--ink)]">
+            Askia<span className="text-[var(--brand)]">.</span>
+          </span>
         </Link>
-        <nav className="hidden items-center gap-8 text-sm font-semibold text-[var(--muted)] lg:flex">
-          <Link href="/platform" className="transition hover:text-[var(--ink)]">Platform</Link>
-          <Link href="/use-cases" className="transition hover:text-[var(--ink)]">Use cases</Link>
-          <Link href="/security" className="transition hover:text-[var(--ink)]">Security</Link>
-          <Link href="/pricing" className="transition hover:text-[var(--ink)]">Pricing</Link>
-          <Link href="/dashboard" className="transition hover:text-[var(--ink)]">Dashboard</Link>
+
+        {/* Nav */}
+        <nav className="hidden items-center gap-7 text-sm font-medium text-[var(--muted)] lg:flex">
+          <Link href="/platform" className="transition-colors hover:text-[var(--ink)]">
+            Platform
+          </Link>
+          <Link href="/use-cases" className="transition-colors hover:text-[var(--ink)]">
+            Use Cases
+          </Link>
+          <Link href="/pricing" className="transition-colors hover:text-[var(--ink)]">
+            Pricing
+          </Link>
+          {authenticated && (
+            <Link href="/dashboard" className="transition-colors hover:text-[var(--ink)]">
+              Dashboard
+            </Link>
+          )}
         </nav>
-        <div className="flex items-center gap-3">
+
+        {/* Actions */}
+        <div className="flex items-center gap-2">
           {authenticated ? (
-            <LogoutButton className="rounded-full border border-[var(--border)] bg-white px-5 py-2.5 text-sm font-bold text-[var(--ink)] transition hover:border-[var(--blue)]" />
+            <LogoutButton className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--muted)] transition-colors hover:border-[var(--brand)] hover:text-[var(--brand)]" />
           ) : (
             <>
-              <Link href="/login" className="rounded-full border border-[var(--border)] bg-white px-5 py-2.5 text-sm font-bold text-[var(--ink)] transition hover:border-[var(--blue)]">
-                Log in
+              <Link
+                href="/login"
+                className="rounded-lg px-4 py-2 text-sm font-medium text-[var(--muted)] transition-colors hover:text-[var(--ink)]"
+              >
+                Sign in
               </Link>
-              <Link href="/signup" className="rounded-full bg-[var(--coral)] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[var(--navy)]">
-                Start free
+              <Link
+                href="/signup"
+                className="rounded-lg bg-[var(--brand)] px-5 py-2.5 text-sm font-semibold text-white shadow-[var(--shadow-brand)] transition-colors hover:bg-[var(--brand-hover)]"
+              >
+                Get started →
               </Link>
             </>
           )}
@@ -55,36 +74,107 @@ export function SiteHeader({ authenticated = false }: { authenticated?: boolean 
   );
 }
 
-export function PageFrame({ children, authenticated = false }: { children: ReactNode; authenticated?: boolean }) {
+function SiteFooter() {
   return (
-    <div className="min-h-screen text-[var(--ink)]">
+    <footer className="border-t border-[var(--border)] bg-white">
+      <div className="mx-auto max-w-7xl px-6 py-10">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--brand)] text-[10px] font-black text-white">
+              A
+            </div>
+            <span className="text-sm font-bold text-[var(--ink)]">Askia Coach</span>
+          </Link>
+          <nav className="flex flex-wrap gap-6 text-sm text-[var(--muted)]">
+            <Link href="/platform" className="transition-colors hover:text-[var(--ink)]">Platform</Link>
+            <Link href="/use-cases" className="transition-colors hover:text-[var(--ink)]">Use Cases</Link>
+            <Link href="/pricing" className="transition-colors hover:text-[var(--ink)]">Pricing</Link>
+            <Link href="/security" className="transition-colors hover:text-[var(--ink)]">Security</Link>
+          </nav>
+          <p className="text-xs text-[var(--muted)]">© 2026 Askia Coach. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+export function PageFrame({
+  children,
+  authenticated = false,
+}: {
+  children: ReactNode;
+  authenticated?: boolean;
+}) {
+  return (
+    <div className="flex min-h-screen flex-col text-[var(--ink)]">
       <SiteHeader authenticated={authenticated} />
-      <main>{children}</main>
+      <main className="flex-1">{children}</main>
+      <SiteFooter />
     </div>
   );
 }
 
 export function Eyebrow({ children, dark = false }: { children: ReactNode; dark?: boolean }) {
   return (
-    <span className={cn("inline-flex text-[11px] font-extrabold uppercase tracking-[0.24em]", dark ? "text-white/72" : "text-[var(--blue)]")}>
+    <span
+      className={cn(
+        "inline-flex items-center text-[11px] font-semibold uppercase tracking-[0.18em]",
+        dark ? "text-white/50" : "text-[var(--brand)]"
+      )}
+    >
       {children}
     </span>
   );
 }
 
 export function Section({ children, className }: { children: ReactNode; className?: string }) {
-  return <section className={cn("mx-auto max-w-7xl px-6 py-18 md:py-24", className)}>{children}</section>;
+  return (
+    <section className={cn("mx-auto max-w-7xl px-6 py-16 md:py-24", className)}>
+      {children}
+    </section>
+  );
 }
 
 export function Card({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn("rounded-[28px] bg-white p-7 shadow-[var(--shadow)]", className)}>{children}</div>;
+  return (
+    <div
+      className={cn(
+        "rounded-2xl border border-[var(--border)] bg-white p-6 shadow-[var(--shadow)]",
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
 }
 
-export function Stat({ label, value, dark = false }: { label: string; value: string; dark?: boolean }) {
+export function Stat({
+  label,
+  value,
+  dark = false,
+}: {
+  label: string;
+  value: string;
+  dark?: boolean;
+}) {
   return (
-    <div className={cn("space-y-2", dark ? "text-white" : "text-[var(--ink)]")}>
-      <p className={cn("text-[11px] font-extrabold uppercase tracking-[0.22em]", dark ? "text-white/60" : "text-[var(--muted)]")}>{label}</p>
-      <p className="text-3xl font-extrabold tracking-[-0.05em]">{value}</p>
+    <div className="space-y-1">
+      <p
+        className={cn(
+          "text-[11px] font-medium uppercase tracking-[0.18em]",
+          dark ? "text-white/40" : "text-[var(--muted)]"
+        )}
+      >
+        {label}
+      </p>
+      <p
+        className={cn(
+          "text-3xl font-extrabold tracking-tight",
+          dark ? "text-white" : "text-[var(--ink)]"
+        )}
+      >
+        {value}
+      </p>
     </div>
   );
 }
@@ -92,8 +182,11 @@ export function Stat({ label, value, dark = false }: { label: string; value: str
 export function Meter({ value, max }: { value: number; max: number }) {
   const width = `${Math.min((value / max) * 100, 100)}%`;
   return (
-    <div className="h-2 overflow-hidden rounded-full bg-[var(--surface-muted)]">
-      <div className="h-full rounded-full bg-[linear-gradient(90deg,var(--blue),var(--coral))]" style={{ width }} />
+    <div className="h-1.5 overflow-hidden rounded-full bg-[var(--surface-muted)]">
+      <div
+        className="h-full rounded-full bg-[linear-gradient(90deg,var(--brand),var(--teal))]"
+        style={{ width }}
+      />
     </div>
   );
 }
@@ -102,9 +195,9 @@ export function LogoStrip({ items }: { items: string[] }) {
   return (
     <div className="flex flex-wrap gap-x-6 gap-y-3">
       {items.map((item) => (
-        <div key={item} className="text-sm font-semibold text-[var(--muted)]">
+        <span key={item} className="text-sm font-medium text-[var(--muted)]">
           {item}
-        </div>
+        </span>
       ))}
     </div>
   );
@@ -112,9 +205,16 @@ export function LogoStrip({ items }: { items: string[] }) {
 
 export function LogoCloud() {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-6 opacity-70">
+    <div className="flex flex-wrap items-center gap-x-10 gap-y-5 opacity-55">
       {logoFiles.map((logo) => (
-        <Image key={logo.alt} src={logo.src} alt={logo.alt} width={108} height={28} className="h-5 w-auto" />
+        <Image
+          key={logo.alt}
+          src={logo.src}
+          alt={logo.alt}
+          width={108}
+          height={28}
+          className="h-5 w-auto"
+        />
       ))}
     </div>
   );

@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Card, Eyebrow } from "@/components/mvp";
 import type { DocumentRecord, ReviewOutput } from "@/lib/mvp/types";
 
 type ReviewResponse = {
@@ -9,8 +8,11 @@ type ReviewResponse = {
   output: ReviewOutput;
 };
 
-const inputClass =
-  "rounded-2xl border border-[var(--border)] bg-[var(--bg-soft)] px-4 py-3 text-[var(--ink)] outline-none placeholder:text-[var(--muted)]";
+const fieldClass =
+  "w-full rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-3 text-sm text-[var(--ink)] placeholder:text-[var(--muted)] outline-none transition-colors focus:border-[var(--brand)] focus:bg-white";
+
+const labelClass =
+  "block text-xs font-semibold uppercase tracking-[0.14em] text-[var(--muted)] mb-2";
 
 export function MvpReviewWorkspace({
   type,
@@ -23,10 +25,13 @@ export function MvpReviewWorkspace({
 }) {
   const [documents, setDocuments] = useState<DocumentRecord[]>([]);
   const [review, setReview] = useState<ReviewResponse | null>(null);
-  const [documentTitle, setDocumentTitle] = useState(type === "resume" ? "Updated_Resume.pdf" : "linkedin-export.docx");
+  const [documentTitle, setDocumentTitle] = useState(
+    type === "resume" ? "Updated_Resume.pdf" : "linkedin-export.docx"
+  );
   const [targetRole, setTargetRole] = useState("Technical Program Manager");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const load = useCallback(async () => {
     const [documentsRes, reviewRes] = await Promise.all([
@@ -46,6 +51,7 @@ export function MvpReviewWorkspace({
 
   async function uploadAndReview() {
     setError(null);
+    setLoading(true);
 
     let uploadRes: Response;
     if (selectedFile) {
@@ -60,7 +66,10 @@ export function MvpReviewWorkspace({
         body: JSON.stringify({
           title: documentTitle,
           type,
-          mimeType: type === "resume" ? "application/pdf" : "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          mimeType:
+            type === "resume"
+              ? "application/pdf"
+              : "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
           sizeBytes: 120000,
         }),
       });
@@ -68,6 +77,7 @@ export function MvpReviewWorkspace({
     const uploadPayload = await uploadRes.json().catch(() => ({}));
     if (!uploadRes.ok) {
       setError(uploadPayload.error || "Upload failed.");
+      setLoading(false);
       return;
     }
 
@@ -79,10 +89,12 @@ export function MvpReviewWorkspace({
     const reviewPayload = await reviewRes.json().catch(() => ({}));
     if (!reviewRes.ok) {
       setError(reviewPayload.error || "Review failed.");
+      setLoading(false);
       return;
     }
 
     setReview(reviewPayload);
+    setLoading(false);
     await load();
   }
 
@@ -90,99 +102,211 @@ export function MvpReviewWorkspace({
     void Promise.resolve().then(load);
   }, [load]);
 
+  const filteredDocs = documents.filter((d) => d.type === type);
+
   return (
-    <div className="grid gap-6">
-      <div className="grid gap-6 lg:grid-cols-[0.92fr_1.08fr]">
+    <div className="space-y-8">
+      {/* ── Header ── */}
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <Eyebrow>{type === "resume" ? "Resume Workspace" : "LinkedIn Workspace"}</Eyebrow>
-          <h1 className="mt-5 text-4xl font-semibold tracking-[-0.04em] text-[var(--ink)]">{title}</h1>
-          <p className="mt-3 text-base leading-7 text-[var(--muted)]">{subtitle}</p>
-        </div>
-        <Card className="bg-[var(--ink)] text-[var(--bg-soft)]">
-          <p className="text-sm uppercase tracking-[0.22em] text-[rgba(246,241,232,0.58)]">What a good review should do</p>
-          <div className="mt-5 grid gap-3 text-sm">
-            {[
-              "Show what is already strong",
-              "Name the missing proof directly",
-              "Rewrite the weakest positioning",
-              "End with the next move, not just a score",
-            ].map((item) => (
-              <div key={item} className="rounded-2xl bg-[rgba(255,255,255,0.08)] px-4 py-3">{item}</div>
-            ))}
+          <div className="inline-flex items-center gap-2 rounded-full bg-[var(--brand-light)] px-3.5 py-1.5 text-xs font-semibold text-[var(--brand)]">
+            {type === "resume" ? "Resume Workspace" : "LinkedIn Workspace"}
           </div>
-        </Card>
+          <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-[var(--ink)] md:text-4xl">
+            {title}
+          </h1>
+          <p className="mt-2 max-w-xl text-base leading-7 text-[var(--muted)]">{subtitle}</p>
+        </div>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[0.82fr_1.18fr]">
-        <Card>
-          <p className="text-sm uppercase tracking-[0.22em] text-[var(--muted)]">Document workflow</p>
-          <div className="mt-5 grid gap-3">
-            <input className={inputClass} value={documentTitle} onChange={(event) => setDocumentTitle(event.target.value)} />
-            <input className={inputClass} value={targetRole} onChange={(event) => setTargetRole(event.target.value)} />
-            <input
-              type="file"
-              accept={type === "resume" ? ".pdf,.doc,.docx" : ".doc,.docx,.pdf,.txt"}
-              className="rounded-2xl border border-[var(--border)] bg-[var(--bg-soft)] px-4 py-3 text-sm text-[var(--ink)] outline-none file:mr-4 file:rounded-full file:border-0 file:bg-[var(--ink)] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[var(--bg-soft)]"
-              onChange={(event) => {
-                const file = event.target.files?.[0] || null;
-                setSelectedFile(file);
-                if (file) setDocumentTitle(file.name);
-              }}
-            />
-            <button onClick={uploadAndReview} className="rounded-full bg-[var(--ink)] px-5 py-3 text-sm font-semibold text-[var(--bg-soft)] transition hover:bg-[var(--teal)]">
-              Upload and run review
-            </button>
-            {error ? <p className="text-sm text-[var(--danger)]">{error}</p> : null}
-          </div>
-          <div className="mt-6 grid gap-3">
-            {documents.filter((document) => document.type === type).map((document) => (
-              <div key={document.id} className="rounded-2xl border border-[var(--border)] bg-[var(--bg-soft)] px-4 py-3 text-sm text-[var(--muted)]">
-                {document.title} • {document.status}
-              </div>
-            ))}
-          </div>
-        </Card>
+      {/* ── Main grid ── */}
+      <div className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
+        {/* Left: Upload panel */}
+        <div className="space-y-5">
+          <div className="rounded-2xl border border-[var(--border)] bg-white p-6 shadow-[var(--shadow)]">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
+              Document workflow
+            </p>
 
-        <div className="grid gap-6">
-          {review ? (
-            <>
-              <Card>
-                <div className="flex flex-wrap items-end justify-between gap-4">
-                  <div>
-                    <p className="text-sm uppercase tracking-[0.22em] text-[var(--muted)]">Review output</p>
-                    <h2 className="mt-3 text-6xl font-semibold tracking-[-0.05em] text-[var(--ink)]">{review.output.overallScore}</h2>
-                    <p className="mt-2 text-sm text-[var(--muted)]">Overall score</p>
+            <div className="mt-5 space-y-4">
+              <div>
+                <label className={labelClass}>Document title</label>
+                <input
+                  className={fieldClass}
+                  value={documentTitle}
+                  onChange={(e) => setDocumentTitle(e.target.value)}
+                  placeholder="e.g. Resume_2026.pdf"
+                />
+              </div>
+
+              <div>
+                <label className={labelClass}>Target role</label>
+                <input
+                  className={fieldClass}
+                  value={targetRole}
+                  onChange={(e) => setTargetRole(e.target.value)}
+                  placeholder="e.g. Technical Program Manager"
+                />
+              </div>
+
+              <div>
+                <label className={labelClass}>Upload file (optional)</label>
+                <input
+                  type="file"
+                  accept={type === "resume" ? ".pdf,.doc,.docx" : ".doc,.docx,.pdf,.txt"}
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-3 text-sm text-[var(--ink)] outline-none file:mr-3 file:rounded-lg file:border-0 file:bg-[var(--brand)] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[var(--brand-hover)]"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null;
+                    setSelectedFile(file);
+                    if (file) setDocumentTitle(file.name);
+                  }}
+                />
+              </div>
+
+              {error && (
+                <div className="rounded-xl border border-[var(--danger-soft)] bg-[var(--danger-soft)] px-4 py-3 text-sm text-[var(--danger)]">
+                  {error}
+                </div>
+              )}
+
+              <button
+                onClick={uploadAndReview}
+                disabled={loading}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--brand)] py-3 text-sm font-semibold text-white shadow-[var(--shadow-brand)] transition-colors hover:bg-[var(--brand-hover)] disabled:opacity-60"
+              >
+                {loading ? (
+                  <>
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                    Running review…
+                  </>
+                ) : (
+                  "Upload and run review →"
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Uploaded docs */}
+          {filteredDocs.length > 0 && (
+            <div className="rounded-2xl border border-[var(--border)] bg-white p-6 shadow-[var(--shadow)]">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
+                Uploaded documents
+              </p>
+              <div className="mt-4 space-y-2.5">
+                {filteredDocs.map((doc) => (
+                  <div
+                    key={doc.id}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-3"
+                  >
+                    <p className="truncate text-sm font-medium text-[var(--ink)]">{doc.title}</p>
+                    <span className="flex-shrink-0 rounded-full bg-white px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">
+                      {doc.status}
+                    </span>
                   </div>
-                  <div className="grid gap-2 text-sm text-[var(--muted)]">
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right: Review output */}
+        <div className="space-y-5">
+          {!review ? (
+            <div className="flex h-full min-h-64 items-center justify-center rounded-2xl border border-dashed border-[var(--border)] bg-white p-10 text-center">
+              <div>
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--surface-muted)]">
+                  <svg
+                    className="h-6 w-6 text-[var(--muted)]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                  >
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                    <polyline points="14,2 14,8 20,8" />
+                  </svg>
+                </div>
+                <p className="font-semibold text-[var(--ink)]">No review yet</p>
+                <p className="mt-1.5 text-sm text-[var(--muted)]">
+                  Upload a document and click "Run review" to see results.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Scores */}
+              <div className="rounded-2xl border border-[var(--border)] bg-white p-6 shadow-[var(--shadow)]">
+                <div className="flex flex-wrap items-end justify-between gap-5">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
+                      Overall score
+                    </p>
+                    <p className="mt-2 text-6xl font-extrabold tracking-tight text-[var(--ink)]">
+                      {review.output.overallScore}
+                    </p>
+                  </div>
+                  <div className="grid gap-2 text-sm">
                     {review.output.dimensionScores.map((score) => (
-                      <div key={score.label} className="flex items-center justify-between gap-8 rounded-2xl border border-[var(--border)] bg-[var(--bg-soft)] px-4 py-3">
-                        <span>{score.label}</span>
-                        <span className="font-semibold text-[var(--ink)]">{score.score}</span>
+                      <div
+                        key={score.label}
+                        className="flex items-center justify-between gap-8 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-2.5"
+                      >
+                        <span className="text-[var(--muted)]">{score.label}</span>
+                        <span className="font-bold text-[var(--ink)]">{score.score}</span>
                       </div>
                     ))}
                   </div>
                 </div>
-              </Card>
-              <Card>
-                <p className="text-sm uppercase tracking-[0.22em] text-[var(--muted)]">Findings</p>
-                <div className="mt-5 grid gap-4 md:grid-cols-3">
-                  <div>
-                    <p className="font-medium text-[var(--ink)]">Strengths</p>
-                    <ul className="mt-3 grid gap-2 text-sm leading-6 text-[var(--muted)]">{review.output.strengths.map((item) => <li key={item}>{item}</li>)}</ul>
-                  </div>
-                  <div>
-                    <p className="font-medium text-[var(--ink)]">Issues</p>
-                    <ul className="mt-3 grid gap-2 text-sm leading-6 text-[var(--muted)]">{review.output.issues.map((item) => <li key={item}>{item}</li>)}</ul>
-                  </div>
-                  <div>
-                    <p className="font-medium text-[var(--ink)]">Suggestions</p>
-                    <ul className="mt-3 grid gap-2 text-sm leading-6 text-[var(--muted)]">{review.output.tailoringSuggestions.map((item) => <li key={item}>{item}</li>)}</ul>
+              </div>
+
+              {/* Findings */}
+              <div className="rounded-2xl border border-[var(--border)] bg-white p-6 shadow-[var(--shadow)]">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
+                  Findings
+                </p>
+                <div className="mt-5 grid gap-6 md:grid-cols-3">
+                  {[
+                    { label: "Strengths", items: review.output.strengths, color: "text-[var(--success)]", bg: "bg-[var(--success-soft)]" },
+                    { label: "Issues", items: review.output.issues, color: "text-[var(--danger)]", bg: "bg-[var(--danger-soft)]" },
+                    { label: "Suggestions", items: review.output.tailoringSuggestions, color: "text-[var(--brand)]", bg: "bg-[var(--brand-light)]" },
+                  ].map((group) => (
+                    <div key={group.label}>
+                      <p className={`mb-3 inline-flex rounded-full ${group.bg} ${group.color} px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide`}>
+                        {group.label}
+                      </p>
+                      <ul className="space-y-2">
+                        {group.items.map((item) => (
+                          <li key={item} className="flex items-start gap-2 text-sm leading-6 text-[var(--ink-2)]">
+                            <span className={`mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full ${group.color}`} />
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Rewritten bullets */}
+              {review.output.rewrittenBullets.length > 0 && (
+                <div className="rounded-2xl border border-[var(--border)] bg-white p-6 shadow-[var(--shadow)]">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
+                    Rewritten bullets
+                  </p>
+                  <div className="mt-4 space-y-2.5">
+                    {review.output.rewrittenBullets.map((bullet) => (
+                      <div
+                        key={bullet}
+                        className="flex items-start gap-3 rounded-xl bg-[var(--brand-light)] px-4 py-3"
+                      >
+                        <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[var(--brand)]" />
+                        <p className="text-sm leading-6 text-[var(--ink-2)]">{bullet}</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              </Card>
+              )}
             </>
-          ) : (
-            <Card><p className="text-sm text-[var(--muted)]">Run a {type} review to populate this workspace.</p></Card>
           )}
         </div>
       </div>

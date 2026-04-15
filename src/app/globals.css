@@ -2,29 +2,70 @@
 
 :root {
   color-scheme: light;
-  --bg: #f5f6fb;
-  --bg-alt: #eceff8;
-  --surface: #ffffff;
-  --surface-muted: #f0f3fb;
-  --panel: #ffffff;
-  --ink: #111827;
-  --muted: #596579;
-  --border: #dde3ef;
-  --navy: #0d1630;
-  --blue: #3866ff;
-  --coral: #ff6b3d;
-  --green: #0e5d52;
-  --lavender: #d9deff;
-  --accent: var(--coral);
-  --accent-2: var(--blue);
+
+  /* ── Base backgrounds ─────────────────────────────── */
+  --bg: #F8F9FE;
+  --bg-alt: #EEF0FA;
+  --surface: #FFFFFF;
+  --surface-muted: #F3F4FB;
+  --panel: #FFFFFF;
+
+  /* ── Text ─────────────────────────────────────────── */
+  --ink: #0C0E1D;
+  --ink-2: #363B57;
+  --muted: #6B7191;
+
+  /* ── Borders ──────────────────────────────────────── */
+  --border: #E1E4F2;
+
+  /* ── Dark palette ─────────────────────────────────── */
+  --dark: #080C1C;
+  --dark-2: #0F1530;
+  --dark-3: #16203D;
+  --dark-border: rgba(255, 255, 255, 0.08);
+  --dark-muted: rgba(255, 255, 255, 0.5);
+
+  /* ── Brand — electric indigo ──────────────────────── */
+  --brand: #4361EE;
+  --brand-hover: #3451D1;
+  --brand-light: #EBF0FF;
+  --brand-glow: rgba(67, 97, 238, 0.2);
+
+  /* ── Secondary — vibrant teal ─────────────────────── */
+  --teal: #10B98E;
+  --teal-hover: #0EA07C;
+  --teal-soft: #E5F7EF;
+
+  /* ── Accent — warm amber ──────────────────────────── */
+  --amber: #F97316;
+  --amber-soft: #FFF3EA;
+
+  /* ── Status ───────────────────────────────────────── */
+  --success: #16A34A;
+  --success-soft: #DCFCE7;
+  --warning: #D97706;
+  --warning-soft: #FEF3C7;
+  --danger: #DC2626;
+  --danger-soft: #FEE2E2;
+
+  /* ── Legacy aliases (used throughout existing code) ── */
+  --navy: #080C1C;
+  --blue: #4361EE;
+  --coral: #F97316;
+  --green: #10B98E;
+  --lavender: #EBF0FF;
+  --accent: var(--brand);
+  --accent-2: var(--teal);
   --bg-soft: var(--surface);
   --surface-strong: var(--surface-muted);
   --surface-2: var(--surface-muted);
   --sand: var(--bg-alt);
-  --teal: var(--green);
-  --teal-soft: #dff4ef;
-  --shadow: 0 24px 48px rgba(17, 24, 39, 0.08);
-  --shadow-lg: 0 36px 80px rgba(13, 22, 48, 0.16);
+
+  /* ── Shadows ──────────────────────────────────────── */
+  --shadow: 0 4px 16px rgba(8, 12, 28, 0.07);
+  --shadow-md: 0 8px 32px rgba(8, 12, 28, 0.10);
+  --shadow-lg: 0 20px 60px rgba(8, 12, 28, 0.14);
+  --shadow-brand: 0 4px 24px rgba(67, 97, 238, 0.28);
 }
 
 html {
@@ -35,11 +76,10 @@ body {
   margin: 0;
   min-width: 320px;
   font-family: var(--font-body), system-ui, sans-serif;
-  background:
-    radial-gradient(circle at top left, rgba(56, 102, 255, 0.08), transparent 28%),
-    radial-gradient(circle at 85% 18%, rgba(255, 107, 61, 0.08), transparent 24%),
-    linear-gradient(180deg, #f7f8fc 0%, #f2f5fb 100%);
+  background: var(--bg);
   color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 h1,
@@ -64,6 +104,18 @@ a {
 }
 
 ::selection {
-  background: rgba(241, 106, 61, 0.2);
-  color: var(--ink);
+  background: var(--brand-light);
+  color: var(--brand);
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+input,
+textarea,
+select {
+  font-family: inherit;
 }
