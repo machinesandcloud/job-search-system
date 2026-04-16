@@ -51,16 +51,6 @@ function NeuralParticles({ size }: { size: number }) {
   );
 }
 
-/* ─── Listening ripple rings ─── */
-function ListenRipples({ size }: { size: number }) {
-  return (
-    <>
-      {[0, 1, 2, 3].map((i) => (
-        <div key={i} style={{ position:"absolute", inset:-(size*0.1+i*12), borderRadius:"50%", border:`${i===0?2:1.5}px solid rgba(6,182,212,${0.45-i*0.08})`, animation:`listen-ripple 2s ease-out infinite`, animationDelay:`${i*0.45}s` }} />
-      ))}
-    </>
-  );
-}
 
 /* ═══════════════════════════════════════════════════
    MAIN AVATAR COMPONENT
@@ -136,13 +126,10 @@ export function ZariAvatar({ state = "idle", size = 120, className = "", interac
         zIndex: 1,
       }}>
 
-        {/* Subtle pulse ring — idle only */}
-        {state === "idle" && (
-          <div style={{ position:"absolute", inset:-6, borderRadius:"50%", background:"rgba(67,97,238,0.07)", animation:"ring-pulse 3s ease-out infinite" }} />
+        {/* Subtle listening glow ring */}
+        {state === "listening" && (
+          <div style={{ position:"absolute", inset:-8, borderRadius:"50%", border:"1.5px solid rgba(6,182,212,0.35)", animation:"ring-pulse 2.2s ease-out infinite" }} />
         )}
-
-        {/* Listening ripples */}
-        {state === "listening" && <ListenRipples size={sphereSize} />}
 
         {/* Thinking neural orbits */}
         {state === "thinking" && <NeuralParticles size={size} />}
@@ -202,29 +189,6 @@ export function ZariAvatar({ state = "idle", size = 120, className = "", interac
 
       </div>
 
-      {/* ── State badge — outside 3D layer, anchored to bottom of container ── */}
-      <div style={{ position:"absolute", bottom: -(size*0.07), left:"50%", transform:"translateX(-50%)", whiteSpace:"nowrap", zIndex:3, pointerEvents:"none" }}>
-        {state === "speaking" && (
-          <span style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"3px 11px", borderRadius:99, background:"rgba(67,97,238,0.12)", border:"1px solid rgba(67,97,238,0.28)", backdropFilter:"blur(8px)", fontSize:10, fontWeight:700, color:"#818CF8", letterSpacing:"0.1em", textTransform:"uppercase" }}>
-            <span style={{ width:5, height:5, borderRadius:"50%", background:"#4361EE", animation:"blink 1s step-end infinite" }} />Speaking
-          </span>
-        )}
-        {state === "listening" && (
-          <span style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"3px 11px", borderRadius:99, background:"rgba(6,182,212,0.10)", border:"1px solid rgba(6,182,212,0.28)", backdropFilter:"blur(8px)", fontSize:10, fontWeight:700, color:"#06B6D4", letterSpacing:"0.1em", textTransform:"uppercase" }}>
-            <span style={{ width:5, height:5, borderRadius:"50%", background:"#06B6D4", animation:"blink 0.7s step-end infinite" }} />Listening
-          </span>
-        )}
-        {state === "thinking" && (
-          <span style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"3px 11px", borderRadius:99, background:"rgba(167,139,250,0.10)", border:"1px solid rgba(167,139,250,0.28)", backdropFilter:"blur(8px)", fontSize:10, fontWeight:700, color:"#A78BFA", letterSpacing:"0.1em", textTransform:"uppercase" }}>
-            <span style={{ width:5, height:5, borderRadius:"50%", background:"#A78BFA", animation:"blink 1.2s ease infinite" }} />Thinking
-          </span>
-        )}
-        {state === "idle" && (
-          <span style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"3px 11px", borderRadius:99, background:"rgba(67,97,238,0.06)", border:"1px solid rgba(67,97,238,0.14)", backdropFilter:"blur(8px)", fontSize:10, fontWeight:600, color:"rgba(129,140,248,0.7)", letterSpacing:"0.08em", textTransform:"uppercase" }}>
-            Ready
-          </span>
-        )}
-      </div>
     </div>
   );
 }

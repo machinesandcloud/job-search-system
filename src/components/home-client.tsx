@@ -1057,55 +1057,72 @@ export function HomeClient({ userId }: { userId: boolean }) {
         </div>
       </section>
 
-      {/* ══════ REVIEW WALL — Kleo-style masonry ══════ */}
-      <section id="reviews" style={{ padding:"96px 28px 80px", background:"#FAFBFF" }}>
-        <div style={{ maxWidth:1280, margin:"0 auto" }}>
-          <div style={{ textAlign:"center", marginBottom:56 }}>
-            <div style={{ display:"inline-flex", alignItems:"center", gap:6, fontSize:12, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.14em", color:"#4361EE", background:"#EEF2FF", border:"1px solid rgba(67,97,238,0.18)", borderRadius:99, padding:"4px 14px", marginBottom:18 }}>
-              Real results
-            </div>
-            <h2 style={{ fontSize:"clamp(2rem,4vw,3rem)", fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", marginBottom:14 }}>
-              1,200+ people have been here.
+      {/* ══════ REVIEW WALL — Kleo-style ══════ */}
+      <section id="reviews" style={{ padding:"96px 28px 100px", background:"white", position:"relative", overflow:"hidden" }}>
+
+        {/* Scattered hearts — decorative */}
+        {[
+          { top:"4%",  left:"3%",   size:22, opacity:0.18, rotate:"-15deg" },
+          { top:"8%",  left:"12%",  size:14, opacity:0.12, rotate:"10deg"  },
+          { top:"2%",  left:"28%",  size:18, opacity:0.14, rotate:"5deg"   },
+          { top:"6%",  left:"48%",  size:12, opacity:0.10, rotate:"-8deg"  },
+          { top:"3%",  left:"65%",  size:20, opacity:0.16, rotate:"18deg"  },
+          { top:"7%",  left:"82%",  size:16, opacity:0.13, rotate:"-12deg" },
+          { top:"2%",  left:"93%",  size:10, opacity:0.10, rotate:"7deg"   },
+          { top:"18%", left:"1%",   size:16, opacity:0.13, rotate:"20deg"  },
+          { top:"25%", left:"7%",   size:10, opacity:0.09, rotate:"-5deg"  },
+          { top:"35%", left:"2%",   size:14, opacity:0.12, rotate:"14deg"  },
+          { top:"15%", left:"96%",  size:18, opacity:0.15, rotate:"-18deg" },
+          { top:"28%", left:"91%",  size:12, opacity:0.10, rotate:"9deg"   },
+          { top:"42%", left:"97%",  size:16, opacity:0.13, rotate:"-6deg"  },
+          { top:"50%", left:"4%",   size:20, opacity:0.16, rotate:"11deg"  },
+          { top:"58%", left:"10%",  size:12, opacity:0.09, rotate:"-22deg" },
+          { top:"65%", left:"3%",   size:16, opacity:0.12, rotate:"16deg"  },
+          { top:"55%", left:"89%",  size:14, opacity:0.11, rotate:"-9deg"  },
+          { top:"70%", left:"95%",  size:20, opacity:0.15, rotate:"13deg"  },
+          { top:"80%", left:"5%",   size:14, opacity:0.12, rotate:"-17deg" },
+          { top:"85%", left:"88%",  size:16, opacity:0.13, rotate:"8deg"   },
+          { top:"92%", left:"15%",  size:18, opacity:0.14, rotate:"-11deg" },
+          { top:"88%", left:"50%",  size:12, opacity:0.10, rotate:"20deg"  },
+          { top:"94%", left:"78%",  size:14, opacity:0.12, rotate:"-4deg"  },
+          { top:"40%", left:"48%",  size:10, opacity:0.07, rotate:"6deg"   },
+        ].map((h,i) => (
+          <div key={i} aria-hidden style={{ position:"absolute", top:h.top, left:h.left, fontSize:h.size, opacity:h.opacity, transform:`rotate(${h.rotate})`, pointerEvents:"none", userSelect:"none", lineHeight:1 }}>❤</div>
+        ))}
+
+        <div style={{ maxWidth:1200, margin:"0 auto", position:"relative" }}>
+          <div style={{ textAlign:"center", marginBottom:64 }}>
+            <h2 style={{ fontSize:"clamp(2rem,4vw,2.8rem)", fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", marginBottom:12 }}>
+              Loved by 1,200+ candidates.
             </h2>
-            <p style={{ fontSize:17, color:"#68738A", maxWidth:480, margin:"0 auto" }}>
-              Real sessions. Real results. Real offers.
-            </p>
+            <p style={{ fontSize:17, color:"#68738A" }}>Real sessions. Real results. Real offers.</p>
           </div>
 
-          {/* Stats strip */}
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:0, marginBottom:72, background:"white", borderRadius:16, overflow:"hidden", border:"1px solid #E4E8F5", boxShadow:"0 4px 24px rgba(0,0,0,0.04)" }}>
-            {STATS.map((s,i) => (
-              <div key={s.label} style={{ textAlign:"center", padding:"36px 16px", borderRight: i<3?"1px solid #E4E8F5":"none" }}>
-                <div style={{ fontSize:"clamp(2.2rem,4vw,3.2rem)", fontWeight:900, color:"#4361EE", letterSpacing:"-0.04em", lineHeight:1 }}>{s.val}</div>
-                <div style={{ fontSize:13.5, color:"#68738A", marginTop:8, lineHeight:1.5 }}>{s.label}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Masonry wall — 4 columns */}
-          <div style={{ columns:4, columnGap:18 }}>
+          {/* 3-column masonry */}
+          <div style={{ columns:3, columnGap:20 }}>
             {WALL_REVIEWS.map((r,i) => (
               <div key={i} style={{
-                breakInside:"avoid", marginBottom:18,
-                background:"white", border:"1px solid #E8ECF5", borderRadius:18,
-                padding: i%5===0 ? "22px 18px" : i%3===0 ? "18px 16px 26px" : "16px 18px",
-                boxShadow:"0 2px 16px rgba(0,0,0,0.05)",
+                breakInside:"avoid", marginBottom:20,
+                background:"white",
+                border:"1px solid #EAECF5",
+                borderRadius:16,
+                padding:"18px 20px",
+                boxShadow:"0 2px 12px rgba(0,0,0,0.06)",
               }}>
                 <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
-                  <div style={{ width:38, height:38, borderRadius:"50%", overflow:"hidden", background:`linear-gradient(135deg,${r.color1},${r.color2})`, flexShrink:0 }}>
+                  <div style={{ width:40, height:40, borderRadius:"50%", overflow:"hidden", background:`linear-gradient(135deg,${r.color1},${r.color2})`, flexShrink:0 }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={r.photo} alt={r.name} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
                   </div>
                   <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontSize:13.5, fontWeight:700, color:"#0A0A0F" }}>{r.name}</div>
-                    <div style={{ fontSize:11.5, color:"#68738A", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.role}</div>
+                    <div style={{ fontSize:14, fontWeight:700, color:"#0A0A0F" }}>{r.name}</div>
+                    <div style={{ fontSize:12, color:"#68738A", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.role}</div>
                   </div>
-                  <span style={{ fontSize:9.5, fontWeight:700, padding:"3px 8px", borderRadius:99, background:"#EEF2FF", color:"#4361EE", flexShrink:0 }}>{r.tag}</span>
                 </div>
-                <div style={{ display:"flex", gap:1.5, marginBottom:9 }}>
-                  {Array.from({length:5}).map((_,j)=><svg key={j} viewBox="0 0 12 12" fill="#F59E0B" style={{ width:12,height:12 }}><path d="M6 1l1.2 2.5 2.8.4-2 2 .5 2.8L6 7.5 3.5 8.7 4 5.9 2 3.9l2.8-.4z"/></svg>)}
+                <div style={{ display:"flex", gap:2, marginBottom:9 }}>
+                  {Array.from({length:5}).map((_,j)=><svg key={j} viewBox="0 0 12 12" fill="#F59E0B" style={{ width:13,height:13 }}><path d="M6 1l1.2 2.5 2.8.4-2 2 .5 2.8L6 7.5 3.5 8.7 4 5.9 2 3.9l2.8-.4z"/></svg>)}
                 </div>
-                <p style={{ fontSize:13.5, lineHeight:1.7, color:"#1E2235", margin:0 }}>&ldquo;{r.quote}&rdquo;</p>
+                <p style={{ fontSize:14, lineHeight:1.7, color:"#1E2235", margin:0 }}>{r.quote}</p>
               </div>
             ))}
           </div>
