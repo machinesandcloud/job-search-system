@@ -18,27 +18,32 @@
   /* ── Borders ──────────────────────────────────────── */
   --border: #DDE2F0;
 
-  /* ── Dark palette — Askia dark navy ──────────────── */
-  --dark: #081019;
-  --dark-2: #0C1520;
-  --dark-3: #101D2C;
-  --dark-border: rgba(170, 205, 255, 0.10);
-  --dark-muted: rgba(231, 239, 249, 0.58);
+  /* ── Dark palette — Zari deep space ─────────────── */
+  --dark: #07070F;
+  --dark-2: #0D0D1A;
+  --dark-3: #12121F;
+  --dark-border: rgba(167, 139, 250, 0.12);
+  --dark-muted: rgba(221, 214, 254, 0.55);
 
-  /* ── Brand — Askia teal ───────────────────────────── */
-  --brand: #0D7182;
-  --brand-hover: #0A5C6B;
-  --brand-light: #DFF5F8;
-  --brand-glow: rgba(13, 113, 130, 0.22);
+  /* ── Brand — Zari violet ─────────────────────────── */
+  --brand: #7C3AED;
+  --brand-hover: #6D28D9;
+  --brand-light: #EDE9FE;
+  --brand-glow: rgba(124, 58, 237, 0.22);
 
-  /* ── Cyan accent (askia.tech signature) ──────────── */
-  --cyan: #72d6ff;
-  --cyan-dim: #4ca7e6;
-  --cyan-glow: rgba(114, 214, 255, 0.16);
+  /* ── Cyan accent ─────────────────────────────────── */
+  --cyan: #22D3EE;
+  --cyan-dim: #06B6D4;
+  --cyan-glow: rgba(34, 211, 238, 0.16);
+
+  /* ── Gold accent ─────────────────────────────────── */
+  --gold: #F59E0B;
+  --gold-soft: #FEF3C7;
+  --gold-glow: rgba(245, 158, 11, 0.20);
 
   /* ── Purple accent ────────────────────────────────── */
-  --purple: #7a8dff;
-  --purple-glow: rgba(122, 141, 255, 0.16);
+  --purple: #A78BFA;
+  --purple-glow: rgba(167, 139, 250, 0.18);
 
   /* ── Status ───────────────────────────────────────── */
   --success: #16A34A;
@@ -49,12 +54,12 @@
   --danger-soft: #FEE2E2;
 
   /* ── Legacy aliases (keep existing components working) */
-  --navy: #081019;
-  --blue: #0D7182;
+  --navy: #07070F;
+  --blue: #7C3AED;
   --coral: #F97316;
-  --green: #0D7182;
-  --teal: #0D7182;
-  --teal-soft: #DFF5F8;
+  --green: #059669;
+  --teal: #22D3EE;
+  --teal-soft: #ECFEFF;
   --lavender: #E8ECFF;
   --amber: #F97316;
   --amber-soft: #FFF3EA;
@@ -66,11 +71,12 @@
   --sand: var(--bg-alt);
 
   /* ── Shadows ──────────────────────────────────────── */
-  --shadow: 0 2px 12px rgba(8, 16, 25, 0.06), 0 1px 3px rgba(8, 16, 25, 0.05);
-  --shadow-md: 0 8px 32px rgba(8, 16, 25, 0.10);
-  --shadow-lg: 0 20px 60px rgba(8, 16, 25, 0.14);
-  --shadow-brand: 0 4px 24px rgba(13, 113, 130, 0.30);
-  --shadow-cyan: 0 4px 32px rgba(114, 214, 255, 0.25);
+  --shadow: 0 2px 12px rgba(7, 7, 15, 0.08), 0 1px 3px rgba(7, 7, 15, 0.05);
+  --shadow-md: 0 8px 32px rgba(7, 7, 15, 0.12);
+  --shadow-lg: 0 20px 60px rgba(7, 7, 15, 0.18);
+  --shadow-brand: 0 4px 24px rgba(124, 58, 237, 0.35);
+  --shadow-cyan: 0 4px 32px rgba(34, 211, 238, 0.25);
+  --shadow-gold: 0 4px 24px rgba(245, 158, 11, 0.25);
 }
 
 html {
@@ -174,7 +180,7 @@ select {
 }
 @keyframes card-glow-pulse {
   0%, 100% { box-shadow: 0 40px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.08); }
-  50%       { box-shadow: 0 40px 80px rgba(0,0,0,0.55), 0 0 60px rgba(13,113,130,0.22), 0 0 0 1px rgba(13,113,130,0.28); }
+  50%       { box-shadow: 0 40px 80px rgba(0,0,0,0.55), 0 0 60px rgba(124,58,237,0.28), 0 0 0 1px rgba(124,58,237,0.35); }
 }
 @keyframes blink {
   0%, 100% { opacity: 1; }
@@ -281,9 +287,9 @@ select {
 /* ── Gradient mesh background ────────────────────────── */
 .mesh-bg {
   background:
-    radial-gradient(ellipse 80% 50% at 20% 40%, rgba(13,113,130,0.15) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 60% at 80% 20%, rgba(122,141,255,0.12) 0%, transparent 55%),
-    radial-gradient(ellipse 70% 50% at 50% 90%, rgba(114,214,255,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 50% at 20% 40%, rgba(124,58,237,0.14) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 60% at 80% 20%, rgba(167,139,250,0.10) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 50% at 50% 90%, rgba(34,211,238,0.08) 0%, transparent 60%),
     var(--dark);
 }
 
@@ -310,8 +316,8 @@ select {
 
 /* ── Surface glow ────────────────────────────────────── */
 @keyframes surface-glow {
-  0%,100% { box-shadow: 0 0 0 1px rgba(13,113,130,0.2), 0 20px 60px rgba(13,113,130,0.10); }
-  50%      { box-shadow: 0 0 0 1px rgba(13,113,130,0.4), 0 20px 60px rgba(13,113,130,0.25); }
+  0%,100% { box-shadow: 0 0 0 1px rgba(124,58,237,0.2), 0 20px 60px rgba(124,58,237,0.10); }
+  50%      { box-shadow: 0 0 0 1px rgba(124,58,237,0.4), 0 20px 60px rgba(124,58,237,0.30); }
 }
 
 /* ── Scroll reveal — used by <Reveal> component ──────── */
@@ -375,15 +381,15 @@ select {
   to   { background-size:100% 100%; }
 }
 .highlight-sweep {
-  background-image: linear-gradient(transparent 60%, rgba(13,113,130,0.25) 60%);
+  background-image: linear-gradient(transparent 60%, rgba(124,58,237,0.22) 60%);
   background-repeat: no-repeat;
   background-size: 0% 100%;
 }
 .highlight-sweep.in-view { animation: highlight-sweep 0.7s ease forwards; }
 
 /* ── Feature section gradient fills ─────────────────── */
-.feature-glow-left  { background: radial-gradient(ellipse 55% 70% at 0%   50%, rgba(13,113,130,0.08) 0%, transparent 60%), var(--bg); }
-.feature-glow-right { background: radial-gradient(ellipse 55% 70% at 100% 50%, rgba(122,141,255,0.07) 0%, transparent 60%), var(--bg); }
+.feature-glow-left  { background: radial-gradient(ellipse 55% 70% at 0%   50%, rgba(124,58,237,0.07) 0%, transparent 60%), var(--bg); }
+.feature-glow-right { background: radial-gradient(ellipse 55% 70% at 100% 50%, rgba(167,139,250,0.06) 0%, transparent 60%), var(--bg); }
 
 /* ── Horizontal separator glow ───────────────────────── */
 .separator-glow {
@@ -414,8 +420,8 @@ select {
 
 /* ── Frosted glass panel for coaching windows ────────── */
 .coach-panel {
-  background: rgba(8,16,25,0.85);
-  border: 1px solid rgba(170,205,255,0.10);
+  background: rgba(7,7,15,0.88);
+  border: 1px solid rgba(167,139,250,0.12);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
 }
@@ -436,4 +442,143 @@ select {
   top: 0; left: 0; right: 0;
   height: 3px;
   background: var(--accent-color, var(--brand));
+}
+
+/* ══════════════════════════════════════════════════════
+   ZARI AVATAR & VOICE ANIMATIONS
+══════════════════════════════════════════════════════ */
+
+/* ── Sphere breathe (idle state) ─────────────────────── */
+@keyframes sphere-breathe {
+  0%,100% { transform:scale(1);    filter:brightness(1);   }
+  50%      { transform:scale(1.04); filter:brightness(1.15); }
+}
+
+/* ── Pulse rings radiating outward ───────────────────── */
+@keyframes ring-pulse {
+  0%   { transform:scale(0.85); opacity:0.6; }
+  100% { transform:scale(1.55); opacity:0;   }
+}
+
+/* ── Slow rotation for orbit ring ────────────────────── */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes spin-slow-rev {
+  from { transform: rotate(360deg); }
+  to   { transform: rotate(0deg); }
+}
+
+/* ── Eye glow pulse ──────────────────────────────────── */
+@keyframes eye-glow {
+  0%,100% { opacity:0.7; filter:blur(0px);   }
+  50%      { opacity:1;   filter:blur(1.5px); }
+}
+
+/* ── Voice bars equalizer ────────────────────────────── */
+@keyframes voice-bar-1 {
+  0%,100% { height:4px;  }
+  50%      { height:18px; }
+}
+@keyframes voice-bar-2 {
+  0%,100% { height:8px;  }
+  40%      { height:24px; }
+  80%      { height:10px; }
+}
+@keyframes voice-bar-3 {
+  0%,100% { height:12px; }
+  30%      { height:28px; }
+  70%      { height:6px;  }
+}
+@keyframes voice-bar-4 {
+  0%,100% { height:6px;  }
+  55%      { height:20px; }
+}
+@keyframes voice-bar-5 {
+  0%,100% { height:10px; }
+  45%      { height:22px; }
+  85%      { height:4px;  }
+}
+
+/* ── Listening ripple ────────────────────────────────── */
+@keyframes listen-ripple {
+  0%   { transform:scale(1);   opacity:0.5; }
+  100% { transform:scale(1.8); opacity:0;   }
+}
+
+/* ── Thinking particle orbit ─────────────────────────── */
+@keyframes orbit-particle {
+  from { transform:rotate(0deg) translateX(44px) rotate(0deg); }
+  to   { transform:rotate(360deg) translateX(44px) rotate(-360deg); }
+}
+@keyframes orbit-particle-rev {
+  from { transform:rotate(0deg) translateX(52px) rotate(0deg); }
+  to   { transform:rotate(-360deg) translateX(52px) rotate(360deg); }
+}
+
+/* ── Waveform appear ─────────────────────────────────── */
+@keyframes wave-appear {
+  from { opacity:0; transform:scaleY(0.3) translateY(4px); }
+  to   { opacity:1; transform:scaleY(1)   translateY(0);   }
+}
+
+/* ── Gradient text — Zari violet-cyan ───────────────── */
+.gradient-text-zari {
+  background: linear-gradient(135deg, #A78BFA 0%, #22D3EE 60%, #A78BFA 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 5s linear infinite;
+}
+
+/* ── Zari avatar container glow ─────────────────────── */
+.zari-glow {
+  filter: drop-shadow(0 0 28px rgba(124,58,237,0.55)) drop-shadow(0 0 56px rgba(34,211,238,0.20));
+}
+
+/* ── Floating badge pill ─────────────────────────────── */
+@keyframes float-badge {
+  0%,100% { transform:translateY(0px); }
+  50%      { transform:translateY(-6px); }
+}
+
+/* ── Gradient border spin — Zari violet variant ──────── */
+.spin-border-zari {
+  background: conic-gradient(from var(--border-angle), #7C3AED, #22D3EE, #A78BFA, #22D3EE, #7C3AED);
+  animation: spin-border 3s linear infinite;
+}
+
+/* ── Zari hero mesh ──────────────────────────────────── */
+.zari-mesh {
+  background:
+    radial-gradient(ellipse 70% 60% at 30% 50%, rgba(124,58,237,0.18) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 70% at 75% 30%, rgba(34,211,238,0.10) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 40% at 60% 85%, rgba(167,139,250,0.12) 0%, transparent 55%),
+    var(--dark);
+}
+
+/* ── OTP input box ───────────────────────────────────── */
+.otp-box {
+  width: 48px;
+  height: 56px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+.otp-box:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.14);
+}
+.otp-box.filled {
+  border-color: var(--brand);
+  background: var(--brand-light);
+  color: var(--brand);
 }

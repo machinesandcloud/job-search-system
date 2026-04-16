@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { LogoutButton } from "@/components/mvp-session-actions";
+import { ZariLogo } from "@/components/zari-logo";
 
 function cn(...values: Array<string | false | null | undefined>) {
   return values.filter(Boolean).join(" ");
@@ -21,29 +22,32 @@ const logoFiles = [
   { src: "/logos/spotify.svg", alt: "Spotify" },
 ];
 
-export function AskiaLogo({ size = 32 }: { size?: number }) {
-  return (
-    <Image
-      src="/askia-logo.png"
-      alt="Askia"
-      width={size}
-      height={size}
-      className="rounded-xl"
-      style={{ width: size, height: size }}
-    />
-  );
-}
+export { ZariLogo as AskiaLogo };
 
 export function SiteHeader({ authenticated = false }: { authenticated?: boolean }) {
   return (
-    <header className="sticky top-0 z-40 border-b border-[var(--border)]/70 bg-white/92 backdrop-blur-2xl">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-3.5">
+    <header className="sticky top-0 z-40 border-b border-[var(--border)]/60 bg-white/90 backdrop-blur-2xl">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-3">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-3">
-          <AskiaLogo size={34} />
+        <Link href="/" className="flex items-center gap-2.5">
+          <ZariLogo size={34} />
           <div className="leading-none">
-            <span className="text-[15px] font-bold tracking-tight text-[var(--ink)]">Askia</span>
-            <span className="ml-1 text-[15px] font-bold tracking-tight text-[var(--brand)]">Coach</span>
+            <span
+              style={{
+                fontSize: 15,
+                fontWeight: 800,
+                letterSpacing: "-0.03em",
+                background: "linear-gradient(135deg, #7C3AED 0%, #22D3EE 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              Zari
+            </span>
+            <span className="ml-1 text-[15px] font-medium tracking-tight text-[var(--muted)]">
+              AI Coach
+            </span>
           </div>
         </Link>
 
@@ -66,7 +70,10 @@ export function SiteHeader({ authenticated = false }: { authenticated?: boolean 
               <Link href="/login" className="rounded-lg px-4 py-2 text-[13.5px] font-medium text-[var(--muted)] transition-colors hover:text-[var(--ink)]">
                 Sign in
               </Link>
-              <Link href="/signup" className="rounded-lg bg-[var(--brand)] px-5 py-2.5 text-[13.5px] font-semibold text-white shadow-[var(--shadow-brand)] transition-all hover:bg-[var(--brand-hover)] hover:shadow-[0_4px_20px_rgba(13,113,130,0.4)]">
+              <Link
+                href="/signup"
+                className="rounded-xl bg-[var(--brand)] px-5 py-2.5 text-[13.5px] font-semibold text-white shadow-[var(--shadow-brand)] transition-all hover:bg-[var(--brand-hover)] hover:-translate-y-0.5"
+              >
                 Get started →
               </Link>
             </>
@@ -85,13 +92,23 @@ function SiteFooter() {
           {/* Brand */}
           <div>
             <Link href="/" className="flex items-center gap-2.5">
-              <AskiaLogo size={28} />
+              <ZariLogo size={28} />
               <span className="text-sm font-bold text-[var(--ink)]">
-                Askia <span className="text-[var(--brand)]">Coach</span>
+                Zari{" "}
+                <span
+                  style={{
+                    background: "linear-gradient(135deg, #7C3AED, #22D3EE)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                  }}
+                >
+                  AI Coach
+                </span>
               </span>
             </Link>
             <p className="mt-2 max-w-xs text-xs leading-5 text-[var(--muted)]">
-              AI career coaching for candidates in motion. Review, rehearse, and follow through.
+              Voice-powered AI career coaching. Real feedback, real preparation, real results.
             </p>
           </div>
 
@@ -111,9 +128,9 @@ function SiteFooter() {
         </div>
 
         <div className="mt-8 flex flex-col gap-2 border-t border-[var(--border)] pt-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs text-[var(--muted)]">© 2026 Askia. All rights reserved.</p>
+          <p className="text-xs text-[var(--muted)]">© 2026 Zari AI. All rights reserved.</p>
           <p className="text-xs text-[var(--muted)]">
-            Built by{" "}
+            Powered by{" "}
             <a href="https://askia.tech" target="_blank" rel="noopener noreferrer" className="text-[var(--brand)] hover:underline">
               askia.tech
             </a>
