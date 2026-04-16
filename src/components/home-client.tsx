@@ -28,53 +28,164 @@ const LOGOS = [
 
 /* Human persona avatars */
 const PEOPLE = [
-  { name:"Marcus J.",    role:"Backend Engineer → Google",  photo:"https://i.pravatar.cc/150?img=12", color1:"#4361EE", color2:"#818CF8", initials:"MJ", quote:"I did 6 mock sessions with Zari before my Google loop. The real thing felt easier. Got the offer.", stars:5, tag:"Interview prep" },
-  { name:"Priya M.",     role:"Product Manager → Notion",   photo:"https://i.pravatar.cc/150?img=5",  color1:"#7C3AED", color2:"#A78BFA", initials:"PM", quote:"The resume feedback was specific to the point of being uncomfortable — it knew exactly what was wrong.", stars:5, tag:"Resume" },
+  { name:"Marcus J.",    role:"Backend Eng → Staff Eng",    photo:"https://i.pravatar.cc/150?img=12", color1:"#4361EE", color2:"#818CF8", initials:"MJ", quote:"I'd been a Senior for 4 years. Zari helped me build the case — scope, impact, sponsorship. Got promoted in 5 months.", stars:5, tag:"Promotion" },
+  { name:"Priya M.",     role:"PM → Senior PM at Notion",   photo:"https://i.pravatar.cc/150?img=5",  color1:"#7C3AED", color2:"#A78BFA", initials:"PM", quote:"The resume feedback was specific to the point of being uncomfortable — it knew exactly what was wrong.", stars:5, tag:"Resume" },
   { name:"Aaliyah R.",   role:"Data Scientist → Stripe",    photo:"https://i.pravatar.cc/150?img=47", color1:"#0284C7", color2:"#38BDF8", initials:"AR", quote:"The LinkedIn session rebuilt my headline and I got 3 recruiter DMs the same week.", stars:5, tag:"LinkedIn" },
-  { name:"Daniel K.",    role:"Ops Lead → Shopify PM",      photo:"https://i.pravatar.cc/150?img=33", color1:"#059669", color2:"#34D399", initials:"DK", quote:"4 callbacks in 1 week after one resume session. The bullet rewrites were shockingly specific.", stars:5, tag:"Resume" },
-  { name:"Sofia L.",     role:"UX Designer → Figma",        photo:"https://i.pravatar.cc/150?img=25", color1:"#DC2626", color2:"#F87171", initials:"SL", quote:"The STAR scoring is insane. It tells you which word to cut and why. I felt overprepared walking in.", stars:5, tag:"Interview" },
-  { name:"James T.",     role:"Eng Manager → Meta",         photo:"https://i.pravatar.cc/150?img=60", color1:"#D97706", color2:"#FCD34D", initials:"JT", quote:"LinkedIn views went from 2 to 19 a week. Just changed the headline. Nothing else.", stars:5, tag:"LinkedIn" },
-  { name:"Camille D.",   role:"Finance Analyst → Stripe PM",photo:"https://i.pravatar.cc/150?img=9",  color1:"#7C3AED", color2:"#C4B5FD", initials:"CD", quote:"Went in thinking I needed a new resume. Came out with a new career strategy. It's a different tool.", stars:5, tag:"Coaching" },
-  { name:"Ryan O.",      role:"Sales Lead → Google APM",    photo:"https://i.pravatar.cc/150?img=52", color1:"#0284C7", color2:"#7DD3FC", initials:"RO", quote:"The voice sessions are unreal. It actually pushes back when your answer is weak. No fluff.", stars:5, tag:"Interview prep" },
+  { name:"Daniel K.",    role:"Ops Lead → Shopify PM",      photo:"https://i.pravatar.cc/150?img=33", color1:"#059669", color2:"#34D399", initials:"DK", quote:"4 callbacks in 1 week after one resume session. The bullet rewrites were shockingly specific.", stars:5, tag:"Job Search" },
+  { name:"Sofia L.",     role:"IC → Engineering Manager",   photo:"https://i.pravatar.cc/150?img=25", color1:"#DC2626", color2:"#F87171", initials:"SL", quote:"I used Zari to practice my manager pitch. It pushed back hard on weak answers. Felt completely ready for the real conversation.", stars:5, tag:"Promotion" },
+  { name:"James T.",     role:"Director → VP Engineering",  photo:"https://i.pravatar.cc/150?img=60", color1:"#D97706", color2:"#FCD34D", initials:"JT", quote:"Zari helped me build executive presence in my communication. My skip-level feedback changed noticeably.", stars:5, tag:"Leadership" },
+  { name:"Camille D.",   role:"Finance → Stripe PM",        photo:"https://i.pravatar.cc/150?img=9",  color1:"#7C3AED", color2:"#C4B5FD", initials:"CD", quote:"Career change from finance to product. Zari reframed my entire narrative. Without it I'd still be sending unanswered applications.", stars:5, tag:"Career Change" },
+  { name:"Ryan O.",      role:"Sales Lead → Google APM",    photo:"https://i.pravatar.cc/150?img=52", color1:"#0284C7", color2:"#7DD3FC", initials:"RO", quote:"Zari ran the salary negotiation with me until it stopped feeling scary. Walked away with $28K more than the first offer.", stars:5, tag:"Negotiation" },
 ];
 
 const FEATURES = [
   {
     tag:"Resume",
     headline:"Upload your resume.\nGet a job-ready version tonight.",
-    body:"Zari reads every bullet like a recruiter would. ATS score, keyword gaps, line-by-line rewrites with impact metrics injected — and a downloadable final version.",
+    body:"Zari reads every bullet like a recruiter would. ATS score, keyword gaps, line-by-line rewrites with impact metrics — and a downloadable final version.",
     bullets:["ATS keyword scan against your target role","Bullet rewrites with metrics and impact","Before / after score showing exact gains","One-click download of optimized resume"],
     mockup: "resume",
   },
   {
     tag:"Voice Coaching",
-    headline:"Talk to a real coach,\nnot a chatbot.",
-    body:"Voice or text — run mock interviews, work through blockers, talk strategy. Zari listens, responds, and remembers everything across every session.",
-    bullets:["Real-time voice with STAR feedback","Session memory across every call","Switch voice ↔ text at any point","Avatar that reacts as you speak"],
+    headline:"A real coach.\nFor any stage of your career.",
+    body:"Job hunting, chasing a promotion, navigating a pivot — Zari adapts. Voice or text, ask anything. Zari remembers every session and builds on what you've worked on.",
+    bullets:["Fully adapts to your career stage","Session memory across every call","Switch voice ↔ text at any point","Avatar that reacts as you speak"],
     mockup: "session",
   },
   {
-    tag:"Mock Interview",
-    headline:"Overprepared\nbefore you walk in.",
-    body:"Zari asks the exact questions panels use. Your answer is scored on STAR structure, evidence quality, and leadership signal — in real time, question by question.",
-    bullets:["200+ behavioral and case questions","6-dimension STAR scoring per answer","Voice recording — practice like it's real","Coaching note after every answer"],
+    tag:"Interviews & Pitches",
+    headline:"Overprepared\nbefore the conversation.",
+    body:"Panel interview or promotion pitch — Zari drills the exact questions they'll ask. Your answers are scored live on structure, evidence, and leadership signal.",
+    bullets:["Behavioral, case, and panel questions","6-dimension STAR scoring per answer","Promotion pitch practice built-in","Coaching note after every answer"],
     mockup: "interview",
   },
   {
     tag:"LinkedIn",
     headline:"Recruiter-searchable\nin one session.",
-    body:"Zari rewrites your headline, about section, and bullets for maximum recruiter visibility — scored against live job postings for your exact target role.",
-    bullets:["Headline rewrite for recruiter search","About section for your target role","Keyword gap vs real job descriptions","Visibility score from 54 to 91"],
+    body:"Zari rewrites your headline, about, and bullets for maximum recruiter visibility — or repositions your profile to reflect a new level or career direction.",
+    bullets:["Headline rewrite for recruiter search","About section rewritten for your goal","Keyword gap vs real job descriptions","Visibility score from 54 to 91"],
     mockup: "linkedin",
+  },
+  {
+    tag:"Promotion Coaching",
+    headline:"Make the case for\nyour next level.",
+    body:"Zari builds your promotion narrative, prepares your pitch for your manager, and helps you close the gaps your performance review will surface.",
+    bullets:["Build your case with evidence from your work","Promotion pitch rehearsal with feedback","Manager conversation simulation","Gap analysis vs your next-level rubric"],
+    mockup: "promotion",
+  },
+  {
+    tag:"Salary & Negotiation",
+    headline:"Know your number.\nAsk for it with confidence.",
+    body:"Zari runs the negotiation with you until it doesn't feel awkward. Counter-offer scripts, market benchmarks, real language you can use in the room.",
+    bullets:["Market benchmark for your role and level","Counter-offer language and scripts","Negotiation simulation with pushback","Objection handling for every scenario"],
+    mockup: "salary",
   },
 ];
 
 const STATS = [
   { val:"94%",  label:"Call-back rate after resume session" },
   { val:"3×",   label:"More recruiter views after LinkedIn" },
-  { val:"87%",  label:"Feel more confident after mock interviews" },
+  { val:"78%",  label:"Got promoted or negotiated a raise" },
   { val:"14k+", label:"Coaching sessions completed" },
 ];
+
+/* ══════════════════════════════════════════════════
+   HERO PROMPT — Kleo-style intent capture
+══════════════════════════════════════════════════ */
+const HERO_CHIPS = [
+  { label:"I'm job searching",              icon:"🔍" },
+  { label:"Help me get promoted",           icon:"🚀" },
+  { label:"Negotiate my salary",            icon:"💰" },
+  { label:"I'm switching careers",          icon:"↗️" },
+  { label:"Build executive presence",       icon:"🎯" },
+  { label:"Prep for performance review",    icon:"📋" },
+];
+
+function HeroPrompt({ userId }: { userId: boolean }) {
+  const [val, setVal] = useState("");
+  const [focused, setFocused] = useState(false);
+
+  function go(intent: string) {
+    if (!intent.trim()) return;
+    const dest = userId
+      ? `/dashboard?goal=${encodeURIComponent(intent)}`
+      : `/signup?goal=${encodeURIComponent(intent)}`;
+    window.location.href = dest;
+  }
+
+  return (
+    <div style={{ width:"100%", maxWidth:560, margin:"0 auto 22px" }}>
+      {/* Input box */}
+      <div style={{
+        display:"flex", alignItems:"center", gap:10,
+        background:"white",
+        border:`1.5px solid ${focused ? "#4361EE" : "#E4E8F5"}`,
+        borderRadius:16,
+        padding:"13px 13px 13px 18px",
+        boxShadow: focused
+          ? "0 0 0 4px rgba(67,97,238,0.10), 0 4px 24px rgba(0,0,0,0.08)"
+          : "0 4px 24px rgba(0,0,0,0.07)",
+        transition:"all 0.2s",
+      }}>
+        <input
+          style={{ flex:1, border:"none", outline:"none", fontSize:15, color:"#0A0A0F", background:"transparent", fontFamily:"inherit" }}
+          placeholder="Tell Zari where you are in your career…"
+          value={val}
+          onChange={e => setVal(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          onKeyDown={e => { if (e.key === "Enter") go(val); }}
+        />
+        <button
+          onClick={() => go(val || "Get started")}
+          style={{
+            width:38, height:38, borderRadius:11, border:"none", cursor:"pointer",
+            background: val.trim() ? "#4361EE" : "#E4E8F5",
+            color: val.trim() ? "white" : "#A0AABF",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            flexShrink:0, transition:"all 0.2s",
+          }}
+        >
+          <svg viewBox="0 0 20 20" fill="currentColor" style={{ width:15,height:15 }}>
+            <path d="M10 3l7 7-7 7M3 10h14" stroke="currentColor" strokeWidth="2.2" fill="none" strokeLinecap="round"/>
+          </svg>
+        </button>
+      </div>
+
+      {/* Quick-action chips */}
+      <div style={{ display:"flex", flexWrap:"wrap", justifyContent:"center", gap:8, marginTop:12 }}>
+        {HERO_CHIPS.map(chip => (
+          <button
+            key={chip.label}
+            onClick={() => go(chip.label)}
+            style={{
+              display:"inline-flex", alignItems:"center", gap:5,
+              fontSize:13, fontWeight:500, color:"#1E2235",
+              padding:"7px 14px", borderRadius:99,
+              background:"white", border:"1.5px solid #E4E8F5",
+              cursor:"pointer", transition:"all 0.15s",
+              boxShadow:"0 1px 4px rgba(0,0,0,0.05)",
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLButtonElement).style.borderColor = "#4361EE";
+              (e.currentTarget as HTMLButtonElement).style.color = "#4361EE";
+              (e.currentTarget as HTMLButtonElement).style.background = "#F0F4FF";
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLButtonElement).style.borderColor = "#E4E8F5";
+              (e.currentTarget as HTMLButtonElement).style.color = "#1E2235";
+              (e.currentTarget as HTMLButtonElement).style.background = "white";
+            }}
+          >
+            <span>{chip.icon}</span>
+            {chip.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 /* ══════════════════════════════════════════════════
    NAV
@@ -585,6 +696,111 @@ function FeatureMockup({ type }: { type: string }) {
     );
   }
 
+  if (type === "promotion") {
+    return (
+    <div style={{ background:"white", borderRadius:18, border:"1px solid #E4E8F5", overflow:"hidden", boxShadow:"0 16px 56px rgba(0,0,0,0.10)" }}>
+      <div style={{ background:"#F8F9FB", borderBottom:"1px solid #E4E8F5", padding:"10px 14px", display:"flex", gap:5, alignItems:"center" }}>
+        {["#FF5F57","#FEBC2E","#28C840"].map(c=><div key={c} style={{ width:9,height:9,borderRadius:"50%",background:c }}/>)}
+        <span style={{ marginLeft:8, fontSize:10, color:"#A0AABF" }}>Promotion Coaching · Zari</span>
+      </div>
+      <div style={{ padding:16, minHeight:260 }}>
+        {step === 0 && (
+          <div style={{ animation:"bubble-appear 0.35s ease" }}>
+            <p style={{ fontSize:11, fontWeight:700, color:"#4361EE", marginBottom:12 }}>Tell me about your situation</p>
+            {[
+              "I'm a Senior Engineer, been here 3 years",
+              "I want Staff but my manager keeps saying 'not yet'",
+              "I don't know how to build the business case",
+            ].map((t,i) => (
+              <div key={i} style={{ display:"flex", gap:7, marginBottom:8, flexDirection:i%2===0?"row":"row-reverse", animation:`bubble-appear 0.3s ${i*0.12}s both ease` }}>
+                <div style={{ width:22,height:22,borderRadius:"50%",flexShrink:0,background:i%2===0?"#E4E8F5":"linear-gradient(135deg,#4361EE,#818CF8)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,fontWeight:800,color:i%2===0?"#68738A":"white" }}>
+                  {i%2===0?"U":"Z"}
+                </div>
+                <div style={{ maxWidth:"78%", padding:"7px 10px", fontSize:11, lineHeight:1.5, borderRadius:i%2===0?"11px 3px 11px 11px":"3px 11px 11px 11px", background:i%2===0?"#4361EE":"#FAFBFF", color:i%2===0?"white":"#1E2235", border:i%2===0?"none":"1px solid #E4E8F5" }}>{t}</div>
+              </div>
+            ))}
+            <div style={{ marginTop:12, background:"#EEF2FF", borderRadius:10, padding:"10px 12px" }}>
+              <p style={{ fontSize:10, fontWeight:700, color:"#4361EE", marginBottom:4 }}>Zari identified 3 gaps</p>
+              <p style={{ fontSize:11, color:"#3451D1", lineHeight:1.5 }}>You need: (1) a scope expansion story, (2) two executive sponsors, (3) a documented impact case. Let&apos;s build all three.</p>
+            </div>
+          </div>
+        )}
+        {step === 1 && (
+          <div style={{ animation:"bubble-appear 0.35s ease" }}>
+            <p style={{ fontSize:11, fontWeight:700, color:"#0A0A0F", marginBottom:11 }}>Your promotion case — built by Zari</p>
+            {[
+              { label:"Scope expansion story", done:true,  note:"Led migration of 3 services" },
+              { label:"Executive sponsor",     done:true,  note:"CTO aligned after Q2 review" },
+              { label:"Impact documentation",  done:false, note:"$1.2M ARR attribution needed" },
+              { label:"Manager conversation",  done:false, note:"Scheduled for next 1:1" },
+            ].map((item,i) => (
+              <div key={item.label} style={{ display:"flex", alignItems:"center", gap:9, marginBottom:9, animation:`bubble-appear 0.3s ${i*0.1}s both ease` }}>
+                <div style={{ width:18,height:18,borderRadius:"50%",flexShrink:0,background:item.done?"#F0FFF4":"#F1F5F9",border:`1.5px solid ${item.done?"#86EFAC":"#E4E8F5"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:item.done?"#16A34A":"#A0AABF" }}>
+                  {item.done ? "✓" : "○"}
+                </div>
+                <div style={{ flex:1 }}>
+                  <span style={{ fontSize:11.5, fontWeight:600, color: item.done?"#0A0A0F":"#68738A" }}>{item.label}</span>
+                  <span style={{ fontSize:10, color:"#A0AABF", marginLeft:6 }}>{item.note}</span>
+                </div>
+              </div>
+            ))}
+            <button style={{ marginTop:10, width:"100%", fontSize:11.5, fontWeight:700, padding:"9px", borderRadius:9, border:"none", background:"#4361EE", color:"white", cursor:"pointer" }}>
+              Practice manager pitch →
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+    );
+  }
+
+  if (type === "salary") {
+    const ROUNDS = [
+      { who:"Mgr",  text:"We'd like to offer you $145K base.", side:"coach" as const },
+      { who:"You",  text:"I appreciate the offer. Based on my research and the scope of this role, I was expecting $162K.", side:"user"  as const },
+      { who:"Mgr",  text:"That's above our band. We can go to $150K max.", side:"coach" as const },
+    ];
+    const visible = step === 0 ? ROUNDS.slice(0,1) : ROUNDS;
+    return (
+    <div style={{ background:"white", borderRadius:18, border:"1px solid #E4E8F5", overflow:"hidden", boxShadow:"0 16px 56px rgba(0,0,0,0.10)" }}>
+      <div style={{ background:"#F8F9FB", borderBottom:"1px solid #E4E8F5", padding:"10px 14px", display:"flex", gap:5, alignItems:"center" }}>
+        {["#FF5F57","#FEBC2E","#28C840"].map(c=><div key={c} style={{ width:9,height:9,borderRadius:"50%",background:c }}/>)}
+        <span style={{ marginLeft:8, fontSize:10, color:"#A0AABF" }}>Salary Negotiation · Simulation</span>
+      </div>
+      <div style={{ padding:16 }}>
+        {/* Market anchor */}
+        <div style={{ background:"linear-gradient(135deg,#0F172A,#1E3A5F)", borderRadius:11, padding:12, marginBottom:13 }}>
+          <div style={{ fontSize:8.5, textTransform:"uppercase", letterSpacing:"0.12em", color:"rgba(255,255,255,0.5)", marginBottom:5 }}>Market benchmark · Senior PM · SF Bay Area</div>
+          <div style={{ display:"flex", alignItems:"baseline", gap:8 }}>
+            <span style={{ fontSize:22, fontWeight:900, color:"white" }}>$162K</span>
+            <span style={{ fontSize:11, color:"rgba(255,255,255,0.55)" }}>p50 total comp</span>
+          </div>
+          <div style={{ display:"flex", gap:12, marginTop:7 }}>
+            {[{l:"p25",v:"$142K"},{l:"p50",v:"$162K"},{l:"p75",v:"$185K"}].map(m=>(
+              <div key={m.l} style={{ fontSize:9, color:"rgba(255,255,255,0.55)" }}><span style={{ color:"rgba(255,255,255,0.9)", fontWeight:700 }}>{m.v}</span> {m.l}</div>
+            ))}
+          </div>
+        </div>
+
+        {/* Conversation */}
+        {visible.map((m,i) => (
+          <div key={i} style={{ display:"flex", gap:7, marginBottom:8, flexDirection:m.side==="user"?"row-reverse":"row", animation:"bubble-appear 0.3s ease" }}>
+            <div style={{ width:22,height:22,borderRadius:"50%",flexShrink:0,background:m.side==="coach"?"#E4E8F5":"#16A34A",display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,fontWeight:800,color:m.side==="coach"?"#68738A":"white" }}>{m.who}</div>
+            <div style={{ maxWidth:"78%", padding:"7px 10px", fontSize:11, lineHeight:1.5, borderRadius:m.side==="coach"?"3px 11px 11px 11px":"11px 3px 11px 11px", background:m.side==="coach"?"#FAFBFF":"#ECFDF5", color:m.side==="coach"?"#1E2235":"#14532D", border:`1px solid ${m.side==="coach"?"#E4E8F5":"#BBF7D0"}` }}>{m.text}</div>
+          </div>
+        ))}
+
+        {step === 1 && (
+          <div style={{ background:"#EEF2FF", borderRadius:10, padding:"9px 11px", animation:"bubble-appear 0.3s 0.3s both ease" }}>
+            <p style={{ fontSize:10, fontWeight:700, color:"#4361EE", marginBottom:3 }}>Zari&apos;s next move</p>
+            <p style={{ fontSize:10.5, color:"#3451D1", lineHeight:1.5, margin:0 }}>&ldquo;$150K is still $12K below market. Hold your number. Respond: &apos;I understand the band, but given the scope expansion I&apos;d be taking on, $158K reflects the impact I&apos;ll drive.&apos;&rdquo;</p>
+          </div>
+        )}
+      </div>
+    </div>
+    );
+  }
+
   return null;
 }
 
@@ -637,7 +853,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
           {/* Eyebrow */}
           <div style={{ display:"inline-flex", alignItems:"center", gap:7, fontSize:12.5, fontWeight:600, color:"#4361EE", background:"#F0F4FF", border:"1px solid rgba(67,97,238,0.2)", borderRadius:99, padding:"5px 14px", marginBottom:28 }}>
             <ZariLogo size={15} />
-            #1 AI Career Coach — voice, avatar, memory
+            AI Career Coach — every stage, every goal
           </div>
 
           <h1 style={{
@@ -647,38 +863,20 @@ export function HomeClient({ userId }: { userId: boolean }) {
             color:"#0A0A0F",
             marginBottom:22,
           }}>
-            Landing your next role<br />
-            has{" "}
+            Coaching at{" "}
             <span style={{
               background:"linear-gradient(135deg,#4361EE 0%,#818CF8 50%,#06B6D4 100%)",
               WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", backgroundClip:"text",
-            }}>never been easier.</span>
+            }}>every stage</span><br />
+            of your career.
           </h1>
 
-          <p style={{ fontSize:18.5, lineHeight:1.7, color:"#68738A", maxWidth:540, margin:"0 auto 36px" }}>
-            Zari reviews your resume, rebuilds your LinkedIn, runs live mock interviews, and coaches you with voice and a real animated avatar — with memory that builds across every session.
+          <p style={{ fontSize:18, lineHeight:1.7, color:"#68738A", maxWidth:540, margin:"0 auto 36px" }}>
+            Job searching, chasing a promotion, negotiating a raise, switching industries — Zari coaches you with voice, a real avatar, and memory that carries across every session.
           </p>
 
-          <div style={{ display:"flex", flexWrap:"wrap", gap:12, justifyContent:"center", marginBottom:22 }}>
-            <Link href={userId ? "/dashboard" : "/signup"} style={{
-              display:"inline-flex", alignItems:"center", gap:8,
-              padding:"14px 30px", borderRadius:12,
-              background:"#0A0A0F", color:"white",
-              fontSize:15, fontWeight:800, textDecoration:"none",
-              boxShadow:"0 8px 32px rgba(0,0,0,0.16)",
-            }}>
-              {userId ? "Open dashboard" : "Get started free"}
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ width:14,height:14 }}><path d="M3 8h10M9 5l3 3-3 3"/></svg>
-            </Link>
-            <Link href="/login" style={{
-              display:"inline-flex", alignItems:"center",
-              padding:"14px 24px", borderRadius:12,
-              border:"1.5px solid #E4E8F5", background:"white",
-              color:"#0A0A0F", fontSize:15, fontWeight:600, textDecoration:"none",
-            }}>
-              Sign in
-            </Link>
-          </div>
+          {/* Kleo-style hero prompt */}
+          <HeroPrompt userId={userId} />
 
           {/* Social proof row */}
           <div style={{ display:"flex", flexWrap:"wrap", alignItems:"center", justifyContent:"center", gap:18, fontSize:13, color:"#A0AABF" }}>

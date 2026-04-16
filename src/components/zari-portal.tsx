@@ -9,6 +9,15 @@ import { ZariAvatar, type AvatarState } from "@/components/zari-avatar";
    TYPES
 ═══════════════════════════════════════════════════ */
 type Screen = "session" | "resume" | "interview" | "linkedin" | "documents" | "plan";
+type CareerStage = "job-search" | "promotion" | "salary" | "career-change" | "leadership";
+
+const STAGE_META: Record<CareerStage, { label:string; emoji:string; color:string; bg:string }> = {
+  "job-search":    { label:"Job Search",          emoji:"🔍", color:"#4361EE", bg:"#EEF2FF" },
+  "promotion":     { label:"Get Promoted",         emoji:"🚀", color:"#7C3AED", bg:"#F5F3FF" },
+  "salary":        { label:"Salary & Negotiation", emoji:"💰", color:"#059669", bg:"#ECFDF5" },
+  "career-change": { label:"Career Change",        emoji:"↗️", color:"#0284C7", bg:"#EFF6FF" },
+  "leadership":    { label:"Leadership & Exec",    emoji:"🎯", color:"#D97706", bg:"#FFFBEB" },
+};
 
 /* ═══════════════════════════════════════════════════
    HELPERS
@@ -53,22 +62,79 @@ const NAV: { id:Screen; label:string; icon:React.ReactNode }[] = [
 /* ═══════════════════════════════════════════════════
    SCREEN: VOICE COACHING SESSION
 ═══════════════════════════════════════════════════ */
-const INIT_MSGS = [
-  { role:"coach", text:"Good to see you, Steve. Last session we worked on reframing your supply chain project as a product initiative — and you got 2 recruiter responses because of it. Ready to work on interview stories today?" },
-  { role:"user",  text:"Yes, let's do it. I'm feeling much more confident." },
-  { role:"coach", text:"Great. We'll practice the cross-functional leadership question — it's the one Senior PM panels ask hardest. I'll ask it the way a panel would. Take your time and use STAR structure." },
-];
+type ChatMsg = { role:string; text:string };
+const STAGE_INIT_MSGS: Record<CareerStage, ChatMsg[]> = {
+  "job-search": [
+    { role:"coach", text:"Good to see you. Last session we reframed your supply chain project as a product initiative — and you got 2 recruiter responses because of it. Ready to work on interview stories today?" },
+    { role:"user",  text:"Yes, let's do it. I'm feeling more confident." },
+    { role:"coach", text:"Great. We'll practice the cross-functional leadership question — it's the one Senior PM panels push hardest on. Take your time and use STAR structure." },
+  ],
+  "promotion": [
+    { role:"coach", text:"Let's build your promotion case. Tell me: what's the biggest thing you've owned in the last 6 months that no one else was doing at your level?" },
+    { role:"user",  text:"I led the migration of 3 core services — it was originally scoped to someone at Staff level." },
+    { role:"coach", text:"That's your lead story. Now let's quantify the impact and tie it to business outcomes your manager actually cares about. What shipped because of that migration?" },
+  ],
+  "salary": [
+    { role:"coach", text:"Before we practice, let's anchor on your number. What's the offer on the table, and what did your research tell you about market rate for this role?" },
+    { role:"user",  text:"They offered $145K. Levels.fyi shows p50 is around $162K for this title in SF." },
+    { role:"coach", text:"You're $17K below market. That's a strong position to negotiate from. Let's run the conversation — I'll play the hiring manager. Ready?" },
+  ],
+  "career-change": [
+    { role:"coach", text:"Career pivots live or die on narrative. Let's build yours. What's the most relevant part of your background for the new direction you're heading?" },
+    { role:"user",  text:"I've been in finance for 6 years but I've always been closest to the product decisions." },
+    { role:"coach", text:"That's your bridge — not a departure, a progression. Finance gave you commercial rigour. Now let's frame that as an asset, not a liability, for product roles." },
+  ],
+  "leadership": [
+    { role:"coach", text:"At the executive level, how you communicate is as important as what you communicate. What's a high-stakes conversation or presentation you have coming up?" },
+    { role:"user",  text:"I'm presenting the Q3 product strategy to the board next month." },
+    { role:"coach", text:"Let's build that narrative. Board presentations need to answer three questions fast: what's the bet, why now, and what will success look like in 12 months? Let's start with the bet." },
+  ],
+};
 
-const QUICK_PROMPTS = [
-  "Practice a PM interview question",
-  "Rewrite my resume bullet",
-  "Help me answer 'Why product?'",
-  "Give me a LinkedIn headline",
-  "What should I work on today?",
-  "Run a STAR story practice",
-];
+const STAGE_PROMPTS: Record<CareerStage, string[]> = {
+  "job-search": [
+    "Practice a PM interview question",
+    "Rewrite my resume bullet",
+    "Help me answer 'Why product?'",
+    "Give me a LinkedIn headline",
+    "What should I work on today?",
+    "Run a STAR story practice",
+  ],
+  "promotion": [
+    "Help me build my promotion case",
+    "What gaps do I still need to close?",
+    "Practice my manager pitch",
+    "Write my impact statement",
+    "How do I get executive sponsorship?",
+    "What does 'next level' look like for me?",
+  ],
+  "salary": [
+    "What's the market rate for my role?",
+    "Help me counter a low offer",
+    "Practice the negotiation conversation",
+    "How do I ask for a raise?",
+    "What if they say no?",
+    "Write my salary ask message",
+  ],
+  "career-change": [
+    "How do I reframe my background?",
+    "What transferable skills do I have?",
+    "Rewrite my resume for a new industry",
+    "Help me answer 'Why are you switching?'",
+    "What's my story for interviews?",
+    "Which roles should I target first?",
+  ],
+  "leadership": [
+    "Build my executive presence",
+    "How do I communicate to the board?",
+    "Practice a leadership story",
+    "Help me lead a difficult conversation",
+    "Strengthen my strategic narrative",
+    "What does VP-level impact look like?",
+  ],
+};
 
-function ScreenSession() {
+function ScreenSession({ stage }: { stage: CareerStage }) {
   const stateSeq: AvatarState[] = ["speaking","listening","thinking","speaking","listening","idle"];
   const durSeq = [3500,2000,2200,3800,1800,2500];
   const [seqIdx, setSeqIdx] = useState(0);
@@ -76,8 +142,14 @@ function ScreenSession() {
   const [input, setInput] = useState("");
   const [isVoice, setIsVoice] = useState(false);
   const [elapsed, setElapsed] = useState(0);
-  const [msgs, setMsgs] = useState(INIT_MSGS);
+  const [msgs, setMsgs] = useState<ChatMsg[]>(() => STAGE_INIT_MSGS[stage]);
   const chatRef = useRef<HTMLDivElement>(null);
+
+  // Reset conversation when stage changes
+  useEffect(() => {
+    setMsgs(STAGE_INIT_MSGS[stage]);
+    setElapsed(0);
+  }, [stage]);
 
   useEffect(() => {
     const t = setTimeout(() => setSeqIdx(i => (i+1)%stateSeq.length), durSeq[seqIdx]);
@@ -114,7 +186,7 @@ function ScreenSession() {
               Live Session
             </span>
             <span style={{ fontFamily:"monospace", fontSize:11, color:"#68738A" }}>{fmt(elapsed)}</span>
-            <span style={{ fontSize:11, color:"#68738A", padding:"4px 10px", borderRadius:99, background:"#F5F7FF", border:"1px solid #E4E8F5" }}>Career Direction · Session 5</span>
+            <span style={{ fontSize:11, fontWeight:600, color: STAGE_META[stage].color, padding:"4px 10px", borderRadius:99, background: STAGE_META[stage].bg, border:`1px solid ${STAGE_META[stage].color}30` }}>{STAGE_META[stage].emoji} {STAGE_META[stage].label} · Session 5</span>
           </div>
 
           {/* Avatar */}
@@ -135,8 +207,8 @@ function ScreenSession() {
 
           {/* Quick prompts */}
           <div style={{ marginTop:12, display:"flex", flexWrap:"wrap", justifyContent:"center", gap:6 }}>
-            {QUICK_PROMPTS.map(p => (
-              <button key={p} onClick={() => sendMessage(p)} style={{ fontSize:11.5, fontWeight:500, color:"#4361EE", padding:"5px 12px", borderRadius:99, background:"#EEF2FF", border:"1px solid rgba(67,97,238,0.18)", cursor:"pointer", whiteSpace:"nowrap" }}>
+            {STAGE_PROMPTS[stage].map(p => (
+              <button key={p} onClick={() => sendMessage(p)} style={{ fontSize:11.5, fontWeight:500, color: STAGE_META[stage].color, padding:"5px 12px", borderRadius:99, background: STAGE_META[stage].bg, border:`1px solid ${STAGE_META[stage].color}30`, cursor:"pointer", whiteSpace:"nowrap" }}>
                 {p}
               </button>
             ))}
@@ -752,22 +824,63 @@ function ScreenDocuments() {
   );
 }
 
-/* ═══════════════════════════════════════════════════
-   SCREEN: ACTION PLAN
-═══════════════════════════════════════════════════ */
-function ScreenPlan() {
-  const [done, setDone] = useState<Set<number>>(new Set([0, 2]));
-  const TASKS = [
+const STAGE_TASKS: Record<CareerStage, { text:string; cat:string; pri:string }[]> = {
+  "job-search": [
     { text:"Reframe supply chain project as a product initiative in resume",       cat:"Resume",     pri:"high" },
     { text:"Write 3 STAR stories highlighting cross-functional influence",         cat:"Interview",  pri:"high" },
     { text:"Update LinkedIn headline to product-focused positioning",              cat:"LinkedIn",   pri:"high" },
     { text:"Add 8 missing PM keywords to LinkedIn profile",                        cat:"LinkedIn",   pri:"med"  },
-    { text:"Request 2 LinkedIn recommendations from cross-functional peers",       cat:"LinkedIn",   pri:"med"  },
     { text:"Apply to 3 target Senior PM roles at Series B–D tech companies",       cat:"Job Search", pri:"high" },
     { text:"Practice the 'stakeholder resistance' question until score ≥ 85",      cat:"Interview",  pri:"high" },
     { text:"Research top 5 target companies — build tailored talking points",      cat:"Job Search", pri:"med"  },
     { text:"Book follow-up session to practice PM case interview",                 cat:"Session",    pri:"low"  },
-  ];
+  ],
+  "promotion": [
+    { text:"Document 3 scope-expansion stories with business impact numbers",      cat:"Case",       pri:"high" },
+    { text:"Identify 2 executive sponsors and schedule a 30-min conversation",     cat:"Sponsorship",pri:"high" },
+    { text:"Write the promotion self-review draft with Zari's framework",          cat:"Docs",       pri:"high" },
+    { text:"Practice the manager promotion pitch until it flows naturally",        cat:"Session",    pri:"high" },
+    { text:"Map your work to the next-level rubric — identify remaining gaps",     cat:"Planning",   pri:"med"  },
+    { text:"Get a written recommendation from your cross-functional stakeholder",  cat:"Sponsorship",pri:"med"  },
+    { text:"Schedule the formal promotion conversation with your manager",         cat:"Milestone",  pri:"low"  },
+  ],
+  "salary": [
+    { text:"Research market rate on Levels.fyi, Glassdoor, and Blind",            cat:"Research",   pri:"high" },
+    { text:"Build your value case: 3 impact stories with dollar/% outcomes",      cat:"Preparation",pri:"high" },
+    { text:"Practice the ask conversation with Zari — role-play 3 scenarios",     cat:"Session",    pri:"high" },
+    { text:"Prepare counter-offer response for 3 likely pushbacks",               cat:"Preparation",pri:"med"  },
+    { text:"Write the salary ask email draft for async negotiation",              cat:"Docs",       pri:"med"  },
+    { text:"Decide your walk-away number and alternatives (competing offer etc.)", cat:"Planning",   pri:"med"  },
+  ],
+  "career-change": [
+    { text:"Rewrite resume to lead with transferable skills for new industry",     cat:"Resume",     pri:"high" },
+    { text:"Build your 'why I'm switching' narrative — practice out loud 5x",     cat:"Interview",  pri:"high" },
+    { text:"Target 10 roles that are transition-friendly (no 'must have X years')",cat:"Job Search", pri:"high" },
+    { text:"Update LinkedIn to signal the new direction clearly",                  cat:"LinkedIn",   pri:"high" },
+    { text:"Identify 3 people in target industry for informational interviews",    cat:"Network",    pri:"med"  },
+    { text:"Complete 1 relevant project or course to show commitment to pivot",    cat:"Skills",     pri:"med"  },
+    { text:"Draft a cover letter narrative that connects past to future clearly",   cat:"Docs",       pri:"low"  },
+  ],
+  "leadership": [
+    { text:"Define your leadership brand: 3 words your team would use about you",  cat:"Brand",      pri:"high" },
+    { text:"Practice the board presentation — time it, cut what's over 12 min",   cat:"Session",    pri:"high" },
+    { text:"Write 2 strategic leadership stories using the SPEAR framework",       cat:"Narrative",  pri:"high" },
+    { text:"Get skip-level feedback on communication clarity (ask directly)",      cat:"Feedback",   pri:"med"  },
+    { text:"Identify 3 ways you can create more visibility with senior leadership",cat:"Visibility", pri:"med"  },
+    { text:"Restructure 1 recurring update email to lead with insight not status", cat:"Comms",      pri:"med"  },
+    { text:"Book a session to practice the difficult conversation you're avoiding",cat:"Session",    pri:"low"  },
+  ],
+};
+
+/* ═══════════════════════════════════════════════════
+   SCREEN: ACTION PLAN
+═══════════════════════════════════════════════════ */
+function ScreenPlan({ stage }: { stage: CareerStage }) {
+  const [done, setDone] = useState<Set<number>>(new Set([0, 2]));
+  const TASKS = STAGE_TASKS[stage];
+
+  // Reset checkmarks when stage changes
+  useEffect(() => { setDone(new Set([0])); }, [stage]);
 
   const pct = Math.round((done.size/TASKS.length)*100);
 
@@ -776,7 +889,10 @@ function ScreenPlan() {
       <div style={{ maxWidth:800, margin:"0 auto", padding:28 }}>
         <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:22, flexWrap:"wrap", gap:12 }}>
           <div>
-            <h1 style={{ fontSize:22, fontWeight:900, letterSpacing:"-0.03em", color:"#0A0A0F", marginBottom:4 }}>Action Plan</h1>
+            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
+              <h1 style={{ fontSize:22, fontWeight:900, letterSpacing:"-0.03em", color:"#0A0A0F", margin:0 }}>Action Plan</h1>
+              <span style={{ fontSize:11, fontWeight:700, padding:"3px 9px", borderRadius:99, background: STAGE_META[stage].bg, color: STAGE_META[stage].color, border:`1px solid ${STAGE_META[stage].color}30` }}>{STAGE_META[stage].emoji} {STAGE_META[stage].label}</span>
+            </div>
             <p style={{ fontSize:13, color:"#68738A" }}>Zari updates this automatically after every session</p>
           </div>
           <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:12, padding:"10px 18px", display:"flex", gap:16, alignItems:"center" }}>
@@ -850,6 +966,8 @@ function ScreenPlan() {
 ═══════════════════════════════════════════════════ */
 export function ZariPortal() {
   const [screen, setScreen] = useState<Screen>("session");
+  const [stage, setStage] = useState<CareerStage>("job-search");
+  const [stageOpen, setStageOpen] = useState(false);
 
   return (
     <div style={{ display:"flex", height:"100vh", overflow:"hidden", background:"#FAFBFF", fontFamily:"var(--font-geist-sans,Inter,system-ui,sans-serif)" }}>
@@ -882,16 +1000,65 @@ export function ZariPortal() {
         </div>
 
         {/* User chip */}
-        <div style={{ margin:"12px 10px", background:"#F5F7FF", borderRadius:12, padding:"10px 12px", display:"flex", gap:10, alignItems:"center" }}>
+        <div style={{ margin:"12px 10px 8px", background:"#F5F7FF", borderRadius:12, padding:"10px 12px", display:"flex", gap:10, alignItems:"center" }}>
           <div style={{ width:34, height:34, borderRadius:10, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:800, color:"white", flexShrink:0 }}>S</div>
           <div style={{ minWidth:0 }}>
             <div style={{ fontSize:13, fontWeight:700, color:"#0A0A0F" }}>Steve N.</div>
-            <div style={{ fontSize:10.5, color:"#68738A", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>Senior PM · Free plan</div>
+            <div style={{ fontSize:10.5, color:"#68738A", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>Free plan</div>
           </div>
         </div>
 
+        {/* Career Stage Selector */}
+        <div style={{ margin:"0 10px 10px", position:"relative" }}>
+          <button
+            onClick={() => setStageOpen(o => !o)}
+            style={{
+              width:"100%", display:"flex", alignItems:"center", gap:8,
+              padding:"9px 11px", borderRadius:11,
+              border:`1.5px solid ${STAGE_META[stage].color}50`,
+              background: STAGE_META[stage].bg,
+              cursor:"pointer", fontSize:12.5, fontWeight:700,
+              color: STAGE_META[stage].color,
+              transition:"all 0.15s",
+            }}
+          >
+            <span style={{ fontSize:14 }}>{STAGE_META[stage].emoji}</span>
+            <span style={{ flex:1, textAlign:"left" }}>{STAGE_META[stage].label}</span>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:12, height:12, transition:"transform 0.2s", transform: stageOpen ? "rotate(180deg)" : "rotate(0)" }}><path d="M4 6l4 4 4-4"/></svg>
+          </button>
+
+          {/* Dropdown */}
+          {stageOpen && (
+            <div style={{
+              position:"absolute", top:"calc(100% + 6px)", left:0, right:0, zIndex:50,
+              background:"white", borderRadius:12, border:"1px solid #E4E8F5",
+              boxShadow:"0 8px 32px rgba(0,0,0,0.12)", overflow:"hidden",
+              animation:"bubble-appear 0.2s ease",
+            }}>
+              {(Object.entries(STAGE_META) as [CareerStage, typeof STAGE_META[CareerStage]][]).map(([key, meta]) => (
+                <button
+                  key={key}
+                  onClick={() => { setStage(key); setStageOpen(false); setScreen("session"); }}
+                  style={{
+                    width:"100%", display:"flex", alignItems:"center", gap:8,
+                    padding:"9px 12px", border:"none", cursor:"pointer", textAlign:"left",
+                    background: stage === key ? meta.bg : "white",
+                    fontSize:12.5, fontWeight: stage === key ? 700 : 500,
+                    color: stage === key ? meta.color : "#1E2235",
+                    transition:"background 0.1s",
+                  }}
+                >
+                  <span style={{ fontSize:14 }}>{meta.emoji}</span>
+                  {meta.label}
+                  {stage === key && <svg viewBox="0 0 16 16" fill={meta.color} style={{ width:12,height:12,marginLeft:"auto" }}><path d="M3 8l4 4 6-6" stroke={meta.color} strokeWidth="2.2" fill="none"/></svg>}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Nav */}
-        <nav style={{ flex:1, padding:"8px 8px 0" }}>
+        <nav style={{ flex:1, padding:"0 8px 0" }}>
           {NAV.map(n => (
             <button key={n.id} onClick={()=>setScreen(n.id)}
               style={{ width:"100%", display:"flex", alignItems:"center", gap:9, padding:"9px 10px", borderRadius:10, border:"none", cursor:"pointer", textAlign:"left", marginBottom:2, background:screen===n.id?"#EEF2FF":"transparent", color:screen===n.id?"#4361EE":"#68738A", fontWeight:screen===n.id?700:500, fontSize:13.5, transition:"all 0.15s" }}>
@@ -930,12 +1097,12 @@ export function ZariPortal() {
 
         {/* Screen */}
         <div style={{ flex:1, overflow:"hidden" }}>
-          {screen==="session"   && <ScreenSession/>}
+          {screen==="session"   && <ScreenSession stage={stage}/>}
           {screen==="resume"    && <ScreenResume/>}
           {screen==="interview" && <ScreenInterview/>}
           {screen==="linkedin"  && <ScreenLinkedIn/>}
           {screen==="documents" && <ScreenDocuments/>}
-          {screen==="plan"      && <ScreenPlan/>}
+          {screen==="plan"      && <ScreenPlan stage={stage}/>}
         </div>
       </main>
     </div>
