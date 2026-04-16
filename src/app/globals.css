@@ -3,47 +3,47 @@
 :root {
   color-scheme: light;
 
-  /* ── Light surfaces — kleo-style purple-tinted ──── */
-  --bg: #F7F5FF;
-  --bg-alt: #EEE9FF;
+  /* ── Light surfaces — kleo.so clean white ───────── */
+  --bg: #FFFFFF;
+  --bg-alt: #F0F4FF;
   --surface: #FFFFFF;
-  --surface-muted: #F1EDFF;
+  --surface-muted: #F5F8FF;
   --panel: #FFFFFF;
 
   /* ── Text ─────────────────────────────────────────── */
-  --ink: #0D0614;
-  --ink-2: #2A1850;
-  --muted: #6E618E;
+  --ink: #0A0A0F;
+  --ink-2: #1E2235;
+  --muted: #68738A;
 
   /* ── Borders ──────────────────────────────────────── */
-  --border: #E2D9F7;
+  --border: #E4E8F5;
 
-  /* ── Dark palette — kleo deep purple-black ────── */
-  --dark: #060311;
-  --dark-2: #0C0620;
-  --dark-3: #110930;
-  --dark-border: rgba(167, 139, 250, 0.14);
-  --dark-muted: rgba(221, 214, 254, 0.55);
+  /* ── Dark palette — deep navy ────────────────────── */
+  --dark: #0C1023;
+  --dark-2: #111827;
+  --dark-3: #1A2235;
+  --dark-border: rgba(99, 120, 255, 0.14);
+  --dark-muted: rgba(199, 210, 254, 0.55);
 
-  /* ── Brand — Zari violet ─────────────────────────── */
-  --brand: #7C3AED;
-  --brand-hover: #6D28D9;
-  --brand-light: #EDE9FE;
-  --brand-glow: rgba(124, 58, 237, 0.22);
+  /* ── Brand — kleo blue ───────────────────────────── */
+  --brand: #4361EE;
+  --brand-hover: #3451D1;
+  --brand-light: #EEF2FF;
+  --brand-glow: rgba(67, 97, 238, 0.18);
 
-  /* ── Cyan accent ─────────────────────────────────── */
-  --cyan: #22D3EE;
-  --cyan-dim: #06B6D4;
-  --cyan-glow: rgba(34, 211, 238, 0.16);
+  /* ── Cyan / teal accent ──────────────────────────── */
+  --cyan: #06B6D4;
+  --cyan-dim: #0891B2;
+  --cyan-glow: rgba(6, 182, 212, 0.16);
 
   /* ── Gold accent ─────────────────────────────────── */
   --gold: #F59E0B;
   --gold-soft: #FEF3C7;
   --gold-glow: rgba(245, 158, 11, 0.20);
 
-  /* ── Purple accent ────────────────────────────────── */
-  --purple: #A78BFA;
-  --purple-glow: rgba(167, 139, 250, 0.18);
+  /* ── Purple accent (secondary) ───────────────────── */
+  --purple: #8B5CF6;
+  --purple-glow: rgba(139, 92, 246, 0.16);
 
   /* ── Status ───────────────────────────────────────── */
   --success: #16A34A;
@@ -54,13 +54,13 @@
   --danger-soft: #FEE2E2;
 
   /* ── Legacy aliases (keep existing components working) */
-  --navy: #060311;
-  --blue: #7C3AED;
+  --navy: #0C1023;
+  --blue: #4361EE;
   --coral: #F97316;
   --green: #059669;
   --teal: #22D3EE;
   --teal-soft: #ECFEFF;
-  --lavender: #EDE9FE;
+  --lavender: #EEF2FF;
   --amber: #F97316;
   --amber-soft: #FFF3EA;
   --accent: var(--brand);
@@ -71,12 +71,12 @@
   --sand: var(--bg-alt);
 
   /* ── Shadows ──────────────────────────────────────── */
-  --shadow: 0 2px 12px rgba(13, 6, 20, 0.07), 0 1px 3px rgba(13, 6, 20, 0.04);
-  --shadow-md: 0 8px 32px rgba(13, 6, 20, 0.10);
-  --shadow-lg: 0 20px 60px rgba(13, 6, 20, 0.15);
-  --shadow-brand: 0 4px 24px rgba(124, 58, 237, 0.35);
-  --shadow-cyan: 0 4px 32px rgba(34, 211, 238, 0.25);
-  --shadow-gold: 0 4px 24px rgba(245, 158, 11, 0.25);
+  --shadow: 0 1px 4px rgba(10,10,20,0.06), 0 2px 12px rgba(10,10,20,0.05);
+  --shadow-md: 0 4px 24px rgba(10,10,20,0.09);
+  --shadow-lg: 0 12px 48px rgba(10,10,20,0.12);
+  --shadow-brand: 0 4px 20px rgba(67, 97, 238, 0.30);
+  --shadow-cyan: 0 4px 24px rgba(6, 182, 212, 0.22);
+  --shadow-gold: 0 4px 20px rgba(245, 158, 11, 0.22);
 }
 
 html {
@@ -234,11 +234,11 @@ select {
   to { --border-angle: 360deg; }
 }
 .spin-border {
-  background: conic-gradient(from var(--border-angle), var(--brand), var(--cyan), var(--purple), var(--cyan), var(--brand));
+  background: conic-gradient(from var(--border-angle), var(--brand), #818CF8, var(--purple), #818CF8, var(--brand));
   animation: spin-border 3s linear infinite;
 }
 .spin-border-slow {
-  background: conic-gradient(from var(--border-angle), var(--brand) 0%, transparent 40%, var(--cyan) 60%, transparent 80%, var(--brand) 100%);
+  background: conic-gradient(from var(--border-angle), var(--brand) 0%, transparent 40%, #818CF8 60%, transparent 80%, var(--brand) 100%);
   animation: spin-border 6s linear infinite;
 }
 
@@ -287,9 +287,9 @@ select {
 /* ── Gradient mesh background ────────────────────────── */
 .mesh-bg {
   background:
-    radial-gradient(ellipse 80% 50% at 20% 40%, rgba(124,58,237,0.14) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 60% at 80% 20%, rgba(167,139,250,0.10) 0%, transparent 55%),
-    radial-gradient(ellipse 70% 50% at 50% 90%, rgba(34,211,238,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 50% at 20% 40%, rgba(67,97,238,0.14) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 60% at 80% 20%, rgba(129,140,248,0.10) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 50% at 50% 90%, rgba(6,182,212,0.07) 0%, transparent 60%),
     var(--dark);
 }
 
@@ -523,9 +523,9 @@ select {
   to   { opacity:1; transform:scaleY(1)   translateY(0);   }
 }
 
-/* ── Gradient text — Zari violet-cyan ───────────────── */
+/* ── Gradient text — kleo blue ───────────────────────── */
 .gradient-text-zari {
-  background: linear-gradient(135deg, #A78BFA 0%, #22D3EE 60%, #A78BFA 100%);
+  background: linear-gradient(135deg, #4361EE 0%, #818CF8 50%, #06B6D4 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -535,7 +535,7 @@ select {
 
 /* ── Zari avatar container glow ─────────────────────── */
 .zari-glow {
-  filter: drop-shadow(0 0 28px rgba(124,58,237,0.55)) drop-shadow(0 0 56px rgba(34,211,238,0.20));
+  filter: drop-shadow(0 0 28px rgba(67,97,238,0.55)) drop-shadow(0 0 56px rgba(129,140,248,0.25));
 }
 
 /* ── Floating badge pill ─────────────────────────────── */
@@ -544,18 +544,18 @@ select {
   50%      { transform:translateY(-6px); }
 }
 
-/* ── Gradient border spin — Zari violet variant ──────── */
+/* ── Gradient border spin — blue variant ──────────────── */
 .spin-border-zari {
-  background: conic-gradient(from var(--border-angle), #7C3AED, #22D3EE, #A78BFA, #22D3EE, #7C3AED);
+  background: conic-gradient(from var(--border-angle), #4361EE, #818CF8, #8B5CF6, #818CF8, #4361EE);
   animation: spin-border 3s linear infinite;
 }
 
 /* ── Zari hero mesh ──────────────────────────────────── */
 .zari-mesh {
   background:
-    radial-gradient(ellipse 70% 60% at 30% 50%, rgba(124,58,237,0.18) 0%, transparent 55%),
-    radial-gradient(ellipse 50% 70% at 75% 30%, rgba(34,211,238,0.10) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 40% at 60% 85%, rgba(167,139,250,0.12) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 60% at 30% 50%, rgba(67,97,238,0.18) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 70% at 75% 30%, rgba(6,182,212,0.08) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 40% at 60% 85%, rgba(129,140,248,0.12) 0%, transparent 55%),
     var(--dark);
 }
 
@@ -575,10 +575,115 @@ select {
 }
 .otp-box:focus {
   border-color: var(--brand);
-  box-shadow: 0 0 0 3px rgba(124,58,237,0.14);
+  box-shadow: 0 0 0 3px rgba(67,97,238,0.14);
 }
 .otp-box.filled {
   border-color: var(--brand);
   background: var(--brand-light);
   color: var(--brand);
+}
+
+/* ══════════════════════════════════════════════════════
+   PORTAL / DASHBOARD STYLES
+══════════════════════════════════════════════════════ */
+
+/* ── Portal color tokens (dark sidebar theme) ────────── */
+:root {
+  --portal-sidebar: #0C1023;
+  --portal-sidebar-hover: rgba(255,255,255,0.06);
+  --portal-sidebar-active: rgba(67,97,238,0.18);
+  --portal-sidebar-border: rgba(255,255,255,0.07);
+  --portal-sidebar-text: rgba(255,255,255,0.55);
+  --portal-sidebar-text-active: #FFFFFF;
+  --portal-topbar: #FFFFFF;
+  --portal-bg: #F5F7FF;
+  --portal-card: #FFFFFF;
+  --portal-card-border: #E4E8F5;
+}
+
+/* ── Kleo-style hero gradient ────────────────────────── */
+.kleo-hero {
+  background: linear-gradient(175deg, #FFFFFF 55%, #EEF2FF 100%);
+}
+
+/* ── Kleo badge pill ─────────────────────────────────── */
+.kleo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brand);
+  background: var(--brand-light);
+  border: 1px solid rgba(67,97,238,0.15);
+}
+
+/* ── Portal screen fade in ───────────────────────────── */
+@keyframes screen-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.portal-screen { animation: screen-in 0.22s ease both; }
+
+/* ── Score ring portal ───────────────────────────────── */
+@keyframes ring-fill-portal {
+  from { stroke-dashoffset: 220; }
+}
+
+/* ── Coaching avatar pulse ───────────────────────────── */
+@keyframes coach-pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(67,97,238,0.4); }
+  50%      { box-shadow: 0 0 0 16px rgba(67,97,238,0); }
+}
+
+/* ── Bar fill animation (portal) ────────────────────── */
+@keyframes bar-fill {
+  from { width: 0; }
+}
+
+/* ── Platform preview card ───────────────────────────── */
+.platform-preview {
+  background: #FFFFFF;
+  border: 1px solid #E4E8F5;
+  border-radius: 20px;
+  box-shadow: 0 8px 48px rgba(10,10,30,0.10), 0 1px 2px rgba(10,10,30,0.06);
+  overflow: hidden;
+}
+
+/* ── Kleo-style section ──────────────────────────────── */
+.kleo-section {
+  padding: 80px 24px;
+}
+
+/* ── Before/after card ───────────────────────────────── */
+.before-card {
+  background: #FAFAFA;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 16px;
+  padding: 28px;
+}
+.after-card {
+  background: #FFFFFF;
+  border: 1.5px solid var(--brand);
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 0 0 4px rgba(67,97,238,0.08);
+}
+
+/* ── Kleo testimonial card ───────────────────────────── */
+.kleo-testimonial {
+  background: #FFFFFF;
+  border: 1px solid #E4E8F5;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(10,10,30,0.06);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.kleo-testimonial:hover {
+  box-shadow: 0 8px 32px rgba(10,10,30,0.10);
+  transform: translateY(-2px);
 }

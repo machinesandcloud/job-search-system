@@ -27,7 +27,7 @@ function VoiceBars() {
             width: 4,
             height: 12,
             borderRadius: 3,
-            background: "linear-gradient(to top, #7C3AED, #22D3EE)",
+            background: "linear-gradient(to top, #4361EE, #818CF8)",
             animation: bar.anim,
             animationDelay: bar.delay,
           }}
@@ -54,7 +54,7 @@ function ThinkingDots({ size }: { size: number }) {
             marginTop: -3.5,
             marginLeft: -3.5,
             borderRadius: "50%",
-            background: i % 2 === 0 ? "#22D3EE" : "#A78BFA",
+            background: i % 2 === 0 ? "#818CF8" : "#93C5FD",
             animation: i % 2 === 0
               ? `orbit-particle ${1.4 + i * 0.3}s linear infinite`
               : `orbit-particle-rev ${1.6 + i * 0.25}s linear infinite`,
@@ -103,7 +103,7 @@ export function ZariAvatar({ state = "idle", size = 120, className = "" }: ZariA
           inset: -size * 0.04,
           borderRadius: "50%",
           border: "1.5px solid transparent",
-          background: "conic-gradient(from 0deg, #7C3AED33, #22D3EE55, #7C3AED33) border-box",
+          background: "conic-gradient(from 0deg, #4361EE33, #818CF855, #4361EE33) border-box",
           WebkitMask: "linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)",
           WebkitMaskComposite: "destination-out" as React.CSSProperties["WebkitMaskComposite"],
           maskComposite: "exclude",
@@ -115,9 +115,9 @@ export function ZariAvatar({ state = "idle", size = 120, className = "" }: ZariA
       {/* Pulse rings */}
       {(state === "idle" || state === "listening") && (
         <>
-          <div style={{ position:"absolute", inset:-6, borderRadius:"50%", background:"rgba(124,58,237,0.12)", animation:"ring-pulse 2.2s ease-out infinite", animationDelay:"0s" }} />
-          <div style={{ position:"absolute", inset:-6, borderRadius:"50%", background:"rgba(124,58,237,0.09)", animation:"ring-pulse 2.2s ease-out infinite", animationDelay:"0.7s" }} />
-          <div style={{ position:"absolute", inset:-6, borderRadius:"50%", background:"rgba(124,58,237,0.06)", animation:"ring-pulse 2.2s ease-out infinite", animationDelay:"1.4s" }} />
+          <div style={{ position:"absolute", inset:-6, borderRadius:"50%", background:"rgba(67,97,238,0.12)", animation:"ring-pulse 2.2s ease-out infinite", animationDelay:"0s" }} />
+          <div style={{ position:"absolute", inset:-6, borderRadius:"50%", background:"rgba(67,97,238,0.09)", animation:"ring-pulse 2.2s ease-out infinite", animationDelay:"0.7s" }} />
+          <div style={{ position:"absolute", inset:-6, borderRadius:"50%", background:"rgba(67,97,238,0.06)", animation:"ring-pulse 2.2s ease-out infinite", animationDelay:"1.4s" }} />
         </>
       )}
 
@@ -134,9 +134,9 @@ export function ZariAvatar({ state = "idle", size = 120, className = "" }: ZariA
           width: sphereSize,
           height: sphereSize,
           borderRadius: "50%",
-          background: "radial-gradient(circle at 35% 35%, #9B5CF6 0%, #7C3AED 45%, #2D0B6B 100%)",
+          background: "radial-gradient(circle at 35% 35%, #818CF8 0%, #4361EE 45%, #1E3A8A 100%)",
           animation: state === "idle" ? "sphere-breathe 3s ease-in-out infinite" : undefined,
-          boxShadow: "inset -6px -6px 20px rgba(0,0,0,0.35), inset 4px 4px 16px rgba(167,139,250,0.3)",
+          boxShadow: "inset -6px -6px 20px rgba(0,0,0,0.35), inset 4px 4px 16px rgba(129,140,248,0.3)",
           position: "relative",
           display: "flex",
           alignItems: "center",
@@ -175,8 +175,8 @@ export function ZariAvatar({ state = "idle", size = 120, className = "" }: ZariA
                 width: sphereSize * 0.12,
                 height: sphereSize * 0.12,
                 borderRadius: "50%",
-                background: "#22D3EE",
-                boxShadow: "0 0 8px #22D3EE, 0 0 16px rgba(34,211,238,0.6)",
+                background: "#818CF8",
+                boxShadow: "0 0 8px #818CF8, 0 0 16px rgba(34,211,238,0.6)",
                 animation: `eye-glow 2.4s ease-in-out infinite`,
                 animationDelay: `${i * 0.3}s`,
               }}
@@ -224,7 +224,7 @@ export function ZariAvatar({ state = "idle", size = 120, className = "" }: ZariA
             backdropFilter: "blur(8px)",
             fontSize: 10,
             fontWeight: 700,
-            color: "#22D3EE",
+            color: "#818CF8",
             letterSpacing: "0.12em",
             textTransform: "uppercase",
           }}>
@@ -240,7 +240,7 @@ export function ZariAvatar({ state = "idle", size = 120, className = "" }: ZariA
             backdropFilter: "blur(8px)",
             fontSize: 10,
             fontWeight: 700,
-            color: "#A78BFA",
+            color: "#93C5FD",
             letterSpacing: "0.12em",
             textTransform: "uppercase",
           }}>
