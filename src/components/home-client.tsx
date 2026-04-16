@@ -82,6 +82,26 @@ const FEATURES = [
   },
 ];
 
+/* ══ Wall of reviews — more entries, varied lengths for masonry ══ */
+const WALL_REVIEWS = [
+  { name:"Marcus J.",    role:"Backend Eng → Staff Eng",       photo:"https://i.pravatar.cc/150?img=12", color1:"#4361EE", color2:"#818CF8", quote:"I'd been Senior for 4 years. Zari helped me build the case — scope, impact, sponsorship. Got promoted in 5 months.", tag:"Promotion" },
+  { name:"Priya M.",     role:"PM → Senior PM, Notion",        photo:"https://i.pravatar.cc/150?img=5",  color1:"#7C3AED", color2:"#A78BFA", quote:"The resume feedback was specific to the point of being uncomfortable. It knew exactly what was wrong.", tag:"Resume" },
+  { name:"Aaliyah R.",   role:"Data Scientist, Stripe",        photo:"https://i.pravatar.cc/150?img=47", color1:"#0284C7", color2:"#38BDF8", quote:"The LinkedIn session rebuilt my headline and I got 3 recruiter DMs the same week. Changed nothing else.", tag:"LinkedIn" },
+  { name:"Daniel K.",    role:"Ops Lead → Shopify PM",         photo:"https://i.pravatar.cc/150?img=33", color1:"#059669", color2:"#34D399", quote:"4 callbacks in 1 week after one resume session. The bullet rewrites were shockingly specific.", tag:"Resume" },
+  { name:"Sofia L.",     role:"IC → Engineering Manager",      photo:"https://i.pravatar.cc/150?img=25", color1:"#DC2626", color2:"#F87171", quote:"I practiced my manager pitch with Zari for two weeks. Felt completely ready for the real conversation. Got the role.", tag:"Promotion" },
+  { name:"James T.",     role:"Director → VP Engineering",     photo:"https://i.pravatar.cc/150?img=60", color1:"#D97706", color2:"#FCD34D", quote:"Zari helped me build executive presence in my communication. My skip-level feedback changed noticeably within a quarter.", tag:"Leadership" },
+  { name:"Camille D.",   role:"Finance → Stripe PM",           photo:"https://i.pravatar.cc/150?img=9",  color1:"#7C3AED", color2:"#C4B5FD", quote:"Career change from finance to product. Zari reframed my entire narrative. Without it I'd still be sending unanswered applications.", tag:"Career Change" },
+  { name:"Ryan O.",      role:"Sales Lead → Google APM",       photo:"https://i.pravatar.cc/150?img=52", color1:"#0284C7", color2:"#7DD3FC", quote:"Zari ran the salary negotiation with me until it stopped feeling scary. Walked away with $28K more.", tag:"Negotiation" },
+  { name:"Tanya W.",     role:"Analyst → Product, Meta",       photo:"https://i.pravatar.cc/150?img=16", color1:"#4361EE", color2:"#6EE7B7", quote:"The STAR scoring told me which word to cut and why. I felt overprepared walking into the panel.", tag:"Interview" },
+  { name:"Leo B.",       role:"Junior → Mid SWE, Airbnb",      photo:"https://i.pravatar.cc/150?img=67", color1:"#0284C7", color2:"#A5F3FC", quote:"I didn't know how to talk about my side projects. Zari helped me reframe them as real product experience. Got the offer.", tag:"Resume" },
+  { name:"Nina S.",      role:"CS grad → Figma PM",            photo:"https://i.pravatar.cc/150?img=48", color1:"#7C3AED", color2:"#F9A8D4", quote:"Came in nervous about being a new grad. Zari built my confidence session by session. By interview day I was calm.", tag:"Interview" },
+  { name:"Omar A.",      role:"Consultant → Uber Strategy",    photo:"https://i.pravatar.cc/150?img=11", color1:"#059669", color2:"#86EFAC", quote:"The coaching felt like talking to someone who'd been through the exact same transition. Every answer was specific to my situation.", tag:"Career Change" },
+  { name:"Jess M.",      role:"SDR → RevOps PM, Salesforce",   photo:"https://i.pravatar.cc/150?img=29", color1:"#D97706", color2:"#FDE68A", quote:"I told Zari my salary target was $130K and it told me I was leaving money on the table. Countered to $148K. They said yes.", tag:"Negotiation" },
+  { name:"Dev P.",       role:"EM → Director, Snowflake",      photo:"https://i.pravatar.cc/150?img=57", color1:"#4361EE", color2:"#BAE6FD", quote:"The promotion plan was genuinely useful. Not just 'be more strategic' — actual specific things to do, week by week.", tag:"Promotion" },
+  { name:"Fatoumata K.", role:"Ops Manager → LinkedIn PM",     photo:"https://i.pravatar.cc/150?img=20", color1:"#DC2626", color2:"#FCA5A5", quote:"I was told twice I wasn't 'product enough.' Zari helped me reframe everything I'd done as product work. Third time I got the role.", tag:"Career Change" },
+  { name:"Chris Y.",     role:"Senior PM → Staff PM, Notion",  photo:"https://i.pravatar.cc/150?img=61", color1:"#0284C7", color2:"#67E8F9", quote:"LinkedIn views went from 2 to 22 a week. Just changed the headline. Nothing else.", tag:"LinkedIn" },
+];
+
 const STATS = [
   { val:"94%",  label:"Call-back rate after resume session" },
   { val:"3×",   label:"More recruiter views after LinkedIn" },
@@ -133,42 +153,54 @@ function HeroPrompt({ userId }: { userId: boolean }) {
 
   return (
     <div style={{ width:"100%", maxWidth:660, margin:"0 auto 28px" }}>
-      {/* Input box — Kleo-style prominent */}
+      {/* Input box — tall, Kleo-style */}
       <div style={{
-        display:"flex", alignItems:"center", gap:12,
+        position:"relative",
         background:"white",
         border:`1.5px solid ${focused ? "#4361EE" : "#E0E4EF"}`,
         borderRadius:18,
-        padding:"16px 16px 16px 22px",
         boxShadow: focused
           ? "0 0 0 5px rgba(67,97,238,0.10), 0 8px 40px rgba(0,0,0,0.10)"
           : "0 6px 32px rgba(0,0,0,0.09)",
         transition:"all 0.2s",
       }}>
-        <input
-          style={{ flex:1, border:"none", outline:"none", fontSize:16.5, color:"#0A0A0F", background:"transparent", fontFamily:"inherit" }}
+        <textarea
+          style={{
+            display:"block", width:"100%", border:"none", outline:"none",
+            fontSize:16, color:"#0A0A0F", background:"transparent",
+            fontFamily:"inherit", resize:"none", lineHeight:1.65,
+            padding:"20px 22px 60px 22px",
+            minHeight:160, borderRadius:18,
+          }}
+          rows={4}
           placeholder="Tell Zari where you are in your career…"
           value={val}
           onChange={e => setVal(e.target.value)}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          onKeyDown={e => { if (e.key === "Enter") go(val); }}
+          onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); go(val); } }}
         />
-        <button
-          onClick={() => go(val || "Get started")}
-          style={{
-            width:44, height:44, borderRadius:13, border:"none", cursor:"pointer",
-            background: val.trim() ? "#4361EE" : "#E4E8F5",
-            color: val.trim() ? "white" : "#A0AABF",
-            display:"flex", alignItems:"center", justifyContent:"center",
-            flexShrink:0, transition:"all 0.2s",
-            boxShadow: val.trim() ? "0 4px 16px rgba(67,97,238,0.35)" : "none",
-          }}
-        >
-          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" style={{ width:16,height:16 }}>
-            <path d="M10 3l7 7-7 7M3 10h14"/>
-          </svg>
-        </button>
+        {/* Bottom bar inside textarea */}
+        <div style={{ position:"absolute", bottom:0, left:0, right:0, padding:"0 14px 12px", display:"flex", alignItems:"center", justifyContent:"flex-end", gap:8 }}>
+          <span style={{ fontSize:12, color:"#A0AABF", marginRight:"auto" }}>Shift+Enter for new line</span>
+          <button
+            onClick={() => go(val || "Get started")}
+            style={{
+              display:"inline-flex", alignItems:"center", gap:7,
+              padding:"9px 20px", borderRadius:12, border:"none", cursor:"pointer",
+              background: val.trim() ? "#4361EE" : "#E4E8F5",
+              color: val.trim() ? "white" : "#A0AABF",
+              fontSize:13.5, fontWeight:700, fontFamily:"inherit",
+              transition:"all 0.2s",
+              boxShadow: val.trim() ? "0 4px 16px rgba(67,97,238,0.30)" : "none",
+            }}
+          >
+            Ask Zari
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" style={{ width:14,height:14 }}>
+              <path d="M10 3l7 7-7 7M3 10h14"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Quick-action chips */}
@@ -922,20 +954,20 @@ export function HomeClient({ userId }: { userId: boolean }) {
 
       </section>
 
-      {/* ══════ LOGO MARQUEE ══════ */}
-      <section style={{ background:"#FAFBFF", borderTop:"1px solid #F1F5F9", borderBottom:"1px solid #F1F5F9", padding:"28px 0", overflow:"hidden" }}>
-        <p style={{ textAlign:"center", fontSize:11, fontWeight:600, textTransform:"uppercase", letterSpacing:"0.18em", color:"#A0AABF", marginBottom:18 }}>
+      {/* ══════ LOGO MARQUEE — big and bold ══════ */}
+      <section style={{ background:"#EEF0FB", padding:"44px 0 40px", overflow:"hidden" }}>
+        <p style={{ textAlign:"center", fontSize:12, fontWeight:600, textTransform:"uppercase", letterSpacing:"0.16em", color:"#8B96C8", marginBottom:32 }}>
           Used by candidates targeting
         </p>
-        <div style={{ overflow:"hidden", WebkitMaskImage:"linear-gradient(to right,transparent,black 8%,black 92%,transparent)", maskImage:"linear-gradient(to right,transparent,black 8%,black 92%,transparent)" }}>
-          <div style={{ display:"flex", alignItems:"center", gap:52, animation:"marquee-x 32s linear infinite", whiteSpace:"nowrap" }}>
+        <div style={{ overflow:"hidden", WebkitMaskImage:"linear-gradient(to right,transparent,black 5%,black 95%,transparent)", maskImage:"linear-gradient(to right,transparent,black 5%,black 95%,transparent)" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:72, animation:"marquee-x 38s linear infinite", whiteSpace:"nowrap" }}>
             {[...LOGOS,...LOGOS].map((l,i) => (
-              <div key={i} style={{ display:"flex", alignItems:"center", justifyContent:"center", height:28, flexShrink:0 }}>
+              <div key={i} style={{ display:"flex", alignItems:"center", justifyContent:"center", height:44, flexShrink:0 }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={l.src}
                   alt={l.name}
-                  style={{ height:22, maxWidth:90, objectFit:"contain", filter:"grayscale(1) opacity(0.35)" }}
+                  style={{ height:36, maxWidth:120, objectFit:"contain", filter:"grayscale(1) brightness(0.15) opacity(0.7)" }}
                   onError={(e) => {
                     const img = e.currentTarget;
                     img.style.display = "none";
@@ -943,40 +975,56 @@ export function HomeClient({ userId }: { userId: boolean }) {
                     if (fallback) fallback.style.display = "inline";
                   }}
                 />
-                <span style={{ display:"none", fontSize:13, fontWeight:700, color:"#C4CDD8" }}>{l.name}</span>
+                <span style={{ display:"none", fontSize:16, fontWeight:800, color:"#3D4580", letterSpacing:"-0.02em" }}>{l.name}</span>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ══════ PEOPLE — social proof with real faces feel ══════ */}
-      <section id="reviews" style={{ padding:"96px 28px", background:"white", overflow:"hidden" }}>
-        <div style={{ maxWidth:1100, margin:"0 auto" }}>
-          <div style={{ textAlign:"center", marginBottom:52 }}>
+      {/* ══════ REVIEW WALL — Kleo-style masonry ══════ */}
+      <section id="reviews" style={{ padding:"96px 28px", background:"white" }}>
+        <div style={{ maxWidth:1200, margin:"0 auto" }}>
+          <div style={{ textAlign:"center", marginBottom:56 }}>
             <h2 style={{ fontSize:"clamp(2rem,4vw,2.8rem)", fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", marginBottom:12 }}>
-              Candidates who showed up differently.
+              Loved by 1,000+ candidates.
             </h2>
-            <p style={{ fontSize:17, color:"#68738A" }}>Real sessions. Real results. Real offers.</p>
-          </div>
-
-          {/* Scrolling row of person cards */}
-          <div style={{ position:"relative", overflow:"hidden", WebkitMaskImage:"linear-gradient(to right,transparent,black 4%,black 96%,transparent)", maskImage:"linear-gradient(to right,transparent,black 4%,black 96%,transparent)" }}>
-            <div style={{ display:"flex", gap:16, animation:"marquee-x 36s linear infinite" }}>
-              {[...PEOPLE,...PEOPLE].map((p,i) => (
-                <div key={i} style={{ width:320, flexShrink:0 }}>
-                  <PersonCard p={p} size="lg" />
-                </div>
-              ))}
-            </div>
+            <p style={{ fontSize:17, color:"#68738A" }}>Here are a few. Real sessions. Real results. Real offers.</p>
           </div>
 
           {/* Stats strip */}
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:0, marginTop:64, borderTop:"1px solid #F1F5F9", borderBottom:"1px solid #F1F5F9" }}>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:0, marginBottom:64, borderTop:"1px solid #F1F5F9", borderBottom:"1px solid #F1F5F9" }}>
             {STATS.map((s,i) => (
               <div key={s.label} style={{ textAlign:"center", padding:"32px 16px", borderRight: i<3?"1px solid #F1F5F9":"none" }}>
                 <div style={{ fontSize:"clamp(2rem,4vw,3rem)", fontWeight:900, color:"#4361EE", letterSpacing:"-0.04em", lineHeight:1 }}>{s.val}</div>
                 <div style={{ fontSize:13.5, color:"#68738A", marginTop:8, lineHeight:1.5 }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Masonry wall — 4 columns */}
+          <div style={{ columns:4, columnGap:16 }}>
+            {WALL_REVIEWS.map((r,i) => (
+              <div key={i} style={{
+                breakInside:"avoid", marginBottom:16,
+                background:"white", border:"1px solid #E4E8F5", borderRadius:16,
+                padding:"16px", boxShadow:"0 2px 12px rgba(0,0,0,0.05)",
+              }}>
+                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
+                  <div style={{ width:36, height:36, borderRadius:"50%", overflow:"hidden", background:`linear-gradient(135deg,${r.color1},${r.color2})`, flexShrink:0 }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={r.photo} alt={r.name} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+                  </div>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontSize:13, fontWeight:700, color:"#0A0A0F" }}>{r.name}</div>
+                    <div style={{ fontSize:11, color:"#68738A", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.role}</div>
+                  </div>
+                  <span style={{ fontSize:9.5, fontWeight:700, padding:"2px 7px", borderRadius:99, background:"#EEF2FF", color:"#4361EE", flexShrink:0 }}>{r.tag}</span>
+                </div>
+                <div style={{ display:"flex", gap:1, marginBottom:8 }}>
+                  {Array.from({length:5}).map((_,i)=><svg key={i} viewBox="0 0 12 12" fill="#F59E0B" style={{ width:11,height:11 }}><path d="M6 1l1.2 2.5 2.8.4-2 2 .5 2.8L6 7.5 3.5 8.7 4 5.9 2 3.9l2.8-.4z"/></svg>)}
+                </div>
+                <p style={{ fontSize:13, lineHeight:1.65, color:"#1E2235", margin:0 }}>{r.quote}</p>
               </div>
             ))}
           </div>

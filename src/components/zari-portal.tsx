@@ -233,92 +233,121 @@ function ScreenSession({ stage }: { stage: CareerStage }) {
   }
 
   return (
-    <div style={{ display:"flex", flexDirection:"column", height:"calc(100vh - 56px)", overflow:"hidden", background:"#FAFBFF" }}>
+    <div style={{ display:"flex", height:"calc(100vh - 56px)", overflow:"hidden" }}>
 
-      {/* Avatar stage — compact horizontal layout */}
-      <div style={{ flexShrink:0, background:"white", borderBottom:"1px solid #E4E8F5" }}>
-        <div style={{ maxWidth:720, margin:"0 auto", padding:"14px 24px 14px" }}>
+      {/* ── LEFT PANEL: Zari + prompts ── */}
+      <div style={{
+        width:300, flexShrink:0,
+        background:"white", borderRight:"1px solid #E4E8F5",
+        display:"flex", flexDirection:"column",
+        padding:"24px 20px",
+      }}>
+        {/* Status chips */}
+        <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:20 }}>
+          <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:10.5, fontWeight:700, color:"#16A34A", padding:"3px 10px", borderRadius:99, background:"#F0FFF4", border:"1px solid #BBF7D0" }}>
+            <span style={{ width:5,height:5,borderRadius:"50%",background:"#22C55E",animation:"blink 1.1s ease-in-out infinite" }}/>
+            Live
+          </span>
+          <span style={{ fontFamily:"monospace", fontSize:10.5, color:"#68738A", padding:"3px 10px", borderRadius:99, background:"#F5F7FF", border:"1px solid #E4E8F5" }}>{fmt(elapsed)}</span>
+          <span style={{ display:"inline-flex", alignItems:"center", gap:4, fontSize:10.5, fontWeight:600, color: STAGE_META[stage].color, padding:"3px 8px", borderRadius:99, background: STAGE_META[stage].bg, border:`1px solid ${STAGE_META[stage].color}30` }}>{STAGE_ICONS[stage]} {STAGE_META[stage].label}</span>
+        </div>
 
-          {/* Status bar */}
-          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
-            <span style={{ display:"flex", alignItems:"center", gap:5, fontSize:11, fontWeight:700, color:"#16A34A", padding:"4px 12px", borderRadius:99, background:"#F0FFF4", border:"1px solid #BBF7D0" }}>
-              <span style={{ width:6, height:6, borderRadius:"50%", background:"#22C55E", animation:"blink 1.1s ease-in-out infinite" }}/>
-              Live Session
-            </span>
-            <span style={{ fontFamily:"monospace", fontSize:11, color:"#68738A" }}>{fmt(elapsed)}</span>
-            <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:11, fontWeight:600, color: STAGE_META[stage].color, padding:"4px 10px", borderRadius:99, background: STAGE_META[stage].bg, border:`1px solid ${STAGE_META[stage].color}30` }}>{STAGE_ICONS[stage]} {STAGE_META[stage].label} · Session 5</span>
-          </div>
+        {/* Avatar — centred, contained */}
+        <div style={{ display:"flex", justifyContent:"center", marginBottom:16 }}>
+          <ZariAvatar state={avatarState} size={110} interactive />
+        </div>
 
-          {/* Avatar + name + bubble in a row */}
-          <div style={{ display:"flex", alignItems:"flex-start", gap:14 }}>
-            {/* Avatar — smaller, contained */}
-            <div style={{ flexShrink:0 }}>
-              <ZariAvatar state={avatarState} size={88} interactive />
-            </div>
+        {/* Name */}
+        <div style={{ textAlign:"center", fontSize:13, fontWeight:700, color:"#0A0A0F", marginBottom:8 }}>
+          Zari <span style={{ fontWeight:400, color:"#68738A" }}>— AI Career Coach</span>
+        </div>
 
-            {/* Right: name + bubble */}
-            <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", marginBottom:6 }}>
-                Zari <span style={{ fontWeight:400, color:"#68738A" }}>— AI Career Coach</span>
-              </div>
-              <div style={{ borderRadius:"4px 16px 16px 16px", padding:"10px 14px", fontSize:13, lineHeight:1.65, animation:"bubble-appear 0.3s ease both", border:"1px solid #E4E8F5", background:"white", color:"#1E2235", boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
-                {avatarState==="speaking" && <>&ldquo;You mentioned the recruiters responded to impact numbers — now let&apos;s build that same specificity into your interview stories. I&apos;ll ask you the way a real panel would.&rdquo;</>}
-                {avatarState==="listening" && <span style={{ color:"#06B6D4", fontWeight:600, display:"flex", alignItems:"center", gap:6 }}><span style={{ width:6,height:6,borderRadius:"50%",background:"#06B6D4",animation:"blink 0.7s step-end infinite",flexShrink:0 }}/>Listening to you…</span>}
-                {avatarState==="thinking"  && <span style={{ color:"#A78BFA", fontWeight:600, display:"flex", alignItems:"center", gap:6 }}><span style={{ width:6,height:6,borderRadius:"50%",background:"#A78BFA",animation:"blink 1.3s ease infinite",flexShrink:0 }}/>Processing your answer…</span>}
-                {avatarState==="idle"      && <span style={{ color:"#4361EE", fontWeight:500, display:"flex", alignItems:"center", gap:6 }}><span style={{ width:6,height:6,borderRadius:"50%",background:"#4361EE",animation:"blink 2s ease infinite",flexShrink:0 }}/>Ready when you are.</span>}
-              </div>
-            </div>
-          </div>
+        {/* State indicator */}
+        <div style={{
+          textAlign:"center", fontSize:12, fontWeight:500, marginBottom:18,
+          color: avatarState==="speaking"?"#4361EE": avatarState==="listening"?"#06B6D4": avatarState==="thinking"?"#A78BFA":"#A0AABF",
+          display:"flex", alignItems:"center", justifyContent:"center", gap:5,
+        }}>
+          <span style={{ width:6,height:6,borderRadius:"50%", background: avatarState==="speaking"?"#4361EE": avatarState==="listening"?"#06B6D4": avatarState==="thinking"?"#A78BFA":"#A0AABF", animation:"blink 1.2s ease-in-out infinite" }}/>
+          {avatarState==="speaking" && "Speaking…"}
+          {avatarState==="listening" && "Listening…"}
+          {avatarState==="thinking" && "Thinking…"}
+          {avatarState==="idle" && "Ready"}
+        </div>
 
-          {/* Quick prompts */}
-          <div style={{ marginTop:10, display:"flex", flexWrap:"wrap", gap:6 }}>
-            {STAGE_PROMPTS[stage].map(p => (
-              <button key={p} onClick={() => sendMessage(p)} style={{ fontSize:11.5, fontWeight:500, color: STAGE_META[stage].color, padding:"5px 12px", borderRadius:99, background: STAGE_META[stage].bg, border:`1px solid ${STAGE_META[stage].color}30`, cursor:"pointer", whiteSpace:"nowrap" }}>
-                {p}
-              </button>
-            ))}
-          </div>
+        {/* Divider */}
+        <div style={{ height:1, background:"#F1F5F9", marginBottom:16 }}/>
+
+        {/* Quick prompts */}
+        <p style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.12em", color:"#A0AABF", marginBottom:10 }}>Quick prompts</p>
+        <div style={{ display:"flex", flexDirection:"column", gap:6, flex:1, overflowY:"auto" }}>
+          {STAGE_PROMPTS[stage].map(p => (
+            <button key={p} onClick={() => sendMessage(p)} style={{
+              fontSize:12, fontWeight:500, color: STAGE_META[stage].color,
+              padding:"8px 11px", borderRadius:9, textAlign:"left",
+              background: STAGE_META[stage].bg, border:`1px solid ${STAGE_META[stage].color}20`,
+              cursor:"pointer", lineHeight:1.4,
+              transition:"opacity 0.15s",
+            }}>
+              {p}
+            </button>
+          ))}
+        </div>
+
+        {/* Voice toggle */}
+        <div style={{ marginTop:16, paddingTop:16, borderTop:"1px solid #F1F5F9" }}>
+          <button onClick={() => setIsVoice(v=>!v)} style={{
+            width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+            padding:"9px", borderRadius:10, border:"none", cursor:"pointer",
+            background: isVoice ? "#4361EE" : "#F5F7FF",
+            color: isVoice ? "white" : "#4361EE", fontSize:12.5, fontWeight:600,
+            transition:"all 0.2s",
+          }}>
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:15,height:15 }}><path d="M10 2a3 3 0 00-3 3v4a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M4 9v1a6 6 0 0012 0V9"/><line x1="10" y1="15" x2="10" y2="18"/></svg>
+            {isVoice ? "Voice on" : "Enable voice"}
+          </button>
         </div>
       </div>
 
-      {/* Transcript */}
-      <div style={{ flex:1, display:"flex", flexDirection:"column", minHeight:0, maxWidth:700, width:"100%", margin:"0 auto", padding:"0 24px" }}>
-        <div ref={chatRef} style={{ flex:1, overflowY:"auto", padding:"18px 0 8px" }}>
+      {/* ── RIGHT PANEL: Transcript + input ── */}
+      <div style={{ flex:1, display:"flex", flexDirection:"column", background:"#FAFBFF", minWidth:0 }}>
+        <div ref={chatRef} style={{ flex:1, overflowY:"auto", padding:"24px 28px" }}>
           {msgs.map((msg, i) => (
-            <div key={i} style={{ display:"flex", gap:10, marginBottom:14, flexDirection:msg.role==="user"?"row-reverse":"row", animation:`bubble-appear 0.3s ease ${i*0.05}s both` }}>
+            <div key={i} style={{ display:"flex", gap:10, marginBottom:16, flexDirection:msg.role==="user"?"row-reverse":"row", animation:`bubble-appear 0.3s ease ${i*0.05}s both` }}>
               <div style={{ width:32, height:32, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700, background:msg.role==="coach"?"linear-gradient(135deg,#4361EE,#818CF8)":"#E4E8F5", color:msg.role==="coach"?"white":"#68738A", boxShadow:msg.role==="coach"?"0 0 10px rgba(67,97,238,0.25)":"none" }}>
                 {msg.role==="coach"?"Z":"S"}
               </div>
-              <div style={{ maxWidth:"72%", padding:"10px 14px", fontSize:13.5, lineHeight:1.65, borderRadius:msg.role==="coach"?"4px 16px 16px 16px":"16px 4px 16px 16px", background:msg.role==="coach"?"white":"#4361EE", color:msg.role==="coach"?"#1E2235":"white", border:msg.role==="coach"?"1px solid #E4E8F5":"none", boxShadow:msg.role==="coach"?"0 2px 8px rgba(0,0,0,0.04)":"0 4px 14px rgba(67,97,238,0.28)" }}>
+              <div style={{ maxWidth:"72%", padding:"11px 15px", fontSize:13.5, lineHeight:1.65, borderRadius:msg.role==="coach"?"4px 16px 16px 16px":"16px 4px 16px 16px", background:msg.role==="coach"?"white":"#4361EE", color:msg.role==="coach"?"#1E2235":"white", border:msg.role==="coach"?"1px solid #E4E8F5":"none", boxShadow:msg.role==="coach"?"0 2px 8px rgba(0,0,0,0.04)":"0 4px 14px rgba(67,97,238,0.28)" }}>
                 {msg.text}
               </div>
             </div>
           ))}
           {avatarState==="thinking" && (
-            <div style={{ display:"flex", gap:10, marginBottom:14 }}>
-              <div style={{ width:32, height:32, borderRadius:"50%", flexShrink:0, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700, color:"white" }}>Z</div>
-              <div style={{ display:"flex", alignItems:"center", gap:5, padding:"10px 16px", borderRadius:"4px 16px 16px 16px", background:"white", border:"1px solid #E4E8F5" }}>
-                {[0,1,2].map(i=><div key={i} style={{ width:7, height:7, borderRadius:"50%", background:"#CBD5E1", animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
+            <div style={{ display:"flex", gap:10, marginBottom:16 }}>
+              <div style={{ width:32,height:32,borderRadius:"50%",flexShrink:0,background:"linear-gradient(135deg,#4361EE,#818CF8)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"white" }}>Z</div>
+              <div style={{ display:"flex", alignItems:"center", gap:5, padding:"11px 16px", borderRadius:"4px 16px 16px 16px", background:"white", border:"1px solid #E4E8F5" }}>
+                {[0,1,2].map(i=><div key={i} style={{ width:7,height:7,borderRadius:"50%",background:"#CBD5E1",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
               </div>
             </div>
           )}
         </div>
 
         {/* Input */}
-        <div style={{ borderTop:"1px solid #E4E8F5", paddingTop:12, paddingBottom:16, flexShrink:0 }}>
-          <div style={{ display:"flex", gap:8, alignItems:"center", background:"white", border:"1px solid #E4E8F5", borderRadius:14, padding:"8px 10px 8px 14px", boxShadow:"0 1px 6px rgba(0,0,0,0.04)" }}>
-            <button onClick={() => setIsVoice(v=>!v)} style={{ width:34, height:34, borderRadius:"50%", border:"none", cursor:"pointer", background:isVoice?"#4361EE":"#F5F7FF", color:isVoice?"white":"#4361EE", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
-              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:16, height:16 }}><path d="M10 2a3 3 0 00-3 3v4a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M4 9v1a6 6 0 0012 0V9"/><line x1="10" y1="15" x2="10" y2="18"/></svg>
-            </button>
-            <input style={{ flex:1, border:"none", outline:"none", fontSize:14, color:"#0A0A0F", background:"transparent" }}
-              placeholder={isVoice?"Voice mode active — speak or type…":"Ask Zari anything, or type a question to practice…"}
-              value={input} onChange={e=>setInput(e.target.value)}
-              onKeyDown={e=>{ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage(input);} }}/>
-            <button onClick={()=>sendMessage(input)} style={{ width:34, height:34, borderRadius:10, border:"none", cursor:"pointer", background:input.trim()?"#4361EE":"#F5F7FF", color:input.trim()?"white":"#CBD5E1", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
-              <svg viewBox="0 0 20 20" fill="currentColor" style={{ width:14, height:14 }}><path d="M3.105 3.105a1 1 0 011.263-.237l12 6a1 1 0 010 1.764l-12 6a1 1 0 01-1.367-1.31L4.945 10 3 4.678a1 1 0 01.105-1.573z"/></svg>
+        <div style={{ flexShrink:0, padding:"0 28px 20px", borderTop:"1px solid #E4E8F5", paddingTop:14, background:"white" }}>
+          <div style={{ position:"relative", background:"#FAFBFF", border:"1.5px solid #E0E4EF", borderRadius:14, overflow:"hidden", boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
+            <textarea
+              style={{ width:"100%", border:"none", outline:"none", fontSize:14, color:"#0A0A0F", background:"transparent", resize:"none", padding:"12px 52px 12px 14px", fontFamily:"inherit", lineHeight:1.6, display:"block" }}
+              rows={3}
+              placeholder={isVoice ? "Voice mode active — speak or type…" : "Ask Zari anything, or type a question to practice…"}
+              value={input}
+              onChange={e=>setInput(e.target.value)}
+              onKeyDown={e=>{ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage(input);} }}
+            />
+            <button onClick={()=>sendMessage(input)} style={{ position:"absolute", bottom:10, right:10, width:34,height:34,borderRadius:10,border:"none",cursor:"pointer", background:input.trim()?"#4361EE":"#E4E8F5", color:input.trim()?"white":"#A0AABF", display:"flex",alignItems:"center",justifyContent:"center", transition:"all 0.15s" }}>
+              <svg viewBox="0 0 20 20" fill="currentColor" style={{ width:14,height:14 }}><path d="M3.105 3.105a1 1 0 011.263-.237l12 6a1 1 0 010 1.764l-12 6a1 1 0 01-1.367-1.31L4.945 10 3 4.678a1 1 0 01.105-1.573z"/></svg>
             </button>
           </div>
-          <p style={{ textAlign:"center", fontSize:10.5, color:"#A0AABF", marginTop:6 }}>Enter to send · Mic button for voice mode · Session is auto-saved</p>
+          <p style={{ textAlign:"center", fontSize:10, color:"#C4CDD8", marginTop:6 }}>Enter to send · Shift+Enter for new line · Session is auto-saved</p>
         </div>
       </div>
     </div>
