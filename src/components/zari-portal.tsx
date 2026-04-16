@@ -123,139 +123,334 @@ function ScreenDashboard({ goTo }: { goTo: (s: Screen) => void }) {
 }
 
 /* ════════════════════════════════════════════
-   SCREEN: LIVE COACHING
+   SCREEN: LIVE COACHING  (full redesign)
 ════════════════════════════════════════════ */
+const COACH_TRANSCRIPT = [
+  { role:"user",  text:"I've been in operations for 4 years and I want to transition to a Senior PM role at a tech company. Not sure how to position my background." },
+  { role:"coach", text:"Your ops background is actually a strong differentiator — most PM candidates don't have that level of cross-functional execution experience. The gap we need to close is product strategy ownership and stakeholder influence. Have you led any initiatives where you shaped the direction, not just the execution?" },
+  { role:"user",  text:"Yes — I led a full supply chain redesign last year that involved 5 different teams and required exec buy-in." },
+  { role:"coach", text:"Perfect. That's exactly the kind of story we want to center your narrative on. Let's reframe it as a product initiative — because that's what it was. You identified a problem, built a cross-functional coalition, navigated resistance, and shipped a measurable outcome. Walk me through the impact numbers." },
+];
+
 function ScreenCoaching() {
   const [avatarState, setAvatarState] = useState<AvatarState>("speaking");
-  const [activeTab, setActiveTab] = useState<"docs"|"notes"|"actions">("docs");
-  const states: AvatarState[] = ["speaking","listening","thinking","speaking"];
-  const durations = [3000, 2000, 1800, 3200];
-  const [stateIdx, setStateIdx] = useState(0);
+  const [activeTab, setActiveTab] = useState<"chat"|"notes"|"actions">("chat");
+  const [isMuted, setIsMuted] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
+  const [inputText, setInputText] = useState("");
+
+  const stateSeq: AvatarState[] = ["speaking","speaking","listening","thinking","speaking","listening","speaking"];
+  const durSeq =                   [3200,       2800,       1800,       2200,       3500,       1600,       3000];
+  const [seqIdx, setSeqIdx] = useState(0);
+
   useEffect(() => {
     const t = setTimeout(() => {
-      const next = (stateIdx + 1) % states.length;
-      setStateIdx(next);
-      setAvatarState(states[next]);
-    }, durations[stateIdx]);
+      if (!isPaused) setSeqIdx((i) => (i + 1) % stateSeq.length);
+    }, durSeq[seqIdx]);
     return () => clearTimeout(t);
-  }, [stateIdx]);
+  }, [seqIdx, isPaused]);
+
+  useEffect(() => { setAvatarState(stateSeq[seqIdx]); }, [seqIdx]);
+
+  useEffect(() => {
+    const t = setInterval(() => { if (!isPaused) setElapsed((e) => e + 1); }, 1000);
+    return () => clearInterval(t);
+  }, [isPaused]);
+
+  const formatTime = (s: number) => `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
+
+  const CTRL_BTNS = [
+    { id:"mute",   label: isMuted ? "Unmute" : "Mute",
+      icon: isMuted
+        ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-5 w-5"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 005.12 2.12M15 9.34V4a3 3 0 00-5.94-.6"/><path d="M17 16.95A7 7 0 015 12v-2m14 0v2a7 7 0 01-.11 1.23M12 19v4M8 23h8"/></svg>
+        : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-5 w-5"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>,
+      action: () => setIsMuted(m => !m), active: isMuted },
+    { id:"pause",  label: isPaused ? "Resume" : "Pause",
+      icon: isPaused
+        ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-5 w-5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-5 w-5"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>,
+      action: () => setIsPaused(p => !p), active: isPaused },
+    { id:"captions", label:"Captions",
+      icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-5 w-5"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M7 12h4M7 16h8M15 12h2"/></svg>,
+      action: () => {}, active: true },
+    { id:"notes", label:"Notes",
+      icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-5 w-5"><path d="M11 4H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2v-5"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
+      action: () => setActiveTab("notes"), active: false },
+  ];
 
   return (
-    <div className="portal-screen flex flex-col lg:flex-row" style={{ height: "calc(100vh - 52px)", overflow: "hidden" }}>
-      {/* Left: avatar + transcript + controls */}
-      <div className="flex flex-1 flex-col min-h-0">
-        {/* Avatar area */}
-        <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden" style={{ background:"linear-gradient(160deg,#0C1023 0%,#1a2035 100%)" }}>
-          {/* Badges */}
-          <div className="absolute left-3 top-3 flex gap-2">
-            <span className="rounded-full px-2.5 py-1 text-[10px] font-bold text-white" style={{ background:"rgba(255,255,255,0.12)" }}>⬤ LIVE</span>
-            <span className="rounded-full px-2.5 py-1 text-[10px] text-white/60" style={{ background:"rgba(255,255,255,0.08)" }}>Career Direction</span>
+    <div className="portal-screen flex" style={{ height: "calc(100vh - 52px)", overflow:"hidden" }}>
+
+      {/* ── LEFT: immersive avatar stage ── */}
+      <div className="relative flex flex-col" style={{ width: "38%", minWidth:280, background:"linear-gradient(160deg,#080D1A 0%,#0C1533 50%,#111D38 100%)", overflow:"hidden" }}>
+
+        {/* Animated aurora blobs */}
+        <div className="pointer-events-none absolute inset-0">
+          <div style={{ position:"absolute", width:"300px", height:"300px", top:"-10%", left:"50%", transform:"translateX(-50%)", background:"rgba(67,97,238,0.20)", filter:"blur(90px)", borderRadius:"50%", animation:"aurora-a 12s ease-in-out infinite" }} />
+          <div style={{ position:"absolute", width:"200px", height:"200px", bottom:"5%", right:"-5%", background:"rgba(6,182,212,0.15)", filter:"blur(70px)", borderRadius:"50%", animation:"aurora-b 16s ease-in-out infinite" }} />
+        </div>
+        <div className="pointer-events-none absolute inset-0 grid-pattern opacity-20" />
+
+        {/* Top status bar */}
+        <div className="relative z-10 flex items-center justify-between px-4 pt-4 pb-0">
+          <div className="flex items-center gap-2">
+            <span style={{ width:7, height:7, borderRadius:"50%", background:"#4ADE80", display:"inline-block", animation:"blink 1.2s ease-in-out infinite" }} />
+            <span className="text-[11px] font-bold uppercase tracking-wider text-white/60">Live Session</span>
           </div>
-          <div className="absolute right-3 top-3 text-[10px] text-white/30">HD · 18ms</div>
-
-          <ZariAvatar state={avatarState} size={160} />
-          <p className="mt-4 text-[15px] font-semibold text-white">Zari — Your Career Coach</p>
-          <p className="mt-1 text-[12px] text-white/50">
-            {avatarState === "speaking" ? "🟢 Speaking..." : avatarState === "listening" ? "🔵 Listening..." : "💜 Thinking..."}
-          </p>
-
-          {/* Live transcript bubble */}
-          <div className="absolute bottom-4 left-4 right-4 rounded-xl px-4 py-3 text-[12px] leading-6 text-white/80" style={{ background:"rgba(0,0,0,0.40)", backdropFilter:"blur(8px)" }}>
-            &ldquo;Based on your background in operations, the biggest gap for Senior PM roles is showing product strategy ownership. Let&apos;s work on that narrative together&hellip;&rdquo;
+          <div className="flex items-center gap-3">
+            <span className="text-[11px] font-mono text-white/40">{formatTime(elapsed)}</span>
+            <span className="rounded-full px-2.5 py-0.5 text-[10px] text-white/50" style={{ background:"rgba(255,255,255,0.08)" }}>Career Direction</span>
           </div>
         </div>
 
-        {/* Transcript */}
-        <div className="border-t border-[var(--border)] bg-[#F8FAFF] p-3" style={{ maxHeight: 160, overflowY:"auto" }}>
-          <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">Transcript</p>
+        {/* Avatar center stage */}
+        <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6">
+          {/* Glow platform under avatar */}
+          <div style={{ position:"absolute", width:"200px", height:"60px", bottom:"38%", left:"50%", transform:"translateX(-50%)", background:"radial-gradient(ellipse, rgba(67,97,238,0.35) 0%, transparent 70%)", filter:"blur(20px)" }} />
+
+          <ZariAvatar state={avatarState} size={190} interactive />
+
+          <div className="mt-6 text-center">
+            <p className="text-[16px] font-bold text-white">Zari</p>
+            <p className="mt-1 text-[12px] text-white/40">AI Career Coach</p>
+          </div>
+
+          {/* Live speaking bubble */}
+          {avatarState === "speaking" && (
+            <div className="mt-4 max-w-xs rounded-2xl px-5 py-3.5 text-[12.5px] leading-6 text-white/80" style={{ background:"rgba(255,255,255,0.06)", backdropFilter:"blur(12px)", border:"1px solid rgba(255,255,255,0.10)", animation:"bubble-appear 0.3s ease both" }}>
+              &ldquo;Your ops background is exactly the kind of differentiator Senior PM hiring managers look for — let&apos;s build that narrative&hellip;&rdquo;
+            </div>
+          )}
+          {avatarState === "listening" && (
+            <div className="mt-4 flex items-center gap-2 rounded-full px-5 py-2.5 text-[12px] text-[#06B6D4]" style={{ background:"rgba(6,182,212,0.10)", border:"1px solid rgba(6,182,212,0.25)", animation:"bubble-appear 0.3s ease both" }}>
+              <span style={{ width:6, height:6, borderRadius:"50%", background:"#06B6D4", display:"inline-block", animation:"blink 0.7s step-end infinite" }} />
+              Listening to you&hellip;
+            </div>
+          )}
+          {avatarState === "thinking" && (
+            <div className="mt-4 flex items-center gap-2 rounded-full px-5 py-2.5 text-[12px] text-[#A78BFA]" style={{ background:"rgba(167,139,250,0.10)", border:"1px solid rgba(167,139,250,0.25)", animation:"bubble-appear 0.3s ease both" }}>
+              <span style={{ width:6, height:6, borderRadius:"50%", background:"#A78BFA", display:"inline-block", animation:"blink 1.4s ease infinite" }} />
+              Analyzing your response&hellip;
+            </div>
+          )}
+        </div>
+
+        {/* Session stats row */}
+        <div className="relative z-10 mx-3 mb-3 flex gap-2">
           {[
-            { who:"You", text:"I've been in operations for 4 years and want to transition to Senior PM at a tech company." },
-            { who:"Zari", text:"Great context. Your ops background is a strong differentiator — the gap we need to close is product strategy ownership and stakeholder influence. Have you led any cross-functional initiatives?" },
-            { who:"You", text:"Yes, I led a supply chain redesign that involved 5 teams last year…" },
-          ].map((line, i) => (
-            <p key={i} className="mb-1 text-[12px] leading-5 text-[var(--ink-2)]">
-              <strong className="font-semibold text-[var(--ink)]">{line.who}:</strong> {line.text}
-            </p>
+            { label:"Session", val:"#4" },
+            { label:"Duration", val:formatTime(elapsed) },
+            { label:"Topic", val:"PM Transition" },
+          ].map((s) => (
+            <div key={s.label} className="flex-1 rounded-xl px-2 py-2 text-center" style={{ background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.09)" }}>
+              <p className="text-[10px] text-white/35">{s.label}</p>
+              <p className="text-[11px] font-bold text-white">{s.val}</p>
+            </div>
           ))}
         </div>
 
-        {/* Controls */}
-        <div className="flex items-center justify-center gap-3 border-t border-[var(--border)] bg-white px-4 py-3">
-          {[
-            { icon:"🎙", title:"Mute" },
-            { icon:"🔊", title:"Speaker" },
-            { icon:"💬", title:"Captions" },
-            { icon:"⏸", title:"Pause" },
-            { icon:"⌨️", title:"Text mode" },
-          ].map((btn) => (
-            <button key={btn.title} title={btn.title} className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--bg-alt)] text-[16px] transition-all hover:border-[var(--brand)] hover:bg-[var(--brand-light)]">
+        {/* Control bar */}
+        <div className="relative z-10 flex items-center justify-center gap-2 border-t px-4 py-3" style={{ borderColor:"rgba(255,255,255,0.08)" }}>
+          {CTRL_BTNS.map((btn) => (
+            <button
+              key={btn.id}
+              onClick={btn.action}
+              title={btn.label}
+              className="flex h-10 w-10 items-center justify-center rounded-full transition-all hover:scale-110"
+              style={{
+                background: btn.id === "mute" && isMuted ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.08)",
+                border: `1px solid ${btn.id === "mute" && isMuted ? "rgba(239,68,68,0.4)" : "rgba(255,255,255,0.12)"}`,
+                color: btn.id === "mute" && isMuted ? "#F87171" : "rgba(255,255,255,0.6)",
+              }}
+            >
               {btn.icon}
             </button>
           ))}
-          <button className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FEF2F2] text-[16px] border border-[#FECACA] transition-all hover:bg-[#FEE2E2]" title="End session">
-            ✕
+          <div style={{ flex:1 }} />
+          <button
+            className="flex h-10 items-center gap-2 rounded-full px-4 text-[12px] font-semibold text-white transition-all hover:opacity-90"
+            style={{ background:"#DC2626", border:"1px solid rgba(239,68,68,0.5)" }}
+          >
+            <svg viewBox="0 0 24 24" fill="currentColor" className="h-3.5 w-3.5"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>
+            End
           </button>
         </div>
       </div>
 
-      {/* Right panel */}
-      <div className="flex w-full flex-col border-l border-[var(--border)] bg-white lg:w-72">
-        {/* Tabs */}
-        <div className="flex border-b border-[var(--border)]">
-          {(["docs","notes","actions"] as const).map((tab) => (
-            <button key={tab} onClick={() => setActiveTab(tab)} className="flex-1 py-2.5 text-[12px] font-semibold capitalize transition-colors" style={{ color: activeTab === tab ? "var(--brand)" : "var(--muted)", borderBottom: activeTab === tab ? "2px solid var(--brand)" : "2px solid transparent" }}>
-              {tab === "docs" ? "Documents" : tab === "notes" ? "Notes" : "Actions"}
-            </button>
-          ))}
+      {/* ── MIDDLE: conversation ── */}
+      <div className="flex flex-1 flex-col min-w-0" style={{ background:"var(--portal-bg)", borderLeft:"1px solid var(--border)" }}>
+
+        {/* Chat header */}
+        <div className="flex items-center justify-between border-b border-[var(--border)] bg-white px-5 py-3">
+          <div>
+            <p className="text-[13px] font-bold text-[var(--ink)]">Career Direction · Session 4</p>
+            <p className="text-[11px] text-[var(--muted)]">Memory: 3 previous sessions loaded</p>
+          </div>
+          <div className="flex gap-1">
+            {(["chat","notes","actions"] as const).map((t) => (
+              <button key={t} onClick={() => setActiveTab(t)} className="rounded-lg px-3 py-1.5 text-[11px] font-semibold capitalize transition-colors" style={{ background: activeTab===t ? "var(--brand-light)" : "transparent", color: activeTab===t ? "var(--brand)" : "var(--muted)" }}>
+                {t}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="flex-1 overflow-y-auto p-4">
-          {activeTab === "docs" && (
-            <div>
-              <div className="mb-3 rounded-xl border-2 border-dashed border-[var(--border)] bg-[var(--bg-alt)] p-4 text-center text-[12px] text-[var(--muted)] cursor-pointer hover:border-[var(--brand)] transition-colors">
-                + Upload resume or profile
-              </div>
-              {[
-                { name:"Resume_PM_v3.pdf", size:"82 KB · Indexed", badge:"Active", bg:"#F0FFF4", color:"#16A34A" },
-                { name:"LinkedIn_export.pdf", size:"34 KB · Indexed", badge:"Loaded", bg:"#EEF2FF", color:"#4361EE" },
-              ].map((doc) => (
-                <div key={doc.name} className="mb-2 flex items-center gap-3 rounded-xl border border-[var(--border)] p-3">
-                  <span className="text-[20px]">📄</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="truncate text-[12px] font-semibold text-[var(--ink)]">{doc.name}</p>
-                    <p className="text-[10px] text-[var(--muted)]">{doc.size}</p>
+
+        {/* Chat / notes / actions content */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {activeTab === "chat" && (
+            <>
+              {COACH_TRANSCRIPT.map((msg, i) => (
+                <div key={i} className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""}`} style={{ animation:`bubble-appear 0.4s ease ${i * 0.08}s both` }}>
+                  {/* Avatar */}
+                  <div
+                    className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold"
+                    style={{
+                      background: msg.role === "coach" ? "linear-gradient(135deg, #4361EE, #818CF8)" : "#E4E8F5",
+                      color: msg.role === "coach" ? "white" : "#68738A",
+                      boxShadow: msg.role === "coach" ? "0 0 12px rgba(67,97,238,0.35)" : "none",
+                    }}
+                  >
+                    {msg.role === "coach" ? "Z" : "S"}
                   </div>
-                  <span className="rounded-full px-2 py-0.5 text-[10px] font-bold" style={{ background: doc.bg, color: doc.color }}>{doc.badge}</span>
+                  {/* Bubble */}
+                  <div
+                    className="max-w-[75%] rounded-2xl px-4 py-3 text-[13px] leading-6"
+                    style={{
+                      background: msg.role === "coach" ? "white" : "var(--brand)",
+                      color: msg.role === "coach" ? "var(--ink-2)" : "white",
+                      border: msg.role === "coach" ? "1px solid var(--border)" : "none",
+                      boxShadow: msg.role === "coach" ? "0 2px 8px rgba(0,0,0,0.05)" : "0 4px 12px rgba(67,97,238,0.3)",
+                      borderRadius: msg.role === "coach" ? "4px 18px 18px 18px" : "18px 4px 18px 18px",
+                    }}
+                  >
+                    {msg.text}
+                  </div>
                 </div>
               ))}
-            </div>
+
+              {/* Typing indicator */}
+              {avatarState === "thinking" && (
+                <div className="flex gap-3" style={{ animation:"bubble-appear 0.3s ease both" }}>
+                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white" style={{ background:"linear-gradient(135deg, #4361EE, #818CF8)", boxShadow:"0 0 12px rgba(67,97,238,0.35)" }}>Z</div>
+                  <div className="flex items-center gap-1.5 rounded-2xl border border-[var(--border)] bg-white px-4 py-3" style={{ borderRadius:"4px 18px 18px 18px" }}>
+                    {[0,1,2].map((i) => (
+                      <div key={i} style={{ width:6, height:6, borderRadius:"50%", background:"var(--muted)", animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
+
           {activeTab === "notes" && (
-            <div className="text-[13px] leading-6 text-[var(--ink-2)]">
-              <p className="mb-3 font-semibold text-[var(--ink)]">Session notes</p>
-              {["Ops to PM transition — 4 yrs experience", "Led supply chain redesign (5 teams)", "Gap: product strategy narrative", "Gap: stakeholder influence story", "Target: Senior PM at Series B–D tech"].map((note) => (
-                <p key={note} className="mb-1.5">• {note}</p>
-              ))}
+            <div>
+              <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">Session notes — auto-captured</p>
+              <div className="space-y-2">
+                {[
+                  { icon:"👤", text:"Ops to PM transition — 4 years experience at FinCo Ltd" },
+                  { icon:"🏆", text:"Led supply chain redesign — 5 teams, exec buy-in" },
+                  { icon:"⚠️", text:"Gap: product strategy ownership narrative" },
+                  { icon:"⚠️", text:"Gap: stakeholder influence story needs strengthening" },
+                  { icon:"🎯", text:"Target: Senior PM · Series B–D tech companies" },
+                  { icon:"📌", text:"Memory: Session 3 resume score was 74/100" },
+                ].map((note) => (
+                  <div key={note.text} className="flex items-start gap-3 rounded-xl border border-[var(--border)] bg-white p-3">
+                    <span className="mt-0.5 text-[14px]">{note.icon}</span>
+                    <p className="text-[12.5px] leading-5 text-[var(--ink-2)]">{note.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
+
           {activeTab === "actions" && (
             <div>
-              <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">Action items</p>
-              {[
-                { text:"Reframe supply chain project as product initiative", done:true },
-                { text:"Write 3 STAR stories showing cross-functional influence", done:false },
-                { text:"Update resume headline to 'Product-minded Ops Leader'", done:false },
-              ].map((item) => (
-                <div key={item.text} className="mb-3 flex items-start gap-2.5">
-                  <div className={`mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded text-[10px] ${item.done ? "bg-[#F0FFF4] text-[#16A34A] border border-[#BBF7D0]" : "border border-[var(--border)]"}`}>
-                    {item.done && "✓"}
+              <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">Action items — from this session</p>
+              <div className="space-y-2.5">
+                {[
+                  { text:"Reframe supply chain project as a product initiative in resume", done:true, priority:"high" },
+                  { text:"Write 3 STAR stories highlighting cross-functional influence", done:false, priority:"high" },
+                  { text:"Update LinkedIn headline to product-focused positioning", done:false, priority:"med" },
+                  { text:"Apply to 3 Senior PM roles at target companies this week", done:false, priority:"high" },
+                  { text:"Book follow-up session to practice PM interview answers", done:false, priority:"low" },
+                ].map((item) => (
+                  <div key={item.text} className="flex items-start gap-3 rounded-xl border border-[var(--border)] bg-white p-3.5 shadow-[var(--shadow)]">
+                    <div className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md text-[10px] ${item.done ? "bg-[#F0FFF4] text-[#16A34A] border-[#BBF7D0]" : "border-[var(--border)]"} border`}>
+                      {item.done && "✓"}
+                    </div>
+                    <div className="flex-1">
+                      <p className={`text-[12.5px] leading-5 ${item.done ? "text-[var(--muted)] line-through" : "text-[var(--ink)]"}`}>{item.text}</p>
+                    </div>
+                    <span className="rounded-full px-2 py-0.5 text-[9px] font-bold uppercase" style={{ background: item.priority==="high" ? "#FEF2F2" : item.priority==="med" ? "#FFF7ED" : "#F5F7FF", color: item.priority==="high" ? "#DC2626" : item.priority==="med" ? "#D97706" : "#68738A" }}>
+                      {item.priority}
+                    </span>
                   </div>
-                  <p className={`text-[12px] leading-5 ${item.done ? "text-[var(--muted)] line-through" : "text-[var(--ink)]"}`}>{item.text}</p>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
         </div>
+
+        {/* Text input bar */}
+        <div className="border-t border-[var(--border)] bg-white p-3">
+          <div className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-alt)] px-3 py-2 focus-within:border-[var(--brand)] focus-within:ring-2 focus-within:ring-[var(--brand-glow)]">
+            <input
+              className="flex-1 bg-transparent text-[13px] text-[var(--ink)] placeholder:text-[var(--muted)] outline-none"
+              placeholder="Type a message or switch to voice…"
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+            />
+            <button className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-[var(--brand)] text-white transition hover:bg-[var(--brand-hover)]">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="h-3.5 w-3.5"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+            </button>
+          </div>
+        </div>
       </div>
+
+      {/* ── RIGHT: context panel ── */}
+      <div className="hidden flex-col border-l border-[var(--border)] bg-white xl:flex" style={{ width:220 }}>
+        <div className="border-b border-[var(--border)] px-4 py-3">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">Documents</p>
+        </div>
+        <div className="flex-1 overflow-y-auto p-3">
+          <div className="mb-3 cursor-pointer rounded-xl border-2 border-dashed border-[var(--border)] bg-[var(--bg-alt)] p-3 text-center text-[11px] text-[var(--muted)] transition-colors hover:border-[var(--brand)] hover:bg-[var(--brand-light)] hover:text-[var(--brand)]">
+            <svg className="mx-auto mb-1 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4m0 0l-4 4m4-4v9"/></svg>
+            Upload resume
+          </div>
+          {[
+            { name:"Resume_PM_v3.pdf",       size:"82 KB",  badge:"Active", bg:"#F0FFF4", color:"#16A34A" },
+            { name:"LinkedIn_export.pdf",    size:"34 KB",  badge:"Loaded", bg:"#EEF2FF", color:"#4361EE" },
+          ].map((doc) => (
+            <div key={doc.name} className="mb-2 flex items-center gap-2.5 rounded-xl border border-[var(--border)] p-2.5">
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-[var(--bg-alt)] text-[14px]">📄</div>
+              <div className="flex-1 min-w-0">
+                <p className="truncate text-[11px] font-semibold text-[var(--ink)]">{doc.name}</p>
+                <p className="text-[9px] text-[var(--muted)]">{doc.size}</p>
+              </div>
+              <span className="rounded-full px-1.5 py-0.5 text-[9px] font-bold" style={{ background:doc.bg, color:doc.color }}>{doc.badge}</span>
+            </div>
+          ))}
+
+          <div className="mt-4 border-t border-[var(--border)] pt-3">
+            <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">Session context</p>
+            <div className="space-y-1.5">
+              {[
+                { label:"Sessions", val:"4 total" },
+                { label:"Resume score", val:"74/100" },
+                { label:"Target role", val:"Senior PM" },
+                { label:"Plan items", val:"5 active" },
+              ].map((item) => (
+                <div key={item.label} className="flex items-center justify-between rounded-lg border border-[var(--border)] px-2.5 py-1.5">
+                  <p className="text-[10px] text-[var(--muted)]">{item.label}</p>
+                  <p className="text-[10px] font-bold text-[var(--ink)]">{item.val}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 }

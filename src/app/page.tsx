@@ -5,6 +5,7 @@ import { getCurrentUserId } from "@/lib/mvp/auth";
 import { Reveal } from "@/components/reveal";
 import { ZariAvatarDemo } from "@/components/zari-avatar";
 import { ZariLogo } from "@/components/zari-logo";
+import { PortalPreview } from "@/components/portal-preview";
 
 // ── Marquee logos ─────────────────────────────────────────────────────────────
 const MARQUEE_LOGOS = [
@@ -130,9 +131,33 @@ export default async function HomePage() {
           @keyframes marquee-logos { from{transform:translateX(0)} to{transform:translateX(-50%)} }
         `}</style>
 
-        {/* Subtle blue orb behind avatar */}
+        {/* Aurora blobs — always animating */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div style={{ position:"absolute", width:"900px", height:"500px", bottom:0, left:"50%", transform:"translateX(-50%)", background:"radial-gradient(ellipse, rgba(67,97,238,0.07) 0%, transparent 70%)", pointerEvents:"none" }} />
+          <div style={{ position:"absolute", width:"700px", height:"700px", top:"-15%", left:"50%", transform:"translateX(-50%)", background:"radial-gradient(ellipse, rgba(67,97,238,0.09) 0%, transparent 65%)", animation:"aurora-a 18s ease-in-out infinite" }} />
+          <div style={{ position:"absolute", width:"500px", height:"400px", top:"10%", right:"-5%", background:"radial-gradient(ellipse, rgba(129,140,248,0.07) 0%, transparent 65%)", animation:"aurora-b 22s ease-in-out infinite" }} />
+          <div style={{ position:"absolute", width:"400px", height:"500px", bottom:"0%", left:"-5%", background:"radial-gradient(ellipse, rgba(6,182,212,0.06) 0%, transparent 65%)", animation:"aurora-c 16s ease-in-out infinite" }} />
+        </div>
+
+        {/* Floating particles */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+          {[
+            { top:"8%",  left:"12%", size:6, color:"rgba(67,97,238,0.5)", anim:"particle-float-1", dur:"8s", delay:"0s" },
+            { top:"18%", left:"78%", size:5, color:"rgba(6,182,212,0.5)",  anim:"particle-float-2", dur:"11s", delay:"1.5s" },
+            { top:"35%", left:"4%",  size:4, color:"rgba(129,140,248,0.4)",anim:"particle-float-3", dur:"9s",  delay:"0.8s" },
+            { top:"60%", left:"90%", size:5, color:"rgba(67,97,238,0.4)",  anim:"particle-float-1", dur:"12s", delay:"3s" },
+            { top:"72%", left:"22%", size:4, color:"rgba(6,182,212,0.4)",  anim:"particle-float-2", dur:"10s", delay:"2s" },
+            { top:"5%",  left:"55%", size:3, color:"rgba(139,92,246,0.45)",anim:"particle-float-3", dur:"7s",  delay:"4s" },
+            { top:"45%", left:"65%", size:4, color:"rgba(67,97,238,0.35)", anim:"particle-float-1", dur:"13s", delay:"1s" },
+            { top:"80%", left:"50%", size:3, color:"rgba(129,140,248,0.4)",anim:"particle-float-2", dur:"9.5s", delay:"5s" },
+          ].map((p, i) => (
+            <div key={i} style={{
+              position:"absolute", top:p.top, left:p.left,
+              width:p.size, height:p.size, borderRadius:"50%",
+              background:p.color,
+              boxShadow:`0 0 ${p.size*3}px ${p.color}`,
+              animation:`${p.anim} ${p.dur} ease-in-out ${p.delay} infinite`,
+            }} />
+          ))}
         </div>
 
         <div className="relative mx-auto max-w-3xl px-6 text-center">
@@ -186,140 +211,9 @@ export default async function HomePage() {
           </div>
         </div>
 
-        {/* Platform preview */}
+        {/* Interactive platform preview */}
         <div className="relative mx-auto mt-14 max-w-6xl px-4 sm:px-6">
-          <div className="platform-preview mx-auto">
-            {/* Mock browser chrome */}
-            <div className="flex items-center gap-2 border-b border-[var(--border)] bg-[#F9FAFB] px-4 py-3">
-              <div className="flex gap-1.5">
-                <div className="h-3 w-3 rounded-full bg-[#FF5F57]" />
-                <div className="h-3 w-3 rounded-full bg-[#FEBC2E]" />
-                <div className="h-3 w-3 rounded-full bg-[#28C840]" />
-              </div>
-              <div className="flex flex-1 items-center justify-center">
-                <div className="flex items-center gap-2 rounded-md border border-[var(--border)] bg-white px-3 py-1 text-[12px] text-[var(--muted)]">
-                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
-                  app.zari.coach/dashboard
-                </div>
-              </div>
-            </div>
-            {/* Platform UI preview */}
-            <div className="flex" style={{ height: 480 }}>
-              {/* Sidebar */}
-              <div className="flex w-52 flex-col border-r border-[var(--border)] bg-[var(--portal-sidebar)]">
-                <div className="flex items-center gap-2 p-4">
-                  <ZariLogo size={26} />
-                  <span className="text-[13px] font-bold text-white">Zari</span>
-                </div>
-                <nav className="flex-1 space-y-0.5 px-2 py-2">
-                  {[
-                    { label:"Dashboard", icon:"⬛", active:true },
-                    { label:"Live Session", icon:"🎙", active:false },
-                    { label:"Resume Review", icon:"📄", active:false },
-                    { label:"Mock Interview", icon:"👔", active:false },
-                    { label:"LinkedIn", icon:"💼", active:false },
-                    { label:"Action Plan", icon:"✅", active:false },
-                  ].map((item) => (
-                    <div
-                      key={item.label}
-                      className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-[12px]"
-                      style={{
-                        background: item.active ? "var(--portal-sidebar-active)" : "transparent",
-                        color: item.active ? "#fff" : "rgba(255,255,255,0.45)",
-                        fontWeight: item.active ? 600 : 400,
-                        borderLeft: item.active ? "2px solid var(--brand)" : "2px solid transparent",
-                      }}
-                    >
-                      <span className="text-[13px]">{item.icon}</span>
-                      {item.label}
-                    </div>
-                  ))}
-                </nav>
-                <div className="border-t border-[var(--portal-sidebar-border)] p-3">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--brand)] text-[10px] font-bold text-white">SN</div>
-                    <div>
-                      <p className="text-[11px] font-semibold text-white">Steve N.</p>
-                      <p className="text-[10px] text-white/40">Free plan</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Main content */}
-              <div className="flex flex-1 flex-col bg-[var(--portal-bg)] overflow-hidden">
-                {/* Topbar */}
-                <div className="flex items-center justify-between border-b border-[var(--border)] bg-white px-5 py-3">
-                  <div>
-                    <p className="text-[14px] font-semibold text-[var(--ink)]">Good morning, Steve 👋</p>
-                    <p className="text-[11px] text-[var(--muted)]">Working toward: Senior Product Manager</p>
-                  </div>
-                  <button className="flex items-center gap-1.5 rounded-lg bg-[var(--brand)] px-3 py-1.5 text-[12px] font-semibold text-white">
-                    + New session
-                  </button>
-                </div>
-
-                {/* Dashboard content */}
-                <div className="flex-1 overflow-auto p-5">
-                  {/* Stats */}
-                  <div className="mb-4 grid grid-cols-4 gap-3">
-                    {[
-                      { label:"Sessions", val:"7", sub:"+2 this week" },
-                      { label:"Resume score", val:"74", sub:"Up from 58" },
-                      { label:"Interview avg", val:"68%", sub:"3 sessions" },
-                      { label:"Actions done", val:"5/9", sub:"2 due" },
-                    ].map((s) => (
-                      <div key={s.label} className="rounded-xl border border-[var(--border)] bg-white p-3">
-                        <p className="text-[10px] text-[var(--muted)]">{s.label}</p>
-                        <p className="mt-1 text-[20px] font-bold text-[var(--ink)]">{s.val}</p>
-                        <p className="text-[10px] text-[var(--muted)]">{s.sub}</p>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Quick actions */}
-                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]">Start a session</p>
-                  <div className="mb-4 grid grid-cols-2 gap-2">
-                    {[
-                      { icon:"🎙", label:"Live coaching", desc:"Talk face-to-face with your AI coach", bg:"#EEF2FF", color:"#4361EE" },
-                      { icon:"📄", label:"Resume review", desc:"Upload resume · ATS score · rewrites", bg:"#F0FFF4", color:"#059669" },
-                      { icon:"👔", label:"Mock interview", desc:"STAR practice with real-time scoring", bg:"#FFF7ED", color:"#D97706" },
-                      { icon:"💼", label:"LinkedIn review", desc:"Headline · About · keyword gaps", bg:"#F0F9FF", color:"#0284C7" },
-                    ].map((item) => (
-                      <div key={item.label} className="flex items-start gap-2.5 rounded-xl border border-[var(--border)] bg-white p-3 cursor-pointer hover:border-[var(--brand)] transition-colors">
-                        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-[16px]" style={{ background: item.bg }}>
-                          {item.icon}
-                        </div>
-                        <div>
-                          <p className="text-[12px] font-semibold text-[var(--ink)]">{item.label}</p>
-                          <p className="text-[10px] text-[var(--muted)]">{item.desc}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Recent sessions */}
-                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]">Recent sessions</p>
-                  <div className="space-y-1.5">
-                    {[
-                      { icon:"🎙", name:"Career direction — Senior PM transition", meta:"Today · 24 min", badge:"Coaching", badgeColor:"#EEF2FF", badgeText:"#4361EE" },
-                      { icon:"📄", name:"Resume review — Product Manager v3", meta:"Yesterday · 18 min · Score: 74", badge:"74/100", badgeColor:"#F0FFF4", badgeText:"#059669" },
-                      { icon:"👔", name:"Behavioral mock interview — STAR method", meta:"2 days ago · 31 min", badge:"68%", badgeColor:"#FFF7ED", badgeText:"#D97706" },
-                    ].map((s) => (
-                      <div key={s.name} className="flex items-center gap-2.5 rounded-xl border border-[var(--border)] bg-white px-3 py-2.5">
-                        <span className="text-[14px]">{s.icon}</span>
-                        <div className="flex-1 min-w-0">
-                          <p className="truncate text-[12px] font-semibold text-[var(--ink)]">{s.name}</p>
-                          <p className="text-[10px] text-[var(--muted)]">{s.meta}</p>
-                        </div>
-                        <span className="flex-shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold" style={{ background: s.badgeColor, color: s.badgeText }}>{s.badge}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <PortalPreview />
         </div>
       </section>
 
@@ -459,6 +353,12 @@ export default async function HomePage() {
       <section className="overflow-hidden bg-[var(--dark)] py-20 md:py-28 text-white relative">
         <div className="pointer-events-none absolute inset-0 mesh-bg" />
         <div className="pointer-events-none absolute inset-0 grid-pattern opacity-25" />
+        {/* Aurora orbs */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div style={{ position:"absolute", width:"500px", height:"500px", top:"-10%", left:"15%", background:"rgba(67,97,238,0.14)", filter:"blur(120px)", borderRadius:"50%", animation:"aurora-a 20s ease-in-out infinite" }} />
+          <div style={{ position:"absolute", width:"400px", height:"400px", bottom:"-10%", right:"10%", background:"rgba(6,182,212,0.10)", filter:"blur(100px)", borderRadius:"50%", animation:"aurora-b 24s ease-in-out infinite" }} />
+          <div style={{ position:"absolute", width:"300px", height:"300px", top:"30%", right:"5%", background:"rgba(139,92,246,0.10)", filter:"blur(80px)", borderRadius:"50%", animation:"aurora-c 14s ease-in-out infinite" }} />
+        </div>
         <div className="relative mx-auto max-w-6xl px-6">
           <div className="grid items-center gap-12 lg:grid-cols-2">
             <Reveal>
@@ -568,7 +468,14 @@ export default async function HomePage() {
       </section>
 
       {/* ══════ CTA ══════ */}
-      <section className="bg-[var(--brand)] py-20 md:py-24 text-white">
+      <section className="relative overflow-hidden bg-[var(--brand)] py-20 md:py-24 text-white">
+        {/* Animated aurora inside CTA */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div style={{ position:"absolute", width:"600px", height:"600px", top:"-30%", left:"50%", transform:"translateX(-50%)", background:"rgba(255,255,255,0.12)", filter:"blur(100px)", borderRadius:"50%", animation:"aurora-a 15s ease-in-out infinite" }} />
+          <div style={{ position:"absolute", width:"300px", height:"300px", bottom:"-10%", left:"10%", background:"rgba(6,182,212,0.20)", filter:"blur(80px)", borderRadius:"50%", animation:"aurora-b 18s ease-in-out infinite" }} />
+          <div style={{ position:"absolute", width:"250px", height:"250px", bottom:"-5%", right:"10%", background:"rgba(139,92,246,0.18)", filter:"blur(70px)", borderRadius:"50%", animation:"aurora-c 12s ease-in-out infinite" }} />
+        </div>
+        <div className="pointer-events-none absolute inset-0 grid-pattern opacity-10" />
         <div className="mx-auto max-w-2xl px-6 text-center">
           <ZariAvatarDemo size={80} />
           <h2 className="mt-6 text-[2.6rem] font-extrabold tracking-[-0.035em] md:text-[3.2rem]">
@@ -594,5 +501,6 @@ export default async function HomePage() {
       </section>
 
     </PageFrame>
+
   );
 }

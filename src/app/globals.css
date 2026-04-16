@@ -523,6 +523,74 @@ select {
   to   { opacity:1; transform:scaleY(1)   translateY(0);   }
 }
 
+/* ── Realistic voice waveform (new avatar) ───────────── */
+@keyframes voice-wave {
+  from { transform: scaleY(0.3); opacity:0.5; }
+  to   { transform: scaleY(1.6); opacity:1;   }
+}
+
+/* ── Neural orbit particles (new thinking state) ─────── */
+@keyframes neural-orbit-a {
+  from { transform: rotate(0deg)   translateX(42px) rotate(0deg); }
+  to   { transform: rotate(360deg) translateX(42px) rotate(-360deg); }
+}
+@keyframes neural-orbit-b {
+  from { transform: rotate(0deg)    translateX(58px) rotate(0deg); }
+  to   { transform: rotate(-360deg) translateX(58px) rotate(360deg); }
+}
+
+/* ── Aurora pulsing glow (new avatar ambient) ────────── */
+@keyframes aurora-pulse {
+  0%,100% { opacity:0.75; transform:scale(1); }
+  50%      { opacity:1;    transform:scale(1.08); }
+}
+
+/* ── Floating particle dot (homepage dynamism) ───────── */
+@keyframes particle-float-1 {
+  0%,100% { transform: translate(0px,0px) scale(1); opacity:0.4; }
+  25%      { transform: translate(18px,-24px) scale(1.2); opacity:0.7; }
+  60%      { transform: translate(-12px,14px) scale(0.9); opacity:0.35; }
+}
+@keyframes particle-float-2 {
+  0%,100% { transform: translate(0px,0px) scale(1); opacity:0.3; }
+  30%      { transform: translate(-20px,-16px) scale(1.15); opacity:0.6; }
+  70%      { transform: translate(14px,20px) scale(0.88); opacity:0.25; }
+}
+@keyframes particle-float-3 {
+  0%,100% { transform: translate(0px,0px) scale(1); opacity:0.45; }
+  40%      { transform: translate(22px,18px) scale(1.1); opacity:0.65; }
+  80%      { transform: translate(-8px,-20px) scale(0.92); opacity:0.3; }
+}
+@keyframes particle-drift {
+  0%   { transform: translateY(0px) rotate(0deg); opacity:0; }
+  10%  { opacity:0.6; }
+  90%  { opacity:0.4; }
+  100% { transform: translateY(-80px) rotate(180deg); opacity:0; }
+}
+
+/* ── Hero aurora shimmer (large bg blobs) ────────────── */
+@keyframes aurora-a {
+  0%,100% { transform: translate(0,0) scale(1); opacity:0.12; }
+  33%      { transform: translate(60px,-40px) scale(1.1); opacity:0.18; }
+  66%      { transform: translate(-40px,30px) scale(0.92); opacity:0.10; }
+}
+@keyframes aurora-b {
+  0%,100% { transform: translate(0,0) scale(1); opacity:0.08; }
+  40%      { transform: translate(-50px,35px) scale(1.08); opacity:0.15; }
+  75%      { transform: translate(30px,-20px) scale(0.95); opacity:0.07; }
+}
+@keyframes aurora-c {
+  0%,100% { transform: translate(0,0) scale(1); opacity:0.10; }
+  50%      { transform: translate(35px,45px) scale(1.06); opacity:0.16; }
+}
+
+/* ── Counter number pop ──────────────────────────────── */
+@keyframes counter-pop {
+  0%   { transform: scale(0.85) translateY(6px); opacity:0; }
+  70%  { transform: scale(1.06) translateY(-2px); opacity:1; }
+  100% { transform: scale(1) translateY(0); opacity:1; }
+}
+
 /* ── Gradient text — kleo blue ───────────────────────── */
 .gradient-text-zari {
   background: linear-gradient(135deg, #4361EE 0%, #818CF8 50%, #06B6D4 100%);
