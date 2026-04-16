@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { PageFrame } from "@/components/mvp";
 import { getCurrentUserId } from "@/lib/mvp/auth";
@@ -7,9 +8,27 @@ import { Reveal } from "@/components/reveal";
 import { CountUp } from "@/components/count-up";
 import { ZariAvatarDemo } from "@/components/zari-avatar";
 
-// ── Marquee data ──────────────────────────────────────────────────────────────
-const marqueeRow1 = ["google","meta","microsoft","amazon","stripe","figma","shopify","notion","airbnb","spotify","netflix","slack","databricks","snowflake","salesforce","github"];
-const marqueeRow2 = ["coinbase","uber","adobe","atlassian","doordash","dropbox","nvidia","oracle","paypal","pinterest","zoom","intuit","figma","stripe","notion","shopify"];
+// ── Marquee logos ─────────────────────────────────────────────────────────────
+const MARQUEE_LOGOS = [
+  { src: "/logos/google.svg",      alt: "Google" },
+  { src: "/logos/meta.svg",        alt: "Meta" },
+  { src: "/logos/microsoft.svg",   alt: "Microsoft" },
+  { src: "/logos/amazon.svg",      alt: "Amazon" },
+  { src: "/logos/stripe.svg",      alt: "Stripe" },
+  { src: "/logos/figma.svg",       alt: "Figma" },
+  { src: "/logos/shopify.svg",     alt: "Shopify" },
+  { src: "/logos/notion.svg",      alt: "Notion" },
+  { src: "/logos/airbnb.svg",      alt: "Airbnb" },
+  { src: "/logos/spotify.svg",     alt: "Spotify" },
+  { src: "/logos/netflix.svg",     alt: "Netflix" },
+  { src: "/logos/slack.svg",       alt: "Slack" },
+  { src: "/logos/databricks.svg",  alt: "Databricks" },
+  { src: "/logos/salesforce.svg",  alt: "Salesforce" },
+  { src: "/logos/github.svg",      alt: "GitHub" },
+  { src: "/logos/adobe.svg",       alt: "Adobe" },
+  { src: "/logos/nvidia.svg",      alt: "Nvidia" },
+  { src: "/logos/coinbase.svg",    alt: "Coinbase" },
+];
 
 // ── Capabilities highlight (voice/avatar/uploads) ─────────────────────────────
 const CAPABILITIES = [
@@ -275,25 +294,33 @@ export default async function HomePage() {
       </section>
 
       {/* ══════ LOGO MARQUEE ══════ */}
-      <section className="overflow-hidden border-y border-[var(--border)] bg-[var(--bg)] py-6">
-        <p className="mb-4 text-center text-[11px] font-semibold uppercase tracking-widest text-[var(--muted)]">
+      <section className="overflow-hidden border-y border-[var(--border)] bg-[var(--surface)] py-8">
+        <p className="mb-6 text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--muted)]">
           Used by candidates targeting
         </p>
         <style>{`
-          @keyframes marquee-fwd { from{transform:translateX(0)} to{transform:translateX(-50%)} }
-          @keyframes marquee-rev { from{transform:translateX(-50%)} to{transform:translateX(0)} }
+          @keyframes marquee-logos { from { transform: translateX(0) } to { transform: translateX(-50%) } }
         `}</style>
-        <div className="mb-2 flex overflow-hidden">
-          <div style={{ display:"flex", gap:32, animation:"marquee-fwd 28s linear infinite", whiteSpace:"nowrap" }}>
-            {[...marqueeRow1, ...marqueeRow1].map((s, i) => (
-              <span key={i} className="text-[13px] font-semibold uppercase tracking-widest text-[var(--muted)] opacity-50">{s}</span>
-            ))}
-          </div>
-        </div>
-        <div className="flex overflow-hidden">
-          <div style={{ display:"flex", gap:32, animation:"marquee-rev 24s linear infinite", whiteSpace:"nowrap" }}>
-            {[...marqueeRow2, ...marqueeRow2].map((s, i) => (
-              <span key={i} className="text-[13px] font-semibold uppercase tracking-widest text-[var(--muted)] opacity-40">{s}</span>
+        <div className="flex overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 56,
+              animation: "marquee-logos 32s linear infinite",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {[...MARQUEE_LOGOS, ...MARQUEE_LOGOS].map((logo, i) => (
+              <Image
+                key={i}
+                src={logo.src}
+                alt={logo.alt}
+                width={110}
+                height={28}
+                className="h-6 w-auto opacity-40 grayscale transition-all duration-300 hover:opacity-80 hover:grayscale-0"
+                style={{ objectFit: "contain" }}
+              />
             ))}
           </div>
         </div>

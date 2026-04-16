@@ -3,26 +3,26 @@
 :root {
   color-scheme: light;
 
-  /* ── Light surfaces ───────────────────────────────── */
-  --bg: #F6F8FC;
-  --bg-alt: #ECF0F8;
+  /* ── Light surfaces — kleo-style purple-tinted ──── */
+  --bg: #F7F5FF;
+  --bg-alt: #EEE9FF;
   --surface: #FFFFFF;
-  --surface-muted: #F2F5FB;
+  --surface-muted: #F1EDFF;
   --panel: #FFFFFF;
 
   /* ── Text ─────────────────────────────────────────── */
-  --ink: #0A0C18;
-  --ink-2: #32374F;
-  --muted: #64698A;
+  --ink: #0D0614;
+  --ink-2: #2A1850;
+  --muted: #6E618E;
 
   /* ── Borders ──────────────────────────────────────── */
-  --border: #DDE2F0;
+  --border: #E2D9F7;
 
-  /* ── Dark palette — Zari deep space ─────────────── */
-  --dark: #07070F;
-  --dark-2: #0D0D1A;
-  --dark-3: #12121F;
-  --dark-border: rgba(167, 139, 250, 0.12);
+  /* ── Dark palette — kleo deep purple-black ────── */
+  --dark: #060311;
+  --dark-2: #0C0620;
+  --dark-3: #110930;
+  --dark-border: rgba(167, 139, 250, 0.14);
   --dark-muted: rgba(221, 214, 254, 0.55);
 
   /* ── Brand — Zari violet ─────────────────────────── */
@@ -54,13 +54,13 @@
   --danger-soft: #FEE2E2;
 
   /* ── Legacy aliases (keep existing components working) */
-  --navy: #07070F;
+  --navy: #060311;
   --blue: #7C3AED;
   --coral: #F97316;
   --green: #059669;
   --teal: #22D3EE;
   --teal-soft: #ECFEFF;
-  --lavender: #E8ECFF;
+  --lavender: #EDE9FE;
   --amber: #F97316;
   --amber-soft: #FFF3EA;
   --accent: var(--brand);
@@ -71,9 +71,9 @@
   --sand: var(--bg-alt);
 
   /* ── Shadows ──────────────────────────────────────── */
-  --shadow: 0 2px 12px rgba(7, 7, 15, 0.08), 0 1px 3px rgba(7, 7, 15, 0.05);
-  --shadow-md: 0 8px 32px rgba(7, 7, 15, 0.12);
-  --shadow-lg: 0 20px 60px rgba(7, 7, 15, 0.18);
+  --shadow: 0 2px 12px rgba(13, 6, 20, 0.07), 0 1px 3px rgba(13, 6, 20, 0.04);
+  --shadow-md: 0 8px 32px rgba(13, 6, 20, 0.10);
+  --shadow-lg: 0 20px 60px rgba(13, 6, 20, 0.15);
   --shadow-brand: 0 4px 24px rgba(124, 58, 237, 0.35);
   --shadow-cyan: 0 4px 32px rgba(34, 211, 238, 0.25);
   --shadow-gold: 0 4px 24px rgba(245, 158, 11, 0.25);
@@ -142,8 +142,8 @@ select {
 /* ── Subtle grid pattern for dark sections ──────────── */
 .grid-pattern {
   background-image:
-    linear-gradient(rgba(170, 205, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(170, 205, 255, 0.04) 1px, transparent 1px);
+    linear-gradient(rgba(167, 139, 250, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(167, 139, 250, 0.05) 1px, transparent 1px);
   background-size: 48px 48px;
 }
 
