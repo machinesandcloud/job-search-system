@@ -93,13 +93,31 @@ const STATS = [
 /* ══════════════════════════════════════════════════
    HERO PROMPT — Kleo-style intent capture
 ══════════════════════════════════════════════════ */
-const HERO_CHIPS = [
-  { label:"I'm job searching",              icon:"🔍" },
-  { label:"Help me get promoted",           icon:"🚀" },
-  { label:"Negotiate my salary",            icon:"💰" },
-  { label:"I'm switching careers",          icon:"↗️" },
-  { label:"Build executive presence",       icon:"🎯" },
-  { label:"Prep for performance review",    icon:"📋" },
+const HERO_CHIPS: { label:string; svg:React.ReactNode }[] = [
+  {
+    label:"I'm job searching",
+    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:14,height:14,flexShrink:0}}><circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l3 3"/></svg>,
+  },
+  {
+    label:"Help me get promoted",
+    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:14,height:14,flexShrink:0}}><path d="M8 2v8M4 6l4-4 4 4"/><path d="M3 13h10"/></svg>,
+  },
+  {
+    label:"Negotiate my salary",
+    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:14,height:14,flexShrink:0}}><rect x="1" y="4" width="14" height="9" rx="1.5"/><path d="M5 4V3a3 3 0 016 0v1"/><path d="M8 9a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg>,
+  },
+  {
+    label:"I'm switching careers",
+    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:14,height:14,flexShrink:0}}><path d="M2 8h12M9 4l5 4-5 4"/></svg>,
+  },
+  {
+    label:"Build executive presence",
+    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:14,height:14,flexShrink:0}}><circle cx="8" cy="5" r="2.5"/><path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5"/><path d="M12 2l1 1-5 5-2-2 5-5 1 1"/></svg>,
+  },
+  {
+    label:"Prep for performance review",
+    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:14,height:14,flexShrink:0}}><rect x="2" y="1" width="12" height="14" rx="1.5"/><path d="M5 5h6M5 8h6M5 11h4"/></svg>,
+  },
 ];
 
 function HeroPrompt({ userId }: { userId: boolean }) {
@@ -160,7 +178,7 @@ function HeroPrompt({ userId }: { userId: boolean }) {
             key={chip.label}
             onClick={() => go(chip.label)}
             style={{
-              display:"inline-flex", alignItems:"center", gap:5,
+              display:"inline-flex", alignItems:"center", gap:6,
               fontSize:13, fontWeight:500, color:"#1E2235",
               padding:"7px 14px", borderRadius:99,
               background:"white", border:"1.5px solid #E4E8F5",
@@ -178,7 +196,7 @@ function HeroPrompt({ userId }: { userId: boolean }) {
               (e.currentTarget as HTMLButtonElement).style.background = "white";
             }}
           >
-            <span>{chip.icon}</span>
+            {chip.svg}
             {chip.label}
           </button>
         ))}

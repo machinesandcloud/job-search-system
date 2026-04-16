@@ -11,12 +11,20 @@ import { ZariAvatar, type AvatarState } from "@/components/zari-avatar";
 type Screen = "session" | "resume" | "interview" | "linkedin" | "documents" | "plan";
 type CareerStage = "job-search" | "promotion" | "salary" | "career-change" | "leadership";
 
-const STAGE_META: Record<CareerStage, { label:string; emoji:string; color:string; bg:string }> = {
-  "job-search":    { label:"Job Search",          emoji:"🔍", color:"#4361EE", bg:"#EEF2FF" },
-  "promotion":     { label:"Get Promoted",         emoji:"🚀", color:"#7C3AED", bg:"#F5F3FF" },
-  "salary":        { label:"Salary & Negotiation", emoji:"💰", color:"#059669", bg:"#ECFDF5" },
-  "career-change": { label:"Career Change",        emoji:"↗️", color:"#0284C7", bg:"#EFF6FF" },
-  "leadership":    { label:"Leadership & Exec",    emoji:"🎯", color:"#D97706", bg:"#FFFBEB" },
+const STAGE_ICONS: Record<CareerStage, React.ReactNode> = {
+  "job-search":    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13,flexShrink:0}}><circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l3 3"/></svg>,
+  "promotion":     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13,flexShrink:0}}><path d="M8 2v8M4 6l4-4 4 4"/><path d="M3 13h10"/></svg>,
+  "salary":        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13,flexShrink:0}}><rect x="1" y="4" width="14" height="9" rx="1.5"/><path d="M5 4V3a3 3 0 016 0v1"/><path d="M8 9a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg>,
+  "career-change": <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13,flexShrink:0}}><path d="M2 8h12M9 4l5 4-5 4"/></svg>,
+  "leadership":    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13,flexShrink:0}}><polygon points="8,2 10,6 14,6.5 11,9.5 11.5,14 8,12 4.5,14 5,9.5 2,6.5 6,6"/></svg>,
+};
+
+const STAGE_META: Record<CareerStage, { label:string; color:string; bg:string }> = {
+  "job-search":    { label:"Job Search",          color:"#4361EE", bg:"#EEF2FF" },
+  "promotion":     { label:"Get Promoted",         color:"#7C3AED", bg:"#F5F3FF" },
+  "salary":        { label:"Salary & Negotiation", color:"#059669", bg:"#ECFDF5" },
+  "career-change": { label:"Career Change",        color:"#0284C7", bg:"#EFF6FF" },
+  "leadership":    { label:"Leadership & Exec",    color:"#D97706", bg:"#FFFBEB" },
 };
 
 /* ═══════════════════════════════════════════════════
@@ -186,7 +194,7 @@ function ScreenSession({ stage }: { stage: CareerStage }) {
               Live Session
             </span>
             <span style={{ fontFamily:"monospace", fontSize:11, color:"#68738A" }}>{fmt(elapsed)}</span>
-            <span style={{ fontSize:11, fontWeight:600, color: STAGE_META[stage].color, padding:"4px 10px", borderRadius:99, background: STAGE_META[stage].bg, border:`1px solid ${STAGE_META[stage].color}30` }}>{STAGE_META[stage].emoji} {STAGE_META[stage].label} · Session 5</span>
+            <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:11, fontWeight:600, color: STAGE_META[stage].color, padding:"4px 10px", borderRadius:99, background: STAGE_META[stage].bg, border:`1px solid ${STAGE_META[stage].color}30` }}>{STAGE_ICONS[stage]} {STAGE_META[stage].label} · Session 5</span>
           </div>
 
           {/* Avatar */}
@@ -891,7 +899,7 @@ function ScreenPlan({ stage }: { stage: CareerStage }) {
           <div>
             <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
               <h1 style={{ fontSize:22, fontWeight:900, letterSpacing:"-0.03em", color:"#0A0A0F", margin:0 }}>Action Plan</h1>
-              <span style={{ fontSize:11, fontWeight:700, padding:"3px 9px", borderRadius:99, background: STAGE_META[stage].bg, color: STAGE_META[stage].color, border:`1px solid ${STAGE_META[stage].color}30` }}>{STAGE_META[stage].emoji} {STAGE_META[stage].label}</span>
+              <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:11, fontWeight:700, padding:"3px 9px", borderRadius:99, background: STAGE_META[stage].bg, color: STAGE_META[stage].color, border:`1px solid ${STAGE_META[stage].color}30` }}>{STAGE_ICONS[stage]} {STAGE_META[stage].label}</span>
             </div>
             <p style={{ fontSize:13, color:"#68738A" }}>Zari updates this automatically after every session</p>
           </div>
@@ -1022,7 +1030,7 @@ export function ZariPortal() {
               transition:"all 0.15s",
             }}
           >
-            <span style={{ fontSize:14 }}>{STAGE_META[stage].emoji}</span>
+            <span style={{ display:"flex", alignItems:"center" }}>{STAGE_ICONS[stage]}</span>
             <span style={{ flex:1, textAlign:"left" }}>{STAGE_META[stage].label}</span>
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:12, height:12, transition:"transform 0.2s", transform: stageOpen ? "rotate(180deg)" : "rotate(0)" }}><path d="M4 6l4 4 4-4"/></svg>
           </button>
@@ -1048,7 +1056,7 @@ export function ZariPortal() {
                     transition:"background 0.1s",
                   }}
                 >
-                  <span style={{ fontSize:14 }}>{meta.emoji}</span>
+                  <span style={{ display:"flex", alignItems:"center", color: stage === key ? meta.color : "#68738A" }}>{STAGE_ICONS[key]}</span>
                   {meta.label}
                   {stage === key && <svg viewBox="0 0 16 16" fill={meta.color} style={{ width:12,height:12,marginLeft:"auto" }}><path d="M3 8l4 4 6-6" stroke={meta.color} strokeWidth="2.2" fill="none"/></svg>}
                 </button>

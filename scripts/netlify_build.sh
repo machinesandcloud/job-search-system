@@ -14,8 +14,12 @@ export DIRECT_URL
 export DATABASE_URL="$DIRECT_URL"
 
 npm run prisma:generate
-npm run prisma:migrate
-npm run prisma:seed
+
+# Migrate and seed are best-effort — the DB may be suspended or unreachable
+# on a cold Neon free-tier compute. The app falls back to the file-based
+# MVP store so the build must not fail if the DB is temporarily unavailable.
+npm run prisma:migrate || echo "⚠️  prisma migrate skipped (DB unreachable)"
+npm run prisma:seed    || echo "⚠️  prisma seed skipped (DB unreachable)"
 
 # Restore pooled URL for runtime build if available.
 if [[ -n "${NETLIFY_DATABASE_URL:-}" ]]; then
