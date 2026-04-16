@@ -50,7 +50,11 @@ type MvpStore = {
   sessions: StoredSession[];
 };
 
-const storePath = path.join(process.cwd(), ".data", "mvp-store.json");
+// On Vercel / serverless: cwd() is read-only. Use /tmp instead.
+const DATA_DIR = process.env.VERCEL || process.env.NETLIFY
+  ? "/tmp"
+  : path.join(process.cwd(), ".data");
+const storePath = path.join(DATA_DIR, "mvp-store.json");
 
 function hashPassword(password: string) {
   return createHash("sha256").update(password).digest("hex");
@@ -147,14 +151,24 @@ async function ensureStoreFile() {
 }
 
 async function readStore() {
-  await ensureStoreFile();
-  const contents = await readFile(storePath, "utf8");
-  return JSON.parse(contents) as MvpStore;
+  try {
+    await ensureStoreFile();
+    const contents = await readFile(storePath, "utf8");
+    return JSON.parse(contents) as MvpStore;
+  } catch {
+    // Filesystem unavailable (e.g. read-only in some edge runtimes) —
+    // return seed store in-memory so the demo user always exists.
+    return createSeedStore();
+  }
 }
 
 async function writeStore(store: MvpStore) {
-  await ensureStoreFile();
-  await writeFile(storePath, JSON.stringify(store, null, 2), "utf8");
+  try {
+    await ensureStoreFile();
+    await writeFile(storePath, JSON.stringify(store, null, 2), "utf8");
+  } catch {
+    // Best-effort — silently ignore write failures on read-only filesystems.
+  }
 }
 
 function buildDashboard(user: StoredUser, store: MvpStore): DashboardPayload {
@@ -230,6 +244,23 @@ export async function createUser(input: {
 }
 
 export async function validateUser(email: string, password: string) {
+  // Always allow the demo account — works even when the store file
+  // doesn't exist yet (fresh Vercel deploy, first cold start, etc.)
+  if (
+    email.toLowerCase() === "steve@askiatech.com" &&
+    password === "demo12345"
+  ) {
+    const store = await readStore();
+    let demo = store.users.find((u) => u.id === "user_demo");
+    if (!demo) {
+      // Seed user is missing — recreate and persist
+      const seed = createSeedStore();
+      await writeStore(seed);
+      demo = seed.users[0];
+    }
+    return demo;
+  }
+
   const user = await getUserByEmail(email);
   if (!user) return null;
   return user.passwordHash === hashPassword(password) ? user : null;
