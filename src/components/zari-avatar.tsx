@@ -44,14 +44,9 @@ function WaveformBars({ size, external = false }: { size: number; external?: boo
 function NeuralParticles({ size }: { size: number }) {
   return (
     <>
-      {[0, 1, 2, 3].map((i) => (
-        <div key={`a${i}`} style={{ position:"absolute", top:"50%", left:"50%", width:6, height:6, marginTop:-3, marginLeft:-3, borderRadius:"50%", background: i%2===0?"#818CF8":"#06B6D4", boxShadow:`0 0 8px ${i%2===0?"#818CF8":"#06B6D4"}`, animation:`neural-orbit-a ${1.6+i*0.2}s linear infinite`, animationDelay:`${i*0.4}s`, transformOrigin:"0 0" }} />
-      ))}
       {[0, 1, 2].map((i) => (
-        <div key={`b${i}`} style={{ position:"absolute", top:"50%", left:"50%", width:5, height:5, marginTop:-2.5, marginLeft:-2.5, borderRadius:"50%", background:"#A78BFA", boxShadow:"0 0 10px #A78BFA", animation:`neural-orbit-b ${2.2+i*0.2}s linear infinite`, animationDelay:`${i*0.55}s`, transformOrigin:"0 0" }} />
+        <div key={`a${i}`} style={{ position:"absolute", top:"50%", left:"50%", width:5, height:5, marginTop:-2.5, marginLeft:-2.5, borderRadius:"50%", background: i%2===0?"#818CF8":"#06B6D4", boxShadow:`0 0 6px ${i%2===0?"#818CF8":"#06B6D4"}`, animation:`neural-orbit-a ${1.8+i*0.25}s linear infinite`, animationDelay:`${i*0.5}s`, transformOrigin:"0 0" }} />
       ))}
-      <div style={{ position:"absolute", inset:`${size*0.08}px`, borderRadius:"50%", border:"1px solid rgba(129,140,248,0.15)", pointerEvents:"none" }} />
-      <div style={{ position:"absolute", inset:`-${size*0.04}px`, borderRadius:"50%", border:"1px dashed rgba(6,182,212,0.10)", pointerEvents:"none" }} />
     </>
   );
 }
@@ -115,15 +110,15 @@ export function ZariAvatar({ state = "idle", size = 120, className = "", interac
         cursor: interactive ? "pointer" : "default",
       }}
     >
-      {/* Ambient outer glow — blurred blob behind everything */}
+      {/* Ambient outer glow — single soft bloom */}
       <div style={{
         position: "absolute",
-        inset: -(hovered ? size*0.18 : size*0.12),
+        inset: -(hovered ? size*0.14 : size*0.08),
         borderRadius: "50%",
         background: glowColor,
-        filter: `blur(${size * 0.2}px)`,
+        filter: `blur(${size * 0.22}px)`,
         transition: "all 0.5s ease",
-        animation: "aurora-pulse 3.5s ease-in-out infinite",
+        opacity: 0.7,
         pointerEvents: "none",
         zIndex: 0,
       }} />
@@ -141,22 +136,10 @@ export function ZariAvatar({ state = "idle", size = 120, className = "", interac
         zIndex: 1,
       }}>
 
-        {/* Rotating conic halo ring */}
-        <div style={{
-          position: "absolute",
-          inset: -(size*0.05),
-          borderRadius: "50%",
-          background: "conic-gradient(from 0deg, #4361EE44, #818CF870, #06B6D444, transparent, #4361EE44)",
-          animation: "spin-slow 7s linear infinite",
-          mask: "radial-gradient(circle, transparent 70%, black 78%)",
-          WebkitMask: "radial-gradient(circle, transparent 70%, black 78%)",
-          opacity: state === "idle" ? 0.55 : 0.85,
-        }} />
-
-        {/* Pulse rings (idle + listening) */}
-        {(state === "idle" || state === "listening") && [0,1,2].map(i => (
-          <div key={i} style={{ position:"absolute", inset:-8, borderRadius:"50%", background:`rgba(67,97,238,${0.10-i*0.03})`, animation:"ring-pulse 2.5s ease-out infinite", animationDelay:`${i*0.8}s` }} />
-        ))}
+        {/* Subtle pulse ring — idle only */}
+        {state === "idle" && (
+          <div style={{ position:"absolute", inset:-6, borderRadius:"50%", background:"rgba(67,97,238,0.07)", animation:"ring-pulse 3s ease-out infinite" }} />
+        )}
 
         {/* Listening ripples */}
         {state === "listening" && <ListenRipples size={sphereSize} />}
@@ -190,11 +173,7 @@ export function ZariAvatar({ state = "idle", size = 120, className = "", interac
           }}
         >
           {/* Specular highlight top-left */}
-          <div style={{ position:"absolute", top:"7%", left:"12%", width:"36%", height:"26%", borderRadius:"50%", background:"radial-gradient(ellipse, rgba(255,255,255,0.38) 0%, transparent 100%)", filter:"blur(3px)", pointerEvents:"none" }} />
-          {/* Rim light bottom-right */}
-          <div style={{ position:"absolute", bottom:"9%", right:"10%", width:"18%", height:"13%", borderRadius:"50%", background:"rgba(6,182,212,0.22)", filter:"blur(5px)", pointerEvents:"none" }} />
-          {/* Inner ring */}
-          <div style={{ position:"absolute", inset:"8%", borderRadius:"50%", border:"1px solid rgba(6,182,212,0.18)", pointerEvents:"none" }} />
+          <div style={{ position:"absolute", top:"7%", left:"12%", width:"36%", height:"26%", borderRadius:"50%", background:"radial-gradient(ellipse, rgba(255,255,255,0.32) 0%, transparent 100%)", filter:"blur(3px)", pointerEvents:"none" }} />
 
           {/* Eyes */}
           <div style={{ display:"flex", gap: sphereSize * 0.24, position:"relative", zIndex:1 }}>
