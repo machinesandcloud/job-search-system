@@ -58,14 +58,66 @@ function Tag({ text, color, bg }:{ text:string; color:string; bg:string }) {
 /* ═══════════════════════════════════════════════════
    SIDEBAR NAV
 ═══════════════════════════════════════════════════ */
-const NAV: { id:Screen; label:string; icon:React.ReactNode }[] = [
-  { id:"session",   label:"Talk to Zari", icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-[18px] w-[18px]"><path d="M10 2a3 3 0 00-3 3v4a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M4 9v1a6 6 0 0012 0V9"/><line x1="10" y1="15" x2="10" y2="18"/></svg> },
-  { id:"resume",    label:"Resume Review", icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-[18px] w-[18px]"><rect x="3" y="2" width="14" height="16" rx="2"/><path d="M7 7h6M7 10h6M7 13h4"/></svg> },
-  { id:"interview", label:"Mock Interview", icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-[18px] w-[18px]"><circle cx="10" cy="6" r="3"/><path d="M3 17c0-3.866 3.134-6 7-6s7 2.134 7 6"/></svg> },
-  { id:"linkedin",  label:"LinkedIn", icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-[18px] w-[18px]"><rect x="2" y="2" width="16" height="16" rx="3"/><path d="M6 9v5M6 6.5v.5M9 14V11a2.5 2.5 0 015 0v3M9 11v3"/></svg> },
-  { id:"documents", label:"My Documents", icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-[18px] w-[18px]"><path d="M5 2h7l4 4v12a1 1 0 01-1 1H5a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M12 2v4h4"/></svg> },
-  { id:"plan",      label:"Action Plan", icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-[18px] w-[18px]"><rect x="3" y="4" width="14" height="13" rx="2"/><path d="M6 2v4M14 2v4M3 9h14"/><path d="M7 13l2 2 4-4"/></svg> },
-];
+const BASE_ICONS: Record<Screen, React.ReactNode> = {
+  session:   <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:18,height:18}}><path d="M10 2a3 3 0 00-3 3v4a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M4 9v1a6 6 0 0012 0V9"/><line x1="10" y1="15" x2="10" y2="18"/></svg>,
+  resume:    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:18,height:18}}><rect x="3" y="2" width="14" height="16" rx="2"/><path d="M7 7h6M7 10h6M7 13h4"/></svg>,
+  interview: <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:18,height:18}}><circle cx="10" cy="6" r="3"/><path d="M3 17c0-3.866 3.134-6 7-6s7 2.134 7 6"/></svg>,
+  linkedin:  <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:18,height:18}}><rect x="2" y="2" width="16" height="16" rx="3"/><path d="M6 9v5M6 6.5v.5M9 14V11a2.5 2.5 0 015 0v3M9 11v3"/></svg>,
+  documents: <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:18,height:18}}><path d="M5 2h7l4 4v12a1 1 0 01-1 1H5a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M12 2v4h4"/></svg>,
+  plan:      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:18,height:18}}><rect x="3" y="4" width="14" height="13" rx="2"/><path d="M6 2v4M14 2v4M3 9h14"/><path d="M7 13l2 2 4-4"/></svg>,
+};
+
+const STAGE_NAV_LABELS: Record<CareerStage, Record<Screen, string>> = {
+  "job-search": {
+    session:   "Talk to Zari",
+    resume:    "Resume Review",
+    interview: "Mock Interview",
+    linkedin:  "LinkedIn",
+    documents: "My Documents",
+    plan:      "Action Plan",
+  },
+  "promotion": {
+    session:   "Talk to Zari",
+    resume:    "Build My Case",
+    interview: "Pitch Practice",
+    linkedin:  "LinkedIn",
+    documents: "My Documents",
+    plan:      "Promotion Plan",
+  },
+  "salary": {
+    session:   "Talk to Zari",
+    resume:    "Salary Research",
+    interview: "Negotiation Sim",
+    linkedin:  "LinkedIn",
+    documents: "My Documents",
+    plan:      "Negotiation Plan",
+  },
+  "career-change": {
+    session:   "Talk to Zari",
+    resume:    "Reframe Resume",
+    interview: "Pivot Interview",
+    linkedin:  "LinkedIn",
+    documents: "My Documents",
+    plan:      "Transition Plan",
+  },
+  "leadership": {
+    session:   "Talk to Zari",
+    resume:    "Executive Bio",
+    interview: "Story Practice",
+    linkedin:  "LinkedIn",
+    documents: "My Documents",
+    plan:      "Leadership Plan",
+  },
+};
+
+function getNav(stage: CareerStage): { id:Screen; label:string; icon:React.ReactNode }[] {
+  const labels = STAGE_NAV_LABELS[stage];
+  return (Object.keys(BASE_ICONS) as Screen[]).map(id => ({
+    id,
+    label: labels[id],
+    icon:  BASE_ICONS[id],
+  }));
+}
 
 /* ═══════════════════════════════════════════════════
    SCREEN: VOICE COACHING SESSION
@@ -183,12 +235,12 @@ function ScreenSession({ stage }: { stage: CareerStage }) {
   return (
     <div style={{ display:"flex", flexDirection:"column", height:"calc(100vh - 56px)", overflow:"hidden", background:"#FAFBFF" }}>
 
-      {/* Avatar stage */}
+      {/* Avatar stage — compact horizontal layout */}
       <div style={{ flexShrink:0, background:"white", borderBottom:"1px solid #E4E8F5" }}>
-        <div style={{ maxWidth:700, margin:"0 auto", padding:"22px 24px 18px", display:"flex", flexDirection:"column", alignItems:"center" }}>
+        <div style={{ maxWidth:720, margin:"0 auto", padding:"14px 24px 14px" }}>
 
           {/* Status bar */}
-          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:18 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
             <span style={{ display:"flex", alignItems:"center", gap:5, fontSize:11, fontWeight:700, color:"#16A34A", padding:"4px 12px", borderRadius:99, background:"#F0FFF4", border:"1px solid #BBF7D0" }}>
               <span style={{ width:6, height:6, borderRadius:"50%", background:"#22C55E", animation:"blink 1.1s ease-in-out infinite" }}/>
               Live Session
@@ -197,24 +249,29 @@ function ScreenSession({ stage }: { stage: CareerStage }) {
             <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:11, fontWeight:600, color: STAGE_META[stage].color, padding:"4px 10px", borderRadius:99, background: STAGE_META[stage].bg, border:`1px solid ${STAGE_META[stage].color}30` }}>{STAGE_ICONS[stage]} {STAGE_META[stage].label} · Session 5</span>
           </div>
 
-          {/* Avatar */}
-          <ZariAvatar state={avatarState} size={150} interactive />
+          {/* Avatar + name + bubble in a row */}
+          <div style={{ display:"flex", alignItems:"flex-start", gap:14 }}>
+            {/* Avatar — smaller, contained */}
+            <div style={{ flexShrink:0 }}>
+              <ZariAvatar state={avatarState} size={88} interactive />
+            </div>
 
-          {/* Name */}
-          <div style={{ marginTop:24, fontSize:14, fontWeight:700, color:"#0A0A0F" }}>
-            Zari <span style={{ fontWeight:400, color:"#68738A" }}>— AI Career Coach</span>
-          </div>
-
-          {/* Speech bubble */}
-          <div style={{ marginTop:10, maxWidth:560, borderRadius:"4px 18px 18px 18px", padding:"11px 16px", fontSize:13.5, lineHeight:1.65, animation:"bubble-appear 0.3s ease both", border:"1px solid #E4E8F5", background:"white", color:"#1E2235", boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
-            {avatarState==="speaking" && <>&ldquo;You mentioned the recruiters responded to impact numbers — now let&apos;s build that same specificity into your interview stories. I&apos;ll ask you the way a real panel would.&rdquo;</>}
-            {avatarState==="listening" && <span style={{ color:"#06B6D4", fontWeight:600, display:"flex", alignItems:"center", gap:6 }}><span style={{ width:6,height:6,borderRadius:"50%",background:"#06B6D4",animation:"blink 0.7s step-end infinite",flexShrink:0 }}/>Listening to you…</span>}
-            {avatarState==="thinking"  && <span style={{ color:"#A78BFA", fontWeight:600, display:"flex", alignItems:"center", gap:6 }}><span style={{ width:6,height:6,borderRadius:"50%",background:"#A78BFA",animation:"blink 1.3s ease infinite",flexShrink:0 }}/>Processing your answer…</span>}
-            {avatarState==="idle"      && <span style={{ color:"#4361EE", fontWeight:500, display:"flex", alignItems:"center", gap:6 }}><span style={{ width:6,height:6,borderRadius:"50%",background:"#4361EE",animation:"blink 2s ease infinite",flexShrink:0 }}/>Ready when you are.</span>}
+            {/* Right: name + bubble */}
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", marginBottom:6 }}>
+                Zari <span style={{ fontWeight:400, color:"#68738A" }}>— AI Career Coach</span>
+              </div>
+              <div style={{ borderRadius:"4px 16px 16px 16px", padding:"10px 14px", fontSize:13, lineHeight:1.65, animation:"bubble-appear 0.3s ease both", border:"1px solid #E4E8F5", background:"white", color:"#1E2235", boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
+                {avatarState==="speaking" && <>&ldquo;You mentioned the recruiters responded to impact numbers — now let&apos;s build that same specificity into your interview stories. I&apos;ll ask you the way a real panel would.&rdquo;</>}
+                {avatarState==="listening" && <span style={{ color:"#06B6D4", fontWeight:600, display:"flex", alignItems:"center", gap:6 }}><span style={{ width:6,height:6,borderRadius:"50%",background:"#06B6D4",animation:"blink 0.7s step-end infinite",flexShrink:0 }}/>Listening to you…</span>}
+                {avatarState==="thinking"  && <span style={{ color:"#A78BFA", fontWeight:600, display:"flex", alignItems:"center", gap:6 }}><span style={{ width:6,height:6,borderRadius:"50%",background:"#A78BFA",animation:"blink 1.3s ease infinite",flexShrink:0 }}/>Processing your answer…</span>}
+                {avatarState==="idle"      && <span style={{ color:"#4361EE", fontWeight:500, display:"flex", alignItems:"center", gap:6 }}><span style={{ width:6,height:6,borderRadius:"50%",background:"#4361EE",animation:"blink 2s ease infinite",flexShrink:0 }}/>Ready when you are.</span>}
+              </div>
+            </div>
           </div>
 
           {/* Quick prompts */}
-          <div style={{ marginTop:12, display:"flex", flexWrap:"wrap", justifyContent:"center", gap:6 }}>
+          <div style={{ marginTop:10, display:"flex", flexWrap:"wrap", gap:6 }}>
             {STAGE_PROMPTS[stage].map(p => (
               <button key={p} onClick={() => sendMessage(p)} style={{ fontSize:11.5, fontWeight:500, color: STAGE_META[stage].color, padding:"5px 12px", borderRadius:99, background: STAGE_META[stage].bg, border:`1px solid ${STAGE_META[stage].color}30`, cursor:"pointer", whiteSpace:"nowrap" }}>
                 {p}
@@ -1067,12 +1124,12 @@ export function ZariPortal() {
 
         {/* Nav */}
         <nav style={{ flex:1, padding:"0 8px 0" }}>
-          {NAV.map(n => (
+          {getNav(stage).map(n => (
             <button key={n.id} onClick={()=>setScreen(n.id)}
-              style={{ width:"100%", display:"flex", alignItems:"center", gap:9, padding:"9px 10px", borderRadius:10, border:"none", cursor:"pointer", textAlign:"left", marginBottom:2, background:screen===n.id?"#EEF2FF":"transparent", color:screen===n.id?"#4361EE":"#68738A", fontWeight:screen===n.id?700:500, fontSize:13.5, transition:"all 0.15s" }}>
+              style={{ width:"100%", display:"flex", alignItems:"center", gap:9, padding:"9px 10px", borderRadius:10, border:"none", cursor:"pointer", textAlign:"left", marginBottom:2, background:screen===n.id?STAGE_META[stage].bg:"transparent", color:screen===n.id?STAGE_META[stage].color:"#68738A", fontWeight:screen===n.id?700:500, fontSize:13.5, transition:"all 0.15s" }}>
               {n.icon}
               {n.label}
-              {n.id==="session" && <span style={{ marginLeft:"auto", fontSize:9, fontWeight:700, padding:"2px 6px", borderRadius:99, background:"#4361EE", color:"white" }}>Live</span>}
+              {n.id==="session" && <span style={{ marginLeft:"auto", fontSize:9, fontWeight:700, padding:"2px 6px", borderRadius:99, background:STAGE_META[stage].color, color:"white" }}>Live</span>}
             </button>
           ))}
         </nav>
@@ -1090,7 +1147,7 @@ export function ZariPortal() {
         {/* Top bar */}
         <div style={{ flexShrink:0, height:56, background:"white", borderBottom:"1px solid #E4E8F5", display:"flex", alignItems:"center", padding:"0 24px", gap:16 }}>
           <h2 style={{ fontSize:14.5, fontWeight:700, color:"#0A0A0F" }}>
-            {NAV.find(n=>n.id===screen)?.label}
+            {getNav(stage).find(n=>n.id===screen)?.label}
           </h2>
           <div style={{ marginLeft:"auto", display:"flex", gap:10, alignItems:"center" }}>
             <button style={{ fontSize:12, fontWeight:600, padding:"6px 14px", borderRadius:9, border:"1px solid #E4E8F5", background:"#FAFBFF", color:"#68738A", cursor:"pointer", display:"flex", alignItems:"center", gap:5 }}>

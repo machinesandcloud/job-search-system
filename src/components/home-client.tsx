@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { ZariLogo } from "@/components/zari-logo";
-import { PortalPreview } from "@/components/portal-preview";
 
 /* ══════════════════════════════════════════════════
    DATA
@@ -133,21 +132,21 @@ function HeroPrompt({ userId }: { userId: boolean }) {
   }
 
   return (
-    <div style={{ width:"100%", maxWidth:560, margin:"0 auto 22px" }}>
-      {/* Input box */}
+    <div style={{ width:"100%", maxWidth:660, margin:"0 auto 28px" }}>
+      {/* Input box — Kleo-style prominent */}
       <div style={{
-        display:"flex", alignItems:"center", gap:10,
+        display:"flex", alignItems:"center", gap:12,
         background:"white",
-        border:`1.5px solid ${focused ? "#4361EE" : "#E4E8F5"}`,
-        borderRadius:16,
-        padding:"13px 13px 13px 18px",
+        border:`1.5px solid ${focused ? "#4361EE" : "#E0E4EF"}`,
+        borderRadius:18,
+        padding:"16px 16px 16px 22px",
         boxShadow: focused
-          ? "0 0 0 4px rgba(67,97,238,0.10), 0 4px 24px rgba(0,0,0,0.08)"
-          : "0 4px 24px rgba(0,0,0,0.07)",
+          ? "0 0 0 5px rgba(67,97,238,0.10), 0 8px 40px rgba(0,0,0,0.10)"
+          : "0 6px 32px rgba(0,0,0,0.09)",
         transition:"all 0.2s",
       }}>
         <input
-          style={{ flex:1, border:"none", outline:"none", fontSize:15, color:"#0A0A0F", background:"transparent", fontFamily:"inherit" }}
+          style={{ flex:1, border:"none", outline:"none", fontSize:16.5, color:"#0A0A0F", background:"transparent", fontFamily:"inherit" }}
           placeholder="Tell Zari where you are in your career…"
           value={val}
           onChange={e => setVal(e.target.value)}
@@ -158,32 +157,33 @@ function HeroPrompt({ userId }: { userId: boolean }) {
         <button
           onClick={() => go(val || "Get started")}
           style={{
-            width:38, height:38, borderRadius:11, border:"none", cursor:"pointer",
+            width:44, height:44, borderRadius:13, border:"none", cursor:"pointer",
             background: val.trim() ? "#4361EE" : "#E4E8F5",
             color: val.trim() ? "white" : "#A0AABF",
             display:"flex", alignItems:"center", justifyContent:"center",
             flexShrink:0, transition:"all 0.2s",
+            boxShadow: val.trim() ? "0 4px 16px rgba(67,97,238,0.35)" : "none",
           }}
         >
-          <svg viewBox="0 0 20 20" fill="currentColor" style={{ width:15,height:15 }}>
-            <path d="M10 3l7 7-7 7M3 10h14" stroke="currentColor" strokeWidth="2.2" fill="none" strokeLinecap="round"/>
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" style={{ width:16,height:16 }}>
+            <path d="M10 3l7 7-7 7M3 10h14"/>
           </svg>
         </button>
       </div>
 
       {/* Quick-action chips */}
-      <div style={{ display:"flex", flexWrap:"wrap", justifyContent:"center", gap:8, marginTop:12 }}>
+      <div style={{ display:"flex", flexWrap:"wrap", justifyContent:"center", gap:8, marginTop:14 }}>
         {HERO_CHIPS.map(chip => (
           <button
             key={chip.label}
             onClick={() => go(chip.label)}
             style={{
               display:"inline-flex", alignItems:"center", gap:6,
-              fontSize:13, fontWeight:500, color:"#1E2235",
-              padding:"7px 14px", borderRadius:99,
+              fontSize:13.5, fontWeight:500, color:"#1E2235",
+              padding:"8px 16px", borderRadius:99,
               background:"white", border:"1.5px solid #E4E8F5",
               cursor:"pointer", transition:"all 0.15s",
-              boxShadow:"0 1px 4px rgba(0,0,0,0.05)",
+              boxShadow:"0 1px 6px rgba(0,0,0,0.06)",
             }}
             onMouseEnter={e => {
               (e.currentTarget as HTMLButtonElement).style.borderColor = "#4361EE";
@@ -860,14 +860,14 @@ export function HomeClient({ userId }: { userId: boolean }) {
       <Nav userId={userId} />
 
       {/* ══════ HERO ══════ */}
-      <section style={{ paddingTop:100, background:"white", position:"relative", overflow:"hidden" }}>
+      <section style={{ paddingTop:100, paddingBottom:80, background:"white", position:"relative", overflow:"hidden" }}>
         {/* Subtle aurora */}
         <div aria-hidden style={{ position:"absolute", inset:0, pointerEvents:"none" }}>
           <div style={{ position:"absolute", width:700, height:700, top:"-10%", left:"50%", transform:"translateX(-50%)", background:"radial-gradient(ellipse, rgba(67,97,238,0.06) 0%, transparent 65%)" }}/>
           <div style={{ position:"absolute", width:400, height:300, top:"20%", right:"0%", background:"radial-gradient(ellipse, rgba(6,182,212,0.04) 0%, transparent 60%)", animation:"aurora-slow 22s ease-in-out infinite" }}/>
         </div>
 
-        <div style={{ maxWidth:780, margin:"0 auto", padding:"0 28px 56px", textAlign:"center", position:"relative" }}>
+        <div style={{ maxWidth:860, margin:"0 auto", padding:"0 28px", textAlign:"center", position:"relative" }}>
           {/* Eyebrow */}
           <div style={{ display:"inline-flex", alignItems:"center", gap:7, fontSize:12.5, fontWeight:600, color:"#4361EE", background:"#F0F4FF", border:"1px solid rgba(67,97,238,0.2)", borderRadius:99, padding:"5px 14px", marginBottom:28 }}>
             <ZariLogo size={15} />
@@ -920,15 +920,6 @@ export function HomeClient({ userId }: { userId: boolean }) {
           </div>
         </div>
 
-        {/* ── PORTAL PREVIEW — interactive, in-hero ── */}
-        <div style={{ maxWidth:1120, margin:"0 auto", padding:"0 20px 0" }}>
-          {/* Shadow fade wrapper */}
-          <div style={{ borderRadius:20, overflow:"hidden", boxShadow:"0 28px 80px rgba(0,0,0,0.13), 0 2px 0 rgba(255,255,255,0.8) inset", border:"1px solid rgba(0,0,0,0.06)" }}>
-            <PortalPreview />
-          </div>
-          {/* Bottom fade into next section */}
-          <div style={{ height:80, background:"linear-gradient(to bottom, transparent, white)", marginTop:-80, position:"relative", zIndex:2 }}/>
-        </div>
       </section>
 
       {/* ══════ LOGO MARQUEE ══════ */}
