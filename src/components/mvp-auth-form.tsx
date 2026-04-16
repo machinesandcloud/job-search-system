@@ -81,8 +81,7 @@ export function MvpAuthForm({ mode }: { mode: AuthMode }) {
     });
     const payload = await res.json().catch(() => ({}));
     if (!res.ok) { setError(payload.error || "Unable to sign in."); setLoading(false); return; }
-    router.push("/dashboard");
-    router.refresh();
+    window.location.href = "/dashboard";
   }
 
   // ── Signup wizard ────────────────────────────────────────────────────────
