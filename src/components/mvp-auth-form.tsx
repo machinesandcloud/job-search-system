@@ -96,7 +96,13 @@ export function MvpAuthForm({ mode }: { mode: AuthMode }) {
   const [signLoad,  setSignLoad]  = useState(false);
   const [otpSent,   setOtpSent]   = useState(false);
 
-  const otpRefs = Array.from({ length: 6 }, () => useRef<HTMLInputElement | null>(null));
+  const otp0 = useRef<HTMLInputElement>(null);
+  const otp1 = useRef<HTMLInputElement>(null);
+  const otp2 = useRef<HTMLInputElement>(null);
+  const otp3 = useRef<HTMLInputElement>(null);
+  const otp4 = useRef<HTMLInputElement>(null);
+  const otp5 = useRef<HTMLInputElement>(null);
+  const otpRefs = [otp0, otp1, otp2, otp3, otp4, otp5];
 
   /* ── Step 0: submit email → "send OTP" (mocked) ── */
   async function handleEmailStep() {
