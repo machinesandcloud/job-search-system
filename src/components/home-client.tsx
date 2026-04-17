@@ -137,6 +137,36 @@ const STATS = [
   { val:"14k+", label:"Coaching sessions completed" },
 ];
 
+const FOUNDERS = [
+  {
+    photo: "/images/steve.jpg",
+    name: "Steve J Ngoumnai",
+    title: "Founder & CEO",
+    h3: "From Platform Engineer to career coach at scale.",
+    story1: `"I spent years watching talented people get passed over — not because they lacked ability, but because they couldn't tell their story. As a Platform Engineer and career advisor at Askia Enterprise and Machines & Cloud, I saw the same pattern repeat: vague bullets, weak interview stories, salary negotiations abandoned too early.`,
+    story2: `Owen and Leanne brought 15+ years of executive coaching and career transition expertise. Together, we built Zari to give every professional access to the same coaching that used to cost thousands — specific, memory-driven, and built for people serious about their next move."`,
+    sig: "– Steve J Ngoumnai",
+  },
+  {
+    photo: "/images/owen.png",
+    name: "Owen Thomas",
+    title: "Head of Coaching",
+    h3: "Fifteen years of executive coaching, now available to everyone.",
+    story1: `"I spent 15 years coaching C-suite executives and senior leaders at Fortune 500 companies — people who had access to world-class career development because they could afford it. I watched equally talented professionals at lower levels struggle with no real support.`,
+    story2: `When Steve showed me what Zari could do, I saw the chance to change that equation. The coaching rigor I've applied at the executive level is now inside every Zari session — the same frameworks, the same questions, the same standards. Just accessible to everyone."`,
+    sig: "– Owen Thomas",
+  },
+  {
+    photo: "/images/leanne.jpg",
+    name: "Leanne Adair",
+    title: "Performance Coach",
+    h3: "Career transitions are the hardest professional challenge most people face.",
+    story1: `"I've guided hundreds of professionals through career transitions — from individual contributors stepping into management, to executives pivoting industries, to new grads navigating their first real career decision. The common thread: most people don't fail for lack of skill. They fail for lack of preparation and narrative clarity.`,
+    story2: `Zari gives every professional the same preparation I offer in person. The mock sessions, the story coaching, the negotiation drills — built into a platform that meets you where you are and pushes you to where you need to be."`,
+    sig: "– Leanne Adair",
+  },
+];
+
 /* ══════════════════════════════════════════════════
    HERO PROMPT — Kleo-style intent capture
 ══════════════════════════════════════════════════ */
@@ -876,10 +906,361 @@ function FeatureMockup({ type }: { type: string }) {
 }
 
 /* ══════════════════════════════════════════════════
+   PLATFORM WALKTHROUGH
+══════════════════════════════════════════════════ */
+function PlatformWalkthrough() {
+  const [activeTab, setActiveTab] = useState(0);
+  const [subStep, setSubStep] = useState(0);
+  const [typed, setTyped] = useState("");
+
+  const TABS = [
+    { label: "Talk to Zari",   id: "session"   },
+    { label: "Resume Review",  id: "resume"    },
+    { label: "Mock Interview", id: "interview" },
+    { label: "LinkedIn",       id: "linkedin"  },
+  ];
+
+  // Auto-advance tabs every 7 s
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setActiveTab(s => (s + 1) % TABS.length);
+      setSubStep(0);
+      setTyped("");
+    }, 7000);
+    return () => clearTimeout(t);
+  }, [activeTab]);
+
+  // Sub-step within each tab
+  useEffect(() => {
+    if (subStep >= 5) return;
+    const t = setTimeout(() => setSubStep(s => s + 1), 1600);
+    return () => clearTimeout(t);
+  }, [subStep, activeTab]);
+
+  // Typing animation (session tab)
+  const SESSION_MSG = "Help me reframe my 6 years of supply chain for a PM role at Stripe.";
+  useEffect(() => {
+    if (activeTab !== 0 || subStep < 2) return;
+    if (typed.length >= SESSION_MSG.length) return;
+    const t = setTimeout(() => setTyped(SESSION_MSG.slice(0, typed.length + 2)), 38);
+    return () => clearTimeout(t);
+  }, [activeTab, subStep, typed, SESSION_MSG]);
+
+  const sidebarItems = [
+    { label:"Job Search",     icon:"🔍", id:"job"       },
+    { label:"Talk to Zari",   icon:"💬", id:"session",  live:true },
+    { label:"Resume Review",  icon:"📄", id:"resume"    },
+    { label:"Mock Interview", icon:"🎤", id:"interview" },
+    { label:"LinkedIn",       icon:"🔗", id:"linkedin"  },
+    { label:"My Documents",   icon:"📁", id:"docs"      },
+    { label:"Action Plan",    icon:"✅", id:"plan"      },
+  ];
+
+  const activeId = TABS[activeTab].id;
+
+  const linkedinItems: Array<{section:string; before:string; after:string; delay:string; keywords:boolean}> = [
+    { section:"Headline", before:"Senior Product Manager at TechCorp", after:"Senior PM → Stripe | Cross-functional leader shipping 0-to-1 products at scale | ex-TechCorp · $12M ARR", delay:"0s", keywords:false },
+    { section:"About (opening)", before:"I'm a product manager with 6 years of experience building B2B SaaS products.", after:"I ship products that stick. 6 years building B2B SaaS at the intersection of supply chain complexity and user delight — leading teams of 3–8 across eng, design, and data.", delay:"0.2s", keywords:false },
+    { section:"Keywords added", before:"", after:"Product Strategy · Cross-functional Leadership · 0→1 · GTM · OKRs · Stripe · Fintech · Supply Chain", delay:"0.4s", keywords:true },
+  ];
+
+  return (
+    <section style={{ background:"linear-gradient(180deg,#060914 0%,#0B0F1E 100%)", padding:"96px 20px 108px" }}>
+      <div style={{ maxWidth:1300, margin:"0 auto" }}>
+
+        {/* Header */}
+        <div style={{ textAlign:"center", marginBottom:48 }}>
+          <span style={{ display:"inline-block", fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.16em", color:"#818CF8", background:"rgba(129,140,248,0.12)", border:"1px solid rgba(129,140,248,0.25)", padding:"5px 14px", borderRadius:99, marginBottom:16 }}>
+            Platform Demo
+          </span>
+          <h2 style={{ fontSize:"clamp(2rem,3.8vw,2.8rem)", fontWeight:900, letterSpacing:"-0.04em", color:"white", lineHeight:1.1, marginBottom:12 }}>
+            See Zari in action
+          </h2>
+          <p style={{ fontSize:16.5, color:"rgba(255,255,255,0.4)", maxWidth:480, margin:"0 auto" }}>
+            A real coaching session — voice, typing, feedback, and follow-through.
+          </p>
+        </div>
+
+        {/* Tab pills */}
+        <div style={{ display:"flex", justifyContent:"center", gap:8, marginBottom:32, flexWrap:"wrap" }}>
+          {TABS.map((tab, i) => (
+            <button
+              key={tab.id}
+              onClick={() => { setActiveTab(i); setSubStep(0); setTyped(""); }}
+              style={{
+                padding:"9px 22px", borderRadius:99, border:"1px solid",
+                borderColor: activeTab === i ? "#818CF8" : "rgba(255,255,255,0.1)",
+                background: activeTab === i ? "rgba(129,140,248,0.15)" : "transparent",
+                color: activeTab === i ? "#A5B4FC" : "rgba(255,255,255,0.38)",
+                fontSize:14, fontWeight:600, cursor:"pointer", transition:"all 0.2s",
+              }}
+            >{tab.label}</button>
+          ))}
+        </div>
+
+        {/* Browser chrome + app */}
+        <div style={{ borderRadius:16, overflow:"hidden", boxShadow:"0 40px 120px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.07)", background:"#0F1117" }}>
+
+          {/* Browser top bar */}
+          <div style={{ background:"#1A1D2B", borderBottom:"1px solid rgba(255,255,255,0.06)", padding:"11px 16px", display:"flex", alignItems:"center", gap:12 }}>
+            <div style={{ display:"flex", gap:6 }}>
+              {["#FF5F57","#FEBC2E","#28C840"].map(c => <div key={c} style={{ width:11,height:11,borderRadius:"50%",background:c,opacity:0.8 }}/>)}
+            </div>
+            <div style={{ flex:1, background:"rgba(255,255,255,0.06)", borderRadius:7, padding:"5px 14px", textAlign:"center", fontSize:11.5, color:"rgba(255,255,255,0.28)", letterSpacing:"0.01em" }}>
+              askzari.com/{activeId}
+            </div>
+            <div style={{ width:60 }}/>
+          </div>
+
+          {/* App layout */}
+          <div style={{ display:"flex", height:580 }}>
+
+            {/* Sidebar */}
+            <div style={{ width:196, background:"#0D1017", borderRight:"1px solid rgba(255,255,255,0.06)", display:"flex", flexDirection:"column", padding:"16px 10px", flexShrink:0 }}>
+              {/* Logo */}
+              <div style={{ display:"flex", alignItems:"center", gap:8, padding:"4px 8px", marginBottom:12 }}>
+                <div style={{ width:24,height:24,borderRadius:6,background:"linear-gradient(135deg,#4361EE,#818CF8)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:900,color:"white" }}>Z</div>
+                <span style={{ fontSize:14,fontWeight:800,color:"white",letterSpacing:"-0.04em" }}>Zari</span>
+              </div>
+              {/* User chip */}
+              <div style={{ display:"flex",alignItems:"center",gap:8,padding:"8px",borderRadius:9,background:"rgba(255,255,255,0.04)",marginBottom:18 }}>
+                <div style={{ width:28,height:28,borderRadius:"50%",background:"linear-gradient(135deg,#4361EE,#818CF8)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:800,color:"white",flexShrink:0 }}>S</div>
+                <div>
+                  <div style={{ fontSize:11.5,fontWeight:700,color:"rgba(255,255,255,0.85)",lineHeight:1.2 }}>Steve N.</div>
+                  <div style={{ fontSize:9.5,color:"rgba(255,255,255,0.3)" }}>Free plan</div>
+                </div>
+              </div>
+              {/* Nav */}
+              {sidebarItems.map(item => (
+                <div key={item.id} style={{ display:"flex",alignItems:"center",gap:8,padding:"8px 10px",borderRadius:8,marginBottom:2,background:item.id===activeId?"rgba(67,97,238,0.18)":"transparent",color:item.id===activeId?"#818CF8":"rgba(255,255,255,0.35)",fontSize:12,fontWeight:item.id===activeId?700:500,transition:"all 0.15s" }}>
+                  <span style={{ width:16,flexShrink:0,textAlign:"center",fontSize:12 }}>{item.icon}</span>
+                  <span style={{ flex:1 }}>{item.label}</span>
+                  {item.live && <span style={{ fontSize:8.5,fontWeight:800,color:"#22C55E",background:"rgba(34,197,94,0.12)",border:"1px solid rgba(34,197,94,0.25)",padding:"1px 5px",borderRadius:3 }}>LIVE</span>}
+                </div>
+              ))}
+              {/* Upgrade */}
+              <div style={{ marginTop:"auto",background:"linear-gradient(135deg,rgba(67,97,238,0.2),rgba(129,140,248,0.15))",border:"1px solid rgba(129,140,248,0.2)",borderRadius:10,padding:"10px" }}>
+                <div style={{ fontSize:10.5,fontWeight:800,color:"#A5B4FC",marginBottom:4 }}>Unlock Pro</div>
+                <div style={{ fontSize:9.5,color:"rgba(255,255,255,0.35)",lineHeight:1.5,marginBottom:7 }}>Unlimited sessions, priority coaching, downloads</div>
+                <button style={{ width:"100%",fontSize:10,fontWeight:800,color:"white",background:"#4361EE",border:"none",borderRadius:6,padding:"6px 0",cursor:"pointer" }}>Upgrade →</button>
+              </div>
+            </div>
+
+            {/* Main content */}
+            <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
+
+              {/* ── SESSION ── */}
+              {activeTab === 0 && (
+                <div style={{ height:"100%",display:"flex",flexDirection:"column",background:"#0F1117" }}>
+                  <div style={{ padding:"13px 20px",borderBottom:"1px solid rgba(255,255,255,0.06)",display:"flex",alignItems:"center",gap:10 }}>
+                    <span style={{ fontSize:13.5,fontWeight:800,color:"white" }}>Talk to Zari</span>
+                    <span style={{ fontSize:9.5,fontWeight:700,color:"#22C55E",background:"rgba(34,197,94,0.1)",border:"1px solid rgba(34,197,94,0.2)",padding:"2px 6px",borderRadius:3 }}>LIVE</span>
+                    <span style={{ marginLeft:"auto",fontSize:10,color:"rgba(255,255,255,0.28)" }}>06:17</span>
+                    <span style={{ fontSize:10,color:"rgba(255,255,255,0.28)",background:"rgba(255,255,255,0.06)",padding:"3px 8px",borderRadius:5 }}>Job Search</span>
+                  </div>
+                  <div style={{ flex:1,display:"grid",gridTemplateColumns:"1fr 260px",overflow:"hidden" }}>
+                    {/* Chat */}
+                    <div style={{ display:"flex",flexDirection:"column",overflow:"hidden" }}>
+                      {/* Avatar bar */}
+                      <div style={{ padding:"16px 20px 12px",borderBottom:"1px solid rgba(255,255,255,0.05)",display:"flex",alignItems:"center",gap:14 }}>
+                        <div style={{ width:48,height:48,borderRadius:"50%",background:"radial-gradient(circle at 33% 28%,#B4BEFF 0%,#818CF8 18%,#4361EE 52%,#1E3A8A 80%,#0D1B4B 100%)",boxShadow:"0 0 20px rgba(67,97,238,0.5)",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center" }}>
+                          <div style={{ display:"flex",gap:5 }}>{[0,1].map(j=><div key={j} style={{ width:7,height:7,borderRadius:"50%",background:"radial-gradient(circle at 33% 33%,#E0E7FF,#818CF8)",boxShadow:"0 0 6px #818CF8" }}/>)}</div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize:12,fontWeight:800,color:"white" }}>Zari — AI Career Coach</div>
+                          <div style={{ display:"flex",alignItems:"center",gap:5,marginTop:3 }}>
+                            <div style={{ display:"flex",gap:1.5 }}>
+                              {[3,5,8,11,8,5,3].map((h,k)=><div key={k} style={{ width:2.5,height:h,borderRadius:99,background:"#818CF8",animation:`voice-wave ${0.4+k*0.08}s ease-in-out infinite alternate`,animationDelay:`${k*0.05}s` }}/>)}
+                            </div>
+                            <span style={{ fontSize:10.5,color:"#818CF8" }}>{subStep < 3 ? "Listening..." : "Speaking..."}</span>
+                          </div>
+                        </div>
+                      </div>
+                      {/* Messages */}
+                      <div style={{ flex:1,padding:"14px 20px",overflow:"hidden",display:"flex",flexDirection:"column",gap:10 }}>
+                        {subStep >= 1 && (
+                          <div style={{ display:"flex",gap:8,animation:"bubble-appear 0.3s ease" }}>
+                            <div style={{ width:26,height:26,borderRadius:"50%",background:"radial-gradient(circle at 33% 28%,#818CF8,#4361EE)",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:900,color:"white",marginTop:2 }}>Z</div>
+                            <div style={{ background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"3px 12px 12px 12px",padding:"9px 12px",maxWidth:"78%" }}>
+                              <p style={{ fontSize:11.5,color:"rgba(255,255,255,0.82)",lineHeight:1.65,margin:0 }}>Good to see you. Last session we reframed your supply chain project as a product initiative — and you got 2 recruiter responses because of it. Ready to work on interview stories today?</p>
+                            </div>
+                          </div>
+                        )}
+                        {subStep >= 2 && typed.length > 0 && (
+                          <div style={{ display:"flex",gap:8,flexDirection:"row-reverse",animation:"bubble-appear 0.3s ease" }}>
+                            <div style={{ width:26,height:26,borderRadius:"50%",background:"linear-gradient(135deg,#4361EE,#818CF8)",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:800,color:"white",marginTop:2 }}>S</div>
+                            <div style={{ background:"rgba(67,97,238,0.18)",border:"1px solid rgba(67,97,238,0.25)",borderRadius:"12px 3px 12px 12px",padding:"9px 12px",maxWidth:"78%" }}>
+                              <p style={{ fontSize:11.5,color:"rgba(255,255,255,0.85)",lineHeight:1.65,margin:0 }}>{typed}{typed.length < SESSION_MSG.length && <span style={{ animation:"blink 1s infinite" }}>|</span>}</p>
+                            </div>
+                          </div>
+                        )}
+                        {subStep >= 4 && typed.length >= SESSION_MSG.length && (
+                          <div style={{ display:"flex",gap:8,animation:"bubble-appear 0.3s ease" }}>
+                            <div style={{ width:26,height:26,borderRadius:"50%",background:"radial-gradient(circle at 33% 28%,#818CF8,#4361EE)",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:900,color:"white",marginTop:2 }}>Z</div>
+                            <div style={{ background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"3px 12px 12px 12px",padding:"9px 12px",maxWidth:"78%" }}>
+                              <p style={{ fontSize:11.5,color:"rgba(255,255,255,0.82)",lineHeight:1.65,margin:0 }}>Great. We&apos;ll practice the cross-functional leadership question — it&apos;s the one Senior PM panels push hardest on. Take your time and use STAR structure.</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      {/* Input */}
+                      <div style={{ padding:"11px 16px",borderTop:"1px solid rgba(255,255,255,0.06)",display:"flex",gap:8,alignItems:"center" }}>
+                        <div style={{ flex:1,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:10,padding:"9px 13px",fontSize:11.5,color:"rgba(255,255,255,0.22)" }}>Ask Zari anything, or type a question to practice...</div>
+                        <div style={{ width:32,height:32,borderRadius:"50%",background:"#4361EE",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
+                          <svg viewBox="0 0 16 16" fill="none" stroke="white" strokeWidth="2.5" style={{ width:11,height:11 }}><path d="M8 12V4M4 7l4-4 4 4"/></svg>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Quick prompts */}
+                    <div style={{ background:"rgba(255,255,255,0.02)",borderLeft:"1px solid rgba(255,255,255,0.06)",padding:"16px 12px",overflow:"hidden" }}>
+                      <div style={{ fontSize:9.5,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.1em",color:"rgba(255,255,255,0.22)",marginBottom:10 }}>Quick Prompts</div>
+                      {["Practice a PM interview question","Rewrite my resume bullet","Help me answer 'Why product?'","Give me a LinkedIn headline","What should I work on today?","Run a STAR story practice"].map((p,i) => (
+                        <div key={i} style={{ padding:"8px 10px",borderRadius:7,border:"1px solid rgba(255,255,255,0.07)",fontSize:11,color:"rgba(255,255,255,0.4)",marginBottom:6,background:"rgba(255,255,255,0.02)" }}>{p}</div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── RESUME ── */}
+              {activeTab === 1 && (
+                <div style={{ height:"100%",display:"flex",flexDirection:"column",background:"#0F1117" }}>
+                  <div style={{ padding:"13px 20px",borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
+                    <span style={{ fontSize:13.5,fontWeight:800,color:"white" }}>Resume Review</span>
+                  </div>
+                  <div style={{ flex:1,padding:"20px",overflow:"hidden" }}>
+                    {subStep < 2 ? (
+                      <div style={{ border:"2px dashed rgba(67,97,238,0.35)",borderRadius:14,padding:"36px 20px",textAlign:"center",animation:"bubble-appear 0.4s ease" }}>
+                        <div style={{ fontSize:28,marginBottom:8 }}>📄</div>
+                        <div style={{ fontSize:13,fontWeight:700,color:"rgba(255,255,255,0.7)",marginBottom:5 }}>Drop your resume here</div>
+                        <div style={{ fontSize:11,color:"rgba(255,255,255,0.3)" }}>PDF, DOCX — up to 10MB</div>
+                        {subStep >= 1 && (
+                          <div style={{ marginTop:18,animation:"bubble-appear 0.3s ease" }}>
+                            <div style={{ fontSize:11,color:"#818CF8",marginBottom:7 }}>Uploading resume.pdf...</div>
+                            <div style={{ height:4,background:"rgba(255,255,255,0.08)",borderRadius:99,overflow:"hidden" }}>
+                              <div style={{ height:"100%",background:"linear-gradient(90deg,#4361EE,#818CF8)",borderRadius:99,animation:"upload-bar 1.5s ease forwards" }}/>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div style={{ animation:"bubble-appear 0.4s ease" }}>
+                        <div style={{ display:"flex",gap:10,marginBottom:14 }}>
+                          {[{ label:"ATS Score",   val:"62",  sub:"/100", bg:"rgba(67,97,238,0.12)",  bc:"rgba(67,97,238,0.2)",   c:"#818CF8" },
+                            { label:"After Zari",  val:"89",  sub:"/100", bg:"rgba(34,197,94,0.08)",  bc:"rgba(34,197,94,0.2)",   c:"#22C55E" },
+                            { label:"Keywords",    val:"+14", sub:"",     bg:"rgba(255,255,255,0.04)", bc:"rgba(255,255,255,0.08)", c:"rgba(255,255,255,0.3)" }
+                          ].map(m => (
+                            <div key={m.label} style={{ flex:1,background:m.bg,border:`1px solid ${m.bc}`,borderRadius:10,padding:"11px 12px" }}>
+                              <div style={{ fontSize:9,textTransform:"uppercase",letterSpacing:"0.1em",color:m.c,marginBottom:3 }}>{m.label}</div>
+                              <div style={{ fontSize:22,fontWeight:900,color:"white" }}>{m.val}<span style={{ fontSize:12,color:"rgba(255,255,255,0.35)" }}>{m.sub}</span></div>
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{ fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:9 }}>Bullet Rewrites</div>
+                        {[
+                          { before:"Managed cross-functional projects across teams", after:"Led 4-team product initiative delivering $1.2M ARR uplift in Q3", delay:"0s" },
+                          { before:"Worked with engineers to ship features", after:"Partnered with 3 eng squads to ship 6 features in 8 weeks, 0 P1 incidents", delay:"0.15s" },
+                          ...(subStep >= 3 ? [{ before:"Handled customer escalations", after:"Owned 12 enterprise escalations, achieving 94% resolution rate and $800K renewal", delay:"0.3s" }] : []),
+                        ].map((b,i) => (
+                          <div key={i} style={{ background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:9,padding:"9px 12px",marginBottom:7,animation:`bubble-appear 0.3s ${b.delay} both ease` }}>
+                            <div style={{ fontSize:10.5,color:"rgba(239,68,68,0.7)",marginBottom:4,textDecoration:"line-through",lineHeight:1.5 }}>{b.before}</div>
+                            <div style={{ fontSize:10.5,color:"rgba(134,239,172,0.9)",lineHeight:1.5 }}>{b.after}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* ── INTERVIEW ── */}
+              {activeTab === 2 && (
+                <div style={{ height:"100%",display:"flex",flexDirection:"column",background:"#0F1117" }}>
+                  <div style={{ padding:"13px 20px",borderBottom:"1px solid rgba(255,255,255,0.06)",display:"flex",alignItems:"center",gap:10 }}>
+                    <span style={{ fontSize:13.5,fontWeight:800,color:"white" }}>Mock Interview</span>
+                    <span style={{ fontSize:10,color:"rgba(255,255,255,0.28)" }}>Senior PM · Stripe · Behavioral</span>
+                  </div>
+                  <div style={{ flex:1,padding:"18px 20px",overflow:"hidden" }}>
+                    <div style={{ background:"rgba(67,97,238,0.1)",border:"1px solid rgba(67,97,238,0.22)",borderRadius:12,padding:"13px 15px",marginBottom:12,animation:"bubble-appear 0.4s ease" }}>
+                      <div style={{ fontSize:9.5,textTransform:"uppercase",letterSpacing:"0.1em",color:"#818CF8",marginBottom:5 }}>Question 2 / 6 — Leadership & Influence</div>
+                      <p style={{ fontSize:12.5,color:"rgba(255,255,255,0.85)",lineHeight:1.7,margin:0 }}>Tell me about a time you had to influence a team without direct authority to adopt a new process. What was the outcome?</p>
+                    </div>
+                    {subStep >= 1 && (
+                      <div style={{ background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:12,padding:"11px 13px",marginBottom:11,animation:"bubble-appear 0.3s ease" }}>
+                        <div style={{ fontSize:9.5,color:"rgba(255,255,255,0.3)",marginBottom:5,textTransform:"uppercase",letterSpacing:"0.08em" }}>Your Answer</div>
+                        <p style={{ fontSize:11,color:"rgba(255,255,255,0.65)",lineHeight:1.7,margin:0 }}>At my last role, I noticed the eng team was shipping features without clear acceptance criteria. I built a lightweight RFC template — situation was we had 3 P1s in a month from misaligned expectations. I ran a lunch-and-learn, got buy-in from two senior engineers first, then presented to the full team. All 4 squads adopted it within 6 weeks. P1s dropped to zero that quarter.</p>
+                      </div>
+                    )}
+                    {subStep >= 2 && (
+                      <div style={{ animation:"bubble-appear 0.3s ease" }}>
+                        <div style={{ fontSize:9.5,fontWeight:700,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8 }}>Zari Score</div>
+                        <div style={{ display:"flex",gap:6,marginBottom:10 }}>
+                          {[{label:"Situation",sc:9},{label:"Task",sc:8},{label:"Action",sc:9},{label:"Result",sc:10},{label:"Leadership",sc:9},{label:"Impact",sc:8}].map(d => (
+                            <div key={d.label} style={{ flex:1,textAlign:"center",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:8,padding:"7px 4px" }}>
+                              <div style={{ fontSize:17,fontWeight:900,color:d.sc >= 9?"#86EFAC":"#FCD34D" }}>{d.sc}</div>
+                              <div style={{ fontSize:8,color:"rgba(255,255,255,0.28)",marginTop:2 }}>{d.label}</div>
+                            </div>
+                          ))}
+                        </div>
+                        {subStep >= 3 && (
+                          <div style={{ background:"rgba(134,239,172,0.08)",border:"1px solid rgba(134,239,172,0.18)",borderRadius:9,padding:"8px 11px",animation:"bubble-appear 0.3s ease" }}>
+                            <p style={{ fontSize:11,color:"rgba(134,239,172,0.85)",lineHeight:1.6,margin:0 }}>Strong STAR structure. Result is specific and quantified. Next: open with the metric earlier — say &quot;dropped P1 incidents to zero&quot; in your first sentence to anchor the impact before the story.</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* ── LINKEDIN ── */}
+              {activeTab === 3 && (
+                <div style={{ height:"100%",display:"flex",flexDirection:"column",background:"#0F1117" }}>
+                  <div style={{ padding:"13px 20px",borderBottom:"1px solid rgba(255,255,255,0.06)",display:"flex",alignItems:"center",gap:10 }}>
+                    <span style={{ fontSize:13.5,fontWeight:800,color:"white" }}>LinkedIn Optimizer</span>
+                    <div style={{ marginLeft:"auto",display:"flex",gap:8 }}>
+                      <div style={{ background:"rgba(255,255,255,0.06)",padding:"4px 10px",borderRadius:6,fontSize:10.5,color:"rgba(255,255,255,0.4)" }}>Before: <span style={{ color:"#F87171",fontWeight:800 }}>54</span></div>
+                      <div style={{ background:"rgba(34,197,94,0.1)",border:"1px solid rgba(34,197,94,0.2)",padding:"4px 10px",borderRadius:6,fontSize:10.5,color:"#86EFAC",fontWeight:800 }}>After: 91</div>
+                    </div>
+                  </div>
+                  <div style={{ flex:1,padding:"16px 20px",overflow:"hidden",display:"flex",flexDirection:"column",gap:9 }}>
+                    {linkedinItems.filter((_,i) => i < 2 || subStep >= 3).map((item,i) => (
+                      <div key={i} style={{ background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,padding:"11px 13px",animation:`bubble-appear 0.3s ${item.delay} both ease` }}>
+                        <div style={{ fontSize:9.5,textTransform:"uppercase",letterSpacing:"0.1em",color:"#818CF8",marginBottom:6 }}>{item.section}</div>
+                        {!item.keywords && <div style={{ fontSize:10.5,color:"rgba(239,68,68,0.65)",marginBottom:4,textDecoration:"line-through",lineHeight:1.5 }}>{item.before}</div>}
+                        <div style={{ fontSize:10.5,color:"rgba(134,239,172,0.9)",lineHeight:1.6 }}>{item.after}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+            </div>
+          </div>
+        </div>
+
+        {/* Progress dots */}
+        <div style={{ display:"flex",justifyContent:"center",gap:6,marginTop:18 }}>
+          {TABS.map((_,i) => (
+            <div
+              key={i}
+              onClick={() => { setActiveTab(i); setSubStep(0); setTyped(""); }}
+              style={{ height:3,borderRadius:99,cursor:"pointer",transition:"all 0.3s", width:activeTab===i?32:16, background:activeTab===i?"#818CF8":"rgba(255,255,255,0.15)" }}
+            />
+          ))}
+        </div>
+
+      </div>
+    </section>
+  );
+}
+
+/* ══════════════════════════════════════════════════
    MAIN EXPORT
 ══════════════════════════════════════════════════ */
 export function HomeClient({ userId }: { userId: boolean }) {
   const [currentReview, setCurrentReview] = useState(0);
+  const [activeFounder, setActiveFounder] = useState(0);
 
   useEffect(() => {
     const t = setInterval(() => setCurrentReview(i => (i+1) % PEOPLE.length), 4000);
@@ -1017,19 +1398,19 @@ export function HomeClient({ userId }: { userId: boolean }) {
       </section>
 
       {/* ══════ LOGO MARQUEE ══════ */}
-      <section style={{ background:"#EEF0FB", padding:"120px 0 96px", overflow:"hidden" }}>
-        <p style={{ textAlign:"center", fontSize:12, fontWeight:600, textTransform:"uppercase", letterSpacing:"0.16em", color:"#8B96C8", marginBottom:32 }}>
+      <section style={{ background:"#EEF0FB", padding:"44px 0 48px", overflow:"hidden" }}>
+        <p style={{ textAlign:"center", fontSize:12, fontWeight:600, textTransform:"uppercase", letterSpacing:"0.16em", color:"#8B96C8", marginBottom:22 }}>
           Used by candidates targeting
         </p>
         <div style={{ overflow:"hidden", WebkitMaskImage:"linear-gradient(to right,transparent,black 5%,black 95%,transparent)", maskImage:"linear-gradient(to right,transparent,black 5%,black 95%,transparent)" }}>
-          <div style={{ display:"flex", alignItems:"center", gap:72, animation:"marquee-x 38s linear infinite", whiteSpace:"nowrap" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:80, animation:"marquee-x 38s linear infinite", whiteSpace:"nowrap" }}>
             {[...LOGOS,...LOGOS].map((l,i) => (
-              <div key={i} style={{ display:"flex", alignItems:"center", justifyContent:"center", height:44, flexShrink:0 }}>
+              <div key={i} style={{ display:"flex", alignItems:"center", justifyContent:"center", height:56, flexShrink:0 }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={l.src}
                   alt={l.name}
-                  style={{ height:48, maxWidth:140, objectFit:"contain", filter:"grayscale(1) opacity(0.68)" }}
+                  style={{ height:62, maxWidth:160, objectFit:"contain", filter:"grayscale(1) opacity(0.72)" }}
                   onError={(e) => {
                     const img = e.currentTarget;
                     img.style.display = "none";
@@ -1044,7 +1425,10 @@ export function HomeClient({ userId }: { userId: boolean }) {
         </div>
       </section>
 
-      {/* ══════ FOUNDER SECTION — Kleo layout ══════ */}
+      {/* ══════ PLATFORM WALKTHROUGH ══════ */}
+      <PlatformWalkthrough />
+
+      {/* ══════ FOUNDER SECTION — interactive hover ══════ */}
       <section style={{ background:"white", padding:"0 40px", minHeight:"100vh", display:"flex", alignItems:"center" }}>
         <div style={{ maxWidth:1200, margin:"0 auto", width:"100%", paddingTop:96, paddingBottom:96 }}>
           <h2 style={{ textAlign:"center", fontSize:"clamp(1.9rem,3.5vw,2.6rem)", fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", marginBottom:64 }}>
@@ -1053,48 +1437,59 @@ export function HomeClient({ userId }: { userId: boolean }) {
 
           <div style={{ display:"grid", gridTemplateColumns:"44fr 56fr", gap:72, alignItems:"center" }}>
 
-            {/* LEFT — large portrait */}
-            <div style={{ borderRadius:20, overflow:"hidden", aspectRatio:"3/4", boxShadow:"0 32px 80px rgba(0,0,0,0.15)" }}>
+            {/* LEFT — large portrait, swaps on hover */}
+            <div key={activeFounder} style={{ borderRadius:20, overflow:"hidden", aspectRatio:"3/4", boxShadow:"0 32px 80px rgba(0,0,0,0.15)", animation:"bubble-appear 0.45s ease" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/images/steve.jpg" alt="Steve J Ngoumnai" style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top" }} />
+              <img
+                src={FOUNDERS[activeFounder].photo}
+                alt={FOUNDERS[activeFounder].name}
+                style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top" }}
+              />
             </div>
 
             {/* RIGHT — avatars + story */}
             <div>
-              {/* Founder avatars row */}
+              {/* Founder avatar row — hover to switch */}
               <div style={{ display:"flex", gap:28, marginBottom:40, flexWrap:"wrap" }}>
-                {[
-                  { photo:"/images/steve.jpg",  name:"Steve J Ngoumnai", sub:"Founder & CEO"     },
-                  { photo:"/images/owen.png",    name:"Owen Thomas",      sub:"Head of Coaching"  },
-                  { photo:"/images/leanne.jpg",  name:"Leanne Adair",     sub:"Performance Coach" },
-                ].map((p) => (
-                  <div key={p.name} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:7 }}>
-                    <div style={{ width:64, height:64, borderRadius:"50%", overflow:"hidden", boxShadow:"0 4px 16px rgba(0,0,0,0.12)", border:"2px solid #F0F2F8" }}>
+                {FOUNDERS.map((f, i) => (
+                  <div
+                    key={f.name}
+                    onMouseEnter={() => setActiveFounder(i)}
+                    onClick={() => setActiveFounder(i)}
+                    style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:7, cursor:"pointer", transition:"transform 0.2s", transform: activeFounder === i ? "translateY(-4px)" : "none" }}
+                  >
+                    <div style={{
+                      width:64, height:64, borderRadius:"50%", overflow:"hidden",
+                      boxShadow: activeFounder === i ? "0 0 0 3px #4361EE, 0 8px 24px rgba(67,97,238,0.28)" : "0 4px 16px rgba(0,0,0,0.12)",
+                      border: activeFounder === i ? "2px solid white" : "2px solid #F0F2F8",
+                      transition:"box-shadow 0.2s, border-color 0.2s",
+                    }}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={p.photo} alt={p.name} style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top" }} />
+                      <img src={f.photo} alt={f.name} style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top" }} />
                     </div>
                     <div style={{ textAlign:"center" }}>
-                      <div style={{ fontSize:13, fontWeight:700, color:"#0A0A0F" }}>{p.name}</div>
-                      <div style={{ fontSize:11.5, color:"#68738A" }}>{p.sub}</div>
+                      <div style={{ fontSize:13, fontWeight:700, color: activeFounder === i ? "#4361EE" : "#0A0A0F", transition:"color 0.2s" }}>{f.name}</div>
+                      <div style={{ fontSize:11.5, color:"#68738A" }}>{f.title}</div>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <h3 style={{ fontSize:"clamp(1.3rem,2.2vw,1.75rem)", fontWeight:900, letterSpacing:"-0.03em", color:"#0A0A0F", lineHeight:1.2, marginBottom:22 }}>
-                From Platform Engineer to career coach at scale.
-              </h3>
-
-              <p style={{ fontSize:16, lineHeight:1.85, color:"#4A5270", marginBottom:16 }}>
-                &ldquo;I spent years watching talented people get passed over — not because they lacked ability, but because they couldn&apos;t tell their story. As a Platform Engineer and career advisor at Askia Enterprise and Machines & Cloud, I saw the same patterns repeat: vague bullets, weak interview stories, salary negotiations abandoned too early.
-              </p>
-              <p style={{ fontSize:16, lineHeight:1.85, color:"#4A5270", marginBottom:32 }}>
-                Owen and Leanne brought 15+ years of executive coaching and career transition expertise. Together, we built Zari to give every professional access to the same coaching that used to cost thousands — specific, memory-driven, and built for people serious about their next move.&rdquo;
-              </p>
-
-              <p style={{ fontSize:20, fontStyle:"italic", fontWeight:700, color:"#0A0A0F", fontFamily:"Georgia,serif" }}>
-                – Steve J Ngoumnai
-              </p>
+              {/* Story — animates when founder changes */}
+              <div key={`story-${activeFounder}`} style={{ animation:"bubble-appear 0.4s ease" }}>
+                <h3 style={{ fontSize:"clamp(1.3rem,2.2vw,1.75rem)", fontWeight:900, letterSpacing:"-0.03em", color:"#0A0A0F", lineHeight:1.2, marginBottom:22 }}>
+                  {FOUNDERS[activeFounder].h3}
+                </h3>
+                <p style={{ fontSize:16, lineHeight:1.85, color:"#4A5270", marginBottom:16 }}>
+                  {FOUNDERS[activeFounder].story1}
+                </p>
+                <p style={{ fontSize:16, lineHeight:1.85, color:"#4A5270", marginBottom:32 }}>
+                  {FOUNDERS[activeFounder].story2}
+                </p>
+                <p style={{ fontSize:20, fontStyle:"italic", fontWeight:700, color:"#0A0A0F", fontFamily:"Georgia,serif" }}>
+                  {FOUNDERS[activeFounder].sig}
+                </p>
+              </div>
             </div>
 
           </div>
