@@ -1044,66 +1044,62 @@ export function HomeClient({ userId }: { userId: boolean }) {
         </div>
       </section>
 
-      {/* ══════ FOUNDER SECTION ══════ */}
-      <section style={{ background:"#FAFBFF", padding:"0 32px", minHeight:"100vh", display:"flex", alignItems:"center" }}>
-        <div style={{ maxWidth:1300, margin:"0 auto", width:"100%", paddingTop:96, paddingBottom:96 }}>
-          <h2 style={{ textAlign:"center", fontSize:"clamp(1.9rem,3.5vw,2.6rem)", fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", marginBottom:72 }}>
-            Meet the founders behind Zari.
+      {/* ══════ FOUNDER SECTION — Kleo layout ══════ */}
+      <section style={{ background:"white", padding:"0 40px", minHeight:"100vh", display:"flex", alignItems:"center" }}>
+        <div style={{ maxWidth:1200, margin:"0 auto", width:"100%", paddingTop:96, paddingBottom:96 }}>
+          <h2 style={{ textAlign:"center", fontSize:"clamp(1.9rem,3.5vw,2.6rem)", fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", marginBottom:64 }}>
+            Meet the founders behind Zari
           </h2>
 
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:40 }}>
-            {[
-              {
-                photo:"/images/steve.jpg",
-                name:"Steve J Ngoumnai",
-                title:"Founder & CEO",
-                tag:"Platform Engineering · Career Strategy",
-                story:`"I spent years watching talented engineers and PMs get passed over — not because they lacked ability, but because they couldn't articulate their value. As a Platform Engineer and career advisor at companies like Askia Enterprise and Machines & Cloud, I saw the same patterns repeat: vague bullets, weak stories, salary left on the table. Zari is the coach I wish I'd had — specific, memory-driven, and built for people who are serious about their career."`,
-                sig:"— Steve J Ngoumnai",
-              },
-              {
-                photo:"/images/owen.png",
-                name:"Owen Thomas",
-                title:"Head of Coaching",
-                tag:"Career Transitions · Executive Coaching",
-                story:`"After two decades editing for the BBC, ITV, Channel 4, Netflix and Discovery, I took a leap into career coaching — and immediately saw how much people underestimate their own value. I've helped hundreds of professionals navigate transitions, land roles above their expected level, and walk into conversations with genuine confidence. What Zari does is scale that work. The same honest, direct coaching — available to anyone."`,
-                sig:"— Owen Thomas",
-              },
-              {
-                photo:"/images/leanne.jpg",
-                name:"Leanne Adair",
-                title:"Performance Coach",
-                tag:"Leadership · High-Performance Teams",
-                story:`"I've spent 15 years working with senior leaders and executives in global corporate environments — from the boardroom to the interview room. Certified by the Association for Coaching, my mission has always been to unlock potential in individuals who are ready to make a real change. With Zari, that coaching reaches people earlier in their career, before they hit the ceiling. That's what makes this different."`,
-                sig:"— Leanne Adair",
-              },
-            ].map((f) => (
-              <div key={f.name} style={{ background:"white", borderRadius:24, overflow:"hidden", boxShadow:"0 8px 40px rgba(0,0,0,0.07)", border:"1px solid #F0F2F8", display:"flex", flexDirection:"column" }}>
-                {/* Photo */}
-                <div style={{ aspectRatio:"1/1", overflow:"hidden" }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={f.photo}
-                    alt={f.name}
-                    style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top", imageRendering:"high-quality" as React.CSSProperties["imageRendering"] }}
-                  />
-                </div>
-                {/* Content */}
-                <div style={{ padding:"28px 28px 32px", flex:1, display:"flex", flexDirection:"column" }}>
-                  <div style={{ marginBottom:16 }}>
-                    <div style={{ fontSize:17, fontWeight:800, color:"#0A0A0F", marginBottom:3 }}>{f.name}</div>
-                    <div style={{ fontSize:13, fontWeight:600, color:"#4361EE", marginBottom:4 }}>{f.title}</div>
-                    <div style={{ fontSize:11.5, color:"#9AA3B8" }}>{f.tag}</div>
+          <div style={{ display:"grid", gridTemplateColumns:"44fr 56fr", gap:72, alignItems:"center" }}>
+
+            {/* LEFT — large portrait */}
+            <div style={{ borderRadius:20, overflow:"hidden", aspectRatio:"3/4", boxShadow:"0 32px 80px rgba(0,0,0,0.15)" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/images/steve.jpg" alt="Steve J Ngoumnai" style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top" }} />
+            </div>
+
+            {/* RIGHT — avatars + story */}
+            <div>
+              {/* Founder avatars row */}
+              <div style={{ display:"flex", gap:28, marginBottom:40, flexWrap:"wrap" }}>
+                {[
+                  { photo:"/images/steve.jpg",  name:"Steve J Ngoumnai", sub:"Founder & CEO"     },
+                  { photo:"/images/owen.png",    name:"Owen Thomas",      sub:"Head of Coaching"  },
+                  { photo:"/images/leanne.jpg",  name:"Leanne Adair",     sub:"Performance Coach" },
+                ].map((p) => (
+                  <div key={p.name} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:7 }}>
+                    <div style={{ width:64, height:64, borderRadius:"50%", overflow:"hidden", boxShadow:"0 4px 16px rgba(0,0,0,0.12)", border:"2px solid #F0F2F8" }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={p.photo} alt={p.name} style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top" }} />
+                    </div>
+                    <div style={{ textAlign:"center" }}>
+                      <div style={{ fontSize:13, fontWeight:700, color:"#0A0A0F" }}>{p.name}</div>
+                      <div style={{ fontSize:11.5, color:"#68738A" }}>{p.sub}</div>
+                    </div>
                   </div>
-                  <p style={{ fontSize:14.5, lineHeight:1.8, color:"#4A5270", flex:1, marginBottom:20, fontStyle:"italic" }}>
-                    {f.story}
-                  </p>
-                  <p style={{ fontSize:16, fontWeight:700, fontStyle:"italic", color:"#0A0A0F", fontFamily:"Georgia,serif", margin:0 }}>
-                    {f.sig}
-                  </p>
-                </div>
+                ))}
               </div>
-            ))}
+
+              <h3 style={{ fontSize:"clamp(1.3rem,2.2vw,1.75rem)", fontWeight:900, letterSpacing:"-0.03em", color:"#0A0A0F", lineHeight:1.2, marginBottom:22 }}>
+                From Platform Engineer to career coach at scale.
+              </h3>
+
+              <p style={{ fontSize:16, lineHeight:1.85, color:"#4A5270", marginBottom:16 }}>
+                &ldquo;I spent years watching talented people get passed over — not because they lacked ability, but because they couldn&apos;t tell their story. As a Platform Engineer and career advisor at Askia Enterprise and Machines & Cloud, I saw the same patterns repeat: vague bullets, weak interview stories, salary negotiations abandoned too early.
+              </p>
+              <p style={{ fontSize:16, lineHeight:1.85, color:"#4A5270", marginBottom:32 }}>
+                Owen and Leanne brought 15+ years of executive coaching and career transition expertise. Together, we built Zari to give every professional access to the same coaching that used to cost thousands — specific, memory-driven, and built for people serious about their next move.&rdquo;
+              </p>
+
+              <p style={{ fontSize:20, fontStyle:"italic", fontWeight:700, color:"#0A0A0F", fontFamily:"Georgia,serif" }}>
+                – Steve J Ngoumnai
+              </p>
+            </div>
+
+          </div>
+        </div>
+      </section>
           </div>
         </div>
       </section>
@@ -1119,29 +1115,47 @@ export function HomeClient({ userId }: { userId: boolean }) {
         ))}
       </section>
 
-      {/* ══════ FAQ ══════ */}
-      <section style={{ padding:"96px 28px", minHeight:"100vh", display:"flex", alignItems:"center", background:"white" }}>
-        <div style={{ maxWidth:640, margin:"0 auto" }}>
-          <div style={{ textAlign:"center", marginBottom:48 }}>
-            <h2 style={{ fontSize:"clamp(1.8rem,3.5vw,2.6rem)", fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F" }}>
-              Frequently asked.
-            </h2>
+      {/* ══════ FAQ — Kleo layout ══════ */}
+      <section style={{ padding:"0 40px", minHeight:"100vh", display:"flex", alignItems:"center", background:"#FAFBFF" }}>
+        <div style={{ maxWidth:1200, margin:"0 auto", width:"100%", paddingTop:96, paddingBottom:96 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 2fr", gap:80, alignItems:"start" }}>
+
+            {/* LEFT — sticky heading */}
+            <div style={{ position:"sticky", top:120 }}>
+              <h2 style={{ fontSize:"clamp(2rem,3.8vw,2.8rem)", fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", lineHeight:1.15 }}>
+                You have questions,<br />we have answers
+              </h2>
+            </div>
+
+            {/* RIGHT — accordion list */}
+            <div>
+              {[
+                { q:"Is the free tier actually useful?", a:"Yes. One session per coaching surface is enough to see whether Zari works for you. Most users have their strongest insight in that first session — no credit card required." },
+                { q:"How is this different from ChatGPT?", a:"ChatGPT is a general assistant. Zari is a specialized career coach with dedicated surfaces for résumés, interviews, LinkedIn, and salary — plus session memory, voice mode, and an animated coach avatar. It knows your goals and builds on every conversation." },
+                { q:"What does session memory mean?", a:"Every session is summarized and stored. Session 5 knows everything from sessions 1–4: your target role, blockers, materials, and what you worked on before. You never have to re-explain your situation." },
+                { q:"Does it work for career changers?", a:"It was built for them. Zari helps you reframe your background for a new industry — not just polish existing experience. It's used by people pivoting from finance to product, engineering to management, and everything in between." },
+                { q:"What's included in my subscription?", a:"Every plan includes all coaching surfaces: résumé review, LinkedIn optimizer, mock interviews, promotion coaching, and salary negotiation. Higher plans add more sessions, voice mode, and priority support." },
+                { q:"Can it help with promotions, not just job searches?", a:"Promotions are one of Zari's most popular use cases. It helps you build the business case, prepare your pitch, simulate the manager conversation, and close the gap between where you are and where you need to be." },
+                { q:"How does voice mode work?", a:"You speak, Zari listens and responds in real time. The avatar reacts as you talk — ideal for interview practice or any session where you want to rehearse out loud rather than type." },
+                { q:"Is my data private?", a:"Yes. Your sessions, résumé, and coaching history are private to your account. We do not train on your personal data or share it with third parties." },
+                { q:"When do I choose a plan?", a:"After signing up and seeing what Zari can do. The free tier is genuinely useful — not a stripped-down teaser. Most people upgrade after the first session because they want to continue the work." },
+                { q:"What's the cancellation policy?", a:"Cancel any time. No lock-in, no fees. Your session history stays accessible for 30 days after cancellation so you can export your coaching notes." },
+              ].map((faq,i) => (
+                <details key={i} style={{ borderBottom:"1px solid #E8EAF2" }}>
+                  <summary style={{ padding:"22px 0", cursor:"pointer", display:"flex", justifyContent:"space-between", alignItems:"center", fontSize:16, fontWeight:600, color:"#0A0A0F", listStyle:"none", gap:16 }}>
+                    {faq.q}
+                    <span style={{ width:28, height:28, borderRadius:"50%", border:"1.5px solid #D0D5E8", display:"inline-flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                      <svg viewBox="0 0 16 16" fill="none" stroke="#0A0A0F" strokeWidth="2" strokeLinecap="round" style={{ width:11,height:11 }}>
+                        <path d="M8 3v10M3 8h10"/>
+                      </svg>
+                    </span>
+                  </summary>
+                  <p style={{ paddingBottom:22, paddingRight:44, fontSize:15.5, lineHeight:1.75, color:"#68738A", margin:0 }}>{faq.a}</p>
+                </details>
+              ))}
+            </div>
+
           </div>
-          {[
-            { q:"Is the free tier actually useful?", a:"Yes. One session per coaching surface is enough to see whether Zari works for you. Most users have their strongest insight in that first session." },
-            { q:"How is this different from ChatGPT?", a:"ChatGPT is a general assistant. Zari is a specialized career coach with dedicated surfaces, session memory, voice mode, and an animated avatar — built specifically for job searching." },
-            { q:"What does session memory mean?", a:"Every session is summarized and stored. Session 5 knows everything from sessions 1–4 — your target role, blockers, materials — without you re-explaining anything." },
-            { q:"When do I choose a plan?", a:"After signing up and seeing what Zari can do. No credit card required to start and the free tier is genuinely useful — not a stripped-down teaser." },
-            { q:"Does it work for career changers?", a:"It was built for them. Zari helps you reframe your background for a new industry, not just polish existing experience." },
-          ].map((faq,i) => (
-            <details key={i} style={{ borderBottom:"1px solid #F1F5F9" }}>
-              <summary style={{ padding:"18px 0", cursor:"pointer", display:"flex", justifyContent:"space-between", alignItems:"center", fontSize:15.5, fontWeight:600, color:"#0A0A0F", listStyle:"none" }}>
-                {faq.q}
-                <svg viewBox="0 0 20 20" fill="none" stroke="#A0AABF" strokeWidth="2" style={{ width:18,height:18,flexShrink:0 }}><path d="M5 8l5 5 5-5"/></svg>
-              </summary>
-              <p style={{ paddingBottom:18, fontSize:15, lineHeight:1.7, color:"#68738A", margin:0 }}>{faq.a}</p>
-            </details>
-          ))}
         </div>
       </section>
 
