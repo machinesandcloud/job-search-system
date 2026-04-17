@@ -1100,9 +1100,6 @@ export function HomeClient({ userId }: { userId: boolean }) {
           </div>
         </div>
       </section>
-          </div>
-        </div>
-      </section>
 
       {/* ══════ FEATURES — Kleo-style sections ══════ */}
       <section id="features" style={{ background:"#FAFBFF" }}>
