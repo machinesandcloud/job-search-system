@@ -906,7 +906,10 @@ export function HomeClient({ userId }: { userId: boolean }) {
         @keyframes upload-bar { 0%{width:0%} 100%{width:100%} }
         @keyframes analyze-bar { 0%{width:0%} 60%{width:62%} 100%{width:62%} }
         @keyframes listen-ripple { 0%{transform:scale(1);opacity:0.5} 100%{transform:scale(1.8);opacity:0} }
-        @keyframes heart-float { 0%{transform:translateY(0) rotate(-10deg);opacity:0} 6%{opacity:1} 88%{opacity:0.5} 100%{transform:translateY(-400vh) rotate(14deg);opacity:0} }
+        @keyframes heart-float       { 0%{transform:translateY(0) rotate(-10deg);opacity:0} 6%{opacity:1} 88%{opacity:0.55} 100%{transform:translateY(-400vh) rotate(14deg);opacity:0} }
+        @keyframes heart-float-left  { 0%{transform:translateY(0) translateX(0) rotate(-8deg);opacity:0} 6%{opacity:1} 88%{opacity:0.55} 100%{transform:translateY(-400vh) translateX(-90px) rotate(-22deg);opacity:0} }
+        @keyframes heart-float-right { 0%{transform:translateY(0) translateX(0) rotate(8deg);opacity:0} 6%{opacity:1} 88%{opacity:0.55} 100%{transform:translateY(-400vh) translateX(90px) rotate(22deg);opacity:0} }
+        @keyframes heart-float-sway  { 0%{transform:translateY(0) translateX(0) rotate(-12deg);opacity:0} 6%{opacity:1} 25%{transform:translateY(-100vh) translateX(50px) rotate(6deg)} 50%{transform:translateY(-200vh) translateX(-30px) rotate(-9deg)} 75%{transform:translateY(-300vh) translateX(40px) rotate(11deg)} 88%{opacity:0.55} 100%{transform:translateY(-400vh) translateX(-15px) rotate(-16deg);opacity:0} }
         .review-card { transition: transform 0.22s ease, box-shadow 0.22s ease; cursor:default; }
         .review-card:hover { transform:translateY(-5px); box-shadow:0 12px 40px rgba(67,97,238,0.13) !important; border-color:#C7D2FE !important; }
         * { box-sizing: border-box; }
@@ -1025,7 +1028,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
                 <img
                   src={l.src}
                   alt={l.name}
-                  style={{ height:36, maxWidth:120, objectFit:"contain", filter:"grayscale(1) opacity(0.5)" }}
+                  style={{ height:48, maxWidth:140, objectFit:"contain", filter:"grayscale(1) opacity(0.68)" }}
                   onError={(e) => {
                     const img = e.currentTarget;
                     img.style.display = "none";
@@ -1036,6 +1039,64 @@ export function HomeClient({ userId }: { userId: boolean }) {
                 <span style={{ display:"none", fontSize:16, fontWeight:800, color:"#3D4580", letterSpacing:"-0.02em" }}>{l.name}</span>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════ FOUNDER SECTION ══════ */}
+      <section style={{ background:"white", padding:"112px 24px" }}>
+        <div style={{ maxWidth:1100, margin:"0 auto" }}>
+          <h2 style={{ textAlign:"center", fontSize:"clamp(1.9rem,3.5vw,2.6rem)", fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", marginBottom:64 }}>
+            Meet the founder behind Zari.
+          </h2>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:72, alignItems:"center" }}>
+
+            {/* LEFT: photo */}
+            <div style={{ borderRadius:24, overflow:"hidden", boxShadow:"0 24px 80px rgba(0,0,0,0.13)", aspectRatio:"4/5", position:"relative" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/images/steve.jpg"
+                alt="Steve J Ngoumnai — founder of Zari"
+                style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top" }}
+              />
+            </div>
+
+            {/* RIGHT: story */}
+            <div>
+              <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:28 }}>
+                <div style={{ width:52, height:52, borderRadius:"50%", overflow:"hidden", flexShrink:0, border:"2px solid #EEF2FF" }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/images/steve.jpg" alt="Steve" style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top" }} />
+                </div>
+                <div>
+                  <div style={{ fontSize:16, fontWeight:800, color:"#0A0A0F" }}>Steve J Ngoumnai</div>
+                  <div style={{ fontSize:13, color:"#68738A" }}>Founder · Platform Engineer · Career Strategist</div>
+                </div>
+                <a href="https://linkedin.com/in/stevengoumnai" target="_blank" rel="noopener noreferrer" style={{ marginLeft:"auto", display:"inline-flex", alignItems:"center", gap:6, fontSize:12, fontWeight:600, color:"#0A66C2", textDecoration:"none", background:"#EBF4FF", border:"1px solid rgba(10,102,194,0.2)", padding:"5px 12px", borderRadius:99 }}>
+                  <svg viewBox="0 0 16 16" fill="#0A66C2" style={{ width:13,height:13 }}><path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854V1.146zm4.943 12.248V6.169H2.542v7.225h2.401zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248-.822 0-1.359.54-1.359 1.248 0 .694.521 1.248 1.327 1.248h.016zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016a5.54 5.54 0 0 1 .016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225h2.4z"/></svg>
+                  LinkedIn
+                </a>
+              </div>
+
+              <h3 style={{ fontSize:"clamp(1.4rem,2.4vw,1.9rem)", fontWeight:900, letterSpacing:"-0.03em", color:"#0A0A0F", lineHeight:1.2, marginBottom:20 }}>
+                From frustrated job seeker<br />to AI-first career coach.
+              </h3>
+
+              <p style={{ fontSize:16, lineHeight:1.8, color:"#4A5270", marginBottom:16 }}>
+                I spent years watching talented people get passed over — not because they lacked the skills, but because they couldn&apos;t articulate their value. As a Platform Engineer and career advisor, I saw the same patterns repeating: vague resume bullets, weak interview stories, and salary negotiations left on the table.
+              </p>
+              <p style={{ fontSize:16, lineHeight:1.8, color:"#4A5270", marginBottom:28 }}>
+                Zari is the coach I wish I&apos;d had — one that remembers everything, adapts to your situation, and gives you the specific language to move forward. Not generic advice. The exact words that open doors.
+              </p>
+
+              <blockquote style={{ margin:0, borderLeft:"3px solid #4361EE", paddingLeft:20 }}>
+                <p style={{ fontSize:17, fontStyle:"italic", color:"#1E2235", lineHeight:1.7, marginBottom:8 }}>
+                  &ldquo;I built Zari because every person I coached deserved access to the same level of strategic guidance — not just the ones who could afford a $500/hr executive coach.&rdquo;
+                </p>
+                <cite style={{ fontSize:14, fontWeight:700, fontStyle:"normal", color:"#4361EE", fontFamily:"Georgia,serif" }}>— Steve J Ngoumnai</cite>
+              </blockquote>
+            </div>
+
           </div>
         </div>
       </section>
@@ -1126,8 +1187,8 @@ export function HomeClient({ userId }: { userId: boolean }) {
           <div key={i} aria-hidden style={{
             position:"absolute", bottom:"-30px", left:h.left,
             fontSize:h.s, color:"#E8336D", opacity:h.o,
-            pointerEvents:"none", userSelect:"none", lineHeight:1, zIndex:1,
-            animation:`heart-float ${h.dur} ${h.delay} ease-in infinite`,
+            pointerEvents:"none", userSelect:"none", lineHeight:1, zIndex:10,
+            animation:`${["heart-float","heart-float-left","heart-float-right","heart-float-sway"][i%4]} ${h.dur} ${h.delay} ease-in infinite`,
           }}>♥</div>
         ))}
 
