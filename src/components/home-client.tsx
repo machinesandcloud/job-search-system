@@ -1045,57 +1045,65 @@ export function HomeClient({ userId }: { userId: boolean }) {
       </section>
 
       {/* ══════ FOUNDER SECTION ══════ */}
-      <section style={{ background:"white", padding:"0 24px", minHeight:"100vh", display:"flex", alignItems:"center" }}>
-        <div style={{ maxWidth:1200, margin:"0 auto", width:"100%", paddingTop:80, paddingBottom:80 }}>
-          <h2 style={{ textAlign:"center", fontSize:"clamp(1.9rem,3.5vw,2.6rem)", fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", marginBottom:56 }}>
+      <section style={{ background:"#FAFBFF", padding:"0 32px", minHeight:"100vh", display:"flex", alignItems:"center" }}>
+        <div style={{ maxWidth:1300, margin:"0 auto", width:"100%", paddingTop:96, paddingBottom:96 }}>
+          <h2 style={{ textAlign:"center", fontSize:"clamp(1.9rem,3.5vw,2.6rem)", fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", marginBottom:72 }}>
             Meet the founders behind Zari.
           </h2>
-          <div style={{ display:"grid", gridTemplateColumns:"46fr 54fr", gap:72, alignItems:"center" }}>
 
-            {/* LEFT: large photo */}
-            <div style={{ borderRadius:24, overflow:"hidden", boxShadow:"0 24px 80px rgba(0,0,0,0.14)", aspectRatio:"3/4" }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/images/steve.jpg" alt="Steve J Ngoumnai" style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top" }} />
-            </div>
-
-            {/* RIGHT: founder cards + story */}
-            <div>
-              {/* Founder avatar row — like Kleo */}
-              <div style={{ display:"flex", gap:20, marginBottom:40, flexWrap:"wrap" }}>
-                {[
-                  { name:"Steve J Ngoumnai", title:"Founder & CEO",           photo:"/images/steve.jpg",                               isLocal:true  },
-                  { name:"Owen Thomas",      title:"Head of Coaching",         photo:"https://randomuser.me/api/portraits/men/76.jpg",   isLocal:false },
-                  { name:"Leanne Adair",     title:"Performance Coach",        photo:"https://randomuser.me/api/portraits/women/56.jpg", isLocal:false },
-                ].map((f) => (
-                  <div key={f.name} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:6 }}>
-                    <div style={{ width:60, height:60, borderRadius:"50%", overflow:"hidden", border:"2.5px solid white", boxShadow:"0 4px 16px rgba(0,0,0,0.12)" }}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={f.photo} alt={f.name} style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top" }} />
-                    </div>
-                    <div style={{ textAlign:"center" }}>
-                      <div style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", whiteSpace:"nowrap" }}>{f.name}</div>
-                      <div style={{ fontSize:11, color:"#68738A", whiteSpace:"nowrap" }}>{f.title}</div>
-                    </div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:40 }}>
+            {[
+              {
+                photo:"/images/steve.jpg",
+                name:"Steve J Ngoumnai",
+                title:"Founder & CEO",
+                tag:"Platform Engineering · Career Strategy",
+                story:`"I spent years watching talented engineers and PMs get passed over — not because they lacked ability, but because they couldn't articulate their value. As a Platform Engineer and career advisor at companies like Askia Enterprise and Machines & Cloud, I saw the same patterns repeat: vague bullets, weak stories, salary left on the table. Zari is the coach I wish I'd had — specific, memory-driven, and built for people who are serious about their career."`,
+                sig:"— Steve J Ngoumnai",
+              },
+              {
+                photo:"/images/owen.png",
+                name:"Owen Thomas",
+                title:"Head of Coaching",
+                tag:"Career Transitions · Executive Coaching",
+                story:`"After two decades editing for the BBC, ITV, Channel 4, Netflix and Discovery, I took a leap into career coaching — and immediately saw how much people underestimate their own value. I've helped hundreds of professionals navigate transitions, land roles above their expected level, and walk into conversations with genuine confidence. What Zari does is scale that work. The same honest, direct coaching — available to anyone."`,
+                sig:"— Owen Thomas",
+              },
+              {
+                photo:"/images/leanne.jpg",
+                name:"Leanne Adair",
+                title:"Performance Coach",
+                tag:"Leadership · High-Performance Teams",
+                story:`"I've spent 15 years working with senior leaders and executives in global corporate environments — from the boardroom to the interview room. Certified by the Association for Coaching, my mission has always been to unlock potential in individuals who are ready to make a real change. With Zari, that coaching reaches people earlier in their career, before they hit the ceiling. That's what makes this different."`,
+                sig:"— Leanne Adair",
+              },
+            ].map((f) => (
+              <div key={f.name} style={{ background:"white", borderRadius:24, overflow:"hidden", boxShadow:"0 8px 40px rgba(0,0,0,0.07)", border:"1px solid #F0F2F8", display:"flex", flexDirection:"column" }}>
+                {/* Photo */}
+                <div style={{ aspectRatio:"1/1", overflow:"hidden" }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={f.photo}
+                    alt={f.name}
+                    style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top", imageRendering:"high-quality" as React.CSSProperties["imageRendering"] }}
+                  />
+                </div>
+                {/* Content */}
+                <div style={{ padding:"28px 28px 32px", flex:1, display:"flex", flexDirection:"column" }}>
+                  <div style={{ marginBottom:16 }}>
+                    <div style={{ fontSize:17, fontWeight:800, color:"#0A0A0F", marginBottom:3 }}>{f.name}</div>
+                    <div style={{ fontSize:13, fontWeight:600, color:"#4361EE", marginBottom:4 }}>{f.title}</div>
+                    <div style={{ fontSize:11.5, color:"#9AA3B8" }}>{f.tag}</div>
                   </div>
-                ))}
+                  <p style={{ fontSize:14.5, lineHeight:1.8, color:"#4A5270", flex:1, marginBottom:20, fontStyle:"italic" }}>
+                    {f.story}
+                  </p>
+                  <p style={{ fontSize:16, fontWeight:700, fontStyle:"italic", color:"#0A0A0F", fontFamily:"Georgia,serif", margin:0 }}>
+                    {f.sig}
+                  </p>
+                </div>
               </div>
-
-              <h3 style={{ fontSize:"clamp(1.3rem,2.2vw,1.75rem)", fontWeight:900, letterSpacing:"-0.03em", color:"#0A0A0F", lineHeight:1.2, marginBottom:20 }}>
-                From side project to platform.
-              </h3>
-
-              <p style={{ fontSize:15.5, lineHeight:1.8, color:"#4A5270", marginBottom:16 }}>
-                &ldquo;I spent years coaching engineers, PMs, and career changers on the side — and kept seeing the same thing: brilliant people failing interviews and negotiations not because they lacked ability, but because they couldn&apos;t tell their story. I built Zari to solve exactly that.
-              </p>
-              <p style={{ fontSize:15.5, lineHeight:1.8, color:"#4A5270", marginBottom:28 }}>
-                Owen and Leanne joined because they&apos;d been doing the same work — coaching high performers at the individual level. This is that same coaching, built into a product that scales. Not generic AI advice. The real thing.&rdquo;
-              </p>
-
-              <p style={{ fontSize:19, fontStyle:"italic", fontWeight:700, color:"#0A0A0F", fontFamily:"Georgia,serif", marginBottom:0 }}>
-                — Steve J Ngoumnai
-              </p>
-            </div>
-
+            ))}
           </div>
         </div>
       </section>
