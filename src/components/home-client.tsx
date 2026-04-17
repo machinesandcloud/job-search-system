@@ -119,6 +119,9 @@ const WALL_REVIEWS = [
   { name:"Rashida M.",   role:"UX Researcher → PM, Figma",      photo:"https://i.pravatar.cc/150?img=45", color1:"#7C3AED", color2:"#DDD6FE", quote:"Research background was invisible on my resume. Zari wrote the one bullet that fixed it. Now it's how I open every interview." },
   { name:"Will N.",      role:"L4 → L5 SWE, Apple",             photo:"https://i.pravatar.cc/150?img=64", color1:"#0284C7", color2:"#E0F2FE", quote:"Apple's promo bar is high and opaque. Zari mapped my work to the criteria they actually use. Got promoted 7 months in." },
   { name:"Amara O.",     role:"Strategy → Chief of Staff, Lyft", photo:"https://i.pravatar.cc/150?img=3", color1:"#D97706", color2:"#FEF3C7", quote:"Salary coaching paid for itself in the first hour. Walked into Lyft knowing my leverage. Left $30K above their opening number." },
+  { name:"Marcus J.",    role:"Backend Eng → Staff Eng, Cloudflare", photo:"https://i.pravatar.cc/150?img=12", color1:"#4361EE", color2:"#818CF8", quote:"I want to be honest: I was skeptical. I'd tried other tools, read the career books, done the LinkedIn courses. None of it translated to anything real in the room. What Zari did differently was stop me mid-answer and say 'you just described output — now tell me the impact.' That one correction changed how I talked about my work in every interview for the next three months. I went from zero senior callbacks to three in a row, and one turned into a Staff offer at Cloudflare. The difference wasn't preparation. It was learning how to tell the right story." },
+  { name:"Priya M.",     role:"PM → Group PM, Stripe",           photo:"https://i.pravatar.cc/150?img=5",  color1:"#7C3AED", color2:"#A78BFA", quote:"I had six years of product experience and couldn't get past the first round at Stripe. Zari showed me exactly why: I was presenting tasks, not decisions. I was describing timelines, not tradeoffs. Every answer I gave was technically accurate and completely unconvincing. Over four sessions, Zari rebuilt how I talk about my work — not what I did, but why it mattered, what I chose not to do, and what I'd do differently. I passed every round on the next attempt. Group PM offer, $40K above their first number." },
+  { name:"Aaliyah R.",   role:"Data Scientist → PM, Figma",      photo:"https://i.pravatar.cc/150?img=47", color1:"#0284C7", color2:"#38BDF8", quote:"The career change felt impossible. Every recruiter told me I wasn't 'product enough.' Zari spent two sessions just on narrative — how to position 5 years of data work as product intuition, not a liability. Then we practiced every version of 'why are you switching?' until I stopped hedging and started owning it. Figma's final round had four back-to-back PM behavioral interviews. I came out feeling like I'd done them all before. I had. Just with Zari on the other side." },
   { name:"Mo K.",        role:"SWE → EM, Plaid",                photo:"https://i.pravatar.cc/150?img=56", color1:"#DC2626", color2:"#FCA5A5", quote:"'How would you handle a low performer?' cold would have killed me. Zari made me answer it 8 different ways. I was ready for anything." },
   { name:"Lena H.",      role:"Mid PM → Sr PM, Linear",         photo:"https://i.pravatar.cc/150?img=8",  color1:"#4361EE", color2:"#C7D2FE", quote:"LinkedIn rewrite took 45 minutes. Doubled inbound recruiter messages in a week. That's the whole story." },
   { name:"Aaron T.",     role:"IC3 → IC4 SWE, Meta",            photo:"https://i.pravatar.cc/150?img=72", color1:"#7C3AED", color2:"#EDE9FE", quote:"Failed promo twice. Zari showed me I was solving the wrong problems. Third attempt: approved." },
@@ -901,7 +904,9 @@ export function HomeClient({ userId }: { userId: boolean }) {
         @keyframes upload-bar { 0%{width:0%} 100%{width:100%} }
         @keyframes analyze-bar { 0%{width:0%} 60%{width:62%} 100%{width:62%} }
         @keyframes listen-ripple { 0%{transform:scale(1);opacity:0.5} 100%{transform:scale(1.8);opacity:0} }
-        @keyframes heart-float { 0%{transform:translateY(0) rotate(-10deg);opacity:0} 10%{opacity:1} 90%{opacity:0.6} 100%{transform:translateY(-110vh) rotate(10deg);opacity:0} }
+        @keyframes heart-float { 0%{transform:translateY(0) rotate(-10deg);opacity:0} 8%{opacity:1} 85%{opacity:0.55} 100%{transform:translateY(-200vh) rotate(12deg);opacity:0} }
+        .review-card { transition: transform 0.22s ease, box-shadow 0.22s ease; cursor:default; }
+        .review-card:hover { transform:translateY(-5px); box-shadow:0 12px 40px rgba(67,97,238,0.13) !important; border-color:#C7D2FE !important; }
         * { box-sizing: border-box; }
         a { transition: opacity 0.15s; } a:hover { opacity: 0.75; }
       `}</style>
@@ -957,7 +962,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
           </div>
 
         {/* ── Full-width social + featured strip ── */}
-        <div style={{ marginTop:48, borderTop:"1px solid rgba(67,97,238,0.10)" }}>
+        <div style={{ marginTop:48 }}>
           <div style={{ maxWidth:1140, margin:"0 auto", padding:"32px 56px", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"nowrap", gap:48 }}>
 
             {/* LEFT: avatars + stars + text */}
@@ -985,15 +990,15 @@ export function HomeClient({ userId }: { userId: boolean }) {
             <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-start", gap:11 }}>
               <span style={{ fontSize:11, fontWeight:700, color:"#9AA3B8", textTransform:"uppercase", letterSpacing:"0.1em" }}>Featured in</span>
               <div style={{ display:"flex", alignItems:"center", gap:32, flexWrap:"nowrap" }}>
-                <span style={{ display:"flex", alignItems:"center", gap:7 }}>
-                  <span style={{ width:22, height:22, borderRadius:5, background:"#8A94A8", display:"inline-flex", alignItems:"center", justifyContent:"center" }}>
+                <span style={{ display:"flex", alignItems:"center", gap:7, whiteSpace:"nowrap" }}>
+                  <span style={{ width:22, height:22, borderRadius:5, background:"#8A94A8", display:"inline-flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                     <svg viewBox="0 0 12 12" fill="white" style={{ width:11,height:11 }}><path d="M6 1L7.5 4.5H11L8.2 6.8 9.3 10.5 6 8.3 2.7 10.5 3.8 6.8 1 4.5H4.5z"/></svg>
                   </span>
-                  <span style={{ fontSize:15.5, fontWeight:700, color:"#68728A" }}>Product Hunt</span>
+                  <span style={{ fontSize:15.5, fontWeight:700, color:"#68728A", whiteSpace:"nowrap" }}>Product Hunt</span>
                 </span>
-                <span style={{ display:"flex", alignItems:"center", gap:7 }}>
-                  <span style={{ width:22, height:22, borderRadius:"50%", background:"#8A94A8", display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:9, fontWeight:900, color:"white", lineHeight:1 }}>IH</span>
-                  <span style={{ fontSize:15, fontWeight:700, color:"#68728A", textTransform:"uppercase", letterSpacing:"0.05em" }}>Indie Hackers</span>
+                <span style={{ display:"flex", alignItems:"center", gap:7, whiteSpace:"nowrap" }}>
+                  <span style={{ width:22, height:22, borderRadius:"50%", background:"#8A94A8", display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:9, fontWeight:900, color:"white", lineHeight:1, flexShrink:0 }}>IH</span>
+                  <span style={{ fontSize:15, fontWeight:700, color:"#68728A", textTransform:"uppercase", letterSpacing:"0.05em", whiteSpace:"nowrap" }}>Indie Hackers</span>
                 </span>
                 <span style={{ fontSize:17, fontWeight:800, color:"#68728A", letterSpacing:"-0.02em" }}>TechCrunch</span>
                 <span style={{ fontSize:26, fontWeight:900, color:"#5A6280", letterSpacing:"-0.03em", fontFamily:"Georgia,serif", lineHeight:1 }}>Forbes</span>
@@ -1121,7 +1126,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
           {/* 3-column masonry */}
           <div style={{ columns:3, columnGap:22 }}>
             {WALL_REVIEWS.map((r,i) => (
-              <div key={i} style={{
+              <div key={i} className="review-card" style={{
                 breakInside:"avoid", marginBottom:22,
                 background:"white",
                 border:"1px solid #EBEBF0",
