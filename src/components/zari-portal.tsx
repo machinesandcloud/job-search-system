@@ -359,7 +359,7 @@ function ScreenSession({ stage }: { stage: CareerStage }) {
 ═══════════════════════════════════════════════════ */
 type ResumeStep = "upload"|"analyzing"|"results";
 
-function ScreenResume() {
+function ScreenResume({ stage }: { stage: CareerStage }) {
   const [step, setStep]       = useState<ResumeStep>("upload");
   const [progress, setProgress] = useState(0);
   const [tab, setTab]         = useState<"overview"|"bullets"|"rewrite">("overview");
@@ -397,8 +397,8 @@ function ScreenResume() {
           <div style={{ width:56, height:56, borderRadius:16, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px" }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" style={{ width:26, height:26 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
           </div>
-          <h1 style={{ fontSize:26, fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", marginBottom:10 }}>Resume Review</h1>
-          <p style={{ fontSize:15.5, color:"#68738A", lineHeight:1.65, maxWidth:440, margin:"0 auto" }}>Upload your resume and Zari will score it, rewrite every weak bullet with impact metrics, and give you a job-ready version to send tonight.</p>
+          <h1 style={{ fontSize:26, fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", marginBottom:10 }}>{SCREEN_RESUME_META[stage].title}</h1>
+          <p style={{ fontSize:15.5, color:"#68738A", lineHeight:1.65, maxWidth:440, margin:"0 auto" }}>{SCREEN_RESUME_META[stage].desc}</p>
         </div>
 
         {/* Drag-drop zone */}
@@ -422,12 +422,7 @@ function ScreenResume() {
 
         {/* What Zari will do */}
         <div style={{ marginTop:28, display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-          {[
-            { icon:"🎯", title:"ATS keyword scan", body:"Checks every bullet against your target job descriptions" },
-            { icon:"✏️", title:"Bullet rewrites", body:"Injects metrics and impact into every weak bullet" },
-            { icon:"📊", title:"Before/after score", body:"Shows your resume score from first draft to final version" },
-            { icon:"⬇️", title:"Downloadable version", body:"Get a job-ready PDF optimized for Senior PM roles" },
-          ].map(f => (
+          {SCREEN_RESUME_META[stage].features.map(f => (
             <div key={f.title} style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:14, padding:"14px 16px", display:"flex", gap:12, alignItems:"flex-start" }}>
               <span style={{ fontSize:20 }}>{f.icon}</span>
               <div>
@@ -624,14 +619,106 @@ function ScreenResume() {
 /* ═══════════════════════════════════════════════════
    SCREEN: MOCK INTERVIEW
 ═══════════════════════════════════════════════════ */
-const QUESTIONS = [
-  { cat:"Cross-functional leadership", level:"Senior PM", q:"Tell me about a time you led a cross-functional initiative that faced significant resistance. What was your approach and what was the outcome?" },
-  { cat:"Prioritization", level:"Senior PM", q:"How do you prioritize features when you have competing stakeholder demands and limited engineering capacity?" },
-  { cat:"Product strategy", level:"Senior PM", q:"Describe your process for defining a product strategy from scratch. Walk me through a real example." },
-  { cat:"Conflict resolution", level:"Senior PM", q:"Tell me about a time you had a significant disagreement with an engineer or designer. How did you resolve it?" },
-];
+/* ── Per-stage resume screen metadata ── */
+const SCREEN_RESUME_META: Record<CareerStage, {
+  title: string; desc: string;
+  features: { icon:string; title:string; body:string }[];
+}> = {
+  "job-search": {
+    title:"Resume Review",
+    desc:"Upload your resume and Zari will score it, rewrite every weak bullet with impact metrics, and give you a job-ready version to send tonight.",
+    features:[
+      { icon:"🎯", title:"ATS keyword scan",      body:"Checks every bullet against your target job descriptions" },
+      { icon:"✏️", title:"Bullet rewrites",        body:"Injects metrics and impact into every weak bullet" },
+      { icon:"📊", title:"Before/after score",     body:"Shows your resume score from first draft to final version" },
+      { icon:"⬇️", title:"Downloadable version",   body:"Get a job-ready PDF optimized for your target role" },
+    ],
+  },
+  "promotion": {
+    title:"Build My Case",
+    desc:"Upload your self-assessment or recent work. Zari will build your promotion case with scope, impact, and the narrative your manager needs to go to bat for you.",
+    features:[
+      { icon:"📋", title:"Gap analysis",       body:"Maps where you are against next-level expectations" },
+      { icon:"💪", title:"Impact statements",  body:"Turns your work into manager-ready evidence" },
+      { icon:"🎯", title:"Promo narrative",    body:"Builds the story your manager tells the committee" },
+      { icon:"🗣️", title:"Pitch dry run",      body:"Practice the exact conversation with your manager" },
+    ],
+  },
+  "salary": {
+    title:"Salary Research",
+    desc:"Tell Zari your role, level, and location. Zari researches market comps, anchors your number, and preps you with the exact language to use in the conversation.",
+    features:[
+      { icon:"📈", title:"Market benchmarks",     body:"Levels.fyi, Glassdoor, and Blind data for your exact role" },
+      { icon:"💰", title:"Total comp breakdown",  body:"Base, equity, bonus, and benefits comparison" },
+      { icon:"🎯", title:"Negotiation anchors",   body:"The number to lead with and the floor to hold" },
+      { icon:"📝", title:"Counter-offer scripts", body:"Exact language for every response they'll give you" },
+    ],
+  },
+  "career-change": {
+    title:"Reframe Resume",
+    desc:"Upload your current resume and tell Zari your target role. Zari rewrites it from scratch — repositioning your experience to speak the language of the industry you're entering.",
+    features:[
+      { icon:"🔄", title:"Narrative reframe",        body:"Rewrites your story for a new audience" },
+      { icon:"🗺️", title:"Transferable skills map",  body:"Shows which of your skills translate directly" },
+      { icon:"🎯", title:"Target role alignment",    body:"Optimizes for the exact job descriptions you want" },
+      { icon:"📊", title:"Before/after view",        body:"Side-by-side of old positioning vs new" },
+    ],
+  },
+  "leadership": {
+    title:"Executive Bio",
+    desc:"Upload your current bio or resume. Zari will write a board-ready executive bio, speaker profile, and LinkedIn rewrite that positions you at the level you're actually operating at.",
+    features:[
+      { icon:"✍️", title:"Board-ready bio",    body:"Written for governance conversations and director roles" },
+      { icon:"🎤", title:"Speaker profile",    body:"Optimized for conference and keynote positioning" },
+      { icon:"💼", title:"LinkedIn rewrite",   body:"Executive-level headline, about, and experience" },
+      { icon:"📖", title:"Narrative arc",      body:"Connects your career story with your leadership thesis" },
+    ],
+  },
+};
 
-function ScreenInterview() {
+/* ── Per-stage interview questions ── */
+const STAGE_QUESTIONS: Record<CareerStage, { cat:string; level:string; q:string }[]> = {
+  "job-search": [
+    { cat:"Cross-functional leadership", level:"Senior PM",      q:"Tell me about a time you led a cross-functional initiative that faced significant resistance. What was your approach and what was the outcome?" },
+    { cat:"Prioritization",              level:"Senior PM",      q:"How do you prioritize features when you have competing stakeholder demands and limited engineering capacity?" },
+    { cat:"Product strategy",            level:"Senior PM",      q:"Describe your process for defining a product strategy from scratch. Walk me through a real example." },
+    { cat:"Conflict resolution",         level:"Senior PM",      q:"Tell me about a time you had a significant disagreement with an engineer or designer. How did you resolve it?" },
+  ],
+  "promotion": [
+    { cat:"Scope expansion",    level:"Promotion pitch", q:"Walk me through the biggest thing you owned in the last 6 months that was above your current level. What was the outcome?" },
+    { cat:"Sponsorship",        level:"Promotion pitch", q:"Who are your executive sponsors, and how have you built those relationships intentionally? Give me a specific example." },
+    { cat:"Business impact",    level:"Promotion pitch", q:"Tell me about a decision you made that had measurable business impact — revenue, retention, or cost. What was your direct contribution?" },
+    { cat:"Manager alignment",  level:"Promotion pitch", q:"Your manager says you're 'not quite ready yet.' How do you respond, and what do you do next?" },
+  ],
+  "salary": [
+    { cat:"Opening move",   level:"Negotiation sim", q:"The hiring manager says: 'We'd like to extend you an offer at $145K base.' What do you say next?" },
+    { cat:"Pushback",       level:"Negotiation sim", q:"They say: 'That's above our band. The max we can do is $152K.' How do you respond?" },
+    { cat:"Counter offer",  level:"Negotiation sim", q:"Your current employer responds to your resignation with a counter-offer 10% above the new role. What do you say?" },
+    { cat:"Internal raise", level:"Negotiation sim", q:"You want to ask your manager for a raise. Walk me through how you'd open that conversation." },
+  ],
+  "career-change": [
+    { cat:"Motivation",           level:"Pivot interview", q:"Why are you switching industries after 6 years? What's driving this change right now?" },
+    { cat:"Narrative bridge",     level:"Pivot interview", q:"Your background is in finance. Why would you be better at product than someone who started in it?" },
+    { cat:"Transferable skills",  level:"Pivot interview", q:"Give me a specific example where a skill from your previous career directly helped you solve a problem in a new context." },
+    { cat:"Gap acknowledgement",  level:"Pivot interview", q:"What's the thing you're most behind on compared to someone who's been in this field their whole career? How are you closing it?" },
+  ],
+  "leadership": [
+    { cat:"Executive communication",      level:"Director+", q:"Walk me through a time you had to communicate a strategic shift to the board or senior leadership. What was your approach?" },
+    { cat:"Organizational design",         level:"Director+", q:"Tell me about a time you had to restructure a team or function. How did you navigate the human side of that?" },
+    { cat:"Influence without authority",   level:"Director+", q:"Give me an example of driving a company-wide change without having direct authority over the people you needed to change." },
+    { cat:"Leadership thesis",             level:"Director+", q:"What's your leadership thesis — the thing you believe about building teams that most leaders get wrong?" },
+  ],
+};
+
+const SCREEN_INTERVIEW_META: Record<CareerStage, { title:string; subtitle:string }> = {
+  "job-search":    { title:"Mock Interview",   subtitle:"STAR practice · Real-time AI scoring · Senior PM behavioral round" },
+  "promotion":     { title:"Pitch Practice",   subtitle:"Manager pitch · Committee prep · Objection handling" },
+  "salary":        { title:"Negotiation Sim",  subtitle:"Offer conversation · Counter scripts · Objection handling" },
+  "career-change": { title:"Pivot Interview",  subtitle:"'Why are you switching?' · Narrative bridging · Hybrid role questions" },
+  "leadership":    { title:"Story Practice",   subtitle:"Executive stories · Board communication · Leadership scenarios" },
+};
+
+function ScreenInterview({ stage }: { stage: CareerStage }) {
   const [qIdx,        setQIdx]        = useState(0);
   const [answer,      setAnswer]      = useState("");
   const [submitted,   setSubmitted]   = useState(false);
@@ -644,6 +731,10 @@ function ScreenInterview() {
     return () => clearInterval(t);
   }, [isRecording]);
 
+  const QUESTIONS = STAGE_QUESTIONS[stage];
+  // Reset when stage changes
+  useEffect(() => { setQIdx(0); setAnswer(""); setSubmitted(false); }, [stage]);
+
   function submit() { if (answer.trim()) setSubmitted(true); }
   const q = QUESTIONS[qIdx];
   const fmt = (s:number) => `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
@@ -655,8 +746,8 @@ function ScreenInterview() {
         {/* Header */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:24, flexWrap:"wrap", gap:12 }}>
           <div>
-            <h1 style={{ fontSize:22, fontWeight:900, color:"#0A0A0F", letterSpacing:"-0.03em", marginBottom:3 }}>Mock Interview</h1>
-            <p style={{ fontSize:13, color:"#68738A" }}>STAR practice · Real-time AI scoring · Senior PM behavioral round</p>
+            <h1 style={{ fontSize:22, fontWeight:900, color:"#0A0A0F", letterSpacing:"-0.03em", marginBottom:3 }}>{SCREEN_INTERVIEW_META[stage].title}</h1>
+            <p style={{ fontSize:13, color:"#68738A" }}>{SCREEN_INTERVIEW_META[stage].subtitle}</p>
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
             <span style={{ fontSize:12, color:"#68738A" }}>Question {qIdx+1} of {QUESTIONS.length}</span>
@@ -1191,12 +1282,12 @@ export function ZariPortal() {
 
         {/* Screen */}
         <div style={{ flex:1, overflow:"hidden" }}>
-          {screen==="session"   && <ScreenSession stage={stage}/>}
-          {screen==="resume"    && <ScreenResume/>}
-          {screen==="interview" && <ScreenInterview/>}
+          {screen==="session"   && <ScreenSession   stage={stage}/>}
+          {screen==="resume"    && <ScreenResume    stage={stage}/>}
+          {screen==="interview" && <ScreenInterview stage={stage}/>}
           {screen==="linkedin"  && <ScreenLinkedIn/>}
           {screen==="documents" && <ScreenDocuments/>}
-          {screen==="plan"      && <ScreenPlan stage={stage}/>}
+          {screen==="plan"      && <ScreenPlan      stage={stage}/>}
         </div>
       </main>
     </div>
