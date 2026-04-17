@@ -920,71 +920,90 @@ export function HomeClient({ userId }: { userId: boolean }) {
 
       <Nav userId={userId} />
 
-      {/* ══════ HERO ══════ */}
-      <section style={{ paddingTop:100, paddingBottom:80, background:"white", position:"relative", overflow:"hidden" }}>
-        {/* Subtle aurora */}
-        <div aria-hidden style={{ position:"absolute", inset:0, pointerEvents:"none" }}>
-          <div style={{ position:"absolute", width:700, height:700, top:"-10%", left:"50%", transform:"translateX(-50%)", background:"radial-gradient(ellipse, rgba(67,97,238,0.06) 0%, transparent 65%)" }}/>
-          <div style={{ position:"absolute", width:400, height:300, top:"20%", right:"0%", background:"radial-gradient(ellipse, rgba(6,182,212,0.04) 0%, transparent 60%)", animation:"aurora-slow 22s ease-in-out infinite" }}/>
-        </div>
+      {/* ══════ HERO — full viewport, lavender gradient ══════ */}
+      <section style={{
+        minHeight:"100vh", display:"flex", flexDirection:"column",
+        background:"linear-gradient(180deg,#EAEEFc 0%,#EEF2FF 35%,#F5F3FF 65%,#FAFBFF 100%)",
+        position:"relative",
+      }}>
+        {/* Main content — vertically centered in the viewport space above Featured in */}
+        <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"96px 32px 40px", textAlign:"center" }}>
 
-        <div style={{ maxWidth:860, margin:"0 auto", padding:"0 28px", textAlign:"center", position:"relative" }}>
           {/* Eyebrow */}
-          <div style={{ display:"inline-flex", alignItems:"center", gap:7, fontSize:12.5, fontWeight:600, color:"#4361EE", background:"#F0F4FF", border:"1px solid rgba(67,97,238,0.2)", borderRadius:99, padding:"5px 14px", marginBottom:28 }}>
+          <div style={{ display:"inline-flex", alignItems:"center", gap:7, fontSize:13, fontWeight:600, color:"#4361EE", background:"rgba(255,255,255,0.75)", border:"1px solid rgba(67,97,238,0.22)", borderRadius:99, padding:"6px 16px", marginBottom:32, backdropFilter:"blur(8px)" }}>
             <ZariLogo size={15} />
             AI Career Coach — every stage, every goal
           </div>
 
+          {/* Headline — fills the screen, no maxWidth cap on the text */}
           <h1 style={{
-            fontSize:"clamp(3.6rem,7vw,6.2rem)",
-            fontWeight:900, lineHeight:1.02,
-            letterSpacing:"-0.05em",
+            fontSize:"clamp(4rem,8.5vw,7.2rem)",
+            fontWeight:900,
+            lineHeight:1.0,
+            letterSpacing:"-0.055em",
             color:"#0A0A0F",
-            marginBottom:24,
+            marginBottom:28,
           }}>
             Coaching at{" "}
             <span style={{
-              background:"linear-gradient(135deg,#4361EE 0%,#818CF8 50%,#06B6D4 100%)",
+              background:"linear-gradient(135deg,#4361EE 0%,#818CF8 55%,#06B6D4 100%)",
               WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", backgroundClip:"text",
-            }}>every stage</span><br />
-            of your career.
+            }}>every stage</span>
+            <br />of your career.
           </h1>
 
-          <p style={{ fontSize:20, lineHeight:1.7, color:"#68738A", maxWidth:560, margin:"0 auto 40px" }}>
-            Job searching, chasing a promotion, negotiating a raise, switching industries — Zari coaches you with voice, a real avatar, and memory that carries across every session.
+          <p style={{ fontSize:20, lineHeight:1.65, color:"#5A6180", maxWidth:520, marginBottom:44 }}>
+            Job searching, promotion, raise, career pivot — Zari coaches you with voice, memory, and a real avatar. Every stage. Every goal.
           </p>
 
-          {/* Kleo-style hero prompt */}
           <HeroPrompt userId={userId} />
 
-          {/* Social proof row */}
-          <div style={{ display:"flex", flexWrap:"wrap", alignItems:"center", justifyContent:"center", gap:20, marginTop:4 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+          {/* Social proof */}
+          <div style={{ display:"flex", flexWrap:"wrap", alignItems:"center", justifyContent:"center", gap:12, marginTop:8 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10 }}>
               <div style={{ display:"flex" }}>
                 {PEOPLE.slice(0,5).map((p, idx) => (
-                  <div key={idx} style={{ width:38, height:38, borderRadius:"50%", border:"2.5px solid white", overflow:"hidden", marginLeft: idx>0?-11:0, background:`linear-gradient(135deg,${p.color1},${p.color2})`, flexShrink:0, boxShadow:"0 2px 8px rgba(0,0,0,0.12)" }}>
+                  <div key={idx} style={{ width:36, height:36, borderRadius:"50%", border:"2.5px solid white", overflow:"hidden", marginLeft: idx>0?-10:0, background:`linear-gradient(135deg,${p.color1},${p.color2})`, flexShrink:0, boxShadow:"0 2px 8px rgba(0,0,0,0.14)" }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={p.photo} alt={p.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
                   </div>
                 ))}
               </div>
-              <div style={{ display:"flex", flexDirection:"column", gap:3 }}>
-                <div style={{ display:"flex", gap:2 }}>
-                  {Array.from({length:5}).map((_,i)=><svg key={i} viewBox="0 0 12 12" fill="#F59E0B" style={{ width:16,height:16 }}><path d="M6 1l1.2 2.5 2.8.4-2 2 .5 2.8L6 7.5 3.5 8.7 4 5.9 2 3.9l2.8-.4z"/></svg>)}
+              <div>
+                <div style={{ display:"flex", gap:1.5 }}>
+                  {Array.from({length:5}).map((_,i)=><svg key={i} viewBox="0 0 12 12" fill="#F59E0B" style={{ width:14,height:14 }}><path d="M6 1l1.2 2.5 2.8.4-2 2 .5 2.8L6 7.5 3.5 8.7 4 5.9 2 3.9l2.8-.4z"/></svg>)}
                 </div>
-                <span style={{ fontSize:15, fontWeight:600, color:"#1E2235" }}>Loved by 1,200+ candidates</span>
+                <div style={{ fontSize:13.5, fontWeight:600, color:"#1E2235", marginTop:2 }}>Loved by 1,200+ candidates</div>
               </div>
             </div>
-            <span style={{ width:1, height:28, background:"#E4E8F5", flexShrink:0 }}/>
-            <span style={{ fontSize:14, color:"#68738A" }}>No credit card</span>
-            <span style={{ width:1, height:28, background:"#E4E8F5", flexShrink:0 }}/>
-            <span style={{ fontSize:14, color:"#68738A" }}>Free tier forever</span>
+            <span style={{ width:1, height:22, background:"rgba(67,97,238,0.18)" }}/>
+            <span style={{ fontSize:13.5, color:"#68738A" }}>No credit card</span>
+            <span style={{ width:1, height:22, background:"rgba(67,97,238,0.18)" }}/>
+            <span style={{ fontSize:13.5, color:"#68738A" }}>Free tier forever</span>
           </div>
         </div>
 
+        {/* Featured in — anchored to bottom of hero */}
+        <div style={{ borderTop:"1px solid rgba(67,97,238,0.10)", background:"rgba(255,255,255,0.60)", backdropFilter:"blur(16px)" }}>
+          <div style={{ maxWidth:1000, margin:"0 auto", padding:"20px 32px", display:"flex", alignItems:"center", gap:0, flexWrap:"wrap", justifyContent:"center" }}>
+            <span style={{ fontSize:11.5, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.15em", color:"#A0AABF", marginRight:32, whiteSpace:"nowrap" }}>Featured in</span>
+            <div style={{ display:"flex", alignItems:"center", gap:36, flexWrap:"wrap", justifyContent:"center" }}>
+              {[
+                { name:"Forbes",        s:19, w:900 },
+                { name:"TechCrunch",    s:17, w:800 },
+                { name:"Fast Company",  s:15, w:800 },
+                { name:"Product Hunt",  s:15, w:700 },
+                { name:"Inc.",          s:21, w:900 },
+                { name:"Hacker News",   s:15, w:700 },
+              ].map(p => (
+                <span key={p.name} style={{ fontSize:p.s, fontWeight:p.w, color:"#9AA0B8", letterSpacing:"-0.02em", lineHeight:1 }}>{p.name}</span>
+              ))}
+            </div>
+          </div>
+        </div>
       </section>
 
-      {/* ══════ LOGO MARQUEE — big and bold ══════ */}
+      {/* ══════ LOGO MARQUEE ══════ */}
       <section style={{ background:"#EEF0FB", padding:"44px 0 40px", overflow:"hidden" }}>
         <p style={{ textAlign:"center", fontSize:12, fontWeight:600, textTransform:"uppercase", letterSpacing:"0.16em", color:"#8B96C8", marginBottom:32 }}>
           Used by candidates targeting
