@@ -912,7 +912,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
 
       {/* ══════ HERO ══════ */}
       <section style={{
-        background:"linear-gradient(170deg,#E8EEFF 0%,#EEF3FF 28%,#F4F7FF 58%,#FFFFFF 100%)",
+        background:"linear-gradient(180deg,#EEF2FF 0%,#F5F7FF 40%,#FAFBFF 70%,#FFFFFF 100%)",
         paddingTop:130,
         textAlign:"center",
       }}>
@@ -944,7 +944,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
               Career coaching for every goal<br />
               has{" "}
               <span style={{
-                background:"linear-gradient(135deg,#4361EE 0%,#818CF8 55%,#06B6D4 100%)",
+                background:"linear-gradient(135deg,#4361EE 0%,#6B86FF 100%)",
                 WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", backgroundClip:"text",
               }}>never been this smart.</span>
             </h1>
@@ -973,8 +973,8 @@ export function HomeClient({ userId }: { userId: boolean }) {
                 ))}
               </div>
               <div style={{ textAlign:"left" }}>
-                <div style={{ display:"flex", gap:3, marginBottom:5 }}>
-                  {Array.from({length:5}).map((_,i)=><svg key={i} viewBox="0 0 24 24" fill="#FF9F1C" style={{ width:20,height:20 }}><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>)}
+                <div style={{ display:"flex", gap:2, marginBottom:5 }}>
+                  {Array.from({length:5}).map((_,i)=><svg key={i} viewBox="0 0 20 20" fill="#F59E0B" style={{ width:18,height:18 }}><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>)}
                 </div>
                 <div style={{ fontSize:15, fontWeight:600, color:"#2D3550", whiteSpace:"nowrap" }}>Loved by 1,200+ candidates</div>
               </div>
@@ -1142,7 +1142,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
                   </div>
                 </div>
                 <div style={{ display:"flex", gap:2, marginBottom:9 }}>
-                  {Array.from({length:5}).map((_,j)=><svg key={j} viewBox="0 0 12 12" fill="#F59E0B" style={{ width:13,height:13 }}><path d="M6 1l1.2 2.5 2.8.4-2 2 .5 2.8L6 7.5 3.5 8.7 4 5.9 2 3.9l2.8-.4z"/></svg>)}
+                  {Array.from({length:5}).map((_,j)=><svg key={j} viewBox="0 0 20 20" fill="#F59E0B" style={{ width:13,height:13 }}><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>)}
                 </div>
                 <p style={{ fontSize:14, lineHeight:1.7, color:"#1E2235", margin:0 }}>{r.quote}</p>
               </div>
