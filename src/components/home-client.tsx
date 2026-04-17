@@ -910,44 +910,46 @@ export function HomeClient({ userId }: { userId: boolean }) {
 
       {/* ══════ HERO ══════ */}
       <section style={{
-        background:"linear-gradient(180deg,#EEF2FF 0%,#F5F8FF 55%,#FAFBFF 100%)",
-        paddingTop:110,
+        background:"linear-gradient(180deg,#EEF2FF 0%,#F5F8FF 55%,white 100%)",
+        paddingTop:130,
         textAlign:"center",
       }}>
-        <div style={{ maxWidth:660, margin:"0 auto", padding:"0 24px" }}>
+        <div style={{ maxWidth:640, margin:"0 auto", padding:"0 24px" }}>
 
-          {/* Icon + eyebrow — no pill, just icon and text */}
-          <div style={{ marginBottom:20 }}>
-            <div style={{ width:44, height:44, borderRadius:12, background:"white", border:"1px solid #E2E6F0", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", display:"inline-flex", alignItems:"center", justifyContent:"center", marginBottom:16 }}>
-              <svg viewBox="0 0 20 20" fill="none" style={{ width:22, height:22 }}>
-                <path d="M10 2l1.5 4H16l-3.5 2.5 1.3 4L10 10l-3.8 2.5 1.3-4L4 6h4.5z" fill="#4361EE" opacity="0.9"/>
-                <circle cx="10" cy="10" r="1.2" fill="#06B6D4"/>
-              </svg>
-            </div>
-            <div style={{ fontSize:12, fontWeight:700, color:"#4361EE", textTransform:"uppercase", letterSpacing:"0.13em" }}>
-              #1 AI Career Coach
-            </div>
+          {/* Icon */}
+          <div style={{ width:44, height:44, borderRadius:12, background:"white", border:"1px solid #E2E6F0", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", display:"inline-flex", alignItems:"center", justifyContent:"center", marginBottom:18 }}>
+            <svg viewBox="0 0 20 20" fill="none" style={{ width:22, height:22 }}>
+              <path d="M10 2l1.5 4H16l-3.5 2.5 1.3 4L10 10l-3.8 2.5 1.3-4L4 6h4.5z" fill="#4361EE" opacity="0.85"/>
+              <circle cx="16" cy="4" r="1.5" fill="#06B6D4"/>
+              <circle cx="4" cy="14" r="1" fill="#818CF8"/>
+            </svg>
           </div>
 
-          {/* Headline */}
+          {/* Eyebrow */}
+          <div style={{ fontSize:12, fontWeight:700, color:"#4361EE", textTransform:"uppercase", letterSpacing:"0.13em", marginBottom:24 }}>
+            #1 AI Career Coach
+          </div>
+
+          {/* Headline — 2 lines like Kleo */}
           <h1 style={{
-            fontSize:"clamp(2.5rem,5vw,3.2rem)",
+            fontSize:"clamp(2.6rem,5.2vw,3.4rem)",
             fontWeight:700,
-            lineHeight:1.18,
-            letterSpacing:"-0.025em",
+            lineHeight:1.15,
+            letterSpacing:"-0.03em",
             color:"#0A0A0F",
-            marginBottom:18,
+            marginBottom:22,
           }}>
-            Career coaching that adapts to<br />
+            Career coaching for every goal<br />
+            has{" "}
             <span style={{
               background:"linear-gradient(135deg,#4361EE 0%,#818CF8 55%,#06B6D4 100%)",
               WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", backgroundClip:"text",
-            }}>every stage of your career.</span>
+            }}>never been this smart.</span>
           </h1>
 
-          {/* Sub */}
-          <p style={{ fontSize:16.5, lineHeight:1.7, color:"#5A6180", maxWidth:480, margin:"0 auto 28px" }}>
-            Zari helps you <strong style={{ color:"#1E2235", fontWeight:600 }}>land jobs faster</strong>, <strong style={{ color:"#1E2235", fontWeight:600 }}>get promoted sooner</strong>, and <strong style={{ color:"#1E2235", fontWeight:600 }}>negotiate with confidence</strong>.<br />Everything in one AI coach.
+          {/* Sub — matches Kleo: bold key phrases, 2 clean lines */}
+          <p style={{ fontSize:16.5, lineHeight:1.7, color:"#5A6180", maxWidth:500, margin:"0 auto 32px" }}>
+            Zari helps you <strong style={{ color:"#1E2235", fontWeight:600 }}>land jobs faster</strong>, <strong style={{ color:"#1E2235", fontWeight:600 }}>get promoted sooner</strong>, and <strong style={{ color:"#1E2235", fontWeight:600 }}>negotiate with confidence</strong>.<br />Everything you need, in one AI coach.
           </p>
 
           <HeroPrompt userId={userId} />
