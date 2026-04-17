@@ -82,54 +82,51 @@ const FEATURES = [
   },
 ];
 
-/* ══ Wall of reviews ══ */
+/* ══ Wall of reviews — long ones interspersed across all columns ══ */
 const WALL_REVIEWS = [
   { name:"Marcus J.",    role:"Backend Eng → Staff Eng",        photo:"https://i.pravatar.cc/150?img=12", color1:"#4361EE", color2:"#818CF8", quote:"Been Senior for 4 years with zero movement. One month with Zari and I finally had the story. Promoted in 5 months." },
   { name:"Priya M.",     role:"PM → Senior PM, Notion",         photo:"https://i.pravatar.cc/150?img=5",  color1:"#7C3AED", color2:"#A78BFA", quote:"Zari told me exactly what was wrong with my resume. Not vague feedback — line by line. Uncomfortable but it worked." },
-  { name:"Aaliyah R.",   role:"Data Scientist, Stripe",         photo:"https://i.pravatar.cc/150?img=47", color1:"#0284C7", color2:"#38BDF8", quote:"Changed my LinkedIn headline with Zari. Got 3 recruiter DMs the same week. Changed nothing else." },
-  { name:"Daniel K.",    role:"Ops Lead → Shopify PM",          photo:"https://i.pravatar.cc/150?img=33", color1:"#059669", color2:"#34D399", quote:"4 callbacks in one week after the resume session. I went from zero traction to two final rounds at the same time." },
+  { name:"Aaliyah R.",   role:"Data Scientist, Stripe",         photo:"https://i.pravatar.cc/150?img=47", color1:"#0284C7", color2:"#38BDF8", quote:"I want to be honest — I was skeptical. I'd tried the career books, the LinkedIn courses, the mock interview sites. None of it translated to anything real in the room. What Zari did differently was stop me mid-answer and say 'you just described output — tell me the impact.' That one correction changed every interview I had for the next three months. I went from zero callbacks to three senior roles at once. The difference wasn't effort. It was learning how to tell the right story." },
+  { name:"Daniel K.",    role:"Ops Lead → Shopify PM",          photo:"https://i.pravatar.cc/150?img=33", color1:"#059669", color2:"#34D399", quote:"4 callbacks in one week after the resume session. Zero traction to two final rounds simultaneously." },
   { name:"Sofia L.",     role:"IC → Engineering Manager",       photo:"https://i.pravatar.cc/150?img=25", color1:"#DC2626", color2:"#F87171", quote:"Practiced my manager pitch with Zari every day for two weeks. Walked into the real conversation completely calm. Got the role." },
-  { name:"James T.",     role:"Director → VP Engineering",      photo:"https://i.pravatar.cc/150?img=60", color1:"#D97706", color2:"#FCD34D", quote:"My skip-level feedback changed noticeably within a quarter. My directs noticed before I told anyone I was working on it." },
+  { name:"James T.",     role:"Director → VP Engineering",      photo:"https://i.pravatar.cc/150?img=60", color1:"#D97706", color2:"#FCD34D", quote:"My skip-level feedback changed noticeably within a quarter. My directs noticed before I told anyone." },
   { name:"Camille D.",   role:"Finance → Stripe PM",            photo:"https://i.pravatar.cc/150?img=9",  color1:"#7C3AED", color2:"#C4B5FD", quote:"Six years in finance, zero product experience. Zari rebuilt my whole narrative. Without it I'd still be sending applications into the void." },
-  { name:"Ryan O.",      role:"Sales Lead → Google APM",        photo:"https://i.pravatar.cc/150?img=52", color1:"#0284C7", color2:"#7DD3FC", quote:"Zari ran the negotiation sim with me until it stopped feeling scary. Walked away $28K above their opening offer." },
-  { name:"Tanya W.",     role:"Analyst → Product, Meta",        photo:"https://i.pravatar.cc/150?img=16", color1:"#4361EE", color2:"#6EE7B7", quote:"STAR scoring showed me which exact word to cut and why. I felt overprepared. That's a great feeling walking into a panel." },
-  { name:"Leo B.",       role:"Junior → Mid SWE, Airbnb",       photo:"https://i.pravatar.cc/150?img=67", color1:"#0284C7", color2:"#A5F3FC", quote:"Didn't know how to talk about side projects. Zari showed me how to frame them as real product experience. Got the offer." },
+  { name:"Ryan O.",      role:"Sales Lead → Google APM",        photo:"https://i.pravatar.cc/150?img=52", quote:"Zari ran the negotiation sim with me until it stopped feeling scary. Walked away $28K above their opening offer.", color1:"#0284C7", color2:"#7DD3FC" },
+  { name:"Tanya W.",     role:"Analyst → Product, Meta",        photo:"https://i.pravatar.cc/150?img=16", color1:"#4361EE", color2:"#6EE7B7", quote:"STAR scoring showed me exactly which word to cut and why. I felt overprepared walking into the panel. That's a great feeling." },
+  { name:"Divya N.",     role:"QA Lead → PM, Microsoft",        photo:"https://i.pravatar.cc/150?img=38", color1:"#DC2626", color2:"#FECACA", quote:"I had six years of product experience and still couldn't get past Stripe's first round. Zari showed me why: I was presenting tasks, not decisions. Describing timelines, not tradeoffs. Every answer was technically accurate and completely unconvincing. Over four sessions, Zari rebuilt how I talk about my work — not what I did, but why it mattered, what I chose not to do, and what I'd do differently. I passed every round on the next attempt. Group PM offer, $40K above their first number." },
+  { name:"Leo B.",       role:"Junior → Mid SWE, Airbnb",       photo:"https://i.pravatar.cc/150?img=67", color1:"#0284C7", color2:"#A5F3FC", quote:"Didn't know how to talk about side projects. Zari showed me how to frame them as product experience. Got the Airbnb offer." },
   { name:"Nina S.",      role:"CS grad → Figma PM",             photo:"https://i.pravatar.cc/150?img=48", color1:"#7C3AED", color2:"#F9A8D4", quote:"New grad, terrified of interviews. Zari coached me session by session. By interview day I wasn't nervous at all. Offer above band." },
-  { name:"Omar A.",      role:"Consultant → Uber Strategy",     photo:"https://i.pravatar.cc/150?img=11", color1:"#059669", color2:"#86EFAC", quote:"It felt like talking to someone who'd been through my exact transition. Nothing generic. Every answer was specific to my situation." },
-  { name:"Jess M.",      role:"SDR → RevOps PM, Salesforce",    photo:"https://i.pravatar.cc/150?img=29", color1:"#D97706", color2:"#FDE68A", quote:"Zari told me I was leaving money on the table. I countered to $148K. They said yes immediately. I almost left $18K on the table." },
-  { name:"Dev P.",       role:"EM → Director, Snowflake",       photo:"https://i.pravatar.cc/150?img=57", color1:"#4361EE", color2:"#BAE6FD", quote:"Not 'be more strategic.' Actual specific things to do, week by week. The most useful coaching I've had in my career." },
-  { name:"Fatoumata K.", role:"Ops Manager → LinkedIn PM",      photo:"https://i.pravatar.cc/150?img=20", color1:"#DC2626", color2:"#FCA5A5", quote:"Told twice I wasn't 'product enough.' Zari helped me reframe everything as product work. Third time: got the role." },
+  { name:"Omar A.",      role:"Consultant → Uber Strategy",     photo:"https://i.pravatar.cc/150?img=11", color1:"#059669", color2:"#86EFAC", quote:"It felt like talking to someone who'd been through my exact transition. Nothing generic. Every answer specific to my situation." },
+  { name:"Jess M.",      role:"SDR → RevOps PM, Salesforce",    photo:"https://i.pravatar.cc/150?img=29", color1:"#D97706", color2:"#FDE68A", quote:"Zari told me I was leaving money on the table. I countered to $148K. They said yes immediately. I almost left $18K behind." },
+  { name:"Dev P.",       role:"EM → Director, Snowflake",       photo:"https://i.pravatar.cc/150?img=57", color1:"#4361EE", color2:"#BAE6FD", quote:"Not 'be more strategic' — actual specific things to do, week by week. The most useful coaching I've ever had." },
+  { name:"Fatoumata K.", role:"Ops Manager → LinkedIn PM",      photo:"https://i.pravatar.cc/150?img=20", color1:"#DC2626", color2:"#FCA5A5", quote:"The career change felt impossible. Every recruiter said I wasn't 'product enough.' Zari spent two sessions just on narrative — repositioning 5 years of ops work as product intuition, not a liability. Then we practiced every version of 'why are you switching?' until I stopped hedging and started owning it. LinkedIn's final round had four back-to-back PM interviews. I came out feeling like I'd done them all before. I had. Just with Zari." },
   { name:"Chris Y.",     role:"Senior PM → Staff PM, Notion",   photo:"https://i.pravatar.cc/150?img=61", color1:"#0284C7", color2:"#67E8F9", quote:"LinkedIn views went from 2 to 22 per week. Just the headline. Nothing else changed." },
-  { name:"Aisha T.",     role:"Customer Success → PM, HubSpot", photo:"https://i.pravatar.cc/150?img=44", color1:"#7C3AED", color2:"#DDD6FE", quote:"I was told my whole career I wasn't technical enough. Zari showed me how to position customer insight as a superpower. HubSpot agreed." },
+  { name:"Aisha T.",     role:"Customer Success → PM, HubSpot", photo:"https://i.pravatar.cc/150?img=44", color1:"#7C3AED", color2:"#DDD6FE", quote:"Told my whole career I wasn't technical enough. Zari showed me how to position customer insight as a superpower. HubSpot agreed." },
   { name:"Patrick H.",   role:"Sr PM → Group PM, Stripe",       photo:"https://i.pravatar.cc/150?img=51", color1:"#0284C7", color2:"#BAE6FD", quote:"Zari pushed me to counter twice. Most people stop at one. Ended up $22K above their so-called final offer." },
-  { name:"Divya N.",     role:"QA Lead → PM, Microsoft",        photo:"https://i.pravatar.cc/150?img=38", color1:"#DC2626", color2:"#FECACA", quote:"3 years trying to break into PM. Zari diagnosed the problem in 20 minutes: I was describing tasks, not decisions. Fixed it. Microsoft hired me." },
   { name:"Tom F.",       role:"Principal PM → Director, Databricks", photo:"https://i.pravatar.cc/150?img=53", color1:"#D97706", color2:"#FEF3C7", quote:"My directs noticed I was running meetings differently before I told anyone I was working with Zari." },
-  { name:"Grace K.",     role:"MBA → PM, Coinbase",             photo:"https://i.pravatar.cc/150?img=26", color1:"#4361EE", color2:"#A5B4FC", quote:"No product experience, just an MBA. Zari helped me build a narrative from academic projects that Coinbase actually bought." },
+  { name:"Grace K.",     role:"MBA → PM, Coinbase",             photo:"https://i.pravatar.cc/150?img=26", color1:"#4361EE", color2:"#A5B4FC", quote:"No product experience, just an MBA. Zari built a narrative from academic projects that Coinbase actually bought." },
   { name:"Ivan M.",      role:"IC5 → IC6, Amazon",              photo:"https://i.pravatar.cc/150?img=62", color1:"#059669", color2:"#6EE7B7", quote:"Zari knew Amazon's leadership principles better than I did. Drilled me until I stopped saying 'we' instead of 'I'. That was the whole problem." },
   { name:"Layla P.",     role:"Marketing → Growth PM, Canva",   photo:"https://i.pravatar.cc/150?img=23", color1:"#7C3AED", color2:"#F3E8FF", quote:"I thought the career change was too big. Zari showed me I was already doing half the job. Canva's role was basically designed for me." },
-  { name:"Sam W.",       role:"SRE → Staff Infra PM, Cloudflare",photo:"https://i.pravatar.cc/150?img=71",color1:"#0284C7", color2:"#E0F2FE", quote:"Cloudflare's process is brutal. Zari knew every round. I went in with no surprises." },
+  { name:"Sam W.",       role:"SRE → Staff Infra PM, Cloudflare",photo:"https://i.pravatar.cc/150?img=71",color1:"#0284C7", color2:"#E0F2FE", quote:"I'd been trying to make the transition from SRE to PM for two years. Every rejection said the same thing: 'not enough product thinking.' Zari ran me through a full product case, then dissected every answer I gave. It wasn't brutal — it was specific. By session three I was structuring problems differently. By session five I had a Staff PM offer at Cloudflare. I didn't change what I knew. I changed how I explained it." },
   { name:"Zoe H.",       role:"IC → Manager, Airbnb",           photo:"https://i.pravatar.cc/150?img=19", color1:"#DC2626", color2:"#FEE2E2", quote:"Not 'act more like a leader.' Specific behaviors to change in the next 30 days. That's the difference." },
-  { name:"Femi A.",      role:"PM → Senior PM, Twitter/X",      photo:"https://i.pravatar.cc/150?img=6",  color1:"#4361EE", color2:"#EDE9FE", quote:"Zari would stop me mid-story and say 'that's three bullets, not one.' Changed how I talk about my work forever." },
-  { name:"Aria J.",      role:"L5 → L6, Google",                photo:"https://i.pravatar.cc/150?img=41", color1:"#059669", color2:"#D1FAE5", quote:"Two failed promo cycles. Zari mapped out who the deciders were and what they respond to. Third cycle: approved first round." },
-  { name:"Carlos R.",    role:"Tech Lead → Engineering Manager", photo:"https://i.pravatar.cc/150?img=14", color1:"#7C3AED", color2:"#E9D5FF", quote:"The IC to manager transition is an identity shift, not just a job change. Zari prepared me for the actual hard part." },
-  { name:"Ethan C.",     role:"CSM → PM, Intercom",             photo:"https://i.pravatar.cc/150?img=59", color1:"#0284C7", color2:"#BFDBFE", quote:"Five rejections before Zari. One after. The fix was learning to lead with customer impact instead of feature lists." },
-  { name:"Kenji T.",     role:"Senior SWE → Staff, Slack",      photo:"https://i.pravatar.cc/150?img=7",  color1:"#4361EE", color2:"#C7D2FE", quote:"Staff promo is a different conversation. You're arguing org impact. Zari coached me on that language. Slack approved first cycle." },
+  { name:"Femi A.",      role:"PM → Senior PM, Twitter/X",      photo:"https://i.pravatar.cc/150?img=6",  color1:"#4361EE", color2:"#EDE9FE", quote:"Zari stopped me mid-story and said 'that's three bullets, not one.' Changed how I talk about my work forever." },
+  { name:"Aria J.",      role:"L5 → L6, Google",                photo:"https://i.pravatar.cc/150?img=41", color1:"#059669", color2:"#D1FAE5", quote:"Two failed promo cycles. Zari mapped the deciders and what they respond to. Third cycle: approved first round." },
+  { name:"Carlos R.",    role:"Tech Lead → Engineering Manager", photo:"https://i.pravatar.cc/150?img=14", color1:"#7C3AED", color2:"#E9D5FF", quote:"The IC to manager transition is an identity shift, not a job change. Zari prepared me for the actual hard part." },
+  { name:"Ethan C.",     role:"CSM → PM, Intercom",             photo:"https://i.pravatar.cc/150?img=59", color1:"#0284C7", color2:"#BFDBFE", quote:"Five rejections before Zari. One after. The fix was leading with customer impact instead of feature lists." },
+  { name:"Kenji T.",     role:"Senior SWE → Staff, Slack",      photo:"https://i.pravatar.cc/150?img=7",  color1:"#4361EE", color2:"#C7D2FE", quote:"Staff promo is a different argument — you're selling org impact. Zari coached me on that language. Slack approved first cycle." },
   { name:"Nadia F.",     role:"COO → Advisor & Board",          photo:"https://i.pravatar.cc/150?img=35", color1:"#DC2626", color2:"#FECACA", quote:"At my level it was about board positioning. Zari understood governance language and helped me write a bio that actually opens doors." },
   { name:"Tyler G.",     role:"Product Analyst → PM, Spotify",  photo:"https://i.pravatar.cc/150?img=74", color1:"#059669", color2:"#A7F3D0", quote:"One of twelve Spotify finalists. Zari had run me through every question type they use. It felt like I'd already done the interview." },
   { name:"Rashida M.",   role:"UX Researcher → PM, Figma",      photo:"https://i.pravatar.cc/150?img=45", color1:"#7C3AED", color2:"#DDD6FE", quote:"Research background was invisible on my resume. Zari wrote the one bullet that fixed it. Now it's how I open every interview." },
   { name:"Will N.",      role:"L4 → L5 SWE, Apple",             photo:"https://i.pravatar.cc/150?img=64", color1:"#0284C7", color2:"#E0F2FE", quote:"Apple's promo bar is high and opaque. Zari mapped my work to the criteria they actually use. Got promoted 7 months in." },
+  { name:"Mo K.",        role:"SWE → EM, Plaid",                photo:"https://i.pravatar.cc/150?img=56", color1:"#DC2626", color2:"#FCA5A5", quote:"'How would you handle a low performer?' cold would have killed me. Zari made me answer it 8 ways. I was ready for anything." },
   { name:"Amara O.",     role:"Strategy → Chief of Staff, Lyft", photo:"https://i.pravatar.cc/150?img=3", color1:"#D97706", color2:"#FEF3C7", quote:"Salary coaching paid for itself in the first hour. Walked into Lyft knowing my leverage. Left $30K above their opening number." },
-  { name:"Marcus J.",    role:"Backend Eng → Staff Eng, Cloudflare", photo:"https://i.pravatar.cc/150?img=12", color1:"#4361EE", color2:"#818CF8", quote:"I want to be honest: I was skeptical. I'd tried other tools, read the career books, done the LinkedIn courses. None of it translated to anything real in the room. What Zari did differently was stop me mid-answer and say 'you just described output — now tell me the impact.' That one correction changed how I talked about my work in every interview for the next three months. I went from zero senior callbacks to three in a row, and one turned into a Staff offer at Cloudflare. The difference wasn't preparation. It was learning how to tell the right story." },
-  { name:"Priya M.",     role:"PM → Group PM, Stripe",           photo:"https://i.pravatar.cc/150?img=5",  color1:"#7C3AED", color2:"#A78BFA", quote:"I had six years of product experience and couldn't get past the first round at Stripe. Zari showed me exactly why: I was presenting tasks, not decisions. I was describing timelines, not tradeoffs. Every answer I gave was technically accurate and completely unconvincing. Over four sessions, Zari rebuilt how I talk about my work — not what I did, but why it mattered, what I chose not to do, and what I'd do differently. I passed every round on the next attempt. Group PM offer, $40K above their first number." },
-  { name:"Aaliyah R.",   role:"Data Scientist → PM, Figma",      photo:"https://i.pravatar.cc/150?img=47", color1:"#0284C7", color2:"#38BDF8", quote:"The career change felt impossible. Every recruiter told me I wasn't 'product enough.' Zari spent two sessions just on narrative — how to position 5 years of data work as product intuition, not a liability. Then we practiced every version of 'why are you switching?' until I stopped hedging and started owning it. Figma's final round had four back-to-back PM behavioral interviews. I came out feeling like I'd done them all before. I had. Just with Zari on the other side." },
-  { name:"Mo K.",        role:"SWE → EM, Plaid",                photo:"https://i.pravatar.cc/150?img=56", color1:"#DC2626", color2:"#FCA5A5", quote:"'How would you handle a low performer?' cold would have killed me. Zari made me answer it 8 different ways. I was ready for anything." },
-  { name:"Lena H.",      role:"Mid PM → Sr PM, Linear",         photo:"https://i.pravatar.cc/150?img=8",  color1:"#4361EE", color2:"#C7D2FE", quote:"LinkedIn rewrite took 45 minutes. Doubled inbound recruiter messages in a week. That's the whole story." },
+  { name:"Lena H.",      role:"Mid PM → Sr PM, Linear",         photo:"https://i.pravatar.cc/150?img=8",  color1:"#4361EE", color2:"#C7D2FE", quote:"LinkedIn rewrite took 45 minutes. Doubled inbound recruiter messages in a week." },
   { name:"Aaron T.",     role:"IC3 → IC4 SWE, Meta",            photo:"https://i.pravatar.cc/150?img=72", color1:"#7C3AED", color2:"#EDE9FE", quote:"Failed promo twice. Zari showed me I was solving the wrong problems. Third attempt: approved." },
   { name:"Jake S.",      role:"Sales Eng → Solutions PM, Twilio",photo:"https://i.pravatar.cc/150?img=69",color1:"#4361EE", color2:"#A5B4FC", quote:"Five rounds at Twilio. Debriefed with Zari after every one and adjusted. Never felt like I was guessing." },
   { name:"Ingrid A.",    role:"Business Analyst → PM, Adyen",   photo:"https://i.pravatar.cc/150?img=17", color1:"#059669", color2:"#BBF7D0", quote:"New industry, new country, same CV. Zari helped me tell one coherent story instead of two confused ones. Amsterdam hired me in 3 weeks." },
   { name:"Tolu B.",      role:"Chemical Eng → Data PM, Palantir",photo:"https://i.pravatar.cc/150?img=40",color1:"#D97706", color2:"#FCD34D", quote:"My engineering background looked weird to product teams. Zari reframed it as complexity tolerance. Palantir called it a differentiator." },
   { name:"Rachel M.",    role:"Head of CS → VP Success, Rippling",photo:"https://i.pravatar.cc/150?img=27",color1:"#4361EE",color2:"#A5B4FC", quote:"Rippling's VP loop is structured and intense. Zari helped me prep the written exec summary they actually asked for. Offer in 3 weeks." },
-  { name:"Kwame D.",     role:"IC6 → IC7 SWE, Google",          photo:"https://i.pravatar.cc/150?img=63", color1:"#059669", color2:"#D1FAE5", quote:"L7 is about org impact. That's a different argument. Zari coached me on the language until I could make it naturally." },
+  { name:"Kwame D.",     role:"IC6 → IC7 SWE, Google",          photo:"https://i.pravatar.cc/150?img=63", color1:"#059669", color2:"#D1FAE5", quote:"L7 is about org impact. That's a different argument. Zari coached me on that language until I could make it naturally." },
   { name:"Sean P.",      role:"SWE → Technical PM, Vercel",     photo:"https://i.pravatar.cc/150?img=73", color1:"#0284C7", color2:"#BFDBFE", quote:"Zari taught me how to show enthusiasm without giving away leverage. Came out $18K higher at a company I genuinely wanted." },
 ];
 
@@ -904,7 +901,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
         @keyframes upload-bar { 0%{width:0%} 100%{width:100%} }
         @keyframes analyze-bar { 0%{width:0%} 60%{width:62%} 100%{width:62%} }
         @keyframes listen-ripple { 0%{transform:scale(1);opacity:0.5} 100%{transform:scale(1.8);opacity:0} }
-        @keyframes heart-float { 0%{transform:translateY(0) rotate(-10deg);opacity:0} 8%{opacity:1} 85%{opacity:0.55} 100%{transform:translateY(-200vh) rotate(12deg);opacity:0} }
+        @keyframes heart-float { 0%{transform:translateY(0) rotate(-10deg);opacity:0} 6%{opacity:1} 88%{opacity:0.5} 100%{transform:translateY(-400vh) rotate(14deg);opacity:0} }
         .review-card { transition: transform 0.22s ease, box-shadow 0.22s ease; cursor:default; }
         .review-card:hover { transform:translateY(-5px); box-shadow:0 12px 40px rgba(67,97,238,0.13) !important; border-color:#C7D2FE !important; }
         * { box-sizing: border-box; }
@@ -915,7 +912,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
 
       {/* ══════ HERO ══════ */}
       <section style={{
-        background:"linear-gradient(180deg,#EEF2FF 0%,#F5F8FF 55%,white 100%)",
+        background:"linear-gradient(170deg,#E8EEFF 0%,#EEF3FF 28%,#F4F7FF 58%,#FFFFFF 100%)",
         paddingTop:130,
         textAlign:"center",
       }}>
@@ -976,10 +973,10 @@ export function HomeClient({ userId }: { userId: boolean }) {
                 ))}
               </div>
               <div style={{ textAlign:"left" }}>
-                <div style={{ display:"flex", gap:2, marginBottom:4 }}>
-                  {Array.from({length:5}).map((_,i)=><svg key={i} viewBox="0 0 12 12" fill="#F59E0B" style={{ width:15,height:15 }}><path d="M6 1l1.2 2.5 2.8.4-2 2 .5 2.8L6 7.5 3.5 8.7 4 5.9 2 3.9l2.8-.4z"/></svg>)}
+                <div style={{ display:"flex", gap:3, marginBottom:5 }}>
+                  {Array.from({length:5}).map((_,i)=><svg key={i} viewBox="0 0 24 24" fill="#FF9F1C" style={{ width:20,height:20 }}><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>)}
                 </div>
-                <div style={{ fontSize:14.5, fontWeight:600, color:"#2D3550", whiteSpace:"nowrap" }}>Loved by 1,200+ candidates</div>
+                <div style={{ fontSize:15, fontWeight:600, color:"#2D3550", whiteSpace:"nowrap" }}>Loved by 1,200+ candidates</div>
               </div>
             </div>
 
@@ -989,19 +986,19 @@ export function HomeClient({ userId }: { userId: boolean }) {
             {/* RIGHT: "Featured in" stacked above logos */}
             <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-start", gap:11 }}>
               <span style={{ fontSize:11, fontWeight:700, color:"#9AA3B8", textTransform:"uppercase", letterSpacing:"0.1em" }}>Featured in</span>
-              <div style={{ display:"flex", alignItems:"center", gap:32, flexWrap:"nowrap" }}>
-                <span style={{ display:"flex", alignItems:"center", gap:7, whiteSpace:"nowrap" }}>
-                  <span style={{ width:22, height:22, borderRadius:5, background:"#8A94A8", display:"inline-flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                    <svg viewBox="0 0 12 12" fill="white" style={{ width:11,height:11 }}><path d="M6 1L7.5 4.5H11L8.2 6.8 9.3 10.5 6 8.3 2.7 10.5 3.8 6.8 1 4.5H4.5z"/></svg>
+              <div style={{ display:"flex", alignItems:"center", gap:36, flexWrap:"nowrap" }}>
+                <span style={{ display:"flex", alignItems:"center", gap:8, whiteSpace:"nowrap" }}>
+                  <span style={{ width:26, height:26, borderRadius:6, background:"#8A94A8", display:"inline-flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                    <svg viewBox="0 0 12 12" fill="white" style={{ width:13,height:13 }}><path d="M6 1L7.5 4.5H11L8.2 6.8 9.3 10.5 6 8.3 2.7 10.5 3.8 6.8 1 4.5H4.5z"/></svg>
                   </span>
-                  <span style={{ fontSize:15.5, fontWeight:700, color:"#68728A", whiteSpace:"nowrap" }}>Product Hunt</span>
+                  <span style={{ fontSize:17, fontWeight:700, color:"#5E6880", whiteSpace:"nowrap" }}>Product Hunt</span>
                 </span>
-                <span style={{ display:"flex", alignItems:"center", gap:7, whiteSpace:"nowrap" }}>
-                  <span style={{ width:22, height:22, borderRadius:"50%", background:"#8A94A8", display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:9, fontWeight:900, color:"white", lineHeight:1, flexShrink:0 }}>IH</span>
-                  <span style={{ fontSize:15, fontWeight:700, color:"#68728A", textTransform:"uppercase", letterSpacing:"0.05em", whiteSpace:"nowrap" }}>Indie Hackers</span>
+                <span style={{ display:"flex", alignItems:"center", gap:8, whiteSpace:"nowrap" }}>
+                  <span style={{ width:26, height:26, borderRadius:"50%", background:"#8A94A8", display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:900, color:"white", lineHeight:1, flexShrink:0 }}>IH</span>
+                  <span style={{ fontSize:16, fontWeight:700, color:"#5E6880", textTransform:"uppercase", letterSpacing:"0.05em", whiteSpace:"nowrap" }}>Indie Hackers</span>
                 </span>
-                <span style={{ fontSize:17, fontWeight:800, color:"#68728A", letterSpacing:"-0.02em" }}>TechCrunch</span>
-                <span style={{ fontSize:26, fontWeight:900, color:"#5A6280", letterSpacing:"-0.03em", fontFamily:"Georgia,serif", lineHeight:1 }}>Forbes</span>
+                <span style={{ fontSize:19, fontWeight:800, color:"#5E6880", letterSpacing:"-0.02em", whiteSpace:"nowrap" }}>TechCrunch</span>
+                <span style={{ fontSize:30, fontWeight:900, color:"#4A5270", letterSpacing:"-0.03em", fontFamily:"Georgia,serif", lineHeight:1 }}>Forbes</span>
               </div>
             </div>
 
@@ -1010,7 +1007,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
       </section>
 
       {/* ══════ LOGO MARQUEE ══════ */}
-      <section style={{ background:"#EEF0FB", padding:"44px 0 40px", overflow:"hidden" }}>
+      <section style={{ background:"#EEF0FB", padding:"80px 0 72px", overflow:"hidden" }}>
         <p style={{ textAlign:"center", fontSize:12, fontWeight:600, textTransform:"uppercase", letterSpacing:"0.16em", color:"#8B96C8", marginBottom:32 }}>
           Used by candidates targeting
         </p>
