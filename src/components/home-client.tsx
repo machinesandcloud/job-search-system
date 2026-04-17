@@ -273,7 +273,7 @@ function Nav({ userId }: { userId: boolean }) {
       borderBottom: scrolled ? "1px solid rgba(0,0,0,0.06)" : "1px solid transparent",
       transition:"all 0.3s ease",
     }}>
-      <div style={{ maxWidth:1140, margin:"0 auto", padding:"0 28px", height:"100%", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+      <div style={{ maxWidth:1380, margin:"0 auto", padding:"0 32px", height:"100%", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
         <Link href="/" style={{ display:"flex", alignItems:"center", gap:9, textDecoration:"none" }}>
           <ZariLogo size={26} />
           <span style={{ fontSize:17, fontWeight:900, color:"#0A0A0F", letterSpacing:"-0.04em" }}>Zari</span>
@@ -960,13 +960,13 @@ export function HomeClient({ userId }: { userId: boolean }) {
 
         {/* ── Full-width social + featured strip ── */}
         <div style={{ marginTop:48 }}>
-          <div style={{ maxWidth:1140, margin:"0 auto", padding:"32px 56px", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"nowrap", gap:48 }}>
+          <div style={{ maxWidth:1400, margin:"0 auto", padding:"40px 72px", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"nowrap", gap:48 }}>
 
             {/* LEFT: avatars + stars + text */}
             <div style={{ display:"flex", alignItems:"center", gap:14, flexShrink:0 }}>
               <div style={{ display:"flex" }}>
                 {PEOPLE.slice(0,5).map((p, i) => (
-                  <div key={i} style={{ width:44, height:44, borderRadius:"50%", border:"3px solid white", overflow:"hidden", marginLeft: i>0?-11:0, background:`linear-gradient(135deg,${p.color1},${p.color2})`, flexShrink:0, boxShadow:"0 2px 8px rgba(0,0,0,0.15)" }}>
+                  <div key={i} style={{ width:54, height:54, borderRadius:"50%", border:"3px solid white", overflow:"hidden", marginLeft: i>0?-14:0, background:`linear-gradient(135deg,${p.color1},${p.color2})`, flexShrink:0, boxShadow:"0 2px 8px rgba(0,0,0,0.15)" }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={p.photo} alt={p.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
                   </div>
@@ -974,9 +974,9 @@ export function HomeClient({ userId }: { userId: boolean }) {
               </div>
               <div style={{ textAlign:"left" }}>
                 <div style={{ display:"flex", gap:2, marginBottom:5 }}>
-                  {Array.from({length:5}).map((_,i)=><svg key={i} viewBox="0 0 20 20" fill="#F59E0B" style={{ width:18,height:18 }}><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>)}
+                  {Array.from({length:5}).map((_,i)=><svg key={i} viewBox="0 0 20 20" fill="#F59E0B" style={{ width:22,height:22 }}><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>)}
                 </div>
-                <div style={{ fontSize:15, fontWeight:600, color:"#2D3550", whiteSpace:"nowrap" }}>Loved by 1,200+ candidates</div>
+                <div style={{ fontSize:17, fontWeight:600, color:"#2D3550", whiteSpace:"nowrap" }}>Loved by 1,200+ candidates</div>
               </div>
             </div>
 
@@ -1038,7 +1038,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
       <section id="features" style={{ background:"#FAFBFF" }}>
         {FEATURES.map((f, i) => (
           <div key={f.tag} style={{ padding:"96px 28px", background: i%2===0?"#FAFBFF":"white" }}>
-            <div style={{ maxWidth:1100, margin:"0 auto" }}>
+            <div style={{ maxWidth:1360, margin:"0 auto" }}>
               <FeatureSection f={f} flip={i%2!==0} idx={i} />
             </div>
           </div>
@@ -1072,37 +1072,50 @@ export function HomeClient({ userId }: { userId: boolean }) {
       </section>
 
       {/* ══════ REVIEW WALL — Kleo-style ══════ */}
-      <section id="reviews" style={{ padding:"100px 28px 110px", background:"white", position:"relative", overflow:"hidden" }}>
+      <section id="reviews" style={{ padding:"100px 20px 110px", background:"white", position:"relative", overflow:"hidden" }}>
 
         {/* Animated floating hearts — drift upward from random x positions */}
         {([
-          { left:"4%",  delay:"0s",    dur:"7s",  s:22, o:0.22 },
-          { left:"11%", delay:"1.2s",  dur:"9s",  s:14, o:0.16 },
-          { left:"19%", delay:"0.4s",  dur:"8s",  s:18, o:0.20 },
-          { left:"27%", delay:"2.1s",  dur:"6.5s",s:12, o:0.14 },
-          { left:"34%", delay:"0.8s",  dur:"10s", s:20, o:0.24 },
-          { left:"41%", delay:"1.7s",  dur:"7.5s",s:10, o:0.13 },
-          { left:"48%", delay:"3.0s",  dur:"8.5s",s:16, o:0.18 },
-          { left:"55%", delay:"0.2s",  dur:"9.5s",s:22, o:0.26 },
-          { left:"62%", delay:"1.5s",  dur:"7s",  s:14, o:0.16 },
-          { left:"69%", delay:"2.6s",  dur:"6s",  s:18, o:0.20 },
-          { left:"76%", delay:"0.6s",  dur:"11s", s:10, o:0.13 },
-          { left:"82%", delay:"1.9s",  dur:"8s",  s:20, o:0.22 },
-          { left:"88%", delay:"3.4s",  dur:"7.5s",s:12, o:0.15 },
-          { left:"94%", delay:"0.9s",  dur:"9s",  s:16, o:0.18 },
-          { left:"7%",  delay:"4.1s",  dur:"8.5s",s:10, o:0.12 },
-          { left:"23%", delay:"2.8s",  dur:"10s", s:14, o:0.17 },
-          { left:"37%", delay:"5.0s",  dur:"7s",  s:18, o:0.21 },
-          { left:"51%", delay:"1.1s",  dur:"9.5s",s:12, o:0.15 },
-          { left:"65%", delay:"3.7s",  dur:"8s",  s:20, o:0.23 },
-          { left:"79%", delay:"0.5s",  dur:"6.5s",s:14, o:0.17 },
-          { left:"15%", delay:"4.5s",  dur:"11s", s:16, o:0.19 },
-          { left:"43%", delay:"2.3s",  dur:"7.5s",s:22, o:0.25 },
-          { left:"57%", delay:"1.4s",  dur:"8.5s",s:10, o:0.13 },
-          { left:"71%", delay:"3.2s",  dur:"9s",  s:18, o:0.20 },
-          { left:"90%", delay:"5.5s",  dur:"7s",  s:14, o:0.16 },
-          { left:"30%", delay:"4.8s",  dur:"10s", s:12, o:0.14 },
-          { left:"85%", delay:"2.0s",  dur:"8s",  s:20, o:0.22 },
+          { left:"3%",  delay:"0s",    dur:"14s", s:28, o:0.36 },
+          { left:"9%",  delay:"1.2s",  dur:"16s", s:20, o:0.30 },
+          { left:"16%", delay:"0.4s",  dur:"13s", s:24, o:0.34 },
+          { left:"23%", delay:"2.1s",  dur:"17s", s:18, o:0.28 },
+          { left:"30%", delay:"0.8s",  dur:"15s", s:30, o:0.38 },
+          { left:"37%", delay:"1.7s",  dur:"12s", s:16, o:0.26 },
+          { left:"44%", delay:"3.0s",  dur:"14s", s:22, o:0.32 },
+          { left:"51%", delay:"0.2s",  dur:"16s", s:28, o:0.40 },
+          { left:"58%", delay:"1.5s",  dur:"13s", s:20, o:0.30 },
+          { left:"65%", delay:"2.6s",  dur:"15s", s:24, o:0.34 },
+          { left:"72%", delay:"0.6s",  dur:"18s", s:16, o:0.26 },
+          { left:"79%", delay:"1.9s",  dur:"14s", s:30, o:0.36 },
+          { left:"86%", delay:"3.4s",  dur:"12s", s:18, o:0.28 },
+          { left:"93%", delay:"0.9s",  dur:"16s", s:22, o:0.32 },
+          { left:"6%",  delay:"4.1s",  dur:"13s", s:16, o:0.24 },
+          { left:"13%", delay:"2.8s",  dur:"15s", s:20, o:0.30 },
+          { left:"20%", delay:"5.0s",  dur:"17s", s:26, o:0.38 },
+          { left:"28%", delay:"1.1s",  dur:"14s", s:18, o:0.28 },
+          { left:"35%", delay:"3.7s",  dur:"13s", s:28, o:0.36 },
+          { left:"42%", delay:"0.5s",  dur:"16s", s:20, o:0.30 },
+          { left:"49%", delay:"4.5s",  dur:"18s", s:22, o:0.34 },
+          { left:"56%", delay:"2.3s",  dur:"12s", s:30, o:0.42 },
+          { left:"63%", delay:"1.4s",  dur:"14s", s:16, o:0.24 },
+          { left:"70%", delay:"3.2s",  dur:"15s", s:24, o:0.34 },
+          { left:"77%", delay:"5.5s",  dur:"17s", s:20, o:0.30 },
+          { left:"84%", delay:"4.8s",  dur:"13s", s:18, o:0.28 },
+          { left:"91%", delay:"2.0s",  dur:"16s", s:26, o:0.38 },
+          { left:"5%",  delay:"6.2s",  dur:"15s", s:22, o:0.32 },
+          { left:"18%", delay:"3.9s",  dur:"14s", s:28, o:0.36 },
+          { left:"26%", delay:"1.6s",  dur:"18s", s:16, o:0.26 },
+          { left:"33%", delay:"5.8s",  dur:"13s", s:24, o:0.34 },
+          { left:"40%", delay:"0.7s",  dur:"16s", s:20, o:0.30 },
+          { left:"47%", delay:"4.3s",  dur:"15s", s:30, o:0.40 },
+          { left:"54%", delay:"2.5s",  dur:"17s", s:18, o:0.28 },
+          { left:"61%", delay:"6.8s",  dur:"14s", s:22, o:0.34 },
+          { left:"68%", delay:"1.3s",  dur:"12s", s:26, o:0.38 },
+          { left:"75%", delay:"4.0s",  dur:"16s", s:16, o:0.24 },
+          { left:"82%", delay:"7.1s",  dur:"15s", s:28, o:0.36 },
+          { left:"89%", delay:"2.7s",  dur:"13s", s:20, o:0.30 },
+          { left:"96%", delay:"5.2s",  dur:"18s", s:24, o:0.34 },
         ] as {left:string;delay:string;dur:string;s:number;o:number}[]).map((h,i) => (
           <div key={i} aria-hidden style={{
             position:"absolute", bottom:"-30px", left:h.left,
@@ -1112,7 +1125,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
           }}>♥</div>
         ))}
 
-        <div style={{ maxWidth:1200, margin:"0 auto", position:"relative", zIndex:2 }}>
+        <div style={{ maxWidth:1440, margin:"0 auto", position:"relative", zIndex:2 }}>
           <div style={{ textAlign:"center", marginBottom:72 }}>
             <h2 style={{ fontSize:"clamp(2.2rem,4.5vw,3.2rem)", fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", marginBottom:14 }}>
               Loved by 1,200+ candidates.
@@ -1204,7 +1217,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
 
       {/* Footer */}
       <footer style={{ borderTop:"1px solid #F1F5F9", padding:"40px 28px", background:"white" }}>
-        <div style={{ maxWidth:1100, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:16 }}>
+        <div style={{ maxWidth:1380, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:16 }}>
           <div style={{ display:"flex", alignItems:"center", gap:9 }}>
             <ZariLogo size={22} />
             <span style={{ fontSize:15, fontWeight:800, color:"#0A0A0F" }}>Zari</span>
