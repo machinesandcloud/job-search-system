@@ -1058,39 +1058,8 @@ export function HomeClient({ userId }: { userId: boolean }) {
       </section>
 
       {/* ══════ REVIEW WALL — Kleo-style ══════ */}
-      <section id="reviews" style={{ padding:"96px 28px 100px", background:"white", position:"relative", overflow:"hidden" }}>
-
-        {/* Scattered hearts — decorative */}
-        {[
-          { top:"4%",  left:"3%",   size:22, opacity:0.18, rotate:"-15deg" },
-          { top:"8%",  left:"12%",  size:14, opacity:0.12, rotate:"10deg"  },
-          { top:"2%",  left:"28%",  size:18, opacity:0.14, rotate:"5deg"   },
-          { top:"6%",  left:"48%",  size:12, opacity:0.10, rotate:"-8deg"  },
-          { top:"3%",  left:"65%",  size:20, opacity:0.16, rotate:"18deg"  },
-          { top:"7%",  left:"82%",  size:16, opacity:0.13, rotate:"-12deg" },
-          { top:"2%",  left:"93%",  size:10, opacity:0.10, rotate:"7deg"   },
-          { top:"18%", left:"1%",   size:16, opacity:0.13, rotate:"20deg"  },
-          { top:"25%", left:"7%",   size:10, opacity:0.09, rotate:"-5deg"  },
-          { top:"35%", left:"2%",   size:14, opacity:0.12, rotate:"14deg"  },
-          { top:"15%", left:"96%",  size:18, opacity:0.15, rotate:"-18deg" },
-          { top:"28%", left:"91%",  size:12, opacity:0.10, rotate:"9deg"   },
-          { top:"42%", left:"97%",  size:16, opacity:0.13, rotate:"-6deg"  },
-          { top:"50%", left:"4%",   size:20, opacity:0.16, rotate:"11deg"  },
-          { top:"58%", left:"10%",  size:12, opacity:0.09, rotate:"-22deg" },
-          { top:"65%", left:"3%",   size:16, opacity:0.12, rotate:"16deg"  },
-          { top:"55%", left:"89%",  size:14, opacity:0.11, rotate:"-9deg"  },
-          { top:"70%", left:"95%",  size:20, opacity:0.15, rotate:"13deg"  },
-          { top:"80%", left:"5%",   size:14, opacity:0.12, rotate:"-17deg" },
-          { top:"85%", left:"88%",  size:16, opacity:0.13, rotate:"8deg"   },
-          { top:"92%", left:"15%",  size:18, opacity:0.14, rotate:"-11deg" },
-          { top:"88%", left:"50%",  size:12, opacity:0.10, rotate:"20deg"  },
-          { top:"94%", left:"78%",  size:14, opacity:0.12, rotate:"-4deg"  },
-          { top:"40%", left:"48%",  size:10, opacity:0.07, rotate:"6deg"   },
-        ].map((h,i) => (
-          <div key={i} aria-hidden style={{ position:"absolute", top:h.top, left:h.left, fontSize:h.size, opacity:h.opacity, transform:`rotate(${h.rotate})`, pointerEvents:"none", userSelect:"none", lineHeight:1 }}>❤</div>
-        ))}
-
-        <div style={{ maxWidth:1200, margin:"0 auto", position:"relative" }}>
+      <section id="reviews" style={{ padding:"96px 28px 100px", background:"white" }}>
+        <div style={{ maxWidth:1200, margin:"0 auto" }}>
           <div style={{ textAlign:"center", marginBottom:64 }}>
             <h2 style={{ fontSize:"clamp(2rem,4vw,2.8rem)", fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", marginBottom:12 }}>
               Loved by 1,200+ candidates.
@@ -1098,33 +1067,87 @@ export function HomeClient({ userId }: { userId: boolean }) {
             <p style={{ fontSize:17, color:"#68738A" }}>Real sessions. Real results. Real offers.</p>
           </div>
 
-          {/* 3-column masonry */}
-          <div style={{ columns:3, columnGap:20 }}>
-            {WALL_REVIEWS.map((r,i) => (
-              <div key={i} style={{
-                breakInside:"avoid", marginBottom:20,
-                background:"white",
-                border:"1px solid #EAECF5",
-                borderRadius:16,
-                padding:"18px 20px",
-                boxShadow:"0 2px 12px rgba(0,0,0,0.06)",
-              }}>
-                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
-                  <div style={{ width:40, height:40, borderRadius:"50%", overflow:"hidden", background:`linear-gradient(135deg,${r.color1},${r.color2})`, flexShrink:0 }}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={r.photo} alt={r.name} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-                  </div>
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontSize:14, fontWeight:700, color:"#0A0A0F" }}>{r.name}</div>
-                    <div style={{ fontSize:12, color:"#68738A", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.role}</div>
-                  </div>
-                </div>
-                <div style={{ display:"flex", gap:2, marginBottom:9 }}>
-                  {Array.from({length:5}).map((_,j)=><svg key={j} viewBox="0 0 12 12" fill="#F59E0B" style={{ width:13,height:13 }}><path d="M6 1l1.2 2.5 2.8.4-2 2 .5 2.8L6 7.5 3.5 8.7 4 5.9 2 3.9l2.8-.4z"/></svg>)}
-                </div>
-                <p style={{ fontSize:14, lineHeight:1.7, color:"#1E2235", margin:0 }}>{r.quote}</p>
-              </div>
+          {/* Card grid — hearts scattered throughout as absolute children */}
+          <div style={{ position:"relative" }}>
+
+            {/* Hearts scattered through the whole grid area */}
+            {([
+              { top:"2%",   left:"31%",  s:20, o:0.28, r:"-12deg" },
+              { top:"2%",   left:"65%",  s:14, o:0.20, r:"8deg"   },
+              { top:"6%",   left:"8%",   s:12, o:0.18, r:"-6deg"  },
+              { top:"5%",   left:"90%",  s:16, o:0.22, r:"15deg"  },
+              { top:"10%",  left:"48%",  s:10, o:0.15, r:"-20deg" },
+              { top:"14%",  left:"33%",  s:18, o:0.25, r:"5deg"   },
+              { top:"12%",  left:"72%",  s:12, o:0.18, r:"-9deg"  },
+              { top:"18%",  left:"17%",  s:14, o:0.20, r:"18deg"  },
+              { top:"20%",  left:"58%",  s:22, o:0.30, r:"-4deg"  },
+              { top:"22%",  left:"84%",  s:10, o:0.16, r:"12deg"  },
+              { top:"26%",  left:"2%",   s:16, o:0.20, r:"-15deg" },
+              { top:"28%",  left:"40%",  s:14, o:0.22, r:"7deg"   },
+              { top:"30%",  left:"63%",  s:18, o:0.24, r:"-18deg" },
+              { top:"32%",  left:"94%",  s:12, o:0.18, r:"10deg"  },
+              { top:"36%",  left:"24%",  s:20, o:0.26, r:"-8deg"  },
+              { top:"38%",  left:"50%",  s:10, o:0.14, r:"22deg"  },
+              { top:"40%",  left:"76%",  s:16, o:0.22, r:"-5deg"  },
+              { top:"42%",  left:"10%",  s:12, o:0.17, r:"14deg"  },
+              { top:"46%",  left:"35%",  s:18, o:0.25, r:"-11deg" },
+              { top:"48%",  left:"68%",  s:14, o:0.20, r:"6deg"   },
+              { top:"50%",  left:"88%",  s:10, o:0.15, r:"-19deg" },
+              { top:"54%",  left:"5%",   s:16, o:0.21, r:"9deg"   },
+              { top:"56%",  left:"44%",  s:22, o:0.28, r:"-7deg"  },
+              { top:"58%",  left:"21%",  s:12, o:0.17, r:"17deg"  },
+              { top:"60%",  left:"79%",  s:18, o:0.24, r:"-13deg" },
+              { top:"64%",  left:"55%",  s:10, o:0.14, r:"4deg"   },
+              { top:"66%",  left:"96%",  s:14, o:0.19, r:"-16deg" },
+              { top:"68%",  left:"14%",  s:20, o:0.26, r:"11deg"  },
+              { top:"70%",  left:"38%",  s:12, o:0.17, r:"-3deg"  },
+              { top:"72%",  left:"62%",  s:16, o:0.22, r:"20deg"  },
+              { top:"76%",  left:"28%",  s:18, o:0.24, r:"-10deg" },
+              { top:"78%",  left:"83%",  s:10, o:0.14, r:"7deg"   },
+              { top:"80%",  left:"47%",  s:14, o:0.19, r:"-22deg" },
+              { top:"82%",  left:"7%",   s:12, o:0.16, r:"13deg"  },
+              { top:"86%",  left:"70%",  s:20, o:0.27, r:"-6deg"  },
+              { top:"88%",  left:"32%",  s:16, o:0.21, r:"16deg"  },
+              { top:"90%",  left:"90%",  s:12, o:0.17, r:"-14deg" },
+              { top:"93%",  left:"18%",  s:18, o:0.23, r:"8deg"   },
+              { top:"95%",  left:"54%",  s:10, o:0.14, r:"-5deg"  },
+            ] as {top:string;left:string;s:number;o:number;r:string}[]).map((h,i) => (
+              <div key={i} aria-hidden style={{
+                position:"absolute", top:h.top, left:h.left,
+                fontSize:h.s, color:"#E8336D", opacity:h.o,
+                transform:`rotate(${h.r})`, pointerEvents:"none",
+                userSelect:"none", lineHeight:1, zIndex:1,
+              }}>♥</div>
             ))}
+
+            {/* 3-column masonry */}
+            <div style={{ columns:3, columnGap:20, position:"relative", zIndex:2 }}>
+              {WALL_REVIEWS.map((r,i) => (
+                <div key={i} style={{
+                  breakInside:"avoid", marginBottom:20,
+                  background:"white",
+                  border:"1px solid #EBEBF0",
+                  borderRadius:14,
+                  padding:"16px 18px",
+                  boxShadow:"0 1px 8px rgba(0,0,0,0.07)",
+                }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:9 }}>
+                    <div style={{ width:38, height:38, borderRadius:"50%", overflow:"hidden", background:`linear-gradient(135deg,${r.color1},${r.color2})`, flexShrink:0 }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={r.photo} alt={r.name} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+                    </div>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontSize:13.5, fontWeight:700, color:"#0A0A0F" }}>{r.name}</div>
+                      <div style={{ fontSize:11.5, color:"#68738A", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.role}</div>
+                    </div>
+                  </div>
+                  <div style={{ display:"flex", gap:1.5, marginBottom:8 }}>
+                    {Array.from({length:5}).map((_,j)=><svg key={j} viewBox="0 0 12 12" fill="#F59E0B" style={{ width:12,height:12 }}><path d="M6 1l1.2 2.5 2.8.4-2 2 .5 2.8L6 7.5 3.5 8.7 4 5.9 2 3.9l2.8-.4z"/></svg>)}
+                  </div>
+                  <p style={{ fontSize:13.5, lineHeight:1.68, color:"#1E2235", margin:0 }}>{r.quote}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>

@@ -172,12 +172,6 @@ export function ZariAvatar({ state = "idle", size = 120, className = "", interac
             ))}
           </div>
 
-          {/* Speaking waveform inside sphere */}
-          {state === "speaking" && (
-            <div style={{ position:"relative", zIndex:1, marginTop: -(sphereSize*0.04) }}>
-              <WaveformBars size={sphereSize} />
-            </div>
-          )}
         </div>
 
         {/* External waveform arc below sphere (speaking) */}
