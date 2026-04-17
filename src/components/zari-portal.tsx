@@ -195,14 +195,12 @@ const STAGE_PROMPTS: Record<CareerStage, string[]> = {
 };
 
 function ScreenSession({ stage }: { stage: CareerStage }) {
-  const stateSeq: AvatarState[] = ["speaking","listening","thinking","speaking","listening","idle"];
-  const durSeq = [3500,2000,2200,3800,1800,2500];
-  const [seqIdx, setSeqIdx] = useState(0);
   const [avatarState, setAvatarState] = useState<AvatarState>("speaking");
   const [input, setInput] = useState("");
   const [isVoice, setIsVoice] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [msgs, setMsgs] = useState<ChatMsg[]>(() => STAGE_INIT_MSGS[stage]);
+  const [isLoading, setIsLoading] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
 
   // Reset conversation when stage changes
@@ -211,25 +209,38 @@ function ScreenSession({ stage }: { stage: CareerStage }) {
     setElapsed(0);
   }, [stage]);
 
-  useEffect(() => {
-    const t = setTimeout(() => setSeqIdx(i => (i+1)%stateSeq.length), durSeq[seqIdx]);
-    return () => clearTimeout(t);
-  }, [seqIdx]);
-  useEffect(() => { setAvatarState(stateSeq[seqIdx]); }, [seqIdx]);
   useEffect(() => { const t = setInterval(() => setElapsed(e => e+1), 1000); return () => clearInterval(t); }, []);
-  useEffect(() => { if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight; }, [msgs]);
+  useEffect(() => { if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight; }, [msgs, isLoading]);
 
   const fmt = (s:number) => `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
 
-  function sendMessage(text:string) {
-    if (!text.trim()) return;
-    setMsgs(m => [...m, { role:"user", text }]);
+  async function sendMessage(text: string) {
+    const trimmed = text.trim();
+    if (!trimmed || isLoading) return;
+
+    const nextMsgs: ChatMsg[] = [...msgs, { role: "user", text: trimmed }];
+    setMsgs(nextMsgs);
     setInput("");
     setAvatarState("thinking");
-    setTimeout(() => {
-      setMsgs(m => [...m, { role:"coach", text:"Excellent — I can hear the confidence. Let me give you feedback on structure: your Situation and Action are strong. The gap is in your Result. Say exactly what changed: a number, a timeline, or a direct outcome. Try again?" }]);
+    setIsLoading(true);
+
+    try {
+      const res = await fetch("/api/zari/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: trimmed, stage, history: msgs }),
+      });
+      const data = await res.json().catch(() => ({})) as { message?: string };
+      const reply = data.message?.trim() || "I'm having a little trouble right now — try again in a moment.";
+      setMsgs(m => [...m, { role: "coach", text: reply }]);
       setAvatarState("speaking");
-    }, 1400);
+      setTimeout(() => setAvatarState("listening"), 3500);
+    } catch {
+      setMsgs(m => [...m, { role: "coach", text: "Connection issue — try again in a moment." }]);
+      setAvatarState("idle");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -282,7 +293,7 @@ function ScreenSession({ stage }: { stage: CareerStage }) {
         <p style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.12em", color:"#A0AABF", marginBottom:10 }}>Quick prompts</p>
         <div style={{ display:"flex", flexDirection:"column", gap:6, flex:1, overflowY:"auto" }}>
           {STAGE_PROMPTS[stage].map(p => (
-            <button key={p} onClick={() => sendMessage(p)} style={{
+            <button key={p} onClick={() => void sendMessage(p)} disabled={isLoading} style={{ opacity: isLoading ? 0.5 : 1,
               fontSize:12, fontWeight:500, color: STAGE_META[stage].color,
               padding:"8px 11px", borderRadius:9, textAlign:"left",
               background: STAGE_META[stage].bg, border:`1px solid ${STAGE_META[stage].color}20`,
@@ -322,11 +333,11 @@ function ScreenSession({ stage }: { stage: CareerStage }) {
               </div>
             </div>
           ))}
-          {avatarState==="thinking" && (
-            <div style={{ display:"flex", gap:10, marginBottom:16 }}>
+          {isLoading && (
+            <div style={{ display:"flex", gap:10, marginBottom:16, animation:"bubble-appear 0.2s ease" }}>
               <div style={{ width:32,height:32,borderRadius:"50%",flexShrink:0,background:"linear-gradient(135deg,#4361EE,#818CF8)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"white" }}>Z</div>
               <div style={{ display:"flex", alignItems:"center", gap:5, padding:"11px 16px", borderRadius:"4px 16px 16px 16px", background:"white", border:"1px solid #E4E8F5" }}>
-                {[0,1,2].map(i=><div key={i} style={{ width:7,height:7,borderRadius:"50%",background:"#CBD5E1",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
+                {[0,1,2].map(i=><div key={i} style={{ width:7,height:7,borderRadius:"50%",background:"#818CF8",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
               </div>
             </div>
           )}
@@ -334,20 +345,28 @@ function ScreenSession({ stage }: { stage: CareerStage }) {
 
         {/* Input */}
         <div style={{ flexShrink:0, padding:"0 28px 20px", borderTop:"1px solid #E4E8F5", paddingTop:14, background:"white" }}>
-          <div style={{ position:"relative", background:"#FAFBFF", border:"1.5px solid #E0E4EF", borderRadius:14, overflow:"hidden", boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
+          <div style={{ position:"relative", background:"#FAFBFF", border:`1.5px solid ${isLoading ? "#C7D2FE" : "#E0E4EF"}`, borderRadius:14, overflow:"hidden", boxShadow:"0 2px 8px rgba(0,0,0,0.04)", transition:"border-color 0.2s" }}>
             <textarea
-              style={{ width:"100%", border:"none", outline:"none", fontSize:14, color:"#0A0A0F", background:"transparent", resize:"none", padding:"12px 52px 12px 14px", fontFamily:"inherit", lineHeight:1.6, display:"block" }}
+              style={{ width:"100%", border:"none", outline:"none", fontSize:14, color:"#0A0A0F", background:"transparent", resize:"none", padding:"12px 52px 12px 14px", fontFamily:"inherit", lineHeight:1.6, display:"block", opacity: isLoading ? 0.5 : 1 }}
               rows={3}
-              placeholder={isVoice ? "Voice mode active — speak or type…" : "Ask Zari anything, or type a question to practice…"}
+              placeholder={isLoading ? "Zari is thinking…" : isVoice ? "Voice mode active — speak or type…" : "Ask Zari anything, or type a question to practice…"}
               value={input}
               onChange={e=>setInput(e.target.value)}
-              onKeyDown={e=>{ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage(input);} }}
+              onKeyDown={e=>{ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();void sendMessage(input);} }}
+              disabled={isLoading}
             />
-            <button onClick={()=>sendMessage(input)} style={{ position:"absolute", bottom:10, right:10, width:34,height:34,borderRadius:10,border:"none",cursor:"pointer", background:input.trim()?"#4361EE":"#E4E8F5", color:input.trim()?"white":"#A0AABF", display:"flex",alignItems:"center",justifyContent:"center", transition:"all 0.15s" }}>
-              <svg viewBox="0 0 20 20" fill="currentColor" style={{ width:14,height:14 }}><path d="M3.105 3.105a1 1 0 011.263-.237l12 6a1 1 0 010 1.764l-12 6a1 1 0 01-1.367-1.31L4.945 10 3 4.678a1 1 0 01.105-1.573z"/></svg>
+            <button
+              onClick={()=>void sendMessage(input)}
+              disabled={isLoading || !input.trim()}
+              style={{ position:"absolute", bottom:10, right:10, width:34,height:34,borderRadius:10,border:"none",cursor:isLoading||!input.trim()?"default":"pointer", background:input.trim()&&!isLoading?"#4361EE":"#E4E8F5", color:input.trim()&&!isLoading?"white":"#A0AABF", display:"flex",alignItems:"center",justifyContent:"center", transition:"all 0.15s" }}
+            >
+              {isLoading
+                ? <span style={{ width:12,height:12,borderRadius:"50%",border:"2px solid #A0AABF",borderTopColor:"#4361EE",animation:"spin-slow 0.7s linear infinite",display:"block" }}/>
+                : <svg viewBox="0 0 20 20" fill="currentColor" style={{ width:14,height:14 }}><path d="M3.105 3.105a1 1 0 011.263-.237l12 6a1 1 0 010 1.764l-12 6a1 1 0 01-1.367-1.31L4.945 10 3 4.678a1 1 0 01.105-1.573z"/></svg>
+              }
             </button>
           </div>
-          <p style={{ textAlign:"center", fontSize:10, color:"#C4CDD8", marginTop:6 }}>Enter to send · Shift+Enter for new line · Session is auto-saved</p>
+          <p style={{ textAlign:"center", fontSize:10, color:"#C4CDD8", marginTop:6 }}>Enter to send · Shift+Enter for new line · Powered by Zari AI</p>
         </div>
       </div>
     </div>
