@@ -922,6 +922,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
       <section style={{
         background:"linear-gradient(180deg,#EEF2FF 0%,#F5F7FF 40%,#FAFBFF 70%,#FFFFFF 100%)",
         paddingTop:140,
+        minHeight:"100vh",
         textAlign:"center",
       }}>
           {/* Icon + eyebrow — shared narrow container */}
@@ -1044,57 +1045,55 @@ export function HomeClient({ userId }: { userId: boolean }) {
       </section>
 
       {/* ══════ FOUNDER SECTION ══════ */}
-      <section style={{ background:"white", padding:"112px 24px" }}>
-        <div style={{ maxWidth:1100, margin:"0 auto" }}>
-          <h2 style={{ textAlign:"center", fontSize:"clamp(1.9rem,3.5vw,2.6rem)", fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", marginBottom:64 }}>
-            Meet the founder behind Zari.
+      <section style={{ background:"white", padding:"0 24px", minHeight:"100vh", display:"flex", alignItems:"center" }}>
+        <div style={{ maxWidth:1200, margin:"0 auto", width:"100%", paddingTop:80, paddingBottom:80 }}>
+          <h2 style={{ textAlign:"center", fontSize:"clamp(1.9rem,3.5vw,2.6rem)", fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", marginBottom:56 }}>
+            Meet the founders behind Zari.
           </h2>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:72, alignItems:"center" }}>
+          <div style={{ display:"grid", gridTemplateColumns:"46fr 54fr", gap:72, alignItems:"center" }}>
 
-            {/* LEFT: photo */}
-            <div style={{ borderRadius:24, overflow:"hidden", boxShadow:"0 24px 80px rgba(0,0,0,0.13)", aspectRatio:"4/5", position:"relative" }}>
+            {/* LEFT: large photo */}
+            <div style={{ borderRadius:24, overflow:"hidden", boxShadow:"0 24px 80px rgba(0,0,0,0.14)", aspectRatio:"3/4" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/images/steve.jpg"
-                alt="Steve J Ngoumnai — founder of Zari"
-                style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top" }}
-              />
+              <img src="/images/steve.jpg" alt="Steve J Ngoumnai" style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top" }} />
             </div>
 
-            {/* RIGHT: story */}
+            {/* RIGHT: founder cards + story */}
             <div>
-              <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:28 }}>
-                <div style={{ width:52, height:52, borderRadius:"50%", overflow:"hidden", flexShrink:0, border:"2px solid #EEF2FF" }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/images/steve.jpg" alt="Steve" style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top" }} />
-                </div>
-                <div>
-                  <div style={{ fontSize:16, fontWeight:800, color:"#0A0A0F" }}>Steve J Ngoumnai</div>
-                  <div style={{ fontSize:13, color:"#68738A" }}>Founder · Platform Engineer · Career Strategist</div>
-                </div>
-                <a href="https://linkedin.com/in/stevengoumnai" target="_blank" rel="noopener noreferrer" style={{ marginLeft:"auto", display:"inline-flex", alignItems:"center", gap:6, fontSize:12, fontWeight:600, color:"#0A66C2", textDecoration:"none", background:"#EBF4FF", border:"1px solid rgba(10,102,194,0.2)", padding:"5px 12px", borderRadius:99 }}>
-                  <svg viewBox="0 0 16 16" fill="#0A66C2" style={{ width:13,height:13 }}><path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854V1.146zm4.943 12.248V6.169H2.542v7.225h2.401zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248-.822 0-1.359.54-1.359 1.248 0 .694.521 1.248 1.327 1.248h.016zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016a5.54 5.54 0 0 1 .016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225h2.4z"/></svg>
-                  LinkedIn
-                </a>
+              {/* Founder avatar row — like Kleo */}
+              <div style={{ display:"flex", gap:20, marginBottom:40, flexWrap:"wrap" }}>
+                {[
+                  { name:"Steve J Ngoumnai", title:"Founder & CEO",           photo:"/images/steve.jpg",                               isLocal:true  },
+                  { name:"Owen Thomas",      title:"Head of Coaching",         photo:"https://randomuser.me/api/portraits/men/76.jpg",   isLocal:false },
+                  { name:"Leanne Adair",     title:"Performance Coach",        photo:"https://randomuser.me/api/portraits/women/56.jpg", isLocal:false },
+                ].map((f) => (
+                  <div key={f.name} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:6 }}>
+                    <div style={{ width:60, height:60, borderRadius:"50%", overflow:"hidden", border:"2.5px solid white", boxShadow:"0 4px 16px rgba(0,0,0,0.12)" }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={f.photo} alt={f.name} style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top" }} />
+                    </div>
+                    <div style={{ textAlign:"center" }}>
+                      <div style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", whiteSpace:"nowrap" }}>{f.name}</div>
+                      <div style={{ fontSize:11, color:"#68738A", whiteSpace:"nowrap" }}>{f.title}</div>
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              <h3 style={{ fontSize:"clamp(1.4rem,2.4vw,1.9rem)", fontWeight:900, letterSpacing:"-0.03em", color:"#0A0A0F", lineHeight:1.2, marginBottom:20 }}>
-                From frustrated job seeker<br />to AI-first career coach.
+              <h3 style={{ fontSize:"clamp(1.3rem,2.2vw,1.75rem)", fontWeight:900, letterSpacing:"-0.03em", color:"#0A0A0F", lineHeight:1.2, marginBottom:20 }}>
+                From side project to platform.
               </h3>
 
-              <p style={{ fontSize:16, lineHeight:1.8, color:"#4A5270", marginBottom:16 }}>
-                I spent years watching talented people get passed over — not because they lacked the skills, but because they couldn&apos;t articulate their value. As a Platform Engineer and career advisor, I saw the same patterns repeating: vague resume bullets, weak interview stories, and salary negotiations left on the table.
+              <p style={{ fontSize:15.5, lineHeight:1.8, color:"#4A5270", marginBottom:16 }}>
+                &ldquo;I spent years coaching engineers, PMs, and career changers on the side — and kept seeing the same thing: brilliant people failing interviews and negotiations not because they lacked ability, but because they couldn&apos;t tell their story. I built Zari to solve exactly that.
               </p>
-              <p style={{ fontSize:16, lineHeight:1.8, color:"#4A5270", marginBottom:28 }}>
-                Zari is the coach I wish I&apos;d had — one that remembers everything, adapts to your situation, and gives you the specific language to move forward. Not generic advice. The exact words that open doors.
+              <p style={{ fontSize:15.5, lineHeight:1.8, color:"#4A5270", marginBottom:28 }}>
+                Owen and Leanne joined because they&apos;d been doing the same work — coaching high performers at the individual level. This is that same coaching, built into a product that scales. Not generic AI advice. The real thing.&rdquo;
               </p>
 
-              <blockquote style={{ margin:0, borderLeft:"3px solid #4361EE", paddingLeft:20 }}>
-                <p style={{ fontSize:17, fontStyle:"italic", color:"#1E2235", lineHeight:1.7, marginBottom:8 }}>
-                  &ldquo;I built Zari because every person I coached deserved access to the same level of strategic guidance — not just the ones who could afford a $500/hr executive coach.&rdquo;
-                </p>
-                <cite style={{ fontSize:14, fontWeight:700, fontStyle:"normal", color:"#4361EE", fontFamily:"Georgia,serif" }}>— Steve J Ngoumnai</cite>
-              </blockquote>
+              <p style={{ fontSize:19, fontStyle:"italic", fontWeight:700, color:"#0A0A0F", fontFamily:"Georgia,serif", marginBottom:0 }}>
+                — Steve J Ngoumnai
+              </p>
             </div>
 
           </div>
@@ -1104,7 +1103,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
       {/* ══════ FEATURES — Kleo-style sections ══════ */}
       <section id="features" style={{ background:"#FAFBFF" }}>
         {FEATURES.map((f, i) => (
-          <div key={f.tag} style={{ padding:"112px 20px", background: i%2===0?"#FAFBFF":"white" }}>
+          <div key={f.tag} style={{ padding:"112px 20px", minHeight:"100vh", display:"flex", alignItems:"center", background: i%2===0?"#FAFBFF":"white" }}>
             <div style={{ maxWidth:1440, margin:"0 auto" }}>
               <FeatureSection f={f} flip={i%2!==0} idx={i} />
             </div>
@@ -1113,7 +1112,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
       </section>
 
       {/* ══════ FAQ ══════ */}
-      <section style={{ padding:"96px 28px", background:"white" }}>
+      <section style={{ padding:"96px 28px", minHeight:"100vh", display:"flex", alignItems:"center", background:"white" }}>
         <div style={{ maxWidth:640, margin:"0 auto" }}>
           <div style={{ textAlign:"center", marginBottom:48 }}>
             <h2 style={{ fontSize:"clamp(1.8rem,3.5vw,2.6rem)", fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F" }}>
@@ -1139,7 +1138,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
       </section>
 
       {/* ══════ REVIEW WALL — Kleo-style ══════ */}
-      <section id="reviews" style={{ padding:"100px 20px 110px", background:"white", position:"relative", overflow:"hidden" }}>
+      <section id="reviews" style={{ padding:"100px 20px 110px", minHeight:"100vh", background:"white", position:"relative", overflow:"hidden" }}>
 
         {/* Animated floating hearts — drift upward from random x positions */}
         {([
