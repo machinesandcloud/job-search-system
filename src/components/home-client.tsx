@@ -391,8 +391,8 @@ function FeatureSection({ f, flip, idx }: { f:typeof FEATURES[0]; flip:boolean; 
   return (
     <div ref={ref} style={{
       display:"grid",
-      gridTemplateColumns: flip ? "1fr 1fr" : "1fr 1fr",
-      gap:72,
+      gridTemplateColumns: flip ? "62fr 38fr" : "38fr 62fr",
+      gap:80,
       alignItems:"center",
       opacity: vis ? 1 : 0,
       transform: vis ? "translateY(0)" : "translateY(32px)",
@@ -404,35 +404,38 @@ function FeatureSection({ f, flip, idx }: { f:typeof FEATURES[0]; flip:boolean; 
           display:"inline-block", fontSize:11, fontWeight:700, textTransform:"uppercase",
           letterSpacing:"0.16em", color:"#4361EE",
           background:"#EEF2FF", border:"1px solid rgba(67,97,238,0.2)",
-          padding:"4px 12px", borderRadius:99, marginBottom:18,
+          padding:"5px 14px", borderRadius:99, marginBottom:22,
         }}>{f.tag}</span>
         <h2 style={{
-          fontSize:"clamp(1.9rem,3.2vw,2.6rem)",
+          fontSize:"clamp(2.1rem,3.5vw,3rem)",
           fontWeight:900, letterSpacing:"-0.04em",
-          color:"#0A0A0F", lineHeight:1.1,
-          marginBottom:16, whiteSpace:"pre-line",
+          color:"#0A0A0F", lineHeight:1.08,
+          marginBottom:18, whiteSpace:"pre-line",
         }}>{f.headline}</h2>
-        <p style={{ fontSize:16.5, color:"#68738A", lineHeight:1.7, marginBottom:24 }}>{f.body}</p>
-        <ul style={{ listStyle:"none", margin:0, padding:0, display:"flex", flexDirection:"column", gap:10, marginBottom:32 }}>
+        <p style={{ fontSize:17, color:"#68738A", lineHeight:1.75, marginBottom:28 }}>{f.body}</p>
+        <ul style={{ listStyle:"none", margin:0, padding:0, display:"flex", flexDirection:"column", gap:14, marginBottom:36 }}>
           {f.bullets.map(b => (
-            <li key={b} style={{ display:"flex", alignItems:"flex-start", gap:10, fontSize:15, color:"#1E2235" }}>
-              <svg viewBox="0 0 20 20" fill="none" stroke="#4361EE" strokeWidth="2.5" style={{ width:17,height:17,flexShrink:0,marginTop:2 }}><polyline points="4,10 8,14 16,6"/></svg>
+            <li key={b} style={{ display:"flex", alignItems:"flex-start", gap:12, fontSize:15.5, color:"#1E2235" }}>
+              <div style={{ width:22, height:22, borderRadius:"50%", background:"#EEF2FF", border:"1px solid rgba(67,97,238,0.2)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>
+                <svg viewBox="0 0 20 20" fill="none" stroke="#4361EE" strokeWidth="2.5" style={{ width:11,height:11 }}><polyline points="4,10 8,14 16,6"/></svg>
+              </div>
               {b}
             </li>
           ))}
         </ul>
         <Link href="/signup" style={{
           display:"inline-flex", alignItems:"center", gap:8,
-          padding:"12px 24px", borderRadius:12,
+          padding:"14px 28px", borderRadius:12,
           background:"#0A0A0F", color:"white",
-          fontSize:14.5, fontWeight:700, textDecoration:"none",
+          fontSize:15, fontWeight:700, textDecoration:"none",
+          boxShadow:"0 4px 16px rgba(0,0,0,0.14)",
         }}>
           Try {f.tag} free
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ width:14,height:14 }}><path d="M3 8h10M9 5l3 3-3 3"/></svg>
         </Link>
       </div>
 
-      {/* Mini portal preview — right or left */}
+      {/* Mockup — larger panel */}
       <div style={{ order: flip ? 1 : 2 }}>
         <FeatureMockup type={f.mockup} />
       </div>
@@ -468,14 +471,14 @@ function FeatureMockup({ type }: { type: string }) {
   if (type === "resume") {
     const STEPS = ["Upload", "Analyze", "Results"] as const;
     return (
-    <div style={{ background:"white", borderRadius:18, border:"1px solid #E4E8F5", overflow:"hidden", boxShadow:"0 16px 56px rgba(0,0,0,0.10)" }}>
-      <div style={{ background:"#F8F9FB", borderBottom:"1px solid #E4E8F5", padding:"10px 14px", display:"flex", gap:5, alignItems:"center" }}>
-        {["#FF5F57","#FEBC2E","#28C840"].map(c=><div key={c} style={{ width:9,height:9,borderRadius:"50%",background:c }}/>)}
-        <span style={{ marginLeft:8, fontSize:10, color:"#A0AABF" }}>Resume Review · Zari</span>
+    <div style={{ background:"white", borderRadius:22, border:"1px solid #E4E8F5", overflow:"hidden", boxShadow:"0 24px 80px rgba(0,0,0,0.13)" }}>
+      <div style={{ background:"#F8F9FB", borderBottom:"1px solid #E4E8F5", padding:"13px 18px", display:"flex", gap:5, alignItems:"center" }}>
+        {["#FF5F57","#FEBC2E","#28C840"].map(c=><div key={c} style={{ width:10,height:10,borderRadius:"50%",background:c }}/>)}
+        <span style={{ marginLeft:8, fontSize:11, color:"#A0AABF" }}>Resume Review · Zari</span>
       </div>
 
       {/* Step indicator */}
-      <div style={{ display:"flex", alignItems:"center", gap:6, padding:"12px 18px 0" }}>
+      <div style={{ display:"flex", alignItems:"center", gap:6, padding:"16px 22px 0" }}>
         {STEPS.map((s,i)=>(
           <div key={s} style={{ display:"flex", alignItems:"center", gap:6 }}>
             <div style={{ display:"flex", alignItems:"center", gap:5, fontSize:10.5, fontWeight:700,
@@ -497,7 +500,7 @@ function FeatureMockup({ type }: { type: string }) {
         ))}
       </div>
 
-      <div style={{ padding:"14px 18px 18px", minHeight:240 }}>
+      <div style={{ padding:"18px 22px 24px", minHeight:320 }}>
         {/* STEP 0: Upload dropzone */}
         {step === 0 && (
           <div style={{
@@ -593,17 +596,17 @@ function FeatureMockup({ type }: { type: string }) {
     const visibleMsgs = step >= SESSION_MSGS ? MSGS : MSGS.slice(0, step + 1);
 
     return (
-    <div style={{ background:"white", borderRadius:18, border:"1px solid #E4E8F5", overflow:"hidden", boxShadow:"0 16px 56px rgba(0,0,0,0.10)" }}>
-      <div style={{ background:"#F8F9FB", borderBottom:"1px solid #E4E8F5", padding:"10px 14px", display:"flex", alignItems:"center", gap:8 }}>
-        {["#FF5F57","#FEBC2E","#28C840"].map(c=><div key={c} style={{ width:9,height:9,borderRadius:"50%",background:c }}/>)}
-        <span style={{ display:"flex", alignItems:"center", gap:5, marginLeft:8, fontSize:10, fontWeight:700, color:"#22C55E" }}>
+    <div style={{ background:"white", borderRadius:22, border:"1px solid #E4E8F5", overflow:"hidden", boxShadow:"0 24px 80px rgba(0,0,0,0.13)" }}>
+      <div style={{ background:"#F8F9FB", borderBottom:"1px solid #E4E8F5", padding:"13px 18px", display:"flex", alignItems:"center", gap:8 }}>
+        {["#FF5F57","#FEBC2E","#28C840"].map(c=><div key={c} style={{ width:10,height:10,borderRadius:"50%",background:c }}/>)}
+        <span style={{ display:"flex", alignItems:"center", gap:5, marginLeft:8, fontSize:11, fontWeight:700, color:"#22C55E" }}>
           <span style={{ width:6,height:6,borderRadius:"50%",background:"#22C55E",animation:"blink 1.1s ease-in-out infinite",display:"inline-block" }}/>
           Live · 06:42
         </span>
       </div>
-      <div style={{ padding:16 }}>
-        <div style={{ display:"flex", justifyContent:"center", marginBottom:14 }}>
-          <div style={{ width:72, height:72, borderRadius:"50%", background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", position:"relative" }}>
+      <div style={{ padding:"18px 22px 24px" }}>
+        <div style={{ display:"flex", justifyContent:"center", marginBottom:18 }}>
+          <div style={{ width:88, height:88, borderRadius:"50%", background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", position:"relative" }}>
             <span style={{ fontSize:26, fontWeight:900, color:"white" }}>Z</span>
             <div style={{ position:"absolute", inset:-5, borderRadius:"50%", border:"2px solid rgba(67,97,238,0.2)", animation:"ring-pulse 2.5s ease-out infinite" }}/>
             <div style={{ position:"absolute", inset:-10, borderRadius:"50%", border:"1.5px solid rgba(67,97,238,0.1)", animation:"ring-pulse 2.5s 0.8s ease-out infinite" }}/>
@@ -644,15 +647,15 @@ function FeatureMockup({ type }: { type: string }) {
 
   if (type === "interview") {
     return (
-    <div style={{ background:"white", borderRadius:18, border:"1px solid #E4E8F5", overflow:"hidden", boxShadow:"0 16px 56px rgba(0,0,0,0.10)" }}>
-      <div style={{ background:"#F8F9FB", borderBottom:"1px solid #E4E8F5", padding:"10px 14px", display:"flex", gap:5, alignItems:"center" }}>
-        {["#FF5F57","#FEBC2E","#28C840"].map(c=><div key={c} style={{ width:9,height:9,borderRadius:"50%",background:c }}/>)}
-        <span style={{ marginLeft:8, fontSize:10, color:"#A0AABF" }}>Mock Interview · Q2 of 6</span>
+    <div style={{ background:"white", borderRadius:22, border:"1px solid #E4E8F5", overflow:"hidden", boxShadow:"0 24px 80px rgba(0,0,0,0.13)" }}>
+      <div style={{ background:"#F8F9FB", borderBottom:"1px solid #E4E8F5", padding:"13px 18px", display:"flex", gap:5, alignItems:"center" }}>
+        {["#FF5F57","#FEBC2E","#28C840"].map(c=><div key={c} style={{ width:10,height:10,borderRadius:"50%",background:c }}/>)}
+        <span style={{ marginLeft:8, fontSize:11, color:"#A0AABF" }}>Mock Interview · Q2 of 6</span>
         {step === 0 && <span style={{ marginLeft:"auto", fontSize:9.5, fontWeight:700, color:"#EF4444", display:"flex", alignItems:"center", gap:4 }}>
           <span style={{ width:6,height:6,borderRadius:"50%",background:"#EF4444",animation:"blink 0.9s ease infinite",display:"inline-block" }}/>Recording
         </span>}
       </div>
-      <div style={{ padding:16 }}>
+      <div style={{ padding:"18px 22px 24px" }}>
         {/* Question card — always visible */}
         <div style={{ background:"linear-gradient(135deg,#0F172A,#1E3A8A)", borderRadius:12, padding:13, marginBottom:13 }}>
           <div style={{ fontSize:8.5, textTransform:"uppercase", letterSpacing:"0.12em", color:"rgba(255,255,255,0.5)", marginBottom:6 }}>Behavioral · Senior PM</div>
@@ -715,13 +718,13 @@ function FeatureMockup({ type }: { type: string }) {
       1: [{l:"Visibility",v:91,c:"#16A34A"},{l:"Keywords",v:84,c:"#4361EE"},{l:"Strength",v:88,c:"#0284C7"}],
     }[step] ?? [];
     return (
-    <div style={{ background:"white", borderRadius:18, border:"1px solid #E4E8F5", overflow:"hidden", boxShadow:"0 16px 56px rgba(0,0,0,0.10)" }}>
-      <div style={{ background:"#F8F9FB", borderBottom:"1px solid #E4E8F5", padding:"10px 14px", display:"flex", gap:5, alignItems:"center" }}>
-        {["#FF5F57","#FEBC2E","#28C840"].map(c=><div key={c} style={{ width:9,height:9,borderRadius:"50%",background:c }}/>)}
-        <span style={{ marginLeft:8, fontSize:10, color:"#A0AABF" }}>LinkedIn Optimizer · Zari</span>
+    <div style={{ background:"white", borderRadius:22, border:"1px solid #E4E8F5", overflow:"hidden", boxShadow:"0 24px 80px rgba(0,0,0,0.13)" }}>
+      <div style={{ background:"#F8F9FB", borderBottom:"1px solid #E4E8F5", padding:"13px 18px", display:"flex", gap:5, alignItems:"center" }}>
+        {["#FF5F57","#FEBC2E","#28C840"].map(c=><div key={c} style={{ width:10,height:10,borderRadius:"50%",background:c }}/>)}
+        <span style={{ marginLeft:8, fontSize:11, color:"#A0AABF" }}>LinkedIn Optimizer · Zari</span>
         {step === 1 && <span style={{ marginLeft:"auto", fontSize:9, fontWeight:700, color:"#16A34A", background:"#F0FFF4", border:"1px solid #BBF7D0", padding:"2px 8px", borderRadius:99 }}>Optimized ✓</span>}
       </div>
-      <div style={{ padding:16 }}>
+      <div style={{ padding:"18px 22px 24px" }}>
         {/* Scores — animate from bad to good */}
         <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:7, marginBottom:14 }}>
           {scores.map((s,idx)=>(
@@ -764,12 +767,12 @@ function FeatureMockup({ type }: { type: string }) {
 
   if (type === "promotion") {
     return (
-    <div style={{ background:"white", borderRadius:18, border:"1px solid #E4E8F5", overflow:"hidden", boxShadow:"0 16px 56px rgba(0,0,0,0.10)" }}>
-      <div style={{ background:"#F8F9FB", borderBottom:"1px solid #E4E8F5", padding:"10px 14px", display:"flex", gap:5, alignItems:"center" }}>
-        {["#FF5F57","#FEBC2E","#28C840"].map(c=><div key={c} style={{ width:9,height:9,borderRadius:"50%",background:c }}/>)}
-        <span style={{ marginLeft:8, fontSize:10, color:"#A0AABF" }}>Promotion Coaching · Zari</span>
+    <div style={{ background:"white", borderRadius:22, border:"1px solid #E4E8F5", overflow:"hidden", boxShadow:"0 24px 80px rgba(0,0,0,0.13)" }}>
+      <div style={{ background:"#F8F9FB", borderBottom:"1px solid #E4E8F5", padding:"13px 18px", display:"flex", gap:5, alignItems:"center" }}>
+        {["#FF5F57","#FEBC2E","#28C840"].map(c=><div key={c} style={{ width:10,height:10,borderRadius:"50%",background:c }}/>)}
+        <span style={{ marginLeft:8, fontSize:11, color:"#A0AABF" }}>Promotion Coaching · Zari</span>
       </div>
-      <div style={{ padding:16, minHeight:260 }}>
+      <div style={{ padding:"18px 22px 24px", minHeight:320 }}>
         {step === 0 && (
           <div style={{ animation:"bubble-appear 0.35s ease" }}>
             <p style={{ fontSize:11, fontWeight:700, color:"#4361EE", marginBottom:12 }}>Tell me about your situation</p>
@@ -828,12 +831,12 @@ function FeatureMockup({ type }: { type: string }) {
     ];
     const visible = step === 0 ? ROUNDS.slice(0,1) : ROUNDS;
     return (
-    <div style={{ background:"white", borderRadius:18, border:"1px solid #E4E8F5", overflow:"hidden", boxShadow:"0 16px 56px rgba(0,0,0,0.10)" }}>
-      <div style={{ background:"#F8F9FB", borderBottom:"1px solid #E4E8F5", padding:"10px 14px", display:"flex", gap:5, alignItems:"center" }}>
-        {["#FF5F57","#FEBC2E","#28C840"].map(c=><div key={c} style={{ width:9,height:9,borderRadius:"50%",background:c }}/>)}
-        <span style={{ marginLeft:8, fontSize:10, color:"#A0AABF" }}>Salary Negotiation · Simulation</span>
+    <div style={{ background:"white", borderRadius:22, border:"1px solid #E4E8F5", overflow:"hidden", boxShadow:"0 24px 80px rgba(0,0,0,0.13)" }}>
+      <div style={{ background:"#F8F9FB", borderBottom:"1px solid #E4E8F5", padding:"13px 18px", display:"flex", gap:5, alignItems:"center" }}>
+        {["#FF5F57","#FEBC2E","#28C840"].map(c=><div key={c} style={{ width:10,height:10,borderRadius:"50%",background:c }}/>)}
+        <span style={{ marginLeft:8, fontSize:11, color:"#A0AABF" }}>Salary Negotiation · Simulation</span>
       </div>
-      <div style={{ padding:16 }}>
+      <div style={{ padding:"18px 22px 24px" }}>
         {/* Market anchor */}
         <div style={{ background:"linear-gradient(135deg,#0F172A,#1E3A5F)", borderRadius:11, padding:12, marginBottom:13 }}>
           <div style={{ fontSize:8.5, textTransform:"uppercase", letterSpacing:"0.12em", color:"rgba(255,255,255,0.5)", marginBottom:5 }}>Market benchmark · Senior PM · SF Bay Area</div>
@@ -1037,8 +1040,8 @@ export function HomeClient({ userId }: { userId: boolean }) {
       {/* ══════ FEATURES — Kleo-style sections ══════ */}
       <section id="features" style={{ background:"#FAFBFF" }}>
         {FEATURES.map((f, i) => (
-          <div key={f.tag} style={{ padding:"96px 28px", background: i%2===0?"#FAFBFF":"white" }}>
-            <div style={{ maxWidth:1360, margin:"0 auto" }}>
+          <div key={f.tag} style={{ padding:"112px 20px", background: i%2===0?"#FAFBFF":"white" }}>
+            <div style={{ maxWidth:1440, margin:"0 auto" }}>
               <FeatureSection f={f} flip={i%2!==0} idx={i} />
             </div>
           </div>
