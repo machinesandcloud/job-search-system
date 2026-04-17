@@ -958,42 +958,43 @@ export function HomeClient({ userId }: { userId: boolean }) {
 
         {/* ── Full-width social + featured strip ── */}
         <div style={{ marginTop:48, borderTop:"1px solid rgba(67,97,238,0.10)" }}>
-          <div style={{ maxWidth:1200, margin:"0 auto", padding:"32px 48px", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"nowrap", gap:24 }}>
+          <div style={{ maxWidth:1100, margin:"0 auto", padding:"28px 48px", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"nowrap", gap:40 }}>
 
-            {/* LEFT: avatars + stars + text */}
-            <div style={{ display:"flex", alignItems:"center", gap:16 }}>
+            {/* LEFT: avatars + stars + text — compact */}
+            <div style={{ display:"flex", alignItems:"center", gap:12, flexShrink:0 }}>
               <div style={{ display:"flex" }}>
                 {PEOPLE.slice(0,5).map((p, i) => (
-                  <div key={i} style={{ width:52, height:52, borderRadius:"50%", border:"3px solid white", overflow:"hidden", marginLeft: i>0?-14:0, background:`linear-gradient(135deg,${p.color1},${p.color2})`, flexShrink:0, boxShadow:"0 2px 10px rgba(0,0,0,0.14)" }}>
+                  <div key={i} style={{ width:36, height:36, borderRadius:"50%", border:"2.5px solid white", overflow:"hidden", marginLeft: i>0?-9:0, background:`linear-gradient(135deg,${p.color1},${p.color2})`, flexShrink:0, boxShadow:"0 1px 6px rgba(0,0,0,0.12)" }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={p.photo} alt={p.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
                   </div>
                 ))}
               </div>
               <div style={{ textAlign:"left" }}>
-                <div style={{ display:"flex", gap:3, marginBottom:5 }}>
-                  {Array.from({length:5}).map((_,i)=><svg key={i} viewBox="0 0 12 12" fill="#F59E0B" style={{ width:18,height:18 }}><path d="M6 1l1.2 2.5 2.8.4-2 2 .5 2.8L6 7.5 3.5 8.7 4 5.9 2 3.9l2.8-.4z"/></svg>)}
+                <div style={{ display:"flex", gap:2, marginBottom:3 }}>
+                  {Array.from({length:5}).map((_,i)=><svg key={i} viewBox="0 0 12 12" fill="#F59E0B" style={{ width:13,height:13 }}><path d="M6 1l1.2 2.5 2.8.4-2 2 .5 2.8L6 7.5 3.5 8.7 4 5.9 2 3.9l2.8-.4z"/></svg>)}
                 </div>
-                <div style={{ fontSize:16, fontWeight:500, color:"#3A4257" }}>Loved by 1,200+ candidates</div>
+                <div style={{ fontSize:13, fontWeight:500, color:"#3A4257", whiteSpace:"nowrap" }}>Loved by 1,200+ candidates</div>
               </div>
             </div>
 
-            {/* RIGHT: Featured in + logos */}
-            <div style={{ display:"flex", alignItems:"center", gap:36, flexWrap:"wrap" }}>
-              <span style={{ fontSize:13, fontWeight:600, color:"#8A94A8", whiteSpace:"nowrap" }}>Featured in</span>
-              <span style={{ fontSize:26, fontWeight:900, color:"#8A94A8", letterSpacing:"-0.03em", fontFamily:"Georgia,serif" }}>Forbes</span>
-              <span style={{ fontSize:19, fontWeight:800, color:"#8A94A8", letterSpacing:"-0.01em" }}>TechCrunch</span>
-              <span style={{ display:"flex", alignItems:"center", gap:7 }}>
-                <span style={{ width:26, height:26, borderRadius:6, background:"#8A94A8", display:"inline-flex", alignItems:"center", justifyContent:"center" }}>
-                  <svg viewBox="0 0 12 12" fill="white" style={{ width:13,height:13 }}><path d="M6 1L7.5 4.5H11L8.2 6.8 9.3 10.5 6 8.3 2.7 10.5 3.8 6.8 1 4.5H4.5z"/></svg>
+            {/* RIGHT: "Featured in" stacked above logos — exactly like Kleo */}
+            <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-start", gap:10 }}>
+              <span style={{ fontSize:11, fontWeight:600, color:"#8A94A8" }}>Featured in</span>
+              <div style={{ display:"flex", alignItems:"center", gap:28, flexWrap:"nowrap" }}>
+                <span style={{ display:"flex", alignItems:"center", gap:6 }}>
+                  <span style={{ width:20, height:20, borderRadius:4, background:"#8A94A8", display:"inline-flex", alignItems:"center", justifyContent:"center" }}>
+                    <svg viewBox="0 0 12 12" fill="white" style={{ width:10,height:10 }}><path d="M6 1L7.5 4.5H11L8.2 6.8 9.3 10.5 6 8.3 2.7 10.5 3.8 6.8 1 4.5H4.5z"/></svg>
+                  </span>
+                  <span style={{ fontSize:15, fontWeight:700, color:"#7A8499" }}>Product Hunt</span>
                 </span>
-                <span style={{ fontSize:18, fontWeight:700, color:"#8A94A8" }}>Product Hunt</span>
-              </span>
-              <span style={{ display:"flex", alignItems:"center", gap:7 }}>
-                <span style={{ width:26, height:26, borderRadius:"50%", background:"#8A94A8", display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:900, color:"white", lineHeight:1 }}>IH</span>
-                <span style={{ fontSize:17, fontWeight:700, color:"#8A94A8", textTransform:"uppercase", letterSpacing:"0.04em" }}>Indie Hackers</span>
-              </span>
-              <span style={{ fontSize:22, fontWeight:900, color:"#8A94A8", letterSpacing:"-0.02em" }}>Inc.</span>
+                <span style={{ display:"flex", alignItems:"center", gap:6 }}>
+                  <span style={{ width:20, height:20, borderRadius:"50%", background:"#8A94A8", display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:8, fontWeight:900, color:"white", lineHeight:1 }}>IH</span>
+                  <span style={{ fontSize:14, fontWeight:700, color:"#7A8499", textTransform:"uppercase", letterSpacing:"0.04em" }}>Indie Hackers</span>
+                </span>
+                <span style={{ fontSize:16, fontWeight:800, color:"#7A8499", letterSpacing:"-0.01em" }}>TechCrunch</span>
+                <span style={{ fontSize:22, fontWeight:900, color:"#7A8499", letterSpacing:"-0.03em", fontFamily:"Georgia,serif" }}>Forbes</span>
+              </div>
             </div>
 
           </div>
