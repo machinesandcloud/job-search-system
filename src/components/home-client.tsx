@@ -172,25 +172,25 @@ function HeroPrompt({ userId }: { userId: boolean }) {
   }
 
   return (
-    <div style={{ width:"100%", maxWidth:600, margin:"0 auto 0" }}>
-      {/* Input — Kleo style: shorter box, circle send button */}
+    <div style={{ width:"100%", maxWidth:720, margin:"0 auto 0" }}>
+      {/* Input */}
       <div style={{
         position:"relative",
         background:"white",
         border:`1.5px solid ${focused ? "#4361EE" : "#E2E6F0"}`,
-        borderRadius:16,
+        borderRadius:18,
         boxShadow: focused
-          ? "0 0 0 4px rgba(67,97,238,0.10), 0 4px 24px rgba(0,0,0,0.08)"
-          : "0 2px 16px rgba(0,0,0,0.08)",
+          ? "0 0 0 4px rgba(67,97,238,0.10), 0 6px 32px rgba(0,0,0,0.10)"
+          : "0 4px 24px rgba(0,0,0,0.09)",
         transition:"all 0.2s",
       }}>
         <textarea
           style={{
             display:"block", width:"100%", border:"none", outline:"none",
-            fontSize:16, color:"#0A0A0F", background:"transparent",
-            fontFamily:"inherit", resize:"none", lineHeight:1.6,
-            padding:"22px 68px 22px 22px",
-            minHeight:120, maxHeight:200, borderRadius:16,
+            fontSize:17, color:"#0A0A0F", background:"transparent",
+            fontFamily:"inherit", resize:"none", lineHeight:1.65,
+            padding:"24px 76px 24px 24px",
+            minHeight:140, maxHeight:240, borderRadius:18,
           }}
           rows={3}
           placeholder="I want to get started with Zari…"
@@ -204,8 +204,8 @@ function HeroPrompt({ userId }: { userId: boolean }) {
         <button
           onClick={() => go(val || "Get started")}
           style={{
-            position:"absolute", bottom:16, right:16,
-            width:38, height:38, borderRadius:"50%", border:"none", cursor:"pointer",
+            position:"absolute", bottom:18, right:18,
+            width:42, height:42, borderRadius:"50%", border:"none", cursor:"pointer",
             background: val.trim() ? "#4361EE" : "#E4E8F5",
             color: val.trim() ? "white" : "#A0AABF",
             display:"flex", alignItems:"center", justifyContent:"center",
@@ -219,19 +219,19 @@ function HeroPrompt({ userId }: { userId: boolean }) {
         </button>
       </div>
 
-      {/* Quick-action chips — exactly 4 in one row */}
-      <div style={{ display:"flex", justifyContent:"center", gap:8, marginTop:14, flexWrap:"wrap" }}>
+      {/* Quick-action chips — all 4 in one row */}
+      <div style={{ display:"flex", justifyContent:"center", gap:10, marginTop:16, flexWrap:"nowrap" }}>
         {HERO_CHIPS.map(chip => (
           <button
             key={chip.label}
             onClick={() => go(chip.label)}
             style={{
-              display:"inline-flex", alignItems:"center", gap:6,
-              fontSize:13, fontWeight:500, color:"#3A4257",
-              padding:"7px 14px", borderRadius:99,
+              display:"inline-flex", alignItems:"center", gap:7,
+              fontSize:14, fontWeight:500, color:"#3A4257",
+              padding:"9px 18px", borderRadius:99, whiteSpace:"nowrap",
               background:"white", border:"1px solid #E2E6F0",
               cursor:"pointer", transition:"all 0.15s",
-              boxShadow:"0 1px 4px rgba(0,0,0,0.05)",
+              boxShadow:"0 1px 6px rgba(0,0,0,0.06)",
             }}
             onMouseEnter={e => {
               (e.currentTarget as HTMLButtonElement).style.borderColor = "#4361EE";
@@ -951,7 +951,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
           </div>
 
           {/* Sub + input — narrow container */}
-          <div style={{ maxWidth:620, margin:"0 auto", padding:"0 24px" }}>
+          <div style={{ maxWidth:760, margin:"0 auto", padding:"0 24px" }}>
             <p style={{ fontSize:16.5, lineHeight:1.7, color:"#5A6180", maxWidth:500, margin:"0 auto 32px" }}>
               Zari helps you <strong style={{ color:"#1E2235", fontWeight:600 }}>land jobs faster</strong>, <strong style={{ color:"#1E2235", fontWeight:600 }}>get promoted sooner</strong>, and <strong style={{ color:"#1E2235", fontWeight:600 }}>negotiate with confidence</strong>.<br />Everything you need, in one AI coach.
             </p>
