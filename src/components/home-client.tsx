@@ -143,27 +143,19 @@ const STATS = [
 const HERO_CHIPS: { label:string; svg:React.ReactNode }[] = [
   {
     label:"I'm job searching",
-    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:14,height:14,flexShrink:0}}><circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l3 3"/></svg>,
+    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13,flexShrink:0}}><circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l3 3"/></svg>,
   },
   {
     label:"Help me get promoted",
-    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:14,height:14,flexShrink:0}}><path d="M8 2v8M4 6l4-4 4 4"/><path d="M3 13h10"/></svg>,
+    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13,flexShrink:0}}><path d="M8 2v8M4 6l4-4 4 4"/><path d="M3 13h10"/></svg>,
   },
   {
     label:"Negotiate my salary",
-    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:14,height:14,flexShrink:0}}><rect x="1" y="4" width="14" height="9" rx="1.5"/><path d="M5 4V3a3 3 0 016 0v1"/><path d="M8 9a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg>,
+    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13,flexShrink:0}}><rect x="1" y="4" width="14" height="9" rx="1.5"/><path d="M5 4V3a3 3 0 016 0v1"/><path d="M8 9a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg>,
   },
   {
     label:"I'm switching careers",
-    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:14,height:14,flexShrink:0}}><path d="M2 8h12M9 4l5 4-5 4"/></svg>,
-  },
-  {
-    label:"Build executive presence",
-    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:14,height:14,flexShrink:0}}><circle cx="8" cy="5" r="2.5"/><path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5"/><path d="M12 2l1 1-5 5-2-2 5-5 1 1"/></svg>,
-  },
-  {
-    label:"Prep for performance review",
-    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:14,height:14,flexShrink:0}}><rect x="2" y="1" width="12" height="14" rx="1.5"/><path d="M5 5h6M5 8h6M5 11h4"/></svg>,
+    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13,flexShrink:0}}><path d="M2 8h12M9 4l5 4-5 4"/></svg>,
   },
 ];
 
@@ -180,70 +172,66 @@ function HeroPrompt({ userId }: { userId: boolean }) {
   }
 
   return (
-    <div style={{ width:"100%", maxWidth:660, margin:"0 auto 28px" }}>
-      {/* Input box — tall, Kleo-style */}
+    <div style={{ width:"100%", maxWidth:600, margin:"0 auto 0" }}>
+      {/* Input — Kleo style: shorter box, circle send button */}
       <div style={{
         position:"relative",
         background:"white",
-        border:`1.5px solid ${focused ? "#4361EE" : "#E0E4EF"}`,
-        borderRadius:18,
+        border:`1.5px solid ${focused ? "#4361EE" : "#E2E6F0"}`,
+        borderRadius:16,
         boxShadow: focused
-          ? "0 0 0 5px rgba(67,97,238,0.10), 0 8px 40px rgba(0,0,0,0.10)"
-          : "0 6px 32px rgba(0,0,0,0.09)",
+          ? "0 0 0 4px rgba(67,97,238,0.10), 0 4px 24px rgba(0,0,0,0.08)"
+          : "0 2px 16px rgba(0,0,0,0.08)",
         transition:"all 0.2s",
       }}>
         <textarea
           style={{
             display:"block", width:"100%", border:"none", outline:"none",
-            fontSize:16, color:"#0A0A0F", background:"transparent",
-            fontFamily:"inherit", resize:"none", lineHeight:1.65,
-            padding:"20px 22px 60px 22px",
-            minHeight:160, borderRadius:18,
+            fontSize:15.5, color:"#0A0A0F", background:"transparent",
+            fontFamily:"inherit", resize:"none", lineHeight:1.6,
+            padding:"18px 60px 18px 18px",
+            minHeight:80, maxHeight:160, borderRadius:16,
           }}
-          rows={4}
-          placeholder="Tell Zari where you are in your career…"
+          rows={2}
+          placeholder="I want to get started with Zari…"
           value={val}
           onChange={e => setVal(e.target.value)}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); go(val); } }}
         />
-        {/* Bottom bar inside textarea */}
-        <div style={{ position:"absolute", bottom:0, left:0, right:0, padding:"0 14px 12px", display:"flex", alignItems:"center", justifyContent:"flex-end", gap:8 }}>
-          <span style={{ fontSize:12, color:"#A0AABF", marginRight:"auto" }}>Shift+Enter for new line</span>
-          <button
-            onClick={() => go(val || "Get started")}
-            style={{
-              display:"inline-flex", alignItems:"center", gap:7,
-              padding:"9px 20px", borderRadius:12, border:"none", cursor:"pointer",
-              background: val.trim() ? "#4361EE" : "#E4E8F5",
-              color: val.trim() ? "white" : "#A0AABF",
-              fontSize:13.5, fontWeight:700, fontFamily:"inherit",
-              transition:"all 0.2s",
-              boxShadow: val.trim() ? "0 4px 16px rgba(67,97,238,0.30)" : "none",
-            }}
-          >
-            Ask Zari
-            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" style={{ width:14,height:14 }}>
-              <path d="M10 3l7 7-7 7M3 10h14"/>
-            </svg>
-          </button>
-        </div>
+        {/* Circle send button — Kleo style */}
+        <button
+          onClick={() => go(val || "Get started")}
+          style={{
+            position:"absolute", bottom:12, right:12,
+            width:34, height:34, borderRadius:"50%", border:"none", cursor:"pointer",
+            background: val.trim() ? "#4361EE" : "#E4E8F5",
+            color: val.trim() ? "white" : "#A0AABF",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            transition:"all 0.2s",
+            boxShadow: val.trim() ? "0 3px 12px rgba(67,97,238,0.35)" : "none",
+          }}
+        >
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" style={{ width:14,height:14 }}>
+            <path d="M8 12V4M4 7l4-4 4 4"/>
+          </svg>
+        </button>
       </div>
 
-      {/* Quick-action chips */}
-      <div style={{ display:"flex", flexWrap:"wrap", justifyContent:"center", gap:8, marginTop:14 }}>
+      {/* Quick-action chips — exactly 4 in one row */}
+      <div style={{ display:"flex", justifyContent:"center", gap:8, marginTop:14, flexWrap:"wrap" }}>
         {HERO_CHIPS.map(chip => (
           <button
             key={chip.label}
             onClick={() => go(chip.label)}
             style={{
               display:"inline-flex", alignItems:"center", gap:6,
-              fontSize:13.5, fontWeight:500, color:"#1E2235",
-              padding:"8px 16px", borderRadius:99,
-              background:"white", border:"1.5px solid #E4E8F5",
+              fontSize:13, fontWeight:500, color:"#3A4257",
+              padding:"7px 14px", borderRadius:99,
+              background:"white", border:"1px solid #E2E6F0",
               cursor:"pointer", transition:"all 0.15s",
-              boxShadow:"0 1px 6px rgba(0,0,0,0.06)",
+              boxShadow:"0 1px 4px rgba(0,0,0,0.05)",
             }}
             onMouseEnter={e => {
               (e.currentTarget as HTMLButtonElement).style.borderColor = "#4361EE";
@@ -251,8 +239,8 @@ function HeroPrompt({ userId }: { userId: boolean }) {
               (e.currentTarget as HTMLButtonElement).style.background = "#F0F4FF";
             }}
             onMouseLeave={e => {
-              (e.currentTarget as HTMLButtonElement).style.borderColor = "#E4E8F5";
-              (e.currentTarget as HTMLButtonElement).style.color = "#1E2235";
+              (e.currentTarget as HTMLButtonElement).style.borderColor = "#E2E6F0";
+              (e.currentTarget as HTMLButtonElement).style.color = "#3A4257";
               (e.currentTarget as HTMLButtonElement).style.background = "white";
             }}
           >
@@ -922,48 +910,55 @@ export function HomeClient({ userId }: { userId: boolean }) {
 
       {/* ══════ HERO ══════ */}
       <section style={{
-        background:"linear-gradient(180deg,#EEF2FF 0%,#F5F7FF 50%,#FAFBFF 100%)",
-        paddingTop:120, paddingBottom:0,
+        background:"linear-gradient(180deg,#EEF2FF 0%,#F5F8FF 55%,#FAFBFF 100%)",
+        paddingTop:110,
         textAlign:"center",
       }}>
-        <div style={{ maxWidth:760, margin:"0 auto", padding:"0 24px 56px" }}>
+        <div style={{ maxWidth:660, margin:"0 auto", padding:"0 24px" }}>
 
-          {/* Eyebrow */}
-          <div style={{ display:"inline-flex", alignItems:"center", gap:7, fontSize:12.5, fontWeight:700, color:"#4361EE", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:28 }}>
-            <svg viewBox="0 0 16 16" fill="#4361EE" style={{ width:14, height:14, flexShrink:0 }}><path d="M8 1l1.2 3.2 3.4.3-2.5 2.2.8 3.3L8 8.5l-2.9 1.5.8-3.3-2.5-2.2 3.4-.3z"/></svg>
-            #1 AI Career Coach
+          {/* Icon + eyebrow — no pill, just icon and text */}
+          <div style={{ marginBottom:20 }}>
+            <div style={{ width:44, height:44, borderRadius:12, background:"white", border:"1px solid #E2E6F0", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", display:"inline-flex", alignItems:"center", justifyContent:"center", marginBottom:16 }}>
+              <svg viewBox="0 0 20 20" fill="none" style={{ width:22, height:22 }}>
+                <path d="M10 2l1.5 4H16l-3.5 2.5 1.3 4L10 10l-3.8 2.5 1.3-4L4 6h4.5z" fill="#4361EE" opacity="0.9"/>
+                <circle cx="10" cy="10" r="1.2" fill="#06B6D4"/>
+              </svg>
+            </div>
+            <div style={{ fontSize:12, fontWeight:700, color:"#4361EE", textTransform:"uppercase", letterSpacing:"0.13em" }}>
+              #1 AI Career Coach
+            </div>
           </div>
 
           {/* Headline */}
           <h1 style={{
-            fontSize:"clamp(2.4rem,4.8vw,3.1rem)",
+            fontSize:"clamp(2.5rem,5vw,3.2rem)",
             fontWeight:700,
-            lineHeight:1.15,
+            lineHeight:1.18,
             letterSpacing:"-0.025em",
             color:"#0A0A0F",
-            marginBottom:20,
+            marginBottom:18,
           }}>
-            Career coaching that{" "}
+            Career coaching that adapts to<br />
             <span style={{
               background:"linear-gradient(135deg,#4361EE 0%,#818CF8 55%,#06B6D4 100%)",
               WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", backgroundClip:"text",
-            }}>never stops adapting</span>
-            <br />to where you are.
+            }}>every stage of your career.</span>
           </h1>
 
-          <p style={{ fontSize:17, lineHeight:1.7, color:"#5A6180", maxWidth:520, margin:"0 auto 36px" }}>
-            Job searching, promotion, raise, career pivot — Zari coaches you with voice, memory, and a real avatar. Every stage. Every goal.
+          {/* Sub */}
+          <p style={{ fontSize:16.5, lineHeight:1.7, color:"#5A6180", maxWidth:480, margin:"0 auto 28px" }}>
+            Zari helps you <strong style={{ color:"#1E2235", fontWeight:600 }}>land jobs faster</strong>, <strong style={{ color:"#1E2235", fontWeight:600 }}>get promoted sooner</strong>, and <strong style={{ color:"#1E2235", fontWeight:600 }}>negotiate with confidence</strong>.<br />Everything in one AI coach.
           </p>
 
           <HeroPrompt userId={userId} />
 
-          {/* Bottom row — social proof LEFT, Featured in RIGHT */}
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:20, marginTop:32 }}>
-            {/* Social proof */}
+          {/* Social proof + Featured in — same row */}
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:16, marginTop:32, paddingBottom:40 }}>
+            {/* Left: avatars + stars + text */}
             <div style={{ display:"flex", alignItems:"center", gap:10 }}>
               <div style={{ display:"flex" }}>
-                {PEOPLE.slice(0,5).map((p, idx) => (
-                  <div key={idx} style={{ width:32, height:32, borderRadius:"50%", border:"2px solid white", overflow:"hidden", marginLeft: idx>0?-8:0, background:`linear-gradient(135deg,${p.color1},${p.color2})`, flexShrink:0, boxShadow:"0 2px 6px rgba(0,0,0,0.12)" }}>
+                {PEOPLE.slice(0,5).map((p, i) => (
+                  <div key={i} style={{ width:30, height:30, borderRadius:"50%", border:"2px solid white", overflow:"hidden", marginLeft: i>0?-7:0, background:`linear-gradient(135deg,${p.color1},${p.color2})`, flexShrink:0 }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={p.photo} alt={p.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
                   </div>
@@ -971,23 +966,23 @@ export function HomeClient({ userId }: { userId: boolean }) {
               </div>
               <div style={{ textAlign:"left" }}>
                 <div style={{ display:"flex", gap:1 }}>
-                  {Array.from({length:5}).map((_,i)=><svg key={i} viewBox="0 0 12 12" fill="#F59E0B" style={{ width:12,height:12 }}><path d="M6 1l1.2 2.5 2.8.4-2 2 .5 2.8L6 7.5 3.5 8.7 4 5.9 2 3.9l2.8-.4z"/></svg>)}
+                  {Array.from({length:5}).map((_,i)=><svg key={i} viewBox="0 0 12 12" fill="#F59E0B" style={{ width:11,height:11 }}><path d="M6 1l1.2 2.5 2.8.4-2 2 .5 2.8L6 7.5 3.5 8.7 4 5.9 2 3.9l2.8-.4z"/></svg>)}
                 </div>
-                <div style={{ fontSize:13, fontWeight:600, color:"#1E2235", marginTop:1 }}>Loved by 1,200+ candidates</div>
+                <div style={{ fontSize:12.5, fontWeight:600, color:"#1E2235", marginTop:1 }}>Loved by 1,200+ candidates</div>
               </div>
             </div>
 
-            {/* Featured in */}
-            <div style={{ display:"flex", alignItems:"center", gap:20, flexWrap:"wrap" }}>
-              <span style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.14em", color:"#A0AABF", whiteSpace:"nowrap" }}>Featured in</span>
+            {/* Right: Featured in + logos */}
+            <div style={{ display:"flex", alignItems:"center", gap:16, flexWrap:"wrap" }}>
+              <span style={{ fontSize:10.5, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.14em", color:"#A8B0C8", whiteSpace:"nowrap" }}>Featured in</span>
               {[
-                { name:"Forbes",       s:15, w:900 },
-                { name:"TechCrunch",   s:13, w:800 },
-                { name:"Fast Company", s:12, w:800 },
-                { name:"Product Hunt", s:12, w:700 },
-                { name:"Inc.",         s:17, w:900 },
+                { name:"Forbes",       s:14, w:900 },
+                { name:"TechCrunch",   s:12.5, w:800 },
+                { name:"Fast Company", s:11.5, w:800 },
+                { name:"Inc.",         s:16, w:900 },
+                { name:"Product Hunt", s:11.5, w:700 },
               ].map(p => (
-                <span key={p.name} style={{ fontSize:p.s, fontWeight:p.w, color:"#B0B8D0", letterSpacing:"-0.01em", lineHeight:1, whiteSpace:"nowrap" }}>{p.name}</span>
+                <span key={p.name} style={{ fontSize:p.s, fontWeight:p.w, color:"#BDC5D8", letterSpacing:"-0.01em", lineHeight:1, whiteSpace:"nowrap" }}>{p.name}</span>
               ))}
             </div>
           </div>
