@@ -474,10 +474,32 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
   const [fileName,    setFileName]    = useState("");
   const [aiResult,    setAiResult]    = useState<ResumeAnalysis | null>(null);
   const [analyzeErr,  setAnalyzeErr]  = useState("");
-  const [reviewMode,  setReviewMode]  = useState<"general"|"targeted">("general");
+  const [reviewMode,      setReviewMode]      = useState<"general"|"targeted">("general");
   const [targetRoleInput, setTargetRoleInput] = useState("");
+  const [jdInputMode,     setJdInputMode]     = useState<"paste"|"url">("paste");
+  const [jobDescription,  setJobDescription]  = useState("");
+  const [jdUrl,           setJdUrl]           = useState("");
+  const [fetchingJdUrl,   setFetchingJdUrl]   = useState(false);
+  const [jdUrlErr,        setJdUrlErr]        = useState("");
 
 
+
+  async function fetchResumeJdFromUrl() {
+    if (!jdUrl.trim()) return;
+    setFetchingJdUrl(true);
+    setJdUrlErr("");
+    try {
+      const res = await fetch("/api/zari/fetch-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: jdUrl.trim() }),
+      });
+      const data = await res.json().catch(() => ({})) as { text?: string; error?: string };
+      if (data.text) { setJobDescription(data.text); setJdUrlErr(""); }
+      else setJdUrlErr(data.error ?? "Couldn't extract text — paste the job description instead.");
+    } catch { setJdUrlErr("Couldn't reach that URL — paste the job description instead."); }
+    setFetchingJdUrl(false);
+  }
 
   async function handleFile(file: File) {
     setFileName(file.name);
@@ -525,7 +547,7 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
       const res = await fetch("/api/zari/resume", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resumeText: textToAnalyze, stage, reviewMode, targetRole: targetRoleInput }),
+        body: JSON.stringify({ resumeText: textToAnalyze, stage, reviewMode, targetRole: targetRoleInput, jobDescription }),
       });
       const data = await res.json().catch(() => null) as ResumeAnalysis | null;
       clearInterval(interval);
@@ -596,7 +618,7 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
 
         {/* Review mode selector */}
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:20 }}>
-          {([["general","General Review","ATS, impact, clarity — no role assumed"],["targeted","Tailored to a Role","Align everything to a specific job title"]] as const).map(([mode, label, desc]) => (
+          {([["general","General Review","ATS, impact, clarity — no role assumed"],["targeted","Tailored to a Role","Align to a specific job description"]] as const).map(([mode, label, desc]) => (
             <button key={mode} onClick={()=>setReviewMode(mode)} style={{ textAlign:"left", padding:"12px 14px", borderRadius:12, border:`2px solid ${reviewMode===mode?"#4361EE":"#E4E8F5"}`, background:reviewMode===mode?"#EEF2FF":"white", cursor:"pointer", transition:"all 0.15s" }}>
               <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:3 }}>
                 <div style={{ width:14, height:14, borderRadius:"50%", border:`2px solid ${reviewMode===mode?"#4361EE":"#CBD5E1"}`, background:reviewMode===mode?"#4361EE":"white", flexShrink:0 }}/>
@@ -606,15 +628,65 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
             </button>
           ))}
         </div>
+
         {reviewMode === "targeted" && (
-          <div style={{ marginBottom:16 }}>
-            <input
-              type="text"
-              value={targetRoleInput}
-              onChange={e=>setTargetRoleInput(e.target.value)}
-              placeholder="e.g. Senior DevOps Engineer, Product Manager, Staff SRE…"
-              style={{ width:"100%", border:"1.5px solid #4361EE", borderRadius:10, padding:"10px 14px", fontSize:13.5, color:"#1E2235", outline:"none", fontFamily:"inherit", boxSizing:"border-box", background:"white", boxShadow:"0 0 0 3px rgba(67,97,238,0.08)" }}
-            />
+          <div style={{ background:"white", border:"1px solid #CBD5E1", borderRadius:14, padding:16, marginBottom:16 }}>
+            {/* Job title */}
+            <div style={{ marginBottom:12 }}>
+              <label style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", display:"block", marginBottom:6 }}>Target job title <span style={{ color:"#A0AABF", fontWeight:400 }}>(optional)</span></label>
+              <input
+                type="text"
+                value={targetRoleInput}
+                onChange={e=>setTargetRoleInput(e.target.value)}
+                placeholder="e.g. Senior DevOps Engineer, Staff SRE, Product Manager…"
+                style={{ width:"100%", border:"1.5px solid #E4E8F5", borderRadius:10, padding:"9px 12px", fontSize:13, color:"#1E2235", outline:"none", fontFamily:"inherit", boxSizing:"border-box", background:"#FAFBFF" }}
+              />
+            </div>
+
+            {/* Job description */}
+            <div>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:6 }}>
+                <label style={{ fontSize:12, fontWeight:700, color:"#0A0A0F" }}>Job description <span style={{ color:"#A0AABF", fontWeight:400 }}>(optional but powerful)</span></label>
+                <div style={{ display:"flex", background:"#F1F5F9", borderRadius:8, padding:2 }}>
+                  {(["paste","url"] as const).map(m => (
+                    <button key={m} onClick={()=>{ setJdInputMode(m); setJdUrlErr(""); }} style={{ fontSize:11, fontWeight:600, padding:"3px 9px", borderRadius:6, border:"none", background:jdInputMode===m?"white":"transparent", color:jdInputMode===m?"#0A0A0F":"#68738A", cursor:"pointer", boxShadow:jdInputMode===m?"0 1px 3px rgba(0,0,0,0.1)":"none", transition:"all 0.15s" }}>
+                      {m === "paste" ? "Paste text" : "Job URL"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {jdInputMode === "paste" ? (
+                <textarea
+                  value={jobDescription}
+                  onChange={e=>setJobDescription(e.target.value)}
+                  placeholder="Paste the full job posting here — Zari will score your resume against every requirement…"
+                  style={{ width:"100%", minHeight:90, border:"1.5px solid #E4E8F5", borderRadius:10, padding:"9px 11px", fontSize:13, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"#FAFBFF", lineHeight:1.6 }}
+                />
+              ) : (
+                <div>
+                  <div style={{ display:"flex", gap:8 }}>
+                    <input
+                      type="url"
+                      value={jdUrl}
+                      onChange={e=>{ setJdUrl(e.target.value); setJdUrlErr(""); }}
+                      placeholder="https://jobs.lever.co/… or LinkedIn, Greenhouse, etc."
+                      style={{ flex:1, border:"1.5px solid #E4E8F5", borderRadius:10, padding:"9px 11px", fontSize:13, color:"#1E2235", outline:"none", fontFamily:"inherit", background:"#FAFBFF" }}
+                      onKeyDown={e=>{ if(e.key==="Enter") void fetchResumeJdFromUrl(); }}
+                    />
+                    <button
+                      onClick={()=>void fetchResumeJdFromUrl()}
+                      disabled={fetchingJdUrl || !jdUrl.trim()}
+                      style={{ padding:"9px 16px", borderRadius:10, border:"none", background:jdUrl.trim()&&!fetchingJdUrl?"#4361EE":"#E4E8F5", color:jdUrl.trim()&&!fetchingJdUrl?"white":"#A0AABF", fontSize:13, fontWeight:700, cursor:jdUrl.trim()&&!fetchingJdUrl?"pointer":"default", flexShrink:0, transition:"all 0.15s" }}
+                    >
+                      {fetchingJdUrl ? "…" : "Fetch"}
+                    </button>
+                  </div>
+                  {jdUrlErr && <p style={{ fontSize:12, color:"#DC2626", marginTop:6, marginBottom:0 }}>{jdUrlErr} <button onClick={()=>setJdInputMode("paste")} style={{ background:"none", border:"none", color:"#4361EE", fontWeight:600, cursor:"pointer", fontSize:12, padding:0 }}>Switch to paste</button></p>}
+                  {jobDescription && !jdUrlErr && <p style={{ fontSize:11.5, color:"#16A34A", marginTop:6, marginBottom:0 }}>✓ Job description fetched — {jobDescription.length.toLocaleString()} chars</p>}
+                </div>
+              )}
+            </div>
           </div>
         )}
 

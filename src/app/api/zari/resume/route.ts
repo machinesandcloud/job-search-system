@@ -13,12 +13,14 @@ export async function POST(request: Request) {
     resumeText?: string;
     stage?: string;
     targetRole?: string;
+    jobDescription?: string;
     reviewMode?: string;
   };
 
   const resumeText = (body.resumeText ?? "").trim();
   const stage = body.stage ?? "job-search";
   const targetRole = (body.targetRole ?? "").trim();
+  const jobDescription = (body.jobDescription ?? "").trim();
   const reviewMode = body.reviewMode === "targeted" ? "targeted" : "general";
 
   if (!resumeText) {
@@ -31,14 +33,17 @@ export async function POST(request: Request) {
     try { userContext = await buildUserContext(userId); } catch { /* non-fatal */ }
   }
 
-  const focusInstructions = reviewMode === "targeted" && targetRole
+  const hasJobContext = reviewMode === "targeted" && (jobDescription || targetRole);
+  const focusInstructions = hasJobContext
     ? `REVIEW MODE: Targeted role alignment
-Target role: "${targetRole}"
-- Score every section against what a hiring manager for "${targetRole}" actually wants
-- Flag missing keywords and skills specific to this role
-- Rewrite the summary to speak directly to "${targetRole}" requirements
-- Call out mismatches between their current positioning and the target role
-- ATS score should reflect keyword match for "${targetRole}" job postings`
+${targetRole ? `Target role: "${targetRole}"` : ""}
+${jobDescription ? `\nActual job description to score against:\n${jobDescription.slice(0, 3000)}` : ""}
+
+- Score the ATS match against the exact keywords, skills, and requirements in the job description
+- Flag every requirement from the JD that is missing or weakly represented on the resume
+- Rewrite the summary and top bullets to directly address what the job description is asking for
+- Call out mismatches between their current positioning and what the role requires
+- If no job description was provided, infer typical requirements from the target role title`
     : `REVIEW MODE: General resume quality
 - Focus on ATS compatibility, quantified impact, and clarity — no assumed role
 - Check: are there numbers in at least 60% of bullets? If not, that's a critical finding
