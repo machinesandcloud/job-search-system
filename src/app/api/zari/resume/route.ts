@@ -100,20 +100,28 @@ ${targetRole ? `Target role: "${targetRole}"` : ""}
 ${jobDescription ? `\nJob description:\n${jobDescription.slice(0, 3000)}` : ""}
 
 WHAT TO DO:
-1. Extract every required skill, tool, certification, and keyword from the JD above
-2. For each one: does it appear on the resume? Is it backed by evidence or just listed?
-3. Flag MISSING keywords as critical — these will kill the ATS score
-4. Rewrite the summary to lead with the top 3 requirements from this JD specifically
-5. Rewrite the top bullets to naturally embed the most important JD keywords alongside real achievements
-6. Add missing keywords ONLY where there is genuine evidence in the person's background — never fabricate
-7. The skills section must include all required technical skills from the JD that the person actually has
-8. Score ATS match specifically against this JD (not generic benchmarks)
+1. Read the entire JD carefully. Extract the 15-20 most important keywords: job title, required skills, tools, certifications, verb patterns used in responsibilities.
+2. Rank them by importance: required > preferred > responsibilities language > soft skills.
+3. For each critical keyword: does it appear on the resume? Is it backed by real evidence or just listed? Flag every MISSING required keyword as a critical finding.
+4. Identify the positioning gap: how is the person currently positioned vs. what this role requires? Name it honestly.
+5. Rewrite the summary to lead directly with the top 3 requirements from this JD — make the reader immediately understand why this person fits.
+6. Rewrite top bullets to naturally embed the most important JD keywords alongside real achievements — woven in, not bolted on.
+7. Add keywords ONLY where the person's actual background supports them — never fabricate experience they don't have.
+8. The skills section must include all required technical skills from the JD that the person genuinely has.
+9. Score ATS specifically against this JD — if 8 of 15 required keywords are missing, that is a low ATS score.
+10. If there is a significant repositioning gap (e.g., their current role is quite different from the target), call it out clearly and tell them exactly how to bridge it through framing, language, and emphasis — not by inventing experience.
 ═══════════════════════════════════════════════════════` : `
-═══ GENERAL MODE: SCORE AGAINST UNIVERSAL RESUME STANDARDS ═══
-- Infer the person's actual role from the resume — do not invent a target role
-- Apply all resume science rules above universally
-- ATS score reflects general keyword density, structure, and format quality
-- Flag the biggest universal issues: weak verbs, missing metrics, generic summary, ATS format killers
+═══ GENERAL MODE: QUALITY CHECK AGAINST UNIVERSAL RESUME STANDARDS ═══
+CRITICAL RULE: The user has NOT specified a target role. DO NOT infer, assume, guess, or invent any target role whatsoever.
+Do NOT say things like "for a [X] role" or "to target [Y] positions". Evaluate ONLY what is on the page.
+
+What to do:
+- Take the person's resume at face value — evaluate it as-is for universal quality
+- Check bullets: do they use strong verbs? Are 60%+ quantified? Is the first bullet of each role the strongest?
+- Check the summary: does it have a metric? Does it avoid generic adjectives? Is the value prop clear in 5 seconds?
+- Check ATS basics: standard section names, no tables/graphics, keywords in context not just listed
+- Check readability: consistent tense, consistent date format, no wall-of-text bullets
+- Flag the biggest actual problems on this specific resume — name the exact bullet, phrase, or section
 ═══════════════════════════════════════════════════════`;
 
   const systemPrompt = `You are Zari, a career coach and resume expert who talks like a sharp, honest friend — not a consultant. Direct, specific, warm. You've read 10,000 resumes and know exactly what gets people interviews.
@@ -164,9 +172,11 @@ Return ONLY a valid JSON object with exactly this structure:
 }
 
 Voice rules:
-- findings must name the actual problem ("Your first bullet under Foundation Finance starts with 'Responsible for' — that's a dead verb") not generic advice
+- findings must name the actual problem with the specific bullet, word, or section ("Your first bullet under Foundation Finance starts with 'Responsible for' — that's a dead verb") — never generic advice
 - recommendation must feel personal — reference something specific from their resume, not boilerplate
 - rewrites must sound like a real person wrote them, not a resume template
+- In general mode: NEVER mention a target role. NEVER say "for a [X] role". Only evaluate what exists on the page.
+- In targeted mode: every finding and rewrite must tie back to what the specific JD is asking for
 - Context: ${stage}`;
 
   const messages = [
