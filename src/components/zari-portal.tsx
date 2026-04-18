@@ -470,13 +470,15 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
   const [progress, setProgress] = useState(0);
   const [tab, setTab]           = useState<"overview"|"bullets"|"rewrite">("overview");
   const [dragging, setDragging] = useState(false);
-  const [resumeText, setResumeText] = useState("");
-  const [aiResult,  setAiResult]   = useState<ResumeAnalysis | null>(null);
-  const [analyzeErr, setAnalyzeErr] = useState("");
+  const [resumeText,  setResumeText]  = useState("");
+  const [fileName,    setFileName]    = useState("");
+  const [aiResult,    setAiResult]    = useState<ResumeAnalysis | null>(null);
+  const [analyzeErr,  setAnalyzeErr]  = useState("");
 
 
 
   async function handleFile(file: File) {
+    setFileName(file.name);
     setAnalyzeErr("");
     setStep("analyzing");
     setProgress(5);
@@ -671,7 +673,7 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
               <h1 style={{ fontSize:22, fontWeight:900, color:"#0A0A0F", letterSpacing:"-0.03em" }}>Resume Review</h1>
               <span style={{ fontSize:11, fontWeight:700, padding:"3px 10px", borderRadius:99, background:"#F0FFF4", color:"#16A34A", border:"1px solid #BBF7D0" }}>Analyzed</span>
             </div>
-            <p style={{ fontSize:13, color:"#68738A" }}>Resume_PM_v3.pdf · Target: Senior PM · Zari found 8 improvements</p>
+            <p style={{ fontSize:13, color:"#68738A" }}>{fileName || "Resume"} · Zari found {aiResult ? aiResult.findings.filter(f=>f.type!=="ok").length : 0} improvements</p>
           </div>
           <div style={{ display:"flex", gap:8 }}>
             <button onClick={()=>setStep("upload")} style={{ fontSize:12, fontWeight:600, padding:"8px 16px", borderRadius:10, border:"1px solid #E4E8F5", background:"white", color:"#0A0A0F", cursor:"pointer" }}>
@@ -710,22 +712,15 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
         </div>
 
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
-          {/* Left: document preview */}
-          <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:16, padding:20, boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
-            <div style={{ fontSize:15, fontWeight:800, color:"#0A0A0F", marginBottom:2 }}>Steve Ngoumnai</div>
-            <div style={{ fontSize:11.5, color:"#68738A", marginBottom:14 }}>Operations Lead · London, UK · steve@email.com</div>
-            {[
-              { label:"Summary", bad:true, text:"Experienced operations professional with 4 years driving cross-functional process improvements at scale. Seeking to transition into Senior Product Manager roles.", note:"⚠ No product keywords — fails ATS" },
-              { label:"Experience", bad:true, text:"Ops Lead — FinCo Ltd · 2021–present\n• Managed supply chain redesign across 5 business units\n• Led cross-functional team of 12\n• Reduced fulfilment time by 22%", note:"⚠ Task-focused — no impact metrics" },
-              { label:"Education", bad:false, text:"BSc Business Management · UCL · 2019" },
-              { label:"Skills", bad:true, text:"Operations · Supply Chain · Process Design · Stakeholder Management", note:"⚠ Missing PM keywords" },
-            ].map(b => (
-              <div key={b.label} style={{ marginBottom:9, borderRadius:10, border:`1px solid ${b.bad?"#FECACA":"#E4E8F5"}`, background:b.bad?"#FFF5F5":"white", padding:"8px 11px" }}>
-                <p style={{ fontSize:9, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:b.bad?"#DC2626":"#A0AABF", marginBottom:4 }}>{b.label}</p>
-                <p style={{ fontSize:11.5, color:"#1E2235", lineHeight:1.5, whiteSpace:"pre-line" }}>{b.text}</p>
-                {b.note && <p style={{ fontSize:10, color:"#D97706", marginTop:4, fontWeight:600 }}>{b.note}</p>}
-              </div>
-            ))}
+          {/* Left: actual resume content */}
+          <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:16, padding:20, boxShadow:"0 2px 8px rgba(0,0,0,0.04)", maxHeight:"calc(100vh - 260px)", overflowY:"auto" }}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
+              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"#A0AABF" }}>Your resume</p>
+              <span style={{ fontSize:10, color:"#A0AABF" }}>{resumeText.length.toLocaleString()} chars</span>
+            </div>
+            <pre style={{ fontSize:11, lineHeight:1.7, color:"#1E2235", whiteSpace:"pre-wrap", wordBreak:"break-word", fontFamily:"inherit", margin:0 }}>
+              {resumeText.slice(0, 3000)}{resumeText.length > 3000 ? "\n\n[…truncated for preview]" : ""}
+            </pre>
           </div>
 
           {/* Right: analysis panel */}
@@ -783,7 +778,7 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
                 <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
                   <div>
                     <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", marginBottom:3 }}>Fully optimized resume</p>
-                    <p style={{ fontSize:11.5, color:"#68738A" }}>Score: {aiResult?.overall ?? 89}/100 · ATS-ready</p>
+                    <p style={{ fontSize:11.5, color:"#68738A" }}>Score: {aiResult?.overall ?? "—"}/100 · ATS-ready · AI-optimized sections</p>
                   </div>
                 </div>
                 {(aiResult?.rewrittenSections ?? [
