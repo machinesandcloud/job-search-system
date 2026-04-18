@@ -1,23 +1,31 @@
 import { NextResponse } from "next/server";
 import { ensureSameOrigin } from "@/lib/utils";
 
-// Job boards that are JavaScript SPAs — server-side fetch only gets an empty shell
-const SPA_PATTERNS = [
-  /workforcenow\.adp\.com/i,
-  /myworkdayjobs\.com/i,
-  /wd\d+\.myworkdayjobs\.com/i,
-  /taleo\.net/i,
-  /icims\.com/i,
-  /successfactors\.(com|eu)/i,
-  /sapsf\.com/i,
-  /jobs\.smartrecruiters\.com/i,
-  /recruiting\.ultipro\.com/i,
-  /jobs\.jobvite\.com/i,
-  /hire\.withgoogle\.com/i,
+// Job boards confirmed to be JavaScript SPAs — server-side fetch only gets an empty shell.
+// Pattern matches anywhere in the hostname so subdomains are covered automatically.
+const SPA_PATTERNS: { pattern: RegExp; name: string }[] = [
+  { pattern: /workforcenow\.adp\.com/i,        name: "ADP Workforce Now" },
+  { pattern: /myworkdayjobs\.com/i,             name: "Workday" },
+  { pattern: /linkedin\.com\/jobs/i,            name: "LinkedIn" },
+  { pattern: /taleo\.net/i,                     name: "Taleo" },
+  { pattern: /icims\.com/i,                     name: "iCIMS" },
+  { pattern: /successfactors\.(com|eu)/i,       name: "SAP SuccessFactors" },
+  { pattern: /sapsf\.com/i,                     name: "SAP SuccessFactors" },
+  { pattern: /smartrecruiters\.com/i,           name: "SmartRecruiters" },
+  { pattern: /ultipro\.com/i,                   name: "UKG/UltiPro" },
+  { pattern: /jobvite\.com/i,                   name: "Jobvite" },
+  { pattern: /bamboohr\.com/i,                  name: "BambooHR" },
+  { pattern: /breezy\.hr/i,                     name: "Breezy HR" },
+  { pattern: /jazz\.hr/i,                       name: "JazzHR" },
+  { pattern: /rippling\.com/i,                  name: "Rippling" },
+  { pattern: /ashbyhq\.com/i,                   name: "Ashby" },
 ];
 
-// Keywords that indicate we actually got real job content (not a shell)
-const JOB_KEYWORDS = ["responsibilities", "requirements", "qualifications", "experience", "skills", "benefits", "salary", "position", "role", "opportunity"];
+// Keywords that confirm we actually got real job content (not a JS-app shell)
+const JOB_KEYWORDS = [
+  "responsibilities", "requirements", "qualifications", "experience",
+  "skills", "benefits", "salary", "position", "role", "opportunity",
+];
 
 export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) {
@@ -32,9 +40,10 @@ export async function POST(request: Request) {
   }
 
   // Detect known SPA job boards immediately — no point fetching
-  if (SPA_PATTERNS.some(p => p.test(url))) {
+  const matched = SPA_PATTERNS.find(({ pattern }) => pattern.test(url));
+  if (matched) {
     return NextResponse.json(
-      { error: "This job board loads with JavaScript, so we can't scrape it directly. Open the posting, copy all the text, and paste it instead." },
+      { error: `${matched.name} loads with JavaScript and can't be scraped directly. Open the posting, select all text (Cmd+A / Ctrl+A), copy it, and paste it in the field below.` },
       { status: 422 },
     );
   }
@@ -78,12 +87,12 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if we got actual job content or just a JS-app shell
+    // Heuristic: if text is short and has no job-related keywords, it's probably a JS shell
     const lower = text.toLowerCase();
     const hasJobContent = JOB_KEYWORDS.some(kw => lower.includes(kw));
     if (!hasJobContent && text.length < 800) {
       return NextResponse.json(
-        { error: "This page appears to be a JavaScript app — the job description didn't load. Open the posting, copy all the text, and paste it instead." },
+        { error: "This page appears to be a JavaScript app — the job content didn't load. Open the posting, copy all visible text, and paste it instead." },
         { status: 422 },
       );
     }
