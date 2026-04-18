@@ -17,6 +17,7 @@ export async function POST(request: Request) {
     targetRole?: string;
     jobDescription?: string;
     reviewMode?: string;
+    careerLevel?: string;
   };
 
   const resumeText = (body.resumeText ?? "").trim();
@@ -25,6 +26,7 @@ export async function POST(request: Request) {
   const targetRole = (body.targetRole ?? "").trim();
   const jobDescription = (body.jobDescription ?? "").trim();
   const reviewMode = body.reviewMode === "targeted" ? "targeted" : "general";
+  const careerLevel = (["entry","mid","senior","executive"].includes(body.careerLevel ?? "")) ? (body.careerLevel as string) : "mid";
 
   if (!resumeText) {
     return NextResponse.json({ error: "Resume text required" }, { status: 400 });
@@ -38,8 +40,38 @@ export async function POST(request: Request) {
 
   const hasJobContext = reviewMode === "targeted" && (jobDescription || targetRole);
 
+  const CAREER_LEVEL_CALIBRATION = {
+    entry: `CAREER LEVEL: Entry (0-2 years)
+- Expect fewer quantified bullets (2-3 is fine) — flag missing metrics but don't penalize heavily
+- Education, projects, internships, and coursework are valid content — don't penalize their presence
+- ATS: focus on skills alignment and basic keyword coverage, not volume
+- Impact: 40%+ bullets with some metric is excellent at this level
+- Clarity: fresh graduates often over-explain — flag walls of text more aggressively
+- Be encouraging but honest; this person needs actionable wins`,
+    mid: `CAREER LEVEL: Mid-level (3-7 years)
+- Standard expectations apply — use the full rubric without adjustment
+- 60%+ bullets should have metrics; weak verbs are a real problem at this level
+- Should see clear career progression in experience section — flag if absent
+- Summary should lead with specialization, not generic descriptors`,
+    senior: `CAREER LEVEL: Senior (8-15 years)
+- Higher bar: 70%+ bullets should have quantified results
+- ATS bar is higher — senior roles are competitive; 80%+ keyword coverage expected
+- Leadership, mentorship, and strategic impact should appear — flag if only execution-level bullets
+- Summary must communicate scope and scale — flag if it reads like a mid-level resume
+- Watch for "senior smell": date-heavy resumes, outdated skills, or titles that don't match claimed seniority`,
+    executive: `CAREER LEVEL: Executive / VP+
+- Metrics must be business-level: revenue, P&L, headcount, market position, company scale
+- Technical execution bullets are weak at this level — flag if resume is too tactical
+- Board-level communication style: crisp, strategic, high-signal
+- ATS less important for exec roles, but still check for industry keywords and board-familiar terminology
+- Summary is everything — it must justify the compensation ask in 5 seconds
+- Leadership philosophy and org impact should be evident — flag if absent`,
+  };
+
   const CORE_RESUME_KNOWLEDGE = `
 ═══ RESUME SCIENCE — APPLY THIS TO EVERY ANALYSIS ═══
+
+${CAREER_LEVEL_CALIBRATION[careerLevel as keyof typeof CAREER_LEVEL_CALIBRATION] ?? CAREER_LEVEL_CALIBRATION.mid}
 
 ATS SYSTEMS (how they actually work):
 - Modern ATS uses NLP + keyword matching. Score weight: ~40-50% keyword match, title relevance, skills alignment, format parseability
@@ -170,11 +202,21 @@ Return ONLY a valid JSON object with exactly this structure:
   "impact": <number 0-100, use the hard threshold rubric above>,
   "clarity": <number 0-100, use the hard threshold rubric above>,
   "findings": [
-    { "type": "critical", "text": "<name the actual problem with specific section/word — e.g. 'Your summary opens with Strategic engineering leader which tells a recruiter nothing about your business impact.'>" },
-    { "type": "critical", "text": "<second critical issue — only include if genuinely critical>" },
-    { "type": "warn", "text": "<something real that needs work — name the specific bullet or section>" },
-    { "type": "warn", "text": "<second warn if applicable>" },
-    { "type": "ok", "text": "<something genuinely working — be specific>" }
+    {
+      "type": "critical",
+      "category": "<one of: weak_verbs | quantify_impact | summary | ats_keywords | repetition | readability | dates | unnecessary_words | contact | format>",
+      "text": "<name the actual problem with specific section/word — e.g. 'Your summary opens with Strategic engineering leader which tells a recruiter nothing about your business impact.'>"
+    },
+    {
+      "type": "warn",
+      "category": "<category from the list above>",
+      "text": "<something real that needs work — name the specific bullet or section>"
+    },
+    {
+      "type": "ok",
+      "category": "<category from the list above>",
+      "text": "<something genuinely working — be specific>"
+    }
   ],
   "bullets": [
     {
@@ -202,8 +244,30 @@ Return ONLY a valid JSON object with exactly this structure:
       "text": "<Optimized skills list as a comma-separated string. Targeted mode: include all required JD skills the person genuinely has. Remove vague soft skills. Order by relevance to target role.>",
       "score": <number 0-100>
     }
+  ],
+  "keywords": [
+    {
+      "word": "<keyword from JD>",
+      "found": <true if the keyword or a close synonym appears in the resume, false if missing>,
+      "importance": "<required | preferred>",
+      "context": "<if found: one short phrase from resume where it appears. If missing: leave empty string>"
+    }
   ]
 }
+
+FINDINGS CATEGORY DEFINITIONS (assign the most accurate one):
+- weak_verbs: bullets starting with "Responsible for", "Helped", "Assisted", "Participated", "Worked with", or passive language
+- quantify_impact: bullets that describe tasks but lack any metric (%, $, time, volume, team size)
+- summary: issues with the professional summary (missing, generic adjectives, no metric, too long)
+- ats_keywords: missing keywords from the JD, non-standard section names, ATS formatting issues
+- repetition: same verb, phrase, or concept used multiple times
+- readability: bullets over 2 lines, inconsistent tense/dates, formatting inconsistencies
+- dates: missing dates, inconsistent date formats, unexplained gaps
+- unnecessary_words: filler phrases, redundant context, bloat that doesn't add value
+- contact: contact information issues (missing, wrong format, in header/footer)
+- format: tables, graphics, columns, fonts that break ATS parsing
+
+KEYWORDS INSTRUCTION: ${hasJobContext ? "Extract the 15-20 most important keywords from the job description. For each, check if it appears in the resume (including close synonyms). Mark required skills from the 'required' or 'must have' sections as importance='required', everything else as importance='preferred'." : "Return an empty array [] — no job description provided."}
 
 BULLETS INSTRUCTION: Include ALL bullets from the resume that score below 72 — not just 3. This is a complete line-by-line audit. If 8 bullets need work, return all 8. Maximum 12.
 

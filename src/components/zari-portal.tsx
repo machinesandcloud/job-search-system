@@ -55,6 +55,40 @@ function Tag({ text, color, bg }:{ text:string; color:string; bg:string }) {
   return <span style={{ fontSize:10, fontWeight:700, padding:"2px 9px", borderRadius:99, background:bg, color }}>{text}</span>;
 }
 
+function Sparkline({ values, color="#4361EE", width=80, height=24 }: { values:number[]; color?:string; width?:number; height?:number }) {
+  if (values.length < 2) return null;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+  const pts = values.map((v,i) => `${(i/(values.length-1))*width},${height-4-((v-min)/range)*(height-8)}`).join(" ");
+  return (
+    <svg width={width} height={height} style={{ display:"block", overflow:"visible" }}>
+      <polyline points={pts} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <circle cx={(values.length-1)/(values.length-1)*width} cy={height-4-((values[values.length-1]-min)/range)*(height-8)} r="3" fill={color}/>
+    </svg>
+  );
+}
+
+function HighlightedResume({ text, keywords }: { text:string; keywords?:ResumeKeyword[] }) {
+  const found = (keywords ?? []).filter(k=>k.found).map(k=>k.word).sort((a,b)=>b.length-a.length);
+  if (!found.length) {
+    return <pre style={{ fontSize:11, lineHeight:1.7, color:"#1E2235", whiteSpace:"pre-wrap", wordBreak:"break-word", fontFamily:"inherit", margin:0 }}>{text.slice(0,3000)}{text.length>3000?"\n\n[…truncated]":""}</pre>;
+  }
+  const escaped = found.map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"));
+  const regex = new RegExp(`(${escaped.join("|")})`, "gi");
+  const parts = text.slice(0, 3000).split(regex);
+  return (
+    <pre style={{ fontSize:11, lineHeight:1.7, color:"#1E2235", whiteSpace:"pre-wrap", wordBreak:"break-word", fontFamily:"inherit", margin:0 }}>
+      {parts.map((part, i) =>
+        found.some(k=>k.toLowerCase()===part.toLowerCase())
+          ? <mark key={i} style={{ background:"#DCFCE7", color:"#14532D", borderRadius:3, padding:"0 2px", fontWeight:600 }}>{part}</mark>
+          : part
+      )}
+      {text.length>3000?"\n\n[…truncated]":""}
+    </pre>
+  );
+}
+
 /* ═══════════════════════════════════════════════════
    SIDEBAR NAV
 ═══════════════════════════════════════════════════ */
@@ -456,15 +490,19 @@ function ScreenSession({ stage }: { stage: CareerStage }) {
    SCREEN: RESUME REVIEW — drag-drop upload + full analysis
 ═══════════════════════════════════════════════════ */
 type ResumeStep = "upload"|"paste"|"analyzing"|"results";
+type CareerLevel = "entry"|"mid"|"senior"|"executive";
 
 type ResumeScores = { overall: number; ats: number; impact: number; clarity: number };
 type ResumeBullet = { before: string; after: string; reason: string; oldScore: number; newScore: number };
 type ResumeSection = { label: string; text: string; score: number };
+type ResumeFinding = { type: "critical"|"warn"|"ok"; category?: string; text: string };
+type ResumeKeyword = { word: string; found: boolean; importance: "required"|"preferred"; context?: string };
 type ResumeAnalysis = ResumeScores & {
-  findings: { type: "critical"|"warn"|"ok"; text: string }[];
+  findings: ResumeFinding[];
   bullets: ResumeBullet[];
   recommendation: string;
   rewrittenSections: ResumeSection[];
+  keywords?: ResumeKeyword[];
   previousScores?: ResumeScores | null;
 };
 type ResumeHistoryEntry = {
@@ -472,11 +510,20 @@ type ResumeHistoryEntry = {
   mode: string; targetRole?: string;
   scores: ResumeScores;
 };
+type MagicWriteMode = "refine"|"describe"|"variations";
+type MagicWriteState = {
+  mode: MagicWriteMode;
+  input: string;
+  results: string[];
+  loading: boolean;
+  copied: number | null;
+};
 
 function ScreenResume({ stage }: { stage: CareerStage }) {
   const [step, setStep]         = useState<ResumeStep>("upload");
   const [progress, setProgress] = useState(0);
-  const [tab, setTab]           = useState<"overview"|"bullets"|"rewrite"|"history">("overview");
+  const [tab, setTab]           = useState<"overview"|"bullets"|"rewrite"|"keywords"|"history">("overview");
+  const [careerLevel, setCareerLevel] = useState<CareerLevel>("mid");
   const [dragging, setDragging] = useState(false);
   const [resumeText,  setResumeText]  = useState("");
   const [fileName,    setFileName]    = useState("");
@@ -496,6 +543,8 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
   const [jdUrl,           setJdUrl]           = useState("");
   const [fetchingJdUrl,   setFetchingJdUrl]   = useState(false);
   const [jdUrlErr,        setJdUrlErr]        = useState("");
+  // Magic Write: keyed by bullet index
+  const [magicWrite,      setMagicWrite]      = useState<Record<number, MagicWriteState>>({});
 
 
 
@@ -557,6 +606,38 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
     setRewritingIdx(null);
   }
 
+  function openMagicWrite(idx: number) {
+    setMagicWrite(prev => ({ ...prev, [idx]: { mode:"refine", input:"", results:[], loading:false, copied:null } }));
+  }
+
+  function closeMagicWrite(idx: number) {
+    setMagicWrite(prev => { const n = { ...prev }; delete n[idx]; return n; });
+  }
+
+  async function runMagicWrite(idx: number, bullet: ResumeBullet) {
+    const state = magicWrite[idx];
+    if (!state) return;
+    setMagicWrite(prev => ({ ...prev, [idx]: { ...prev[idx], loading:true, results:[] } }));
+    try {
+      const res = await fetch("/api/zari/resume/magic-write", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bullet: bullet.before,
+          mode: state.mode,
+          userInput: state.mode === "refine" ? bullet.after : state.input,
+          resumeText,
+          targetRole: targetRoleInput,
+          jobDescription,
+        }),
+      });
+      const data = await res.json().catch(() => ({})) as { bullets?: string[] };
+      setMagicWrite(prev => ({ ...prev, [idx]: { ...prev[idx], loading:false, results: data.bullets ?? [] } }));
+    } catch {
+      setMagicWrite(prev => ({ ...prev, [idx]: { ...prev[idx], loading:false } }));
+    }
+  }
+
   async function handleFile(file: File) {
     if (targetedInvalid) {
       setAnalyzeErr("Add a job title or paste a job description first — Zari needs a target to score against.");
@@ -611,7 +692,7 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
       const res = await fetch("/api/zari/resume", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resumeText: textToAnalyze, filename: fileName || "resume", stage, reviewMode, targetRole: targetRoleInput, jobDescription }),
+        body: JSON.stringify({ resumeText: textToAnalyze, filename: fileName || "resume", stage, reviewMode, targetRole: targetRoleInput, jobDescription, careerLevel }),
       });
       const data = await res.json().catch(() => null) as ResumeAnalysis | null;
       clearInterval(interval);
@@ -681,6 +762,24 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
           </div>
           <h1 style={{ fontSize:26, fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", marginBottom:10 }}>{SCREEN_RESUME_META[stage].title}</h1>
           <p style={{ fontSize:15.5, color:"#68738A", lineHeight:1.65, maxWidth:440, margin:"0 auto" }}>{SCREEN_RESUME_META[stage].desc}</p>
+        </div>
+
+        {/* Career level selector */}
+        <div style={{ marginBottom:16 }}>
+          <p style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", marginBottom:8 }}>Your career level</p>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:8 }}>
+            {([
+              ["entry",     "Entry",     "0–2 yrs"],
+              ["mid",       "Mid-Level", "3–7 yrs"],
+              ["senior",    "Senior",    "8–15 yrs"],
+              ["executive", "Executive", "VP+"],
+            ] as [CareerLevel, string, string][]).map(([lvl, label, sub]) => (
+              <button key={lvl} onClick={()=>setCareerLevel(lvl)} style={{ padding:"9px 8px", borderRadius:10, border:`2px solid ${careerLevel===lvl?"#4361EE":"#E4E8F5"}`, background:careerLevel===lvl?"#EEF2FF":"white", cursor:"pointer", textAlign:"center", transition:"all 0.15s" }}>
+                <p style={{ fontSize:12.5, fontWeight:700, color:careerLevel===lvl?"#4361EE":"#0A0A0F", margin:0 }}>{label}</p>
+                <p style={{ fontSize:10.5, color:"#68738A", margin:0 }}>{sub}</p>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Review mode selector */}
@@ -848,7 +947,7 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
               <h1 style={{ fontSize:22, fontWeight:900, color:"#0A0A0F", letterSpacing:"-0.03em" }}>Resume Review</h1>
               <span style={{ fontSize:11, fontWeight:700, padding:"3px 10px", borderRadius:99, background:"#F0FFF4", color:"#16A34A", border:"1px solid #BBF7D0" }}>Analyzed</span>
             </div>
-            <p style={{ fontSize:13, color:"#68738A" }}>{fileName || "Resume"} · Zari found {aiResult ? aiResult.findings.filter(f=>f.type!=="ok").length : 0} improvements</p>
+            <p style={{ fontSize:13, color:"#68738A" }}>{fileName || "Resume"} · {careerLevel.charAt(0).toUpperCase()+careerLevel.slice(1)}-level · Zari found {aiResult ? aiResult.findings.filter(f=>f.type!=="ok").length : 0} improvements</p>
           </div>
           <div style={{ display:"flex", gap:8 }}>
             <button onClick={()=>setStep("upload")} style={{ fontSize:12, fontWeight:600, padding:"8px 16px", borderRadius:10, border:"1px solid #E4E8F5", background:"white", color:"#0A0A0F", cursor:"pointer" }}>
@@ -889,12 +988,25 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
         </div>
 
         {/* Tabs */}
-        <div style={{ display:"flex", gap:4, background:"white", border:"1px solid #E4E8F5", borderRadius:12, padding:4, width:"fit-content", marginBottom:20 }}>
-          {([["overview","Overview"],["bullets","Line-by-Line"],["rewrite","AI Rewrites"],["history","History"]] as const).map(([t, label]) => (
-            <button key={t} onClick={()=>setTab(t)} style={{ padding:"6px 18px", borderRadius:9, border:"none", cursor:"pointer", fontSize:12.5, fontWeight:600, background:tab===t?"#4361EE":"transparent", color:tab===t?"white":"#68738A" }}>
-              {label}{t==="history" && scoreHistory.length > 0 ? ` (${scoreHistory.length})` : ""}
-            </button>
-          ))}
+        <div style={{ display:"flex", gap:4, background:"white", border:"1px solid #E4E8F5", borderRadius:12, padding:4, width:"fit-content", marginBottom:20, flexWrap:"wrap" }}>
+          {([
+            ["overview","Overview"],
+            ["bullets","Line-by-Line"],
+            ["rewrite","AI Rewrites"],
+            ...(reviewMode === "targeted" && (aiResult?.keywords?.length ?? 0) > 0 ? [["keywords","Keywords"]] : []),
+            ["history","History"],
+          ] as ["overview"|"bullets"|"rewrite"|"keywords"|"history", string][]).map(([t, label]) => {
+            const badge = t==="history" && scoreHistory.length > 0
+              ? ` (${scoreHistory.length})`
+              : t==="keywords" && aiResult?.keywords
+              ? ` (${aiResult.keywords.filter(k=>!k.found).length} missing)`
+              : "";
+            return (
+              <button key={t} onClick={()=>setTab(t)} style={{ padding:"6px 18px", borderRadius:9, border:"none", cursor:"pointer", fontSize:12.5, fontWeight:600, background:tab===t?"#4361EE":"transparent", color:tab===t?"white":"#68738A" }}>
+                {label}{badge}
+              </button>
+            );
+          })}
         </div>
 
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
@@ -902,18 +1014,60 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
           <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:16, padding:20, boxShadow:"0 2px 8px rgba(0,0,0,0.04)", maxHeight:"calc(100vh - 260px)", overflowY:"auto" }}>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
               <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"#A0AABF" }}>Your resume</p>
-              <span style={{ fontSize:10, color:"#A0AABF" }}>{resumeText.length.toLocaleString()} chars</span>
+              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                {aiResult?.keywords?.some(k=>k.found) && (
+                  <span style={{ fontSize:10, color:"#14532D", background:"#DCFCE7", padding:"1px 7px", borderRadius:99, fontWeight:600 }}>
+                    {aiResult.keywords.filter(k=>k.found).length} keywords highlighted
+                  </span>
+                )}
+                <span style={{ fontSize:10, color:"#A0AABF" }}>{resumeText.length.toLocaleString()} chars</span>
+              </div>
             </div>
-            <pre style={{ fontSize:11, lineHeight:1.7, color:"#1E2235", whiteSpace:"pre-wrap", wordBreak:"break-word", fontFamily:"inherit", margin:0 }}>
-              {resumeText.slice(0, 3000)}{resumeText.length > 3000 ? "\n\n[…truncated for preview]" : ""}
-            </pre>
+            <HighlightedResume text={resumeText} keywords={aiResult?.keywords}/>
           </div>
 
           {/* Right: analysis panel */}
           <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
             {tab==="overview" && <>
               <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:16, padding:18, boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
-                <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", marginBottom:12 }}>Zari&apos;s findings</p>
+                {/* Category summary chips */}
+                {aiResult?.findings && (() => {
+                  const CATEGORY_META: Record<string,{label:string;icon:string;color:string;bg:string}> = {
+                    weak_verbs:        { label:"Weak Verbs",         icon:"✍️", color:"#92400E", bg:"#FFFBEB" },
+                    quantify_impact:   { label:"Missing Metrics",    icon:"📊", color:"#1D4ED8", bg:"#EFF6FF" },
+                    summary:           { label:"Summary",            icon:"📝", color:"#7C3AED", bg:"#F5F3FF" },
+                    ats_keywords:      { label:"ATS Keywords",       icon:"🎯", color:"#047857", bg:"#ECFDF5" },
+                    repetition:        { label:"Repetition",         icon:"🔁", color:"#D97706", bg:"#FFFBEB" },
+                    readability:       { label:"Readability",        icon:"👁️", color:"#0284C7", bg:"#EFF6FF" },
+                    dates:             { label:"Dates",              icon:"📅", color:"#64748B", bg:"#F1F5F9" },
+                    unnecessary_words: { label:"Filler Words",       icon:"✂️", color:"#DC2626", bg:"#FEF2F2" },
+                    contact:           { label:"Contact Info",       icon:"📬", color:"#9333EA", bg:"#FDF4FF" },
+                    format:            { label:"Formatting",         icon:"🗂️", color:"#475569", bg:"#F8FAFC" },
+                  };
+                  const issuesByCategory: Record<string, number> = {};
+                  aiResult.findings.filter(f=>f.type!=="ok").forEach(f=>{
+                    const cat = f.category ?? "readability";
+                    issuesByCategory[cat] = (issuesByCategory[cat] ?? 0) + 1;
+                  });
+                  const cats = Object.entries(issuesByCategory).sort((a,b)=>b[1]-a[1]);
+                  if (cats.length === 0) return null;
+                  return (
+                    <div style={{ marginBottom:14 }}>
+                      <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A0AABF", marginBottom:8 }}>Issues by category</p>
+                      <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+                        {cats.map(([cat, count]) => {
+                          const meta = CATEGORY_META[cat] ?? { label: cat, icon:"⚠️", color:"#68738A", bg:"#F1F5F9" };
+                          return (
+                            <span key={cat} style={{ fontSize:11, fontWeight:700, padding:"4px 10px", borderRadius:99, background:meta.bg, color:meta.color, display:"flex", alignItems:"center", gap:4 }}>
+                              {meta.icon} {meta.label} <span style={{ background:"white", borderRadius:99, padding:"0 5px", marginLeft:2, fontSize:10 }}>{count}</span>
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+                <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", marginBottom:10 }}>Zari&apos;s findings</p>
                 {(aiResult?.findings ?? [
                   { type:"critical" as const, text:"Summary contains no product keywords — fails ATS for PM roles." },
                   { type:"warn" as const,     text:"5 of 8 bullets are task-focused with no impact numbers." },
@@ -943,7 +1097,9 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
                   {aiResult?.bullets && <span style={{ fontSize:11, color:"#68738A" }}>{aiResult.bullets.length} bullet{aiResult.bullets.length!==1?"s":""} need work</span>}
                 </div>
                 {!aiResult?.bullets?.length && <p style={{ fontSize:13, color:"#68738A", textAlign:"center", padding:"24px 0" }}>No bullets to improve — your bullet quality is solid.</p>}
-                {(aiResult?.bullets ?? []).map((b, i) => (
+                {(aiResult?.bullets ?? []).map((b, i) => {
+                  const mw = magicWrite[i];
+                  return (
                   <div key={i} style={{ marginBottom:18, paddingBottom:18, borderBottom: i < (aiResult?.bullets.length ?? 1) - 1 ? "1px solid #F1F5F9" : "none" }}>
                     <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6 }}>
                       <span style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"#68738A" }}>Bullet {i+1}</span>
@@ -960,10 +1116,82 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
                     </div>
                     {/* Before */}
                     <p style={{ fontSize:11.5, color:"#991B1B", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:8, padding:"8px 10px", textDecoration:"line-through", marginBottom:5, lineHeight:1.55 }}>{b.before}</p>
-                    {/* After */}
-                    <p style={{ fontSize:11.5, color:"#14532D", background:"#F0FFF4", border:"1px solid #BBF7D0", borderRadius:8, padding:"8px 10px", lineHeight:1.55 }}>{b.after}</p>
+                    {/* After row with copy */}
+                    <div style={{ display:"flex", alignItems:"flex-start", gap:6, marginBottom: mw ? 0 : 6 }}>
+                      <p style={{ flex:1, fontSize:11.5, color:"#14532D", background:"#F0FFF4", border:"1px solid #BBF7D0", borderRadius:8, padding:"8px 10px", lineHeight:1.55, margin:0 }}>{b.after}</p>
+                      <button
+                        onClick={()=>{ void navigator.clipboard.writeText(b.after); }}
+                        title="Copy rewrite"
+                        style={{ padding:"6px 8px", borderRadius:7, border:"1px solid #E4E8F5", background:"white", color:"#68738A", cursor:"pointer", flexShrink:0, fontSize:11 }}
+                      >Copy</button>
+                    </div>
+                    {/* Magic Write toggle */}
+                    {!mw ? (
+                      <button onClick={()=>openMagicWrite(i)} style={{ marginTop:6, fontSize:11, fontWeight:700, padding:"5px 12px", borderRadius:8, border:"1px solid #C7D2FE", background:"#EEF2FF", color:"#4361EE", cursor:"pointer", display:"flex", alignItems:"center", gap:5 }}>
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:11, height:11 }}><path d="M8 1v14M1 8h14"/></svg>
+                        Magic Write
+                      </button>
+                    ) : (
+                      <div style={{ marginTop:8, border:"1px solid #C7D2FE", borderRadius:10, overflow:"hidden" }}>
+                        {/* Mode selector */}
+                        <div style={{ display:"flex", background:"#F8FAFF", borderBottom:"1px solid #E4E8F5", padding:"8px 10px", gap:6, alignItems:"center", justifyContent:"space-between" }}>
+                          <div style={{ display:"flex", gap:5 }}>
+                            {([
+                              ["refine",     "Improve AI suggestion"],
+                              ["describe",   "Describe what I did"],
+                              ["variations", "3 different takes"],
+                            ] as [MagicWriteMode, string][]).map(([m, label]) => (
+                              <button key={m} onClick={()=>setMagicWrite(prev=>({...prev,[i]:{...prev[i],mode:m,results:[],input:""}}))} style={{ fontSize:10.5, fontWeight:600, padding:"3px 9px", borderRadius:6, border:"none", background:mw.mode===m?"#4361EE":"transparent", color:mw.mode===m?"white":"#68738A", cursor:"pointer" }}>
+                                {label}
+                              </button>
+                            ))}
+                          </div>
+                          <button onClick={()=>closeMagicWrite(i)} style={{ fontSize:12, lineHeight:1, padding:"2px 6px", borderRadius:5, border:"none", background:"transparent", color:"#A0AABF", cursor:"pointer" }}>✕</button>
+                        </div>
+                        {/* Input */}
+                        <div style={{ padding:"10px" }}>
+                          {mw.mode === "describe" && (
+                            <textarea
+                              value={mw.input}
+                              onChange={e=>setMagicWrite(prev=>({...prev,[i]:{...prev[i],input:e.target.value}}))}
+                              placeholder="Describe what you actually did — e.g. 'I built a dashboard that showed real-time inventory levels for 12 warehouses, reduced stockouts by 30%'"
+                              style={{ width:"100%", minHeight:64, border:"1.5px solid #E4E8F5", borderRadius:8, padding:"7px 10px", fontSize:11.5, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"white", lineHeight:1.5 }}
+                            />
+                          )}
+                          {mw.mode === "refine" && (
+                            <p style={{ fontSize:11, color:"#68738A", marginBottom:8 }}>Zari will polish the AI suggestion above — make it tighter, more specific, and more natural.</p>
+                          )}
+                          {mw.mode === "variations" && (
+                            <p style={{ fontSize:11, color:"#68738A", marginBottom:8 }}>Zari will generate 3 meaningfully different rewrites — different verb, different angle, different structure.</p>
+                          )}
+                          <button
+                            onClick={()=>void runMagicWrite(i, b)}
+                            disabled={mw.loading || (mw.mode==="describe" && !mw.input.trim())}
+                            style={{ fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:8, border:"none", background:(!mw.loading && (mw.mode!=="describe" || mw.input.trim()))?"#4361EE":"#E4E8F5", color:(!mw.loading && (mw.mode!=="describe" || mw.input.trim()))?"white":"#A0AABF", cursor:(!mw.loading && (mw.mode!=="describe" || mw.input.trim()))?"pointer":"default" }}
+                          >
+                            {mw.loading ? "Writing…" : "Generate"}
+                          </button>
+                        </div>
+                        {/* Results */}
+                        {mw.results.length > 0 && (
+                          <div style={{ padding:"0 10px 10px", display:"flex", flexDirection:"column", gap:7 }}>
+                            {mw.results.map((r,ri) => (
+                              <div key={ri} style={{ display:"flex", gap:6, alignItems:"flex-start" }}>
+                                <p style={{ flex:1, fontSize:11.5, color:"#1D4ED8", background:"#EFF6FF", border:"1px solid #BFDBFE", borderRadius:8, padding:"7px 10px", lineHeight:1.55, margin:0 }}>{r}</p>
+                                <button
+                                  onClick={()=>{ void navigator.clipboard.writeText(r); setMagicWrite(prev=>({...prev,[i]:{...prev[i],copied:ri}})); setTimeout(()=>setMagicWrite(prev=>({...prev,[i]:{...prev[i],copied:null}})),1500); }}
+                                  style={{ padding:"5px 8px", borderRadius:7, border:"1px solid #BFDBFE", background:"white", color: mw.copied===ri?"#16A34A":"#1D4ED8", cursor:"pointer", fontSize:10.5, fontWeight:600, flexShrink:0 }}
+                                >
+                                  {mw.copied===ri?"✓":"Copy"}
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                ))}
+                );})}
               </div>
             )}
 
@@ -1008,6 +1236,62 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
               </div>
             )}
 
+            {tab==="keywords" && (
+              <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:16, padding:18, boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
+                {(() => {
+                  const kws = aiResult?.keywords ?? [];
+                  const required = kws.filter(k=>k.importance==="required");
+                  const preferred = kws.filter(k=>k.importance==="preferred");
+                  const missingRequired = required.filter(k=>!k.found).length;
+                  const missingPreferred = preferred.filter(k=>!k.found).length;
+                  return (
+                    <>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:14 }}>
+                        <div>
+                          <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", marginBottom:3 }}>ATS Keywords</p>
+                          <p style={{ fontSize:11.5, color:"#68738A" }}>Extracted from the job description — green means found, red means missing</p>
+                        </div>
+                        <div style={{ display:"flex", gap:6, flexShrink:0 }}>
+                          {missingRequired > 0 && <span style={{ fontSize:10.5, fontWeight:700, padding:"3px 9px", borderRadius:99, background:"#FEF2F2", color:"#991B1B" }}>{missingRequired} required missing</span>}
+                          {missingPreferred > 0 && <span style={{ fontSize:10.5, fontWeight:700, padding:"3px 9px", borderRadius:99, background:"#FFFBEB", color:"#92400E" }}>{missingPreferred} preferred missing</span>}
+                        </div>
+                      </div>
+
+                      {required.length > 0 && (
+                        <div style={{ marginBottom:16 }}>
+                          <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A0AABF", marginBottom:8 }}>Required skills</p>
+                          <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
+                            {required.map((kw, i) => (
+                              <div key={i} title={kw.found && kw.context ? `Found: "${kw.context}"` : "Missing from resume"} style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"5px 11px", borderRadius:99, border:`1.5px solid ${kw.found?"#BBF7D0":"#FECACA"}`, background:kw.found?"#F0FFF4":"#FEF2F2", cursor:"default" }}>
+                                <span style={{ width:6, height:6, borderRadius:"50%", background:kw.found?"#16A34A":"#DC2626", flexShrink:0 }}/>
+                                <span style={{ fontSize:11.5, fontWeight:600, color:kw.found?"#14532D":"#991B1B" }}>{kw.word}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {preferred.length > 0 && (
+                        <div>
+                          <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A0AABF", marginBottom:8 }}>Preferred skills</p>
+                          <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
+                            {preferred.map((kw, i) => (
+                              <div key={i} title={kw.found && kw.context ? `Found: "${kw.context}"` : "Missing from resume"} style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"5px 11px", borderRadius:99, border:`1.5px solid ${kw.found?"#C7D2FE":"#E4E8F5"}`, background:kw.found?"#EEF2FF":"#F8FAFF", cursor:"default" }}>
+                                <span style={{ width:6, height:6, borderRadius:"50%", background:kw.found?"#4361EE":"#CBD5E1", flexShrink:0 }}/>
+                                <span style={{ fontSize:11.5, fontWeight:600, color:kw.found?"#3451D1":"#68738A" }}>{kw.word}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {kws.length === 0 && <p style={{ fontSize:13, color:"#68738A", textAlign:"center", padding:"24px 0" }}>No keyword data — switch to Targeted mode and provide a job description.</p>}
+                    </>
+                  );
+                })()}
+              </div>
+            )}
+
             {tab==="history" && (
               <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:16, padding:18, boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
@@ -1019,6 +1303,34 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
                     <button onClick={()=>{ if(confirm("Clear all history?")) void clearHistory(); }} style={{ fontSize:11, fontWeight:600, padding:"5px 12px", borderRadius:8, border:"1px solid #FECACA", background:"#FEF2F2", color:"#991B1B", cursor:"pointer" }}>Clear history</button>
                   )}
                 </div>
+                {/* Sparkline trend chart */}
+                {!historyLoading && scoreHistory.length >= 2 && (() => {
+                  const allScores = [...scoreHistory].reverse(); // oldest first for chart
+                  const overallValues = allScores.map(e=>e.scores.overall);
+                  const first = overallValues[0];
+                  const last = overallValues[overallValues.length-1];
+                  const trend = last - first;
+                  const trendColor = trend > 0 ? "#16A34A" : trend < 0 ? "#DC2626" : "#A0AABF";
+                  return (
+                    <div style={{ background:"#F8FAFF", border:"1px solid #E4E8F5", borderRadius:12, padding:"12px 14px", marginBottom:14, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                      <div>
+                        <p style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", marginBottom:2 }}>Overall score trend</p>
+                        <p style={{ fontSize:11, color:trendColor, fontWeight:700 }}>{trend > 0 ? `+${trend}` : trend < 0 ? `${trend}` : "Flat"} across {scoreHistory.length} submissions</p>
+                      </div>
+                      <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                        <div style={{ textAlign:"center" }}>
+                          <p style={{ fontSize:10, color:"#A0AABF", marginBottom:2 }}>First</p>
+                          <p style={{ fontSize:16, fontWeight:900, color:"#68738A" }}>{first}</p>
+                        </div>
+                        <Sparkline values={overallValues} color={trendColor} width={90} height={32}/>
+                        <div style={{ textAlign:"center" }}>
+                          <p style={{ fontSize:10, color:"#A0AABF", marginBottom:2 }}>Latest</p>
+                          <p style={{ fontSize:16, fontWeight:900, color:trendColor }}>{last}</p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
                 {historyLoading && <p style={{ fontSize:13, color:"#68738A", textAlign:"center", padding:"24px 0" }}>Loading…</p>}
                 {!historyLoading && scoreHistory.length === 0 && <p style={{ fontSize:13, color:"#68738A", textAlign:"center", padding:"24px 0" }}>No history yet — submit your next version to start tracking progress.</p>}
                 {scoreHistory.map((entry, i) => {
