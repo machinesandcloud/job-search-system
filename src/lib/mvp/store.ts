@@ -43,11 +43,22 @@ type StoredSession = SessionRecord & {
   transcript: Array<{ time: string; role: "coach" | "user"; message: string }>;
 };
 
+type ResumeScoreRecord = {
+  id: string;
+  userId: string;
+  filename: string;
+  submittedAt: string;
+  mode: "general" | "targeted";
+  targetRole?: string;
+  scores: { overall: number; ats: number; impact: number; clarity: number };
+};
+
 type MvpStore = {
   users: StoredUser[];
   documents: StoredDocument[];
   reviews: StoredReview[];
   sessions: StoredSession[];
+  resumeScores: ResumeScoreRecord[];
 };
 
 // On Vercel / serverless: cwd() is read-only. Use /tmp instead.
@@ -76,6 +87,8 @@ function cloneProfile(overrides?: Partial<UserProfile>): UserProfile {
     painPoints: overrides?.painPoints || [...dashboardData.user.painPoints],
   };
 }
+
+function emptyResumeScores(): ResumeScoreRecord[] { return []; }
 
 function createSeedStore(): MvpStore {
   const demoUserId = "user_demo";
@@ -120,24 +133,10 @@ function createSeedStore(): MvpStore {
     sessions: dashboardData.sessions.map((session) => ({
       ...session,
       userId: demoUserId,
-      notes: [
-        "Current task: resume critique mode",
-        "Target role: Technical Program Manager",
-        "Fallback state available: audio-only",
-      ],
-      transcript: [
-        {
-          time: "00:00",
-          role: "coach",
-          message: "What outcome matters most for this session: sharper stories, a stronger resume, or mock interview practice?",
-        },
-        {
-          time: "00:08",
-          role: "user",
-          message: "I need to reposition for TPM roles and stop sounding too vague.",
-        },
-      ],
+      notes: [],
+      transcript: [],
     })),
+    resumeScores: emptyResumeScores(),
   };
 }
 
@@ -426,4 +425,32 @@ export async function createReviewForUser(
 export async function getLatestReviewForUser(userId: string, type: "resume" | "linkedin") {
   const store = await readStore();
   return store.reviews.find((entry) => entry.userId === userId && entry.type === type) || null;
+}
+
+export async function saveResumeScore(
+  userId: string,
+  data: { filename: string; mode: "general" | "targeted"; targetRole?: string; scores: { overall: number; ats: number; impact: number; clarity: number } },
+) {
+  const store = await readStore();
+  if (!store.resumeScores) store.resumeScores = [];
+  const record: ResumeScoreRecord = {
+    id: `rscore_${crypto.randomUUID()}`,
+    userId,
+    filename: data.filename,
+    submittedAt: new Date().toISOString(),
+    mode: data.mode,
+    targetRole: data.targetRole,
+    scores: data.scores,
+  };
+  store.resumeScores.unshift(record);
+  // Keep last 100 records total
+  store.resumeScores = store.resumeScores.slice(0, 100);
+  await writeStore(store);
+  return record;
+}
+
+export async function getResumeScoreHistory(userId: string): Promise<ResumeScoreRecord[]> {
+  const store = await readStore();
+  if (!store.resumeScores) return [];
+  return store.resumeScores.filter((r) => r.userId === userId);
 }

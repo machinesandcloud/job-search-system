@@ -4,12 +4,12 @@ export const dashboardData: DashboardPayload = {
   user: {
     name: "Steve",
     email: "steve@askiatech.com",
-    currentRole: "Customer Success Manager",
-    targetRole: "Technical Program Manager",
-    experienceLevel: "Mid-career",
-    geography: "New York, NY",
-    goals: ["Land interviews faster", "Rewrite resume around impact", "Practice concise stories"],
-    painPoints: ["Weak positioning", "Inconsistent interview structure", "Low recruiter response"],
+    currentRole: "",
+    targetRole: "",
+    experienceLevel: "",
+    geography: "",
+    goals: [],
+    painPoints: [],
     onboardingComplete: true,
   },
   usage: [
@@ -23,31 +23,8 @@ export const dashboardData: DashboardPayload = {
     { id: "doc_linkedin", title: "linkedin-profile-export.docx", type: "linkedin", updatedAt: "Yesterday", status: "ready" },
     { id: "doc_notes", title: "interview-notes-q2.pdf", type: "notes", updatedAt: "3 days ago", status: "reviewing" },
   ],
-  sessions: [
-    {
-      id: "sess_resume",
-      title: "Resume critique for TPM roles",
-      mode: "resume",
-      status: "complete",
-      startedAt: "Apr 13, 2026",
-      summary: "Clarified scope, tightened metrics, and flagged missing systems ownership proof.",
-      transcriptTurns: 34,
-    },
-    {
-      id: "sess_career",
-      title: "Career direction and positioning",
-      mode: "career",
-      status: "ready",
-      startedAt: "Apr 11, 2026",
-      summary: "Identified program, operations, and enablement paths with the strongest evidence fit.",
-      transcriptTurns: 18,
-    },
-  ],
-  actionPlan: [
-    { id: "act_1", title: "Rewrite top 3 experience bullets with scale, scope, and outcome.", priority: "High", dueLabel: "Today", completed: false },
-    { id: "act_2", title: "Refresh LinkedIn headline around TPM transition and cross-functional delivery.", priority: "High", dueLabel: "Tomorrow", completed: false },
-    { id: "act_3", title: "Run one behavioral mock interview focused on conflict and ambiguity.", priority: "Medium", dueLabel: "This week", completed: false },
-  ],
+  sessions: [],
+  actionPlan: [],
 };
 
 export const resumeReview: ReviewOutput = {

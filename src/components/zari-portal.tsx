@@ -457,12 +457,13 @@ function ScreenSession({ stage }: { stage: CareerStage }) {
 ═══════════════════════════════════════════════════ */
 type ResumeStep = "upload"|"paste"|"analyzing"|"results";
 
-type ResumeAnalysis = {
-  overall: number; ats: number; impact: number; clarity: number;
+type ResumeScores = { overall: number; ats: number; impact: number; clarity: number };
+type ResumeAnalysis = ResumeScores & {
   findings: { type: "critical"|"warn"|"ok"; text: string }[];
   bullets: { before: string; after: string; oldScore: number; newScore: number }[];
   recommendation: string;
   rewrittenSections: { label: string; text: string; score: number }[];
+  previousScores?: ResumeScores | null;
 };
 
 function ScreenResume({ stage }: { stage: CareerStage }) {
@@ -557,7 +558,7 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
       const res = await fetch("/api/zari/resume", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resumeText: textToAnalyze, stage, reviewMode, targetRole: targetRoleInput, jobDescription }),
+        body: JSON.stringify({ resumeText: textToAnalyze, filename: fileName || "resume", stage, reviewMode, targetRole: targetRoleInput, jobDescription }),
       });
       const data = await res.json().catch(() => null) as ResumeAnalysis | null;
       clearInterval(interval);
@@ -806,18 +807,29 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
 
         {/* Score strip */}
         <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12, marginBottom:24 }}>
-          {[
-            { label:"Overall",  score: aiResult?.overall ?? 89, color:"#4361EE",  note:"Overall resume quality" },
-            { label:"ATS Match",score: aiResult?.ats     ?? 91, color:"#16A34A",  note:"Keyword coverage" },
-            { label:"Impact",   score: aiResult?.impact  ?? 84, color:"#0284C7",  note:"Metrics & outcomes" },
-            { label:"Clarity",  score: aiResult?.clarity ?? 87, color:"#7C3AED",  note:"Structure & readability" },
-          ].map(sc => (
-            <div key={sc.label} style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:14, padding:16, textAlign:"center", boxShadow:"0 1px 4px rgba(0,0,0,0.04)" }}>
-              <ScoreRing score={sc.score} color={sc.color} size={60}/>
-              <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", marginTop:8 }}>{sc.label}</p>
-              <p style={{ fontSize:10.5, color:"#16A34A", marginTop:2 }}>↑ {sc.note}</p>
-            </div>
-          ))}
+          {([
+            { label:"Overall",   key:"overall" as const, score: aiResult?.overall ?? 0, color:"#4361EE",  note:"Overall quality" },
+            { label:"ATS Match", key:"ats"     as const, score: aiResult?.ats     ?? 0, color:"#16A34A",  note:"Keyword coverage" },
+            { label:"Impact",    key:"impact"  as const, score: aiResult?.impact  ?? 0, color:"#0284C7",  note:"Metrics & outcomes" },
+            { label:"Clarity",   key:"clarity" as const, score: aiResult?.clarity ?? 0, color:"#7C3AED",  note:"Structure & readability" },
+          ]).map(sc => {
+            const prev = aiResult?.previousScores?.[sc.key] ?? null;
+            const delta = prev !== null ? sc.score - prev : null;
+            const deltaColor = delta === null ? "#A0AABF" : delta > 0 ? "#16A34A" : delta < 0 ? "#DC2626" : "#A0AABF";
+            const deltaLabel = delta === null
+              ? sc.note
+              : delta === 0 ? "No change" : `${delta > 0 ? "+" : ""}${delta} vs last`;
+            const deltaArrow = delta === null ? "" : delta > 0 ? " ↑" : delta < 0 ? " ↓" : " →";
+            return (
+              <div key={sc.label} style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:14, padding:16, textAlign:"center", boxShadow:"0 1px 4px rgba(0,0,0,0.04)" }}>
+                <ScoreRing score={sc.score} color={sc.color} size={60}/>
+                <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", marginTop:8 }}>{sc.label}</p>
+                <p style={{ fontSize:10.5, color:deltaColor, marginTop:2, fontWeight: delta !== null && delta !== 0 ? 700 : 400 }}>
+                  {deltaLabel}{deltaArrow}
+                </p>
+              </div>
+            );
+          })}
         </div>
 
         {/* Tabs */}

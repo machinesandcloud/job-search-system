@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUserId } from "@/lib/mvp/auth";
 import { buildUserContext } from "@/lib/mvp/context";
+import { saveResumeScore, getResumeScoreHistory } from "@/lib/mvp/store";
 import { openaiChat } from "@/lib/openai";
 import { ensureSameOrigin } from "@/lib/utils";
 
@@ -11,6 +12,7 @@ export async function POST(request: Request) {
 
   const body = await request.json().catch(() => ({})) as {
     resumeText?: string;
+    filename?: string;
     stage?: string;
     targetRole?: string;
     jobDescription?: string;
@@ -18,6 +20,7 @@ export async function POST(request: Request) {
   };
 
   const resumeText = (body.resumeText ?? "").trim();
+  const filename = (body.filename ?? "resume").trim();
   const stage = body.stage ?? "job-search";
   const targetRole = (body.targetRole ?? "").trim();
   const jobDescription = (body.jobDescription ?? "").trim();
@@ -204,8 +207,24 @@ Voice rules:
   }
 
   try {
-    const result = JSON.parse(reply);
-    return NextResponse.json(result);
+    const result = JSON.parse(reply) as { overall: number; ats: number; impact: number; clarity: number; [key: string]: unknown };
+
+    // Persist score to history and fetch previous for delta display
+    let previousScores: { overall: number; ats: number; impact: number; clarity: number } | null = null;
+    if (userId) {
+      try {
+        const history = await getResumeScoreHistory(userId);
+        if (history.length > 0) previousScores = history[0].scores; // last submission before this one
+        await saveResumeScore(userId, {
+          filename,
+          mode: reviewMode,
+          targetRole: targetRole || undefined,
+          scores: { overall: result.overall, ats: result.ats, impact: result.impact, clarity: result.clarity },
+        });
+      } catch { /* non-fatal */ }
+    }
+
+    return NextResponse.json({ ...result, previousScores });
   } catch {
     return NextResponse.json({ error: "Could not parse analysis" }, { status: 500 });
   }
