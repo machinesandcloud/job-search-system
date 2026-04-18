@@ -501,7 +501,13 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
     setFetchingJdUrl(false);
   }
 
+  const targetedInvalid = reviewMode === "targeted" && !targetRoleInput.trim() && !jobDescription.trim();
+
   async function handleFile(file: File) {
+    if (targetedInvalid) {
+      setAnalyzeErr("Add a job title or paste a job description first — Zari needs a target to score against.");
+      return;
+    }
     setFileName(file.name);
     setAnalyzeErr("");
     setStep("analyzing");
@@ -533,6 +539,10 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
   async function runAnalysis(text?: string) {
     const textToAnalyze = text ?? resumeText;
     if (!textToAnalyze.trim()) return;
+    if (targetedInvalid) {
+      setAnalyzeErr("Add a job title or paste a job description first — Zari needs a target to score against.");
+      return;
+    }
     setAnalyzeErr("");
     if (step !== "analyzing") setStep("analyzing");
 
@@ -597,7 +607,7 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
         />
         <div style={{ display:"flex", gap:10, marginTop:14 }}>
           <button onClick={() => setStep("upload")} style={{ fontSize:13, fontWeight:600, padding:"10px 20px", borderRadius:10, border:"1px solid #E4E8F5", background:"white", color:"#68738A", cursor:"pointer" }}>← Back</button>
-          <button onClick={() => void runAnalysis()} disabled={!resumeText.trim()} style={{ flex:1, fontSize:14, fontWeight:700, padding:"11px", borderRadius:10, border:"none", background:resumeText.trim()?"#4361EE":"#E4E8F5", color:resumeText.trim()?"white":"#A0AABF", cursor:resumeText.trim()?"pointer":"default", boxShadow:resumeText.trim()?"0 4px 16px rgba(67,97,238,0.3)":"none" }}>
+          <button onClick={() => void runAnalysis()} disabled={!resumeText.trim() || targetedInvalid} style={{ flex:1, fontSize:14, fontWeight:700, padding:"11px", borderRadius:10, border:"none", background:resumeText.trim()&&!targetedInvalid?"#4361EE":"#E4E8F5", color:resumeText.trim()&&!targetedInvalid?"white":"#A0AABF", cursor:resumeText.trim()&&!targetedInvalid?"pointer":"default", boxShadow:resumeText.trim()&&!targetedInvalid?"0 4px 16px rgba(67,97,238,0.3)":"none" }}>
             Analyze with Zari →
           </button>
         </div>
@@ -637,7 +647,7 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
               <input
                 type="text"
                 value={targetRoleInput}
-                onChange={e=>setTargetRoleInput(e.target.value)}
+                onChange={e=>{ setTargetRoleInput(e.target.value); if(analyzeErr) setAnalyzeErr(""); }}
                 placeholder="e.g. Senior DevOps Engineer, Staff SRE, Product Manager…"
                 style={{ width:"100%", border:"1.5px solid #E4E8F5", borderRadius:10, padding:"9px 12px", fontSize:13, color:"#1E2235", outline:"none", fontFamily:"inherit", boxSizing:"border-box", background:"#FAFBFF" }}
               />
@@ -659,7 +669,7 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
               {jdInputMode === "paste" ? (
                 <textarea
                   value={jobDescription}
-                  onChange={e=>setJobDescription(e.target.value)}
+                  onChange={e=>{ setJobDescription(e.target.value); if(analyzeErr) setAnalyzeErr(""); }}
                   placeholder="Paste the full job posting here — Zari will score your resume against every requirement…"
                   style={{ width:"100%", minHeight:90, border:"1.5px solid #E4E8F5", borderRadius:10, padding:"9px 11px", fontSize:13, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"#FAFBFF", lineHeight:1.6 }}
                 />
@@ -687,7 +697,17 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
                 </div>
               )}
             </div>
+            {targetedInvalid && (
+              <p style={{ fontSize:12, color:"#B45309", background:"#FFFBEB", border:"1px solid #FDE68A", borderRadius:8, padding:"7px 12px", marginTop:10, marginBottom:0 }}>
+                Add a job title or paste a job description — Zari needs a target to score against.
+              </p>
+            )}
           </div>
+        )}
+
+        {/* analyzeErr shown here when upload is blocked */}
+        {analyzeErr && step === "upload" && (
+          <div style={{ background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:10, padding:"9px 14px", marginBottom:12, fontSize:13, color:"#991B1B" }}>{analyzeErr}</div>
         )}
 
         {/* Label wraps the drop zone — clicking anywhere opens the file picker natively */}
