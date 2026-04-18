@@ -124,10 +124,18 @@ What to do:
 - Flag the biggest actual problems on this specific resume — name the exact bullet, phrase, or section
 ═══════════════════════════════════════════════════════`;
 
+  // In general mode: inject context for personalization (name, history) but
+  // explicitly forbid using the stored targetRole as the scoring target.
+  // In targeted mode: the provided JD/role overrides anything in the profile.
+  const contextBlock = userContext
+    ? hasJobContext
+      ? `Here's what you know about this person (for personalization only — the job description above is the scoring target, not anything in this profile):\n${userContext}`
+      : `Here's what you know about this person (use name/history for personalization only — DO NOT use their stored target role as the scoring target for this analysis — they have selected General Review):\n${userContext}`
+    : "";
+
   const systemPrompt = `You are Zari, a career coach and resume expert who talks like a sharp, honest friend — not a consultant. Direct, specific, warm. You've read 10,000 resumes and know exactly what gets people interviews.
 
-${userContext ? `Here's what you know about this person:\n${userContext}\n\n` : ""}
-${CORE_RESUME_KNOWLEDGE}
+${contextBlock ? `${contextBlock}\n\n` : ""}${CORE_RESUME_KNOWLEDGE}
 ${targetedInstructions}
 
 Return ONLY a valid JSON object with exactly this structure:
