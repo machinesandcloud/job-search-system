@@ -1,19 +1,8 @@
 import { NextResponse } from "next/server";
+// pdf-parse v1 — default export is a function: pdfParse(buffer) => Promise<{text}>
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const pdfParse = require("pdf-parse") as (buf: Buffer) => Promise<{ text: string }>;
 import mammoth from "mammoth";
-
-async function extractPdfText(buffer: Buffer): Promise<string> {
-  // pdf-parse v2 uses PDFParse class
-  const { PDFParse } = await import("pdf-parse") as unknown as { PDFParse: new () => { loadPDF: (buf: Buffer) => Promise<{ pages: Array<{ lines: Array<{ words: Array<{ text: string }> }> }> }> } };
-  const parser = new PDFParse();
-  const doc = await parser.loadPDF(buffer);
-  const lines: string[] = [];
-  for (const page of doc.pages) {
-    for (const line of page.lines) {
-      lines.push(line.words.map((w) => w.text).join(" "));
-    }
-  }
-  return lines.join("\n");
-}
 
 export async function POST(request: Request) {
   try {
@@ -31,7 +20,8 @@ export async function POST(request: Request) {
     let text = "";
 
     if (mime === "application/pdf" || name.endsWith(".pdf")) {
-      text = await extractPdfText(buffer);
+      const result = await pdfParse(buffer);
+      text = result.text;
     } else if (
       mime === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
       name.endsWith(".docx")
@@ -39,19 +29,25 @@ export async function POST(request: Request) {
       const result = await mammoth.extractRawText({ buffer });
       text = result.value;
     } else {
-      // TXT or anything else — treat as plain text
+      // TXT / plain text
       text = buffer.toString("utf-8");
     }
 
     text = text.replace(/\r\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
 
-    if (!text) {
-      return NextResponse.json({ error: "Could not extract text from this file." }, { status: 422 });
+    if (!text || text.length < 20) {
+      return NextResponse.json(
+        { error: "Could not extract readable text from this file. Try saving as TXT or DOCX." },
+        { status: 422 },
+      );
     }
 
     return NextResponse.json({ text });
   } catch (err) {
     console.error("[extract]", err);
-    return NextResponse.json({ error: "Failed to read file — try a PDF, DOCX, or TXT." }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to read file — try a PDF, DOCX, or TXT." },
+      { status: 500 },
+    );
   }
 }

@@ -474,7 +474,7 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
   const [aiResult,  setAiResult]   = useState<ResumeAnalysis | null>(null);
   const [analyzeErr, setAnalyzeErr] = useState("");
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+
 
   async function handleFile(file: File) {
     setAnalyzeErr("");
@@ -590,28 +590,30 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
           <p style={{ fontSize:15.5, color:"#68738A", lineHeight:1.65, maxWidth:440, margin:"0 auto" }}>{SCREEN_RESUME_META[stage].desc}</p>
         </div>
 
-        {/* Hidden file input */}
-        <input ref={fileInputRef} type="file" accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" style={{ display:"none" }} onChange={e=>{ const f = e.target.files?.[0]; if(f) void handleFile(f); e.target.value=""; }}/>
-
-        {/* Drag-drop zone */}
-        <div
+        {/* Label wraps the drop zone — clicking anywhere opens the file picker natively */}
+        <label
           onDragOver={e=>{e.preventDefault();setDragging(true);}}
           onDragLeave={()=>setDragging(false)}
           onDrop={e=>{e.preventDefault();setDragging(false);const f=e.dataTransfer.files?.[0];if(f)void handleFile(f);}}
-          onClick={()=>fileInputRef.current?.click()}
-          style={{ border:`2px dashed ${dragging?"#4361EE":"#CBD5E1"}`, borderRadius:20, padding:"52px 32px", textAlign:"center", cursor:"pointer", background:dragging?"#EEF2FF":"white", transition:"all 0.2s", boxShadow:dragging?"0 0 0 4px rgba(67,97,238,0.12)":"none" }}
+          style={{ display:"block", border:`2px dashed ${dragging?"#4361EE":"#CBD5E1"}`, borderRadius:20, padding:"52px 32px", textAlign:"center", cursor:"pointer", background:dragging?"#EEF2FF":"white", transition:"all 0.2s", boxShadow:dragging?"0 0 0 4px rgba(67,97,238,0.12)":"none" }}
         >
+          <input
+            type="file"
+            accept=".pdf,.docx,.txt"
+            style={{ display:"none" }}
+            onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleFile(f); e.target.value=""; }}
+          />
           <div style={{ width:56, height:56, borderRadius:16, background:"#F5F7FF", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px" }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="#4361EE" strokeWidth="1.8" style={{ width:26, height:26 }}><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           </div>
           <p style={{ fontSize:15.5, fontWeight:700, color:"#0A0A0F", marginBottom:6 }}>Drop your resume here</p>
           <p style={{ fontSize:13.5, color:"#A0AABF", marginBottom:20 }}>PDF, DOCX, or TXT — or click to choose file</p>
-          <div style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"11px 24px", borderRadius:12, background:"#4361EE", color:"white", fontSize:14, fontWeight:700, boxShadow:"0 4px 16px rgba(67,97,238,0.32)" }}>
-            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:16, height:16 }}><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <div style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"11px 24px", borderRadius:12, background:"#4361EE", color:"white", fontSize:14, fontWeight:700, boxShadow:"0 4px 16px rgba(67,97,238,0.32)", pointerEvents:"none" }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:16, height:16 }}><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             Choose file
           </div>
-        </div>
-        <p style={{ textAlign:"center", fontSize:12, color:"#A0AABF", marginTop:12 }}>or <button onClick={e=>{e.stopPropagation();setStep("paste");}} style={{ background:"none",border:"none",color:"#4361EE",fontWeight:600,cursor:"pointer",fontSize:12,padding:0 }}>paste text instead</button></p>
+        </label>
+        <p style={{ textAlign:"center", fontSize:12, color:"#A0AABF", marginTop:12 }}>or <button onClick={()=>setStep("paste")} style={{ background:"none",border:"none",color:"#4361EE",fontWeight:600,cursor:"pointer",fontSize:12,padding:0 }}>paste text instead</button></p>
 
         {/* What Zari will do */}
         <div style={{ marginTop:28, display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
@@ -937,7 +939,7 @@ function ScreenInterview({ stage }: { stage: CareerStage }) {
   const [recTime,     setRecTime]     = useState(0);
   const [isScoring,   setIsScoring]   = useState(false);
   const [feedback,    setFeedback]    = useState<InterviewFeedback | null>(null);
-  const interviewFileRef = useRef<HTMLInputElement>(null);
+
 
   useEffect(() => {
     if (!isRecording) return;
@@ -1007,15 +1009,14 @@ function ScreenInterview({ stage }: { stage: CareerStage }) {
           <p style={{ fontSize:14, color:"#68738A", lineHeight:1.6 }}>Give Zari your resume and the job you&apos;re targeting — she&apos;ll generate questions specific to you, not generic ones from a textbook.</p>
         </div>
 
-        <input ref={interviewFileRef} type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleInterviewFile(f); e.target.value=""; }}/>
-
         <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
           <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:14, padding:16 }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
-              <label style={{ fontSize:12, fontWeight:700, color:"#0A0A0F" }}>Your resume <span style={{ color:"#A0AABF", fontWeight:400 }}>(optional but recommended)</span></label>
-              <button onClick={()=>interviewFileRef.current?.click()} style={{ fontSize:11, fontWeight:600, padding:"4px 10px", borderRadius:7, border:"1px solid #E4E8F5", background:"#F5F7FF", color:"#4361EE", cursor:"pointer" }}>
+              <p style={{ fontSize:12, fontWeight:700, color:"#0A0A0F" }}>Your resume <span style={{ color:"#A0AABF", fontWeight:400 }}>(optional but recommended)</span></p>
+              <label style={{ fontSize:11, fontWeight:600, padding:"4px 10px", borderRadius:7, border:"1px solid #E4E8F5", background:"#F5F7FF", color:"#4361EE", cursor:"pointer" }}>
                 {resumeText ? "✓ Uploaded" : "Upload file"}
-              </button>
+                <input type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleInterviewFile(f); e.target.value=""; }}/>
+              </label>
             </div>
             <textarea
               style={{ width:"100%", minHeight:90, border:"1.5px solid #E4E8F5", borderRadius:10, padding:"9px 11px", fontSize:13, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"#FAFBFF", lineHeight:1.6 }}
@@ -1198,7 +1199,7 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
   const [optimizing, setOptimizing] = useState(false);
   const [result,     setResult]     = useState<LinkedInResult | null>(null);
   const [optErr,     setOptErr]     = useState("");
-  const liFileRef = useRef<HTMLInputElement>(null);
+
 
   useEffect(() => { setInputMode(true); setResult(null); setHeadline(""); setAbout(""); setSkills(""); setLIResumeText(""); }, [stage]);
 
@@ -1254,8 +1255,6 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
 
         {optErr && <div style={{ background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:10, padding:"10px 14px", marginBottom:14, fontSize:13, color:"#991B1B" }}>{optErr}</div>}
 
-        <input ref={liFileRef} type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleLIFile(f); e.target.value=""; }}/>
-
         <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
 
           {/* Resume upload — first and most important */}
@@ -1265,9 +1264,10 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
                 <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", marginBottom:2 }}>Resume <span style={{ fontSize:11, fontWeight:500, color:"#4361EE", background:"#EEF2FF", padding:"1px 7px", borderRadius:99, marginLeft:6 }}>Recommended</span></p>
                 <p style={{ fontSize:11.5, color:"#68738A" }}>Helps Zari write your LinkedIn the way it should read based on your actual experience</p>
               </div>
-              <button onClick={()=>liFileRef.current?.click()} style={{ flexShrink:0, marginLeft:12, fontSize:12, fontWeight:700, padding:"7px 14px", borderRadius:9, border:`1px solid ${resumeText?"#BBF7D0":"#E4E8F5"}`, background:resumeText?"#F0FFF4":"#F5F7FF", color:resumeText?"#16A34A":"#4361EE", cursor:"pointer", display:"flex", alignItems:"center", gap:5 }}>
+              <label style={{ flexShrink:0, marginLeft:12, fontSize:12, fontWeight:700, padding:"7px 14px", borderRadius:9, border:`1px solid ${resumeText?"#BBF7D0":"#E4E8F5"}`, background:resumeText?"#F0FFF4":"#F5F7FF", color:resumeText?"#16A34A":"#4361EE", cursor:"pointer", display:"inline-flex", alignItems:"center", gap:5 }}>
                 {resumeText ? "✓ Loaded" : "Upload PDF / DOCX"}
-              </button>
+                <input type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleLIFile(f); e.target.value=""; }}/>
+              </label>
             </div>
             {resumeText && <p style={{ fontSize:11, color:"#16A34A", marginTop:4 }}>Resume text extracted ({resumeText.length} chars) — Zari will use this to inform every rewrite.</p>}
           </div>
