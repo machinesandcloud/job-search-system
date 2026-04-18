@@ -474,6 +474,8 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
   const [fileName,    setFileName]    = useState("");
   const [aiResult,    setAiResult]    = useState<ResumeAnalysis | null>(null);
   const [analyzeErr,  setAnalyzeErr]  = useState("");
+  const [reviewMode,  setReviewMode]  = useState<"general"|"targeted">("general");
+  const [targetRoleInput, setTargetRoleInput] = useState("");
 
 
 
@@ -523,7 +525,7 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
       const res = await fetch("/api/zari/resume", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resumeText: textToAnalyze, stage }),
+        body: JSON.stringify({ resumeText: textToAnalyze, stage, reviewMode, targetRole: targetRoleInput }),
       });
       const data = await res.json().catch(() => null) as ResumeAnalysis | null;
       clearInterval(interval);
@@ -546,7 +548,7 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
     "Parsing document structure…",
     "Running ATS keyword scan…",
     "Scoring impact per bullet…",
-    "Comparing to 40+ Senior PM job descriptions…",
+    "Comparing to 40+ job descriptions…",
     "Generating rewrites…",
     "Finalizing optimized version…",
   ];
@@ -591,6 +593,30 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
           <h1 style={{ fontSize:26, fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", marginBottom:10 }}>{SCREEN_RESUME_META[stage].title}</h1>
           <p style={{ fontSize:15.5, color:"#68738A", lineHeight:1.65, maxWidth:440, margin:"0 auto" }}>{SCREEN_RESUME_META[stage].desc}</p>
         </div>
+
+        {/* Review mode selector */}
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:20 }}>
+          {([["general","General Review","ATS, impact, clarity — no role assumed"],["targeted","Tailored to a Role","Align everything to a specific job title"]] as const).map(([mode, label, desc]) => (
+            <button key={mode} onClick={()=>setReviewMode(mode)} style={{ textAlign:"left", padding:"12px 14px", borderRadius:12, border:`2px solid ${reviewMode===mode?"#4361EE":"#E4E8F5"}`, background:reviewMode===mode?"#EEF2FF":"white", cursor:"pointer", transition:"all 0.15s" }}>
+              <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:3 }}>
+                <div style={{ width:14, height:14, borderRadius:"50%", border:`2px solid ${reviewMode===mode?"#4361EE":"#CBD5E1"}`, background:reviewMode===mode?"#4361EE":"white", flexShrink:0 }}/>
+                <span style={{ fontSize:13, fontWeight:700, color:reviewMode===mode?"#4361EE":"#0A0A0F" }}>{label}</span>
+              </div>
+              <p style={{ fontSize:11.5, color:"#68738A", margin:0, paddingLeft:20 }}>{desc}</p>
+            </button>
+          ))}
+        </div>
+        {reviewMode === "targeted" && (
+          <div style={{ marginBottom:16 }}>
+            <input
+              type="text"
+              value={targetRoleInput}
+              onChange={e=>setTargetRoleInput(e.target.value)}
+              placeholder="e.g. Senior DevOps Engineer, Product Manager, Staff SRE…"
+              style={{ width:"100%", border:"1.5px solid #4361EE", borderRadius:10, padding:"10px 14px", fontSize:13.5, color:"#1E2235", outline:"none", fontFamily:"inherit", boxSizing:"border-box", background:"white", boxShadow:"0 0 0 3px rgba(67,97,238,0.08)" }}
+            />
+          </div>
+        )}
 
         {/* Label wraps the drop zone — clicking anywhere opens the file picker natively */}
         <label
@@ -922,18 +948,23 @@ function dimColor(score: number) {
 type InterviewQuestion = { cat: string; level: string; q: string };
 
 function ScreenInterview({ stage }: { stage: CareerStage }) {
-  const [setupDone,   setSetupDone]   = useState(false);
-  const [resumeText,  setResumeText]  = useState("");
-  const [jobDesc,     setJobDesc]     = useState("");
-  const [loadingQs,   setLoadingQs]   = useState(false);
-  const [aiQuestions, setAiQuestions] = useState<InterviewQuestion[] | null>(null);
-  const [qIdx,        setQIdx]        = useState(0);
-  const [answer,      setAnswer]      = useState("");
-  const [submitted,   setSubmitted]   = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const [recTime,     setRecTime]     = useState(0);
-  const [isScoring,   setIsScoring]   = useState(false);
-  const [feedback,    setFeedback]    = useState<InterviewFeedback | null>(null);
+  const [setupDone,    setSetupDone]    = useState(false);
+  const [resumeText,   setResumeText]   = useState("");
+  const [resumeFileName, setResumeFileName] = useState("");
+  const [jobDesc,      setJobDesc]      = useState("");
+  const [jdMode,       setJdMode]       = useState<"paste"|"url">("paste");
+  const [jobUrl,       setJobUrl]       = useState("");
+  const [fetchingUrl,  setFetchingUrl]  = useState(false);
+  const [urlFetchErr,  setUrlFetchErr]  = useState("");
+  const [loadingQs,    setLoadingQs]    = useState(false);
+  const [aiQuestions,  setAiQuestions]  = useState<InterviewQuestion[] | null>(null);
+  const [qIdx,         setQIdx]         = useState(0);
+  const [answer,       setAnswer]       = useState("");
+  const [submitted,    setSubmitted]    = useState(false);
+  const [isRecording,  setIsRecording]  = useState(false);
+  const [recTime,      setRecTime]      = useState(0);
+  const [isScoring,    setIsScoring]    = useState(false);
+  const [feedback,     setFeedback]     = useState<InterviewFeedback | null>(null);
 
 
   useEffect(() => {
@@ -943,16 +974,41 @@ function ScreenInterview({ stage }: { stage: CareerStage }) {
   }, [isRecording]);
 
   // Reset when stage changes
-  useEffect(() => { setSetupDone(false); setQIdx(0); setAnswer(""); setSubmitted(false); setFeedback(null); setAiQuestions(null); setResumeText(""); setJobDesc(""); }, [stage]);
+  useEffect(() => { setSetupDone(false); setQIdx(0); setAnswer(""); setSubmitted(false); setFeedback(null); setAiQuestions(null); setResumeText(""); setResumeFileName(""); setJobDesc(""); setJobUrl(""); setUrlFetchErr(""); }, [stage]);
 
   async function handleInterviewFile(file: File) {
+    setResumeFileName(file.name);
     try {
       const fd = new FormData();
       fd.append("file", file);
       const res = await fetch("/api/zari/extract", { method: "POST", body: fd });
       const data = await res.json().catch(() => ({})) as { text?: string };
       if (data.text) setResumeText(data.text);
-    } catch { /* ignore */ }
+      else setResumeFileName(""); // extraction failed, clear filename
+    } catch { setResumeFileName(""); }
+  }
+
+  async function fetchJdFromUrl() {
+    if (!jobUrl.trim()) return;
+    setFetchingUrl(true);
+    setUrlFetchErr("");
+    try {
+      const res = await fetch("/api/zari/fetch-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: jobUrl.trim() }),
+      });
+      const data = await res.json().catch(() => ({})) as { text?: string; error?: string };
+      if (data.text) {
+        setJobDesc(data.text);
+        setUrlFetchErr("");
+      } else {
+        setUrlFetchErr(data.error ?? "Couldn't extract text — paste the job description instead.");
+      }
+    } catch {
+      setUrlFetchErr("Couldn't reach that URL — paste the job description instead.");
+    }
+    setFetchingUrl(false);
   }
 
   async function startInterview() {
@@ -1005,28 +1061,71 @@ function ScreenInterview({ stage }: { stage: CareerStage }) {
         </div>
 
         <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+          {/* Resume upload */}
           <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:14, padding:16 }}>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
-              <p style={{ fontSize:12, fontWeight:700, color:"#0A0A0F" }}>Your resume <span style={{ color:"#A0AABF", fontWeight:400 }}>(optional but recommended)</span></p>
-              <label style={{ fontSize:11, fontWeight:600, padding:"4px 10px", borderRadius:7, border:"1px solid #E4E8F5", background:"#F5F7FF", color:"#4361EE", cursor:"pointer" }}>
-                {resumeText ? "✓ Uploaded" : "Upload file"}
+            <p style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", marginBottom:10 }}>Your resume <span style={{ color:"#A0AABF", fontWeight:400 }}>(optional but recommended)</span></p>
+            {resumeFileName ? (
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"9px 12px", background:"#F0FFF4", border:"1px solid #BBF7D0", borderRadius:9 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                  <svg viewBox="0 0 16 16" fill="none" stroke="#16A34A" strokeWidth="1.8" style={{ width:14,height:14,flexShrink:0 }}><path d="M14 2H6a1.5 1.5 0 00-1.5 1.5v11A1.5 1.5 0 006 16h8a1.5 1.5 0 001.5-1.5V5.5L14 2z"/><polyline points="14,2 14,5.5 17.5,5.5"/><polyline points="6,9 7.5,10.5 10,8"/></svg>
+                  <span style={{ fontSize:12.5, fontWeight:600, color:"#15803D" }}>{resumeFileName}</span>
+                </div>
+                <label style={{ fontSize:11, color:"#68738A", cursor:"pointer", textDecoration:"underline" }}>
+                  Replace
+                  <input type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleInterviewFile(f); e.target.value=""; }}/>
+                </label>
+              </div>
+            ) : (
+              <label style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"11px", borderRadius:10, border:"1.5px dashed #CBD5E1", background:"#FAFBFF", cursor:"pointer", fontSize:13, color:"#4361EE", fontWeight:600 }}>
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:14,height:14 }}><path d="M8 10V3M4 6l4-3 4 3"/><path d="M2 12h12"/></svg>
+                Upload resume (PDF, DOCX, TXT)
                 <input type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleInterviewFile(f); e.target.value=""; }}/>
               </label>
-            </div>
-            <textarea
-              style={{ width:"100%", minHeight:90, border:"1.5px solid #E4E8F5", borderRadius:10, padding:"9px 11px", fontSize:13, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"#FAFBFF", lineHeight:1.6 }}
-              placeholder="Or paste your resume text here…"
-              value={resumeText} onChange={e=>setResumeText(e.target.value)}
-            />
+            )}
           </div>
 
+          {/* Job description */}
           <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:14, padding:16 }}>
-            <label style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", display:"block", marginBottom:8 }}>Target job description <span style={{ color:"#A0AABF", fontWeight:400 }}>(optional)</span></label>
-            <textarea
-              style={{ width:"100%", minHeight:90, border:"1.5px solid #E4E8F5", borderRadius:10, padding:"9px 11px", fontSize:13, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"#FAFBFF", lineHeight:1.6 }}
-              placeholder="Paste the job posting you're preparing for…"
-              value={jobDesc} onChange={e=>setJobDesc(e.target.value)}
-            />
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
+              <p style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", margin:0 }}>Target job description <span style={{ color:"#A0AABF", fontWeight:400 }}>(optional)</span></p>
+              <div style={{ display:"flex", background:"#F1F5F9", borderRadius:8, padding:2 }}>
+                {(["paste","url"] as const).map(m => (
+                  <button key={m} onClick={()=>{ setJdMode(m); setUrlFetchErr(""); }} style={{ fontSize:11, fontWeight:600, padding:"4px 10px", borderRadius:6, border:"none", background:jdMode===m?"white":"transparent", color:jdMode===m?"#0A0A0F":"#68738A", cursor:"pointer", boxShadow:jdMode===m?"0 1px 3px rgba(0,0,0,0.1)":"none", transition:"all 0.15s" }}>
+                    {m === "paste" ? "Paste text" : "Job URL"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {jdMode === "paste" ? (
+              <textarea
+                style={{ width:"100%", minHeight:90, border:"1.5px solid #E4E8F5", borderRadius:10, padding:"9px 11px", fontSize:13, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"#FAFBFF", lineHeight:1.6 }}
+                placeholder="Paste the job posting you're preparing for…"
+                value={jobDesc} onChange={e=>setJobDesc(e.target.value)}
+              />
+            ) : (
+              <div>
+                <div style={{ display:"flex", gap:8 }}>
+                  <input
+                    type="url"
+                    value={jobUrl}
+                    onChange={e=>{ setJobUrl(e.target.value); setUrlFetchErr(""); }}
+                    placeholder="https://jobs.lever.co/… or LinkedIn, Greenhouse, etc."
+                    style={{ flex:1, border:"1.5px solid #E4E8F5", borderRadius:10, padding:"9px 11px", fontSize:13, color:"#1E2235", outline:"none", fontFamily:"inherit", background:"#FAFBFF" }}
+                    onKeyDown={e=>{ if(e.key==="Enter") void fetchJdFromUrl(); }}
+                  />
+                  <button
+                    onClick={()=>void fetchJdFromUrl()}
+                    disabled={fetchingUrl || !jobUrl.trim()}
+                    style={{ padding:"9px 16px", borderRadius:10, border:"none", background:jobUrl.trim()&&!fetchingUrl?"#4361EE":"#E4E8F5", color:jobUrl.trim()&&!fetchingUrl?"white":"#A0AABF", fontSize:13, fontWeight:700, cursor:jobUrl.trim()&&!fetchingUrl?"pointer":"default", flexShrink:0, transition:"all 0.15s" }}
+                  >
+                    {fetchingUrl ? "…" : "Fetch"}
+                  </button>
+                </div>
+                {urlFetchErr && <p style={{ fontSize:12, color:"#DC2626", marginTop:6, marginBottom:0 }}>{urlFetchErr} <button onClick={()=>setJdMode("paste")} style={{ background:"none", border:"none", color:"#4361EE", fontWeight:600, cursor:"pointer", fontSize:12, padding:0 }}>Switch to paste</button></p>}
+                {jobDesc && !urlFetchErr && <p style={{ fontSize:11.5, color:"#16A34A", marginTop:6, marginBottom:0 }}>✓ Job description fetched — {jobDesc.length.toLocaleString()} chars</p>}
+              </div>
+            )}
           </div>
         </div>
 

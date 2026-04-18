@@ -13,11 +13,13 @@ export async function POST(request: Request) {
     resumeText?: string;
     stage?: string;
     targetRole?: string;
+    reviewMode?: string;
   };
 
   const resumeText = (body.resumeText ?? "").trim();
   const stage = body.stage ?? "job-search";
-  const targetRole = body.targetRole ?? "";
+  const targetRole = (body.targetRole ?? "").trim();
+  const reviewMode = body.reviewMode === "targeted" ? "targeted" : "general";
 
   if (!resumeText) {
     return NextResponse.json({ error: "Resume text required" }, { status: 400 });
@@ -29,9 +31,27 @@ export async function POST(request: Request) {
     try { userContext = await buildUserContext(userId); } catch { /* non-fatal */ }
   }
 
+  const focusInstructions = reviewMode === "targeted" && targetRole
+    ? `REVIEW MODE: Targeted role alignment
+Target role: "${targetRole}"
+- Score every section against what a hiring manager for "${targetRole}" actually wants
+- Flag missing keywords and skills specific to this role
+- Rewrite the summary to speak directly to "${targetRole}" requirements
+- Call out mismatches between their current positioning and the target role
+- ATS score should reflect keyword match for "${targetRole}" job postings`
+    : `REVIEW MODE: General resume quality
+- Focus on ATS compatibility, quantified impact, and clarity — no assumed role
+- Check: are there numbers in at least 60% of bullets? If not, that's a critical finding
+- Check: does the summary pass the 5-second test? Is the value prop immediately clear?
+- Check: are there formatting issues that would trip up an ATS parser?
+- Check: is the language confident and specific, or vague and generic?
+- Infer their actual role from the resume content — don't invent a different one`;
+
   const systemPrompt = `You are Zari, a career coach who feels like a sharp, honest friend — not a consultant. Your feedback is warm, direct, and specific. You talk like a person, not a report generator.
 
 ${userContext ? `Here's what you know about this person:\n${userContext}\n\n` : ""}
+
+${focusInstructions}
 
 Analyze this resume and return ONLY a valid JSON object with exactly this structure:
 {
@@ -60,7 +80,6 @@ Voice rules:
 - No filler phrases ("Great job!", "Excellent work!")
 - findings should sound like honest feedback from someone who's read 1000 resumes
 - recommendation should feel personal and actionable
-- Target role: ${targetRole || "infer from resume"}
 - Context: ${stage}`;
 
   const messages = [
