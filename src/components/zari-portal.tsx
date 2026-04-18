@@ -474,13 +474,43 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
   const [aiResult,  setAiResult]   = useState<ResumeAnalysis | null>(null);
   const [analyzeErr, setAnalyzeErr] = useState("");
 
-  function handleDropOrClick() { setStep("paste"); }
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  async function runAnalysis() {
-    if (!resumeText.trim()) return;
+  async function handleFile(file: File) {
     setAnalyzeErr("");
     setStep("analyzing");
-    let p = 0;
+    setProgress(5);
+
+    // Extract text from file
+    let extracted = "";
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const extractRes = await fetch("/api/zari/extract", { method: "POST", body: fd });
+      const extractData = await extractRes.json().catch(() => ({})) as { text?: string; error?: string };
+      if (!extractData.text) {
+        setStep("paste");
+        setAnalyzeErr(extractData.error ?? "Could not read file — try pasting the text instead.");
+        return;
+      }
+      extracted = extractData.text;
+      setResumeText(extracted);
+    } catch {
+      setStep("paste");
+      setAnalyzeErr("Could not read file — try pasting the text instead.");
+      return;
+    }
+
+    await runAnalysis(extracted);
+  }
+
+  async function runAnalysis(text?: string) {
+    const textToAnalyze = text ?? resumeText;
+    if (!textToAnalyze.trim()) return;
+    setAnalyzeErr("");
+    if (step !== "analyzing") setStep("analyzing");
+
+    let p = 5;
     const interval = setInterval(() => {
       p += Math.random() * 10 + 2;
       if (p >= 90) { clearInterval(interval); }
@@ -491,7 +521,7 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
       const res = await fetch("/api/zari/resume", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resumeText, stage }),
+        body: JSON.stringify({ resumeText: textToAnalyze, stage }),
       });
       const data = await res.json().catch(() => null) as ResumeAnalysis | null;
       clearInterval(interval);
@@ -560,12 +590,15 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
           <p style={{ fontSize:15.5, color:"#68738A", lineHeight:1.65, maxWidth:440, margin:"0 auto" }}>{SCREEN_RESUME_META[stage].desc}</p>
         </div>
 
+        {/* Hidden file input */}
+        <input ref={fileInputRef} type="file" accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" style={{ display:"none" }} onChange={e=>{ const f = e.target.files?.[0]; if(f) void handleFile(f); e.target.value=""; }}/>
+
         {/* Drag-drop zone */}
         <div
           onDragOver={e=>{e.preventDefault();setDragging(true);}}
           onDragLeave={()=>setDragging(false)}
-          onDrop={e=>{e.preventDefault();setDragging(false);handleDropOrClick();}}
-          onClick={handleDropOrClick}
+          onDrop={e=>{e.preventDefault();setDragging(false);const f=e.dataTransfer.files?.[0];if(f)void handleFile(f);}}
+          onClick={()=>fileInputRef.current?.click()}
           style={{ border:`2px dashed ${dragging?"#4361EE":"#CBD5E1"}`, borderRadius:20, padding:"52px 32px", textAlign:"center", cursor:"pointer", background:dragging?"#EEF2FF":"white", transition:"all 0.2s", boxShadow:dragging?"0 0 0 4px rgba(67,97,238,0.12)":"none" }}
         >
           <div style={{ width:56, height:56, borderRadius:16, background:"#F5F7FF", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px" }}>
@@ -574,10 +607,11 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
           <p style={{ fontSize:15.5, fontWeight:700, color:"#0A0A0F", marginBottom:6 }}>Drop your resume here</p>
           <p style={{ fontSize:13.5, color:"#A0AABF", marginBottom:20 }}>PDF, DOCX, or TXT — or click to choose file</p>
           <div style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"11px 24px", borderRadius:12, background:"#4361EE", color:"white", fontSize:14, fontWeight:700, boxShadow:"0 4px 16px rgba(67,97,238,0.32)" }}>
-            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:16, height:16 }}><path d="M3 16s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/></svg>
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:16, height:16 }}><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             Choose file
           </div>
         </div>
+        <p style={{ textAlign:"center", fontSize:12, color:"#A0AABF", marginTop:12 }}>or <button onClick={e=>{e.stopPropagation();setStep("paste");}} style={{ background:"none",border:"none",color:"#4361EE",fontWeight:600,cursor:"pointer",fontSize:12,padding:0 }}>paste text instead</button></p>
 
         {/* What Zari will do */}
         <div style={{ marginTop:28, display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
@@ -888,7 +922,14 @@ function dimColor(score: number) {
   return "#DC2626";
 }
 
+type InterviewQuestion = { cat: string; level: string; q: string };
+
 function ScreenInterview({ stage }: { stage: CareerStage }) {
+  const [setupDone,   setSetupDone]   = useState(false);
+  const [resumeText,  setResumeText]  = useState("");
+  const [jobDesc,     setJobDesc]     = useState("");
+  const [loadingQs,   setLoadingQs]   = useState(false);
+  const [aiQuestions, setAiQuestions] = useState<InterviewQuestion[] | null>(null);
   const [qIdx,        setQIdx]        = useState(0);
   const [answer,      setAnswer]      = useState("");
   const [submitted,   setSubmitted]   = useState(false);
@@ -896,6 +937,7 @@ function ScreenInterview({ stage }: { stage: CareerStage }) {
   const [recTime,     setRecTime]     = useState(0);
   const [isScoring,   setIsScoring]   = useState(false);
   const [feedback,    setFeedback]    = useState<InterviewFeedback | null>(null);
+  const interviewFileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!isRecording) return;
@@ -903,9 +945,36 @@ function ScreenInterview({ stage }: { stage: CareerStage }) {
     return () => clearInterval(t);
   }, [isRecording]);
 
-  const QUESTIONS = STAGE_QUESTIONS[stage];
   // Reset when stage changes
-  useEffect(() => { setQIdx(0); setAnswer(""); setSubmitted(false); setFeedback(null); }, [stage]);
+  useEffect(() => { setSetupDone(false); setQIdx(0); setAnswer(""); setSubmitted(false); setFeedback(null); setAiQuestions(null); setResumeText(""); setJobDesc(""); }, [stage]);
+
+  async function handleInterviewFile(file: File) {
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/zari/extract", { method: "POST", body: fd });
+      const data = await res.json().catch(() => ({})) as { text?: string };
+      if (data.text) setResumeText(data.text);
+    } catch { /* ignore */ }
+  }
+
+  async function startInterview() {
+    setLoadingQs(true);
+    try {
+      const res = await fetch("/api/zari/interview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "generate-questions", stage, resumeText, jobDescription: jobDesc }),
+      });
+      const data = await res.json().catch(() => ({})) as { questions?: InterviewQuestion[] };
+      if (data.questions?.length) setAiQuestions(data.questions);
+    } catch { /* fall back to static */ }
+    setLoadingQs(false);
+    setSetupDone(true);
+    setQIdx(0);
+  }
+
+  const QUESTIONS: InterviewQuestion[] = aiQuestions ?? STAGE_QUESTIONS[stage];
 
   async function submit() {
     if (!answer.trim() || isScoring) return;
@@ -916,7 +985,7 @@ function ScreenInterview({ stage }: { stage: CareerStage }) {
       const res = await fetch("/api/zari/interview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: q.q, answer, stage, category: q.cat }),
+        body: JSON.stringify({ action: "score-answer", question: q.q, answer, stage, category: q.cat, resumeText, jobDescription: jobDesc }),
       });
       const data = await res.json().catch(() => null) as InterviewFeedback | null;
       if (data && data.overallScore) setFeedback(data);
@@ -924,8 +993,58 @@ function ScreenInterview({ stage }: { stage: CareerStage }) {
     setIsScoring(false);
   }
 
-  const q = QUESTIONS[qIdx];
   const fmt = (s:number) => `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
+
+  /* ── Setup step ── */
+  if (!setupDone) return (
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#FAFBFF" }}>
+      <div style={{ maxWidth:620, margin:"0 auto", padding:"48px 24px" }}>
+        <div style={{ textAlign:"center", marginBottom:32 }}>
+          <div style={{ width:52, height:52, borderRadius:14, background:"linear-gradient(135deg,#0F172A,#1E3A8A)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 14px" }}>
+            <svg viewBox="0 0 20 20" fill="none" stroke="white" strokeWidth="1.6" style={{ width:22, height:22 }}><circle cx="10" cy="6" r="3"/><path d="M3 17c0-3.866 3.134-6 7-6s7 2.134 7 6"/></svg>
+          </div>
+          <h1 style={{ fontSize:24, fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", marginBottom:8 }}>{SCREEN_INTERVIEW_META[stage].title}</h1>
+          <p style={{ fontSize:14, color:"#68738A", lineHeight:1.6 }}>Give Zari your resume and the job you&apos;re targeting — she&apos;ll generate questions specific to you, not generic ones from a textbook.</p>
+        </div>
+
+        <input ref={interviewFileRef} type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleInterviewFile(f); e.target.value=""; }}/>
+
+        <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+          <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:14, padding:16 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
+              <label style={{ fontSize:12, fontWeight:700, color:"#0A0A0F" }}>Your resume <span style={{ color:"#A0AABF", fontWeight:400 }}>(optional but recommended)</span></label>
+              <button onClick={()=>interviewFileRef.current?.click()} style={{ fontSize:11, fontWeight:600, padding:"4px 10px", borderRadius:7, border:"1px solid #E4E8F5", background:"#F5F7FF", color:"#4361EE", cursor:"pointer" }}>
+                {resumeText ? "✓ Uploaded" : "Upload file"}
+              </button>
+            </div>
+            <textarea
+              style={{ width:"100%", minHeight:90, border:"1.5px solid #E4E8F5", borderRadius:10, padding:"9px 11px", fontSize:13, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"#FAFBFF", lineHeight:1.6 }}
+              placeholder="Or paste your resume text here…"
+              value={resumeText} onChange={e=>setResumeText(e.target.value)}
+            />
+          </div>
+
+          <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:14, padding:16 }}>
+            <label style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", display:"block", marginBottom:8 }}>Target job description <span style={{ color:"#A0AABF", fontWeight:400 }}>(optional)</span></label>
+            <textarea
+              style={{ width:"100%", minHeight:90, border:"1.5px solid #E4E8F5", borderRadius:10, padding:"9px 11px", fontSize:13, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"#FAFBFF", lineHeight:1.6 }}
+              placeholder="Paste the job posting you're preparing for…"
+              value={jobDesc} onChange={e=>setJobDesc(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <button onClick={()=>void startInterview()} disabled={loadingQs} style={{ width:"100%", marginTop:18, fontSize:14, fontWeight:700, padding:"12px", borderRadius:12, border:"none", background:"#0F172A", color:"white", cursor:loadingQs?"default":"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:8, opacity:loadingQs?0.7:1 }}>
+          {loadingQs ? (
+            <><span style={{ width:14,height:14,borderRadius:"50%",border:"2px solid rgba(255,255,255,0.3)",borderTopColor:"white",animation:"spin-slow 0.7s linear infinite",display:"block" }}/> Generating your questions…</>
+          ) : "Start interview →"}
+        </button>
+        <p style={{ textAlign:"center", fontSize:11.5, color:"#A0AABF", marginTop:10 }}>You can also skip straight in — Zari will use stage defaults.</p>
+      </div>
+    </div>
+  );
+
+  const q = QUESTIONS[qIdx];
 
   return (
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#FAFBFF" }}>
@@ -1072,14 +1191,26 @@ type LinkedInResult = {
 function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
   const [tab,        setTab]        = useState<"headline"|"about"|"skills">("headline");
   const [inputMode,  setInputMode]  = useState(true);
+  const [resumeText, setLIResumeText] = useState("");
   const [headline,   setHeadline]   = useState("");
   const [about,      setAbout]      = useState("");
   const [skills,     setSkills]     = useState("");
   const [optimizing, setOptimizing] = useState(false);
   const [result,     setResult]     = useState<LinkedInResult | null>(null);
   const [optErr,     setOptErr]     = useState("");
+  const liFileRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { setInputMode(true); setResult(null); setHeadline(""); setAbout(""); setSkills(""); }, [stage]);
+  useEffect(() => { setInputMode(true); setResult(null); setHeadline(""); setAbout(""); setSkills(""); setLIResumeText(""); }, [stage]);
+
+  async function handleLIFile(file: File) {
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/zari/extract", { method: "POST", body: fd });
+      const data = await res.json().catch(() => ({})) as { text?: string };
+      if (data.text) setLIResumeText(data.text);
+    } catch { /* ignore */ }
+  }
 
   async function optimize() {
     if (optimizing) return;
@@ -1089,7 +1220,7 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
       const res = await fetch("/api/zari/linkedin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ headline, about, skills, stage }),
+        body: JSON.stringify({ headline, about, skills, stage, resumeText }),
       });
       const data = await res.json().catch(() => null) as LinkedInResult | null;
       if (data && data.headline) {
@@ -1108,6 +1239,8 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
     try { await navigator.clipboard.writeText(text); } catch { /* ignore */ }
   }
 
+  const hasInput = !!(resumeText || headline || about || skills);
+
   if (inputMode) return (
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#FAFBFF" }}>
       <div style={{ maxWidth:660, margin:"0 auto", padding:"48px 24px" }}>
@@ -1116,14 +1249,31 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
             <svg viewBox="0 0 20 20" fill="white" style={{ width:26, height:26 }}><rect x="2" y="2" width="16" height="16" rx="3"/><path fill="#0077B5" d="M6 9v5M6 6.5v.5M9 14V11a2.5 2.5 0 015 0v3M9 11v3"/></svg>
           </div>
           <h1 style={{ fontSize:24, fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", marginBottom:8 }}>LinkedIn Optimizer</h1>
-          <p style={{ fontSize:14, color:"#68738A", lineHeight:1.6, maxWidth:420, margin:"0 auto" }}>Paste your current LinkedIn sections below. Zari will rewrite them to get you found by recruiters searching for your target role.</p>
+          <p style={{ fontSize:14, color:"#68738A", lineHeight:1.6, maxWidth:440, margin:"0 auto" }}>Upload your resume and paste your current LinkedIn sections. Zari will rewrite everything so recruiters actually find you.</p>
         </div>
 
         {optErr && <div style={{ background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:10, padding:"10px 14px", marginBottom:14, fontSize:13, color:"#991B1B" }}>{optErr}</div>}
 
+        <input ref={liFileRef} type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleLIFile(f); e.target.value=""; }}/>
+
         <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+
+          {/* Resume upload — first and most important */}
+          <div style={{ background:"white", border:`1.5px solid ${resumeText?"#BBF7D0":"#E4E8F5"}`, borderRadius:14, padding:16 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:resumeText?8:0 }}>
+              <div>
+                <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", marginBottom:2 }}>Resume <span style={{ fontSize:11, fontWeight:500, color:"#4361EE", background:"#EEF2FF", padding:"1px 7px", borderRadius:99, marginLeft:6 }}>Recommended</span></p>
+                <p style={{ fontSize:11.5, color:"#68738A" }}>Helps Zari write your LinkedIn the way it should read based on your actual experience</p>
+              </div>
+              <button onClick={()=>liFileRef.current?.click()} style={{ flexShrink:0, marginLeft:12, fontSize:12, fontWeight:700, padding:"7px 14px", borderRadius:9, border:`1px solid ${resumeText?"#BBF7D0":"#E4E8F5"}`, background:resumeText?"#F0FFF4":"#F5F7FF", color:resumeText?"#16A34A":"#4361EE", cursor:"pointer", display:"flex", alignItems:"center", gap:5 }}>
+                {resumeText ? "✓ Loaded" : "Upload PDF / DOCX"}
+              </button>
+            </div>
+            {resumeText && <p style={{ fontSize:11, color:"#16A34A", marginTop:4 }}>Resume text extracted ({resumeText.length} chars) — Zari will use this to inform every rewrite.</p>}
+          </div>
+
           <div>
-            <label style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", display:"block", marginBottom:5 }}>Current Headline</label>
+            <label style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", display:"block", marginBottom:5 }}>Current Headline <span style={{ color:"#A0AABF", fontWeight:400 }}>(optional)</span></label>
             <input
               style={{ width:"100%", border:"1.5px solid #CBD5E1", borderRadius:10, padding:"10px 12px", fontSize:13.5, color:"#1E2235", outline:"none", fontFamily:"inherit", boxSizing:"border-box", background:"white" }}
               placeholder="e.g. Operations Lead at FinCo Ltd"
@@ -1131,24 +1281,24 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
             />
           </div>
           <div>
-            <label style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", display:"block", marginBottom:5 }}>Current About section</label>
+            <label style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", display:"block", marginBottom:5 }}>Current About section <span style={{ color:"#A0AABF", fontWeight:400 }}>(optional)</span></label>
             <textarea
-              style={{ width:"100%", minHeight:120, border:"1.5px solid #CBD5E1", borderRadius:10, padding:"10px 12px", fontSize:13.5, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"white", lineHeight:1.6 }}
+              style={{ width:"100%", minHeight:100, border:"1.5px solid #CBD5E1", borderRadius:10, padding:"10px 12px", fontSize:13.5, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"white", lineHeight:1.6 }}
               placeholder="Paste your About section…"
               value={about} onChange={e=>setAbout(e.target.value)}
             />
           </div>
           <div>
-            <label style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", display:"block", marginBottom:5 }}>Current Skills (comma-separated)</label>
+            <label style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", display:"block", marginBottom:5 }}>Current Skills <span style={{ color:"#A0AABF", fontWeight:400 }}>(comma-separated, optional)</span></label>
             <textarea
-              style={{ width:"100%", minHeight:70, border:"1.5px solid #CBD5E1", borderRadius:10, padding:"10px 12px", fontSize:13.5, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"white", lineHeight:1.6 }}
-              placeholder="e.g. Operations, Supply Chain, Process Design, Stakeholder Management…"
+              style={{ width:"100%", minHeight:60, border:"1.5px solid #CBD5E1", borderRadius:10, padding:"10px 12px", fontSize:13.5, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"white", lineHeight:1.6 }}
+              placeholder="e.g. Operations, Supply Chain, Process Design…"
               value={skills} onChange={e=>setSkills(e.target.value)}
             />
           </div>
         </div>
 
-        <button onClick={()=>void optimize()} disabled={optimizing || (!headline && !about && !skills)} style={{ width:"100%", marginTop:18, fontSize:14, fontWeight:700, padding:"12px", borderRadius:12, border:"none", background:!optimizing&&(headline||about||skills)?"#0077B5":"#E4E8F5", color:!optimizing&&(headline||about||skills)?"white":"#A0AABF", cursor:!optimizing&&(headline||about||skills)?"pointer":"default", boxShadow:!optimizing&&(headline||about||skills)?"0 4px 16px rgba(0,119,181,0.3)":"none", display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
+        <button onClick={()=>void optimize()} disabled={optimizing || !hasInput} style={{ width:"100%", marginTop:18, fontSize:14, fontWeight:700, padding:"12px", borderRadius:12, border:"none", background:!optimizing&&hasInput?"#0077B5":"#E4E8F5", color:!optimizing&&hasInput?"white":"#A0AABF", cursor:!optimizing&&hasInput?"pointer":"default", boxShadow:!optimizing&&hasInput?"0 4px 16px rgba(0,119,181,0.3)":"none", display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
           {optimizing ? (
             <><span style={{ width:14,height:14,borderRadius:"50%",border:"2px solid rgba(255,255,255,0.4)",borderTopColor:"white",animation:"spin-slow 0.7s linear infinite",display:"block" }}/> Optimizing…</>
           ) : "Optimize with Zari →"}

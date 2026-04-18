@@ -15,6 +15,7 @@ export async function POST(request: Request) {
     skills?: string;
     stage?: string;
     targetRole?: string;
+    resumeText?: string;
   };
 
   const stage = body.stage ?? "job-search";
@@ -22,9 +23,10 @@ export async function POST(request: Request) {
   const currentHeadline = (body.headline ?? "").trim();
   const currentAbout = (body.about ?? "").trim();
   const currentSkills = (body.skills ?? "").trim();
+  const resumeText = (body.resumeText ?? "").trim();
 
-  if (!currentHeadline && !currentAbout && !currentSkills) {
-    return NextResponse.json({ error: "Paste at least one LinkedIn section to optimize" }, { status: 400 });
+  if (!currentHeadline && !currentAbout && !currentSkills && !resumeText) {
+    return NextResponse.json({ error: "Provide your LinkedIn sections or upload your resume" }, { status: 400 });
   }
 
   const userId = await getCurrentUserId();
@@ -33,43 +35,42 @@ export async function POST(request: Request) {
     try { userContext = await buildUserContext(userId); } catch { /* non-fatal */ }
   }
 
-  const systemPrompt = `You are Zari, an expert AI career coach and LinkedIn optimization specialist. Rewrite the user's LinkedIn sections and return structured JSON.
+  const systemPrompt = `You are Zari, a career coach who's also great at LinkedIn. You write like a real person — direct, confident, zero fluff. Your rewrites sound human, not like they were written by a marketing team.
 
-${userContext ? `User context:\n${userContext}\n\n` : ""}
+${userContext ? `What you know about this person:\n${userContext}\n\n` : ""}
+${resumeText ? `Their resume (use this to inform everything):\n${resumeText.slice(0, 2500)}\n\n` : ""}
 
-Return ONLY a valid JSON object with exactly this structure:
+Return ONLY a valid JSON object:
 {
-  "headline": "<optimized LinkedIn headline, max 220 chars>",
-  "about": "<optimized About section, 3-4 punchy sentences>",
-  "skills": ["skill1", "skill2", "...up to 15 skills"],
+  "headline": "<LinkedIn headline — confident, role-signal clear, max 220 chars>",
+  "about": "<About section — 3-4 sentences, sounds like a real person talking, includes a specific outcome with a number, ends with what they're looking for>",
+  "skills": ["skill1", "skill2", "...12-15 skills"],
   "scores": {
-    "recruiterVisibility": <number 0-100, score AFTER your rewrites>,
-    "keywordDensity": <number 0-100, score AFTER your rewrites>,
-    "profileStrength": <number 0-100, score AFTER your rewrites>
+    "recruiterVisibility": <number 0-100, after your rewrites>,
+    "keywordDensity": <number 0-100, after your rewrites>,
+    "profileStrength": <number 0-100, after your rewrites>
   },
   "previousScores": {
-    "recruiterVisibility": <number 0-100, score of the CURRENT content>,
-    "keywordDensity": <number 0-100, score of the CURRENT content>,
-    "profileStrength": <number 0-100, score of the CURRENT content>
+    "recruiterVisibility": <number 0-100, honest assessment of current content>,
+    "keywordDensity": <number 0-100>,
+    "profileStrength": <number 0-100>
   },
   "issues": {
-    "headline": "<what's wrong with the current headline>",
-    "about": "<what's wrong with the current about>",
-    "skills": "<what's wrong with the current skills>"
+    "headline": "<one sentence about what's wrong, like you'd tell a friend>",
+    "about": "<one sentence about what's missing>",
+    "skills": "<one sentence about the gap>"
   },
-  "missingKeywords": ["keyword1 (94%)", "keyword2 (88%)", "...6-8 keywords with % frequency in job postings"]
+  "missingKeywords": ["keyword (94%)", "...6-8 keywords with frequency in job postings"]
 }
 
-Target role: ${targetRole || "infer from current profile and user context"}
+Target role: ${targetRole || "infer from resume and profile"}
 Stage: ${stage}
 
-Rules:
-- Headline: keyword-rich, signals career direction, uses | separator for sections
-- About: lead with value prop, include 1-2 specific outcomes with numbers, end with what you're looking for
-- Skills: mix hard and soft skills optimized for target role, 12-15 total
-- missingKeywords: 6-8 terms found in 68%+ of relevant job descriptions
-- previousScores: be realistic — weak profiles score 40-65
-- scores after rewrite: should be meaningfully higher, typically 75-92`;
+Voice rules:
+- Headline: use | to separate ideas, don't start with "Experienced" or "Results-driven"
+- About: first sentence should hook a recruiter in 5 seconds. Use "I" — it's a human profile
+- Skills: prioritize what hiring managers actually search for
+- previousScores: be realistic. Generic profiles score 35-60.`;
 
   const messages = [
     { role: "system" as const, content: systemPrompt },
