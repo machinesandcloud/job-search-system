@@ -1,6 +1,24 @@
 import { NextResponse } from "next/server";
 import { ensureSameOrigin } from "@/lib/utils";
 
+// Job boards that are JavaScript SPAs — server-side fetch only gets an empty shell
+const SPA_PATTERNS = [
+  /workforcenow\.adp\.com/i,
+  /myworkdayjobs\.com/i,
+  /wd\d+\.myworkdayjobs\.com/i,
+  /taleo\.net/i,
+  /icims\.com/i,
+  /successfactors\.(com|eu)/i,
+  /sapsf\.com/i,
+  /jobs\.smartrecruiters\.com/i,
+  /recruiting\.ultipro\.com/i,
+  /jobs\.jobvite\.com/i,
+  /hire\.withgoogle\.com/i,
+];
+
+// Keywords that indicate we actually got real job content (not a shell)
+const JOB_KEYWORDS = ["responsibilities", "requirements", "qualifications", "experience", "skills", "benefits", "salary", "position", "role", "opportunity"];
+
 export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) {
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
@@ -11,6 +29,14 @@ export async function POST(request: Request) {
 
   if (!url || !/^https?:\/\//i.test(url)) {
     return NextResponse.json({ error: "Valid URL required" }, { status: 400 });
+  }
+
+  // Detect known SPA job boards immediately — no point fetching
+  if (SPA_PATTERNS.some(p => p.test(url))) {
+    return NextResponse.json(
+      { error: "This job board loads with JavaScript, so we can't scrape it directly. Open the posting, copy all the text, and paste it instead." },
+      { status: 422 },
+    );
   }
 
   try {
@@ -47,7 +73,17 @@ export async function POST(request: Request) {
 
     if (text.length < 100) {
       return NextResponse.json(
-        { error: "Couldn't extract readable text from that page — paste the job description instead." },
+        { error: "This page didn't return readable content — it likely requires JavaScript. Paste the job description instead." },
+        { status: 422 },
+      );
+    }
+
+    // Check if we got actual job content or just a JS-app shell
+    const lower = text.toLowerCase();
+    const hasJobContent = JOB_KEYWORDS.some(kw => lower.includes(kw));
+    if (!hasJobContent && text.length < 800) {
+      return NextResponse.json(
+        { error: "This page appears to be a JavaScript app — the job description didn't load. Open the posting, copy all the text, and paste it instead." },
         { status: 422 },
       );
     }
