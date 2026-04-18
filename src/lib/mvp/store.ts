@@ -454,3 +454,10 @@ export async function getResumeScoreHistory(userId: string): Promise<ResumeScore
   if (!store.resumeScores) return [];
   return store.resumeScores.filter((r) => r.userId === userId);
 }
+
+export async function clearResumeScoreHistory(userId: string): Promise<void> {
+  const store = await readStore();
+  if (!store.resumeScores) return;
+  store.resumeScores = store.resumeScores.filter((r) => r.userId !== userId);
+  await writeStore(store);
+}

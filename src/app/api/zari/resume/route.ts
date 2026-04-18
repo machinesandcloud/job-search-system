@@ -90,11 +90,33 @@ READABILITY & FORMAT:
 - Consistent formatting: same date format throughout, same verb tense (past tense for past roles), same bullet style
 - Section order: Contact → Summary → Skills → Experience → Education → Certifications
 
-SCORING RUBRIC:
-- overall: weighted average of all factors (0-100)
-- ats: keyword match density + format parseability + standard structure (0-100)
-- impact: % of bullets with metrics + strength of verbs + evidence of business outcomes (0-100)
-- clarity: summary quality + bullet length + readability + no weak verbs + consistent tense (0-100)
+SCORING RUBRIC — BE HONEST AND STRICT. THESE ARE HARD THRESHOLDS:
+
+Scores below 60 are normal for unoptimized resumes. 80+ means genuinely strong. 90+ is rare.
+The average unseen resume scores 35-55. Do not inflate scores to make people feel good.
+
+ATS (0-100) — count actual keyword/skill coverage:
+- 88-100: 90%+ required keywords present with evidence, perfect standard formatting, keywords in high-value zones
+- 72-87:  70-89% coverage, minor formatting issues acceptable
+- 55-71:  50-69% coverage OR significant formatting issues (tables, graphics, non-standard headers)
+- 35-54:  30-49% coverage OR major structural problems
+- 0-34:   Less than 30% coverage or ATS-breaking formatting
+
+Impact (0-100) — count bullets with real quantified results:
+- 88-100: 80%+ of bullets have metrics (%, $, time, volume, scale, team size), all strong opening verbs
+- 72-87:  60-79% have metrics, most verbs strong
+- 55-71:  40-59% have metrics, some weak verbs present
+- 35-54:  20-39% have metrics, weak verbs common ("responsible for", "helped", "worked with")
+- 0-34:   Less than 20% have metrics or most bullets start with weak/passive language
+
+Clarity (0-100) — summary quality, bullet length, consistency:
+- 88-100: Summary has metric + no generic adjectives, all bullets 1-2 lines, consistent dates/tense, no vague language
+- 72-87:  Good summary, minor inconsistencies
+- 55-71:  Generic summary OR several long bullets OR inconsistent formatting throughout
+- 35-54:  Generic summary AND multiple formatting/tense/length issues
+- 0-34:   No summary or completely vague, pervasive formatting problems
+
+Overall: Impact × 0.35 + ATS × 0.30 + Clarity × 0.35 (round to nearest integer)
 ═══════════════════════════════════════════════════════`;
 
   const targetedInstructions = hasJobContext ? `
@@ -143,44 +165,47 @@ ${targetedInstructions}
 
 Return ONLY a valid JSON object with exactly this structure:
 {
-  "overall": <number 0-100>,
-  "ats": <number 0-100>,
-  "impact": <number 0-100>,
-  "clarity": <number 0-100>,
+  "overall": <number 0-100, calculated as Impact×0.35 + ATS×0.30 + Clarity×0.35>,
+  "ats": <number 0-100, use the hard threshold rubric above>,
+  "impact": <number 0-100, use the hard threshold rubric above>,
+  "clarity": <number 0-100, use the hard threshold rubric above>,
   "findings": [
-    { "type": "critical", "text": "<specific, honest finding — name the actual problem, not vague advice. E.g. 'Your summary opens with results-driven which appears on 3M resumes and means nothing to a recruiter.'>" },
-    { "type": "critical", "text": "<second critical issue if there is one>" },
-    { "type": "warn", "text": "<something real that needs work — be specific about which section/bullet>" },
+    { "type": "critical", "text": "<name the actual problem with specific section/word — e.g. 'Your summary opens with Strategic engineering leader which tells a recruiter nothing about your business impact.'>" },
+    { "type": "critical", "text": "<second critical issue — only include if genuinely critical>" },
+    { "type": "warn", "text": "<something real that needs work — name the specific bullet or section>" },
     { "type": "warn", "text": "<second warn if applicable>" },
-    { "type": "ok", "text": "<something genuinely working — be specific, not generic praise>" }
+    { "type": "ok", "text": "<something genuinely working — be specific>" }
   ],
   "bullets": [
     {
-      "before": "<exact original bullet from their resume>",
-      "after": "<rewrite using XYZ formula: strong verb + specific skill/context + quantified result. If no number exists, make the impact concrete and specific. In targeted mode: embed JD keywords naturally.>",
-      "oldScore": <number 0-100>,
-      "newScore": <number 0-100>
+      "before": "<exact original bullet text copied verbatim from the resume>",
+      "after": "<rewrite using XYZ formula. Strong verb + specific skill/context + quantified result. In targeted mode: embed JD keywords naturally where supported by evidence.>",
+      "reason": "<one sentence: exactly why this bullet is weak — e.g. 'Starts with weak verb Responsible for and has no metric showing the outcome.'>",
+      "oldScore": <number 0-100, score the original bullet honestly>,
+      "newScore": <number 0-100, score your rewrite>
     }
   ],
-  "recommendation": "<2-3 sentences that feel like a coach talking to this specific person over coffee. Name the single most important thing to fix and exactly how to fix it. Reference something real from their resume.>",
+  "recommendation": "<2-3 sentences like a coach talking to this specific person. Name the single highest-impact change and exactly how to make it. Reference something real from their resume — not boilerplate.>",
   "rewrittenSections": [
     {
-      "label": "Summary (rewritten)",
-      "text": "<Rewrite using the formula: [Role] + [top 2-3 skills tied to target] + [quantified achievement]. No generic adjectives. In targeted mode: directly address the top requirements from the JD. Sound human, not like a template.>",
+      "label": "Summary",
+      "text": "<Rewrite: [Role] + [top 2-3 skills tied to target] + [quantified achievement]. No generic adjectives. Targeted mode: lead with the top JD requirements. Sound like a real person.>",
       "score": <number 0-100>
     },
     {
-      "label": "Top bullets (rewritten)",
-      "text": "<Rewrite the 2-3 strongest bullets using XYZ formula. In targeted mode: weave in the most important JD keywords naturally. Show the before → after contrast clearly.>",
+      "label": "Experience highlights",
+      "text": "<Rewrite the 3 strongest bullets from their most recent/relevant role using XYZ formula. Number them 1, 2, 3. Targeted mode: embed the most important JD keywords alongside real achievements.>",
       "score": <number 0-100>
     },
     {
-      "label": "Skills section (optimized)",
-      "text": "<Updated skills list. In targeted mode: ensure all required JD skills the person actually has are included. Remove fluff. Format as comma-separated or pipe-separated list.>",
+      "label": "Skills",
+      "text": "<Optimized skills list as a comma-separated string. Targeted mode: include all required JD skills the person genuinely has. Remove vague soft skills. Order by relevance to target role.>",
       "score": <number 0-100>
     }
   ]
 }
+
+BULLETS INSTRUCTION: Include ALL bullets from the resume that score below 72 — not just 3. This is a complete line-by-line audit. If 8 bullets need work, return all 8. Maximum 12.
 
 Voice rules:
 - findings must name the actual problem with the specific bullet, word, or section ("Your first bullet under Foundation Finance starts with 'Responsible for' — that's a dead verb") — never generic advice
@@ -198,7 +223,7 @@ Voice rules:
   const reply = await openaiChat(messages, {
     model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
     temperature: 0.3,
-    maxTokens: 2400,
+    maxTokens: 3200,
     jsonMode: true,
   });
 

@@ -458,23 +458,37 @@ function ScreenSession({ stage }: { stage: CareerStage }) {
 type ResumeStep = "upload"|"paste"|"analyzing"|"results";
 
 type ResumeScores = { overall: number; ats: number; impact: number; clarity: number };
+type ResumeBullet = { before: string; after: string; reason: string; oldScore: number; newScore: number };
+type ResumeSection = { label: string; text: string; score: number };
 type ResumeAnalysis = ResumeScores & {
   findings: { type: "critical"|"warn"|"ok"; text: string }[];
-  bullets: { before: string; after: string; oldScore: number; newScore: number }[];
+  bullets: ResumeBullet[];
   recommendation: string;
-  rewrittenSections: { label: string; text: string; score: number }[];
+  rewrittenSections: ResumeSection[];
   previousScores?: ResumeScores | null;
+};
+type ResumeHistoryEntry = {
+  id: string; filename: string; submittedAt: string;
+  mode: string; targetRole?: string;
+  scores: ResumeScores;
 };
 
 function ScreenResume({ stage }: { stage: CareerStage }) {
   const [step, setStep]         = useState<ResumeStep>("upload");
   const [progress, setProgress] = useState(0);
-  const [tab, setTab]           = useState<"overview"|"bullets"|"rewrite">("overview");
+  const [tab, setTab]           = useState<"overview"|"bullets"|"rewrite"|"history">("overview");
   const [dragging, setDragging] = useState(false);
   const [resumeText,  setResumeText]  = useState("");
   const [fileName,    setFileName]    = useState("");
   const [aiResult,    setAiResult]    = useState<ResumeAnalysis | null>(null);
   const [analyzeErr,  setAnalyzeErr]  = useState("");
+  // History
+  const [scoreHistory,    setScoreHistory]    = useState<ResumeHistoryEntry[]>([]);
+  const [historyLoading,  setHistoryLoading]  = useState(false);
+  // Per-section alternative rewrites
+  const [altVersions,     setAltVersions]     = useState<Record<string, string>>({});
+  const [rewritingIdx,    setRewritingIdx]     = useState<number | null>(null);
+  const [altAttempt,      setAltAttempt]       = useState<Record<number, number>>({});
   const [reviewMode,      setReviewMode]      = useState<"general"|"targeted">("general");
   const [targetRoleInput, setTargetRoleInput] = useState("");
   const [jdInputMode,     setJdInputMode]     = useState<"paste"|"url">("paste");
@@ -503,6 +517,45 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
   }
 
   const targetedInvalid = reviewMode === "targeted" && !targetRoleInput.trim() && !jobDescription.trim();
+
+  async function fetchHistory() {
+    setHistoryLoading(true);
+    try {
+      const res = await fetch("/api/zari/resume/history");
+      const data = await res.json().catch(() => ({})) as { history?: ResumeHistoryEntry[] };
+      setScoreHistory(data.history ?? []);
+    } catch { /* non-fatal */ }
+    setHistoryLoading(false);
+  }
+
+  async function clearHistory() {
+    await fetch("/api/zari/resume/history", { method: "DELETE" });
+    setScoreHistory([]);
+  }
+
+  async function rewriteSection(idx: number, section: ResumeSection) {
+    setRewritingIdx(idx);
+    const attempt = (altAttempt[idx] ?? 1) + 1;
+    setAltAttempt(prev => ({ ...prev, [idx]: attempt }));
+    try {
+      const res = await fetch("/api/zari/resume/rewrite-section", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          section: section.label,
+          currentText: altVersions[idx] ?? section.text,
+          resumeText,
+          targetRole: targetRoleInput,
+          jobDescription,
+          stage,
+          attempt,
+        }),
+      });
+      const data = await res.json().catch(() => ({})) as { text?: string };
+      if (data.text) setAltVersions(prev => ({ ...prev, [idx]: data.text! }));
+    } catch { /* non-fatal */ }
+    setRewritingIdx(null);
+  }
 
   async function handleFile(file: File) {
     if (targetedInvalid) {
@@ -576,6 +629,9 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
       setAnalyzeErr("Connection error — try again.");
     }
   }
+
+  // Fetch history when entering results view
+  useEffect(() => { if (step === "results") void fetchHistory(); }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const ANALYSIS_STAGES = [
     "Parsing document structure…",
@@ -834,9 +890,9 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
 
         {/* Tabs */}
         <div style={{ display:"flex", gap:4, background:"white", border:"1px solid #E4E8F5", borderRadius:12, padding:4, width:"fit-content", marginBottom:20 }}>
-          {(["overview","bullets","rewrite"] as const).map(t => (
+          {([["overview","Overview"],["bullets","Line-by-Line"],["rewrite","AI Rewrites"],["history","History"]] as const).map(([t, label]) => (
             <button key={t} onClick={()=>setTab(t)} style={{ padding:"6px 18px", borderRadius:9, border:"none", cursor:"pointer", fontSize:12.5, fontWeight:600, background:tab===t?"#4361EE":"transparent", color:tab===t?"white":"#68738A" }}>
-              {t==="bullets"?"Line-by-Line":t==="rewrite"?"AI Rewrites":"Overview"}
+              {label}{t==="history" && scoreHistory.length > 0 ? ` (${scoreHistory.length})` : ""}
             </button>
           ))}
         </div>
@@ -882,22 +938,30 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
 
             {tab==="bullets" && (
               <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:16, padding:18, boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
-                <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", marginBottom:14 }}>Bullet-by-bullet rewrites</p>
-                {(aiResult?.bullets ?? [
-                  { before:"Managed supply chain redesign across 5 business units", after:"Led end-to-end supply chain redesign across 5 business units · 22% faster fulfilment · £340K annual cost savings", oldScore:55, newScore:91 },
-                  { before:"Worked with tech team to deliver system integration", after:"Partnered with Engineering to ship ERP integration in 6 weeks — reducing manual processing by 40% and cutting errors by $120K/yr", oldScore:48, newScore:88 },
-                  { before:"Led cross-functional meetings and managed stakeholders", after:"Facilitated weekly reviews with VP-level stakeholders across Finance, Tech, and Ops — drove alignment that delivered 3 milestones on schedule", oldScore:42, newScore:85 },
-                ]).map((b,i) => (
-                  <div key={i} style={{ marginBottom:16, paddingBottom:16, borderBottom: i < (aiResult?.bullets.length ?? 3) - 1 ? "1px solid #F1F5F9" : "none" }}>
-                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+                  <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F" }}>Line-by-line audit</p>
+                  {aiResult?.bullets && <span style={{ fontSize:11, color:"#68738A" }}>{aiResult.bullets.length} bullet{aiResult.bullets.length!==1?"s":""} need work</span>}
+                </div>
+                {!aiResult?.bullets?.length && <p style={{ fontSize:13, color:"#68738A", textAlign:"center", padding:"24px 0" }}>No bullets to improve — your bullet quality is solid.</p>}
+                {(aiResult?.bullets ?? []).map((b, i) => (
+                  <div key={i} style={{ marginBottom:18, paddingBottom:18, borderBottom: i < (aiResult?.bullets.length ?? 1) - 1 ? "1px solid #F1F5F9" : "none" }}>
+                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6 }}>
                       <span style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"#68738A" }}>Bullet {i+1}</span>
                       <div style={{ display:"flex", gap:6, alignItems:"center" }}>
-                        <Tag text={`${b.oldScore} →`} color="#D97706" bg="#FFF7ED"/>
-                        <Tag text={`${b.newScore}`} color="#16A34A" bg="#F0FFF4"/>
+                        <Tag text={`Was: ${b.oldScore}`} color="#D97706" bg="#FFF7ED"/>
+                        <span style={{ fontSize:10, color:"#A0AABF" }}>→</span>
+                        <Tag text={`Now: ${b.newScore}`} color="#16A34A" bg="#F0FFF4"/>
                       </div>
                     </div>
-                    <p style={{ fontSize:11.5, color:"#991B1B", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:8, padding:"7px 10px", textDecoration:"line-through", marginBottom:5 }}>{b.before}</p>
-                    <p style={{ fontSize:11.5, color:"#14532D", background:"#F0FFF4", border:"1px solid #BBF7D0", borderRadius:8, padding:"7px 10px" }}>{b.after}</p>
+                    {/* Why it's weak */}
+                    <div style={{ display:"flex", gap:7, padding:"6px 10px", background:"#FFFBEB", border:"1px solid #FDE68A", borderRadius:7, marginBottom:7 }}>
+                      <span style={{ fontSize:11, flexShrink:0 }}>⚠️</span>
+                      <p style={{ fontSize:11.5, color:"#92400E", lineHeight:1.5, margin:0 }}>{b.reason}</p>
+                    </div>
+                    {/* Before */}
+                    <p style={{ fontSize:11.5, color:"#991B1B", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:8, padding:"8px 10px", textDecoration:"line-through", marginBottom:5, lineHeight:1.55 }}>{b.before}</p>
+                    {/* After */}
+                    <p style={{ fontSize:11.5, color:"#14532D", background:"#F0FFF4", border:"1px solid #BBF7D0", borderRadius:8, padding:"8px 10px", lineHeight:1.55 }}>{b.after}</p>
                   </div>
                 ))}
               </div>
@@ -907,24 +971,84 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
               <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:16, padding:18, boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
                 <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
                   <div>
-                    <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", marginBottom:3 }}>Fully optimized resume</p>
-                    <p style={{ fontSize:11.5, color:"#68738A" }}>Score: {aiResult?.overall ?? "—"}/100 · ATS-ready · AI-optimized sections</p>
+                    <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", marginBottom:3 }}>AI Rewrites</p>
+                    <p style={{ fontSize:11.5, color:"#68738A" }}>Score: {aiResult?.overall ?? "—"}/100 · Click &quot;Try different version&quot; to get an alternative take</p>
                   </div>
                 </div>
-                {(aiResult?.rewrittenSections ?? [
-                  { label:"Summary (rewritten)", text:"Product-minded Operations Leader driving cross-functional strategy, execution, and measurable outcomes. Transitioning to Senior PM with a 4-year track record of shipping supply chain and process improvements across teams of 12+.", score:94 },
-                  { label:"Top bullet (rewritten)", text:"Led end-to-end supply chain redesign across 5 business units — 22% faster fulfilment, £340K annual savings, executive alignment secured in 3 weeks.", score:91 },
-                  { label:"Skills (updated)", text:"Product Strategy · Roadmap · OKRs · Discovery · Agile · GTM · Operations · Supply Chain · Stakeholder Management · Cross-functional · Process Design · Data Analysis", score:88 },
-                ]).map(s => (
-                  <div key={s.label} style={{ marginBottom:12, borderRadius:10, border:"1px solid #BBF7D0", background:"#F0FFF4", padding:"10px 12px" }}>
-                    <div style={{ display:"flex", justifyContent:"space-between", marginBottom:5 }}>
-                      <p style={{ fontSize:9.5, fontWeight:700, textTransform:"uppercase", color:"#16A34A", letterSpacing:"0.1em" }}>{s.label}</p>
-                      <Tag text={`${s.score}/100`} color="#16A34A" bg="white"/>
+                {(aiResult?.rewrittenSections ?? []).map((s, idx) => {
+                  const displayed = altVersions[idx] ?? s.text;
+                  const isRegenerating = rewritingIdx === idx;
+                  const attemptNum = altAttempt[idx] ?? 1;
+                  return (
+                    <div key={s.label} style={{ marginBottom:14, borderRadius:12, border:"1px solid #E4E8F5", overflow:"hidden" }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"9px 12px", background:"#F8FAFF", borderBottom:"1px solid #E4E8F5" }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                          <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", color:"#4361EE", letterSpacing:"0.08em", margin:0 }}>{s.label}</p>
+                          {attemptNum > 1 && <span style={{ fontSize:10, color:"#A0AABF" }}>v{attemptNum}</span>}
+                        </div>
+                        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                          <Tag text={`${s.score}/100`} color="#16A34A" bg="#F0FFF4"/>
+                          <button
+                            onClick={()=>void rewriteSection(idx, s)}
+                            disabled={isRegenerating}
+                            style={{ fontSize:11, fontWeight:600, padding:"4px 10px", borderRadius:7, border:"1px solid #E4E8F5", background:"white", color:isRegenerating?"#A0AABF":"#4361EE", cursor:isRegenerating?"default":"pointer" }}
+                          >
+                            {isRegenerating ? "Rewriting…" : "Try different version"}
+                          </button>
+                          <button onClick={()=>{ void navigator.clipboard.writeText(displayed); }} style={{ fontSize:11, fontWeight:600, padding:"4px 10px", borderRadius:7, border:"1px solid #E4E8F5", background:"white", color:"#68738A", cursor:"pointer" }}>Copy</button>
+                        </div>
+                      </div>
+                      <div style={{ padding:"12px", background: altVersions[idx] ? "#FAFBFF" : "#F0FFF4" }}>
+                        <p style={{ fontSize:12, color: altVersions[idx] ? "#1E2235" : "#14532D", lineHeight:1.7, margin:0, whiteSpace:"pre-wrap" }}>{displayed}</p>
+                      </div>
                     </div>
-                    <p style={{ fontSize:12, color:"#14532D", lineHeight:1.6 }}>{s.text}</p>
+                  );
+                })}
+                <button onClick={()=>{ const all = (aiResult?.rewrittenSections??[]).map((s,i)=>`${s.label}:\n${altVersions[i]??s.text}`).join("\n\n"); void navigator.clipboard.writeText(all); }} style={{ width:"100%", fontSize:12.5, fontWeight:700, padding:"10px", borderRadius:10, border:"none", background:"#0A0A0F", color:"white", cursor:"pointer", marginTop:4 }}>Copy all rewrites →</button>
+              </div>
+            )}
+
+            {tab==="history" && (
+              <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:16, padding:18, boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+                  <div>
+                    <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", marginBottom:2 }}>Submission history</p>
+                    <p style={{ fontSize:11.5, color:"#68738A" }}>Last {Math.min(scoreHistory.length, 30)} submissions — tracks your progress over time</p>
                   </div>
-                ))}
-                <button style={{ width:"100%", fontSize:12.5, fontWeight:700, padding:"10px", borderRadius:10, border:"none", background:"#0A0A0F", color:"white", cursor:"pointer", marginTop:6 }}>Copy all rewrites to clipboard →</button>
+                  {scoreHistory.length > 0 && (
+                    <button onClick={()=>{ if(confirm("Clear all history?")) void clearHistory(); }} style={{ fontSize:11, fontWeight:600, padding:"5px 12px", borderRadius:8, border:"1px solid #FECACA", background:"#FEF2F2", color:"#991B1B", cursor:"pointer" }}>Clear history</button>
+                  )}
+                </div>
+                {historyLoading && <p style={{ fontSize:13, color:"#68738A", textAlign:"center", padding:"24px 0" }}>Loading…</p>}
+                {!historyLoading && scoreHistory.length === 0 && <p style={{ fontSize:13, color:"#68738A", textAlign:"center", padding:"24px 0" }}>No history yet — submit your next version to start tracking progress.</p>}
+                {scoreHistory.map((entry, i) => {
+                  const prev = scoreHistory[i + 1];
+                  const d = (key: keyof ResumeScores) => prev ? entry.scores[key] - prev.scores[key] : null;
+                  return (
+                    <div key={entry.id} style={{ marginBottom:12, padding:"12px 14px", border:"1px solid #E4E8F5", borderRadius:12, background:i===0?"#F8FAFF":"white" }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
+                        <div>
+                          <p style={{ fontSize:12.5, fontWeight:700, color:"#0A0A0F", marginBottom:2 }}>{entry.filename}</p>
+                          <p style={{ fontSize:11, color:"#A0AABF" }}>{new Date(entry.submittedAt).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"2-digit",minute:"2-digit"})} · {entry.mode === "targeted" ? `Targeted${entry.targetRole ? ": "+entry.targetRole : ""}` : "General review"}</p>
+                        </div>
+                        {i===0 && <span style={{ fontSize:10, fontWeight:700, padding:"2px 8px", borderRadius:99, background:"#EEF2FF", color:"#4361EE" }}>Latest</span>}
+                      </div>
+                      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:8 }}>
+                        {([["Overall","overall"],["ATS","ats"],["Impact","impact"],["Clarity","clarity"]] as [string, keyof ResumeScores][]).map(([label, key]) => {
+                          const delta = d(key);
+                          const deltaColor = delta === null ? "#A0AABF" : delta > 0 ? "#16A34A" : delta < 0 ? "#DC2626" : "#A0AABF";
+                          return (
+                            <div key={key} style={{ textAlign:"center", padding:"8px 4px", background:"#FAFBFF", borderRadius:8, border:"1px solid #F1F5F9" }}>
+                              <p style={{ fontSize:18, fontWeight:900, color:"#0A0A0F", marginBottom:1 }}>{entry.scores[key]}</p>
+                              <p style={{ fontSize:9.5, color:"#68738A", marginBottom:2 }}>{label}</p>
+                              {delta !== null && <p style={{ fontSize:10, fontWeight:700, color:deltaColor }}>{delta > 0 ? `+${delta}` : delta < 0 ? `${delta}` : "—"} {delta > 0 ? "↑" : delta < 0 ? "↓" : ""}</p>}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
