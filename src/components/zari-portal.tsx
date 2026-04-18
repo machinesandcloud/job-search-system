@@ -455,22 +455,59 @@ function ScreenSession({ stage }: { stage: CareerStage }) {
 /* ═══════════════════════════════════════════════════
    SCREEN: RESUME REVIEW — drag-drop upload + full analysis
 ═══════════════════════════════════════════════════ */
-type ResumeStep = "upload"|"analyzing"|"results";
+type ResumeStep = "upload"|"paste"|"analyzing"|"results";
+
+type ResumeAnalysis = {
+  overall: number; ats: number; impact: number; clarity: number;
+  findings: { type: "critical"|"warn"|"ok"; text: string }[];
+  bullets: { before: string; after: string; oldScore: number; newScore: number }[];
+  recommendation: string;
+  rewrittenSections: { label: string; text: string; score: number }[];
+};
 
 function ScreenResume({ stage }: { stage: CareerStage }) {
-  const [step, setStep]       = useState<ResumeStep>("upload");
+  const [step, setStep]         = useState<ResumeStep>("upload");
   const [progress, setProgress] = useState(0);
-  const [tab, setTab]         = useState<"overview"|"bullets"|"rewrite">("overview");
+  const [tab, setTab]           = useState<"overview"|"bullets"|"rewrite">("overview");
   const [dragging, setDragging] = useState(false);
+  const [resumeText, setResumeText] = useState("");
+  const [aiResult,  setAiResult]   = useState<ResumeAnalysis | null>(null);
+  const [analyzeErr, setAnalyzeErr] = useState("");
 
-  function startAnalysis() {
+  function handleDropOrClick() { setStep("paste"); }
+
+  async function runAnalysis() {
+    if (!resumeText.trim()) return;
+    setAnalyzeErr("");
     setStep("analyzing");
     let p = 0;
     const interval = setInterval(() => {
-      p += Math.random() * 12 + 3;
-      if (p >= 100) { p = 100; clearInterval(interval); setTimeout(() => setStep("results"), 400); }
-      setProgress(Math.min(p, 100));
+      p += Math.random() * 10 + 2;
+      if (p >= 90) { clearInterval(interval); }
+      setProgress(Math.min(p, 90));
     }, 200);
+
+    try {
+      const res = await fetch("/api/zari/resume", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resumeText, stage }),
+      });
+      const data = await res.json().catch(() => null) as ResumeAnalysis | null;
+      clearInterval(interval);
+      setProgress(100);
+      if (data && data.overall) {
+        setAiResult(data);
+        setTimeout(() => setStep("results"), 400);
+      } else {
+        setStep("paste");
+        setAnalyzeErr("Analysis failed — try again.");
+      }
+    } catch {
+      clearInterval(interval);
+      setStep("paste");
+      setAnalyzeErr("Connection error — try again.");
+    }
   }
 
   const ANALYSIS_STAGES = [
@@ -488,6 +525,30 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
     return () => clearInterval(t);
   }, [step]);
 
+  if (step === "paste") return (
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#FAFBFF" }}>
+      <div style={{ maxWidth:660, margin:"0 auto", padding:"48px 24px" }}>
+        <div style={{ textAlign:"center", marginBottom:28 }}>
+          <h1 style={{ fontSize:24, fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", marginBottom:8 }}>Paste your resume text</h1>
+          <p style={{ fontSize:14, color:"#68738A" }}>Copy and paste your full resume below — Zari will score and rewrite it.</p>
+        </div>
+        {analyzeErr && <div style={{ background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:10, padding:"10px 14px", marginBottom:14, fontSize:13, color:"#991B1B" }}>{analyzeErr}</div>}
+        <textarea
+          style={{ width:"100%", minHeight:300, border:"1.5px solid #CBD5E1", borderRadius:14, padding:"14px 16px", fontSize:13.5, lineHeight:1.7, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"white", boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}
+          placeholder={"Paste your full resume here...\n\nName\nJob Title · Location · Email\n\nSummary\n...\n\nExperience\n..."}
+          value={resumeText}
+          onChange={e => setResumeText(e.target.value)}
+        />
+        <div style={{ display:"flex", gap:10, marginTop:14 }}>
+          <button onClick={() => setStep("upload")} style={{ fontSize:13, fontWeight:600, padding:"10px 20px", borderRadius:10, border:"1px solid #E4E8F5", background:"white", color:"#68738A", cursor:"pointer" }}>← Back</button>
+          <button onClick={() => void runAnalysis()} disabled={!resumeText.trim()} style={{ flex:1, fontSize:14, fontWeight:700, padding:"11px", borderRadius:10, border:"none", background:resumeText.trim()?"#4361EE":"#E4E8F5", color:resumeText.trim()?"white":"#A0AABF", cursor:resumeText.trim()?"pointer":"default", boxShadow:resumeText.trim()?"0 4px 16px rgba(67,97,238,0.3)":"none" }}>
+            Analyze with Zari →
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   if (step === "upload") return (
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#FAFBFF" }}>
       <div style={{ maxWidth:660, margin:"0 auto", padding:"48px 24px" }}>
@@ -503,8 +564,8 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
         <div
           onDragOver={e=>{e.preventDefault();setDragging(true);}}
           onDragLeave={()=>setDragging(false)}
-          onDrop={e=>{e.preventDefault();setDragging(false);startAnalysis();}}
-          onClick={startAnalysis}
+          onDrop={e=>{e.preventDefault();setDragging(false);handleDropOrClick();}}
+          onClick={handleDropOrClick}
           style={{ border:`2px dashed ${dragging?"#4361EE":"#CBD5E1"}`, borderRadius:20, padding:"52px 32px", textAlign:"center", cursor:"pointer", background:dragging?"#EEF2FF":"white", transition:"all 0.2s", boxShadow:dragging?"0 0 0 4px rgba(67,97,238,0.12)":"none" }}
         >
           <div style={{ width:56, height:56, borderRadius:16, background:"#F5F7FF", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px" }}>
@@ -590,10 +651,10 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
         {/* Score strip */}
         <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12, marginBottom:24 }}>
           {[
-            { label:"Overall",  score:89, prev:62, color:"#4361EE",  note:"+27 after rewrites" },
-            { label:"ATS Match",score:91, prev:54, color:"#16A34A",  note:"All keywords covered" },
-            { label:"Impact",   score:84, prev:48, color:"#0284C7",  note:"Metrics injected" },
-            { label:"Clarity",  score:87, prev:70, color:"#7C3AED",  note:"Strong structure" },
+            { label:"Overall",  score: aiResult?.overall ?? 89, color:"#4361EE",  note:"Overall resume quality" },
+            { label:"ATS Match",score: aiResult?.ats     ?? 91, color:"#16A34A",  note:"Keyword coverage" },
+            { label:"Impact",   score: aiResult?.impact  ?? 84, color:"#0284C7",  note:"Metrics & outcomes" },
+            { label:"Clarity",  score: aiResult?.clarity ?? 87, color:"#7C3AED",  note:"Structure & readability" },
           ].map(sc => (
             <div key={sc.label} style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:14, padding:16, textAlign:"center", boxShadow:"0 1px 4px rgba(0,0,0,0.04)" }}>
               <ScoreRing score={sc.score} color={sc.color} size={60}/>
@@ -636,40 +697,42 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
             {tab==="overview" && <>
               <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:16, padding:18, boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
                 <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", marginBottom:12 }}>Zari&apos;s findings</p>
-                {[
-                  { type:"critical", icon:"🔴", text:"Summary contains no product keywords — fails ATS for PM roles." },
-                  { type:"warn",     icon:"🟡", text:"5 of 8 bullets are task-focused with no impact numbers." },
-                  { type:"warn",     icon:"🟡", text:"Skills section missing 8 PM keywords found in target JDs." },
-                  { type:"ok",       icon:"🟢", text:"Education and timeline clean — no gaps, strong institution." },
-                  { type:"ok",       icon:"🟢", text:"Cross-functional background is valuable — needs reframing." },
-                ].map((f,i) => (
-                  <div key={i} style={{ display:"flex", gap:9, padding:"9px 10px", borderRadius:9, background:f.type==="critical"?"#FEF2F2":f.type==="warn"?"#FFFBEB":"#F0FFF4", border:`1px solid ${f.type==="critical"?"#FECACA":f.type==="warn"?"#FDE68A":"#BBF7D0"}`, marginBottom:7 }}>
-                    <span style={{ fontSize:12 }}>{f.icon}</span>
-                    <p style={{ fontSize:12, color:f.type==="critical"?"#991B1B":f.type==="warn"?"#92400E":"#14532D", lineHeight:1.5 }}>{f.text}</p>
-                  </div>
-                ))}
+                {(aiResult?.findings ?? [
+                  { type:"critical" as const, text:"Summary contains no product keywords — fails ATS for PM roles." },
+                  { type:"warn" as const,     text:"5 of 8 bullets are task-focused with no impact numbers." },
+                  { type:"warn" as const,     text:"Skills section missing PM keywords found in target JDs." },
+                  { type:"ok" as const,       text:"Education and timeline clean — no gaps, strong institution." },
+                  { type:"ok" as const,       text:"Cross-functional background is valuable — needs reframing." },
+                ]).map((f,i) => {
+                  const icon = f.type==="critical"?"🔴":f.type==="warn"?"🟡":"🟢";
+                  return (
+                    <div key={i} style={{ display:"flex", gap:9, padding:"9px 10px", borderRadius:9, background:f.type==="critical"?"#FEF2F2":f.type==="warn"?"#FFFBEB":"#F0FFF4", border:`1px solid ${f.type==="critical"?"#FECACA":f.type==="warn"?"#FDE68A":"#BBF7D0"}`, marginBottom:7 }}>
+                      <span style={{ fontSize:12 }}>{icon}</span>
+                      <p style={{ fontSize:12, color:f.type==="critical"?"#991B1B":f.type==="warn"?"#92400E":"#14532D", lineHeight:1.5 }}>{f.text}</p>
+                    </div>
+                  );
+                })}
               </div>
               <div style={{ background:"#EEF2FF", border:"1px solid rgba(67,97,238,0.2)", borderRadius:16, padding:18 }}>
                 <p style={{ fontSize:12, fontWeight:700, color:"#4361EE", marginBottom:8 }}>Zari&apos;s recommendation</p>
-                <p style={{ fontSize:12.5, color:"#3451D1", lineHeight:1.6 }}>Rewrite your summary to lead with product outcomes. Change &ldquo;4 years in operations&rdquo; to &ldquo;Product-minded ops leader with a track record of shipping measurable outcomes across cross-functional teams.&rdquo;</p>
-                <button style={{ marginTop:10, fontSize:12, fontWeight:600, color:"#4361EE", background:"white", border:"1px solid rgba(67,97,238,0.25)", padding:"6px 14px", borderRadius:8, cursor:"pointer" }}>Ask Zari to rewrite this now →</button>
+                <p style={{ fontSize:12.5, color:"#3451D1", lineHeight:1.6 }}>{aiResult?.recommendation ?? "Rewrite your summary to lead with product outcomes — that's the single change that will move your ATS score the most."}</p>
               </div>
             </>}
 
             {tab==="bullets" && (
               <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:16, padding:18, boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
                 <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", marginBottom:14 }}>Bullet-by-bullet rewrites</p>
-                {[
-                  { before:"Managed supply chain redesign across 5 business units", after:"Led end-to-end supply chain redesign across 5 business units · 22% faster fulfilment · £340K annual cost savings", old:55, new:91 },
-                  { before:"Worked with tech team to deliver system integration", after:"Partnered with Engineering to ship ERP integration in 6 weeks — reducing manual processing by 40% and cutting errors by $120K/yr", old:48, new:88 },
-                  { before:"Led cross-functional meetings and managed stakeholders", after:"Facilitated weekly reviews with VP-level stakeholders across Finance, Tech, and Ops — drove alignment that delivered 3 milestones on schedule", old:42, new:85 },
-                ].map((b,i) => (
-                  <div key={i} style={{ marginBottom:16, paddingBottom:16, borderBottom: i<2?"1px solid #F1F5F9":"none" }}>
+                {(aiResult?.bullets ?? [
+                  { before:"Managed supply chain redesign across 5 business units", after:"Led end-to-end supply chain redesign across 5 business units · 22% faster fulfilment · £340K annual cost savings", oldScore:55, newScore:91 },
+                  { before:"Worked with tech team to deliver system integration", after:"Partnered with Engineering to ship ERP integration in 6 weeks — reducing manual processing by 40% and cutting errors by $120K/yr", oldScore:48, newScore:88 },
+                  { before:"Led cross-functional meetings and managed stakeholders", after:"Facilitated weekly reviews with VP-level stakeholders across Finance, Tech, and Ops — drove alignment that delivered 3 milestones on schedule", oldScore:42, newScore:85 },
+                ]).map((b,i) => (
+                  <div key={i} style={{ marginBottom:16, paddingBottom:16, borderBottom: i < (aiResult?.bullets.length ?? 3) - 1 ? "1px solid #F1F5F9" : "none" }}>
                     <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
                       <span style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"#68738A" }}>Bullet {i+1}</span>
                       <div style={{ display:"flex", gap:6, alignItems:"center" }}>
-                        <Tag text={`${b.old} →`} color="#D97706" bg="#FFF7ED"/>
-                        <Tag text={`${b.new}`} color="#16A34A" bg="#F0FFF4"/>
+                        <Tag text={`${b.oldScore} →`} color="#D97706" bg="#FFF7ED"/>
+                        <Tag text={`${b.newScore}`} color="#16A34A" bg="#F0FFF4"/>
                       </div>
                     </div>
                     <p style={{ fontSize:11.5, color:"#991B1B", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:8, padding:"7px 10px", textDecoration:"line-through", marginBottom:5 }}>{b.before}</p>
@@ -684,18 +747,14 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
                 <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
                   <div>
                     <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", marginBottom:3 }}>Fully optimized resume</p>
-                    <p style={{ fontSize:11.5, color:"#68738A" }}>Score: 89/100 · ATS-ready · Senior PM optimized</p>
+                    <p style={{ fontSize:11.5, color:"#68738A" }}>Score: {aiResult?.overall ?? 89}/100 · ATS-ready</p>
                   </div>
-                  <button style={{ fontSize:11.5, fontWeight:700, padding:"7px 16px", borderRadius:9, border:"none", background:"#4361EE", color:"white", cursor:"pointer", display:"flex", alignItems:"center", gap:6 }}>
-                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:12,height:12 }}><path d="M8 3v9M4 8l4 4 4-4"/></svg>
-                    Download PDF
-                  </button>
                 </div>
-                {[
-                  { label:"Summary (rewritten)", text:"Product-minded Operations Leader driving cross-functional strategy, execution, and measurable outcomes. Transitioning to Senior PM with a 4-year track record of shipping supply chain and process improvements across teams of 12+. Proven at executive-level stakeholder alignment and delivery that ships on schedule.", score:94 },
-                  { label:"Top bullet (rewritten)", text:"Led end-to-end supply chain redesign across 5 business units — 22% faster fulfilment, £340K annual savings, and executive alignment secured in 3 weeks.", score:91 },
+                {(aiResult?.rewrittenSections ?? [
+                  { label:"Summary (rewritten)", text:"Product-minded Operations Leader driving cross-functional strategy, execution, and measurable outcomes. Transitioning to Senior PM with a 4-year track record of shipping supply chain and process improvements across teams of 12+.", score:94 },
+                  { label:"Top bullet (rewritten)", text:"Led end-to-end supply chain redesign across 5 business units — 22% faster fulfilment, £340K annual savings, executive alignment secured in 3 weeks.", score:91 },
                   { label:"Skills (updated)", text:"Product Strategy · Roadmap · OKRs · Discovery · Agile · GTM · Operations · Supply Chain · Stakeholder Management · Cross-functional · Process Design · Data Analysis", score:88 },
-                ].map(s => (
+                ]).map(s => (
                   <div key={s.label} style={{ marginBottom:12, borderRadius:10, border:"1px solid #BBF7D0", background:"#F0FFF4", padding:"10px 12px" }}>
                     <div style={{ display:"flex", justifyContent:"space-between", marginBottom:5 }}>
                       <p style={{ fontSize:9.5, fontWeight:700, textTransform:"uppercase", color:"#16A34A", letterSpacing:"0.1em" }}>{s.label}</p>
@@ -816,12 +875,27 @@ const SCREEN_INTERVIEW_META: Record<CareerStage, { title:string; subtitle:string
   "leadership":    { title:"Story Practice",   subtitle:"Executive stories · Board communication · Leadership scenarios" },
 };
 
+type InterviewFeedback = {
+  overallScore: number;
+  dimensions: { label: string; score: number }[];
+  coachNote: string;
+  suggestedResult: string;
+};
+
+function dimColor(score: number) {
+  if (score >= 75) return "#16A34A";
+  if (score >= 55) return "#D97706";
+  return "#DC2626";
+}
+
 function ScreenInterview({ stage }: { stage: CareerStage }) {
   const [qIdx,        setQIdx]        = useState(0);
   const [answer,      setAnswer]      = useState("");
   const [submitted,   setSubmitted]   = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recTime,     setRecTime]     = useState(0);
+  const [isScoring,   setIsScoring]   = useState(false);
+  const [feedback,    setFeedback]    = useState<InterviewFeedback | null>(null);
 
   useEffect(() => {
     if (!isRecording) return;
@@ -831,9 +905,25 @@ function ScreenInterview({ stage }: { stage: CareerStage }) {
 
   const QUESTIONS = STAGE_QUESTIONS[stage];
   // Reset when stage changes
-  useEffect(() => { setQIdx(0); setAnswer(""); setSubmitted(false); }, [stage]);
+  useEffect(() => { setQIdx(0); setAnswer(""); setSubmitted(false); setFeedback(null); }, [stage]);
 
-  function submit() { if (answer.trim()) setSubmitted(true); }
+  async function submit() {
+    if (!answer.trim() || isScoring) return;
+    setIsScoring(true);
+    setSubmitted(true);
+    const q = QUESTIONS[qIdx];
+    try {
+      const res = await fetch("/api/zari/interview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: q.q, answer, stage, category: q.cat }),
+      });
+      const data = await res.json().catch(() => null) as InterviewFeedback | null;
+      if (data && data.overallScore) setFeedback(data);
+    } catch { /* use fallback */ }
+    setIsScoring(false);
+  }
+
   const q = QUESTIONS[qIdx];
   const fmt = (s:number) => `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
 
@@ -898,55 +988,68 @@ function ScreenInterview({ stage }: { stage: CareerStage }) {
             />
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:12 }}>
               <span style={{ fontSize:12, color:"#A0AABF" }}>{answer.split(" ").filter(Boolean).length} words · aim for 150–250</span>
-              <button onClick={submit} style={{ fontSize:13.5, fontWeight:700, padding:"10px 24px", borderRadius:12, border:"none", background:answer.trim()?"#4361EE":"#F1F5F9", color:answer.trim()?"white":"#CBD5E1", cursor:answer.trim()?"pointer":"default", boxShadow:answer.trim()?"0 4px 16px rgba(67,97,238,0.32)":"none" }}>
-                Get feedback →
+              <button onClick={()=>void submit()} disabled={!answer.trim() || isScoring} style={{ fontSize:13.5, fontWeight:700, padding:"10px 24px", borderRadius:12, border:"none", background:answer.trim()&&!isScoring?"#4361EE":"#F1F5F9", color:answer.trim()&&!isScoring?"white":"#CBD5E1", cursor:answer.trim()&&!isScoring?"pointer":"default", boxShadow:answer.trim()&&!isScoring?"0 4px 16px rgba(67,97,238,0.32)":"none" }}>
+                {isScoring ? "Scoring…" : "Get feedback →"}
               </button>
             </div>
           </div>
         ) : (
           <>
+            {isScoring && (
+              <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:18, padding:32, marginBottom:14, textAlign:"center", boxShadow:"0 2px 12px rgba(0,0,0,0.06)" }}>
+                <div style={{ display:"flex", gap:6, justifyContent:"center", marginBottom:14 }}>
+                  {[0,1,2].map(i=><div key={i} style={{ width:9,height:9,borderRadius:"50%",background:"#818CF8",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
+                </div>
+                <p style={{ fontSize:14, fontWeight:600, color:"#4361EE" }}>Zari is scoring your answer…</p>
+                <p style={{ fontSize:12, color:"#A0AABF", marginTop:5 }}>Analyzing STAR structure, impact clarity, and coaching opportunities</p>
+              </div>
+            )}
+            {!isScoring && (
             <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:18, padding:22, marginBottom:14, boxShadow:"0 2px 12px rgba(0,0,0,0.06)" }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:18 }}>
                 <p style={{ fontSize:14, fontWeight:700, color:"#0A0A0F" }}>Zari&apos;s feedback</p>
                 <div style={{ display:"flex", alignItems:"center", gap:6, padding:"4px 12px", borderRadius:99, background:"#F0FFF4", border:"1px solid #BBF7D0" }}>
-                  <span style={{ fontSize:20, fontWeight:900, color:"#16A34A" }}>79</span>
+                  <span style={{ fontSize:20, fontWeight:900, color:"#16A34A" }}>{feedback?.overallScore ?? 79}</span>
                   <span style={{ fontSize:11, color:"#16A34A", fontWeight:600 }}>/ 100</span>
                 </div>
               </div>
 
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:18 }}>
-                {[
-                  { label:"STAR Structure",  score:88, color:"#16A34A" },
-                  { label:"Evidence",        score:82, color:"#16A34A" },
-                  { label:"Impact clarity",  score:64, color:"#D97706" },
-                  { label:"Concision",       score:58, color:"#D97706" },
-                  { label:"Leadership signal",score:79, color:"#4361EE" },
-                  { label:"Stakeholder lens", score:74, color:"#4361EE" },
-                ].map(s => (
-                  <div key={s.label} style={{ background:"#FAFBFF", border:"1px solid #F1F5F9", borderRadius:10, padding:"10px 12px" }}>
-                    <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
-                      <span style={{ fontSize:11.5, color:"#68738A" }}>{s.label}</span>
-                      <span style={{ fontSize:13, fontWeight:800, color:s.color }}>{s.score}</span>
+                {(feedback?.dimensions ?? [
+                  { label:"STAR Structure",   score:88 },
+                  { label:"Evidence",         score:82 },
+                  { label:"Impact clarity",   score:64 },
+                  { label:"Concision",        score:58 },
+                  { label:"Leadership signal",score:79 },
+                  { label:"Stakeholder lens", score:74 },
+                ]).map(s => {
+                  const color = dimColor(s.score);
+                  return (
+                    <div key={s.label} style={{ background:"#FAFBFF", border:"1px solid #F1F5F9", borderRadius:10, padding:"10px 12px" }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
+                        <span style={{ fontSize:11.5, color:"#68738A" }}>{s.label}</span>
+                        <span style={{ fontSize:13, fontWeight:800, color }}>{s.score}</span>
+                      </div>
+                      <Bar pct={s.score} color={color}/>
                     </div>
-                    <Bar pct={s.score} color={s.color}/>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <div style={{ background:"#F5F7FF", borderRadius:12, padding:16, marginBottom:12 }}>
                 <p style={{ fontSize:12, fontWeight:700, color:"#4361EE", marginBottom:6 }}>Coaching note from Zari</p>
-                <p style={{ fontSize:13, color:"#3451D1", lineHeight:1.65 }}>Strong structure — your Situation and Action are genuinely compelling. The gap is the Result. You said &ldquo;it worked out&rdquo; — that&apos;s too vague for a Senior PM panel. Replace it with a specific outcome: a number, a timeline saved, revenue impacted, or executive decision unblocked. Panels score Result twice as heavily as the other three components.</p>
+                <p style={{ fontSize:13, color:"#3451D1", lineHeight:1.65 }}>{feedback?.coachNote ?? "Strong structure overall. The gap is in your Result — make it specific with a number, timeline, or business outcome. Panels score Result twice as heavily as the other components."}</p>
               </div>
 
               <div style={{ background:"#F0FFF4", borderRadius:12, padding:"12px 16px" }}>
                 <p style={{ fontSize:12, fontWeight:700, color:"#16A34A", marginBottom:5 }}>Suggested Result statement</p>
-                <p style={{ fontSize:12.5, color:"#14532D", lineHeight:1.6, fontStyle:"italic" }}>&ldquo;Finance signed off 2 weeks early, which pulled the launch forward by a sprint and shipped before our main competitor released a competing feature.&rdquo;</p>
+                <p style={{ fontSize:12.5, color:"#14532D", lineHeight:1.6, fontStyle:"italic" }}>&ldquo;{feedback?.suggestedResult ?? "The outcome was delivered 2 weeks ahead of schedule, which unblocked the next sprint and directly contributed to the Q3 launch target."}&rdquo;</p>
               </div>
             </div>
-
+            )}
             <div style={{ display:"flex", gap:10 }}>
-              <button onClick={()=>{setSubmitted(false);setAnswer("");}} style={{ flex:1, fontSize:13.5, fontWeight:600, padding:"12px", borderRadius:12, border:"1px solid #E4E8F5", background:"white", color:"#0A0A0F", cursor:"pointer" }}>Try again</button>
-              <button onClick={()=>{setQIdx(q=>(q+1)%QUESTIONS.length);setSubmitted(false);setAnswer("");}} style={{ flex:1, fontSize:13.5, fontWeight:700, padding:"12px", borderRadius:12, border:"none", background:"#4361EE", color:"white", cursor:"pointer", boxShadow:"0 4px 14px rgba(67,97,238,0.28)" }}>Next question →</button>
+              <button onClick={()=>{setSubmitted(false);setAnswer("");setFeedback(null);}} style={{ flex:1, fontSize:13.5, fontWeight:600, padding:"12px", borderRadius:12, border:"1px solid #E4E8F5", background:"white", color:"#0A0A0F", cursor:"pointer" }}>Try again</button>
+              <button onClick={()=>{setQIdx(q=>(q+1)%QUESTIONS.length);setSubmitted(false);setAnswer("");setFeedback(null);}} style={{ flex:1, fontSize:13.5, fontWeight:700, padding:"12px", borderRadius:12, border:"none", background:"#4361EE", color:"white", cursor:"pointer", boxShadow:"0 4px 14px rgba(67,97,238,0.28)" }}>Next question →</button>
             </div>
           </>
         )}
@@ -958,25 +1061,129 @@ function ScreenInterview({ stage }: { stage: CareerStage }) {
 /* ═══════════════════════════════════════════════════
    SCREEN: LINKEDIN
 ═══════════════════════════════════════════════════ */
-function ScreenLinkedIn() {
-  const [tab, setTab] = useState<"headline"|"about"|"skills">("headline");
+type LinkedInResult = {
+  headline: string; about: string; skills: string[];
+  scores: { recruiterVisibility: number; keywordDensity: number; profileStrength: number };
+  previousScores: { recruiterVisibility: number; keywordDensity: number; profileStrength: number };
+  issues: { headline: string; about: string; skills: string };
+  missingKeywords: string[];
+};
+
+function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
+  const [tab,        setTab]        = useState<"headline"|"about"|"skills">("headline");
+  const [inputMode,  setInputMode]  = useState(true);
+  const [headline,   setHeadline]   = useState("");
+  const [about,      setAbout]      = useState("");
+  const [skills,     setSkills]     = useState("");
+  const [optimizing, setOptimizing] = useState(false);
+  const [result,     setResult]     = useState<LinkedInResult | null>(null);
+  const [optErr,     setOptErr]     = useState("");
+
+  useEffect(() => { setInputMode(true); setResult(null); setHeadline(""); setAbout(""); setSkills(""); }, [stage]);
+
+  async function optimize() {
+    if (optimizing) return;
+    setOptErr("");
+    setOptimizing(true);
+    try {
+      const res = await fetch("/api/zari/linkedin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ headline, about, skills, stage }),
+      });
+      const data = await res.json().catch(() => null) as LinkedInResult | null;
+      if (data && data.headline) {
+        setResult(data);
+        setInputMode(false);
+      } else {
+        setOptErr("Optimization failed — try again.");
+      }
+    } catch {
+      setOptErr("Connection error — try again.");
+    }
+    setOptimizing(false);
+  }
+
+  async function copyToClipboard(text: string) {
+    try { await navigator.clipboard.writeText(text); } catch { /* ignore */ }
+  }
+
+  if (inputMode) return (
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#FAFBFF" }}>
+      <div style={{ maxWidth:660, margin:"0 auto", padding:"48px 24px" }}>
+        <div style={{ textAlign:"center", marginBottom:32 }}>
+          <div style={{ width:52, height:52, borderRadius:14, background:"linear-gradient(135deg,#0077B5,#00A0DC)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 14px" }}>
+            <svg viewBox="0 0 20 20" fill="white" style={{ width:26, height:26 }}><rect x="2" y="2" width="16" height="16" rx="3"/><path fill="#0077B5" d="M6 9v5M6 6.5v.5M9 14V11a2.5 2.5 0 015 0v3M9 11v3"/></svg>
+          </div>
+          <h1 style={{ fontSize:24, fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", marginBottom:8 }}>LinkedIn Optimizer</h1>
+          <p style={{ fontSize:14, color:"#68738A", lineHeight:1.6, maxWidth:420, margin:"0 auto" }}>Paste your current LinkedIn sections below. Zari will rewrite them to get you found by recruiters searching for your target role.</p>
+        </div>
+
+        {optErr && <div style={{ background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:10, padding:"10px 14px", marginBottom:14, fontSize:13, color:"#991B1B" }}>{optErr}</div>}
+
+        <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+          <div>
+            <label style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", display:"block", marginBottom:5 }}>Current Headline</label>
+            <input
+              style={{ width:"100%", border:"1.5px solid #CBD5E1", borderRadius:10, padding:"10px 12px", fontSize:13.5, color:"#1E2235", outline:"none", fontFamily:"inherit", boxSizing:"border-box", background:"white" }}
+              placeholder="e.g. Operations Lead at FinCo Ltd"
+              value={headline} onChange={e=>setHeadline(e.target.value)}
+            />
+          </div>
+          <div>
+            <label style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", display:"block", marginBottom:5 }}>Current About section</label>
+            <textarea
+              style={{ width:"100%", minHeight:120, border:"1.5px solid #CBD5E1", borderRadius:10, padding:"10px 12px", fontSize:13.5, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"white", lineHeight:1.6 }}
+              placeholder="Paste your About section…"
+              value={about} onChange={e=>setAbout(e.target.value)}
+            />
+          </div>
+          <div>
+            <label style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", display:"block", marginBottom:5 }}>Current Skills (comma-separated)</label>
+            <textarea
+              style={{ width:"100%", minHeight:70, border:"1.5px solid #CBD5E1", borderRadius:10, padding:"10px 12px", fontSize:13.5, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"white", lineHeight:1.6 }}
+              placeholder="e.g. Operations, Supply Chain, Process Design, Stakeholder Management…"
+              value={skills} onChange={e=>setSkills(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <button onClick={()=>void optimize()} disabled={optimizing || (!headline && !about && !skills)} style={{ width:"100%", marginTop:18, fontSize:14, fontWeight:700, padding:"12px", borderRadius:12, border:"none", background:!optimizing&&(headline||about||skills)?"#0077B5":"#E4E8F5", color:!optimizing&&(headline||about||skills)?"white":"#A0AABF", cursor:!optimizing&&(headline||about||skills)?"pointer":"default", boxShadow:!optimizing&&(headline||about||skills)?"0 4px 16px rgba(0,119,181,0.3)":"none", display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
+          {optimizing ? (
+            <><span style={{ width:14,height:14,borderRadius:"50%",border:"2px solid rgba(255,255,255,0.4)",borderTopColor:"white",animation:"spin-slow 0.7s linear infinite",display:"block" }}/> Optimizing…</>
+          ) : "Optimize with Zari →"}
+        </button>
+      </div>
+    </div>
+  );
+
+  const sc = result?.scores ?? { recruiterVisibility:91, keywordDensity:84, profileStrength:88 };
+  const prev = result?.previousScores ?? { recruiterVisibility:61, keywordDensity:54, profileStrength:72 };
+  const issues = result?.issues ?? { headline:"No role-signal for target position.", about:"Missing keywords and quantified outcomes.", skills:"No skills matching target role requirements." };
+  const keywords = result?.missingKeywords ?? ["Product Strategy (94%)","Roadmap (91%)","OKRs (88%)","Discovery (85%)","Agile (82%)","GTM (74%)"];
+
   return (
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#FAFBFF" }}>
       <div style={{ maxWidth:960, margin:"0 auto", padding:28 }}>
-        <h1 style={{ fontSize:22, fontWeight:900, letterSpacing:"-0.03em", color:"#0A0A0F", marginBottom:4 }}>LinkedIn Optimizer</h1>
-        <p style={{ fontSize:13, color:"#68738A", marginBottom:22 }}>Zari analyzed your profile against 40+ Senior PM job descriptions</p>
+        <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:20, flexWrap:"wrap", gap:10 }}>
+          <div>
+            <h1 style={{ fontSize:22, fontWeight:900, letterSpacing:"-0.03em", color:"#0A0A0F", marginBottom:4 }}>LinkedIn Optimizer</h1>
+            <p style={{ fontSize:13, color:"#68738A" }}>Zari rewrote your profile to maximize recruiter visibility</p>
+          </div>
+          <button onClick={()=>setInputMode(true)} style={{ fontSize:12, fontWeight:600, padding:"8px 16px", borderRadius:10, border:"1px solid #E4E8F5", background:"white", color:"#0A0A0F", cursor:"pointer" }}>← Re-analyze</button>
+        </div>
 
         <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12, marginBottom:22 }}>
           {[
-            { label:"Recruiter visibility", score:91, prev:61, color:"#16A34A", note:"↑ 30 after headline rewrite" },
-            { label:"Keyword density",      score:84, prev:54, color:"#4361EE", note:"↑ 30 · 8 keywords added" },
-            { label:"Profile strength",      score:88, prev:72, color:"#0284C7", note:"↑ 16 overall" },
+            { label:"Recruiter visibility", score:sc.recruiterVisibility, prev:prev.recruiterVisibility, color:"#16A34A" },
+            { label:"Keyword density",      score:sc.keywordDensity,      prev:prev.keywordDensity,      color:"#4361EE" },
+            { label:"Profile strength",     score:sc.profileStrength,     prev:prev.profileStrength,     color:"#0284C7" },
           ].map(s => (
             <div key={s.label} style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:14, padding:"16px 18px", display:"flex", gap:14, alignItems:"center", boxShadow:"0 1px 4px rgba(0,0,0,0.04)" }}>
               <ScoreRing score={s.score} color={s.color} size={56}/>
               <div>
                 <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F" }}>{s.label}</p>
-                <p style={{ fontSize:11, color:"#16A34A", fontWeight:600, marginTop:2 }}>{s.note}</p>
+                <p style={{ fontSize:11, color:"#16A34A", fontWeight:600, marginTop:2 }}>↑ {s.score - s.prev} pts after rewrite</p>
               </div>
             </div>
           ))}
@@ -984,7 +1191,7 @@ function ScreenLinkedIn() {
 
         <div style={{ display:"flex", gap:4, background:"white", border:"1px solid #E4E8F5", borderRadius:12, padding:4, width:"fit-content", marginBottom:18 }}>
           {(["headline","about","skills"] as const).map(t => (
-            <button key={t} onClick={()=>setTab(t)} style={{ padding:"6px 20px", borderRadius:9, border:"none", cursor:"pointer", fontSize:12.5, fontWeight:600, background:tab===t?"#4361EE":"transparent", color:tab===t?"white":"#68738A", textTransform:"capitalize" }}>
+            <button key={t} onClick={()=>setTab(t)} style={{ padding:"6px 20px", borderRadius:9, border:"none", cursor:"pointer", fontSize:12.5, fontWeight:600, background:tab===t?"#0077B5":"transparent", color:tab===t?"white":"#68738A", textTransform:"capitalize" }}>
               {t}
             </button>
           ))}
@@ -993,29 +1200,27 @@ function ScreenLinkedIn() {
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
           <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:16, padding:20, boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
             <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", color:"#DC2626", letterSpacing:"0.1em", marginBottom:12 }}>Current {tab}</p>
-            {tab==="headline" && <p style={{ fontSize:14.5, color:"#991B1B", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:10, padding:"10px 12px" }}>Operations Lead at FinCo Ltd</p>}
-            {tab==="about"    && <p style={{ fontSize:13, color:"#1E2235", lineHeight:1.65, background:"#FAFBFF", border:"1px solid #E4E8F5", borderRadius:10, padding:"10px 12px" }}>Experienced operations professional with 4 years driving cross-functional process improvements at scale. Passionate about building efficient systems and working with diverse teams.</p>}
-            {tab==="skills"   && <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>{["Operations","Supply Chain","Process Design","Stakeholder Management","ERP","Logistics","Team Leadership"].map(s=><span key={s} style={{ fontSize:11, padding:"3px 10px", borderRadius:99, background:"#F5F7FF", border:"1px solid #E4E8F5", color:"#68738A" }}>{s}</span>)}</div>}
+            {tab==="headline" && <p style={{ fontSize:14.5, color:"#991B1B", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:10, padding:"10px 12px" }}>{headline || "Operations Lead at FinCo Ltd"}</p>}
+            {tab==="about"    && <p style={{ fontSize:13, color:"#1E2235", lineHeight:1.65, background:"#FAFBFF", border:"1px solid #E4E8F5", borderRadius:10, padding:"10px 12px" }}>{about || "Experienced operations professional with 4 years driving cross-functional process improvements at scale."}</p>}
+            {tab==="skills"   && <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>{(skills ? skills.split(",").map(s=>s.trim()).filter(Boolean) : ["Operations","Supply Chain","Process Design","Stakeholder Management"]).map(s=><span key={s} style={{ fontSize:11, padding:"3px 10px", borderRadius:99, background:"#F5F7FF", border:"1px solid #E4E8F5", color:"#68738A" }}>{s}</span>)}</div>}
             <div style={{ marginTop:14, fontSize:11, color:"#991B1B", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:8, padding:"9px 11px" }}>
-              {tab==="headline" && "⚠ No product signal. Recruiters searching 'Product Manager' won't find you."}
-              {tab==="about"    && "⚠ Missing product keywords, quantified outcomes, and career direction."}
-              {tab==="skills"   && "⚠ No product skills. LinkedIn won't match you to PM roles."}
+              ⚠ {issues[tab]}
             </div>
           </div>
 
           <div style={{ background:"#F0FFF4", border:"1px solid #BBF7D0", borderRadius:16, padding:20, boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
             <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", color:"#16A34A", letterSpacing:"0.1em", marginBottom:12 }}>Zari&apos;s rewrite</p>
-            {tab==="headline" && <p style={{ fontSize:14.5, fontWeight:600, color:"#14532D", background:"white", border:"1px solid #BBF7D0", borderRadius:10, padding:"10px 12px", lineHeight:1.5 }}>Product-Minded Operations Leader → Transitioning to Senior PM | Supply Chain · Cross-Functional Strategy · £340K Impact</p>}
-            {tab==="about"    && <p style={{ fontSize:13, color:"#14532D", lineHeight:1.65, background:"white", border:"1px solid #BBF7D0", borderRadius:10, padding:"10px 12px" }}>Product-minded operations leader with 4 years of cross-functional execution across 5 business units. I ship measurable outcomes: 22% faster fulfilment, £340K in savings, exec-level alignment. Transitioning to Senior PM where I can apply this delivery DNA to product strategy and roadmap ownership. Open to Series B–D tech companies in fintech, ops tech, and supply chain software.</p>}
-            {tab==="skills"   && <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>{["Product Strategy","Roadmap","OKRs","Discovery","Agile","GTM","Operations","Supply Chain","Stakeholder Management","Cross-functional","Process Design","Data Analysis"].map(s=><span key={s} style={{ fontSize:11, padding:"3px 10px", borderRadius:99, background:"white", border:"1px solid #BBF7D0", color:"#14532D" }}>{s}</span>)}</div>}
-            <button style={{ marginTop:14, width:"100%", fontSize:13, fontWeight:700, padding:"10px", borderRadius:10, border:"none", background:"#16A34A", color:"white", cursor:"pointer" }}>Copy to LinkedIn →</button>
+            {tab==="headline" && <p style={{ fontSize:14.5, fontWeight:600, color:"#14532D", background:"white", border:"1px solid #BBF7D0", borderRadius:10, padding:"10px 12px", lineHeight:1.5 }}>{result?.headline ?? "Product-Minded Leader | Operations → Senior PM | Cross-Functional Strategy · Measurable Impact"}</p>}
+            {tab==="about"    && <p style={{ fontSize:13, color:"#14532D", lineHeight:1.65, background:"white", border:"1px solid #BBF7D0", borderRadius:10, padding:"10px 12px" }}>{result?.about ?? "Product-minded operations leader with 4 years driving cross-functional execution. I ship measurable outcomes. Transitioning to Senior PM."}</p>}
+            {tab==="skills"   && <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>{(result?.skills ?? ["Product Strategy","Roadmap","OKRs","Discovery","Agile","GTM","Operations","Supply Chain","Stakeholder Management","Cross-functional","Process Design","Data Analysis"]).map(s=><span key={s} style={{ fontSize:11, padding:"3px 10px", borderRadius:99, background:"white", border:"1px solid #BBF7D0", color:"#14532D" }}>{s}</span>)}</div>}
+            <button onClick={()=>void copyToClipboard(tab==="headline"?(result?.headline??""):tab==="about"?(result?.about??""):(result?.skills??"").toString())} style={{ marginTop:14, width:"100%", fontSize:13, fontWeight:700, padding:"10px", borderRadius:10, border:"none", background:"#16A34A", color:"white", cursor:"pointer" }}>Copy to LinkedIn →</button>
           </div>
         </div>
 
         <div style={{ marginTop:18, background:"white", border:"1px solid #E4E8F5", borderRadius:16, padding:20 }}>
-          <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", marginBottom:10 }}>Missing keywords (found in 70%+ of Senior PM job descriptions)</p>
+          <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", marginBottom:10 }}>Missing keywords (found in 68%+ of job descriptions for your target role)</p>
           <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
-            {["Product strategy (94%)","Roadmap (91%)","OKRs (88%)","Discovery (85%)","Agile (82%)","GTM (74%)","P&L (68%)","Stakeholder alignment (88%)"].map(k => (
+            {keywords.map(k => (
               <span key={k} style={{ fontSize:11.5, fontWeight:600, padding:"4px 12px", borderRadius:99, background:"#FEF3C7", color:"#92400E", border:"1px solid #FDE68A" }}>{k}</span>
             ))}
           </div>
@@ -1158,25 +1363,56 @@ const STAGE_TASKS: Record<CareerStage, { text:string; cat:string; pri:string }[]
 /* ═══════════════════════════════════════════════════
    SCREEN: ACTION PLAN
 ═══════════════════════════════════════════════════ */
+type PlanTask = { text: string; cat: string; pri: string };
+
 function ScreenPlan({ stage }: { stage: CareerStage }) {
-  const [done, setDone] = useState<Set<number>>(new Set([0, 2]));
-  const TASKS = STAGE_TASKS[stage];
+  const [done,        setDone]        = useState<Set<number>>(new Set([0]));
+  const [aiTasks,     setAiTasks]     = useState<PlanTask[] | null>(null);
+  const [aiCoachNote, setAiCoachNote] = useState<string | null>(null);
+  const [planLoading, setPlanLoading] = useState(false);
 
-  // Reset checkmarks when stage changes
-  useEffect(() => { setDone(new Set([0])); }, [stage]);
+  // Fetch AI plan on mount / stage change
+  useEffect(() => {
+    setDone(new Set([0]));
+    setAiTasks(null);
+    setAiCoachNote(null);
+    setPlanLoading(true);
+    fetch("/api/zari/plan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ stage }),
+    })
+      .then(r => r.json())
+      .then((data: { tasks?: PlanTask[]; coachNote?: string }) => {
+        if (data.tasks?.length) {
+          setAiTasks(data.tasks);
+          setAiCoachNote(data.coachNote ?? null);
+        }
+      })
+      .catch(() => { /* fall back to static tasks */ })
+      .finally(() => setPlanLoading(false));
+  }, [stage]);
 
+  const TASKS = aiTasks ?? STAGE_TASKS[stage];
   const pct = Math.round((done.size/TASKS.length)*100);
 
   return (
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#FAFBFF" }}>
       <div style={{ maxWidth:800, margin:"0 auto", padding:28 }}>
+        {planLoading && (
+          <div style={{ display:"flex", alignItems:"center", gap:10, background:"#EEF2FF", border:"1px solid rgba(67,97,238,0.2)", borderRadius:12, padding:"12px 16px", marginBottom:18, fontSize:13, color:"#4361EE", fontWeight:600 }}>
+            <span style={{ width:14,height:14,borderRadius:"50%",border:"2px solid rgba(67,97,238,0.3)",borderTopColor:"#4361EE",animation:"spin-slow 0.7s linear infinite",display:"block",flexShrink:0 }}/>
+            Zari is generating your personalized plan…
+          </div>
+        )}
         <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:22, flexWrap:"wrap", gap:12 }}>
           <div>
             <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
               <h1 style={{ fontSize:22, fontWeight:900, letterSpacing:"-0.03em", color:"#0A0A0F", margin:0 }}>Action Plan</h1>
               <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:11, fontWeight:700, padding:"3px 9px", borderRadius:99, background: STAGE_META[stage].bg, color: STAGE_META[stage].color, border:`1px solid ${STAGE_META[stage].color}30` }}>{STAGE_ICONS[stage]} {STAGE_META[stage].label}</span>
+              {aiTasks && <span style={{ fontSize:10, fontWeight:700, padding:"2px 8px", borderRadius:99, background:"#F0FFF4", color:"#16A34A", border:"1px solid #BBF7D0" }}>AI-generated</span>}
             </div>
-            <p style={{ fontSize:13, color:"#68738A" }}>Zari updates this automatically after every session</p>
+            <p style={{ fontSize:13, color:"#68738A" }}>Zari personalizes this based on your profile and session history</p>
           </div>
           <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:12, padding:"10px 18px", display:"flex", gap:16, alignItems:"center" }}>
             <div style={{ textAlign:"center" }}>
@@ -1234,8 +1470,7 @@ function ScreenPlan({ stage }: { stage: CareerStage }) {
             <div style={{ width:36, height:36, borderRadius:10, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:14, fontWeight:800, color:"white" }}>Z</div>
             <div>
               <p style={{ fontSize:13, fontWeight:700, color:"#4361EE", marginBottom:6 }}>Zari&apos;s coaching note</p>
-              <p style={{ fontSize:13, color:"#3451D1", lineHeight:1.65 }}>You&apos;ve made real progress on your resume positioning — the impact numbers are working. Your highest leverage this week is the 3 STAR stories for cross-functional leadership. Interviewers at Senior PM level will spend 60%+ of your time here. Let&apos;s run a mock session when you&apos;re ready.</p>
-              <button style={{ marginTop:10, fontSize:12.5, fontWeight:700, padding:"7px 16px", borderRadius:9, border:"none", background:"#4361EE", color:"white", cursor:"pointer" }}>Practice with Zari →</button>
+              <p style={{ fontSize:13, color:"#3451D1", lineHeight:1.65 }}>{aiCoachNote ?? "Your highest-leverage action this week is completing the high-priority tasks. These will create the most momentum — check them off one by one and come back to Zari when you're ready to practice."}</p>
             </div>
           </div>
         </div>
@@ -1383,7 +1618,7 @@ export function ZariPortal() {
           {screen==="session"   && <ScreenSession   stage={stage}/>}
           {screen==="resume"    && <ScreenResume    stage={stage}/>}
           {screen==="interview" && <ScreenInterview stage={stage}/>}
-          {screen==="linkedin"  && <ScreenLinkedIn/>}
+          {screen==="linkedin"  && <ScreenLinkedIn stage={stage}/>}
           {screen==="documents" && <ScreenDocuments/>}
           {screen==="plan"      && <ScreenPlan      stage={stage}/>}
         </div>
