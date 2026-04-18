@@ -1,30 +1,10 @@
 import { NextResponse } from "next/server";
 import { ensureSameOrigin } from "@/lib/utils";
 
-// Job boards confirmed to be JavaScript SPAs — server-side fetch only gets an empty shell.
-// Pattern matches anywhere in the hostname so subdomains are covered automatically.
-const SPA_PATTERNS: { pattern: RegExp; name: string }[] = [
-  { pattern: /workforcenow\.adp\.com/i,        name: "ADP Workforce Now" },
-  { pattern: /myworkdayjobs\.com/i,             name: "Workday" },
-  { pattern: /linkedin\.com\/jobs/i,            name: "LinkedIn" },
-  { pattern: /taleo\.net/i,                     name: "Taleo" },
-  { pattern: /icims\.com/i,                     name: "iCIMS" },
-  { pattern: /successfactors\.(com|eu)/i,       name: "SAP SuccessFactors" },
-  { pattern: /sapsf\.com/i,                     name: "SAP SuccessFactors" },
-  { pattern: /smartrecruiters\.com/i,           name: "SmartRecruiters" },
-  { pattern: /ultipro\.com/i,                   name: "UKG/UltiPro" },
-  { pattern: /jobvite\.com/i,                   name: "Jobvite" },
-  { pattern: /bamboohr\.com/i,                  name: "BambooHR" },
-  { pattern: /breezy\.hr/i,                     name: "Breezy HR" },
-  { pattern: /jazz\.hr/i,                       name: "JazzHR" },
-  { pattern: /rippling\.com/i,                  name: "Rippling" },
-  { pattern: /ashbyhq\.com/i,                   name: "Ashby" },
-];
-
-// Keywords that confirm we actually got real job content (not a JS-app shell)
 const JOB_KEYWORDS = [
   "responsibilities", "requirements", "qualifications", "experience",
   "skills", "benefits", "salary", "position", "role", "opportunity",
+  "candidate", "apply", "hiring", "team", "compensation",
 ];
 
 export async function POST(request: Request) {
@@ -39,15 +19,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Valid URL required" }, { status: 400 });
   }
 
-  // Detect known SPA job boards immediately — no point fetching
-  const matched = SPA_PATTERNS.find(({ pattern }) => pattern.test(url));
-  if (matched) {
-    return NextResponse.json(
-      { error: `${matched.name} loads with JavaScript and can't be scraped directly. Open the posting, select all text (Cmd+A / Ctrl+A), copy it, and paste it in the field below.` },
-      { status: 422 },
-    );
-  }
-
   try {
     const res = await fetch(url, {
       headers: {
@@ -59,7 +30,7 @@ export async function POST(request: Request) {
 
     if (!res.ok) {
       return NextResponse.json(
-        { error: `Couldn't access that page (${res.status}) — paste the job description instead.` },
+        { error: `Couldn't access that page (${res.status}). Try opening the job posting, copying all the text, and pasting it below.` },
         { status: 422 },
       );
     }
@@ -80,19 +51,13 @@ export async function POST(request: Request) {
       .replace(/\n{3,}/g, "\n\n")
       .trim();
 
-    if (text.length < 100) {
-      return NextResponse.json(
-        { error: "This page didn't return readable content — it likely requires JavaScript. Paste the job description instead." },
-        { status: 422 },
-      );
-    }
-
-    // Heuristic: if text is short and has no job-related keywords, it's probably a JS shell
+    // Check if we got actual job content or just a JS-app shell
     const lower = text.toLowerCase();
     const hasJobContent = JOB_KEYWORDS.some(kw => lower.includes(kw));
-    if (!hasJobContent && text.length < 800) {
+
+    if (text.length < 200 || !hasJobContent) {
       return NextResponse.json(
-        { error: "This page appears to be a JavaScript app — the job content didn't load. Open the posting, copy all visible text, and paste it instead." },
+        { error: "This page requires JavaScript to load so we couldn't read the content. Open the job posting, select all the text (Cmd+A), copy it, and paste it below." },
         { status: 422 },
       );
     }
@@ -100,7 +65,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ text: text.slice(0, 5000) });
   } catch {
     return NextResponse.json(
-      { error: "Couldn't reach that URL — check the link or paste the job description instead." },
+      { error: "Couldn't reach that URL. Check the link, or open the posting and paste the text below." },
       { status: 422 },
     );
   }
