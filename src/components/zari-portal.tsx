@@ -199,18 +199,70 @@ function ScreenSession({ stage }: { stage: CareerStage }) {
   const [input, setInput] = useState("");
   const [isVoice, setIsVoice] = useState(false);
   const [elapsed, setElapsed] = useState(0);
-  const [msgs, setMsgs] = useState<ChatMsg[]>(() => STAGE_INIT_MSGS[stage]);
+  const [msgs, setMsgs] = useState<ChatMsg[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionReady, setSessionReady] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
 
-  // Reset conversation when stage changes
+  /* ── Load or create a live session on mount / stage change ── */
   useEffect(() => {
-    setMsgs(STAGE_INIT_MSGS[stage]);
+    setSessionReady(false);
     setElapsed(0);
+    let cancelled = false;
+
+    async function initSession() {
+      try {
+        // Find an existing live session
+        const res = await fetch("/api/sessions", { cache: "no-store" });
+        const data = await res.json().catch(() => ({})) as {
+          sessions?: Array<{
+            id: string; status: string; mode: string;
+            transcript?: Array<{ role: string; message: string }>;
+          }>;
+        };
+
+        if (cancelled) return;
+        const sessions = data.sessions ?? [];
+        const live = sessions.find(s => s.status === "live");
+
+        if (live) {
+          setSessionId(live.id);
+          // Restore transcript if it has real messages
+          const transcript = live.transcript ?? [];
+          if (transcript.length > 0) {
+            setMsgs(transcript.map(t => ({ role: t.role, text: t.message })));
+            if (!cancelled) setSessionReady(true);
+            return;
+          }
+        } else {
+          // Create a fresh session
+          const createRes = await fetch("/api/sessions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ mode: "career", title: `${STAGE_META[stage].label} Session` }),
+          });
+          const created = await createRes.json().catch(() => ({})) as { id?: string };
+          if (!cancelled && created.id) setSessionId(created.id);
+        }
+      } catch {
+        // non-fatal — continue without session persistence
+      }
+
+      // Fall back to default init messages
+      if (!cancelled) {
+        setMsgs(STAGE_INIT_MSGS[stage]);
+        setSessionReady(true);
+      }
+    }
+
+    void initSession();
+    return () => { cancelled = true; };
   }, [stage]);
 
   useEffect(() => { const t = setInterval(() => setElapsed(e => e+1), 1000); return () => clearInterval(t); }, []);
   useEffect(() => { if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight; }, [msgs, isLoading]);
+  useEffect(() => { if (sessionReady) setSessionReady(true); }, [sessionReady]);
 
   const fmt = (s:number) => `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
 
@@ -218,8 +270,21 @@ function ScreenSession({ stage }: { stage: CareerStage }) {
     const trimmed = text.trim();
     if (!trimmed || isLoading) return;
 
-    const nextMsgs: ChatMsg[] = [...msgs, { role: "user", text: trimmed }];
-    setMsgs(nextMsgs);
+    // If no session yet, create one now
+    let sid = sessionId;
+    if (!sid) {
+      try {
+        const createRes = await fetch("/api/sessions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mode: "career", title: `${STAGE_META[stage].label} Session` }),
+        });
+        const created = await createRes.json().catch(() => ({})) as { id?: string };
+        if (created.id) { sid = created.id; setSessionId(created.id); }
+      } catch { /* non-fatal */ }
+    }
+
+    setMsgs(m => [...m, { role: "user", text: trimmed }]);
     setInput("");
     setAvatarState("thinking");
     setIsLoading(true);
@@ -228,7 +293,12 @@ function ScreenSession({ stage }: { stage: CareerStage }) {
       const res = await fetch("/api/zari/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: trimmed, stage, history: msgs }),
+        body: JSON.stringify({
+          message: trimmed,
+          stage,
+          history: msgs,
+          sessionId: sid,
+        }),
       });
       const data = await res.json().catch(() => ({})) as { message?: string };
       const reply = data.message?.trim() || "I'm having a little trouble right now — try again in a moment.";
@@ -323,6 +393,15 @@ function ScreenSession({ stage }: { stage: CareerStage }) {
       {/* ── RIGHT PANEL: Transcript + input ── */}
       <div style={{ flex:1, display:"flex", flexDirection:"column", background:"#FAFBFF", minWidth:0 }}>
         <div ref={chatRef} style={{ flex:1, overflowY:"auto", padding:"24px 28px" }}>
+          {/* Session loading skeleton */}
+          {!sessionReady && msgs.length === 0 && (
+            <div style={{ display:"flex", gap:10, marginBottom:16, animation:"bubble-appear 0.3s ease" }}>
+              <div style={{ width:32,height:32,borderRadius:"50%",flexShrink:0,background:"linear-gradient(135deg,#4361EE,#818CF8)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"white" }}>Z</div>
+              <div style={{ display:"flex", alignItems:"center", gap:5, padding:"11px 16px", borderRadius:"4px 16px 16px 16px", background:"white", border:"1px solid #E4E8F5" }}>
+                {[0,1,2].map(i=><div key={i} style={{ width:7,height:7,borderRadius:"50%",background:"#C7D2FE",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
+              </div>
+            </div>
+          )}
           {msgs.map((msg, i) => (
             <div key={i} style={{ display:"flex", gap:10, marginBottom:16, flexDirection:msg.role==="user"?"row-reverse":"row", animation:`bubble-appear 0.3s ease ${i*0.05}s both` }}>
               <div style={{ width:32, height:32, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700, background:msg.role==="coach"?"linear-gradient(135deg,#4361EE,#818CF8)":"#E4E8F5", color:msg.role==="coach"?"white":"#68738A", boxShadow:msg.role==="coach"?"0 0 10px rgba(67,97,238,0.25)":"none" }}>
