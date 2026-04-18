@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 import { ensureSameOrigin } from "@/lib/utils";
 
+// Specific enough to not appear in JS/CSS code — require at least 2 to match
 const JOB_KEYWORDS = [
-  "responsibilities", "requirements", "qualifications", "experience",
-  "skills", "benefits", "salary", "position", "role", "opportunity",
-  "candidate", "apply", "hiring", "team", "compensation",
+  "responsibilities", "requirements", "qualifications",
+  "compensation", "benefits", "salary", "candidate",
+  "hiring manager", "we are looking", "you will", "you'll",
+  "what you'll", "about the role", "about the job",
+  "job description", "equal opportunity",
 ];
 
 export async function POST(request: Request) {
@@ -51,11 +54,12 @@ export async function POST(request: Request) {
       .replace(/\n{3,}/g, "\n\n")
       .trim();
 
-    // Check if we got actual job content or just a JS-app shell
+    // Require at least 2 distinct job-specific phrases — single matches like
+    // "position" or "role" appear in JS/CSS and produce false positives
     const lower = text.toLowerCase();
-    const hasJobContent = JOB_KEYWORDS.some(kw => lower.includes(kw));
+    const matchCount = JOB_KEYWORDS.filter(kw => lower.includes(kw)).length;
 
-    if (text.length < 200 || !hasJobContent) {
+    if (text.length < 200 || matchCount < 2) {
       return NextResponse.json(
         { error: "This page requires JavaScript to load so we couldn't read the content. Open the job posting, select all the text (Cmd+A), copy it, and paste it below." },
         { status: 422 },
