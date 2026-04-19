@@ -4245,14 +4245,14 @@ export function ZariPortal() {
           </div>
         </div>
 
-        {/* Screen */}
-        <div style={{ flex:1, overflow:"hidden" }}>
-          {screen==="session"   && <ScreenSession   stage={stage}/>}
-          {screen==="resume"    && <ScreenResume    stage={stage}/>}
-          {screen==="interview" && <ScreenInterview stage={stage}/>}
-          {screen==="linkedin"  && <ScreenLinkedIn stage={stage}/>}
-          {screen==="documents" && <ScreenDocuments/>}
-          {screen==="plan"      && <ScreenPlan      stage={stage}/>}
+        {/* Screen — all kept mounted, hidden when inactive to preserve state */}
+        <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
+          <div style={{ display:screen==="session"   ? "block" : "none", height:"100%" }}><ScreenSession   stage={stage}/></div>
+          <div style={{ display:screen==="resume"    ? "block" : "none", height:"100%" }}><ScreenResume    stage={stage}/></div>
+          <div style={{ display:screen==="interview" ? "block" : "none", height:"100%" }}><ScreenInterview stage={stage}/></div>
+          <div style={{ display:screen==="linkedin"  ? "block" : "none", height:"100%" }}><ScreenLinkedIn  stage={stage}/></div>
+          <div style={{ display:screen==="documents" ? "block" : "none", height:"100%" }}><ScreenDocuments/></div>
+          <div style={{ display:screen==="plan"      ? "block" : "none", height:"100%" }}><ScreenPlan      stage={stage}/></div>
         </div>
       </main>
     </div>
