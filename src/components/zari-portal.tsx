@@ -243,9 +243,10 @@ function SuggestionsResume({
   const BULLET_CHAR_RE = /^[•\-\*\u2022►▸]\s*/;
   const PASSIVE_RE = /\b(was|were|is|are|been|being)\s+\w+ed\b/i;
   const METRIC_RE = /\d|%|\$|#/;
-  // Pre-process: fix section order (garbled PDF) then join broken lines
-  const processedText = joinWrappedLines(normalizeResumeText(text.slice(0, 10000)));
-  const lines = processedText.split("\n");
+  // Use raw lines — no preprocessing. PDF-extracted text is already garbled;
+  // any reordering makes it worse. When a PDF is available, the parent shows
+  // the iframe instead of this component entirely.
+  const lines = text.slice(0, 12000).split("\n");
 
   // Robust line → bullet matching: strip bullet chars, try multiple slice lengths
   const lineMatch: Record<number, number> = {};
@@ -428,7 +429,9 @@ function FormattedResume({ text, keywords }: { text: string; keywords?: ResumeKe
   }
 
   const HEADER_RE = /^[A-Z][A-Z\s&\/\-]{3,}$/;
-  const lines = joinWrappedLines(normalizeResumeText(text)).split("\n");
+  // No preprocessing — pasted text is already in user's order; PDF text is shown
+  // via iframe by the parent so this renderer is only used for pasted text.
+  const lines = text.split("\n");
 
   return (
     <div style={{ fontFamily:"inherit", fontSize:13, lineHeight:1.75, color:"#1E2235" }}>
@@ -2023,23 +2026,37 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
                 ))}
               </div>
               <div style={{ display:"flex", gap:6 }}>
-                {resumeViewMode==="preview" && rawFileUrl && aiResult?.keywords?.some(k=>k.found) && (
+                {aiResult?.keywords?.some(k=>k.found) && (
                   <button onClick={()=>setTab("keywords")} style={{ fontSize:11, color:"#14532D", background:"#DCFCE7", padding:"3px 10px", borderRadius:99, fontWeight:700, border:"none", cursor:"pointer" }}>
                     {aiResult!.keywords!.filter(k=>k.found).length} keywords found →
                   </button>
                 )}
-                {resumeViewMode==="suggestions" && (
+                {resumeViewMode==="suggestions" && !rawFileUrl && (
                   <span style={{ fontSize:11, color:"#92400E", background:"#FEF3C7", padding:"3px 10px", borderRadius:99, fontWeight:700 }}>tap lines for suggestions</span>
                 )}
               </div>
             </div>
-            {/* Resume view: suggestions overlay or PDF/text preview */}
-            {resumeViewMode==="suggestions"
+            {/* Resume view — always show PDF when available; fall back to text renderer */}
+            {rawFileUrl
+              ? <div style={{ flex:1, position:"relative", minHeight:0, display:"flex", flexDirection:"column" }}>
+                  <iframe src={rawFileUrl} style={{ flex:1, width:"100%", border:"none", display:"block", minHeight:0 }} title="Resume"/>
+                  {/* Suggestions mode: floating badge panel over the PDF */}
+                  {resumeViewMode==="suggestions" && (aiResult?.bullets?.length ?? 0) > 0 && (
+                    <div style={{ position:"absolute", bottom:16, left:"50%", transform:"translateX(-50%)", background:"rgba(15,23,42,0.88)", backdropFilter:"blur(8px)", borderRadius:14, padding:"10px 18px", display:"flex", alignItems:"center", gap:14, boxShadow:"0 4px 24px rgba(0,0,0,0.3)", whiteSpace:"nowrap" }}>
+                      <span style={{ fontSize:12.5, fontWeight:600, color:"white" }}>
+                        {aiResult!.bullets!.length} bullet{aiResult!.bullets!.length!==1?"s":""} flagged
+                      </span>
+                      <span style={{ width:1, height:16, background:"rgba(255,255,255,0.2)" }}/>
+                      <button onClick={()=>setTab("bullets")} style={{ fontSize:12, fontWeight:700, color:"#93C5FD", background:"none", border:"none", cursor:"pointer", padding:0 }}>
+                        View in Line-by-Line →
+                      </button>
+                    </div>
+                  )}
+                </div>
+              : resumeViewMode==="suggestions"
               ? <div style={{ padding:"20px 22px", overflowY:"auto", flex:1 }}>
                   <SuggestionsResume text={resumeText} bullets={aiResult?.bullets ?? []} wordIssues={aiResult?.wordIssues} activeIdx={activeSuggestion} onClickLine={setActiveSuggestion}/>
                 </div>
-              : rawFileUrl
-              ? <iframe src={rawFileUrl} style={{ flex:1, width:"100%", border:"none", display:"block", minHeight:0 }} title="Resume"/>
               : <div style={{ padding:"20px 22px", overflowY:"auto", flex:1 }}>
                   <FormattedResume text={resumeText.slice(0,6000)} keywords={aiResult?.keywords}/>
                 </div>
