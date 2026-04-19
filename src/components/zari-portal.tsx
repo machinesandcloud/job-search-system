@@ -69,6 +69,119 @@ function Sparkline({ values, color="#4361EE", width=80, height=24 }: { values:nu
   );
 }
 
+/* ─── Resume text pre-processors ─── */
+
+/** Join lines that are clearly mid-sentence continuations (PDF line-wrapping artifact) */
+function joinWrappedLines(text: string): string {
+  const HEADER_RE = /^[A-Z][A-Z\s&\/\-]{3,}$/;
+  const BULLET_RE = /^[•\-\*\u2022►▸]\s/;
+  const TERMINAL_RE = /[.!?]$/;
+  const lines = text.split("\n");
+  const out: string[] = [];
+
+  for (const line of lines) {
+    const t = line.trim();
+    if (!t) { out.push(""); continue; }
+    const isSpecial = (HEADER_RE.test(t) && t.length <= 60) || BULLET_RE.test(t);
+    if (isSpecial || !out.length) { out.push(t); continue; }
+    const last = out[out.length - 1].trim();
+    const lastIsSpecial = !last || (HEADER_RE.test(last) && last.length <= 60) || BULLET_RE.test(last);
+    if (!TERMINAL_RE.test(last) && !lastIsSpecial) {
+      out[out.length - 1] = last + " " + t;
+    } else {
+      out.push(t);
+    }
+  }
+  return out.join("\n");
+}
+
+/** Re-order garbled PDF-extracted resume into canonical section order */
+function normalizeResumeText(text: string): string {
+  const SECTION_RE = /^(PROFESSIONAL SUMMARY|SUMMARY|PROFILE|OBJECTIVE|SKILLS|TECHNICAL SKILLS|CORE COMPETENCIES|PROFESSIONAL EXPERIENCE|WORK EXPERIENCE|EXPERIENCE|EMPLOYMENT|EMPLOYMENT HISTORY|EDUCATION|CERTIFICATIONS?|LICENSES?|AWARDS?|ACHIEVEMENTS?|PROJECTS?|VOLUNTEER|INTERESTS?)$/i;
+  const NAME_RE    = /^[A-Z][A-Z\s]{4,39}[A-Z]$/;
+  const CONTACT_RE = /@|\(\d{3}\)|\d{3}[\-.\s]\d{3}[\-.\s]\d{4}/;
+  const CITY_ST_RE = /^[A-Za-z][A-Za-z\s]+,\s*[A-Z]{2}$/;
+  const SKILL_CATEGORY_RE = /^[A-Za-z][A-Za-z\s&]{2,35}:\s+\S/;
+  const CANONICAL  = ["PROFESSIONAL SUMMARY","SUMMARY","PROFILE","OBJECTIVE","SKILLS","TECHNICAL SKILLS","CORE COMPETENCIES","PROFESSIONAL EXPERIENCE","WORK EXPERIENCE","EXPERIENCE","EMPLOYMENT HISTORY","EMPLOYMENT","EDUCATION","CERTIFICATIONS","CERTIFICATION","LICENSES","AWARDS","ACHIEVEMENTS","PROJECTS","VOLUNTEER","INTERESTS"];
+
+  type Sec = { header: string; lines: string[] };
+  const nameLines: string[] = [], contactLines: string[] = [], orphaned: string[] = [];
+  const sections: Sec[] = [];
+  let cur: Sec | null = null;
+
+  for (const line of text.split("\n")) {
+    const t = line.trim();
+    if (!t) { (cur ? cur.lines : orphaned).push(""); continue; }
+
+    if (SECTION_RE.test(t)) {
+      cur = { header: t.toUpperCase(), lines: [] };
+      sections.push(cur);
+      continue;
+    }
+    if (!cur) {
+      // Before any section header
+      if (NAME_RE.test(t) && !/\b(EXPERIENCE|EDUCATION|SKILLS|SUMMARY|CERTIFICATIONS|EMPLOYMENT|PROFESSIONAL)\b/i.test(t)) {
+        nameLines.push(t.replace(/\s{2,}/g, " "));
+      } else if ((CONTACT_RE.test(t) || CITY_ST_RE.test(t)) && t.length < 140) {
+        contactLines.push(t);
+      } else {
+        orphaned.push(t);
+      }
+    } else {
+      // Inside a section — still harvest stray name/contact lines
+      if (NAME_RE.test(t) && !/\b(EXPERIENCE|EDUCATION|SKILLS|SUMMARY|CERTIFICATIONS|EMPLOYMENT|PROFESSIONAL)\b/i.test(t) && !nameLines.length) {
+        nameLines.push(t.replace(/\s{2,}/g, " "));
+      } else if ((CONTACT_RE.test(t) || CITY_ST_RE.test(t)) && t.length < 140 && !contactLines.length) {
+        contactLines.push(t);
+      } else {
+        cur.lines.push(line);
+      }
+    }
+  }
+
+  // Assign orphaned lines: skill-category lines → SKILLS, everything else → PROFESSIONAL SUMMARY
+  const orphanSkills  = orphaned.filter(l => SKILL_CATEGORY_RE.test(l.trim()));
+  const orphanSummary = orphaned.filter(l => l.trim() && !SKILL_CATEGORY_RE.test(l.trim()));
+
+  if (orphanSummary.length) {
+    let sumSec = sections.find(s => /SUMMARY|PROFILE|OBJECTIVE/.test(s.header));
+    if (!sumSec) { sumSec = { header: "PROFESSIONAL SUMMARY", lines: [] }; sections.unshift(sumSec); }
+    sumSec.lines = [...orphanSummary, ...sumSec.lines];
+  }
+  if (orphanSkills.length) {
+    let skillSec = sections.find(s => /SKILLS|COMPETENCIES/.test(s.header));
+    if (!skillSec) { skillSec = { header: "SKILLS", lines: [] }; sections.push(skillSec); }
+    skillSec.lines = [...orphanSkills, ...skillSec.lines];
+  }
+
+  const canonIdx = (h: string) => {
+    const i = CANONICAL.indexOf(h);
+    return i >= 0 ? i : CANONICAL.length;
+  };
+  sections.sort((a, b) => canonIdx(a.header) - canonIdx(b.header));
+
+  const out: string[] = [];
+  const seenNames = new Set<string>();
+  for (const n of nameLines) { if (!seenNames.has(n)) { seenNames.add(n); out.push(n); } }
+  const seenContact = new Set<string>();
+  for (const c of contactLines) { if (!seenContact.has(c)) { seenContact.add(c); out.push(c); } }
+  if (out.length) out.push("");
+
+  for (const sec of sections) {
+    const content = sec.lines.filter(l => l.trim());
+    if (!content.length) continue;
+    out.push(sec.header);
+    // Trim leading/trailing blank lines
+    const trimmed = sec.lines;
+    let s = 0, e = trimmed.length - 1;
+    while (s < trimmed.length && !trimmed[s].trim()) s++;
+    while (e >= 0 && !trimmed[e].trim()) e--;
+    out.push(...trimmed.slice(s, e + 1));
+    out.push("");
+  }
+  return out.join("\n").trim();
+}
+
 type LineFlag = { kind: "weak"; bulletIdx: number } | { kind: "no_metric" } | { kind: "too_long"; words: number } | { kind: "passive" };
 
 function SuggestionsResume({
@@ -85,7 +198,9 @@ function SuggestionsResume({
   const BULLET_CHAR_RE = /^[•\-\*\u2022►▸]\s*/;
   const PASSIVE_RE = /\b(was|were|is|are|been|being)\s+\w+ed\b/i;
   const METRIC_RE = /\d|%|\$|#/;
-  const lines = text.slice(0, 8000).split("\n");
+  // Pre-process: fix section order (garbled PDF) then join broken lines
+  const processedText = joinWrappedLines(normalizeResumeText(text.slice(0, 10000)));
+  const lines = processedText.split("\n");
 
   // Robust line → bullet matching: strip bullet chars, try multiple slice lengths
   const lineMatch: Record<number, number> = {};
@@ -267,10 +382,8 @@ function FormattedResume({ text, keywords }: { text: string; keywords?: ResumeKe
     );
   }
 
-  // Only detect definitive ALL-CAPS section headers — never guess name/contact/bullets
-  // This preserves the exact original text layout while adding just one visual enhancement.
-  const HEADER_RE = /^[A-Z][A-Z\s&\/\-]{3,}$/;  // 4+ uppercase chars, no digits
-  const lines = text.split("\n");
+  const HEADER_RE = /^[A-Z][A-Z\s&\/\-]{3,}$/;
+  const lines = joinWrappedLines(normalizeResumeText(text)).split("\n");
 
   return (
     <div style={{ fontFamily:"inherit", fontSize:11.5, lineHeight:1.7, color:"#1E2235" }}>
@@ -822,8 +935,8 @@ function generateResumeHtml(text: string, footerNote = ""): string {
       continue;
     }
 
-    // Contact line
-    if (CONTACT_RE.test(t) && t.length < 160) {
+    // Contact line (phone/email/url) or City, State
+    if ((CONTACT_RE.test(t) && t.length < 160) || /^[A-Za-z][A-Za-z\s]+,\s*[A-Z]{2}$/.test(t)) {
       flushPending();
       body += `<p class="contact">${escHtml(t)}</p>\n`;
       continue;
