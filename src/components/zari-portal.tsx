@@ -3258,31 +3258,41 @@ function ScreenInterview({ stage }: { stage: CareerStage }) {
    SCREEN: LINKEDIN
 ═══════════════════════════════════════════════════ */
 type LICheck = { name: string; pass: boolean; detail: string };
-type LISection = { score: number; verdict: string; rewrite: string; checks: LICheck[] };
+type LISection = { score: number; verdict: string; rewrite: string | null; checks: LICheck[] };
 type LinkedInResult = {
   overall: number;
   headline: LISection;
   summary: LISection;
   experience: LISection;
+  education: LISection;
+  other: LISection;
   keywords: { present: string[]; missing: string[] };
   missingKeywords: string[];
 };
 
 function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
-  const [liSection,  setLISection]  = useState<"score"|"headline"|"summary"|"experience"|"keywords">("score");
-  const [inputMode,  setInputMode]  = useState(true);
-  const [headline,   setHeadline]   = useState("");
-  const [summary,    setSummary]    = useState("");
-  const [experience, setExperience] = useState("");
-  const [skills,     setSkills]     = useState("");
-  const [targetRole, setTargetRole] = useState("");
-  const [loading,    setLoading]    = useState(false);
-  const [result,     setResult]     = useState<LinkedInResult | null>(null);
-  const [err,        setErr]        = useState("");
-  const [previewTab, setPreviewTab] = useState<"current"|"rewritten">("current");
-  const [expandedCheck, setExpandedCheck] = useState<number | null>(null);
+  type LINav = "score"|"headline"|"summary"|"experience"|"education"|"other"|"keywords";
+  const [liSection,    setLISection]    = useState<LINav>("score");
+  const [inputMode,    setInputMode]    = useState(true);
+  const [headline,     setHeadline]     = useState("");
+  const [summary,      setSummary]      = useState("");
+  const [experience,   setExperience]   = useState("");
+  const [education,    setEducation]    = useState("");
+  const [skills,       setSkills]       = useState("");
+  const [linkedinUrl,  setLinkedinUrl]  = useState("");
+  const [hasPhoto,     setHasPhoto]     = useState(false);
+  const [targetRole,   setTargetRole]   = useState("");
+  const [loading,      setLoading]      = useState(false);
+  const [result,       setResult]       = useState<LinkedInResult | null>(null);
+  const [err,          setErr]          = useState("");
+  const [previewTab,   setPreviewTab]   = useState<"current"|"rewritten">("current");
+  const [expandedCheck,setExpandedCheck]= useState<number | null>(null);
 
-  useEffect(() => { setInputMode(true); setResult(null); setHeadline(""); setSummary(""); setExperience(""); setSkills(""); setTargetRole(""); }, [stage]);
+  useEffect(() => {
+    setInputMode(true); setResult(null);
+    setHeadline(""); setSummary(""); setExperience(""); setEducation("");
+    setSkills(""); setLinkedinUrl(""); setHasPhoto(false); setTargetRole("");
+  }, [stage]);
 
   async function analyze() {
     if (loading) return;
@@ -3291,7 +3301,7 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
       const res = await fetch("/api/zari/linkedin/review", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ headline, summary, experience, skills, targetRole }),
+        body: JSON.stringify({ headline, summary, experience, education, skills, linkedinUrl, hasPhoto, targetRole }),
       });
       const data = await res.json().catch(() => null) as LinkedInResult | null;
       if (data && (data.headline || data.summary)) {
@@ -3306,128 +3316,226 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
   const hasInput = !!(headline || summary || experience);
 
   // ── Helpers ──
+  function scoreColor(s: number): string {
+    if (s >= 8) return "#16A34A";
+    if (s >= 6) return "#0077B5";
+    if (s >= 4) return "#D97706";
+    return "#DC2626";
+  }
+  function scoreBg(s: number): string {
+    if (s >= 8) return "rgba(22,163,74,0.15)";
+    if (s >= 6) return "rgba(0,119,181,0.15)";
+    if (s >= 4) return "rgba(217,119,6,0.15)";
+    return "rgba(220,38,38,0.15)";
+  }
   function verdictColor(v: string): string {
     if (v === "Perfect") return "#16A34A";
-    if (v === "Good")    return "#2563EB";
-    if (v === "Missing") return "#9CA3AF";
+    if (v === "Good")    return "#0077B5";
+    if (v === "Missing") return "#94A3B8";
     return "#D97706";
   }
   function verdictBg(v: string): string {
     if (v === "Perfect") return "#F0FFF4";
     if (v === "Good")    return "#EFF6FF";
-    if (v === "Missing") return "#F9FAFB";
+    if (v === "Missing") return "#F8FAFC";
     return "#FFFBEB";
   }
-  function scoreColor(s: number): string {
-    if (s >= 8) return "#16A34A";
-    if (s >= 6) return "#2563EB";
-    if (s >= 4) return "#D97706";
-    return "#DC2626";
-  }
-  function overallGrade(s: number): string {
-    if (s >= 85) return "A";
-    if (s >= 70) return "B";
-    if (s >= 55) return "C";
-    if (s >= 40) return "D";
-    return "F";
+  function overallLabel(s: number): string {
+    if (s >= 85) return "Excellent";
+    if (s >= 70) return "Good";
+    if (s >= 55) return "Needs Work";
+    return "Weak";
   }
 
   // ── INPUT STEP ──
   if (inputMode) return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F8FAFF" }}>
-      <div style={{ maxWidth:620, margin:"0 auto", padding:"44px 24px" }}>
-        <div style={{ textAlign:"center", marginBottom:32 }}>
-          <div style={{ width:56, height:56, borderRadius:16, background:"linear-gradient(135deg,#0077B5,#00A0DC)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px", boxShadow:"0 8px 24px rgba(0,119,181,0.3)" }}>
-            <svg viewBox="0 0 20 20" fill="white" style={{ width:28, height:28 }}><rect x="2" y="2" width="16" height="16" rx="3"/><circle cx="6.5" cy="6.5" r="1.5"/><path d="M6 9v5M9 9h.01M9 11v3M12 14v-3a2 2 0 014 0v3" strokeWidth="1.5" stroke="white" fill="none"/></svg>
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F0F4F8" }}>
+      {/* Header */}
+      <div style={{ background:"linear-gradient(135deg,#004471 0%,#0077B5 60%,#00A0DC 100%)", padding:"36px 32px 28px" }}>
+        <div style={{ maxWidth:780, margin:"0 auto" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:10 }}>
+            <div style={{ width:44, height:44, borderRadius:12, background:"rgba(255,255,255,0.15)", display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(8px)" }}>
+              <svg viewBox="0 0 24 24" fill="white" style={{ width:24,height:24 }}><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zM9 17H6.477v-7H9v7zM7.694 8.717c-.771 0-1.286-.514-1.286-1.2s.514-1.2 1.286-1.2c.771 0 1.286.514 1.286 1.2s-.514 1.2-1.286 1.2zM18 17h-2.442v-3.826c0-1.058-.651-1.302-1.044-1.302-.394 0-1.228.163-1.228 1.302V17h-2.557v-7h2.557v1.302c.325-.652 1.058-1.302 2.276-1.302C17.349 10 18 11.058 18 13.488V17z"/></svg>
+            </div>
+            <div>
+              <h1 style={{ fontSize:22, fontWeight:900, color:"white", letterSpacing:"-0.03em", marginBottom:2 }}>LinkedIn Profile Reviewer</h1>
+              <p style={{ fontSize:13, color:"rgba(255,255,255,0.7)" }}>Get a detailed score on every section with AI-powered rewrites</p>
+            </div>
           </div>
-          <h1 style={{ fontSize:26, fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", marginBottom:8 }}>LinkedIn Profile Review</h1>
-          <p style={{ fontSize:14, color:"#68738A", lineHeight:1.6, maxWidth:460, margin:"0 auto" }}>Paste your current LinkedIn sections. Zari scores each one, shows exactly what&apos;s weak, and rewrites it for maximum recruiter visibility.</p>
+          <div style={{ display:"flex", gap:20, marginTop:6 }}>
+            {["Headline","Summary","Experience","Education","Other","Keywords"].map(s => (
+              <span key={s} style={{ fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.6)", display:"flex", alignItems:"center", gap:5 }}>
+                <span style={{ width:6, height:6, borderRadius:"50%", background:"rgba(255,255,255,0.4)", display:"inline-block" }}/>
+                {s}
+              </span>
+            ))}
+          </div>
         </div>
+      </div>
 
-        {err && <div style={{ background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:10, padding:"10px 14px", marginBottom:14, fontSize:13, color:"#991B1B" }}>{err}</div>}
+      <div style={{ maxWidth:780, margin:"0 auto", padding:"28px 32px 48px" }}>
+        {err && <div style={{ background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:10, padding:"10px 14px", marginBottom:18, fontSize:13, color:"#991B1B" }}>{err}</div>}
 
-        <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
-          <div>
-            <label style={{ fontSize:12.5, fontWeight:700, color:"#0A0A0F", display:"block", marginBottom:6 }}>LinkedIn Headline <span style={{ fontSize:11, color:"#DC2626", fontWeight:600 }}>Required</span></label>
-            <input style={{ width:"100%", border:`1.5px solid ${headline?"#0077B5":"#CBD5E1"}`, borderRadius:10, padding:"11px 13px", fontSize:14, color:"#1E2235", outline:"none", fontFamily:"inherit", boxSizing:"border-box", background:"white" }}
-              placeholder="e.g. Senior DevOps Engineer | AWS · Kubernetes · CI/CD | Building Reliable Infra at Scale"
+        {/* Card */}
+        <div style={{ background:"white", borderRadius:18, boxShadow:"0 4px 24px rgba(0,0,0,0.07)", overflow:"hidden" }}>
+
+          {/* Section 1: Target + URL */}
+          <div style={{ padding:"22px 26px", borderBottom:"1px solid #F1F5F9" }}>
+            <p style={{ fontSize:11.5, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:16 }}>Profile & Target</p>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
+              <div>
+                <label style={{ fontSize:12.5, fontWeight:700, color:"#374151", display:"block", marginBottom:6 }}>LinkedIn Profile URL</label>
+                <input style={{ width:"100%", border:"1.5px solid #E2E8F0", borderRadius:10, padding:"10px 13px", fontSize:13.5, color:"#1E2235", outline:"none", fontFamily:"inherit", boxSizing:"border-box", transition:"border-color 0.15s" }}
+                  onFocus={e=>(e.target.style.borderColor="#0077B5")} onBlur={e=>(e.target.style.borderColor="#E2E8F0")}
+                  placeholder="linkedin.com/in/yourname"
+                  value={linkedinUrl} onChange={e=>setLinkedinUrl(e.target.value)}/>
+                <p style={{ fontSize:11, color:"#94A3B8", marginTop:4 }}>Used to check if you have a custom URL</p>
+              </div>
+              <div>
+                <label style={{ fontSize:12.5, fontWeight:700, color:"#374151", display:"block", marginBottom:6 }}>Target Role <span style={{ fontSize:11, color:"#94A3B8", fontWeight:400 }}>(optional)</span></label>
+                <input style={{ width:"100%", border:"1.5px solid #E2E8F0", borderRadius:10, padding:"10px 13px", fontSize:13.5, color:"#1E2235", outline:"none", fontFamily:"inherit", boxSizing:"border-box", transition:"border-color 0.15s" }}
+                  onFocus={e=>(e.target.style.borderColor="#0077B5")} onBlur={e=>(e.target.style.borderColor="#E2E8F0")}
+                  placeholder="e.g. Senior Product Manager"
+                  value={targetRole} onChange={e=>setTargetRole(e.target.value)}/>
+              </div>
+            </div>
+            <label style={{ display:"flex", alignItems:"center", gap:10, marginTop:14, cursor:"pointer", userSelect:"none" }}>
+              <div onClick={()=>setHasPhoto(!hasPhoto)} style={{ width:18, height:18, borderRadius:5, border:`2px solid ${hasPhoto?"#0077B5":"#CBD5E1"}`, background:hasPhoto?"#0077B5":"white", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, transition:"all 0.15s" }}>
+                {hasPhoto && <svg viewBox="0 0 12 12" fill="none" style={{width:9,height:9}}><path d="M2 6l2.5 2.5L10 3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+              </div>
+              <span style={{ fontSize:13, color:"#374151", fontWeight:500 }}>I have a professional profile photo</span>
+              <span style={{ fontSize:11.5, color:"#94A3B8" }}>— profiles with photos get 21× more views</span>
+            </label>
+          </div>
+
+          {/* Section 2: Headline */}
+          <div style={{ padding:"22px 26px", borderBottom:"1px solid #F1F5F9" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
+              <p style={{ fontSize:11.5, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.08em" }}>Headline</p>
+              <span style={{ fontSize:11, fontWeight:700, color:"#DC2626", background:"#FEF2F2", padding:"2px 8px", borderRadius:99 }}>Required</span>
+            </div>
+            <input style={{ width:"100%", border:`1.5px solid ${headline?"#0077B5":"#E2E8F0"}`, borderRadius:10, padding:"10px 13px", fontSize:13.5, color:"#1E2235", outline:"none", fontFamily:"inherit", boxSizing:"border-box", transition:"border-color 0.15s" }}
+              onFocus={e=>(e.target.style.borderColor="#0077B5")} onBlur={e=>(e.target.style.borderColor=headline?"#0077B5":"#E2E8F0")}
+              placeholder="e.g. Senior Product Manager | B2B SaaS · Growth · Roadmapping | Ex-Google"
               value={headline} onChange={e=>setHeadline(e.target.value)}/>
-            <p style={{ fontSize:11, color:"#A0AABF", marginTop:4 }}>Found at the top of your LinkedIn profile under your name</p>
+            <p style={{ fontSize:11, color:"#94A3B8", marginTop:5 }}>Copy this from the top of your LinkedIn profile, under your name · max 220 characters</p>
           </div>
 
-          <div>
-            <label style={{ fontSize:12.5, fontWeight:700, color:"#0A0A0F", display:"block", marginBottom:6 }}>About / Summary <span style={{ fontSize:11, color:"#A0AABF", fontWeight:400 }}>(optional but recommended)</span></label>
-            <textarea style={{ width:"100%", minHeight:110, border:`1.5px solid ${summary?"#0077B5":"#CBD5E1"}`, borderRadius:10, padding:"11px 13px", fontSize:13.5, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"white", lineHeight:1.65 }}
-              placeholder="Paste your LinkedIn About section…"
-              value={summary} onChange={e=>setSummary(e.target.value)}/>
-          </div>
-
-          <div>
-            <label style={{ fontSize:12.5, fontWeight:700, color:"#0A0A0F", display:"block", marginBottom:6 }}>Experience (most recent 1–2 roles) <span style={{ fontSize:11, color:"#A0AABF", fontWeight:400 }}>(optional)</span></label>
-            <textarea style={{ width:"100%", minHeight:90, border:`1.5px solid ${experience?"#0077B5":"#CBD5E1"}`, borderRadius:10, padding:"11px 13px", fontSize:13.5, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"white", lineHeight:1.65 }}
-              placeholder="Paste your job titles, companies, and descriptions…"
-              value={experience} onChange={e=>setExperience(e.target.value)}/>
-          </div>
-
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-            <div>
-              <label style={{ fontSize:12.5, fontWeight:700, color:"#0A0A0F", display:"block", marginBottom:6 }}>Skills <span style={{ fontSize:11, color:"#A0AABF", fontWeight:400 }}>(optional)</span></label>
-              <input style={{ width:"100%", border:"1.5px solid #CBD5E1", borderRadius:10, padding:"11px 13px", fontSize:13.5, color:"#1E2235", outline:"none", fontFamily:"inherit", boxSizing:"border-box", background:"white" }}
-                placeholder="AWS, Kubernetes, CI/CD, Python…"
-                value={skills} onChange={e=>setSkills(e.target.value)}/>
+          {/* Section 3: Summary + Experience */}
+          <div style={{ padding:"22px 26px", borderBottom:"1px solid #F1F5F9" }}>
+            <p style={{ fontSize:11.5, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:16 }}>About & Experience</p>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
+              <div>
+                <label style={{ fontSize:12.5, fontWeight:700, color:"#374151", display:"block", marginBottom:6 }}>About / Summary <span style={{ fontSize:11, color:"#94A3B8", fontWeight:400 }}>(recommended)</span></label>
+                <textarea style={{ width:"100%", minHeight:120, border:`1.5px solid ${summary?"#0077B5":"#E2E8F0"}`, borderRadius:10, padding:"10px 13px", fontSize:13, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", lineHeight:1.6, transition:"border-color 0.15s" }}
+                  onFocus={e=>(e.target.style.borderColor="#0077B5")} onBlur={e=>(e.target.style.borderColor=summary?"#0077B5":"#E2E8F0")}
+                  placeholder="Paste your LinkedIn About section…"
+                  value={summary} onChange={e=>setSummary(e.target.value)}/>
+              </div>
+              <div>
+                <label style={{ fontSize:12.5, fontWeight:700, color:"#374151", display:"block", marginBottom:6 }}>Experience <span style={{ fontSize:11, color:"#94A3B8", fontWeight:400 }}>(most recent 1–2 roles)</span></label>
+                <textarea style={{ width:"100%", minHeight:120, border:`1.5px solid ${experience?"#0077B5":"#E2E8F0"}`, borderRadius:10, padding:"10px 13px", fontSize:13, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", lineHeight:1.6, transition:"border-color 0.15s" }}
+                  onFocus={e=>(e.target.style.borderColor="#0077B5")} onBlur={e=>(e.target.style.borderColor=experience?"#0077B5":"#E2E8F0")}
+                  placeholder="Job title, company, dates, and bullet points…"
+                  value={experience} onChange={e=>setExperience(e.target.value)}/>
+              </div>
             </div>
-            <div>
-              <label style={{ fontSize:12.5, fontWeight:700, color:"#0A0A0F", display:"block", marginBottom:6 }}>Target Role <span style={{ fontSize:11, color:"#A0AABF", fontWeight:400 }}>(optional)</span></label>
-              <input style={{ width:"100%", border:"1.5px solid #CBD5E1", borderRadius:10, padding:"11px 13px", fontSize:13.5, color:"#1E2235", outline:"none", fontFamily:"inherit", boxSizing:"border-box", background:"white" }}
-                placeholder="e.g. Staff DevOps Engineer"
-                value={targetRole} onChange={e=>setTargetRole(e.target.value)}/>
+          </div>
+
+          {/* Section 4: Education + Skills */}
+          <div style={{ padding:"22px 26px" }}>
+            <p style={{ fontSize:11.5, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:16 }}>Education & Skills</p>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
+              <div>
+                <label style={{ fontSize:12.5, fontWeight:700, color:"#374151", display:"block", marginBottom:6 }}>Education <span style={{ fontSize:11, color:"#94A3B8", fontWeight:400 }}>(optional)</span></label>
+                <textarea style={{ width:"100%", minHeight:80, border:`1.5px solid ${education?"#0077B5":"#E2E8F0"}`, borderRadius:10, padding:"10px 13px", fontSize:13, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", lineHeight:1.6, transition:"border-color 0.15s" }}
+                  onFocus={e=>(e.target.style.borderColor="#0077B5")} onBlur={e=>(e.target.style.borderColor=education?"#0077B5":"#E2E8F0")}
+                  placeholder="School, degree, graduation year…"
+                  value={education} onChange={e=>setEducation(e.target.value)}/>
+              </div>
+              <div>
+                <label style={{ fontSize:12.5, fontWeight:700, color:"#374151", display:"block", marginBottom:6 }}>Skills <span style={{ fontSize:11, color:"#94A3B8", fontWeight:400 }}>(optional)</span></label>
+                <textarea style={{ width:"100%", minHeight:80, border:`1.5px solid ${skills?"#0077B5":"#E2E8F0"}`, borderRadius:10, padding:"10px 13px", fontSize:13, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", lineHeight:1.6, transition:"border-color 0.15s" }}
+                  onFocus={e=>(e.target.style.borderColor="#0077B5")} onBlur={e=>(e.target.style.borderColor=skills?"#0077B5":"#E2E8F0")}
+                  placeholder="Python, AWS, Product Strategy, SQL…"
+                  value={skills} onChange={e=>setSkills(e.target.value)}/>
+              </div>
             </div>
           </div>
         </div>
 
-        <button onClick={()=>void analyze()} disabled={loading || !hasInput} style={{ width:"100%", marginTop:22, fontSize:14, fontWeight:700, padding:"14px", borderRadius:12, border:"none", background:!loading&&hasInput?"#0077B5":"#E4E8F5", color:!loading&&hasInput?"white":"#A0AABF", cursor:!loading&&hasInput?"pointer":"default", boxShadow:!loading&&hasInput?"0 6px 20px rgba(0,119,181,0.35)":"none", display:"flex", alignItems:"center", justifyContent:"center", gap:10 }}>
-          {loading ? <><span style={{ width:16,height:16,borderRadius:"50%",border:"2.5px solid rgba(255,255,255,0.3)",borderTopColor:"white",animation:"spin-slow 0.7s linear infinite",display:"block" }}/> Analyzing…</> : "Analyze My LinkedIn →"}
+        <button onClick={()=>void analyze()} disabled={loading || !hasInput}
+          style={{ width:"100%", marginTop:20, fontSize:15, fontWeight:800, padding:"15px", borderRadius:12, border:"none", background:!loading&&hasInput?"linear-gradient(135deg,#0077B5,#00A0DC)":"#E2E8F0", color:!loading&&hasInput?"white":"#94A3B8", cursor:!loading&&hasInput?"pointer":"default", boxShadow:!loading&&hasInput?"0 6px 24px rgba(0,119,181,0.4)":"none", display:"flex", alignItems:"center", justifyContent:"center", gap:10, letterSpacing:"-0.01em" }}>
+          {loading ? (
+            <><span style={{ width:17,height:17,borderRadius:"50%",border:"2.5px solid rgba(255,255,255,0.3)",borderTopColor:"white",animation:"spin-slow 0.7s linear infinite",display:"block" }}/> Analyzing your profile…</>
+          ) : (
+            <><svg viewBox="0 0 20 20" fill="currentColor" style={{width:17,height:17}}><path d="M9 2a7 7 0 100 14A7 7 0 009 2zm0 12.5A5.5 5.5 0 119 3.5a5.5 5.5 0 010 11zm4.854-1.646l3.146 3.146-1.06 1.06-3.146-3.146A7.04 7.04 0 0013.854 12.854z"/></svg> Analyze My LinkedIn Profile</>
+          )}
         </button>
-
-        <p style={{ textAlign:"center", fontSize:11.5, color:"#A0AABF", marginTop:12 }}>Scores each section · Identifies specific issues · Provides AI rewrites</p>
+        <p style={{ textAlign:"center", fontSize:11.5, color:"#94A3B8", marginTop:10 }}>Scores Headline · Summary · Experience · Education · Other · Keywords</p>
       </div>
     </div>
   );
 
   // ── RESULTS STEP ──
-  const secData: Record<string, LISection | undefined> = {
+  type SecKey = "headline"|"summary"|"experience"|"education"|"other";
+  const secData: Record<SecKey, LISection | undefined> = {
     headline:   result?.headline,
     summary:    result?.summary,
     experience: result?.experience,
+    education:  result?.education,
+    other:      result?.other,
   };
-  const navItems: { id: "score"|"headline"|"summary"|"experience"|"keywords"; label: string; score?: number }[] = [
-    { id:"score",      label:"Score" },
-    { id:"headline",   label:"Headline",   score: result?.headline?.score },
-    { id:"summary",    label:"Summary",    score: result?.summary?.score },
-    { id:"experience", label:"Experience", score: result?.experience?.score },
+  const secInputs: Record<SecKey, string> = {
+    headline:   headline,
+    summary:    summary,
+    experience: experience,
+    education:  education,
+    other:      "",
+  };
+  const secDescriptions: Record<SecKey, string> = {
+    headline:   "Your headline appears everywhere your name does — search results, connection requests, messages. It's your single most important SEO field.",
+    summary:    "Your About section is your first-person pitch. Recruiters read it to understand who you are before scanning your experience.",
+    experience: "Recruiters verify that your experience matches your headline. Strong bullets with metrics convert views into profile visits.",
+    education:  "Education signals credibility and context. Even a minimal entry improves searchability and profile completeness.",
+    other:      "These profile elements affect your visibility, credibility, and how complete LinkedIn considers your profile.",
+  };
+
+  const navItems: { id: LINav; label: string; score?: number }[] = [
+    { id:"score",      label:"Overview" },
+    { id:"headline",   label:"Headline",   score:result?.headline?.score },
+    { id:"summary",    label:"Summary",    score:result?.summary?.score },
+    { id:"experience", label:"Experience", score:result?.experience?.score },
+    { id:"education",  label:"Education",  score:result?.education?.score },
+    { id:"other",      label:"Other",      score:result?.other?.score },
     { id:"keywords",   label:"Keywords" },
   ];
 
-  const activeSec = liSection !== "score" && liSection !== "keywords" ? secData[liSection] : null;
-  const overall = result?.overall ?? 64;
+  const activeSecKey: SecKey | null = (liSection !== "score" && liSection !== "keywords") ? liSection as SecKey : null;
+  const activeSec = activeSecKey ? secData[activeSecKey] : null;
+  const overall = result?.overall ?? 0;
 
   function renderChecks(checks: LICheck[]) {
     return (
-      <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+      <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
         {checks.map((c, i) => (
-          <div key={i}>
-            <div onClick={()=>setExpandedCheck(expandedCheck===i?null:i)} style={{ display:"flex", alignItems:"center", gap:10, padding:"12px 14px", background:"#FAFBFF", borderRadius:10, cursor:"pointer", border:"1px solid #F1F5F9" }}>
-              <div style={{ width:22, height:22, borderRadius:6, background:c.pass?"#F0FFF4":"#FEF2F2", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+          <div key={i} style={{ borderRadius:10, border:`1px solid ${c.pass?"#E7F7EE":"#FEE2E2"}`, overflow:"hidden" }}>
+            <div onClick={()=>setExpandedCheck(expandedCheck===i?null:i)}
+              style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 16px", background:c.pass?"#F7FDF9":"#FFF8F8", cursor:"pointer" }}>
+              <div style={{ width:24, height:24, borderRadius:"50%", background:c.pass?"#DCFCE7":"#FEE2E2", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                 {c.pass
-                  ? <svg viewBox="0 0 16 16" fill="none" style={{width:13,height:13}}><path d="M3 8l3.5 3.5L13 5" stroke="#16A34A" strokeWidth="2.2" strokeLinecap="round"/></svg>
-                  : <svg viewBox="0 0 16 16" fill="none" style={{width:12,height:12}}><path d="M4 4l8 8M12 4l-8 8" stroke="#DC2626" strokeWidth="2" strokeLinecap="round"/></svg>
+                  ? <svg viewBox="0 0 16 16" fill="none" style={{width:12,height:12}}><path d="M3 8l3.5 3.5L13 5" stroke="#16A34A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  : <svg viewBox="0 0 16 16" fill="none" style={{width:11,height:11}}><path d="M4 4l8 8M12 4l-8 8" stroke="#DC2626" strokeWidth="2.2" strokeLinecap="round"/></svg>
                 }
               </div>
-              <span style={{ flex:1, fontSize:13.5, fontWeight:600, color:"#0A0A0F" }}>{c.name}</span>
-              <svg viewBox="0 0 16 16" fill="none" stroke="#CBD5E1" strokeWidth="1.8" style={{ width:14,height:14,flexShrink:0,transform:expandedCheck===i?"rotate(180deg)":"none",transition:"transform 0.15s" }}><path d="M3 6l5 5 5-5"/></svg>
+              <span style={{ flex:1, fontSize:13.5, fontWeight:600, color:"#0F172A" }}>{c.name}</span>
+              <svg viewBox="0 0 16 16" fill="none" stroke="#CBD5E1" strokeWidth="1.8"
+                style={{ width:14,height:14,flexShrink:0,transform:expandedCheck===i?"rotate(180deg)":"none",transition:"transform 0.15s" }}>
+                <path d="M3 6l5 5 5-5"/>
+              </svg>
             </div>
             {expandedCheck===i && (
-              <div style={{ padding:"10px 14px 12px 46px", fontSize:13, color:"#475569", lineHeight:1.6, background:"#F8FAFF", borderRadius:"0 0 10px 10px", borderTop:"1px solid #F1F5F9", marginTop:-1 }}>
+              <div style={{ padding:"10px 16px 14px 52px", fontSize:13, color:"#475569", lineHeight:1.65, background:"white", borderTop:`1px solid ${c.pass?"#E7F7EE":"#FEE2E2"}` }}>
                 {c.detail}
               </div>
             )}
@@ -3438,212 +3546,260 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
   }
 
   return (
-    <div style={{ height:"calc(100vh - 56px)", display:"flex", overflow:"hidden", background:"#F8FAFF" }}>
+    <div style={{ height:"calc(100vh - 56px)", display:"flex", overflow:"hidden" }}>
 
       {/* ── Left sidebar ── */}
-      <div style={{ width:200, background:"#1E2235", flexShrink:0, display:"flex", flexDirection:"column", overflowY:"auto" }}>
+      <div style={{ width:210, background:"#0F1929", flexShrink:0, display:"flex", flexDirection:"column", overflowY:"auto" }}>
         {/* Score ring */}
-        <div style={{ padding:"28px 20px 20px", borderBottom:"1px solid rgba(255,255,255,0.08)", textAlign:"center" }}>
-          <div style={{ position:"relative", width:80, height:80, margin:"0 auto" }}>
-            <svg width={80} height={80} viewBox="0 0 80 80">
-              <circle cx={40} cy={40} r={32} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth={6}/>
-              <circle cx={40} cy={40} r={32} fill="none" stroke={overall>=75?"#22C55E":overall>=55?"#60A5FA":"#F59E0B"} strokeWidth={6} strokeLinecap="round"
-                strokeDasharray={2*Math.PI*32} strokeDashoffset={2*Math.PI*32*(1-overall/100)} transform="rotate(-90 40 40)"/>
+        <div style={{ padding:"24px 16px 20px", borderBottom:"1px solid rgba(255,255,255,0.07)", textAlign:"center" }}>
+          <div style={{ position:"relative", width:84, height:84, margin:"0 auto 10px" }}>
+            <svg width={84} height={84} viewBox="0 0 84 84">
+              <circle cx={42} cy={42} r={34} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={7}/>
+              <circle cx={42} cy={42} r={34} fill="none"
+                stroke={overall>=75?"#22C55E":overall>=55?"#38BDF8":"#FBBF24"}
+                strokeWidth={7} strokeLinecap="round"
+                strokeDasharray={2*Math.PI*34}
+                strokeDashoffset={2*Math.PI*34*(1-overall/100)}
+                transform="rotate(-90 42 42)"/>
             </svg>
             <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
-              <span style={{ fontSize:22, fontWeight:900, color:"white", lineHeight:1 }}>{overall}</span>
-              <span style={{ fontSize:9, color:"rgba(255,255,255,0.5)", fontWeight:600, letterSpacing:"0.05em" }}>OVERALL</span>
+              <span style={{ fontSize:24, fontWeight:900, color:"white", lineHeight:1 }}>{overall}</span>
+              <span style={{ fontSize:8.5, color:"rgba(255,255,255,0.4)", fontWeight:700, letterSpacing:"0.08em", marginTop:1 }}>/ 100</span>
             </div>
           </div>
-          <div style={{ marginTop:10, fontSize:11, fontWeight:700, padding:"3px 12px", borderRadius:99, background:overall>=75?"rgba(34,197,94,0.2)":overall>=55?"rgba(96,165,250,0.2)":"rgba(245,158,11,0.2)", color:overall>=75?"#86EFAC":overall>=55?"#93C5FD":"#FCD34D", display:"inline-block" }}>
-            Grade {overallGrade(overall)}
+          <div style={{ fontSize:12, fontWeight:700, padding:"3px 14px", borderRadius:99, display:"inline-block",
+            background:overall>=75?"rgba(34,197,94,0.18)":overall>=55?"rgba(56,189,248,0.18)":"rgba(251,191,36,0.18)",
+            color:overall>=75?"#86EFAC":overall>=55?"#7DD3FC":"#FDE68A" }}>
+            {overallLabel(overall)}
           </div>
-          <p style={{ fontSize:10.5, color:"rgba(255,255,255,0.4)", marginTop:6 }}>out of 100</p>
         </div>
 
-        {/* Nav */}
-        <div style={{ padding:"12px 8px", flex:1 }}>
-          {navItems.map(item => (
-            <button key={item.id} onClick={()=>{ setLISection(item.id); setExpandedCheck(null); }} style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 12px", borderRadius:10, border:"none", background:liSection===item.id?"rgba(255,255,255,0.1)":"transparent", cursor:"pointer", marginBottom:2, transition:"background 0.12s" }}>
-              <span style={{ fontSize:13, fontWeight:liSection===item.id?700:500, color:liSection===item.id?"white":"rgba(255,255,255,0.55)" }}>{item.label}</span>
-              {item.score !== undefined && (
-                <span style={{ fontSize:11, fontWeight:700, padding:"2px 7px", borderRadius:99, background:liSection===item.id?"rgba(255,255,255,0.15)":"rgba(255,255,255,0.06)", color:item.score>=8?"#86EFAC":item.score>=6?"#93C5FD":item.score>=4?"#FCD34D":"#FCA5A5" }}>
-                  {item.score}/10
+        {/* Nav items */}
+        <nav style={{ padding:"10px 8px", flex:1 }}>
+          {navItems.map(item => {
+            const active = liSection === item.id;
+            return (
+              <button key={item.id} onClick={()=>{ setLISection(item.id); setExpandedCheck(null); }}
+                style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"9px 12px", borderRadius:9, border:"none", background:active?"rgba(0,119,181,0.25)":"transparent", cursor:"pointer", marginBottom:1, transition:"background 0.12s" }}>
+                <span style={{ fontSize:13, fontWeight:active?700:400, color:active?"white":"rgba(255,255,255,0.5)", letterSpacing:active?"-0.01em":"normal" }}>
+                  {item.label}
                 </span>
-              )}
-            </button>
-          ))}
-        </div>
+                {item.score !== undefined && (
+                  <span style={{ fontSize:11, fontWeight:700, padding:"2px 8px", borderRadius:99,
+                    background:scoreBg(item.score),
+                    color:scoreColor(item.score),
+                    minWidth:32, textAlign:"center" }}>
+                    {item.score}/10
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
 
-        <div style={{ padding:"12px 8px", borderTop:"1px solid rgba(255,255,255,0.08)" }}>
-          <button onClick={()=>setInputMode(true)} style={{ width:"100%", fontSize:12, fontWeight:600, padding:"9px", borderRadius:9, border:"1px solid rgba(255,255,255,0.12)", background:"transparent", color:"rgba(255,255,255,0.5)", cursor:"pointer" }}>
-            ← Re-analyze
+        <div style={{ padding:"10px 8px 14px", borderTop:"1px solid rgba(255,255,255,0.07)" }}>
+          <button onClick={()=>setInputMode(true)}
+            style={{ width:"100%", fontSize:12, fontWeight:600, padding:"9px", borderRadius:9, border:"1px solid rgba(255,255,255,0.1)", background:"transparent", color:"rgba(255,255,255,0.4)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:12,height:12}}><path d="M10 3L5 8l5 5"/></svg>
+            Re-analyze
           </button>
         </div>
       </div>
 
       {/* ── Main content ── */}
-      <div style={{ flex:1, overflowY:"auto", padding:"28px 32px" }}>
+      <div style={{ flex:1, overflowY:"auto", background:"#F4F7FB", padding:"28px 30px" }}>
 
-        {/* SCORE overview */}
+        {/* OVERVIEW */}
         {liSection==="score" && (
           <>
-            <h2 style={{ fontSize:24, fontWeight:900, color:"#0A0A0F", marginBottom:6 }}>Overview</h2>
-            <p style={{ fontSize:14, color:"#68738A", marginBottom:24 }}>Here&apos;s how your LinkedIn profile scores across every section.</p>
+            <div style={{ marginBottom:22 }}>
+              <h2 style={{ fontSize:22, fontWeight:900, color:"#0F172A", letterSpacing:"-0.03em", marginBottom:4 }}>Profile Overview</h2>
+              <p style={{ fontSize:13.5, color:"#64748B" }}>Here&apos;s how your LinkedIn profile scores. Click any section to see the full breakdown and AI rewrite.</p>
+            </div>
 
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:20 }}>
-              <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:16, padding:"20px 22px", boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
-                <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", marginBottom:16 }}>Overall Score</p>
-                <div style={{ display:"flex", alignItems:"center", gap:20 }}>
-                  <div style={{ position:"relative", width:96, height:96, flexShrink:0 }}>
-                    <svg width={96} height={96} viewBox="0 0 96 96">
-                      <circle cx={48} cy={48} r={38} fill="none" stroke="#F1F5F9" strokeWidth={7}/>
-                      <circle cx={48} cy={48} r={38} fill="none" stroke={overall>=75?"#16A34A":overall>=55?"#4361EE":"#D97706"} strokeWidth={7} strokeLinecap="round"
-                        strokeDasharray={2*Math.PI*38} strokeDashoffset={2*Math.PI*38*(1-overall/100)} transform="rotate(-90 48 48)"/>
-                    </svg>
-                    <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
-                      <span style={{ fontSize:26, fontWeight:900, color:overall>=75?"#16A34A":overall>=55?"#4361EE":"#D97706", lineHeight:1 }}>{overall}</span>
-                    </div>
-                  </div>
-                  <div>
-                    <p style={{ fontSize:13, color:"#475569", lineHeight:1.7 }}>Your profile is out of 100. Aim for a score of 85+.</p>
-                    <div style={{ marginTop:10, fontSize:12, fontWeight:700, padding:"4px 12px", borderRadius:99, background:overall>=75?"#F0FFF4":overall>=55?"#EFF6FF":"#FFFBEB", color:overall>=75?"#16A34A":overall>=55?"#4361EE":"#D97706", display:"inline-block", border:`1px solid ${overall>=75?"#BBF7D0":overall>=55?"#BFDBFE":"#FDE68A"}` }}>
-                      {overall>=85?"Excellent":overall>=70?"Good":overall>=55?"Needs work":"Weak"}
-                    </div>
+            {/* Score card + quick wins */}
+            <div style={{ display:"grid", gridTemplateColumns:"260px 1fr", gap:16, marginBottom:16 }}>
+              <div style={{ background:"white", borderRadius:16, padding:"22px 20px", boxShadow:"0 2px 12px rgba(0,0,0,0.05)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
+                <div style={{ position:"relative", width:110, height:110, marginBottom:12 }}>
+                  <svg width={110} height={110} viewBox="0 0 110 110">
+                    <circle cx={55} cy={55} r={44} fill="none" stroke="#F1F5F9" strokeWidth={9}/>
+                    <circle cx={55} cy={55} r={44} fill="none"
+                      stroke={overall>=75?"#16A34A":overall>=55?"#0077B5":"#D97706"}
+                      strokeWidth={9} strokeLinecap="round"
+                      strokeDasharray={2*Math.PI*44}
+                      strokeDashoffset={2*Math.PI*44*(1-overall/100)}
+                      transform="rotate(-90 55 55)"/>
+                  </svg>
+                  <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
+                    <span style={{ fontSize:30, fontWeight:900, color:overall>=75?"#16A34A":overall>=55?"#0077B5":"#D97706", lineHeight:1 }}>{overall}</span>
+                    <span style={{ fontSize:11, color:"#94A3B8", fontWeight:600, marginTop:2 }}>out of 100</span>
                   </div>
                 </div>
+                <div style={{ fontSize:13, fontWeight:800, padding:"5px 16px", borderRadius:99, border:`1.5px solid ${overall>=75?"#BBF7D0":overall>=55?"#BFDBFE":"#FDE68A"}`, color:overall>=75?"#16A34A":overall>=55?"#0077B5":"#D97706", background:overall>=75?"#F0FFF4":overall>=55?"#EFF6FF":"#FFFBEB" }}>
+                  {overallLabel(overall)}
+                </div>
+                <p style={{ fontSize:11.5, color:"#94A3B8", marginTop:10, textAlign:"center", lineHeight:1.5 }}>Aim for 85+ to stand out to recruiters</p>
               </div>
 
-              <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:16, padding:"20px 22px", boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
-                <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", marginBottom:14 }}>Steps to improve your score</p>
-                {[result?.headline, result?.summary, result?.experience].map((sec, i) => {
-                  if (!sec || sec.verdict === "Perfect" || sec.verdict === "Good") return null;
-                  const labels = ["Headline","Summary","Experience"];
+              <div style={{ background:"white", borderRadius:16, padding:"20px 22px", boxShadow:"0 2px 12px rgba(0,0,0,0.05)" }}>
+                <p style={{ fontSize:12, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:14 }}>Priority Fixes</p>
+                {(["headline","summary","experience","education","other"] as SecKey[]).filter(k => {
+                  const s = secData[k];
+                  return s && s.verdict !== "Perfect" && s.verdict !== "Good";
+                }).slice(0,4).map(k => {
+                  const s = secData[k]!;
+                  const failCount = s.checks.filter(c=>!c.pass).length;
                   return (
-                    <div key={i} onClick={()=>setLISection(["headline","summary","experience"][i] as "headline"|"summary"|"experience")} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 12px", border:"1px solid #E4E8F5", borderRadius:10, marginBottom:8, cursor:"pointer", background:"#FAFBFF" }}>
-                      <div>
-                        <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F" }}>{labels[i].toUpperCase()}</p>
-                        <p style={{ fontSize:12, color:"#68738A", marginTop:2 }}>{sec.checks.filter(c=>!c.pass).length} check{sec.checks.filter(c=>!c.pass).length!==1?"s":""} failed</p>
+                    <div key={k} onClick={()=>{ setLISection(k); setExpandedCheck(null); }}
+                      style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 12px", border:"1px solid #F1F5F9", borderRadius:10, marginBottom:8, cursor:"pointer", background:"#FAFBFF", transition:"background 0.12s" }}>
+                      <div style={{ width:34, height:34, borderRadius:9, background:scoreBg(s.score), display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                        <span style={{ fontSize:14, fontWeight:900, color:scoreColor(s.score) }}>{s.score}</span>
                       </div>
-                      <span style={{ fontSize:12, fontWeight:700, color:"#0077B5", background:"#EFF6FF", padding:"4px 12px", borderRadius:99, flexShrink:0 }}>FIX →</span>
+                      <div style={{ flex:1 }}>
+                        <p style={{ fontSize:13, fontWeight:700, color:"#0F172A", textTransform:"capitalize" }}>{k}</p>
+                        <p style={{ fontSize:11.5, color:"#94A3B8", marginTop:1 }}>{failCount} check{failCount!==1?"s":""} failed</p>
+                      </div>
+                      <span style={{ fontSize:12, fontWeight:700, color:"#0077B5" }}>Fix →</span>
                     </div>
                   );
                 })}
+                {(["headline","summary","experience","education","other"] as SecKey[]).every(k => !secData[k] || secData[k]!.verdict === "Perfect" || secData[k]!.verdict === "Good") && (
+                  <p style={{ fontSize:13.5, color:"#16A34A", fontWeight:600 }}>All sections are in good shape.</p>
+                )}
               </div>
             </div>
 
-            <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:16, padding:"20px 22px", boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
-              <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", marginBottom:16 }}>Breakdown</p>
-              {[
-                { label:"Headline",   score:result?.headline?.score   ?? 0, id:"headline"   as const },
-                { label:"Summary",    score:result?.summary?.score    ?? 0, id:"summary"    as const },
-                { label:"Experience", score:result?.experience?.score ?? 0, id:"experience" as const },
-              ].map(s => (
-                <div key={s.id} style={{ marginBottom:14 }}>
-                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
-                    <span style={{ fontSize:13, fontWeight:600, color:"#1E2235" }}>{s.label}</span>
-                    <span style={{ fontSize:13, fontWeight:700, color:scoreColor(s.score) }}>{s.score}/10</span>
+            {/* Full breakdown */}
+            <div style={{ background:"white", borderRadius:16, padding:"20px 22px", boxShadow:"0 2px 12px rgba(0,0,0,0.05)" }}>
+              <p style={{ fontSize:12, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:16 }}>Section Scores</p>
+              {(["headline","summary","experience","education","other"] as SecKey[]).map(k => {
+                const s = secData[k];
+                if (!s) return null;
+                return (
+                  <div key={k} style={{ marginBottom:16, cursor:"pointer" }} onClick={()=>{ setLISection(k); setExpandedCheck(null); }}>
+                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:7 }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:9 }}>
+                        <span style={{ fontSize:13.5, fontWeight:700, color:"#0F172A", textTransform:"capitalize" }}>{k}</span>
+                        <span style={{ fontSize:11, fontWeight:700, padding:"2px 9px", borderRadius:99, background:verdictBg(s.verdict), color:verdictColor(s.verdict) }}>{s.verdict}</span>
+                      </div>
+                      <span style={{ fontSize:13, fontWeight:800, color:scoreColor(s.score) }}>{s.score}/10</span>
+                    </div>
+                    <div style={{ height:6, borderRadius:99, background:"#F1F5F9", overflow:"hidden" }}>
+                      <div style={{ width:`${s.score*10}%`, height:"100%", borderRadius:99, background:scoreColor(s.score), transition:"width 1s ease" }}/>
+                    </div>
                   </div>
-                  <div style={{ height:8, borderRadius:99, background:"#F1F5F9", overflow:"hidden" }}>
-                    <div style={{ width:`${s.score*10}%`, height:"100%", borderRadius:99, background:scoreColor(s.score), transition:"width 0.8s ease" }}/>
-                  </div>
-                  <p style={{ fontSize:11, color:"#94A3B8", marginTop:3, cursor:"pointer" }} onClick={()=>setLISection(s.id)}>Click to dive deeper →</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </>
         )}
 
-        {/* SECTION detail (headline / summary / experience) */}
-        {activeSec && (
+        {/* SECTION DETAIL */}
+        {activeSec && activeSecKey && (
           <>
-            <div style={{ display:"flex", alignItems:"flex-start", gap:20, marginBottom:24 }}>
+            {/* Section header */}
+            <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:20, marginBottom:20 }}>
               <div>
-                <h2 style={{ fontSize:24, fontWeight:900, color:"#0A0A0F", marginBottom:4, textTransform:"capitalize" }}>{liSection}</h2>
-                <p style={{ fontSize:14, color:"#68738A" }}>
-                  {liSection==="headline" ? "Your headline is the most visible part of your profile — it appears everywhere your name does." :
-                   liSection==="summary"  ? "Your About section lets you make a strong first impression and explain your value to recruiters." :
-                   "Recruiters look at your experience to verify your background matches your headline."}
-                </p>
+                <h2 style={{ fontSize:22, fontWeight:900, color:"#0F172A", letterSpacing:"-0.03em", marginBottom:5, textTransform:"capitalize" }}>{activeSecKey}</h2>
+                <p style={{ fontSize:13.5, color:"#64748B", lineHeight:1.6, maxWidth:480 }}>{secDescriptions[activeSecKey]}</p>
               </div>
-              <div style={{ flexShrink:0, textAlign:"center", marginLeft:"auto" }}>
-                <div style={{ position:"relative", width:72, height:72 }}>
-                  <svg width={72} height={72} viewBox="0 0 72 72">
-                    <circle cx={36} cy={36} r={28} fill="none" stroke="#F1F5F9" strokeWidth={6}/>
-                    <circle cx={36} cy={36} r={28} fill="none" stroke={scoreColor(activeSec.score)} strokeWidth={6} strokeLinecap="round"
-                      strokeDasharray={2*Math.PI*28} strokeDashoffset={2*Math.PI*28*(1-activeSec.score/10)} transform="rotate(-90 36 36)"/>
+              <div style={{ flexShrink:0, textAlign:"center" }}>
+                <div style={{ position:"relative", width:74, height:74 }}>
+                  <svg width={74} height={74} viewBox="0 0 74 74">
+                    <circle cx={37} cy={37} r={29} fill="none" stroke="#F1F5F9" strokeWidth={7}/>
+                    <circle cx={37} cy={37} r={29} fill="none" stroke={scoreColor(activeSec.score)} strokeWidth={7} strokeLinecap="round"
+                      strokeDasharray={2*Math.PI*29} strokeDashoffset={2*Math.PI*29*(1-activeSec.score/10)} transform="rotate(-90 37 37)"/>
                   </svg>
                   <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
-                    <span style={{ fontSize:20, fontWeight:900, color:scoreColor(activeSec.score), lineHeight:1 }}>{activeSec.score}</span>
+                    <span style={{ fontSize:21, fontWeight:900, color:scoreColor(activeSec.score), lineHeight:1 }}>{activeSec.score}</span>
                     <span style={{ fontSize:8, color:"#94A3B8" }}>/ 10</span>
                   </div>
                 </div>
-                <span style={{ fontSize:11, fontWeight:700, padding:"3px 10px", borderRadius:99, background:verdictBg(activeSec.verdict), color:verdictColor(activeSec.verdict), marginTop:6, display:"inline-block" }}>{activeSec.verdict}</span>
+                <span style={{ fontSize:11, fontWeight:700, padding:"3px 10px", borderRadius:99, background:verdictBg(activeSec.verdict), color:verdictColor(activeSec.verdict), display:"inline-block", marginTop:5 }}>
+                  {activeSec.verdict}
+                </span>
               </div>
             </div>
 
-            {/* Core checks */}
-            <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:16, padding:"20px 22px", marginBottom:18, boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
-              <p style={{ fontSize:13, fontWeight:800, color:"#0A0A0F", marginBottom:14, textTransform:"uppercase", letterSpacing:"0.06em" }}>Core Checks</p>
+            {/* Core Checks */}
+            <div style={{ background:"white", borderRadius:16, padding:"20px 22px", marginBottom:16, boxShadow:"0 2px 10px rgba(0,0,0,0.05)" }}>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
+                <p style={{ fontSize:12, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.07em" }}>Core Checks</p>
+                <div style={{ display:"flex", gap:10, fontSize:11.5, fontWeight:600 }}>
+                  <span style={{ color:"#16A34A" }}>✓ {activeSec.checks.filter(c=>c.pass).length} passed</span>
+                  <span style={{ color:"#DC2626" }}>✗ {activeSec.checks.filter(c=>!c.pass).length} failed</span>
+                </div>
+              </div>
               {renderChecks(activeSec.checks)}
             </div>
 
-            {/* AI Coach — rewrite */}
-            <div style={{ background:"linear-gradient(135deg,#EFF6FF,#F0FFF4)", border:"1px solid #BFDBFE", borderRadius:16, padding:"20px 22px", boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
-              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
-                <span style={{ fontSize:16 }}>✨</span>
-                <p style={{ fontSize:15, fontWeight:800, color:"#0A0A0F" }}>AI Coach — Rewrite</p>
-              </div>
-              <p style={{ fontSize:13, color:"#475569", marginBottom:14 }}>Zari rewrote your {liSection} to be stronger, more keyword-rich, and recruiter-ready.</p>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-                <div style={{ background:"white", borderRadius:12, padding:"14px 16px", border:"1px solid #E4E8F5" }}>
-                  <p style={{ fontSize:11, fontWeight:700, color:"#DC2626", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Current</p>
-                  <p style={{ fontSize:13, color:"#475569", lineHeight:1.65 }}>
-                    {liSection==="headline" ? headline : liSection==="summary" ? summary : experience || "(no content provided)"}
-                  </p>
+            {/* AI Coach — only for sections that have a rewrite */}
+            {activeSec.rewrite && (
+              <div style={{ background:"white", borderRadius:16, padding:"20px 22px", boxShadow:"0 2px 10px rgba(0,0,0,0.05)" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4 }}>
+                  <div style={{ width:28, height:28, borderRadius:8, background:"linear-gradient(135deg,#667EEA,#764BA2)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                    <svg viewBox="0 0 16 16" fill="white" style={{width:14,height:14}}><path d="M8 1l1.5 3.5L13 6l-2.5 2.5.5 3.5L8 10.5 5 12l.5-3.5L3 6l3.5-1.5L8 1z"/></svg>
+                  </div>
+                  <p style={{ fontSize:15, fontWeight:800, color:"#0F172A" }}>AI Coach — Optimized Rewrite</p>
                 </div>
-                <div style={{ background:"#F0FFF4", borderRadius:12, padding:"14px 16px", border:"1px solid #BBF7D0" }}>
-                  <p style={{ fontSize:11, fontWeight:700, color:"#16A34A", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Zari&apos;s Rewrite</p>
-                  <p style={{ fontSize:13, color:"#14532D", lineHeight:1.65, fontWeight:500 }}>{activeSec.rewrite}</p>
+                <p style={{ fontSize:13, color:"#64748B", marginBottom:16 }}>Zari rewrote your {activeSecKey} to be stronger, more keyword-rich, and recruiter-optimized.</p>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                  <div style={{ background:"#FAFBFF", borderRadius:12, padding:"14px 16px", border:"1px solid #E8EDF5" }}>
+                    <p style={{ fontSize:10.5, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Current Version</p>
+                    <p style={{ fontSize:13, color:"#475569", lineHeight:1.7, whiteSpace:"pre-wrap" }}>
+                      {secInputs[activeSecKey] || "(not provided)"}
+                    </p>
+                  </div>
+                  <div style={{ background:"linear-gradient(160deg,#F0FFF8,#F0F7FF)", borderRadius:12, padding:"14px 16px", border:"1px solid #C6F0DC" }}>
+                    <p style={{ fontSize:10.5, fontWeight:800, color:"#0077B5", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Zari&apos;s Rewrite</p>
+                    <p style={{ fontSize:13, color:"#0F172A", lineHeight:1.7, fontWeight:500, whiteSpace:"pre-wrap" }}>{activeSec.rewrite}</p>
+                  </div>
+                </div>
+                <div style={{ display:"flex", gap:10, marginTop:14 }}>
+                  <button onClick={()=>{ try { void navigator.clipboard.writeText(activeSec.rewrite ?? ""); } catch { /**/ } }}
+                    style={{ fontSize:13, fontWeight:700, padding:"10px 20px", borderRadius:10, border:"none", background:"#0077B5", color:"white", cursor:"pointer", boxShadow:"0 4px 14px rgba(0,119,181,0.3)", display:"flex", alignItems:"center", gap:7 }}>
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13}}><rect x="5" y="2" width="9" height="12" rx="2"/><path d="M3 4H2a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1v-1"/></svg>
+                    Copy rewrite
+                  </button>
                 </div>
               </div>
-              <button onClick={()=>{ try { void navigator.clipboard.writeText(activeSec.rewrite); } catch { /**/ } }} style={{ marginTop:14, fontSize:13, fontWeight:700, padding:"10px 20px", borderRadius:10, border:"none", background:"#0077B5", color:"white", cursor:"pointer", boxShadow:"0 4px 12px rgba(0,119,181,0.3)" }}>
-                Copy rewrite to clipboard →
-              </button>
-            </div>
+            )}
           </>
         )}
 
         {/* KEYWORDS */}
         {liSection==="keywords" && (
           <>
-            <h2 style={{ fontSize:24, fontWeight:900, color:"#0A0A0F", marginBottom:6 }}>Keywords</h2>
-            <p style={{ fontSize:14, color:"#68738A", marginBottom:24 }}>Adding the right keywords makes sure you show up when recruiters search for candidates like you.</p>
+            <div style={{ marginBottom:20 }}>
+              <h2 style={{ fontSize:22, fontWeight:900, color:"#0F172A", letterSpacing:"-0.03em", marginBottom:4 }}>Keywords</h2>
+              <p style={{ fontSize:13.5, color:"#64748B" }}>The right keywords make you appear in recruiter searches. Adding missing ones can dramatically increase profile views.</p>
+            </div>
 
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
-              <div style={{ background:"white", border:"1px solid #BBF7D0", borderRadius:16, padding:"20px 22px", boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
-                <p style={{ fontSize:13, fontWeight:800, color:"#15803D", marginBottom:14, textTransform:"uppercase", letterSpacing:"0.06em" }}>Found in your profile</p>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:16 }}>
+              <div style={{ background:"white", borderRadius:16, padding:"20px 22px", boxShadow:"0 2px 10px rgba(0,0,0,0.05)", border:"1px solid #E7F7EE" }}>
+                <p style={{ fontSize:12, fontWeight:800, color:"#16A34A", textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:14 }}>Found in your profile</p>
                 <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
                   {(result?.keywords?.present ?? []).map(k => (
                     <span key={k} style={{ fontSize:12.5, fontWeight:600, padding:"5px 13px", borderRadius:99, background:"#F0FFF4", color:"#15803D", border:"1px solid #BBF7D0" }}>{k}</span>
                   ))}
-                  {!(result?.keywords?.present?.length) && <p style={{ fontSize:13, color:"#94A3B8" }}>No keywords detected.</p>}
+                  {!(result?.keywords?.present?.length) && <p style={{ fontSize:13, color:"#94A3B8" }}>No strong keywords detected.</p>}
                 </div>
               </div>
-
-              <div style={{ background:"white", border:"1px solid #FDE68A", borderRadius:16, padding:"20px 22px", boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
-                <p style={{ fontSize:13, fontWeight:800, color:"#B45309", marginBottom:14, textTransform:"uppercase", letterSpacing:"0.06em" }}>Missing — add these now</p>
+              <div style={{ background:"white", borderRadius:16, padding:"20px 22px", boxShadow:"0 2px 10px rgba(0,0,0,0.05)", border:"1px solid #FEE2E2" }}>
+                <p style={{ fontSize:12, fontWeight:800, color:"#DC2626", textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:14 }}>Missing — add these now</p>
                 <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
                   {(result?.keywords?.missing ?? []).map(k => (
-                    <span key={k} style={{ fontSize:12.5, fontWeight:600, padding:"5px 13px", borderRadius:99, background:"#FFFBEB", color:"#92400E", border:"1px solid #FDE68A" }}>{k}</span>
+                    <span key={k} style={{ fontSize:12.5, fontWeight:600, padding:"5px 13px", borderRadius:99, background:"#FFF8F8", color:"#DC2626", border:"1px solid #FECACA" }}>{k}</span>
                   ))}
+                  {!(result?.keywords?.missing?.length) && <p style={{ fontSize:13, color:"#94A3B8" }}>No critical gaps found.</p>}
                 </div>
               </div>
             </div>
 
             {(result?.missingKeywords ?? []).length > 0 && (
-              <div style={{ marginTop:18, background:"white", border:"1px solid #E4E8F5", borderRadius:16, padding:"20px 22px", boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
-                <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", marginBottom:14 }}>Keywords to add (found in similar job postings)</p>
+              <div style={{ background:"white", borderRadius:16, padding:"20px 22px", boxShadow:"0 2px 10px rgba(0,0,0,0.05)" }}>
+                <p style={{ fontSize:12, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:6 }}>Keywords to add</p>
+                <p style={{ fontSize:13, color:"#64748B", marginBottom:14 }}>These appear in similar job postings and would improve your match rate.</p>
                 <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
                   {(result?.missingKeywords ?? []).map(k => (
                     <span key={k} style={{ fontSize:12.5, fontWeight:600, padding:"5px 14px", borderRadius:99, background:"#EFF6FF", color:"#1D4ED8", border:"1px solid #BFDBFE" }}>{k}</span>
@@ -3656,54 +3812,70 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
       </div>
 
       {/* ── Right preview panel ── */}
-      <div style={{ width:300, flexShrink:0, borderLeft:"1px solid #E4E8F5", background:"white", overflowY:"auto", padding:20 }}>
-        <div style={{ display:"flex", gap:4, marginBottom:16, background:"#F1F5F9", borderRadius:8, padding:3 }}>
-          {(["current","rewritten"] as const).map(t => (
-            <button key={t} onClick={()=>setPreviewTab(t)} style={{ flex:1, fontSize:11.5, fontWeight:600, padding:"5px 8px", borderRadius:6, border:"none", background:previewTab===t?"white":"transparent", color:previewTab===t?"#0A0A0F":"#68738A", cursor:"pointer", boxShadow:previewTab===t?"0 1px 3px rgba(0,0,0,0.1)":"none", textTransform:"capitalize" }}>
-              {t}
-            </button>
-          ))}
-        </div>
-
-        {/* LinkedIn card mock */}
-        <div style={{ border:"1px solid #E4E8F5", borderRadius:12, overflow:"hidden", marginBottom:14 }}>
-          <div style={{ height:60, background:"linear-gradient(135deg,#0077B5,#00A0DC)" }}/>
-          <div style={{ padding:"32px 14px 14px", position:"relative" }}>
-            <div style={{ width:52, height:52, borderRadius:"50%", background:"#E4E8F5", border:"3px solid white", position:"absolute", top:-26, left:14, display:"flex", alignItems:"center", justifyContent:"center" }}>
-              <svg viewBox="0 0 24 24" fill="#94A3B8" style={{ width:28,height:28 }}><path d="M12 12c2.67 0 4.8-2.13 4.8-4.8S14.67 2.4 12 2.4 7.2 4.53 7.2 7.2 9.33 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
-            </div>
-            <p style={{ fontSize:13.5, fontWeight:800, color:"#0A0A0F", marginBottom:3 }}>Steve J Ngoumnai</p>
-            <p style={{ fontSize:11.5, color:"#475569", lineHeight:1.5, marginBottom:8 }}>
-              {previewTab==="current" ? (headline || "Your headline will appear here") : (result?.headline?.rewrite || headline || "Rewritten headline")}
-            </p>
-            {previewTab==="rewritten" && result?.headline?.rewrite && (
-              <span style={{ fontSize:10, fontWeight:700, padding:"2px 8px", borderRadius:99, background:"#DCFCE7", color:"#15803D" }}>✓ Optimized</span>
-            )}
+      <div style={{ width:280, flexShrink:0, borderLeft:"1px solid #E8EDF5", background:"white", overflowY:"auto", display:"flex", flexDirection:"column" }}>
+        {/* Tab switcher */}
+        <div style={{ padding:"14px 14px 10px", borderBottom:"1px solid #F1F5F9" }}>
+          <p style={{ fontSize:10.5, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Profile Preview</p>
+          <div style={{ display:"flex", gap:3, background:"#F1F5F9", borderRadius:8, padding:3 }}>
+            {(["current","rewritten"] as const).map(t => (
+              <button key={t} onClick={()=>setPreviewTab(t)}
+                style={{ flex:1, fontSize:11.5, fontWeight:600, padding:"5px 6px", borderRadius:6, border:"none", background:previewTab===t?"white":"transparent", color:previewTab===t?"#0F172A":"#68738A", cursor:"pointer", boxShadow:previewTab===t?"0 1px 4px rgba(0,0,0,0.1)":"none", textTransform:"capitalize" }}>
+                {t}
+              </button>
+            ))}
           </div>
         </div>
 
-        <div style={{ border:"1px solid #E4E8F5", borderRadius:12, padding:14, marginBottom:14 }}>
-          <p style={{ fontSize:11, fontWeight:700, color:"#0A0A0F", marginBottom:8 }}>About</p>
-          <p style={{ fontSize:11.5, color:"#475569", lineHeight:1.65, maxHeight:140, overflow:"hidden" }}>
-            {previewTab==="current"
-              ? (summary || "Your About section will appear here.")
-              : (result?.summary?.rewrite || summary || "Rewritten summary")}
-          </p>
-          {previewTab==="rewritten" && result?.summary?.rewrite && (
-            <span style={{ fontSize:10, fontWeight:700, padding:"2px 8px", borderRadius:99, background:"#DCFCE7", color:"#15803D", marginTop:8, display:"inline-block" }}>✓ Optimized</span>
-          )}
-        </div>
+        <div style={{ flex:1, padding:"14px 14px 20px", overflowY:"auto" }}>
+          {/* LinkedIn profile card */}
+          <div style={{ border:"1px solid #E8EDF5", borderRadius:12, overflow:"hidden", marginBottom:12, boxShadow:"0 2px 8px rgba(0,0,0,0.06)" }}>
+            {/* Banner */}
+            <div style={{ height:52, background:"linear-gradient(135deg,#004471,#0077B5,#00A0DC)", position:"relative" }}>
+              {previewTab==="rewritten" && <span style={{ position:"absolute", top:6, right:8, fontSize:9, fontWeight:700, padding:"2px 7px", borderRadius:99, background:"rgba(34,197,94,0.9)", color:"white" }}>Optimized</span>}
+            </div>
+            <div style={{ padding:"28px 12px 12px", position:"relative", background:"white" }}>
+              <div style={{ width:48, height:48, borderRadius:"50%", background:hasPhoto?"#DCFCE7":"#F1F5F9", border:"3px solid white", position:"absolute", top:-24, left:12, display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 6px rgba(0,0,0,0.12)" }}>
+                {hasPhoto
+                  ? <svg viewBox="0 0 24 24" fill="#16A34A" style={{width:22,height:22}}><path d="M12 12c2.67 0 4.8-2.13 4.8-4.8S14.67 2.4 12 2.4 7.2 4.53 7.2 7.2 9.33 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+                  : <svg viewBox="0 0 24 24" fill="#CBD5E1" style={{width:22,height:22}}><path d="M12 12c2.67 0 4.8-2.13 4.8-4.8S14.67 2.4 12 2.4 7.2 4.53 7.2 7.2 9.33 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+                }
+              </div>
+              <p style={{ fontSize:13, fontWeight:800, color:"#0F172A", marginBottom:4 }}>Your Name</p>
+              <p style={{ fontSize:11.5, color:"#475569", lineHeight:1.55, marginBottom:hasPhoto?0:4 }}>
+                {previewTab==="current"
+                  ? (headline || <span style={{color:"#CBD5E1",fontStyle:"italic"}}>Headline will appear here</span>)
+                  : (result?.headline?.rewrite || headline || <span style={{color:"#CBD5E1",fontStyle:"italic"}}>Rewritten headline</span>)
+                }
+              </p>
+              {!hasPhoto && <p style={{ fontSize:10, color:"#DC2626", marginTop:3 }}>No photo — add one for 21× more views</p>}
+            </div>
+          </div>
 
-        <div style={{ border:"1px solid #E4E8F5", borderRadius:12, padding:14 }}>
-          <p style={{ fontSize:11, fontWeight:700, color:"#0A0A0F", marginBottom:8 }}>Experience</p>
-          <p style={{ fontSize:11.5, color:"#475569", lineHeight:1.65, maxHeight:120, overflow:"hidden" }}>
-            {previewTab==="current"
-              ? (experience || "Your experience will appear here.")
-              : (result?.experience?.rewrite || experience || "Rewritten experience")}
-          </p>
-          {previewTab==="rewritten" && result?.experience?.rewrite && (
-            <span style={{ fontSize:10, fontWeight:700, padding:"2px 8px", borderRadius:99, background:"#DCFCE7", color:"#15803D", marginTop:8, display:"inline-block" }}>✓ Optimized</span>
-          )}
+          {/* About section */}
+          <div style={{ border:"1px solid #E8EDF5", borderRadius:12, padding:"12px 12px", marginBottom:10, background:"white" }}>
+            <p style={{ fontSize:10.5, fontWeight:800, color:"#0F172A", marginBottom:6 }}>About</p>
+            <p style={{ fontSize:11.5, color:"#475569", lineHeight:1.65, maxHeight:110, overflow:"hidden", display:"-webkit-box", WebkitLineClamp:6, WebkitBoxOrient:"vertical" }}>
+              {previewTab==="current"
+                ? (summary || <span style={{color:"#CBD5E1",fontStyle:"italic"}}>Your About section…</span>)
+                : (result?.summary?.rewrite || summary || <span style={{color:"#CBD5E1",fontStyle:"italic"}}>Rewritten About…</span>)}
+            </p>
+            {previewTab==="rewritten" && result?.summary?.rewrite && (
+              <p style={{ fontSize:10, color:"#16A34A", fontWeight:700, marginTop:6 }}>✓ Optimized by Zari</p>
+            )}
+          </div>
+
+          {/* Experience section */}
+          <div style={{ border:"1px solid #E8EDF5", borderRadius:12, padding:"12px 12px", background:"white" }}>
+            <p style={{ fontSize:10.5, fontWeight:800, color:"#0F172A", marginBottom:6 }}>Experience</p>
+            <p style={{ fontSize:11.5, color:"#475569", lineHeight:1.65, maxHeight:90, overflow:"hidden", display:"-webkit-box", WebkitLineClamp:5, WebkitBoxOrient:"vertical" }}>
+              {previewTab==="current"
+                ? (experience || <span style={{color:"#CBD5E1",fontStyle:"italic"}}>Your experience…</span>)
+                : (result?.experience?.rewrite || experience || <span style={{color:"#CBD5E1",fontStyle:"italic"}}>Rewritten experience…</span>)}
+            </p>
+            {previewTab==="rewritten" && result?.experience?.rewrite && (
+              <p style={{ fontSize:10, color:"#16A34A", fontWeight:700, marginTop:6 }}>✓ Optimized by Zari</p>
+            )}
+          </div>
         </div>
       </div>
     </div>
