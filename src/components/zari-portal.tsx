@@ -69,69 +69,186 @@ function Sparkline({ values, color="#4361EE", width=80, height=24 }: { values:nu
   );
 }
 
+type LineFlag = { kind: "weak"; bulletIdx: number } | { kind: "no_metric" } | { kind: "too_long"; words: number } | { kind: "passive" };
+
 function SuggestionsResume({
-  text, bullets, activeIdx, onClickLine,
+  text, bullets, wordIssues, activeIdx, onClickLine,
 }: {
   text: string;
   bullets: ResumeBullet[];
+  wordIssues?: ResumeWordIssue[];
   activeIdx: number | null;
   onClickLine: (idx: number | null) => void;
 }) {
-  const lines = text.slice(0, 3000).split("\n");
-  // Build a map: line index → bullet index (fuzzy match on first 40 chars)
+  const [activeTip, setActiveTip] = useState<number | null>(null);
+  const HEADER_RE = /^[A-Z][A-Z\s&\/\-]{3,}$/;
+  const BULLET_CHAR_RE = /^[•\-\*\u2022►▸]\s*/;
+  const PASSIVE_RE = /\b(was|were|is|are|been|being)\s+\w+ed\b/i;
+  const METRIC_RE = /\d|%|\$|#/;
+  const lines = text.slice(0, 8000).split("\n");
+
+  // Robust line → bullet matching: strip bullet chars, try multiple slice lengths
   const lineMatch: Record<number, number> = {};
   lines.forEach((line, li) => {
-    const norm = line.trim().toLowerCase().replace(/\s+/g," ");
-    if (norm.length < 15) return;
+    const norm = line.trim().replace(BULLET_CHAR_RE, "").toLowerCase().replace(/\s+/g, " ");
+    if (norm.length < 12) return;
+    let bestBi = -1;
     bullets.forEach((b, bi) => {
-      const bNorm = b.before.trim().toLowerCase().replace(/\s+/g," ").slice(0,60);
-      if (norm.includes(bNorm.slice(0,40)) || bNorm.includes(norm.slice(0,40))) {
-        lineMatch[li] = bi;
+      if (lineMatch[li] !== undefined) return;
+      const bNorm = b.before.trim().replace(BULLET_CHAR_RE, "").toLowerCase().replace(/\s+/g, " ");
+      // Try progressively shorter slices for a match
+      const slices = [50, 35, 25];
+      for (const len of slices) {
+        if (norm.slice(0, len) && bNorm.includes(norm.slice(0, len))) { bestBi = bi; break; }
+        if (bNorm.slice(0, len) && norm.includes(bNorm.slice(0, len))) { bestBi = bi; break; }
       }
     });
+    if (bestBi >= 0) lineMatch[li] = bestBi;
   });
 
+  // Per-line flags (priority: weak > no_metric > too_long > passive)
+  function getFlag(line: string, li: number): LineFlag | null {
+    const trimmed = line.trim();
+    const isBulletLine = BULLET_CHAR_RE.test(trimmed) || (trimmed.startsWith("-") && trimmed.length > 10);
+    if (lineMatch[li] !== undefined) return { kind: "weak", bulletIdx: lineMatch[li] };
+    if (isBulletLine && !METRIC_RE.test(trimmed)) return { kind: "no_metric" };
+    const wordCount = trimmed.split(/\s+/).length;
+    if (isBulletLine && wordCount > 35) return { kind: "too_long", words: wordCount };
+    if (isBulletLine && PASSIVE_RE.test(trimmed)) return { kind: "passive" };
+    return null;
+  }
+
+  // Word issue inline highlight map
+  const wiMap = new Map<string, string>();
+  (wordIssues ?? []).forEach(w => {
+    const color = w.type === "weak_verb" ? "#FED7AA" : w.type === "cliche" ? "#FECACA" : "#FDE68A";
+    wiMap.set(w.word.toLowerCase(), color);
+  });
+
+  function hlText(str: string): React.ReactNode {
+    if (!wiMap.size) return str;
+    const words = [...wiMap.keys()].map(w => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+    const re = new RegExp(`\\b(${words.join("|")})\\b`, "gi");
+    const parts = str.split(re);
+    if (parts.length <= 1) return str;
+    return parts.map((part, i) => {
+      const color = wiMap.get(part.toLowerCase());
+      return color
+        ? <mark key={i} style={{ background: color, padding: "0 2px", borderRadius: 3, fontWeight: 600, fontStyle: "normal" }}>{part}</mark>
+        : part;
+    });
+  }
+
+  const FLAG_STYLES: Record<string, { border: string; bg: string; activeBg: string; badge: string; badgeBg: string; badgeColor: string }> = {
+    weak:      { border: "#F59E0B", bg: "rgba(245,158,11,0.08)", activeBg: "#FEF3C7", badge: "rewrite available", badgeBg: "#FEF3C7", badgeColor: "#92400E" },
+    no_metric: { border: "#EAB308", bg: "rgba(234,179,8,0.07)",  activeBg: "#FEFCE8", badge: "add metric",        badgeBg: "#FEF9C3", badgeColor: "#713F12" },
+    too_long:  { border: "#3B82F6", bg: "rgba(59,130,246,0.06)", activeBg: "#EFF6FF", badge: "too long",          badgeBg: "#DBEAFE", badgeColor: "#1E40AF" },
+    passive:   { border: "#A855F7", bg: "rgba(168,85,247,0.07)", activeBg: "#FAF5FF", badge: "passive voice",     badgeBg: "#F3E8FF", badgeColor: "#6B21A8" },
+  };
+
+  function getTip(flag: LineFlag): string {
+    if (flag.kind === "no_metric") return "Add a number to quantify this achievement — %, $, headcount, time saved, or scale (e.g. '50K users').";
+    if (flag.kind === "too_long") return `This bullet is ${flag.words} words. Aim for under 25 words — cut filler and lead with the result.`;
+    if (flag.kind === "passive") return "Rewrite in active voice. Start with a strong action verb: Led, Built, Increased, Reduced, Launched, Drove…";
+    return "";
+  }
+
+  const flagKey = (li: number) => `tip-${li}`;
+
   return (
-    <div style={{ fontFamily:"inherit", fontSize:11, lineHeight:1.7, color:"#1E2235" }}>
-      {lines.map((line, li) => {
-        const bulletIdx = lineMatch[li];
-        const isWeak = bulletIdx !== undefined;
-        const isActive = activeIdx === bulletIdx && isWeak;
+    <div style={{ fontFamily: "inherit", fontSize: 11.5, lineHeight: 1.7, color: "#1E2235" }}>
+      {/* Legend */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 12px", marginBottom: 12, padding: "8px 10px", background: "#F8FAFF", borderRadius: 8, border: "1px solid #E4E8F5" }}>
+        {[
+          { color: "#F59E0B", label: "Weak bullet — rewrite" },
+          { color: "#EAB308", label: "No metric" },
+          { color: "#3B82F6", label: "Too long" },
+          { color: "#A855F7", label: "Passive voice" },
+          { color: "#FED7AA", label: "Weak verb", inline: true },
+          { color: "#FECACA", label: "Cliché", inline: true },
+        ].map(({ color, label, inline }) => (
+          <div key={label} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            {inline
+              ? <mark style={{ background: color, padding: "0 4px", borderRadius: 3, fontSize: 9, fontWeight: 700 }}>word</mark>
+              : <div style={{ width: 10, height: 10, borderRadius: 2, background: color, flexShrink: 0 }} />
+            }
+            <span style={{ fontSize: 9.5, color: "#68738A" }}>{label}</span>
+          </div>
+        ))}
+      </div>
+
+      {lines.map((raw, li) => {
+        const trimmed = raw.trim();
+        if (!trimmed) return <div key={li} style={{ height: 5 }} />;
+
+        if (HEADER_RE.test(trimmed) && trimmed.length <= 60) {
+          return (
+            <div key={li} style={{ marginTop: 14, marginBottom: 4, paddingBottom: 3, borderBottom: "1.5px solid #CBD5E1" }}>
+              <span style={{ fontSize: 10.5, fontWeight: 800, color: "#1E2235", letterSpacing: "0.1em", textTransform: "uppercase" }}>{trimmed}</span>
+            </div>
+          );
+        }
+
+        const flag = getFlag(raw, li);
+        const isActive = flag?.kind === "weak"
+          ? activeIdx === flag.bulletIdx
+          : activeTip === li;
+        const fs = flag ? FLAG_STYLES[flag.kind] : null;
+
         return (
           <div key={li}>
             <div
-              onClick={()=>{ if(isWeak) onClickLine(isActive ? null : bulletIdx); }}
+              onClick={() => {
+                if (!flag) return;
+                if (flag.kind === "weak") onClickLine(isActive ? null : flag.bulletIdx);
+                else setActiveTip(isActive ? null : li);
+              }}
+              title={flag ? "Click for suggestion" : undefined}
               style={{
-                whiteSpace:"pre-wrap", wordBreak:"break-word", padding:"1px 4px",
-                borderRadius:4, marginBottom:0,
-                background: isActive ? "#FEF3C7" : isWeak ? "rgba(251,191,36,0.12)" : "transparent",
-                cursor: isWeak ? "pointer" : "default",
-                borderLeft: isWeak ? "2px solid #F59E0B" : "2px solid transparent",
+                whiteSpace: "pre-wrap", wordBreak: "break-word",
+                padding: "2px 8px 2px 10px", borderRadius: 5, marginBottom: 1,
+                background: fs ? (isActive ? fs.activeBg : fs.bg) : "transparent",
+                borderLeft: fs ? `3px solid ${isActive ? fs.border : fs.border + "99"}` : "3px solid transparent",
+                cursor: flag ? "pointer" : "default",
+                lineHeight: 1.65, fontSize: 11.5,
+                transition: "background 0.1s",
               }}
             >
-              {line || " "}
+              {hlText(trimmed)}
+              {fs && (
+                <span style={{ fontSize: 9, fontWeight: 700, color: fs.badgeColor, background: fs.badgeBg, padding: "1px 6px", borderRadius: 99, marginLeft: 5, verticalAlign: "middle", whiteSpace: "nowrap" }}>
+                  {fs.badge}
+                </span>
+              )}
             </div>
-            {/* Inline suggestion popup */}
-            {isActive && bulletIdx !== undefined && (
-              <div style={{ margin:"4px 0 6px 6px", border:"1px solid #FCD34D", borderRadius:8, background:"#FEFCE8", overflow:"hidden" }}>
-                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"6px 10px", background:"#FEF3C7", borderBottom:"1px solid #FCD34D" }}>
-                  <span style={{ fontSize:10, fontWeight:700, color:"#92400E" }}>Suggested rewrite</span>
-                  <button onClick={e=>{e.stopPropagation();onClickLine(null);}} style={{ fontSize:11, background:"none", border:"none", color:"#A0AABF", cursor:"pointer", padding:"0 2px" }}>✕</button>
+
+            {/* Inline popup for weak bullets (has AI rewrite) */}
+            {flag?.kind === "weak" && isActive && (
+              <div style={{ margin: "4px 8px 8px 10px", border: "1px solid #FCD34D", borderRadius: 10, background: "#FEFCE8" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 12px", background: "#FEF3C7", borderBottom: "1px solid #FCD34D", borderRadius: "10px 10px 0 0" }}>
+                  <span style={{ fontSize: 10.5, fontWeight: 700, color: "#92400E" }}>{bullets[flag.bulletIdx].reason}</span>
+                  <button onClick={e => { e.stopPropagation(); onClickLine(null); }} style={{ fontSize: 12, background: "none", border: "none", color: "#A0AABF", cursor: "pointer", padding: "0 2px", lineHeight: 1 }}>✕</button>
                 </div>
-                <div style={{ padding:"8px 10px", display:"flex", gap:8, alignItems:"flex-start" }}>
-                  <p style={{ flex:1, fontSize:11, color:"#14532D", lineHeight:1.55, margin:0 }}>{bullets[bulletIdx].after}</p>
-                  <button onClick={()=>{ void navigator.clipboard.writeText(bullets[bulletIdx].after); }} style={{ fontSize:10, fontWeight:600, padding:"3px 8px", borderRadius:6, border:"1px solid #BBF7D0", background:"white", color:"#16A34A", cursor:"pointer", flexShrink:0 }}>Copy</button>
+                <div style={{ padding: "10px 12px", display: "flex", gap: 8, alignItems: "flex-start" }}>
+                  <p style={{ flex: 1, fontSize: 11.5, color: "#14532D", lineHeight: 1.55, margin: 0 }}>{bullets[flag.bulletIdx].after}</p>
+                  <button onClick={() => void navigator.clipboard.writeText(bullets[flag.bulletIdx].after)} style={{ fontSize: 10.5, fontWeight: 600, padding: "4px 10px", borderRadius: 7, border: "1px solid #BBF7D0", background: "white", color: "#16A34A", cursor: "pointer", flexShrink: 0 }}>Copy</button>
                 </div>
-                <div style={{ padding:"4px 10px 8px", display:"flex", gap:5, alignItems:"center" }}>
-                  <span style={{ fontSize:10 }}>⚠️</span>
-                  <p style={{ fontSize:10.5, color:"#92400E", lineHeight:1.4, margin:0 }}>{bullets[bulletIdx].reason}</p>
+              </div>
+            )}
+
+            {/* Inline tip for no_metric / too_long / passive */}
+            {flag && flag.kind !== "weak" && isActive && (
+              <div style={{ margin: "4px 8px 8px 10px", border: `1px solid ${FLAG_STYLES[flag.kind].border}44`, borderRadius: 10, background: FLAG_STYLES[flag.kind].activeBg }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "9px 12px" }}>
+                  <p style={{ flex: 1, fontSize: 11.5, color: "#1E2235", lineHeight: 1.55, margin: 0 }}>{getTip(flag)}</p>
+                  <button onClick={e => { e.stopPropagation(); setActiveTip(null); }} style={{ fontSize: 12, background: "none", border: "none", color: "#A0AABF", cursor: "pointer", padding: "0 2px", lineHeight: 1, flexShrink: 0 }}>✕</button>
                 </div>
               </div>
             )}
           </div>
         );
       })}
-      {text.length > 3000 && <p style={{ fontSize:10, color:"#A0AABF", marginTop:8 }}>[…truncated for preview]</p>}
+      {text.length > 8000 && <p style={{ fontSize: 10, color: "#A0AABF", marginTop: 8 }}>[…truncated for preview]</p>}
     </div>
   );
 }
@@ -775,21 +892,31 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
   const [pendingBulletScroll, setPendingBulletScroll] = useState<string | null>(null);
   // Power Optimized download
   const [powerOptimizing, setPowerOptimizing] = useState(false);
+  const [downloadModal, setDownloadModal] = useState<{ type: "revised" | "powerOptimized" } | null>(null);
   // Blob URL for the originally uploaded file (PDF iframe preview)
   const [rawFileUrl, setRawFileUrl] = useState<string | null>(null);
   const rawFileUrlRef = useRef<string | null>(null);
 
-  function triggerHtmlDownload(html: string, name: string) {
-    const blob = new Blob([html], { type:"text/html" });
+  function triggerWordDownload(html: string, name: string) {
+    const wordHtml = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">${html.replace(/<html[^>]*>/, "").replace(/<\/html>/, "")}</html>`;
+    const blob = new Blob([wordHtml], { type: "application/vnd.ms-word" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = name; a.click();
+    a.href = url; a.download = name.replace(/\.html$/, ".doc"); a.click();
     URL.revokeObjectURL(url);
   }
 
-  function downloadReconstructed() {
-    if (!aiResult) return;
-    // Apply bullet improvements inline into the original resume text
+  function triggerPdfDownload(html: string) {
+    const win = window.open("", "_blank");
+    if (!win) return;
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    setTimeout(() => { win.print(); }, 400);
+  }
+
+  function buildRevisedHtml(): string {
+    if (!aiResult) return "";
     let revised = resumeText;
     (aiResult.bullets ?? []).forEach(b => {
       if (b.before && b.after) revised = revised.replace(b.before, b.after);
@@ -800,11 +927,31 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
         revised = revised.replace(s.originalText.trim(), newText);
       }
     });
-    const note = `Revised by Zari · ${new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"})}`;
-    triggerHtmlDownload(generateResumeHtml(revised, note), `${(fileName||"resume").replace(/\.[^.]+$/,"")}-revised.html`);
+    return generateResumeHtml(revised);
+  }
+
+  function downloadReconstructed() {
+    setDownloadModal({ type: "revised" });
   }
 
   async function downloadPowerOptimized() {
+    setDownloadModal({ type: "powerOptimized" });
+  }
+
+  async function executeDownload(format: "word" | "pdf") {
+    const modal = downloadModal;
+    setDownloadModal(null);
+    const baseName = (fileName || "resume").replace(/\.[^.]+$/, "");
+
+    if (modal?.type === "revised") {
+      const html = buildRevisedHtml();
+      if (!html) return;
+      if (format === "word") triggerWordDownload(html, `${baseName}-revised.html`);
+      else triggerPdfDownload(html);
+      return;
+    }
+
+    // Power Optimized — needs API call
     if (!aiResult || powerOptimizing) return;
     setPowerOptimizing(true);
     try {
@@ -815,8 +962,9 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
       });
       const data = await res.json().catch(() => ({})) as { resumeText?: string; error?: string };
       if (!data.resumeText) { setPowerOptimizing(false); return; }
-      const note = `Power Optimized by Zari · ${new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"})}${targetRoleInput?` · Target: ${targetRoleInput}`:""}`;
-      triggerHtmlDownload(generateResumeHtml(data.resumeText, note), `${(fileName||"resume").replace(/\.[^.]+$/,"")}-power-optimized.html`);
+      const html = generateResumeHtml(data.resumeText);
+      if (format === "word") triggerWordDownload(html, `${baseName}-power-optimized.html`);
+      else triggerPdfDownload(html);
     } catch { /* non-fatal */ }
     setPowerOptimizing(false);
   }
@@ -1011,7 +1159,7 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
           targetRole: targetRoleInput || undefined,
           scores: { overall: data.overall, ats: data.ats, impact: data.impact, clarity: data.clarity },
         });
-        setTimeout(() => setStep("results"), 400);
+        setTimeout(() => { setStep("results"); setResumeViewMode("suggestions"); }, 400);
       } else {
         setStep("paste");
         setAnalyzeErr("Analysis failed — try again.");
@@ -1448,6 +1596,40 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
 
   return (
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F4F6FB" }}>
+
+      {/* ── Download Format Modal ── */}
+      {downloadModal && (
+        <div style={{ position:"fixed", inset:0, zIndex:9999, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(10,10,15,0.55)", backdropFilter:"blur(3px)" }} onClick={()=>setDownloadModal(null)}>
+          <div style={{ background:"white", borderRadius:18, padding:"28px 28px 22px", width:340, boxShadow:"0 20px 60px rgba(0,0,0,0.25)" }} onClick={e=>e.stopPropagation()}>
+            <p style={{ fontSize:16, fontWeight:800, color:"#0A0A0F", marginBottom:4 }}>Choose format</p>
+            <p style={{ fontSize:12.5, color:"#68738A", marginBottom:20 }}>
+              {downloadModal.type === "powerOptimized" ? "Zari will AI-optimize your resume before downloading." : "Download your resume with Zari's improvements applied."}
+            </p>
+            <div style={{ display:"flex", flexDirection:"column", gap:10, marginBottom:18 }}>
+              <button onClick={()=>void executeDownload("word")} style={{ display:"flex", alignItems:"center", gap:12, padding:"13px 16px", borderRadius:12, border:"1.5px solid #E4E8F5", background:"#F8FAFF", cursor:"pointer", textAlign:"left" }}>
+                <div style={{ width:36, height:36, borderRadius:8, background:"#2B579A", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                  <svg viewBox="0 0 24 24" fill="white" style={{ width:20, height:20 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8" fill="none" stroke="white" strokeWidth="1.5"/><path d="M9 13l1.5 4 1.5-3 1.5 3L15 13" fill="none" stroke="white" strokeWidth="1.2"/></svg>
+                </div>
+                <div>
+                  <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", margin:0 }}>Word (.doc)</p>
+                  <p style={{ fontSize:11, color:"#68738A", margin:0 }}>Edit in Microsoft Word or Google Docs</p>
+                </div>
+              </button>
+              <button onClick={()=>void executeDownload("pdf")} style={{ display:"flex", alignItems:"center", gap:12, padding:"13px 16px", borderRadius:12, border:"1.5px solid #E4E8F5", background:"#F8FAFF", cursor:"pointer", textAlign:"left" }}>
+                <div style={{ width:36, height:36, borderRadius:8, background:"#DC2626", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                  <svg viewBox="0 0 24 24" fill="white" style={{ width:20, height:20 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8" fill="none" stroke="white" strokeWidth="1.5"/><text x="7" y="19" fontSize="7" fill="white" fontWeight="bold">PDF</text></svg>
+                </div>
+                <div>
+                  <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", margin:0 }}>PDF</p>
+                  <p style={{ fontSize:11, color:"#68738A", margin:0 }}>Opens print dialog — save as PDF</p>
+                </div>
+              </button>
+            </div>
+            <button onClick={()=>setDownloadModal(null)} style={{ width:"100%", padding:"9px", borderRadius:10, border:"1px solid #E4E8F5", background:"white", fontSize:12.5, color:"#68738A", cursor:"pointer", fontWeight:600 }}>Cancel</button>
+          </div>
+        </div>
+      )}
+
       <div style={{ maxWidth:1080, margin:"0 auto", padding:"24px 24px 48px" }}>
 
         {/* ── Top bar ── */}
@@ -1652,15 +1834,15 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
                     {aiResult!.keywords!.filter(k=>k.found).length} keywords found →
                   </button>
                 )}
-                {resumeViewMode==="suggestions" && (aiResult?.bullets?.length??0)>0 && (
-                  <span style={{ fontSize:10, color:"#92400E", background:"#FEF3C7", padding:"2px 8px", borderRadius:99, fontWeight:700 }}>tap highlighted lines</span>
+                {resumeViewMode==="suggestions" && (
+                  <span style={{ fontSize:10, color:"#92400E", background:"#FEF3C7", padding:"2px 8px", borderRadius:99, fontWeight:700 }}>tap lines for suggestions</span>
                 )}
               </div>
             </div>
-            {/* Resume view: iframe for uploaded files, formatted text for pastes */}
-            {resumeViewMode==="suggestions" && aiResult?.bullets?.length
+            {/* Resume view: suggestions overlay or PDF/text preview */}
+            {resumeViewMode==="suggestions"
               ? <div style={{ padding:"16px 18px", overflowY:"auto", flex:1 }}>
-                  <SuggestionsResume text={resumeText} bullets={aiResult.bullets} activeIdx={activeSuggestion} onClickLine={setActiveSuggestion}/>
+                  <SuggestionsResume text={resumeText} bullets={aiResult?.bullets ?? []} wordIssues={aiResult?.wordIssues} activeIdx={activeSuggestion} onClickLine={setActiveSuggestion}/>
                 </div>
               : rawFileUrl
               ? <iframe src={rawFileUrl} style={{ flex:1, width:"100%", border:"none", display:"block", minHeight:0 }} title="Resume"/>

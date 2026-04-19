@@ -37,8 +37,12 @@ WHAT TO REWRITE (only these sections — leave everything else word-for-word):
 3. Most recent 2 jobs in Experience — Rewrite the bullet points to: (a) use strong XYZ-formula verbs, (b) naturally embed the most critical JD keywords alongside real achievements, (c) add metric placeholders like "[X%]" or "[N users]" where numbers are missing but context makes them plausible. You may embellish within reason — if someone "worked on" a system, they can "architected and maintained" it. But do not invent roles, companies, or entirely fabricated achievements.
 
 CRITICAL RULES:
-- Return the COMPLETE resume text with ONLY the above sections modified. Everything else (older jobs, education, contact info, formatting) must be preserved exactly as given.
-- Keep the same structural formatting (headers, line breaks, bullet style) as the original.
+- The input text may have been extracted from a PDF and could be in a garbled order. You MUST output the resume in canonical order: Name → Contact info → Professional Summary → Skills → Professional Experience (most recent job first) → Education → Certifications/Licenses → any remaining sections.
+- Reconstruct the correct section order even if the input is disordered. Do not preserve PDF extraction ordering errors.
+- Use ALL-CAPS for section headers (e.g. PROFESSIONAL SUMMARY, SKILLS, PROFESSIONAL EXPERIENCE, EDUCATION, CERTIFICATIONS).
+- Each job in Experience must include: company name, job title, dates, and bullet points. Dates on their own line after the job title.
+- Bullets start with • character.
+- Do NOT include any footer notes, "optimized by" text, or meta-commentary in the resume body itself.
 - Sound like a real person wrote this. Never use "results-driven", "passionate", "detail-oriented", "team player".
 - Bullet formula: [Strong Action Verb] + [Skill/Context] + [Quantified Result]
 
