@@ -222,7 +222,8 @@ Return ONLY a valid JSON object with exactly this structure:
       "action": "<one specific, actionable sentence naming the exact bullet, phrase, or section — e.g. 'Add a metric to your first bullet under Company X: how many users, what % improvement, or what revenue impact?'>",
       "effort": "<5 min|15 min|30 min>",
       "impact": "<high|medium>",
-      "tab": "<overview|bullets|rewrite|keywords>"
+      "tab": "<overview|bullets|rewrite|keywords>",
+      "bulletRef": "<if tab=bullets: copy the first 50 chars of the exact bullet 'before' text this win refers to, so the UI can scroll to it. Empty string otherwise.>"
     }
   ],
   "wordIssues": [
@@ -264,16 +265,19 @@ Return ONLY a valid JSON object with exactly this structure:
   "rewrittenSections": [
     {
       "label": "Summary",
+      "originalText": "<copy the exact original summary text from the resume, verbatim — used to show a before/after comparison>",
       "text": "<Rewrite: [Role] + [top 2-3 skills tied to target] + [quantified achievement]. No generic adjectives. Targeted mode: lead with the top JD requirements. Sound like a real person.>",
       "score": <number 0-100>
     },
     {
       "label": "Experience highlights",
+      "originalText": "<copy the 3 original bullet lines from the resume's most recent role that you are rewriting, verbatim>",
       "text": "<Rewrite the 3 strongest bullets from their most recent/relevant role using XYZ formula. Number them 1, 2, 3. Targeted mode: embed the most important JD keywords alongside real achievements.>",
       "score": <number 0-100>
     },
     {
       "label": "Skills",
+      "originalText": "<copy the exact original skills section text from the resume, verbatim>",
       "text": "<Optimized skills list as a comma-separated string. Targeted mode: include all required JD skills the person genuinely has. Remove vague soft skills. Order by relevance to target role.>",
       "score": <number 0-100>
     }

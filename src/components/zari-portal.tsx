@@ -136,6 +136,87 @@ function SuggestionsResume({
   );
 }
 
+function FormattedResume({ text, keywords }: { text: string; keywords?: ResumeKeyword[] }) {
+  const found = (keywords ?? []).filter(k => k.found).map(k => k.word).sort((a, b) => b.length - a.length);
+  const escaped = found.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  const kwRegex = found.length ? new RegExp(`(${escaped.join("|")})`, "gi") : null;
+
+  function hl(str: string): React.ReactNode {
+    if (!kwRegex) return str;
+    return str.split(kwRegex).map((p, i) =>
+      found.some(k => k.toLowerCase() === p.toLowerCase())
+        ? <mark key={i} style={{ background:"#DCFCE7", color:"#14532D", borderRadius:3, padding:"0 2px", fontWeight:600 }}>{p}</mark>
+        : p
+    );
+  }
+
+  const SECTION_RE = /^(experience|education|skills|summary|objective|professional summary|work experience|employment|certifications|projects|awards|languages|interests|volunteer|publications|references|profile|achievements|accomplishments|contact)s?$/i;
+  const lines = text.split("\n");
+  let firstNonEmpty = -1;
+
+  return (
+    <div style={{ fontFamily:"'Georgia', 'Times New Roman', serif", fontSize:11.5, lineHeight:1.65, color:"#1E2235" }}>
+      {lines.map((line, li) => {
+        const trimmed = line.trim();
+        if (!trimmed) return <div key={li} style={{ height:6 }}/>;
+
+        // Name — first non-empty line
+        if (firstNonEmpty === -1) {
+          firstNonEmpty = li;
+          return (
+            <div key={li} style={{ fontSize:18, fontWeight:800, color:"#0A0A0F", textAlign:"center", marginBottom:4, letterSpacing:"-0.02em", fontFamily:"inherit" }}>
+              {trimmed}
+            </div>
+          );
+        }
+
+        // Contact block — first 5 non-empty lines after name that are short
+        const nonEmptyIdx = lines.slice(0, li).filter(l => l.trim()).length;
+        if (nonEmptyIdx <= 4 && trimmed.length < 120 && (trimmed.includes("@") || trimmed.includes("|") || trimmed.includes("·") || trimmed.includes("•") || /\d{3}[\s.\-]\d{3}/.test(trimmed) || /linkedin|github|portfolio/i.test(trimmed) || nonEmptyIdx <= 2)) {
+          return <div key={li} style={{ fontSize:10.5, color:"#68738A", textAlign:"center", marginBottom:2 }}>{hl(trimmed)}</div>;
+        }
+
+        // Section header: ALL CAPS or matches known section names
+        const isAllCaps = trimmed === trimmed.toUpperCase() && trimmed.length > 2 && /[A-Z]/.test(trimmed) && !/\d{4}/.test(trimmed);
+        if (isAllCaps || SECTION_RE.test(trimmed)) {
+          return (
+            <div key={li} style={{ marginTop:16, marginBottom:5 }}>
+              <div style={{ fontSize:10.5, fontWeight:800, color:"#1E2235", textTransform:"uppercase", letterSpacing:"0.12em", borderBottom:"1.5px solid #1E2235", paddingBottom:4 }}>
+                {trimmed}
+              </div>
+            </div>
+          );
+        }
+
+        // Bullet line
+        if (/^[•\-\*\u2022\u2023\u25E6►▸]\s/.test(trimmed) || /^\s{2,}[•\-\*►]/.test(line)) {
+          const txt = trimmed.replace(/^[•\-\*\u2022\u2023\u25E6►▸]\s*/, "");
+          return (
+            <div key={li} style={{ display:"flex", gap:7, marginBottom:3, paddingLeft:10 }}>
+              <span style={{ flexShrink:0, color:"#1E2235", marginTop:1, fontSize:10 }}>•</span>
+              <span style={{ fontSize:11.5, color:"#1E2235", lineHeight:1.55 }}>{hl(txt)}</span>
+            </div>
+          );
+        }
+
+        // Date line: short, has a year, looks like "Jan 2020 – Present" or "Company · 2019-2022"
+        const hasYear = /\b(19|20)\d{2}\b/.test(trimmed);
+        if (hasYear && trimmed.length < 70) {
+          return <div key={li} style={{ fontSize:10.5, color:"#68738A", marginBottom:1, fontStyle:"italic" }}>{hl(trimmed)}</div>;
+        }
+
+        // Job title / company line (no leading indent, short, non-bullet)
+        if (!line.startsWith(" ") && trimmed.length < 90 && !trimmed.includes(",") || /^[A-Z]/.test(trimmed) && trimmed.length < 70 && !hasYear) {
+          return <div key={li} style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", marginBottom:1, marginTop:5 }}>{hl(trimmed)}</div>;
+        }
+
+        return <div key={li} style={{ fontSize:11.5, color:"#1E2235", marginBottom:2, lineHeight:1.55 }}>{hl(trimmed)}</div>;
+      })}
+      {text.length > 3000 && <p style={{ fontSize:10, color:"#A0AABF", marginTop:8 }}>[…truncated for preview]</p>}
+    </div>
+  );
+}
+
 function HighlightedResume({ text, keywords }: { text:string; keywords?:ResumeKeyword[] }) {
   const found = (keywords ?? []).filter(k=>k.found).map(k=>k.word).sort((a,b)=>b.length-a.length);
   if (!found.length) {
@@ -561,12 +642,12 @@ type CareerLevel = "entry"|"mid"|"senior"|"executive";
 
 type ResumeScores = { overall: number; ats: number; impact: number; clarity: number };
 type ResumeBullet = { before: string; after: string; reason: string; oldScore: number; newScore: number; difficulty?: "easy"|"medium"|"hard" };
-type ResumeSection = { label: string; text: string; score: number };
+type ResumeSection = { label: string; text: string; score: number; originalText?: string };
 type ResumeFinding = { type: "critical"|"warn"|"ok"; category?: string; text: string };
 type ResumeKeyword = { word: string; found: boolean; importance: "required"|"preferred"; skillType?: "technical"|"soft"|"tool"|"certification"|"domain"; context?: string };
 type ResumeSectionScore = { name: string; present: boolean; score: number; verdict: string };
 type ResumeWordIssue = { word: string; count: number; type: "repetition"|"filler"|"weak_verb"|"cliche"; suggestion: string };
-type ResumeQuickWin = { title: string; action: string; effort: string; impact: "high"|"medium"; tab: "overview"|"bullets"|"rewrite"|"keywords" };
+type ResumeQuickWin = { title: string; action: string; effort: string; impact: "high"|"medium"; tab: "overview"|"bullets"|"rewrite"|"keywords"; bulletRef?: string };
 type ResumeBulletStats = { total: number; withMetrics: number; withStrongVerbs: number; weak: number };
 type ResumeAnalysis = ResumeScores & {
   findings: ResumeFinding[];
@@ -624,25 +705,60 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
   // Suggestions mode on resume preview
   const [resumeViewMode,  setResumeViewMode]  = useState<"preview"|"suggestions">("preview");
   const [activeSuggestion,setActiveSuggestion]= useState<number | null>(null);
+  // Quick Wins deep-link scroll target (bullet `before` text prefix)
+  const [pendingBulletScroll, setPendingBulletScroll] = useState<string | null>(null);
+  // Power Optimized download
+  const [powerOptimizing, setPowerOptimizing] = useState(false);
 
-  function downloadOptimized() {
+  function downloadReconstructed() {
     if (!aiResult) return;
-    const sectionBlock = aiResult.rewrittenSections.map((s,i) => {
-      const text = altVersions[i] ?? s.text;
-      return `━━ ${s.label.toUpperCase()} ━━\n${text}`;
-    }).join("\n\n");
-    const bulletBlock = aiResult.bullets.length
-      ? `━━ IMPROVED BULLETS ━━\n${aiResult.bullets.map(b=>`• ${b.after}`).join("\n")}`
-      : "";
-    const header = `OPTIMIZED RESUME SECTIONS\nGenerated by Zari · ${new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"})}\n${reviewMode==="targeted"&&targetRoleInput?`Target role: ${targetRoleInput}\n`:""}${"─".repeat(50)}`;
-    const content = [header, sectionBlock, bulletBlock, "─".repeat(50)+"\n\nOriginal resume:\n\n"+resumeText].filter(Boolean).join("\n\n");
+    // Apply bullet improvements inline into the original resume text
+    let reconstructed = resumeText;
+    (aiResult.bullets ?? []).forEach(b => {
+      if (b.before && b.after) {
+        reconstructed = reconstructed.replace(b.before, b.after);
+      }
+    });
+    // Replace rewritten sections (summary, skills) in the reconstructed text
+    (aiResult.rewrittenSections ?? []).forEach((s, idx) => {
+      const newText = altVersions[idx] ?? s.text;
+      if (s.originalText && s.originalText.length > 20) {
+        reconstructed = reconstructed.replace(s.originalText, newText);
+      }
+    });
+    const header = `Resume revised by Zari · ${new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"})}${reviewMode==="targeted"&&targetRoleInput?` · Target: ${targetRoleInput}`:""}`;
+    const content = `${header}\n${"─".repeat(60)}\n\n${reconstructed}`;
     const blob = new Blob([content], { type:"text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${(fileName||"resume").replace(/\.[^.]+$/,"")}-optimized.txt`;
+    a.download = `${(fileName||"resume").replace(/\.[^.]+$/,"")}-revised.txt`;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  async function downloadPowerOptimized() {
+    if (!aiResult || powerOptimizing) return;
+    setPowerOptimizing(true);
+    try {
+      const res = await fetch("/api/zari/resume/power-optimize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resumeText, targetRole: targetRoleInput, jobDescription }),
+      });
+      const data = await res.json().catch(() => ({})) as { resumeText?: string; error?: string };
+      if (!data.resumeText) { setPowerOptimizing(false); return; }
+      const header = `Power Optimized by Zari · ${new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"})}${targetRoleInput?` · Target: ${targetRoleInput}`:""}`;
+      const content = `${header}\n${"─".repeat(60)}\n\n${data.resumeText}`;
+      const blob = new Blob([content], { type:"text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${(fileName||"resume").replace(/\.[^.]+$/,"")}-power-optimized.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch { /* non-fatal */ }
+    setPowerOptimizing(false);
   }
 
   async function fetchResumeJdFromUrl() {
@@ -844,6 +960,20 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
 
   // Fetch history when entering results view
   useEffect(() => { if (step === "results") void fetchHistory(); }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Deep-link scroll: after tab switches to "bullets", scroll to the referenced bullet
+  useEffect(() => {
+    if (tab === "bullets" && pendingBulletScroll) {
+      const ref = pendingBulletScroll.toLowerCase().slice(0, 50);
+      setPendingBulletScroll(null);
+      const idx = (aiResult?.bullets ?? []).findIndex(b =>
+        b.before.toLowerCase().slice(0, 50).includes(ref.slice(0, 30)) ||
+        ref.includes(b.before.toLowerCase().slice(0, 30))
+      );
+      const targetId = idx >= 0 ? `bullet-${idx}` : "bullet-0";
+      setTimeout(() => document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+    }
+  }, [tab, pendingBulletScroll, aiResult?.bullets]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const ANALYSIS_STAGES = [
     "Parsing document structure…",
@@ -1261,10 +1391,18 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
               <span style={{ fontSize:12, color:"#A0AABF", marginLeft:8 }}>{careerLevel.charAt(0).toUpperCase()+careerLevel.slice(1)}-level · {reviewMode === "targeted" && targetRoleInput ? targetRoleInput : "General review"}</span>
             </div>
           </div>
-          <button onClick={downloadOptimized} style={{ display:"flex", alignItems:"center", gap:6, fontSize:12.5, fontWeight:700, padding:"9px 18px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#4361EE,#6B7FF0)", color:"white", cursor:"pointer", boxShadow:"0 4px 16px rgba(67,97,238,0.35)" }}>
-            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:14,height:14 }}><path d="M10 4v12M4 10l6 6 6-6"/></svg>
-            Download optimized
-          </button>
+          <div style={{ display:"flex", gap:8 }}>
+            <button onClick={downloadReconstructed} style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:700, padding:"8px 14px", borderRadius:10, border:"1.5px solid #C7D2FE", background:"white", color:"#4361EE", cursor:"pointer" }}>
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:13,height:13 }}><path d="M10 4v12M4 10l6 6 6-6"/></svg>
+              Download Revised
+            </button>
+            {reviewMode==="targeted" && (
+              <button onClick={()=>void downloadPowerOptimized()} disabled={powerOptimizing} style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:700, padding:"8px 16px", borderRadius:10, border:"none", background: powerOptimizing?"#E4E8F5":"linear-gradient(135deg,#7C3AED,#4361EE)", color: powerOptimizing?"#A0AABF":"white", cursor: powerOptimizing?"default":"pointer", boxShadow: powerOptimizing?"none":"0 4px 14px rgba(124,58,237,0.35)" }}>
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:13,height:13 }}><path d="M11 3L5 11h7l-3 6 8-10h-7l3-6z"/></svg>
+                {powerOptimizing ? "Optimizing…" : "Power Optimized"}
+              </button>
+            )}
+          </div>
         </div>
 
         {/* ══ Hero score card ══ */}
@@ -1387,7 +1525,7 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
                   const ps = PRIORITY_STYLE[w.impact] ?? PRIORITY_STYLE.medium;
                   const ec = EFFORT_COLOR[w.effort] ?? "#68738A";
                   return (
-                    <div key={i} onClick={()=>setTab(w.tab)} style={{ background:"white", borderRadius:14, border:`1px solid ${ps.border}`, padding:"14px 16px", cursor:"pointer", transition:"all 0.12s", boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
+                    <div key={i} onClick={()=>{ if (w.tab==="bullets" && w.bulletRef) setPendingBulletScroll(w.bulletRef); setTab(w.tab); }} style={{ background:"white", borderRadius:14, border:`1px solid ${ps.border}`, padding:"14px 16px", cursor:"pointer", transition:"all 0.12s", boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
                       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
                         <div style={{ display:"flex", alignItems:"center", gap:7 }}>
                           <div style={{ width:22, height:22, borderRadius:7, background:ps.bg, border:`1px solid ${ps.border}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
@@ -1452,7 +1590,7 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
             <div style={{ padding:"16px 18px", overflowY:"auto", flex:1 }}>
               {resumeViewMode==="suggestions" && aiResult?.bullets?.length
                 ? <SuggestionsResume text={resumeText} bullets={aiResult.bullets} activeIdx={activeSuggestion} onClickLine={setActiveSuggestion}/>
-                : <HighlightedResume text={resumeText} keywords={aiResult?.keywords}/>
+                : <FormattedResume text={resumeText.slice(0,3000)} keywords={aiResult?.keywords}/>
               }
             </div>
           </div>
@@ -1746,7 +1884,7 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
                     const improve = b.newScore - b.oldScore;
                     const ds = DIFF_STYLE[b.difficulty ?? "medium"];
                     return (
-                      <div key={i} style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", overflow:"hidden", boxShadow:"0 2px 10px rgba(0,0,0,0.04)" }}>
+                      <div key={i} id={`bullet-${i}`} style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", overflow:"hidden", boxShadow:"0 2px 10px rgba(0,0,0,0.04)", scrollMarginTop:16 }}>
                         {/* Card header */}
                         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px", background:"#FAFBFF", borderBottom:"1px solid #F1F5F9" }}>
                           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
@@ -1767,17 +1905,37 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
                             <p style={{ fontSize:11.5, color:"#92400E", lineHeight:1.5, margin:0 }}>{b.reason}</p>
                           </div>
                           {/* Before */}
-                          <div style={{ position:"relative", marginBottom:8 }}>
-                            <p style={{ fontSize:11.5, color:"#991B1B", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:10, padding:"10px 12px", textDecoration:"line-through", lineHeight:1.65, margin:0, opacity:0.75 }}>{b.before}</p>
-                            <span style={{ position:"absolute", top:-8, left:10, fontSize:9, fontWeight:800, background:"#FECACA", color:"#991B1B", padding:"1px 7px", borderRadius:99, letterSpacing:"0.06em" }}>BEFORE</span>
+                          <div style={{ marginBottom:4 }}>
+                            <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:5 }}>
+                              <div style={{ display:"flex", alignItems:"center", gap:5, background:"#FEE2E2", borderRadius:6, padding:"3px 9px" }}>
+                                <svg viewBox="0 0 12 12" fill="#DC2626" style={{ width:9,height:9,flexShrink:0 }}><path d="M2 6h8"/></svg>
+                                <span style={{ fontSize:10, fontWeight:800, color:"#991B1B", letterSpacing:"0.07em" }}>BEFORE</span>
+                              </div>
+                              <span style={{ fontSize:10, color:"#A0AABF" }}>original</span>
+                            </div>
+                            <div style={{ background:"#FEF2F2", border:"1.5px solid #FECACA", borderRadius:10, padding:"11px 14px", borderLeft:"4px solid #DC2626" }}>
+                              <p style={{ fontSize:12, color:"#991B1B", lineHeight:1.65, margin:0, textDecoration:"line-through", opacity:0.85 }}>{b.before}</p>
+                            </div>
+                          </div>
+                          {/* Arrow between before/after */}
+                          <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:24 }}>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" strokeWidth="2" style={{ width:18,height:18 }}><path d="M12 5v14M5 12l7 7 7-7"/></svg>
                           </div>
                           {/* After */}
-                          <div style={{ position:"relative", marginBottom:10 }}>
-                            <div style={{ display:"flex", gap:6, alignItems:"flex-start" }}>
-                              <p style={{ flex:1, fontSize:12, color:"#14532D", background:"#F0FFF4", border:"1.5px solid #86EFAC", borderRadius:10, padding:"10px 12px", lineHeight:1.65, margin:0, fontWeight:500 }}>{b.after}</p>
-                              <button onClick={()=>{ void navigator.clipboard.writeText(b.after); }} style={{ padding:"8px 11px", borderRadius:9, border:"1px solid #BBF7D0", background:"white", color:"#16A34A", cursor:"pointer", flexShrink:0, fontSize:11, fontWeight:700 }}>Copy</button>
+                          <div style={{ marginBottom:10 }}>
+                            <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:5 }}>
+                              <div style={{ display:"flex", alignItems:"center", gap:5, background:"#DCFCE7", borderRadius:6, padding:"3px 9px" }}>
+                                <svg viewBox="0 0 12 12" fill="none" stroke="#16A34A" strokeWidth="2" style={{ width:9,height:9,flexShrink:0 }}><path d="M2 6h8M6 2l4 4-4 4"/></svg>
+                                <span style={{ fontSize:10, fontWeight:800, color:"#14532D", letterSpacing:"0.07em" }}>AFTER</span>
+                              </div>
+                              <span style={{ fontSize:10, color:"#A0AABF" }}>Zari's rewrite</span>
                             </div>
-                            <span style={{ position:"absolute", top:-8, left:10, fontSize:9, fontWeight:800, background:"#86EFAC", color:"#14532D", padding:"1px 7px", borderRadius:99, letterSpacing:"0.06em" }}>AFTER</span>
+                            <div style={{ display:"flex", gap:6, alignItems:"flex-start" }}>
+                              <div style={{ flex:1, background:"#F0FFF4", border:"1.5px solid #86EFAC", borderRadius:10, padding:"11px 14px", borderLeft:"4px solid #16A34A" }}>
+                                <p style={{ fontSize:12, color:"#14532D", lineHeight:1.65, margin:0, fontWeight:500 }}>{b.after}</p>
+                              </div>
+                              <button onClick={()=>{ void navigator.clipboard.writeText(b.after); }} style={{ padding:"9px 13px", borderRadius:9, border:"1px solid #BBF7D0", background:"white", color:"#16A34A", cursor:"pointer", flexShrink:0, fontSize:11, fontWeight:700, whiteSpace:"nowrap" }}>Copy</button>
+                            </div>
                           </div>
                           {/* Magic Write */}
                           {!mw ? (
@@ -1827,38 +1985,95 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
 
             {/* ── AI REWRITES TAB ── */}
             {tab==="rewrite" && (
-              <div style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", padding:"16px 18px", boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
-                <div style={{ marginBottom:16 }}>
-                  <p style={{ fontSize:13.5, fontWeight:800, color:"#0A0A0F" }}>AI Rewrites</p>
-                  <p style={{ fontSize:11.5, color:"#68738A", marginTop:2 }}>Zari rewrote your key sections. Click &quot;Try another version&quot; for a different take.</p>
+              <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+                <div style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", padding:"16px 18px", boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
+                  <p style={{ fontSize:13.5, fontWeight:800, color:"#0A0A0F", marginBottom:4 }}>AI Rewrites</p>
+                  <p style={{ fontSize:11.5, color:"#68738A" }}>Zari rewrote your key sections. Each card shows the original vs the improved version.</p>
                 </div>
                 {(aiResult?.rewrittenSections ?? []).map((s, idx) => {
                   const displayed = altVersions[idx] ?? s.text;
                   const isRegen = rewritingIdx === idx;
                   const attempt = altAttempt[idx] ?? 1;
                   const grade = scoreGrade(s.score);
+                  const isExperience = s.label.toLowerCase().includes("experience") || s.label.toLowerCase().includes("highlights");
+
+                  // Parse numbered bullets for Experience section: "1. text\n2. text\n3. text"
+                  const expBullets = isExperience
+                    ? displayed.split("\n").filter(l => /^\d+\.\s/.test(l.trim())).map(l => l.replace(/^\d+\.\s*/, "").trim()).filter(Boolean)
+                    : [];
+                  const hasExpBullets = expBullets.length > 0;
+
                   return (
-                    <div key={s.label} style={{ marginBottom:16, borderRadius:14, border:"1px solid #E4E8F5", overflow:"hidden", boxShadow:"0 1px 4px rgba(0,0,0,0.04)" }}>
-                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 14px", background:"linear-gradient(135deg,#F8FAFF,#F4F7FF)", borderBottom:"1px solid #E4E8F5" }}>
+                    <div key={s.label} style={{ borderRadius:16, border:"1px solid #E4E8F5", overflow:"hidden", boxShadow:"0 2px 10px rgba(0,0,0,0.04)" }}>
+                      {/* Section header */}
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"12px 16px", background:"linear-gradient(135deg,#F8FAFF,#F4F7FF)", borderBottom:"1px solid #E4E8F5" }}>
                         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                          <span style={{ fontSize:11, fontWeight:800, textTransform:"uppercase", color:"#4361EE", letterSpacing:"0.1em" }}>{s.label}</span>
+                          <span style={{ fontSize:12, fontWeight:800, textTransform:"uppercase", color:"#4361EE", letterSpacing:"0.1em" }}>{s.label}</span>
                           {attempt > 1 && <span style={{ fontSize:10, color:"#A0AABF", background:"#F1F5F9", padding:"1px 6px", borderRadius:99 }}>v{attempt}</span>}
-                        </div>
-                        <div style={{ display:"flex", alignItems:"center", gap:6 }}>
                           <span style={{ fontSize:11, fontWeight:700, color:grade.color, background: s.score>=85?"#F0FFF4":s.score>=72?"#EFF6FF":s.score>=55?"#FFFBEB":"#FEF2F2", padding:"2px 8px", borderRadius:99 }}>{s.score}/100</span>
-                          <button onClick={()=>void rewriteSection(idx, s)} disabled={isRegen} style={{ fontSize:11, fontWeight:600, padding:"5px 12px", borderRadius:8, border:"1px solid #C7D2FE", background:"white", color:isRegen?"#A0AABF":"#4361EE", cursor:isRegen?"default":"pointer" }}>
-                            {isRegen?"Rewriting…":"Try another version"}
-                          </button>
-                          <button onClick={()=>{ void navigator.clipboard.writeText(displayed); }} style={{ fontSize:11, fontWeight:600, padding:"5px 12px", borderRadius:8, border:"1px solid #E4E8F5", background:"white", color:"#68738A", cursor:"pointer" }}>Copy</button>
                         </div>
+                        <button onClick={()=>void rewriteSection(idx, s)} disabled={isRegen} style={{ fontSize:11, fontWeight:600, padding:"6px 13px", borderRadius:8, border:"1px solid #C7D2FE", background:"white", color:isRegen?"#A0AABF":"#4361EE", cursor:isRegen?"default":"pointer" }}>
+                          {isRegen ? "Rewriting…" : "Try another version"}
+                        </button>
                       </div>
-                      <div style={{ padding:"14px", background: altVersions[idx]?"#FAFBFF":"#F0FFF4" }}>
-                        <p style={{ fontSize:12.5, color: altVersions[idx]?"#1E2235":"#14532D", lineHeight:1.75, margin:0, whiteSpace:"pre-wrap" }}>{displayed}</p>
+
+                      <div style={{ padding:"14px 16px", display:"flex", flexDirection:"column", gap:12 }}>
+                        {/* BEFORE block */}
+                        {s.originalText && (
+                          <div>
+                            <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:6 }}>
+                              <div style={{ background:"#FEE2E2", borderRadius:6, padding:"2px 8px" }}>
+                                <span style={{ fontSize:10, fontWeight:800, color:"#991B1B", letterSpacing:"0.07em" }}>ORIGINAL</span>
+                              </div>
+                            </div>
+                            <div style={{ background:"#FEF2F2", border:"1.5px solid #FECACA", borderRadius:10, padding:"11px 14px", borderLeft:"4px solid #DC2626" }}>
+                              <p style={{ fontSize:11.5, color:"#991B1B", lineHeight:1.7, margin:0, opacity:0.85, whiteSpace:"pre-wrap" }}>{s.originalText}</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Arrow */}
+                        {s.originalText && (
+                          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                            <div style={{ flex:1, height:1, background:"#E4E8F5" }}/>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2" style={{ width:16,height:16,flexShrink:0 }}><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+                            <div style={{ flex:1, height:1, background:"#E4E8F5" }}/>
+                          </div>
+                        )}
+
+                        {/* AFTER block — Experience bullets are individual cards */}
+                        <div>
+                          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:6 }}>
+                            <div style={{ background:"#DCFCE7", borderRadius:6, padding:"2px 8px" }}>
+                              <span style={{ fontSize:10, fontWeight:800, color:"#14532D", letterSpacing:"0.07em" }}>ZARI'S REWRITE</span>
+                            </div>
+                            {!hasExpBullets && (
+                              <button onClick={()=>{ void navigator.clipboard.writeText(displayed); }} style={{ fontSize:10.5, fontWeight:600, padding:"4px 11px", borderRadius:7, border:"1px solid #BBF7D0", background:"white", color:"#16A34A", cursor:"pointer" }}>Copy</button>
+                            )}
+                          </div>
+
+                          {hasExpBullets ? (
+                            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                              {expBullets.map((bullet, bi) => (
+                                <div key={bi} style={{ display:"flex", gap:8, alignItems:"flex-start" }}>
+                                  <div style={{ flex:1, background:"#F0FFF4", border:"1.5px solid #86EFAC", borderRadius:10, padding:"10px 14px", borderLeft:"4px solid #16A34A" }}>
+                                    <p style={{ fontSize:12, color:"#14532D", lineHeight:1.65, margin:0, fontWeight:500 }}>{bullet}</p>
+                                  </div>
+                                  <button onClick={()=>{ void navigator.clipboard.writeText(bullet); }} style={{ padding:"8px 12px", borderRadius:8, border:"1px solid #BBF7D0", background:"white", color:"#16A34A", cursor:"pointer", fontSize:10.5, fontWeight:700, flexShrink:0 }}>Copy</button>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div style={{ background: altVersions[idx] ? "#FAFBFF" : "#F0FFF4", border:`1.5px solid ${altVersions[idx]?"#E4E8F5":"#86EFAC"}`, borderRadius:10, padding:"11px 14px", borderLeft:`4px solid ${altVersions[idx]?"#94A3B8":"#16A34A"}` }}>
+                              <p style={{ fontSize:12.5, color: altVersions[idx] ? "#1E2235" : "#14532D", lineHeight:1.75, margin:0, whiteSpace:"pre-wrap" }}>{displayed}</p>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
                 })}
-                <button onClick={()=>{ const all=(aiResult?.rewrittenSections??[]).map((s,i)=>`${s.label}:\n${altVersions[i]??s.text}`).join("\n\n"); void navigator.clipboard.writeText(all); }} style={{ width:"100%", fontSize:13, fontWeight:700, padding:"11px", borderRadius:11, border:"none", background:"linear-gradient(135deg,#0A0A0F,#1E2235)", color:"white", cursor:"pointer" }}>
+                <button onClick={()=>{ const all=(aiResult?.rewrittenSections??[]).map((s,i)=>`${s.label}:\n${altVersions[i]??s.text}`).join("\n\n"); void navigator.clipboard.writeText(all); }} style={{ fontSize:13, fontWeight:700, padding:"11px", borderRadius:11, border:"none", background:"linear-gradient(135deg,#0A0A0F,#1E2235)", color:"white", cursor:"pointer" }}>
                   Copy all rewrites →
                 </button>
               </div>
