@@ -3346,6 +3346,24 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
     void parseAndAnalyze(f);
   }
 
+  // Extract the first/most recent role from a concatenated experience blob
+  function extractFirstRole(text: string): string {
+    if (!text) return "";
+    // Match the start of a second job entry (date pattern preceded by a company/title line)
+    const dateRe = /(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}\s*[-–]\s*(?:(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}|Present)/gi;
+    const matches = [...text.matchAll(dateRe)];
+    if (matches.length >= 2) {
+      // Find where the second role starts — look back from second date to the last newline/separator
+      const secondIdx = matches[1].index ?? text.length;
+      const before = text.slice(0, secondIdx);
+      // Walk back to find the company name start (last double-newline or the pattern itself)
+      const cut = before.lastIndexOf("\n\n") > 0 ? before.lastIndexOf("\n\n") : before.lastIndexOf("\n");
+      return (cut > 100 ? before.slice(0, cut) : before).trim();
+    }
+    // Fallback: single role or no date pattern — return first 600 chars
+    return text.slice(0, 600).trim();
+  }
+
   // ── Helpers ──
   function scoreColor(s: number): string {
     if (s >= 8) return "#16A34A";
@@ -3498,29 +3516,34 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
   function renderChecks(checks: LICheck[]) {
     return (
       <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
-        {checks.map((c, i) => (
-          <div key={i} style={{ borderRadius:10, border:`1px solid ${c.pass?"#E7F7EE":"#FEE2E2"}`, overflow:"hidden" }}>
-            <div onClick={()=>setExpandedCheck(expandedCheck===i?null:i)}
-              style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 16px", background:c.pass?"#F7FDF9":"#FFF8F8", cursor:"pointer" }}>
-              <div style={{ width:24, height:24, borderRadius:"50%", background:c.pass?"#DCFCE7":"#FEE2E2", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                {c.pass
-                  ? <svg viewBox="0 0 16 16" fill="none" style={{width:12,height:12}}><path d="M3 8l3.5 3.5L13 5" stroke="#16A34A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  : <svg viewBox="0 0 16 16" fill="none" style={{width:11,height:11}}><path d="M4 4l8 8M12 4l-8 8" stroke="#DC2626" strokeWidth="2.2" strokeLinecap="round"/></svg>
-                }
+        {checks.map((c, i) => {
+          const isExpanded = !c.pass || expandedCheck === i;
+          return (
+            <div key={i} style={{ borderRadius:10, border:`1px solid ${c.pass?"#E7F7EE":"#FEE2E2"}`, overflow:"hidden" }}>
+              <div onClick={()=>setExpandedCheck(expandedCheck===i?null:i)}
+                style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 16px", background:c.pass?"#F7FDF9":"#FFF8F8", cursor:"pointer" }}>
+                <div style={{ width:24, height:24, borderRadius:"50%", background:c.pass?"#DCFCE7":"#FEE2E2", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                  {c.pass
+                    ? <svg viewBox="0 0 16 16" fill="none" style={{width:12,height:12}}><path d="M3 8l3.5 3.5L13 5" stroke="#16A34A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    : <svg viewBox="0 0 16 16" fill="none" style={{width:11,height:11}}><path d="M4 4l8 8M12 4l-8 8" stroke="#DC2626" strokeWidth="2.2" strokeLinecap="round"/></svg>
+                  }
+                </div>
+                <span style={{ flex:1, fontSize:13.5, fontWeight:600, color:"#0F172A" }}>{c.name}</span>
+                {c.pass && (
+                  <svg viewBox="0 0 16 16" fill="none" stroke="#CBD5E1" strokeWidth="1.8"
+                    style={{ width:14,height:14,flexShrink:0,transform:isExpanded?"rotate(180deg)":"none",transition:"transform 0.15s" }}>
+                    <path d="M3 6l5 5 5-5"/>
+                  </svg>
+                )}
               </div>
-              <span style={{ flex:1, fontSize:13.5, fontWeight:600, color:"#0F172A" }}>{c.name}</span>
-              <svg viewBox="0 0 16 16" fill="none" stroke="#CBD5E1" strokeWidth="1.8"
-                style={{ width:14,height:14,flexShrink:0,transform:expandedCheck===i?"rotate(180deg)":"none",transition:"transform 0.15s" }}>
-                <path d="M3 6l5 5 5-5"/>
-              </svg>
+              {isExpanded && (
+                <div style={{ padding:"10px 16px 14px 52px", fontSize:13, color:c.pass?"#475569":"#7F1D1D", lineHeight:1.65, background:c.pass?"white":"#FFF5F5", borderTop:`1px solid ${c.pass?"#E7F7EE":"#FEE2E2"}` }}>
+                  {c.detail}
+                </div>
+              )}
             </div>
-            {expandedCheck===i && (
-              <div style={{ padding:"10px 16px 14px 52px", fontSize:13, color:"#475569", lineHeight:1.65, background:"white", borderTop:`1px solid ${c.pass?"#E7F7EE":"#FEE2E2"}` }}>
-                {c.detail}
-              </div>
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
     );
   }
@@ -3720,14 +3743,22 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
                   <div style={{ width:28, height:28, borderRadius:8, background:"linear-gradient(135deg,#667EEA,#764BA2)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                     <svg viewBox="0 0 16 16" fill="white" style={{width:14,height:14}}><path d="M8 1l1.5 3.5L13 6l-2.5 2.5.5 3.5L8 10.5 5 12l.5-3.5L3 6l3.5-1.5L8 1z"/></svg>
                   </div>
-                  <p style={{ fontSize:15, fontWeight:800, color:"#0F172A" }}>AI Coach — Optimized Rewrite</p>
+                  <div>
+                    <p style={{ fontSize:15, fontWeight:800, color:"#0F172A" }}>AI Coach — Suggested Rewrite</p>
+                    {activeSecKey==="experience" && (
+                      <p style={{ fontSize:11.5, color:"#94A3B8", marginTop:1 }}>Rewriting your most recent role — replace the bullets in your LinkedIn profile</p>
+                    )}
+                  </div>
                 </div>
-                <p style={{ fontSize:13, color:"#64748B", marginBottom:16 }}>Zari rewrote your {activeSecKey} to be stronger, more keyword-rich, and recruiter-optimized.</p>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginTop:16 }}>
                   <div style={{ background:"#FAFBFF", borderRadius:12, padding:"14px 16px", border:"1px solid #E8EDF5" }}>
-                    <p style={{ fontSize:10.5, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Current Version</p>
+                    <p style={{ fontSize:10.5, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>
+                      {activeSecKey==="experience" ? "Your most recent role (current)" : "Current"}
+                    </p>
                     <p style={{ fontSize:13, color:"#475569", lineHeight:1.7, whiteSpace:"pre-wrap" }}>
-                      {secInputs[activeSecKey] || "(not provided)"}
+                      {activeSecKey==="experience"
+                        ? extractFirstRole(secInputs[activeSecKey]) || "(not provided)"
+                        : secInputs[activeSecKey] || "(not provided)"}
                     </p>
                   </div>
                   <div style={{ background:"linear-gradient(160deg,#F0FFF8,#F0F7FF)", borderRadius:12, padding:"14px 16px", border:"1px solid #C6F0DC" }}>
@@ -3832,30 +3863,30 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
           </div>
 
           {/* About section */}
+          {(()=>{ const [exp, setExp] = useState(false); const txt = previewTab==="current" ? summary : (result?.summary?.rewrite || summary); const long = txt && txt.length > 200; return (
           <div style={{ border:"1px solid #E8EDF5", borderRadius:12, padding:"12px 12px", marginBottom:10, background:"white" }}>
             <p style={{ fontSize:10.5, fontWeight:800, color:"#0F172A", marginBottom:6 }}>About</p>
-            <p style={{ fontSize:11.5, color:"#475569", lineHeight:1.65, maxHeight:110, overflow:"hidden", display:"-webkit-box", WebkitLineClamp:6, WebkitBoxOrient:"vertical" }}>
-              {previewTab==="current"
-                ? (summary || <span style={{color:"#CBD5E1",fontStyle:"italic"}}>Your About section…</span>)
-                : (result?.summary?.rewrite || summary || <span style={{color:"#CBD5E1",fontStyle:"italic"}}>Rewritten About…</span>)}
+            <p style={{ fontSize:11.5, color:"#475569", lineHeight:1.65, whiteSpace:"pre-wrap", ...(!exp && long ? { maxHeight:110, overflow:"hidden" } : {}) }}>
+              {txt || <span style={{color:"#CBD5E1",fontStyle:"italic"}}>Your About section…</span>}
             </p>
+            {long && <button onClick={()=>setExp(!exp)} style={{ fontSize:10.5, fontWeight:700, color:"#0077B5", background:"none", border:"none", padding:"4px 0 0", cursor:"pointer" }}>{exp?"Show less ↑":"Show more ↓"}</button>}
             {previewTab==="rewritten" && result?.summary?.rewrite && (
-              <p style={{ fontSize:10, color:"#16A34A", fontWeight:700, marginTop:6 }}>✓ Optimized by Zari</p>
+              <p style={{ fontSize:10, color:"#16A34A", fontWeight:700, marginTop:4 }}>✓ Optimized by Zari</p>
             )}
-          </div>
+          </div>); })()}
 
           {/* Experience section */}
+          {(()=>{ const [exp, setExp] = useState(false); const txt = previewTab==="current" ? experience : (result?.experience?.rewrite || experience); const long = txt && txt.length > 200; return (
           <div style={{ border:"1px solid #E8EDF5", borderRadius:12, padding:"12px 12px", background:"white" }}>
             <p style={{ fontSize:10.5, fontWeight:800, color:"#0F172A", marginBottom:6 }}>Experience</p>
-            <p style={{ fontSize:11.5, color:"#475569", lineHeight:1.65, maxHeight:90, overflow:"hidden", display:"-webkit-box", WebkitLineClamp:5, WebkitBoxOrient:"vertical" }}>
-              {previewTab==="current"
-                ? (experience || <span style={{color:"#CBD5E1",fontStyle:"italic"}}>Your experience…</span>)
-                : (result?.experience?.rewrite || experience || <span style={{color:"#CBD5E1",fontStyle:"italic"}}>Rewritten experience…</span>)}
+            <p style={{ fontSize:11.5, color:"#475569", lineHeight:1.65, whiteSpace:"pre-wrap", ...(!exp && long ? { maxHeight:110, overflow:"hidden" } : {}) }}>
+              {txt || <span style={{color:"#CBD5E1",fontStyle:"italic"}}>Your experience…</span>}
             </p>
+            {long && <button onClick={()=>setExp(!exp)} style={{ fontSize:10.5, fontWeight:700, color:"#0077B5", background:"none", border:"none", padding:"4px 0 0", cursor:"pointer" }}>{exp?"Show less ↑":"Show more ↓"}</button>}
             {previewTab==="rewritten" && result?.experience?.rewrite && (
-              <p style={{ fontSize:10, color:"#16A34A", fontWeight:700, marginTop:6 }}>✓ Optimized by Zari</p>
+              <p style={{ fontSize:10, color:"#16A34A", fontWeight:700, marginTop:4 }}>✓ Optimized by Zari</p>
             )}
-          </div>
+          </div>); })()}
         </div>
       </div>
     </div>
