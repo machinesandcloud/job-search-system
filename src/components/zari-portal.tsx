@@ -767,34 +767,47 @@ function escHtml(s: string) {
 }
 
 function generateResumeHtml(text: string, footerNote = ""): string {
-  const SECTION_RE = /^[A-Z][A-Z\s&\/\-]{3,}$/;
-  const BULLET_RE  = /^[•\-\*\u2022►▸]\s/;
-  const DATE_RE    = /\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?|\d{4})\b.*\b(20\d{2}|19\d{2}|Present|Current|Now)\b/i;
-  const CONTACT_RE = /@|\(\d{3}\)|\d{3}[\-.\s]\d{3}[\-.\s]\d{4}|linkedin\.com|github\.com/i;
-  const NAME_RE    = /^[A-Z][A-Z\s]{4,38}[A-Z]$/; // e.g. "STEVE NGOUMNAI" or "ST EVE NGOUMNAI"
+  const SECTION_KW_RE = /^(PROFESSIONAL SUMMARY|PROFESSIONAL EXPERIENCE|SKILLS|EDUCATION|CERTIFICATIONS?|LICENSES?|PROJECTS?|AWARDS?|ACHIEVEMENTS?|VOLUNTEER|INTERESTS?|OBJECTIVE|PROFILE|PUBLICATIONS?|REFERENCES?|EMPLOYMENT HISTORY|WORK EXPERIENCE|CONTACT)$/i;
+  const SECTION_RE    = /^[A-Z][A-Z\s&\/\-]{3,}$/;
+  const BULLET_RE     = /^[•\-\*\u2022►▸]\s/;
+  const DATE_RE       = /\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?|\d{4})\b.{0,40}\b(20\d{2}|19\d{2}|Present|Current|Now)\b/i;
+  const CONTACT_RE    = /@|\(\d{3}\)|\d{3}[\-.\s]\d{3}[\-.\s]\d{4}|linkedin\.com|github\.com/i;
+  // Name: all-caps 2–5 words, 5–40 chars, no section keywords, allow interior spaces (e.g. "ST EVE NGOUMNAI")
+  const NAME_RE       = /^[A-Z][A-Z\s]{4,39}[A-Z]$/;
+  // Skill category line: "Word(s): rest of line" where label is 2-5 words
+  const SKILL_CAT_RE  = /^[A-Za-z][A-Za-z\s&]{2,35}:\s+\S/;
 
   const lines = text.split("\n");
   let body = "";
   let inList = false;
+  let pendingBoldLine: string | null = null; // buffer company name to merge with following date
 
   const closeList = () => { if (inList) { body += "</ul>\n"; inList = false; } };
 
+  const flushPending = (dateStr?: string) => {
+    if (pendingBoldLine === null) return;
+    if (dateStr) {
+      body += `<div class="job-hdr"><span class="company">${escHtml(pendingBoldLine)}</span><span class="date-r">${escHtml(dateStr)}</span></div>\n`;
+    } else {
+      body += `<p class="bold-line">${escHtml(pendingBoldLine)}</p>\n`;
+    }
+    pendingBoldLine = null;
+  };
+
   for (const raw of lines) {
     const t = raw.trim();
-    if (!t) { closeList(); body += "<br>\n"; continue; }
+    if (!t) { closeList(); flushPending(); body += "<br>\n"; continue; }
 
-    // ALL-CAPS section header (matches a known-section keyword or short all-caps)
-    if (SECTION_RE.test(t) && t.length <= 60) {
-      const isSectionKw = /\b(EXPERIENCE|EDUCATION|SKILLS|SUMMARY|CERTIFICATIONS?|PROJECTS?|CONTACT|EMPLOYMENT|AWARDS?|LANGUAGES?|ACHIEVEMENTS?|PROFILE|PUBLICATIONS?|REFERENCES?|VOLUNTEER|INTERESTS?|OBJECTIVE)\b/i.test(t);
-      if (isSectionKw || t.split(/\s+/).length <= 4) {
-        closeList();
-        body += `<div class="sec-hdr">${escHtml(t)}</div>\n`;
-        continue;
-      }
+    // Section header
+    if ((SECTION_KW_RE.test(t) || (SECTION_RE.test(t) && t.length <= 60 && t.split(/\s+/).length <= 4))) {
+      closeList(); flushPending();
+      body += `<div class="sec-hdr">${escHtml(t)}</div>\n`;
+      continue;
     }
 
     // Bullet
     if (BULLET_RE.test(t)) {
+      flushPending();
       const txt = t.replace(/^[•\-\*\u2022►▸]\s*/, "");
       if (!inList) { body += "<ul>\n"; inList = true; }
       body += `  <li>${escHtml(txt)}</li>\n`;
@@ -802,33 +815,52 @@ function generateResumeHtml(text: string, footerNote = ""): string {
     }
     closeList();
 
-    // Name line (short ALL-CAPS, 2+ words, no section keywords)
-    if (NAME_RE.test(t) && t.split(/\s+/).length >= 2 && !/\b(EXPERIENCE|EDUCATION|SKILLS|SUMMARY|CERTIFICATIONS?|PROJECTS?|CONTACT|EMPLOYMENT|PROFESSIONAL)\b/i.test(t)) {
+    // Name line
+    if (NAME_RE.test(t) && !/\b(EXPERIENCE|EDUCATION|SKILLS|SUMMARY|CERTIFICATIONS?|EMPLOYMENT|PROFESSIONAL|OBJECTIVE)\b/i.test(t) && t.split(/\s+/).length >= 2 && t.split(/\s+/).length <= 5) {
+      flushPending();
       body += `<p class="name">${escHtml(t)}</p>\n`;
       continue;
     }
 
     // Contact line
     if (CONTACT_RE.test(t) && t.length < 160) {
+      flushPending();
       body += `<p class="contact">${escHtml(t)}</p>\n`;
       continue;
     }
 
-    // Date / tenure line
+    // Date line — if there's a pending company name, merge them into one row
     if (DATE_RE.test(t) && t.length < 90) {
-      body += `<p class="date">${escHtml(t)}</p>\n`;
+      if (pendingBoldLine !== null) {
+        flushPending(t); // merge: company name + date on same row
+      } else {
+        body += `<p class="date-standalone">${escHtml(t)}</p>\n`;
+      }
       continue;
     }
 
-    // Short bold line (company / job title — not starting with spaces, ≤ 8 words)
-    if (!raw.startsWith(" ") && t.length < 90 && t.split(/\s+/).length <= 9 && !/,\s/.test(t.slice(20))) {
-      body += `<p class="bold-line">${escHtml(t)}</p>\n`;
+    // Skill category line — "Cloud & Infrastructure: AWS, Kubernetes…" → bold label
+    if (SKILL_CAT_RE.test(t) && t.length < 200) {
+      flushPending();
+      const colonIdx = t.indexOf(":");
+      const label = t.slice(0, colonIdx);
+      const rest  = t.slice(colonIdx + 1);
+      body += `<p class="skill-line"><strong>${escHtml(label)}:</strong>${escHtml(rest)}</p>\n`;
       continue;
     }
 
+    // Short line — could be company name or job title; buffer it so we can merge with a following date
+    if (!raw.startsWith(" ") && t.length < 100 && t.split(/\s+/).length <= 8) {
+      flushPending(); // flush previous if still waiting
+      pendingBoldLine = t;
+      continue;
+    }
+
+    flushPending();
     body += `<p>${escHtml(t)}</p>\n`;
   }
   closeList();
+  flushPending();
 
   const footer = footerNote ? `\n<p class="footer">${escHtml(footerNote)}</p>` : "";
 
@@ -843,11 +875,15 @@ function generateResumeHtml(text: string, footerNote = ""): string {
   .name{font-size:18pt;font-weight:800;text-align:center;letter-spacing:4px;text-transform:uppercase;margin-bottom:3px}
   .contact{text-align:center;font-size:10pt;color:#444;margin-bottom:2px}
   .sec-hdr{font-weight:700;text-align:center;border-top:1.5px solid #000;border-bottom:1.5px solid #000;padding:4px 0;margin:14px 0 7px;letter-spacing:.8px;text-transform:uppercase;font-size:10.5pt}
+  .job-hdr{display:flex;justify-content:space-between;align-items:baseline;margin-top:8px;margin-bottom:1px}
+  .company{font-weight:700;font-size:11pt}
+  .date-r{font-size:10pt;color:#333;font-weight:400;white-space:nowrap;margin-left:8px}
+  .date-standalone{font-size:10pt;color:#333;margin-bottom:2px}
+  .bold-line{font-weight:700;margin-top:6px;margin-bottom:1px}
+  .skill-line{margin-bottom:3px;line-height:1.45}
   ul{padding-left:20px;margin:4px 0 6px}
   li{margin-bottom:3px;line-height:1.45}
   p{margin-bottom:3px;line-height:1.5}
-  .bold-line{font-weight:700;margin-top:8px}
-  .date{color:#555;font-size:10pt;text-align:right;margin-top:-18px;margin-bottom:4px}
   br{display:block;margin:3px 0;content:""}
   .footer{margin-top:24pt;font-size:8.5pt;color:#aaa;text-align:center;border-top:1px solid #eee;padding-top:6pt}
   @media print{@page{margin:.75in}body{padding:0}.footer{display:none}}
