@@ -3292,6 +3292,7 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
   const [err,          setErr]          = useState("");
   const [previewTab,   setPreviewTab]   = useState<"current"|"rewritten">("current");
   const [expandedCheck,setExpandedCheck]= useState<number | null>(null);
+  const [aboutExpanded, setAboutExpanded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -3970,13 +3971,13 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
           </div>
 
           {/* About section */}
-          {(()=>{ const [exp, setExp] = useState(false); const txt = previewTab==="current" ? summary : (result?.summary?.rewrite || summary); const long = txt && txt.length > 200; return (
+          {(()=>{ const txt = previewTab==="current" ? summary : (result?.summary?.rewrite || summary); const long = txt && txt.length > 200; return (
           <div style={{ border:"1px solid #E8EDF5", borderRadius:12, padding:"12px 12px", marginBottom:10, background:"white" }}>
             <p style={{ fontSize:10.5, fontWeight:800, color:"#0F172A", marginBottom:6 }}>About</p>
-            <p style={{ fontSize:11.5, color:"#475569", lineHeight:1.65, whiteSpace:"pre-wrap", ...(!exp && long ? { maxHeight:110, overflow:"hidden" } : {}) }}>
+            <p style={{ fontSize:11.5, color:"#475569", lineHeight:1.65, whiteSpace:"pre-wrap", ...(!aboutExpanded && long ? { maxHeight:110, overflow:"hidden" } : {}) }}>
               {txt || <span style={{color:"#CBD5E1",fontStyle:"italic"}}>Your About section…</span>}
             </p>
-            {long && <button onClick={()=>setExp(!exp)} style={{ fontSize:10.5, fontWeight:700, color:"#0077B5", background:"none", border:"none", padding:"4px 0 0", cursor:"pointer" }}>{exp?"Show less ↑":"Show more ↓"}</button>}
+            {long && <button onClick={()=>setAboutExpanded(!aboutExpanded)} style={{ fontSize:10.5, fontWeight:700, color:"#0077B5", background:"none", border:"none", padding:"4px 0 0", cursor:"pointer" }}>{aboutExpanded?"Show less ↑":"Show more ↓"}</button>}
             {previewTab==="rewritten" && result?.summary?.rewrite && (
               <p style={{ fontSize:10, color:"#16A34A", fontWeight:700, marginTop:4 }}>✓ Optimized by Zari</p>
             )}
