@@ -12,10 +12,9 @@ type ParsedProfile = {
   skills: string;
   linkedinUrl: string;
   hasPhoto: boolean;
-  rawText: string;
 };
 
-async function extractSectionsWithAI(rawText: string): Promise<Omit<ParsedProfile, "rawText" | "hasPhoto">> {
+async function extractSectionsWithAI(rawText: string): Promise<Omit<ParsedProfile, "hasPhoto">> {
   const systemPrompt = `You are a LinkedIn profile parser. Given raw text extracted from a LinkedIn PDF download, extract the structured sections.
 
 Return ONLY valid JSON:
@@ -43,7 +42,7 @@ Rules:
   );
 
   if (!reply) throw new Error("AI parsing failed");
-  return JSON.parse(reply) as Omit<ParsedProfile, "rawText" | "hasPhoto">;
+  return JSON.parse(reply) as Omit<ParsedProfile, "hasPhoto">;
 }
 
 export async function POST(request: Request) {
@@ -53,104 +52,40 @@ export async function POST(request: Request) {
 
   const contentType = request.headers.get("content-type") ?? "";
 
-  // ── PDF / file upload path ──
-  if (contentType.includes("multipart/form-data")) {
-    try {
-      const formData = await request.formData();
-      const file = formData.get("file");
-
-      if (!file || typeof file === "string") {
-        return NextResponse.json({ error: "No file provided" }, { status: 400 });
-      }
-
-      const buffer = Buffer.from(await (file as File).arrayBuffer());
-      const name = (file as File).name?.toLowerCase() ?? "";
-      const mime = (file as File).type ?? "";
-
-      let rawText = "";
-      if (mime === "application/pdf" || name.endsWith(".pdf")) {
-        const parsed = await pdfParse(buffer);
-        rawText = parsed.text;
-      } else {
-        rawText = buffer.toString("utf-8");
-      }
-
-      rawText = rawText.replace(/\r\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
-
-      if (!rawText || rawText.length < 50) {
-        return NextResponse.json({ error: "Could not extract text from this file." }, { status: 422 });
-      }
-
-      const sections = await extractSectionsWithAI(rawText);
-      return NextResponse.json({ ...sections, hasPhoto: false, rawText });
-    } catch (err) {
-      console.error("[linkedin/parse-profile file]", err);
-      return NextResponse.json({ error: "Failed to parse profile file." }, { status: 500 });
-    }
+  if (!contentType.includes("multipart/form-data")) {
+    return NextResponse.json({ error: "File upload required" }, { status: 400 });
   }
 
-  // ── LinkedIn URL fetch path ──
   try {
-    const body = await request.json().catch(() => ({})) as { url?: string };
-    const url = (body.url ?? "").trim();
+    const formData = await request.formData();
+    const file = formData.get("file");
 
-    if (!url || !url.includes("linkedin.com")) {
-      return NextResponse.json({ error: "Valid LinkedIn URL required" }, { status: 400 });
+    if (!file || typeof file === "string") {
+      return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    const proxycurlKey = process.env.PROXYCURL_API_KEY;
+    const buffer = Buffer.from(await (file as File).arrayBuffer());
+    const name = (file as File).name?.toLowerCase() ?? "";
+    const mime = (file as File).type ?? "";
 
-    // ── Proxycurl path (requires API key) ──
-    if (proxycurlKey) {
-      const pcRes = await fetch(
-        `https://nubela.co/proxycurl/api/v2/linkedin?url=${encodeURIComponent(url)}&skills=include&extra=include`,
-        {
-          headers: { Authorization: `Bearer ${proxycurlKey}` },
-          signal: AbortSignal.timeout(15000),
-        }
-      );
-
-      if (!pcRes.ok) {
-        const msg = pcRes.status === 404 ? "Profile not found — check the URL." :
-                    pcRes.status === 402 ? "LinkedIn API credits exhausted." :
-                    "Could not retrieve that profile. Try the PDF upload instead.";
-        return NextResponse.json({ error: msg }, { status: 422 });
-      }
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const pc = await pcRes.json() as Record<string, any>;
-
-      const headline = (pc.headline ?? "") as string;
-      const summary  = (pc.summary ?? "") as string;
-      const skills   = ((pc.skills ?? []) as string[]).join(", ");
-      const education = ((pc.education ?? []) as {school?:{name?:string}; degree_name?:string; starts_at?:{year?:number}; ends_at?:{year?:number}}[])
-        .map(e => [e.school?.name, e.degree_name, e.ends_at?.year ?? e.starts_at?.year].filter(Boolean).join(", "))
-        .join("\n");
-      const experience = ((pc.experiences ?? []) as {company?:string; title?:string; starts_at?:{year?:number}; ends_at?:{year?:number}; description?:string}[])
-        .slice(0, 5)
-        .map(e => {
-          const dateRange = [e.starts_at?.year, e.ends_at?.year ?? "Present"].filter(Boolean).join(" – ");
-          return [e.title, e.company, dateRange, e.description].filter(Boolean).join("\n");
-        })
-        .join("\n\n");
-
-      return NextResponse.json({
-        headline, summary, experience, education, skills,
-        linkedinUrl: url, hasPhoto: !!(pc.profile_pic_url),
-        rawText: "",
-      });
+    let rawText = "";
+    if (mime === "application/pdf" || name.endsWith(".pdf")) {
+      const parsed = await pdfParse(buffer);
+      rawText = parsed.text;
+    } else {
+      rawText = buffer.toString("utf-8");
     }
 
-    // ── No Proxycurl key: LinkedIn blocks server-side fetching ──
-    // LinkedIn's pages are JavaScript-rendered; a plain fetch returns an auth wall.
-    return NextResponse.json(
-      { error: "URL analysis requires a LinkedIn data API key (PROXYCURL_API_KEY). Please use the PDF upload option instead — it works just as well and takes 30 seconds." },
-      { status: 422 }
-    );
-  } catch {
-    return NextResponse.json(
-      { error: "Could not reach LinkedIn. Please use the PDF upload option instead." },
-      { status: 422 }
-    );
+    rawText = rawText.replace(/\r\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+
+    if (!rawText || rawText.length < 50) {
+      return NextResponse.json({ error: "Could not extract text from this file." }, { status: 422 });
+    }
+
+    const sections = await extractSectionsWithAI(rawText);
+    return NextResponse.json({ ...sections, hasPhoto: false });
+  } catch (err) {
+    console.error("[linkedin/parse-profile]", err);
+    return NextResponse.json({ error: "Failed to parse profile file." }, { status: 500 });
   }
 }

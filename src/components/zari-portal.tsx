@@ -3272,11 +3272,8 @@ type LinkedInResult = {
 
 function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
   type LINav = "score"|"headline"|"summary"|"experience"|"education"|"other"|"keywords";
-  type InputMethod = "pdf"|"url";
   const [liSection,    setLISection]    = useState<LINav>("score");
   const [inputMode,    setInputMode]    = useState(true);
-  const [inputMethod,  setInputMethod]  = useState<InputMethod|null>(null);
-  const [urlInput,     setUrlInput]     = useState("");
   const [targetRole,   setTargetRole]   = useState("");
   const [dragOver,     setDragOver]     = useState(false);
   const [parseLoading, setParseLoading] = useState(false);
@@ -3295,41 +3292,23 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setInputMode(true); setInputMethod(null); setResult(null);
-    setUrlInput(""); setTargetRole(""); setDragOver(false);
+    setInputMode(true); setResult(null); setTargetRole(""); setDragOver(false);
     setHeadline(""); setSummary(""); setExperience(""); setEducation("");
     setSkills(""); setLinkedinUrl(""); setHasPhoto(false); setErr("");
   }, [stage]);
 
-  async function parseAndAnalyze(file?: File, url?: string) {
+  async function parseAndAnalyze(file: File) {
     if (parseLoading) return;
     setErr(""); setParseLoading(true);
-
     try {
-      // Step 1: parse profile from file or URL
       setLoadingMsg("Extracting your profile…");
-      let parsed: { headline:string; summary:string; experience:string; education:string; skills:string; linkedinUrl:string; hasPhoto:boolean } | null = null;
+      const fd = new FormData();
+      fd.append("file", file);
+      const pr = await fetch("/api/zari/linkedin/parse-profile", { method:"POST", body:fd });
+      const pd = await pr.json().catch(() => null);
+      if (!pr.ok || !pd || pd.error) { setErr(pd?.error ?? "Could not read your file."); setParseLoading(false); return; }
+      const parsed = pd as { headline:string; summary:string; experience:string; education:string; skills:string; linkedinUrl:string; hasPhoto:boolean };
 
-      if (file) {
-        const fd = new FormData();
-        fd.append("file", file);
-        const pr = await fetch("/api/zari/linkedin/parse-profile", { method:"POST", body:fd });
-        const pd = await pr.json().catch(() => null);
-        if (!pr.ok || !pd || pd.error) { setErr(pd?.error ?? "Could not read your file."); setParseLoading(false); return; }
-        parsed = pd;
-      } else if (url) {
-        const pr = await fetch("/api/zari/linkedin/parse-profile", {
-          method:"POST", headers:{"Content-Type":"application/json"},
-          body: JSON.stringify({ url }),
-        });
-        const pd = await pr.json().catch(() => null);
-        if (!pr.ok || !pd || pd.error) { setErr(pd?.error ?? "Could not fetch that profile."); setParseLoading(false); return; }
-        parsed = pd;
-      }
-
-      if (!parsed) { setErr("Nothing to analyze."); setParseLoading(false); return; }
-
-      // Step 2: run review with extracted sections
       setLoadingMsg("Analyzing your profile…");
       const reviewRes = await fetch("/api/zari/linkedin/review", {
         method:"POST", headers:{"Content-Type":"application/json"},
@@ -3339,7 +3318,7 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
           experience: parsed.experience,
           education:  parsed.education,
           skills:     parsed.skills,
-          linkedinUrl:parsed.linkedinUrl || url || "",
+          linkedinUrl:parsed.linkedinUrl,
           hasPhoto:   parsed.hasPhoto,
           targetRole,
         }),
@@ -3348,7 +3327,7 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
       if (data && (data.headline || data.summary)) {
         setHeadline(parsed.headline); setSummary(parsed.summary);
         setExperience(parsed.experience); setEducation(parsed.education);
-        setSkills(parsed.skills); setLinkedinUrl(parsed.linkedinUrl || url || "");
+        setSkills(parsed.skills); setLinkedinUrl(parsed.linkedinUrl);
         setHasPhoto(parsed.hasPhoto);
         setResult(data); setInputMode(false); setLISection("score");
       } else {
@@ -3360,12 +3339,11 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
 
   function handleFile(f: File) {
     if (!f) return;
-    const ext = f.name.toLowerCase();
-    if (!ext.endsWith(".pdf") && f.type !== "application/pdf") {
+    if (!f.name.toLowerCase().endsWith(".pdf") && f.type !== "application/pdf") {
       setErr("Please upload your LinkedIn profile as a PDF file.");
       return;
     }
-    void parseAndAnalyze(f, undefined);
+    void parseAndAnalyze(f);
   }
 
   // ── Helpers ──
@@ -3403,128 +3381,75 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
   // ── INPUT STEP ──
   if (inputMode) return (
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#0A1628" }}>
-      {/* Hidden file input */}
       <input ref={fileInputRef} type="file" accept=".pdf" style={{ display:"none" }}
         onChange={e=>{ const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value=""; }}/>
 
-      {/* Full-height centered layout */}
       <div style={{ minHeight:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"40px 24px" }}>
 
-        {/* Logo + title */}
-        <div style={{ textAlign:"center", marginBottom:40 }}>
+        <div style={{ textAlign:"center", marginBottom:36 }}>
           <div style={{ width:52, height:52, borderRadius:14, background:"linear-gradient(135deg,#0077B5,#00A0DC)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px", boxShadow:"0 8px 28px rgba(0,119,181,0.5)" }}>
             <svg viewBox="0 0 24 24" fill="white" style={{ width:26,height:26 }}><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zM9 17H6.477v-7H9v7zM7.694 8.717c-.771 0-1.286-.514-1.286-1.2s.514-1.2 1.286-1.2c.771 0 1.286.514 1.286 1.2s-.514 1.2-1.286 1.2zM18 17h-2.442v-3.826c0-1.058-.651-1.302-1.044-1.302-.394 0-1.228.163-1.228 1.302V17h-2.557v-7h2.557v1.302c.325-.652 1.058-1.302 2.276-1.302C17.349 10 18 11.058 18 13.488V17z"/></svg>
           </div>
           <h1 style={{ fontSize:28, fontWeight:900, color:"white", letterSpacing:"-0.04em", marginBottom:8 }}>LinkedIn Profile Reviewer</h1>
-          <p style={{ fontSize:14.5, color:"rgba(255,255,255,0.5)", maxWidth:440, margin:"0 auto", lineHeight:1.6 }}>
-            Get a detailed score on every section — Headline, Summary, Experience, Education, and more — with AI rewrites.
+          <p style={{ fontSize:14.5, color:"rgba(255,255,255,0.5)", maxWidth:420, margin:"0 auto", lineHeight:1.6 }}>
+            Upload your LinkedIn profile PDF and get a detailed score on every section with AI rewrites.
           </p>
         </div>
 
-        {/* Loading overlay */}
-        {parseLoading && (
-          <div style={{ background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:20, padding:"36px 48px", textAlign:"center", maxWidth:380, width:"100%" }}>
+        {parseLoading ? (
+          <div style={{ background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:20, padding:"40px 56px", textAlign:"center", maxWidth:360, width:"100%" }}>
             <div style={{ width:48, height:48, borderRadius:"50%", border:"3px solid rgba(0,119,181,0.3)", borderTopColor:"#0077B5", animation:"spin-slow 0.8s linear infinite", margin:"0 auto 20px" }}/>
             <p style={{ fontSize:16, fontWeight:700, color:"white", marginBottom:6 }}>{loadingMsg || "Processing…"}</p>
             <p style={{ fontSize:13, color:"rgba(255,255,255,0.4)" }}>This takes 10–20 seconds</p>
           </div>
-        )}
-
-        {!parseLoading && (
-          <div style={{ width:"100%", maxWidth:680 }}>
+        ) : (
+          <div style={{ width:"100%", maxWidth:520 }}>
             {err && (
-              <div style={{ background:"rgba(220,38,38,0.1)", border:"1px solid rgba(220,38,38,0.3)", borderRadius:12, padding:"12px 16px", marginBottom:20, fontSize:13.5, color:"#FCA5A5", lineHeight:1.5 }}>
+              <div style={{ background:"rgba(220,38,38,0.1)", border:"1px solid rgba(220,38,38,0.3)", borderRadius:12, padding:"12px 16px", marginBottom:18, fontSize:13.5, color:"#FCA5A5", lineHeight:1.5 }}>
                 {err}
               </div>
             )}
 
-            {/* Two option cards */}
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:20 }}>
-
-              {/* PDF Upload card */}
-              <div
-                onClick={()=>{ if (!parseLoading) { setInputMethod("pdf"); setErr(""); fileInputRef.current?.click(); } }}
-                onDragOver={e=>{ e.preventDefault(); setDragOver(true); setInputMethod("pdf"); }}
-                onDragLeave={()=>setDragOver(false)}
-                onDrop={e=>{ e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files?.[0]; if (f) handleFile(f); }}
-                style={{ background:dragOver||inputMethod==="pdf"?"rgba(0,119,181,0.15)":"rgba(255,255,255,0.04)", border:`2px ${dragOver?"solid":"dashed"} ${dragOver||inputMethod==="pdf"?"#0077B5":"rgba(255,255,255,0.12)"}`, borderRadius:18, padding:"32px 24px", cursor:"pointer", textAlign:"center", transition:"all 0.15s" }}>
-                <div style={{ width:52, height:52, borderRadius:14, background:"rgba(0,119,181,0.2)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px" }}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="#0077B5" strokeWidth="1.8" style={{ width:26,height:26 }}>
-                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
-                    <line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/>
-                  </svg>
-                </div>
-                <p style={{ fontSize:16, fontWeight:800, color:"white", marginBottom:6 }}>Upload LinkedIn PDF</p>
-                <p style={{ fontSize:13, color:"rgba(255,255,255,0.45)", lineHeight:1.6 }}>
-                  Download your profile from LinkedIn and upload it here for automatic analysis
-                </p>
-                <div style={{ marginTop:14, display:"inline-flex", alignItems:"center", gap:6, fontSize:12, color:"#38BDF8", fontWeight:600 }}>
-                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:12,height:12}}><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>
-                  Drop here or click to browse
-                </div>
+            {/* Drop zone */}
+            <div
+              onClick={()=>{ setErr(""); fileInputRef.current?.click(); }}
+              onDragOver={e=>{ e.preventDefault(); setDragOver(true); }}
+              onDragLeave={()=>setDragOver(false)}
+              onDrop={e=>{ e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files?.[0]; if (f) handleFile(f); }}
+              style={{ background:dragOver?"rgba(0,119,181,0.18)":"rgba(255,255,255,0.04)", border:`2px dashed ${dragOver?"#0077B5":"rgba(255,255,255,0.15)"}`, borderRadius:20, padding:"48px 32px", cursor:"pointer", textAlign:"center", transition:"all 0.15s", marginBottom:16 }}>
+              <div style={{ width:56, height:56, borderRadius:16, background:"rgba(0,119,181,0.2)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 18px" }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="#0077B5" strokeWidth="1.8" style={{ width:28,height:28 }}>
+                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                  <line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/>
+                </svg>
               </div>
-
-              {/* URL card */}
-              <div
-                onClick={()=>{ if (!parseLoading) { setInputMethod("url"); setErr(""); } }}
-                style={{ background:inputMethod==="url"?"rgba(0,119,181,0.15)":"rgba(255,255,255,0.04)", border:`2px solid ${inputMethod==="url"?"#0077B5":"rgba(255,255,255,0.12)"}`, borderRadius:18, padding:"32px 24px", cursor:"pointer", textAlign:"center", transition:"all 0.15s" }}>
-                <div style={{ width:52, height:52, borderRadius:14, background:"rgba(0,119,181,0.2)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px" }}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="#0077B5" strokeWidth="1.8" style={{ width:26,height:26 }}>
-                    <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
-                    <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
-                  </svg>
-                </div>
-                <p style={{ fontSize:16, fontWeight:800, color:"white", marginBottom:6 }}>Enter LinkedIn URL</p>
-                <p style={{ fontSize:13, color:"rgba(255,255,255,0.45)", lineHeight:1.6 }}>
-                  Paste your LinkedIn profile URL — requires a LinkedIn data API key configured on this server
-                </p>
-                <div style={{ marginTop:14, display:"inline-flex", alignItems:"center", gap:6, fontSize:12, color:"#38BDF8", fontWeight:600 }}>
-                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:12,height:12}}><path d="M6 3l5 5-5 5"/></svg>
-                  linkedin.com/in/yourname
-                </div>
-              </div>
-            </div>
-
-            {/* URL input — shown when URL method selected */}
-            {inputMethod==="url" && (
-              <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:16, padding:"22px 24px", marginBottom:16 }}>
-                <label style={{ fontSize:12.5, fontWeight:700, color:"rgba(255,255,255,0.6)", display:"block", marginBottom:10, textTransform:"uppercase", letterSpacing:"0.07em" }}>Your LinkedIn Profile URL</label>
-                <div style={{ display:"flex", gap:10 }}>
-                  <input
-                    autoFocus
-                    style={{ flex:1, background:"rgba(255,255,255,0.06)", border:"1.5px solid rgba(255,255,255,0.15)", borderRadius:10, padding:"12px 14px", fontSize:14, color:"white", outline:"none", fontFamily:"inherit" }}
-                    placeholder="https://www.linkedin.com/in/yourname"
-                    value={urlInput} onChange={e=>setUrlInput(e.target.value)}
-                    onKeyDown={e=>{ if (e.key==="Enter" && urlInput.includes("linkedin")) void parseAndAnalyze(undefined, urlInput); }}/>
-                  <button
-                    onClick={()=>{ if (urlInput.includes("linkedin")) void parseAndAnalyze(undefined, urlInput); else setErr("Please enter a valid LinkedIn profile URL."); }}
-                    disabled={!urlInput}
-                    style={{ fontSize:13.5, fontWeight:700, padding:"12px 22px", borderRadius:10, border:"none", background:urlInput?"#0077B5":"rgba(255,255,255,0.08)", color:urlInput?"white":"rgba(255,255,255,0.3)", cursor:urlInput?"pointer":"default", whiteSpace:"nowrap" }}>
-                    Analyze →
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Target role field */}
-            <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:14, padding:"16px 20px", display:"flex", alignItems:"center", gap:16 }}>
-              <div style={{ flexShrink:0 }}>
-                <svg viewBox="0 0 20 20" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" style={{width:18,height:18}}><circle cx="10" cy="10" r="8"/><circle cx="10" cy="10" r="3"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="10" y1="16" x2="10" y2="18"/><line x1="2" y1="10" x2="4" y2="10"/><line x1="16" y1="10" x2="18" y2="10"/></svg>
-              </div>
-              <div style={{ flex:1 }}>
-                <p style={{ fontSize:12, fontWeight:700, color:"rgba(255,255,255,0.5)", textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:4 }}>Target Role <span style={{ fontWeight:400, textTransform:"none", letterSpacing:"normal" }}>(optional — improves keyword analysis)</span></p>
-                <input
-                  style={{ width:"100%", background:"transparent", border:"none", outline:"none", fontSize:14, color:"white", fontFamily:"inherit" }}
-                  placeholder="e.g. Senior Software Engineer, Product Manager…"
-                  value={targetRole} onChange={e=>setTargetRole(e.target.value)}/>
-              </div>
-            </div>
-
-            {/* How to download tip */}
-            <div style={{ marginTop:18, textAlign:"center" }}>
-              <p style={{ fontSize:12, color:"rgba(255,255,255,0.28)", lineHeight:1.7 }}>
-                To download your LinkedIn PDF: LinkedIn.com → Me → Settings &amp; Privacy → Data Privacy → Get a copy of your data → select &quot;Profile&quot; → Request archive
+              <p style={{ fontSize:17, fontWeight:800, color:"white", marginBottom:6 }}>
+                {dragOver ? "Drop your PDF here" : "Upload your LinkedIn PDF"}
               </p>
+              <p style={{ fontSize:13.5, color:"rgba(255,255,255,0.45)", marginBottom:14 }}>
+                Drag and drop, or click to browse
+              </p>
+              <span style={{ fontSize:12, fontWeight:700, padding:"6px 16px", borderRadius:99, background:"rgba(0,119,181,0.3)", color:"#7DD3FC", border:"1px solid rgba(0,119,181,0.4)" }}>
+                Choose PDF file
+              </span>
+            </div>
+
+            {/* Target role */}
+            <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:12, padding:"14px 18px", display:"flex", alignItems:"center", gap:12, marginBottom:18 }}>
+              <svg viewBox="0 0 20 20" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="1.5" style={{width:16,height:16,flexShrink:0}}><circle cx="10" cy="10" r="8"/><circle cx="10" cy="10" r="3"/></svg>
+              <input
+                style={{ flex:1, background:"transparent", border:"none", outline:"none", fontSize:14, color:"white", fontFamily:"inherit" }}
+                placeholder="Target role (optional) — e.g. Senior Product Manager"
+                value={targetRole} onChange={e=>setTargetRole(e.target.value)}/>
+            </div>
+
+            {/* How-to tip */}
+            <div style={{ background:"rgba(255,255,255,0.03)", borderRadius:12, padding:"14px 16px" }}>
+              <p style={{ fontSize:12, fontWeight:700, color:"rgba(255,255,255,0.4)", textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:8 }}>How to get your LinkedIn PDF</p>
+              <ol style={{ margin:0, paddingLeft:18, fontSize:12.5, color:"rgba(255,255,255,0.35)", lineHeight:2 }}>
+                <li>Go to LinkedIn.com → click <strong style={{color:"rgba(255,255,255,0.5)"}}>Me</strong> → <strong style={{color:"rgba(255,255,255,0.5)"}}>View Profile</strong></li>
+                <li>Click the <strong style={{color:"rgba(255,255,255,0.5)"}}>More</strong> button → <strong style={{color:"rgba(255,255,255,0.5)"}}>Save to PDF</strong></li>
+              </ol>
             </div>
           </div>
         )}
