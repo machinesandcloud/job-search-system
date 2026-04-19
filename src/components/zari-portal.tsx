@@ -655,18 +655,43 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
 
   const targetedInvalid = reviewMode === "targeted" && !targetRoleInput.trim() && !jobDescription.trim();
 
+  const LOCAL_HISTORY_KEY = "zari_resume_history_v2";
+
+  function readLocalHistory(): ResumeHistoryEntry[] {
+    try { return JSON.parse(localStorage.getItem(LOCAL_HISTORY_KEY) ?? "[]") as ResumeHistoryEntry[]; }
+    catch { return []; }
+  }
+
+  function writeLocalHistory(entries: ResumeHistoryEntry[]) {
+    try { localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(entries.slice(0, 30))); } catch { /* ignore */ }
+  }
+
+  function pushLocalHistory(entry: ResumeHistoryEntry) {
+    const existing = readLocalHistory();
+    writeLocalHistory([entry, ...existing]);
+  }
+
   async function fetchHistory() {
     setHistoryLoading(true);
     try {
       const res = await fetch("/api/zari/resume/history");
       const data = await res.json().catch(() => ({})) as { history?: ResumeHistoryEntry[] };
-      setScoreHistory(data.history ?? []);
-    } catch { /* non-fatal */ }
+      const server = data.history ?? [];
+      const local  = readLocalHistory();
+      // Merge: prefer server entries, fill with local ones not already in server (by submittedAt proximity)
+      const serverTs = new Set(server.map(e => e.submittedAt));
+      const merged = [...server, ...local.filter(e => !serverTs.has(e.submittedAt))];
+      merged.sort((a,b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+      setScoreHistory(merged.slice(0, 30));
+    } catch {
+      setScoreHistory(readLocalHistory());
+    }
     setHistoryLoading(false);
   }
 
   async function clearHistory() {
-    await fetch("/api/zari/resume/history", { method: "DELETE" });
+    try { await fetch("/api/zari/resume/history", { method: "DELETE" }); } catch { /* non-fatal */ }
+    writeLocalHistory([]);
     setScoreHistory([]);
   }
 
@@ -787,6 +812,15 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
       setProgress(100);
       if (data && data.overall) {
         setAiResult(data);
+        // Always persist to localStorage so history works regardless of auth state
+        pushLocalHistory({
+          id: `local_${Date.now()}`,
+          filename: fileName || "resume",
+          submittedAt: new Date().toISOString(),
+          mode: reviewMode,
+          targetRole: targetRoleInput || undefined,
+          scores: { overall: data.overall, ats: data.ats, impact: data.impact, clarity: data.clarity },
+        });
         setTimeout(() => setStep("results"), 400);
       } else {
         setStep("paste");
@@ -1024,327 +1058,367 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
     </div>
   );
 
-  return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#FAFBFF" }}>
-      <div style={{ maxWidth:1000, margin:"0 auto", padding:28 }}>
+  // Score grade helper
+  const scoreGrade = (s: number) =>
+    s >= 85 ? { label:"Excellent", color:"#16A34A" } :
+    s >= 72 ? { label:"Good",      color:"#0284C7" } :
+    s >= 55 ? { label:"Fair",      color:"#D97706" } :
+              { label:"Needs work",color:"#DC2626" };
 
-        {/* Header */}
-        <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:24, flexWrap:"wrap", gap:12 }}>
-          <div>
-            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4 }}>
-              <h1 style={{ fontSize:22, fontWeight:900, color:"#0A0A0F", letterSpacing:"-0.03em" }}>Resume Review</h1>
-              <span style={{ fontSize:11, fontWeight:700, padding:"3px 10px", borderRadius:99, background:"#F0FFF4", color:"#16A34A", border:"1px solid #BBF7D0" }}>Analyzed</span>
+  return (
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F4F6FB" }}>
+      <div style={{ maxWidth:1080, margin:"0 auto", padding:"24px 24px 48px" }}>
+
+        {/* ── Top bar ── */}
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20, gap:12, flexWrap:"wrap" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+            <button onClick={()=>setStep("upload")} style={{ display:"flex", alignItems:"center", gap:5, fontSize:12, fontWeight:600, color:"#68738A", background:"white", border:"1px solid #E4E8F5", borderRadius:8, padding:"6px 12px", cursor:"pointer" }}>
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:12,height:12 }}><path d="M10 3L5 8l5 5"/></svg>
+              New upload
+            </button>
+            <div>
+              <span style={{ fontSize:14, fontWeight:800, color:"#0A0A0F" }}>{fileName || "Resume"}</span>
+              <span style={{ fontSize:12, color:"#A0AABF", marginLeft:8 }}>{careerLevel.charAt(0).toUpperCase()+careerLevel.slice(1)}-level · {reviewMode === "targeted" && targetRoleInput ? targetRoleInput : "General review"}</span>
             </div>
-            <p style={{ fontSize:13, color:"#68738A" }}>{fileName || "Resume"} · {careerLevel.charAt(0).toUpperCase()+careerLevel.slice(1)}-level · Zari found {aiResult ? aiResult.findings.filter(f=>f.type!=="ok").length : 0} improvements</p>
           </div>
-          <div style={{ display:"flex", gap:8 }}>
-            <button onClick={()=>setStep("upload")} style={{ fontSize:12, fontWeight:600, padding:"8px 16px", borderRadius:10, border:"1px solid #E4E8F5", background:"white", color:"#0A0A0F", cursor:"pointer" }}>
-              Upload new version
-            </button>
-            <button onClick={downloadOptimized} style={{ fontSize:12, fontWeight:700, padding:"8px 18px", borderRadius:10, border:"none", background:"#4361EE", color:"white", cursor:"pointer", boxShadow:"0 4px 14px rgba(67,97,238,0.3)", display:"flex", alignItems:"center", gap:6 }}>
-              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:14,height:14 }}><path d="M10 4v12M4 10l6 6 6-6"/></svg>
-              Download optimized
-            </button>
-          </div>
+          <button onClick={downloadOptimized} style={{ display:"flex", alignItems:"center", gap:6, fontSize:12.5, fontWeight:700, padding:"9px 18px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#4361EE,#6B7FF0)", color:"white", cursor:"pointer", boxShadow:"0 4px 16px rgba(67,97,238,0.35)" }}>
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:14,height:14 }}><path d="M10 4v12M4 10l6 6 6-6"/></svg>
+            Download optimized
+          </button>
         </div>
 
-        {/* Score strip */}
+        {/* ── Hero score card ── */}
         {(() => {
-          // Derive smart labels from real data
           const kws = aiResult?.keywords ?? [];
-          const bullets = aiResult?.bullets ?? [];
-          const findings = aiResult?.findings ?? [];
+          const buls = aiResult?.bullets ?? [];
+          const finds = aiResult?.findings ?? [];
           const kwFound = kws.filter(k=>k.found).length;
           const kwTotal = kws.length;
-          const bulletsNeedingWork = bullets.length;
-          const criticalCount = findings.filter(f=>f.type==="critical").length;
-          const warnCount = findings.filter(f=>f.type==="warn").length;
+          const overall = aiResult?.overall ?? 0;
+          const grade = scoreGrade(overall);
+          const prevOverall = aiResult?.previousScores?.overall ?? null;
+          const overallDelta = prevOverall !== null ? overall - prevOverall : null;
 
-          const scoreItems: { label:string; key:keyof ResumeScores; score:number; color:string; note:string }[] = [
-            { label:"Overall",   key:"overall", score: aiResult?.overall ?? 0, color:"#4361EE",
-              note: criticalCount > 0 ? `${criticalCount} critical issue${criticalCount>1?"s":""}` : "Good overall shape" },
-            { label:"ATS Match", key:"ats",     score: aiResult?.ats     ?? 0, color:"#16A34A",
-              note: kwTotal > 0 ? `${kwFound}/${kwTotal} keywords matched` : "Keyword coverage" },
-            { label:"Impact",    key:"impact",  score: aiResult?.impact  ?? 0, color:"#0284C7",
-              note: bulletsNeedingWork > 0 ? `${bulletsNeedingWork} bullet${bulletsNeedingWork>1?"s":""} need metrics` : "Strong bullet impact" },
-            { label:"Clarity",   key:"clarity", score: aiResult?.clarity ?? 0, color:"#7C3AED",
-              note: warnCount > 0 ? `${warnCount} readability issue${warnCount>1?"s":""}` : "Clear structure" },
+          const subScores = [
+            { label:"ATS Match",  key:"ats"     as const, score:aiResult?.ats??0,     color:"#16A34A",
+              note: kwTotal>0 ? `${kwFound} of ${kwTotal} keywords found` : "Keyword coverage" },
+            { label:"Impact",     key:"impact"  as const, score:aiResult?.impact??0,  color:"#0284C7",
+              note: buls.length>0 ? `${buls.length} bullet${buls.length>1?"s":""} need stronger metrics` : "Metrics & outcomes" },
+            { label:"Clarity",    key:"clarity" as const, score:aiResult?.clarity??0, color:"#7C3AED",
+              note: `${finds.filter(f=>f.type!=="ok").length} issue${finds.filter(f=>f.type!=="ok").length!==1?"s":""} found` },
           ];
 
           return (
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12, marginBottom:24 }}>
-              {scoreItems.map(sc => {
-                const prev = aiResult?.previousScores?.[sc.key] ?? null;
-                const delta = prev !== null ? sc.score - prev : null;
-                const deltaColor = delta === null ? "#68738A" : delta > 0 ? "#16A34A" : delta < 0 ? "#DC2626" : "#A0AABF";
-                const deltaLine = delta === null
-                  ? sc.note
-                  : delta === 0 ? "No change vs last" : `${delta > 0 ? "+" : ""}${delta} vs last`;
-                const arrow = delta === null ? "" : delta > 0 ? " ↑" : delta < 0 ? " ↓" : " →";
-                return (
-                  <div key={sc.label} style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:14, padding:16, textAlign:"center", boxShadow:"0 1px 4px rgba(0,0,0,0.04)" }}>
-                    <ScoreRing score={sc.score} color={sc.color} size={60}/>
-                    <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", marginTop:8 }}>{sc.label}</p>
-                    <p style={{ fontSize:10.5, color:deltaColor, marginTop:2, fontWeight: delta !== null && delta !== 0 ? 700 : 400, lineHeight:1.4 }}>
-                      {deltaLine}{arrow}
+            <div style={{ background:"white", borderRadius:20, border:"1px solid #E4E8F5", padding:"24px 28px", marginBottom:20, boxShadow:"0 4px 24px rgba(67,97,238,0.07)" }}>
+              <div style={{ display:"grid", gridTemplateColumns:"180px 1fr", gap:32, alignItems:"center" }}>
+                {/* Big overall score */}
+                <div style={{ textAlign:"center" }}>
+                  <ScoreRing score={overall} color="#4361EE" size={120}/>
+                  <p style={{ fontSize:13, fontWeight:800, color:"#0A0A0F", marginTop:10, marginBottom:2 }}>Overall Score</p>
+                  <span style={{ fontSize:11, fontWeight:700, padding:"2px 10px", borderRadius:99, background: overall>=85?"#F0FFF4":overall>=72?"#EFF6FF":overall>=55?"#FFFBEB":"#FEF2F2", color:grade.color }}>{grade.label}</span>
+                  {overallDelta !== null && (
+                    <p style={{ fontSize:11, color:overallDelta>0?"#16A34A":overallDelta<0?"#DC2626":"#A0AABF", fontWeight:700, marginTop:6 }}>
+                      {overallDelta>0?"+":""}{overallDelta} vs last submission {overallDelta>0?"↑":overallDelta<0?"↓":"→"}
                     </p>
-                  </div>
-                );
-              })}
+                  )}
+                </div>
+                {/* Sub-score bars */}
+                <div style={{ display:"flex", flexDirection:"column", gap:18 }}>
+                  {subScores.map(sc => {
+                    const prev = aiResult?.previousScores?.[sc.key] ?? null;
+                    const d = prev !== null ? sc.score - prev : null;
+                    return (
+                      <div key={sc.label}>
+                        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
+                          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                            <span style={{ fontSize:13.5, fontWeight:700, color:"#0A0A0F" }}>{sc.label}</span>
+                            <span style={{ fontSize:11, color:"#68738A" }}>{sc.note}</span>
+                          </div>
+                          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                            <span style={{ fontSize:20, fontWeight:900, color:sc.color, lineHeight:1 }}>{sc.score}</span>
+                            {d !== null && d !== 0 && (
+                              <span style={{ fontSize:11, fontWeight:700, color:d>0?"#16A34A":"#DC2626" }}>
+                                {d>0?"+":""}{d}{d>0?"↑":"↓"}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div style={{ height:8, borderRadius:99, background:"#F1F5F9", overflow:"hidden" }}>
+                          <div style={{ width:`${sc.score}%`, height:"100%", borderRadius:99, background:`linear-gradient(90deg,${sc.color}99,${sc.color})`, transition:"width 0.8s cubic-bezier(0.4,0,0.2,1)" }}/>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           );
         })()}
 
-        {/* Tabs */}
-        <div style={{ display:"flex", gap:4, background:"white", border:"1px solid #E4E8F5", borderRadius:12, padding:4, width:"fit-content", marginBottom:20, flexWrap:"wrap" }}>
+        {/* ── Tab navigation ── */}
+        <div style={{ display:"flex", gap:0, borderBottom:"2px solid #E4E8F5", marginBottom:20 }}>
           {([
-            ["overview","Overview"],
-            ["bullets","Line-by-Line"],
-            ["rewrite","AI Rewrites"],
-            ...(reviewMode === "targeted" && (aiResult?.keywords?.length ?? 0) > 0 ? [["keywords","Keywords"]] : []),
-            ["history","History"],
-          ] as ["overview"|"bullets"|"rewrite"|"keywords"|"history", string][]).map(([t, label]) => {
-            const badge = t==="history" && scoreHistory.length > 0
-              ? ` (${scoreHistory.length})`
-              : t==="keywords" && aiResult?.keywords
-              ? ` (${aiResult.keywords.filter(k=>!k.found).length} missing)`
-              : "";
-            return (
-              <button key={t} onClick={()=>setTab(t)} style={{ padding:"6px 18px", borderRadius:9, border:"none", cursor:"pointer", fontSize:12.5, fontWeight:600, background:tab===t?"#4361EE":"transparent", color:tab===t?"white":"#68738A" }}>
-                {label}{badge}
-              </button>
-            );
-          })}
+            ["overview","Overview", aiResult ? `${aiResult.findings.filter(f=>f.type!=="ok").length} issues` : ""],
+            ["bullets","Line-by-Line", aiResult?.bullets?.length ? `${aiResult.bullets.length} bullets` : ""],
+            ["rewrite","AI Rewrites", ""],
+            ...(reviewMode === "targeted" && (aiResult?.keywords?.length ?? 0) > 0
+              ? [["keywords","Keywords", `${(aiResult?.keywords??[]).filter(k=>!k.found).length} missing`]]
+              : []),
+            ["history","History", scoreHistory.length > 0 ? `${scoreHistory.length}` : ""],
+          ] as ["overview"|"bullets"|"rewrite"|"keywords"|"history", string, string][]).map(([t, label, badge]) => (
+            <button key={t} onClick={()=>setTab(t)} style={{ padding:"10px 20px", border:"none", borderBottom:`2.5px solid ${tab===t?"#4361EE":"transparent"}`, marginBottom:"-2px", background:"transparent", cursor:"pointer", fontSize:13, fontWeight:tab===t?700:500, color:tab===t?"#4361EE":"#68738A", display:"flex", alignItems:"center", gap:6, transition:"color 0.15s", whiteSpace:"nowrap" }}>
+              {label}
+              {badge && <span style={{ fontSize:10.5, fontWeight:700, padding:"1px 7px", borderRadius:99, background:tab===t?"#EEF2FF":"#F1F5F9", color:tab===t?"#4361EE":"#68738A" }}>{badge}</span>}
+            </button>
+          ))}
         </div>
 
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
-          {/* Left: actual resume content */}
-          <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:16, padding:20, boxShadow:"0 2px 8px rgba(0,0,0,0.04)", maxHeight:"calc(100vh - 260px)", overflowY:"auto" }}>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
-              <div style={{ display:"flex", background:"#F1F5F9", borderRadius:8, padding:2 }}>
+        <div style={{ display:"grid", gridTemplateColumns:"420px 1fr", gap:16 }}>
+          {/* ── Left: resume viewer ── */}
+          <div style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", overflow:"hidden", boxShadow:"0 2px 12px rgba(0,0,0,0.05)", maxHeight:"calc(100vh - 270px)", display:"flex", flexDirection:"column" }}>
+            {/* Panel header */}
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px", borderBottom:"1px solid #F1F5F9", background:"#FAFBFF", flexShrink:0 }}>
+              <div style={{ display:"flex", background:"#F1F5F9", borderRadius:7, padding:2 }}>
                 {(["preview","suggestions"] as const).map(m => (
-                  <button
-                    key={m}
-                    onClick={()=>{ setResumeViewMode(m); setActiveSuggestion(null); }}
-                    style={{ fontSize:10.5, fontWeight:600, padding:"3px 10px", borderRadius:6, border:"none", background:resumeViewMode===m?"white":"transparent", color:resumeViewMode===m?"#0A0A0F":"#68738A", cursor:"pointer", boxShadow:resumeViewMode===m?"0 1px 3px rgba(0,0,0,0.1)":"none", transition:"all 0.15s", textTransform:"capitalize" }}
-                  >
-                    {m === "suggestions"
-                      ? `Suggestions${aiResult?.bullets?.length ? ` (${aiResult.bullets.length})` : ""}`
-                      : "Preview"}
+                  <button key={m} onClick={()=>{ setResumeViewMode(m); setActiveSuggestion(null); }} style={{ fontSize:11, fontWeight:600, padding:"3px 10px", borderRadius:5, border:"none", background:resumeViewMode===m?"white":"transparent", color:resumeViewMode===m?"#0A0A0F":"#68738A", cursor:"pointer", boxShadow:resumeViewMode===m?"0 1px 3px rgba(0,0,0,0.1)":"none", transition:"all 0.12s" }}>
+                    {m==="suggestions" ? `Suggestions${aiResult?.bullets?.length?` (${aiResult.bullets.length})`:""}`:"Preview"}
                   </button>
                 ))}
               </div>
-              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <div style={{ display:"flex", gap:6 }}>
                 {resumeViewMode==="preview" && aiResult?.keywords?.some(k=>k.found) && (
-                  <span style={{ fontSize:10, color:"#14532D", background:"#DCFCE7", padding:"1px 7px", borderRadius:99, fontWeight:600 }}>
-                    {aiResult.keywords.filter(k=>k.found).length} keywords
+                  <span style={{ fontSize:10, color:"#14532D", background:"#DCFCE7", padding:"2px 8px", borderRadius:99, fontWeight:700 }}>
+                    {aiResult.keywords.filter(k=>k.found).length} keywords highlighted
                   </span>
                 )}
-                {resumeViewMode==="suggestions" && (aiResult?.bullets?.length ?? 0) > 0 && (
-                  <span style={{ fontSize:10, color:"#92400E", background:"#FEF3C7", padding:"1px 7px", borderRadius:99, fontWeight:600 }}>
-                    click highlighted lines
-                  </span>
+                {resumeViewMode==="suggestions" && (aiResult?.bullets?.length??0)>0 && (
+                  <span style={{ fontSize:10, color:"#92400E", background:"#FEF3C7", padding:"2px 8px", borderRadius:99, fontWeight:700 }}>tap highlighted lines</span>
                 )}
               </div>
             </div>
-            {resumeViewMode==="suggestions" && aiResult?.bullets?.length
-              ? <SuggestionsResume text={resumeText} bullets={aiResult.bullets} activeIdx={activeSuggestion} onClickLine={setActiveSuggestion}/>
-              : <HighlightedResume text={resumeText} keywords={aiResult?.keywords}/>
-            }
+            {/* Resume text */}
+            <div style={{ padding:"16px 18px", overflowY:"auto", flex:1 }}>
+              {resumeViewMode==="suggestions" && aiResult?.bullets?.length
+                ? <SuggestionsResume text={resumeText} bullets={aiResult.bullets} activeIdx={activeSuggestion} onClickLine={setActiveSuggestion}/>
+                : <HighlightedResume text={resumeText} keywords={aiResult?.keywords}/>
+              }
+            </div>
           </div>
 
-          {/* Right: analysis panel */}
-          <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-            {tab==="overview" && <>
-              <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:16, padding:18, boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
-                {/* Category summary chips */}
-                {aiResult?.findings && (() => {
-                  const CATEGORY_META: Record<string,{label:string;icon:string;color:string;bg:string}> = {
-                    weak_verbs:        { label:"Weak Verbs",         icon:"✍️", color:"#92400E", bg:"#FFFBEB" },
-                    quantify_impact:   { label:"Missing Metrics",    icon:"📊", color:"#1D4ED8", bg:"#EFF6FF" },
-                    summary:           { label:"Summary",            icon:"📝", color:"#7C3AED", bg:"#F5F3FF" },
-                    ats_keywords:      { label:"ATS Keywords",       icon:"🎯", color:"#047857", bg:"#ECFDF5" },
-                    repetition:        { label:"Repetition",         icon:"🔁", color:"#D97706", bg:"#FFFBEB" },
-                    readability:       { label:"Readability",        icon:"👁️", color:"#0284C7", bg:"#EFF6FF" },
-                    dates:             { label:"Dates",              icon:"📅", color:"#64748B", bg:"#F1F5F9" },
-                    unnecessary_words: { label:"Filler Words",       icon:"✂️", color:"#DC2626", bg:"#FEF2F2" },
-                    contact:           { label:"Contact Info",       icon:"📬", color:"#9333EA", bg:"#FDF4FF" },
-                    format:            { label:"Formatting",         icon:"🗂️", color:"#475569", bg:"#F8FAFC" },
-                  };
-                  const issuesByCategory: Record<string, number> = {};
-                  aiResult.findings.filter(f=>f.type!=="ok").forEach(f=>{
-                    const cat = f.category ?? "readability";
-                    issuesByCategory[cat] = (issuesByCategory[cat] ?? 0) + 1;
-                  });
-                  const cats = Object.entries(issuesByCategory).sort((a,b)=>b[1]-a[1]);
-                  if (cats.length === 0) return null;
-                  return (
-                    <div style={{ marginBottom:14 }}>
-                      <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A0AABF", marginBottom:8 }}>Issues by category</p>
-                      <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+          {/* ── Right: analysis panel ── */}
+          <div style={{ display:"flex", flexDirection:"column", gap:14, maxHeight:"calc(100vh - 270px)", overflowY:"auto" }}>
+            {/* ── OVERVIEW TAB ── */}
+            {tab==="overview" && (() => {
+              const CATEGORY_META: Record<string,{label:string;icon:string;color:string;bg:string;border:string}> = {
+                weak_verbs:        { label:"Weak Verbs",       icon:"✍️",  color:"#92400E", bg:"#FFF7ED", border:"#FDE68A" },
+                quantify_impact:   { label:"Missing Metrics",  icon:"📊",  color:"#1D4ED8", bg:"#EFF6FF", border:"#BFDBFE" },
+                summary:           { label:"Summary",          icon:"📝",  color:"#6D28D9", bg:"#F5F3FF", border:"#DDD6FE" },
+                ats_keywords:      { label:"ATS Keywords",     icon:"🎯",  color:"#065F46", bg:"#ECFDF5", border:"#6EE7B7" },
+                repetition:        { label:"Repetition",       icon:"🔁",  color:"#B45309", bg:"#FFFBEB", border:"#FCD34D" },
+                readability:       { label:"Readability",      icon:"👁️",  color:"#0369A1", bg:"#EFF6FF", border:"#BAE6FD" },
+                dates:             { label:"Dates",            icon:"📅",  color:"#475569", bg:"#F8FAFC", border:"#CBD5E1" },
+                unnecessary_words: { label:"Filler Words",     icon:"✂️",  color:"#B91C1C", bg:"#FEF2F2", border:"#FECACA" },
+                contact:           { label:"Contact Info",     icon:"📬",  color:"#7E22CE", bg:"#FDF4FF", border:"#E9D5FF" },
+                format:            { label:"Formatting",       icon:"🗂️",  color:"#374151", bg:"#F9FAFB", border:"#E5E7EB" },
+              };
+              const TAB_FOR: Record<string,"overview"|"bullets"|"rewrite"|"keywords"|"history"> = {
+                weak_verbs:"bullets", quantify_impact:"bullets", ats_keywords:"keywords",
+                summary:"rewrite", repetition:"bullets", readability:"bullets",
+                dates:"overview", unnecessary_words:"bullets", contact:"overview", format:"overview",
+              };
+              const issuesByCategory: Record<string,number> = {};
+              (aiResult?.findings ?? []).filter(f=>f.type!=="ok").forEach(f=>{
+                const c = f.category ?? "readability";
+                issuesByCategory[c] = (issuesByCategory[c]??0)+1;
+              });
+              const cats = Object.entries(issuesByCategory).sort((a,b)=>b[1]-a[1]);
+              const critical = (aiResult?.findings ?? []).filter(f=>f.type==="critical");
+              const warns    = (aiResult?.findings ?? []).filter(f=>f.type==="warn");
+              const oks      = (aiResult?.findings ?? []).filter(f=>f.type==="ok");
+
+              return (
+                <>
+                  {/* Issue category bars */}
+                  {cats.length > 0 && (
+                    <div style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", padding:"16px 18px", boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
+                      <p style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", marginBottom:12 }}>Issues by category</p>
+                      <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                         {cats.map(([cat, count]) => {
-                          const meta = CATEGORY_META[cat] ?? { label: cat, icon:"⚠️", color:"#68738A", bg:"#F1F5F9" };
+                          const meta = CATEGORY_META[cat] ?? { label:cat, icon:"⚠️", color:"#68738A", bg:"#F1F5F9", border:"#E4E8F5" };
+                          const jumpTab = TAB_FOR[cat] ?? null;
+                          const maxCount = cats[0][1];
                           return (
-                            <span key={cat} style={{ fontSize:11, fontWeight:700, padding:"4px 10px", borderRadius:99, background:meta.bg, color:meta.color, display:"flex", alignItems:"center", gap:4 }}>
-                              {meta.icon} {meta.label} <span style={{ background:"white", borderRadius:99, padding:"0 5px", marginLeft:2, fontSize:10 }}>{count}</span>
-                            </span>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })()}
-                {/* Top priority actions */}
-                {aiResult?.findings && (() => {
-                  const critical = aiResult.findings.filter(f=>f.type==="critical").slice(0,3);
-                  if (!critical.length) return null;
-                  const TAB_FOR_CATEGORY: Record<string,"overview"|"bullets"|"rewrite"|"keywords"|"history"> = {
-                    weak_verbs:"bullets", quantify_impact:"bullets", ats_keywords:"keywords",
-                    summary:"rewrite", repetition:"bullets", readability:"bullets",
-                    dates:"overview", unnecessary_words:"bullets", contact:"overview", format:"overview",
-                  };
-                  return (
-                    <div style={{ background:"#FEF7ED", border:"1px solid #FCD34D", borderRadius:12, padding:"12px 14px", marginBottom:14 }}>
-                      <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#B45309", marginBottom:9 }}>Top priority fixes</p>
-                      <div style={{ display:"flex", flexDirection:"column", gap:7 }}>
-                        {critical.map((f, i) => {
-                          const jumpTab = TAB_FOR_CATEGORY[f.category ?? ""] ?? null;
-                          return (
-                            <div key={i} style={{ display:"flex", gap:8, alignItems:"flex-start" }}>
-                              <span style={{ fontSize:12, flexShrink:0, marginTop:1 }}>🔴</span>
-                              <p style={{ flex:1, fontSize:11.5, color:"#92400E", lineHeight:1.5, margin:0 }}>{f.text}</p>
-                              {jumpTab && (
-                                <button
-                                  onClick={()=>setTab(jumpTab)}
-                                  style={{ fontSize:10.5, fontWeight:700, padding:"3px 9px", borderRadius:7, border:"none", background:"#B45309", color:"white", cursor:"pointer", flexShrink:0, whiteSpace:"nowrap" }}
-                                >
-                                  Fix it →
-                                </button>
+                            <div key={cat} style={{ display:"flex", alignItems:"center", gap:10 }}>
+                              <div style={{ width:24, textAlign:"center", fontSize:13, flexShrink:0 }}>{meta.icon}</div>
+                              <div style={{ flex:1 }}>
+                                <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
+                                  <span style={{ fontSize:11.5, fontWeight:600, color:"#1E2235" }}>{meta.label}</span>
+                                  <span style={{ fontSize:11, fontWeight:700, color:meta.color }}>{count} issue{count>1?"s":""}</span>
+                                </div>
+                                <div style={{ height:5, borderRadius:99, background:"#F1F5F9", overflow:"hidden" }}>
+                                  <div style={{ width:`${(count/maxCount)*100}%`, height:"100%", borderRadius:99, background:meta.color, opacity:0.7 }}/>
+                                </div>
+                              </div>
+                              {jumpTab && jumpTab!=="overview" && (
+                                <button onClick={()=>setTab(jumpTab)} style={{ fontSize:10, fontWeight:700, padding:"2px 8px", borderRadius:6, border:`1px solid ${meta.border}`, background:meta.bg, color:meta.color, cursor:"pointer", flexShrink:0 }}>Fix →</button>
                               )}
                             </div>
                           );
                         })}
                       </div>
                     </div>
-                  );
-                })()}
-                <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", marginBottom:10 }}>Zari&apos;s findings</p>
-                {(aiResult?.findings ?? [
-                  { type:"critical" as const, text:"Summary contains no product keywords — fails ATS for PM roles." },
-                  { type:"warn" as const,     text:"5 of 8 bullets are task-focused with no impact numbers." },
-                  { type:"warn" as const,     text:"Skills section missing PM keywords found in target JDs." },
-                  { type:"ok" as const,       text:"Education and timeline clean — no gaps, strong institution." },
-                  { type:"ok" as const,       text:"Cross-functional background is valuable — needs reframing." },
-                ]).map((f,i) => {
-                  const icon = f.type==="critical"?"🔴":f.type==="warn"?"🟡":"🟢";
-                  return (
-                    <div key={i} style={{ display:"flex", gap:9, padding:"9px 10px", borderRadius:9, background:f.type==="critical"?"#FEF2F2":f.type==="warn"?"#FFFBEB":"#F0FFF4", border:`1px solid ${f.type==="critical"?"#FECACA":f.type==="warn"?"#FDE68A":"#BBF7D0"}`, marginBottom:7 }}>
-                      <span style={{ fontSize:12 }}>{icon}</span>
-                      <p style={{ fontSize:12, color:f.type==="critical"?"#991B1B":f.type==="warn"?"#92400E":"#14532D", lineHeight:1.5 }}>{f.text}</p>
-                    </div>
-                  );
-                })}
-              </div>
-              <div style={{ background:"#EEF2FF", border:"1px solid rgba(67,97,238,0.2)", borderRadius:16, padding:18 }}>
-                <p style={{ fontSize:12, fontWeight:700, color:"#4361EE", marginBottom:8 }}>Zari&apos;s recommendation</p>
-                <p style={{ fontSize:12.5, color:"#3451D1", lineHeight:1.6 }}>{aiResult?.recommendation ?? "Rewrite your summary to lead with product outcomes — that's the single change that will move your ATS score the most."}</p>
-              </div>
-            </>}
+                  )}
 
-            {tab==="bullets" && (
-              <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:16, padding:18, boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
-                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
-                  <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F" }}>Line-by-line audit</p>
-                  {aiResult?.bullets && <span style={{ fontSize:11, color:"#68738A" }}>{aiResult.bullets.length} bullet{aiResult.bullets.length!==1?"s":""} need work</span>}
-                </div>
-                {!aiResult?.bullets?.length && <p style={{ fontSize:13, color:"#68738A", textAlign:"center", padding:"24px 0" }}>No bullets to improve — your bullet quality is solid.</p>}
-                {(aiResult?.bullets ?? []).map((b, i) => {
-                  const mw = magicWrite[i];
-                  return (
-                  <div key={i} style={{ marginBottom:18, paddingBottom:18, borderBottom: i < (aiResult?.bullets.length ?? 1) - 1 ? "1px solid #F1F5F9" : "none" }}>
-                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6 }}>
-                      <span style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"#68738A" }}>Bullet {i+1}</span>
-                      <div style={{ display:"flex", gap:6, alignItems:"center" }}>
-                        <Tag text={`Was: ${b.oldScore}`} color="#D97706" bg="#FFF7ED"/>
-                        <span style={{ fontSize:10, color:"#A0AABF" }}>→</span>
-                        <Tag text={`Now: ${b.newScore}`} color="#16A34A" bg="#F0FFF4"/>
+                  {/* Critical issues */}
+                  {critical.length > 0 && (
+                    <div style={{ background:"white", borderRadius:16, border:"1px solid #FECACA", padding:"16px 18px", boxShadow:"0 2px 12px rgba(220,38,38,0.06)" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
+                        <div style={{ width:8, height:8, borderRadius:"50%", background:"#DC2626", flexShrink:0 }}/>
+                        <p style={{ fontSize:12, fontWeight:800, color:"#991B1B", textTransform:"uppercase", letterSpacing:"0.06em" }}>Critical — fix these first</p>
+                      </div>
+                      <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                        {critical.map((f,i) => (
+                          <div key={i} style={{ display:"flex", gap:10, padding:"10px 12px", background:"#FEF2F2", borderRadius:10, border:"1px solid #FECACA" }}>
+                            <svg viewBox="0 0 16 16" fill="#DC2626" style={{ width:14, height:14, flexShrink:0, marginTop:1 }}><circle cx="8" cy="8" r="7"/><rect x="7" y="4" width="2" height="5" fill="white"/><rect x="7" y="10" width="2" height="2" fill="white"/></svg>
+                            <p style={{ fontSize:12, color:"#7F1D1D", lineHeight:1.55, margin:0, flex:1 }}>{f.text}</p>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                    {/* Why it's weak */}
-                    <div style={{ display:"flex", gap:7, padding:"6px 10px", background:"#FFFBEB", border:"1px solid #FDE68A", borderRadius:7, marginBottom:7 }}>
-                      <span style={{ fontSize:11, flexShrink:0 }}>⚠️</span>
+                  )}
+
+                  {/* Warnings */}
+                  {warns.length > 0 && (
+                    <div style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", padding:"16px 18px", boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
+                        <div style={{ width:8, height:8, borderRadius:"50%", background:"#F59E0B", flexShrink:0 }}/>
+                        <p style={{ fontSize:12, fontWeight:800, color:"#92400E", textTransform:"uppercase", letterSpacing:"0.06em" }}>Improvements</p>
+                      </div>
+                      <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                        {warns.map((f,i) => (
+                          <div key={i} style={{ display:"flex", gap:10, padding:"9px 12px", background:"#FFFBEB", borderRadius:10, border:"1px solid #FDE68A" }}>
+                            <svg viewBox="0 0 16 16" fill="#F59E0B" style={{ width:14, height:14, flexShrink:0, marginTop:1 }}><path d="M8 1L1 14h14L8 1z"/><rect x="7" y="6" width="2" height="4" fill="white"/><rect x="7" y="11" width="2" height="2" fill="white"/></svg>
+                            <p style={{ fontSize:12, color:"#78350F", lineHeight:1.55, margin:0 }}>{f.text}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* What's working */}
+                  {oks.length > 0 && (
+                    <div style={{ background:"white", borderRadius:16, border:"1px solid #BBF7D0", padding:"14px 18px", boxShadow:"0 2px 12px rgba(22,163,74,0.06)" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
+                        <div style={{ width:8, height:8, borderRadius:"50%", background:"#16A34A", flexShrink:0 }}/>
+                        <p style={{ fontSize:12, fontWeight:800, color:"#14532D", textTransform:"uppercase", letterSpacing:"0.06em" }}>What&apos;s working</p>
+                      </div>
+                      {oks.map((f,i) => (
+                        <div key={i} style={{ display:"flex", gap:8, padding:"6px 0", borderBottom: i<oks.length-1?"1px solid #F0FFF4":"none" }}>
+                          <span style={{ color:"#16A34A", fontSize:12, flexShrink:0 }}>✓</span>
+                          <p style={{ fontSize:12, color:"#14532D", lineHeight:1.5, margin:0 }}>{f.text}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Zari's recommendation */}
+                  {aiResult?.recommendation && (
+                    <div style={{ background:"linear-gradient(135deg,#EEF2FF,#F0F7FF)", borderRadius:16, border:"1px solid #C7D2FE", padding:"16px 18px" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
+                        <div style={{ width:28, height:28, borderRadius:8, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                          <svg viewBox="0 0 16 16" fill="none" stroke="white" strokeWidth="1.8" style={{ width:14,height:14 }}><path d="M8 2a3 3 0 00-3 3v3a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M4 8v1a4 4 0 008 0V8"/></svg>
+                        </div>
+                        <p style={{ fontSize:12, fontWeight:700, color:"#3730A3" }}>Zari&apos;s top recommendation</p>
+                      </div>
+                      <p style={{ fontSize:13, color:"#1E1B4B", lineHeight:1.65 }}>{aiResult.recommendation}</p>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+
+            {/* ── LINE BY LINE TAB ── */}
+            {tab==="bullets" && (
+              <div style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", padding:"16px 18px", boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
+                  <div>
+                    <p style={{ fontSize:13.5, fontWeight:800, color:"#0A0A0F" }}>Line-by-Line Audit</p>
+                    <p style={{ fontSize:11.5, color:"#68738A", marginTop:2 }}>{aiResult?.bullets?.length ?? 0} bullet{(aiResult?.bullets?.length??0)!==1?"s":""} need stronger impact</p>
+                  </div>
+                </div>
+                {!aiResult?.bullets?.length && (
+                  <div style={{ textAlign:"center", padding:"32px 0" }}>
+                    <div style={{ fontSize:32, marginBottom:8 }}>✅</div>
+                    <p style={{ fontSize:13, color:"#16A34A", fontWeight:700 }}>All bullets are solid</p>
+                    <p style={{ fontSize:12, color:"#68738A", marginTop:4 }}>No weak bullets found — your impact language is strong.</p>
+                  </div>
+                )}
+                {(aiResult?.bullets ?? []).map((b, i) => {
+                  const mw = magicWrite[i];
+                  const improve = b.newScore - b.oldScore;
+                  return (
+                  <div key={i} style={{ marginBottom:20, paddingBottom:20, borderBottom: i < (aiResult?.bullets.length ?? 1)-1 ? "1px solid #F1F5F9" : "none" }}>
+                    {/* Bullet header */}
+                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
+                      <span style={{ fontSize:10.5, fontWeight:700, color:"#68738A", textTransform:"uppercase", letterSpacing:"0.08em" }}>Bullet {i+1}</span>
+                      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                        <span style={{ fontSize:11, color:"#68738A" }}>Score</span>
+                        <span style={{ fontSize:13, fontWeight:900, color:"#DC2626" }}>{b.oldScore}</span>
+                        <svg viewBox="0 0 20 8" fill="none" style={{ width:20,height:8 }}><path d="M0 4h16" stroke="#CBD5E1" strokeWidth="1.5"/><path d="M13 1l4 3-4 3" stroke="#CBD5E1" strokeWidth="1.5"/></svg>
+                        <span style={{ fontSize:13, fontWeight:900, color:"#16A34A" }}>{b.newScore}</span>
+                        {improve > 0 && <span style={{ fontSize:10, fontWeight:700, color:"#16A34A", background:"#F0FFF4", padding:"1px 6px", borderRadius:99 }}>+{improve}</span>}
+                      </div>
+                    </div>
+                    {/* Why box */}
+                    <div style={{ display:"flex", gap:8, padding:"8px 12px", background:"#FFFBEB", borderRadius:9, border:"1px solid #FDE68A", marginBottom:8 }}>
+                      <svg viewBox="0 0 16 16" fill="#F59E0B" style={{ width:13, height:13, flexShrink:0, marginTop:1 }}><path d="M8 1L1 14h14L8 1z"/><rect x="7" y="6" width="2" height="4" fill="white"/><rect x="7" y="11" width="2" height="2" fill="white"/></svg>
                       <p style={{ fontSize:11.5, color:"#92400E", lineHeight:1.5, margin:0 }}>{b.reason}</p>
                     </div>
                     {/* Before */}
-                    <p style={{ fontSize:11.5, color:"#991B1B", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:8, padding:"8px 10px", textDecoration:"line-through", marginBottom:5, lineHeight:1.55 }}>{b.before}</p>
-                    {/* After row with copy */}
-                    <div style={{ display:"flex", alignItems:"flex-start", gap:6, marginBottom: mw ? 0 : 6 }}>
-                      <p style={{ flex:1, fontSize:11.5, color:"#14532D", background:"#F0FFF4", border:"1px solid #BBF7D0", borderRadius:8, padding:"8px 10px", lineHeight:1.55, margin:0 }}>{b.after}</p>
-                      <button
-                        onClick={()=>{ void navigator.clipboard.writeText(b.after); }}
-                        title="Copy rewrite"
-                        style={{ padding:"6px 8px", borderRadius:7, border:"1px solid #E4E8F5", background:"white", color:"#68738A", cursor:"pointer", flexShrink:0, fontSize:11 }}
-                      >Copy</button>
+                    <div style={{ position:"relative", marginBottom:6 }}>
+                      <p style={{ fontSize:11.5, color:"#991B1B", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:9, padding:"9px 12px", textDecoration:"line-through", lineHeight:1.6, margin:0 }}>{b.before}</p>
+                      <span style={{ position:"absolute", top:-8, left:10, fontSize:9, fontWeight:700, background:"#FECACA", color:"#991B1B", padding:"1px 6px", borderRadius:99 }}>BEFORE</span>
                     </div>
-                    {/* Magic Write toggle */}
+                    {/* After */}
+                    <div style={{ position:"relative", marginBottom:8 }}>
+                      <div style={{ display:"flex", gap:6, alignItems:"flex-start" }}>
+                        <p style={{ flex:1, fontSize:11.5, color:"#14532D", background:"#F0FFF4", border:"1px solid #BBF7D0", borderRadius:9, padding:"9px 12px", lineHeight:1.6, margin:0 }}>{b.after}</p>
+                        <button onClick={()=>{ void navigator.clipboard.writeText(b.after); }} style={{ padding:"7px 10px", borderRadius:8, border:"1px solid #BBF7D0", background:"white", color:"#16A34A", cursor:"pointer", flexShrink:0, fontSize:11, fontWeight:700 }}>Copy</button>
+                      </div>
+                      <span style={{ position:"absolute", top:-8, left:10, fontSize:9, fontWeight:700, background:"#BBF7D0", color:"#14532D", padding:"1px 6px", borderRadius:99 }}>AFTER</span>
+                    </div>
+                    {/* Magic Write */}
                     {!mw ? (
-                      <button onClick={()=>openMagicWrite(i)} style={{ marginTop:6, fontSize:11, fontWeight:700, padding:"5px 12px", borderRadius:8, border:"1px solid #C7D2FE", background:"#EEF2FF", color:"#4361EE", cursor:"pointer", display:"flex", alignItems:"center", gap:5 }}>
-                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:11, height:11 }}><path d="M8 1v14M1 8h14"/></svg>
+                      <button onClick={()=>openMagicWrite(i)} style={{ fontSize:11.5, fontWeight:700, padding:"6px 14px", borderRadius:9, border:"1px solid #C7D2FE", background:"#EEF2FF", color:"#4361EE", cursor:"pointer", display:"inline-flex", alignItems:"center", gap:5 }}>
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:12, height:12 }}><path d="M13 2l1 4-8.5 8.5L2 16l1.5-3.5L12 4l1-2z"/><path d="M10 4l2 2"/></svg>
                         Magic Write
                       </button>
                     ) : (
-                      <div style={{ marginTop:8, border:"1px solid #C7D2FE", borderRadius:10, overflow:"hidden" }}>
-                        {/* Mode selector */}
-                        <div style={{ display:"flex", background:"#F8FAFF", borderBottom:"1px solid #E4E8F5", padding:"8px 10px", gap:6, alignItems:"center", justifyContent:"space-between" }}>
-                          <div style={{ display:"flex", gap:5 }}>
-                            {([
-                              ["refine",     "Improve AI suggestion"],
-                              ["describe",   "Describe what I did"],
-                              ["variations", "3 different takes"],
-                            ] as [MagicWriteMode, string][]).map(([m, label]) => (
-                              <button key={m} onClick={()=>setMagicWrite(prev=>({...prev,[i]:{...prev[i],mode:m,results:[],input:""}}))} style={{ fontSize:10.5, fontWeight:600, padding:"3px 9px", borderRadius:6, border:"none", background:mw.mode===m?"#4361EE":"transparent", color:mw.mode===m?"white":"#68738A", cursor:"pointer" }}>
-                                {label}
-                              </button>
+                      <div style={{ border:"1px solid #C7D2FE", borderRadius:12, overflow:"hidden", marginTop:4 }}>
+                        <div style={{ display:"flex", background:"#F8FAFF", borderBottom:"1px solid #E4E8F5", padding:"8px 12px", gap:4, alignItems:"center", justifyContent:"space-between" }}>
+                          <div style={{ display:"flex", gap:4 }}>
+                            {([["refine","Improve suggestion"],["describe","Describe what I did"],["variations","3 takes"]] as [MagicWriteMode,string][]).map(([m,l]) => (
+                              <button key={m} onClick={()=>setMagicWrite(p=>({...p,[i]:{...p[i],mode:m,results:[],input:""}}))} style={{ fontSize:10.5, fontWeight:600, padding:"4px 10px", borderRadius:7, border:"none", background:mw.mode===m?"#4361EE":"#F1F5F9", color:mw.mode===m?"white":"#68738A", cursor:"pointer" }}>{l}</button>
                             ))}
                           </div>
-                          <button onClick={()=>closeMagicWrite(i)} style={{ fontSize:12, lineHeight:1, padding:"2px 6px", borderRadius:5, border:"none", background:"transparent", color:"#A0AABF", cursor:"pointer" }}>✕</button>
+                          <button onClick={()=>closeMagicWrite(i)} style={{ fontSize:13, background:"none", border:"none", color:"#A0AABF", cursor:"pointer" }}>✕</button>
                         </div>
-                        {/* Input */}
-                        <div style={{ padding:"10px" }}>
-                          {mw.mode === "describe" && (
-                            <textarea
-                              value={mw.input}
-                              onChange={e=>setMagicWrite(prev=>({...prev,[i]:{...prev[i],input:e.target.value}}))}
-                              placeholder="Describe what you actually did — e.g. 'I built a dashboard that showed real-time inventory levels for 12 warehouses, reduced stockouts by 30%'"
-                              style={{ width:"100%", minHeight:64, border:"1.5px solid #E4E8F5", borderRadius:8, padding:"7px 10px", fontSize:11.5, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"white", lineHeight:1.5 }}
-                            />
+                        <div style={{ padding:12 }}>
+                          {mw.mode==="describe" ? (
+                            <textarea value={mw.input} onChange={e=>setMagicWrite(p=>({...p,[i]:{...p[i],input:e.target.value}}))} placeholder="Describe what you actually did — metrics, scale, and outcome…" style={{ width:"100%", minHeight:60, border:"1.5px solid #E4E8F5", borderRadius:8, padding:"8px 10px", fontSize:11.5, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"white" }}/>
+                          ) : (
+                            <p style={{ fontSize:11, color:"#68738A", margin:"0 0 8px" }}>{mw.mode==="refine"?"Zari will tighten the suggestion above.":"3 distinct rewrites — different verb, angle, structure."}</p>
                           )}
-                          {mw.mode === "refine" && (
-                            <p style={{ fontSize:11, color:"#68738A", marginBottom:8 }}>Zari will polish the AI suggestion above — make it tighter, more specific, and more natural.</p>
-                          )}
-                          {mw.mode === "variations" && (
-                            <p style={{ fontSize:11, color:"#68738A", marginBottom:8 }}>Zari will generate 3 meaningfully different rewrites — different verb, different angle, different structure.</p>
-                          )}
-                          <button
-                            onClick={()=>void runMagicWrite(i, b)}
-                            disabled={mw.loading || (mw.mode==="describe" && !mw.input.trim())}
-                            style={{ fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:8, border:"none", background:(!mw.loading && (mw.mode!=="describe" || mw.input.trim()))?"#4361EE":"#E4E8F5", color:(!mw.loading && (mw.mode!=="describe" || mw.input.trim()))?"white":"#A0AABF", cursor:(!mw.loading && (mw.mode!=="describe" || mw.input.trim()))?"pointer":"default" }}
-                          >
-                            {mw.loading ? "Writing…" : "Generate"}
+                          <button onClick={()=>void runMagicWrite(i, b)} disabled={mw.loading||(mw.mode==="describe"&&!mw.input.trim())} style={{ fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:8, border:"none", background:(!mw.loading&&(mw.mode!=="describe"||mw.input.trim()))?"#4361EE":"#E4E8F5", color:(!mw.loading&&(mw.mode!=="describe"||mw.input.trim()))?"white":"#A0AABF", cursor:(!mw.loading&&(mw.mode!=="describe"||mw.input.trim()))?"pointer":"default" }}>
+                            {mw.loading?"Writing…":"Generate"}
                           </button>
                         </div>
-                        {/* Results */}
-                        {mw.results.length > 0 && (
-                          <div style={{ padding:"0 10px 10px", display:"flex", flexDirection:"column", gap:7 }}>
-                            {mw.results.map((r,ri) => (
-                              <div key={ri} style={{ display:"flex", gap:6, alignItems:"flex-start" }}>
-                                <p style={{ flex:1, fontSize:11.5, color:"#1D4ED8", background:"#EFF6FF", border:"1px solid #BFDBFE", borderRadius:8, padding:"7px 10px", lineHeight:1.55, margin:0 }}>{r}</p>
-                                <button
-                                  onClick={()=>{ void navigator.clipboard.writeText(r); setMagicWrite(prev=>({...prev,[i]:{...prev[i],copied:ri}})); setTimeout(()=>setMagicWrite(prev=>({...prev,[i]:{...prev[i],copied:null}})),1500); }}
-                                  style={{ padding:"5px 8px", borderRadius:7, border:"1px solid #BFDBFE", background:"white", color: mw.copied===ri?"#16A34A":"#1D4ED8", cursor:"pointer", fontSize:10.5, fontWeight:600, flexShrink:0 }}
-                                >
-                                  {mw.copied===ri?"✓":"Copy"}
-                                </button>
+                        {mw.results.length>0 && (
+                          <div style={{ padding:"0 12px 12px", display:"flex", flexDirection:"column", gap:7 }}>
+                            {mw.results.map((r,ri)=>(
+                              <div key={ri} style={{ display:"flex", gap:6 }}>
+                                <p style={{ flex:1, fontSize:11.5, color:"#1D4ED8", background:"#EFF6FF", border:"1px solid #BFDBFE", borderRadius:9, padding:"8px 11px", lineHeight:1.55, margin:0 }}>{r}</p>
+                                <button onClick={()=>{ void navigator.clipboard.writeText(r); setMagicWrite(p=>({...p,[i]:{...p[i],copied:ri}})); setTimeout(()=>setMagicWrite(p=>({...p,[i]:{...p[i],copied:null}})),1500); }} style={{ padding:"6px 10px", borderRadius:8, border:"1px solid #BFDBFE", background:"white", color:mw.copied===ri?"#16A34A":"#1D4ED8", cursor:"pointer", fontSize:10.5, fontWeight:700, flexShrink:0 }}>{mw.copied===ri?"✓":"Copy"}</button>
                               </div>
                             ))}
                           </div>
@@ -1356,165 +1430,220 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
               </div>
             )}
 
+            {/* ── AI REWRITES TAB ── */}
             {tab==="rewrite" && (
-              <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:16, padding:18, boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
-                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
-                  <div>
-                    <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", marginBottom:3 }}>AI Rewrites</p>
-                    <p style={{ fontSize:11.5, color:"#68738A" }}>Score: {aiResult?.overall ?? "—"}/100 · Click &quot;Try different version&quot; to get an alternative take</p>
-                  </div>
+              <div style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", padding:"16px 18px", boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
+                <div style={{ marginBottom:16 }}>
+                  <p style={{ fontSize:13.5, fontWeight:800, color:"#0A0A0F" }}>AI Rewrites</p>
+                  <p style={{ fontSize:11.5, color:"#68738A", marginTop:2 }}>Zari rewrote your key sections. Click &quot;Try another version&quot; for a different take.</p>
                 </div>
                 {(aiResult?.rewrittenSections ?? []).map((s, idx) => {
                   const displayed = altVersions[idx] ?? s.text;
-                  const isRegenerating = rewritingIdx === idx;
-                  const attemptNum = altAttempt[idx] ?? 1;
+                  const isRegen = rewritingIdx === idx;
+                  const attempt = altAttempt[idx] ?? 1;
+                  const grade = scoreGrade(s.score);
                   return (
-                    <div key={s.label} style={{ marginBottom:14, borderRadius:12, border:"1px solid #E4E8F5", overflow:"hidden" }}>
-                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"9px 12px", background:"#F8FAFF", borderBottom:"1px solid #E4E8F5" }}>
+                    <div key={s.label} style={{ marginBottom:16, borderRadius:14, border:"1px solid #E4E8F5", overflow:"hidden", boxShadow:"0 1px 4px rgba(0,0,0,0.04)" }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 14px", background:"linear-gradient(135deg,#F8FAFF,#F4F7FF)", borderBottom:"1px solid #E4E8F5" }}>
                         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                          <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", color:"#4361EE", letterSpacing:"0.08em", margin:0 }}>{s.label}</p>
-                          {attemptNum > 1 && <span style={{ fontSize:10, color:"#A0AABF" }}>v{attemptNum}</span>}
+                          <span style={{ fontSize:11, fontWeight:800, textTransform:"uppercase", color:"#4361EE", letterSpacing:"0.1em" }}>{s.label}</span>
+                          {attempt > 1 && <span style={{ fontSize:10, color:"#A0AABF", background:"#F1F5F9", padding:"1px 6px", borderRadius:99 }}>v{attempt}</span>}
                         </div>
-                        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                          <Tag text={`${s.score}/100`} color="#16A34A" bg="#F0FFF4"/>
-                          <button
-                            onClick={()=>void rewriteSection(idx, s)}
-                            disabled={isRegenerating}
-                            style={{ fontSize:11, fontWeight:600, padding:"4px 10px", borderRadius:7, border:"1px solid #E4E8F5", background:"white", color:isRegenerating?"#A0AABF":"#4361EE", cursor:isRegenerating?"default":"pointer" }}
-                          >
-                            {isRegenerating ? "Rewriting…" : "Try different version"}
+                        <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                          <span style={{ fontSize:11, fontWeight:700, color:grade.color, background: s.score>=85?"#F0FFF4":s.score>=72?"#EFF6FF":s.score>=55?"#FFFBEB":"#FEF2F2", padding:"2px 8px", borderRadius:99 }}>{s.score}/100</span>
+                          <button onClick={()=>void rewriteSection(idx, s)} disabled={isRegen} style={{ fontSize:11, fontWeight:600, padding:"5px 12px", borderRadius:8, border:"1px solid #C7D2FE", background:"white", color:isRegen?"#A0AABF":"#4361EE", cursor:isRegen?"default":"pointer" }}>
+                            {isRegen?"Rewriting…":"Try another version"}
                           </button>
-                          <button onClick={()=>{ void navigator.clipboard.writeText(displayed); }} style={{ fontSize:11, fontWeight:600, padding:"4px 10px", borderRadius:7, border:"1px solid #E4E8F5", background:"white", color:"#68738A", cursor:"pointer" }}>Copy</button>
+                          <button onClick={()=>{ void navigator.clipboard.writeText(displayed); }} style={{ fontSize:11, fontWeight:600, padding:"5px 12px", borderRadius:8, border:"1px solid #E4E8F5", background:"white", color:"#68738A", cursor:"pointer" }}>Copy</button>
                         </div>
                       </div>
-                      <div style={{ padding:"12px", background: altVersions[idx] ? "#FAFBFF" : "#F0FFF4" }}>
-                        <p style={{ fontSize:12, color: altVersions[idx] ? "#1E2235" : "#14532D", lineHeight:1.7, margin:0, whiteSpace:"pre-wrap" }}>{displayed}</p>
+                      <div style={{ padding:"14px", background: altVersions[idx]?"#FAFBFF":"#F0FFF4" }}>
+                        <p style={{ fontSize:12.5, color: altVersions[idx]?"#1E2235":"#14532D", lineHeight:1.75, margin:0, whiteSpace:"pre-wrap" }}>{displayed}</p>
                       </div>
                     </div>
                   );
                 })}
-                <button onClick={()=>{ const all = (aiResult?.rewrittenSections??[]).map((s,i)=>`${s.label}:\n${altVersions[i]??s.text}`).join("\n\n"); void navigator.clipboard.writeText(all); }} style={{ width:"100%", fontSize:12.5, fontWeight:700, padding:"10px", borderRadius:10, border:"none", background:"#0A0A0F", color:"white", cursor:"pointer", marginTop:4 }}>Copy all rewrites →</button>
+                <button onClick={()=>{ const all=(aiResult?.rewrittenSections??[]).map((s,i)=>`${s.label}:\n${altVersions[i]??s.text}`).join("\n\n"); void navigator.clipboard.writeText(all); }} style={{ width:"100%", fontSize:13, fontWeight:700, padding:"11px", borderRadius:11, border:"none", background:"linear-gradient(135deg,#0A0A0F,#1E2235)", color:"white", cursor:"pointer" }}>
+                  Copy all rewrites →
+                </button>
               </div>
             )}
 
-            {tab==="keywords" && (
-              <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:16, padding:18, boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
-                {(() => {
-                  const kws = aiResult?.keywords ?? [];
-                  const required = kws.filter(k=>k.importance==="required");
-                  const preferred = kws.filter(k=>k.importance==="preferred");
-                  const missingRequired = required.filter(k=>!k.found).length;
-                  const missingPreferred = preferred.filter(k=>!k.found).length;
-                  return (
-                    <>
-                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:14 }}>
-                        <div>
-                          <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", marginBottom:3 }}>ATS Keywords</p>
-                          <p style={{ fontSize:11.5, color:"#68738A" }}>Extracted from the job description — green means found, red means missing</p>
-                        </div>
-                        <div style={{ display:"flex", gap:6, flexShrink:0 }}>
-                          {missingRequired > 0 && <span style={{ fontSize:10.5, fontWeight:700, padding:"3px 9px", borderRadius:99, background:"#FEF2F2", color:"#991B1B" }}>{missingRequired} required missing</span>}
-                          {missingPreferred > 0 && <span style={{ fontSize:10.5, fontWeight:700, padding:"3px 9px", borderRadius:99, background:"#FFFBEB", color:"#92400E" }}>{missingPreferred} preferred missing</span>}
-                        </div>
+            {/* ── KEYWORDS TAB ── */}
+            {tab==="keywords" && (() => {
+              const kws = aiResult?.keywords ?? [];
+              const required = kws.filter(k=>k.importance==="required");
+              const preferred = kws.filter(k=>k.importance==="preferred");
+              const foundReq = required.filter(k=>k.found).length;
+              const foundPref = preferred.filter(k=>k.found).length;
+              const missingReq = required.length - foundReq;
+              const coverage = kws.length > 0 ? Math.round((kws.filter(k=>k.found).length / kws.length)*100) : 0;
+              return (
+                <>
+                  {/* Coverage bar */}
+                  <div style={{ background:"white", borderRadius:16, border:`1px solid ${coverage>=70?"#BBF7D0":coverage>=45?"#FDE68A":"#FECACA"}`, padding:"16px 18px", boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
+                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+                      <p style={{ fontSize:13.5, fontWeight:800, color:"#0A0A0F" }}>Keyword Coverage</p>
+                      <span style={{ fontSize:22, fontWeight:900, color:coverage>=70?"#16A34A":coverage>=45?"#D97706":"#DC2626" }}>{coverage}%</span>
+                    </div>
+                    <div style={{ height:10, borderRadius:99, background:"#F1F5F9", overflow:"hidden", marginBottom:10 }}>
+                      <div style={{ width:`${coverage}%`, height:"100%", borderRadius:99, background:`linear-gradient(90deg,${coverage>=70?"#16A34A":coverage>=45?"#F59E0B":"#DC2626"},${coverage>=70?"#22C55E":coverage>=45?"#FCD34D":"#EF4444"})`, transition:"width 1s cubic-bezier(0.4,0,0.2,1)" }}/>
+                    </div>
+                    <div style={{ display:"flex", gap:16 }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                        <div style={{ width:8, height:8, borderRadius:2, background:"#16A34A" }}/>
+                        <span style={{ fontSize:11, color:"#68738A" }}>{foundReq} required found</span>
                       </div>
+                      <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                        <div style={{ width:8, height:8, borderRadius:2, background:"#DC2626" }}/>
+                        <span style={{ fontSize:11, color:"#68738A" }}>{missingReq} required missing</span>
+                      </div>
+                      <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                        <div style={{ width:8, height:8, borderRadius:2, background:"#4361EE" }}/>
+                        <span style={{ fontSize:11, color:"#68738A" }}>{foundPref}/{preferred.length} preferred found</span>
+                      </div>
+                    </div>
+                  </div>
 
-                      {required.length > 0 && (
-                        <div style={{ marginBottom:16 }}>
-                          <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A0AABF", marginBottom:8 }}>Required skills</p>
-                          <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
-                            {required.map((kw, i) => (
-                              <div key={i} title={kw.found && kw.context ? `Found: "${kw.context}"` : "Missing from resume"} style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"5px 11px", borderRadius:99, border:`1.5px solid ${kw.found?"#BBF7D0":"#FECACA"}`, background:kw.found?"#F0FFF4":"#FEF2F2", cursor:"default" }}>
-                                <span style={{ width:6, height:6, borderRadius:"50%", background:kw.found?"#16A34A":"#DC2626", flexShrink:0 }}/>
-                                <span style={{ fontSize:11.5, fontWeight:600, color:kw.found?"#14532D":"#991B1B" }}>{kw.word}</span>
-                              </div>
-                            ))}
+                  {/* Required keywords */}
+                  {required.length > 0 && (
+                    <div style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", padding:"16px 18px", boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
+                      <p style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", marginBottom:12 }}>Required Skills <span style={{ fontWeight:400, color:"#68738A" }}>— explicitly required in the job description</span></p>
+                      <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+                        {required.map((kw,i) => (
+                          <div key={i} title={kw.found&&kw.context?`Found: "${kw.context}"`:"Missing from resume"} style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 13px", borderRadius:99, border:`1.5px solid ${kw.found?"#BBF7D0":"#FECACA"}`, background:kw.found?"#F0FFF4":"#FEF2F2", cursor:"default", transition:"all 0.1s" }}>
+                            <span style={{ width:7, height:7, borderRadius:"50%", background:kw.found?"#16A34A":"#DC2626", flexShrink:0, boxShadow:`0 0 0 2px ${kw.found?"rgba(22,163,74,0.15)":"rgba(220,38,38,0.15)"}` }}/>
+                            <span style={{ fontSize:12, fontWeight:700, color:kw.found?"#14532D":"#991B1B" }}>{kw.word}</span>
+                            {!kw.found && <svg viewBox="0 0 12 12" fill="none" stroke="#DC2626" strokeWidth="2" style={{ width:10,height:10,flexShrink:0 }}><path d="M2 2l8 8M10 2l-8 8"/></svg>}
+                            {kw.found && <svg viewBox="0 0 12 12" fill="none" stroke="#16A34A" strokeWidth="2" style={{ width:10,height:10,flexShrink:0 }}><path d="M2 6l3 3 5-5"/></svg>}
                           </div>
-                        </div>
-                      )}
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
-                      {preferred.length > 0 && (
-                        <div>
-                          <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A0AABF", marginBottom:8 }}>Preferred skills</p>
-                          <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
-                            {preferred.map((kw, i) => (
-                              <div key={i} title={kw.found && kw.context ? `Found: "${kw.context}"` : "Missing from resume"} style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"5px 11px", borderRadius:99, border:`1.5px solid ${kw.found?"#C7D2FE":"#E4E8F5"}`, background:kw.found?"#EEF2FF":"#F8FAFF", cursor:"default" }}>
-                                <span style={{ width:6, height:6, borderRadius:"50%", background:kw.found?"#4361EE":"#CBD5E1", flexShrink:0 }}/>
-                                <span style={{ fontSize:11.5, fontWeight:600, color:kw.found?"#3451D1":"#68738A" }}>{kw.word}</span>
-                              </div>
-                            ))}
+                  {/* Preferred keywords */}
+                  {preferred.length > 0 && (
+                    <div style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", padding:"16px 18px", boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
+                      <p style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", marginBottom:12 }}>Preferred Skills <span style={{ fontWeight:400, color:"#68738A" }}>— nice to have</span></p>
+                      <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+                        {preferred.map((kw,i) => (
+                          <div key={i} title={kw.found&&kw.context?`Found: "${kw.context}"`:"Missing from resume"} style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 13px", borderRadius:99, border:`1.5px solid ${kw.found?"#C7D2FE":"#E4E8F5"}`, background:kw.found?"#EEF2FF":"#F8FAFF", cursor:"default" }}>
+                            <span style={{ width:7, height:7, borderRadius:"50%", background:kw.found?"#4361EE":"#CBD5E1", flexShrink:0 }}/>
+                            <span style={{ fontSize:12, fontWeight:700, color:kw.found?"#3451D1":"#68738A" }}>{kw.word}</span>
                           </div>
-                        </div>
-                      )}
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
-                      {kws.length === 0 && <p style={{ fontSize:13, color:"#68738A", textAlign:"center", padding:"24px 0" }}>No keyword data — switch to Targeted mode and provide a job description.</p>}
-                    </>
-                  );
-                })()}
-              </div>
-            )}
+                  {kws.length===0 && (
+                    <div style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", padding:"40px 20px", textAlign:"center" }}>
+                      <div style={{ fontSize:36, marginBottom:10 }}>🎯</div>
+                      <p style={{ fontSize:14, fontWeight:700, color:"#0A0A0F" }}>No keyword data</p>
+                      <p style={{ fontSize:12.5, color:"#68738A", marginTop:4 }}>Switch to Targeted mode and paste a job description to see keyword analysis.</p>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
 
+            {/* ── HISTORY TAB ── */}
             {tab==="history" && (
-              <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:16, padding:18, boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
-                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+              <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                   <div>
-                    <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", marginBottom:2 }}>Submission history</p>
-                    <p style={{ fontSize:11.5, color:"#68738A" }}>Last {Math.min(scoreHistory.length, 30)} submissions — tracks your progress over time</p>
+                    <p style={{ fontSize:13.5, fontWeight:800, color:"#0A0A0F" }}>Score History</p>
+                    <p style={{ fontSize:11.5, color:"#68738A", marginTop:2 }}>Saved locally — persists across sessions</p>
                   </div>
                   {scoreHistory.length > 0 && (
-                    <button onClick={()=>{ if(confirm("Clear all history?")) void clearHistory(); }} style={{ fontSize:11, fontWeight:600, padding:"5px 12px", borderRadius:8, border:"1px solid #FECACA", background:"#FEF2F2", color:"#991B1B", cursor:"pointer" }}>Clear history</button>
+                    <button onClick={()=>{ if(confirm("Clear all history?")) void clearHistory(); }} style={{ fontSize:11, fontWeight:600, padding:"5px 12px", borderRadius:8, border:"1px solid #FECACA", background:"#FEF2F2", color:"#991B1B", cursor:"pointer" }}>Clear all</button>
                   )}
                 </div>
-                {/* Sparkline trend chart */}
+
+                {/* Trend chart */}
                 {!historyLoading && scoreHistory.length >= 2 && (() => {
-                  const allScores = [...scoreHistory].reverse(); // oldest first for chart
-                  const overallValues = allScores.map(e=>e.scores.overall);
-                  const first = overallValues[0];
-                  const last = overallValues[overallValues.length-1];
-                  const trend = last - first;
-                  const trendColor = trend > 0 ? "#16A34A" : trend < 0 ? "#DC2626" : "#A0AABF";
+                  const rev = [...scoreHistory].reverse();
+                  const vals = rev.map(e=>e.scores.overall);
+                  const first = vals[0], last = vals[vals.length-1], trend = last-first;
+                  const tc = trend>0?"#16A34A":trend<0?"#DC2626":"#A0AABF";
                   return (
-                    <div style={{ background:"#F8FAFF", border:"1px solid #E4E8F5", borderRadius:12, padding:"12px 14px", marginBottom:14, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-                      <div>
-                        <p style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", marginBottom:2 }}>Overall score trend</p>
-                        <p style={{ fontSize:11, color:trendColor, fontWeight:700 }}>{trend > 0 ? `+${trend}` : trend < 0 ? `${trend}` : "Flat"} across {scoreHistory.length} submissions</p>
+                    <div style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", padding:"16px 18px", boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
+                        <div>
+                          <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F" }}>Overall score progression</p>
+                          <p style={{ fontSize:11.5, color:tc, fontWeight:700, marginTop:2 }}>{trend>0?`+${trend} improvement`:trend<0?`${trend} regression`:"No change"} over {scoreHistory.length} submissions</p>
+                        </div>
+                        <div style={{ display:"flex", alignItems:"center", gap:16 }}>
+                          <div style={{ textAlign:"center" }}>
+                            <p style={{ fontSize:10, color:"#A0AABF", marginBottom:3 }}>Started</p>
+                            <p style={{ fontSize:20, fontWeight:900, color:"#68738A", lineHeight:1 }}>{first}</p>
+                          </div>
+                          <Sparkline values={vals} color={tc} width={120} height={40}/>
+                          <div style={{ textAlign:"center" }}>
+                            <p style={{ fontSize:10, color:"#A0AABF", marginBottom:3 }}>Latest</p>
+                            <p style={{ fontSize:20, fontWeight:900, color:tc, lineHeight:1 }}>{last}</p>
+                          </div>
+                        </div>
                       </div>
-                      <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-                        <div style={{ textAlign:"center" }}>
-                          <p style={{ fontSize:10, color:"#A0AABF", marginBottom:2 }}>First</p>
-                          <p style={{ fontSize:16, fontWeight:900, color:"#68738A" }}>{first}</p>
-                        </div>
-                        <Sparkline values={overallValues} color={trendColor} width={90} height={32}/>
-                        <div style={{ textAlign:"center" }}>
-                          <p style={{ fontSize:10, color:"#A0AABF", marginBottom:2 }}>Latest</p>
-                          <p style={{ fontSize:16, fontWeight:900, color:trendColor }}>{last}</p>
-                        </div>
+                      {/* Mini bars per dimension */}
+                      <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8 }}>
+                        {(["ats","impact","clarity"] as (keyof ResumeScores)[]).map(key => {
+                          const fv = rev[0].scores[key], lv = rev[rev.length-1].scores[key], d = lv-fv;
+                          const c = d>0?"#16A34A":d<0?"#DC2626":"#A0AABF";
+                          return (
+                            <div key={key} style={{ padding:"8px 10px", background:"#FAFBFF", borderRadius:10, border:"1px solid #F1F5F9", textAlign:"center" }}>
+                              <p style={{ fontSize:10, color:"#68738A", textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:3 }}>{key==="ats"?"ATS":key==="impact"?"Impact":"Clarity"}</p>
+                              <p style={{ fontSize:17, fontWeight:900, color:c, lineHeight:1 }}>{d>0?"+":""}{d}</p>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   );
                 })()}
-                {historyLoading && <p style={{ fontSize:13, color:"#68738A", textAlign:"center", padding:"24px 0" }}>Loading…</p>}
-                {!historyLoading && scoreHistory.length === 0 && <p style={{ fontSize:13, color:"#68738A", textAlign:"center", padding:"24px 0" }}>No history yet — submit your next version to start tracking progress.</p>}
+
+                {historyLoading && <div style={{ textAlign:"center", padding:"32px 0", color:"#68738A", fontSize:13 }}>Loading…</div>}
+                {!historyLoading && scoreHistory.length===0 && (
+                  <div style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", padding:"40px 20px", textAlign:"center" }}>
+                    <div style={{ fontSize:36, marginBottom:10 }}>📈</div>
+                    <p style={{ fontSize:14, fontWeight:700, color:"#0A0A0F" }}>No history yet</p>
+                    <p style={{ fontSize:12.5, color:"#68738A", marginTop:4 }}>Your score is saved every time you submit a resume. Come back after a few revisions to see your progress.</p>
+                  </div>
+                )}
                 {scoreHistory.map((entry, i) => {
-                  const prev = scoreHistory[i + 1];
-                  const d = (key: keyof ResumeScores) => prev ? entry.scores[key] - prev.scores[key] : null;
+                  const prev = scoreHistory[i+1];
+                  const d = (k:keyof ResumeScores) => prev ? entry.scores[k]-prev.scores[k] : null;
+                  const g = scoreGrade(entry.scores.overall);
                   return (
-                    <div key={entry.id} style={{ marginBottom:12, padding:"12px 14px", border:"1px solid #E4E8F5", borderRadius:12, background:i===0?"#F8FAFF":"white" }}>
-                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
+                    <div key={entry.id} style={{ background:"white", borderRadius:14, border:`1px solid ${i===0?"#C7D2FE":"#E4E8F5"}`, padding:"14px 16px", boxShadow: i===0?"0 2px 12px rgba(67,97,238,0.1)":"0 1px 4px rgba(0,0,0,0.04)" }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:10 }}>
                         <div>
-                          <p style={{ fontSize:12.5, fontWeight:700, color:"#0A0A0F", marginBottom:2 }}>{entry.filename}</p>
-                          <p style={{ fontSize:11, color:"#A0AABF" }}>{new Date(entry.submittedAt).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"2-digit",minute:"2-digit"})} · {entry.mode === "targeted" ? `Targeted${entry.targetRole ? ": "+entry.targetRole : ""}` : "General review"}</p>
+                          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                            <p style={{ fontSize:13, fontWeight:700, color:"#0A0A0F" }}>{entry.filename}</p>
+                            {i===0 && <span style={{ fontSize:10, fontWeight:700, padding:"2px 8px", borderRadius:99, background:"#EEF2FF", color:"#4361EE" }}>Latest</span>}
+                          </div>
+                          <p style={{ fontSize:11, color:"#A0AABF", marginTop:2 }}>
+                            {new Date(entry.submittedAt).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"2-digit",minute:"2-digit"})}
+                            {" · "}{entry.mode==="targeted"?`Targeted${entry.targetRole?": "+entry.targetRole:""}` : "General"}
+                          </p>
                         </div>
-                        {i===0 && <span style={{ fontSize:10, fontWeight:700, padding:"2px 8px", borderRadius:99, background:"#EEF2FF", color:"#4361EE" }}>Latest</span>}
+                        <div style={{ textAlign:"right" }}>
+                          <p style={{ fontSize:24, fontWeight:900, color:g.color, lineHeight:1 }}>{entry.scores.overall}</p>
+                          <p style={{ fontSize:10, color:g.color, fontWeight:700 }}>{g.label}</p>
+                        </div>
                       </div>
-                      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:8 }}>
-                        {([["Overall","overall"],["ATS","ats"],["Impact","impact"],["Clarity","clarity"]] as [string, keyof ResumeScores][]).map(([label, key]) => {
+                      <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:6 }}>
+                        {(["ats","impact","clarity"] as (keyof ResumeScores)[]).map(key => {
                           const delta = d(key);
-                          const deltaColor = delta === null ? "#A0AABF" : delta > 0 ? "#16A34A" : delta < 0 ? "#DC2626" : "#A0AABF";
+                          const dc = delta===null?"#A0AABF":delta>0?"#16A34A":delta<0?"#DC2626":"#A0AABF";
                           return (
-                            <div key={key} style={{ textAlign:"center", padding:"8px 4px", background:"#FAFBFF", borderRadius:8, border:"1px solid #F1F5F9" }}>
-                              <p style={{ fontSize:18, fontWeight:900, color:"#0A0A0F", marginBottom:1 }}>{entry.scores[key]}</p>
-                              <p style={{ fontSize:9.5, color:"#68738A", marginBottom:2 }}>{label}</p>
-                              {delta !== null && <p style={{ fontSize:10, fontWeight:700, color:deltaColor }}>{delta > 0 ? `+${delta}` : delta < 0 ? `${delta}` : "—"} {delta > 0 ? "↑" : delta < 0 ? "↓" : ""}</p>}
+                            <div key={key} style={{ padding:"6px 8px", background:"#FAFBFF", borderRadius:8, border:"1px solid #F1F5F9" }}>
+                              <p style={{ fontSize:9, color:"#A0AABF", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:2 }}>{key==="ats"?"ATS Match":key==="impact"?"Impact":"Clarity"}</p>
+                              <div style={{ display:"flex", alignItems:"baseline", gap:5 }}>
+                                <span style={{ fontSize:16, fontWeight:900, color:"#0A0A0F" }}>{entry.scores[key]}</span>
+                                {delta!==null && delta!==0 && <span style={{ fontSize:10, fontWeight:700, color:dc }}>{delta>0?"+":""}{delta}</span>}
+                              </div>
                             </div>
                           );
                         })}

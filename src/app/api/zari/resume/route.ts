@@ -248,9 +248,9 @@ Return ONLY a valid JSON object with exactly this structure:
   "keywords": [
     {
       "word": "<keyword from JD>",
-      "found": <true if the keyword or a close synonym appears in the resume, false if missing>,
+      "found": <STRICT RULE: true ONLY if the exact term, its direct well-known abbreviation (JS=JavaScript, ML=Machine Learning, K8s=Kubernetes), or a professionally synonymous term used in the same context appears explicitly in the resume text. Generic conceptual overlap does NOT count. Examples of what is NOT a match: a lab technician mentioning "teamwork" does NOT mean "cross-functional leadership" is found; someone "working with computers" does NOT mean "cloud infrastructure" is found; "managed a small team" does NOT mean "executive leadership" is found; "wrote reports" does NOT mean "executive communications" is found. When in doubt, mark false. ATS systems do literal keyword matching — so should you.>,
       "importance": "<required | preferred>",
-      "context": "<if found: one short phrase from resume where it appears. If missing: leave empty string>"
+      "context": "<if found=true: exact phrase from resume proving it. If found=false: empty string>"
     }
   ]
 }
@@ -267,7 +267,9 @@ FINDINGS CATEGORY DEFINITIONS (assign the most accurate one):
 - contact: contact information issues (missing, wrong format, in header/footer)
 - format: tables, graphics, columns, fonts that break ATS parsing
 
-KEYWORDS INSTRUCTION: ${hasJobContext ? "Extract the 15-20 most important keywords from the job description. For each, check if it appears in the resume (including close synonyms). Mark required skills from the 'required' or 'must have' sections as importance='required', everything else as importance='preferred'." : "Return an empty array [] — no job description provided."}
+KEYWORDS INSTRUCTION: ${hasJobContext
+  ? `Extract the 15-20 most critical keywords from the job description. Apply STRICT matching (see keyword rules above). For a highly mismatched resume (e.g., lab technician applying for CTO), you should have 12-18 keywords marked found=false — that is correct and honest. Required = explicitly stated as required/must-have in JD. Preferred = everything else.`
+  : "Return an empty array [] — no job description provided."}
 
 BULLETS INSTRUCTION: Include ALL bullets from the resume that score below 72 — not just 3. This is a complete line-by-line audit. If 8 bullets need work, return all 8. Maximum 12.
 
@@ -286,8 +288,8 @@ Voice rules:
 
   const reply = await openaiChat(messages, {
     model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
-    temperature: 0.3,
-    maxTokens: 3200,
+    temperature: 0.2,
+    maxTokens: 4000,
     jsonMode: true,
   });
 
