@@ -3272,8 +3272,15 @@ type LinkedInResult = {
 
 function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
   type LINav = "score"|"headline"|"summary"|"experience"|"education"|"other"|"keywords";
+  type InputMethod = "pdf"|"url";
   const [liSection,    setLISection]    = useState<LINav>("score");
   const [inputMode,    setInputMode]    = useState(true);
+  const [inputMethod,  setInputMethod]  = useState<InputMethod|null>(null);
+  const [urlInput,     setUrlInput]     = useState("");
+  const [targetRole,   setTargetRole]   = useState("");
+  const [dragOver,     setDragOver]     = useState(false);
+  const [parseLoading, setParseLoading] = useState(false);
+  const [loadingMsg,   setLoadingMsg]   = useState("");
   const [headline,     setHeadline]     = useState("");
   const [summary,      setSummary]      = useState("");
   const [experience,   setExperience]   = useState("");
@@ -3281,39 +3288,85 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
   const [skills,       setSkills]       = useState("");
   const [linkedinUrl,  setLinkedinUrl]  = useState("");
   const [hasPhoto,     setHasPhoto]     = useState(false);
-  const [targetRole,   setTargetRole]   = useState("");
-  const [loading,      setLoading]      = useState(false);
   const [result,       setResult]       = useState<LinkedInResult | null>(null);
   const [err,          setErr]          = useState("");
   const [previewTab,   setPreviewTab]   = useState<"current"|"rewritten">("current");
   const [expandedCheck,setExpandedCheck]= useState<number | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setInputMode(true); setResult(null);
+    setInputMode(true); setInputMethod(null); setResult(null);
+    setUrlInput(""); setTargetRole(""); setDragOver(false);
     setHeadline(""); setSummary(""); setExperience(""); setEducation("");
-    setSkills(""); setLinkedinUrl(""); setHasPhoto(false); setTargetRole("");
+    setSkills(""); setLinkedinUrl(""); setHasPhoto(false); setErr("");
   }, [stage]);
 
-  async function analyze() {
-    if (loading) return;
-    setErr(""); setLoading(true);
+  async function parseAndAnalyze(file?: File, url?: string) {
+    if (parseLoading) return;
+    setErr(""); setParseLoading(true);
+
     try {
-      const res = await fetch("/api/zari/linkedin/review", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ headline, summary, experience, education, skills, linkedinUrl, hasPhoto, targetRole }),
+      // Step 1: parse profile from file or URL
+      setLoadingMsg("Extracting your profile…");
+      let parsed: { headline:string; summary:string; experience:string; education:string; skills:string; linkedinUrl:string; hasPhoto:boolean } | null = null;
+
+      if (file) {
+        const fd = new FormData();
+        fd.append("file", file);
+        const pr = await fetch("/api/zari/linkedin/parse-profile", { method:"POST", body:fd });
+        const pd = await pr.json().catch(() => null);
+        if (!pr.ok || !pd || pd.error) { setErr(pd?.error ?? "Could not read your file."); setParseLoading(false); return; }
+        parsed = pd;
+      } else if (url) {
+        const pr = await fetch("/api/zari/linkedin/parse-profile", {
+          method:"POST", headers:{"Content-Type":"application/json"},
+          body: JSON.stringify({ url }),
+        });
+        const pd = await pr.json().catch(() => null);
+        if (!pr.ok || !pd || pd.error) { setErr(pd?.error ?? "Could not fetch that profile."); setParseLoading(false); return; }
+        parsed = pd;
+      }
+
+      if (!parsed) { setErr("Nothing to analyze."); setParseLoading(false); return; }
+
+      // Step 2: run review with extracted sections
+      setLoadingMsg("Analyzing your profile…");
+      const reviewRes = await fetch("/api/zari/linkedin/review", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({
+          headline:   parsed.headline,
+          summary:    parsed.summary,
+          experience: parsed.experience,
+          education:  parsed.education,
+          skills:     parsed.skills,
+          linkedinUrl:parsed.linkedinUrl || url || "",
+          hasPhoto:   parsed.hasPhoto,
+          targetRole,
+        }),
       });
-      const data = await res.json().catch(() => null) as LinkedInResult | null;
+      const data = await reviewRes.json().catch(() => null) as LinkedInResult | null;
       if (data && (data.headline || data.summary)) {
+        setHeadline(parsed.headline); setSummary(parsed.summary);
+        setExperience(parsed.experience); setEducation(parsed.education);
+        setSkills(parsed.skills); setLinkedinUrl(parsed.linkedinUrl || url || "");
+        setHasPhoto(parsed.hasPhoto);
         setResult(data); setInputMode(false); setLISection("score");
       } else {
         setErr("Analysis failed — try again.");
       }
     } catch { setErr("Connection error — try again."); }
-    setLoading(false);
+    setParseLoading(false); setLoadingMsg("");
   }
 
-  const hasInput = !!(headline || summary || experience);
+  function handleFile(f: File) {
+    if (!f) return;
+    const ext = f.name.toLowerCase();
+    if (!ext.endsWith(".pdf") && f.type !== "application/pdf") {
+      setErr("Please upload your LinkedIn profile as a PDF file.");
+      return;
+    }
+    void parseAndAnalyze(f, undefined);
+  }
 
   // ── Helpers ──
   function scoreColor(s: number): string {
@@ -3349,130 +3402,132 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
 
   // ── INPUT STEP ──
   if (inputMode) return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F0F4F8" }}>
-      {/* Header */}
-      <div style={{ background:"linear-gradient(135deg,#004471 0%,#0077B5 60%,#00A0DC 100%)", padding:"36px 32px 28px" }}>
-        <div style={{ maxWidth:780, margin:"0 auto" }}>
-          <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:10 }}>
-            <div style={{ width:44, height:44, borderRadius:12, background:"rgba(255,255,255,0.15)", display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(8px)" }}>
-              <svg viewBox="0 0 24 24" fill="white" style={{ width:24,height:24 }}><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zM9 17H6.477v-7H9v7zM7.694 8.717c-.771 0-1.286-.514-1.286-1.2s.514-1.2 1.286-1.2c.771 0 1.286.514 1.286 1.2s-.514 1.2-1.286 1.2zM18 17h-2.442v-3.826c0-1.058-.651-1.302-1.044-1.302-.394 0-1.228.163-1.228 1.302V17h-2.557v-7h2.557v1.302c.325-.652 1.058-1.302 2.276-1.302C17.349 10 18 11.058 18 13.488V17z"/></svg>
-            </div>
-            <div>
-              <h1 style={{ fontSize:22, fontWeight:900, color:"white", letterSpacing:"-0.03em", marginBottom:2 }}>LinkedIn Profile Reviewer</h1>
-              <p style={{ fontSize:13, color:"rgba(255,255,255,0.7)" }}>Get a detailed score on every section with AI-powered rewrites</p>
-            </div>
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#0A1628" }}>
+      {/* Hidden file input */}
+      <input ref={fileInputRef} type="file" accept=".pdf" style={{ display:"none" }}
+        onChange={e=>{ const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value=""; }}/>
+
+      {/* Full-height centered layout */}
+      <div style={{ minHeight:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"40px 24px" }}>
+
+        {/* Logo + title */}
+        <div style={{ textAlign:"center", marginBottom:40 }}>
+          <div style={{ width:52, height:52, borderRadius:14, background:"linear-gradient(135deg,#0077B5,#00A0DC)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px", boxShadow:"0 8px 28px rgba(0,119,181,0.5)" }}>
+            <svg viewBox="0 0 24 24" fill="white" style={{ width:26,height:26 }}><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zM9 17H6.477v-7H9v7zM7.694 8.717c-.771 0-1.286-.514-1.286-1.2s.514-1.2 1.286-1.2c.771 0 1.286.514 1.286 1.2s-.514 1.2-1.286 1.2zM18 17h-2.442v-3.826c0-1.058-.651-1.302-1.044-1.302-.394 0-1.228.163-1.228 1.302V17h-2.557v-7h2.557v1.302c.325-.652 1.058-1.302 2.276-1.302C17.349 10 18 11.058 18 13.488V17z"/></svg>
           </div>
-          <div style={{ display:"flex", gap:20, marginTop:6 }}>
-            {["Headline","Summary","Experience","Education","Other","Keywords"].map(s => (
-              <span key={s} style={{ fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.6)", display:"flex", alignItems:"center", gap:5 }}>
-                <span style={{ width:6, height:6, borderRadius:"50%", background:"rgba(255,255,255,0.4)", display:"inline-block" }}/>
-                {s}
-              </span>
-            ))}
-          </div>
+          <h1 style={{ fontSize:28, fontWeight:900, color:"white", letterSpacing:"-0.04em", marginBottom:8 }}>LinkedIn Profile Reviewer</h1>
+          <p style={{ fontSize:14.5, color:"rgba(255,255,255,0.5)", maxWidth:440, margin:"0 auto", lineHeight:1.6 }}>
+            Get a detailed score on every section — Headline, Summary, Experience, Education, and more — with AI rewrites.
+          </p>
         </div>
-      </div>
 
-      <div style={{ maxWidth:780, margin:"0 auto", padding:"28px 32px 48px" }}>
-        {err && <div style={{ background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:10, padding:"10px 14px", marginBottom:18, fontSize:13, color:"#991B1B" }}>{err}</div>}
+        {/* Loading overlay */}
+        {parseLoading && (
+          <div style={{ background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:20, padding:"36px 48px", textAlign:"center", maxWidth:380, width:"100%" }}>
+            <div style={{ width:48, height:48, borderRadius:"50%", border:"3px solid rgba(0,119,181,0.3)", borderTopColor:"#0077B5", animation:"spin-slow 0.8s linear infinite", margin:"0 auto 20px" }}/>
+            <p style={{ fontSize:16, fontWeight:700, color:"white", marginBottom:6 }}>{loadingMsg || "Processing…"}</p>
+            <p style={{ fontSize:13, color:"rgba(255,255,255,0.4)" }}>This takes 10–20 seconds</p>
+          </div>
+        )}
 
-        {/* Card */}
-        <div style={{ background:"white", borderRadius:18, boxShadow:"0 4px 24px rgba(0,0,0,0.07)", overflow:"hidden" }}>
-
-          {/* Section 1: Target + URL */}
-          <div style={{ padding:"22px 26px", borderBottom:"1px solid #F1F5F9" }}>
-            <p style={{ fontSize:11.5, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:16 }}>Profile & Target</p>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
-              <div>
-                <label style={{ fontSize:12.5, fontWeight:700, color:"#374151", display:"block", marginBottom:6 }}>LinkedIn Profile URL</label>
-                <input style={{ width:"100%", border:"1.5px solid #E2E8F0", borderRadius:10, padding:"10px 13px", fontSize:13.5, color:"#1E2235", outline:"none", fontFamily:"inherit", boxSizing:"border-box", transition:"border-color 0.15s" }}
-                  onFocus={e=>(e.target.style.borderColor="#0077B5")} onBlur={e=>(e.target.style.borderColor="#E2E8F0")}
-                  placeholder="linkedin.com/in/yourname"
-                  value={linkedinUrl} onChange={e=>setLinkedinUrl(e.target.value)}/>
-                <p style={{ fontSize:11, color:"#94A3B8", marginTop:4 }}>Used to check if you have a custom URL</p>
+        {!parseLoading && (
+          <div style={{ width:"100%", maxWidth:680 }}>
+            {err && (
+              <div style={{ background:"rgba(220,38,38,0.1)", border:"1px solid rgba(220,38,38,0.3)", borderRadius:12, padding:"12px 16px", marginBottom:20, fontSize:13.5, color:"#FCA5A5", lineHeight:1.5 }}>
+                {err}
               </div>
-              <div>
-                <label style={{ fontSize:12.5, fontWeight:700, color:"#374151", display:"block", marginBottom:6 }}>Target Role <span style={{ fontSize:11, color:"#94A3B8", fontWeight:400 }}>(optional)</span></label>
-                <input style={{ width:"100%", border:"1.5px solid #E2E8F0", borderRadius:10, padding:"10px 13px", fontSize:13.5, color:"#1E2235", outline:"none", fontFamily:"inherit", boxSizing:"border-box", transition:"border-color 0.15s" }}
-                  onFocus={e=>(e.target.style.borderColor="#0077B5")} onBlur={e=>(e.target.style.borderColor="#E2E8F0")}
-                  placeholder="e.g. Senior Product Manager"
+            )}
+
+            {/* Two option cards */}
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:20 }}>
+
+              {/* PDF Upload card */}
+              <div
+                onClick={()=>{ if (!parseLoading) { setInputMethod("pdf"); setErr(""); fileInputRef.current?.click(); } }}
+                onDragOver={e=>{ e.preventDefault(); setDragOver(true); setInputMethod("pdf"); }}
+                onDragLeave={()=>setDragOver(false)}
+                onDrop={e=>{ e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files?.[0]; if (f) handleFile(f); }}
+                style={{ background:dragOver||inputMethod==="pdf"?"rgba(0,119,181,0.15)":"rgba(255,255,255,0.04)", border:`2px ${dragOver?"solid":"dashed"} ${dragOver||inputMethod==="pdf"?"#0077B5":"rgba(255,255,255,0.12)"}`, borderRadius:18, padding:"32px 24px", cursor:"pointer", textAlign:"center", transition:"all 0.15s" }}>
+                <div style={{ width:52, height:52, borderRadius:14, background:"rgba(0,119,181,0.2)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px" }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#0077B5" strokeWidth="1.8" style={{ width:26,height:26 }}>
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                    <line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/>
+                  </svg>
+                </div>
+                <p style={{ fontSize:16, fontWeight:800, color:"white", marginBottom:6 }}>Upload LinkedIn PDF</p>
+                <p style={{ fontSize:13, color:"rgba(255,255,255,0.45)", lineHeight:1.6 }}>
+                  Download your profile from LinkedIn and upload it here for automatic analysis
+                </p>
+                <div style={{ marginTop:14, display:"inline-flex", alignItems:"center", gap:6, fontSize:12, color:"#38BDF8", fontWeight:600 }}>
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:12,height:12}}><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>
+                  Drop here or click to browse
+                </div>
+              </div>
+
+              {/* URL card */}
+              <div
+                onClick={()=>{ if (!parseLoading) { setInputMethod("url"); setErr(""); } }}
+                style={{ background:inputMethod==="url"?"rgba(0,119,181,0.15)":"rgba(255,255,255,0.04)", border:`2px solid ${inputMethod==="url"?"#0077B5":"rgba(255,255,255,0.12)"}`, borderRadius:18, padding:"32px 24px", cursor:"pointer", textAlign:"center", transition:"all 0.15s" }}>
+                <div style={{ width:52, height:52, borderRadius:14, background:"rgba(0,119,181,0.2)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px" }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#0077B5" strokeWidth="1.8" style={{ width:26,height:26 }}>
+                    <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+                    <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+                  </svg>
+                </div>
+                <p style={{ fontSize:16, fontWeight:800, color:"white", marginBottom:6 }}>Enter LinkedIn URL</p>
+                <p style={{ fontSize:13, color:"rgba(255,255,255,0.45)", lineHeight:1.6 }}>
+                  Paste your LinkedIn profile URL and we&apos;ll automatically analyze your public profile
+                </p>
+                <div style={{ marginTop:14, display:"inline-flex", alignItems:"center", gap:6, fontSize:12, color:"#38BDF8", fontWeight:600 }}>
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:12,height:12}}><path d="M6 3l5 5-5 5"/></svg>
+                  linkedin.com/in/yourname
+                </div>
+              </div>
+            </div>
+
+            {/* URL input — shown when URL method selected */}
+            {inputMethod==="url" && (
+              <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:16, padding:"22px 24px", marginBottom:16 }}>
+                <label style={{ fontSize:12.5, fontWeight:700, color:"rgba(255,255,255,0.6)", display:"block", marginBottom:10, textTransform:"uppercase", letterSpacing:"0.07em" }}>Your LinkedIn Profile URL</label>
+                <div style={{ display:"flex", gap:10 }}>
+                  <input
+                    autoFocus
+                    style={{ flex:1, background:"rgba(255,255,255,0.06)", border:"1.5px solid rgba(255,255,255,0.15)", borderRadius:10, padding:"12px 14px", fontSize:14, color:"white", outline:"none", fontFamily:"inherit" }}
+                    placeholder="https://www.linkedin.com/in/yourname"
+                    value={urlInput} onChange={e=>setUrlInput(e.target.value)}
+                    onKeyDown={e=>{ if (e.key==="Enter" && urlInput.includes("linkedin")) void parseAndAnalyze(undefined, urlInput); }}/>
+                  <button
+                    onClick={()=>{ if (urlInput.includes("linkedin")) void parseAndAnalyze(undefined, urlInput); else setErr("Please enter a valid LinkedIn profile URL."); }}
+                    disabled={!urlInput}
+                    style={{ fontSize:13.5, fontWeight:700, padding:"12px 22px", borderRadius:10, border:"none", background:urlInput?"#0077B5":"rgba(255,255,255,0.08)", color:urlInput?"white":"rgba(255,255,255,0.3)", cursor:urlInput?"pointer":"default", whiteSpace:"nowrap" }}>
+                    Analyze →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Target role field */}
+            <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:14, padding:"16px 20px", display:"flex", alignItems:"center", gap:16 }}>
+              <div style={{ flexShrink:0 }}>
+                <svg viewBox="0 0 20 20" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" style={{width:18,height:18}}><circle cx="10" cy="10" r="8"/><circle cx="10" cy="10" r="3"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="10" y1="16" x2="10" y2="18"/><line x1="2" y1="10" x2="4" y2="10"/><line x1="16" y1="10" x2="18" y2="10"/></svg>
+              </div>
+              <div style={{ flex:1 }}>
+                <p style={{ fontSize:12, fontWeight:700, color:"rgba(255,255,255,0.5)", textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:4 }}>Target Role <span style={{ fontWeight:400, textTransform:"none", letterSpacing:"normal" }}>(optional — improves keyword analysis)</span></p>
+                <input
+                  style={{ width:"100%", background:"transparent", border:"none", outline:"none", fontSize:14, color:"white", fontFamily:"inherit" }}
+                  placeholder="e.g. Senior Software Engineer, Product Manager…"
                   value={targetRole} onChange={e=>setTargetRole(e.target.value)}/>
               </div>
             </div>
-            <label style={{ display:"flex", alignItems:"center", gap:10, marginTop:14, cursor:"pointer", userSelect:"none" }}>
-              <div onClick={()=>setHasPhoto(!hasPhoto)} style={{ width:18, height:18, borderRadius:5, border:`2px solid ${hasPhoto?"#0077B5":"#CBD5E1"}`, background:hasPhoto?"#0077B5":"white", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, transition:"all 0.15s" }}>
-                {hasPhoto && <svg viewBox="0 0 12 12" fill="none" style={{width:9,height:9}}><path d="M2 6l2.5 2.5L10 3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-              </div>
-              <span style={{ fontSize:13, color:"#374151", fontWeight:500 }}>I have a professional profile photo</span>
-              <span style={{ fontSize:11.5, color:"#94A3B8" }}>— profiles with photos get 21× more views</span>
-            </label>
-          </div>
 
-          {/* Section 2: Headline */}
-          <div style={{ padding:"22px 26px", borderBottom:"1px solid #F1F5F9" }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
-              <p style={{ fontSize:11.5, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.08em" }}>Headline</p>
-              <span style={{ fontSize:11, fontWeight:700, color:"#DC2626", background:"#FEF2F2", padding:"2px 8px", borderRadius:99 }}>Required</span>
-            </div>
-            <input style={{ width:"100%", border:`1.5px solid ${headline?"#0077B5":"#E2E8F0"}`, borderRadius:10, padding:"10px 13px", fontSize:13.5, color:"#1E2235", outline:"none", fontFamily:"inherit", boxSizing:"border-box", transition:"border-color 0.15s" }}
-              onFocus={e=>(e.target.style.borderColor="#0077B5")} onBlur={e=>(e.target.style.borderColor=headline?"#0077B5":"#E2E8F0")}
-              placeholder="e.g. Senior Product Manager | B2B SaaS · Growth · Roadmapping | Ex-Google"
-              value={headline} onChange={e=>setHeadline(e.target.value)}/>
-            <p style={{ fontSize:11, color:"#94A3B8", marginTop:5 }}>Copy this from the top of your LinkedIn profile, under your name · max 220 characters</p>
-          </div>
-
-          {/* Section 3: Summary + Experience */}
-          <div style={{ padding:"22px 26px", borderBottom:"1px solid #F1F5F9" }}>
-            <p style={{ fontSize:11.5, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:16 }}>About & Experience</p>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
-              <div>
-                <label style={{ fontSize:12.5, fontWeight:700, color:"#374151", display:"block", marginBottom:6 }}>About / Summary <span style={{ fontSize:11, color:"#94A3B8", fontWeight:400 }}>(recommended)</span></label>
-                <textarea style={{ width:"100%", minHeight:120, border:`1.5px solid ${summary?"#0077B5":"#E2E8F0"}`, borderRadius:10, padding:"10px 13px", fontSize:13, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", lineHeight:1.6, transition:"border-color 0.15s" }}
-                  onFocus={e=>(e.target.style.borderColor="#0077B5")} onBlur={e=>(e.target.style.borderColor=summary?"#0077B5":"#E2E8F0")}
-                  placeholder="Paste your LinkedIn About section…"
-                  value={summary} onChange={e=>setSummary(e.target.value)}/>
-              </div>
-              <div>
-                <label style={{ fontSize:12.5, fontWeight:700, color:"#374151", display:"block", marginBottom:6 }}>Experience <span style={{ fontSize:11, color:"#94A3B8", fontWeight:400 }}>(most recent 1–2 roles)</span></label>
-                <textarea style={{ width:"100%", minHeight:120, border:`1.5px solid ${experience?"#0077B5":"#E2E8F0"}`, borderRadius:10, padding:"10px 13px", fontSize:13, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", lineHeight:1.6, transition:"border-color 0.15s" }}
-                  onFocus={e=>(e.target.style.borderColor="#0077B5")} onBlur={e=>(e.target.style.borderColor=experience?"#0077B5":"#E2E8F0")}
-                  placeholder="Job title, company, dates, and bullet points…"
-                  value={experience} onChange={e=>setExperience(e.target.value)}/>
-              </div>
+            {/* How to download tip */}
+            <div style={{ marginTop:18, textAlign:"center" }}>
+              <p style={{ fontSize:12, color:"rgba(255,255,255,0.28)", lineHeight:1.7 }}>
+                To download your LinkedIn PDF: LinkedIn.com → Me → Settings &amp; Privacy → Data Privacy → Get a copy of your data → select &quot;Profile&quot; → Request archive
+              </p>
             </div>
           </div>
-
-          {/* Section 4: Education + Skills */}
-          <div style={{ padding:"22px 26px" }}>
-            <p style={{ fontSize:11.5, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:16 }}>Education & Skills</p>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
-              <div>
-                <label style={{ fontSize:12.5, fontWeight:700, color:"#374151", display:"block", marginBottom:6 }}>Education <span style={{ fontSize:11, color:"#94A3B8", fontWeight:400 }}>(optional)</span></label>
-                <textarea style={{ width:"100%", minHeight:80, border:`1.5px solid ${education?"#0077B5":"#E2E8F0"}`, borderRadius:10, padding:"10px 13px", fontSize:13, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", lineHeight:1.6, transition:"border-color 0.15s" }}
-                  onFocus={e=>(e.target.style.borderColor="#0077B5")} onBlur={e=>(e.target.style.borderColor=education?"#0077B5":"#E2E8F0")}
-                  placeholder="School, degree, graduation year…"
-                  value={education} onChange={e=>setEducation(e.target.value)}/>
-              </div>
-              <div>
-                <label style={{ fontSize:12.5, fontWeight:700, color:"#374151", display:"block", marginBottom:6 }}>Skills <span style={{ fontSize:11, color:"#94A3B8", fontWeight:400 }}>(optional)</span></label>
-                <textarea style={{ width:"100%", minHeight:80, border:`1.5px solid ${skills?"#0077B5":"#E2E8F0"}`, borderRadius:10, padding:"10px 13px", fontSize:13, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", lineHeight:1.6, transition:"border-color 0.15s" }}
-                  onFocus={e=>(e.target.style.borderColor="#0077B5")} onBlur={e=>(e.target.style.borderColor=skills?"#0077B5":"#E2E8F0")}
-                  placeholder="Python, AWS, Product Strategy, SQL…"
-                  value={skills} onChange={e=>setSkills(e.target.value)}/>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <button onClick={()=>void analyze()} disabled={loading || !hasInput}
-          style={{ width:"100%", marginTop:20, fontSize:15, fontWeight:800, padding:"15px", borderRadius:12, border:"none", background:!loading&&hasInput?"linear-gradient(135deg,#0077B5,#00A0DC)":"#E2E8F0", color:!loading&&hasInput?"white":"#94A3B8", cursor:!loading&&hasInput?"pointer":"default", boxShadow:!loading&&hasInput?"0 6px 24px rgba(0,119,181,0.4)":"none", display:"flex", alignItems:"center", justifyContent:"center", gap:10, letterSpacing:"-0.01em" }}>
-          {loading ? (
-            <><span style={{ width:17,height:17,borderRadius:"50%",border:"2.5px solid rgba(255,255,255,0.3)",borderTopColor:"white",animation:"spin-slow 0.7s linear infinite",display:"block" }}/> Analyzing your profile…</>
-          ) : (
-            <><svg viewBox="0 0 20 20" fill="currentColor" style={{width:17,height:17}}><path d="M9 2a7 7 0 100 14A7 7 0 009 2zm0 12.5A5.5 5.5 0 119 3.5a5.5 5.5 0 010 11zm4.854-1.646l3.146 3.146-1.06 1.06-3.146-3.146A7.04 7.04 0 0013.854 12.854z"/></svg> Analyze My LinkedIn Profile</>
-          )}
-        </button>
-        <p style={{ textAlign:"center", fontSize:11.5, color:"#94A3B8", marginTop:10 }}>Scores Headline · Summary · Experience · Education · Other · Keywords</p>
+        )}
       </div>
     </div>
   );
