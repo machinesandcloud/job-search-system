@@ -201,6 +201,38 @@ Return ONLY a valid JSON object with exactly this structure:
   "ats": <number 0-100, use the hard threshold rubric above>,
   "impact": <number 0-100, use the hard threshold rubric above>,
   "clarity": <number 0-100, use the hard threshold rubric above>,
+  "tailoredScore": <ONLY in targeted mode: number 0-100 measuring how well-positioned this resume is for THIS specific job. Score based on: title alignment (20%), skills coverage (35%), experience level match (25%), industry/domain match (20%). A lab technician applying for CTO should score 5-15. A senior engineer with all required skills applying for an engineering manager role should score 75-85. OMIT this field entirely in general mode — do not include it at all.>,
+  "bulletStats": {
+    "total": <exact count of all bullet points in the resume>,
+    "withMetrics": <count of bullets containing a number, %, $, time period, or other quantified result>,
+    "withStrongVerbs": <count of bullets starting with a strong action verb from the approved list>,
+    "weak": <count of bullets with weak verbs ("responsible for", "helped", "assisted", etc.) OR no clear impact>
+  },
+  "sectionScores": [
+    {
+      "name": "<Summary|Experience|Skills|Education|Contact>",
+      "present": <true if this section exists in the resume>,
+      "score": <0-100>,
+      "verdict": "<one of: Strong | Good | Needs work | Weak verbs | No metrics | Missing | Incomplete | Generic | Too long | Outdated>"
+    }
+  ],
+  "quickWins": [
+    {
+      "title": "<3-5 word action title — e.g. 'Quantify your top bullet'>",
+      "action": "<one specific, actionable sentence naming the exact bullet, phrase, or section — e.g. 'Add a metric to your first bullet under Company X: how many users, what % improvement, or what revenue impact?'>",
+      "effort": "<5 min|15 min|30 min>",
+      "impact": "<high|medium>",
+      "tab": "<overview|bullets|rewrite|keywords>"
+    }
+  ],
+  "wordIssues": [
+    {
+      "word": "<the overused or weak word/phrase>",
+      "count": <exact count of occurrences in the resume text>,
+      "type": "<repetition|filler|weak_verb|cliche>",
+      "suggestion": "<what to use instead — e.g. 'Vary with: Built, Shipped, Deployed, Architected'>"
+    }
+  ],
   "findings": [
     {
       "type": "critical",
@@ -224,7 +256,8 @@ Return ONLY a valid JSON object with exactly this structure:
       "after": "<rewrite using XYZ formula. Strong verb + specific skill/context + quantified result. In targeted mode: embed JD keywords naturally where supported by evidence.>",
       "reason": "<one sentence: exactly why this bullet is weak — e.g. 'Starts with weak verb Responsible for and has no metric showing the outcome.'>",
       "oldScore": <number 0-100, score the original bullet honestly>,
-      "newScore": <number 0-100, score your rewrite>
+      "newScore": <number 0-100, score your rewrite>,
+      "difficulty": "<easy|medium|hard — easy = just add a metric or swap the verb; medium = needs restructuring; hard = needs new information from the person>"
     }
   ],
   "recommendation": "<2-3 sentences like a coach talking to this specific person. Name the single highest-impact change and exactly how to make it. Reference something real from their resume — not boilerplate.>",
@@ -250,6 +283,7 @@ Return ONLY a valid JSON object with exactly this structure:
       "word": "<keyword from JD>",
       "found": <STRICT RULE: true ONLY if the exact term, its direct well-known abbreviation (JS=JavaScript, ML=Machine Learning, K8s=Kubernetes), or a professionally synonymous term used in the same context appears explicitly in the resume text. Generic conceptual overlap does NOT count. Examples of what is NOT a match: a lab technician mentioning "teamwork" does NOT mean "cross-functional leadership" is found; someone "working with computers" does NOT mean "cloud infrastructure" is found; "managed a small team" does NOT mean "executive leadership" is found; "wrote reports" does NOT mean "executive communications" is found. When in doubt, mark false. ATS systems do literal keyword matching — so should you.>,
       "importance": "<required | preferred>",
+      "skillType": "<technical|soft|tool|certification|domain>",
       "context": "<if found=true: exact phrase from resume proving it. If found=false: empty string>"
     }
   ]
@@ -271,7 +305,13 @@ KEYWORDS INSTRUCTION: ${hasJobContext
   ? `Extract the 15-20 most critical keywords from the job description. Apply STRICT matching (see keyword rules above). For a highly mismatched resume (e.g., lab technician applying for CTO), you should have 12-18 keywords marked found=false — that is correct and honest. Required = explicitly stated as required/must-have in JD. Preferred = everything else.`
   : "Return an empty array [] — no job description provided."}
 
-BULLETS INSTRUCTION: Include ALL bullets from the resume that score below 72 — not just 3. This is a complete line-by-line audit. If 8 bullets need work, return all 8. Maximum 12.
+BULLETS INSTRUCTION: Include ALL bullets from the resume that score below 72 — not just 3. This is a complete line-by-line audit. If 8 bullets need work, return all 8. Maximum 12. For each bullet include the difficulty field: easy = fix in under 5 min by swapping a verb or adding a metric placeholder; medium = needs restructuring; hard = needs the person to recall specific numbers they don't have in the text.
+
+QUICK WINS INSTRUCTION: Return exactly 3 quick wins. Rank by: highest improvement to score / least effort. Be ruthlessly specific — name the exact section or bullet. Include the right tab so we can link to it.
+
+WORD ISSUES INSTRUCTION: Scan the full resume text. Report any word or phrase that: (a) appears 3+ times, (b) is on the banned-adjective list ("results-driven", "passionate", "detail-oriented", "team player", "go-getter", "dynamic", "motivated"), or (c) is a weak verb used multiple times. Count exact occurrences. Only report real problems — don't invent issues for a clean resume.
+
+SECTION SCORES INSTRUCTION: Score each major section found in the resume. If a section is missing, mark present=false and score=0. Verdict must be one specific label, not a full sentence — it's used as a badge.
 
 Voice rules:
 - findings must name the actual problem with the specific bullet, word, or section ("Your first bullet under Foundation Finance starts with 'Responsible for' — that's a dead verb") — never generic advice
@@ -289,7 +329,7 @@ Voice rules:
   const reply = await openaiChat(messages, {
     model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
     temperature: 0.2,
-    maxTokens: 4000,
+    maxTokens: 5000,
     jsonMode: true,
   });
 

@@ -560,10 +560,14 @@ type ResumeStep = "upload"|"paste"|"analyzing"|"results";
 type CareerLevel = "entry"|"mid"|"senior"|"executive";
 
 type ResumeScores = { overall: number; ats: number; impact: number; clarity: number };
-type ResumeBullet = { before: string; after: string; reason: string; oldScore: number; newScore: number };
+type ResumeBullet = { before: string; after: string; reason: string; oldScore: number; newScore: number; difficulty?: "easy"|"medium"|"hard" };
 type ResumeSection = { label: string; text: string; score: number };
 type ResumeFinding = { type: "critical"|"warn"|"ok"; category?: string; text: string };
-type ResumeKeyword = { word: string; found: boolean; importance: "required"|"preferred"; context?: string };
+type ResumeKeyword = { word: string; found: boolean; importance: "required"|"preferred"; skillType?: "technical"|"soft"|"tool"|"certification"|"domain"; context?: string };
+type ResumeSectionScore = { name: string; present: boolean; score: number; verdict: string };
+type ResumeWordIssue = { word: string; count: number; type: "repetition"|"filler"|"weak_verb"|"cliche"; suggestion: string };
+type ResumeQuickWin = { title: string; action: string; effort: string; impact: "high"|"medium"; tab: "overview"|"bullets"|"rewrite"|"keywords" };
+type ResumeBulletStats = { total: number; withMetrics: number; withStrongVerbs: number; weak: number };
 type ResumeAnalysis = ResumeScores & {
   findings: ResumeFinding[];
   bullets: ResumeBullet[];
@@ -571,6 +575,11 @@ type ResumeAnalysis = ResumeScores & {
   rewrittenSections: ResumeSection[];
   keywords?: ResumeKeyword[];
   previousScores?: ResumeScores | null;
+  tailoredScore?: number;
+  bulletStats?: ResumeBulletStats;
+  sectionScores?: ResumeSectionScore[];
+  quickWins?: ResumeQuickWin[];
+  wordIssues?: ResumeWordIssue[];
 };
 type ResumeHistoryEntry = {
   id: string; filename: string; submittedAt: string;
@@ -1058,12 +1067,23 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
     </div>
   );
 
-  // Score grade helper
+  // Score grade helpers
   const scoreGrade = (s: number) =>
     s >= 85 ? { label:"Excellent", color:"#16A34A" } :
     s >= 72 ? { label:"Good",      color:"#0284C7" } :
     s >= 55 ? { label:"Fair",      color:"#D97706" } :
               { label:"Needs work",color:"#DC2626" };
+
+  const letterGrade = (s: number) =>
+    s >= 95 ? "A+" : s >= 88 ? "A" : s >= 82 ? "A−" :
+    s >= 77 ? "B+" : s >= 70 ? "B" : s >= 63 ? "B−" :
+    s >= 57 ? "C+" : s >= 50 ? "C" : s >= 40 ? "D" : "F";
+
+  const gradeColor = (s: number) =>
+    s >= 77 ? "#16A34A" : s >= 63 ? "#0284C7" : s >= 50 ? "#D97706" : "#DC2626";
+
+  const gradeBackground = (s: number) =>
+    s >= 77 ? "#F0FFF4" : s >= 63 ? "#EFF6FF" : s >= 50 ? "#FFFBEB" : "#FEF2F2";
 
   return (
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F4F6FB" }}>
@@ -1087,75 +1107,147 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
           </button>
         </div>
 
-        {/* ── Hero score card ── */}
+        {/* ══ Hero score card ══ */}
         {(() => {
-          const kws = aiResult?.keywords ?? [];
-          const buls = aiResult?.bullets ?? [];
+          const kws   = aiResult?.keywords ?? [];
+          const buls  = aiResult?.bullets ?? [];
           const finds = aiResult?.findings ?? [];
           const kwFound = kws.filter(k=>k.found).length;
           const kwTotal = kws.length;
           const overall = aiResult?.overall ?? 0;
-          const grade = scoreGrade(overall);
-          const prevOverall = aiResult?.previousScores?.overall ?? null;
+          const grade   = scoreGrade(overall);
+          const lgrade  = letterGrade(overall);
+          const lcolor  = gradeColor(overall);
+          const lbg     = gradeBackground(overall);
+          const prevOverall  = aiResult?.previousScores?.overall ?? null;
           const overallDelta = prevOverall !== null ? overall - prevOverall : null;
+          const tailored     = aiResult?.tailoredScore ?? null;
+          const bs           = aiResult?.bulletStats;
 
           const subScores = [
-            { label:"ATS Match",  key:"ats"     as const, score:aiResult?.ats??0,     color:"#16A34A",
-              note: kwTotal>0 ? `${kwFound} of ${kwTotal} keywords found` : "Keyword coverage" },
-            { label:"Impact",     key:"impact"  as const, score:aiResult?.impact??0,  color:"#0284C7",
-              note: buls.length>0 ? `${buls.length} bullet${buls.length>1?"s":""} need stronger metrics` : "Metrics & outcomes" },
-            { label:"Clarity",    key:"clarity" as const, score:aiResult?.clarity??0, color:"#7C3AED",
+            { label:"ATS Match", key:"ats" as const,    score:aiResult?.ats??0,    color:"#16A34A",
+              icon:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13}}><path d="M13 3L6 11l-3-3"/></svg>,
+              note: kwTotal>0 ? `${kwFound}/${kwTotal} keywords` : "Format & keywords" },
+            { label:"Impact",    key:"impact" as const,  score:aiResult?.impact??0, color:"#4361EE",
+              icon:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13}}><path d="M3 12l4-8 3 5 2-3 3 6"/></svg>,
+              note: bs ? `${bs.withMetrics}/${bs.total} bullets have metrics` : "Metrics & outcomes" },
+            { label:"Clarity",   key:"clarity" as const, score:aiResult?.clarity??0,color:"#7C3AED",
+              icon:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13}}><circle cx="8" cy="8" r="6"/><path d="M8 5v4M8 11v1"/></svg>,
               note: `${finds.filter(f=>f.type!=="ok").length} issue${finds.filter(f=>f.type!=="ok").length!==1?"s":""} found` },
           ];
 
           return (
-            <div style={{ background:"white", borderRadius:20, border:"1px solid #E4E8F5", padding:"24px 28px", marginBottom:20, boxShadow:"0 4px 24px rgba(67,97,238,0.07)" }}>
-              <div style={{ display:"grid", gridTemplateColumns:"180px 1fr", gap:32, alignItems:"center" }}>
-                {/* Big overall score */}
-                <div style={{ textAlign:"center" }}>
-                  <ScoreRing score={overall} color="#4361EE" size={120}/>
-                  <p style={{ fontSize:13, fontWeight:800, color:"#0A0A0F", marginTop:10, marginBottom:2 }}>Overall Score</p>
-                  <span style={{ fontSize:11, fontWeight:700, padding:"2px 10px", borderRadius:99, background: overall>=85?"#F0FFF4":overall>=72?"#EFF6FF":overall>=55?"#FFFBEB":"#FEF2F2", color:grade.color }}>{grade.label}</span>
+            <div style={{ background:"white", borderRadius:20, border:"1px solid #E4E8F5", padding:"22px 28px", marginBottom:20, boxShadow:"0 4px 32px rgba(67,97,238,0.08)" }}>
+              <div style={{ display:"grid", gridTemplateColumns: tailored!==null ? "160px 1fr 160px" : "160px 1fr", gap:28, alignItems:"center" }}>
+
+                {/* Big overall score ring */}
+                <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:6 }}>
+                  <div style={{ position:"relative" }}>
+                    <ScoreRing score={overall} color={lcolor} size={110}/>
+                    {/* Letter grade badge */}
+                    <div style={{ position:"absolute", bottom:-6, left:"50%", transform:"translateX(-50%)", background:lbg, color:lcolor, fontSize:11, fontWeight:800, padding:"2px 10px", borderRadius:99, border:`1.5px solid ${lcolor}33`, whiteSpace:"nowrap" }}>
+                      {lgrade} · {grade.label}
+                    </div>
+                  </div>
+                  <p style={{ fontSize:11.5, fontWeight:700, color:"#68738A", marginTop:10 }}>Overall Score</p>
                   {overallDelta !== null && (
-                    <p style={{ fontSize:11, color:overallDelta>0?"#16A34A":overallDelta<0?"#DC2626":"#A0AABF", fontWeight:700, marginTop:6 }}>
-                      {overallDelta>0?"+":""}{overallDelta} vs last submission {overallDelta>0?"↑":overallDelta<0?"↓":"→"}
-                    </p>
+                    <span style={{ fontSize:11, color:overallDelta>0?"#16A34A":overallDelta<0?"#DC2626":"#A0AABF", fontWeight:700, display:"flex", alignItems:"center", gap:3 }}>
+                      {overallDelta>0?"+":""}{overallDelta} vs last {overallDelta>0?"↑":overallDelta<0?"↓":"→"}
+                    </span>
                   )}
                 </div>
+
                 {/* Sub-score bars */}
-                <div style={{ display:"flex", flexDirection:"column", gap:18 }}>
+                <div style={{ display:"flex", flexDirection:"column", gap:14, paddingLeft: tailored!==null ? 4 : 12 }}>
                   {subScores.map(sc => {
                     const prev = aiResult?.previousScores?.[sc.key] ?? null;
                     const d = prev !== null ? sc.score - prev : null;
+                    const sc_lgrade  = letterGrade(sc.score);
+                    const sc_lcolor  = gradeColor(sc.score);
+                    const sc_lbg     = gradeBackground(sc.score);
                     return (
                       <div key={sc.label}>
                         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
-                          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                            <span style={{ fontSize:13.5, fontWeight:700, color:"#0A0A0F" }}>{sc.label}</span>
-                            <span style={{ fontSize:11, color:"#68738A" }}>{sc.note}</span>
+                          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                            <span style={{ color:sc.color, opacity:0.8 }}>{sc.icon}</span>
+                            <span style={{ fontSize:13, fontWeight:700, color:"#0A0A0F" }}>{sc.label}</span>
+                            <span style={{ fontSize:11, color:"#A0AABF" }}>{sc.note}</span>
                           </div>
-                          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                            <span style={{ fontSize:20, fontWeight:900, color:sc.color, lineHeight:1 }}>{sc.score}</span>
+                          <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+                            <span style={{ fontSize:10, fontWeight:700, padding:"2px 7px", borderRadius:99, background:sc_lbg, color:sc_lcolor }}>{sc_lgrade}</span>
+                            <span style={{ fontSize:19, fontWeight:900, color:sc_lcolor, lineHeight:1, fontVariantNumeric:"tabular-nums" }}>{sc.score}</span>
                             {d !== null && d !== 0 && (
-                              <span style={{ fontSize:11, fontWeight:700, color:d>0?"#16A34A":"#DC2626" }}>
+                              <span style={{ fontSize:10.5, fontWeight:700, color:d>0?"#16A34A":"#DC2626" }}>
                                 {d>0?"+":""}{d}{d>0?"↑":"↓"}
                               </span>
                             )}
                           </div>
                         </div>
-                        <div style={{ height:8, borderRadius:99, background:"#F1F5F9", overflow:"hidden" }}>
-                          <div style={{ width:`${sc.score}%`, height:"100%", borderRadius:99, background:`linear-gradient(90deg,${sc.color}99,${sc.color})`, transition:"width 0.8s cubic-bezier(0.4,0,0.2,1)" }}/>
+                        <div style={{ height:7, borderRadius:99, background:"#F1F5F9", overflow:"hidden", position:"relative" }}>
+                          <div style={{ position:"absolute", inset:0, background:"linear-gradient(90deg, transparent, rgba(255,255,255,0.4))", zIndex:1, borderRadius:99, pointerEvents:"none" }}/>
+                          <div style={{ width:`${sc.score}%`, height:"100%", borderRadius:99, background:`linear-gradient(90deg,${sc.color}BB,${sc.color})`, transition:"width 1s cubic-bezier(0.4,0,0.2,1)" }}/>
                         </div>
                       </div>
                     );
                   })}
                 </div>
+
+                {/* Tailored job-match panel (targeted mode only) */}
+                {tailored !== null && (
+                  <div style={{ borderLeft:"1px solid #F1F5F9", paddingLeft:28, display:"flex", flexDirection:"column", alignItems:"center", gap:6 }}>
+                    <ScoreRing score={tailored} color={gradeColor(tailored)} size={88}/>
+                    <p style={{ fontSize:11, fontWeight:700, color:"#0A0A0F", marginTop:8, textAlign:"center" }}>Job Match</p>
+                    <span style={{ fontSize:10, color:"#68738A", textAlign:"center", lineHeight:1.4 }}>How well your resume targets this role</span>
+                    <span style={{ fontSize:10, fontWeight:700, padding:"2px 9px", borderRadius:99, background:gradeBackground(tailored), color:gradeColor(tailored) }}>
+                      {tailored>=75?"Strong fit":tailored>=55?"Partial fit":tailored>=35?"Weak fit":"Mismatch"}
+                    </span>
+                  </div>
+                )}
+
               </div>
             </div>
           );
         })()}
 
-        {/* ── Tab navigation ── */}
+        {/* ══ Quick Wins strip ══ */}
+        {(aiResult?.quickWins?.length ?? 0) > 0 && (() => {
+          const PRIORITY_STYLE = {
+            high:   { dot:"#F59E0B", bg:"#FFFBEB", border:"#FDE68A", label:"High impact" },
+            medium: { dot:"#4361EE", bg:"#EEF2FF", border:"#C7D2FE", label:"Quick fix"   },
+          };
+          const EFFORT_COLOR: Record<string,string> = { "5 min":"#16A34A", "15 min":"#D97706", "30 min":"#DC2626" };
+          return (
+            <div style={{ marginBottom:20 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
+                <svg viewBox="0 0 16 16" fill="none" style={{ width:14,height:14 }}><path d="M8 1l1.5 4.5H14l-3.7 2.7 1.4 4.3L8 9.9l-3.7 2.6L5.7 8.2 2 5.5h4.5z" fill="#F59E0B" stroke="#F59E0B" strokeWidth="0.5"/></svg>
+                <p style={{ fontSize:12, fontWeight:800, color:"#0A0A0F", letterSpacing:"-0.01em" }}>Quick Wins — top changes by impact</p>
+              </div>
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10 }}>
+                {(aiResult!.quickWins ?? []).slice(0,3).map((w, i) => {
+                  const ps = PRIORITY_STYLE[w.impact] ?? PRIORITY_STYLE.medium;
+                  const ec = EFFORT_COLOR[w.effort] ?? "#68738A";
+                  return (
+                    <div key={i} onClick={()=>setTab(w.tab)} style={{ background:"white", borderRadius:14, border:`1px solid ${ps.border}`, padding:"14px 16px", cursor:"pointer", transition:"all 0.12s", boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+                          <div style={{ width:22, height:22, borderRadius:7, background:ps.bg, border:`1px solid ${ps.border}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                            <span style={{ fontSize:10, fontWeight:900, color:ps.dot }}>{i+1}</span>
+                          </div>
+                          <span style={{ fontSize:12.5, fontWeight:700, color:"#0A0A0F", lineHeight:1.2 }}>{w.title}</span>
+                        </div>
+                        <span style={{ fontSize:10, fontWeight:700, color:ec, background:`${ec}15`, padding:"1px 6px", borderRadius:99, flexShrink:0, marginLeft:4 }}>{w.effort}</span>
+                      </div>
+                      <p style={{ fontSize:11.5, color:"#68738A", lineHeight:1.55, margin:"0 0 10px" }}>{w.action}</p>
+                      <span style={{ fontSize:10.5, fontWeight:600, color:"#4361EE" }}>Go to {w.tab} tab →</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* ══ Tab navigation ══ */}
         <div style={{ display:"flex", gap:0, borderBottom:"2px solid #E4E8F5", marginBottom:20 }}>
           {([
             ["overview","Overview", aiResult ? `${aiResult.findings.filter(f=>f.type!=="ok").length} issues` : ""],
@@ -1207,24 +1299,36 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
 
           {/* ── Right: analysis panel ── */}
           <div style={{ display:"flex", flexDirection:"column", gap:14, maxHeight:"calc(100vh - 270px)", overflowY:"auto" }}>
-            {/* ── OVERVIEW TAB ── */}
+            {/* ══ OVERVIEW TAB ══ */}
             {tab==="overview" && (() => {
-              const CATEGORY_META: Record<string,{label:string;icon:string;color:string;bg:string;border:string}> = {
-                weak_verbs:        { label:"Weak Verbs",       icon:"✍️",  color:"#92400E", bg:"#FFF7ED", border:"#FDE68A" },
-                quantify_impact:   { label:"Missing Metrics",  icon:"📊",  color:"#1D4ED8", bg:"#EFF6FF", border:"#BFDBFE" },
-                summary:           { label:"Summary",          icon:"📝",  color:"#6D28D9", bg:"#F5F3FF", border:"#DDD6FE" },
-                ats_keywords:      { label:"ATS Keywords",     icon:"🎯",  color:"#065F46", bg:"#ECFDF5", border:"#6EE7B7" },
-                repetition:        { label:"Repetition",       icon:"🔁",  color:"#B45309", bg:"#FFFBEB", border:"#FCD34D" },
-                readability:       { label:"Readability",      icon:"👁️",  color:"#0369A1", bg:"#EFF6FF", border:"#BAE6FD" },
-                dates:             { label:"Dates",            icon:"📅",  color:"#475569", bg:"#F8FAFC", border:"#CBD5E1" },
-                unnecessary_words: { label:"Filler Words",     icon:"✂️",  color:"#B91C1C", bg:"#FEF2F2", border:"#FECACA" },
-                contact:           { label:"Contact Info",     icon:"📬",  color:"#7E22CE", bg:"#FDF4FF", border:"#E9D5FF" },
-                format:            { label:"Formatting",       icon:"🗂️",  color:"#374151", bg:"#F9FAFB", border:"#E5E7EB" },
+              const CATEGORY_META: Record<string,{label:string;color:string;bg:string;border:string}> = {
+                weak_verbs:        { label:"Weak Verbs",      color:"#92400E", bg:"#FFF7ED", border:"#FDE68A" },
+                quantify_impact:   { label:"Missing Metrics", color:"#1D4ED8", bg:"#EFF6FF", border:"#BFDBFE" },
+                summary:           { label:"Summary",         color:"#6D28D9", bg:"#F5F3FF", border:"#DDD6FE" },
+                ats_keywords:      { label:"ATS Keywords",    color:"#065F46", bg:"#ECFDF5", border:"#6EE7B7" },
+                repetition:        { label:"Repetition",      color:"#B45309", bg:"#FFFBEB", border:"#FCD34D" },
+                readability:       { label:"Readability",     color:"#0369A1", bg:"#EFF6FF", border:"#BAE6FD" },
+                dates:             { label:"Dates",           color:"#475569", bg:"#F8FAFC", border:"#CBD5E1" },
+                unnecessary_words: { label:"Filler Words",    color:"#B91C1C", bg:"#FEF2F2", border:"#FECACA" },
+                contact:           { label:"Contact Info",    color:"#7E22CE", bg:"#FDF4FF", border:"#E9D5FF" },
+                format:            { label:"Formatting",      color:"#374151", bg:"#F9FAFB", border:"#E5E7EB" },
               };
               const TAB_FOR: Record<string,"overview"|"bullets"|"rewrite"|"keywords"|"history"> = {
                 weak_verbs:"bullets", quantify_impact:"bullets", ats_keywords:"keywords",
                 summary:"rewrite", repetition:"bullets", readability:"bullets",
                 dates:"overview", unnecessary_words:"bullets", contact:"overview", format:"overview",
+              };
+              const VERDICT_STYLE: Record<string,{color:string;bg:string;border:string}> = {
+                Strong:          { color:"#14532D", bg:"#F0FFF4",  border:"#BBF7D0" },
+                Good:            { color:"#1D4ED8", bg:"#EFF6FF",  border:"#BFDBFE" },
+                "Needs work":    { color:"#92400E", bg:"#FFF7ED",  border:"#FDE68A" },
+                "Weak verbs":    { color:"#B45309", bg:"#FFFBEB",  border:"#FCD34D" },
+                "No metrics":    { color:"#1D4ED8", bg:"#EFF6FF",  border:"#BFDBFE" },
+                Missing:         { color:"#991B1B", bg:"#FEF2F2",  border:"#FECACA" },
+                Incomplete:      { color:"#7E22CE", bg:"#FDF4FF",  border:"#E9D5FF" },
+                Generic:         { color:"#475569", bg:"#F8FAFC",  border:"#CBD5E1" },
+                "Too long":      { color:"#B45309", bg:"#FFFBEB",  border:"#FCD34D" },
+                Outdated:        { color:"#374151", bg:"#F9FAFB",  border:"#E5E7EB" },
               };
               const issuesByCategory: Record<string,number> = {};
               (aiResult?.findings ?? []).filter(f=>f.type!=="ok").forEach(f=>{
@@ -1235,28 +1339,120 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
               const critical = (aiResult?.findings ?? []).filter(f=>f.type==="critical");
               const warns    = (aiResult?.findings ?? []).filter(f=>f.type==="warn");
               const oks      = (aiResult?.findings ?? []).filter(f=>f.type==="ok");
+              const bs       = aiResult?.bulletStats;
+              const ss       = aiResult?.sectionScores ?? [];
+              const wi       = aiResult?.wordIssues ?? [];
 
               return (
                 <>
-                  {/* Issue category bars */}
+                  {/* ── Section scores table ── */}
+                  {ss.length > 0 && (
+                    <div style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", padding:"16px 18px", boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
+                      <p style={{ fontSize:12, fontWeight:800, color:"#0A0A0F", marginBottom:12, textTransform:"uppercase", letterSpacing:"0.06em" }}>Section-by-section</p>
+                      <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
+                        {ss.map((s, si) => {
+                          const vs = VERDICT_STYLE[s.verdict] ?? { color:"#68738A", bg:"#F1F5F9", border:"#E4E8F5" };
+                          return (
+                            <div key={si} style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 10px", borderRadius:10, background:"#FAFBFF" }}>
+                              <div style={{ width:28, height:28, borderRadius:8, background: s.present?(s.score>=75?"#F0FFF4":s.score>=55?"#EFF6FF":"#FEF2F2"):"#F1F5F9", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                                <span style={{ fontSize:13, fontWeight:900, color: s.present?(s.score>=75?"#16A34A":s.score>=55?"#4361EE":"#DC2626"):"#A0AABF" }}>{s.present?s.score:"—"}</span>
+                              </div>
+                              <span style={{ flex:1, fontSize:12.5, fontWeight:600, color:"#1E2235" }}>{s.name}</span>
+                              <span style={{ fontSize:10.5, fontWeight:700, padding:"2px 9px", borderRadius:99, background:vs.bg, color:vs.color, border:`1px solid ${vs.border}` }}>{s.present?s.verdict:"Missing"}</span>
+                              <div style={{ width:80 }}>
+                                <div style={{ height:4, borderRadius:99, background:"#F1F5F9", overflow:"hidden" }}>
+                                  <div style={{ width:`${s.present?s.score:0}%`, height:"100%", borderRadius:99, background: s.score>=75?"#16A34A":s.score>=55?"#4361EE":"#DC2626", transition:"width 0.7s ease" }}/>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ── Bullet metrics stats ── */}
+                  {bs && (
+                    <div style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", padding:"16px 18px", boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
+                      <p style={{ fontSize:12, fontWeight:800, color:"#0A0A0F", marginBottom:12, textTransform:"uppercase", letterSpacing:"0.06em" }}>Bullet quality snapshot</p>
+                      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:8 }}>
+                        {[
+                          { val:bs.total,           label:"Total bullets",   color:"#68738A", bg:"#F8FAFC" },
+                          { val:bs.withMetrics,      label:"Have metrics",   color:`${bs.withMetrics/Math.max(bs.total,1)>=0.6?"#16A34A":"#DC2626"}`, bg:`${bs.withMetrics/Math.max(bs.total,1)>=0.6?"#F0FFF4":"#FEF2F2"}` },
+                          { val:bs.withStrongVerbs,  label:"Strong verbs",   color:`${bs.withStrongVerbs/Math.max(bs.total,1)>=0.7?"#4361EE":"#D97706"}`, bg:`${bs.withStrongVerbs/Math.max(bs.total,1)>=0.7?"#EEF2FF":"#FFFBEB"}` },
+                          { val:bs.weak,             label:"Need work",      color:bs.weak===0?"#16A34A":"#DC2626", bg:bs.weak===0?"#F0FFF4":"#FEF2F2" },
+                        ].map((st,i) => (
+                          <div key={i} style={{ background:st.bg, borderRadius:10, padding:"10px 8px", textAlign:"center" }}>
+                            <p style={{ fontSize:22, fontWeight:900, color:st.color, lineHeight:1, marginBottom:4 }}>{st.val}</p>
+                            <p style={{ fontSize:10, color:"#68738A", lineHeight:1.3 }}>{st.label}</p>
+                          </div>
+                        ))}
+                      </div>
+                      {bs.total > 0 && (
+                        <div style={{ marginTop:12 }}>
+                          <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
+                            <span style={{ fontSize:11, color:"#68738A" }}>Quantification rate</span>
+                            <span style={{ fontSize:11, fontWeight:700, color:bs.withMetrics/bs.total>=0.6?"#16A34A":"#DC2626" }}>{Math.round((bs.withMetrics/bs.total)*100)}% <span style={{ color:"#A0AABF", fontWeight:400 }}>(target: 60%+)</span></span>
+                          </div>
+                          <div style={{ height:6, borderRadius:99, background:"#F1F5F9", overflow:"hidden" }}>
+                            <div style={{ width:`${Math.round((bs.withMetrics/bs.total)*100)}%`, height:"100%", borderRadius:99, background:bs.withMetrics/bs.total>=0.6?"#16A34A":"#DC2626", transition:"width 0.7s ease" }}/>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* ── Word issues ── */}
+                  {wi.length > 0 && (
+                    <div style={{ background:"white", borderRadius:16, border:"1px solid #FDE68A", padding:"16px 18px", boxShadow:"0 2px 12px rgba(245,158,11,0.06)" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
+                        <svg viewBox="0 0 16 16" fill="none" stroke="#D97706" strokeWidth="1.8" style={{ width:14,height:14,flexShrink:0 }}><path d="M2 4h12M2 8h8M2 12h6"/></svg>
+                        <p style={{ fontSize:12, fontWeight:800, color:"#92400E", textTransform:"uppercase", letterSpacing:"0.06em" }}>Word problems</p>
+                      </div>
+                      <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                        {wi.map((w,i) => {
+                          const TYPE_COLOR: Record<string,{bg:string;color:string;border:string}> = {
+                            repetition: { bg:"#FFF7ED",  color:"#92400E", border:"#FDE68A" },
+                            filler:     { bg:"#FEF2F2",  color:"#991B1B", border:"#FECACA" },
+                            weak_verb:  { bg:"#FFFBEB",  color:"#B45309", border:"#FCD34D" },
+                            cliche:     { bg:"#F5F3FF",  color:"#6D28D9", border:"#DDD6FE" },
+                          };
+                          const tc = TYPE_COLOR[w.type] ?? { bg:"#F1F5F9", color:"#68738A", border:"#E4E8F5" };
+                          return (
+                            <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:10, padding:"9px 12px", background:tc.bg, borderRadius:10, border:`1px solid ${tc.border}` }}>
+                              <div style={{ flexShrink:0, display:"flex", flexDirection:"column", alignItems:"center", gap:2 }}>
+                                <span style={{ fontSize:12, fontWeight:800, color:tc.color }}>&quot;{w.word}&quot;</span>
+                                <span style={{ fontSize:9.5, fontWeight:700, color:tc.color, opacity:0.7 }}>×{w.count}</span>
+                              </div>
+                              <div style={{ flex:1, minWidth:0 }}>
+                                <span style={{ fontSize:10, fontWeight:700, color:tc.color, background:`${tc.color}18`, padding:"1px 6px", borderRadius:99, textTransform:"capitalize" }}>{w.type.replace("_"," ")}</span>
+                                <p style={{ fontSize:11, color:"#68738A", lineHeight:1.5, margin:"4px 0 0" }}>{w.suggestion}</p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ── Issue category bars ── */}
                   {cats.length > 0 && (
                     <div style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", padding:"16px 18px", boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
-                      <p style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", marginBottom:12 }}>Issues by category</p>
+                      <p style={{ fontSize:12, fontWeight:800, color:"#0A0A0F", marginBottom:12, textTransform:"uppercase", letterSpacing:"0.06em" }}>Issues by category</p>
                       <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                         {cats.map(([cat, count]) => {
-                          const meta = CATEGORY_META[cat] ?? { label:cat, icon:"⚠️", color:"#68738A", bg:"#F1F5F9", border:"#E4E8F5" };
+                          const meta = CATEGORY_META[cat] ?? { label:cat, color:"#68738A", bg:"#F1F5F9", border:"#E4E8F5" };
                           const jumpTab = TAB_FOR[cat] ?? null;
                           const maxCount = cats[0][1];
                           return (
                             <div key={cat} style={{ display:"flex", alignItems:"center", gap:10 }}>
-                              <div style={{ width:24, textAlign:"center", fontSize:13, flexShrink:0 }}>{meta.icon}</div>
                               <div style={{ flex:1 }}>
                                 <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
                                   <span style={{ fontSize:11.5, fontWeight:600, color:"#1E2235" }}>{meta.label}</span>
                                   <span style={{ fontSize:11, fontWeight:700, color:meta.color }}>{count} issue{count>1?"s":""}</span>
                                 </div>
                                 <div style={{ height:5, borderRadius:99, background:"#F1F5F9", overflow:"hidden" }}>
-                                  <div style={{ width:`${(count/maxCount)*100}%`, height:"100%", borderRadius:99, background:meta.color, opacity:0.7 }}/>
+                                  <div style={{ width:`${(count/maxCount)*100}%`, height:"100%", borderRadius:99, background:meta.color, opacity:0.75 }}/>
                                 </div>
                               </div>
                               {jumpTab && jumpTab!=="overview" && (
@@ -1269,166 +1465,205 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
                     </div>
                   )}
 
-                  {/* Critical issues */}
+                  {/* ── Critical issues ── */}
                   {critical.length > 0 && (
                     <div style={{ background:"white", borderRadius:16, border:"1px solid #FECACA", padding:"16px 18px", boxShadow:"0 2px 12px rgba(220,38,38,0.06)" }}>
                       <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
-                        <div style={{ width:8, height:8, borderRadius:"50%", background:"#DC2626", flexShrink:0 }}/>
+                        <svg viewBox="0 0 16 16" fill="#DC2626" style={{ width:14,height:14,flexShrink:0 }}><circle cx="8" cy="8" r="7"/><rect x="7" y="4" width="2" height="5" fill="white"/><rect x="7" y="10" width="2" height="2" fill="white"/></svg>
                         <p style={{ fontSize:12, fontWeight:800, color:"#991B1B", textTransform:"uppercase", letterSpacing:"0.06em" }}>Critical — fix these first</p>
                       </div>
-                      <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                      <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                         {critical.map((f,i) => (
                           <div key={i} style={{ display:"flex", gap:10, padding:"10px 12px", background:"#FEF2F2", borderRadius:10, border:"1px solid #FECACA" }}>
-                            <svg viewBox="0 0 16 16" fill="#DC2626" style={{ width:14, height:14, flexShrink:0, marginTop:1 }}><circle cx="8" cy="8" r="7"/><rect x="7" y="4" width="2" height="5" fill="white"/><rect x="7" y="10" width="2" height="2" fill="white"/></svg>
-                            <p style={{ fontSize:12, color:"#7F1D1D", lineHeight:1.55, margin:0, flex:1 }}>{f.text}</p>
+                            <div style={{ width:4, borderRadius:99, background:"#DC2626", flexShrink:0, minHeight:16 }}/>
+                            <p style={{ fontSize:12, color:"#7F1D1D", lineHeight:1.6, margin:0, flex:1 }}>{f.text}</p>
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
 
-                  {/* Warnings */}
+                  {/* ── Improvements ── */}
                   {warns.length > 0 && (
                     <div style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", padding:"16px 18px", boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
                       <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
-                        <div style={{ width:8, height:8, borderRadius:"50%", background:"#F59E0B", flexShrink:0 }}/>
+                        <svg viewBox="0 0 16 16" fill="#F59E0B" style={{ width:14,height:14,flexShrink:0 }}><path d="M8 1L1 14h14L8 1z"/><rect x="7" y="6" width="2" height="4" fill="white"/><rect x="7" y="11" width="2" height="2" fill="white"/></svg>
                         <p style={{ fontSize:12, fontWeight:800, color:"#92400E", textTransform:"uppercase", letterSpacing:"0.06em" }}>Improvements</p>
                       </div>
-                      <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                      <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
                         {warns.map((f,i) => (
                           <div key={i} style={{ display:"flex", gap:10, padding:"9px 12px", background:"#FFFBEB", borderRadius:10, border:"1px solid #FDE68A" }}>
-                            <svg viewBox="0 0 16 16" fill="#F59E0B" style={{ width:14, height:14, flexShrink:0, marginTop:1 }}><path d="M8 1L1 14h14L8 1z"/><rect x="7" y="6" width="2" height="4" fill="white"/><rect x="7" y="11" width="2" height="2" fill="white"/></svg>
-                            <p style={{ fontSize:12, color:"#78350F", lineHeight:1.55, margin:0 }}>{f.text}</p>
+                            <div style={{ width:4, borderRadius:99, background:"#F59E0B", flexShrink:0, minHeight:16 }}/>
+                            <p style={{ fontSize:12, color:"#78350F", lineHeight:1.6, margin:0 }}>{f.text}</p>
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
 
-                  {/* What's working */}
+                  {/* ── What's working ── */}
                   {oks.length > 0 && (
                     <div style={{ background:"white", borderRadius:16, border:"1px solid #BBF7D0", padding:"14px 18px", boxShadow:"0 2px 12px rgba(22,163,74,0.06)" }}>
                       <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
-                        <div style={{ width:8, height:8, borderRadius:"50%", background:"#16A34A", flexShrink:0 }}/>
+                        <svg viewBox="0 0 16 16" fill="none" stroke="#16A34A" strokeWidth="2" style={{ width:13,height:13,flexShrink:0 }}><path d="M3 8l4 4 6-6"/></svg>
                         <p style={{ fontSize:12, fontWeight:800, color:"#14532D", textTransform:"uppercase", letterSpacing:"0.06em" }}>What&apos;s working</p>
                       </div>
-                      {oks.map((f,i) => (
-                        <div key={i} style={{ display:"flex", gap:8, padding:"6px 0", borderBottom: i<oks.length-1?"1px solid #F0FFF4":"none" }}>
-                          <span style={{ color:"#16A34A", fontSize:12, flexShrink:0 }}>✓</span>
-                          <p style={{ fontSize:12, color:"#14532D", lineHeight:1.5, margin:0 }}>{f.text}</p>
-                        </div>
-                      ))}
+                      <div style={{ display:"flex", flexDirection:"column", gap:2 }}>
+                        {oks.map((f,i) => (
+                          <div key={i} style={{ display:"flex", gap:8, padding:"6px 8px", borderRadius:8, background: i%2===0?"#F0FFF4":"transparent" }}>
+                            <span style={{ color:"#16A34A", fontSize:11, flexShrink:0, marginTop:1 }}>✓</span>
+                            <p style={{ fontSize:12, color:"#14532D", lineHeight:1.5, margin:0 }}>{f.text}</p>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
 
-                  {/* Zari's recommendation */}
+                  {/* ── Zari's recommendation ── */}
                   {aiResult?.recommendation && (
-                    <div style={{ background:"linear-gradient(135deg,#EEF2FF,#F0F7FF)", borderRadius:16, border:"1px solid #C7D2FE", padding:"16px 18px" }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
-                        <div style={{ width:28, height:28, borderRadius:8, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                    <div style={{ background:"linear-gradient(135deg,#EEF2FF 0%,#F4F0FF 100%)", borderRadius:16, border:"1px solid #C7D2FE", padding:"16px 18px" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
+                        <div style={{ width:32, height:32, borderRadius:10, background:"linear-gradient(135deg,#4361EE,#7C3AED)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:"0 4px 12px rgba(67,97,238,0.3)" }}>
                           <svg viewBox="0 0 16 16" fill="none" stroke="white" strokeWidth="1.8" style={{ width:14,height:14 }}><path d="M8 2a3 3 0 00-3 3v3a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M4 8v1a4 4 0 008 0V8"/></svg>
                         </div>
-                        <p style={{ fontSize:12, fontWeight:700, color:"#3730A3" }}>Zari&apos;s top recommendation</p>
+                        <div>
+                          <p style={{ fontSize:11, fontWeight:800, color:"#4361EE", textTransform:"uppercase", letterSpacing:"0.06em" }}>Zari&apos;s top recommendation</p>
+                        </div>
                       </div>
-                      <p style={{ fontSize:13, color:"#1E1B4B", lineHeight:1.65 }}>{aiResult.recommendation}</p>
+                      <p style={{ fontSize:13, color:"#1E1B4B", lineHeight:1.7 }}>{aiResult.recommendation}</p>
                     </div>
                   )}
                 </>
               );
             })()}
 
-            {/* ── LINE BY LINE TAB ── */}
-            {tab==="bullets" && (
-              <div style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", padding:"16px 18px", boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
-                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
-                  <div>
-                    <p style={{ fontSize:13.5, fontWeight:800, color:"#0A0A0F" }}>Line-by-Line Audit</p>
-                    <p style={{ fontSize:11.5, color:"#68738A", marginTop:2 }}>{aiResult?.bullets?.length ?? 0} bullet{(aiResult?.bullets?.length??0)!==1?"s":""} need stronger impact</p>
-                  </div>
-                </div>
-                {!aiResult?.bullets?.length && (
-                  <div style={{ textAlign:"center", padding:"32px 0" }}>
-                    <div style={{ fontSize:32, marginBottom:8 }}>✅</div>
-                    <p style={{ fontSize:13, color:"#16A34A", fontWeight:700 }}>All bullets are solid</p>
-                    <p style={{ fontSize:12, color:"#68738A", marginTop:4 }}>No weak bullets found — your impact language is strong.</p>
-                  </div>
-                )}
-                {(aiResult?.bullets ?? []).map((b, i) => {
-                  const mw = magicWrite[i];
-                  const improve = b.newScore - b.oldScore;
-                  return (
-                  <div key={i} style={{ marginBottom:20, paddingBottom:20, borderBottom: i < (aiResult?.bullets.length ?? 1)-1 ? "1px solid #F1F5F9" : "none" }}>
-                    {/* Bullet header */}
-                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
-                      <span style={{ fontSize:10.5, fontWeight:700, color:"#68738A", textTransform:"uppercase", letterSpacing:"0.08em" }}>Bullet {i+1}</span>
-                      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                        <span style={{ fontSize:11, color:"#68738A" }}>Score</span>
-                        <span style={{ fontSize:13, fontWeight:900, color:"#DC2626" }}>{b.oldScore}</span>
-                        <svg viewBox="0 0 20 8" fill="none" style={{ width:20,height:8 }}><path d="M0 4h16" stroke="#CBD5E1" strokeWidth="1.5"/><path d="M13 1l4 3-4 3" stroke="#CBD5E1" strokeWidth="1.5"/></svg>
-                        <span style={{ fontSize:13, fontWeight:900, color:"#16A34A" }}>{b.newScore}</span>
-                        {improve > 0 && <span style={{ fontSize:10, fontWeight:700, color:"#16A34A", background:"#F0FFF4", padding:"1px 6px", borderRadius:99 }}>+{improve}</span>}
+            {/* ══ BULLETS TAB ══ */}
+            {tab==="bullets" && (() => {
+              const bs = aiResult?.bulletStats;
+              const DIFF_STYLE: Record<string,{label:string;color:string;bg:string;border:string}> = {
+                easy:   { label:"Easy fix",   color:"#14532D", bg:"#F0FFF4", border:"#BBF7D0" },
+                medium: { label:"Medium",     color:"#92400E", bg:"#FFFBEB", border:"#FDE68A" },
+                hard:   { label:"Needs info", color:"#991B1B", bg:"#FEF2F2", border:"#FECACA" },
+              };
+              return (
+                <>
+                  {/* Stats header */}
+                  {bs && (
+                    <div style={{ background:"white", borderRadius:14, border:"1px solid #E4E8F5", padding:"14px 18px", boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
+                      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
+                        <p style={{ fontSize:13, fontWeight:800, color:"#0A0A0F" }}>Line-by-Line Audit</p>
+                        <span style={{ fontSize:11, color:"#68738A" }}>{aiResult?.bullets?.length ?? 0} bullet{(aiResult?.bullets?.length??0)!==1?"s":""} need work</span>
                       </div>
-                    </div>
-                    {/* Why box */}
-                    <div style={{ display:"flex", gap:8, padding:"8px 12px", background:"#FFFBEB", borderRadius:9, border:"1px solid #FDE68A", marginBottom:8 }}>
-                      <svg viewBox="0 0 16 16" fill="#F59E0B" style={{ width:13, height:13, flexShrink:0, marginTop:1 }}><path d="M8 1L1 14h14L8 1z"/><rect x="7" y="6" width="2" height="4" fill="white"/><rect x="7" y="11" width="2" height="2" fill="white"/></svg>
-                      <p style={{ fontSize:11.5, color:"#92400E", lineHeight:1.5, margin:0 }}>{b.reason}</p>
-                    </div>
-                    {/* Before */}
-                    <div style={{ position:"relative", marginBottom:6 }}>
-                      <p style={{ fontSize:11.5, color:"#991B1B", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:9, padding:"9px 12px", textDecoration:"line-through", lineHeight:1.6, margin:0 }}>{b.before}</p>
-                      <span style={{ position:"absolute", top:-8, left:10, fontSize:9, fontWeight:700, background:"#FECACA", color:"#991B1B", padding:"1px 6px", borderRadius:99 }}>BEFORE</span>
-                    </div>
-                    {/* After */}
-                    <div style={{ position:"relative", marginBottom:8 }}>
-                      <div style={{ display:"flex", gap:6, alignItems:"flex-start" }}>
-                        <p style={{ flex:1, fontSize:11.5, color:"#14532D", background:"#F0FFF4", border:"1px solid #BBF7D0", borderRadius:9, padding:"9px 12px", lineHeight:1.6, margin:0 }}>{b.after}</p>
-                        <button onClick={()=>{ void navigator.clipboard.writeText(b.after); }} style={{ padding:"7px 10px", borderRadius:8, border:"1px solid #BBF7D0", background:"white", color:"#16A34A", cursor:"pointer", flexShrink:0, fontSize:11, fontWeight:700 }}>Copy</button>
-                      </div>
-                      <span style={{ position:"absolute", top:-8, left:10, fontSize:9, fontWeight:700, background:"#BBF7D0", color:"#14532D", padding:"1px 6px", borderRadius:99 }}>AFTER</span>
-                    </div>
-                    {/* Magic Write */}
-                    {!mw ? (
-                      <button onClick={()=>openMagicWrite(i)} style={{ fontSize:11.5, fontWeight:700, padding:"6px 14px", borderRadius:9, border:"1px solid #C7D2FE", background:"#EEF2FF", color:"#4361EE", cursor:"pointer", display:"inline-flex", alignItems:"center", gap:5 }}>
-                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:12, height:12 }}><path d="M13 2l1 4-8.5 8.5L2 16l1.5-3.5L12 4l1-2z"/><path d="M10 4l2 2"/></svg>
-                        Magic Write
-                      </button>
-                    ) : (
-                      <div style={{ border:"1px solid #C7D2FE", borderRadius:12, overflow:"hidden", marginTop:4 }}>
-                        <div style={{ display:"flex", background:"#F8FAFF", borderBottom:"1px solid #E4E8F5", padding:"8px 12px", gap:4, alignItems:"center", justifyContent:"space-between" }}>
-                          <div style={{ display:"flex", gap:4 }}>
-                            {([["refine","Improve suggestion"],["describe","Describe what I did"],["variations","3 takes"]] as [MagicWriteMode,string][]).map(([m,l]) => (
-                              <button key={m} onClick={()=>setMagicWrite(p=>({...p,[i]:{...p[i],mode:m,results:[],input:""}}))} style={{ fontSize:10.5, fontWeight:600, padding:"4px 10px", borderRadius:7, border:"none", background:mw.mode===m?"#4361EE":"#F1F5F9", color:mw.mode===m?"white":"#68738A", cursor:"pointer" }}>{l}</button>
-                            ))}
+                      <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:6 }}>
+                        {[
+                          { val:`${bs.withMetrics}/${bs.total}`, label:"Have metrics", ok:bs.withMetrics/Math.max(bs.total,1)>=0.6 },
+                          { val:`${bs.withStrongVerbs}/${bs.total}`, label:"Strong verbs", ok:bs.withStrongVerbs/Math.max(bs.total,1)>=0.7 },
+                          { val:bs.weak, label:"Need fixing", ok:bs.weak===0 },
+                        ].map((s,i) => (
+                          <div key={i} style={{ textAlign:"center", padding:"8px 6px", borderRadius:10, background:s.ok?"#F0FFF4":"#FEF2F2" }}>
+                            <p style={{ fontSize:17, fontWeight:900, color:s.ok?"#16A34A":"#DC2626", lineHeight:1, marginBottom:3 }}>{s.val}</p>
+                            <p style={{ fontSize:10, color:"#68738A" }}>{s.label}</p>
                           </div>
-                          <button onClick={()=>closeMagicWrite(i)} style={{ fontSize:13, background:"none", border:"none", color:"#A0AABF", cursor:"pointer" }}>✕</button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Empty state */}
+                  {!aiResult?.bullets?.length && (
+                    <div style={{ background:"white", borderRadius:14, border:"1px solid #BBF7D0", padding:"36px 20px", textAlign:"center", boxShadow:"0 2px 8px rgba(22,163,74,0.06)" }}>
+                      <div style={{ width:48, height:48, borderRadius:16, background:"#F0FFF4", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 12px" }}>
+                        <svg viewBox="0 0 20 20" fill="none" stroke="#16A34A" strokeWidth="2" style={{ width:22,height:22 }}><path d="M5 10l4 4 6-6"/></svg>
+                      </div>
+                      <p style={{ fontSize:14, color:"#14532D", fontWeight:700 }}>All bullets are solid</p>
+                      <p style={{ fontSize:12, color:"#68738A", marginTop:4 }}>No weak bullets found — your impact language is strong.</p>
+                    </div>
+                  )}
+
+                  {/* Bullet cards */}
+                  {(aiResult?.bullets ?? []).map((b, i) => {
+                    const mw = magicWrite[i];
+                    const improve = b.newScore - b.oldScore;
+                    const ds = DIFF_STYLE[b.difficulty ?? "medium"];
+                    return (
+                      <div key={i} style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", overflow:"hidden", boxShadow:"0 2px 10px rgba(0,0,0,0.04)" }}>
+                        {/* Card header */}
+                        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px", background:"#FAFBFF", borderBottom:"1px solid #F1F5F9" }}>
+                          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                            <span style={{ fontSize:11, fontWeight:700, color:"#A0AABF", textTransform:"uppercase", letterSpacing:"0.08em" }}>Bullet {i+1}</span>
+                            <span style={{ fontSize:10, fontWeight:700, padding:"2px 8px", borderRadius:99, background:ds.bg, color:ds.color, border:`1px solid ${ds.border}` }}>{ds.label}</span>
+                          </div>
+                          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                            <span style={{ fontSize:12, fontWeight:800, color:"#DC2626", padding:"2px 7px", borderRadius:6, background:"#FEF2F2" }}>{b.oldScore}</span>
+                            <svg viewBox="0 0 24 8" fill="none" style={{ width:22,height:8 }}><path d="M0 4h19" stroke="#CBD5E1" strokeWidth="1.5"/><path d="M16 1l4 3-4 3" stroke="#CBD5E1" strokeWidth="1.5"/></svg>
+                            <span style={{ fontSize:12, fontWeight:800, color:"#16A34A", padding:"2px 7px", borderRadius:6, background:"#F0FFF4" }}>{b.newScore}</span>
+                            {improve > 0 && <span style={{ fontSize:10, fontWeight:800, color:"#16A34A", background:"#DCFCE7", padding:"1px 7px", borderRadius:99 }}>+{improve} pts</span>}
+                          </div>
                         </div>
-                        <div style={{ padding:12 }}>
-                          {mw.mode==="describe" ? (
-                            <textarea value={mw.input} onChange={e=>setMagicWrite(p=>({...p,[i]:{...p[i],input:e.target.value}}))} placeholder="Describe what you actually did — metrics, scale, and outcome…" style={{ width:"100%", minHeight:60, border:"1.5px solid #E4E8F5", borderRadius:8, padding:"8px 10px", fontSize:11.5, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"white" }}/>
+                        <div style={{ padding:"14px 16px" }}>
+                          {/* Why */}
+                          <div style={{ display:"flex", gap:8, padding:"8px 11px", background:"#FFFBEB", borderRadius:9, border:"1px solid #FDE68A", marginBottom:10 }}>
+                            <svg viewBox="0 0 16 16" fill="#F59E0B" style={{ width:12, height:12, flexShrink:0, marginTop:2 }}><path d="M8 1L1 14h14L8 1z"/><rect x="7" y="6" width="2" height="4" fill="white"/><rect x="7" y="11" width="2" height="2" fill="white"/></svg>
+                            <p style={{ fontSize:11.5, color:"#92400E", lineHeight:1.5, margin:0 }}>{b.reason}</p>
+                          </div>
+                          {/* Before */}
+                          <div style={{ position:"relative", marginBottom:8 }}>
+                            <p style={{ fontSize:11.5, color:"#991B1B", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:10, padding:"10px 12px", textDecoration:"line-through", lineHeight:1.65, margin:0, opacity:0.75 }}>{b.before}</p>
+                            <span style={{ position:"absolute", top:-8, left:10, fontSize:9, fontWeight:800, background:"#FECACA", color:"#991B1B", padding:"1px 7px", borderRadius:99, letterSpacing:"0.06em" }}>BEFORE</span>
+                          </div>
+                          {/* After */}
+                          <div style={{ position:"relative", marginBottom:10 }}>
+                            <div style={{ display:"flex", gap:6, alignItems:"flex-start" }}>
+                              <p style={{ flex:1, fontSize:12, color:"#14532D", background:"#F0FFF4", border:"1.5px solid #86EFAC", borderRadius:10, padding:"10px 12px", lineHeight:1.65, margin:0, fontWeight:500 }}>{b.after}</p>
+                              <button onClick={()=>{ void navigator.clipboard.writeText(b.after); }} style={{ padding:"8px 11px", borderRadius:9, border:"1px solid #BBF7D0", background:"white", color:"#16A34A", cursor:"pointer", flexShrink:0, fontSize:11, fontWeight:700 }}>Copy</button>
+                            </div>
+                            <span style={{ position:"absolute", top:-8, left:10, fontSize:9, fontWeight:800, background:"#86EFAC", color:"#14532D", padding:"1px 7px", borderRadius:99, letterSpacing:"0.06em" }}>AFTER</span>
+                          </div>
+                          {/* Magic Write */}
+                          {!mw ? (
+                            <button onClick={()=>openMagicWrite(i)} style={{ fontSize:11.5, fontWeight:700, padding:"7px 15px", borderRadius:9, border:"1.5px solid #C7D2FE", background:"linear-gradient(135deg,#EEF2FF,#F4F0FF)", color:"#4361EE", cursor:"pointer", display:"inline-flex", alignItems:"center", gap:6 }}>
+                              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:11, height:11 }}><path d="M13 2l1 4-8.5 8.5L2 16l1.5-3.5L12 4l1-2z"/><path d="M10 4l2 2"/></svg>
+                              Magic Write — customize this rewrite
+                            </button>
                           ) : (
-                            <p style={{ fontSize:11, color:"#68738A", margin:"0 0 8px" }}>{mw.mode==="refine"?"Zari will tighten the suggestion above.":"3 distinct rewrites — different verb, angle, structure."}</p>
-                          )}
-                          <button onClick={()=>void runMagicWrite(i, b)} disabled={mw.loading||(mw.mode==="describe"&&!mw.input.trim())} style={{ fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:8, border:"none", background:(!mw.loading&&(mw.mode!=="describe"||mw.input.trim()))?"#4361EE":"#E4E8F5", color:(!mw.loading&&(mw.mode!=="describe"||mw.input.trim()))?"white":"#A0AABF", cursor:(!mw.loading&&(mw.mode!=="describe"||mw.input.trim()))?"pointer":"default" }}>
-                            {mw.loading?"Writing…":"Generate"}
-                          </button>
-                        </div>
-                        {mw.results.length>0 && (
-                          <div style={{ padding:"0 12px 12px", display:"flex", flexDirection:"column", gap:7 }}>
-                            {mw.results.map((r,ri)=>(
-                              <div key={ri} style={{ display:"flex", gap:6 }}>
-                                <p style={{ flex:1, fontSize:11.5, color:"#1D4ED8", background:"#EFF6FF", border:"1px solid #BFDBFE", borderRadius:9, padding:"8px 11px", lineHeight:1.55, margin:0 }}>{r}</p>
-                                <button onClick={()=>{ void navigator.clipboard.writeText(r); setMagicWrite(p=>({...p,[i]:{...p[i],copied:ri}})); setTimeout(()=>setMagicWrite(p=>({...p,[i]:{...p[i],copied:null}})),1500); }} style={{ padding:"6px 10px", borderRadius:8, border:"1px solid #BFDBFE", background:"white", color:mw.copied===ri?"#16A34A":"#1D4ED8", cursor:"pointer", fontSize:10.5, fontWeight:700, flexShrink:0 }}>{mw.copied===ri?"✓":"Copy"}</button>
+                            <div style={{ border:"1.5px solid #C7D2FE", borderRadius:12, overflow:"hidden" }}>
+                              <div style={{ display:"flex", background:"#F8FAFF", borderBottom:"1px solid #E4E8F5", padding:"8px 12px", gap:4, alignItems:"center", justifyContent:"space-between" }}>
+                                <div style={{ display:"flex", gap:4 }}>
+                                  {([["refine","Refine"],["describe","I did..."],["variations","3 versions"]] as [MagicWriteMode,string][]).map(([m,l]) => (
+                                    <button key={m} onClick={()=>setMagicWrite(p=>({...p,[i]:{...p[i],mode:m,results:[],input:""}}))} style={{ fontSize:10.5, fontWeight:600, padding:"4px 10px", borderRadius:7, border:"none", background:mw.mode===m?"#4361EE":"#F1F5F9", color:mw.mode===m?"white":"#68738A", cursor:"pointer" }}>{l}</button>
+                                  ))}
+                                </div>
+                                <button onClick={()=>closeMagicWrite(i)} style={{ fontSize:13, background:"none", border:"none", color:"#A0AABF", cursor:"pointer", padding:"0 4px" }}>✕</button>
                               </div>
-                            ))}
-                          </div>
-                        )}
+                              <div style={{ padding:12 }}>
+                                {mw.mode==="describe" ? (
+                                  <textarea value={mw.input} onChange={e=>setMagicWrite(p=>({...p,[i]:{...p[i],input:e.target.value}}))} placeholder="Describe what you actually did — metrics, scale, outcome…" style={{ width:"100%", minHeight:56, border:"1.5px solid #E4E8F5", borderRadius:8, padding:"8px 10px", fontSize:11.5, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"white" }}/>
+                                ) : (
+                                  <p style={{ fontSize:11, color:"#68738A", margin:"0 0 8px" }}>{mw.mode==="refine"?"Zari will tighten and strengthen the AI suggestion.":"3 meaningfully different takes — different verb, angle, structure."}</p>
+                                )}
+                                <button onClick={()=>void runMagicWrite(i, b)} disabled={mw.loading||(mw.mode==="describe"&&!mw.input.trim())} style={{ fontSize:12, fontWeight:700, padding:"7px 18px", borderRadius:8, border:"none", background:(!mw.loading&&(mw.mode!=="describe"||mw.input.trim()))?"#4361EE":"#E4E8F5", color:(!mw.loading&&(mw.mode!=="describe"||mw.input.trim()))?"white":"#A0AABF", cursor:(!mw.loading&&(mw.mode!=="describe"||mw.input.trim()))?"pointer":"default" }}>
+                                  {mw.loading?"Writing…":"Generate"}
+                                </button>
+                              </div>
+                              {mw.results.length>0 && (
+                                <div style={{ padding:"0 12px 12px", display:"flex", flexDirection:"column", gap:7 }}>
+                                  {mw.results.map((r,ri)=>(
+                                    <div key={ri} style={{ display:"flex", gap:6 }}>
+                                      <p style={{ flex:1, fontSize:11.5, color:"#1D4ED8", background:"#EFF6FF", border:"1px solid #BFDBFE", borderRadius:9, padding:"9px 12px", lineHeight:1.6, margin:0 }}>{r}</p>
+                                      <button onClick={()=>{ void navigator.clipboard.writeText(r); setMagicWrite(p=>({...p,[i]:{...p[i],copied:ri}})); setTimeout(()=>setMagicWrite(p=>({...p,[i]:{...p[i],copied:null}})),1500); }} style={{ padding:"7px 10px", borderRadius:8, border:"1px solid #BFDBFE", background:"white", color:mw.copied===ri?"#16A34A":"#1D4ED8", cursor:"pointer", fontSize:10.5, fontWeight:700, flexShrink:0 }}>{mw.copied===ri?"✓":"Copy"}</button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    )}
-                  </div>
-                );})}
-              </div>
-            )}
+                    );
+                  })}
+                </>
+              );
+            })()}
 
             {/* ── AI REWRITES TAB ── */}
             {tab==="rewrite" && (
@@ -1469,55 +1704,101 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
               </div>
             )}
 
-            {/* ── KEYWORDS TAB ── */}
+            {/* ══ KEYWORDS TAB ══ */}
             {tab==="keywords" && (() => {
               const kws = aiResult?.keywords ?? [];
-              const required = kws.filter(k=>k.importance==="required");
+              const required  = kws.filter(k=>k.importance==="required");
               const preferred = kws.filter(k=>k.importance==="preferred");
-              const foundReq = required.filter(k=>k.found).length;
+              const foundReq  = required.filter(k=>k.found).length;
               const foundPref = preferred.filter(k=>k.found).length;
-              const missingReq = required.length - foundReq;
-              const coverage = kws.length > 0 ? Math.round((kws.filter(k=>k.found).length / kws.length)*100) : 0;
+              const missingReq = required.filter(k=>!k.found);
+              const coverage  = kws.length > 0 ? Math.round((kws.filter(k=>k.found).length / kws.length)*100) : 0;
+              const reqCoverage = required.length > 0 ? Math.round((foundReq/required.length)*100) : 0;
+
+              // Group by skillType for richer display
+              const SKILL_TYPE_META: Record<string,{label:string;color:string;bg:string}> = {
+                technical:    { label:"Technical",    color:"#1D4ED8", bg:"#EFF6FF" },
+                tool:         { label:"Tool",         color:"#7C3AED", bg:"#F5F3FF" },
+                certification:{ label:"Certification",color:"#065F46", bg:"#ECFDF5" },
+                domain:       { label:"Domain",       color:"#0369A1", bg:"#EFF6FF" },
+                soft:         { label:"Soft skill",   color:"#68738A", bg:"#F8FAFC" },
+              };
+
               return (
                 <>
-                  {/* Coverage bar */}
-                  <div style={{ background:"white", borderRadius:16, border:`1px solid ${coverage>=70?"#BBF7D0":coverage>=45?"#FDE68A":"#FECACA"}`, padding:"16px 18px", boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
-                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
-                      <p style={{ fontSize:13.5, fontWeight:800, color:"#0A0A0F" }}>Keyword Coverage</p>
-                      <span style={{ fontSize:22, fontWeight:900, color:coverage>=70?"#16A34A":coverage>=45?"#D97706":"#DC2626" }}>{coverage}%</span>
+                  {/* Coverage hero */}
+                  <div style={{ background:"white", borderRadius:16, border:`1.5px solid ${coverage>=70?"#86EFAC":coverage>=45?"#FDE68A":"#FECACA"}`, padding:"18px 20px", boxShadow:"0 4px 20px rgba(0,0,0,0.05)" }}>
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:14 }}>
+                      {[
+                        { label:"Overall coverage", val:`${coverage}%`, color:coverage>=70?"#16A34A":coverage>=45?"#D97706":"#DC2626", sub:`${kws.filter(k=>k.found).length}/${kws.length} keywords` },
+                        { label:"Required found",   val:`${foundReq}/${required.length}`, color:reqCoverage>=70?"#16A34A":reqCoverage>=45?"#D97706":"#DC2626", sub:`${missingReq.length} still missing` },
+                        { label:"Preferred found",  val:`${foundPref}/${preferred.length}`, color:foundPref===preferred.length?"#16A34A":"#D97706", sub:"bonus points with recruiter" },
+                      ].map((s,i) => (
+                        <div key={i} style={{ textAlign:"center", padding:"10px 8px", borderRadius:12, background:"#FAFBFF" }}>
+                          <p style={{ fontSize:20, fontWeight:900, color:s.color, lineHeight:1, marginBottom:3 }}>{s.val}</p>
+                          <p style={{ fontSize:11, fontWeight:600, color:"#0A0A0F", marginBottom:2 }}>{s.label}</p>
+                          <p style={{ fontSize:10, color:"#A0AABF" }}>{s.sub}</p>
+                        </div>
+                      ))}
                     </div>
-                    <div style={{ height:10, borderRadius:99, background:"#F1F5F9", overflow:"hidden", marginBottom:10 }}>
-                      <div style={{ width:`${coverage}%`, height:"100%", borderRadius:99, background:`linear-gradient(90deg,${coverage>=70?"#16A34A":coverage>=45?"#F59E0B":"#DC2626"},${coverage>=70?"#22C55E":coverage>=45?"#FCD34D":"#EF4444"})`, transition:"width 1s cubic-bezier(0.4,0,0.2,1)" }}/>
-                    </div>
-                    <div style={{ display:"flex", gap:16 }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                        <div style={{ width:8, height:8, borderRadius:2, background:"#16A34A" }}/>
-                        <span style={{ fontSize:11, color:"#68738A" }}>{foundReq} required found</span>
+                    <div>
+                      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:5 }}>
+                        <span style={{ fontSize:11, fontWeight:600, color:"#68738A" }}>Overall match</span>
+                        <span style={{ fontSize:11, fontWeight:700, color:coverage>=70?"#16A34A":coverage>=45?"#D97706":"#DC2626" }}>{coverage>=70?"Strong":"Needs work"}</span>
                       </div>
-                      <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                        <div style={{ width:8, height:8, borderRadius:2, background:"#DC2626" }}/>
-                        <span style={{ fontSize:11, color:"#68738A" }}>{missingReq} required missing</span>
-                      </div>
-                      <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                        <div style={{ width:8, height:8, borderRadius:2, background:"#4361EE" }}/>
-                        <span style={{ fontSize:11, color:"#68738A" }}>{foundPref}/{preferred.length} preferred found</span>
+                      <div style={{ height:8, borderRadius:99, background:"#F1F5F9", overflow:"hidden" }}>
+                        <div style={{ width:`${coverage}%`, height:"100%", borderRadius:99, background:`linear-gradient(90deg,${coverage>=70?"#16A34A":coverage>=45?"#F59E0B":"#DC2626"},${coverage>=70?"#22C55E":coverage>=45?"#FCD34D":"#EF4444"})`, transition:"width 1s cubic-bezier(0.4,0,0.2,1)" }}/>
                       </div>
                     </div>
                   </div>
 
-                  {/* Required keywords */}
+                  {/* Missing required — "Add these" callout */}
+                  {missingReq.length > 0 && (
+                    <div style={{ background:"linear-gradient(135deg,#FEF2F2,#FFF7ED)", borderRadius:16, border:"1.5px solid #FECACA", padding:"16px 18px", boxShadow:"0 2px 12px rgba(220,38,38,0.06)" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
+                        <svg viewBox="0 0 16 16" fill="#DC2626" style={{ width:14,height:14,flexShrink:0 }}><circle cx="8" cy="8" r="7"/><rect x="7" y="4" width="2" height="5" fill="white"/><rect x="7" y="10" width="2" height="2" fill="white"/></svg>
+                        <p style={{ fontSize:12, fontWeight:800, color:"#991B1B", textTransform:"uppercase", letterSpacing:"0.06em" }}>Add these to your resume</p>
+                        <span style={{ fontSize:10, fontWeight:700, padding:"1px 7px", borderRadius:99, background:"#FECACA", color:"#991B1B" }}>{missingReq.length} required missing</span>
+                      </div>
+                      <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
+                        {missingReq.map((kw,i) => {
+                          const stm = SKILL_TYPE_META[kw.skillType ?? "technical"] ?? SKILL_TYPE_META.technical;
+                          return (
+                            <div key={i} style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"5px 12px", borderRadius:99, border:"1.5px solid #FECACA", background:"white", cursor:"default" }}>
+                              <svg viewBox="0 0 12 12" fill="none" stroke="#DC2626" strokeWidth="2" style={{ width:9,height:9,flexShrink:0 }}><path d="M2 2l8 8M10 2l-8 8"/></svg>
+                              <span style={{ fontSize:12, fontWeight:700, color:"#991B1B" }}>{kw.word}</span>
+                              <span style={{ fontSize:9, fontWeight:600, color:stm.color, background:stm.bg, padding:"0 4px", borderRadius:4 }}>{stm.label}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <p style={{ fontSize:11.5, color:"#7F1D1D", lineHeight:1.55, marginTop:10 }}>Add these naturally to your Summary, Experience bullets, or Skills section — paired with real evidence of using them.</p>
+                    </div>
+                  )}
+
+                  {/* Required keywords (all) */}
                   {required.length > 0 && (
                     <div style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", padding:"16px 18px", boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
-                      <p style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", marginBottom:12 }}>Required Skills <span style={{ fontWeight:400, color:"#68738A" }}>— explicitly required in the job description</span></p>
-                      <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-                        {required.map((kw,i) => (
-                          <div key={i} title={kw.found&&kw.context?`Found: "${kw.context}"`:"Missing from resume"} style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 13px", borderRadius:99, border:`1.5px solid ${kw.found?"#BBF7D0":"#FECACA"}`, background:kw.found?"#F0FFF4":"#FEF2F2", cursor:"default", transition:"all 0.1s" }}>
-                            <span style={{ width:7, height:7, borderRadius:"50%", background:kw.found?"#16A34A":"#DC2626", flexShrink:0, boxShadow:`0 0 0 2px ${kw.found?"rgba(22,163,74,0.15)":"rgba(220,38,38,0.15)"}` }}/>
-                            <span style={{ fontSize:12, fontWeight:700, color:kw.found?"#14532D":"#991B1B" }}>{kw.word}</span>
-                            {!kw.found && <svg viewBox="0 0 12 12" fill="none" stroke="#DC2626" strokeWidth="2" style={{ width:10,height:10,flexShrink:0 }}><path d="M2 2l8 8M10 2l-8 8"/></svg>}
-                            {kw.found && <svg viewBox="0 0 12 12" fill="none" stroke="#16A34A" strokeWidth="2" style={{ width:10,height:10,flexShrink:0 }}><path d="M2 6l3 3 5-5"/></svg>}
-                          </div>
-                        ))}
+                      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
+                        <div>
+                          <p style={{ fontSize:12.5, fontWeight:800, color:"#0A0A0F" }}>Required Skills</p>
+                          <p style={{ fontSize:11, color:"#68738A", marginTop:1 }}>Explicitly required in the job description</p>
+                        </div>
+                        <span style={{ fontSize:11, fontWeight:700, color:reqCoverage>=70?"#16A34A":"#DC2626", background:reqCoverage>=70?"#F0FFF4":"#FEF2F2", padding:"3px 10px", borderRadius:99 }}>{reqCoverage}% matched</span>
+                      </div>
+                      <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
+                        {required.map((kw,i) => {
+                          const stm = SKILL_TYPE_META[kw.skillType ?? "technical"] ?? SKILL_TYPE_META.technical;
+                          return (
+                            <div key={i} title={kw.found&&kw.context?`Found: "${kw.context}"`:"Missing from resume"} style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"5px 12px", borderRadius:99, border:`1.5px solid ${kw.found?"#86EFAC":"#FECACA"}`, background:kw.found?"#F0FFF4":"#FEF2F2", cursor:"default" }}>
+                              {kw.found
+                                ? <svg viewBox="0 0 12 12" fill="none" stroke="#16A34A" strokeWidth="2" style={{ width:9,height:9,flexShrink:0 }}><path d="M2 6l3 3 5-5"/></svg>
+                                : <svg viewBox="0 0 12 12" fill="none" stroke="#DC2626" strokeWidth="2" style={{ width:9,height:9,flexShrink:0 }}><path d="M2 2l8 8M10 2l-8 8"/></svg>}
+                              <span style={{ fontSize:12, fontWeight:700, color:kw.found?"#14532D":"#991B1B" }}>{kw.word}</span>
+                              <span style={{ fontSize:9, fontWeight:600, color:stm.color, background:stm.bg, padding:"0 4px", borderRadius:4 }}>{stm.label}</span>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -1525,23 +1806,35 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
                   {/* Preferred keywords */}
                   {preferred.length > 0 && (
                     <div style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", padding:"16px 18px", boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
-                      <p style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", marginBottom:12 }}>Preferred Skills <span style={{ fontWeight:400, color:"#68738A" }}>— nice to have</span></p>
-                      <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-                        {preferred.map((kw,i) => (
-                          <div key={i} title={kw.found&&kw.context?`Found: "${kw.context}"`:"Missing from resume"} style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 13px", borderRadius:99, border:`1.5px solid ${kw.found?"#C7D2FE":"#E4E8F5"}`, background:kw.found?"#EEF2FF":"#F8FAFF", cursor:"default" }}>
-                            <span style={{ width:7, height:7, borderRadius:"50%", background:kw.found?"#4361EE":"#CBD5E1", flexShrink:0 }}/>
-                            <span style={{ fontSize:12, fontWeight:700, color:kw.found?"#3451D1":"#68738A" }}>{kw.word}</span>
-                          </div>
-                        ))}
+                      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
+                        <div>
+                          <p style={{ fontSize:12.5, fontWeight:800, color:"#0A0A0F" }}>Preferred Skills</p>
+                          <p style={{ fontSize:11, color:"#68738A", marginTop:1 }}>Nice to have — adds bonus points with recruiters</p>
+                        </div>
+                        <span style={{ fontSize:11, fontWeight:700, color:"#4361EE", background:"#EEF2FF", padding:"3px 10px", borderRadius:99 }}>{foundPref}/{preferred.length}</span>
+                      </div>
+                      <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
+                        {preferred.map((kw,i) => {
+                          const stm = SKILL_TYPE_META[kw.skillType ?? "soft"] ?? SKILL_TYPE_META.soft;
+                          return (
+                            <div key={i} title={kw.found&&kw.context?`Found: "${kw.context}"`:"Not found"} style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"5px 12px", borderRadius:99, border:`1.5px solid ${kw.found?"#C7D2FE":"#E4E8F5"}`, background:kw.found?"#EEF2FF":"#F8FAFF", cursor:"default" }}>
+                              <span style={{ width:6, height:6, borderRadius:"50%", background:kw.found?"#4361EE":"#CBD5E1", flexShrink:0 }}/>
+                              <span style={{ fontSize:12, fontWeight:700, color:kw.found?"#3451D1":"#68738A" }}>{kw.word}</span>
+                              <span style={{ fontSize:9, fontWeight:600, color:stm.color, background:stm.bg, padding:"0 4px", borderRadius:4 }}>{stm.label}</span>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
 
                   {kws.length===0 && (
-                    <div style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", padding:"40px 20px", textAlign:"center" }}>
-                      <div style={{ fontSize:36, marginBottom:10 }}>🎯</div>
+                    <div style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", padding:"48px 20px", textAlign:"center" }}>
+                      <div style={{ width:52, height:52, borderRadius:16, background:"#EEF2FF", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 14px" }}>
+                        <svg viewBox="0 0 20 20" fill="none" stroke="#4361EE" strokeWidth="1.8" style={{ width:22,height:22 }}><circle cx="9" cy="9" r="6"/><path d="M15 15l3 3"/></svg>
+                      </div>
                       <p style={{ fontSize:14, fontWeight:700, color:"#0A0A0F" }}>No keyword data</p>
-                      <p style={{ fontSize:12.5, color:"#68738A", marginTop:4 }}>Switch to Targeted mode and paste a job description to see keyword analysis.</p>
+                      <p style={{ fontSize:12.5, color:"#68738A", marginTop:4, lineHeight:1.55 }}>Switch to Targeted mode and paste a job description to see which keywords you&apos;re missing.</p>
                     </div>
                   )}
                 </>
