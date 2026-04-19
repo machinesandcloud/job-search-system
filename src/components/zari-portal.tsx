@@ -644,6 +644,104 @@ type MagicWriteState = {
   copied: number | null;
 };
 
+/* ─── Resume HTML generator: produces a print-ready styled HTML document ─── */
+function escHtml(s: string) {
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function generateResumeHtml(text: string, footerNote = ""): string {
+  const SECTION_RE = /^[A-Z][A-Z\s&\/\-]{3,}$/;
+  const BULLET_RE  = /^[•\-\*\u2022►▸]\s/;
+  const DATE_RE    = /\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?|\d{4})\b.*\b(20\d{2}|19\d{2}|Present|Current|Now)\b/i;
+  const CONTACT_RE = /@|\(\d{3}\)|\d{3}[\-.\s]\d{3}[\-.\s]\d{4}|linkedin\.com|github\.com/i;
+  const NAME_RE    = /^[A-Z][A-Z\s]{4,38}[A-Z]$/; // e.g. "STEVE NGOUMNAI" or "ST EVE NGOUMNAI"
+
+  const lines = text.split("\n");
+  let body = "";
+  let inList = false;
+
+  const closeList = () => { if (inList) { body += "</ul>\n"; inList = false; } };
+
+  for (const raw of lines) {
+    const t = raw.trim();
+    if (!t) { closeList(); body += "<br>\n"; continue; }
+
+    // ALL-CAPS section header (matches a known-section keyword or short all-caps)
+    if (SECTION_RE.test(t) && t.length <= 60) {
+      const isSectionKw = /\b(EXPERIENCE|EDUCATION|SKILLS|SUMMARY|CERTIFICATIONS?|PROJECTS?|CONTACT|EMPLOYMENT|AWARDS?|LANGUAGES?|ACHIEVEMENTS?|PROFILE|PUBLICATIONS?|REFERENCES?|VOLUNTEER|INTERESTS?|OBJECTIVE)\b/i.test(t);
+      if (isSectionKw || t.split(/\s+/).length <= 4) {
+        closeList();
+        body += `<div class="sec-hdr">${escHtml(t)}</div>\n`;
+        continue;
+      }
+    }
+
+    // Bullet
+    if (BULLET_RE.test(t)) {
+      const txt = t.replace(/^[•\-\*\u2022►▸]\s*/, "");
+      if (!inList) { body += "<ul>\n"; inList = true; }
+      body += `  <li>${escHtml(txt)}</li>\n`;
+      continue;
+    }
+    closeList();
+
+    // Name line (short ALL-CAPS, 2+ words, no section keywords)
+    if (NAME_RE.test(t) && t.split(/\s+/).length >= 2 && !/\b(EXPERIENCE|EDUCATION|SKILLS|SUMMARY|CERTIFICATIONS?|PROJECTS?|CONTACT|EMPLOYMENT|PROFESSIONAL)\b/i.test(t)) {
+      body += `<p class="name">${escHtml(t)}</p>\n`;
+      continue;
+    }
+
+    // Contact line
+    if (CONTACT_RE.test(t) && t.length < 160) {
+      body += `<p class="contact">${escHtml(t)}</p>\n`;
+      continue;
+    }
+
+    // Date / tenure line
+    if (DATE_RE.test(t) && t.length < 90) {
+      body += `<p class="date">${escHtml(t)}</p>\n`;
+      continue;
+    }
+
+    // Short bold line (company / job title — not starting with spaces, ≤ 8 words)
+    if (!raw.startsWith(" ") && t.length < 90 && t.split(/\s+/).length <= 9 && !/,\s/.test(t.slice(20))) {
+      body += `<p class="bold-line">${escHtml(t)}</p>\n`;
+      continue;
+    }
+
+    body += `<p>${escHtml(t)}</p>\n`;
+  }
+  closeList();
+
+  const footer = footerNote ? `\n<p class="footer">${escHtml(footerNote)}</p>` : "";
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Resume</title>
+<style>
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Times New Roman',Times,serif;font-size:11pt;line-height:1.5;color:#000;background:#fff;padding:0.8in 1in;max-width:8.5in;margin:0 auto}
+  .name{font-size:18pt;font-weight:800;text-align:center;letter-spacing:4px;text-transform:uppercase;margin-bottom:3px}
+  .contact{text-align:center;font-size:10pt;color:#444;margin-bottom:2px}
+  .sec-hdr{font-weight:700;text-align:center;border-top:1.5px solid #000;border-bottom:1.5px solid #000;padding:4px 0;margin:14px 0 7px;letter-spacing:.8px;text-transform:uppercase;font-size:10.5pt}
+  ul{padding-left:20px;margin:4px 0 6px}
+  li{margin-bottom:3px;line-height:1.45}
+  p{margin-bottom:3px;line-height:1.5}
+  .bold-line{font-weight:700;margin-top:8px}
+  .date{color:#555;font-size:10pt;text-align:right;margin-top:-18px;margin-bottom:4px}
+  br{display:block;margin:3px 0;content:""}
+  .footer{margin-top:24pt;font-size:8.5pt;color:#aaa;text-align:center;border-top:1px solid #eee;padding-top:6pt}
+  @media print{@page{margin:.75in}body{padding:0}.footer{display:none}}
+</style>
+</head>
+<body>
+${body}${footer}
+</body>
+</html>`;
+}
+
 function ScreenResume({ stage }: { stage: CareerStage }) {
   const [step, setStep]         = useState<ResumeStep>("choose");
   const [progress, setProgress] = useState(0);
@@ -677,32 +775,33 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
   const [pendingBulletScroll, setPendingBulletScroll] = useState<string | null>(null);
   // Power Optimized download
   const [powerOptimizing, setPowerOptimizing] = useState(false);
+  // Blob URL for the originally uploaded file (PDF iframe preview)
+  const [rawFileUrl, setRawFileUrl] = useState<string | null>(null);
+  const rawFileUrlRef = useRef<string | null>(null);
+
+  function triggerHtmlDownload(html: string, name: string) {
+    const blob = new Blob([html], { type:"text/html" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = name; a.click();
+    URL.revokeObjectURL(url);
+  }
 
   function downloadReconstructed() {
     if (!aiResult) return;
     // Apply bullet improvements inline into the original resume text
-    let reconstructed = resumeText;
+    let revised = resumeText;
     (aiResult.bullets ?? []).forEach(b => {
-      if (b.before && b.after) {
-        reconstructed = reconstructed.replace(b.before, b.after);
-      }
+      if (b.before && b.after) revised = revised.replace(b.before, b.after);
     });
-    // Replace rewritten sections (summary, skills) in the reconstructed text
     (aiResult.rewrittenSections ?? []).forEach((s, idx) => {
       const newText = altVersions[idx] ?? s.text;
-      if (s.originalText && s.originalText.length > 20) {
-        reconstructed = reconstructed.replace(s.originalText, newText);
+      if (s.originalText && s.originalText.trim().length > 20) {
+        revised = revised.replace(s.originalText.trim(), newText);
       }
     });
-    const header = `Resume revised by Zari · ${new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"})}${reviewMode==="targeted"&&targetRoleInput?` · Target: ${targetRoleInput}`:""}`;
-    const content = `${header}\n${"─".repeat(60)}\n\n${reconstructed}`;
-    const blob = new Blob([content], { type:"text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${(fileName||"resume").replace(/\.[^.]+$/,"")}-revised.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const note = `Revised by Zari · ${new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"})}`;
+    triggerHtmlDownload(generateResumeHtml(revised, note), `${(fileName||"resume").replace(/\.[^.]+$/,"")}-revised.html`);
   }
 
   async function downloadPowerOptimized() {
@@ -716,15 +815,8 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
       });
       const data = await res.json().catch(() => ({})) as { resumeText?: string; error?: string };
       if (!data.resumeText) { setPowerOptimizing(false); return; }
-      const header = `Power Optimized by Zari · ${new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"})}${targetRoleInput?` · Target: ${targetRoleInput}`:""}`;
-      const content = `${header}\n${"─".repeat(60)}\n\n${data.resumeText}`;
-      const blob = new Blob([content], { type:"text/plain" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${(fileName||"resume").replace(/\.[^.]+$/,"")}-power-optimized.txt`;
-      a.click();
-      URL.revokeObjectURL(url);
+      const note = `Power Optimized by Zari · ${new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"})}${targetRoleInput?` · Target: ${targetRoleInput}`:""}`;
+      triggerHtmlDownload(generateResumeHtml(data.resumeText, note), `${(fileName||"resume").replace(/\.[^.]+$/,"")}-power-optimized.html`);
     } catch { /* non-fatal */ }
     setPowerOptimizing(false);
   }
@@ -853,6 +945,11 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
     setAnalyzeErr("");
     setStep("analyzing");
     setProgress(5);
+    // Store blob URL for PDF preview iframe
+    if (rawFileUrlRef.current) URL.revokeObjectURL(rawFileUrlRef.current);
+    const blobUrl = URL.createObjectURL(file);
+    rawFileUrlRef.current = blobUrl;
+    setRawFileUrl(blobUrl);
 
     // Extract text from file
     let extracted = "";
@@ -928,6 +1025,12 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
 
   // Fetch history when entering results view
   useEffect(() => { if (step === "results") void fetchHistory(); }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Revoke blob URL when component unmounts
+  useEffect(() => {
+    const ref = rawFileUrlRef;
+    return () => { if (ref.current) URL.revokeObjectURL(ref.current); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Deep-link scroll: after tab switches to "bullets", scroll to the referenced bullet
   useEffect(() => {
@@ -1350,7 +1453,7 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
         {/* ── Top bar ── */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20, gap:12, flexWrap:"wrap" }}>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <button onClick={()=>{ setStep("choose"); setAiResult(null); setResumeText(""); setFileName(""); setAltVersions({}); setAltAttempt({}); setMagicWrite({}); setTab("overview"); }} style={{ display:"flex", alignItems:"center", gap:5, fontSize:12, fontWeight:600, color:"#68738A", background:"white", border:"1px solid #E4E8F5", borderRadius:8, padding:"6px 12px", cursor:"pointer" }}>
+            <button onClick={()=>{ setStep("choose"); setAiResult(null); setResumeText(""); setFileName(""); setAltVersions({}); setAltAttempt({}); setMagicWrite({}); setTab("overview"); if (rawFileUrlRef.current) { URL.revokeObjectURL(rawFileUrlRef.current); rawFileUrlRef.current = null; } setRawFileUrl(null); }} style={{ display:"flex", alignItems:"center", gap:5, fontSize:12, fontWeight:600, color:"#68738A", background:"white", border:"1px solid #E4E8F5", borderRadius:8, padding:"6px 12px", cursor:"pointer" }}>
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:12,height:12 }}><path d="M10 3L5 8l5 5"/></svg>
               New review
             </button>
@@ -1544,23 +1647,27 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
                 ))}
               </div>
               <div style={{ display:"flex", gap:6 }}>
-                {resumeViewMode==="preview" && aiResult?.keywords?.some(k=>k.found) && (
-                  <span style={{ fontSize:10, color:"#14532D", background:"#DCFCE7", padding:"2px 8px", borderRadius:99, fontWeight:700 }}>
-                    {aiResult.keywords.filter(k=>k.found).length} keywords highlighted
-                  </span>
+                {resumeViewMode==="preview" && rawFileUrl && aiResult?.keywords?.some(k=>k.found) && (
+                  <button onClick={()=>setTab("keywords")} style={{ fontSize:10, color:"#14532D", background:"#DCFCE7", padding:"2px 8px", borderRadius:99, fontWeight:700, border:"none", cursor:"pointer" }}>
+                    {aiResult!.keywords!.filter(k=>k.found).length} keywords found →
+                  </button>
                 )}
                 {resumeViewMode==="suggestions" && (aiResult?.bullets?.length??0)>0 && (
                   <span style={{ fontSize:10, color:"#92400E", background:"#FEF3C7", padding:"2px 8px", borderRadius:99, fontWeight:700 }}>tap highlighted lines</span>
                 )}
               </div>
             </div>
-            {/* Resume text */}
-            <div style={{ padding:"16px 18px", overflowY:"auto", flex:1 }}>
-              {resumeViewMode==="suggestions" && aiResult?.bullets?.length
-                ? <SuggestionsResume text={resumeText} bullets={aiResult.bullets} activeIdx={activeSuggestion} onClickLine={setActiveSuggestion}/>
-                : <FormattedResume text={resumeText.slice(0,6000)} keywords={aiResult?.keywords}/>
-              }
-            </div>
+            {/* Resume view: iframe for uploaded files, formatted text for pastes */}
+            {resumeViewMode==="suggestions" && aiResult?.bullets?.length
+              ? <div style={{ padding:"16px 18px", overflowY:"auto", flex:1 }}>
+                  <SuggestionsResume text={resumeText} bullets={aiResult.bullets} activeIdx={activeSuggestion} onClickLine={setActiveSuggestion}/>
+                </div>
+              : rawFileUrl
+              ? <iframe src={rawFileUrl} style={{ flex:1, width:"100%", border:"none", display:"block", minHeight:0 }} title="Resume"/>
+              : <div style={{ padding:"16px 18px", overflowY:"auto", flex:1 }}>
+                  <FormattedResume text={resumeText.slice(0,6000)} keywords={aiResult?.keywords}/>
+                </div>
+            }
           </div>
 
           {/* ── Right: analysis panel ── */}
