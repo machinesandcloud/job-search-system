@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { openaiChat } from "@/lib/openai";
 import { ensureSameOrigin } from "@/lib/utils";
 
+type ExperienceJob = { company: string; title: string; dateRange: string; description: string };
+
 export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) {
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
@@ -10,72 +12,94 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => ({})) as {
     headline?: string;
     summary?: string;
-    experience?: string;
+    experienceJobs?: ExperienceJob[];
     education?: string;
     skills?: string;
     linkedinUrl?: string;
     hasPhoto?: boolean;
     targetRole?: string;
+    recommendations?: string;
   };
 
-  const headline    = (body.headline    ?? "").trim();
-  const summary     = (body.summary     ?? "").trim();
-  const experience  = (body.experience  ?? "").trim();
-  const education   = (body.education   ?? "").trim();
-  const skills      = (body.skills      ?? "").trim();
-  const linkedinUrl = (body.linkedinUrl ?? "").trim();
-  const hasPhoto    = body.hasPhoto ?? false;
-  const targetRole  = (body.targetRole  ?? "").trim();
+  const headline      = (body.headline    ?? "").trim();
+  const summary       = (body.summary     ?? "").trim();
+  const experienceJobs: ExperienceJob[] = Array.isArray(body.experienceJobs) ? body.experienceJobs : [];
+  const education     = (body.education   ?? "").trim();
+  const skills        = (body.skills      ?? "").trim();
+  const linkedinUrl   = (body.linkedinUrl ?? "").trim();
+  const hasPhoto      = body.hasPhoto ?? false;
+  const targetRole    = (body.targetRole  ?? "").trim();
+  const recommendations = (body.recommendations ?? "").trim();
 
-  if (!headline && !summary && !experience) {
-    return NextResponse.json({ error: "Provide at least headline or summary" }, { status: 400 });
+  if (!headline && !summary && !experienceJobs.length) {
+    return NextResponse.json({ error: "Provide at least headline, summary, or experience" }, { status: 400 });
   }
 
   const hasCustomUrl = linkedinUrl
     ? !/\/in\/[a-z]+-\d{8,}/i.test(linkedinUrl) && linkedinUrl.includes("/in/")
     : null;
 
-  const systemPrompt = `You are a LinkedIn profile expert who gives direct, specific, actionable reviews — like a top career coach would. Be honest and concrete: reference their actual content, not generic advice.
+  // Format jobs for the prompt
+  const jobsText = experienceJobs.length
+    ? experienceJobs.map((j, i) =>
+        `JOB ${i + 1}: ${j.title} @ ${j.company} | ${j.dateRange}\n${j.description}`
+      ).join("\n\n")
+    : "(not provided)";
+
+  const systemPrompt = `You are a LinkedIn profile expert — give direct, specific, actionable reviews. Reference actual content, not generic advice.
 ${targetRole ? `Target role: ${targetRole}` : ""}
 
-Return ONLY valid JSON matching this exact structure:
+Return ONLY valid JSON with this exact structure:
 {
   "overall": <number 0-100>,
   "headline": {
     "score": <1-10>,
     "verdict": <"Perfect"|"Good"|"Needs Review"|"Missing">,
-    "rewrite": "<optimized headline, max 220 chars, use | separators, keyword-rich>",
+    "rewrite": "<optimized headline, max 220 chars, | separators, keyword-rich>",
     "checks": [
-      { "name": "Headline length", "pass": <bool>, "detail": "<specific: mention actual char count or word count>" },
-      { "name": "Hard skills present", "pass": <bool>, "detail": "<specific: name skills found or missing>" },
-      { "name": "No redundant words", "pass": <bool>, "detail": "<specific: quote actual redundant words or confirm clean>" },
-      { "name": "Job title visible", "pass": <bool>, "detail": "<is their exact title clear to a recruiter?>" },
+      { "name": "Headline length", "pass": <bool>, "detail": "<quote actual char count>" },
+      { "name": "Hard skills present", "pass": <bool>, "detail": "<name skills found or missing>" },
+      { "name": "No redundant words", "pass": <bool>, "detail": "<quote redundant words or confirm clean>" },
+      { "name": "Job title visible", "pass": <bool>, "detail": "<is the exact title clear to a recruiter?>" },
       { "name": "Value proposition", "pass": <bool>, "detail": "<does it explain WHY someone should click?>" }
     ]
   },
   "summary": {
     "score": <1-10>,
     "verdict": <"Perfect"|"Good"|"Needs Review"|"Missing">,
-    "rewrite": "<3-5 sentence About section, first person, opens with a hook, includes 2 metrics, ends with CTA>",
+    "rewrite": "<3-5 sentence About, first person, hook opener, 2 metrics, ends with CTA>",
     "checks": [
-      { "name": "Summary length", "pass": <bool>, "detail": "<mention word count; 40-300 words is ideal>" },
-      { "name": "Opens with a hook", "pass": <bool>, "detail": "<does the first sentence grab attention in 5 seconds?>" },
-      { "name": "Uses metrics", "pass": <bool>, "detail": "<quote specific numbers found or note they are missing>" },
+      { "name": "Summary length", "pass": <bool>, "detail": "<word count; 40-300 words is ideal>" },
+      { "name": "Opens with a hook", "pass": <bool>, "detail": "<does the first sentence grab in 5 seconds?>" },
+      { "name": "Uses metrics", "pass": <bool>, "detail": "<quote specific numbers found or note missing>" },
       { "name": "Hard skills mentioned", "pass": <bool>, "detail": "<list key skills present or absent>" },
       { "name": "Call to action", "pass": <bool>, "detail": "<does it end with what they want next?>" },
-      { "name": "Active voice", "pass": <bool>, "detail": "<passive voice examples if found, or confirm active>" }
+      { "name": "Active voice", "pass": <bool>, "detail": "<quote passive voice examples or confirm active>" }
     ]
   },
   "experience": {
     "score": <1-10>,
     "verdict": <"Perfect"|"Good"|"Needs Review"|"Missing">,
-    "rewrite": "<rewritten description for most recent role — 3-4 XYZ-formula bullets with strong verbs and metrics>",
+    "rewrite": null,
     "checks": [
-      { "name": "Quantified impact", "pass": <bool>, "detail": "<count how many bullets have numbers vs total>" },
-      { "name": "Strong action verbs", "pass": <bool>, "detail": "<quote weak verbs found or confirm strong openers>" },
-      { "name": "Work descriptions present", "pass": <bool>, "detail": "<are job descriptions filled in with bullets?>" },
-      { "name": "Keyword-rich job titles", "pass": <bool>, "detail": "<do titles match what recruiters search?>" },
-      { "name": "No gaps or red flags", "pass": <bool>, "detail": "<employment gaps, short stints, vague roles?>" }
+      { "name": "Career progression visible", "pass": <bool>, "detail": "<do titles show growth over time?>" },
+      { "name": "No employment gaps", "pass": <bool>, "detail": "<gaps or suspicious short stints?>" },
+      { "name": "Keyword-rich titles", "pass": <bool>, "detail": "<do titles match what recruiters search?>" }
+    ],
+    "jobs": [
+      ${experienceJobs.map((j, i) => `{
+        "company": "${j.company.replace(/"/g, '\\"')}",
+        "title": "${j.title.replace(/"/g, '\\"')}",
+        "dateRange": "${j.dateRange.replace(/"/g, '\\"')}",
+        "score": <1-10 for JOB ${i + 1}>,
+        "verdict": <"Perfect"|"Good"|"Needs Review"|"Missing">,
+        "rewrite": "<3-4 XYZ-formula bullets for JOB ${i + 1}: Strong Verb + Context + Quantified Result. Use • prefix. Based ONLY on what is actually described in JOB ${i + 1}>",
+        "checks": [
+          { "name": "Quantified impact", "pass": <bool>, "detail": "<count bullets with numbers vs total in JOB ${i + 1}>" },
+          { "name": "Strong action verbs", "pass": <bool>, "detail": "<quote weak verbs found or confirm strong openers in JOB ${i + 1}>" },
+          { "name": "Descriptions filled in", "pass": <bool>, "detail": "<are bullets present or is the role bare?>" }
+        ]
+      }`).join(",\n      ")}
     ]
   },
   "education": {
@@ -83,10 +107,10 @@ Return ONLY valid JSON matching this exact structure:
     "verdict": <"Perfect"|"Good"|"Needs Review"|"Missing">,
     "rewrite": null,
     "checks": [
-      { "name": "Education section present", "pass": <bool>, "detail": "<is education filled in?>" },
-      { "name": "Institution and degree listed", "pass": <bool>, "detail": "<do they have school name + degree?>" },
+      { "name": "Education present", "pass": <bool>, "detail": "<is education filled in?>" },
+      { "name": "Degree and institution", "pass": <bool>, "detail": "<school name + degree present?>" },
       { "name": "Dates included", "pass": <bool>, "detail": "<graduation year present?>" },
-      { "name": "Keywords in education", "pass": <bool>, "detail": "<relevant skills or activities mentioned?>" }
+      { "name": "Relevant coursework or activities", "pass": <bool>, "detail": "<any skills or activities mentioned?>" }
     ]
   },
   "other": {
@@ -94,11 +118,23 @@ Return ONLY valid JSON matching this exact structure:
     "verdict": <"Perfect"|"Good"|"Needs Review"|"Missing">,
     "rewrite": null,
     "checks": [
-      { "name": "Custom profile URL", "pass": ${hasCustomUrl === null ? "<bool based on url pattern>" : hasCustomUrl}, "detail": "${hasCustomUrl === null ? "<custom URL improves memorability>" : hasCustomUrl ? "Great — your URL is clean and custom." : "Your URL still has a random number string. Customize it at linkedin.com/public-profile/settings."}" },
-      { "name": "Profile photo", "pass": ${hasPhoto}, "detail": "${hasPhoto ? "You have a profile photo — LinkedIn shows you get 21x more views with a photo." : "No photo detected. Profiles with photos get 21x more views. Add a professional headshot."}" },
+      { "name": "Custom profile URL", "pass": ${hasCustomUrl === null ? "<bool>" : hasCustomUrl}, "detail": "${hasCustomUrl === null ? "<custom URL improves memorability and SEO>" : hasCustomUrl ? "Your URL is clean and custom — great for sharing and memorability." : "Your URL still has a random number string. Go to linkedin.com/public-profile/settings to customize it."}" },
+      { "name": "Profile photo", "pass": ${hasPhoto}, "detail": "${hasPhoto ? "Profile photo present — profiles with photos get 21x more views." : "No photo detected. Add a professional headshot — profiles with photos get 21x more views."}" },
       { "name": "Location visible", "pass": <bool>, "detail": "<is location set? Recruiters filter by location>" },
-      { "name": "Skills section present", "pass": <bool>, "detail": "<do they have a skills list?>" },
-      { "name": "Honors or awards section", "pass": <bool>, "detail": "<any certifications, awards, or publications?>" }
+      { "name": "Skills section present", "pass": <bool>, "detail": "<skills list filled in?>" },
+      { "name": "Certifications or awards", "pass": <bool>, "detail": "<any certifications, licenses, or publications?>" }
+    ]
+  },
+  "networking": {
+    "score": <1-10>,
+    "verdict": <"Perfect"|"Good"|"Needs Review"|"Missing">,
+    "rewrite": null,
+    "checks": [
+      { "name": "500+ connections", "pass": false, "detail": "Connection count isn't visible in the PDF export — aim for 500+ connections to unlock LinkedIn's full search algorithm visibility." },
+      { "name": "Recommendations received", "pass": ${recommendations ? "true" : "false"}, "detail": "${recommendations ? `Recommendations found in profile: ${recommendations.slice(0, 120)}` : "No recommendations found. Request at least 3 from managers or close colleagues — they're the #1 trust signal on LinkedIn."}" },
+      { "name": "Recommendations given", "pass": <bool>, "detail": "<have they given recommendations to others? Giving increases visibility and reciprocity>" },
+      { "name": "Skills for endorsements", "pass": <bool>, "detail": "<do they have 5+ skills listed? Endorsed skills appear in recruiter searches>" },
+      { "name": "Thought leadership signals", "pass": <bool>, "detail": "<any articles, publications, or featured content in their profile?>" }
     ]
   },
   "keywords": {
@@ -108,35 +144,46 @@ Return ONLY valid JSON matching this exact structure:
   "missingKeywords": ["<keyword (XX% of similar job postings)>", "<6 keywords with frequency data>"]
 }
 
-Scoring weights: headline 25%, summary 25%, experience 35%, education 10%, other 5%.
-overall = weighted average * 10 (so 7.5 avg → 75 overall).
-Be specific: quote actual phrases from their content when giving feedback. Generic feedback is useless.`;
+Scoring: headline 20%, summary 20%, experience 35%, education 10%, other 10%, networking 5%.
+overall = weighted average * 10.
+Be specific — quote actual phrases. Generic feedback is useless.`;
 
   const content = [
     headline   ? `HEADLINE:\n${headline}` : "HEADLINE: (not provided)",
     summary    ? `\n\nSUMMARY/ABOUT:\n${summary.slice(0, 2000)}` : "\n\nSUMMARY: (not provided)",
-    experience ? `\n\nEXPERIENCE:\n${experience.slice(0, 2000)}` : "\n\nEXPERIENCE: (not provided)",
+    `\n\nEXPERIENCE:\n${jobsText.slice(0, 3000)}`,
     education  ? `\n\nEDUCATION:\n${education}` : "\n\nEDUCATION: (not provided)",
     skills     ? `\n\nSKILLS:\n${skills}` : "",
     linkedinUrl ? `\n\nLINKEDIN URL: ${linkedinUrl}` : "",
+    recommendations ? `\n\nRECOMMENDATIONS:\n${recommendations}` : "",
   ].join("");
 
-  const messages = [
-    { role: "system" as const, content: systemPrompt },
-    { role: "user" as const, content: content },
-  ];
-
-  const reply = await openaiChat(messages, {
-    model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
-    temperature: 0.25,
-    maxTokens: 2500,
-    jsonMode: true,
-  });
+  const reply = await openaiChat(
+    [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: content },
+    ],
+    {
+      model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
+      temperature: 0.25,
+      maxTokens: 5000,
+      jsonMode: true,
+    }
+  );
 
   if (!reply) return NextResponse.json({ error: "Review failed" }, { status: 503 });
 
   try {
     const result = JSON.parse(reply);
+    // Merge original job data (company/title/dateRange) into each job in the response
+    if (Array.isArray(result.experience?.jobs)) {
+      result.experience.jobs = result.experience.jobs.map(
+        (j: Record<string, unknown>, i: number) => ({
+          ...experienceJobs[i],
+          ...j,
+        })
+      );
+    }
     return NextResponse.json(result);
   } catch {
     return NextResponse.json({ error: "Could not parse review" }, { status: 500 });

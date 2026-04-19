@@ -4,45 +4,64 @@ import { ensureSameOrigin } from "@/lib/utils";
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const pdfParse = require("pdf-parse") as (buf: Buffer) => Promise<{ text: string }>;
 
-type ParsedProfile = {
+export type ParsedJob = {
+  company: string;
+  title: string;
+  dateRange: string;
+  description: string;
+};
+
+export type ParsedProfile = {
   headline: string;
   summary: string;
-  experience: string;
+  experienceJobs: ParsedJob[];
   education: string;
   skills: string;
   linkedinUrl: string;
   hasPhoto: boolean;
+  recommendations: string;
 };
 
 async function extractSectionsWithAI(rawText: string): Promise<Omit<ParsedProfile, "hasPhoto">> {
-  const systemPrompt = `You are a LinkedIn profile parser. Given raw text extracted from a LinkedIn PDF download, extract the structured sections.
+  const systemPrompt = `You are a LinkedIn profile parser. Extract structured data from raw text taken from a LinkedIn PDF export.
 
-Return ONLY valid JSON:
+Return ONLY valid JSON matching this exact structure:
 {
-  "headline": "<the person's LinkedIn headline — the line that appears directly under their name, usually contains job title and key skills>",
-  "summary": "<the About/Summary section content — their personal pitch>",
-  "experience": "<all job entries: company, title, dates, and bullet descriptions concatenated>",
+  "headline": "<line directly under their name — job title and key skills>",
+  "summary": "<full About/Summary section>",
+  "experienceJobs": [
+    {
+      "company": "<company name>",
+      "title": "<job title>",
+      "dateRange": "<e.g. March 2023 - Present>",
+      "description": "<all bullets/descriptions for this role>"
+    }
+  ],
   "education": "<all education entries: school, degree, dates>",
-  "skills": "<skills listed in the Skills section, comma-separated>",
-  "linkedinUrl": "<linkedin.com/in/username if visible anywhere in the text, else empty string>"
+  "skills": "<comma-separated skills list>",
+  "linkedinUrl": "<linkedin.com/in/username if visible, else empty string>",
+  "recommendations": "<number and brief text of any recommendations listed, else empty string>"
 }
 
 Rules:
-- If a section is absent or you can't find it, return an empty string for that field
-- Do NOT fabricate content — only extract what's actually in the text
-- For experience: keep the full text of each role including bullets
-- The headline is typically 1-2 lines directly after the person's name at the top`;
+- Return up to 5 most recent jobs in experienceJobs (most recent first)
+- Each job must have its bullets/description separated, NOT concatenated across jobs
+- If a section is absent return empty string or empty array
+- Do NOT fabricate content — only extract what is actually present`;
 
   const reply = await openaiChat(
     [
       { role: "system", content: systemPrompt },
-      { role: "user", content: `Parse this LinkedIn profile:\n\n${rawText.slice(0, 8000)}` },
+      { role: "user", content: `Parse this LinkedIn profile:\n\n${rawText.slice(0, 9000)}` },
     ],
-    { model: "gpt-4o-mini", temperature: 0.1, maxTokens: 2000, jsonMode: true }
+    { model: "gpt-4o-mini", temperature: 0.1, maxTokens: 2500, jsonMode: true }
   );
 
   if (!reply) throw new Error("AI parsing failed");
-  return JSON.parse(reply) as Omit<ParsedProfile, "hasPhoto">;
+  const parsed = JSON.parse(reply) as Omit<ParsedProfile, "hasPhoto">;
+  // Ensure experienceJobs is always an array
+  if (!Array.isArray(parsed.experienceJobs)) parsed.experienceJobs = [];
+  return parsed;
 }
 
 export async function POST(request: Request) {
@@ -51,7 +70,6 @@ export async function POST(request: Request) {
   }
 
   const contentType = request.headers.get("content-type") ?? "";
-
   if (!contentType.includes("multipart/form-data")) {
     return NextResponse.json({ error: "File upload required" }, { status: 400 });
   }
@@ -70,8 +88,8 @@ export async function POST(request: Request) {
 
     let rawText = "";
     if (mime === "application/pdf" || name.endsWith(".pdf")) {
-      const parsed = await pdfParse(buffer);
-      rawText = parsed.text;
+      const result = await pdfParse(buffer);
+      rawText = result.text;
     } else {
       rawText = buffer.toString("utf-8");
     }

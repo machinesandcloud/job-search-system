@@ -3258,7 +3258,9 @@ function ScreenInterview({ stage }: { stage: CareerStage }) {
    SCREEN: LINKEDIN
 ═══════════════════════════════════════════════════ */
 type LICheck = { name: string; pass: boolean; detail: string };
-type LISection = { score: number; verdict: string; rewrite: string | null; checks: LICheck[] };
+type LIJob   = { company: string; title: string; dateRange: string; description?: string; score: number; verdict: string; rewrite: string | null; checks: LICheck[] };
+type LISection = { score: number; verdict: string; rewrite: string | null; checks: LICheck[]; jobs?: LIJob[] };
+type ParsedJob = { company: string; title: string; dateRange: string; description: string };
 type LinkedInResult = {
   overall: number;
   headline: LISection;
@@ -3266,24 +3268,25 @@ type LinkedInResult = {
   experience: LISection;
   education: LISection;
   other: LISection;
+  networking: LISection;
   keywords: { present: string[]; missing: string[] };
   missingKeywords: string[];
 };
 
 function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
-  type LINav = "score"|"headline"|"summary"|"experience"|"education"|"other"|"keywords";
-  const [liSection,    setLISection]    = useState<LINav>("score");
-  const [inputMode,    setInputMode]    = useState(true);
-  const [targetRole,   setTargetRole]   = useState("");
-  const [dragOver,     setDragOver]     = useState(false);
-  const [parseLoading, setParseLoading] = useState(false);
-  const [loadingMsg,   setLoadingMsg]   = useState("");
-  const [headline,     setHeadline]     = useState("");
-  const [summary,      setSummary]      = useState("");
-  const [experience,   setExperience]   = useState("");
-  const [education,    setEducation]    = useState("");
-  const [skills,       setSkills]       = useState("");
-  const [linkedinUrl,  setLinkedinUrl]  = useState("");
+  type LINav = "score"|"headline"|"summary"|"experience"|"education"|"other"|"networking"|"keywords";
+  const [liSection,      setLISection]      = useState<LINav>("score");
+  const [inputMode,      setInputMode]      = useState(true);
+  const [targetRole,     setTargetRole]     = useState("");
+  const [dragOver,       setDragOver]       = useState(false);
+  const [parseLoading,   setParseLoading]   = useState(false);
+  const [loadingMsg,     setLoadingMsg]     = useState("");
+  const [headline,       setHeadline]       = useState("");
+  const [summary,        setSummary]        = useState("");
+  const [experienceJobs, setExperienceJobs] = useState<ParsedJob[]>([]);
+  const [education,      setEducation]      = useState("");
+  const [skills,         setSkills]         = useState("");
+  const [linkedinUrl,    setLinkedinUrl]    = useState("");
   const [hasPhoto,     setHasPhoto]     = useState(false);
   const [result,       setResult]       = useState<LinkedInResult | null>(null);
   const [err,          setErr]          = useState("");
@@ -3293,7 +3296,7 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
 
   useEffect(() => {
     setInputMode(true); setResult(null); setTargetRole(""); setDragOver(false);
-    setHeadline(""); setSummary(""); setExperience(""); setEducation("");
+    setHeadline(""); setSummary(""); setExperienceJobs([]); setEducation("");
     setSkills(""); setLinkedinUrl(""); setHasPhoto(false); setErr("");
   }, [stage]);
 
@@ -3307,26 +3310,27 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
       const pr = await fetch("/api/zari/linkedin/parse-profile", { method:"POST", body:fd });
       const pd = await pr.json().catch(() => null);
       if (!pr.ok || !pd || pd.error) { setErr(pd?.error ?? "Could not read your file."); setParseLoading(false); return; }
-      const parsed = pd as { headline:string; summary:string; experience:string; education:string; skills:string; linkedinUrl:string; hasPhoto:boolean };
+      const parsed = pd as { headline:string; summary:string; experienceJobs:ParsedJob[]; education:string; skills:string; linkedinUrl:string; hasPhoto:boolean; recommendations:string };
 
       setLoadingMsg("Analyzing your profile…");
       const reviewRes = await fetch("/api/zari/linkedin/review", {
         method:"POST", headers:{"Content-Type":"application/json"},
         body: JSON.stringify({
-          headline:   parsed.headline,
-          summary:    parsed.summary,
-          experience: parsed.experience,
-          education:  parsed.education,
-          skills:     parsed.skills,
-          linkedinUrl:parsed.linkedinUrl,
-          hasPhoto:   parsed.hasPhoto,
+          headline:       parsed.headline,
+          summary:        parsed.summary,
+          experienceJobs: parsed.experienceJobs ?? [],
+          education:      parsed.education,
+          skills:         parsed.skills,
+          linkedinUrl:    parsed.linkedinUrl,
+          hasPhoto:       parsed.hasPhoto,
+          recommendations:parsed.recommendations,
           targetRole,
         }),
       });
       const data = await reviewRes.json().catch(() => null) as LinkedInResult | null;
       if (data && (data.headline || data.summary)) {
         setHeadline(parsed.headline); setSummary(parsed.summary);
-        setExperience(parsed.experience); setEducation(parsed.education);
+        setExperienceJobs(parsed.experienceJobs ?? []); setEducation(parsed.education);
         setSkills(parsed.skills); setLinkedinUrl(parsed.linkedinUrl);
         setHasPhoto(parsed.hasPhoto);
         setResult(data); setInputMode(false); setLISection("score");
@@ -3344,24 +3348,6 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
       return;
     }
     void parseAndAnalyze(f);
-  }
-
-  // Extract the first/most recent role from a concatenated experience blob
-  function extractFirstRole(text: string): string {
-    if (!text) return "";
-    // Match the start of a second job entry (date pattern preceded by a company/title line)
-    const dateRe = /(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}\s*[-–]\s*(?:(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}|Present)/gi;
-    const matches = [...text.matchAll(dateRe)];
-    if (matches.length >= 2) {
-      // Find where the second role starts — look back from second date to the last newline/separator
-      const secondIdx = matches[1].index ?? text.length;
-      const before = text.slice(0, secondIdx);
-      // Walk back to find the company name start (last double-newline or the pattern itself)
-      const cut = before.lastIndexOf("\n\n") > 0 ? before.lastIndexOf("\n\n") : before.lastIndexOf("\n");
-      return (cut > 100 ? before.slice(0, cut) : before).trim();
-    }
-    // Fallback: single role or no date pattern — return first 600 chars
-    return text.slice(0, 600).trim();
   }
 
   // ── Helpers ──
@@ -3476,20 +3462,22 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
   );
 
   // ── RESULTS STEP ──
-  type SecKey = "headline"|"summary"|"experience"|"education"|"other";
+  type SecKey = "headline"|"summary"|"experience"|"education"|"other"|"networking";
   const secData: Record<SecKey, LISection | undefined> = {
     headline:   result?.headline,
     summary:    result?.summary,
     experience: result?.experience,
     education:  result?.education,
     other:      result?.other,
+    networking: result?.networking,
   };
   const secInputs: Record<SecKey, string> = {
     headline:   headline,
     summary:    summary,
-    experience: experience,
+    experience: experienceJobs.map(j => `${j.title} @ ${j.company}\n${j.description}`).join("\n\n"),
     education:  education,
     other:      "",
+    networking: "",
   };
   const secDescriptions: Record<SecKey, string> = {
     headline:   "Your headline appears everywhere your name does — search results, connection requests, messages. It's your single most important SEO field.",
@@ -3497,6 +3485,7 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
     experience: "Recruiters verify that your experience matches your headline. Strong bullets with metrics convert views into profile visits.",
     education:  "Education signals credibility and context. Even a minimal entry improves searchability and profile completeness.",
     other:      "These profile elements affect your visibility, credibility, and how complete LinkedIn considers your profile.",
+    networking: "Your network size and social proof signals directly affect how often LinkedIn surfaces your profile to recruiters.",
   };
 
   const navItems: { id: LINav; label: string; score?: number }[] = [
@@ -3506,6 +3495,7 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
     { id:"experience", label:"Experience", score:result?.experience?.score },
     { id:"education",  label:"Education",  score:result?.education?.score },
     { id:"other",      label:"Other",      score:result?.other?.score },
+    { id:"networking", label:"Networking", score:result?.networking?.score },
     { id:"keywords",   label:"Keywords" },
   ];
 
@@ -3646,7 +3636,7 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
 
               <div style={{ background:"white", borderRadius:16, padding:"20px 22px", boxShadow:"0 2px 12px rgba(0,0,0,0.05)" }}>
                 <p style={{ fontSize:12, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:14 }}>Priority Fixes</p>
-                {(["headline","summary","experience","education","other"] as SecKey[]).filter(k => {
+                {(["headline","summary","experience","education","other","networking"] as SecKey[]).filter(k => {
                   const s = secData[k];
                   return s && s.verdict !== "Perfect" && s.verdict !== "Good";
                 }).slice(0,4).map(k => {
@@ -3666,7 +3656,7 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
                     </div>
                   );
                 })}
-                {(["headline","summary","experience","education","other"] as SecKey[]).every(k => !secData[k] || secData[k]!.verdict === "Perfect" || secData[k]!.verdict === "Good") && (
+                {(["headline","summary","experience","education","other","networking"] as SecKey[]).every(k => !secData[k] || secData[k]!.verdict === "Perfect" || secData[k]!.verdict === "Good") && (
                   <p style={{ fontSize:13.5, color:"#16A34A", fontWeight:600 }}>All sections are in good shape.</p>
                 )}
               </div>
@@ -3675,7 +3665,7 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
             {/* Full breakdown */}
             <div style={{ background:"white", borderRadius:16, padding:"20px 22px", boxShadow:"0 2px 12px rgba(0,0,0,0.05)" }}>
               <p style={{ fontSize:12, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:16 }}>Section Scores</p>
-              {(["headline","summary","experience","education","other"] as SecKey[]).map(k => {
+              {(["headline","summary","experience","education","other","networking"] as SecKey[]).map(k => {
                 const s = secData[k];
                 if (!s) return null;
                 return (
@@ -3697,8 +3687,8 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
           </>
         )}
 
-        {/* SECTION DETAIL */}
-        {activeSec && activeSecKey && (
+        {/* SECTION DETAIL — non-experience, non-networking */}
+        {activeSec && activeSecKey && activeSecKey !== "experience" && activeSecKey !== "networking" && (
           <>
             {/* Section header */}
             <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:20, marginBottom:20 }}>
@@ -3739,27 +3729,16 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
             {/* AI Coach — only for sections that have a rewrite */}
             {activeSec.rewrite && (
               <div style={{ background:"white", borderRadius:16, padding:"20px 22px", boxShadow:"0 2px 10px rgba(0,0,0,0.05)" }}>
-                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16 }}>
                   <div style={{ width:28, height:28, borderRadius:8, background:"linear-gradient(135deg,#667EEA,#764BA2)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                     <svg viewBox="0 0 16 16" fill="white" style={{width:14,height:14}}><path d="M8 1l1.5 3.5L13 6l-2.5 2.5.5 3.5L8 10.5 5 12l.5-3.5L3 6l3.5-1.5L8 1z"/></svg>
                   </div>
-                  <div>
-                    <p style={{ fontSize:15, fontWeight:800, color:"#0F172A" }}>AI Coach — Suggested Rewrite</p>
-                    {activeSecKey==="experience" && (
-                      <p style={{ fontSize:11.5, color:"#94A3B8", marginTop:1 }}>Rewriting your most recent role — replace the bullets in your LinkedIn profile</p>
-                    )}
-                  </div>
+                  <p style={{ fontSize:15, fontWeight:800, color:"#0F172A" }}>AI Coach — Suggested Rewrite</p>
                 </div>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginTop:16 }}>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                   <div style={{ background:"#FAFBFF", borderRadius:12, padding:"14px 16px", border:"1px solid #E8EDF5" }}>
-                    <p style={{ fontSize:10.5, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>
-                      {activeSecKey==="experience" ? "Your most recent role (current)" : "Current"}
-                    </p>
-                    <p style={{ fontSize:13, color:"#475569", lineHeight:1.7, whiteSpace:"pre-wrap" }}>
-                      {activeSecKey==="experience"
-                        ? extractFirstRole(secInputs[activeSecKey]) || "(not provided)"
-                        : secInputs[activeSecKey] || "(not provided)"}
-                    </p>
+                    <p style={{ fontSize:10.5, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Current</p>
+                    <p style={{ fontSize:13, color:"#475569", lineHeight:1.7, whiteSpace:"pre-wrap" }}>{secInputs[activeSecKey] || "(not provided)"}</p>
                   </div>
                   <div style={{ background:"linear-gradient(160deg,#F0FFF8,#F0F7FF)", borderRadius:12, padding:"14px 16px", border:"1px solid #C6F0DC" }}>
                     <p style={{ fontSize:10.5, fontWeight:800, color:"#0077B5", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Zari&apos;s Rewrite</p>
@@ -3775,6 +3754,134 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
                 </div>
               </div>
             )}
+          </>
+        )}
+
+        {/* EXPERIENCE — per-job cards */}
+        {liSection === "experience" && result?.experience && (
+          <>
+            <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:20, marginBottom:20 }}>
+              <div>
+                <h2 style={{ fontSize:22, fontWeight:900, color:"#0F172A", letterSpacing:"-0.03em", marginBottom:5 }}>Experience</h2>
+                <p style={{ fontSize:13.5, color:"#64748B", lineHeight:1.6, maxWidth:480 }}>{secDescriptions.experience}</p>
+              </div>
+              <div style={{ flexShrink:0, textAlign:"center" }}>
+                <div style={{ position:"relative", width:74, height:74 }}>
+                  <svg width={74} height={74} viewBox="0 0 74 74">
+                    <circle cx={37} cy={37} r={29} fill="none" stroke="#F1F5F9" strokeWidth={7}/>
+                    <circle cx={37} cy={37} r={29} fill="none" stroke={scoreColor(result.experience.score)} strokeWidth={7} strokeLinecap="round"
+                      strokeDasharray={2*Math.PI*29} strokeDashoffset={2*Math.PI*29*(1-result.experience.score/10)} transform="rotate(-90 37 37)"/>
+                  </svg>
+                  <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
+                    <span style={{ fontSize:21, fontWeight:900, color:scoreColor(result.experience.score), lineHeight:1 }}>{result.experience.score}</span>
+                    <span style={{ fontSize:8, color:"#94A3B8" }}>/ 10</span>
+                  </div>
+                </div>
+                <span style={{ fontSize:11, fontWeight:700, padding:"3px 10px", borderRadius:99, background:verdictBg(result.experience.verdict), color:verdictColor(result.experience.verdict), display:"inline-block", marginTop:5 }}>
+                  {result.experience.verdict}
+                </span>
+              </div>
+            </div>
+
+            {/* Overall experience checks */}
+            {result.experience.checks.length > 0 && (
+              <div style={{ background:"white", borderRadius:16, padding:"20px 22px", marginBottom:16, boxShadow:"0 2px 10px rgba(0,0,0,0.05)" }}>
+                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
+                  <p style={{ fontSize:12, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.07em" }}>Overall Checks</p>
+                  <div style={{ display:"flex", gap:10, fontSize:11.5, fontWeight:600 }}>
+                    <span style={{ color:"#16A34A" }}>✓ {result.experience.checks.filter(c=>c.pass).length} passed</span>
+                    <span style={{ color:"#DC2626" }}>✗ {result.experience.checks.filter(c=>!c.pass).length} failed</span>
+                  </div>
+                </div>
+                {renderChecks(result.experience.checks)}
+              </div>
+            )}
+
+            {/* Per-job cards */}
+            {(result.experience.jobs ?? []).map((job, ji) => (
+              <div key={ji} style={{ background:"white", borderRadius:16, padding:"20px 22px", marginBottom:14, boxShadow:"0 2px 10px rgba(0,0,0,0.05)", border:`1px solid ${scoreBg(job.score)}` }}>
+                {/* Job header */}
+                <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12, marginBottom:14 }}>
+                  <div style={{ flex:1 }}>
+                    <p style={{ fontSize:15, fontWeight:800, color:"#0F172A", marginBottom:2 }}>{job.title}</p>
+                    <p style={{ fontSize:13, color:"#0077B5", fontWeight:600 }}>{job.company}</p>
+                    <p style={{ fontSize:11.5, color:"#94A3B8", marginTop:2 }}>{job.dateRange}</p>
+                  </div>
+                  <div style={{ textAlign:"center", flexShrink:0 }}>
+                    <div style={{ width:44, height:44, borderRadius:12, background:scoreBg(job.score), display:"flex", alignItems:"center", justifyContent:"center", marginBottom:4 }}>
+                      <span style={{ fontSize:16, fontWeight:900, color:scoreColor(job.score) }}>{job.score}</span>
+                    </div>
+                    <span style={{ fontSize:10, fontWeight:700, padding:"2px 8px", borderRadius:99, background:verdictBg(job.verdict), color:verdictColor(job.verdict) }}>{job.verdict}</span>
+                  </div>
+                </div>
+
+                {/* Job checks */}
+                <div style={{ marginBottom: job.rewrite ? 14 : 0 }}>
+                  <p style={{ fontSize:11, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:8 }}>Checks</p>
+                  {renderChecks(job.checks)}
+                </div>
+
+                {/* Job rewrite */}
+                {job.rewrite && (
+                  <div style={{ marginTop:14, borderTop:"1px solid #F1F5F9", paddingTop:14 }}>
+                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                        <div style={{ width:22, height:22, borderRadius:6, background:"linear-gradient(135deg,#667EEA,#764BA2)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                          <svg viewBox="0 0 16 16" fill="white" style={{width:11,height:11}}><path d="M8 1l1.5 3.5L13 6l-2.5 2.5.5 3.5L8 10.5 5 12l.5-3.5L3 6l3.5-1.5L8 1z"/></svg>
+                        </div>
+                        <p style={{ fontSize:12.5, fontWeight:800, color:"#0F172A" }}>Zari&apos;s Rewrite</p>
+                      </div>
+                      <button onClick={()=>{ try { void navigator.clipboard.writeText(job.rewrite ?? ""); } catch { /**/ } }}
+                        style={{ fontSize:11.5, fontWeight:700, padding:"6px 14px", borderRadius:8, border:"none", background:"#0077B5", color:"white", cursor:"pointer", display:"flex", alignItems:"center", gap:6 }}>
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:11,height:11}}><rect x="5" y="2" width="9" height="12" rx="2"/><path d="M3 4H2a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1v-1"/></svg>
+                        Copy
+                      </button>
+                    </div>
+                    <div style={{ background:"linear-gradient(160deg,#F0FFF8,#F0F7FF)", borderRadius:12, padding:"14px 16px", border:"1px solid #C6F0DC" }}>
+                      <p style={{ fontSize:13, color:"#0F172A", lineHeight:1.8, fontWeight:500, whiteSpace:"pre-wrap" }}>{job.rewrite}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </>
+        )}
+
+        {/* NETWORKING */}
+        {liSection === "networking" && result?.networking && (
+          <>
+            <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:20, marginBottom:20 }}>
+              <div>
+                <h2 style={{ fontSize:22, fontWeight:900, color:"#0F172A", letterSpacing:"-0.03em", marginBottom:5 }}>Networking</h2>
+                <p style={{ fontSize:13.5, color:"#64748B", lineHeight:1.6, maxWidth:480 }}>{secDescriptions.networking}</p>
+              </div>
+              <div style={{ flexShrink:0, textAlign:"center" }}>
+                <div style={{ position:"relative", width:74, height:74 }}>
+                  <svg width={74} height={74} viewBox="0 0 74 74">
+                    <circle cx={37} cy={37} r={29} fill="none" stroke="#F1F5F9" strokeWidth={7}/>
+                    <circle cx={37} cy={37} r={29} fill="none" stroke={scoreColor(result.networking.score)} strokeWidth={7} strokeLinecap="round"
+                      strokeDasharray={2*Math.PI*29} strokeDashoffset={2*Math.PI*29*(1-result.networking.score/10)} transform="rotate(-90 37 37)"/>
+                  </svg>
+                  <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
+                    <span style={{ fontSize:21, fontWeight:900, color:scoreColor(result.networking.score), lineHeight:1 }}>{result.networking.score}</span>
+                    <span style={{ fontSize:8, color:"#94A3B8" }}>/ 10</span>
+                  </div>
+                </div>
+                <span style={{ fontSize:11, fontWeight:700, padding:"3px 10px", borderRadius:99, background:verdictBg(result.networking.verdict), color:verdictColor(result.networking.verdict), display:"inline-block", marginTop:5 }}>
+                  {result.networking.verdict}
+                </span>
+              </div>
+            </div>
+            <div style={{ background:"white", borderRadius:16, padding:"20px 22px", boxShadow:"0 2px 10px rgba(0,0,0,0.05)" }}>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
+                <p style={{ fontSize:12, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.07em" }}>Networking Signals</p>
+                <div style={{ display:"flex", gap:10, fontSize:11.5, fontWeight:600 }}>
+                  <span style={{ color:"#16A34A" }}>✓ {result.networking.checks.filter(c=>c.pass).length} passed</span>
+                  <span style={{ color:"#DC2626" }}>✗ {result.networking.checks.filter(c=>!c.pass).length} failed</span>
+                </div>
+              </div>
+              {renderChecks(result.networking.checks)}
+            </div>
           </>
         )}
 
@@ -3876,17 +3983,33 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
           </div>); })()}
 
           {/* Experience section */}
-          {(()=>{ const [exp, setExp] = useState(false); const txt = previewTab==="current" ? experience : (result?.experience?.rewrite || experience); const long = txt && txt.length > 200; return (
           <div style={{ border:"1px solid #E8EDF5", borderRadius:12, padding:"12px 12px", background:"white" }}>
-            <p style={{ fontSize:10.5, fontWeight:800, color:"#0F172A", marginBottom:6 }}>Experience</p>
-            <p style={{ fontSize:11.5, color:"#475569", lineHeight:1.65, whiteSpace:"pre-wrap", ...(!exp && long ? { maxHeight:110, overflow:"hidden" } : {}) }}>
-              {txt || <span style={{color:"#CBD5E1",fontStyle:"italic"}}>Your experience…</span>}
-            </p>
-            {long && <button onClick={()=>setExp(!exp)} style={{ fontSize:10.5, fontWeight:700, color:"#0077B5", background:"none", border:"none", padding:"4px 0 0", cursor:"pointer" }}>{exp?"Show less ↑":"Show more ↓"}</button>}
-            {previewTab==="rewritten" && result?.experience?.rewrite && (
-              <p style={{ fontSize:10, color:"#16A34A", fontWeight:700, marginTop:4 }}>✓ Optimized by Zari</p>
+            <p style={{ fontSize:10.5, fontWeight:800, color:"#0F172A", marginBottom:8 }}>Experience</p>
+            {experienceJobs.length === 0 && (
+              <p style={{ fontSize:11.5, color:"#CBD5E1", fontStyle:"italic" }}>Your experience…</p>
             )}
-          </div>); })()}
+            {experienceJobs.map((job, ji) => {
+              const rewrittenJob = previewTab === "rewritten" ? (result?.experience?.jobs ?? [])[ji] : null;
+              return (
+                <div key={ji} style={{ marginBottom: ji < experienceJobs.length - 1 ? 10 : 0, paddingBottom: ji < experienceJobs.length - 1 ? 10 : 0, borderBottom: ji < experienceJobs.length - 1 ? "1px solid #F1F5F9" : "none" }}>
+                  <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:6 }}>
+                    <div>
+                      <p style={{ fontSize:11.5, fontWeight:700, color:"#0F172A" }}>{job.title}</p>
+                      <p style={{ fontSize:10.5, color:"#0077B5", fontWeight:600 }}>{job.company}</p>
+                      <p style={{ fontSize:10, color:"#94A3B8" }}>{job.dateRange}</p>
+                    </div>
+                    {rewrittenJob && <span style={{ fontSize:9, fontWeight:700, padding:"2px 6px", borderRadius:99, background:"#DCFCE7", color:"#16A34A", flexShrink:0, marginTop:2 }}>Optimized</span>}
+                  </div>
+                  {rewrittenJob?.rewrite && (
+                    <p style={{ fontSize:10.5, color:"#475569", lineHeight:1.6, marginTop:5, whiteSpace:"pre-wrap" }}>{rewrittenJob.rewrite}</p>
+                  )}
+                  {!rewrittenJob && job.description && (
+                    <p style={{ fontSize:10.5, color:"#475569", lineHeight:1.6, marginTop:5, whiteSpace:"pre-wrap", maxHeight:70, overflow:"hidden" }}>{job.description}</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
