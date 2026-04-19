@@ -28,28 +28,29 @@ export async function POST(request: Request) {
   }
 
   const jobContext = jobDescription
-    ? `Target job description:\n${jobDescription.slice(0, 1500)}`
+    ? `Target job description:\n${jobDescription.slice(0, 2500)}`
     : targetRole
     ? `Target role: "${targetRole}"`
     : "";
 
   const modeInstructions: Record<string, string> = {
-    refine: `The user wants a better version of the AI's suggested rewrite. Make it stronger, more specific, and more natural-sounding. Keep the core facts but tighten the language and punch up the impact.`,
-    describe: `The user has described what they actually did. Write a polished XYZ-formula bullet from their description: [Strong Action Verb] + [Skill/Context with specifics] + [Quantified Result]. If they didn't provide a metric, write a placeholder like "[X%]" or "[number] [units]" so they can fill it in. Sound like a real professional, not a template.`,
-    variations: `Generate exactly 3 meaningfully different bullet rewrites. Each one should use a completely different opening verb, different angle on the impact, and different structure. Number them 1., 2., 3. Return them as a single string with each bullet on its own line.`,
+    refine: `The user wants a stronger version of the AI's suggested rewrite. Don't just swap synonyms — find a better verb, tighten the structure, and make the metric or impact crisper. The result should be noticeably better, not marginally different.`,
+    describe: `The user has described what they actually did in plain language. Write a polished XYZ-formula bullet: [Strong Action Verb] + [Skill/Context with specifics] + [Quantified Result]. If they didn't provide a metric, write a realistic placeholder like "[X%]", "[N users]", or "[$Xk]" so they can fill it in. Sound like a real professional, not a template. Never inflate beyond what they described.`,
+    variations: `Generate exactly 3 meaningfully different bullet rewrites. Variation 1: lead with a leadership/strategy verb (Spearheaded, Architected, Directed). Variation 2: lead with an efficiency/outcome verb (Reduced, Automated, Streamlined). Variation 3: lead with a growth/scale verb (Scaled, Grew, Drove). Each must have a different structure and different angle on the impact. Number them 1., 2., 3. Return them as a single string with each bullet on its own line.`,
   };
 
   const systemPrompt = `You are Zari, an expert resume writer. You specialize in XYZ-formula bullets: [Strong Action Verb] + [Skill/Context] + [Quantified Result].
 
-${jobContext ? `${jobContext}\n\n` : ""}Resume context (to understand this person's background):
-${resumeText.slice(0, 2000)}
+${jobContext ? `${jobContext}\n\n` : ""}Resume context (to understand this person's background and seniority):
+${resumeText.slice(0, 3500)}
 
 Rules:
-- Strong verbs only: Built, Architected, Led, Drove, Scaled, Reduced, Automated, Shipped, Grew, Spearheaded — never "Responsible for", "Helped", "Worked with"
-- Include a quantified metric wherever possible (%, $, time saved, volume, team size)
-- Sound like a real person wrote this — not a resume template
-- Keep bullets to 1-2 lines
-- Do NOT invent experience the person clearly doesn't have
+- Strong verbs only: Built, Architected, Led, Drove, Scaled, Reduced, Automated, Shipped, Grew, Spearheaded, Deployed, Launched, Optimized, Directed, Designed — never "Responsible for", "Helped", "Worked with", "Assisted", "Supported"
+- No passive voice ("was deployed", "were managed") — bullets must start with the person as the active subject
+- Include a quantified metric wherever possible (%, $, time saved, volume, team size, headcount)
+- Sound like a real person wrote this — not a resume template or AI fill-in-the-blank
+- Keep bullets to 1-2 lines max
+- Never invent experience the person clearly doesn't have based on the resume context
 
 Mode: ${modeInstructions[mode] ?? modeInstructions.refine}
 
@@ -67,9 +68,9 @@ Return ONLY valid JSON: { "bullets": ["<bullet 1>", "<bullet 2 if variations mod
   ];
 
   const reply = await openaiChat(messages, {
-    model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
-    temperature: 0.65,
-    maxTokens: 400,
+    model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
+    temperature: mode === "variations" ? 0.75 : 0.6,
+    maxTokens: 600,
     jsonMode: true,
   });
 

@@ -97,21 +97,30 @@ BULLET POINT RULES (XYZ formula):
 - 60-70% of bullets MUST include a quantified metric (%, $, time, volume, team size)
 - The first bullet under each role gets 3.5x more recruiter attention — it must be the strongest achievement
 - Vary verbs — never use the same verb twice in one role's bullets
-- Weak verbs to flag as critical: "Responsible for", "Helped", "Assisted", "Participated in", "Worked with"
+- Weak verbs to flag as critical: "Responsible for", "Helped", "Assisted", "Participated in", "Worked with", "Supported", "Handled", "Involved in", "Engaged with", "Contributed to"
+- Passive voice to flag: "was responsible", "was tasked", "were deployed", "was involved", "was assigned", "is responsible" — passive voice signals low ownership even with otherwise strong bullets
 - Strong verbs by category:
-  Leadership: Spearheaded, Orchestrated, Directed, Mentored, Championed, Delegated
-  Growth: Scaled, Grew, Expanded, Launched, Drove, Boosted, Accelerated
-  Efficiency: Optimized, Streamlined, Reduced, Cut, Automated, Eliminated
-  Engineering/Build: Built, Architected, Engineered, Shipped, Deployed, Designed
-  Analysis: Analyzed, Assessed, Quantified, Identified, Diagnosed
+  Leadership: Spearheaded, Orchestrated, Directed, Mentored, Championed, Delegated, Recruited, Aligned
+  Growth: Scaled, Grew, Expanded, Launched, Drove, Boosted, Accelerated, Captured, Generated
+  Efficiency: Optimized, Streamlined, Reduced, Cut, Automated, Eliminated, Consolidated, Accelerated
+  Engineering/Build: Built, Architected, Engineered, Shipped, Deployed, Designed, Migrated, Integrated
+  Analysis: Analyzed, Assessed, Quantified, Identified, Diagnosed, Modeled, Forecasted
+  Strategy: Defined, Established, Implemented, Overhauled, Pioneered, Transformed
 - Keep bullets to 1-2 lines max. Wall-of-text bullets get skipped in the 7-second scan.
+
+INDIVIDUAL BULLET SCORING RUBRIC (use when setting oldScore and newScore):
+- 85-100: Strong verb + specific context + quantified result with real number (%, $, users, time, scale)
+- 70-84: Strong verb + good context, but metric is missing or very vague ("significantly", "dramatically")
+- 50-69: Weak verb OR no real outcome stated (task description without result)
+- 25-49: Passive language OR "responsible for" type phrasing AND no quantified outcome
+- 0-24: No verb, pure description, or completely generic ("Worked on various projects")
 
 PROFESSIONAL SUMMARY RULES:
 - Formula: [Role] with [X years] + [2-3 key skills tied to target role] + [1+ quantified achievement]
 - Must include at least ONE metric (%, $, time saved, scale)
 - 3-5 lines maximum
 - In targeted mode: the summary must speak DIRECTLY to what the job description is asking for — lead with the top 2-3 requirements from the JD
-- Ban these words: "results-driven", "detail-oriented", "team player", "passionate", "dynamic", "go-getter", "self-motivated" — meaningless on every resume
+- Ban these words: "results-driven", "detail-oriented", "team player", "passionate", "dynamic", "go-getter", "self-motivated", "seasoned", "thought leader", "innovative", "proactive", "synergy", "leverage" (as a verb), "proven track record", "self-starter", "hardworking", "dedicated professional", "fast learner" — meaningless on every resume
 - Summaries with metrics get 340% more interview callbacks than generic ones
 
 READABILITY & FORMAT:
@@ -201,7 +210,7 @@ Return ONLY a valid JSON object with exactly this structure:
   "ats": <number 0-100, use the hard threshold rubric above>,
   "impact": <number 0-100, use the hard threshold rubric above>,
   "clarity": <number 0-100, use the hard threshold rubric above>,
-  "tailoredScore": <ONLY in targeted mode: number 0-100 measuring how well-positioned this resume is for THIS specific job. Score based on: title alignment (20%), skills coverage (35%), experience level match (25%), industry/domain match (20%). A lab technician applying for CTO should score 5-15. A senior engineer with all required skills applying for an engineering manager role should score 75-85. OMIT this field entirely in general mode — do not include it at all.>,
+  "tailoredScore": <ONLY in targeted mode: number 0-100 measuring how well-positioned this resume is for THIS specific job. Score formula: title/seniority alignment (20%) + required skills coverage (35%) + years of experience match (25%) + industry/domain match (20%). Calibrate strictly: title is completely different=0-5pts; adjacent title=10-15pts; same title=18-20pts. Skills: count required skills present / total required skills × 35. Experience: off by 3+ years=0-10pts; within 2 years=20-25pts; perfect match=25pts. Domain: different industry=0-5pts; adjacent=10-15pts; same=18-20pts. Sum the components. Do NOT conflate enthusiasm or transferable skills with actual alignment — be honest. A lab technician applying for CTO should score 5-15. A senior engineer with all required skills applying for an engineering manager role at the same seniority should score 75-85. OMIT this field entirely in general mode — do not include it at all.>,
   "bulletStats": {
     "total": <exact count of all bullet points in the resume>,
     "withMetrics": <count of bullets containing a number, %, $, time period, or other quantified result>,
@@ -294,26 +303,27 @@ Return ONLY a valid JSON object with exactly this structure:
 }
 
 FINDINGS CATEGORY DEFINITIONS (assign the most accurate one):
-- weak_verbs: bullets starting with "Responsible for", "Helped", "Assisted", "Participated", "Worked with", or passive language
-- quantify_impact: bullets that describe tasks but lack any metric (%, $, time, volume, team size)
-- summary: issues with the professional summary (missing, generic adjectives, no metric, too long)
+- weak_verbs: bullets starting with "Responsible for", "Helped", "Assisted", "Participated", "Worked with", "Supported", "Handled", "Contributed to"
+- passive_voice: bullets using passive construction ("was deployed", "were managed", "is responsible for") — passive signals low ownership
+- quantify_impact: bullets that describe tasks but lack any metric (%, $, time, volume, team size, headcount)
+- summary: issues with the professional summary (missing, generic adjectives, no metric, too long, too generic)
 - ats_keywords: missing keywords from the JD, non-standard section names, ATS formatting issues
-- repetition: same verb, phrase, or concept used multiple times
-- readability: bullets over 2 lines, inconsistent tense/dates, formatting inconsistencies
-- dates: missing dates, inconsistent date formats, unexplained gaps
-- unnecessary_words: filler phrases, redundant context, bloat that doesn't add value
-- contact: contact information issues (missing, wrong format, in header/footer)
-- format: tables, graphics, columns, fonts that break ATS parsing
+- repetition: same verb, phrase, or concept used multiple times across the resume
+- readability: bullets over 2 lines, inconsistent tense/dates, formatting inconsistencies, wall of text
+- dates: missing dates, inconsistent date formats, unexplained gaps over 3 months
+- unnecessary_words: filler phrases ("various", "multiple", "several", "and more"), redundant context, bloat
+- contact: contact information issues (missing, wrong format, outdated, in header/footer only)
+- format: tables, graphics, columns, fonts, text boxes that break ATS parsing
 
 KEYWORDS INSTRUCTION: ${hasJobContext
   ? `Extract the 15-20 most critical keywords from the job description. Apply STRICT matching (see keyword rules above). For a highly mismatched resume (e.g., lab technician applying for CTO), you should have 12-18 keywords marked found=false — that is correct and honest. Required = explicitly stated as required/must-have in JD. Preferred = everything else.`
   : "Return an empty array [] — no job description provided."}
 
-BULLETS INSTRUCTION: Include ALL bullets from the resume that score below 72 — not just 3. This is a complete line-by-line audit. If 8 bullets need work, return all 8. Maximum 12. For each bullet include the difficulty field: easy = fix in under 5 min by swapping a verb or adding a metric placeholder; medium = needs restructuring; hard = needs the person to recall specific numbers they don't have in the text.
+BULLETS INSTRUCTION: Score every bullet using the individual bullet scoring rubric above. Include ALL bullets scoring below 72 — this is a complete audit, not a sample. If more than 12 score below 72, return the 12 with the LOWEST oldScore (worst bullets first). Maximum 12. Difficulty: easy = swap verb or add metric placeholder (under 5 min); medium = restructure the core thought; hard = person needs to recall specific numbers not present in the text. Every "before" must be the verbatim text from the resume — do not paraphrase or combine bullets.
 
 QUICK WINS INSTRUCTION: Return exactly 3 quick wins. Rank by: highest improvement to score / least effort. Be ruthlessly specific — name the exact section or bullet. Include the right tab so we can link to it.
 
-WORD ISSUES INSTRUCTION: Scan the full resume text. Report any word or phrase that: (a) appears 3+ times, (b) is on the banned-adjective list ("results-driven", "passionate", "detail-oriented", "team player", "go-getter", "dynamic", "motivated"), or (c) is a weak verb used multiple times. Count exact occurrences. Only report real problems — don't invent issues for a clean resume.
+WORD ISSUES INSTRUCTION: Scan the full resume text. Report any word or phrase that: (a) appears 3+ times across the resume (repetition), (b) is on the banned-adjective list ("results-driven", "passionate", "detail-oriented", "team player", "go-getter", "dynamic", "motivated", "seasoned", "innovative", "proactive", "thought leader", "synergy", "leverage"), or (c) is a weak verb ("responsible for", "helped", "assisted", "worked with", "supported") used multiple times. Count exact occurrences. Only report real problems — a single use of a weak verb is a bullet issue, not a word issue. A word issue means a systemic pattern.
 
 SECTION SCORES INSTRUCTION: Score each major section found in the resume. If a section is missing, mark present=false and score=0. Verdict must be one specific label, not a full sentence — it's used as a badge.
 
@@ -327,7 +337,7 @@ Voice rules:
 
   const messages = [
     { role: "system" as const, content: systemPrompt },
-    { role: "user" as const, content: `Analyze this resume:\n\n${resumeText.slice(0, 4500)}` },
+    { role: "user" as const, content: `Analyze this resume:\n\n${resumeText.slice(0, 6500)}` },
   ];
 
   const reply = await openaiChat(messages, {
@@ -343,6 +353,15 @@ Voice rules:
 
   try {
     const result = JSON.parse(reply) as { overall: number; ats: number; impact: number; clarity: number; [key: string]: unknown };
+
+    // Server-side: always recalculate overall from components to guarantee formula consistency
+    const ats     = Math.min(100, Math.max(0, Math.round(result.ats     as number)));
+    const impact  = Math.min(100, Math.max(0, Math.round(result.impact  as number)));
+    const clarity = Math.min(100, Math.max(0, Math.round(result.clarity as number)));
+    result.ats     = ats;
+    result.impact  = impact;
+    result.clarity = clarity;
+    result.overall = Math.min(100, Math.max(0, Math.round(impact * 0.35 + ats * 0.30 + clarity * 0.35)));
 
     // Persist score to history and fetch previous for delta display
     let previousScores: { overall: number; ats: number; impact: number; clarity: number } | null = null;
