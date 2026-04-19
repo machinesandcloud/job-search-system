@@ -3293,6 +3293,7 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
   const [previewTab,   setPreviewTab]   = useState<"current"|"rewritten">("current");
   const [expandedCheck,setExpandedCheck]= useState<number | null>(null);
   const [aboutExpanded, setAboutExpanded] = useState(false);
+  const [jobsExpanded, setJobsExpanded] = useState<Record<number,boolean>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -3800,9 +3801,9 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
 
             {/* Per-job cards */}
             {(result.experience.jobs ?? []).map((job, ji) => (
-              <div key={ji} style={{ background:"white", borderRadius:16, padding:"20px 22px", marginBottom:14, boxShadow:"0 2px 10px rgba(0,0,0,0.05)", border:`1px solid ${scoreBg(job.score)}` }}>
+              <div key={ji} style={{ background:"white", borderRadius:16, padding:"20px 22px", marginBottom:14, boxShadow:"0 2px 10px rgba(0,0,0,0.05)" }}>
                 {/* Job header */}
-                <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12, marginBottom:14 }}>
+                <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12, marginBottom:16 }}>
                   <div style={{ flex:1 }}>
                     <p style={{ fontSize:15, fontWeight:800, color:"#0F172A", marginBottom:2 }}>{job.title}</p>
                     <p style={{ fontSize:13, color:"#0077B5", fontWeight:600 }}>{job.company}</p>
@@ -3817,29 +3818,38 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
                 </div>
 
                 {/* Job checks */}
-                <div style={{ marginBottom: job.rewrite ? 14 : 0 }}>
+                <div style={{ marginBottom:16 }}>
                   <p style={{ fontSize:11, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:8 }}>Checks</p>
                   {renderChecks(job.checks)}
                 </div>
 
-                {/* Job rewrite */}
+                {/* AI Coach — Current vs Rewrite */}
                 {job.rewrite && (
-                  <div style={{ marginTop:14, borderTop:"1px solid #F1F5F9", paddingTop:14 }}>
-                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                        <div style={{ width:22, height:22, borderRadius:6, background:"linear-gradient(135deg,#667EEA,#764BA2)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                          <svg viewBox="0 0 16 16" fill="white" style={{width:11,height:11}}><path d="M8 1l1.5 3.5L13 6l-2.5 2.5.5 3.5L8 10.5 5 12l.5-3.5L3 6l3.5-1.5L8 1z"/></svg>
-                        </div>
-                        <p style={{ fontSize:12.5, fontWeight:800, color:"#0F172A" }}>Zari&apos;s Rewrite</p>
+                  <div style={{ borderTop:"1px solid #F1F5F9", paddingTop:16 }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
+                      <div style={{ width:24, height:24, borderRadius:7, background:"linear-gradient(135deg,#667EEA,#764BA2)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                        <svg viewBox="0 0 16 16" fill="white" style={{width:12,height:12}}><path d="M8 1l1.5 3.5L13 6l-2.5 2.5.5 3.5L8 10.5 5 12l.5-3.5L3 6l3.5-1.5L8 1z"/></svg>
                       </div>
-                      <button onClick={()=>{ try { void navigator.clipboard.writeText(job.rewrite ?? ""); } catch { /**/ } }}
-                        style={{ fontSize:11.5, fontWeight:700, padding:"6px 14px", borderRadius:8, border:"none", background:"#0077B5", color:"white", cursor:"pointer", display:"flex", alignItems:"center", gap:6 }}>
-                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:11,height:11}}><rect x="5" y="2" width="9" height="12" rx="2"/><path d="M3 4H2a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1v-1"/></svg>
-                        Copy
-                      </button>
+                      <p style={{ fontSize:14, fontWeight:800, color:"#0F172A" }}>AI Coach — Suggested Rewrite</p>
                     </div>
-                    <div style={{ background:"linear-gradient(160deg,#F0FFF8,#F0F7FF)", borderRadius:12, padding:"14px 16px", border:"1px solid #C6F0DC" }}>
-                      <p style={{ fontSize:13, color:"#0F172A", lineHeight:1.8, fontWeight:500, whiteSpace:"pre-wrap" }}>{job.rewrite}</p>
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                      <div style={{ background:"#FAFBFF", borderRadius:12, padding:"14px 16px", border:"1px solid #E8EDF5" }}>
+                        <p style={{ fontSize:10.5, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Current</p>
+                        <p style={{ fontSize:13, color:"#475569", lineHeight:1.7, whiteSpace:"pre-wrap" }}>
+                          {(experienceJobs[ji]?.description) || "(not provided)"}
+                        </p>
+                      </div>
+                      <div style={{ background:"linear-gradient(160deg,#F0FFF8,#F0F7FF)", borderRadius:12, padding:"14px 16px", border:"1px solid #C6F0DC" }}>
+                        <p style={{ fontSize:10.5, fontWeight:800, color:"#0077B5", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Zari&apos;s Rewrite</p>
+                        <p style={{ fontSize:13, color:"#0F172A", lineHeight:1.7, fontWeight:500, whiteSpace:"pre-wrap" }}>{job.rewrite}</p>
+                      </div>
+                    </div>
+                    <div style={{ marginTop:12 }}>
+                      <button onClick={()=>{ try { void navigator.clipboard.writeText(job.rewrite ?? ""); } catch { /**/ } }}
+                        style={{ fontSize:13, fontWeight:700, padding:"10px 20px", borderRadius:10, border:"none", background:"#0077B5", color:"white", cursor:"pointer", boxShadow:"0 4px 14px rgba(0,119,181,0.3)", display:"flex", alignItems:"center", gap:7 }}>
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13}}><rect x="5" y="2" width="9" height="12" rx="2"/><path d="M3 4H2a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1v-1"/></svg>
+                        Copy rewrite
+                      </button>
                     </div>
                   </div>
                 )}
@@ -3991,6 +4001,9 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
             )}
             {experienceJobs.map((job, ji) => {
               const rewrittenJob = previewTab === "rewritten" ? (result?.experience?.jobs ?? [])[ji] : null;
+              const descText = rewrittenJob?.rewrite || job.description || "";
+              const isLong = descText.length > 150;
+              const isExp = !!jobsExpanded[ji];
               return (
                 <div key={ji} style={{ marginBottom: ji < experienceJobs.length - 1 ? 10 : 0, paddingBottom: ji < experienceJobs.length - 1 ? 10 : 0, borderBottom: ji < experienceJobs.length - 1 ? "1px solid #F1F5F9" : "none" }}>
                   <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:6 }}>
@@ -4001,11 +4014,18 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
                     </div>
                     {rewrittenJob && <span style={{ fontSize:9, fontWeight:700, padding:"2px 6px", borderRadius:99, background:"#DCFCE7", color:"#16A34A", flexShrink:0, marginTop:2 }}>Optimized</span>}
                   </div>
-                  {rewrittenJob?.rewrite && (
-                    <p style={{ fontSize:10.5, color:"#475569", lineHeight:1.6, marginTop:5, whiteSpace:"pre-wrap" }}>{rewrittenJob.rewrite}</p>
-                  )}
-                  {!rewrittenJob && job.description && (
-                    <p style={{ fontSize:10.5, color:"#475569", lineHeight:1.6, marginTop:5, whiteSpace:"pre-wrap", maxHeight:70, overflow:"hidden" }}>{job.description}</p>
+                  {descText && (
+                    <>
+                      <p style={{ fontSize:10.5, color:"#475569", lineHeight:1.6, marginTop:5, whiteSpace:"pre-wrap", ...(!isExp && isLong ? { maxHeight:80, overflow:"hidden" } : {}) }}>
+                        {descText}
+                      </p>
+                      {isLong && (
+                        <button onClick={()=>setJobsExpanded(p=>({...p,[ji]:!isExp}))}
+                          style={{ fontSize:10, fontWeight:700, color:"#0077B5", background:"none", border:"none", padding:"3px 0 0", cursor:"pointer" }}>
+                          {isExp ? "Show less ↑" : "Show more ↓"}
+                        </button>
+                      )}
+                    </>
                   )}
                 </div>
               );
