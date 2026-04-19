@@ -98,42 +98,58 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Valid LinkedIn URL required" }, { status: 400 });
     }
 
-    const res = await fetch(url, {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.9",
-      },
-      signal: AbortSignal.timeout(10000),
-    });
+    const proxycurlKey = process.env.PROXYCURL_API_KEY;
 
-    if (!res.ok) {
-      return NextResponse.json(
-        { error: "LinkedIn requires login to view this profile. Please download your profile PDF instead." },
-        { status: 422 }
+    // ── Proxycurl path (requires API key) ──
+    if (proxycurlKey) {
+      const pcRes = await fetch(
+        `https://nubela.co/proxycurl/api/v2/linkedin?url=${encodeURIComponent(url)}&skills=include&extra=include`,
+        {
+          headers: { Authorization: `Bearer ${proxycurlKey}` },
+          signal: AbortSignal.timeout(15000),
+        }
       );
+
+      if (!pcRes.ok) {
+        const msg = pcRes.status === 404 ? "Profile not found — check the URL." :
+                    pcRes.status === 402 ? "LinkedIn API credits exhausted." :
+                    "Could not retrieve that profile. Try the PDF upload instead.";
+        return NextResponse.json({ error: msg }, { status: 422 });
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const pc = await pcRes.json() as Record<string, any>;
+
+      const headline = (pc.headline ?? "") as string;
+      const summary  = (pc.summary ?? "") as string;
+      const skills   = ((pc.skills ?? []) as string[]).join(", ");
+      const education = ((pc.education ?? []) as {school?:{name?:string}; degree_name?:string; starts_at?:{year?:number}; ends_at?:{year?:number}}[])
+        .map(e => [e.school?.name, e.degree_name, e.ends_at?.year ?? e.starts_at?.year].filter(Boolean).join(", "))
+        .join("\n");
+      const experience = ((pc.experiences ?? []) as {company?:string; title?:string; starts_at?:{year?:number}; ends_at?:{year?:number}; description?:string}[])
+        .slice(0, 5)
+        .map(e => {
+          const dateRange = [e.starts_at?.year, e.ends_at?.year ?? "Present"].filter(Boolean).join(" – ");
+          return [e.title, e.company, dateRange, e.description].filter(Boolean).join("\n");
+        })
+        .join("\n\n");
+
+      return NextResponse.json({
+        headline, summary, experience, education, skills,
+        linkedinUrl: url, hasPhoto: !!(pc.profile_pic_url),
+        rawText: "",
+      });
     }
 
-    const html = await res.text();
-    const text = html
-      .replace(/<script[\s\S]*?<\/script>/gi, " ")
-      .replace(/<style[\s\S]*?<\/style>/gi, " ")
-      .replace(/<[^>]+>/g, " ")
-      .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
-      .replace(/[ \t]{2,}/g, " ").replace(/\n{3,}/g, "\n\n").trim();
-
-    if (text.length < 300 || text.toLowerCase().includes("authwall") || text.toLowerCase().includes("sign in")) {
-      return NextResponse.json(
-        { error: "LinkedIn requires login to view this profile. Please download your profile PDF instead." },
-        { status: 422 }
-      );
-    }
-
-    const sections = await extractSectionsWithAI(text);
-    return NextResponse.json({ ...sections, linkedinUrl: url, hasPhoto: false, rawText: text });
+    // ── No Proxycurl key: LinkedIn blocks server-side fetching ──
+    // LinkedIn's pages are JavaScript-rendered; a plain fetch returns an auth wall.
+    return NextResponse.json(
+      { error: "URL analysis requires a LinkedIn data API key (PROXYCURL_API_KEY). Please use the PDF upload option instead — it works just as well and takes 30 seconds." },
+      { status: 422 }
+    );
   } catch {
     return NextResponse.json(
-      { error: "LinkedIn requires login to view this profile. Please download your profile PDF instead." },
+      { error: "Could not reach LinkedIn. Please use the PDF upload option instead." },
       { status: 422 }
     );
   }

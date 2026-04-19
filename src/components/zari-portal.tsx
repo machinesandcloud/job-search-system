@@ -3476,7 +3476,7 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
                 </div>
                 <p style={{ fontSize:16, fontWeight:800, color:"white", marginBottom:6 }}>Enter LinkedIn URL</p>
                 <p style={{ fontSize:13, color:"rgba(255,255,255,0.45)", lineHeight:1.6 }}>
-                  Paste your LinkedIn profile URL and we&apos;ll automatically analyze your public profile
+                  Paste your LinkedIn profile URL — requires a LinkedIn data API key configured on this server
                 </p>
                 <div style={{ marginTop:14, display:"inline-flex", alignItems:"center", gap:6, fontSize:12, color:"#38BDF8", fontWeight:600 }}>
                   <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:12,height:12}}><path d="M6 3l5 5-5 5"/></svg>
