@@ -71,22 +71,43 @@ function Sparkline({ values, color="#4361EE", width=80, height=24 }: { values:nu
 
 /* ─── Resume text pre-processors ─── */
 
-/** Join lines that are clearly mid-sentence continuations (PDF line-wrapping artifact) */
+/** Join lines that are clearly mid-sentence continuations (PDF line-wrapping artifact).
+ *  Only merges when the current line starts with a lowercase letter — a reliable signal
+ *  that a sentence was broken mid-word by the PDF extractor.  Skill category lines
+ *  ("Cloud & Infra: AWS…"), date lines ("July 2025 - Present"), company names, and
+ *  job titles all start with a capital, so they are never incorrectly merged.
+ */
 function joinWrappedLines(text: string): string {
-  const HEADER_RE = /^[A-Z][A-Z\s&\/\-]{3,}$/;
-  const BULLET_RE = /^[•\-\*\u2022►▸]\s/;
-  const TERMINAL_RE = /[.!?]$/;
+  const HEADER_RE  = /^[A-Z][A-Z\s&\/\-]{3,}$/;
+  const BULLET_RE  = /^[•\-\*\u2022►▸]\s/;
+  const DATE_RE    = /^\d{4}|^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)|^\d{1,2}[\/-]/i;
+  const COLON_RE   = /^[A-Za-z].{2,35}:\s/;   // "Category: items" — keep standalone
+
   const lines = text.split("\n");
   const out: string[] = [];
 
   for (const line of lines) {
     const t = line.trim();
     if (!t) { out.push(""); continue; }
-    const isSpecial = (HEADER_RE.test(t) && t.length <= 60) || BULLET_RE.test(t);
-    if (isSpecial || !out.length) { out.push(t); continue; }
+
+    // Section headers, bullets, dates, and skill-category lines are always standalone
+    const isStandalone = (HEADER_RE.test(t) && t.length <= 60)
+      || BULLET_RE.test(t)
+      || DATE_RE.test(t)
+      || COLON_RE.test(t);
+
+    if (isStandalone || !out.length) { out.push(t); continue; }
+
     const last = out[out.length - 1].trim();
-    const lastIsSpecial = !last || (HEADER_RE.test(last) && last.length <= 60) || BULLET_RE.test(last);
-    if (!TERMINAL_RE.test(last) && !lastIsSpecial) {
+    const lastIsStandalone = !last
+      || (HEADER_RE.test(last) && last.length <= 60)
+      || BULLET_RE.test(last)
+      || DATE_RE.test(last)
+      || COLON_RE.test(last);
+
+    // Only merge when this line is a true lowercase continuation of the previous line
+    const startsLower = /^[a-z]/.test(t);
+    if (startsLower && !lastIsStandalone && /[^.!?;:]$/.test(last)) {
       out[out.length - 1] = last + " " + t;
     } else {
       out.push(t);
@@ -108,6 +129,17 @@ function normalizeResumeText(text: string): string {
   const nameLines: string[] = [], contactLines: string[] = [], orphaned: string[] = [];
   const sections: Sec[] = [];
   let cur: Sec | null = null;
+
+  const BULLET_LINE_RE = /^[•\-\*\u2022►▸]\s/;
+  const DATE_LINE_RE   = /\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|\d{4})\b.*[-–]\s*(Present|\d{4})/i;
+
+  // Detect if a block of lines looks like a job entry (company + bullets or dates)
+  function looksLikeJobBlock(lines: string[]): boolean {
+    const nonEmpty = lines.filter(l => l.trim());
+    const hasBullet = nonEmpty.some(l => BULLET_LINE_RE.test(l.trim()));
+    const hasDate   = nonEmpty.some(l => DATE_LINE_RE.test(l.trim()));
+    return hasBullet || hasDate;
+  }
 
   for (const line of text.split("\n")) {
     const t = line.trim();
@@ -137,6 +169,19 @@ function normalizeResumeText(text: string): string {
         cur.lines.push(line);
       }
     }
+  }
+
+  // If CERTIFICATIONS section contains bullet-heavy content (misassigned job entries from PDF),
+  // move those lines to PROFESSIONAL EXPERIENCE
+  const certSec = sections.find(s => /CERTIFICATIONS?|LICENSES?/.test(s.header));
+  const expSec  = sections.find(s => /EXPERIENCE|EMPLOYMENT/.test(s.header));
+  if (certSec && looksLikeJobBlock(certSec.lines)) {
+    if (expSec) {
+      expSec.lines.push("", ...certSec.lines);
+    } else {
+      sections.push({ header: "PROFESSIONAL EXPERIENCE", lines: certSec.lines });
+    }
+    certSec.lines = [];
   }
 
   // Assign orphaned lines: skill-category lines → SKILLS, everything else → PROFESSIONAL SUMMARY
@@ -271,9 +316,9 @@ function SuggestionsResume({
   const flagKey = (li: number) => `tip-${li}`;
 
   return (
-    <div style={{ fontFamily: "inherit", fontSize: 11.5, lineHeight: 1.7, color: "#1E2235" }}>
+    <div style={{ fontFamily: "inherit", fontSize: 13, lineHeight: 1.75, color: "#1E2235" }}>
       {/* Legend */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 12px", marginBottom: 12, padding: "8px 10px", background: "#F8FAFF", borderRadius: 8, border: "1px solid #E4E8F5" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 14px", marginBottom: 16, padding: "10px 12px", background: "#F8FAFF", borderRadius: 10, border: "1px solid #E4E8F5" }}>
         {[
           { color: "#F59E0B", label: "Weak bullet — rewrite" },
           { color: "#EAB308", label: "No metric" },
@@ -282,24 +327,24 @@ function SuggestionsResume({
           { color: "#FED7AA", label: "Weak verb", inline: true },
           { color: "#FECACA", label: "Cliché", inline: true },
         ].map(({ color, label, inline }) => (
-          <div key={label} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <div key={label} style={{ display: "flex", alignItems: "center", gap: 5 }}>
             {inline
-              ? <mark style={{ background: color, padding: "0 4px", borderRadius: 3, fontSize: 9, fontWeight: 700 }}>word</mark>
-              : <div style={{ width: 10, height: 10, borderRadius: 2, background: color, flexShrink: 0 }} />
+              ? <mark style={{ background: color, padding: "0 5px", borderRadius: 3, fontSize: 10, fontWeight: 700 }}>word</mark>
+              : <div style={{ width: 11, height: 11, borderRadius: 3, background: color, flexShrink: 0 }} />
             }
-            <span style={{ fontSize: 9.5, color: "#68738A" }}>{label}</span>
+            <span style={{ fontSize: 11, color: "#68738A" }}>{label}</span>
           </div>
         ))}
       </div>
 
       {lines.map((raw, li) => {
         const trimmed = raw.trim();
-        if (!trimmed) return <div key={li} style={{ height: 5 }} />;
+        if (!trimmed) return <div key={li} style={{ height: 7 }} />;
 
         if (HEADER_RE.test(trimmed) && trimmed.length <= 60) {
           return (
-            <div key={li} style={{ marginTop: 14, marginBottom: 4, paddingBottom: 3, borderBottom: "1.5px solid #CBD5E1" }}>
-              <span style={{ fontSize: 10.5, fontWeight: 800, color: "#1E2235", letterSpacing: "0.1em", textTransform: "uppercase" }}>{trimmed}</span>
+            <div key={li} style={{ marginTop: 18, marginBottom: 6, paddingBottom: 4, borderBottom: "1.5px solid #CBD5E1" }}>
+              <span style={{ fontSize: 12, fontWeight: 800, color: "#1E2235", letterSpacing: "0.1em", textTransform: "uppercase" }}>{trimmed}</span>
             </div>
           );
         }
@@ -321,17 +366,17 @@ function SuggestionsResume({
               title={flag ? "Click for suggestion" : undefined}
               style={{
                 whiteSpace: "pre-wrap", wordBreak: "break-word",
-                padding: "2px 8px 2px 10px", borderRadius: 5, marginBottom: 1,
+                padding: "3px 10px 3px 12px", borderRadius: 6, marginBottom: 2,
                 background: fs ? (isActive ? fs.activeBg : fs.bg) : "transparent",
                 borderLeft: fs ? `3px solid ${isActive ? fs.border : fs.border + "99"}` : "3px solid transparent",
                 cursor: flag ? "pointer" : "default",
-                lineHeight: 1.65, fontSize: 11.5,
+                lineHeight: 1.7, fontSize: 13,
                 transition: "background 0.1s",
               }}
             >
               {hlText(trimmed)}
               {fs && (
-                <span style={{ fontSize: 9, fontWeight: 700, color: fs.badgeColor, background: fs.badgeBg, padding: "1px 6px", borderRadius: 99, marginLeft: 5, verticalAlign: "middle", whiteSpace: "nowrap" }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: fs.badgeColor, background: fs.badgeBg, padding: "2px 7px", borderRadius: 99, marginLeft: 6, verticalAlign: "middle", whiteSpace: "nowrap" }}>
                   {fs.badge}
                 </span>
               )}
@@ -339,31 +384,31 @@ function SuggestionsResume({
 
             {/* Inline popup for weak bullets (has AI rewrite) */}
             {flag?.kind === "weak" && isActive && (
-              <div style={{ margin: "4px 8px 8px 10px", border: "1px solid #FCD34D", borderRadius: 10, background: "#FEFCE8" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 12px", background: "#FEF3C7", borderBottom: "1px solid #FCD34D", borderRadius: "10px 10px 0 0" }}>
-                  <span style={{ fontSize: 10.5, fontWeight: 700, color: "#92400E" }}>{bullets[flag.bulletIdx].reason}</span>
-                  <button onClick={e => { e.stopPropagation(); onClickLine(null); }} style={{ fontSize: 12, background: "none", border: "none", color: "#A0AABF", cursor: "pointer", padding: "0 2px", lineHeight: 1 }}>✕</button>
+              <div style={{ margin: "6px 10px 10px 12px", border: "1px solid #FCD34D", borderRadius: 12, background: "#FEFCE8" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 14px", background: "#FEF3C7", borderBottom: "1px solid #FCD34D", borderRadius: "12px 12px 0 0" }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "#92400E" }}>{bullets[flag.bulletIdx].reason}</span>
+                  <button onClick={e => { e.stopPropagation(); onClickLine(null); }} style={{ fontSize: 14, background: "none", border: "none", color: "#A0AABF", cursor: "pointer", padding: "0 2px", lineHeight: 1 }}>✕</button>
                 </div>
-                <div style={{ padding: "10px 12px", display: "flex", gap: 8, alignItems: "flex-start" }}>
-                  <p style={{ flex: 1, fontSize: 11.5, color: "#14532D", lineHeight: 1.55, margin: 0 }}>{bullets[flag.bulletIdx].after}</p>
-                  <button onClick={() => void navigator.clipboard.writeText(bullets[flag.bulletIdx].after)} style={{ fontSize: 10.5, fontWeight: 600, padding: "4px 10px", borderRadius: 7, border: "1px solid #BBF7D0", background: "white", color: "#16A34A", cursor: "pointer", flexShrink: 0 }}>Copy</button>
+                <div style={{ padding: "12px 14px", display: "flex", gap: 10, alignItems: "flex-start" }}>
+                  <p style={{ flex: 1, fontSize: 13, color: "#14532D", lineHeight: 1.6, margin: 0 }}>{bullets[flag.bulletIdx].after}</p>
+                  <button onClick={() => void navigator.clipboard.writeText(bullets[flag.bulletIdx].after)} style={{ fontSize: 11.5, fontWeight: 600, padding: "5px 12px", borderRadius: 8, border: "1px solid #BBF7D0", background: "white", color: "#16A34A", cursor: "pointer", flexShrink: 0 }}>Copy</button>
                 </div>
               </div>
             )}
 
             {/* Inline tip for no_metric / too_long / passive */}
             {flag && flag.kind !== "weak" && isActive && (
-              <div style={{ margin: "4px 8px 8px 10px", border: `1px solid ${FLAG_STYLES[flag.kind].border}44`, borderRadius: 10, background: FLAG_STYLES[flag.kind].activeBg }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "9px 12px" }}>
-                  <p style={{ flex: 1, fontSize: 11.5, color: "#1E2235", lineHeight: 1.55, margin: 0 }}>{getTip(flag)}</p>
-                  <button onClick={e => { e.stopPropagation(); setActiveTip(null); }} style={{ fontSize: 12, background: "none", border: "none", color: "#A0AABF", cursor: "pointer", padding: "0 2px", lineHeight: 1, flexShrink: 0 }}>✕</button>
+              <div style={{ margin: "6px 10px 10px 12px", border: `1px solid ${FLAG_STYLES[flag.kind].border}44`, borderRadius: 12, background: FLAG_STYLES[flag.kind].activeBg }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "11px 14px" }}>
+                  <p style={{ flex: 1, fontSize: 13, color: "#1E2235", lineHeight: 1.6, margin: 0 }}>{getTip(flag)}</p>
+                  <button onClick={e => { e.stopPropagation(); setActiveTip(null); }} style={{ fontSize: 14, background: "none", border: "none", color: "#A0AABF", cursor: "pointer", padding: "0 2px", lineHeight: 1, flexShrink: 0 }}>✕</button>
                 </div>
               </div>
             )}
           </div>
         );
       })}
-      {text.length > 8000 && <p style={{ fontSize: 10, color: "#A0AABF", marginTop: 8 }}>[…truncated for preview]</p>}
+      {text.length > 8000 && <p style={{ fontSize: 11, color: "#A0AABF", marginTop: 10 }}>[…truncated for preview]</p>}
     </div>
   );
 }
@@ -386,17 +431,17 @@ function FormattedResume({ text, keywords }: { text: string; keywords?: ResumeKe
   const lines = joinWrappedLines(normalizeResumeText(text)).split("\n");
 
   return (
-    <div style={{ fontFamily:"inherit", fontSize:11.5, lineHeight:1.7, color:"#1E2235" }}>
+    <div style={{ fontFamily:"inherit", fontSize:13, lineHeight:1.75, color:"#1E2235" }}>
       {lines.map((line, li) => {
         const trimmed = line.trim();
         // Blank line → small spacer
-        if (!trimmed) return <div key={li} style={{ height:5 }}/>;
+        if (!trimmed) return <div key={li} style={{ height:7 }}/>;
 
         // ALL-CAPS section header (e.g. "PROFESSIONAL EXPERIENCE", "EDUCATION")
         if (HEADER_RE.test(trimmed) && trimmed.length <= 60) {
           return (
-            <div key={li} style={{ marginTop:14, marginBottom:4, paddingBottom:3, borderBottom:"1.5px solid #CBD5E1" }}>
-              <span style={{ fontSize:10.5, fontWeight:800, color:"#1E2235", letterSpacing:"0.1em", textTransform:"uppercase" }}>
+            <div key={li} style={{ marginTop:18, marginBottom:6, paddingBottom:4, borderBottom:"1.5px solid #CBD5E1" }}>
+              <span style={{ fontSize:12, fontWeight:800, color:"#1E2235", letterSpacing:"0.1em", textTransform:"uppercase" }}>
                 {trimmed}
               </span>
             </div>
@@ -405,12 +450,12 @@ function FormattedResume({ text, keywords }: { text: string; keywords?: ResumeKe
 
         // Everything else: render exactly as-is, preserving indentation via pre-wrap
         return (
-          <div key={li} style={{ whiteSpace:"pre-wrap", wordBreak:"break-word", fontSize:11.5, lineHeight:1.65, marginBottom:1 }}>
+          <div key={li} style={{ whiteSpace:"pre-wrap", wordBreak:"break-word", fontSize:13, lineHeight:1.7, marginBottom:2 }}>
             {hlLine(line)}
           </div>
         );
       })}
-      {text.length > 3000 && <p style={{ fontSize:10, color:"#A0AABF", marginTop:8 }}>[…truncated for preview]</p>}
+      {text.length > 3000 && <p style={{ fontSize:11, color:"#A0AABF", marginTop:10 }}>[…truncated for preview]</p>}
     </div>
   );
 }
@@ -1948,7 +1993,7 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
         })()}
 
         {/* ══ Tab navigation ══ */}
-        <div style={{ display:"flex", gap:0, borderBottom:"2px solid #E4E8F5", marginBottom:20 }}>
+        <div style={{ display:"flex", gap:0, borderBottom:"2px solid #E4E8F5", marginBottom:22 }}>
           {([
             ["overview","Overview", aiResult ? `${aiResult.findings.filter(f=>f.type!=="ok").length} issues` : ""],
             ["bullets","Line-by-Line", aiResult?.bullets?.length ? `${aiResult.bullets.length} bullets` : ""],
@@ -1958,51 +2003,51 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
               : []),
             ["history","History", scoreHistory.length > 0 ? `${scoreHistory.length}` : ""],
           ] as ["overview"|"bullets"|"rewrite"|"keywords"|"history", string, string][]).map(([t, label, badge]) => (
-            <button key={t} onClick={()=>setTab(t)} style={{ padding:"10px 20px", border:"none", borderBottom:`2.5px solid ${tab===t?"#4361EE":"transparent"}`, marginBottom:"-2px", background:"transparent", cursor:"pointer", fontSize:13, fontWeight:tab===t?700:500, color:tab===t?"#4361EE":"#68738A", display:"flex", alignItems:"center", gap:6, transition:"color 0.15s", whiteSpace:"nowrap" }}>
+            <button key={t} onClick={()=>setTab(t)} style={{ padding:"12px 22px", border:"none", borderBottom:`2.5px solid ${tab===t?"#4361EE":"transparent"}`, marginBottom:"-2px", background:"transparent", cursor:"pointer", fontSize:14, fontWeight:tab===t?700:500, color:tab===t?"#4361EE":"#68738A", display:"flex", alignItems:"center", gap:6, transition:"color 0.15s", whiteSpace:"nowrap" }}>
               {label}
-              {badge && <span style={{ fontSize:10.5, fontWeight:700, padding:"1px 7px", borderRadius:99, background:tab===t?"#EEF2FF":"#F1F5F9", color:tab===t?"#4361EE":"#68738A" }}>{badge}</span>}
+              {badge && <span style={{ fontSize:11, fontWeight:700, padding:"2px 8px", borderRadius:99, background:tab===t?"#EEF2FF":"#F1F5F9", color:tab===t?"#4361EE":"#68738A" }}>{badge}</span>}
             </button>
           ))}
         </div>
 
-        <div style={{ display:"grid", gridTemplateColumns:"420px 1fr", gap:16 }}>
+        <div style={{ display:"grid", gridTemplateColumns:"minmax(0,48%) 1fr", gap:20 }}>
           {/* ── Left: resume viewer ── */}
-          <div style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", overflow:"hidden", boxShadow:"0 2px 12px rgba(0,0,0,0.05)", maxHeight:"calc(100vh - 270px)", display:"flex", flexDirection:"column" }}>
+          <div style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", overflow:"hidden", boxShadow:"0 4px 24px rgba(0,0,0,0.07)", height:"calc(100vh - 260px)", display:"flex", flexDirection:"column" }}>
             {/* Panel header */}
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px", borderBottom:"1px solid #F1F5F9", background:"#FAFBFF", flexShrink:0 }}>
-              <div style={{ display:"flex", background:"#F1F5F9", borderRadius:7, padding:2 }}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 16px", borderBottom:"1px solid #F1F5F9", background:"#FAFBFF", flexShrink:0 }}>
+              <div style={{ display:"flex", background:"#F1F5F9", borderRadius:8, padding:3 }}>
                 {(["preview","suggestions"] as const).map(m => (
-                  <button key={m} onClick={()=>{ setResumeViewMode(m); setActiveSuggestion(null); }} style={{ fontSize:11, fontWeight:600, padding:"3px 10px", borderRadius:5, border:"none", background:resumeViewMode===m?"white":"transparent", color:resumeViewMode===m?"#0A0A0F":"#68738A", cursor:"pointer", boxShadow:resumeViewMode===m?"0 1px 3px rgba(0,0,0,0.1)":"none", transition:"all 0.12s" }}>
+                  <button key={m} onClick={()=>{ setResumeViewMode(m); setActiveSuggestion(null); }} style={{ fontSize:12, fontWeight:600, padding:"5px 14px", borderRadius:6, border:"none", background:resumeViewMode===m?"white":"transparent", color:resumeViewMode===m?"#0A0A0F":"#68738A", cursor:"pointer", boxShadow:resumeViewMode===m?"0 1px 4px rgba(0,0,0,0.12)":"none", transition:"all 0.12s" }}>
                     {m==="suggestions" ? `Suggestions${aiResult?.bullets?.length?` (${aiResult.bullets.length})`:""}`:"Preview"}
                   </button>
                 ))}
               </div>
               <div style={{ display:"flex", gap:6 }}>
                 {resumeViewMode==="preview" && rawFileUrl && aiResult?.keywords?.some(k=>k.found) && (
-                  <button onClick={()=>setTab("keywords")} style={{ fontSize:10, color:"#14532D", background:"#DCFCE7", padding:"2px 8px", borderRadius:99, fontWeight:700, border:"none", cursor:"pointer" }}>
+                  <button onClick={()=>setTab("keywords")} style={{ fontSize:11, color:"#14532D", background:"#DCFCE7", padding:"3px 10px", borderRadius:99, fontWeight:700, border:"none", cursor:"pointer" }}>
                     {aiResult!.keywords!.filter(k=>k.found).length} keywords found →
                   </button>
                 )}
                 {resumeViewMode==="suggestions" && (
-                  <span style={{ fontSize:10, color:"#92400E", background:"#FEF3C7", padding:"2px 8px", borderRadius:99, fontWeight:700 }}>tap lines for suggestions</span>
+                  <span style={{ fontSize:11, color:"#92400E", background:"#FEF3C7", padding:"3px 10px", borderRadius:99, fontWeight:700 }}>tap lines for suggestions</span>
                 )}
               </div>
             </div>
             {/* Resume view: suggestions overlay or PDF/text preview */}
             {resumeViewMode==="suggestions"
-              ? <div style={{ padding:"16px 18px", overflowY:"auto", flex:1 }}>
+              ? <div style={{ padding:"20px 22px", overflowY:"auto", flex:1 }}>
                   <SuggestionsResume text={resumeText} bullets={aiResult?.bullets ?? []} wordIssues={aiResult?.wordIssues} activeIdx={activeSuggestion} onClickLine={setActiveSuggestion}/>
                 </div>
               : rawFileUrl
               ? <iframe src={rawFileUrl} style={{ flex:1, width:"100%", border:"none", display:"block", minHeight:0 }} title="Resume"/>
-              : <div style={{ padding:"16px 18px", overflowY:"auto", flex:1 }}>
+              : <div style={{ padding:"20px 22px", overflowY:"auto", flex:1 }}>
                   <FormattedResume text={resumeText.slice(0,6000)} keywords={aiResult?.keywords}/>
                 </div>
             }
           </div>
 
           {/* ── Right: analysis panel ── */}
-          <div style={{ display:"flex", flexDirection:"column", gap:14, maxHeight:"calc(100vh - 270px)", overflowY:"auto" }}>
+          <div style={{ display:"flex", flexDirection:"column", gap:16, height:"calc(100vh - 260px)", overflowY:"auto" }}>
             {/* ══ OVERVIEW TAB ══ */}
             {tab==="overview" && (() => {
               const CATEGORY_META: Record<string,{label:string;color:string;bg:string;border:string}> = {
@@ -2051,20 +2096,20 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
                 <>
                   {/* ── Section scores table ── */}
                   {ss.length > 0 && (
-                    <div style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", padding:"16px 18px", boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
-                      <p style={{ fontSize:12, fontWeight:800, color:"#0A0A0F", marginBottom:12, textTransform:"uppercase", letterSpacing:"0.06em" }}>Section-by-section</p>
-                      <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
+                    <div style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", padding:"20px 22px", boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
+                      <p style={{ fontSize:13, fontWeight:800, color:"#0A0A0F", marginBottom:14, textTransform:"uppercase", letterSpacing:"0.06em" }}>Section-by-section</p>
+                      <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
                         {ss.map((s, si) => {
                           const vs = VERDICT_STYLE[s.verdict] ?? { color:"#68738A", bg:"#F1F5F9", border:"#E4E8F5" };
                           return (
-                            <div key={si} style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 10px", borderRadius:10, background:"#FAFBFF" }}>
-                              <div style={{ width:28, height:28, borderRadius:8, background: s.present?(s.score>=75?"#F0FFF4":s.score>=55?"#EFF6FF":"#FEF2F2"):"#F1F5F9", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                                <span style={{ fontSize:13, fontWeight:900, color: s.present?(s.score>=75?"#16A34A":s.score>=55?"#4361EE":"#DC2626"):"#A0AABF" }}>{s.present?s.score:"—"}</span>
+                            <div key={si} style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 12px", borderRadius:12, background:"#FAFBFF" }}>
+                              <div style={{ width:34, height:34, borderRadius:10, background: s.present?(s.score>=75?"#F0FFF4":s.score>=55?"#EFF6FF":"#FEF2F2"):"#F1F5F9", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                                <span style={{ fontSize:14, fontWeight:900, color: s.present?(s.score>=75?"#16A34A":s.score>=55?"#4361EE":"#DC2626"):"#A0AABF" }}>{s.present?s.score:"—"}</span>
                               </div>
-                              <span style={{ flex:1, fontSize:12.5, fontWeight:600, color:"#1E2235" }}>{s.name}</span>
-                              <span style={{ fontSize:10.5, fontWeight:700, padding:"2px 9px", borderRadius:99, background:vs.bg, color:vs.color, border:`1px solid ${vs.border}` }}>{s.present?s.verdict:"Missing"}</span>
-                              <div style={{ width:80 }}>
-                                <div style={{ height:4, borderRadius:99, background:"#F1F5F9", overflow:"hidden" }}>
+                              <span style={{ flex:1, fontSize:13.5, fontWeight:600, color:"#1E2235" }}>{s.name}</span>
+                              <span style={{ fontSize:11, fontWeight:700, padding:"3px 10px", borderRadius:99, background:vs.bg, color:vs.color, border:`1px solid ${vs.border}` }}>{s.present?s.verdict:"Missing"}</span>
+                              <div style={{ width:90 }}>
+                                <div style={{ height:5, borderRadius:99, background:"#F1F5F9", overflow:"hidden" }}>
                                   <div style={{ width:`${s.present?s.score:0}%`, height:"100%", borderRadius:99, background: s.score>=75?"#16A34A":s.score>=55?"#4361EE":"#DC2626", transition:"width 0.7s ease" }}/>
                                 </div>
                               </div>
@@ -2077,28 +2122,28 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
 
                   {/* ── Bullet metrics stats ── */}
                   {bs && (
-                    <div style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", padding:"16px 18px", boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
-                      <p style={{ fontSize:12, fontWeight:800, color:"#0A0A0F", marginBottom:12, textTransform:"uppercase", letterSpacing:"0.06em" }}>Bullet quality snapshot</p>
-                      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:8 }}>
+                    <div style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", padding:"20px 22px", boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
+                      <p style={{ fontSize:13, fontWeight:800, color:"#0A0A0F", marginBottom:14, textTransform:"uppercase", letterSpacing:"0.06em" }}>Bullet quality snapshot</p>
+                      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10 }}>
                         {[
                           { val:bs.total,           label:"Total bullets",   color:"#68738A", bg:"#F8FAFC" },
                           { val:bs.withMetrics,      label:"Have metrics",   color:`${bs.withMetrics/Math.max(bs.total,1)>=0.6?"#16A34A":"#DC2626"}`, bg:`${bs.withMetrics/Math.max(bs.total,1)>=0.6?"#F0FFF4":"#FEF2F2"}` },
                           { val:bs.withStrongVerbs,  label:"Strong verbs",   color:`${bs.withStrongVerbs/Math.max(bs.total,1)>=0.7?"#4361EE":"#D97706"}`, bg:`${bs.withStrongVerbs/Math.max(bs.total,1)>=0.7?"#EEF2FF":"#FFFBEB"}` },
                           { val:bs.weak,             label:"Need work",      color:bs.weak===0?"#16A34A":"#DC2626", bg:bs.weak===0?"#F0FFF4":"#FEF2F2" },
                         ].map((st,i) => (
-                          <div key={i} style={{ background:st.bg, borderRadius:10, padding:"10px 8px", textAlign:"center" }}>
-                            <p style={{ fontSize:22, fontWeight:900, color:st.color, lineHeight:1, marginBottom:4 }}>{st.val}</p>
-                            <p style={{ fontSize:10, color:"#68738A", lineHeight:1.3 }}>{st.label}</p>
+                          <div key={i} style={{ background:st.bg, borderRadius:12, padding:"14px 10px", textAlign:"center" }}>
+                            <p style={{ fontSize:26, fontWeight:900, color:st.color, lineHeight:1, marginBottom:5 }}>{st.val}</p>
+                            <p style={{ fontSize:11, color:"#68738A", lineHeight:1.3 }}>{st.label}</p>
                           </div>
                         ))}
                       </div>
                       {bs.total > 0 && (
-                        <div style={{ marginTop:12 }}>
-                          <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
-                            <span style={{ fontSize:11, color:"#68738A" }}>Quantification rate</span>
-                            <span style={{ fontSize:11, fontWeight:700, color:bs.withMetrics/bs.total>=0.6?"#16A34A":"#DC2626" }}>{Math.round((bs.withMetrics/bs.total)*100)}% <span style={{ color:"#A0AABF", fontWeight:400 }}>(target: 60%+)</span></span>
+                        <div style={{ marginTop:14 }}>
+                          <div style={{ display:"flex", justifyContent:"space-between", marginBottom:5 }}>
+                            <span style={{ fontSize:12, color:"#68738A" }}>Quantification rate</span>
+                            <span style={{ fontSize:12, fontWeight:700, color:bs.withMetrics/bs.total>=0.6?"#16A34A":"#DC2626" }}>{Math.round((bs.withMetrics/bs.total)*100)}% <span style={{ color:"#A0AABF", fontWeight:400 }}>(target: 60%+)</span></span>
                           </div>
-                          <div style={{ height:6, borderRadius:99, background:"#F1F5F9", overflow:"hidden" }}>
+                          <div style={{ height:7, borderRadius:99, background:"#F1F5F9", overflow:"hidden" }}>
                             <div style={{ width:`${Math.round((bs.withMetrics/bs.total)*100)}%`, height:"100%", borderRadius:99, background:bs.withMetrics/bs.total>=0.6?"#16A34A":"#DC2626", transition:"width 0.7s ease" }}/>
                           </div>
                         </div>
