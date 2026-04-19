@@ -141,7 +141,7 @@ function FormattedResume({ text, keywords }: { text: string; keywords?: ResumeKe
   const escaped = found.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
   const kwRegex = found.length ? new RegExp(`(${escaped.join("|")})`, "gi") : null;
 
-  function hl(str: string): React.ReactNode {
+  function hlLine(str: string): React.ReactNode {
     if (!kwRegex) return str;
     return str.split(kwRegex).map((p, i) =>
       found.some(k => k.toLowerCase() === p.toLowerCase())
@@ -150,67 +150,35 @@ function FormattedResume({ text, keywords }: { text: string; keywords?: ResumeKe
     );
   }
 
-  const SECTION_RE = /^(experience|education|skills|summary|objective|professional summary|work experience|employment|certifications|projects|awards|languages|interests|volunteer|publications|references|profile|achievements|accomplishments|contact)s?$/i;
+  // Only detect definitive ALL-CAPS section headers — never guess name/contact/bullets
+  // This preserves the exact original text layout while adding just one visual enhancement.
+  const HEADER_RE = /^[A-Z][A-Z\s&\/\-]{3,}$/;  // 4+ uppercase chars, no digits
   const lines = text.split("\n");
-  let firstNonEmpty = -1;
 
   return (
-    <div style={{ fontFamily:"'Georgia', 'Times New Roman', serif", fontSize:11.5, lineHeight:1.65, color:"#1E2235" }}>
+    <div style={{ fontFamily:"inherit", fontSize:11.5, lineHeight:1.7, color:"#1E2235" }}>
       {lines.map((line, li) => {
         const trimmed = line.trim();
-        if (!trimmed) return <div key={li} style={{ height:6 }}/>;
+        // Blank line → small spacer
+        if (!trimmed) return <div key={li} style={{ height:5 }}/>;
 
-        // Name — first non-empty line
-        if (firstNonEmpty === -1) {
-          firstNonEmpty = li;
+        // ALL-CAPS section header (e.g. "PROFESSIONAL EXPERIENCE", "EDUCATION")
+        if (HEADER_RE.test(trimmed) && trimmed.length <= 60) {
           return (
-            <div key={li} style={{ fontSize:18, fontWeight:800, color:"#0A0A0F", textAlign:"center", marginBottom:4, letterSpacing:"-0.02em", fontFamily:"inherit" }}>
-              {trimmed}
-            </div>
-          );
-        }
-
-        // Contact block — first 5 non-empty lines after name that are short
-        const nonEmptyIdx = lines.slice(0, li).filter(l => l.trim()).length;
-        if (nonEmptyIdx <= 4 && trimmed.length < 120 && (trimmed.includes("@") || trimmed.includes("|") || trimmed.includes("·") || trimmed.includes("•") || /\d{3}[\s.\-]\d{3}/.test(trimmed) || /linkedin|github|portfolio/i.test(trimmed) || nonEmptyIdx <= 2)) {
-          return <div key={li} style={{ fontSize:10.5, color:"#68738A", textAlign:"center", marginBottom:2 }}>{hl(trimmed)}</div>;
-        }
-
-        // Section header: ALL CAPS or matches known section names
-        const isAllCaps = trimmed === trimmed.toUpperCase() && trimmed.length > 2 && /[A-Z]/.test(trimmed) && !/\d{4}/.test(trimmed);
-        if (isAllCaps || SECTION_RE.test(trimmed)) {
-          return (
-            <div key={li} style={{ marginTop:16, marginBottom:5 }}>
-              <div style={{ fontSize:10.5, fontWeight:800, color:"#1E2235", textTransform:"uppercase", letterSpacing:"0.12em", borderBottom:"1.5px solid #1E2235", paddingBottom:4 }}>
+            <div key={li} style={{ marginTop:14, marginBottom:4, paddingBottom:3, borderBottom:"1.5px solid #CBD5E1" }}>
+              <span style={{ fontSize:10.5, fontWeight:800, color:"#1E2235", letterSpacing:"0.1em", textTransform:"uppercase" }}>
                 {trimmed}
-              </div>
+              </span>
             </div>
           );
         }
 
-        // Bullet line
-        if (/^[•\-\*\u2022\u2023\u25E6►▸]\s/.test(trimmed) || /^\s{2,}[•\-\*►]/.test(line)) {
-          const txt = trimmed.replace(/^[•\-\*\u2022\u2023\u25E6►▸]\s*/, "");
-          return (
-            <div key={li} style={{ display:"flex", gap:7, marginBottom:3, paddingLeft:10 }}>
-              <span style={{ flexShrink:0, color:"#1E2235", marginTop:1, fontSize:10 }}>•</span>
-              <span style={{ fontSize:11.5, color:"#1E2235", lineHeight:1.55 }}>{hl(txt)}</span>
-            </div>
-          );
-        }
-
-        // Date line: short, has a year, looks like "Jan 2020 – Present" or "Company · 2019-2022"
-        const hasYear = /\b(19|20)\d{2}\b/.test(trimmed);
-        if (hasYear && trimmed.length < 70) {
-          return <div key={li} style={{ fontSize:10.5, color:"#68738A", marginBottom:1, fontStyle:"italic" }}>{hl(trimmed)}</div>;
-        }
-
-        // Job title / company line (no leading indent, short, non-bullet)
-        if (!line.startsWith(" ") && trimmed.length < 90 && !trimmed.includes(",") || /^[A-Z]/.test(trimmed) && trimmed.length < 70 && !hasYear) {
-          return <div key={li} style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", marginBottom:1, marginTop:5 }}>{hl(trimmed)}</div>;
-        }
-
-        return <div key={li} style={{ fontSize:11.5, color:"#1E2235", marginBottom:2, lineHeight:1.55 }}>{hl(trimmed)}</div>;
+        // Everything else: render exactly as-is, preserving indentation via pre-wrap
+        return (
+          <div key={li} style={{ whiteSpace:"pre-wrap", wordBreak:"break-word", fontSize:11.5, lineHeight:1.65, marginBottom:1 }}>
+            {hlLine(line)}
+          </div>
+        );
       })}
       {text.length > 3000 && <p style={{ fontSize:10, color:"#A0AABF", marginTop:8 }}>[…truncated for preview]</p>}
     </div>
@@ -1590,7 +1558,7 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
             <div style={{ padding:"16px 18px", overflowY:"auto", flex:1 }}>
               {resumeViewMode==="suggestions" && aiResult?.bullets?.length
                 ? <SuggestionsResume text={resumeText} bullets={aiResult.bullets} activeIdx={activeSuggestion} onClickLine={setActiveSuggestion}/>
-                : <FormattedResume text={resumeText.slice(0,3000)} keywords={aiResult?.keywords}/>
+                : <FormattedResume text={resumeText.slice(0,6000)} keywords={aiResult?.keywords}/>
               }
             </div>
           </div>
@@ -1884,9 +1852,9 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
                     const improve = b.newScore - b.oldScore;
                     const ds = DIFF_STYLE[b.difficulty ?? "medium"];
                     return (
-                      <div key={i} id={`bullet-${i}`} style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", overflow:"hidden", boxShadow:"0 2px 10px rgba(0,0,0,0.04)", scrollMarginTop:16 }}>
+                      <div key={i} id={`bullet-${i}`} style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", boxShadow:"0 2px 10px rgba(0,0,0,0.04)", scrollMarginTop:16 }}>
                         {/* Card header */}
-                        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px", background:"#FAFBFF", borderBottom:"1px solid #F1F5F9" }}>
+                        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px", background:"#FAFBFF", borderBottom:"1px solid #F1F5F9", borderRadius:"16px 16px 0 0" }}>
                           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                             <span style={{ fontSize:11, fontWeight:700, color:"#A0AABF", textTransform:"uppercase", letterSpacing:"0.08em" }}>Bullet {i+1}</span>
                             <span style={{ fontSize:10, fontWeight:700, padding:"2px 8px", borderRadius:99, background:ds.bg, color:ds.color, border:`1px solid ${ds.border}` }}>{ds.label}</span>
