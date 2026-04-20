@@ -308,8 +308,9 @@ function loadPdfJs(): Promise<unknown> {
 async function extractPositionedText(pdfUrl: string): Promise<string> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const lib = await loadPdfJs() as any;
+  const arrayBuf = await fetch(pdfUrl).then(r => r.arrayBuffer());
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const pdf = await lib.getDocument(pdfUrl).promise as any;
+  const pdf = await lib.getDocument({ data: arrayBuf }).promise as any;
   const pageLines: string[] = [];
 
   for (let p = 1; p <= pdf.numPages; p++) {
@@ -374,7 +375,9 @@ function PdfHighlightViewer({
     (async () => {
       try {
         const lib = await loadPdfJs() as Record<string, unknown>;
-        const pdfDoc = await (lib["getDocument"] as (src: unknown) => {promise: Promise<unknown>})(pdfUrl).promise as Record<string, unknown>;
+        // Fetch as ArrayBuffer first — more reliable than passing a blob URL directly to PDF.js
+        const arrayBuf = await fetch(pdfUrl).then(r => r.arrayBuffer());
+        const pdfDoc = await (lib["getDocument"] as (src: unknown) => {promise: Promise<unknown>})({ data: arrayBuf }).promise as Record<string, unknown>;
         const numPages = pdfDoc["numPages"] as number;
         const out: PdfPageData[] = [];
         const SCALE = 1.8;
