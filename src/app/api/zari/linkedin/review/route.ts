@@ -93,7 +93,7 @@ Return ONLY valid JSON with this exact structure:
         "dateRange": "${j.dateRange.replace(/"/g, '\\"')}",
         "score": <1-10 for JOB ${i + 1}>,
         "verdict": <"Perfect"|"Good"|"Needs Review"|"Missing">,
-        "rewrite": "<3-4 XYZ-formula bullets for JOB ${i + 1}: Strong Verb + Context + Quantified Result. Use • prefix. Based ONLY on what is actually described in JOB ${i + 1}>",
+        "rewrite": "<5-7 improved bullets for JOB ${i + 1}. CRITICAL FORMAT: each bullet must be on its own line separated by \\n. Start each with • then a space. Write naturally — not template-speak or AI filler. Lead with a strong action verb. Show impact through specificity: scope, scale, context, outcomes, and numbers where present in the original — do not invent metrics. Preserve ALL key details and tools from the original description. Bullets should be full sentences (20-35 words each). Based ONLY on what is described in JOB ${i + 1}>",
         "checks": [
           { "name": "Quantified impact", "pass": <bool>, "detail": "<count bullets with numbers vs total in JOB ${i + 1}>" },
           { "name": "Strong action verbs", "pass": <bool>, "detail": "<quote weak verbs found or confirm strong openers in JOB ${i + 1}>" },
@@ -151,7 +151,7 @@ Be specific — quote actual phrases. Generic feedback is useless.`;
   const content = [
     headline   ? `HEADLINE:\n${headline}` : "HEADLINE: (not provided)",
     summary    ? `\n\nSUMMARY/ABOUT:\n${summary.slice(0, 2000)}` : "\n\nSUMMARY: (not provided)",
-    `\n\nEXPERIENCE:\n${jobsText.slice(0, 3000)}`,
+    `\n\nEXPERIENCE:\n${jobsText.slice(0, 6000)}`,
     education  ? `\n\nEDUCATION:\n${education}` : "\n\nEDUCATION: (not provided)",
     skills     ? `\n\nSKILLS:\n${skills}` : "",
     linkedinUrl ? `\n\nLINKEDIN URL: ${linkedinUrl}` : "",
@@ -166,7 +166,7 @@ Be specific — quote actual phrases. Generic feedback is useless.`;
     {
       model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
       temperature: 0.25,
-      maxTokens: 5000,
+      maxTokens: 8000,
       jsonMode: true,
     }
   );
