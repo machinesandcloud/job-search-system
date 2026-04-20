@@ -1371,7 +1371,7 @@ ${body}${footer}
 </html>`;
 }
 
-function ScreenResume({ stage }: { stage: CareerStage }) {
+function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: (screen: string) => void }) {
   const [step, setStep]         = useState<ResumeStep>("choose");
   const [progress, setProgress] = useState(0);
   const [tab, setTab]           = useState<"overview"|"bullets"|"rewrite"|"keywords"|"history">("overview");
@@ -1957,66 +1957,51 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
 
   if (step === "upload") return (
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F0F2F8" }}>
-      <div style={{ maxWidth:560, margin:"0 auto", padding:"40px 24px" }}>
+      <div style={{ maxWidth:600, margin:"0 auto", padding:"36px 24px 64px" }}>
 
-        {/* Step progress (targeted only) */}
-        {reviewMode === "targeted" && (
-          <div style={{ display:"flex", justifyContent:"center", alignItems:"center", gap:0, marginBottom:32 }}>
-            {(["1. The Job","2. Your Resume"] as const).map((label, i) => {
-              const done = i === 0;
-              const active = i === 1;
-              return (
-                <div key={i} style={{ display:"flex", alignItems:"center" }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:8, padding:"7px 18px", borderRadius:99, background:active?"#4361EE":done?"#F0FFF4":"white", border:`1.5px solid ${active?"#4361EE":done?"#86EFAC":"#E4E8F5"}` }}>
-                    <div style={{ width:20, height:20, borderRadius:"50%", background:active?"white":done?"#16A34A":"#F1F5F9", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                      {done
-                        ? <svg viewBox="0 0 12 12" fill="none" stroke="white" strokeWidth="2.2" style={{ width:10,height:10 }}><path d="M2 6l3 3 5-5"/></svg>
-                        : <span style={{ fontSize:11, fontWeight:800, color:active?"#4361EE":"#A0AABF" }}>{i+1}</span>}
-                    </div>
-                    <span style={{ fontSize:12.5, fontWeight:700, color:active?"white":done?"#16A34A":"#A0AABF" }}>{label}</span>
-                  </div>
-                  {i === 0 && <div style={{ width:32, height:1.5, background:"#E4E8F5" }}/>}
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Card */}
-        <div style={{ background:"white", borderRadius:20, border:"1px solid #E4E8F5", padding:"28px 28px 24px", boxShadow:"0 4px 24px rgba(0,0,0,0.05)" }}>
-
-          {/* Header */}
-          <div style={{ marginBottom:22 }}>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:4 }}>
-              <h2 style={{ fontSize:21, fontWeight:900, letterSpacing:"-0.03em", color:"#0A0A0F" }}>
-                {reviewMode==="targeted" ? "2. Upload your resume" : "Upload your resume"}
-              </h2>
-              {/* Compact career level display */}
-              <div style={{ display:"flex", alignItems:"center", gap:5, background:"#F1F5F9", borderRadius:8, padding:"5px 10px" }}>
-                <span style={{ fontSize:11, color:"#68738A" }}>Level:</span>
-                <select
-                  value={careerLevel}
-                  onChange={e=>setCareerLevel(e.target.value as CareerLevel)}
-                  style={{ fontSize:11.5, fontWeight:700, color:"#0A0A0F", background:"transparent", border:"none", outline:"none", cursor:"pointer", fontFamily:"inherit" }}
-                >
-                  <option value="entry">Entry</option>
-                  <option value="mid">Mid-Level</option>
-                  <option value="senior">Senior</option>
-                  <option value="executive">Executive</option>
-                </select>
-              </div>
+        {/* Dark hero */}
+        <div style={{ background:"linear-gradient(135deg,#1A1240,#0D1321)", borderRadius:20, padding:"28px 32px 32px", marginBottom:24, boxShadow:"0 12px 48px rgba(0,0,0,0.22)", border:"1px solid rgba(255,255,255,0.07)", position:"relative", overflow:"hidden" }}>
+          <div style={{ position:"absolute", top:-50, right:-30, width:220, height:220, background:"radial-gradient(circle,rgba(67,97,238,0.18) 0%,transparent 70%)", pointerEvents:"none" }}/>
+          <div style={{ position:"relative" }}>
+            <div style={{ display:"inline-flex", alignItems:"center", gap:8, background:"rgba(67,97,238,0.18)", border:"1px solid rgba(67,97,238,0.35)", borderRadius:99, padding:"5px 14px", marginBottom:14 }}>
+              <div style={{ width:6, height:6, borderRadius:"50%", background:"#818CF8" }}/>
+              <span style={{ fontSize:11, fontWeight:700, color:"#A5B4FC", letterSpacing:"0.07em" }}>
+                {reviewMode==="targeted" ? "STEP 2 OF 2 — YOUR RESUME" : "RESUME REVIEW"}
+              </span>
             </div>
+            <h1 style={{ fontSize:24, fontWeight:900, color:"white", letterSpacing:"-0.03em", marginBottom:8, lineHeight:1.2 }}>
+              {reviewMode==="targeted" ? "Now upload your resume" : "Upload your resume"}
+            </h1>
+            <p style={{ fontSize:13.5, color:"rgba(255,255,255,0.45)", lineHeight:1.6, maxWidth:440, margin:0 }}>
+              Zari will score ATS compatibility, rewrite every weak bullet, and give you a job-ready version to send tonight.
+            </p>
             {reviewMode==="targeted" && (jobDescription||targetRoleInput) && (
-              <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:4 }}>
-                <svg viewBox="0 0 12 12" fill="none" stroke="#16A34A" strokeWidth="2" style={{ width:11,height:11,flexShrink:0 }}><path d="M2 6l3 3 5-5"/></svg>
-                <span style={{ fontSize:12, color:"#16A34A", fontWeight:600 }}>
+              <div style={{ display:"inline-flex", alignItems:"center", gap:6, marginTop:14, background:"rgba(74,222,128,0.12)", border:"1px solid rgba(74,222,128,0.3)", borderRadius:99, padding:"5px 13px" }}>
+                <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2" style={{ width:10,height:10,flexShrink:0 }}><path d="M2 6l3 3 5-5"/></svg>
+                <span style={{ fontSize:11.5, color:"#86EFAC", fontWeight:600 }}>
                   {targetRoleInput ? `Targeting: ${targetRoleInput}` : "Job description loaded"}
-                  {" · "}
-                  <button onClick={()=>setStep("job")} style={{ background:"none", border:"none", color:"#4361EE", fontWeight:600, cursor:"pointer", fontSize:12, padding:0 }}>Edit</button>
                 </span>
+                <button onClick={()=>setStep("job")} style={{ background:"none", border:"none", color:"rgba(255,255,255,0.4)", fontWeight:600, cursor:"pointer", fontSize:11, padding:"0 0 0 4px" }}>Edit</button>
               </div>
             )}
-            <p style={{ fontSize:13.5, color:"#68738A", lineHeight:1.6, marginTop:8 }}>Upload your resume and Zari will score it, rewrite every weak bullet, and give you a job-ready version to send tonight.</p>
+          </div>
+        </div>
+
+        {/* Upload card */}
+        <div style={{ background:"white", borderRadius:20, border:"1px solid rgba(0,0,0,0.07)", padding:"24px 26px 22px", boxShadow:"0 4px 24px rgba(0,0,0,0.06)" }}>
+          {/* Level + title row */}
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:18 }}>
+            <p style={{ fontSize:13.5, fontWeight:700, color:"#0A0A0F" }}>Your file</p>
+            <div style={{ display:"flex", alignItems:"center", gap:6, background:"#F1F5F9", borderRadius:9, padding:"5px 11px" }}>
+              <span style={{ fontSize:11, color:"#68738A" }}>Level:</span>
+              <select value={careerLevel} onChange={e=>setCareerLevel(e.target.value as CareerLevel)}
+                style={{ fontSize:11.5, fontWeight:700, color:"#0A0A0F", background:"transparent", border:"none", outline:"none", cursor:"pointer", fontFamily:"inherit" }}>
+                <option value="entry">Entry</option>
+                <option value="mid">Mid-Level</option>
+                <option value="senior">Senior</option>
+                <option value="executive">Executive</option>
+              </select>
+            </div>
           </div>
 
           {analyzeErr && <div style={{ background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:10, padding:"9px 14px", marginBottom:14, fontSize:13, color:"#991B1B" }}>{analyzeErr}</div>}
@@ -2026,16 +2011,16 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
             onDragOver={e=>{e.preventDefault();setDragging(true);}}
             onDragLeave={()=>setDragging(false)}
             onDrop={e=>{e.preventDefault();setDragging(false);const f=e.dataTransfer.files?.[0];if(f)void handleFile(f);}}
-            style={{ display:"block", border:`2px dashed ${dragging?"#4361EE":"#CBD5E1"}`, borderRadius:16, padding:"48px 32px", textAlign:"center", cursor:"pointer", background:dragging?"#EEF2FF":"#FAFBFF", transition:"all 0.2s", boxShadow:dragging?"0 0 0 4px rgba(67,97,238,0.10)":"none", marginBottom:14 }}
+            style={{ display:"block", border:`2px dashed ${dragging?"#4361EE":"#C7D2FE"}`, borderRadius:14, padding:"40px 28px", textAlign:"center", cursor:"pointer", background:dragging?"rgba(67,97,238,0.06)":"#FAFBFF", transition:"all 0.2s", boxShadow:dragging?"0 0 0 4px rgba(67,97,238,0.10)":"none", marginBottom:16 }}
           >
             <input type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleFile(f); e.target.value=""; }}/>
-            <div style={{ width:52, height:52, borderRadius:14, background:"linear-gradient(135deg,#EEF2FF,#F4F0FF)", border:"1px solid #C7D2FE", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 14px" }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="#4361EE" strokeWidth="1.8" style={{ width:24, height:24 }}><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <div style={{ width:52, height:52, borderRadius:14, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 14px", boxShadow:"0 6px 18px rgba(67,97,238,0.28)" }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" style={{ width:22, height:22 }}><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             </div>
-            <p style={{ fontSize:15, fontWeight:700, color:"#0A0A0F", marginBottom:5 }}>Drop your resume here</p>
-            <p style={{ fontSize:13, color:"#A0AABF", marginBottom:18 }}>PDF, DOCX, or TXT — or click to choose file</p>
-            <div style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"10px 22px", borderRadius:11, background:"#4361EE", color:"white", fontSize:13.5, fontWeight:700, boxShadow:"0 4px 14px rgba(67,97,238,0.3)", pointerEvents:"none" }}>
-              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:15, height:15 }}><path d="M17 12v4a1 1 0 01-1 1H4a1 1 0 01-1-1v-4"/><polyline points="14,6 10,2 6,6"/><line x1="10" y1="2" x2="10" y2="13"/></svg>
+            <p style={{ fontSize:15, fontWeight:800, color:"#0A0A0F", marginBottom:4, letterSpacing:"-0.01em" }}>Drop your resume here</p>
+            <p style={{ fontSize:12.5, color:"#A0AABF", marginBottom:18 }}>PDF, DOCX, or TXT — or click to choose file</p>
+            <div style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"10px 22px", borderRadius:11, background:"linear-gradient(135deg,#4361EE,#6366F1)", color:"white", fontSize:13, fontWeight:700, boxShadow:"0 4px 14px rgba(67,97,238,0.3)", pointerEvents:"none" }}>
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:14, height:14 }}><path d="M17 12v4a1 1 0 01-1 1H4a1 1 0 01-1-1v-4"/><polyline points="14,6 10,2 6,6"/><line x1="10" y1="2" x2="10" y2="13"/></svg>
               Choose file
             </div>
           </label>
@@ -2046,25 +2031,23 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
           </div>
         </div>
 
-        {/* What Zari checks */}
-        <div style={{ marginTop:16, display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+        {/* Feature grid */}
+        <div style={{ marginTop:14, display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
           {SCREEN_RESUME_META[stage].features.map(f => (
-            <div key={f.title} style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:13, padding:"12px 14px", display:"flex", gap:10, alignItems:"flex-start" }}>
-              <span style={{ fontSize:18, lineHeight:1, flexShrink:0 }}>{f.icon}</span>
+            <div key={f.title} style={{ background:"white", border:"1px solid rgba(0,0,0,0.07)", borderRadius:14, padding:"14px 16px", display:"flex", gap:11, alignItems:"flex-start", boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
+              <span style={{ fontSize:20, lineHeight:1, flexShrink:0 }}>{f.icon}</span>
               <div>
-                <p style={{ fontSize:12.5, fontWeight:700, color:"#0A0A0F", marginBottom:2 }}>{f.title}</p>
+                <p style={{ fontSize:12.5, fontWeight:700, color:"#0A0A0F", marginBottom:3 }}>{f.title}</p>
                 <p style={{ fontSize:11.5, color:"#68738A", lineHeight:1.5 }}>{f.body}</p>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Privacy note */}
         <p style={{ textAlign:"center", fontSize:11.5, color:"#A0AABF", marginTop:16, display:"flex", alignItems:"center", justifyContent:"center", gap:5 }}>
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" style={{ width:12,height:12 }}><rect x="3" y="7" width="10" height="8" rx="1.5"/><path d="M5 7V5a3 3 0 016 0v2"/></svg>
           Your resume is processed securely and is private to you
         </p>
-
       </div>
     </div>
   );
@@ -2814,14 +2797,14 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
                     );
                   })}
                   {/* ── Interview Prep CTA ── */}
-                  <div style={{ marginTop:20, background:"linear-gradient(135deg,#1A1240,#0D1321)", borderRadius:16, padding:"18px 20px", position:"relative", overflow:"hidden" }}>
-                    <div style={{ position:"absolute", top:-20, right:-20, width:120, height:120, background:"radial-gradient(circle,rgba(245,158,11,0.18) 0%,transparent 70%)", pointerEvents:"none" }}/>
-                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:14, position:"relative" }}>
+                  <div style={{ marginTop:20, marginBottom:24, background:"linear-gradient(135deg,#1A1240,#0D1321)", borderRadius:16, padding:"18px 22px", position:"relative" }}>
+                    <div style={{ position:"absolute", top:-20, right:-20, width:120, height:120, background:"radial-gradient(circle,rgba(245,158,11,0.18) 0%,transparent 70%)", pointerEvents:"none", borderRadius:"50%", overflow:"hidden" }}/>
+                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:14 }}>
                       <div>
                         <p style={{ fontSize:13.5, fontWeight:800, color:"white", marginBottom:4, letterSpacing:"-0.02em" }}>Ready to practice interviews?</p>
                         <p style={{ fontSize:12, color:"rgba(255,255,255,0.45)", lineHeight:1.5 }}>Zari can generate interview questions tailored to the bullets and experience on this resume.</p>
                       </div>
-                      <button onClick={()=>setTab("overview")} style={{ flexShrink:0, fontSize:12.5, fontWeight:700, padding:"9px 18px", borderRadius:10, border:"none", background:"rgba(245,158,11,0.9)", color:"#0A0A0F", cursor:"pointer", whiteSpace:"nowrap", boxShadow:"0 4px 14px rgba(245,158,11,0.35)" }}>
+                      <button onClick={onNavigate ? ()=>onNavigate("session") : undefined} style={{ flexShrink:0, fontSize:12.5, fontWeight:700, padding:"10px 20px", borderRadius:10, border:"none", background:"rgba(245,158,11,0.9)", color:"#0A0A0F", cursor:"pointer", whiteSpace:"nowrap", boxShadow:"0 4px 14px rgba(245,158,11,0.35)" }}>
                         Practice Interview →
                       </button>
                     </div>
@@ -2844,10 +2827,16 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
                   const grade = scoreGrade(s.score);
                   const isExperience = s.label.toLowerCase().includes("experience") || s.label.toLowerCase().includes("highlights");
 
-                  // Parse numbered bullets for Experience section: "1. text\n2. text\n3. text"
-                  const expBullets = isExperience
-                    ? displayed.split("\n").filter(l => /^\d+\.\s/.test(l.trim())).map(l => l.replace(/^\d+\.\s*/, "").trim()).filter(Boolean)
-                    : [];
+                  // Parse numbered bullets — handles both "\n1. text\n2. text" and inline "1. text 2. text"
+                  function parseNumberedBullets(txt: string): string[] {
+                    // Normalise inline: insert newline before every "N. " that isn't already at line start
+                    const norm = txt.replace(/([^\n])\s+(\d+)\.\s+/g, "$1\n$2. ");
+                    const lines = norm.split("\n").map(l => l.trim()).filter(Boolean);
+                    const numbered = lines.filter(l => /^\d+\.\s/.test(l));
+                    if (numbered.length > 1) return numbered.map(l => l.replace(/^\d+\.\s*/, "").trim());
+                    return [];
+                  }
+                  const expBullets = isExperience ? parseNumberedBullets(displayed) : [];
                   const hasExpBullets = expBullets.length > 0;
 
                   return (
@@ -4934,8 +4923,11 @@ function ScreenCoverLetter() {
         ) : result && (
           <>
             {/* ── Hero header ── */}
-            <div style={{ background:"linear-gradient(135deg,#064E3B,#065F46)", borderRadius:18, padding:"22px 28px", marginBottom:20, boxShadow:"0 8px 32px rgba(5,150,105,0.2)", border:"1px solid rgba(255,255,255,0.07)", position:"relative", overflow:"hidden" }}>
-              <div style={{ position:"absolute", top:-30, right:-30, width:140, height:140, background:"radial-gradient(circle,rgba(52,211,153,0.18) 0%,transparent 70%)", pointerEvents:"none" }}/>
+            <div style={{ background:"linear-gradient(135deg,#064E3B,#065F46)", borderRadius:18, padding:"22px 28px", marginBottom:20, boxShadow:"0 8px 32px rgba(5,150,105,0.2)", border:"1px solid rgba(255,255,255,0.07)", position:"relative" }}>
+              {/* glow blob — clipped in its own container so the dropdown isn't cut */}
+              <div style={{ position:"absolute", inset:0, borderRadius:18, overflow:"hidden", pointerEvents:"none" }}>
+                <div style={{ position:"absolute", top:-30, right:-30, width:140, height:140, background:"radial-gradient(circle,rgba(52,211,153,0.18) 0%,transparent 70%)" }}/>
+              </div>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:16, flexWrap:"wrap", position:"relative" }}>
                 <div>
                   <div style={{ fontSize:10.5, fontWeight:700, color:"rgba(52,211,153,0.8)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:5 }}>Cover Letter Ready</div>
@@ -5678,7 +5670,7 @@ export function ZariPortal() {
         {/* Screen — all kept mounted, hidden when inactive to preserve state */}
         <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
           <div style={{ display:screen==="session"      ? "block" : "none", height:"100%" }}><ScreenSession      stage={stage}/></div>
-          <div style={{ display:screen==="resume"       ? "block" : "none", height:"100%" }}><ScreenResume       stage={stage}/></div>
+          <div style={{ display:screen==="resume"       ? "block" : "none", height:"100%" }}><ScreenResume       stage={stage} onNavigate={s=>setScreen(s as Screen)}/></div>
           <div style={{ display:screen==="interview"    ? "block" : "none", height:"100%" }}><ScreenInterview    stage={stage}/></div>
           <div style={{ display:screen==="cover-letter" ? "block" : "none", height:"100%" }}><ScreenCoverLetter/></div>
           <div style={{ display:screen==="linkedin"     ? "block" : "none", height:"100%" }}><ScreenLinkedIn     stage={stage}/></div>
