@@ -40,7 +40,7 @@ export async function openaiChat(
 
     if (!res.ok) {
       const text = await res.text().catch(() => "");
-      console.error(`[openai] ${res.status}`, text.slice(0, 300));
+      console.error(`[openai] HTTP ${res.status} for model=${model}:`, text.slice(0, 500));
       return null;
     }
 

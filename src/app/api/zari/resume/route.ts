@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 
-export const runtime = "nodejs";
 import { getCurrentUserId } from "@/lib/mvp/auth";
 import { buildUserContext } from "@/lib/mvp/context";
 import { saveResumeScore, getResumeScoreHistory } from "@/lib/mvp/store";
 import { openaiChat } from "@/lib/openai";
 import { ensureSameOrigin } from "@/lib/utils";
+
+export const runtime     = "nodejs";
+export const maxDuration = 60;
 
 export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) {
@@ -342,14 +344,17 @@ Voice rules:
     { role: "user" as const, content: `Analyze this resume:\n\n${resumeText.slice(0, 6500)}` },
   ];
 
+  const model = process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o";
+  console.log("[resume] calling model:", model, "maxTokens: 3500");
   const reply = await openaiChat(messages, {
-    model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
+    model,
     temperature: 0.2,
-    maxTokens: 5000,
+    maxTokens: 3500,
     jsonMode: true,
   });
 
   if (!reply) {
+    console.error("[resume] openaiChat returned null — model:", model);
     return NextResponse.json({ error: "Analysis failed — try again" }, { status: 503 });
   }
 

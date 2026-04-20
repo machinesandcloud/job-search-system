@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 
-export const runtime = "nodejs";
 import { getCurrentUserId } from "@/lib/mvp/auth";
 import { buildUserContext } from "@/lib/mvp/context";
 import { openaiChat } from "@/lib/openai";
 import { ensureSameOrigin } from "@/lib/utils";
+
+export const runtime     = "nodejs";
+export const maxDuration = 60;
 
 export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) {
