@@ -4266,9 +4266,11 @@ const STAGE_TASKS: Record<CareerStage, { text:string; cat:string; pri:string }[]
    SCREEN: COVER LETTER
 ═══════════════════════════════════════════════════ */
 function ScreenCoverLetter() {
-  const [profileSource, setProfileSource] = useState<"paste"|"upload">("paste");
+  const [step,          setStep]          = useState(1); // 1=background, 2=jd, 3=customize
   const [profileText,   setProfileText]   = useState("");
   const [profileFile,   setProfileFile]   = useState("");
+  const [profileDrag,   setProfileDrag]   = useState(false);
+  const profileInputRef = useRef<HTMLInputElement>(null);
   const [jobDesc,       setJobDesc]       = useState("");
   const [jdMode,        setJdMode]        = useState<"paste"|"url">("paste");
   const [jobUrl,        setJobUrl]        = useState("");
@@ -4287,12 +4289,10 @@ function ScreenCoverLetter() {
   async function handleUpload(file: File) {
     setProfileFile(file.name);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const res = await fetch("/api/zari/extract", { method: "POST", body: fd });
+      const fd = new FormData(); fd.append("file", file);
+      const res = await fetch("/api/zari/extract", { method:"POST", body:fd });
       const data = await res.json().catch(() => ({})) as { text?: string };
-      if (data.text) setProfileText(data.text);
-      else setProfileFile("");
+      if (data.text) setProfileText(data.text); else setProfileFile("");
     } catch { setProfileFile(""); }
   }
 
@@ -4300,7 +4300,7 @@ function ScreenCoverLetter() {
     if (!jobUrl.trim()) return;
     setFetchingUrl(true); setUrlFetchErr("");
     try {
-      const res = await fetch("/api/zari/fetch-url", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ url: jobUrl.trim() }) });
+      const res = await fetch("/api/zari/fetch-url", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ url:jobUrl.trim() }) });
       const data = await res.json().catch(() => ({})) as { text?: string; error?: string };
       if (data.text) { setJobDesc(data.text); setUrlFetchErr(""); }
       else setUrlFetchErr(data.error ?? "Couldn't extract text — paste instead.");
@@ -4310,20 +4310,15 @@ function ScreenCoverLetter() {
 
   async function generate() {
     if (generating) return;
-    setGenerating(true); setError("");
+    setGenerating(true); setError(""); setResult(null);
     try {
       const res = await fetch("/api/zari/cover-letter", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ profileText, jobDescription: jobDesc, company, targetRole, tone }),
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ profileText, jobDescription:jobDesc, company, targetRole, tone }),
       });
       const data = await res.json().catch(() => null) as { subject?: string; coverLetter?: string; error?: string } | null;
-      if (data?.coverLetter) {
-        setResult({ subject: data.subject ?? "", coverLetter: data.coverLetter });
-        setEditedLetter(data.coverLetter);
-      } else {
-        setError(data?.error ?? "Generation failed — try again.");
-      }
+      if (data?.coverLetter) { setResult({ subject:data.subject ?? "", coverLetter:data.coverLetter }); setEditedLetter(data.coverLetter); }
+      else setError(data?.error ?? "Generation failed — try again.");
     } catch { setError("Something went wrong — try again."); }
     setGenerating(false);
   }
@@ -4332,187 +4327,237 @@ function ScreenCoverLetter() {
     const text = editMode ? editedLetter : (result?.coverLetter ?? "");
     navigator.clipboard.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
   }
-
   function download() {
     const text = editMode ? editedLetter : (result?.coverLetter ?? "");
-    const blob = new Blob([text], { type: "text/plain" });
+    const blob = new Blob([text], { type:"text/plain" });
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
     a.download = `cover_letter_${(targetRole || "role").replace(/\s+/g,"_")}.txt`; a.click();
   }
 
-  const canGenerate = profileText.trim() || jobDesc.trim();
+  const STEP_TITLES    = ["Your background", "Job description", "Customize"];
+  const STEP_SUBTITLES = [
+    "Paste your resume or LinkedIn profile — Zari uses this to write in your voice.",
+    "The job posting gives Zari the context to tailor every sentence.",
+    "Add the company, role, and the tone that fits the culture.",
+  ];
 
-  return (
+  // ── Show result page once generated ──
+  if (result || generating) return (
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#FAFBFF" }}>
-      <div style={{ maxWidth:860, margin:"0 auto", padding:28 }}>
-
-        <div style={{ marginBottom:24 }}>
-          <h1 style={{ fontSize:22, fontWeight:900, letterSpacing:"-0.03em", color:"#0A0A0F", marginBottom:4 }}>Cover Letter</h1>
-          <p style={{ fontSize:13, color:"#68738A" }}>Give Zari your background and the job — she&apos;ll write a letter that sounds like you, not a template.</p>
-        </div>
-
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20, alignItems:"start" }}>
-
-          {/* Left: inputs */}
-          <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-
-            {/* Profile source */}
-            <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:14, padding:16 }}>
-              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
-                <p style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", margin:0 }}>Your background <span style={{ color:"#A0AABF", fontWeight:400 }}>(resume or LinkedIn)</span></p>
-                <div style={{ display:"flex", background:"#F1F5F9", borderRadius:8, padding:2 }}>
-                  {(["paste","upload"] as const).map(m => (
-                    <button key={m} onClick={()=>setProfileSource(m)} style={{ fontSize:11, fontWeight:600, padding:"4px 10px", borderRadius:6, border:"none", background:profileSource===m?"white":"transparent", color:profileSource===m?"#0A0A0F":"#68738A", cursor:"pointer", boxShadow:profileSource===m?"0 1px 3px rgba(0,0,0,0.1)":"none", transition:"all 0.15s" }}>
-                      {m === "paste" ? "Paste text" : "Upload file"}
-                    </button>
-                  ))}
-                </div>
+      <div style={{ maxWidth:720, margin:"0 auto", padding:"28px 24px" }}>
+        {generating ? (
+          <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:18, padding:"60px 32px", textAlign:"center", boxShadow:"0 2px 16px rgba(0,0,0,0.06)" }}>
+            <div style={{ display:"flex", gap:6, justifyContent:"center", marginBottom:16 }}>
+              {[0,1,2].map(i=><div key={i} style={{ width:10,height:10,borderRadius:"50%",background:"#818CF8",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
+            </div>
+            <p style={{ fontSize:16, fontWeight:700, color:"#0A0A0F", marginBottom:6 }}>Zari is writing your letter…</p>
+            <p style={{ fontSize:13, color:"#A0AABF" }}>Tailoring every sentence to your background and the role</p>
+          </div>
+        ) : result && (
+          <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:18, boxShadow:"0 4px 24px rgba(0,0,0,0.07)", overflow:"hidden" }}>
+            <div style={{ padding:"18px 22px", borderBottom:"1px solid #F1F5F9", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
+              <div>
+                <p style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"#A0AABF", marginBottom:3 }}>Subject line</p>
+                <p style={{ fontSize:14, fontWeight:700, color:"#0A0A0F" }}>{result.subject || "Cover letter"}</p>
               </div>
-              {profileSource === "paste" ? (
-                <textarea
-                  style={{ width:"100%", minHeight:120, border:"1.5px solid #E4E8F5", borderRadius:10, padding:"9px 11px", fontSize:13, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"#FAFBFF", lineHeight:1.6 }}
-                  placeholder="Paste your resume text, LinkedIn About section + experience, or anything that describes your background…"
-                  value={profileText} onChange={e=>setProfileText(e.target.value)}
-                />
-              ) : profileFile ? (
-                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"9px 12px", background:"#F0FFF4", border:"1px solid #BBF7D0", borderRadius:9 }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                    <svg viewBox="0 0 16 16" fill="none" stroke="#16A34A" strokeWidth="1.8" style={{ width:14,height:14 }}><path d="M14 2H6a1.5 1.5 0 00-1.5 1.5v11A1.5 1.5 0 006 16h8a1.5 1.5 0 001.5-1.5V5.5L14 2z"/><polyline points="6,9 7.5,10.5 10,8"/></svg>
-                    <span style={{ fontSize:12.5, fontWeight:600, color:"#15803D" }}>{profileFile}</span>
-                  </div>
-                  <label style={{ fontSize:11, color:"#68738A", cursor:"pointer", textDecoration:"underline" }}>Replace<input type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleUpload(f); e.target.value=""; }}/></label>
-                </div>
+              <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                <button onClick={()=>{ setResult(null); setStep(1); }} style={{ fontSize:12, fontWeight:600, padding:"7px 14px", borderRadius:9, border:"1px solid #E4E8F5", background:"white", color:"#68738A", cursor:"pointer" }}>← Start over</button>
+                <button onClick={()=>setEditMode(e=>!e)} style={{ fontSize:12, fontWeight:600, padding:"7px 14px", borderRadius:9, border:`1px solid ${editMode?"#4361EE":"#E4E8F5"}`, background:editMode?"#EEF2FF":"white", color:editMode?"#4361EE":"#68738A", cursor:"pointer" }}>{editMode?"Preview":"Edit"}</button>
+                <button onClick={copy} style={{ fontSize:12, fontWeight:600, padding:"7px 14px", borderRadius:9, border:"none", background:copied?"#F0FFF4":"#EEF2FF", color:copied?"#16A34A":"#4361EE", cursor:"pointer", transition:"all 0.2s" }}>{copied?"✓ Copied":"Copy"}</button>
+                <button onClick={download} style={{ fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:9, border:"none", background:"#0F172A", color:"white", cursor:"pointer" }}>Download</button>
+              </div>
+            </div>
+            <div style={{ padding:"28px 32px" }}>
+              {editMode ? (
+                <textarea style={{ width:"100%", minHeight:480, border:"1.5px solid #E4E8F5", borderRadius:10, padding:"14px 16px", fontSize:14, lineHeight:1.85, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"Georgia,'Times New Roman',serif", boxSizing:"border-box" }}
+                  value={editedLetter} onChange={e=>setEditedLetter(e.target.value)}/>
               ) : (
-                <label style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"11px", borderRadius:10, border:"1.5px dashed #CBD5E1", background:"#FAFBFF", cursor:"pointer", fontSize:13, color:"#4361EE", fontWeight:600 }}>
-                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:14,height:14 }}><path d="M8 10V3M4 6l4-3 4 3"/><path d="M2 12h12"/></svg>
-                  Upload resume or LinkedIn PDF
-                  <input type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleUpload(f); e.target.value=""; }}/>
-                </label>
+                <div style={{ fontSize:14, lineHeight:1.9, color:"#1E2235", fontFamily:"Georgia,'Times New Roman',serif", whiteSpace:"pre-wrap" }}>{result.coverLetter}</div>
               )}
             </div>
+          </div>
+        )}
+        {error && <p style={{ fontSize:13, color:"#DC2626", textAlign:"center", marginTop:16 }}>{error} <button onClick={()=>void generate()} style={{ background:"none", border:"none", color:"#4361EE", fontWeight:600, cursor:"pointer", fontSize:13 }}>Try again</button></p>}
+      </div>
+    </div>
+  );
 
-            {/* Job description */}
-            <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:14, padding:16 }}>
-              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
-                <p style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", margin:0 }}>Job description <span style={{ color:"#A0AABF", fontWeight:400 }}>(optional)</span></p>
-                <div style={{ display:"flex", background:"#F1F5F9", borderRadius:8, padding:2 }}>
+  // ── Setup wizard ──
+  return (
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#0A1628" }}>
+      <input ref={profileInputRef} type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }}
+        onChange={e=>{ const f=e.target.files?.[0]; if(f) { void handleUpload(f); } e.target.value=""; }}/>
+
+      <div style={{ minHeight:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"48px 24px" }}>
+
+        {/* Step dots */}
+        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:40 }}>
+          {[1,2,3].map(s => (
+            <div key={s} style={{ display:"flex", alignItems:"center", gap:10 }}>
+              <div style={{ width:28, height:28, borderRadius:"50%", border:`2px solid ${s < step ? "#4ADE80" : s === step ? "#4361EE" : "rgba(255,255,255,0.15)"}`, background:s < step ? "rgba(74,222,128,0.15)" : s === step ? "rgba(67,97,238,0.2)" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
+                {s < step
+                  ? <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2" style={{width:12,height:12}}><polyline points="2,6 5,9 10,3"/></svg>
+                  : <span style={{ fontSize:11, fontWeight:700, color:s === step ? "#818CF8" : "rgba(255,255,255,0.25)" }}>{s}</span>
+                }
+              </div>
+              {s < 3 && <div style={{ width:32, height:2, borderRadius:99, background:s < step ? "rgba(74,222,128,0.4)" : "rgba(255,255,255,0.08)", transition:"all 0.3s" }}/>}
+            </div>
+          ))}
+        </div>
+
+        <div style={{ width:"100%", maxWidth:520 }}>
+          {/* Step heading */}
+          <div style={{ textAlign:"center", marginBottom:32 }}>
+            <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"rgba(255,255,255,0.35)", marginBottom:8 }}>Step {step} of 3</p>
+            <h1 style={{ fontSize:28, fontWeight:900, color:"white", letterSpacing:"-0.04em", marginBottom:10 }}>{STEP_TITLES[step-1]}</h1>
+            <p style={{ fontSize:14, color:"rgba(255,255,255,0.45)", lineHeight:1.6, maxWidth:380, margin:"0 auto" }}>{STEP_SUBTITLES[step-1]}</p>
+          </div>
+
+          {/* ── Step 1: Background ── */}
+          {step === 1 && (
+            <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+              {/* Paste or upload toggle */}
+              <div style={{ display:"flex", background:"rgba(255,255,255,0.06)", borderRadius:10, padding:2, width:"fit-content" }}>
+                {(["paste","upload"] as const).map(m => (
+                  <button key={m} onClick={()=>{ if(m==="upload") profileInputRef.current?.click(); }}
+                    style={{ fontSize:12, fontWeight:600, padding:"6px 18px", borderRadius:8, border:"none", background:"transparent", color:"rgba(255,255,255,0.5)", cursor:"pointer" }}>
+                    {m === "paste" ? "Paste text" : "Upload file"}
+                  </button>
+                ))}
+              </div>
+
+              {profileFile ? (
+                <div style={{ background:"rgba(74,222,128,0.08)", border:"1px solid rgba(74,222,128,0.3)", borderRadius:18, padding:"18px 22px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                    <div style={{ width:40, height:40, borderRadius:11, background:"rgba(74,222,128,0.15)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      <svg viewBox="0 0 20 20" fill="none" stroke="#4ADE80" strokeWidth="1.8" style={{ width:18,height:18 }}><path d="M13 2H5a1.5 1.5 0 00-1.5 1.5v13A1.5 1.5 0 005 18h10a1.5 1.5 0 001.5-1.5V6L13 2z"/><polyline points="4,11 7,14 11,9"/></svg>
+                    </div>
+                    <div>
+                      <p style={{ fontSize:14, fontWeight:600, color:"white", margin:0 }}>{profileFile}</p>
+                      <p style={{ fontSize:11.5, color:"rgba(255,255,255,0.4)", margin:0 }}>Uploaded successfully</p>
+                    </div>
+                  </div>
+                  <label style={{ fontSize:11.5, fontWeight:600, color:"rgba(255,255,255,0.4)", cursor:"pointer", padding:"6px 14px", borderRadius:9, border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.04)", flexShrink:0 }}>
+                    Replace<input type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleUpload(f); e.target.value=""; }}/>
+                  </label>
+                </div>
+              ) : (
+                <>
+                  <div
+                    onClick={()=>profileInputRef.current?.click()}
+                    onDragOver={e=>{ e.preventDefault(); setProfileDrag(true); }}
+                    onDragLeave={()=>setProfileDrag(false)}
+                    onDrop={e=>{ e.preventDefault(); setProfileDrag(false); const f=e.dataTransfer.files?.[0]; if(f) void handleUpload(f); }}
+                    style={{ background:profileDrag?"rgba(67,97,238,0.18)":"rgba(255,255,255,0.04)", border:`2px dashed ${profileDrag?"#4361EE":"rgba(255,255,255,0.15)"}`, borderRadius:20, padding:"32px 24px", cursor:"pointer", textAlign:"center", transition:"all 0.15s" }}>
+                    <div style={{ width:44, height:44, borderRadius:12, background:"rgba(67,97,238,0.2)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 14px" }}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="#818CF8" strokeWidth="1.8" style={{ width:22,height:22 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
+                    </div>
+                    <p style={{ fontSize:15, fontWeight:700, color:"white", marginBottom:5 }}>{profileDrag ? "Drop your file here" : "Upload resume or LinkedIn PDF"}</p>
+                    <p style={{ fontSize:12.5, color:"rgba(255,255,255,0.4)", marginBottom:14 }}>Drag and drop, or click to browse</p>
+                    <span style={{ fontSize:12, fontWeight:700, padding:"6px 16px", borderRadius:99, background:"rgba(67,97,238,0.3)", color:"#A5B4FC", border:"1px solid rgba(67,97,238,0.4)" }}>Choose file · PDF, DOCX, TXT</span>
+                  </div>
+                  <p style={{ textAlign:"center", fontSize:12, color:"rgba(255,255,255,0.25)", margin:0 }}>— or paste below —</p>
+                  <textarea
+                    style={{ width:"100%", minHeight:130, border:"1px solid rgba(255,255,255,0.1)", borderRadius:14, padding:"12px 14px", fontSize:13, color:"white", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"rgba(255,255,255,0.05)", lineHeight:1.65 }}
+                    placeholder="Paste your resume text, LinkedIn About section, or a summary of your background…"
+                    value={profileText} onChange={e=>setProfileText(e.target.value)}
+                  />
+                </>
+              )}
+              <button onClick={()=>setStep(2)} disabled={!profileText.trim() && !profileFile}
+                style={{ width:"100%", fontSize:14.5, fontWeight:700, padding:"14px", borderRadius:14, border:"none", background:(profileText.trim()||profileFile)?"linear-gradient(135deg,#4361EE,#818CF8)":"rgba(255,255,255,0.06)", color:(profileText.trim()||profileFile)?"white":"rgba(255,255,255,0.25)", cursor:(profileText.trim()||profileFile)?"pointer":"default", boxShadow:(profileText.trim()||profileFile)?"0 8px 24px rgba(67,97,238,0.4)":"none", transition:"all 0.2s" }}>
+                Continue →
+              </button>
+            </div>
+          )}
+
+          {/* ── Step 2: Job description ── */}
+          {step === 2 && (
+            <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+              <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:18, padding:18 }}>
+                <div style={{ display:"flex", background:"rgba(255,255,255,0.06)", borderRadius:8, padding:2, marginBottom:14, width:"fit-content" }}>
                   {(["paste","url"] as const).map(m => (
-                    <button key={m} onClick={()=>{ setJdMode(m); setUrlFetchErr(""); }} style={{ fontSize:11, fontWeight:600, padding:"4px 10px", borderRadius:6, border:"none", background:jdMode===m?"white":"transparent", color:jdMode===m?"#0A0A0F":"#68738A", cursor:"pointer", boxShadow:jdMode===m?"0 1px 3px rgba(0,0,0,0.1)":"none", transition:"all 0.15s" }}>
+                    <button key={m} onClick={()=>{ setJdMode(m); setUrlFetchErr(""); }} style={{ fontSize:12, fontWeight:600, padding:"6px 16px", borderRadius:6, border:"none", background:jdMode===m?"rgba(255,255,255,0.12)":"transparent", color:jdMode===m?"white":"rgba(255,255,255,0.45)", cursor:"pointer", transition:"all 0.15s" }}>
                       {m === "paste" ? "Paste text" : "Job URL"}
                     </button>
                   ))}
                 </div>
-              </div>
-              {jdMode === "paste" ? (
-                <textarea
-                  style={{ width:"100%", minHeight:90, border:"1.5px solid #E4E8F5", borderRadius:10, padding:"9px 11px", fontSize:13, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"#FAFBFF", lineHeight:1.6 }}
-                  placeholder="Paste the job posting…"
-                  value={jobDesc} onChange={e=>setJobDesc(e.target.value)}
-                />
-              ) : (
-                <div>
-                  <div style={{ display:"flex", gap:8 }}>
-                    <input type="url" value={jobUrl} onChange={e=>{ setJobUrl(e.target.value); setUrlFetchErr(""); }} placeholder="https://…" onKeyDown={e=>{ if(e.key==="Enter") void fetchJd(); }} style={{ flex:1, border:"1.5px solid #E4E8F5", borderRadius:10, padding:"9px 11px", fontSize:13, color:"#1E2235", outline:"none", fontFamily:"inherit", background:"#FAFBFF" }}/>
-                    <button onClick={()=>void fetchJd()} disabled={fetchingUrl||!jobUrl.trim()} style={{ padding:"9px 16px", borderRadius:10, border:"none", background:jobUrl.trim()&&!fetchingUrl?"#4361EE":"#E4E8F5", color:jobUrl.trim()&&!fetchingUrl?"white":"#A0AABF", fontSize:13, fontWeight:700, cursor:jobUrl.trim()&&!fetchingUrl?"pointer":"default", flexShrink:0 }}>
-                      {fetchingUrl ? "…" : "Fetch"}
-                    </button>
-                  </div>
-                  {urlFetchErr && <p style={{ fontSize:12, color:"#DC2626", marginTop:6, marginBottom:0 }}>{urlFetchErr} <button onClick={()=>setJdMode("paste")} style={{ background:"none", border:"none", color:"#4361EE", fontWeight:600, cursor:"pointer", fontSize:12, padding:0 }}>Switch to paste</button></p>}
-                  {jobDesc && !urlFetchErr && <p style={{ fontSize:11.5, color:"#16A34A", marginTop:6, marginBottom:0 }}>✓ Fetched — {jobDesc.length.toLocaleString()} chars</p>}
-                </div>
-              )}
-            </div>
-
-            {/* Role + company */}
-            <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:14, padding:16, display:"flex", flexDirection:"column", gap:10 }}>
-              <p style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", margin:0 }}>Role details <span style={{ color:"#A0AABF", fontWeight:400 }}>(optional)</span></p>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-                <input value={company} onChange={e=>setCompany(e.target.value)} placeholder="Company name" style={{ border:"1.5px solid #E4E8F5", borderRadius:10, padding:"9px 11px", fontSize:13, color:"#1E2235", outline:"none", fontFamily:"inherit", background:"#FAFBFF" }}/>
-                <input value={targetRole} onChange={e=>setTargetRole(e.target.value)} placeholder="Target role" style={{ border:"1.5px solid #E4E8F5", borderRadius:10, padding:"9px 11px", fontSize:13, color:"#1E2235", outline:"none", fontFamily:"inherit", background:"#FAFBFF" }}/>
-              </div>
-            </div>
-
-            {/* Tone */}
-            <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:14, padding:16 }}>
-              <p style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", marginBottom:10 }}>Tone</p>
-              <div style={{ display:"flex", gap:8 }}>
-                {([
-                  { id:"professional"   as const, label:"Professional",   desc:"Formal & results-focused" },
-                  { id:"conversational" as const, label:"Conversational",  desc:"Warm & direct" },
-                  { id:"enthusiastic"   as const, label:"Enthusiastic",    desc:"Energetic & genuine" },
-                ]).map(t => (
-                  <button key={t.id} onClick={()=>setTone(t.id)} style={{ flex:1, padding:"10px 8px", borderRadius:10, border:`1.5px solid ${tone===t.id?"#4361EE":"#E4E8F5"}`, background:tone===t.id?"#EEF2FF":"white", cursor:"pointer", textAlign:"left", transition:"all 0.15s" }}>
-                    <div style={{ fontSize:11.5, fontWeight:700, color:tone===t.id?"#4361EE":"#0A0A0F" }}>{t.label}</div>
-                    <div style={{ fontSize:10, color:"#A0AABF", marginTop:2 }}>{t.desc}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <button onClick={()=>void generate()} disabled={!canGenerate || generating} style={{ width:"100%", fontSize:14, fontWeight:700, padding:"12px", borderRadius:12, border:"none", background:canGenerate&&!generating?"#0F172A":"#F1F5F9", color:canGenerate&&!generating?"white":"#CBD5E1", cursor:canGenerate&&!generating?"pointer":"default", display:"flex", alignItems:"center", justifyContent:"center", gap:8, opacity:generating?0.8:1, transition:"all 0.15s" }}>
-              {generating ? (
-                <><span style={{ width:14,height:14,borderRadius:"50%",border:"2px solid rgba(255,255,255,0.3)",borderTopColor:"white",animation:"spin-slow 0.7s linear infinite",display:"block" }}/> Writing your letter…</>
-              ) : result ? "Regenerate →" : "Generate cover letter →"}
-            </button>
-            {error && <p style={{ fontSize:12.5, color:"#DC2626", textAlign:"center", margin:0 }}>{error}</p>}
-          </div>
-
-          {/* Right: result */}
-          <div>
-            {!result && !generating && (
-              <div style={{ background:"white", border:"1.5px dashed #E4E8F5", borderRadius:18, padding:40, textAlign:"center" }}>
-                <div style={{ width:52, height:52, borderRadius:14, background:"#F5F7FF", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 14px" }}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="#4361EE" strokeWidth="1.6" style={{ width:24,height:24 }}><path d="M4 4h16v16H4V4z"/><path d="M4 9l8 5 8-5"/></svg>
-                </div>
-                <p style={{ fontSize:14, fontWeight:700, color:"#0A0A0F", marginBottom:6 }}>Your cover letter will appear here</p>
-                <p style={{ fontSize:12.5, color:"#A0AABF", lineHeight:1.6 }}>Add your background and the job on the left, then hit generate.</p>
-              </div>
-            )}
-            {generating && (
-              <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:18, padding:40, textAlign:"center" }}>
-                <div style={{ display:"flex", gap:6, justifyContent:"center", marginBottom:14 }}>
-                  {[0,1,2].map(i=><div key={i} style={{ width:9,height:9,borderRadius:"50%",background:"#818CF8",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
-                </div>
-                <p style={{ fontSize:14, fontWeight:600, color:"#4361EE" }}>Zari is writing your letter…</p>
-                <p style={{ fontSize:12, color:"#A0AABF", marginTop:5 }}>Tailoring every sentence to your background and the role</p>
-              </div>
-            )}
-            {result && !generating && (
-              <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:18, boxShadow:"0 2px 16px rgba(0,0,0,0.06)", overflow:"hidden" }}>
-                {/* Header */}
-                <div style={{ padding:"16px 20px", borderBottom:"1px solid #F1F5F9", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                {jdMode === "paste" ? (
+                  <textarea
+                    style={{ width:"100%", minHeight:180, border:"1px solid rgba(255,255,255,0.1)", borderRadius:10, padding:"12px 14px", fontSize:13, color:"white", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"rgba(255,255,255,0.06)", lineHeight:1.65 }}
+                    placeholder="Paste the full job posting…"
+                    value={jobDesc} onChange={e=>setJobDesc(e.target.value)}
+                  />
+                ) : (
                   <div>
-                    <p style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"#A0AABF", marginBottom:3 }}>Subject</p>
-                    <p style={{ fontSize:13, fontWeight:600, color:"#0A0A0F" }}>{result.subject || "Cover letter"}</p>
-                  </div>
-                  <div style={{ display:"flex", gap:8 }}>
-                    <button onClick={()=>setEditMode(e=>!e)} style={{ fontSize:11.5, fontWeight:600, padding:"6px 12px", borderRadius:8, border:"1px solid #E4E8F5", background:editMode?"#EEF2FF":"white", color:editMode?"#4361EE":"#68738A", cursor:"pointer" }}>
-                      {editMode ? "Preview" : "Edit"}
-                    </button>
-                    <button onClick={copy} style={{ fontSize:11.5, fontWeight:600, padding:"6px 12px", borderRadius:8, border:"none", background:copied?"#F0FFF4":"#EEF2FF", color:copied?"#16A34A":"#4361EE", cursor:"pointer", transition:"all 0.2s" }}>
-                      {copied ? "✓ Copied" : "Copy"}
-                    </button>
-                    <button onClick={download} style={{ fontSize:11.5, fontWeight:600, padding:"6px 12px", borderRadius:8, border:"none", background:"#0F172A", color:"white", cursor:"pointer" }}>
-                      Download
-                    </button>
-                  </div>
-                </div>
-                {/* Body */}
-                <div style={{ padding:"20px 24px" }}>
-                  {editMode ? (
-                    <textarea
-                      style={{ width:"100%", minHeight:420, border:"1.5px solid #E4E8F5", borderRadius:10, padding:"12px 14px", fontSize:13.5, lineHeight:1.8, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"Georgia, 'Times New Roman', serif", boxSizing:"border-box" }}
-                      value={editedLetter} onChange={e=>setEditedLetter(e.target.value)}
-                    />
-                  ) : (
-                    <div style={{ fontSize:13.5, lineHeight:1.85, color:"#1E2235", fontFamily:"Georgia, 'Times New Roman', serif", whiteSpace:"pre-wrap" }}>
-                      {result.coverLetter}
+                    <div style={{ display:"flex", gap:8 }}>
+                      <input type="url" value={jobUrl} onChange={e=>{ setJobUrl(e.target.value); setUrlFetchErr(""); }} onKeyDown={e=>{ if(e.key==="Enter") void fetchJd(); }}
+                        placeholder="https://jobs.lever.co/… or LinkedIn, Greenhouse, etc."
+                        style={{ flex:1, border:"1px solid rgba(255,255,255,0.12)", borderRadius:10, padding:"11px 14px", fontSize:13, color:"white", outline:"none", fontFamily:"inherit", background:"rgba(255,255,255,0.06)" }}/>
+                      <button onClick={()=>void fetchJd()} disabled={fetchingUrl||!jobUrl.trim()}
+                        style={{ padding:"11px 20px", borderRadius:10, border:"none", background:jobUrl.trim()&&!fetchingUrl?"#4361EE":"rgba(255,255,255,0.08)", color:jobUrl.trim()&&!fetchingUrl?"white":"rgba(255,255,255,0.3)", fontSize:13, fontWeight:700, cursor:jobUrl.trim()&&!fetchingUrl?"pointer":"default", flexShrink:0 }}>
+                        {fetchingUrl ? "…" : "Fetch"}
+                      </button>
                     </div>
-                  )}
+                    {urlFetchErr && <p style={{ fontSize:12, color:"#FCA5A5", marginTop:8, marginBottom:0 }}>{urlFetchErr} <button onClick={()=>setJdMode("paste")} style={{ background:"none", border:"none", color:"#A5B4FC", fontWeight:600, cursor:"pointer", fontSize:12, padding:0 }}>Switch to paste</button></p>}
+                    {jobDesc && !urlFetchErr && <p style={{ fontSize:12, color:"#4ADE80", marginTop:8, marginBottom:0 }}>✓ Fetched — {jobDesc.length.toLocaleString()} chars</p>}
+                  </div>
+                )}
+              </div>
+              <div style={{ display:"flex", gap:10 }}>
+                <button onClick={()=>setStep(1)} style={{ padding:"14px 20px", borderRadius:14, border:"1px solid rgba(255,255,255,0.1)", background:"transparent", color:"rgba(255,255,255,0.45)", fontSize:14, fontWeight:600, cursor:"pointer" }}>← Back</button>
+                <button onClick={()=>setStep(3)} disabled={!jobDesc.trim()}
+                  style={{ flex:1, fontSize:14.5, fontWeight:700, padding:"14px", borderRadius:14, border:"none", background:jobDesc.trim()?"linear-gradient(135deg,#4361EE,#818CF8)":"rgba(255,255,255,0.06)", color:jobDesc.trim()?"white":"rgba(255,255,255,0.25)", cursor:jobDesc.trim()?"pointer":"default", boxShadow:jobDesc.trim()?"0 8px 24px rgba(67,97,238,0.4)":"none", transition:"all 0.2s" }}>
+                  Continue →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ── Step 3: Customize ── */}
+          {step === 3 && (
+            <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+              {/* Company + role */}
+              <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:18, padding:18, display:"flex", flexDirection:"column", gap:10 }}>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.07em", color:"rgba(255,255,255,0.35)", margin:0 }}>Role details (optional)</p>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+                  <input value={company} onChange={e=>setCompany(e.target.value)} placeholder="Company name"
+                    style={{ border:"1px solid rgba(255,255,255,0.12)", borderRadius:10, padding:"11px 14px", fontSize:13, color:"white", outline:"none", fontFamily:"inherit", background:"rgba(255,255,255,0.06)" }}/>
+                  <input value={targetRole} onChange={e=>setTargetRole(e.target.value)} placeholder="Target role"
+                    style={{ border:"1px solid rgba(255,255,255,0.12)", borderRadius:10, padding:"11px 14px", fontSize:13, color:"white", outline:"none", fontFamily:"inherit", background:"rgba(255,255,255,0.06)" }}/>
                 </div>
               </div>
-            )}
-          </div>
+              {/* Tone */}
+              <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:18, padding:18 }}>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.07em", color:"rgba(255,255,255,0.35)", marginBottom:12 }}>Tone</p>
+                <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                  {([
+                    { id:"professional"   as const, label:"Professional",  desc:"Formal, confident, results-oriented — every sentence earns its place" },
+                    { id:"conversational" as const, label:"Conversational", desc:"Warm and direct — reads like a smart person talking, not a template" },
+                    { id:"enthusiastic"   as const, label:"Enthusiastic",   desc:"Energetic and genuine — shows real excitement for this specific role" },
+                  ]).map(t => (
+                    <button key={t.id} onClick={()=>setTone(t.id)}
+                      style={{ padding:"14px 16px", borderRadius:12, border:`1.5px solid ${tone===t.id?"#4361EE":"rgba(255,255,255,0.1)"}`, background:tone===t.id?"rgba(67,97,238,0.15)":"rgba(255,255,255,0.03)", cursor:"pointer", textAlign:"left", transition:"all 0.15s", display:"flex", alignItems:"center", gap:12 }}>
+                      <div style={{ width:18, height:18, borderRadius:"50%", border:`2px solid ${tone===t.id?"#4361EE":"rgba(255,255,255,0.2)"}`, background:tone===t.id?"#4361EE":"transparent", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                        {tone===t.id && <div style={{ width:6, height:6, borderRadius:"50%", background:"white" }}/>}
+                      </div>
+                      <div>
+                        <div style={{ fontSize:13.5, fontWeight:700, color:"white", marginBottom:2 }}>{t.label}</div>
+                        <div style={{ fontSize:11.5, color:"rgba(255,255,255,0.4)", lineHeight:1.4 }}>{t.desc}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div style={{ display:"flex", gap:10 }}>
+                <button onClick={()=>setStep(2)} style={{ padding:"14px 20px", borderRadius:14, border:"1px solid rgba(255,255,255,0.1)", background:"transparent", color:"rgba(255,255,255,0.45)", fontSize:14, fontWeight:600, cursor:"pointer" }}>← Back</button>
+                <button onClick={()=>void generate()}
+                  style={{ flex:1, fontSize:14.5, fontWeight:700, padding:"14px", borderRadius:14, border:"none", background:"linear-gradient(135deg,#4361EE,#818CF8)", color:"white", cursor:"pointer", boxShadow:"0 8px 24px rgba(67,97,238,0.4)", transition:"all 0.2s" }}>
+                  Write my cover letter →
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
