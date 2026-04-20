@@ -1014,6 +1014,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [sessionReady, setSessionReady] = useState(false);
   const [fileProcessing, setFileProcessing] = useState(false);
+  const [showLiveMode, setShowLiveMode] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -1383,17 +1384,30 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
           ))}
         </div>
 
-        {/* Voice toggle */}
-        <div style={{ marginTop:16, paddingTop:16, borderTop:"1px solid #F1F5F9" }}>
-          <button onClick={() => { setIsVoice(v=>!v); if (isVoice && audioRef.current) { audioRef.current.pause(); audioRef.current = null; } }} style={{
+        {/* Voice controls */}
+        <div style={{ marginTop:16, paddingTop:16, borderTop:"1px solid #F1F5F9", display:"flex", flexDirection:"column", gap:8 }}>
+          {/* Talk Live button */}
+          <button onClick={() => setShowLiveMode(true)} style={{
             width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:8,
-            padding:"9px", borderRadius:10, border:"none", cursor:"pointer",
-            background: isVoice ? "#4361EE" : "#F5F7FF",
-            color: isVoice ? "white" : "#4361EE", fontSize:12.5, fontWeight:600,
+            padding:"10px", borderRadius:10, border:"none", cursor:"pointer",
+            background:"linear-gradient(135deg,#1e1b4b,#3730a3)",
+            color:"white", fontSize:12.5, fontWeight:700,
+            boxShadow:"0 4px 14px rgba(67,56,202,0.35)",
             transition:"all 0.2s",
           }}>
-            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:15,height:15 }}><path d="M10 2a3 3 0 00-3 3v4a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M4 9v1a6 6 0 0012 0V9"/><line x1="10" y1="15" x2="10" y2="18"/></svg>
-            {isVoice ? "Voice on — Zari speaks" : "Enable voice"}
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:15,height:15 }}><circle cx="10" cy="10" r="7"/><path d="M10 7v3l2 2" strokeLinecap="round"/></svg>
+            Talk Live with Zari
+          </button>
+          {/* TTS toggle */}
+          <button onClick={() => { setIsVoice(v=>!v); if (isVoice && audioRef.current) { audioRef.current.pause(); audioRef.current = null; } }} style={{
+            width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+            padding:"8px", borderRadius:10, border:"none", cursor:"pointer",
+            background: isVoice ? "#4361EE" : "#F5F7FF",
+            color: isVoice ? "white" : "#4361EE", fontSize:12, fontWeight:600,
+            transition:"all 0.2s",
+          }}>
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:14,height:14 }}><path d="M10 2a3 3 0 00-3 3v4a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M4 9v1a6 6 0 0012 0V9"/><line x1="10" y1="15" x2="10" y2="18"/></svg>
+            {isVoice ? "Voice replies: on" : "Voice replies: off"}
           </button>
         </div>
       </div>
@@ -1491,6 +1505,267 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
           </div>
           <p style={{ textAlign:"center", fontSize:10, color:"#C4CDD8", marginTop:6 }}>Enter to send · Shift+Enter for newline · 📎 attach · 🎤 speak · Powered by Zari AI</p>
         </div>
+      </div>
+
+      {/* Live mode overlay */}
+      {showLiveMode && (
+        <ZariLiveMode
+          stage={stage}
+          msgs={msgs}
+          sessionId={sessionId}
+          sectionContext={readSectionContext()}
+          onClose={() => setShowLiveMode(false)}
+          onNewMessages={newMsgs => setMsgs(m => [...m, ...newMsgs])}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   ZARI LIVE MODE — immersive full-screen voice session
+═══════════════════════════════════════════════════ */
+function ZariLiveMode({
+  stage, msgs, sessionId, sectionContext, onClose, onNewMessages,
+}: {
+  stage: CareerStage;
+  msgs: ChatMsg[];
+  sessionId: string | null;
+  sectionContext: Record<string, unknown>;
+  onClose: () => void;
+  onNewMessages: (m: ChatMsg[]) => void;
+}) {
+  type LiveState = "idle" | "listening" | "thinking" | "speaking";
+  const [liveState, setLiveState] = useState<LiveState>("idle");
+  const [transcript, setTranscript] = useState<ChatMsg[]>([]);
+  const [statusText, setStatusText] = useState("Tap to speak");
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef  = useRef<Blob[]>([]);
+  const audioRef        = useRef<HTMLAudioElement | null>(null);
+  const newMsgsRef      = useRef<ChatMsg[]>([]);
+  const liveStateRef    = useRef<LiveState>("idle");
+  const transcriptRef   = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    liveStateRef.current = liveState;
+  }, [liveState]);
+
+  useEffect(() => {
+    if (transcriptRef.current) transcriptRef.current.scrollTop = transcriptRef.current.scrollHeight;
+  }, [transcript]);
+
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+      if (newMsgsRef.current.length > 0) onNewMessages(newMsgsRef.current);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function playTTS(text: string): Promise<void> {
+    return new Promise((resolve) => {
+      (async () => {
+        try {
+          if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+          const res = await fetch("/api/zari/speak", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text }),
+          });
+          if (!res.ok) { resolve(); return; }
+          const blob = await res.blob();
+          const url  = URL.createObjectURL(blob);
+          const audio = new Audio(url);
+          audioRef.current = audio;
+          audio.onended = () => { URL.revokeObjectURL(url); resolve(); };
+          audio.onerror = () => { URL.revokeObjectURL(url); resolve(); };
+          void audio.play();
+        } catch { resolve(); }
+      })();
+    });
+  }
+
+  function stopRecording() {
+    mediaRecorderRef.current?.stop();
+    mediaRecorderRef.current = null;
+  }
+
+  async function startRecording() {
+    if (liveStateRef.current !== "idle") return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? "audio/webm;codecs=opus"
+        : MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/ogg";
+      const recorder = new MediaRecorder(stream, { mimeType });
+      audioChunksRef.current = [];
+
+      // silence detection via AnalyserNode
+      const audioCtx  = new AudioContext();
+      const analyser  = audioCtx.createAnalyser();
+      analyser.fftSize = 512;
+      const source = audioCtx.createMediaStreamSource(stream);
+      source.connect(analyser);
+      const data = new Uint8Array(analyser.frequencyBinCount);
+      let silenceStart: number | null = null;
+      let vadActive = true;
+
+      function checkVAD() {
+        if (!vadActive) return;
+        analyser.getByteFrequencyData(data);
+        const avg = data.reduce((a, b) => a + b, 0) / data.length;
+        if (avg < 8) {
+          if (!silenceStart) silenceStart = Date.now();
+          else if (Date.now() - silenceStart > 2000) { vadActive = false; recorder.stop(); return; }
+        } else { silenceStart = null; }
+        requestAnimationFrame(checkVAD);
+      }
+
+      recorder.ondataavailable = e => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
+      recorder.onstop = async () => {
+        vadActive = false;
+        stream.getTracks().forEach(t => t.stop());
+        void audioCtx.close();
+
+        const blob = new Blob(audioChunksRef.current, { type: mimeType });
+        if (blob.size < 500) { setLiveState("idle"); setStatusText("Tap to speak"); return; }
+
+        setLiveState("thinking");
+        setStatusText("Thinking…");
+
+        const form = new FormData();
+        form.append("audio", blob);
+        let transcribed = "";
+        try {
+          const res = await fetch("/api/zari/transcribe", { method: "POST", body: form });
+          const d = await res.json().catch(() => ({})) as { text?: string };
+          transcribed = (d.text ?? "").trim();
+        } catch {}
+
+        if (!transcribed) { setLiveState("idle"); setStatusText("Tap to speak"); return; }
+
+        const userMsg: ChatMsg = { role: "user", text: transcribed };
+        setTranscript(t => [...t, userMsg]);
+        newMsgsRef.current = [...newMsgsRef.current, userMsg];
+
+        try {
+          const history = [...msgs, ...newMsgsRef.current.slice(0, -1)].slice(-14);
+          const res = await fetch("/api/zari/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: transcribed, stage, history, sessionId, sectionContext }),
+          });
+          const d = await res.json().catch(() => ({})) as { message?: string };
+          const reply = (d.message ?? "").trim() || "Having a bit of trouble — try again.";
+
+          const coachMsg: ChatMsg = { role: "coach", text: reply };
+          setTranscript(t => [...t, coachMsg]);
+          newMsgsRef.current = [...newMsgsRef.current, coachMsg];
+
+          setLiveState("speaking");
+          setStatusText("Speaking…");
+          await playTTS(reply);
+        } catch {}
+
+        setLiveState("idle");
+        setStatusText("Tap to speak");
+      };
+
+      recorder.start();
+      mediaRecorderRef.current = recorder;
+      setLiveState("listening");
+      setStatusText("Listening…");
+      requestAnimationFrame(checkVAD);
+    } catch {
+      setStatusText("Microphone unavailable — check browser permissions");
+      setTimeout(() => setStatusText("Tap to speak"), 3000);
+    }
+  }
+
+  function handleMicTap() {
+    if (liveState === "listening") stopRecording();
+    else if (liveState === "idle") void startRecording();
+  }
+
+  const ORB_STYLES: Record<LiveState, { gradient: string; shadow: string; animation: string }> = {
+    idle:      { gradient:"radial-gradient(circle at 35% 35%, #818cf8, #4f46e5 45%, #1e1b4b 100%)", shadow:"0 0 50px 15px rgba(99,102,241,0.35), 0 0 100px 30px rgba(67,56,202,0.18)", animation:"sphere-breathe 4s ease-in-out infinite" },
+    listening: { gradient:"radial-gradient(circle at 35% 35%, #67e8f9, #06b6d4 45%, #0e4f6a 100%)", shadow:"0 0 60px 20px rgba(6,182,212,0.5), 0 0 120px 40px rgba(6,182,212,0.2)", animation:"sphere-breathe 1.6s ease-in-out infinite" },
+    thinking:  { gradient:"radial-gradient(circle at 35% 35%, #c4b5fd, #8b5cf6 45%, #3b1c8c 100%)", shadow:"0 0 60px 20px rgba(139,92,246,0.5), 0 0 120px 40px rgba(124,58,237,0.25)", animation:"spin-slow 3s linear infinite" },
+    speaking:  { gradient:"radial-gradient(circle at 35% 35%, #a5b4fc, #6366f1 35%, #1e1b4b 100%)", shadow:"0 0 80px 30px rgba(99,102,241,0.65), 0 0 160px 60px rgba(67,56,202,0.3)", animation:"sphere-breathe 0.8s ease-in-out infinite" },
+  };
+  const orb = ORB_STYLES[liveState];
+
+  return (
+    <div style={{ position:"fixed", inset:0, zIndex:9999, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", fontFamily:"var(--font-geist-sans,Inter,system-ui,sans-serif)" }}>
+      {/* Background */}
+      <div style={{ position:"absolute", inset:0, background:"radial-gradient(ellipse at 50% 35%, #0d0c29 0%, #06050f 55%, #000000 100%)" }}/>
+      {/* Aurora blobs */}
+      <div style={{ position:"absolute", top:"10%", left:"15%", width:500, height:500, borderRadius:"50%", background:"radial-gradient(circle, rgba(67,56,202,0.18) 0%, transparent 70%)", filter:"blur(60px)", animation:"aurora-a 8s ease-in-out infinite", pointerEvents:"none" }}/>
+      <div style={{ position:"absolute", bottom:"15%", right:"10%", width:400, height:400, borderRadius:"50%", background:"radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)", filter:"blur(50px)", animation:"aurora-b 10s ease-in-out infinite", pointerEvents:"none" }}/>
+      <div style={{ position:"absolute", top:"40%", right:"25%", width:300, height:300, borderRadius:"50%", background:"radial-gradient(circle, rgba(139,92,246,0.1) 0%, transparent 70%)", filter:"blur(40px)", animation:"aurora-c 12s ease-in-out infinite", pointerEvents:"none" }}/>
+
+      {/* Top bar */}
+      <div style={{ position:"absolute", top:0, left:0, right:0, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"24px 28px", zIndex:1 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+          <div style={{ width:32, height:32, borderRadius:"50%", background:"linear-gradient(135deg,#4f46e5,#818cf8)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:800, color:"white", boxShadow:"0 0 12px rgba(99,102,241,0.4)" }}>Z</div>
+          <span style={{ color:"white", fontWeight:700, fontSize:15, letterSpacing:"0.04em" }}>ZARI</span>
+          <span style={{ fontSize:11, color:"rgba(255,255,255,0.35)", fontWeight:500, marginLeft:4 }}>Live session</span>
+        </div>
+        <button onClick={() => { if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; } onClose(); }} style={{ width:36, height:36, borderRadius:"50%", border:"1px solid rgba(255,255,255,0.12)", background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.2s" }}>
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:14, height:14 }}><path d="M4 4l12 12M16 4L4 16"/></svg>
+        </button>
+      </div>
+
+      {/* Orb */}
+      <div style={{ position:"relative", zIndex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:20, marginBottom:32 }}>
+        {/* Listening rings */}
+        {(liveState === "listening" || liveState === "speaking") && [0,1,2].map(i => (
+          <div key={i} style={{ position:"absolute", top:"50%", left:"50%", width:160, height:160, borderRadius:"50%", border:`1.5px solid ${liveState==="listening" ? "rgba(6,182,212,0.5)" : "rgba(99,102,241,0.5)"}`, transform:"translate(-50%,-50%)", animation:`listen-ripple ${1.6 + i * 0.5}s ease-out ${i * 0.4}s infinite`, pointerEvents:"none" }}/>
+        ))}
+        <div style={{ width:160, height:160, borderRadius:"50%", background:orb.gradient, boxShadow:orb.shadow, animation:orb.animation, transition:"background 0.6s ease, box-shadow 0.6s ease", flexShrink:0 }}/>
+        <div style={{ textAlign:"center" }}>
+          <p style={{ color:"rgba(255,255,255,0.9)", fontWeight:700, fontSize:18, letterSpacing:"0.12em", margin:0 }}>ZARI</p>
+          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:12, fontWeight:500, margin:"4px 0 0", letterSpacing:"0.04em", transition:"color 0.3s" }}>{statusText}</p>
+        </div>
+      </div>
+
+      {/* Transcript */}
+      <div ref={transcriptRef} style={{ position:"relative", zIndex:1, width:"100%", maxWidth:560, maxHeight:220, overflowY:"auto", padding:"0 24px 16px", display:"flex", flexDirection:"column", gap:10, scrollbarWidth:"none" }}>
+        {transcript.slice(-6).map((m, i) => (
+          <div key={i} style={{ display:"flex", justifyContent:m.role==="user"?"flex-end":"flex-start", animation:"bubble-appear 0.3s ease" }}>
+            <div style={{ maxWidth:"80%", padding:"9px 14px", borderRadius:m.role==="user"?"16px 4px 16px 16px":"4px 16px 16px 16px", background:m.role==="user"?"rgba(255,255,255,0.1)":"rgba(99,102,241,0.2)", backdropFilter:"blur(8px)", border:`1px solid ${m.role==="user"?"rgba(255,255,255,0.12)":"rgba(99,102,241,0.3)"}`, color:"rgba(255,255,255,0.88)", fontSize:13, lineHeight:1.6, fontWeight:m.role==="user"?400:400 }}>
+              {m.text}
+            </div>
+          </div>
+        ))}
+        {transcript.length === 0 && (
+          <p style={{ textAlign:"center", color:"rgba(255,255,255,0.2)", fontSize:12, margin:0 }}>Your conversation will appear here</p>
+        )}
+      </div>
+
+      {/* Controls */}
+      <div style={{ position:"relative", zIndex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:16, marginTop:8 }}>
+        <button
+          onClick={handleMicTap}
+          disabled={liveState === "thinking" || liveState === "speaking"}
+          style={{
+            width:80, height:80, borderRadius:"50%", border:"none", cursor:liveState==="thinking"||liveState==="speaking"?"not-allowed":"pointer",
+            background: liveState==="listening" ? "rgba(239,68,68,0.9)" : liveState==="idle" ? "rgba(99,102,241,0.9)" : "rgba(255,255,255,0.08)",
+            boxShadow: liveState==="listening" ? "0 0 30px rgba(239,68,68,0.6), 0 8px 32px rgba(0,0,0,0.4)" : liveState==="idle" ? "0 0 30px rgba(99,102,241,0.5), 0 8px 32px rgba(0,0,0,0.4)" : "none",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            transition:"all 0.3s ease",
+            animation: liveState==="listening" ? "sphere-breathe 1s ease-in-out infinite" : "none",
+          }}
+        >
+          {liveState === "listening"
+            ? <div style={{ width:20, height:20, borderRadius:3, background:"white" }}/>
+            : liveState === "thinking" || liveState === "speaking"
+            ? <span style={{ width:20, height:20, borderRadius:"50%", border:"2px solid rgba(255,255,255,0.3)", borderTopColor:"white", display:"block", animation:"spin-slow 0.8s linear infinite" }}/>
+            : <svg viewBox="0 0 20 20" fill="none" stroke="white" strokeWidth="1.8" style={{ width:26, height:26 }}><path d="M10 2a3 3 0 00-3 3v4a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M4 9v1a6 6 0 0012 0V9"/><line x1="10" y1="15" x2="10" y2="18"/></svg>
+          }
+        </button>
+        <p style={{ color:"rgba(255,255,255,0.3)", fontSize:11, margin:0, letterSpacing:"0.04em" }}>
+          {liveState==="listening" ? "Tap to stop · auto-stops on silence" : liveState==="thinking" ? "Processing…" : liveState==="speaking" ? "Zari is speaking…" : "Tap to speak"}
+        </p>
       </div>
     </div>
   );
@@ -5997,6 +6272,8 @@ export function ZariPortal() {
         @keyframes aurora-c { 0%,100%{transform:translate(0,0) scale(1)} 40%{transform:translate(10px,-10px) scale(1.03)} }
         @keyframes nav-glow { 0%,100%{box-shadow:0 0 12px rgba(255,255,255,0.04)} 50%{box-shadow:0 0 20px rgba(255,255,255,0.08)} }
         @keyframes sidebar-shimmer { 0%{opacity:0.4} 50%{opacity:0.7} 100%{opacity:0.4} }
+        @keyframes live-ring-out { 0%{transform:translate(-50%,-50%) scale(1);opacity:0.6} 100%{transform:translate(-50%,-50%) scale(2.2);opacity:0} }
+        @keyframes live-msg-in { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
         .zari-nav-btn:hover { background: rgba(255,255,255,0.06) !important; }
         .zari-nav-btn.active { background: rgba(255,255,255,0.1) !important; }
       `}</style>
