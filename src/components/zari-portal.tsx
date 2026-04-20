@@ -924,23 +924,41 @@ function getNav(stage: CareerStage): { id:Screen; label:string; icon:React.React
    SCREEN: VOICE COACHING SESSION
 ═══════════════════════════════════════════════════ */
 type ChatMsg = { role:string; text:string };
-const STAGE_INIT_MSGS: Record<CareerStage, ChatMsg[]> = {
-  "job-search": [
-    { role:"coach", text:"Hey, I'm Zari. What's your situation right now — actively applying, interviewing, or still figuring out your target role?" },
-  ],
-  "promotion": [
-    { role:"coach", text:"Hey, I'm Zari. Let's build your case. What level are you going for, and how long have you been at your current level?" },
-  ],
-  "salary": [
-    { role:"coach", text:"Hey, I'm Zari. Before we do anything else — what number is on the table, and what does your market research say?" },
-  ],
-  "career-change": [
-    { role:"coach", text:"Hey, I'm Zari. Career pivots live or die on how you tell your story. What's the move you're making, and what's been the hardest part of explaining it so far?" },
-  ],
-  "leadership": [
-    { role:"coach", text:"Hey, I'm Zari. At the executive level, your biggest lever is communication and narrative. What's the highest-stakes thing on your plate right now?" },
-  ],
+// Navigation labels for {{GO:screen}} markers Zari can embed in responses
+const NAV_LABELS: Partial<Record<Screen, string>> = {
+  resume:          "Open Resume Review →",
+  linkedin:        "Open LinkedIn Review →",
+  "cover-letter":  "Open Cover Letter →",
+  interview:       "Open Interview Prep →",
+  plan:            "Open Action Plan →",
 };
+
+function renderMsgText(text: string, onNav?: (s: Screen) => void): React.ReactNode {
+  const tokens = text.split(/(\{\{GO:[a-z-]+\}\}|\n)/);
+  return (
+    <>
+      {tokens.map((t, i) => {
+        const nav = t.match(/^\{\{GO:([a-z-]+)\}\}$/);
+        if (nav && onNav) {
+          const s = nav[1] as Screen;
+          return (
+            <button key={i} onClick={() => onNav(s)} style={{
+              display:"inline-flex", alignItems:"center", gap:5,
+              fontSize:12, fontWeight:700, color:"#4361EE",
+              background:"rgba(67,97,238,0.09)", border:"1px solid rgba(67,97,238,0.22)",
+              borderRadius:8, padding:"4px 11px", cursor:"pointer", margin:"5px 3px 0",
+              transition:"background 0.15s",
+            }}>
+              {NAV_LABELS[s] ?? `Open ${s} →`}
+            </button>
+          );
+        }
+        if (t === "\n") return <br key={i}/>;
+        return t;
+      })}
+    </>
+  );
+}
 
 const STAGE_PROMPTS: Record<CareerStage, string[]> = {
   "job-search": [
@@ -985,7 +1003,7 @@ const STAGE_PROMPTS: Record<CareerStage, string[]> = {
   ],
 };
 
-function ScreenSession({ stage }: { stage: CareerStage }) {
+function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?: (s: Screen) => void }) {
   const [avatarState, setAvatarState] = useState<AvatarState>("speaking");
   const [input, setInput] = useState("");
   const [isVoice, setIsVoice] = useState(false);
@@ -1019,15 +1037,49 @@ function ScreenSession({ stage }: { stage: CareerStage }) {
     return ctx;
   }
 
+  /* ── Generate a dynamic, AI-powered opening message ── */
+  async function generateOpening(sid: string | null, cancelled: () => boolean) {
+    setIsLoading(true);
+    setAvatarState("thinking");
+    try {
+      const res = await fetch("/api/zari/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: "__opening__",
+          stage,
+          history: [],
+          sessionId: sid,
+          sectionContext: readSectionContext(),
+          isOpening: true,
+        }),
+      });
+      const data = await res.json().catch(() => ({})) as { message?: string };
+      if (!cancelled() && data.message) {
+        setMsgs([{ role: "coach", text: data.message.trim() }]);
+      }
+      if (!cancelled()) {
+        setAvatarState("speaking");
+        setTimeout(() => setAvatarState("listening"), 3000);
+      }
+    } catch {
+      // Opening failed silently — user can still type
+    } finally {
+      if (!cancelled()) { setIsLoading(false); setSessionReady(true); }
+    }
+  }
+
   /* ── Load or create a live session on mount / stage change ── */
   useEffect(() => {
     setSessionReady(false);
+    setMsgs([]);
     setElapsed(0);
-    let cancelled = false;
+    let dead = false;
+    const cancelled = () => dead;
 
     async function initSession() {
+      let sid: string | null = null;
       try {
-        // Find an existing live session
         const res = await fetch("/api/sessions", { cache: "no-store" });
         const data = await res.json().catch(() => ({})) as {
           sessions?: Array<{
@@ -1035,44 +1087,36 @@ function ScreenSession({ stage }: { stage: CareerStage }) {
             transcript?: Array<{ role: string; message: string }>;
           }>;
         };
-
-        if (cancelled) return;
+        if (dead) return;
         const sessions = data.sessions ?? [];
         const live = sessions.find(s => s.status === "live");
-
         if (live) {
+          sid = live.id;
           setSessionId(live.id);
-          // Restore transcript if it has real messages
-          const transcript = live.transcript ?? [];
+          const transcript = (live.transcript ?? []).filter(t => t.message?.trim());
           if (transcript.length > 0) {
             setMsgs(transcript.map(t => ({ role: t.role, text: t.message })));
-            if (!cancelled) setSessionReady(true);
+            setSessionReady(true);
+            setAvatarState("listening");
             return;
           }
         } else {
-          // Create a fresh session
           const createRes = await fetch("/api/sessions", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ mode: "career", title: `${STAGE_META[stage].label} Session` }),
           });
           const created = await createRes.json().catch(() => ({})) as { id?: string };
-          if (!cancelled && created.id) setSessionId(created.id);
+          if (!dead && created.id) { sid = created.id; setSessionId(created.id); }
         }
-      } catch {
-        // non-fatal — continue without session persistence
-      }
+      } catch { /* non-fatal */ }
 
-      // Fall back to default init messages
-      if (!cancelled) {
-        setMsgs(STAGE_INIT_MSGS[stage]);
-        setSessionReady(true);
-      }
+      if (!dead) await generateOpening(sid, cancelled);
     }
 
     void initSession();
-    return () => { cancelled = true; };
-  }, [stage]);
+    return () => { dead = true; };
+  }, [stage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { const t = setInterval(() => setElapsed(e => e+1), 1000); return () => clearInterval(t); }, []);
   useEffect(() => { if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight; }, [msgs, isLoading]);
@@ -1274,7 +1318,7 @@ function ScreenSession({ stage }: { stage: CareerStage }) {
                 {msg.role==="coach"?"Z":"S"}
               </div>
               <div style={{ maxWidth:"72%", padding:"11px 15px", fontSize:13.5, lineHeight:1.65, borderRadius:msg.role==="coach"?"4px 16px 16px 16px":"16px 4px 16px 16px", background:msg.role==="coach"?"white":"#4361EE", color:msg.role==="coach"?"#1E2235":"white", border:msg.role==="coach"?"1px solid #E4E8F5":"none", boxShadow:msg.role==="coach"?"0 2px 8px rgba(0,0,0,0.04)":"0 4px 14px rgba(67,97,238,0.28)" }}>
-                {msg.text}
+                {msg.role === "coach" ? renderMsgText(msg.text, onNavigate) : msg.text}
               </div>
             </div>
           ))}
@@ -5984,7 +6028,7 @@ export function ZariPortal() {
 
         {/* Screen — all kept mounted, hidden when inactive to preserve state */}
         <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
-          <div style={{ display:screen==="session"      ? "block" : "none", height:"100%" }}><ScreenSession      stage={stage}/></div>
+          <div style={{ display:screen==="session"      ? "block" : "none", height:"100%" }}><ScreenSession      stage={stage} onNavigate={navigate}/></div>
           <div style={{ display:screen==="resume"       ? "block" : "none", height:"100%" }}><ScreenResume       stage={stage} onNavigate={s=>navigate(s as Screen)}/></div>
           <div style={{ display:screen==="interview"    ? "block" : "none", height:"100%" }}><ScreenInterview    stage={stage}/></div>
           <div style={{ display:screen==="cover-letter" ? "block" : "none", height:"100%" }}><ScreenCoverLetter/></div>
