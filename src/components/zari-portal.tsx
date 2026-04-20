@@ -1538,29 +1538,35 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
      STEP: CHOOSE — landing path picker
   ══════════════════════════════════ */
   if (step === "choose") return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F4F6FB" }}>
-      <div style={{ maxWidth:700, margin:"0 auto", padding:"52px 24px 64px" }}>
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F0F2F8" }}>
+      <div style={{ maxWidth:720, margin:"0 auto", padding:"40px 24px 64px" }}>
 
-        {/* Header */}
-        <div style={{ textAlign:"center", marginBottom:40 }}>
-          <div style={{ display:"inline-flex", alignItems:"center", gap:8, background:"#EEF2FF", border:"1px solid #C7D2FE", borderRadius:99, padding:"5px 14px", marginBottom:18 }}>
-            <div style={{ width:7, height:7, borderRadius:"50%", background:"#4361EE" }}/>
-            <span style={{ fontSize:12, fontWeight:700, color:"#4361EE" }}>Resume Review</span>
+        {/* Dark hero banner */}
+        <div style={{ background:"linear-gradient(135deg,#1A1240,#0D1321)", borderRadius:20, padding:"32px 36px 36px", marginBottom:28, boxShadow:"0 12px 48px rgba(0,0,0,0.22)", border:"1px solid rgba(255,255,255,0.07)", position:"relative", overflow:"hidden" }}>
+          {/* Glow blob */}
+          <div style={{ position:"absolute", top:-60, right:-40, width:260, height:260, background:"radial-gradient(circle,rgba(99,102,241,0.18) 0%,transparent 70%)", pointerEvents:"none" }}/>
+          <div style={{ position:"relative" }}>
+            <div style={{ display:"inline-flex", alignItems:"center", gap:8, background:"rgba(99,102,241,0.18)", border:"1px solid rgba(99,102,241,0.35)", borderRadius:99, padding:"5px 14px", marginBottom:16 }}>
+              <div style={{ width:6, height:6, borderRadius:"50%", background:"#818CF8" }}/>
+              <span style={{ fontSize:11.5, fontWeight:700, color:"#A5B4FC", letterSpacing:"0.06em" }}>RESUME REVIEW</span>
+            </div>
+            <h1 style={{ fontSize:28, fontWeight:900, letterSpacing:"-0.04em", color:"white", marginBottom:10, lineHeight:1.2 }}>Upload your resume.<br/>Get a score that matters.</h1>
+            <p style={{ fontSize:14.5, color:"rgba(255,255,255,0.45)", lineHeight:1.65, maxWidth:480 }}>Zari scores ATS compatibility, impact language, and clarity — then rewrites every weak line into something you can send tonight.</p>
           </div>
-          <h1 style={{ fontSize:30, fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", marginBottom:12 }}>How do you want to review your resume?</h1>
-          <p style={{ fontSize:15, color:"#68738A", lineHeight:1.65, maxWidth:420, margin:"0 auto" }}>Choose your path — Zari will score, rewrite, and give you a job-ready version to send tonight.</p>
         </div>
 
         {/* Two path cards */}
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:32 }}>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:24 }}>
           {/* Score My Resume */}
           <button
             onClick={()=>{ setReviewMode("general"); setStep("upload"); }}
-            style={{ textAlign:"left", padding:"24px 22px", borderRadius:20, border:"2px solid #E4E8F5", background:"white", cursor:"pointer", transition:"all 0.18s", boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}
-            onMouseEnter={e=>(e.currentTarget.style.borderColor="#4361EE",e.currentTarget.style.boxShadow="0 4px 24px rgba(67,97,238,0.12)")}
-            onMouseLeave={e=>(e.currentTarget.style.borderColor="#E4E8F5",e.currentTarget.style.boxShadow="0 2px 12px rgba(0,0,0,0.04)")}
+            style={{ textAlign:"left", padding:"24px 22px", borderRadius:20, border:"1px solid rgba(0,0,0,0.07)", background:"white", cursor:"pointer", transition:"all 0.18s", boxShadow:"0 4px 24px rgba(0,0,0,0.06)", position:"relative", overflow:"hidden" }}
+            onMouseEnter={e=>(e.currentTarget.style.boxShadow="0 8px 36px rgba(67,97,238,0.16)",e.currentTarget.style.transform="translateY(-2px)")}
+            onMouseLeave={e=>(e.currentTarget.style.boxShadow="0 4px 24px rgba(0,0,0,0.06)",e.currentTarget.style.transform="translateY(0)")}
           >
-            <div style={{ width:44, height:44, borderRadius:13, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:14 }}>
+            {/* Indigo left border accent */}
+            <div style={{ position:"absolute", left:0, top:0, bottom:0, width:4, background:"linear-gradient(180deg,#4361EE,#818CF8)", borderRadius:"20px 0 0 20px" }}/>
+            <div style={{ width:44, height:44, borderRadius:13, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:14, boxShadow:"0 6px 18px rgba(67,97,238,0.32)" }}>
               <svg viewBox="0 0 20 20" fill="none" stroke="white" strokeWidth="1.8" style={{ width:20,height:20 }}><rect x="3" y="2" width="14" height="16" rx="2"/><path d="M7 7h6M7 10h6M7 13h4"/></svg>
             </div>
             <p style={{ fontSize:17, fontWeight:800, color:"#0A0A0F", marginBottom:6, letterSpacing:"-0.02em" }}>Score My Resume</p>
@@ -1581,12 +1587,14 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
           {/* Targeted Resume */}
           <button
             onClick={()=>{ setReviewMode("targeted"); setStep("job"); }}
-            style={{ textAlign:"left", padding:"24px 22px", borderRadius:20, border:"2px solid #E4E8F5", background:"white", cursor:"pointer", transition:"all 0.18s", boxShadow:"0 2px 12px rgba(0,0,0,0.04)", position:"relative", overflow:"hidden" }}
-            onMouseEnter={e=>(e.currentTarget.style.borderColor="#7C3AED",e.currentTarget.style.boxShadow="0 4px 24px rgba(124,58,237,0.12)")}
-            onMouseLeave={e=>(e.currentTarget.style.borderColor="#E4E8F5",e.currentTarget.style.boxShadow="0 2px 12px rgba(0,0,0,0.04)")}
+            style={{ textAlign:"left", padding:"24px 22px", borderRadius:20, border:"1px solid rgba(0,0,0,0.07)", background:"white", cursor:"pointer", transition:"all 0.18s", boxShadow:"0 4px 24px rgba(0,0,0,0.06)", position:"relative", overflow:"hidden" }}
+            onMouseEnter={e=>(e.currentTarget.style.boxShadow="0 8px 36px rgba(124,58,237,0.16)",e.currentTarget.style.transform="translateY(-2px)")}
+            onMouseLeave={e=>(e.currentTarget.style.boxShadow="0 4px 24px rgba(0,0,0,0.06)",e.currentTarget.style.transform="translateY(0)")}
           >
-            <div style={{ position:"absolute", top:14, right:14, background:"linear-gradient(135deg,#7C3AED,#A78BFA)", color:"white", fontSize:10, fontWeight:800, padding:"3px 10px", borderRadius:99 }}>RECOMMENDED</div>
-            <div style={{ width:44, height:44, borderRadius:13, background:"linear-gradient(135deg,#7C3AED,#A78BFA)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:14 }}>
+            {/* Purple left border accent */}
+            <div style={{ position:"absolute", left:0, top:0, bottom:0, width:4, background:"linear-gradient(180deg,#7C3AED,#A78BFA)", borderRadius:"20px 0 0 20px" }}/>
+            <div style={{ position:"absolute", top:14, right:14, background:"linear-gradient(135deg,#7C3AED,#A78BFA)", color:"white", fontSize:10, fontWeight:800, padding:"3px 10px", borderRadius:99, letterSpacing:"0.04em" }}>RECOMMENDED</div>
+            <div style={{ width:44, height:44, borderRadius:13, background:"linear-gradient(135deg,#7C3AED,#A78BFA)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:14, boxShadow:"0 6px 18px rgba(124,58,237,0.32)" }}>
               <svg viewBox="0 0 20 20" fill="none" stroke="white" strokeWidth="1.8" style={{ width:20,height:20 }}><circle cx="9" cy="9" r="5.5"/><path d="M15 15l3 3"/><path d="M7 9l2 2 4-4"/></svg>
             </div>
             <p style={{ fontSize:17, fontWeight:800, color:"#0A0A0F", marginBottom:6, letterSpacing:"-0.02em" }}>Targeted Resume</p>
@@ -1608,14 +1616,14 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
         {/* Feature strip */}
         <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10 }}>
           {[
-            { icon:<svg viewBox="0 0 16 16" fill="none" stroke="#4361EE" strokeWidth="1.6" style={{width:16,height:16}}><path d="M13 3L6 11l-3-3"/></svg>, label:"ATS-optimized output" },
-            { icon:<svg viewBox="0 0 16 16" fill="none" stroke="#4361EE" strokeWidth="1.6" style={{width:16,height:16}}><path d="M8 2v8M4 7l4 4 4-4"/><path d="M2 13h12"/></svg>, label:"Download ready" },
-            { icon:<svg viewBox="0 0 16 16" fill="none" stroke="#4361EE" strokeWidth="1.6" style={{width:16,height:16}}><path d="M3 8l4-8 3 5 2-3 3 6"/></svg>, label:"Score history" },
-            { icon:<svg viewBox="0 0 16 16" fill="none" stroke="#4361EE" strokeWidth="1.6" style={{width:16,height:16}}><path d="M13 2l1 4-8.5 8.5L2 16l1.5-3.5L12 4l1-2z"/></svg>, label:"Magic Write" },
+            { icon:<svg viewBox="0 0 16 16" fill="none" stroke="#4361EE" strokeWidth="1.6" style={{width:14,height:14}}><path d="M13 3L6 11l-3-3"/></svg>, label:"ATS-optimized" },
+            { icon:<svg viewBox="0 0 16 16" fill="none" stroke="#4361EE" strokeWidth="1.6" style={{width:14,height:14}}><path d="M8 2v8M4 7l4 4 4-4"/><path d="M2 13h12"/></svg>, label:"Download ready" },
+            { icon:<svg viewBox="0 0 16 16" fill="none" stroke="#4361EE" strokeWidth="1.6" style={{width:14,height:14}}><path d="M3 8l4-8 3 5 2-3 3 6"/></svg>, label:"Score history" },
+            { icon:<svg viewBox="0 0 16 16" fill="none" stroke="#4361EE" strokeWidth="1.6" style={{width:14,height:14}}><path d="M13 2l1 4-8.5 8.5L2 16l1.5-3.5L12 4l1-2z"/></svg>, label:"Magic Write" },
           ].map((f,i) => (
-            <div key={i} style={{ background:"white", borderRadius:12, border:"1px solid #E4E8F5", padding:"12px", textAlign:"center" }}>
-              <div style={{ display:"flex", justifyContent:"center", marginBottom:7 }}>{f.icon}</div>
-              <p style={{ fontSize:11.5, color:"#68738A", fontWeight:600 }}>{f.label}</p>
+            <div key={i} style={{ background:"rgba(0,0,0,0.05)", borderRadius:12, border:"1px solid rgba(0,0,0,0.08)", padding:"10px 12px", textAlign:"center", display:"flex", alignItems:"center", justifyContent:"center", gap:7 }}>
+              {f.icon}
+              <p style={{ fontSize:11.5, color:"#4A5270", fontWeight:600, margin:0 }}>{f.label}</p>
             </div>
           ))}
         </div>
@@ -1627,7 +1635,7 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
      STEP: JOB — Step 1 of targeted flow
   ══════════════════════════════════ */
   if (step === "job") return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F4F6FB" }}>
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F0F2F8" }}>
       <div style={{ maxWidth:600, margin:"0 auto", padding:"40px 24px" }}>
 
         {/* Step progress */}
@@ -1735,7 +1743,7 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
   );
 
   if (step === "paste") return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#FAFBFF" }}>
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F0F2F8" }}>
       <div style={{ maxWidth:660, margin:"0 auto", padding:"48px 24px" }}>
         <div style={{ textAlign:"center", marginBottom:28 }}>
           <h1 style={{ fontSize:24, fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", marginBottom:8 }}>Paste your resume text</h1>
@@ -1759,7 +1767,7 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
   );
 
   if (step === "upload") return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F4F6FB" }}>
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F0F2F8" }}>
       <div style={{ maxWidth:560, margin:"0 auto", padding:"40px 24px" }}>
 
         {/* Step progress (targeted only) */}
@@ -1873,7 +1881,7 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
   );
 
   if (step === "analyzing") return (
-    <div style={{ height:"calc(100vh - 56px)", display:"flex", alignItems:"center", justifyContent:"center", background:"#FAFBFF" }}>
+    <div style={{ height:"calc(100vh - 56px)", display:"flex", alignItems:"center", justifyContent:"center", background:"#F0F2F8" }}>
       <div style={{ maxWidth:480, width:"100%", padding:32, textAlign:"center" }}>
         <div style={{ width:80, height:80, borderRadius:"50%", background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 24px", animation:"sphere-breathe 2s ease-in-out infinite" }}>
           <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" style={{ width:36, height:36 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -2077,6 +2085,65 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
                     </span>
                   </div>
                 )}
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* ══ Score Trend sparkline ══ */}
+        {scoreHistory.length > 1 && (() => {
+          const last5 = scoreHistory.slice(-5);
+          const minS = Math.max(0, Math.min(...last5.map(s=>s.scores.overall)) - 8);
+          const maxS = Math.min(100, Math.max(...last5.map(s=>s.scores.overall)) + 8);
+          const W = 200, H = 44;
+          const pts = last5.map((s,i) => {
+            const x = last5.length > 1 ? (i / (last5.length-1)) * W : W/2;
+            const y = H - ((s.scores.overall - minS) / Math.max(1, maxS - minS)) * H;
+            return `${x},${y}`;
+          }).join(" ");
+          const first = last5[0], latest = last5[last5.length-1];
+          const delta = latest.scores.overall - first.scores.overall;
+          const fmtDate = (iso: string) => { try { return new Date(iso).toLocaleDateString("en-US",{month:"short",day:"numeric"}); } catch { return iso; }};
+          return (
+            <div style={{ background:"white", border:"1px solid rgba(0,0,0,0.07)", borderRadius:16, padding:"14px 20px", marginBottom:20, display:"flex", alignItems:"center", gap:20, boxShadow:"0 2px 12px rgba(0,0,0,0.05)", flexWrap:"wrap" }}>
+              <div>
+                <p style={{ fontSize:10.5, fontWeight:700, color:"#A0AABF", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Score Trend</p>
+                <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ overflow:"visible" }}>
+                  <defs>
+                    <linearGradient id="sparkGrad" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#4361EE" stopOpacity="0.4"/>
+                      <stop offset="100%" stopColor="#4361EE"/>
+                    </linearGradient>
+                  </defs>
+                  <polyline points={pts} fill="none" stroke="url(#sparkGrad)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  {last5.map((s, i) => {
+                    const x = last5.length > 1 ? (i/(last5.length-1))*W : W/2;
+                    const y = H - ((s.scores.overall - minS) / Math.max(1, maxS-minS)) * H;
+                    const isLast = i === last5.length-1;
+                    return (
+                      <g key={i}>
+                        {isLast && <circle cx={x} cy={y} r={9} fill="rgba(67,97,238,0.1)"/>}
+                        <circle cx={x} cy={y} r={isLast?5:3.5} fill={isLast?"#4361EE":"white"} stroke="#4361EE" strokeWidth="2"/>
+                      </g>
+                    );
+                  })}
+                </svg>
+              </div>
+              <div style={{ width:1, height:44, background:"#E4E8F5", flexShrink:0 }}/>
+              <div>
+                <p style={{ fontSize:11, color:"#A0AABF", marginBottom:4 }}>{fmtDate(first.submittedAt)} → {fmtDate(latest.submittedAt)}</p>
+                <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                  <span style={{ fontSize:26, fontWeight:900, color:"#0A0A0F", letterSpacing:"-0.04em", lineHeight:1 }}>{latest.scores.overall}</span>
+                  {delta !== 0 && <span style={{ fontSize:13, fontWeight:800, color:delta>0?"#16A34A":"#DC2626", background:delta>0?"#F0FFF4":"#FEF2F2", padding:"3px 10px", borderRadius:99, border:`1px solid ${delta>0?"#BBF7D0":"#FECACA"}` }}>{delta>0?"+":""}{delta} pts</span>}
+                </div>
+              </div>
+              <div style={{ display:"flex", gap:10, marginLeft:"auto" }}>
+                {last5.map((s,i) => (
+                  <div key={i} style={{ textAlign:"center" }}>
+                    <div style={{ fontSize:12, fontWeight:800, color:i===last5.length-1?"#4361EE":"#68738A" }}>{s.scores.overall}</div>
+                    <div style={{ fontSize:9.5, color:"#A0AABF", whiteSpace:"nowrap" }}>{fmtDate(s.submittedAt).split(",")[0]}</div>
+                  </div>
+                ))}
               </div>
             </div>
           );
@@ -2557,6 +2624,19 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
                       </div>
                     );
                   })}
+                  {/* ── Interview Prep CTA ── */}
+                  <div style={{ marginTop:20, background:"linear-gradient(135deg,#1A1240,#0D1321)", borderRadius:16, padding:"18px 20px", position:"relative", overflow:"hidden" }}>
+                    <div style={{ position:"absolute", top:-20, right:-20, width:120, height:120, background:"radial-gradient(circle,rgba(245,158,11,0.18) 0%,transparent 70%)", pointerEvents:"none" }}/>
+                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:14, position:"relative" }}>
+                      <div>
+                        <p style={{ fontSize:13.5, fontWeight:800, color:"white", marginBottom:4, letterSpacing:"-0.02em" }}>Ready to practice interviews?</p>
+                        <p style={{ fontSize:12, color:"rgba(255,255,255,0.45)", lineHeight:1.5 }}>Zari can generate interview questions tailored to the bullets and experience on this resume.</p>
+                      </div>
+                      <button onClick={()=>setTab("overview")} style={{ flexShrink:0, fontSize:12.5, fontWeight:700, padding:"9px 18px", borderRadius:10, border:"none", background:"rgba(245,158,11,0.9)", color:"#0A0A0F", cursor:"pointer", whiteSpace:"nowrap", boxShadow:"0 4px 14px rgba(245,158,11,0.35)" }}>
+                        Practice Interview →
+                      </button>
+                    </div>
+                  </div>
                 </>
               );
             })()}
@@ -3268,7 +3348,7 @@ function ScreenInterview({ stage }: { stage: CareerStage }) {
   );
 
   if (!sections) return (
-    <div style={{ height:"calc(100vh - 56px)", display:"flex", alignItems:"center", justifyContent:"center", background:"#FAFBFF" }}>
+    <div style={{ height:"calc(100vh - 56px)", display:"flex", alignItems:"center", justifyContent:"center", background:"#F0F2F8" }}>
       <p style={{ fontSize:13, color:"#A0AABF" }}>No questions generated — go back and try again.</p>
     </div>
   );
@@ -3277,7 +3357,7 @@ function ScreenInterview({ stage }: { stage: CareerStage }) {
   const q = SECTION_QUESTIONS[qIdx];
 
   return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#FAFBFF" }}>
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F0F2F8" }}>
       <div style={{ maxWidth:900, margin:"0 auto", padding:"24px 28px" }}>
 
         {/* Header */}
@@ -3729,28 +3809,48 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
     <div style={{ height:"calc(100vh - 56px)", display:"flex", overflow:"hidden" }}>
 
       {/* ── Left sidebar ── */}
-      <div style={{ width:210, background:"#0F1929", flexShrink:0, display:"flex", flexDirection:"column", overflowY:"auto" }}>
-        {/* Score ring */}
-        <div style={{ padding:"24px 16px 20px", borderBottom:"1px solid rgba(255,255,255,0.07)", textAlign:"center" }}>
-          <div style={{ position:"relative", width:84, height:84, margin:"0 auto 10px" }}>
-            <svg width={84} height={84} viewBox="0 0 84 84">
-              <circle cx={42} cy={42} r={34} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={7}/>
-              <circle cx={42} cy={42} r={34} fill="none"
-                stroke={overall>=75?"#22C55E":overall>=55?"#38BDF8":"#FBBF24"}
-                strokeWidth={7} strokeLinecap="round"
-                strokeDasharray={2*Math.PI*34}
-                strokeDashoffset={2*Math.PI*34*(1-overall/100)}
-                transform="rotate(-90 42 42)"/>
-            </svg>
-            <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
-              <span style={{ fontSize:24, fontWeight:900, color:"white", lineHeight:1 }}>{overall}</span>
-              <span style={{ fontSize:8.5, color:"rgba(255,255,255,0.4)", fontWeight:700, letterSpacing:"0.08em", marginTop:1 }}>/ 100</span>
-            </div>
+      <div style={{ width:224, background:"linear-gradient(180deg,#0D1321 0%,#0A1628 60%,#0D1321 100%)", flexShrink:0, display:"flex", flexDirection:"column", overflowY:"auto", position:"relative" }}>
+        {/* ambient glow blob */}
+        <div style={{ position:"absolute", top:"-30px", left:"50%", transform:"translateX(-50%)", width:160, height:160, borderRadius:"50%", background:"radial-gradient(circle,rgba(0,119,181,0.18) 0%,transparent 70%)", pointerEvents:"none" }}/>
+
+        {/* Score hero block */}
+        <div style={{ padding:"22px 16px 18px", borderBottom:"1px solid rgba(255,255,255,0.07)", position:"relative" }}>
+          <p style={{ fontSize:9.5, fontWeight:800, color:"rgba(255,255,255,0.35)", letterSpacing:"0.1em", textTransform:"uppercase", textAlign:"center", marginBottom:14 }}>LinkedIn Score</p>
+          <div style={{ display:"flex", justifyContent:"center", marginBottom:14 }}>
+            <ScoreRing
+              score={overall}
+              color={overall>=75?"#22C55E":overall>=55?"#0077B5":"#FBBF24"}
+              size={88}
+              dark
+            />
           </div>
-          <div style={{ fontSize:12, fontWeight:700, padding:"3px 14px", borderRadius:99, display:"inline-block",
-            background:overall>=75?"rgba(34,197,94,0.18)":overall>=55?"rgba(56,189,248,0.18)":"rgba(251,191,36,0.18)",
-            color:overall>=75?"#86EFAC":overall>=55?"#7DD3FC":"#FDE68A" }}>
-            {overallLabel(overall)}
+          <div style={{ textAlign:"center", marginBottom:14 }}>
+            <span style={{ fontSize:11.5, fontWeight:700, padding:"4px 14px", borderRadius:99, display:"inline-block",
+              background:overall>=75?"rgba(34,197,94,0.15)":overall>=55?"rgba(0,119,181,0.18)":"rgba(251,191,36,0.15)",
+              color:overall>=75?"#86EFAC":overall>=55?"#7DD3FC":"#FDE68A",
+              border:`1px solid ${overall>=75?"rgba(34,197,94,0.3)":overall>=55?"rgba(0,119,181,0.4)":"rgba(251,191,36,0.3)"}` }}>
+              {overallLabel(overall)}
+            </span>
+          </div>
+          {/* Sub-score bars */}
+          <div style={{ display:"flex", flexDirection:"column", gap:9 }}>
+            {(["headline","summary","experience","education","other","networking"] as SecKey[]).map(k => {
+              const s = secData[k];
+              if (!s) return null;
+              const pct = s.score * 10;
+              const c = s.score>=8?"#22C55E":s.score>=6?"#38BDF8":"#FBBF24";
+              return (
+                <div key={k} style={{ cursor:"pointer" }} onClick={()=>{ setLISection(k); setExpandedCheck(null); }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
+                    <span style={{ fontSize:10.5, fontWeight:600, color:"rgba(255,255,255,0.55)", textTransform:"capitalize", letterSpacing:"0.01em" }}>{k}</span>
+                    <span style={{ fontSize:11, fontWeight:800, color:c, textShadow:`0 0 8px ${c}88` }}>{s.score}</span>
+                  </div>
+                  <div style={{ height:3, borderRadius:99, background:"rgba(255,255,255,0.07)", overflow:"hidden" }}>
+                    <div style={{ width:`${pct}%`, height:"100%", borderRadius:99, background:`linear-gradient(90deg,${c}99,${c})`, boxShadow:`0 0 6px ${c}55`, transition:"width 0.9s cubic-bezier(0.4,0,0.2,1)" }}/>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -3760,16 +3860,17 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
             const active = liSection === item.id;
             return (
               <button key={item.id} onClick={()=>{ setLISection(item.id); setExpandedCheck(null); }}
-                style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"9px 12px", borderRadius:9, border:"none", background:active?"rgba(0,119,181,0.25)":"transparent", cursor:"pointer", marginBottom:1, transition:"background 0.12s" }}>
-                <span style={{ fontSize:13, fontWeight:active?700:400, color:active?"white":"rgba(255,255,255,0.5)", letterSpacing:active?"-0.01em":"normal" }}>
+                style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"9px 12px", borderRadius:9, border:"none", background:active?"rgba(0,119,181,0.22)":"transparent", cursor:"pointer", marginBottom:1, transition:"background 0.12s", position:"relative", overflow:"hidden" }}>
+                {active && <div style={{ position:"absolute", left:0, top:0, bottom:0, width:3, background:"linear-gradient(180deg,#0077B5,#38BDF8)", borderRadius:"0 2px 2px 0", boxShadow:"0 0 8px rgba(0,119,181,0.7)" }}/>}
+                <span style={{ fontSize:12.5, fontWeight:active?700:400, color:active?"white":"rgba(255,255,255,0.45)", letterSpacing:active?"-0.01em":"normal", paddingLeft:active?4:0, transition:"all 0.12s" }}>
                   {item.label}
                 </span>
                 {item.score !== undefined && (
-                  <span style={{ fontSize:11, fontWeight:700, padding:"2px 8px", borderRadius:99,
-                    background:scoreBg(item.score),
-                    color:scoreColor(item.score),
-                    minWidth:32, textAlign:"center" }}>
-                    {item.score}/10
+                  <span style={{ fontSize:10, fontWeight:700, padding:"2px 7px", borderRadius:99,
+                    background:item.score>=8?"rgba(34,197,94,0.15)":item.score>=6?"rgba(56,189,248,0.15)":"rgba(251,191,36,0.15)",
+                    color:item.score>=8?"#86EFAC":item.score>=6?"#7DD3FC":"#FDE68A",
+                    minWidth:28, textAlign:"center" }}>
+                    {item.score}
                   </span>
                 )}
               </button>
@@ -3779,7 +3880,7 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
 
         <div style={{ padding:"10px 8px 14px", borderTop:"1px solid rgba(255,255,255,0.07)" }}>
           <button onClick={()=>setInputMode(true)}
-            style={{ width:"100%", fontSize:12, fontWeight:600, padding:"9px", borderRadius:9, border:"1px solid rgba(255,255,255,0.1)", background:"transparent", color:"rgba(255,255,255,0.4)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
+            style={{ width:"100%", fontSize:11.5, fontWeight:600, padding:"9px", borderRadius:9, border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.04)", color:"rgba(255,255,255,0.4)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:6, transition:"all 0.15s" }}>
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:12,height:12}}><path d="M10 3L5 8l5 5"/></svg>
             Re-analyze
           </button>
@@ -3787,7 +3888,7 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
       </div>
 
       {/* ── Main content ── */}
-      <div style={{ flex:1, overflowY:"auto", background:"#F4F7FB", padding:"28px 30px" }}>
+      <div style={{ flex:1, overflowY:"auto", background:"#F0F2F8", padding:"28px 30px" }}>
 
         {/* OVERVIEW */}
         {liSection==="score" && (
@@ -3799,26 +3900,25 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
 
             {/* Score card + quick wins */}
             <div style={{ display:"grid", gridTemplateColumns:"260px 1fr", gap:16, marginBottom:16 }}>
-              <div style={{ background:"white", borderRadius:16, padding:"22px 20px", boxShadow:"0 2px 12px rgba(0,0,0,0.05)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
-                <div style={{ position:"relative", width:110, height:110, marginBottom:12 }}>
-                  <svg width={110} height={110} viewBox="0 0 110 110">
-                    <circle cx={55} cy={55} r={44} fill="none" stroke="#F1F5F9" strokeWidth={9}/>
-                    <circle cx={55} cy={55} r={44} fill="none"
-                      stroke={overall>=75?"#16A34A":overall>=55?"#0077B5":"#D97706"}
-                      strokeWidth={9} strokeLinecap="round"
-                      strokeDasharray={2*Math.PI*44}
-                      strokeDashoffset={2*Math.PI*44*(1-overall/100)}
-                      transform="rotate(-90 55 55)"/>
-                  </svg>
-                  <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
-                    <span style={{ fontSize:30, fontWeight:900, color:overall>=75?"#16A34A":overall>=55?"#0077B5":"#D97706", lineHeight:1 }}>{overall}</span>
-                    <span style={{ fontSize:11, color:"#94A3B8", fontWeight:600, marginTop:2 }}>out of 100</span>
-                  </div>
+              <div style={{ background:"linear-gradient(135deg,#0D1321,#141E30)", borderRadius:16, padding:"26px 20px", boxShadow:"0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.12)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", position:"relative", overflow:"hidden", border:"1px solid rgba(255,255,255,0.07)" }}>
+                <div style={{ position:"absolute", top:"-40px", left:"50%", transform:"translateX(-50%)", width:200, height:200, borderRadius:"50%", background:`radial-gradient(circle,${overall>=75?"rgba(34,197,94,0.12)":overall>=55?"rgba(0,119,181,0.12)":"rgba(251,191,36,0.12)"} 0%,transparent 70%)`, pointerEvents:"none" }}/>
+                <p style={{ fontSize:9.5, fontWeight:800, color:"rgba(255,255,255,0.3)", letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:16, position:"relative" }}>Overall Score</p>
+                <div style={{ position:"relative", marginBottom:14 }}>
+                  <ScoreRing
+                    score={overall}
+                    color={overall>=75?"#22C55E":overall>=55?"#0077B5":"#FBBF24"}
+                    size={104}
+                    dark
+                  />
                 </div>
-                <div style={{ fontSize:13, fontWeight:800, padding:"5px 16px", borderRadius:99, border:`1.5px solid ${overall>=75?"#BBF7D0":overall>=55?"#BFDBFE":"#FDE68A"}`, color:overall>=75?"#16A34A":overall>=55?"#0077B5":"#D97706", background:overall>=75?"#F0FFF4":overall>=55?"#EFF6FF":"#FFFBEB" }}>
+                <div style={{ fontSize:12, fontWeight:700, padding:"5px 16px", borderRadius:99, display:"inline-block", position:"relative",
+                  background:overall>=75?"rgba(34,197,94,0.15)":overall>=55?"rgba(0,119,181,0.18)":"rgba(251,191,36,0.15)",
+                  color:overall>=75?"#86EFAC":overall>=55?"#7DD3FC":"#FDE68A",
+                  border:`1px solid ${overall>=75?"rgba(34,197,94,0.3)":overall>=55?"rgba(0,119,181,0.4)":"rgba(251,191,36,0.3)"}`,
+                  marginBottom:10 }}>
                   {overallLabel(overall)}
                 </div>
-                <p style={{ fontSize:11.5, color:"#94A3B8", marginTop:10, textAlign:"center", lineHeight:1.5 }}>Aim for 85+ to stand out to recruiters</p>
+                <p style={{ fontSize:11, color:"rgba(255,255,255,0.3)", textAlign:"center", lineHeight:1.5, position:"relative" }}>Aim for 85+ to stand out to recruiters</p>
               </div>
 
               <div style={{ background:"white", borderRadius:16, padding:"20px 22px", boxShadow:"0 2px 12px rgba(0,0,0,0.05)" }}>
@@ -3884,18 +3984,8 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
                 <p style={{ fontSize:13.5, color:"#64748B", lineHeight:1.6, maxWidth:480 }}>{secDescriptions[activeSecKey]}</p>
               </div>
               <div style={{ flexShrink:0, textAlign:"center" }}>
-                <div style={{ position:"relative", width:74, height:74 }}>
-                  <svg width={74} height={74} viewBox="0 0 74 74">
-                    <circle cx={37} cy={37} r={29} fill="none" stroke="#F1F5F9" strokeWidth={7}/>
-                    <circle cx={37} cy={37} r={29} fill="none" stroke={scoreColor(activeSec.score)} strokeWidth={7} strokeLinecap="round"
-                      strokeDasharray={2*Math.PI*29} strokeDashoffset={2*Math.PI*29*(1-activeSec.score/10)} transform="rotate(-90 37 37)"/>
-                  </svg>
-                  <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
-                    <span style={{ fontSize:21, fontWeight:900, color:scoreColor(activeSec.score), lineHeight:1 }}>{activeSec.score}</span>
-                    <span style={{ fontSize:8, color:"#94A3B8" }}>/ 10</span>
-                  </div>
-                </div>
-                <span style={{ fontSize:11, fontWeight:700, padding:"3px 10px", borderRadius:99, background:verdictBg(activeSec.verdict), color:verdictColor(activeSec.verdict), display:"inline-block", marginTop:5 }}>
+                <ScoreRing score={activeSec.score * 10} color={scoreColor(activeSec.score)} size={74}/>
+                <span style={{ fontSize:11, fontWeight:700, padding:"3px 10px", borderRadius:99, background:verdictBg(activeSec.verdict), color:verdictColor(activeSec.verdict), display:"inline-block", marginTop:8 }}>
                   {activeSec.verdict}
                 </span>
               </div>
