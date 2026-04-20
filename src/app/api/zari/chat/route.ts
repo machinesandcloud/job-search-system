@@ -129,6 +129,7 @@ export async function POST(request: Request) {
     uploadedContent?:  string;
     uploadedFileName?: string;
     isOpening?:        boolean;
+    isVoice?:          boolean;
   };
 
   const message          = (body.message ?? "").toString().trim();
@@ -139,6 +140,7 @@ export async function POST(request: Request) {
   const uploadedContent  = body.uploadedContent;
   const uploadedFileName = body.uploadedFileName;
   const isOpening        = body.isOpening ?? false;
+  const isVoice          = body.isVoice   ?? false;
 
   if (!message && !isOpening) {
     return NextResponse.json({ error: "Message required" }, { status: 400 });
@@ -194,7 +196,16 @@ SCOPE:
 Career. If they go off-topic, be human: "sounds like a lot going on — what's the career thing you want to move on today?" Bring it back naturally. No lectures, no refusals, just a smooth redirect.
 
 FORMAT:
-Match the length to what the moment actually needs. A simple question gets a direct answer — 1-2 sentences, done. A venting message gets acknowledgment + one sharp redirect — 2-3 sentences. Only go longer when they ask for something structured (a rewrite, a script, a breakdown) or when the situation genuinely requires it. Default to shorter. If you can say it in one sentence, say it in one sentence. No bullet lists in regular conversation. End with a question or a clear next step. Write like a person, not a report.`;
+Match the length to what the moment actually needs. A simple question gets a direct answer — 1-2 sentences, done. A venting message gets acknowledgment + one sharp redirect — 2-3 sentences. Only go longer when they ask for something structured (a rewrite, a script, a breakdown) or when the situation genuinely requires it. Default to shorter. If you can say it in one sentence, say it in one sentence. No bullet lists in regular conversation. End with a question or a clear next step. Write like a person, not a report.${isVoice ? `
+
+VOICE CONVERSATION — OVERRIDE EVERYTHING ELSE ON FORMAT:
+You are speaking out loud right now in a live voice call. Hard rules:
+- MAX 1-2 sentences. That's it. Every time.
+- Zero formatting — no dashes, no bullets, no colons before lists
+- Drop the navigation markers entirely
+- Talk exactly like you're on the phone. Casual. Direct. Real.
+- End with ONE short question to keep the conversation moving
+- If you need to give a script or example, say "try saying:" then the line` : ""}`;
 
   /* ── Build OpenAI messages ── */
   const messages: OAIMessage[] = [{ role: "system", content: systemPrompt }];
@@ -210,7 +221,28 @@ Match the length to what the moment actually needs. A simple question gets a dir
     messages.push({ role: "user", content: message });
   }
 
-  /* ── Call OpenAI ── */
+  /* ── Voice mode: streaming SSE response ── */
+  if (isVoice) {
+    const apiKey = process.env.OPENAI_API_KEY!;
+    const model  = process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o-mini";
+    const oaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ model, messages, temperature: 0.8, max_tokens: 120, stream: true }),
+    });
+    if (!oaiRes.ok || !oaiRes.body) {
+      return NextResponse.json({ message: "Having trouble right now — try again." });
+    }
+    return new Response(oaiRes.body, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        "X-Accel-Buffering": "no",
+      },
+    });
+  }
+
+  /* ── Standard (non-voice) call ── */
   const reply = await openaiChat(messages, {
     model:       process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o-mini",
     temperature: 0.75,
