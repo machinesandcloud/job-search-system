@@ -4286,6 +4286,7 @@ function ScreenCoverLetter() {
   const [editedLetter,  setEditedLetter]  = useState("");
   const [copied,        setCopied]        = useState(false);
   const [error,         setError]         = useState("");
+  const [showDlMenu,    setShowDlMenu]    = useState(false);
 
   async function handleUpload(file: File) {
     setProfileFile(file.name);
@@ -4334,20 +4335,81 @@ function ScreenCoverLetter() {
   function buildLetterHtml(forPrint: boolean) {
     const text = getLetterText();
     const subject = result?.subject ?? "Cover Letter";
-    const pOpen = "<p>", pEmpty = "<p style=\"margin:0;height:10pt\"></p>", pClose = "</p>";
-    const lines = text.split("\n").map(l => {
-      const safe = l.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-      return safe.trim() ? pOpen + safe + pClose : pEmpty;
-    }).join("");
-    const cssPrint = "*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Georgia,serif;font-size:11.5pt;line-height:1.75;color:#1a1a1a;padding:2.5cm 3cm;}p{margin-bottom:9pt;}h2{font-size:10pt;font-weight:600;color:#555;margin-bottom:18pt;letter-spacing:0.05em;text-transform:uppercase;}@media print{body{padding:2cm 2.5cm;}}";
-    const cssWord = "body{font-family:Calibri,Arial,sans-serif;font-size:11pt;line-height:1.6;margin:2cm;}p{margin:0 0 10pt;}";
-    const h2Open = "<h2>", h2Close = "</h2>";
-    const autoprint = forPrint ? "<scr" + "ipt>window.onload=function(){window.print();}</scr" + "ipt>" : "";
-    return "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>" + subject + "</title>"
-      + "<style>" + (forPrint ? cssPrint : cssWord) + "</style>"
-      + autoprint + "</head><body>"
-      + (forPrint ? h2Open + subject + h2Close : "")
-      + lines + "</body></html>";
+    const esc = (s: string) => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+    if (forPrint) {
+      const lines = text.split("\n");
+      const closingKw = ["best regards","sincerely","warm regards","kind regards","respectfully"];
+      let closingIdx = -1;
+      for (let i = lines.length - 1; i >= 0; i--) {
+        if (closingKw.some(k => lines[i].toLowerCase().includes(k))) { closingIdx = i; break; }
+      }
+      const bodyLines    = closingIdx > -1 ? lines.slice(0, closingIdx) : lines;
+      const closingLines = closingIdx > -1 ? lines.slice(closingIdx)    : [];
+
+      const bodyHtml = bodyLines.map(l =>
+        l.trim() ? "<p>" + esc(l) + "</p>" : "<div class=\"gap\"></div>"
+      ).join("");
+
+      const sigHtml = closingLines.filter(l => l.trim()).map((l, i) =>
+        i === 0
+          ? "<p class=\"closing\">" + esc(l) + "</p>"
+          : "<div class=\"sig\">" + esc(l) + "</div>"
+      ).join("");
+
+      const today = new Date().toLocaleDateString("en-US", { month:"long", day:"numeric", year:"numeric" });
+      const gfont = "https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&display=swap";
+
+      return [
+        "<!DOCTYPE html><html><head>",
+        "<meta charset=\"UTF-8\">",
+        "<title>", esc(subject), "</title>",
+        "<link rel=\"stylesheet\" href=\"", gfont, "\">",
+        "<style>",
+        "@page{margin:0;size:A4;}",
+        "*{margin:0;padding:0;box-sizing:border-box;}",
+        "body{font-family:Georgia,'Times New Roman',serif;font-size:10.5pt;line-height:1.68;color:#1a1a1a;padding:2.4cm 3.2cm 2.2cm;}",
+        ".meta{margin-bottom:0.55cm;}",
+        ".subject-label{font-size:7.5pt;font-weight:700;color:#999;letter-spacing:0.14em;text-transform:uppercase;margin-bottom:0.12cm;}",
+        ".subject-val{font-size:11pt;font-weight:700;color:#111;margin-bottom:0.18cm;}",
+        ".date{font-size:9pt;color:#aaa;}",
+        ".divider{height:1px;background:#e8e8e8;margin:0.45cm 0 0.55cm;}",
+        "p{margin-bottom:0.32cm;}",
+        ".gap{height:0.18cm;}",
+        ".closing{margin-top:0.55cm;margin-bottom:0.05cm;}",
+        ".sig{font-family:'Dancing Script','Brush Script MT',cursive;font-size:26pt;color:#1a1a1a;line-height:1.2;margin-top:0.1cm;}",
+        "@media print{@page{margin:0;size:A4;}body{padding:2.4cm 3.2cm 2.2cm;}}",
+        "</style>",
+        "<scr" + "ipt>",
+        "window.onload=function(){",
+        "  if(document.fonts&&document.fonts.ready){",
+        "    document.fonts.ready.then(function(){setTimeout(function(){window.print();},200);});",
+        "  } else { setTimeout(function(){window.print();},600); }",
+        "};",
+        "</scr" + "ipt>",
+        "</head><body>",
+        "<div class=\"meta\">",
+        "<div class=\"subject-label\">Cover Letter</div>",
+        "<div class=\"subject-val\">", esc(subject), "</div>",
+        "<div class=\"date\">", today, "</div>",
+        "</div>",
+        "<div class=\"divider\"></div>",
+        bodyHtml,
+        sigHtml,
+        "</body></html>",
+      ].join("");
+    }
+
+    // Word (.doc) version
+    const lines = text.split("\n").map(l =>
+      l.trim() ? "<p>" + esc(l) + "</p>" : "<p style=\"margin:0;height:9pt\"></p>"
+    ).join("");
+    return [
+      "<!DOCTYPE html><html><head>",
+      "<meta charset=\"UTF-8\">",
+      "<style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt;line-height:1.6;margin:2.5cm;}p{margin:0 0 9pt;}</style>",
+      "</head><body>", lines, "</body></html>",
+    ].join("");
   }
 
   function downloadWord() {
@@ -4393,8 +4455,24 @@ function ScreenCoverLetter() {
                 <button onClick={()=>{ setResult(null); setStep(1); }} style={{ fontSize:12, fontWeight:600, padding:"7px 14px", borderRadius:9, border:"1px solid #E4E8F5", background:"white", color:"#68738A", cursor:"pointer" }}>← Start over</button>
                 <button onClick={()=>setEditMode(e=>!e)} style={{ fontSize:12, fontWeight:600, padding:"7px 14px", borderRadius:9, border:`1px solid ${editMode?"#4361EE":"#E4E8F5"}`, background:editMode?"#EEF2FF":"white", color:editMode?"#4361EE":"#68738A", cursor:"pointer" }}>{editMode?"Preview":"Edit"}</button>
                 <button onClick={copy} style={{ fontSize:12, fontWeight:600, padding:"7px 14px", borderRadius:9, border:"none", background:copied?"#F0FFF4":"#EEF2FF", color:copied?"#16A34A":"#4361EE", cursor:"pointer", transition:"all 0.2s" }}>{copied?"✓ Copied":"Copy"}</button>
-                <button onClick={downloadWord} style={{ fontSize:12, fontWeight:700, padding:"7px 14px", borderRadius:9, border:"1px solid #CBD5E1", background:"white", color:"#374151", cursor:"pointer" }}>↓ Word</button>
-                <button onClick={downloadPdf} style={{ fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:9, border:"none", background:"#0F172A", color:"white", cursor:"pointer" }}>↓ PDF</button>
+                <div style={{ position:"relative" }}>
+                  <button onClick={()=>setShowDlMenu(m=>!m)} style={{ fontSize:12, fontWeight:700, padding:"7px 18px", borderRadius:9, border:"none", background:"#0F172A", color:"white", cursor:"pointer", display:"flex", alignItems:"center", gap:6 }}>
+                    Download
+                    <svg viewBox="0 0 10 6" fill="none" stroke="white" strokeWidth="1.8" style={{width:10,height:10,transition:"transform 0.15s",transform:showDlMenu?"rotate(180deg)":"rotate(0deg)"}}><path d="M1 1l4 4 4-4"/></svg>
+                  </button>
+                  {showDlMenu && (
+                    <div style={{ position:"absolute", top:"calc(100% + 6px)", right:0, background:"white", border:"1px solid #E4E8F5", borderRadius:10, boxShadow:"0 8px 24px rgba(0,0,0,0.12)", overflow:"hidden", minWidth:140, zIndex:99 }}>
+                      <button onClick={()=>{ downloadPdf(); setShowDlMenu(false); }} style={{ width:"100%", padding:"10px 16px", border:"none", background:"transparent", textAlign:"left", fontSize:13, fontWeight:600, color:"#0A0A0F", cursor:"pointer", display:"flex", alignItems:"center", gap:9, borderBottom:"1px solid #F1F5F9" }}>
+                        <svg viewBox="0 0 16 16" fill="none" stroke="#DC2626" strokeWidth="1.6" style={{width:15,height:15,flexShrink:0}}><rect x="2" y="1" width="10" height="13" rx="1.5"/><path d="M5 5h4M5 7.5h4M5 10h2.5"/><path d="M10 1v3h2" strokeLinejoin="round"/></svg>
+                        PDF
+                      </button>
+                      <button onClick={()=>{ downloadWord(); setShowDlMenu(false); }} style={{ width:"100%", padding:"10px 16px", border:"none", background:"transparent", textAlign:"left", fontSize:13, fontWeight:600, color:"#0A0A0F", cursor:"pointer", display:"flex", alignItems:"center", gap:9 }}>
+                        <svg viewBox="0 0 16 16" fill="none" stroke="#2563EB" strokeWidth="1.6" style={{width:15,height:15,flexShrink:0}}><rect x="2" y="1" width="10" height="13" rx="1.5"/><path d="M5 5h4M5 7.5h4M5 10h4"/><path d="M10 1v3h2" strokeLinejoin="round"/></svg>
+                        Word
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
             <div style={{ padding:"28px 32px" }}>
