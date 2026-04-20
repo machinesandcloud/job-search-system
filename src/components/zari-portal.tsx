@@ -926,40 +926,30 @@ function getNav(stage: CareerStage): { id:Screen; label:string; icon:React.React
 type ChatMsg = { role:string; text:string };
 const STAGE_INIT_MSGS: Record<CareerStage, ChatMsg[]> = {
   "job-search": [
-    { role:"coach", text:"Good to see you. Last session we reframed your supply chain project as a product initiative — and you got 2 recruiter responses because of it. Ready to work on interview stories today?" },
-    { role:"user",  text:"Yes, let's do it. I'm feeling more confident." },
-    { role:"coach", text:"Great. We'll practice the cross-functional leadership question — it's the one Senior PM panels push hardest on. Take your time and use STAR structure." },
+    { role:"coach", text:"Hey, I'm Zari. What's your situation right now — actively applying, interviewing, or still figuring out your target role?" },
   ],
   "promotion": [
-    { role:"coach", text:"Let's build your promotion case. Tell me: what's the biggest thing you've owned in the last 6 months that no one else was doing at your level?" },
-    { role:"user",  text:"I led the migration of 3 core services — it was originally scoped to someone at Staff level." },
-    { role:"coach", text:"That's your lead story. Now let's quantify the impact and tie it to business outcomes your manager actually cares about. What shipped because of that migration?" },
+    { role:"coach", text:"Hey, I'm Zari. Let's build your case. What level are you going for, and how long have you been at your current level?" },
   ],
   "salary": [
-    { role:"coach", text:"Before we practice, let's anchor on your number. What's the offer on the table, and what did your research tell you about market rate for this role?" },
-    { role:"user",  text:"They offered $145K. Levels.fyi shows p50 is around $162K for this title in SF." },
-    { role:"coach", text:"You're $17K below market. That's a strong position to negotiate from. Let's run the conversation — I'll play the hiring manager. Ready?" },
+    { role:"coach", text:"Hey, I'm Zari. Before we do anything else — what number is on the table, and what does your market research say?" },
   ],
   "career-change": [
-    { role:"coach", text:"Career pivots live or die on narrative. Let's build yours. What's the most relevant part of your background for the new direction you're heading?" },
-    { role:"user",  text:"I've been in finance for 6 years but I've always been closest to the product decisions." },
-    { role:"coach", text:"That's your bridge — not a departure, a progression. Finance gave you commercial rigour. Now let's frame that as an asset, not a liability, for product roles." },
+    { role:"coach", text:"Hey, I'm Zari. Career pivots live or die on how you tell your story. What's the move you're making, and what's been the hardest part of explaining it so far?" },
   ],
   "leadership": [
-    { role:"coach", text:"At the executive level, how you communicate is as important as what you communicate. What's a high-stakes conversation or presentation you have coming up?" },
-    { role:"user",  text:"I'm presenting the Q3 product strategy to the board next month." },
-    { role:"coach", text:"Let's build that narrative. Board presentations need to answer three questions fast: what's the bet, why now, and what will success look like in 12 months? Let's start with the bet." },
+    { role:"coach", text:"Hey, I'm Zari. At the executive level, your biggest lever is communication and narrative. What's the highest-stakes thing on your plate right now?" },
   ],
 };
 
 const STAGE_PROMPTS: Record<CareerStage, string[]> = {
   "job-search": [
-    "Practice a PM interview question",
-    "Rewrite my resume bullet",
-    "Help me answer 'Why product?'",
-    "Give me a LinkedIn headline",
-    "What should I work on today?",
-    "Run a STAR story practice",
+    "Review my resume",
+    "Practice a tough interview question",
+    "Help me answer 'Tell me about yourself'",
+    "Write a cold outreach message",
+    "Help me negotiate this offer",
+    "What should I focus on today?",
   ],
   "promotion": [
     "Help me build my promotion case",
@@ -970,27 +960,27 @@ const STAGE_PROMPTS: Record<CareerStage, string[]> = {
     "What does 'next level' look like for me?",
   ],
   "salary": [
-    "What's the market rate for my role?",
+    "What's market rate for my role?",
     "Help me counter a low offer",
-    "Practice the negotiation conversation",
+    "Run the negotiation conversation",
     "How do I ask for a raise?",
-    "What if they say no?",
-    "Write my salary ask message",
+    "Write my salary counter message",
+    "What if they push back hard?",
   ],
   "career-change": [
+    "Review my resume for this pivot",
     "How do I reframe my background?",
-    "What transferable skills do I have?",
-    "Rewrite my resume for a new industry",
     "Help me answer 'Why are you switching?'",
-    "What's my story for interviews?",
+    "What transferable skills do I have?",
     "Which roles should I target first?",
+    "Write my pivot narrative",
   ],
   "leadership": [
-    "Build my executive presence",
-    "How do I communicate to the board?",
+    "Review my executive bio",
+    "Help me build my board narrative",
     "Practice a leadership story",
+    "How do I communicate strategic vision?",
     "Help me lead a difficult conversation",
-    "Strengthen my strategic narrative",
     "What does VP-level impact look like?",
   ],
 };
@@ -1004,7 +994,30 @@ function ScreenSession({ stage }: { stage: CareerStage }) {
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [sessionReady, setSessionReady] = useState(false);
+  const [fileProcessing, setFileProcessing] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Snapshot all section data from localStorage to give Zari full context
+  function readSectionContext() {
+    const ctx: Record<string, unknown> = {};
+    try {
+      const rs = localStorage.getItem("zari_resume_session_v2");
+      if (rs) {
+        const p = JSON.parse(rs) as { fileName?: string; resumeText?: string; aiResult?: Record<string, unknown> };
+        ctx.resume = {
+          fileName:  p.fileName,
+          score:     (p.aiResult as {overall?: number})?.overall,
+          ats:       (p.aiResult as {ats?: number})?.ats,
+          impact:    (p.aiResult as {impact?: number})?.impact,
+          clarity:   (p.aiResult as {clarity?: number})?.clarity,
+          keyIssues: ((p.aiResult as {bullets?: {before: string}[]})?.bullets ?? []).slice(0, 6).map(b => b.before),
+          excerpt:   p.resumeText?.slice(0, 1200),
+        };
+      }
+    } catch { /* non-fatal */ }
+    return ctx;
+  }
 
   /* ── Load or create a live session on mount / stage change ── */
   useEffect(() => {
@@ -1067,11 +1080,13 @@ function ScreenSession({ stage }: { stage: CareerStage }) {
 
   const fmt = (s:number) => `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
 
-  async function sendMessage(text: string) {
+  async function sendMessage(
+    text: string,
+    opts?: { uploadedContent?: string; uploadedFileName?: string; skipUserMsg?: boolean; historyOverride?: ChatMsg[] }
+  ) {
     const trimmed = text.trim();
     if (!trimmed || isLoading) return;
 
-    // If no session yet, create one now
     let sid = sessionId;
     if (!sid) {
       try {
@@ -1085,7 +1100,9 @@ function ScreenSession({ stage }: { stage: CareerStage }) {
       } catch { /* non-fatal */ }
     }
 
-    setMsgs(m => [...m, { role: "user", text: trimmed }]);
+    if (!opts?.skipUserMsg) {
+      setMsgs(m => [...m, { role: "user", text: trimmed }]);
+    }
     setInput("");
     setAvatarState("thinking");
     setIsLoading(true);
@@ -1097,8 +1114,11 @@ function ScreenSession({ stage }: { stage: CareerStage }) {
         body: JSON.stringify({
           message: trimmed,
           stage,
-          history: msgs,
+          history: opts?.historyOverride ?? msgs,
           sessionId: sid,
+          sectionContext: readSectionContext(),
+          uploadedContent:  opts?.uploadedContent,
+          uploadedFileName: opts?.uploadedFileName,
         }),
       });
       const data = await res.json().catch(() => ({})) as { message?: string };
@@ -1111,6 +1131,51 @@ function ScreenSession({ stage }: { stage: CareerStage }) {
       setAvatarState("idle");
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handleFileUpload(file: File) {
+    const name = file.name.toLowerCase();
+    const docType = name.includes("cover") ? "cover letter"
+      : name.includes("linkedin") ? "LinkedIn profile"
+      : "resume";
+
+    // Show the file attachment as a user message
+    const fileMsg: ChatMsg = { role: "user", text: `📎 ${file.name}` };
+    setMsgs(m => [...m, fileMsg]);
+    setAvatarState("thinking");
+    setIsLoading(true);
+    setFileProcessing(true);
+
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const extractRes = await fetch("/api/zari/extract", { method: "POST", body: fd });
+      const extractData = await extractRes.json().catch(() => ({})) as { text?: string };
+      const extractedText = extractData.text ?? "";
+
+      if (!extractedText) {
+        setMsgs(m => [...m, { role: "coach", text: "I couldn't read that file — try uploading it again, or paste the content directly." }]);
+        setAvatarState("idle");
+        return;
+      }
+
+      // Send to Zari with the extracted content as context
+      const prompt = `I just uploaded my ${docType}. Take a look and give me your honest read — what's working, what isn't, and what's the most important thing to fix?`;
+      const historyWithFile = [...msgs, fileMsg];
+
+      await sendMessage(prompt, {
+        uploadedContent: extractedText,
+        uploadedFileName: file.name,
+        skipUserMsg: false,
+        historyOverride: historyWithFile,
+      });
+    } catch {
+      setMsgs(m => [...m, { role: "coach", text: "Couldn't process that file — try again or paste the text directly." }]);
+      setAvatarState("idle");
+    } finally {
+      setFileProcessing(false);
+      // setIsLoading is reset inside sendMessage's finally
     }
   }
 
@@ -1225,16 +1290,40 @@ function ScreenSession({ stage }: { stage: CareerStage }) {
 
         {/* Input */}
         <div style={{ flexShrink:0, padding:"0 28px 20px", borderTop:"1px solid #E4E8F5", paddingTop:14, background:"white" }}>
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.doc,.docx,.txt"
+            style={{ display:"none" }}
+            onChange={e => {
+              const f = e.target.files?.[0];
+              if (f) void handleFileUpload(f);
+              e.target.value = "";
+            }}
+          />
           <div style={{ position:"relative", background:"#FAFBFF", border:`1.5px solid ${isLoading ? "#C7D2FE" : "#E0E4EF"}`, borderRadius:14, overflow:"hidden", boxShadow:"0 2px 8px rgba(0,0,0,0.04)", transition:"border-color 0.2s" }}>
             <textarea
-              style={{ width:"100%", border:"none", outline:"none", fontSize:14, color:"#0A0A0F", background:"transparent", resize:"none", padding:"12px 52px 12px 14px", fontFamily:"inherit", lineHeight:1.6, display:"block", opacity: isLoading ? 0.5 : 1 }}
+              style={{ width:"100%", border:"none", outline:"none", fontSize:14, color:"#0A0A0F", background:"transparent", resize:"none", padding:"12px 96px 12px 14px", fontFamily:"inherit", lineHeight:1.6, display:"block", opacity: isLoading ? 0.5 : 1 }}
               rows={3}
-              placeholder={isLoading ? "Zari is thinking…" : isVoice ? "Voice mode active — speak or type…" : "Ask Zari anything, or type a question to practice…"}
+              placeholder={fileProcessing ? "Reading your file…" : isLoading ? "Zari is thinking…" : isVoice ? "Voice mode active — speak or type…" : "Ask Zari anything, upload a file, or practice a question…"}
               value={input}
               onChange={e=>setInput(e.target.value)}
               onKeyDown={e=>{ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();void sendMessage(input);} }}
               disabled={isLoading}
             />
+            {/* Attach file button */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isLoading}
+              title="Upload resume, cover letter, or LinkedIn profile"
+              style={{ position:"absolute", bottom:10, right:52, width:34,height:34,borderRadius:10,border:"none",cursor:isLoading?"default":"pointer", background:"#F5F7FF", color:"#68738A", display:"flex",alignItems:"center",justifyContent:"center", transition:"all 0.15s" }}
+            >
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:15,height:15 }}>
+                <path d="M15.172 7l-6.586 6.586a2 2 0 01-2.828-2.828l6.414-6.586a4 4 0 015.656 5.656l-6.415 6.585a6 6 0 01-8.485-8.485l6.586-6.586"/>
+              </svg>
+            </button>
+            {/* Send button */}
             <button
               onClick={()=>void sendMessage(input)}
               disabled={isLoading || !input.trim()}
@@ -1246,7 +1335,7 @@ function ScreenSession({ stage }: { stage: CareerStage }) {
               }
             </button>
           </div>
-          <p style={{ textAlign:"center", fontSize:10, color:"#C4CDD8", marginTop:6 }}>Enter to send · Shift+Enter for new line · Powered by Zari AI</p>
+          <p style={{ textAlign:"center", fontSize:10, color:"#C4CDD8", marginTop:6 }}>Enter to send · Shift+Enter for newline · 📎 attach a file · Powered by Zari AI</p>
         </div>
       </div>
     </div>

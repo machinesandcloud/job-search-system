@@ -5,55 +5,99 @@ import { openaiChat, type OAIMessage } from "@/lib/openai";
 import { appendSessionEvent } from "@/lib/mvp/store";
 import { ensureSameOrigin } from "@/lib/utils";
 
-/* ─── Stage-specific coaching instructions ───────────────────────────────── */
+/* ─── Stage coaching modes ───────────────────────────────────────────────── */
 const STAGE_INSTRUCTIONS: Record<string, string> = {
-  "job-search": `COACHING MODE: Job search, resume strategy, interview preparation, offer negotiation.
+  "job-search": `COACHING MODE: Job search — resume, applications, interviews, offers.
+- Be tactical and specific. Never give advice without showing exactly how to do it.
+- For interview practice: one question at a time, then score the answer and give structured feedback before moving on.
+- For resume bullets: always offer the actual rewrite, not just advice about how to rewrite.
+- For offers: give specific numbers, scripts, and language they can use word for word.`,
 
-- Be tactical and specific — never give advice without showing exactly how
-- For interview practice: ask one question at a time, then score the answer and give structured feedback before moving on
-- For resume bullets: always offer to rewrite — ask for the raw text if not provided
-- End every response with a question, a next action, or a prompt to keep momentum
-- Short messages (2-4 paragraphs) unless a full breakdown is explicitly requested`,
+  "promotion": `COACHING MODE: Internal promotion — building the case, getting visibility, handling calibration.
+- Always ask for evidence: what level, what company, what did they own, what shipped because of it.
+- A strong promotion case has: (1) the work done, (2) the business outcome, (3) why it's above their current level.
+- Be direct about gaps — they need to know what's missing, not a softened version.
+- Help them prepare for calibration conversations and manager pushback with specific language.`,
 
-  "promotion": `COACHING MODE: Internal promotion, leveling up, building a case for advancement.
+  "salary": `COACHING MODE: Salary negotiation — offers, raises, counter-offers.
+- Always give specific numbers, exact scripts, language they can use word for word.
+- Reference benchmarking methodology: Levels.fyi, LinkedIn Salary, Glassdoor, comp bands.
+- Roleplay as the hiring manager or their manager with realistic pushback when practicing.
+- Never let them under-negotiate. If they're about to accept too easily, call it out.`,
 
-- Always ask for evidence: what level, what company, what did they own, what shipped because of it
-- Help quantify impact and map it to the company's next-level criteria
-- A strong promotion case has three things: (1) the work done, (2) the business outcome, (3) why it's above their current level
-- Prepare them for calibration conversations and manager pushback
-- Be direct about gaps — they need to know what's missing`,
+  "career-change": `COACHING MODE: Career pivot — repositioning background, industry transition, narrative.
+- Help reframe their background as an asset for the target role — not a liability.
+- Give specific narrative language and reframes, not "work on your story" direction.
+- Work on "Why are you switching?" until they own it confidently without hedging.
+- Be realistic about what transfers well vs. what needs to be built from scratch.`,
 
-  "salary": `COACHING MODE: Salary negotiation, counter-offers, raise requests.
-
-- Always give specific numbers, exact scripts, and language they can use word for word
-- Reference real benchmarking methodology: Levels.fyi, LinkedIn Salary, Glassdoor, comp bands
-- For negotiation practice: roleplay as the hiring manager or their manager with realistic pushback
-- Never let them under-negotiate — push them to counter at least once
-- If they accept too quickly, call it out`,
-
-  "career-change": `COACHING MODE: Career pivots, industry transitions, repositioning experience.
-
-- Help reframe their background as an asset — not a liability — for the target role
-- Give specific narrative language and reframes, not vague "work on your story" direction
-- Work on "Why are you switching?" until they own it confidently without hedging
-- Be realistic about what transfers well vs. what needs to be built from scratch`,
-
-  "leadership": `COACHING MODE: Executive presence, leadership development, board-level communication.
-
-- Operate as a peer-level advisor, not a tutor
-- Focus on narrative, influence, and business judgment over tactics
-- For leadership story practice: one question at a time, structured coaching feedback
-- Help them communicate at the level above where they currently are`,
+  "leadership": `COACHING MODE: Executive development — presence, narrative, influence, board communication.
+- Operate as a peer-level advisor, not a tutor or coach to a junior.
+- Focus on narrative, influence, and business judgment over tactics.
+- For leadership story practice: one question at a time, structured coaching feedback.
+- Help them communicate at the level above where they currently sit.`,
 };
 
 type HistoryTurn = { role: string; text: string };
+
+type ResumeCtx = {
+  fileName?: string;
+  score?: number;
+  ats?: number;
+  impact?: number;
+  clarity?: number;
+  keyIssues?: string[];
+  excerpt?: string;
+};
+
+type SectionContext = {
+  resume?: ResumeCtx;
+};
+
+function buildDocumentBlock(
+  sectionContext: SectionContext | null,
+  uploadedContent?: string,
+  uploadedFileName?: string,
+): string {
+  const parts: string[] = [];
+
+  if (sectionContext?.resume) {
+    const r = sectionContext.resume;
+    const scores = [
+      r.score != null ? `Overall ${r.score}/100` : null,
+      r.ats   != null ? `ATS ${r.ats}%`          : null,
+      r.impact != null ? `Impact ${r.impact}%`   : null,
+      r.clarity != null ? `Clarity ${r.clarity}%`: null,
+    ].filter(Boolean).join(" · ");
+
+    const issues = (r.keyIssues ?? []).slice(0, 5);
+
+    parts.push(
+      `RESUME ON FILE: ${r.fileName ?? "resume"}` +
+      (scores ? `\nScores: ${scores}` : "") +
+      (issues.length ? `\nBullets flagged for improvement:\n${issues.map(b => `  • ${b}`).join("\n")}` : "") +
+      (r.excerpt ? `\nResume content (excerpt):\n${r.excerpt}` : ""),
+    );
+  }
+
+  if (uploadedContent && uploadedFileName) {
+    const n = uploadedFileName.toLowerCase();
+    const label = n.includes("cover") ? "COVER LETTER"
+      : n.includes("linkedin")        ? "LINKEDIN PROFILE"
+      :                                  "DOCUMENT";
+    parts.push(`${label} JUST UPLOADED: ${uploadedFileName}\n\n${uploadedContent.slice(0, 2500)}`);
+  }
+
+  return parts.length
+    ? `\n\n---\nUSER'S DOCUMENTS (use these when giving specific feedback):\n\n${parts.join("\n\n")}\n---`
+    : "";
+}
 
 export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) {
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
   }
 
-  /* ── API key check ── */
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return NextResponse.json({
@@ -62,62 +106,77 @@ export async function POST(request: Request) {
     });
   }
 
-  /* ── Auth ── */
   const userId = await getCurrentUserId();
 
-  /* ── Parse body ── */
   const body = await request.json().catch(() => ({})) as {
-    message?: string;
-    stage?: string;
-    history?: HistoryTurn[];
-    sessionId?: string;
+    message?:         string;
+    stage?:           string;
+    history?:         HistoryTurn[];
+    sessionId?:       string;
+    sectionContext?:  SectionContext;
+    uploadedContent?: string;
+    uploadedFileName?:string;
   };
 
-  const message   = (body.message ?? "").toString().trim();
-  const stage     = (body.stage ?? "job-search").toString();
-  const history   = Array.isArray(body.history) ? body.history : [];
-  const sessionId = body.sessionId ?? null;
+  const message          = (body.message ?? "").toString().trim();
+  const stage            = (body.stage ?? "job-search").toString();
+  const history          = Array.isArray(body.history) ? body.history : [];
+  const sessionId        = body.sessionId ?? null;
+  const sectionContext   = body.sectionContext ?? null;
+  const uploadedContent  = body.uploadedContent;
+  const uploadedFileName = body.uploadedFileName;
 
   if (!message) {
     return NextResponse.json({ error: "Message required" }, { status: 400 });
   }
 
-  /* ── Build user context (only if authenticated) ── */
+  /* ── User profile context (DB) ── */
   let userContext = "";
   if (userId) {
-    try {
-      userContext = await buildUserContext(userId);
-    } catch {
-      // non-fatal — continue without context
-    }
+    try { userContext = await buildUserContext(userId); } catch { /* non-fatal */ }
   }
 
-  /* ── Compose system prompt ── */
-  const contextBlock = userContext
-    ? `Here is everything you know about this user. Use it to personalise every response — reference their name, current role, target role, past work, and open action items when relevant.\n\n${userContext}`
-    : `You don't have this user's profile yet. Early in the conversation, ask for their name, current role, and what they're working toward.`;
+  const profileBlock = userContext
+    ? `Here is what you know about this user. Reference their name, role, and goals naturally — don't list facts robotically, just let the context inform how you talk to them.\n\n${userContext}`
+    : `You don't have this user's profile yet. Early on, ask for their name, current role, and what they're working toward — but work it in naturally, don't make it feel like a form.`;
 
+  const documentBlock = buildDocumentBlock(sectionContext, uploadedContent, uploadedFileName);
   const stageInstructions = STAGE_INSTRUCTIONS[stage] ?? STAGE_INSTRUCTIONS["job-search"];
 
-  const systemPrompt = `You are Zari, a career coach who feels like a sharp, honest friend. You're warm, direct, and always specific — you never give advice that could apply to anyone else. You talk like a real person, not a consultant.
+  const systemPrompt = `You are Zari — a career coach who operates like a brilliant, trusted friend. You've helped hundreds of people land better jobs, get promoted, and negotiate comp they actually deserve. You're warm, direct, and ruthlessly specific. You never give advice that could apply to anyone else.
 
-${contextBlock}
+${profileBlock}${documentBlock}
 
 ${stageInstructions}
 
-Voice rules:
-- Write like a friend who happens to know everything about careers — not a chatbot
-- No filler phrases ("Great question!", "Absolutely!", "Of course!", "Certainly!")
-- No bullet lists unless doing a structured breakdown or rewrite
-- Use plain language — no jargon unless it's genuinely useful
-- Be concise but not cold — 2-4 paragraphs max unless more is asked for
-- Always end with a question, a next action, or something that invites them to keep going`;
+PERSONALITY:
+- Speak like a real person, not a consultant or chatbot
+- Direct and honest — you tell people what they need to hear, not what sounds nice
+- Warm but not soft — you push people when they're playing small
+- You notice patterns and name them without being harsh
+- Never say "Great question!", "Absolutely!", "Of course!", "Certainly!" — just answer
+
+SCOPE:
+You are a career coach. Stay focused on career topics: jobs, resumes, interviews, salary, promotions, career pivots, leadership. If the conversation drifts to something unrelated to careers, acknowledge it briefly and warm, then pivot back naturally — don't lecture or refuse. Example: "Life can make this stuff feel heavier. What's the one career thing you want to move on today?"
+
+COACHING PRINCIPLES:
+- Ask one focused question at a time — never pile on multiple questions
+- If they give you something vague ("my resume isn't good"), ask for the specific detail before advising
+- For any rewrite request: produce the actual rewrite, not advice about how to rewrite it
+- Reference their specific documents, scores, and bullet issues when relevant
+- Be honest about what's not working — they need the real read, not a softened version
+- If they've uploaded a document, engage with it specifically — quote it, critique it, rewrite parts
+
+RESPONSE FORMAT:
+- 2–4 paragraphs max unless a structured breakdown or rewrite is explicitly needed
+- No bullet lists in regular conversation — use them only for rewrites, scoring, or structured breakdowns
+- Plain language — no buzzwords or jargon unless genuinely useful
+- Always end with a question, a next action, or something that keeps momentum`;
 
   /* ── Build messages array ── */
   const messages: OAIMessage[] = [{ role: "system", content: systemPrompt }];
 
-  // Last 12 turns of current session for immediate conversation context
-  for (const turn of history.slice(-12)) {
+  for (const turn of history.slice(-14)) {
     if (turn.role === "coach") {
       messages.push({ role: "assistant", content: turn.text });
     } else if (turn.role === "user") {
@@ -128,9 +187,9 @@ Voice rules:
 
   /* ── Call OpenAI ── */
   const reply = await openaiChat(messages, {
-    model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
-    temperature: 0.7,
-    maxTokens: 700,
+    model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o-mini",
+    temperature: 0.72,
+    maxTokens: 800,
   });
 
   const responseText = reply ?? "I'm having trouble connecting right now — try again in a moment.";
@@ -140,13 +199,8 @@ Voice rules:
     try {
       await appendSessionEvent(userId, sessionId, { role: "user",  message });
       await appendSessionEvent(userId, sessionId, { role: "coach", message: responseText });
-    } catch {
-      // non-fatal — don't fail the response if persistence fails
-    }
+    } catch { /* non-fatal */ }
   }
 
-  return NextResponse.json({
-    message:   responseText,
-    aiEnabled: !!reply,
-  });
+  return NextResponse.json({ message: responseText, aiEnabled: !!reply });
 }
