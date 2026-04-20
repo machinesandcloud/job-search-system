@@ -389,7 +389,7 @@ function PdfHighlightViewer({
         const lib = await loadPdfJs() as Record<string, unknown>;
         // Fetch as ArrayBuffer first — more reliable than passing a blob URL directly to PDF.js
         const arrayBuf = await fetch(pdfUrl).then(r => r.arrayBuffer());
-        const pdfDoc = await (lib["getDocument"] as (src: unknown) => {promise: Promise<unknown>})({ data: arrayBuf }).promise as Record<string, unknown>;
+        const pdfDoc = await (lib["getDocument"] as (src: unknown) => {promise: Promise<unknown>})({ data: arrayBuf, disableFontFace: true }).promise as Record<string, unknown>;
         const numPages = pdfDoc["numPages"] as number;
         const out: PdfPageData[] = [];
         const SCALE = 1.8;
@@ -404,7 +404,11 @@ function PdfHighlightViewer({
           const ctx = cvs.getContext("2d")!;
           ctx.fillStyle = "white";
           ctx.fillRect(0, 0, cvs.width, cvs.height);
-          await ((page["render"] as (o:unknown)=>{promise:Promise<void>})({ canvasContext: ctx, viewport: vp })).promise;
+          try {
+            await ((page["render"] as (o:unknown)=>{promise:Promise<void>})({ canvasContext: ctx, viewport: vp })).promise;
+          } catch (renderErr) {
+            console.warn("[PdfHighlight] render failed, using blank canvas:", renderErr);
+          }
 
           // getTextContent can throw internally on some PDFs (PDF.js processes font tables
           // before returning items, and malformed fonts trigger "Cannot read properties of
