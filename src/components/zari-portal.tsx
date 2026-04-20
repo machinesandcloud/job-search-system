@@ -1687,80 +1687,40 @@ function ZariLiveMode({
         ?? (((window as unknown) as Record<string, unknown>)["webkitSpeechRecognition"] as (new () => SR) | undefined)
       : undefined;
 
-    if (SpeechRec) {
-      const rec = new SpeechRec();
-      rec.continuous = false;
-      rec.interimResults = true;
-      rec.lang = "en-US";
-      recognitionRef.current = rec;
-
-      rec.onresult = (e: { results: { length: number; [i: number]: { isFinal: boolean; [j: number]: { transcript: string } } } }) => {
-        const last = e.results[e.results.length - 1];
-        const text = last[0].transcript;
-        if (last.isFinal) {
-          setInterimText("");
-          recognitionRef.current = null;
-          void processInput(text);
-        } else {
-          setInterimText(text);
-        }
-      };
-      rec.onerror = () => {
-        if (aliveRef.current) { setLiveState("idle"); setStatusText("Tap to speak"); setInterimText(""); }
-      };
-      rec.onend = () => {
-        if (aliveRef.current && liveStateRef.current === "listening") {
-          setLiveState("idle"); setStatusText("Tap to speak"); setInterimText("");
-        }
-      };
-      try { rec.start(); return; } catch {}
+    if (!SpeechRec) {
+      setLiveState("idle");
+      setStatusText("Use Chrome or Edge for live voice");
+      return;
     }
 
-    // Fallback: MediaRecorder + Whisper
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mime = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/ogg";
-      const recorder = new MediaRecorder(stream, { mimeType: mime });
-      const chunks: Blob[] = [];
+    const rec = new SpeechRec();
+    rec.continuous = false;
+    rec.interimResults = true;
+    rec.lang = "en-US";
+    recognitionRef.current = rec;
 
-      const actx = new AudioContext();
-      const analyser = actx.createAnalyser(); analyser.fftSize = 512;
-      actx.createMediaStreamSource(stream).connect(analyser);
-      const data = new Uint8Array(analyser.frequencyBinCount);
-      let silStart: number | null = null; let vadOn = true;
-
-      function vad() {
-        if (!vadOn) return;
-        analyser.getByteFrequencyData(data);
-        const avg = data.reduce((a, b) => a + b, 0) / data.length;
-        if (avg < 8) { if (!silStart) silStart = Date.now(); else if (Date.now() - silStart > 1500) { vadOn = false; recorder.stop(); return; } }
-        else silStart = null;
-        requestAnimationFrame(vad);
+    rec.onresult = (e: { results: { length: number; [i: number]: { isFinal: boolean; [j: number]: { transcript: string } } } }) => {
+      const last = e.results[e.results.length - 1];
+      const text = last[0].transcript;
+      if (last.isFinal) {
+        setInterimText("");
+        recognitionRef.current = null;
+        void processInput(text);
+      } else {
+        setInterimText(text);
       }
-
-      recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
-      recorder.onstop = async () => {
-        vadOn = false;
-        stream.getTracks().forEach(t => t.stop());
-        void actx.close();
-        const blob = new Blob(chunks, { type: mime });
-        if (blob.size < 500 || !aliveRef.current) { setLiveState("idle"); setStatusText("Tap to speak"); return; }
-        setLiveState("thinking"); setStatusText("Thinking…");
-        const form = new FormData(); form.append("audio", blob);
-        try {
-          const r = await fetch("/api/zari/transcribe", { method: "POST", body: form });
-          const d = await r.json().catch(() => ({})) as { text?: string };
-          const t = (d.text ?? "").trim();
-          if (t) void processInput(t);
-          else { setLiveState("idle"); setStatusText("Tap to speak"); }
-        } catch { setLiveState("idle"); setStatusText("Tap to speak"); }
-      };
-
-      recorder.start();
-      requestAnimationFrame(vad);
-    } catch {
+    };
+    rec.onerror = () => {
+      if (aliveRef.current) { setLiveState("idle"); setStatusText("Tap to speak"); setInterimText(""); }
+    };
+    rec.onend = () => {
+      if (aliveRef.current && liveStateRef.current === "listening") {
+        setLiveState("idle"); setStatusText("Tap to speak"); setInterimText("");
+      }
+    };
+    try { rec.start(); } catch {
       setLiveState("idle");
-      setStatusText("Microphone unavailable — check browser permissions");
+      setStatusText("Microphone unavailable — check permissions");
     }
   }
 
