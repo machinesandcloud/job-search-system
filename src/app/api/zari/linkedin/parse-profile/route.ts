@@ -47,7 +47,7 @@ Return ONLY valid JSON matching this exact structure:
 }
 
 Rules:
-- Return ALL jobs found in experienceJobs (most recent first), up to 10 maximum
+- Return up to 5 most recent jobs in experienceJobs (most recent first)
 - Each job must have its bullets/description separated, NOT concatenated across jobs
 - If a section is absent return empty string or empty array
 - Do NOT fabricate content — only extract what is actually present`;
@@ -55,9 +55,9 @@ Rules:
   const reply = await openaiChat(
     [
       { role: "system", content: systemPrompt },
-      { role: "user", content: `Parse this LinkedIn profile:\n\n${rawText.slice(0, 7000)}` },
+      { role: "user", content: `Parse this LinkedIn profile:\n\n${rawText.slice(0, 9000)}` },
     ],
-    { model: "gpt-4o-mini", temperature: 0.1, maxTokens: 1800, jsonMode: true }
+    { model: "gpt-4o-mini", temperature: 0.1, maxTokens: 2500, jsonMode: true }
   );
 
   if (!reply) throw new Error("AI parsing failed");

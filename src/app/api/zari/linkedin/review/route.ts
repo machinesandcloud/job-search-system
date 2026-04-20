@@ -25,7 +25,7 @@ export async function POST(request: Request) {
 
   const headline      = (body.headline    ?? "").trim();
   const summary       = (body.summary     ?? "").trim();
-  const experienceJobs: ExperienceJob[] = (Array.isArray(body.experienceJobs) ? body.experienceJobs : []).slice(0, 6);
+  const experienceJobs: ExperienceJob[] = Array.isArray(body.experienceJobs) ? body.experienceJobs : [];
   const education     = (body.education   ?? "").trim();
   const skills        = (body.skills      ?? "").trim();
   const linkedinUrl   = (body.linkedinUrl ?? "").trim();
@@ -95,7 +95,7 @@ Return ONLY valid JSON with this exact structure:
         "dateRange": "${j.dateRange.replace(/"/g, '\\"')}",
         "score": <1-10 for JOB ${i + 1}>,
         "verdict": <"Perfect"|"Good"|"Needs Review"|"Missing">,
-        "rewrite": "<4-5 improved bullets for JOB ${i + 1}. FORMAT: each bullet on its own line separated by \\n, starting with • and a space. Natural voice — not template-speak. Strong action verb per bullet. Show impact through scope, context, outcomes; use numbers from the original only. Keep all key tools/details from the original. Full sentences, ~20-30 words each. Based ONLY on JOB ${i + 1}>",
+        "rewrite": "<3-4 XYZ-formula bullets for JOB ${i + 1}: Strong Verb + Context + Quantified Result. Use • prefix. Based ONLY on what is actually described in JOB ${i + 1}>",
         "checks": [
           { "name": "Quantified impact", "pass": <bool>, "detail": "<count bullets with numbers vs total in JOB ${i + 1}>" },
           { "name": "Strong action verbs", "pass": <bool>, "detail": "<quote weak verbs found or confirm strong openers in JOB ${i + 1}>" },
@@ -153,7 +153,7 @@ Be specific — quote actual phrases. Generic feedback is useless.`;
   const content = [
     headline   ? `HEADLINE:\n${headline}` : "HEADLINE: (not provided)",
     summary    ? `\n\nSUMMARY/ABOUT:\n${summary.slice(0, 2000)}` : "\n\nSUMMARY: (not provided)",
-    `\n\nEXPERIENCE:\n${jobsText.slice(0, 4000)}`,
+    `\n\nEXPERIENCE:\n${jobsText.slice(0, 3000)}`,
     education  ? `\n\nEDUCATION:\n${education}` : "\n\nEDUCATION: (not provided)",
     skills     ? `\n\nSKILLS:\n${skills}` : "",
     linkedinUrl ? `\n\nLINKEDIN URL: ${linkedinUrl}` : "",
@@ -166,9 +166,10 @@ Be specific — quote actual phrases. Generic feedback is useless.`;
       { role: "user", content: content },
     ],
     {
-      model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o-mini",
+      model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
       temperature: 0.25,
       maxTokens: 5000,
+      // Note: gpt-4o at 5000 tokens takes ~15-20s — do not increase without testing timeout
       jsonMode: true,
     }
   );
