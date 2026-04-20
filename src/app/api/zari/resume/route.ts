@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { getCurrentUserId } from "@/lib/mvp/auth";
 import { buildUserContext } from "@/lib/mvp/context";
 import { saveResumeScore, getResumeScoreHistory } from "@/lib/mvp/store";

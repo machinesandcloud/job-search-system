@@ -1392,7 +1392,7 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
       if (data && data.overall) {
         setAiResult(data);
         // Save to doc vault
-        vaultSave({ type:"resume", name:fileName||"Resume", content:textToAnalyze, meta:{ score:String(data.overall), targetRole:targetRoleInput||"" } });
+        try { vaultSave({ type:"resume", name:fileName||"Resume", content:textToAnalyze, meta:{ score:String(data.overall), targetRole:targetRoleInput||"" } }); } catch { /* non-fatal */ }
         // Always persist to localStorage so history works regardless of auth state
         pushLocalHistory({
           id: `local_${Date.now()}`,
@@ -1405,12 +1405,12 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
         setTimeout(() => { setStep("results"); setResumeViewMode("suggestions"); }, 400);
       } else {
         setStep("paste");
-        setAnalyzeErr("Analysis failed — try again.");
+        setAnalyzeErr((data as {error?:string}|null)?.error ?? "Analysis failed — try again.");
       }
-    } catch {
+    } catch (e) {
       clearInterval(interval);
       setStep("paste");
-      setAnalyzeErr("Connection error — try again.");
+      setAnalyzeErr("Connection error — " + (e instanceof Error ? e.message : "try again."));
     }
   }
 
