@@ -1546,6 +1546,7 @@ ${body}${footer}
 }
 
 const RESUME_SESSION_KEY = "zari_resume_session_v2";
+const RESUME_PDF_KEY     = "zari_resume_pdf_v2";
 function loadResumeSession(): { resumeText:string; fileName:string; aiResult:ResumeAnalysis; reviewMode:"general"|"targeted"; targetRoleInput:string; careerLevel:CareerLevel } | null {
   try {
     const raw = localStorage.getItem(RESUME_SESSION_KEY);
@@ -1595,6 +1596,23 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
   // Blob URL for the originally uploaded file (PDF iframe preview)
   const [rawFileUrl, setRawFileUrl] = useState<string | null>(null);
   const rawFileUrlRef = useRef<string | null>(null);
+
+  // Restore PDF blob URL from localStorage when loading a saved session
+  useEffect(() => {
+    if (!_saved) return;
+    try {
+      const b64 = localStorage.getItem(RESUME_PDF_KEY);
+      if (!b64) return;
+      const base64Data = b64.includes(",") ? b64.split(",")[1] : b64;
+      const byteStr = atob(base64Data);
+      const bytes = new Uint8Array(byteStr.length);
+      for (let i = 0; i < byteStr.length; i++) bytes[i] = byteStr.charCodeAt(i);
+      const blob = new Blob([bytes], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      rawFileUrlRef.current = url;
+      setRawFileUrl(url);
+    } catch { /* PDF not stored or corrupted — re-upload fallback shown */ }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function triggerWordDownload(html: string, name: string) {
     const wordHtml = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">${html.replace(/<html[^>]*>/, "").replace(/<\/html>/, "")}</html>`;
@@ -1803,6 +1821,15 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
     const blobUrl = URL.createObjectURL(file);
     rawFileUrlRef.current = blobUrl;
     setRawFileUrl(blobUrl);
+
+    // Persist PDF as base64 so it survives page refresh (skip files >3 MB)
+    if (file.size < 3 * 1024 * 1024) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        try { localStorage.setItem(RESUME_PDF_KEY, reader.result as string); } catch { /* storage full */ }
+      };
+      reader.readAsDataURL(file);
+    }
 
     // Extract text from file
     let extracted = "";
@@ -2322,7 +2349,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
         {/* ── Top bar ── */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20, gap:12, flexWrap:"wrap" }}>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <button onClick={()=>{ setStep("choose"); setAiResult(null); setResumeText(""); setFileName(""); setAltVersions({}); setAltAttempt({}); setMagicWrite({}); setTab("overview"); if (rawFileUrlRef.current) { URL.revokeObjectURL(rawFileUrlRef.current); rawFileUrlRef.current = null; } setRawFileUrl(null); try { localStorage.removeItem(RESUME_SESSION_KEY); } catch { /* ignore */ } }} style={{ display:"flex", alignItems:"center", gap:5, fontSize:12, fontWeight:600, color:"#68738A", background:"white", border:"1px solid #E4E8F5", borderRadius:8, padding:"6px 12px", cursor:"pointer" }}>
+            <button onClick={()=>{ setStep("choose"); setAiResult(null); setResumeText(""); setFileName(""); setAltVersions({}); setAltAttempt({}); setMagicWrite({}); setTab("overview"); if (rawFileUrlRef.current) { URL.revokeObjectURL(rawFileUrlRef.current); rawFileUrlRef.current = null; } setRawFileUrl(null); try { localStorage.removeItem(RESUME_SESSION_KEY); localStorage.removeItem(RESUME_PDF_KEY); } catch { /* ignore */ } }} style={{ display:"flex", alignItems:"center", gap:5, fontSize:12, fontWeight:600, color:"#68738A", background:"white", border:"1px solid #E4E8F5", borderRadius:8, padding:"6px 12px", cursor:"pointer" }}>
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:12,height:12 }}><path d="M10 3L5 8l5 5"/></svg>
               New review
             </button>
