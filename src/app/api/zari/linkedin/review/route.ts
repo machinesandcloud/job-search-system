@@ -95,7 +95,7 @@ Return ONLY valid JSON with this exact structure:
         "dateRange": "${j.dateRange.replace(/"/g, '\\"')}",
         "score": <1-10 for JOB ${i + 1}>,
         "verdict": <"Perfect"|"Good"|"Needs Review"|"Missing">,
-        "rewrite": "<4-5 bullets for JOB ${i + 1}. Separate each bullet with \\n. Start each with • and a space. Write in a natural, conversational tone — not stiff template-speak. Lead with a strong action verb. Show impact through scope, context, outcomes, and specific numbers/tools where present in the original. Full sentences, ~20-25 words each. Preserve ALL key details, tools, and metrics from the original. Based ONLY on what is described in JOB ${i + 1}>",
+        "rewrite": "<4-5 bullets for JOB ${i + 1}. Separate each bullet with \\n. Start each with • and a space. Write in a natural, conversational tone — not stiff template-speak. Lead with a strong action verb. Show impact through scope, context, outcomes, and numbers. IMPORTANT: every bullet must include at least one quantified signal — if specific numbers are absent from the original, add reasonable estimates based on context and seniority (e.g., '~40% reduction', 'team of 6', 'across 3 product lines', '$2M budget'). Full sentences, ~20-25 words each. Preserve ALL key details, tools, and metrics from the original. Based ONLY on what is described in JOB ${i + 1}>",
         "checks": [
           { "name": "Quantified impact", "pass": <bool>, "detail": "<count bullets with numbers vs total in JOB ${i + 1}>" },
           { "name": "Strong action verbs", "pass": <bool>, "detail": "<quote weak verbs found or confirm strong openers in JOB ${i + 1}>" },
