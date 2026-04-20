@@ -1548,8 +1548,6 @@ function ZariLiveMode({
   const liveStateRef    = useRef<LiveState>("idle");
   const autoLoopRef     = useRef(false);
   const recognitionRef  = useRef<SR | null>(null);
-  const ttsQueueRef     = useRef<Array<Promise<Blob | null>>>([]);
-  const queueRunRef     = useRef(false);
   const transcriptRef   = useRef<HTMLDivElement>(null);
   const aliveRef        = useRef(true);
 
@@ -1572,46 +1570,85 @@ function ZariLiveMode({
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
     try { recognitionRef.current?.stop(); } catch {}
     recognitionRef.current = null;
-    ttsQueueRef.current = [];
-    queueRunRef.current = false;
   }
 
-  /* ── TTS sentence queue ── */
-  function enqueueSentence(text: string) {
-    if (!text.trim() || !aliveRef.current) return;
-    const promise = fetch("/api/zari/speak", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
-    }).then(r => r.ok ? r.blob() : null).catch(() => null);
-    ttsQueueRef.current.push(promise);
-    if (!queueRunRef.current) void drainQueue();
+  /* ── Streaming TTS via MediaSource — starts playing on first bytes ── */
+  async function playTTS(text: string): Promise<void> {
+    if (!aliveRef.current) return;
+    return new Promise((resolve) => {
+      if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+
+      const canStream = typeof MediaSource !== "undefined" && MediaSource.isTypeSupported("audio/mpeg");
+
+      if (canStream) {
+        const ms  = new MediaSource();
+        const url = URL.createObjectURL(ms);
+        const audio = new Audio(url);
+        audioRef.current = audio;
+
+        audio.addEventListener("ended",  () => { URL.revokeObjectURL(url); audioRef.current = null; resolve(); }, { once: true });
+        audio.addEventListener("error",  () => { URL.revokeObjectURL(url); audioRef.current = null; resolve(); }, { once: true });
+
+        ms.addEventListener("sourceopen", async () => {
+          let sb: SourceBuffer;
+          const pending: ArrayBuffer[] = [];
+          let fetchDone = false;
+
+          try { sb = ms.addSourceBuffer("audio/mpeg"); } catch { resolve(); return; }
+
+          function flush() {
+            if (sb.updating || pending.length === 0) return;
+            try { sb.appendBuffer(pending.shift()!); } catch {}
+          }
+          function tryEnd() {
+            if (!fetchDone || sb.updating || pending.length > 0) return;
+            try { ms.endOfStream(); } catch {}
+          }
+          sb.addEventListener("updateend", () => { flush(); tryEnd(); });
+
+          try {
+            const res = await fetch("/api/zari/speak", {
+              method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ text }),
+            });
+            if (!res.ok || !res.body || !aliveRef.current) { try { ms.endOfStream(); } catch {} resolve(); return; }
+
+            void audio.play().catch(() => {});
+
+            const reader = res.body.getReader();
+            while (aliveRef.current) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              pending.push(value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength));
+              flush();
+            }
+            fetchDone = true;
+            flush();
+            tryEnd();
+          } catch { try { ms.endOfStream(); } catch {} resolve(); }
+        }, { once: true });
+      } else {
+        // Fallback: blob
+        (async () => {
+          try {
+            const res = await fetch("/api/zari/speak", {
+              method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ text }),
+            });
+            if (!res.ok || !aliveRef.current) { resolve(); return; }
+            const blobUrl = URL.createObjectURL(await res.blob());
+            const audio = new Audio(blobUrl);
+            audioRef.current = audio;
+            audio.onended = () => { URL.revokeObjectURL(blobUrl); resolve(); };
+            audio.onerror = () => { URL.revokeObjectURL(blobUrl); resolve(); };
+            void audio.play();
+          } catch { resolve(); }
+        })();
+      }
+    });
   }
 
-  async function drainQueue() {
-    queueRunRef.current = true;
-    while (ttsQueueRef.current.length > 0 && aliveRef.current) {
-      const blob = await ttsQueueRef.current.shift()!;
-      if (!blob || !aliveRef.current) continue;
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      audioRef.current = audio;
-      await new Promise<void>(res => {
-        audio.onended = () => { URL.revokeObjectURL(url); res(); };
-        audio.onerror = () => { URL.revokeObjectURL(url); res(); };
-        void audio.play().catch(res);
-      });
-      audioRef.current = null;
-    }
-    queueRunRef.current = false;
-    // All audio done → auto-start next turn
-    if (aliveRef.current && autoLoopRef.current) {
-      setLiveState("idle");
-      setStatusText("Your turn…");
-      setTimeout(() => { if (aliveRef.current && autoLoopRef.current) void startListening(); }, 400);
-    }
-  }
-
-  /* ── Process transcribed text → streaming chat → streamed TTS ── */
+  /* ── Chat → collect full response → single TTS call (smooth audio) ── */
   async function processInput(text: string) {
     if (!text.trim() || !aliveRef.current) return;
     setInterimText("");
@@ -1623,8 +1660,6 @@ function ZariLiveMode({
     newMsgsRef.current = [...newMsgsRef.current, userMsg];
 
     let fullReply = "";
-    let buf = "";
-
     try {
       const history = [...msgs, ...newMsgsRef.current.slice(0, -1)].slice(-14);
       const res = await fetch("/api/zari/chat", {
@@ -1632,47 +1667,44 @@ function ZariLiveMode({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text, stage, history, sessionId, sectionContext, isVoice: true }),
       });
-
       if (!res.body) throw new Error("no stream");
 
       const reader  = res.body.getReader();
       const decoder = new TextDecoder();
-      setLiveState("speaking");
-      setStatusText("Speaking…");
-
       while (aliveRef.current) {
         const { done, value } = await reader.read();
         if (done) break;
-        const raw = decoder.decode(value, { stream: true });
-        for (const line of raw.split("\n")) {
-          const trimmed = line.trim();
-          if (!trimmed.startsWith("data:")) continue;
-          const payload = trimmed.slice(5).trim();
-          if (payload === "[DONE]") break;
+        for (const line of decoder.decode(value, { stream: true }).split("\n")) {
+          const p = line.trim();
+          if (!p.startsWith("data:")) continue;
+          const d = p.slice(5).trim();
+          if (d === "[DONE]") break;
           try {
-            type OAIChunk = { choices?: Array<{ delta?: { content?: string } }> };
-            const token = (JSON.parse(payload) as OAIChunk).choices?.[0]?.delta?.content ?? "";
-            if (!token) continue;
-            fullReply += token;
-            buf += token;
-            // Fire TTS as soon as a sentence is ready
-            const m = buf.match(/^([\s\S]*?[.!?])(\s|$)([\s\S]*)/);
-            if (m) {
-              enqueueSentence(m[1].trim());
-              buf = m[3];
-            }
+            type C = { choices?: Array<{ delta?: { content?: string } }> };
+            const t = (JSON.parse(d) as C).choices?.[0]?.delta?.content ?? "";
+            if (t) fullReply += t;
           } catch {}
         }
       }
-      if (buf.trim()) enqueueSentence(buf.trim());
-
-      if (fullReply.trim()) {
-        const coachMsg: ChatMsg = { role: "coach", text: fullReply.trim() };
-        setTranscript(t => [...t, coachMsg]);
-        newMsgsRef.current = [...newMsgsRef.current, coachMsg];
-      }
     } catch {
       if (aliveRef.current) { setLiveState("idle"); setStatusText("Something went wrong — tap to try again"); }
+      return;
+    }
+
+    if (!aliveRef.current || !fullReply.trim()) return;
+
+    const coachMsg: ChatMsg = { role: "coach", text: fullReply.trim() };
+    setTranscript(t => [...t, coachMsg]);
+    newMsgsRef.current = [...newMsgsRef.current, coachMsg];
+
+    setLiveState("speaking");
+    setStatusText("Speaking…");
+    await playTTS(fullReply.trim());
+
+    if (aliveRef.current && autoLoopRef.current) {
+      setLiveState("idle");
+      setStatusText("Your turn…");
+      setTimeout(() => { if (aliveRef.current && autoLoopRef.current) void startListening(); }, 350);
     }
   }
 

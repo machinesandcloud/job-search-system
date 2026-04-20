@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     body: JSON.stringify({
       model: "tts-1",
       input: text.slice(0, 4096),
-      voice: "nova",
+      voice: "shimmer",
       response_format: "mp3",
     }),
   });
@@ -34,8 +34,8 @@ export async function POST(request: Request) {
     return new Response("TTS failed", { status: 500 });
   }
 
-  const buffer = await res.arrayBuffer();
-  return new Response(buffer, {
+  // Proxy stream directly — client starts playing on first bytes, no buffering
+  return new Response(res.body, {
     headers: {
       "Content-Type": "audio/mpeg",
       "Cache-Control": "no-store",
