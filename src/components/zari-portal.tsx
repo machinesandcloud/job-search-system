@@ -286,18 +286,28 @@ function normalizeResumeText(text: string): string {
 let _pdfJsLoad: Promise<unknown> | null = null;
 function loadPdfJs(): Promise<unknown> {
   if (_pdfJsLoad) return _pdfJsLoad;
+  const BASE = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174";
   _pdfJsLoad = new Promise<unknown>((res, rej) => {
     const w = window as unknown as Record<string, unknown>;
     if (w["pdfjsLib"]) { res(w["pdfjsLib"]); return; }
     const s = document.createElement("script");
-    s.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
-    s.onload = () => {
+    s.src = `${BASE}/pdf.min.js`;
+    s.onload = async () => {
       const lib = (window as unknown as Record<string, unknown>)["pdfjsLib"] as Record<string, unknown>;
-      (lib["GlobalWorkerOptions"] as Record<string, string>)["workerSrc"] =
-        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+      // Fetch worker as same-origin blob to avoid cross-origin worker restrictions
+      try {
+        const r = await fetch(`${BASE}/pdf.worker.min.js`);
+        const blob = await r.blob();
+        (lib["GlobalWorkerOptions"] as Record<string, string>)["workerSrc"] =
+          URL.createObjectURL(blob);
+      } catch {
+        // Fallback to direct URL if fetch fails
+        (lib["GlobalWorkerOptions"] as Record<string, string>)["workerSrc"] =
+          `${BASE}/pdf.worker.min.js`;
+      }
       res(lib);
     };
-    s.onerror = () => rej(new Error("PDF.js load failed"));
+    s.onerror = () => rej(new Error("PDF.js failed to load from CDN"));
     document.head.appendChild(s);
   });
   return _pdfJsLoad;
@@ -365,6 +375,7 @@ function PdfHighlightViewer({
 }) {
   const [pages, setPages] = useState<PdfPageData[]>([]);
   const [status, setStatus] = useState<"loading"|"done"|"error">("loading");
+  const [errMsg, setErrMsg] = useState("");
   const [popup, setPopup] = useState<{pg:number;hi:number}|null>(null);
   const BC = /^[•\-\*\u2022►▸]\s*/;
 
@@ -438,7 +449,7 @@ function PdfHighlightViewer({
         if (!dead) { setPages(out); setStatus("done"); }
       } catch(e) {
         console.error("[PdfHighlight]", e);
-        if (!dead) setStatus("error");
+        if (!dead) { setErrMsg(e instanceof Error ? e.message : String(e)); setStatus("error"); }
       }
     })();
     return () => { dead = true; };
@@ -453,8 +464,9 @@ function PdfHighlightViewer({
     </div>
   );
   if (status === "error") return (
-    <div style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", background:"#2A2A2A", color:"#F87171", fontSize:13 }}>
-      Could not render PDF — try the Preview tab
+    <div style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", background:"#2A2A2A", flexDirection:"column" as const, gap:6, padding:"0 24px", textAlign:"center" as const }}>
+      <span style={{ color:"#F87171", fontSize:13 }}>Could not render PDF — try the Preview tab</span>
+      {errMsg && <span style={{ color:"rgba(248,113,113,0.55)", fontSize:10.5, maxWidth:340 }}>{errMsg}</span>}
     </div>
   );
 
@@ -1372,37 +1384,65 @@ function generateResumeHtml(text: string, footerNote = ""): string {
   sections.sort((a, b) => sectionRank(a.title) - sectionRank(b.title));
 
   // ── Phase 3: render section content lines ─────────────────
-  function renderLines(lines: string[]): string {
+  // autoBullet: experience/work sections auto-wrap body paragraphs as <li>
+  function renderLines(lines: string[], autoBullet = false): string {
+    // Pre-join: if a line doesn't end in sentence punctuation and the NEXT line
+    // starts with lowercase, merge them (handles PDF-wrapped long sentences).
+    const joined: string[] = [];
+    for (let i = 0; i < lines.length; i++) {
+      const t = lines[i].trim();
+      if (!t) { joined.push(""); continue; }
+      let combined = t;
+      while (
+        i + 1 < lines.length &&
+        !/[.!?]$/.test(combined) &&
+        lines[i + 1].trim().length > 0 &&
+        /^[a-z]/.test(lines[i + 1].trim())
+      ) {
+        i++;
+        combined += " " + lines[i].trim();
+      }
+      joined.push(combined);
+    }
+
     let html = "";
     let inList = false;
+    // pending: either a company/title label, or "__date__<dateStr>" when a date
+    // line appears before its company name (common in this PDF's extraction order).
     let pending: string | null = null;
+    let afterJobEntry = false;
 
     const closeList = () => { if (inList) { html += "</ul>\n"; inList = false; } };
     const flushPending = (date?: string) => {
       if (pending === null) return;
-      if (date) {
+      const isDatePending = pending.startsWith("__date__");
+      if (isDatePending) {
+        // Stored date waiting for a company name that never came — emit standalone
+        html += `<p class="date-standalone">${escHtml(pending.slice(8))}</p>\n`;
+      } else if (date) {
         html += `<div class="job-hdr"><span class="company">${escHtml(pending)}</span><span class="date-r">${escHtml(date)}</span></div>\n`;
+        afterJobEntry = true;
       } else {
         html += `<p class="bold-line">${escHtml(pending)}</p>\n`;
+        afterJobEntry = true;
       }
       pending = null;
     };
 
-    for (const t of lines) {
+    for (const t of joined) {
       if (!t) { closeList(); flushPending(); html += "<br>\n"; continue; }
 
-      if (BULLET_RE.test(t)) {
+      // Bullet: char-only (no space required) OR hyphen/asterisk with space
+      if (/^[•\u2022►▸→]/.test(t) || /^[-*]\s/.test(t)) {
         flushPending();
-        if (!inList) { html += "<ul>\n"; inList = true; }
-        html += `  <li>${escHtml(t.replace(/^[•\-\*\u2022►▸→]\s*/, ""))}</li>\n`;
+        if (!inList) { html += "<ul>\n"; inList = true; afterJobEntry = false; }
+        html += `  <li>${escHtml(t.replace(/^[•\u2022►▸→\-*]\s*/, ""))}</li>\n`;
         continue;
       }
       closeList();
 
       if (CONTACT_RE.test(t) && t.length < 160) {
-        flushPending();
-        html += `<p class="contact">${escHtml(t)}</p>\n`;
-        continue;
+        flushPending(); html += `<p class="contact">${escHtml(t)}</p>\n`; continue;
       }
 
       if (SKILL_CAT_RE.test(t) && t.length < 200) {
@@ -1413,14 +1453,38 @@ function generateResumeHtml(text: string, footerNote = ""): string {
       }
 
       if (DATE_RE.test(t) && t.length < 90) {
-        pending !== null ? flushPending(t) : (html += `<p class="date-standalone">${escHtml(t)}</p>\n`);
+        if (pending !== null && !pending.startsWith("__date__")) {
+          // Company name is buffered → emit job-hdr (company left, date right)
+          flushPending(t);
+        } else {
+          // Date arrives before company name → store it, wait for company on next line
+          flushPending(); // flush any leftover date-pending first
+          pending = `__date__${t}`;
+        }
         continue;
       }
 
-      // Short line → buffer as potential company/title for date-merge
-      if (t.length < 100 && t.split(/\s+/).length <= 8) {
+      // Short line without trailing sentence punctuation → company name or job title.
+      // Lines ending in period/comma are sentence tails and must NOT be bolded.
+      if (t.length < 80 && t.split(/\s+/).length <= 7 && !/[.,:;]$/.test(t)) {
+        if (pending && pending.startsWith("__date__")) {
+          // A date was waiting — this short line IS the company name → job-hdr
+          const savedDate = pending.slice(8);
+          html += `<div class="job-hdr"><span class="company">${escHtml(t)}</span><span class="date-r">${escHtml(savedDate)}</span></div>\n`;
+          pending = null;
+          afterJobEntry = true;
+        } else {
+          flushPending();
+          pending = t;
+        }
+        continue;
+      }
+
+      // Auto-bullet: in experience sections, body paragraphs after a job entry → <li>
+      if (autoBullet && afterJobEntry) {
         flushPending();
-        pending = t;
+        if (!inList) { html += "<ul>\n"; inList = true; }
+        html += `  <li>${escHtml(t)}</li>\n`;
         continue;
       }
 
@@ -1451,7 +1515,8 @@ function generateResumeHtml(text: string, footerNote = ""): string {
   let body = headerHtml;
   for (const sec of sections) {
     body += `<div class="sec-hdr">${escHtml(sec.title.toUpperCase())}</div>\n`;
-    body += renderLines(sec.lines);
+    const isExpSec = /experience|employment|work/i.test(sec.title);
+    body += renderLines(sec.lines, isExpSec);
   }
 
   const footer = footerNote ? `\n<p class="footer">${escHtml(footerNote)}</p>` : "";
