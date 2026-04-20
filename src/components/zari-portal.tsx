@@ -3332,15 +3332,15 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
           targetRole,
         }),
       });
-      const data = await reviewRes.json().catch(() => null) as LinkedInResult | null;
-      if (data && (data.headline || data.summary)) {
+      const reviewData = await reviewRes.json().catch(() => null) as (LinkedInResult & { error?: string }) | null;
+      if (reviewData && (reviewData.headline || reviewData.summary)) {
         setHeadline(parsed.headline); setSummary(parsed.summary);
         setExperienceJobs(parsed.experienceJobs ?? []); setEducation(parsed.education);
         setSkills(parsed.skills); setLinkedinUrl(parsed.linkedinUrl);
         setHasPhoto(parsed.hasPhoto);
-        setResult(data); setInputMode(false); setLISection("score");
+        setResult(reviewData); setInputMode(false); setLISection("score");
       } else {
-        setErr("Analysis failed — try again.");
+        setErr(reviewData?.error ?? `Analysis failed (HTTP ${reviewRes.status}) — try again.`);
       }
     } catch { setErr("Connection error — try again."); }
     setParseLoading(false); setLoadingMsg("");

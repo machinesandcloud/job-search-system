@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { openaiChat } from "@/lib/openai";
 import { ensureSameOrigin } from "@/lib/utils";
 
+export const runtime = "nodejs";
+
 type ExperienceJob = { company: string; title: string; dateRange: string; description: string };
 
 export async function POST(request: Request) {
@@ -23,7 +25,7 @@ export async function POST(request: Request) {
 
   const headline      = (body.headline    ?? "").trim();
   const summary       = (body.summary     ?? "").trim();
-  const experienceJobs: ExperienceJob[] = Array.isArray(body.experienceJobs) ? body.experienceJobs : [];
+  const experienceJobs: ExperienceJob[] = (Array.isArray(body.experienceJobs) ? body.experienceJobs : []).slice(0, 6);
   const education     = (body.education   ?? "").trim();
   const skills        = (body.skills      ?? "").trim();
   const linkedinUrl   = (body.linkedinUrl ?? "").trim();
@@ -93,7 +95,7 @@ Return ONLY valid JSON with this exact structure:
         "dateRange": "${j.dateRange.replace(/"/g, '\\"')}",
         "score": <1-10 for JOB ${i + 1}>,
         "verdict": <"Perfect"|"Good"|"Needs Review"|"Missing">,
-        "rewrite": "<5-7 improved bullets for JOB ${i + 1}. CRITICAL FORMAT: each bullet must be on its own line separated by \\n. Start each with • then a space. Write naturally — not template-speak or AI filler. Lead with a strong action verb. Show impact through specificity: scope, scale, context, outcomes, and numbers where present in the original — do not invent metrics. Preserve ALL key details and tools from the original description. Bullets should be full sentences (20-35 words each). Based ONLY on what is described in JOB ${i + 1}>",
+        "rewrite": "<4-5 improved bullets for JOB ${i + 1}. FORMAT: each bullet on its own line separated by \\n, starting with • and a space. Natural voice — not template-speak. Strong action verb per bullet. Show impact through scope, context, outcomes; use numbers from the original only. Keep all key tools/details from the original. Full sentences, ~20-30 words each. Based ONLY on JOB ${i + 1}>",
         "checks": [
           { "name": "Quantified impact", "pass": <bool>, "detail": "<count bullets with numbers vs total in JOB ${i + 1}>" },
           { "name": "Strong action verbs", "pass": <bool>, "detail": "<quote weak verbs found or confirm strong openers in JOB ${i + 1}>" },
@@ -166,7 +168,7 @@ Be specific — quote actual phrases. Generic feedback is useless.`;
     {
       model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
       temperature: 0.25,
-      maxTokens: 8000,
+      maxTokens: 5000,
       jsonMode: true,
     }
   );
