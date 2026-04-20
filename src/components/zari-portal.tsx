@@ -282,6 +282,195 @@ function normalizeResumeText(text: string): string {
   return out.join("\n").trim();
 }
 
+/* ─── PDF.js CDN loader ─────────────────────────────────────────────────── */
+let _pdfJsLoad: Promise<unknown> | null = null;
+function loadPdfJs(): Promise<unknown> {
+  if (_pdfJsLoad) return _pdfJsLoad;
+  _pdfJsLoad = new Promise<unknown>((res, rej) => {
+    const w = window as unknown as Record<string, unknown>;
+    if (w["pdfjsLib"]) { res(w["pdfjsLib"]); return; }
+    const s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+    s.onload = () => {
+      const lib = (window as unknown as Record<string, unknown>)["pdfjsLib"] as Record<string, unknown>;
+      (lib["GlobalWorkerOptions"] as Record<string, string>)["workerSrc"] =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+      res(lib);
+    };
+    s.onerror = () => rej(new Error("PDF.js load failed"));
+    document.head.appendChild(s);
+  });
+  return _pdfJsLoad;
+}
+
+type PdfHl = { x: number; y: number; w: number; h: number; bulletIdx: number };
+type PdfPageData = { dataUrl: string; width: number; height: number; highlights: PdfHl[] };
+
+function PdfHighlightViewer({
+  pdfUrl, bullets, activeIdx, onClickLine,
+}: {
+  pdfUrl: string; bullets: ResumeBullet[];
+  activeIdx: number | null; onClickLine: (idx: number | null) => void;
+}) {
+  const [pages, setPages] = useState<PdfPageData[]>([]);
+  const [status, setStatus] = useState<"loading"|"done"|"error">("loading");
+  const [popup, setPopup] = useState<{pg:number;hi:number}|null>(null);
+  const BC = /^[•\-\*\u2022►▸]\s*/;
+
+  useEffect(() => {
+    let dead = false;
+    setStatus("loading"); setPages([]); setPopup(null);
+
+    (async () => {
+      try {
+        const lib = await loadPdfJs() as Record<string, unknown>;
+        const pdfDoc = await (lib["getDocument"] as (src: unknown) => {promise: Promise<unknown>})(pdfUrl).promise as Record<string, unknown>;
+        const numPages = pdfDoc["numPages"] as number;
+        const out: PdfPageData[] = [];
+        const SCALE = 1.8;
+
+        for (let pn = 1; pn <= numPages; pn++) {
+          const page = await (pdfDoc["getPage"] as (n:number)=>Promise<unknown>)(pn) as Record<string,unknown>;
+          const vp = (page["getViewport"] as (o:{scale:number})=>Record<string,unknown>)({ scale: SCALE });
+          const W = vp["width"] as number, H = vp["height"] as number;
+
+          const cvs = document.createElement("canvas");
+          cvs.width = Math.round(W); cvs.height = Math.round(H);
+          const ctx = cvs.getContext("2d")!;
+          ctx.fillStyle = "white";
+          ctx.fillRect(0, 0, cvs.width, cvs.height);
+          await ((page["render"] as (o:unknown)=>{promise:Promise<void>})({ canvasContext: ctx, viewport: vp })).promise;
+
+          const tc = await (page["getTextContent"] as ()=>Promise<unknown>)() as {items: Array<{str:string;transform:number[];width:number}>};
+          const cvtPt = vp["convertToViewportPoint"] as (x:number,y:number)=>[number,number];
+
+          // Group items by Y bucket to reconstruct lines
+          const buckets = new Map<number, Array<{str:string;tx:number[];width:number}>>();
+          for (const item of tc.items) {
+            if (!item.str.trim()) continue;
+            const bucket = Math.round(item.transform[5] / 3) * 3;
+            if (!buckets.has(bucket)) buckets.set(bucket, []);
+            buckets.get(bucket)!.push({ str: item.str, tx: item.transform, width: item.width });
+          }
+
+          const highlights: PdfHl[] = [];
+          for (const items of buckets.values()) {
+            const lineText = items.map(i => i.str).join("").trim();
+            if (lineText.length < 10) continue;
+            const normLine = lineText.toLowerCase().replace(BC, "").replace(/\s+/g, " ");
+
+            for (let bi = 0; bi < bullets.length; bi++) {
+              const normB = bullets[bi].before.toLowerCase().replace(BC, "").replace(/\s+/g, " ");
+              let matched = false;
+              for (const len of [50, 35, 22]) {
+                const prefix = normB.slice(0, len).trim();
+                if (prefix.length >= 10 && normLine.includes(prefix)) { matched = true; break; }
+              }
+              if (!matched) continue;
+
+              const first = items.reduce((a,b) => a.tx[4] < b.tx[4] ? a : b);
+              const last  = items.reduce((a,b) => (a.tx[4]+a.width) > (b.tx[4]+b.width) ? a : b);
+              const [x1, yBase] = cvtPt(first.tx[4], first.tx[5]);
+              const [x2]        = cvtPt(last.tx[4] + last.width, last.tx[5]);
+              const [, yTop]    = cvtPt(first.tx[4], first.tx[5] + Math.abs(first.tx[3]));
+              const top   = Math.min(yBase, yTop) - 2;
+              const bot   = Math.max(yBase, yTop) + 4;
+              highlights.push({ x: Math.min(x1,x2)-4, y: top, w: Math.abs(x2-x1)+8, h: bot-top, bulletIdx: bi });
+              break;
+            }
+          }
+
+          out.push({ dataUrl: cvs.toDataURL("image/jpeg", 0.9), width: cvs.width, height: cvs.height, highlights });
+        }
+        if (!dead) { setPages(out); setStatus("done"); }
+      } catch(e) {
+        console.error("[PdfHighlight]", e);
+        if (!dead) setStatus("error");
+      }
+    })();
+    return () => { dead = true; };
+  }, [pdfUrl, bullets]);
+
+  const HL_STYLE = { bg:"rgba(245,158,11,0.2)", border:"#F59E0B" };
+
+  if (status === "loading") return (
+    <div style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", background:"#2A2A2A", color:"rgba(255,255,255,0.4)", fontSize:13, gap:8, flexDirection:"column" as const }}>
+      <div style={{ width:20, height:20, borderRadius:"50%", border:"2px solid rgba(255,255,255,0.15)", borderTop:"2px solid rgba(255,255,255,0.6)" }}/>
+      Rendering PDF…
+    </div>
+  );
+  if (status === "error") return (
+    <div style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", background:"#2A2A2A", color:"#F87171", fontSize:13 }}>
+      Could not render PDF — try the Preview tab
+    </div>
+  );
+
+  return (
+    <div style={{ flex:1, overflowY:"auto", background:"#2D2D2D", padding:"20px 12px", display:"flex", flexDirection:"column" as const, alignItems:"center", gap:14 }}
+      onClick={() => { setPopup(null); onClickLine(null); }}>
+      {pages.map((pg, pi) => (
+        <div key={pi} style={{ position:"relative", width:Math.min(pg.width, 800), maxWidth:"100%", boxShadow:"0 6px 32px rgba(0,0,0,0.5)", borderRadius:2, flexShrink:0 }}>
+          <img src={pg.dataUrl} alt={`Page ${pi+1}`} draggable={false}
+            style={{ display:"block", width:"100%", height:"auto", borderRadius:2 }}/>
+          {pg.highlights.map((hl, hi) => {
+            const isActive = hl.bulletIdx === activeIdx;
+            const hasPopup = popup?.pg === pi && popup?.hi === hi;
+            const bullet = bullets[hl.bulletIdx];
+            return (
+              <div key={hi}>
+                <div onClick={e => {
+                    e.stopPropagation();
+                    onClickLine(isActive ? null : hl.bulletIdx);
+                    setPopup(hasPopup ? null : { pg: pi, hi });
+                  }}
+                  style={{
+                    position:"absolute",
+                    left:`${(hl.x/pg.width)*100}%`, top:`${(hl.y/pg.height)*100}%`,
+                    width:`${(hl.w/pg.width)*100}%`, height:`${(hl.h/pg.height)*100}%`,
+                    background: isActive ? HL_STYLE.bg : "rgba(245,158,11,0.1)",
+                    border:`1.5px solid ${HL_STYLE.border}`,
+                    borderRadius:3, cursor:"pointer", transition:"all 0.12s", boxSizing:"border-box" as const,
+                    boxShadow: isActive ? `0 0 0 2px rgba(245,158,11,0.4)` : "none",
+                  }}
+                />
+                {hasPopup && bullet && (
+                  <div onClick={e => e.stopPropagation()}
+                    style={{
+                      position:"absolute", zIndex:20,
+                      left:`${(hl.x/pg.width)*100}%`,
+                      top:`${((hl.y+hl.h+4)/pg.height)*100}%`,
+                      width:"min(380px,88%)", background:"white", borderRadius:12,
+                      boxShadow:"0 8px 32px rgba(0,0,0,0.22)", border:"1px solid #FCD34D", overflow:"hidden",
+                      fontFamily:"var(--font-geist-sans,Inter,system-ui,sans-serif)",
+                    }}>
+                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"9px 14px", background:"#FEF3C7", borderBottom:"1px solid #FCD34D" }}>
+                      <span style={{ fontSize:11.5, fontWeight:700, color:"#92400E" }}>{bullet.reason}</span>
+                      <button onClick={() => { setPopup(null); onClickLine(null); }} style={{ background:"none", border:"none", fontSize:16, color:"#A0AABF", cursor:"pointer", lineHeight:1, padding:"0 2px" }}>×</button>
+                    </div>
+                    <div style={{ padding:"12px 14px" }}>
+                      <p style={{ fontSize:10, fontWeight:700, color:"#A0AABF", textTransform:"uppercase" as const, letterSpacing:"0.07em", marginBottom:6 }}>Zari&apos;s Rewrite</p>
+                      <p style={{ fontSize:12.5, color:"#14532D", lineHeight:1.6, margin:"0 0 10px", fontFamily:"Georgia,serif" }}>{bullet.after}</p>
+                      <button onClick={() => void navigator.clipboard.writeText(bullet.after)}
+                        style={{ fontSize:11, fontWeight:700, padding:"6px 12px", borderRadius:8, border:"1.5px solid #6EE7B7", background:"white", color:"#059669", cursor:"pointer" }}>
+                        Copy rewrite
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {pi === 0 && pg.highlights.length > 0 && (
+            <div style={{ position:"absolute", top:8, right:8, background:"rgba(245,158,11,0.9)", color:"white", fontSize:11, fontWeight:700, padding:"4px 10px", borderRadius:99, pointerEvents:"none" }}>
+              {pg.highlights.length} issue{pg.highlights.length!==1?"s":""}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 type LineFlag = { kind: "weak"; bulletIdx: number } | { kind: "no_metric" } | { kind: "too_long"; words: number } | { kind: "passive" };
 
 function SuggestionsResume({
@@ -2225,15 +2414,15 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
                 )}
               </div>
             </div>
-            {/* Resume view — suggestions mode always uses text renderer so highlights work */}
+            {/* Resume view */}
             {resumeViewMode==="suggestions"
-              ? <div style={{ padding:"16px 14px", overflowY:"auto", flex:1 }}>
-                  <SuggestionsResume text={resumeText} bullets={aiResult?.bullets ?? []} wordIssues={aiResult?.wordIssues} activeIdx={activeSuggestion} onClickLine={setActiveSuggestion}/>
-                </div>
+              ? rawFileUrl
+                ? <PdfHighlightViewer pdfUrl={rawFileUrl} bullets={aiResult?.bullets ?? []} activeIdx={activeSuggestion} onClickLine={setActiveSuggestion}/>
+                : <div style={{ padding:"16px 14px", overflowY:"auto", flex:1 }}>
+                    <SuggestionsResume text={resumeText} bullets={aiResult?.bullets ?? []} wordIssues={aiResult?.wordIssues} activeIdx={activeSuggestion} onClickLine={setActiveSuggestion}/>
+                  </div>
               : rawFileUrl
-              ? <div style={{ flex:1, minHeight:0, display:"flex", flexDirection:"column" }}>
-                  <iframe src={rawFileUrl} style={{ flex:1, width:"100%", border:"none", display:"block", minHeight:0 }} title="Resume"/>
-                </div>
+              ? <iframe src={`${rawFileUrl}#toolbar=0&navpanes=0`} style={{ flex:1, width:"100%", border:"none", display:"block", minHeight:0 }} title="Resume"/>
               : <div style={{ padding:"16px 14px", overflowY:"auto", flex:1 }}>
                   <FormattedResume text={resumeText.slice(0,6000)} keywords={aiResult?.keywords}/>
                 </div>
