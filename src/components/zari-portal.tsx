@@ -1019,21 +1019,63 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
   // Snapshot all section data from localStorage to give Zari full context
   function readSectionContext() {
     const ctx: Record<string, unknown> = {};
+
     try {
       const rs = localStorage.getItem("zari_resume_session_v2");
       if (rs) {
-        const p = JSON.parse(rs) as { fileName?: string; resumeText?: string; aiResult?: Record<string, unknown> };
+        const p = JSON.parse(rs) as {
+          fileName?: string; resumeText?: string; reviewMode?: string;
+          targetRoleInput?: string; careerLevel?: string;
+          aiResult?: Record<string, unknown>;
+        };
         ctx.resume = {
-          fileName:  p.fileName,
-          score:     (p.aiResult as {overall?: number})?.overall,
-          ats:       (p.aiResult as {ats?: number})?.ats,
-          impact:    (p.aiResult as {impact?: number})?.impact,
-          clarity:   (p.aiResult as {clarity?: number})?.clarity,
-          keyIssues: ((p.aiResult as {bullets?: {before: string}[]})?.bullets ?? []).slice(0, 6).map(b => b.before),
-          excerpt:   p.resumeText?.slice(0, 1200),
+          fileName:       p.fileName,
+          score:          (p.aiResult as {overall?: number})?.overall,
+          ats:            (p.aiResult as {ats?: number})?.ats,
+          impact:         (p.aiResult as {impact?: number})?.impact,
+          clarity:        (p.aiResult as {clarity?: number})?.clarity,
+          keyIssues:      ((p.aiResult as {bullets?: {before: string}[]})?.bullets ?? []).slice(0, 8).map(b => b.before),
+          recommendation: (p.aiResult as {recommendation?: string})?.recommendation,
+          excerpt:        p.resumeText?.slice(0, 1500),
+          targetRole:     p.targetRoleInput,
+          reviewMode:     p.reviewMode,
+          careerLevel:    p.careerLevel,
         };
       }
     } catch { /* non-fatal */ }
+
+    try {
+      const vault = vaultRead();
+
+      const liDoc = vault.filter(d => d.type === "linkedin").sort((a, b) => b.createdAt - a.createdAt)[0];
+      if (liDoc) {
+        ctx.linkedin = {
+          name:       liDoc.name,
+          score:      liDoc.meta.score ? Number(liDoc.meta.score) : undefined,
+          headline:   liDoc.meta.headline,
+          targetRole: liDoc.meta.targetRole,
+          content:    liDoc.content.slice(0, 1500),
+        };
+      }
+
+      const clDoc = vault.filter(d => d.type === "cover-letter").sort((a, b) => b.createdAt - a.createdAt)[0];
+      if (clDoc) {
+        ctx.coverLetter = {
+          name:       clDoc.name,
+          subject:    clDoc.meta.subject,
+          targetRole: clDoc.meta.targetRole,
+          company:    clDoc.meta.company,
+          tone:       clDoc.meta.tone,
+          content:    clDoc.content.slice(0, 1500),
+        };
+      }
+
+      const uploads = vault.filter(d => d.type === "upload");
+      if (uploads.length > 0) {
+        ctx.uploads = uploads.map(d => ({ name: d.name, content: d.content.slice(0, 800) }));
+      }
+    } catch { /* non-fatal */ }
+
     return ctx;
   }
 

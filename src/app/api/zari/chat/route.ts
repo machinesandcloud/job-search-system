@@ -8,9 +8,22 @@ import { ensureSameOrigin } from "@/lib/utils";
 type HistoryTurn = { role: string; text: string };
 type ResumeCtx = {
   fileName?: string; score?: number; ats?: number; impact?: number; clarity?: number;
-  keyIssues?: string[]; excerpt?: string;
+  keyIssues?: string[]; excerpt?: string; recommendation?: string;
+  targetRole?: string; reviewMode?: string; careerLevel?: string;
 };
-type SectionContext = { resume?: ResumeCtx };
+type LinkedInCtx = {
+  name?: string; score?: number; headline?: string; targetRole?: string; content?: string;
+};
+type CoverLetterCtx = {
+  name?: string; subject?: string; targetRole?: string; company?: string; tone?: string; content?: string;
+};
+type UploadCtx = { name: string; content: string };
+type SectionContext = {
+  resume?:      ResumeCtx;
+  linkedin?:    LinkedInCtx;
+  coverLetter?: CoverLetterCtx;
+  uploads?:     UploadCtx[];
+};
 
 /* ─── Build document context block ──────────────────────────────────────── */
 function buildDocumentBlock(
@@ -28,13 +41,46 @@ function buildDocumentBlock(
       r.impact  != null ? `Impact ${r.impact}%`    : null,
       r.clarity != null ? `Clarity ${r.clarity}%`  : null,
     ].filter(Boolean).join(" · ");
-    const issues = (r.keyIssues ?? []).slice(0, 6);
+    const issues = (r.keyIssues ?? []).slice(0, 8);
     parts.push(
       `RESUME ON FILE: ${r.fileName ?? "resume"}` +
-      (scores ? `\nScores: ${scores}` : "") +
+      (r.targetRole  ? `\nTarget role: ${r.targetRole}`   : "") +
+      (r.careerLevel ? `\nCareer level: ${r.careerLevel}` : "") +
+      (r.reviewMode  ? `\nReview mode: ${r.reviewMode}`   : "") +
+      (scores        ? `\nScores: ${scores}`               : "") +
       (issues.length ? `\nBullets flagged:\n${issues.map(b => `  • ${b}`).join("\n")}` : "") +
-      (r.excerpt ? `\nContent excerpt:\n${r.excerpt}` : ""),
+      (r.recommendation ? `\nAI recommendation: ${r.recommendation}` : "") +
+      (r.excerpt     ? `\nContent excerpt:\n${r.excerpt}`  : ""),
     );
+  }
+
+  if (ctx?.linkedin) {
+    const li = ctx.linkedin;
+    parts.push(
+      `LINKEDIN PROFILE ON FILE: ${li.name ?? "LinkedIn"}` +
+      (li.headline   ? `\nHeadline: ${li.headline}`       : "") +
+      (li.targetRole ? `\nTarget role: ${li.targetRole}`  : "") +
+      (li.score      != null ? `\nProfile score: ${li.score}/100` : "") +
+      (li.content    ? `\nContent:\n${li.content}`         : ""),
+    );
+  }
+
+  if (ctx?.coverLetter) {
+    const cl = ctx.coverLetter;
+    parts.push(
+      `COVER LETTER ON FILE: ${cl.name ?? "Cover Letter"}` +
+      (cl.company    ? `\nCompany: ${cl.company}`          : "") +
+      (cl.targetRole ? `\nRole: ${cl.targetRole}`          : "") +
+      (cl.tone       ? `\nTone: ${cl.tone}`                : "") +
+      (cl.subject    ? `\nSubject: ${cl.subject}`          : "") +
+      (cl.content    ? `\nContent:\n${cl.content}`         : ""),
+    );
+  }
+
+  if (ctx?.uploads?.length) {
+    for (const u of ctx.uploads) {
+      parts.push(`UPLOADED DOCUMENT: ${u.name}\n\n${u.content}`);
+    }
   }
 
   if (uploadedContent && uploadedFileName) {
@@ -46,7 +92,7 @@ function buildDocumentBlock(
   }
 
   return parts.length
-    ? `\n\n---\nDOCUMENTS IN CONTEXT:\n\n${parts.join("\n\n")}\n---`
+    ? `\n\n---\nDOCUMENTS & DATA IN CONTEXT:\n\n${parts.join("\n\n")}\n---`
     : "";
 }
 
@@ -132,10 +178,10 @@ Casual but direct. Contractions. Short punchy sentences. No corporate softening.
 MIRROR THEIR STYLE:
 Read how they write and match it — not mimic it, reflect it. If they're texting in short fragments, keep your responses tight. If they write in full sentences, you can open up more. If they use industry jargon or slang, use it back. If they're casual and loose, be loose. If they're formal, dial up slightly. Match their energy and pace while keeping your voice and directness. The goal is that talking to you feels natural to them — not like talking to a bot that picked one register and stayed there.
 
-DOCUMENT RULES — NON-NEGOTIABLE:
+DATA & DOCUMENT RULES — NON-NEGOTIABLE:
 ${hasDocuments
-  ? "You have documents in context above. Reference them specifically — quote them, critique them, rewrite actual sections. Be specific, not generic. Don't say 'your resume looks good overall' — point to what's weak, what's missing, what to fix."
-  : `You do NOT have any documents. Do NOT invent, guess at, or fabricate resume bullets, job history, or any content. If they ask about their resume, tell them straight: you don't have it yet — drop it here using the attach button below, or go to {{GO:resume}} for a full scored analysis. Keep it casual, not robotic.`
+  ? `You have data in context above — use ALL of it. That includes resume scores, LinkedIn profile, cover letters, uploaded files, AI recommendations, flagged bullets, target role — everything listed. Reference it specifically: quote it, critique it, rewrite parts of it. Call out what's weak, what's inconsistent across documents, what's missing. Be specific. Don't say "your resume looks good" — point to the actual score, the actual bullets, the actual gaps.`
+  : `You do NOT have any documents or data in context. Do NOT invent, guess at, or fabricate resume bullets, job history, scores, or any content. If they ask about their resume, LinkedIn, or any document, tell them straight: you don't have it yet — drop it here using the attach button below, or go to the relevant tab for a full analysis. Keep it casual, not robotic.`
 }
 
 WHEN SOMEONE WANTS TO APPLY FOR A JOB:
