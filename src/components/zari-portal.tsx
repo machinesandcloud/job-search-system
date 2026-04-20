@@ -406,13 +406,21 @@ function PdfHighlightViewer({
           ctx.fillRect(0, 0, cvs.width, cvs.height);
           await ((page["render"] as (o:unknown)=>{promise:Promise<void>})({ canvasContext: ctx, viewport: vp })).promise;
 
-          const tc = await (page["getTextContent"] as ()=>Promise<unknown>)() as {items: Array<{str?:string;transform?:number[];width?:number}>};
+          // getTextContent can throw internally on some PDFs (PDF.js processes font tables
+          // before returning items, and malformed fonts trigger "Cannot read properties of
+          // undefined (reading 'transform')"). Catch here so canvas still renders.
+          let tcItems: Array<{str?:string;transform?:number[];width?:number}> = [];
+          try {
+            const tc = await (page["getTextContent"] as ()=>Promise<unknown>)() as {items?: Array<{str?:string;transform?:number[];width?:number}>};
+            tcItems = tc?.items ?? [];
+          } catch { /* skip text extraction for this page */ }
+
           const cvtPt = vp["convertToViewportPoint"] as (x:number,y:number)=>[number,number];
 
           // Group items by Y bucket to reconstruct lines
           // PDF.js 3.x mixes TextItem and TextMarkedContent in items — skip anything without transform
           const buckets = new Map<number, Array<{str:string;tx:number[];width:number}>>();
-          for (const item of tc.items) {
+          for (const item of tcItems) {
             if (!item || !item.transform || !item.str?.trim()) continue;
             const bucket = Math.round(item.transform[5] / 3) * 3;
             if (!buckets.has(bucket)) buckets.set(bucket, []);
@@ -434,11 +442,13 @@ function PdfHighlightViewer({
               }
               if (!matched) continue;
 
+              if (!items.length || !cvtPt) continue;
               const first = items.reduce((a,b) => a.tx[4] < b.tx[4] ? a : b);
               const last  = items.reduce((a,b) => (a.tx[4]+a.width) > (b.tx[4]+b.width) ? a : b);
-              const [x1, yBase] = cvtPt(first.tx[4], first.tx[5]);
-              const [x2]        = cvtPt(last.tx[4] + last.width, last.tx[5]);
-              const [, yTop]    = cvtPt(first.tx[4], first.tx[5] + Math.abs(first.tx[3]));
+              if (!first?.tx || !last?.tx) continue;
+              const [x1, yBase] = cvtPt(first.tx[4] ?? 0, first.tx[5] ?? 0);
+              const [x2]        = cvtPt((last.tx[4] ?? 0) + last.width, last.tx[5] ?? 0);
+              const [, yTop]    = cvtPt(first.tx[4] ?? 0, (first.tx[5] ?? 0) + Math.abs(first.tx[3] ?? 0));
               const top   = Math.min(yBase, yTop) - 2;
               const bot   = Math.max(yBase, yTop) + 4;
               highlights.push({ x: Math.min(x1,x2)-4, y: top, w: Math.abs(x2-x1)+8, h: bot-top, bulletIdx: bi });
