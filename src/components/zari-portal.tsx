@@ -1727,7 +1727,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
      STEP: CHOOSE — landing path picker
   ══════════════════════════════════ */
   if (step === "choose") return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F0F2F8" }}>
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#0A1628" }}>
       <div style={{ maxWidth:720, margin:"0 auto", padding:"40px 24px 64px" }}>
 
         {/* Dark hero banner */}
@@ -1745,74 +1745,68 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
         </div>
 
         {/* Two path cards */}
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:24 }}>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:18 }}>
           {/* Score My Resume */}
           <button
             onClick={()=>{ setReviewMode("general"); setStep("upload"); }}
-            style={{ textAlign:"left", padding:"24px 22px", borderRadius:20, border:"1px solid rgba(0,0,0,0.07)", background:"white", cursor:"pointer", transition:"all 0.18s", boxShadow:"0 4px 24px rgba(0,0,0,0.06)", position:"relative", overflow:"hidden" }}
-            onMouseEnter={e=>(e.currentTarget.style.boxShadow="0 8px 36px rgba(67,97,238,0.16)",e.currentTarget.style.transform="translateY(-2px)")}
-            onMouseLeave={e=>(e.currentTarget.style.boxShadow="0 4px 24px rgba(0,0,0,0.06)",e.currentTarget.style.transform="translateY(0)")}
+            style={{ textAlign:"left", padding:"22px 20px", borderRadius:18, border:"1px solid rgba(67,97,238,0.3)", background:"rgba(67,97,238,0.08)", cursor:"pointer", transition:"all 0.18s", position:"relative", overflow:"hidden" }}
+            onMouseEnter={e=>(e.currentTarget.style.background="rgba(67,97,238,0.14)",e.currentTarget.style.transform="translateY(-2px)")}
+            onMouseLeave={e=>(e.currentTarget.style.background="rgba(67,97,238,0.08)",e.currentTarget.style.transform="translateY(0)")}
           >
-            {/* Indigo left border accent */}
-            <div style={{ position:"absolute", left:0, top:0, bottom:0, width:4, background:"linear-gradient(180deg,#4361EE,#818CF8)", borderRadius:"20px 0 0 20px" }}/>
-            <div style={{ width:44, height:44, borderRadius:13, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:14, boxShadow:"0 6px 18px rgba(67,97,238,0.32)" }}>
-              <svg viewBox="0 0 20 20" fill="none" stroke="white" strokeWidth="1.8" style={{ width:20,height:20 }}><rect x="3" y="2" width="14" height="16" rx="2"/><path d="M7 7h6M7 10h6M7 13h4"/></svg>
+            <div style={{ position:"absolute", left:0, top:0, bottom:0, width:3, background:"linear-gradient(180deg,#4361EE,#818CF8)", borderRadius:"18px 0 0 18px" }}/>
+            <div style={{ width:40, height:40, borderRadius:12, background:"rgba(67,97,238,0.25)", border:"1px solid rgba(67,97,238,0.4)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:12 }}>
+              <svg viewBox="0 0 20 20" fill="none" stroke="#818CF8" strokeWidth="1.8" style={{ width:18,height:18 }}><rect x="3" y="2" width="14" height="16" rx="2"/><path d="M7 7h6M7 10h6M7 13h4"/></svg>
             </div>
-            <p style={{ fontSize:17, fontWeight:800, color:"#0A0A0F", marginBottom:6, letterSpacing:"-0.02em" }}>Score My Resume</p>
-            <p style={{ fontSize:13, color:"#68738A", lineHeight:1.6, marginBottom:16 }}>Get expert feedback instantly. No job in mind yet? Zari scores ATS, impact, and clarity against universal standards.</p>
-            <div style={{ display:"flex", flexDirection:"column", gap:7, marginBottom:18 }}>
-              {["ATS compatibility check","Bullet-by-bullet rewrite","Impact & clarity scoring","Downloadable optimized version"].map(f => (
-                <div key={f} style={{ display:"flex", alignItems:"center", gap:7 }}>
-                  <svg viewBox="0 0 12 12" fill="none" stroke="#16A34A" strokeWidth="2" style={{ width:11,height:11,flexShrink:0 }}><path d="M2 6l3 3 5-5"/></svg>
-                  <span style={{ fontSize:12, color:"#1E2235" }}>{f}</span>
+            <p style={{ fontSize:16, fontWeight:800, color:"white", marginBottom:5, letterSpacing:"-0.02em" }}>Score My Resume</p>
+            <p style={{ fontSize:12.5, color:"rgba(255,255,255,0.45)", lineHeight:1.55, marginBottom:14 }}>Instant feedback. Zari scores ATS, impact, and clarity against universal standards.</p>
+            <div style={{ display:"flex", flexDirection:"column", gap:6, marginBottom:16 }}>
+              {["ATS compatibility","Bullet rewrites","Impact scoring","Downloadable version"].map(f => (
+                <div key={f} style={{ display:"flex", alignItems:"center", gap:6 }}>
+                  <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2" style={{ width:10,height:10,flexShrink:0 }}><path d="M2 6l3 3 5-5"/></svg>
+                  <span style={{ fontSize:11.5, color:"rgba(255,255,255,0.6)" }}>{f}</span>
                 </div>
               ))}
             </div>
-            <div style={{ display:"inline-flex", alignItems:"center", gap:7, background:"#4361EE", color:"white", fontSize:13, fontWeight:700, padding:"9px 18px", borderRadius:10, boxShadow:"0 4px 14px rgba(67,97,238,0.3)" }}>
-              Start →
-            </div>
+            <span style={{ fontSize:12.5, fontWeight:700, padding:"7px 16px", borderRadius:9, background:"rgba(67,97,238,0.4)", color:"#A5B4FC", border:"1px solid rgba(67,97,238,0.5)", display:"inline-block" }}>Start →</span>
           </button>
 
           {/* Targeted Resume */}
           <button
             onClick={()=>{ setReviewMode("targeted"); setStep("job"); }}
-            style={{ textAlign:"left", padding:"24px 22px", borderRadius:20, border:"1px solid rgba(0,0,0,0.07)", background:"white", cursor:"pointer", transition:"all 0.18s", boxShadow:"0 4px 24px rgba(0,0,0,0.06)", position:"relative", overflow:"hidden" }}
-            onMouseEnter={e=>(e.currentTarget.style.boxShadow="0 8px 36px rgba(124,58,237,0.16)",e.currentTarget.style.transform="translateY(-2px)")}
-            onMouseLeave={e=>(e.currentTarget.style.boxShadow="0 4px 24px rgba(0,0,0,0.06)",e.currentTarget.style.transform="translateY(0)")}
+            style={{ textAlign:"left", padding:"22px 20px", borderRadius:18, border:"1px solid rgba(124,58,237,0.35)", background:"rgba(124,58,237,0.08)", cursor:"pointer", transition:"all 0.18s", position:"relative", overflow:"hidden" }}
+            onMouseEnter={e=>(e.currentTarget.style.background="rgba(124,58,237,0.14)",e.currentTarget.style.transform="translateY(-2px)")}
+            onMouseLeave={e=>(e.currentTarget.style.background="rgba(124,58,237,0.08)",e.currentTarget.style.transform="translateY(0)")}
           >
-            {/* Purple left border accent */}
-            <div style={{ position:"absolute", left:0, top:0, bottom:0, width:4, background:"linear-gradient(180deg,#7C3AED,#A78BFA)", borderRadius:"20px 0 0 20px" }}/>
-            <div style={{ position:"absolute", top:14, right:14, background:"linear-gradient(135deg,#7C3AED,#A78BFA)", color:"white", fontSize:10, fontWeight:800, padding:"3px 10px", borderRadius:99, letterSpacing:"0.04em" }}>RECOMMENDED</div>
-            <div style={{ width:44, height:44, borderRadius:13, background:"linear-gradient(135deg,#7C3AED,#A78BFA)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:14, boxShadow:"0 6px 18px rgba(124,58,237,0.32)" }}>
-              <svg viewBox="0 0 20 20" fill="none" stroke="white" strokeWidth="1.8" style={{ width:20,height:20 }}><circle cx="9" cy="9" r="5.5"/><path d="M15 15l3 3"/><path d="M7 9l2 2 4-4"/></svg>
+            <div style={{ position:"absolute", left:0, top:0, bottom:0, width:3, background:"linear-gradient(180deg,#7C3AED,#A78BFA)", borderRadius:"18px 0 0 18px" }}/>
+            <div style={{ position:"absolute", top:14, right:14, background:"rgba(167,139,250,0.2)", border:"1px solid rgba(167,139,250,0.4)", color:"#C4B5FD", fontSize:9.5, fontWeight:800, padding:"2px 9px", borderRadius:99, letterSpacing:"0.06em" }}>RECOMMENDED</div>
+            <div style={{ width:40, height:40, borderRadius:12, background:"rgba(124,58,237,0.25)", border:"1px solid rgba(124,58,237,0.4)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:12 }}>
+              <svg viewBox="0 0 20 20" fill="none" stroke="#A78BFA" strokeWidth="1.8" style={{ width:18,height:18 }}><circle cx="9" cy="9" r="5.5"/><path d="M15 15l3 3"/><path d="M7 9l2 2 4-4"/></svg>
             </div>
-            <p style={{ fontSize:17, fontWeight:800, color:"#0A0A0F", marginBottom:6, letterSpacing:"-0.02em" }}>Targeted Resume</p>
-            <p style={{ fontSize:13, color:"#68738A", lineHeight:1.6, marginBottom:16 }}>Apply to a specific job. Paste a job description and Zari will score your resume against every requirement.</p>
-            <div style={{ display:"flex", flexDirection:"column", gap:7, marginBottom:18 }}>
-              {["Strict keyword matching vs. the JD","Job Match score (0-100)","Rewrites using actual JD language","Missing required skills callout"].map(f => (
-                <div key={f} style={{ display:"flex", alignItems:"center", gap:7 }}>
-                  <svg viewBox="0 0 12 12" fill="none" stroke="#7C3AED" strokeWidth="2" style={{ width:11,height:11,flexShrink:0 }}><path d="M2 6l3 3 5-5"/></svg>
-                  <span style={{ fontSize:12, color:"#1E2235" }}>{f}</span>
+            <p style={{ fontSize:16, fontWeight:800, color:"white", marginBottom:5, letterSpacing:"-0.02em" }}>Targeted Resume</p>
+            <p style={{ fontSize:12.5, color:"rgba(255,255,255,0.45)", lineHeight:1.55, marginBottom:14 }}>Applying to a specific job? Paste the JD and Zari scores against every requirement.</p>
+            <div style={{ display:"flex", flexDirection:"column", gap:6, marginBottom:16 }}>
+              {["Keyword match vs. JD","Job Match score","JD-tuned rewrites","Missing skills callout"].map(f => (
+                <div key={f} style={{ display:"flex", alignItems:"center", gap:6 }}>
+                  <svg viewBox="0 0 12 12" fill="none" stroke="#C4B5FD" strokeWidth="2" style={{ width:10,height:10,flexShrink:0 }}><path d="M2 6l3 3 5-5"/></svg>
+                  <span style={{ fontSize:11.5, color:"rgba(255,255,255,0.6)" }}>{f}</span>
                 </div>
               ))}
             </div>
-            <div style={{ display:"inline-flex", alignItems:"center", gap:7, background:"linear-gradient(135deg,#7C3AED,#A78BFA)", color:"white", fontSize:13, fontWeight:700, padding:"9px 18px", borderRadius:10, boxShadow:"0 4px 14px rgba(124,58,237,0.28)" }}>
-              Start →
-            </div>
+            <span style={{ fontSize:12.5, fontWeight:700, padding:"7px 16px", borderRadius:9, background:"rgba(124,58,237,0.35)", color:"#C4B5FD", border:"1px solid rgba(124,58,237,0.5)", display:"inline-block" }}>Start →</span>
           </button>
         </div>
 
         {/* Feature strip */}
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10 }}>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:8 }}>
           {[
-            { icon:<svg viewBox="0 0 16 16" fill="none" stroke="#4361EE" strokeWidth="1.6" style={{width:14,height:14}}><path d="M13 3L6 11l-3-3"/></svg>, label:"ATS-optimized" },
-            { icon:<svg viewBox="0 0 16 16" fill="none" stroke="#4361EE" strokeWidth="1.6" style={{width:14,height:14}}><path d="M8 2v8M4 7l4 4 4-4"/><path d="M2 13h12"/></svg>, label:"Download ready" },
-            { icon:<svg viewBox="0 0 16 16" fill="none" stroke="#4361EE" strokeWidth="1.6" style={{width:14,height:14}}><path d="M3 8l4-8 3 5 2-3 3 6"/></svg>, label:"Score history" },
-            { icon:<svg viewBox="0 0 16 16" fill="none" stroke="#4361EE" strokeWidth="1.6" style={{width:14,height:14}}><path d="M13 2l1 4-8.5 8.5L2 16l1.5-3.5L12 4l1-2z"/></svg>, label:"Magic Write" },
+            { icon:<svg viewBox="0 0 16 16" fill="none" stroke="#818CF8" strokeWidth="1.6" style={{width:13,height:13}}><path d="M13 3L6 11l-3-3"/></svg>, label:"ATS-optimized" },
+            { icon:<svg viewBox="0 0 16 16" fill="none" stroke="#818CF8" strokeWidth="1.6" style={{width:13,height:13}}><path d="M8 2v8M4 7l4 4 4-4"/><path d="M2 13h12"/></svg>, label:"Download ready" },
+            { icon:<svg viewBox="0 0 16 16" fill="none" stroke="#818CF8" strokeWidth="1.6" style={{width:13,height:13}}><path d="M3 8l4-8 3 5 2-3 3 6"/></svg>, label:"Score history" },
+            { icon:<svg viewBox="0 0 16 16" fill="none" stroke="#818CF8" strokeWidth="1.6" style={{width:13,height:13}}><path d="M13 2l1 4-8.5 8.5L2 16l1.5-3.5L12 4l1-2z"/></svg>, label:"Magic Write" },
           ].map((f,i) => (
-            <div key={i} style={{ background:"rgba(0,0,0,0.05)", borderRadius:12, border:"1px solid rgba(0,0,0,0.08)", padding:"10px 12px", textAlign:"center", display:"flex", alignItems:"center", justifyContent:"center", gap:7 }}>
+            <div key={i} style={{ background:"rgba(255,255,255,0.04)", borderRadius:11, border:"1px solid rgba(255,255,255,0.08)", padding:"9px 11px", textAlign:"center", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
               {f.icon}
-              <p style={{ fontSize:11.5, color:"#4A5270", fontWeight:600, margin:0 }}>{f.label}</p>
+              <p style={{ fontSize:11, color:"rgba(255,255,255,0.4)", fontWeight:600, margin:0 }}>{f.label}</p>
             </div>
           ))}
         </div>
@@ -1824,40 +1818,40 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
      STEP: JOB — Step 1 of targeted flow
   ══════════════════════════════════ */
   if (step === "job") return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F0F2F8" }}>
-      <div style={{ maxWidth:600, margin:"0 auto", padding:"40px 24px" }}>
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#0A1628" }}>
+      <div style={{ maxWidth:580, margin:"0 auto", padding:"44px 24px 56px" }}>
 
         {/* Step progress */}
-        <div style={{ display:"flex", justifyContent:"center", alignItems:"center", gap:0, marginBottom:36 }}>
+        <div style={{ display:"flex", justifyContent:"center", alignItems:"center", gap:0, marginBottom:32 }}>
           {(["1. The Job","2. Your Resume"] as const).map((label, i) => {
             const active = i === 0;
             return (
               <div key={i} style={{ display:"flex", alignItems:"center" }}>
-                <div style={{ display:"flex", alignItems:"center", gap:8, padding:"7px 18px", borderRadius:99, background:active?"#4361EE":"white", border:`1.5px solid ${active?"#4361EE":"#E4E8F5"}` }}>
-                  <div style={{ width:20, height:20, borderRadius:"50%", background:active?"white":"#F1F5F9", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                    <span style={{ fontSize:11, fontWeight:800, color:active?"#4361EE":"#A0AABF" }}>{i+1}</span>
+                <div style={{ display:"flex", alignItems:"center", gap:8, padding:"6px 16px", borderRadius:99, background:active?"rgba(67,97,238,0.3)":"rgba(255,255,255,0.05)", border:`1.5px solid ${active?"rgba(67,97,238,0.6)":"rgba(255,255,255,0.1)"}` }}>
+                  <div style={{ width:18, height:18, borderRadius:"50%", background:active?"rgba(255,255,255,0.2)":"rgba(255,255,255,0.05)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                    <span style={{ fontSize:10.5, fontWeight:800, color:active?"white":"rgba(255,255,255,0.3)" }}>{i+1}</span>
                   </div>
-                  <span style={{ fontSize:12.5, fontWeight:700, color:active?"white":"#A0AABF" }}>{label}</span>
+                  <span style={{ fontSize:12, fontWeight:700, color:active?"white":"rgba(255,255,255,0.3)" }}>{label}</span>
                 </div>
-                {i === 0 && <div style={{ width:32, height:1.5, background:"#E4E8F5" }}/>}
+                {i === 0 && <div style={{ width:28, height:1.5, background:"rgba(255,255,255,0.12)" }}/>}
               </div>
             );
           })}
         </div>
 
         {/* Card */}
-        <div style={{ background:"white", borderRadius:20, border:"1px solid #E4E8F5", padding:"28px 28px 24px", boxShadow:"0 4px 24px rgba(0,0,0,0.05)" }}>
-          <h2 style={{ fontSize:22, fontWeight:900, letterSpacing:"-0.03em", color:"#0A0A0F", marginBottom:4 }}>1. Paste your job description</h2>
-          <p style={{ fontSize:14, color:"#68738A", lineHeight:1.6, marginBottom:24 }}>Copy and paste the full job description — Zari will match your resume against every requirement and keyword.</p>
+        <div style={{ background:"rgba(255,255,255,0.04)", borderRadius:20, border:"1px solid rgba(255,255,255,0.1)", padding:"28px 28px 24px" }}>
+          <h2 style={{ fontSize:22, fontWeight:900, letterSpacing:"-0.03em", color:"white", marginBottom:4 }}>1. Paste your job description</h2>
+          <p style={{ fontSize:13.5, color:"rgba(255,255,255,0.45)", lineHeight:1.6, marginBottom:24 }}>Copy and paste the full job description — Zari will match your resume against every requirement.</p>
 
           {/* Career level */}
           <div style={{ marginBottom:20 }}>
-            <p style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", marginBottom:8 }}>Your career level</p>
+            <p style={{ fontSize:11.5, fontWeight:700, color:"rgba(255,255,255,0.5)", marginBottom:8 }}>Your career level</p>
             <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:7 }}>
               {([["entry","Entry","0–2 yrs"],["mid","Mid-Level","3–7 yrs"],["senior","Senior","8–15 yrs"],["executive","Executive","VP+"]] as [CareerLevel,string,string][]).map(([lvl,label,sub])=>(
-                <button key={lvl} onClick={()=>setCareerLevel(lvl)} style={{ padding:"8px 6px", borderRadius:10, border:`2px solid ${careerLevel===lvl?"#4361EE":"#E4E8F5"}`, background:careerLevel===lvl?"#EEF2FF":"#FAFBFF", cursor:"pointer", textAlign:"center", transition:"all 0.12s" }}>
-                  <p style={{ fontSize:12, fontWeight:700, color:careerLevel===lvl?"#4361EE":"#0A0A0F", margin:0 }}>{label}</p>
-                  <p style={{ fontSize:10, color:"#A0AABF", margin:0 }}>{sub}</p>
+                <button key={lvl} onClick={()=>setCareerLevel(lvl)} style={{ padding:"8px 6px", borderRadius:10, border:`1.5px solid ${careerLevel===lvl?"rgba(67,97,238,0.7)":"rgba(255,255,255,0.1)"}`, background:careerLevel===lvl?"rgba(67,97,238,0.25)":"rgba(255,255,255,0.04)", cursor:"pointer", textAlign:"center", transition:"all 0.12s" }}>
+                  <p style={{ fontSize:12, fontWeight:700, color:careerLevel===lvl?"#A5B4FC":"rgba(255,255,255,0.65)", margin:0 }}>{label}</p>
+                  <p style={{ fontSize:10, color:"rgba(255,255,255,0.3)", margin:0 }}>{sub}</p>
                 </button>
               ))}
             </div>
@@ -1865,23 +1859,23 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
 
           {/* Job title */}
           <div style={{ marginBottom:16 }}>
-            <label style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", display:"block", marginBottom:6 }}>Target job title <span style={{ color:"#A0AABF", fontWeight:400 }}>(optional)</span></label>
+            <label style={{ fontSize:11.5, fontWeight:700, color:"rgba(255,255,255,0.5)", display:"block", marginBottom:6 }}>Target job title <span style={{ color:"rgba(255,255,255,0.25)", fontWeight:400 }}>(optional)</span></label>
             <input
               type="text"
               value={targetRoleInput}
               onChange={e=>{ setTargetRoleInput(e.target.value); if(analyzeErr) setAnalyzeErr(""); }}
               placeholder="e.g. Senior DevOps Engineer, Staff SRE, Product Manager…"
-              style={{ width:"100%", border:"1.5px solid #E4E8F5", borderRadius:10, padding:"10px 12px", fontSize:13.5, color:"#1E2235", outline:"none", fontFamily:"inherit", boxSizing:"border-box", background:"#FAFBFF" }}
+              style={{ width:"100%", border:"1.5px solid rgba(255,255,255,0.12)", borderRadius:10, padding:"10px 12px", fontSize:13.5, color:"rgba(255,255,255,0.85)", outline:"none", fontFamily:"inherit", boxSizing:"border-box", background:"rgba(255,255,255,0.05)" }}
             />
           </div>
 
           {/* JD input */}
           <div style={{ marginBottom:20 }}>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:6 }}>
-              <label style={{ fontSize:12, fontWeight:700, color:"#0A0A0F" }}>Job description <span style={{ color:"#DC2626", fontWeight:700 }}>*</span></label>
-              <div style={{ display:"flex", background:"#F1F5F9", borderRadius:8, padding:2 }}>
+              <label style={{ fontSize:11.5, fontWeight:700, color:"rgba(255,255,255,0.5)" }}>Job description <span style={{ color:"#F87171", fontWeight:700 }}>*</span></label>
+              <div style={{ display:"flex", background:"rgba(255,255,255,0.06)", borderRadius:8, padding:2 }}>
                 {(["paste","url"] as const).map(m=>(
-                  <button key={m} onClick={()=>{ setJdInputMode(m); setJdUrlErr(""); }} style={{ fontSize:11, fontWeight:600, padding:"3px 9px", borderRadius:6, border:"none", background:jdInputMode===m?"white":"transparent", color:jdInputMode===m?"#0A0A0F":"#68738A", cursor:"pointer", boxShadow:jdInputMode===m?"0 1px 3px rgba(0,0,0,0.1)":"none", transition:"all 0.12s" }}>
+                  <button key={m} onClick={()=>{ setJdInputMode(m); setJdUrlErr(""); }} style={{ fontSize:11, fontWeight:600, padding:"3px 9px", borderRadius:6, border:"none", background:jdInputMode===m?"rgba(255,255,255,0.12)":"transparent", color:jdInputMode===m?"white":"rgba(255,255,255,0.35)", cursor:"pointer", transition:"all 0.12s" }}>
                     {m==="paste"?"Paste text":"Job URL"}
                   </button>
                 ))}
@@ -1891,37 +1885,37 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
               <textarea
                 value={jobDescription}
                 onChange={e=>{ setJobDescription(e.target.value); if(analyzeErr) setAnalyzeErr(""); }}
-                placeholder={"Paste the full job posting here (roles, responsibilities, qualifications).\n\nThe more detail, the more accurate your keyword matching.\n\nTip: exclude 'About Us' and benefits sections — focus on the requirements."}
-                style={{ width:"100%", minHeight:160, border:"1.5px solid #CBD5E1", borderRadius:12, padding:"12px 14px", fontSize:13, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"#FAFBFF", lineHeight:1.65 }}
+                placeholder={"Paste the full job posting here…"}
+                style={{ width:"100%", minHeight:160, border:"1.5px solid rgba(255,255,255,0.12)", borderRadius:12, padding:"12px 14px", fontSize:13, color:"rgba(255,255,255,0.85)", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"rgba(255,255,255,0.04)", lineHeight:1.65 }}
               />
             ) : (
               <div>
                 <div style={{ display:"flex", gap:8 }}>
-                  <input type="url" value={jdUrl} onChange={e=>{ setJdUrl(e.target.value); setJdUrlErr(""); }} placeholder="https://jobs.lever.co/… or LinkedIn, Greenhouse…" style={{ flex:1, border:"1.5px solid #E4E8F5", borderRadius:10, padding:"10px 11px", fontSize:13, color:"#1E2235", outline:"none", fontFamily:"inherit", background:"#FAFBFF" }} onKeyDown={e=>{ if(e.key==="Enter") void fetchResumeJdFromUrl(); }}/>
-                  <button onClick={()=>void fetchResumeJdFromUrl()} disabled={fetchingJdUrl||!jdUrl.trim()} style={{ padding:"10px 18px", borderRadius:10, border:"none", background:jdUrl.trim()&&!fetchingJdUrl?"#4361EE":"#E4E8F5", color:jdUrl.trim()&&!fetchingJdUrl?"white":"#A0AABF", fontSize:13, fontWeight:700, cursor:jdUrl.trim()&&!fetchingJdUrl?"pointer":"default", flexShrink:0 }}>
+                  <input type="url" value={jdUrl} onChange={e=>{ setJdUrl(e.target.value); setJdUrlErr(""); }} placeholder="https://jobs.lever.co/…" style={{ flex:1, border:"1.5px solid rgba(255,255,255,0.12)", borderRadius:10, padding:"10px 11px", fontSize:13, color:"rgba(255,255,255,0.85)", outline:"none", fontFamily:"inherit", background:"rgba(255,255,255,0.05)" }} onKeyDown={e=>{ if(e.key==="Enter") void fetchResumeJdFromUrl(); }}/>
+                  <button onClick={()=>void fetchResumeJdFromUrl()} disabled={fetchingJdUrl||!jdUrl.trim()} style={{ padding:"10px 18px", borderRadius:10, border:"none", background:jdUrl.trim()&&!fetchingJdUrl?"#4361EE":"rgba(255,255,255,0.06)", color:jdUrl.trim()&&!fetchingJdUrl?"white":"rgba(255,255,255,0.25)", fontSize:13, fontWeight:700, cursor:jdUrl.trim()&&!fetchingJdUrl?"pointer":"default", flexShrink:0 }}>
                     {fetchingJdUrl?"…":"Fetch"}
                   </button>
                 </div>
-                {jdUrlErr && <p style={{ fontSize:12, color:"#DC2626", marginTop:6, marginBottom:0 }}>{jdUrlErr} <button onClick={()=>setJdInputMode("paste")} style={{ background:"none", border:"none", color:"#4361EE", fontWeight:600, cursor:"pointer", fontSize:12, padding:0 }}>Paste instead</button></p>}
-                {jobDescription && !jdUrlErr && <p style={{ fontSize:11.5, color:"#16A34A", marginTop:6, marginBottom:0, fontWeight:600 }}>✓ Fetched — {jobDescription.length.toLocaleString()} characters</p>}
+                {jdUrlErr && <p style={{ fontSize:12, color:"#F87171", marginTop:6, marginBottom:0 }}>{jdUrlErr} <button onClick={()=>setJdInputMode("paste")} style={{ background:"none", border:"none", color:"#818CF8", fontWeight:600, cursor:"pointer", fontSize:12, padding:0 }}>Paste instead</button></p>}
+                {jobDescription && !jdUrlErr && <p style={{ fontSize:11.5, color:"#4ADE80", marginTop:6, marginBottom:0, fontWeight:600 }}>✓ Fetched — {jobDescription.length.toLocaleString()} characters</p>}
               </div>
             )}
           </div>
 
           {/* Info tip */}
-          <div style={{ display:"flex", gap:8, padding:"10px 12px", background:"#F5F3FF", borderRadius:10, border:"1px solid #DDD6FE", marginBottom:20 }}>
-            <svg viewBox="0 0 16 16" fill="none" stroke="#7C3AED" strokeWidth="1.6" style={{ width:14,height:14,flexShrink:0,marginTop:1 }}><circle cx="8" cy="8" r="6"/><path d="M8 5v4M8 10v1"/></svg>
-            <p style={{ fontSize:12, color:"#5B21B6", lineHeight:1.55, margin:0 }}>Paste the roles, responsibilities, and qualifications. Skip the &quot;About Us&quot;, benefits, and salary sections — those don&apos;t affect keyword matching.</p>
+          <div style={{ display:"flex", gap:8, padding:"10px 12px", background:"rgba(124,58,237,0.1)", borderRadius:10, border:"1px solid rgba(124,58,237,0.25)", marginBottom:20 }}>
+            <svg viewBox="0 0 16 16" fill="none" stroke="#A78BFA" strokeWidth="1.6" style={{ width:14,height:14,flexShrink:0,marginTop:1 }}><circle cx="8" cy="8" r="6"/><path d="M8 5v4M8 10v1"/></svg>
+            <p style={{ fontSize:12, color:"#C4B5FD", lineHeight:1.55, margin:0 }}>Paste the roles, responsibilities, and qualifications. Skip the &quot;About Us&quot;, benefits, and salary sections — those don&apos;t affect keyword matching.</p>
           </div>
 
-          {analyzeErr && <div style={{ background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:10, padding:"9px 14px", marginBottom:14, fontSize:13, color:"#991B1B" }}>{analyzeErr}</div>}
+          {analyzeErr && <div style={{ background:"rgba(239,68,68,0.12)", border:"1px solid rgba(239,68,68,0.3)", borderRadius:10, padding:"9px 14px", marginBottom:14, fontSize:13, color:"#FCA5A5" }}>{analyzeErr}</div>}
 
           <div style={{ display:"flex", gap:10 }}>
-            <button onClick={()=>setStep("choose")} style={{ fontSize:13, fontWeight:600, padding:"11px 20px", borderRadius:11, border:"1px solid #E4E8F5", background:"white", color:"#68738A", cursor:"pointer" }}>← Back</button>
+            <button onClick={()=>setStep("choose")} style={{ fontSize:13, fontWeight:600, padding:"11px 20px", borderRadius:11, border:"1px solid rgba(255,255,255,0.12)", background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.5)", cursor:"pointer" }}>← Back</button>
             <button
               onClick={()=>setStep("upload")}
               disabled={!jobDescription.trim() && !targetRoleInput.trim()}
-              style={{ flex:1, fontSize:14, fontWeight:700, padding:"11px", borderRadius:11, border:"none", background:(jobDescription.trim()||targetRoleInput.trim())?"#4361EE":"#E4E8F5", color:(jobDescription.trim()||targetRoleInput.trim())?"white":"#A0AABF", cursor:(jobDescription.trim()||targetRoleInput.trim())?"pointer":"default", boxShadow:(jobDescription.trim()||targetRoleInput.trim())?"0 4px 16px rgba(67,97,238,0.3)":"none" }}
+              style={{ flex:1, fontSize:14, fontWeight:700, padding:"11px", borderRadius:11, border:"none", background:(jobDescription.trim()||targetRoleInput.trim())?"linear-gradient(135deg,#4361EE,#818CF8)":"rgba(255,255,255,0.06)", color:(jobDescription.trim()||targetRoleInput.trim())?"white":"rgba(255,255,255,0.2)", cursor:(jobDescription.trim()||targetRoleInput.trim())?"pointer":"default", boxShadow:(jobDescription.trim()||targetRoleInput.trim())?"0 6px 20px rgba(67,97,238,0.4)":"none", transition:"all 0.2s" }}
             >
               Next: Upload your resume →
             </button>
@@ -1932,122 +1926,115 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
   );
 
   if (step === "paste") return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F0F2F8" }}>
-      <div style={{ maxWidth:660, margin:"0 auto", padding:"48px 24px" }}>
-        <div style={{ textAlign:"center", marginBottom:28 }}>
-          <h1 style={{ fontSize:24, fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", marginBottom:8 }}>Paste your resume text</h1>
-          <p style={{ fontSize:14, color:"#68738A" }}>Copy and paste your full resume below — Zari will score and rewrite it.</p>
-        </div>
-        {analyzeErr && <div style={{ background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:10, padding:"10px 14px", marginBottom:14, fontSize:13, color:"#991B1B" }}>{analyzeErr}</div>}
-        <textarea
-          style={{ width:"100%", minHeight:300, border:"1.5px solid #CBD5E1", borderRadius:14, padding:"14px 16px", fontSize:13.5, lineHeight:1.7, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"white", boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}
-          placeholder={"Paste your full resume here...\n\nName\nJob Title · Location · Email\n\nSummary\n...\n\nExperience\n..."}
-          value={resumeText}
-          onChange={e => setResumeText(e.target.value)}
-        />
-        <div style={{ display:"flex", gap:10, marginTop:14 }}>
-          <button onClick={() => setStep("upload")} style={{ fontSize:13, fontWeight:600, padding:"10px 20px", borderRadius:10, border:"1px solid #E4E8F5", background:"white", color:"#68738A", cursor:"pointer" }}>← Back to upload</button>
-          <button onClick={() => void runAnalysis()} disabled={!resumeText.trim() || targetedInvalid} style={{ flex:1, fontSize:14, fontWeight:700, padding:"11px", borderRadius:10, border:"none", background:resumeText.trim()&&!targetedInvalid?"#4361EE":"#E4E8F5", color:resumeText.trim()&&!targetedInvalid?"white":"#A0AABF", cursor:resumeText.trim()&&!targetedInvalid?"pointer":"default", boxShadow:resumeText.trim()&&!targetedInvalid?"0 4px 16px rgba(67,97,238,0.3)":"none" }}>
-            Analyze with Zari →
-          </button>
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#0A1628" }}>
+      <div style={{ minHeight:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"44px 24px 56px" }}>
+        <div style={{ width:"100%", maxWidth:560 }}>
+          <div style={{ textAlign:"center", marginBottom:24 }}>
+            <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"rgba(255,255,255,0.3)", marginBottom:10 }}>Resume Review</p>
+            <h1 style={{ fontSize:26, fontWeight:900, letterSpacing:"-0.04em", color:"white", marginBottom:8 }}>Paste your resume text</h1>
+            <p style={{ fontSize:14, color:"rgba(255,255,255,0.4)" }}>Copy and paste your full resume below — Zari will score and rewrite it.</p>
+          </div>
+          {analyzeErr && <div style={{ background:"rgba(239,68,68,0.12)", border:"1px solid rgba(239,68,68,0.3)", borderRadius:10, padding:"10px 14px", marginBottom:14, fontSize:13, color:"#FCA5A5" }}>{analyzeErr}</div>}
+          <textarea
+            style={{ width:"100%", minHeight:280, border:"1.5px solid rgba(255,255,255,0.12)", borderRadius:16, padding:"16px 18px", fontSize:13.5, lineHeight:1.7, color:"rgba(255,255,255,0.85)", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"rgba(255,255,255,0.04)", boxShadow:"none" }}
+            placeholder={"Paste your full resume here...\n\nName\nJob Title · Location · Email\n\nSummary\n...\n\nExperience\n..."}
+            value={resumeText}
+            onChange={e => setResumeText(e.target.value)}
+          />
+          <div style={{ display:"flex", gap:10, marginTop:14 }}>
+            <button onClick={() => setStep("upload")} style={{ fontSize:13, fontWeight:600, padding:"10px 20px", borderRadius:10, border:"1px solid rgba(255,255,255,0.12)", background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.5)", cursor:"pointer" }}>← Back</button>
+            <button onClick={() => void runAnalysis()} disabled={!resumeText.trim() || targetedInvalid}
+              style={{ flex:1, fontSize:14, fontWeight:700, padding:"11px", borderRadius:10, border:"none", background:resumeText.trim()&&!targetedInvalid?"linear-gradient(135deg,#4361EE,#818CF8)":"rgba(255,255,255,0.06)", color:resumeText.trim()&&!targetedInvalid?"white":"rgba(255,255,255,0.2)", cursor:resumeText.trim()&&!targetedInvalid?"pointer":"default", boxShadow:resumeText.trim()&&!targetedInvalid?"0 6px 20px rgba(67,97,238,0.4)":"none", transition:"all 0.2s" }}>
+              Analyze with Zari →
+            </button>
+          </div>
         </div>
       </div>
     </div>
   );
 
   if (step === "upload") return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F0F2F8" }}>
-      <div style={{ maxWidth:600, margin:"0 auto", padding:"36px 24px 64px" }}>
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#0A1628" }}>
+      <div style={{ minHeight:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"44px 24px 56px" }}>
+        <div style={{ width:"100%", maxWidth:520 }}>
 
-        {/* Dark hero */}
-        <div style={{ background:"linear-gradient(135deg,#1A1240,#0D1321)", borderRadius:20, padding:"28px 32px 32px", marginBottom:24, boxShadow:"0 12px 48px rgba(0,0,0,0.22)", border:"1px solid rgba(255,255,255,0.07)", position:"relative", overflow:"hidden" }}>
-          <div style={{ position:"absolute", top:-50, right:-30, width:220, height:220, background:"radial-gradient(circle,rgba(67,97,238,0.18) 0%,transparent 70%)", pointerEvents:"none" }}/>
-          <div style={{ position:"relative" }}>
-            <div style={{ display:"inline-flex", alignItems:"center", gap:8, background:"rgba(67,97,238,0.18)", border:"1px solid rgba(67,97,238,0.35)", borderRadius:99, padding:"5px 14px", marginBottom:14 }}>
-              <div style={{ width:6, height:6, borderRadius:"50%", background:"#818CF8" }}/>
-              <span style={{ fontSize:11, fontWeight:700, color:"#A5B4FC", letterSpacing:"0.07em" }}>
-                {reviewMode==="targeted" ? "STEP 2 OF 2 — YOUR RESUME" : "RESUME REVIEW"}
-              </span>
-            </div>
-            <h1 style={{ fontSize:24, fontWeight:900, color:"white", letterSpacing:"-0.03em", marginBottom:8, lineHeight:1.2 }}>
+          {/* Step label */}
+          <div style={{ textAlign:"center", marginBottom:28 }}>
+            <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"rgba(255,255,255,0.3)", marginBottom:10 }}>
+              {reviewMode==="targeted" ? "Step 2 of 2" : "Resume Review"}
+            </p>
+            <h1 style={{ fontSize:28, fontWeight:900, color:"white", letterSpacing:"-0.04em", marginBottom:10, lineHeight:1.15 }}>
               {reviewMode==="targeted" ? "Now upload your resume" : "Upload your resume"}
             </h1>
-            <p style={{ fontSize:13.5, color:"rgba(255,255,255,0.45)", lineHeight:1.6, maxWidth:440, margin:0 }}>
-              Zari will score ATS compatibility, rewrite every weak bullet, and give you a job-ready version to send tonight.
+            <p style={{ fontSize:14, color:"rgba(255,255,255,0.4)", lineHeight:1.6, maxWidth:380, margin:"0 auto" }}>
+              Zari scores ATS compatibility, rewrites every weak bullet, and gives you a job-ready version to send tonight.
             </p>
             {reviewMode==="targeted" && (jobDescription||targetRoleInput) && (
-              <div style={{ display:"inline-flex", alignItems:"center", gap:6, marginTop:14, background:"rgba(74,222,128,0.12)", border:"1px solid rgba(74,222,128,0.3)", borderRadius:99, padding:"5px 13px" }}>
+              <div style={{ display:"inline-flex", alignItems:"center", gap:6, marginTop:14, background:"rgba(74,222,128,0.1)", border:"1px solid rgba(74,222,128,0.25)", borderRadius:99, padding:"5px 13px" }}>
                 <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2" style={{ width:10,height:10,flexShrink:0 }}><path d="M2 6l3 3 5-5"/></svg>
                 <span style={{ fontSize:11.5, color:"#86EFAC", fontWeight:600 }}>
                   {targetRoleInput ? `Targeting: ${targetRoleInput}` : "Job description loaded"}
                 </span>
-                <button onClick={()=>setStep("job")} style={{ background:"none", border:"none", color:"rgba(255,255,255,0.4)", fontWeight:600, cursor:"pointer", fontSize:11, padding:"0 0 0 4px" }}>Edit</button>
+                <button onClick={()=>setStep("job")} style={{ background:"none", border:"none", color:"rgba(255,255,255,0.35)", fontWeight:600, cursor:"pointer", fontSize:11, padding:"0 0 0 4px" }}>Edit</button>
               </div>
             )}
           </div>
-        </div>
 
-        {/* Upload card */}
-        <div style={{ background:"white", borderRadius:20, border:"1px solid rgba(0,0,0,0.07)", padding:"24px 26px 22px", boxShadow:"0 4px 24px rgba(0,0,0,0.06)" }}>
-          {/* Level + title row */}
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:18 }}>
-            <p style={{ fontSize:13.5, fontWeight:700, color:"#0A0A0F" }}>Your file</p>
-            <div style={{ display:"flex", alignItems:"center", gap:6, background:"#F1F5F9", borderRadius:9, padding:"5px 11px" }}>
-              <span style={{ fontSize:11, color:"#68738A" }}>Level:</span>
-              <select value={careerLevel} onChange={e=>setCareerLevel(e.target.value as CareerLevel)}
-                style={{ fontSize:11.5, fontWeight:700, color:"#0A0A0F", background:"transparent", border:"none", outline:"none", cursor:"pointer", fontFamily:"inherit" }}>
-                <option value="entry">Entry</option>
-                <option value="mid">Mid-Level</option>
-                <option value="senior">Senior</option>
-                <option value="executive">Executive</option>
-              </select>
-            </div>
-          </div>
-
-          {analyzeErr && <div style={{ background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:10, padding:"9px 14px", marginBottom:14, fontSize:13, color:"#991B1B" }}>{analyzeErr}</div>}
+          {analyzeErr && <div style={{ background:"rgba(239,68,68,0.12)", border:"1px solid rgba(239,68,68,0.3)", borderRadius:10, padding:"9px 14px", marginBottom:14, fontSize:13, color:"#FCA5A5" }}>{analyzeErr}</div>}
 
           {/* Drop zone */}
           <label
             onDragOver={e=>{e.preventDefault();setDragging(true);}}
             onDragLeave={()=>setDragging(false)}
             onDrop={e=>{e.preventDefault();setDragging(false);const f=e.dataTransfer.files?.[0];if(f)void handleFile(f);}}
-            style={{ display:"block", border:`2px dashed ${dragging?"#4361EE":"#C7D2FE"}`, borderRadius:14, padding:"40px 28px", textAlign:"center", cursor:"pointer", background:dragging?"rgba(67,97,238,0.06)":"#FAFBFF", transition:"all 0.2s", boxShadow:dragging?"0 0 0 4px rgba(67,97,238,0.10)":"none", marginBottom:16 }}
+            style={{ display:"block", border:`2px dashed ${dragging?"#4361EE":"rgba(255,255,255,0.15)"}`, borderRadius:20, padding:"44px 32px", textAlign:"center", cursor:"pointer", background:dragging?"rgba(67,97,238,0.12)":"rgba(255,255,255,0.03)", transition:"all 0.2s", boxShadow:dragging?"0 0 0 4px rgba(67,97,238,0.15)":"none", marginBottom:14 }}
           >
             <input type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleFile(f); e.target.value=""; }}/>
-            <div style={{ width:52, height:52, borderRadius:14, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 14px", boxShadow:"0 6px 18px rgba(67,97,238,0.28)" }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" style={{ width:22, height:22 }}><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <div style={{ width:54, height:54, borderRadius:15, background:"rgba(67,97,238,0.2)", border:"1px solid rgba(67,97,238,0.4)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px" }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="#818CF8" strokeWidth="1.8" style={{ width:24, height:24 }}><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             </div>
-            <p style={{ fontSize:15, fontWeight:800, color:"#0A0A0F", marginBottom:4, letterSpacing:"-0.01em" }}>Drop your resume here</p>
-            <p style={{ fontSize:12.5, color:"#A0AABF", marginBottom:18 }}>PDF, DOCX, or TXT — or click to choose file</p>
-            <div style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"10px 22px", borderRadius:11, background:"linear-gradient(135deg,#4361EE,#6366F1)", color:"white", fontSize:13, fontWeight:700, boxShadow:"0 4px 14px rgba(67,97,238,0.3)", pointerEvents:"none" }}>
-              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:14, height:14 }}><path d="M17 12v4a1 1 0 01-1 1H4a1 1 0 01-1-1v-4"/><polyline points="14,6 10,2 6,6"/><line x1="10" y1="2" x2="10" y2="13"/></svg>
-              Choose file
-            </div>
+            <p style={{ fontSize:16, fontWeight:700, color:"white", marginBottom:5 }}>Drop your resume here</p>
+            <p style={{ fontSize:13, color:"rgba(255,255,255,0.35)", marginBottom:18 }}>PDF, DOCX, or TXT — or click to browse</p>
+            <span style={{ fontSize:12.5, fontWeight:700, padding:"8px 22px", borderRadius:99, background:"rgba(67,97,238,0.3)", color:"#A5B4FC", border:"1px solid rgba(67,97,238,0.4)" }}>Choose file</span>
           </label>
 
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-            <button onClick={()=>setStep(reviewMode==="targeted"?"job":"choose")} style={{ fontSize:12.5, fontWeight:600, padding:"9px 16px", borderRadius:10, border:"1px solid #E4E8F5", background:"white", color:"#68738A", cursor:"pointer" }}>← Back</button>
-            <button onClick={()=>setStep("paste")} style={{ background:"none", border:"none", color:"#4361EE", fontWeight:600, cursor:"pointer", fontSize:12.5, padding:0 }}>paste text instead</button>
-          </div>
-        </div>
-
-        {/* Feature grid */}
-        <div style={{ marginTop:14, display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-          {SCREEN_RESUME_META[stage].features.map(f => (
-            <div key={f.title} style={{ background:"white", border:"1px solid rgba(0,0,0,0.07)", borderRadius:14, padding:"14px 16px", display:"flex", gap:11, alignItems:"flex-start", boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
-              <span style={{ fontSize:20, lineHeight:1, flexShrink:0 }}>{f.icon}</span>
-              <div>
-                <p style={{ fontSize:12.5, fontWeight:700, color:"#0A0A0F", marginBottom:3 }}>{f.title}</p>
-                <p style={{ fontSize:11.5, color:"#68738A", lineHeight:1.5 }}>{f.body}</p>
-              </div>
+          {/* Level + controls */}
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:18 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:9, padding:"5px 12px" }}>
+              <span style={{ fontSize:11.5, color:"rgba(255,255,255,0.4)" }}>Level:</span>
+              <select value={careerLevel} onChange={e=>setCareerLevel(e.target.value as CareerLevel)}
+                style={{ fontSize:12, fontWeight:700, color:"rgba(255,255,255,0.85)", background:"transparent", border:"none", outline:"none", cursor:"pointer", fontFamily:"inherit" }}>
+                <option value="entry">Entry</option>
+                <option value="mid">Mid-Level</option>
+                <option value="senior">Senior</option>
+                <option value="executive">Executive</option>
+              </select>
             </div>
-          ))}
-        </div>
+            <button onClick={()=>setStep("paste")} style={{ background:"none", border:"none", color:"#818CF8", fontWeight:600, cursor:"pointer", fontSize:12.5, padding:0 }}>paste text instead</button>
+          </div>
 
-        <p style={{ textAlign:"center", fontSize:11.5, color:"#A0AABF", marginTop:16, display:"flex", alignItems:"center", justifyContent:"center", gap:5 }}>
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" style={{ width:12,height:12 }}><rect x="3" y="7" width="10" height="8" rx="1.5"/><path d="M5 7V5a3 3 0 016 0v2"/></svg>
-          Your resume is processed securely and is private to you
-        </p>
+          {/* Feature list */}
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:20 }}>
+            {SCREEN_RESUME_META[stage].features.map(f => (
+              <div key={f.title} style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:13, padding:"12px 14px", display:"flex", gap:10, alignItems:"flex-start" }}>
+                <span style={{ fontSize:18, lineHeight:1, flexShrink:0 }}>{f.icon}</span>
+                <div>
+                  <p style={{ fontSize:12, fontWeight:700, color:"rgba(255,255,255,0.8)", marginBottom:2 }}>{f.title}</p>
+                  <p style={{ fontSize:11, color:"rgba(255,255,255,0.35)", lineHeight:1.5 }}>{f.body}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+            <button onClick={()=>setStep(reviewMode==="targeted"?"job":"choose")} style={{ fontSize:12.5, fontWeight:600, padding:"9px 16px", borderRadius:10, border:"1px solid rgba(255,255,255,0.12)", background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.5)", cursor:"pointer" }}>← Back</button>
+            <p style={{ fontSize:11, color:"rgba(255,255,255,0.25)", display:"flex", alignItems:"center", gap:5 }}>
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" style={{ width:11,height:11 }}><rect x="3" y="7" width="10" height="8" rx="1.5"/><path d="M5 7V5a3 3 0 016 0v2"/></svg>
+              Private &amp; secure
+            </p>
+          </div>
+
+        </div>
       </div>
     </div>
   );
