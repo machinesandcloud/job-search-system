@@ -282,34 +282,17 @@ function normalizeResumeText(text: string): string {
   return out.join("\n").trim();
 }
 
-/* ─── PDF.js CDN loader ─────────────────────────────────────────────────── */
+/* ─── PDF.js loader (pdfjs-dist npm 4.10.38) ───────────────────────────── */
 let _pdfJsLoad: Promise<unknown> | null = null;
 function loadPdfJs(): Promise<unknown> {
   if (_pdfJsLoad) return _pdfJsLoad;
-  const BASE = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174";
-  _pdfJsLoad = new Promise<unknown>((res, rej) => {
-    const w = window as unknown as Record<string, unknown>;
-    if (w["pdfjsLib"]) { res(w["pdfjsLib"]); return; }
-    const s = document.createElement("script");
-    s.src = `${BASE}/pdf.min.js`;
-    s.onload = async () => {
-      const lib = (window as unknown as Record<string, unknown>)["pdfjsLib"] as Record<string, unknown>;
-      // Fetch worker as same-origin blob to avoid cross-origin worker restrictions
-      try {
-        const r = await fetch(`${BASE}/pdf.worker.min.js`);
-        const blob = await r.blob();
-        (lib["GlobalWorkerOptions"] as Record<string, string>)["workerSrc"] =
-          URL.createObjectURL(blob);
-      } catch {
-        // Fallback to direct URL if fetch fails
-        (lib["GlobalWorkerOptions"] as Record<string, string>)["workerSrc"] =
-          `${BASE}/pdf.worker.min.js`;
-      }
-      res(lib);
-    };
-    s.onerror = () => rej(new Error("PDF.js failed to load from CDN"));
-    document.head.appendChild(s);
-  });
+  _pdfJsLoad = (async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const pdfjs = await import("pdfjs-dist") as any;
+    // Worker pre-copied to /public/ at matching version — same-origin, no CORS
+    pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
+    return pdfjs;
+  })();
   return _pdfJsLoad;
 }
 
@@ -326,10 +309,9 @@ async function extractPositionedText(pdfUrl: string): Promise<string> {
   for (let p = 1; p <= pdf.numPages; p++) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const page = await pdf.getPage(p) as any;
-    const content = await page.getTextContent() as { items: Array<{ str?: string; transform?: number[]; width?: number }> };
+    const content = await page.getTextContent({ includeMarkedContent: false }) as { items: Array<{ str?: string; transform?: number[]; width?: number }> };
 
     // Group items into visual lines by Y bucket (PDF Y is from bottom of page)
-    // Skip TextMarkedContent items (PDF.js 3.x) that lack transform/str
     const byY = new Map<number, Array<{ x: number; text: string; width: number }>>();
     for (const item of content.items) {
       if (!item || !item.transform || !item.str) continue;
@@ -386,18 +368,18 @@ function PdfHighlightViewer({
 
     (async () => {
       try {
-        const lib = await loadPdfJs() as Record<string, unknown>;
-        // Fetch as ArrayBuffer first — more reliable than passing a blob URL directly to PDF.js
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const pdfjs = await loadPdfJs() as any;
         const arrayBuf = await fetch(pdfUrl).then(r => r.arrayBuffer());
-        const pdfDoc = await (lib["getDocument"] as (src: unknown) => {promise: Promise<unknown>})({ data: arrayBuf, disableFontFace: true }).promise as Record<string, unknown>;
-        const numPages = pdfDoc["numPages"] as number;
+        const pdfDoc = await pdfjs.getDocument({ data: arrayBuf }).promise;
+        const numPages: number = pdfDoc.numPages;
         const out: PdfPageData[] = [];
         const SCALE = 1.8;
 
         for (let pn = 1; pn <= numPages; pn++) {
-          const page = await (pdfDoc["getPage"] as (n:number)=>Promise<unknown>)(pn) as Record<string,unknown>;
-          const vp = (page["getViewport"] as (o:{scale:number})=>Record<string,unknown>)({ scale: SCALE });
-          const W = vp["width"] as number, H = vp["height"] as number;
+          const page = await pdfDoc.getPage(pn);
+          const vp = page.getViewport({ scale: SCALE });
+          const W: number = vp.width, H: number = vp.height;
 
           const cvs = document.createElement("canvas");
           cvs.width = Math.round(W); cvs.height = Math.round(H);
@@ -405,24 +387,18 @@ function PdfHighlightViewer({
           ctx.fillStyle = "white";
           ctx.fillRect(0, 0, cvs.width, cvs.height);
           try {
-            await ((page["render"] as (o:unknown)=>{promise:Promise<void>})({ canvasContext: ctx, viewport: vp })).promise;
+            await page.render({ canvasContext: ctx, viewport: vp }).promise;
           } catch (renderErr) {
-            console.warn("[PdfHighlight] render failed, using blank canvas:", renderErr);
+            console.warn("[PdfHighlight] render page", pn, renderErr);
           }
 
-          // getTextContent can throw internally on some PDFs (PDF.js processes font tables
-          // before returning items, and malformed fonts trigger "Cannot read properties of
-          // undefined (reading 'transform')"). Catch here so canvas still renders.
+          // includeMarkedContent:false excludes TextMarkedContent items (no transform/str)
           let tcItems: Array<{str?:string;transform?:number[];width?:number}> = [];
           try {
-            const tc = await (page["getTextContent"] as ()=>Promise<unknown>)() as {items?: Array<{str?:string;transform?:number[];width?:number}>};
+            const tc = await page.getTextContent({ includeMarkedContent: false });
             tcItems = tc?.items ?? [];
-          } catch { /* skip text extraction for this page */ }
+          } catch { /* page has no extractable text */ }
 
-          const cvtPt = vp["convertToViewportPoint"] as (x:number,y:number)=>[number,number];
-
-          // Group items by Y bucket to reconstruct lines
-          // PDF.js 3.x mixes TextItem and TextMarkedContent in items — skip anything without transform
           const buckets = new Map<number, Array<{str:string;tx:number[];width:number}>>();
           for (const item of tcItems) {
             if (!item || !item.transform || !item.str?.trim()) continue;
@@ -433,6 +409,7 @@ function PdfHighlightViewer({
 
           const highlights: PdfHl[] = [];
           for (const items of buckets.values()) {
+            if (!items.length) continue;
             const lineText = items.map(i => i.str).join("").trim();
             if (lineText.length < 10) continue;
             const normLine = lineText.toLowerCase().replace(BC, "").replace(/\s+/g, " ");
@@ -446,16 +423,16 @@ function PdfHighlightViewer({
               }
               if (!matched) continue;
 
-              if (!items.length || !cvtPt) continue;
-              const first = items.reduce((a,b) => a.tx[4] < b.tx[4] ? a : b);
-              const last  = items.reduce((a,b) => (a.tx[4]+a.width) > (b.tx[4]+b.width) ? a : b);
-              if (!first?.tx || !last?.tx) continue;
-              const [x1, yBase] = cvtPt(first.tx[4] ?? 0, first.tx[5] ?? 0);
-              const [x2]        = cvtPt((last.tx[4] ?? 0) + last.width, last.tx[5] ?? 0);
-              const [, yTop]    = cvtPt(first.tx[4] ?? 0, (first.tx[5] ?? 0) + Math.abs(first.tx[3] ?? 0));
-              const top   = Math.min(yBase, yTop) - 2;
-              const bot   = Math.max(yBase, yTop) + 4;
-              highlights.push({ x: Math.min(x1,x2)-4, y: top, w: Math.abs(x2-x1)+8, h: bot-top, bulletIdx: bi });
+              try {
+                const first = items.reduce((a,b) => a.tx[4] < b.tx[4] ? a : b);
+                const last  = items.reduce((a,b) => (a.tx[4]+a.width) > (b.tx[4]+b.width) ? a : b);
+                const [x1, yBase] = vp.convertToViewportPoint(first.tx[4], first.tx[5]) as [number,number];
+                const [x2]        = vp.convertToViewportPoint(last.tx[4] + last.width, last.tx[5]) as [number,number];
+                const [, yTop]    = vp.convertToViewportPoint(first.tx[4], first.tx[5] + Math.abs(first.tx[3] ?? 0)) as [number,number];
+                const top = Math.min(yBase, yTop) - 2;
+                const bot = Math.max(yBase, yTop) + 4;
+                highlights.push({ x: Math.min(x1,x2)-4, y: top, w: Math.abs(x2-x1)+8, h: bot-top, bulletIdx: bi });
+              } catch { /* skip highlight if coordinate conversion fails */ }
               break;
             }
           }
@@ -2611,8 +2588,20 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                   </div>
               : rawFileUrl
               ? <iframe src={`${rawFileUrl}#toolbar=0&navpanes=0`} style={{ flex:1, width:"100%", border:"none", display:"block", minHeight:0 }} title="Resume"/>
-              : <div style={{ padding:"16px 14px", overflowY:"auto", flex:1 }}>
-                  <FormattedResume text={resumeText.slice(0,6000)} keywords={aiResult?.keywords}/>
+              : <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:12, background:"#F9FAFB" }}>
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  <p style={{ fontSize:13, color:"#6B7280", margin:0, textAlign:"center", maxWidth:220 }}>Re-upload your PDF to restore the preview</p>
+                  <label style={{ fontSize:12.5, fontWeight:600, color:"#4361EE", cursor:"pointer", padding:"7px 16px", borderRadius:8, border:"1.5px solid #4361EE", background:"rgba(67,97,238,0.05)" }}>
+                    Upload PDF
+                    <input type="file" accept=".pdf" style={{ display:"none" }} onChange={e => {
+                      const f = e.target.files?.[0];
+                      if (!f) return;
+                      if (rawFileUrlRef.current) URL.revokeObjectURL(rawFileUrlRef.current);
+                      const url = URL.createObjectURL(f);
+                      rawFileUrlRef.current = url;
+                      setRawFileUrl(url);
+                    }}/>
+                  </label>
                 </div>
             }
           </div>
