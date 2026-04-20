@@ -1243,100 +1243,157 @@ function escHtml(s: string) {
 }
 
 function generateResumeHtml(text: string, footerNote = ""): string {
-  const SECTION_KW_RE = /^(PROFESSIONAL SUMMARY|PROFESSIONAL EXPERIENCE|SKILLS|EDUCATION|CERTIFICATIONS?|LICENSES?|PROJECTS?|AWARDS?|ACHIEVEMENTS?|VOLUNTEER|INTERESTS?|OBJECTIVE|PROFILE|PUBLICATIONS?|REFERENCES?|EMPLOYMENT HISTORY|WORK EXPERIENCE|CONTACT)$/i;
-  const SECTION_RE    = /^[A-Z][A-Z\s&\/\-]{3,}$/;
-  const BULLET_RE     = /^[•\-\*\u2022►▸]\s/;
-  const DATE_RE       = /\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?|\d{4})\b.{0,40}\b(20\d{2}|19\d{2}|Present|Current|Now)\b/i;
-  const CONTACT_RE    = /@|\(\d{3}\)|\d{3}[\-.\s]\d{3}[\-.\s]\d{4}|linkedin\.com|github\.com/i;
-  // Name: all-caps 2–5 words, 5–40 chars, no section keywords, allow interior spaces (e.g. "ST EVE NGOUMNAI")
-  const NAME_RE       = /^[A-Z][A-Z\s]{4,39}[A-Z]$/;
-  // Skill category line: "Word(s): rest of line" where label is 2-5 words
-  const SKILL_CAT_RE  = /^[A-Za-z][A-Za-z\s&]{2,35}:\s+\S/;
+  // ── Regexes ──────────────────────────────────────────────────
+  const BULLET_RE    = /^[•\-\*\u2022►▸→]\s/;
+  const DATE_RE      = /\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?|\d{4})\b.{0,40}\b(20\d{2}|19\d{2}|Present|Current|Now)\b/i;
+  const CONTACT_RE   = /@|\(\d{3}\)|\d{3}[\-.\s]\d{3}[\-.\s]\d{4}|linkedin\.com|github\.com/i;
+  const SKILL_CAT_RE = /^[A-Za-z][A-Za-z\s&]{2,35}:\s+\S/;
+  const NAME_RE      = /^[A-Z][A-Z\s\.]{3,39}[A-Z]$/;
 
-  const lines = text.split("\n");
-  let body = "";
-  let inList = false;
-  let pendingBoldLine: string | null = null; // buffer company name to merge with following date
+  // Known section titles — matched case-insensitively
+  const KNOWN_SECTIONS = [
+    "PROFESSIONAL SUMMARY","SUMMARY","OBJECTIVE","PROFILE","ABOUT",
+    "SKILLS","TECHNICAL SKILLS","CORE COMPETENCIES","KEY SKILLS","AREAS OF EXPERTISE",
+    "PROFESSIONAL EXPERIENCE","EXPERIENCE","EMPLOYMENT HISTORY","WORK EXPERIENCE",
+    "EDUCATION","ACADEMIC BACKGROUND",
+    "CERTIFICATIONS","CERTIFICATION","LICENSES","LICENSURE",
+    "PROJECTS","AWARDS","ACHIEVEMENTS","ACCOMPLISHMENTS",
+    "VOLUNTEER","COMMUNITY","INTERESTS","ACTIVITIES","REFERENCES","PUBLICATIONS","CONTACT",
+  ];
 
-  const closeList = () => { if (inList) { body += "</ul>\n"; inList = false; } };
+  // Canonical section render order (matches substring of title)
+  const SECTION_ORDER = [
+    "SUMMARY","OBJECTIVE","PROFILE","ABOUT",
+    "COMPETENCIES","SKILL","EXPERTISE",
+    "EXPERIENCE","EMPLOYMENT","WORK",
+    "EDUCATION","ACADEMIC",
+    "CERTIFICATION","LICENSE",
+    "PROJECT","AWARD","ACHIEVEMENT","ACCOMPLISHMENT",
+    "VOLUNTEER","COMMUNITY","INTEREST","ACTIVIT","REFERENCE","PUBLICATION","CONTACT",
+  ];
 
-  const flushPending = (dateStr?: string) => {
-    if (pendingBoldLine === null) return;
-    if (dateStr) {
-      body += `<div class="job-hdr"><span class="company">${escHtml(pendingBoldLine)}</span><span class="date-r">${escHtml(dateStr)}</span></div>\n`;
-    } else {
-      body += `<p class="bold-line">${escHtml(pendingBoldLine)}</p>\n`;
-    }
-    pendingBoldLine = null;
+  const isSectionHeader = (t: string): boolean => {
+    if (!t) return false;
+    const u = t.toUpperCase().trim();
+    if (KNOWN_SECTIONS.includes(u)) return true;
+    // ALL-CAPS 2-5 words, no digits, not a date-range line
+    return /^[A-Z][A-Z\s&\/\-]{2,49}$/.test(u) && u.split(/\s+/).length <= 5
+      && !/\d/.test(u) && !/\bPRESENT\b|\bCURRENT\b/.test(u);
   };
 
-  for (const raw of lines) {
-    const t = raw.trim();
-    if (!t) { closeList(); flushPending(); body += "<br>\n"; continue; }
-
-    // Section header
-    if ((SECTION_KW_RE.test(t) || (SECTION_RE.test(t) && t.length <= 60 && t.split(/\s+/).length <= 4))) {
-      closeList(); flushPending();
-      body += `<div class="sec-hdr">${escHtml(t)}</div>\n`;
-      continue;
+  const sectionRank = (title: string): number => {
+    const u = title.toUpperCase();
+    for (let i = 0; i < SECTION_ORDER.length; i++) {
+      if (u.includes(SECTION_ORDER[i])) return i;
     }
+    return 999;
+  };
 
-    // Bullet
-    if (BULLET_RE.test(t)) {
+  // ── Phase 1: split into header + sections ──────────────────
+  interface Sec { title: string; lines: string[]; }
+  const headerLines: string[] = [];
+  const sections: Sec[] = [];
+  let cur: Sec | null = null;
+  let inHeader = true;
+
+  for (const raw of text.split("\n")) {
+    const t = raw.trim();
+    if (isSectionHeader(t)) {
+      inHeader = false;
+      cur = { title: t, lines: [] };
+      sections.push(cur);
+    } else if (inHeader) {
+      if (t) headerLines.push(t);
+    } else if (cur) {
+      cur.lines.push(t);
+    }
+  }
+
+  // ── Phase 2: sort sections into canonical order ────────────
+  sections.sort((a, b) => sectionRank(a.title) - sectionRank(b.title));
+
+  // ── Phase 3: render section content lines ─────────────────
+  function renderLines(lines: string[]): string {
+    let html = "";
+    let inList = false;
+    let pending: string | null = null;
+
+    const closeList = () => { if (inList) { html += "</ul>\n"; inList = false; } };
+    const flushPending = (date?: string) => {
+      if (pending === null) return;
+      if (date) {
+        html += `<div class="job-hdr"><span class="company">${escHtml(pending)}</span><span class="date-r">${escHtml(date)}</span></div>\n`;
+      } else {
+        html += `<p class="bold-line">${escHtml(pending)}</p>\n`;
+      }
+      pending = null;
+    };
+
+    for (const t of lines) {
+      if (!t) { closeList(); flushPending(); html += "<br>\n"; continue; }
+
+      if (BULLET_RE.test(t)) {
+        flushPending();
+        if (!inList) { html += "<ul>\n"; inList = true; }
+        html += `  <li>${escHtml(t.replace(/^[•\-\*\u2022►▸→]\s*/, ""))}</li>\n`;
+        continue;
+      }
+      closeList();
+
+      if (CONTACT_RE.test(t) && t.length < 160) {
+        flushPending();
+        html += `<p class="contact">${escHtml(t)}</p>\n`;
+        continue;
+      }
+
+      if (SKILL_CAT_RE.test(t) && t.length < 200) {
+        flushPending();
+        const ci = t.indexOf(":");
+        html += `<p class="skill-line"><strong>${escHtml(t.slice(0, ci))}:</strong>${escHtml(t.slice(ci + 1))}</p>\n`;
+        continue;
+      }
+
+      if (DATE_RE.test(t) && t.length < 90) {
+        pending !== null ? flushPending(t) : (html += `<p class="date-standalone">${escHtml(t)}</p>\n`);
+        continue;
+      }
+
+      // Short line → buffer as potential company/title for date-merge
+      if (t.length < 100 && t.split(/\s+/).length <= 8) {
+        flushPending();
+        pending = t;
+        continue;
+      }
+
       flushPending();
-      const txt = t.replace(/^[•\-\*\u2022►▸]\s*/, "");
-      if (!inList) { body += "<ul>\n"; inList = true; }
-      body += `  <li>${escHtml(txt)}</li>\n`;
-      continue;
+      html += `<p>${escHtml(t)}</p>\n`;
     }
     closeList();
-
-    // Name line
-    if (NAME_RE.test(t) && !/\b(EXPERIENCE|EDUCATION|SKILLS|SUMMARY|CERTIFICATIONS?|EMPLOYMENT|PROFESSIONAL|OBJECTIVE)\b/i.test(t) && t.split(/\s+/).length >= 2 && t.split(/\s+/).length <= 5) {
-      flushPending();
-      body += `<p class="name">${escHtml(t)}</p>\n`;
-      continue;
-    }
-
-    // Contact line (phone/email/url) or City, State
-    if ((CONTACT_RE.test(t) && t.length < 160) || /^[A-Za-z][A-Za-z\s]+,\s*[A-Z]{2}$/.test(t)) {
-      flushPending();
-      body += `<p class="contact">${escHtml(t)}</p>\n`;
-      continue;
-    }
-
-    // Date line — if there's a pending company name, merge them into one row
-    if (DATE_RE.test(t) && t.length < 90) {
-      if (pendingBoldLine !== null) {
-        flushPending(t); // merge: company name + date on same row
-      } else {
-        body += `<p class="date-standalone">${escHtml(t)}</p>\n`;
-      }
-      continue;
-    }
-
-    // Skill category line — "Cloud & Infrastructure: AWS, Kubernetes…" → bold label
-    if (SKILL_CAT_RE.test(t) && t.length < 200) {
-      flushPending();
-      const colonIdx = t.indexOf(":");
-      const label = t.slice(0, colonIdx);
-      const rest  = t.slice(colonIdx + 1);
-      body += `<p class="skill-line"><strong>${escHtml(label)}:</strong>${escHtml(rest)}</p>\n`;
-      continue;
-    }
-
-    // Short line — could be company name or job title; buffer it so we can merge with a following date
-    if (!raw.startsWith(" ") && t.length < 100 && t.split(/\s+/).length <= 8) {
-      flushPending(); // flush previous if still waiting
-      pendingBoldLine = t;
-      continue;
-    }
-
     flushPending();
-    body += `<p>${escHtml(t)}</p>\n`;
+    return html;
   }
-  closeList();
-  flushPending();
+
+  // ── Phase 4: render header ─────────────────────────────────
+  let headerHtml = "";
+  for (const t of headerLines) {
+    if (
+      NAME_RE.test(t) &&
+      t.split(/\s+/).length >= 2 &&
+      t.split(/\s+/).length <= 6 &&
+      !/\b(EXPERIENCE|EDUCATION|SKILLS|SUMMARY|CERTIFICATIONS?|EMPLOYMENT|PROFESSIONAL|OBJECTIVE)\b/i.test(t)
+    ) {
+      headerHtml += `<p class="name">${escHtml(t)}</p>\n`;
+    } else {
+      headerHtml += `<p class="contact">${escHtml(t)}</p>\n`;
+    }
+  }
+
+  // ── Phase 5: assemble ──────────────────────────────────────
+  let body = headerHtml;
+  for (const sec of sections) {
+    body += `<div class="sec-hdr">${escHtml(sec.title.toUpperCase())}</div>\n`;
+    body += renderLines(sec.lines);
+  }
 
   const footer = footerNote ? `\n<p class="footer">${escHtml(footerNote)}</p>` : "";
 
@@ -2122,7 +2179,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
         </div>
       )}
 
-      <div style={{ maxWidth:1080, margin:"0 auto", padding:"24px 24px 48px" }}>
+      <div style={{ maxWidth:1400, margin:"0 auto", padding:"24px 32px 48px" }}>
 
         {/* ── Top bar ── */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20, gap:12, flexWrap:"wrap" }}>
@@ -2364,7 +2421,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
           ))}
         </div>
 
-        <div style={{ display:"grid", gridTemplateColumns:"minmax(0,50%) 1fr", gap:20 }}>
+        <div style={{ display:"grid", gridTemplateColumns:"minmax(0,48%) 1fr", gap:24 }}>
           {/* ── Left: resume viewer ── */}
           <div style={{ background:"#ECEEF5", borderRadius:16, overflow:"hidden", height:"calc(100vh - 260px)", display:"flex", flexDirection:"column", border:"1px solid rgba(0,0,0,0.06)" }}>
             {/* Panel header */}
