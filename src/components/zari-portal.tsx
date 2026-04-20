@@ -326,12 +326,13 @@ async function extractPositionedText(pdfUrl: string): Promise<string> {
   for (let p = 1; p <= pdf.numPages; p++) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const page = await pdf.getPage(p) as any;
-    const content = await page.getTextContent() as { items: Array<{ str: string; transform: number[]; width: number }> };
+    const content = await page.getTextContent() as { items: Array<{ str?: string; transform?: number[]; width?: number }> };
 
     // Group items into visual lines by Y bucket (PDF Y is from bottom of page)
+    // Skip TextMarkedContent items (PDF.js 3.x) that lack transform/str
     const byY = new Map<number, Array<{ x: number; text: string; width: number }>>();
     for (const item of content.items) {
-      if (!item.str) continue;
+      if (!item.transform || !item.str) continue;
       const y = Math.round(item.transform[5] / 2) * 2; // 2-unit bucket
       if (!byY.has(y)) byY.set(y, []);
       byY.get(y)!.push({ x: item.transform[4], text: item.str, width: item.width ?? 0 });
@@ -405,16 +406,17 @@ function PdfHighlightViewer({
           ctx.fillRect(0, 0, cvs.width, cvs.height);
           await ((page["render"] as (o:unknown)=>{promise:Promise<void>})({ canvasContext: ctx, viewport: vp })).promise;
 
-          const tc = await (page["getTextContent"] as ()=>Promise<unknown>)() as {items: Array<{str:string;transform:number[];width:number}>};
+          const tc = await (page["getTextContent"] as ()=>Promise<unknown>)() as {items: Array<{str?:string;transform?:number[];width?:number}>};
           const cvtPt = vp["convertToViewportPoint"] as (x:number,y:number)=>[number,number];
 
           // Group items by Y bucket to reconstruct lines
+          // PDF.js 3.x mixes TextItem and TextMarkedContent in items — skip anything without transform
           const buckets = new Map<number, Array<{str:string;tx:number[];width:number}>>();
           for (const item of tc.items) {
-            if (!item.str.trim()) continue;
+            if (!item.transform || !item.str?.trim()) continue;
             const bucket = Math.round(item.transform[5] / 3) * 3;
             if (!buckets.has(bucket)) buckets.set(bucket, []);
-            buckets.get(bucket)!.push({ str: item.str, tx: item.transform, width: item.width });
+            buckets.get(bucket)!.push({ str: item.str, tx: item.transform, width: item.width ?? 0 });
           }
 
           const highlights: PdfHl[] = [];
