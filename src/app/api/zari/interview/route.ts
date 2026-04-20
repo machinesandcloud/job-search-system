@@ -15,12 +15,14 @@ export async function POST(request: Request) {
     answer?: string;
     stage?: string;
     category?: string;
+    round?: string;
     resumeText?: string;
     jobDescription?: string;
   };
 
   const action = body.action ?? "score-answer";
-  const stage = body.stage ?? "job-search";
+  const stage  = body.stage ?? "job-search";
+  const round  = body.round ?? "hiring-manager";
 
   const userId = await getCurrentUserId();
   let userContext = "";
@@ -28,45 +30,74 @@ export async function POST(request: Request) {
     try { userContext = await buildUserContext(userId); } catch { /* non-fatal */ }
   }
 
-  /* ── Generate personalized questions based on resume + JD ── */
+  /* ── Generate questions by round and section ── */
   if (action === "generate-questions") {
-    const resumeText = (body.resumeText ?? "").trim();
+    const resumeText     = (body.resumeText     ?? "").trim();
     const jobDescription = (body.jobDescription ?? "").trim();
 
-    const systemPrompt = `You are Zari, a career coach who knows this person well. Generate interview questions tailored specifically to their background and the role they're going for.
+    const ROUND_SECTIONS: Record<string, { sections: { name: string; description: string; count: number }[] }> = {
+      "recruiter": { sections: [
+        { name:"Background & Motivation", description:"Why you're making this move and what drives you", count:5 },
+        { name:"Logistics & Expectations",description:"Salary, timeline, location, and role logistics",   count:4 },
+      ]},
+      "hiring-manager": { sections: [
+        { name:"Behavioral",              description:"Past situations that reveal how you work",                 count:6 },
+        { name:"Leadership & Influence",  description:"How you lead, influence, and navigate org dynamics",      count:5 },
+        { name:"Situational Judgment",    description:"How you'd handle specific scenarios in this role",        count:4 },
+      ]},
+      "technical": { sections: [
+        { name:"Technical Depth",         description:"Core technical knowledge required for the role",          count:5 },
+        { name:"Problem Solving",         description:"Approach to ambiguous or complex technical challenges",   count:4 },
+        { name:"Domain Knowledge",        description:"Industry and domain-specific expertise",                  count:4 },
+      ]},
+      "panel": { sections: [
+        { name:"Behavioral",              description:"Stories that show how you operate and handle challenges",  count:4 },
+        { name:"Technical",               description:"Role-specific technical depth and credibility",           count:4 },
+        { name:"Strategic Thinking",      description:"How you think about the bigger picture and long-term",    count:3 },
+        { name:"Culture & Values",        description:"How you collaborate, communicate, and fit the team",      count:3 },
+      ]},
+    };
+
+    const roundConfig = ROUND_SECTIONS[round] ?? ROUND_SECTIONS["hiring-manager"];
+
+    const systemPrompt = `You are Zari, a sharp career coach. Generate interview questions organized by section for a ${round.replace("-"," ")} interview.
 
 ${userContext ? `What you know about them:\n${userContext}\n\n` : ""}
-${resumeText ? `Their resume:\n${resumeText.slice(0, 2500)}\n\n` : ""}
+${resumeText     ? `Candidate background:\n${resumeText.slice(0, 2500)}\n\n`        : ""}
 ${jobDescription ? `Job they're targeting:\n${jobDescription.slice(0, 1500)}\n\n` : ""}
 
-Return ONLY a valid JSON object:
+Return ONLY valid JSON:
 {
-  "questions": [
-    { "cat": "<topic area>", "level": "<seniority>", "q": "<the question>" }
+  "sections": [
+    {
+      "name": "<section name>",
+      "description": "<what this section tests — 1 sentence>",
+      "questions": [
+        { "cat": "<specific topic>", "level": "<seniority or type>", "q": "<the question>" }
+      ]
+    }
   ]
 }
 
-Generate 4 questions that:
-- Are specific to their actual background (reference real things from their resume or profile)
-- Match the seniority of the target role
-- Cover the areas most likely to be tested in an interview for this specific role
-- Include at least one question about a gap or challenge (not just strengths)
-- Feel like real interview questions from a hiring manager, not a textbook
+Sections to generate (in this order):
+${roundConfig.sections.map(s => `- "${s.name}" (${s.count} questions): ${s.description}`).join("\n")}
 
-Stage context: ${stage}
-Write the questions as a real interviewer would ask them — direct, no fluff.`;
+Rules:
+- Every question must be specific to this person's actual background — reference real companies, roles, technologies, or experiences from their resume
+- Questions must match the seniority and domain of the target job, NOT generic textbook questions
+- For behavioral sections, use STAR-probing language ("Tell me about a time…", "Walk me through…", "Give me a specific example…")
+- For technical sections, ask about tools/technologies mentioned in BOTH the resume and job description
+- Include at least one tough or challenging question per section (gap, failure, conflict, or hard tradeoff)
+- Level field should match the actual role seniority (e.g. "Senior", "Manager", "IC", "Director")
+- Write questions as a real hiring manager would — direct, no preamble, no softening`;
 
-    const messages = [
-      { role: "system" as const, content: systemPrompt },
-      { role: "user" as const, content: "Generate my personalized interview questions." },
-    ];
-
-    const reply = await openaiChat(messages, {
-      model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
-      temperature: 0.6,
-      maxTokens: 800,
-      jsonMode: true,
-    });
+    const reply = await openaiChat(
+      [
+        { role: "system" as const, content: systemPrompt },
+        { role: "user"   as const, content: "Generate my personalized interview questions by section." },
+      ],
+      { model: process.env.OPENAI_MODEL ?? "gpt-4o-mini", temperature: 0.55, maxTokens: 2500, jsonMode: true }
+    );
 
     if (!reply) return NextResponse.json({ error: "Could not generate questions" }, { status: 503 });
 

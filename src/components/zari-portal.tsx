@@ -2879,46 +2879,25 @@ const SCREEN_RESUME_META: Record<CareerStage, {
 };
 
 /* ── Per-stage interview questions ── */
-const STAGE_QUESTIONS: Record<CareerStage, { cat:string; level:string; q:string }[]> = {
-  "job-search": [
-    { cat:"Cross-functional leadership", level:"Senior PM",      q:"Tell me about a time you led a cross-functional initiative that faced significant resistance. What was your approach and what was the outcome?" },
-    { cat:"Prioritization",              level:"Senior PM",      q:"How do you prioritize features when you have competing stakeholder demands and limited engineering capacity?" },
-    { cat:"Product strategy",            level:"Senior PM",      q:"Describe your process for defining a product strategy from scratch. Walk me through a real example." },
-    { cat:"Conflict resolution",         level:"Senior PM",      q:"Tell me about a time you had a significant disagreement with an engineer or designer. How did you resolve it?" },
-  ],
-  "promotion": [
-    { cat:"Scope expansion",    level:"Promotion pitch", q:"Walk me through the biggest thing you owned in the last 6 months that was above your current level. What was the outcome?" },
-    { cat:"Sponsorship",        level:"Promotion pitch", q:"Who are your executive sponsors, and how have you built those relationships intentionally? Give me a specific example." },
-    { cat:"Business impact",    level:"Promotion pitch", q:"Tell me about a decision you made that had measurable business impact — revenue, retention, or cost. What was your direct contribution?" },
-    { cat:"Manager alignment",  level:"Promotion pitch", q:"Your manager says you're 'not quite ready yet.' How do you respond, and what do you do next?" },
-  ],
-  "salary": [
-    { cat:"Opening move",   level:"Negotiation sim", q:"The hiring manager says: 'We'd like to extend you an offer at $145K base.' What do you say next?" },
-    { cat:"Pushback",       level:"Negotiation sim", q:"They say: 'That's above our band. The max we can do is $152K.' How do you respond?" },
-    { cat:"Counter offer",  level:"Negotiation sim", q:"Your current employer responds to your resignation with a counter-offer 10% above the new role. What do you say?" },
-    { cat:"Internal raise", level:"Negotiation sim", q:"You want to ask your manager for a raise. Walk me through how you'd open that conversation." },
-  ],
-  "career-change": [
-    { cat:"Motivation",           level:"Pivot interview", q:"Why are you switching industries after 6 years? What's driving this change right now?" },
-    { cat:"Narrative bridge",     level:"Pivot interview", q:"Your background is in finance. Why would you be better at product than someone who started in it?" },
-    { cat:"Transferable skills",  level:"Pivot interview", q:"Give me a specific example where a skill from your previous career directly helped you solve a problem in a new context." },
-    { cat:"Gap acknowledgement",  level:"Pivot interview", q:"What's the thing you're most behind on compared to someone who's been in this field their whole career? How are you closing it?" },
-  ],
-  "leadership": [
-    { cat:"Executive communication",      level:"Director+", q:"Walk me through a time you had to communicate a strategic shift to the board or senior leadership. What was your approach?" },
-    { cat:"Organizational design",         level:"Director+", q:"Tell me about a time you had to restructure a team or function. How did you navigate the human side of that?" },
-    { cat:"Influence without authority",   level:"Director+", q:"Give me an example of driving a company-wide change without having direct authority over the people you needed to change." },
-    { cat:"Leadership thesis",             level:"Director+", q:"What's your leadership thesis — the thing you believe about building teams that most leaders get wrong?" },
-  ],
+const SCREEN_INTERVIEW_META: Record<CareerStage, { title:string }> = {
+  "job-search":    { title:"Mock Interview"  },
+  "promotion":     { title:"Pitch Practice"  },
+  "salary":        { title:"Negotiation Sim" },
+  "career-change": { title:"Pivot Interview" },
+  "leadership":    { title:"Story Practice"  },
 };
 
-const SCREEN_INTERVIEW_META: Record<CareerStage, { title:string; subtitle:string }> = {
-  "job-search":    { title:"Mock Interview",   subtitle:"STAR practice · Real-time AI scoring · Senior PM behavioral round" },
-  "promotion":     { title:"Pitch Practice",   subtitle:"Manager pitch · Committee prep · Objection handling" },
-  "salary":        { title:"Negotiation Sim",  subtitle:"Offer conversation · Counter scripts · Objection handling" },
-  "career-change": { title:"Pivot Interview",  subtitle:"'Why are you switching?' · Narrative bridging · Hybrid role questions" },
-  "leadership":    { title:"Story Practice",   subtitle:"Executive stories · Board communication · Leadership scenarios" },
+type InterviewRound = "recruiter" | "hiring-manager" | "technical" | "panel";
+
+const ROUND_META: Record<InterviewRound, { label:string; badge:string; desc:string; color:string; bg:string; sections:string[] }> = {
+  "recruiter":      { label:"Recruiter Screen",  badge:"~30 min", desc:"Fit, motivation, salary expectations, and logistics",             color:"#0284C7", bg:"rgba(2,132,199,0.12)",   sections:["Background & Motivation","Logistics & Expectations"] },
+  "hiring-manager": { label:"Hiring Manager",    badge:"~45 min", desc:"Behavioral stories, leadership signals, and situational judgment", color:"#7C3AED", bg:"rgba(124,58,237,0.12)", sections:["Behavioral","Leadership & Influence","Situational Judgment"] },
+  "technical":      { label:"Technical Round",   badge:"~60 min", desc:"Role-specific depth, problem solving, and domain knowledge",       color:"#059669", bg:"rgba(5,150,105,0.12)",  sections:["Technical Depth","Problem Solving","Domain Knowledge"] },
+  "panel":          { label:"Panel Interview",   badge:"~60–90 min", desc:"Mixed format — behavioral, technical, strategic, and cultural", color:"#D97706", bg:"rgba(217,119,6,0.12)",  sections:["Behavioral","Technical","Strategic Thinking","Culture & Values"] },
 };
+
+type InterviewQuestion = { cat: string; level: string; q: string };
+type InterviewSection  = { name: string; description: string; questions: InterviewQuestion[] };
 
 type InterviewFeedback = {
   overallScore: number;
@@ -2933,28 +2912,27 @@ function dimColor(score: number) {
   return "#DC2626";
 }
 
-type InterviewQuestion = { cat: string; level: string; q: string };
-
 function ScreenInterview({ stage }: { stage: CareerStage }) {
   const [setupDone,    setSetupDone]    = useState(false);
   const [resumeText,   setResumeText]   = useState("");
   const [resumeFileName, setResumeFileName] = useState("");
-  const [linkedinText, setLinkedinText] = useState("");
-  const [jobDesc,      setJobDesc]      = useState("");
-  const [jdMode,       setJdMode]       = useState<"paste"|"url">("paste");
-  const [jobUrl,       setJobUrl]       = useState("");
-  const [fetchingUrl,  setFetchingUrl]  = useState(false);
-  const [urlFetchErr,  setUrlFetchErr]  = useState("");
-  const [loadingQs,    setLoadingQs]    = useState(false);
-  const [aiQuestions,  setAiQuestions]  = useState<InterviewQuestion[] | null>(null);
-  const [qIdx,         setQIdx]         = useState(0);
-  const [answer,       setAnswer]       = useState("");
-  const [submitted,    setSubmitted]    = useState(false);
-  const [isRecording,  setIsRecording]  = useState(false);
-  const [recTime,      setRecTime]      = useState(0);
-  const [isScoring,    setIsScoring]    = useState(false);
-  const [feedback,     setFeedback]     = useState<InterviewFeedback | null>(null);
-
+  const [linkedinText,     setLinkedinText]     = useState("");
+  const [jobDesc,          setJobDesc]          = useState("");
+  const [jdMode,           setJdMode]           = useState<"paste"|"url">("paste");
+  const [jobUrl,           setJobUrl]           = useState("");
+  const [fetchingUrl,      setFetchingUrl]      = useState(false);
+  const [urlFetchErr,      setUrlFetchErr]      = useState("");
+  const [round,            setRound]            = useState<InterviewRound | null>(null);
+  const [loadingQs,        setLoadingQs]        = useState(false);
+  const [sections,         setSections]         = useState<InterviewSection[] | null>(null);
+  const [activeSectionIdx, setActiveSectionIdx] = useState(0);
+  const [qIdx,             setQIdx]             = useState(0);
+  const [answer,           setAnswer]           = useState("");
+  const [submitted,        setSubmitted]        = useState(false);
+  const [isRecording,      setIsRecording]      = useState(false);
+  const [recTime,          setRecTime]          = useState(0);
+  const [isScoring,        setIsScoring]        = useState(false);
+  const [feedback,         setFeedback]         = useState<InterviewFeedback | null>(null);
 
   useEffect(() => {
     if (!isRecording) return;
@@ -2962,8 +2940,11 @@ function ScreenInterview({ stage }: { stage: CareerStage }) {
     return () => clearInterval(t);
   }, [isRecording]);
 
-  // Reset when stage changes
-  useEffect(() => { setSetupDone(false); setQIdx(0); setAnswer(""); setSubmitted(false); setFeedback(null); setAiQuestions(null); setResumeText(""); setResumeFileName(""); setLinkedinText(""); setJobDesc(""); setJobUrl(""); setUrlFetchErr(""); }, [stage]);
+  useEffect(() => {
+    setSetupDone(false); setQIdx(0); setActiveSectionIdx(0); setAnswer(""); setSubmitted(false);
+    setFeedback(null); setSections(null); setRound(null); setResumeText(""); setResumeFileName("");
+    setLinkedinText(""); setJobDesc(""); setJobUrl(""); setUrlFetchErr("");
+  }, [stage]);
 
   async function handleInterviewFile(file: File) {
     setResumeFileName(file.name);
@@ -2973,62 +2954,54 @@ function ScreenInterview({ stage }: { stage: CareerStage }) {
       const res = await fetch("/api/zari/extract", { method: "POST", body: fd });
       const data = await res.json().catch(() => ({})) as { text?: string };
       if (data.text) setResumeText(data.text);
-      else setResumeFileName(""); // extraction failed, clear filename
+      else setResumeFileName("");
     } catch { setResumeFileName(""); }
   }
 
   async function fetchJdFromUrl() {
     if (!jobUrl.trim()) return;
-    setFetchingUrl(true);
-    setUrlFetchErr("");
+    setFetchingUrl(true); setUrlFetchErr("");
     try {
-      const res = await fetch("/api/zari/fetch-url", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: jobUrl.trim() }),
-      });
+      const res = await fetch("/api/zari/fetch-url", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ url: jobUrl.trim() }) });
       const data = await res.json().catch(() => ({})) as { text?: string; error?: string };
-      if (data.text) {
-        setJobDesc(data.text);
-        setUrlFetchErr("");
-      } else {
-        setUrlFetchErr(data.error ?? "Couldn't extract text — paste the job description instead.");
-      }
-    } catch {
-      setUrlFetchErr("Couldn't reach that URL — paste the job description instead.");
-    }
+      if (data.text) { setJobDesc(data.text); setUrlFetchErr(""); }
+      else setUrlFetchErr(data.error ?? "Couldn't extract text — paste the job description instead.");
+    } catch { setUrlFetchErr("Couldn't reach that URL — paste the job description instead."); }
     setFetchingUrl(false);
   }
 
   async function startInterview() {
+    if (!round) return;
     setLoadingQs(true);
     try {
       const combinedProfile = [resumeText, linkedinText].filter(Boolean).join("\n\n---\n\n");
       const res = await fetch("/api/zari/interview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "generate-questions", stage, resumeText: combinedProfile, jobDescription: jobDesc }),
+        body: JSON.stringify({ action: "generate-questions", stage, resumeText: combinedProfile, jobDescription: jobDesc, round }),
       });
-      const data = await res.json().catch(() => ({})) as { questions?: InterviewQuestion[] };
-      if (data.questions?.length) setAiQuestions(data.questions);
-    } catch { /* fall back to static */ }
+      const data = await res.json().catch(() => ({})) as { sections?: InterviewSection[] };
+      if (data.sections?.length) setSections(data.sections);
+    } catch { /* sections stays null, handled below */ }
     setLoadingQs(false);
     setSetupDone(true);
+    setActiveSectionIdx(0);
     setQIdx(0);
   }
 
-  const QUESTIONS: InterviewQuestion[] = aiQuestions ?? STAGE_QUESTIONS[stage];
+  const ACTIVE_SECTION: InterviewSection | undefined = sections?.[activeSectionIdx];
+  const SECTION_QUESTIONS: InterviewQuestion[] = ACTIVE_SECTION?.questions ?? [];
 
   async function submit() {
-    if (!answer.trim() || isScoring) return;
+    if (!answer.trim() || isScoring || !SECTION_QUESTIONS.length) return;
     setIsScoring(true);
     setSubmitted(true);
-    const q = QUESTIONS[qIdx];
+    const q = SECTION_QUESTIONS[qIdx];
     try {
       const res = await fetch("/api/zari/interview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "score-answer", question: q.q, answer, stage, category: q.cat, resumeText: [resumeText, linkedinText].filter(Boolean).join("\n\n---\n\n"), jobDescription: jobDesc }),
+        body: JSON.stringify({ action: "score-answer", question: q.q, answer, stage, category: q.cat, round, resumeText: [resumeText, linkedinText].filter(Boolean).join("\n\n---\n\n"), jobDescription: jobDesc }),
       });
       const data = await res.json().catch(() => null) as InterviewFeedback | null;
       if (data && data.overallScore) setFeedback(data);
@@ -3040,7 +3013,7 @@ function ScreenInterview({ stage }: { stage: CareerStage }) {
 
   const [resumeDragOver, setResumeDragOver] = useState(false);
   const resumeInputRef = useRef<HTMLInputElement>(null);
-  const canStart = !!resumeText && !!jobDesc.trim();
+  const canStart = !!resumeText && !!jobDesc.trim() && !!round;
 
   /* ── Setup step ── */
   if (!setupDone) return (
@@ -3146,6 +3119,29 @@ function ScreenInterview({ stage }: { stage: CareerStage }) {
               </div>
             </div>
 
+            {/* Interview round */}
+            <div>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
+                <p style={{ fontSize:12, fontWeight:700, color:"rgba(255,255,255,0.6)", textTransform:"uppercase", letterSpacing:"0.07em", margin:0 }}>Interview Round</p>
+                {round && <span style={{ fontSize:11, color:"#4ADE80", fontWeight:600 }}>✓ {ROUND_META[round].label}</span>}
+              </div>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+                {(Object.entries(ROUND_META) as [InterviewRound, typeof ROUND_META[InterviewRound]][]).map(([id, meta]) => (
+                  <button key={id} onClick={()=>setRound(id)}
+                    style={{ padding:"14px 16px", borderRadius:14, border:`1.5px solid ${round===id ? meta.color : "rgba(255,255,255,0.1)"}`, background:round===id ? meta.bg : "rgba(255,255,255,0.03)", cursor:"pointer", textAlign:"left", transition:"all 0.15s" }}>
+                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:5 }}>
+                      <span style={{ fontSize:13, fontWeight:700, color:round===id ? "white" : "rgba(255,255,255,0.75)" }}>{meta.label}</span>
+                      <span style={{ fontSize:10, fontWeight:600, padding:"2px 8px", borderRadius:99, background:"rgba(255,255,255,0.08)", color:"rgba(255,255,255,0.45)" }}>{meta.badge}</span>
+                    </div>
+                    <p style={{ fontSize:11, color:"rgba(255,255,255,0.4)", margin:0, lineHeight:1.4 }}>{meta.desc}</p>
+                    <div style={{ marginTop:8, display:"flex", flexWrap:"wrap", gap:4 }}>
+                      {meta.sections.map(s => <span key={s} style={{ fontSize:9.5, fontWeight:600, padding:"2px 7px", borderRadius:99, background:round===id?"rgba(255,255,255,0.12)":"rgba(255,255,255,0.05)", color:round===id?"rgba(255,255,255,0.7)":"rgba(255,255,255,0.3)" }}>{s}</span>)}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Start button */}
             <button
               onClick={()=>void startInterview()}
@@ -3155,7 +3151,7 @@ function ScreenInterview({ stage }: { stage: CareerStage }) {
             </button>
             {!canStart && (
               <p style={{ textAlign:"center", fontSize:12, color:"rgba(255,255,255,0.3)", margin:0 }}>
-                {!resumeText && !jobDesc.trim() ? "Upload your resume and paste the job description to continue" : !resumeText ? "Upload your resume to continue" : "Paste the job description to continue"}
+                {!resumeText ? "Upload your resume" : !jobDesc.trim() ? "Add the job description" : "Select an interview round"} to continue
               </p>
             )}
           </div>
@@ -3164,41 +3160,76 @@ function ScreenInterview({ stage }: { stage: CareerStage }) {
     </div>
   );
 
-  const q = QUESTIONS[qIdx];
+  if (!sections) return (
+    <div style={{ height:"calc(100vh - 56px)", display:"flex", alignItems:"center", justifyContent:"center", background:"#FAFBFF" }}>
+      <p style={{ fontSize:13, color:"#A0AABF" }}>No questions generated — go back and try again.</p>
+    </div>
+  );
+
+  const activeRound = round ? ROUND_META[round] : null;
+  const q = SECTION_QUESTIONS[qIdx];
 
   return (
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#FAFBFF" }}>
-      <div style={{ maxWidth:860, margin:"0 auto", padding:28 }}>
+      <div style={{ maxWidth:900, margin:"0 auto", padding:"24px 28px" }}>
 
         {/* Header */}
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:24, flexWrap:"wrap", gap:12 }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20, flexWrap:"wrap", gap:10 }}>
           <div>
-            <h1 style={{ fontSize:22, fontWeight:900, color:"#0A0A0F", letterSpacing:"-0.03em", marginBottom:3 }}>{SCREEN_INTERVIEW_META[stage].title}</h1>
-            <p style={{ fontSize:13, color:"#68738A" }}>{SCREEN_INTERVIEW_META[stage].subtitle}</p>
-          </div>
-          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <span style={{ fontSize:12, color:"#68738A" }}>Question {qIdx+1} of {QUESTIONS.length}</span>
-            <div style={{ display:"flex", gap:4 }}>
-              {QUESTIONS.map((_,i) => <div key={i} style={{ width:32, height:4, borderRadius:99, background:i<=qIdx?"#4361EE":"#E4E8F5", transition:"background 0.3s" }}/>)}
+            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:3 }}>
+              <h1 style={{ fontSize:21, fontWeight:900, color:"#0A0A0F", letterSpacing:"-0.03em" }}>{SCREEN_INTERVIEW_META[stage].title}</h1>
+              {activeRound && <span style={{ fontSize:11, fontWeight:700, padding:"3px 10px", borderRadius:99, background:activeRound.bg, color:activeRound.color, border:`1px solid ${activeRound.color}40` }}>{activeRound.label}</span>}
             </div>
+            <p style={{ fontSize:12.5, color:"#68738A" }}>{ACTIVE_SECTION?.name} · Question {qIdx+1} of {SECTION_QUESTIONS.length}</p>
           </div>
+          <button onClick={()=>{ setSetupDone(false); setSections(null); setRound(null); setQIdx(0); setActiveSectionIdx(0); setAnswer(""); setSubmitted(false); setFeedback(null); }}
+            style={{ fontSize:12, fontWeight:600, padding:"6px 14px", borderRadius:9, border:"1px solid #E4E8F5", background:"white", color:"#68738A", cursor:"pointer" }}>
+            ← Start over
+          </button>
+        </div>
+
+        {/* Section tabs */}
+        <div style={{ display:"flex", gap:6, marginBottom:20, overflowX:"auto", paddingBottom:2 }}>
+          {sections.map((sec, i) => (
+            <button key={i} onClick={()=>{ setActiveSectionIdx(i); setQIdx(0); setSubmitted(false); setAnswer(""); setFeedback(null); }}
+              style={{ flexShrink:0, padding:"8px 16px", borderRadius:10, border:`1.5px solid ${activeSectionIdx===i?"#4361EE":"#E4E8F5"}`, background:activeSectionIdx===i?"#EEF2FF":"white", color:activeSectionIdx===i?"#4361EE":"#68738A", fontSize:12.5, fontWeight:activeSectionIdx===i?700:500, cursor:"pointer", transition:"all 0.15s", display:"flex", alignItems:"center", gap:6 }}>
+              {sec.name}
+              <span style={{ fontSize:10.5, fontWeight:600, padding:"1px 7px", borderRadius:99, background:activeSectionIdx===i?"rgba(67,97,238,0.15)":"#F1F5F9", color:activeSectionIdx===i?"#4361EE":"#A0AABF" }}>
+                {sec.questions.length}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Section description */}
+        {ACTIVE_SECTION?.description && (
+          <div style={{ background:"#F5F7FF", borderRadius:10, padding:"10px 14px", marginBottom:18, fontSize:12.5, color:"#3451D1", lineHeight:1.5 }}>
+            <strong>This section: </strong>{ACTIVE_SECTION.description}
+          </div>
+        )}
+
+        {/* Progress dots for current section */}
+        <div style={{ display:"flex", gap:4, marginBottom:20 }}>
+          {SECTION_QUESTIONS.map((_,i) => <div key={i} style={{ height:4, flex:1, borderRadius:99, background:i<qIdx?"#4361EE":i===qIdx?"#818CF8":"#E4E8F5", transition:"background 0.3s" }}/>)}
         </div>
 
         {/* Question card */}
-        <div style={{ background:"linear-gradient(135deg,#0F172A,#1E3A8A)", borderRadius:18, padding:"22px 24px", marginBottom:20, boxShadow:"0 12px 32px rgba(15,23,42,0.25)" }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:12 }}>
-            <div style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.12em", color:"rgba(255,255,255,0.5)" }}>
-              {q.cat} · {q.level}
+        {q && (
+          <div style={{ background:"linear-gradient(135deg,#0F172A,#1E3A8A)", borderRadius:18, padding:"22px 24px", marginBottom:20, boxShadow:"0 12px 32px rgba(15,23,42,0.25)" }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:12 }}>
+              <div style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.12em", color:"rgba(255,255,255,0.5)" }}>
+                {q.cat} · {q.level}
+              </div>
+              <div style={{ display:"flex", gap:6 }}>
+                {["Situation","Task","Action","Result"].map(s => <span key={s} style={{ fontSize:9.5, fontWeight:600, padding:"2px 8px", borderRadius:99, background:"rgba(255,255,255,0.12)", color:"rgba(255,255,255,0.75)" }}>{s}</span>)}
+              </div>
             </div>
-            <div style={{ display:"flex", gap:6 }}>
-              {["Situation","Task","Action","Result"].map(s => <span key={s} style={{ fontSize:9.5, fontWeight:600, padding:"2px 8px", borderRadius:99, background:"rgba(255,255,255,0.12)", color:"rgba(255,255,255,0.75)" }}>{s}</span>)}
+            <p style={{ fontSize:15.5, fontWeight:600, color:"white", lineHeight:1.65 }}>{q.q}</p>
+            <div style={{ marginTop:14, fontSize:12, color:"rgba(255,255,255,0.4)" }}>
+              Tip: Aim for 2–3 minutes. Lead with the Situation, make the Result specific and measurable.
             </div>
           </div>
-          <p style={{ fontSize:15.5, fontWeight:600, color:"white", lineHeight:1.65 }}>{q.q}</p>
-          <div style={{ marginTop:14, fontSize:12, color:"rgba(255,255,255,0.4)" }}>
-            Tip: Aim for 2–3 minutes. Lead with the Situation, make the Result specific and measurable.
-          </div>
-        </div>
+        )}
 
         {!submitted ? (
           <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:18, padding:22, boxShadow:"0 2px 12px rgba(0,0,0,0.06)" }}>
@@ -3209,8 +3240,6 @@ function ScreenInterview({ stage }: { stage: CareerStage }) {
                 {isRecording ? `Stop · ${fmt(recTime)}` : "Record voice"}
               </button>
             </div>
-
-            {/* Voice waveform when recording */}
             {isRecording && (
               <div style={{ background:"#EEF2FF", borderRadius:12, padding:"14px 18px", marginBottom:14, display:"flex", alignItems:"center", gap:12 }}>
                 <span style={{ fontSize:11, fontWeight:700, color:"#4361EE" }}>Recording…</span>
@@ -3219,7 +3248,6 @@ function ScreenInterview({ stage }: { stage: CareerStage }) {
                 </div>
               </div>
             )}
-
             <textarea
               style={{ width:"100%", minHeight:160, border:"1.5px solid #E4E8F5", borderRadius:12, padding:"12px 14px", fontSize:14, lineHeight:1.7, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", transition:"border-color 0.2s" }}
               placeholder="Type your answer here, or click 'Record voice' to speak. Use Situation → Task → Action → Result."
@@ -3244,51 +3272,53 @@ function ScreenInterview({ stage }: { stage: CareerStage }) {
               </div>
             )}
             {!isScoring && (
-            <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:18, padding:22, marginBottom:14, boxShadow:"0 2px 12px rgba(0,0,0,0.06)" }}>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:18 }}>
-                <p style={{ fontSize:14, fontWeight:700, color:"#0A0A0F" }}>Zari&apos;s feedback</p>
-                <div style={{ display:"flex", alignItems:"center", gap:6, padding:"4px 12px", borderRadius:99, background:"#F0FFF4", border:"1px solid #BBF7D0" }}>
-                  <span style={{ fontSize:20, fontWeight:900, color:"#16A34A" }}>{feedback?.overallScore ?? 79}</span>
-                  <span style={{ fontSize:11, color:"#16A34A", fontWeight:600 }}>/ 100</span>
+              <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:18, padding:22, marginBottom:14, boxShadow:"0 2px 12px rgba(0,0,0,0.06)" }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:18 }}>
+                  <p style={{ fontSize:14, fontWeight:700, color:"#0A0A0F" }}>Zari&apos;s feedback</p>
+                  <div style={{ display:"flex", alignItems:"center", gap:6, padding:"4px 12px", borderRadius:99, background:"#F0FFF4", border:"1px solid #BBF7D0" }}>
+                    <span style={{ fontSize:20, fontWeight:900, color:"#16A34A" }}>{feedback?.overallScore ?? 79}</span>
+                    <span style={{ fontSize:11, color:"#16A34A", fontWeight:600 }}>/ 100</span>
+                  </div>
                 </div>
-              </div>
-
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:18 }}>
-                {(feedback?.dimensions ?? [
-                  { label:"STAR Structure",   score:88 },
-                  { label:"Evidence",         score:82 },
-                  { label:"Impact clarity",   score:64 },
-                  { label:"Concision",        score:58 },
-                  { label:"Leadership signal",score:79 },
-                  { label:"Stakeholder lens", score:74 },
-                ]).map(s => {
-                  const color = dimColor(s.score);
-                  return (
-                    <div key={s.label} style={{ background:"#FAFBFF", border:"1px solid #F1F5F9", borderRadius:10, padding:"10px 12px" }}>
-                      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
-                        <span style={{ fontSize:11.5, color:"#68738A" }}>{s.label}</span>
-                        <span style={{ fontSize:13, fontWeight:800, color }}>{s.score}</span>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:18 }}>
+                  {(feedback?.dimensions ?? []).map(s => {
+                    const color = dimColor(s.score);
+                    return (
+                      <div key={s.label} style={{ background:"#FAFBFF", border:"1px solid #F1F5F9", borderRadius:10, padding:"10px 12px" }}>
+                        <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
+                          <span style={{ fontSize:11.5, color:"#68738A" }}>{s.label}</span>
+                          <span style={{ fontSize:13, fontWeight:800, color }}>{s.score}</span>
+                        </div>
+                        <Bar pct={s.score} color={color}/>
                       </div>
-                      <Bar pct={s.score} color={color}/>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
+                <div style={{ background:"#F5F7FF", borderRadius:12, padding:16, marginBottom:12 }}>
+                  <p style={{ fontSize:12, fontWeight:700, color:"#4361EE", marginBottom:6 }}>Coaching note from Zari</p>
+                  <p style={{ fontSize:13, color:"#3451D1", lineHeight:1.65 }}>{feedback?.coachNote}</p>
+                </div>
+                {feedback?.suggestedResult && (
+                  <div style={{ background:"#F0FFF4", borderRadius:12, padding:"12px 16px" }}>
+                    <p style={{ fontSize:12, fontWeight:700, color:"#16A34A", marginBottom:5 }}>Suggested Result statement</p>
+                    <p style={{ fontSize:12.5, color:"#14532D", lineHeight:1.6, fontStyle:"italic" }}>&ldquo;{feedback.suggestedResult}&rdquo;</p>
+                  </div>
+                )}
               </div>
-
-              <div style={{ background:"#F5F7FF", borderRadius:12, padding:16, marginBottom:12 }}>
-                <p style={{ fontSize:12, fontWeight:700, color:"#4361EE", marginBottom:6 }}>Coaching note from Zari</p>
-                <p style={{ fontSize:13, color:"#3451D1", lineHeight:1.65 }}>{feedback?.coachNote ?? "Strong structure overall. The gap is in your Result — make it specific with a number, timeline, or business outcome. Panels score Result twice as heavily as the other components."}</p>
-              </div>
-
-              <div style={{ background:"#F0FFF4", borderRadius:12, padding:"12px 16px" }}>
-                <p style={{ fontSize:12, fontWeight:700, color:"#16A34A", marginBottom:5 }}>Suggested Result statement</p>
-                <p style={{ fontSize:12.5, color:"#14532D", lineHeight:1.6, fontStyle:"italic" }}>&ldquo;{feedback?.suggestedResult ?? "The outcome was delivered 2 weeks ahead of schedule, which unblocked the next sprint and directly contributed to the Q3 launch target."}&rdquo;</p>
-              </div>
-            </div>
             )}
             <div style={{ display:"flex", gap:10 }}>
               <button onClick={()=>{setSubmitted(false);setAnswer("");setFeedback(null);}} style={{ flex:1, fontSize:13.5, fontWeight:600, padding:"12px", borderRadius:12, border:"1px solid #E4E8F5", background:"white", color:"#0A0A0F", cursor:"pointer" }}>Try again</button>
-              <button onClick={()=>{setQIdx(q=>(q+1)%QUESTIONS.length);setSubmitted(false);setAnswer("");setFeedback(null);}} style={{ flex:1, fontSize:13.5, fontWeight:700, padding:"12px", borderRadius:12, border:"none", background:"#4361EE", color:"white", cursor:"pointer", boxShadow:"0 4px 14px rgba(67,97,238,0.28)" }}>Next question →</button>
+              <button onClick={()=>{
+                const nextQ = qIdx + 1;
+                if (nextQ < SECTION_QUESTIONS.length) { setQIdx(nextQ); }
+                else {
+                  const nextSec = activeSectionIdx + 1;
+                  if (nextSec < sections.length) { setActiveSectionIdx(nextSec); setQIdx(0); }
+                }
+                setSubmitted(false); setAnswer(""); setFeedback(null);
+              }} style={{ flex:1, fontSize:13.5, fontWeight:700, padding:"12px", borderRadius:12, border:"none", background:"#4361EE", color:"white", cursor:"pointer", boxShadow:"0 4px 14px rgba(67,97,238,0.28)" }}>
+                {qIdx+1 < SECTION_QUESTIONS.length ? "Next question →" : activeSectionIdx+1 < sections.length ? `Next section: ${sections[activeSectionIdx+1]?.name} →` : "All done ✓"}
+              </button>
             </div>
           </>
         )}
