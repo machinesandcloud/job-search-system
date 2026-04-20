@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { openaiChat } from "@/lib/openai";
 import { ensureSameOrigin } from "@/lib/utils";
+
+export const runtime = "nodejs";
+
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const pdfParse = require("pdf-parse/lib/pdf-parse") as (buf: Buffer) => Promise<{ text: string }>;
 
@@ -54,7 +57,7 @@ Rules:
       { role: "system", content: systemPrompt },
       { role: "user", content: `Parse this LinkedIn profile:\n\n${rawText.slice(0, 14000)}` },
     ],
-    { model: "gpt-4o-mini", temperature: 0.1, maxTokens: 4000, jsonMode: true }
+    { model: "gpt-4o-mini", temperature: 0.1, maxTokens: 3000, jsonMode: true }
   );
 
   if (!reply) throw new Error("AI parsing failed");

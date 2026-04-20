@@ -3311,7 +3311,10 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
       fd.append("file", file);
       const pr = await fetch("/api/zari/linkedin/parse-profile", { method:"POST", body:fd });
       const pd = await pr.json().catch(() => null);
-      if (!pr.ok || !pd || pd.error) { setErr(pd?.error ?? "Could not read your file."); setParseLoading(false); return; }
+      if (!pr.ok || !pd || pd.error) {
+        const msg = pd?.error ?? `Upload failed (HTTP ${pr.status}). Try again or check your PDF.`;
+        setErr(msg); setParseLoading(false); return;
+      }
       const parsed = pd as { headline:string; summary:string; experienceJobs:ParsedJob[]; education:string; skills:string; linkedinUrl:string; hasPhoto:boolean; recommendations:string };
 
       setLoadingMsg("Analyzing your profile…");
