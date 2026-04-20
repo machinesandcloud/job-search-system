@@ -221,19 +221,26 @@ You are speaking out loud right now in a live voice call. Hard rules:
     messages.push({ role: "user", content: message });
   }
 
-  /* ── Voice mode: streaming SSE response ── */
+  /* ── Voice mode: streaming SSE — Groq if available (10x faster), else OpenAI ── */
   if (isVoice) {
-    const apiKey = process.env.OPENAI_API_KEY!;
-    const model  = process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o-mini";
-    const oaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+    const groqKey = process.env.GROQ_API_KEY;
+    const endpoint = groqKey
+      ? "https://api.groq.com/openai/v1/chat/completions"
+      : "https://api.openai.com/v1/chat/completions";
+    const authKey = groqKey ?? process.env.OPENAI_API_KEY!;
+    const model   = groqKey
+      ? (process.env.GROQ_MODEL ?? "llama-3.1-8b-instant")
+      : (process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o-mini");
+
+    const streamRes = await fetch(endpoint, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${authKey}` },
       body: JSON.stringify({ model, messages, temperature: 0.8, max_tokens: 120, stream: true }),
     });
-    if (!oaiRes.ok || !oaiRes.body) {
+    if (!streamRes.ok || !streamRes.body) {
       return NextResponse.json({ message: "Having trouble right now — try again." });
     }
-    return new Response(oaiRes.body, {
+    return new Response(streamRes.body, {
       headers: {
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",

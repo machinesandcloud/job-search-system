@@ -1536,11 +1536,20 @@ function ZariLiveMode({
   onNewMessages: (m: ChatMsg[]) => void;
 }) {
   type LiveState = "idle" | "listening" | "thinking" | "speaking";
+  type VoiceOption = { key: string; label: string; gender: string; provider: string };
   const [liveState, setLiveState]   = useState<LiveState>("idle");
   const [transcript, setTranscript] = useState<ChatMsg[]>([]);
   const [interimText, setInterimText] = useState("");
   const [statusText, setStatusText] = useState("Tap the mic to start");
   const [started, setStarted]       = useState(false);
+  const [voices, setVoices]         = useState<VoiceOption[]>([]);
+  const [activeVoice, setActiveVoice] = useState("");
+
+  useEffect(() => {
+    fetch("/api/zari/voices").then(r => r.json()).then((d: { voices: VoiceOption[]; }) => {
+      if (d.voices?.length) { setVoices(d.voices); setActiveVoice(d.voices[0].key); }
+    }).catch(() => {});
+  }, []);
 
   type SR = { continuous: boolean; interimResults: boolean; lang: string; start(): void; stop(): void; onresult: ((e: { results: { length: number; [i: number]: { isFinal: boolean; [j: number]: { transcript: string } } } }) => void) | null; onerror: (() => void) | null; onend: (() => void) | null };
   const audioRef        = useRef<HTMLAudioElement | null>(null);
@@ -1550,8 +1559,10 @@ function ZariLiveMode({
   const recognitionRef  = useRef<SR | null>(null);
   const transcriptRef   = useRef<HTMLDivElement>(null);
   const aliveRef        = useRef(true);
+  const activeVoiceRef  = useRef("");
 
   useEffect(() => { liveStateRef.current = liveState; }, [liveState]);
+  useEffect(() => { activeVoiceRef.current = activeVoice; }, [activeVoice]);
   useEffect(() => {
     if (transcriptRef.current) transcriptRef.current.scrollTop = transcriptRef.current.scrollHeight;
   }, [transcript, interimText]);
@@ -1609,7 +1620,7 @@ function ZariLiveMode({
           try {
             const res = await fetch("/api/zari/speak", {
               method: "POST", headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ text }),
+              body: JSON.stringify({ text, voice: activeVoiceRef.current }),
             });
             if (!res.ok || !res.body || !aliveRef.current) { try { ms.endOfStream(); } catch {} resolve(); return; }
 
@@ -1633,7 +1644,7 @@ function ZariLiveMode({
           try {
             const res = await fetch("/api/zari/speak", {
               method: "POST", headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ text }),
+              body: JSON.stringify({ text, voice: activeVoiceRef.current }),
             });
             if (!res.ok || !aliveRef.current) { resolve(); return; }
             const blobUrl = URL.createObjectURL(await res.blob());
@@ -1861,9 +1872,29 @@ function ZariLiveMode({
           }
         </button>
         <p style={{ color:"rgba(255,255,255,0.25)", fontSize:11, margin:0, letterSpacing:"0.04em" }}>
-          {liveState==="listening" ? "auto-stops on silence · tap to cut off" : liveState==="speaking" ? "Zari is speaking · tap mic to interrupt" : liveState==="thinking" ? "processing…" : started ? "auto-listening after Zari speaks" : "tap to start the conversation"}
+          {liveState==="listening" ? "auto-stops on silence · tap to cut off" : liveState==="speaking" ? "Zari is speaking…" : liveState==="thinking" ? "processing…" : started ? "auto-listening after Zari speaks" : "tap to start"}
         </p>
       </div>
+
+      {/* Voice picker */}
+      {voices.length > 0 && (
+        <div style={{ position:"relative", zIndex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:8, marginTop:20 }}>
+          <p style={{ color:"rgba(255,255,255,0.2)", fontSize:10, margin:0, letterSpacing:"0.08em", textTransform:"uppercase" }}>Voice</p>
+          <div style={{ display:"flex", gap:6, flexWrap:"wrap", justifyContent:"center" }}>
+            {voices.map(v => (
+              <button key={v.key} onClick={() => setActiveVoice(v.key)} style={{
+                padding:"5px 12px", borderRadius:99, fontSize:11, fontWeight:600, cursor:"pointer",
+                border:`1px solid ${activeVoice===v.key ? "rgba(99,102,241,0.8)" : "rgba(255,255,255,0.1)"}`,
+                background: activeVoice===v.key ? "rgba(99,102,241,0.3)" : "rgba(255,255,255,0.04)",
+                color: activeVoice===v.key ? "rgba(165,180,252,1)" : "rgba(255,255,255,0.35)",
+                transition:"all 0.15s",
+              }}>
+                {v.gender === "f" ? "♀" : "♂"} {v.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
