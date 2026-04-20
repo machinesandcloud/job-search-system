@@ -5,6 +5,44 @@ import Link from "next/link";
 import { ZariLogo } from "@/components/zari-logo";
 import { ZariAvatar, type AvatarState } from "@/components/zari-avatar";
 
+
+/* ═══════════════════════════════════════════════════
+   DOC VAULT  (localStorage-backed shared document store)
+═══════════════════════════════════════════════════ */
+type DocType = "resume" | "cover-letter" | "linkedin" | "upload";
+type DocEntry = {
+  id: string;
+  type: DocType;
+  name: string;
+  content: string;
+  meta: Record<string, string>;
+  createdAt: number;
+};
+
+const VAULT_KEY = "zari-vault-v1";
+
+function vaultRead(): DocEntry[] {
+  try { return JSON.parse(localStorage.getItem(VAULT_KEY) ?? "[]") as DocEntry[]; }
+  catch { return []; }
+}
+
+function vaultSave(entry: Omit<DocEntry, "id" | "createdAt">): void {
+  const docs = vaultRead();
+  const idx = docs.findIndex(d => d.type === entry.type && d.name === entry.name);
+  const record: DocEntry = { ...entry, id: entry.type + "_" + Date.now(), createdAt: Date.now() };
+  if (idx > -1) docs[idx] = record; else docs.unshift(record);
+  localStorage.setItem(VAULT_KEY, JSON.stringify(docs));
+}
+
+function vaultRemove(id: string): void {
+  const docs = vaultRead().filter(d => d.id !== id);
+  localStorage.setItem(VAULT_KEY, JSON.stringify(docs));
+}
+
+function vaultHas(type: DocType): boolean {
+  return vaultRead().some(d => d.type === type);
+}
+
 /* ═══════════════════════════════════════════════════
    TYPES
 ═══════════════════════════════════════════════════ */
@@ -1353,6 +1391,8 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
       setProgress(100);
       if (data && data.overall) {
         setAiResult(data);
+        // Save to doc vault
+        vaultSave({ type:"resume", name:fileName||"Resume", content:textToAnalyze, meta:{ score:String(data.overall), targetRole:targetRoleInput||"" } });
         // Always persist to localStorage so history works regardless of auth state
         pushLocalHistory({
           id: `local_${Date.now()}`,
@@ -3431,6 +3471,8 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
         setSkills(parsed.skills); setLinkedinUrl(parsed.linkedinUrl);
         setHasPhoto(parsed.hasPhoto);
         setResult(reviewData); setInputMode(false); setLISection("score");
+        // Save to doc vault
+        vaultSave({ type:"linkedin", name:parsed.headline||"LinkedIn Profile", content:[parsed.headline,parsed.summary].join("\n\n"), meta:{ score:String(reviewData.overall??0), headline:parsed.headline||"", targetRole } });
       } else {
         setErr(reviewData?.error ?? `Analysis failed (HTTP ${reviewRes.status}) — try again.`);
       }
@@ -4135,27 +4177,92 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
 /* ═══════════════════════════════════════════════════
    SCREEN: DOCUMENTS — drag-drop vault
 ═══════════════════════════════════════════════════ */
-function ScreenDocuments() {
-  const [dragging, setDragging] = useState(false);
-  const [uploading, setUploading] = useState(false);
+function ScreenDocuments({ onNavigate }: { onNavigate: (s: string) => void }) {
+  const [docs,        setDocs]        = useState<DocEntry[]>([]);
+  const [preview,     setPreview]     = useState<DocEntry | null>(null);
+  const [dragging,    setDragging]    = useState(false);
+  const [uploading,   setUploading]   = useState(false);
+  const fileInputRef  = useRef<HTMLInputElement>(null);
 
-  function handleDrop() {
-    setDragging(false);
+  function reload() { setDocs(vaultRead()); }
+  useEffect(() => { reload(); }, []);
+
+  async function handleFile(file: File) {
     setUploading(true);
-    setTimeout(() => setUploading(false), 2000);
+    try {
+      const fd = new FormData(); fd.append("file", file);
+      const res  = await fetch("/api/zari/extract", { method:"POST", body:fd });
+      const data = await res.json().catch(() => ({})) as { text?: string };
+      const text = data.text ?? await file.text();
+      vaultSave({ type:"upload", name:file.name, content:text, meta:{ size:String(Math.round(file.size/1024))+"KB" } });
+      reload();
+    } catch { /* silent */ }
+    setUploading(false);
   }
+
+  function downloadDoc(doc: DocEntry) {
+    const blob = new Blob([doc.content], { type:"text/plain" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = doc.name.replace(/[^a-zA-Z0-9_\-. ]/g,"_") + ".txt";
+    a.click();
+  }
+
+  const TYPE_META: Record<DocType, { label:string; color:string; bg:string; icon: React.ReactNode; section: string }> = {
+    "resume":       { label:"Resume",       color:"#7C3AED", bg:"#F5F3FF", section:"resume",       icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><path d="M13 2H5a1.5 1.5 0 00-1.5 1.5v13A1.5 1.5 0 005 18h10a1.5 1.5 0 001.5-1.5V6L13 2z"/><path d="M13 2v4h4"/><path d="M7 9h6M7 12h4"/></svg> },
+    "linkedin":     { label:"LinkedIn",     color:"#0A66C2", bg:"#EFF6FF", section:"linkedin",     icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><rect x="2" y="2" width="16" height="16" rx="3"/><path d="M6 9v5M6 7v.01M10 14v-3a2 2 0 014 0v3M10 9v5"/></svg> },
+    "cover-letter": { label:"Cover Letter", color:"#059669", bg:"#ECFDF5", section:"cover-letter", icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><path d="M17 4H3a1 1 0 00-1 1v10a1 1 0 001 1h14a1 1 0 001-1V5a1 1 0 00-1-1z"/><path d="M1 5l9 7 9-7"/></svg> },
+    "upload":       { label:"Uploaded",     color:"#68738A", bg:"#F5F7FF", section:"documents",    icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><path d="M14 2H6a1.5 1.5 0 00-1.5 1.5v13A1.5 1.5 0 006 18h8a1.5 1.5 0 001.5-1.5V6L14 2z"/><path d="M14 2v4h4"/></svg> },
+  };
+
+  const SECTION_CARDS = [
+    { type:"resume"       as DocType, label:"Resume Review",   desc:"Upload and analyze your resume",          section:"resume",       color:"#7C3AED", bg:"#F5F3FF" },
+    { type:"linkedin"     as DocType, label:"LinkedIn Profile", desc:"Review and optimize your LinkedIn",       section:"linkedin",     color:"#0A66C2", bg:"#EFF6FF" },
+    { type:"cover-letter" as DocType, label:"Cover Letter",     desc:"Generate a tailored cover letter",        section:"cover-letter", color:"#059669", bg:"#ECFDF5" },
+  ];
+
+  const missing = SECTION_CARDS.filter(c => !docs.some(d => d.type === c.type));
+  const words = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
 
   return (
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#FAFBFF" }}>
-      <div style={{ maxWidth:840, margin:"0 auto", padding:28 }}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:22 }}>
-          <div>
-            <h1 style={{ fontSize:22, fontWeight:900, letterSpacing:"-0.03em", color:"#0A0A0F", marginBottom:4 }}>My Documents</h1>
-            <p style={{ fontSize:13, color:"#68738A" }}>Zari uses these automatically in every session — always up to date</p>
+      {/* Preview modal */}
+      {preview && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", zIndex:200, display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}
+          onClick={()=>setPreview(null)}>
+          <div style={{ background:"white", borderRadius:20, width:"100%", maxWidth:680, maxHeight:"80vh", display:"flex", flexDirection:"column", overflow:"hidden", boxShadow:"0 24px 80px rgba(0,0,0,0.25)" }}
+            onClick={e=>e.stopPropagation()}>
+            <div style={{ padding:"16px 20px", borderBottom:"1px solid #F1F5F9", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
+              <div>
+                <span style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:TYPE_META[preview.type].color }}>{TYPE_META[preview.type].label}</span>
+                <p style={{ fontSize:14, fontWeight:700, color:"#0A0A0F", margin:0 }}>{preview.name}</p>
+              </div>
+              <div style={{ display:"flex", gap:8 }}>
+                <button onClick={()=>downloadDoc(preview)} style={{ fontSize:12, fontWeight:600, padding:"6px 14px", borderRadius:9, border:"1px solid #E4E8F5", background:"white", color:"#68738A", cursor:"pointer" }}>Download</button>
+                <button onClick={()=>setPreview(null)} style={{ width:30, height:30, borderRadius:"50%", border:"none", background:"#F1F5F9", color:"#68738A", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, fontWeight:700 }}>×</button>
+              </div>
+            </div>
+            <div style={{ padding:"20px 24px", overflowY:"auto", flex:1 }}>
+              <pre style={{ fontFamily:"Georgia,'Times New Roman',serif", fontSize:13, lineHeight:1.8, color:"#1E2235", whiteSpace:"pre-wrap", margin:0 }}>{preview.content}</pre>
+            </div>
           </div>
-          <button style={{ fontSize:13, fontWeight:700, padding:"9px 18px", borderRadius:10, border:"none", background:"#4361EE", color:"white", cursor:"pointer", display:"flex", alignItems:"center", gap:7, boxShadow:"0 4px 14px rgba(67,97,238,0.28)" }}>
+        </div>
+      )}
+
+      <input ref={fileInputRef} type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }}
+        onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleFile(f); e.target.value=""; }}/>
+
+      <div style={{ maxWidth:860, margin:"0 auto", padding:28 }}>
+
+        {/* Header */}
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:24 }}>
+          <div>
+            <h1 style={{ fontSize:22, fontWeight:900, letterSpacing:"-0.03em", color:"#0A0A0F", marginBottom:4 }}>Documents</h1>
+            <p style={{ fontSize:13, color:"#68738A" }}>Everything Zari has created or analyzed — all in one place</p>
+          </div>
+          <button onClick={()=>fileInputRef.current?.click()} style={{ fontSize:13, fontWeight:700, padding:"9px 18px", borderRadius:10, border:"none", background:"#4361EE", color:"white", cursor:"pointer", display:"flex", alignItems:"center", gap:7, boxShadow:"0 4px 14px rgba(67,97,238,0.28)", flexShrink:0 }}>
             <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:14,height:14 }}><path d="M10 3v12M4 9l6-6 6 6"/></svg>
-            Upload document
+            Upload
           </button>
         </div>
 
@@ -4163,56 +4270,81 @@ function ScreenDocuments() {
         <div
           onDragOver={e=>{e.preventDefault();setDragging(true);}}
           onDragLeave={()=>setDragging(false)}
-          onDrop={e=>{e.preventDefault();handleDrop();}}
-          style={{ border:`2px dashed ${dragging?"#4361EE":"#CBD5E1"}`, borderRadius:18, padding:40, textAlign:"center", marginBottom:22, cursor:"pointer", background:dragging?"#EEF2FF":"white", transition:"all 0.2s", position:"relative" }}
-        >
+          onDrop={e=>{ e.preventDefault(); setDragging(false); const f=e.dataTransfer.files?.[0]; if(f) void handleFile(f); }}
+          onClick={()=>fileInputRef.current?.click()}
+          style={{ border:`2px dashed ${dragging?"#4361EE":"#CBD5E1"}`, borderRadius:16, padding:"24px 32px", textAlign:"center", marginBottom:24, cursor:"pointer", background:dragging?"#EEF2FF":"white", transition:"all 0.2s" }}>
           {uploading ? (
-            <div>
-              <div style={{ width:44, height:44, borderRadius:12, background:"#EEF2FF", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 12px", animation:"sphere-breathe 1s ease-in-out infinite" }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="#4361EE" strokeWidth="1.8" style={{ width:22,height:22,animation:"spin-slow 1.5s linear infinite" }}><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-              </div>
-              <p style={{ fontSize:14, fontWeight:600, color:"#4361EE" }}>Uploading &amp; indexing…</p>
-            </div>
+            <p style={{ fontSize:13, fontWeight:600, color:"#4361EE" }}>Uploading and indexing…</p>
           ) : (
             <>
-              <div style={{ width:44, height:44, borderRadius:12, background:"#F5F7FF", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 12px" }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="#4361EE" strokeWidth="1.8" style={{ width:22,height:22 }}><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              </div>
-              <p style={{ fontSize:14, fontWeight:600, color:"#0A0A0F", marginBottom:4 }}>Drop resume, cover letter, or LinkedIn export here</p>
-              <p style={{ fontSize:12.5, color:"#A0AABF" }}>PDF · DOCX · TXT · LinkedIn PDF export</p>
+              <p style={{ fontSize:13, fontWeight:600, color:"#0A0A0F", marginBottom:3 }}>Drop a file here to add it to your vault</p>
+              <p style={{ fontSize:12, color:"#A0AABF" }}>PDF · DOCX · TXT — resume, notes, job descriptions, anything</p>
             </>
           )}
         </div>
 
-        {/* File list */}
-        {[
-          { name:"Resume_PM_v3.pdf",           type:"Resume",        size:"82 KB", date:"Today",      score:89, color:"#4361EE", bg:"#EEF2FF", status:"Analyzed · Used in 5 sessions" },
-          { name:"LinkedIn_profile_export.pdf", type:"LinkedIn",      size:"34 KB", date:"2 days ago", score:91, color:"#16A34A", bg:"#F0FFF4", status:"Analyzed · Optimized" },
-          { name:"Cover_letter_Notion.docx",    type:"Cover letter",  size:"12 KB", date:"Last week",  score:null, color:"#8B5CF6", bg:"#F5F3FF", status:"Indexed · Not reviewed yet" },
-        ].map(doc => (
-          <div key={doc.name} style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:14, padding:"14px 18px", marginBottom:10, display:"flex", alignItems:"center", gap:14, boxShadow:"0 1px 4px rgba(0,0,0,0.04)" }}>
-            <div style={{ width:44, height:44, borderRadius:12, background:doc.bg, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke={doc.color} strokeWidth="1.8" style={{ width:20,height:20 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            </div>
-            <div style={{ flex:1, minWidth:0 }}>
-              <p style={{ fontSize:13.5, fontWeight:700, color:"#0A0A0F", marginBottom:2 }}>{doc.name}</p>
-              <p style={{ fontSize:11, color:"#68738A" }}>{doc.type} · {doc.size} · {doc.date} · {doc.status}</p>
-            </div>
-            {doc.score && (
-              <div style={{ display:"flex", alignItems:"center", gap:4 }}>
-                <ScoreRing score={doc.score} color={doc.color} size={44}/>
-              </div>
-            )}
-            <div style={{ display:"flex", gap:7 }}>
-              <button style={{ fontSize:11.5, fontWeight:600, padding:"6px 12px", borderRadius:8, border:"1px solid #E4E8F5", background:"white", color:"#68738A", cursor:"pointer" }}>View</button>
-              <button style={{ fontSize:11.5, fontWeight:600, padding:"6px 12px", borderRadius:8, border:"none", background:"#4361EE", color:"white", cursor:"pointer" }}>Review with Zari</button>
+        {/* Missing section nudges */}
+        {missing.length > 0 && (
+          <div style={{ marginBottom:24 }}>
+            <p style={{ fontSize:12, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A0AABF", marginBottom:12 }}>Complete these to unlock your full vault</p>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))", gap:10 }}>
+              {missing.map(c => (
+                <button key={c.type} onClick={()=>onNavigate(c.section)}
+                  style={{ background:"white", border:`1.5px dashed ${c.color}50`, borderRadius:14, padding:"14px 16px", cursor:"pointer", textAlign:"left", display:"flex", alignItems:"center", gap:12, transition:"all 0.15s" }}>
+                  <div style={{ width:36, height:36, borderRadius:10, background:c.bg, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:c.color }}>{TYPE_META[c.type].icon}</div>
+                  <div>
+                    <div style={{ fontSize:13, fontWeight:700, color:"#0A0A0F", marginBottom:2 }}>{c.label}</div>
+                    <div style={{ fontSize:11, color:"#68738A" }}>{c.desc}</div>
+                  </div>
+                  <svg viewBox="0 0 16 16" fill="none" stroke={c.color} strokeWidth="2" style={{width:12,height:12,marginLeft:"auto",flexShrink:0}}><path d="M4 8h8M9 4l4 4-4 4"/></svg>
+                </button>
+              ))}
             </div>
           </div>
-        ))}
+        )}
+
+        {/* Document list */}
+        {docs.length === 0 ? (
+          <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:16, padding:"48px 32px", textAlign:"center" }}>
+            <div style={{ width:52, height:52, borderRadius:14, background:"#F5F7FF", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px", color:"#A0AABF" }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:24,height:24}}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <p style={{ fontSize:15, fontWeight:700, color:"#0A0A0F", marginBottom:6 }}>Your vault is empty</p>
+            <p style={{ fontSize:13, color:"#68738A", marginBottom:18 }}>Complete a section above or upload a file to get started</p>
+          </div>
+        ) : (
+          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+            {docs.map(doc => {
+              const m = TYPE_META[doc.type];
+              const date = new Date(doc.createdAt).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+              const wc   = words(doc.content);
+              return (
+                <div key={doc.id} style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:14, padding:"14px 18px", display:"flex", alignItems:"center", gap:14, boxShadow:"0 1px 4px rgba(0,0,0,0.04)" }}>
+                  <div style={{ width:44, height:44, borderRadius:12, background:m.bg, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:m.color }}>{m.icon}</div>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <p style={{ fontSize:13.5, fontWeight:700, color:"#0A0A0F", marginBottom:3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{doc.name}</p>
+                    <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
+                      <span style={{ fontSize:11, fontWeight:700, padding:"2px 8px", borderRadius:99, background:m.bg, color:m.color }}>{m.label}</span>
+                      <span style={{ fontSize:11, color:"#A0AABF" }}>{wc.toLocaleString()} words · {date}</span>
+                      {doc.meta.score && <span style={{ fontSize:11, fontWeight:700, color:"#16A34A" }}>Score {doc.meta.score}</span>}
+                    </div>
+                  </div>
+                  <div style={{ display:"flex", gap:7, flexShrink:0 }}>
+                    <button onClick={()=>setPreview(doc)} style={{ fontSize:11.5, fontWeight:600, padding:"6px 12px", borderRadius:8, border:"1px solid #E4E8F5", background:"white", color:"#68738A", cursor:"pointer" }}>Preview</button>
+                    <button onClick={()=>downloadDoc(doc)} style={{ fontSize:11.5, fontWeight:600, padding:"6px 12px", borderRadius:8, border:"1px solid #E4E8F5", background:"white", color:"#68738A", cursor:"pointer" }}>Download</button>
+                    <button onClick={()=>onNavigate(m.section)} style={{ fontSize:11.5, fontWeight:600, padding:"6px 14px", borderRadius:8, border:"none", background:"#4361EE", color:"white", cursor:"pointer" }}>Open</button>
+                    <button onClick={()=>{ vaultRemove(doc.id); reload(); }} style={{ fontSize:11.5, fontWeight:600, padding:"6px 10px", borderRadius:8, border:"1px solid #FEE2E2", background:"#FEF2F2", color:"#DC2626", cursor:"pointer" }}>✕</button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
 }
+
 
 const STAGE_TASKS: Record<CareerStage, { text:string; cat:string; pri:string }[]> = {
   "job-search": [
@@ -4319,7 +4451,9 @@ function ScreenCoverLetter() {
         body: JSON.stringify({ profileText, jobDescription:jobDesc, company, targetRole, tone, candidateName }),
       });
       const data = await res.json().catch(() => null) as { subject?: string; coverLetter?: string; error?: string } | null;
-      if (data?.coverLetter) { setResult({ subject:data.subject ?? "", coverLetter:data.coverLetter }); setEditedLetter(data.coverLetter); }
+      if (data?.coverLetter) { setResult({ subject:data.subject ?? "", coverLetter:data.coverLetter }); setEditedLetter(data.coverLetter);
+        // Save to doc vault
+        vaultSave({ type:"cover-letter", name:data.subject||targetRole||"Cover Letter", content:data.coverLetter, meta:{ subject:data.subject??"", targetRole, company, tone } }); }
       else setError(data?.error ?? "Generation failed — try again.");
     } catch { setError("Something went wrong — try again."); }
     setGenerating(false);
@@ -4679,54 +4813,137 @@ function ScreenCoverLetter() {
 ═══════════════════════════════════════════════════ */
 type PlanTask = { text: string; cat: string; pri: string };
 
-function ScreenPlan({ stage }: { stage: CareerStage }) {
-  const [done,        setDone]        = useState<Set<number>>(new Set([0]));
+function ScreenPlan({ stage, onNavigate }: { stage: CareerStage; onNavigate: (s: string) => void }) {
+  const [done,        setDone]        = useState<Set<number>>(new Set());
   const [aiTasks,     setAiTasks]     = useState<PlanTask[] | null>(null);
   const [aiCoachNote, setAiCoachNote] = useState<string | null>(null);
   const [planLoading, setPlanLoading] = useState(false);
+  const [docs,        setDocs]        = useState<DocEntry[]>([]);
 
-  // Fetch AI plan on mount / stage change
+  useEffect(() => { setDocs(vaultRead()); }, [stage]);
+
+  const hasResume  = docs.some(d => d.type === "resume");
+  const hasLI      = docs.some(d => d.type === "linkedin");
+  const hasCL      = docs.some(d => d.type === "cover-letter");
+  const readyCount = [hasResume, hasLI, hasCL].filter(Boolean).length;
+  const isReady    = readyCount >= 1;
+
+  const SECTION_CARDS = [
+    { type:"resume"       as DocType, key:"resume",       label:"Resume Review",   desc:"Analyze your resume — Zari scores it and finds gaps", color:"#7C3AED", bg:"#F5F3FF", done:hasResume },
+    { type:"linkedin"     as DocType, key:"linkedin",     label:"LinkedIn Profile", desc:"Review your profile and get an overall LinkedIn score", color:"#0A66C2", bg:"#EFF6FF", done:hasLI },
+    { type:"cover-letter" as DocType, key:"cover-letter", label:"Cover Letter",     desc:"Generate a tailored cover letter for a specific role",  color:"#059669", bg:"#ECFDF5", done:hasCL },
+  ];
+
   useEffect(() => {
-    setDone(new Set([0]));
+    if (!isReady) return;
+    setDone(new Set());
     setAiTasks(null);
     setAiCoachNote(null);
     setPlanLoading(true);
+    const resumeDoc = docs.find(d => d.type === "resume");
+    const liDoc     = docs.find(d => d.type === "linkedin");
+    const clDoc     = docs.find(d => d.type === "cover-letter");
     fetch("/api/zari/plan", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ stage }),
+      body: JSON.stringify({
+        stage,
+        resumeSnippet:   resumeDoc ? resumeDoc.content.slice(0,600) : "",
+        liHeadline:      liDoc     ? (liDoc.meta.headline||"") : "",
+        liScore:         liDoc     ? (liDoc.meta.score||"")    : "",
+        resumeScore:     resumeDoc ? (resumeDoc.meta.score||"")    : "",
+        targetRole:      resumeDoc?.meta.targetRole || clDoc?.meta.targetRole || "",
+        completedSections: [hasResume?"resume":"", hasLI?"linkedin":"", hasCL?"cover-letter":""].filter(Boolean),
+      }),
     })
       .then(r => r.json())
       .then((data: { tasks?: PlanTask[]; coachNote?: string }) => {
-        if (data.tasks?.length) {
-          setAiTasks(data.tasks);
-          setAiCoachNote(data.coachNote ?? null);
-        }
+        if (data.tasks?.length) { setAiTasks(data.tasks); setAiCoachNote(data.coachNote ?? null); }
       })
-      .catch(() => { /* fall back to static tasks */ })
+      .catch(() => {})
       .finally(() => setPlanLoading(false));
-  }, [stage]);
+  }, [stage, isReady, docs.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Empty state: not enough context ──
+  if (!isReady) return (
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#FAFBFF" }}>
+      <div style={{ maxWidth:700, margin:"0 auto", padding:"48px 28px" }}>
+        <div style={{ textAlign:"center", marginBottom:40 }}>
+          <div style={{ width:64, height:64, borderRadius:18, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 18px", boxShadow:"0 8px 24px rgba(67,97,238,0.3)" }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" style={{width:28,height:28}}><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+          </div>
+          <h1 style={{ fontSize:24, fontWeight:900, letterSpacing:"-0.03em", color:"#0A0A0F", marginBottom:10 }}>Your Action Plan isn&apos;t ready yet</h1>
+          <p style={{ fontSize:14, color:"#68738A", lineHeight:1.65, maxWidth:460, margin:"0 auto" }}>
+            Zari needs to see at least one completed section to build a personalized plan.
+            Complete the steps below and come back — your plan will be waiting.
+          </p>
+        </div>
+
+        <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+          {SECTION_CARDS.map((c, i) => (
+            <button key={c.key} onClick={()=>c.done ? undefined : onNavigate(c.key)}
+              style={{ background:"white", border:`1.5px solid ${c.done?"#BBF7D0":"#E4E8F5"}`, borderRadius:16, padding:"18px 20px", cursor:c.done?"default":"pointer", textAlign:"left", display:"flex", alignItems:"center", gap:16, transition:"all 0.15s", boxShadow:"0 1px 4px rgba(0,0,0,0.04)" }}>
+              <div style={{ width:44, height:44, borderRadius:12, background:c.done?"#F0FFF4":c.bg, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                {c.done
+                  ? <svg viewBox="0 0 20 20" fill="none" stroke="#16A34A" strokeWidth="2.2" style={{width:20,height:20}}><path d="M4 10l5 5 7-7"/></svg>
+                  : <span style={{ fontSize:13, fontWeight:800, color:c.color }}>{i+1}</span>
+                }
+              </div>
+              <div style={{ flex:1 }}>
+                <div style={{ fontSize:14, fontWeight:700, color:c.done?"#16A34A":"#0A0A0F", marginBottom:3 }}>{c.label} {c.done && <span style={{ fontSize:11, fontWeight:600, color:"#16A34A" }}>✓ Done</span>}</div>
+                <div style={{ fontSize:12.5, color:"#68738A", lineHeight:1.45 }}>{c.desc}</div>
+              </div>
+              {!c.done && (
+                <div style={{ flexShrink:0, width:32, height:32, borderRadius:10, background:c.bg, display:"flex", alignItems:"center", justifyContent:"center", color:c.color }}>
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.2" style={{width:14,height:14}}><path d="M4 8h8M9 4l4 4-4 4"/></svg>
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
+
+        <div style={{ marginTop:28, background:"linear-gradient(135deg,#EEF2FF,#F5F3FF)", border:"1px solid rgba(67,97,238,0.15)", borderRadius:16, padding:"16px 20px", display:"flex", gap:12, alignItems:"flex-start" }}>
+          <div style={{ width:36, height:36, borderRadius:10, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:14, fontWeight:800, color:"white" }}>Z</div>
+          <p style={{ fontSize:13, color:"#3451D1", lineHeight:1.65 }}>The more sections you complete, the more specific your action plan gets. After your resume review Zari already knows what to fix — after LinkedIn it can sequence the work. Give it both and the plan is surgical.</p>
+        </div>
+      </div>
+    </div>
+  );
 
   const TASKS = aiTasks ?? STAGE_TASKS[stage];
-  const pct = Math.round((done.size/TASKS.length)*100);
+  const pct   = TASKS.length ? Math.round((done.size / TASKS.length) * 100) : 0;
+
+  const CAT_COLORS: Record<string, { color: string; bg: string }> = {
+    Resume:     { color:"#7C3AED", bg:"#F5F3FF" },
+    LinkedIn:   { color:"#0A66C2", bg:"#EFF6FF" },
+    Interview:  { color:"#D97706", bg:"#FFF7ED" },
+    "Job Search":{ color:"#4361EE", bg:"#EEF2FF" },
+    "Cover Letter":{ color:"#059669", bg:"#ECFDF5" },
+    Session:    { color:"#68738A", bg:"#F5F7FF" },
+  };
 
   return (
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#FAFBFF" }}>
       <div style={{ maxWidth:800, margin:"0 auto", padding:28 }}>
+
         {planLoading && (
           <div style={{ display:"flex", alignItems:"center", gap:10, background:"#EEF2FF", border:"1px solid rgba(67,97,238,0.2)", borderRadius:12, padding:"12px 16px", marginBottom:18, fontSize:13, color:"#4361EE", fontWeight:600 }}>
             <span style={{ width:14,height:14,borderRadius:"50%",border:"2px solid rgba(67,97,238,0.3)",borderTopColor:"#4361EE",animation:"spin-slow 0.7s linear infinite",display:"block",flexShrink:0 }}/>
-            Zari is generating your personalized plan…
+            Zari is building your personalized plan from your completed sections…
           </div>
         )}
+
+        {/* Header */}
         <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:22, flexWrap:"wrap", gap:12 }}>
           <div>
             <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
               <h1 style={{ fontSize:22, fontWeight:900, letterSpacing:"-0.03em", color:"#0A0A0F", margin:0 }}>Action Plan</h1>
-              <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:11, fontWeight:700, padding:"3px 9px", borderRadius:99, background: STAGE_META[stage].bg, color: STAGE_META[stage].color, border:`1px solid ${STAGE_META[stage].color}30` }}>{STAGE_ICONS[stage]} {STAGE_META[stage].label}</span>
-              {aiTasks && <span style={{ fontSize:10, fontWeight:700, padding:"2px 8px", borderRadius:99, background:"#F0FFF4", color:"#16A34A", border:"1px solid #BBF7D0" }}>AI-generated</span>}
+              <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:11, fontWeight:700, padding:"3px 9px", borderRadius:99, background:STAGE_META[stage].bg, color:STAGE_META[stage].color, border:"1px solid "+STAGE_META[stage].color+"30" }}>{STAGE_ICONS[stage]} {STAGE_META[stage].label}</span>
+              {aiTasks && <span style={{ fontSize:10, fontWeight:700, padding:"2px 8px", borderRadius:99, background:"#F0FFF4", color:"#16A34A", border:"1px solid #BBF7D0" }}>AI · personalized</span>}
             </div>
-            <p style={{ fontSize:13, color:"#68738A" }}>Zari personalizes this based on your profile and session history</p>
+            <p style={{ fontSize:13, color:"#68738A" }}>
+              Based on your {[hasResume&&"resume",hasLI&&"LinkedIn",hasCL&&"cover letter"].filter(Boolean).join(", ")} — {readyCount}/3 sections complete
+            </p>
           </div>
           <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:12, padding:"10px 18px", display:"flex", gap:16, alignItems:"center" }}>
             <div style={{ textAlign:"center" }}>
@@ -4736,15 +4953,31 @@ function ScreenPlan({ stage }: { stage: CareerStage }) {
             <div style={{ width:1, height:32, background:"#E4E8F5" }}/>
             <div style={{ textAlign:"center" }}>
               <div style={{ fontSize:20, fontWeight:900, color:"#0A0A0F" }}>{TASKS.length - done.size}</div>
-              <div style={{ fontSize:10, color:"#A0AABF" }}>Remaining</div>
+              <div style={{ fontSize:10, color:"#A0AABF" }}>Left</div>
             </div>
           </div>
+        </div>
+
+        {/* Context chips */}
+        <div style={{ display:"flex", gap:8, marginBottom:20, flexWrap:"wrap" }}>
+          {SECTION_CARDS.map(c => (
+            <button key={c.key} onClick={()=>onNavigate(c.key)}
+              style={{ display:"flex", alignItems:"center", gap:6, padding:"5px 12px", borderRadius:99, border:`1.5px solid ${c.done?c.color+"40":"#E4E8F5"}`, background:c.done?c.bg:"white", cursor:"pointer", fontSize:12, fontWeight:600, color:c.done?c.color:"#A0AABF", transition:"all 0.15s" }}>
+              {c.done && <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" style={{width:10,height:10}}><path d="M1.5 6l3 3 6-6"/></svg>}
+              {c.label}
+            </button>
+          ))}
+          {!SECTION_CARDS.every(c=>c.done) && (
+            <span style={{ fontSize:12, color:"#A0AABF", display:"flex", alignItems:"center", gap:4 }}>
+              · Complete more sections for a sharper plan
+            </span>
+          )}
         </div>
 
         {/* Progress */}
         <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:16, padding:20, marginBottom:20, boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
           <div style={{ display:"flex", justifyContent:"space-between", marginBottom:10 }}>
-            <span style={{ fontSize:14, fontWeight:700, color:"#0A0A0F" }}>Your progress</span>
+            <span style={{ fontSize:14, fontWeight:700, color:"#0A0A0F" }}>Progress</span>
             <span style={{ fontSize:14, fontWeight:800, color:"#4361EE" }}>{pct}%</span>
           </div>
           <Bar pct={pct} color="#4361EE" h={10}/>
@@ -4753,38 +4986,40 @@ function ScreenPlan({ stage }: { stage: CareerStage }) {
               const total = TASKS.filter(t=>t.pri===p).length;
               const doneC = TASKS.filter((t,i)=>t.pri===p&&done.has(i)).length;
               return <span key={p} style={{ fontSize:11.5, color:"#68738A" }}>
-                <strong style={{ color:p==="high"?"#DC2626":p==="med"?"#D97706":"#4361EE" }}>{doneC}/{total}</strong> {p} priority
+                <strong style={{ color:p==="high"?"#DC2626":p==="med"?"#D97706":"#4361EE" }}>{doneC}/{total}</strong> {p}
               </span>;
             })}
           </div>
         </div>
 
+        {/* Tasks */}
         <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
           {TASKS.map((task, i) => {
             const isDone = done.has(i);
             const pc = task.pri==="high"?"#DC2626":task.pri==="med"?"#D97706":"#4361EE";
             const pb = task.pri==="high"?"#FEF2F2":task.pri==="med"?"#FFF7ED":"#EEF2FF";
+            const cc = CAT_COLORS[task.cat] ?? { color:"#68738A", bg:"#F5F7FF" };
             return (
               <button key={i} onClick={()=>setDone(d=>{const n=new Set(d);n.has(i)?n.delete(i):n.add(i);return n;})}
                 style={{ display:"flex", alignItems:"center", gap:12, background:"white", border:`1px solid ${isDone?"#BBF7D0":"#E4E8F5"}`, borderRadius:14, padding:"12px 16px", cursor:"pointer", textAlign:"left", transition:"all 0.15s" }}>
                 <div style={{ width:22, height:22, borderRadius:6, border:`2px solid ${isDone?"#16A34A":"#CBD5E1"}`, background:isDone?"#F0FFF4":"white", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                  {isDone && <svg viewBox="0 0 12 12" fill="none" style={{ width:10,height:10 }}><path d="M1.5 6l3 3 6-6" stroke="#16A34A" strokeWidth="1.8" strokeLinecap="round"/></svg>}
+                  {isDone && <svg viewBox="0 0 12 12" fill="none" style={{width:10,height:10}}><path d="M1.5 6l3 3 6-6" stroke="#16A34A" strokeWidth="1.8" strokeLinecap="round"/></svg>}
                 </div>
                 <span style={{ flex:1, fontSize:13.5, color:isDone?"#A0AABF":"#0A0A0F", textDecoration:isDone?"line-through":"none", lineHeight:1.4 }}>{task.text}</span>
-                <Tag text={task.cat}  color="#68738A" bg="#F5F7FF"/>
-                <Tag text={task.pri}  color={pc} bg={pb}/>
+                <Tag text={task.cat} color={cc.color} bg={cc.bg}/>
+                <Tag text={task.pri} color={pc} bg={pb}/>
               </button>
             );
           })}
         </div>
 
-        {/* Zari insight */}
+        {/* Zari note */}
         <div style={{ marginTop:20, background:"linear-gradient(135deg,#EEF2FF,#F5F3FF)", border:"1px solid rgba(67,97,238,0.15)", borderRadius:16, padding:20 }}>
           <div style={{ display:"flex", gap:12, alignItems:"flex-start" }}>
             <div style={{ width:36, height:36, borderRadius:10, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:14, fontWeight:800, color:"white" }}>Z</div>
             <div>
               <p style={{ fontSize:13, fontWeight:700, color:"#4361EE", marginBottom:6 }}>Zari&apos;s coaching note</p>
-              <p style={{ fontSize:13, color:"#3451D1", lineHeight:1.65 }}>{aiCoachNote ?? "Your highest-leverage action this week is completing the high-priority tasks. These will create the most momentum — check them off one by one and come back to Zari when you're ready to practice."}</p>
+              <p style={{ fontSize:13, color:"#3451D1", lineHeight:1.65 }}>{aiCoachNote ?? "Start with the high-priority tasks — they unlock the most momentum. Come back as you complete sections and your plan will get sharper."}</p>
             </div>
           </div>
         </div>
@@ -4792,6 +5027,7 @@ function ScreenPlan({ stage }: { stage: CareerStage }) {
     </div>
   );
 }
+
 
 /* ═══════════════════════════════════════════════════
    MAIN PORTAL SHELL
@@ -4934,8 +5170,8 @@ export function ZariPortal() {
           <div style={{ display:screen==="interview"    ? "block" : "none", height:"100%" }}><ScreenInterview    stage={stage}/></div>
           <div style={{ display:screen==="cover-letter" ? "block" : "none", height:"100%" }}><ScreenCoverLetter/></div>
           <div style={{ display:screen==="linkedin"     ? "block" : "none", height:"100%" }}><ScreenLinkedIn     stage={stage}/></div>
-          <div style={{ display:screen==="documents"    ? "block" : "none", height:"100%" }}><ScreenDocuments/></div>
-          <div style={{ display:screen==="plan"         ? "block" : "none", height:"100%" }}><ScreenPlan         stage={stage}/></div>
+          <div style={{ display:screen==="documents"    ? "block" : "none", height:"100%" }}><ScreenDocuments onNavigate={s=>setScreen(s as Screen)}/></div>
+          <div style={{ display:screen==="plan"         ? "block" : "none", height:"100%" }}><ScreenPlan stage={stage} onNavigate={s=>setScreen(s as Screen)}/></div>
         </div>
       </main>
     </div>

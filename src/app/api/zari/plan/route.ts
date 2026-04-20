@@ -11,9 +11,21 @@ export async function POST(request: Request) {
 
   const body = await request.json().catch(() => ({})) as {
     stage?: string;
+    resumeSnippet?: string;
+    liHeadline?: string;
+    liScore?: string;
+    resumeScore?: string;
+    targetRole?: string;
+    completedSections?: string[];
   };
 
-  const stage = body.stage ?? "job-search";
+  const stage             = body.stage ?? "job-search";
+  const resumeSnippet     = (body.resumeSnippet     ?? "").trim();
+  const liHeadline        = (body.liHeadline        ?? "").trim();
+  const liScore           = (body.liScore           ?? "").trim();
+  const resumeScore       = (body.resumeScore       ?? "").trim();
+  const targetRole        = (body.targetRole        ?? "").trim();
+  const completedSections = body.completedSections  ?? [];
 
   const userId = await getCurrentUserId();
   let userContext = "";
@@ -21,29 +33,37 @@ export async function POST(request: Request) {
     try { userContext = await buildUserContext(userId); } catch { /* non-fatal */ }
   }
 
+  const contextBlock = [
+    userContext          ? `Profile context:\n${userContext}`                                               : "",
+    resumeSnippet        ? `Resume snippet (first ~600 chars):\n${resumeSnippet}`                          : "",
+    liHeadline           ? `LinkedIn headline: ${liHeadline}`                                              : "",
+    resumeScore          ? `Resume score: ${resumeScore}/100`                                              : "",
+    liScore              ? `LinkedIn score: ${liScore}/100`                                                : "",
+    targetRole           ? `Target role: ${targetRole}`                                                    : "",
+    completedSections.length ? `Sections they've completed: ${completedSections.join(", ")}`              : "",
+  ].filter(Boolean).join("\n\n");
+
   const systemPrompt = `You are Zari, a career coach who knows this person well. Build them a real action plan — specific, prioritized, and tied to where they actually are right now. Not a generic checklist. A plan for *them*.
 
-${userContext ? `Everything you know about this person:\n${userContext}\n\n` : "No profile data yet — build a strong general plan for the stage."}
+${contextBlock || "No profile data yet — build a strong general plan for the stage."}
 
 Return ONLY a valid JSON object:
 {
   "tasks": [
-    { "text": "<specific, actionable task — not vague>", "cat": "<Resume|Interview|LinkedIn|Job Search|Session|Planning|Research|Network|Docs>", "pri": "<high|med|low>" }
+    { "text": "<specific, actionable task — reference their actual situation>", "cat": "<Resume|Interview|LinkedIn|Cover Letter|Job Search|Session|Network|Research>", "pri": "<high|med|low>" }
   ],
-  "coachNote": "<2-3 sentences that sound like a real coach talking to this specific person — reference their name, role, goals, or something specific from their history. Tell them what to focus on first and why.>"
+  "coachNote": "<2-3 sentences: what to focus on first and why, based on their actual scores and completed sections. Sound like a real coach, not a summary.>"
 }
 
 Stage: ${stage}
 
-How to build this plan:
-- Look at their profile, sessions, documents, and action plan history
-- Identify what's incomplete, what they've been avoiding, and what will move the needle most
+Rules:
+- Use their real scores to call out specific gaps (e.g. "your resume scored 72 — the Impact section is dragging it down")
+- Reference their LinkedIn headline or resume content when possible
 - 3-4 high priority (this week), 2-3 medium (this month), 1-2 low (eventually)
-- Every task should feel like it was written specifically for them — reference their actual role, company type, or goals when possible
-- The coachNote should feel like a real message from Zari, not a summary
-- If they've done sessions: reference something that came up
-- If they have documents: reference the state of those docs
-- Never write generic tasks like "work on your resume" — be specific about what to do and why`;
+- Never write tasks they've already fully addressed in their completed sections unless there's a clear next step
+- Never write generic tasks — be specific about WHAT to do and WHY it matters for their situation
+- If cover letter is missing and they have a target role, make that a high-priority task`;
 
   const messages = [
     { role: "system" as const, content: systemPrompt },
