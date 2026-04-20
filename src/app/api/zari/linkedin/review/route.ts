@@ -25,7 +25,7 @@ export async function POST(request: Request) {
 
   const headline      = (body.headline    ?? "").trim();
   const summary       = (body.summary     ?? "").trim();
-  const experienceJobs: ExperienceJob[] = Array.isArray(body.experienceJobs) ? body.experienceJobs : [];
+  const experienceJobs: ExperienceJob[] = (Array.isArray(body.experienceJobs) ? body.experienceJobs : []).slice(0, 5);
   const education     = (body.education   ?? "").trim();
   const skills        = (body.skills      ?? "").trim();
   const linkedinUrl   = (body.linkedinUrl ?? "").trim();
@@ -95,7 +95,7 @@ Return ONLY valid JSON with this exact structure:
         "dateRange": "${j.dateRange.replace(/"/g, '\\"')}",
         "score": <1-10 for JOB ${i + 1}>,
         "verdict": <"Perfect"|"Good"|"Needs Review"|"Missing">,
-        "rewrite": "<3-4 XYZ-formula bullets for JOB ${i + 1}: Strong Verb + Context + Quantified Result. Use • prefix. Based ONLY on what is actually described in JOB ${i + 1}>",
+        "rewrite": "<4-5 bullets for JOB ${i + 1}. Separate each bullet with \\n. Start each with • and a space. Write in a natural, conversational tone — not stiff template-speak. Lead with a strong action verb. Show impact through scope, context, outcomes, and specific numbers/tools where present in the original. Full sentences, ~20-25 words each. Preserve ALL key details, tools, and metrics from the original. Based ONLY on what is described in JOB ${i + 1}>",
         "checks": [
           { "name": "Quantified impact", "pass": <bool>, "detail": "<count bullets with numbers vs total in JOB ${i + 1}>" },
           { "name": "Strong action verbs", "pass": <bool>, "detail": "<quote weak verbs found or confirm strong openers in JOB ${i + 1}>" },

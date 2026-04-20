@@ -47,7 +47,7 @@ Return ONLY valid JSON matching this exact structure:
 }
 
 Rules:
-- Return up to 5 most recent jobs in experienceJobs (most recent first)
+- Return up to 8 most recent jobs in experienceJobs (most recent first)
 - Each job must have its bullets/description separated, NOT concatenated across jobs
 - If a section is absent return empty string or empty array
 - Do NOT fabricate content — only extract what is actually present`;
