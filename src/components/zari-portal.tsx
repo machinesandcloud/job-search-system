@@ -332,7 +332,7 @@ async function extractPositionedText(pdfUrl: string): Promise<string> {
     // Skip TextMarkedContent items (PDF.js 3.x) that lack transform/str
     const byY = new Map<number, Array<{ x: number; text: string; width: number }>>();
     for (const item of content.items) {
-      if (!item.transform || !item.str) continue;
+      if (!item || !item.transform || !item.str) continue;
       const y = Math.round(item.transform[5] / 2) * 2; // 2-unit bucket
       if (!byY.has(y)) byY.set(y, []);
       byY.get(y)!.push({ x: item.transform[4], text: item.str, width: item.width ?? 0 });
@@ -413,7 +413,7 @@ function PdfHighlightViewer({
           // PDF.js 3.x mixes TextItem and TextMarkedContent in items — skip anything without transform
           const buckets = new Map<number, Array<{str:string;tx:number[];width:number}>>();
           for (const item of tc.items) {
-            if (!item.transform || !item.str?.trim()) continue;
+            if (!item || !item.transform || !item.str?.trim()) continue;
             const bucket = Math.round(item.transform[5] / 3) * 3;
             if (!buckets.has(bucket)) buckets.set(bucket, []);
             buckets.get(bucket)!.push({ str: item.str, tx: item.transform, width: item.width ?? 0 });
@@ -1554,15 +1554,28 @@ ${body}${footer}
 </html>`;
 }
 
+const RESUME_SESSION_KEY = "zari_resume_session_v2";
+function loadResumeSession(): { resumeText:string; fileName:string; aiResult:ResumeAnalysis; reviewMode:"general"|"targeted"; targetRoleInput:string; careerLevel:CareerLevel } | null {
+  try {
+    const raw = localStorage.getItem(RESUME_SESSION_KEY);
+    if (!raw) return null;
+    const s = JSON.parse(raw) as { resumeText:string; fileName:string; aiResult:ResumeAnalysis; reviewMode:"general"|"targeted"; targetRoleInput:string; careerLevel:CareerLevel; savedAt:string };
+    // Expire sessions older than 7 days
+    if (Date.now() - new Date(s.savedAt).getTime() > 7 * 86400_000) { localStorage.removeItem(RESUME_SESSION_KEY); return null; }
+    return s;
+  } catch { return null; }
+}
+
 function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: (screen: string) => void }) {
-  const [step, setStep]         = useState<ResumeStep>("choose");
+  const _saved = loadResumeSession();
+  const [step, setStep]         = useState<ResumeStep>(_saved ? "results" : "choose");
   const [progress, setProgress] = useState(0);
   const [tab, setTab]           = useState<"overview"|"bullets"|"rewrite"|"keywords"|"history">("overview");
-  const [careerLevel, setCareerLevel] = useState<CareerLevel>("mid");
+  const [careerLevel, setCareerLevel] = useState<CareerLevel>(_saved?.careerLevel ?? "mid");
   const [dragging, setDragging] = useState(false);
-  const [resumeText,  setResumeText]  = useState("");
-  const [fileName,    setFileName]    = useState("");
-  const [aiResult,    setAiResult]    = useState<ResumeAnalysis | null>(null);
+  const [resumeText,  setResumeText]  = useState(_saved?.resumeText ?? "");
+  const [fileName,    setFileName]    = useState(_saved?.fileName ?? "");
+  const [aiResult,    setAiResult]    = useState<ResumeAnalysis | null>(_saved?.aiResult ?? null);
   const [analyzeErr,  setAnalyzeErr]  = useState("");
   // History
   const [scoreHistory,    setScoreHistory]    = useState<ResumeHistoryEntry[]>([]);
@@ -1571,8 +1584,8 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
   const [altVersions,     setAltVersions]     = useState<Record<string, string>>({});
   const [rewritingIdx,    setRewritingIdx]     = useState<number | null>(null);
   const [altAttempt,      setAltAttempt]       = useState<Record<number, number>>({});
-  const [reviewMode,      setReviewMode]      = useState<"general"|"targeted">("general");
-  const [targetRoleInput, setTargetRoleInput] = useState("");
+  const [reviewMode,      setReviewMode]      = useState<"general"|"targeted">(_saved?.reviewMode ?? "general");
+  const [targetRoleInput, setTargetRoleInput] = useState(_saved?.targetRoleInput ?? "");
   const [jdInputMode,     setJdInputMode]     = useState<"paste"|"url">("paste");
   const [jobDescription,  setJobDescription]  = useState("");
   const [jdUrl,           setJdUrl]           = useState("");
@@ -1851,6 +1864,8 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
       setProgress(100);
       if (data && data.overall) {
         setAiResult(data);
+        // Persist session so page refresh lands back on results
+        try { localStorage.setItem(RESUME_SESSION_KEY, JSON.stringify({ resumeText:textToAnalyze, fileName:fileName||"resume", aiResult:data, reviewMode, targetRoleInput, careerLevel, savedAt:new Date().toISOString() })); } catch { /* non-fatal */ }
         // Save to doc vault
         try { vaultSave({ type:"resume", name:fileName||"Resume", content:textToAnalyze, meta:{ score:String(data.overall), targetRole:targetRoleInput||"" } }); } catch { /* non-fatal */ }
         // Always persist to localStorage so history works regardless of auth state
@@ -2316,7 +2331,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
         {/* ── Top bar ── */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20, gap:12, flexWrap:"wrap" }}>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <button onClick={()=>{ setStep("choose"); setAiResult(null); setResumeText(""); setFileName(""); setAltVersions({}); setAltAttempt({}); setMagicWrite({}); setTab("overview"); if (rawFileUrlRef.current) { URL.revokeObjectURL(rawFileUrlRef.current); rawFileUrlRef.current = null; } setRawFileUrl(null); }} style={{ display:"flex", alignItems:"center", gap:5, fontSize:12, fontWeight:600, color:"#68738A", background:"white", border:"1px solid #E4E8F5", borderRadius:8, padding:"6px 12px", cursor:"pointer" }}>
+            <button onClick={()=>{ setStep("choose"); setAiResult(null); setResumeText(""); setFileName(""); setAltVersions({}); setAltAttempt({}); setMagicWrite({}); setTab("overview"); if (rawFileUrlRef.current) { URL.revokeObjectURL(rawFileUrlRef.current); rawFileUrlRef.current = null; } setRawFileUrl(null); try { localStorage.removeItem(RESUME_SESSION_KEY); } catch { /* ignore */ } }} style={{ display:"flex", alignItems:"center", gap:5, fontSize:12, fontWeight:600, color:"#68738A", background:"white", border:"1px solid #E4E8F5", borderRadius:8, padding:"6px 12px", cursor:"pointer" }}>
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:12,height:12 }}><path d="M10 3L5 8l5 5"/></svg>
               New review
             </button>
@@ -5668,9 +5683,14 @@ function ScreenPlan({ stage, onNavigate }: { stage: CareerStage; onNavigate: (s:
    MAIN PORTAL SHELL
 ═══════════════════════════════════════════════════ */
 export function ZariPortal() {
-  const [screen, setScreen] = useState<Screen>("session");
+  const [screen, setScreen] = useState<Screen>(() => {
+    try { return (localStorage.getItem("zari_screen") as Screen) || "session"; } catch { return "session"; }
+  });
   const [stage, setStage] = useState<CareerStage>("job-search");
   const [stageOpen, setStageOpen] = useState(false);
+
+  // Persist active screen so refresh lands back on the same section
+  const navigate = (s: Screen) => { setScreen(s); try { localStorage.setItem("zari_screen", s); } catch { /* ignore */ } };
 
   // Section accent colors for topbar context
   const SCREEN_ACCENTS: Record<string, { color: string; gradient: string; label: string }> = {
@@ -5770,7 +5790,7 @@ export function ZariPortal() {
               {(Object.entries(STAGE_META) as [CareerStage, typeof STAGE_META[CareerStage]][]).map(([key, meta]) => (
                 <button
                   key={key}
-                  onClick={() => { setStage(key); setStageOpen(false); setScreen("session"); }}
+                  onClick={() => { setStage(key); setStageOpen(false); navigate("session"); }}
                   style={{
                     width:"100%", display:"flex", alignItems:"center", gap:9,
                     padding:"9px 14px", border:"none", cursor:"pointer", textAlign:"left",
@@ -5799,7 +5819,7 @@ export function ZariPortal() {
             const isActive = screen === n.id;
             const sa = SCREEN_ACCENTS[n.id];
             return (
-              <button key={n.id} onClick={()=>setScreen(n.id)} className={`zari-nav-btn${isActive?" active":""}`}
+              <button key={n.id} onClick={()=>navigate(n.id as Screen)} className={`zari-nav-btn${isActive?" active":""}`}
                 style={{ width:"100%", display:"flex", alignItems:"center", gap:10, padding:"9px 11px", borderRadius:11, border:"none", cursor:"pointer", textAlign:"left", background:isActive?"rgba(255,255,255,0.1)":"transparent", color:isActive?"white":"rgba(255,255,255,0.5)", fontWeight:isActive?700:500, fontSize:13.5, transition:"all 0.15s", position:"relative" }}>
                 {isActive && (
                   <div style={{ position:"absolute", left:0, top:"50%", transform:"translateY(-50%)", width:3, height:"60%", borderRadius:"0 2px 2px 0", background:sa?.color ?? "#4361EE", boxShadow:`0 0 8px ${sa?.color ?? "#4361EE"}` }}/>
@@ -5846,12 +5866,12 @@ export function ZariPortal() {
         {/* Screen — all kept mounted, hidden when inactive to preserve state */}
         <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
           <div style={{ display:screen==="session"      ? "block" : "none", height:"100%" }}><ScreenSession      stage={stage}/></div>
-          <div style={{ display:screen==="resume"       ? "block" : "none", height:"100%" }}><ScreenResume       stage={stage} onNavigate={s=>setScreen(s as Screen)}/></div>
+          <div style={{ display:screen==="resume"       ? "block" : "none", height:"100%" }}><ScreenResume       stage={stage} onNavigate={s=>navigate(s as Screen)}/></div>
           <div style={{ display:screen==="interview"    ? "block" : "none", height:"100%" }}><ScreenInterview    stage={stage}/></div>
           <div style={{ display:screen==="cover-letter" ? "block" : "none", height:"100%" }}><ScreenCoverLetter/></div>
           <div style={{ display:screen==="linkedin"     ? "block" : "none", height:"100%" }}><ScreenLinkedIn     stage={stage}/></div>
-          <div style={{ display:screen==="documents"    ? "block" : "none", height:"100%" }}><ScreenDocuments onNavigate={s=>setScreen(s as Screen)}/></div>
-          <div style={{ display:screen==="plan"         ? "block" : "none", height:"100%" }}><ScreenPlan stage={stage} onNavigate={s=>setScreen(s as Screen)}/></div>
+          <div style={{ display:screen==="documents"    ? "block" : "none", height:"100%" }}><ScreenDocuments onNavigate={s=>navigate(s as Screen)}/></div>
+          <div style={{ display:screen==="plan"         ? "block" : "none", height:"100%" }}><ScreenPlan stage={stage} onNavigate={s=>navigate(s as Screen)}/></div>
         </div>
       </main>
     </div>
