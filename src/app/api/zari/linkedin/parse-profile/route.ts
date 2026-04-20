@@ -55,9 +55,9 @@ Rules:
   const reply = await openaiChat(
     [
       { role: "system", content: systemPrompt },
-      { role: "user", content: `Parse this LinkedIn profile:\n\n${rawText.slice(0, 14000)}` },
+      { role: "user", content: `Parse this LinkedIn profile:\n\n${rawText.slice(0, 7000)}` },
     ],
-    { model: "gpt-4o-mini", temperature: 0.1, maxTokens: 3000, jsonMode: true }
+    { model: "gpt-4o-mini", temperature: 0.1, maxTokens: 1800, jsonMode: true }
   );
 
   if (!reply) throw new Error("AI parsing failed");

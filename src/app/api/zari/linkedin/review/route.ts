@@ -153,7 +153,7 @@ Be specific — quote actual phrases. Generic feedback is useless.`;
   const content = [
     headline   ? `HEADLINE:\n${headline}` : "HEADLINE: (not provided)",
     summary    ? `\n\nSUMMARY/ABOUT:\n${summary.slice(0, 2000)}` : "\n\nSUMMARY: (not provided)",
-    `\n\nEXPERIENCE:\n${jobsText.slice(0, 6000)}`,
+    `\n\nEXPERIENCE:\n${jobsText.slice(0, 4000)}`,
     education  ? `\n\nEDUCATION:\n${education}` : "\n\nEDUCATION: (not provided)",
     skills     ? `\n\nSKILLS:\n${skills}` : "",
     linkedinUrl ? `\n\nLINKEDIN URL: ${linkedinUrl}` : "",
