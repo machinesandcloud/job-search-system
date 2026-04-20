@@ -32,11 +32,13 @@ function vaultSave(entry: Omit<DocEntry, "id" | "createdAt">): void {
   const record: DocEntry = { ...entry, id: entry.type + "_" + Date.now(), createdAt: Date.now() };
   if (idx > -1) docs[idx] = record; else docs.unshift(record);
   localStorage.setItem(VAULT_KEY, JSON.stringify(docs));
+  window.dispatchEvent(new CustomEvent("vault-updated"));
 }
 
 function vaultRemove(id: string): void {
   const docs = vaultRead().filter(d => d.id !== id);
   localStorage.setItem(VAULT_KEY, JSON.stringify(docs));
+  window.dispatchEvent(new CustomEvent("vault-updated"));
 }
 
 function vaultHas(type: DocType): boolean {
@@ -68,23 +70,38 @@ const STAGE_META: Record<CareerStage, { label:string; color:string; bg:string }>
 /* ═══════════════════════════════════════════════════
    HELPERS
 ═══════════════════════════════════════════════════ */
-function ScoreRing({ score, color="#4361EE", size=56 }: { score:number; color?:string; size?:number }) {
-  const r = (size-8)/2, circ = 2*Math.PI*r, dash = circ*(1-score/100);
+function ScoreRing({ score, color="#4361EE", size=56, dark=false }: { score:number; color?:string; size?:number; dark?:boolean }) {
+  const sw = Math.max(5, size * 0.065);
+  const r = (size - sw * 2) / 2;
+  const circ = 2 * Math.PI * r;
+  const dash = circ * (1 - score / 100);
+  const trackColor = dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)";
+  const textColor = dark ? "white" : color;
   return (
     <div style={{ position:"relative", width:size, height:size, flexShrink:0 }}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#F1F5F9" strokeWidth={5}/>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={5} strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={dash} transform={`rotate(-90 ${size/2} ${size/2})`}/>
+        <defs>
+          <filter id={`glow-${size}`} x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="2.5" result="blur"/>
+            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+          </filter>
+        </defs>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={trackColor} strokeWidth={sw}/>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={sw} strokeLinecap="round"
+          strokeDasharray={circ} strokeDashoffset={dash}
+          transform={`rotate(-90 ${size/2} ${size/2})`}
+          style={{ filter:`drop-shadow(0 0 ${sw*0.8}px ${color}88)`, transition:"stroke-dashoffset 1s cubic-bezier(0.4,0,0.2,1)" }}
+        />
       </svg>
-      <span style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:size*0.24, fontWeight:800, color }}>{score}</span>
+      <span style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:size*0.24, fontWeight:900, color:textColor, letterSpacing:"-0.03em" }}>{score}</span>
     </div>
   );
 }
 
 function Bar({ pct, color="#4361EE", h=5 }: { pct:number; color?:string; h?:number }) {
   return (
-    <div style={{ height:h, borderRadius:99, background:"#F1F5F9", overflow:"hidden" }}>
-      <div style={{ width:`${pct}%`, height:"100%", background:color, borderRadius:99, transition:"width 0.6s ease" }}/>
+    <div style={{ height:h, borderRadius:99, background:"rgba(0,0,0,0.07)", overflow:"hidden" }}>
+      <div style={{ width:`${pct}%`, height:"100%", background:`linear-gradient(90deg, ${color}CC, ${color})`, borderRadius:99, transition:"width 0.8s cubic-bezier(0.4,0,0.2,1)", boxShadow:`0 0 6px ${color}55` }}/>
     </div>
   );
 }
@@ -281,12 +298,9 @@ function SuggestionsResume({
   const BULLET_CHAR_RE = /^[•\-\*\u2022►▸]\s*/;
   const PASSIVE_RE = /\b(was|were|is|are|been|being)\s+\w+ed\b/i;
   const METRIC_RE = /\d|%|\$|#/;
-  // Use raw lines — no preprocessing. PDF-extracted text is already garbled;
-  // any reordering makes it worse. When a PDF is available, the parent shows
-  // the iframe instead of this component entirely.
-  const lines = text.slice(0, 12000).split("\n");
+  const lines = text.slice(0, 14000).split("\n");
 
-  // Robust line → bullet matching: strip bullet chars, try multiple slice lengths
+  // Line → bullet index matching
   const lineMatch: Record<number, number> = {};
   lines.forEach((line, li) => {
     const norm = line.trim().replace(BULLET_CHAR_RE, "").toLowerCase().replace(/\s+/g, " ");
@@ -295,7 +309,6 @@ function SuggestionsResume({
     bullets.forEach((b, bi) => {
       if (lineMatch[li] !== undefined) return;
       const bNorm = b.before.trim().replace(BULLET_CHAR_RE, "").toLowerCase().replace(/\s+/g, " ");
-      // Try progressively shorter slices for a match
       const slices = [50, 35, 25];
       for (const len of slices) {
         if (norm.slice(0, len) && bNorm.includes(norm.slice(0, len))) { bestBi = bi; break; }
@@ -305,7 +318,6 @@ function SuggestionsResume({
     if (bestBi >= 0) lineMatch[li] = bestBi;
   });
 
-  // Per-line flags (priority: weak > no_metric > too_long > passive)
   function getFlag(line: string, li: number): LineFlag | null {
     const trimmed = line.trim();
     const isBulletLine = BULLET_CHAR_RE.test(trimmed) || (trimmed.startsWith("-") && trimmed.length > 10);
@@ -317,11 +329,15 @@ function SuggestionsResume({
     return null;
   }
 
-  // Word issue inline highlight map
-  const wiMap = new Map<string, string>();
+  // Word issue highlight map
+  const wiMap = new Map<string, { bg: string; color: string }>();
   (wordIssues ?? []).forEach(w => {
-    const color = w.type === "weak_verb" ? "#FED7AA" : w.type === "cliche" ? "#FECACA" : "#FDE68A";
-    wiMap.set(w.word.toLowerCase(), color);
+    const style = w.type === "weak_verb"
+      ? { bg: "rgba(245,158,11,0.22)", color: "#92400E" }
+      : w.type === "cliche"
+      ? { bg: "rgba(239,68,68,0.18)", color: "#991B1B" }
+      : { bg: "rgba(234,179,8,0.22)", color: "#713F12" };
+    wiMap.set(w.word.toLowerCase(), style);
   });
 
   function hlText(str: string): React.ReactNode {
@@ -331,18 +347,38 @@ function SuggestionsResume({
     const parts = str.split(re);
     if (parts.length <= 1) return str;
     return parts.map((part, i) => {
-      const color = wiMap.get(part.toLowerCase());
-      return color
-        ? <mark key={i} style={{ background: color, padding: "0 2px", borderRadius: 3, fontWeight: 600, fontStyle: "normal" }}>{part}</mark>
+      const s = wiMap.get(part.toLowerCase());
+      return s
+        ? <mark key={i} style={{ background: s.bg, color: s.color, padding: "1px 3px", borderRadius: 3, fontWeight: 700, fontStyle: "normal", fontFamily: "inherit" }}>{part}</mark>
         : part;
     });
   }
 
-  const FLAG_STYLES: Record<string, { border: string; bg: string; activeBg: string; badge: string; badgeBg: string; badgeColor: string }> = {
-    weak:      { border: "#F59E0B", bg: "rgba(245,158,11,0.08)", activeBg: "#FEF3C7", badge: "rewrite available", badgeBg: "#FEF3C7", badgeColor: "#92400E" },
-    no_metric: { border: "#EAB308", bg: "rgba(234,179,8,0.07)",  activeBg: "#FEFCE8", badge: "add metric",        badgeBg: "#FEF9C3", badgeColor: "#713F12" },
-    too_long:  { border: "#3B82F6", bg: "rgba(59,130,246,0.06)", activeBg: "#EFF6FF", badge: "too long",          badgeBg: "#DBEAFE", badgeColor: "#1E40AF" },
-    passive:   { border: "#A855F7", bg: "rgba(168,85,247,0.07)", activeBg: "#FAF5FF", badge: "passive voice",     badgeBg: "#F3E8FF", badgeColor: "#6B21A8" },
+  const FLAG_META: Record<string, {
+    dotColor: string; lineBg: string; activeLineBg: string; leftBar: string;
+    badge: string; badgeBg: string; badgeColor: string; badgeBorder: string;
+    popupBorder: string; popupBg: string; popupHeaderBg: string;
+  }> = {
+    weak: {
+      dotColor: "#F59E0B", lineBg: "rgba(245,158,11,0.07)", activeLineBg: "rgba(245,158,11,0.14)", leftBar: "#F59E0B",
+      badge: "✦ rewrite", badgeBg: "rgba(245,158,11,0.15)", badgeColor: "#92400E", badgeBorder: "rgba(245,158,11,0.4)",
+      popupBorder: "#FCD34D", popupBg: "#FFFBEB", popupHeaderBg: "#FEF3C7",
+    },
+    no_metric: {
+      dotColor: "#EAB308", lineBg: "rgba(234,179,8,0.07)", activeLineBg: "rgba(234,179,8,0.13)", leftBar: "#EAB308",
+      badge: "# add metric", badgeBg: "rgba(234,179,8,0.15)", badgeColor: "#713F12", badgeBorder: "rgba(234,179,8,0.4)",
+      popupBorder: "#FDE68A", popupBg: "#FEFCE8", popupHeaderBg: "#FEF9C3",
+    },
+    too_long: {
+      dotColor: "#3B82F6", lineBg: "rgba(59,130,246,0.06)", activeLineBg: "rgba(59,130,246,0.12)", leftBar: "#3B82F6",
+      badge: "↔ too long", badgeBg: "rgba(59,130,246,0.12)", badgeColor: "#1D4ED8", badgeBorder: "rgba(59,130,246,0.35)",
+      popupBorder: "#93C5FD", popupBg: "#EFF6FF", popupHeaderBg: "#DBEAFE",
+    },
+    passive: {
+      dotColor: "#A855F7", lineBg: "rgba(168,85,247,0.06)", activeLineBg: "rgba(168,85,247,0.12)", leftBar: "#A855F7",
+      badge: "~ passive", badgeBg: "rgba(168,85,247,0.12)", badgeColor: "#6B21A8", badgeBorder: "rgba(168,85,247,0.35)",
+      popupBorder: "#C4B5FD", popupBg: "#FAF5FF", popupHeaderBg: "#F3E8FF",
+    },
   };
 
   function getTip(flag: LineFlag): string {
@@ -352,102 +388,145 @@ function SuggestionsResume({
     return "";
   }
 
-  const flagKey = (li: number) => `tip-${li}`;
+  const totalIssues = Object.keys(lineMatch).length + lines.filter((l,i)=>{const f=getFlag(l,i);return f&&f.kind!=="weak";}).length;
 
   return (
-    <div style={{ fontFamily: "inherit", fontSize: 13, lineHeight: 1.75, color: "#1E2235" }}>
-      {/* Legend */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 14px", marginBottom: 16, padding: "10px 12px", background: "#F8FAFF", borderRadius: 10, border: "1px solid #E4E8F5" }}>
+    <div style={{ fontFamily: "inherit" }}>
+      {/* ── Issue legend bar ── */}
+      <div style={{ display:"flex", alignItems:"center", gap:16, marginBottom:14, padding:"8px 14px", background:"rgba(248,250,255,0.8)", borderRadius:10, border:"1px solid #E8EBF4", flexWrap:"wrap" }}>
+        <span style={{ fontSize:11, fontWeight:700, color:"#A0AABF", textTransform:"uppercase", letterSpacing:"0.08em" }}>Highlights</span>
         {[
-          { color: "#F59E0B", label: "Weak bullet — rewrite" },
-          { color: "#EAB308", label: "No metric" },
-          { color: "#3B82F6", label: "Too long" },
-          { color: "#A855F7", label: "Passive voice" },
-          { color: "#FED7AA", label: "Weak verb", inline: true },
-          { color: "#FECACA", label: "Cliché", inline: true },
-        ].map(({ color, label, inline }) => (
-          <div key={label} style={{ display: "flex", alignItems: "center", gap: 5 }}>
-            {inline
-              ? <mark style={{ background: color, padding: "0 5px", borderRadius: 3, fontSize: 10, fontWeight: 700 }}>word</mark>
-              : <div style={{ width: 11, height: 11, borderRadius: 3, background: color, flexShrink: 0 }} />
-            }
-            <span style={{ fontSize: 11, color: "#68738A" }}>{label}</span>
+          { color:"#F59E0B", label:"Weak bullet" },
+          { color:"#EAB308", label:"No metric" },
+          { color:"#3B82F6", label:"Too long" },
+          { color:"#A855F7", label:"Passive voice" },
+        ].map(({ color, label }) => (
+          <div key={label} style={{ display:"flex", alignItems:"center", gap:5 }}>
+            <div style={{ width:9, height:9, borderRadius:99, background:color }}/>
+            <span style={{ fontSize:11, color:"#68738A" }}>{label}</span>
           </div>
         ))}
+        <div style={{ display:"flex", alignItems:"center", gap:5 }}>
+          <mark style={{ background:"rgba(245,158,11,0.22)", color:"#92400E", padding:"0 5px", borderRadius:3, fontSize:10, fontWeight:700, fontFamily:"inherit" }}>word</mark>
+          <span style={{ fontSize:11, color:"#68738A" }}>Weak verb / cliché</span>
+        </div>
+        {totalIssues > 0 && (
+          <span style={{ marginLeft:"auto", fontSize:11.5, fontWeight:700, color:"#F59E0B", background:"rgba(245,158,11,0.1)", padding:"2px 9px", borderRadius:99, border:"1px solid rgba(245,158,11,0.25)" }}>
+            {totalIssues} issue{totalIssues !== 1 ? "s" : ""} found
+          </span>
+        )}
       </div>
 
-      {lines.map((raw, li) => {
-        const trimmed = raw.trim();
-        if (!trimmed) return <div key={li} style={{ height: 7 }} />;
+      {/* ── Paper document ── */}
+      <div style={{
+        background: "white",
+        borderRadius: 6,
+        boxShadow: "0 2px 4px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.08), 0 24px 64px rgba(0,0,0,0.05)",
+        overflow: "hidden",
+        border: "1px solid rgba(0,0,0,0.06)",
+      }}>
+        <div style={{ padding: "40px 44px", fontFamily: "Georgia, 'Times New Roman', serif" }}>
+          {lines.map((raw, li) => {
+            const trimmed = raw.trim();
+            if (!trimmed) return <div key={li} style={{ height: 8 }} />;
 
-        if (HEADER_RE.test(trimmed) && trimmed.length <= 60) {
-          return (
-            <div key={li} style={{ marginTop: 18, marginBottom: 6, paddingBottom: 4, borderBottom: "1.5px solid #CBD5E1" }}>
-              <span style={{ fontSize: 12, fontWeight: 800, color: "#1E2235", letterSpacing: "0.1em", textTransform: "uppercase" }}>{trimmed}</span>
-            </div>
-          );
-        }
-
-        const flag = getFlag(raw, li);
-        const isActive = flag?.kind === "weak"
-          ? activeIdx === flag.bulletIdx
-          : activeTip === li;
-        const fs = flag ? FLAG_STYLES[flag.kind] : null;
-
-        return (
-          <div key={li}>
-            <div
-              onClick={() => {
-                if (!flag) return;
-                if (flag.kind === "weak") onClickLine(isActive ? null : flag.bulletIdx);
-                else setActiveTip(isActive ? null : li);
-              }}
-              title={flag ? "Click for suggestion" : undefined}
-              style={{
-                whiteSpace: "pre-wrap", wordBreak: "break-word",
-                padding: "3px 10px 3px 12px", borderRadius: 6, marginBottom: 2,
-                background: fs ? (isActive ? fs.activeBg : fs.bg) : "transparent",
-                borderLeft: fs ? `3px solid ${isActive ? fs.border : fs.border + "99"}` : "3px solid transparent",
-                cursor: flag ? "pointer" : "default",
-                lineHeight: 1.7, fontSize: 13,
-                transition: "background 0.1s",
-              }}
-            >
-              {hlText(trimmed)}
-              {fs && (
-                <span style={{ fontSize: 10, fontWeight: 700, color: fs.badgeColor, background: fs.badgeBg, padding: "2px 7px", borderRadius: 99, marginLeft: 6, verticalAlign: "middle", whiteSpace: "nowrap" }}>
-                  {fs.badge}
-                </span>
-              )}
-            </div>
-
-            {/* Inline popup for weak bullets (has AI rewrite) */}
-            {flag?.kind === "weak" && isActive && (
-              <div style={{ margin: "6px 10px 10px 12px", border: "1px solid #FCD34D", borderRadius: 12, background: "#FEFCE8" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 14px", background: "#FEF3C7", borderBottom: "1px solid #FCD34D", borderRadius: "12px 12px 0 0" }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: "#92400E" }}>{bullets[flag.bulletIdx].reason}</span>
-                  <button onClick={e => { e.stopPropagation(); onClickLine(null); }} style={{ fontSize: 14, background: "none", border: "none", color: "#A0AABF", cursor: "pointer", padding: "0 2px", lineHeight: 1 }}>✕</button>
+            // Section header (ALL CAPS)
+            if (HEADER_RE.test(trimmed) && trimmed.length <= 60) {
+              return (
+                <div key={li} style={{ marginTop: 22, marginBottom: 8, paddingBottom: 5, borderBottom: "1.5px solid #1A1A2E", display:"flex", alignItems:"center", gap:8 }}>
+                  <span style={{ fontSize: 11, fontWeight: 800, color: "#1A1A2E", letterSpacing: "0.14em", textTransform: "uppercase", fontFamily: "inherit" }}>{trimmed}</span>
                 </div>
-                <div style={{ padding: "12px 14px", display: "flex", gap: 10, alignItems: "flex-start" }}>
-                  <p style={{ flex: 1, fontSize: 13, color: "#14532D", lineHeight: 1.6, margin: 0 }}>{bullets[flag.bulletIdx].after}</p>
-                  <button onClick={() => void navigator.clipboard.writeText(bullets[flag.bulletIdx].after)} style={{ fontSize: 11.5, fontWeight: 600, padding: "5px 12px", borderRadius: 8, border: "1px solid #BBF7D0", background: "white", color: "#16A34A", cursor: "pointer", flexShrink: 0 }}>Copy</button>
+              );
+            }
+
+            const flag = getFlag(raw, li);
+            const isActive = flag?.kind === "weak" ? activeIdx === flag.bulletIdx : activeTip === li;
+            const fm = flag ? FLAG_META[flag.kind] : null;
+
+            return (
+              <div key={li} style={{ margin: "0 -44px", padding: "0 44px" }}>
+                <div
+                  onClick={() => {
+                    if (!flag) return;
+                    if (flag.kind === "weak") onClickLine(isActive ? null : flag.bulletIdx);
+                    else setActiveTip(isActive ? null : li);
+                  }}
+                  style={{
+                    display: "flex", alignItems: "flex-start", gap: 0,
+                    padding: "4px 0", marginBottom: 1,
+                    background: fm ? (isActive ? fm.activeLineBg : fm.lineBg) : "transparent",
+                    borderLeft: fm ? `3px solid ${isActive ? fm.leftBar : fm.leftBar + "88"}` : "3px solid transparent",
+                    paddingLeft: fm ? "41px" : "0",
+                    marginLeft: fm ? "-44px" : "0",
+                    paddingRight: "8px",
+                    cursor: flag ? "pointer" : "default",
+                    transition: "background 0.12s",
+                    borderRadius: "0 4px 4px 0",
+                    position: "relative",
+                  }}
+                >
+                  {/* Margin dot */}
+                  {fm && (
+                    <div style={{
+                      position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)",
+                      width: 7, height: 7, borderRadius: "50%", background: fm.dotColor,
+                      boxShadow: `0 0 6px ${fm.dotColor}88`, flexShrink: 0,
+                    }}/>
+                  )}
+                  <div style={{ flex: 1, whiteSpace: "pre-wrap", wordBreak: "break-word", fontSize: 13.5, lineHeight: 1.65, color: "#1A1A2E", fontFamily: "inherit" }}>
+                    {hlText(trimmed)}
+                  </div>
+                  {fm && (
+                    <span style={{
+                      flexShrink: 0, fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 99, marginLeft: 8, alignSelf: "center",
+                      background: fm.badgeBg, color: fm.badgeColor, border: `1px solid ${fm.badgeBorder}`,
+                      whiteSpace: "nowrap", fontFamily: "var(--font-geist-sans, Inter, system-ui, sans-serif)",
+                    }}>
+                      {fm.badge}
+                    </span>
+                  )}
                 </div>
+
+                {/* Popup: AI rewrite for weak bullets */}
+                {flag?.kind === "weak" && isActive && (
+                  <div style={{ margin: "8px 0 12px", border: `1px solid ${fm!.popupBorder}`, borderRadius: 12, overflow: "hidden", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", fontFamily: "var(--font-geist-sans, Inter, system-ui, sans-serif)" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 16px", background: fm!.popupHeaderBg, borderBottom: `1px solid ${fm!.popupBorder}` }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                        <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#F59E0B" }}/>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: "#92400E" }}>{bullets[flag.bulletIdx].reason}</span>
+                      </div>
+                      <button onClick={e => { e.stopPropagation(); onClickLine(null); }} style={{ fontSize: 16, background: "none", border: "none", color: "#A0AABF", cursor: "pointer", lineHeight: 1, padding: "0 2px" }}>×</button>
+                    </div>
+                    <div style={{ padding: "14px 16px", background: fm!.popupBg, display: "flex", gap: 12, alignItems: "flex-start" }}>
+                      <div style={{ flex: 1 }}>
+                        <p style={{ fontSize: 11, fontWeight: 700, color: "#A0AABF", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 6 }}>Suggested rewrite</p>
+                        <p style={{ fontSize: 13.5, color: "#14532D", lineHeight: 1.6, margin: 0, fontFamily: "Georgia, serif" }}>{bullets[flag.bulletIdx].after}</p>
+                      </div>
+                      <button onClick={() => void navigator.clipboard.writeText(bullets[flag.bulletIdx].after)} style={{ fontSize: 12, fontWeight: 700, padding: "7px 14px", borderRadius: 9, border: "1.5px solid #6EE7B7", background: "white", color: "#059669", cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" }}>Copy</button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Popup: tips for no_metric / too_long / passive */}
+                {flag && flag.kind !== "weak" && isActive && (
+                  <div style={{ margin: "8px 0 12px", border: `1px solid ${fm!.popupBorder}`, borderRadius: 12, overflow: "hidden", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", fontFamily: "var(--font-geist-sans, Inter, system-ui, sans-serif)" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "13px 16px", background: fm!.popupBg }}>
+                      <div style={{ display: "flex", gap: 10, alignItems: "flex-start", flex: 1 }}>
+                        <div style={{ width: 6, height: 6, borderRadius: "50%", background: fm!.dotColor, marginTop: 6, flexShrink: 0 }}/>
+                        <p style={{ fontSize: 13.5, color: "#1E2235", lineHeight: 1.65, margin: 0 }}>{getTip(flag)}</p>
+                      </div>
+                      <button onClick={e => { e.stopPropagation(); setActiveTip(null); }} style={{ fontSize: 16, background: "none", border: "none", color: "#A0AABF", cursor: "pointer", lineHeight: 1, padding: "0 2px", flexShrink: 0, marginLeft: 8 }}>×</button>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-
-            {/* Inline tip for no_metric / too_long / passive */}
-            {flag && flag.kind !== "weak" && isActive && (
-              <div style={{ margin: "6px 10px 10px 12px", border: `1px solid ${FLAG_STYLES[flag.kind].border}44`, borderRadius: 12, background: FLAG_STYLES[flag.kind].activeBg }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "11px 14px" }}>
-                  <p style={{ flex: 1, fontSize: 13, color: "#1E2235", lineHeight: 1.6, margin: 0 }}>{getTip(flag)}</p>
-                  <button onClick={e => { e.stopPropagation(); setActiveTip(null); }} style={{ fontSize: 14, background: "none", border: "none", color: "#A0AABF", cursor: "pointer", padding: "0 2px", lineHeight: 1, flexShrink: 0 }}>✕</button>
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      })}
-      {text.length > 8000 && <p style={{ fontSize: 11, color: "#A0AABF", marginTop: 10 }}>[…truncated for preview]</p>}
+            );
+          })}
+          {text.length > 10000 && (
+            <p style={{ fontSize: 11, color: "#A0AABF", marginTop: 14, fontFamily: "var(--font-geist-sans, Inter, system-ui, sans-serif)" }}>[Truncated — showing first 14,000 characters]</p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -461,42 +540,45 @@ function FormattedResume({ text, keywords }: { text: string; keywords?: ResumeKe
     if (!kwRegex) return str;
     return str.split(kwRegex).map((p, i) =>
       found.some(k => k.toLowerCase() === p.toLowerCase())
-        ? <mark key={i} style={{ background:"#DCFCE7", color:"#14532D", borderRadius:3, padding:"0 2px", fontWeight:600 }}>{p}</mark>
+        ? <mark key={i} style={{ background:"rgba(22,163,74,0.15)", color:"#14532D", borderRadius:3, padding:"0 3px", fontWeight:700, fontFamily:"inherit" }}>{p}</mark>
         : p
     );
   }
 
   const HEADER_RE = /^[A-Z][A-Z\s&\/\-]{3,}$/;
-  // No preprocessing — pasted text is already in user's order; PDF text is shown
-  // via iframe by the parent so this renderer is only used for pasted text.
   const lines = text.split("\n");
 
   return (
-    <div style={{ fontFamily:"inherit", fontSize:13, lineHeight:1.75, color:"#1E2235" }}>
-      {lines.map((line, li) => {
-        const trimmed = line.trim();
-        // Blank line → small spacer
-        if (!trimmed) return <div key={li} style={{ height:7 }}/>;
+    <div style={{
+      background: "white",
+      borderRadius: 6,
+      boxShadow: "0 2px 4px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.08)",
+      border: "1px solid rgba(0,0,0,0.06)",
+      overflow: "hidden",
+    }}>
+      <div style={{ padding: "40px 44px", fontFamily: "Georgia, 'Times New Roman', serif" }}>
+        {lines.map((line, li) => {
+          const trimmed = line.trim();
+          if (!trimmed) return <div key={li} style={{ height: 8 }}/>;
 
-        // ALL-CAPS section header (e.g. "PROFESSIONAL EXPERIENCE", "EDUCATION")
-        if (HEADER_RE.test(trimmed) && trimmed.length <= 60) {
+          if (HEADER_RE.test(trimmed) && trimmed.length <= 60) {
+            return (
+              <div key={li} style={{ marginTop: 22, marginBottom: 8, paddingBottom: 5, borderBottom: "1.5px solid #1A1A2E" }}>
+                <span style={{ fontSize: 11, fontWeight: 800, color: "#1A1A2E", letterSpacing: "0.14em", textTransform: "uppercase", fontFamily: "inherit" }}>
+                  {trimmed}
+                </span>
+              </div>
+            );
+          }
+
           return (
-            <div key={li} style={{ marginTop:18, marginBottom:6, paddingBottom:4, borderBottom:"1.5px solid #CBD5E1" }}>
-              <span style={{ fontSize:12, fontWeight:800, color:"#1E2235", letterSpacing:"0.1em", textTransform:"uppercase" }}>
-                {trimmed}
-              </span>
+            <div key={li} style={{ whiteSpace:"pre-wrap", wordBreak:"break-word", fontSize: 13.5, lineHeight: 1.65, marginBottom: 2, color: "#1A1A2E", fontFamily: "inherit" }}>
+              {hlLine(line)}
             </div>
           );
-        }
-
-        // Everything else: render exactly as-is, preserving indentation via pre-wrap
-        return (
-          <div key={li} style={{ whiteSpace:"pre-wrap", wordBreak:"break-word", fontSize:13, lineHeight:1.7, marginBottom:2 }}>
-            {hlLine(line)}
-          </div>
-        );
-      })}
-      {text.length > 3000 && <p style={{ fontSize:11, color:"#A0AABF", marginTop:10 }}>[…truncated for preview]</p>}
+        })}
+        {text.length > 3000 && <p style={{ fontSize:11, color:"#A0AABF", marginTop:14, fontFamily:"var(--font-geist-sans,Inter,sans-serif)" }}>[…truncated for preview]</p>}
+      </div>
     </div>
   );
 }
@@ -1838,7 +1920,7 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
     s >= 77 ? "#F0FFF4" : s >= 63 ? "#EFF6FF" : s >= 50 ? "#FFFBEB" : "#FEF2F2";
 
   return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F4F6FB" }}>
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F0F2F8" }}>
 
       {/* ── Download Format Modal ── */}
       {downloadModal && (
@@ -1931,73 +2013,70 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
           ];
 
           return (
-            <div style={{ background:"white", borderRadius:20, border:"1px solid #E4E8F5", padding:"22px 28px", marginBottom:20, boxShadow:"0 4px 32px rgba(67,97,238,0.08)" }}>
-              <div style={{ display:"grid", gridTemplateColumns: tailored!==null ? "160px 1fr 160px" : "160px 1fr", gap:28, alignItems:"center" }}>
+            <div style={{ background:"linear-gradient(135deg, #0D1321 0%, #141E30 100%)", borderRadius:20, border:"1px solid rgba(255,255,255,0.07)", padding:"24px 28px", marginBottom:20, boxShadow:"0 12px 48px rgba(0,0,0,0.22)", position:"relative", overflow:"hidden" }}>
+              {/* Ambient glow blobs */}
+              <div style={{ position:"absolute", top:-50, right:tailored!==null?200:80, width:220, height:220, background:`radial-gradient(circle,${lcolor}22 0%,transparent 70%)`, pointerEvents:"none" }}/>
+              <div style={{ position:"absolute", bottom:-60, left:40, width:160, height:160, background:"radial-gradient(circle,rgba(67,97,238,0.12) 0%,transparent 70%)", pointerEvents:"none" }}/>
+
+              <div style={{ display:"grid", gridTemplateColumns: tailored!==null ? "168px 1fr 168px" : "168px 1fr", gap:28, alignItems:"center", position:"relative" }}>
 
                 {/* Big overall score ring */}
                 <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:6 }}>
                   <div style={{ position:"relative" }}>
-                    <ScoreRing score={overall} color={lcolor} size={110}/>
-                    {/* Letter grade badge */}
-                    <div style={{ position:"absolute", bottom:-6, left:"50%", transform:"translateX(-50%)", background:lbg, color:lcolor, fontSize:11, fontWeight:800, padding:"2px 10px", borderRadius:99, border:`1.5px solid ${lcolor}33`, whiteSpace:"nowrap" }}>
+                    <ScoreRing score={overall} color={lcolor} size={116} dark={true}/>
+                    <div style={{ position:"absolute", bottom:-8, left:"50%", transform:"translateX(-50%)", background:"rgba(255,255,255,0.1)", backdropFilter:"blur(6px)", color:"rgba(255,255,255,0.9)", fontSize:10.5, fontWeight:800, padding:"3px 11px", borderRadius:99, border:"1px solid rgba(255,255,255,0.15)", whiteSpace:"nowrap", boxShadow:"0 2px 8px rgba(0,0,0,0.2)" }}>
                       {lgrade} · {grade.label}
                     </div>
                   </div>
-                  <p style={{ fontSize:11.5, fontWeight:700, color:"#68738A", marginTop:10 }}>Overall Score</p>
+                  <p style={{ fontSize:11.5, fontWeight:700, color:"rgba(255,255,255,0.4)", marginTop:14, letterSpacing:"0.05em", textTransform:"uppercase" }}>Overall</p>
                   {overallDelta !== null && (
-                    <span style={{ fontSize:11, color:overallDelta>0?"#16A34A":overallDelta<0?"#DC2626":"#A0AABF", fontWeight:700, display:"flex", alignItems:"center", gap:3 }}>
-                      {overallDelta>0?"+":""}{overallDelta} vs last {overallDelta>0?"↑":overallDelta<0?"↓":"→"}
+                    <span style={{ fontSize:11, color:overallDelta>0?"#4ADE80":overallDelta<0?"#F87171":"rgba(255,255,255,0.3)", fontWeight:700, display:"flex", alignItems:"center", gap:3 }}>
+                      {overallDelta>0?"+":""}{overallDelta} vs last {overallDelta>0?"↑":overallDelta<0?"↓":"="}
                     </span>
                   )}
                 </div>
 
                 {/* Sub-score bars */}
-                <div style={{ display:"flex", flexDirection:"column", gap:14, paddingLeft: tailored!==null ? 4 : 12 }}>
+                <div style={{ display:"flex", flexDirection:"column", gap:16, paddingLeft: tailored!==null ? 4 : 16 }}>
                   {subScores.map(sc => {
                     const prev = aiResult?.previousScores?.[sc.key] ?? null;
                     const d = prev !== null ? sc.score - prev : null;
-                    const sc_lgrade  = letterGrade(sc.score);
-                    const sc_lcolor  = gradeColor(sc.score);
-                    const sc_lbg     = gradeBackground(sc.score);
                     return (
                       <div key={sc.label}>
-                        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
-                          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                            <span style={{ color:sc.color, opacity:0.8 }}>{sc.icon}</span>
-                            <span style={{ fontSize:13, fontWeight:700, color:"#0A0A0F" }}>{sc.label}</span>
-                            <span style={{ fontSize:11, color:"#A0AABF" }}>{sc.note}</span>
-                          </div>
+                        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:7 }}>
                           <div style={{ display:"flex", alignItems:"center", gap:7 }}>
-                            <span style={{ fontSize:10, fontWeight:700, padding:"2px 7px", borderRadius:99, background:sc_lbg, color:sc_lcolor }}>{sc_lgrade}</span>
-                            <span style={{ fontSize:19, fontWeight:900, color:sc_lcolor, lineHeight:1, fontVariantNumeric:"tabular-nums" }}>{sc.score}</span>
+                            <span style={{ color:sc.color }}>{sc.icon}</span>
+                            <span style={{ fontSize:13, fontWeight:700, color:"rgba(255,255,255,0.85)" }}>{sc.label}</span>
+                            <span style={{ fontSize:11, color:"rgba(255,255,255,0.3)" }}>{sc.note}</span>
+                          </div>
+                          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                             {d !== null && d !== 0 && (
-                              <span style={{ fontSize:10.5, fontWeight:700, color:d>0?"#16A34A":"#DC2626" }}>
-                                {d>0?"+":""}{d}{d>0?"↑":"↓"}
+                              <span style={{ fontSize:10.5, fontWeight:700, color:d>0?"#4ADE80":"#F87171", background:d>0?"rgba(74,222,128,0.12)":"rgba(248,113,113,0.12)", padding:"1px 7px", borderRadius:99 }}>
+                                {d>0?"+":""}{d}
                               </span>
                             )}
+                            <span style={{ fontSize:22, fontWeight:900, color:sc.color, lineHeight:1, letterSpacing:"-0.03em", textShadow:`0 0 16px ${sc.color}66` }}>{sc.score}</span>
                           </div>
                         </div>
-                        <div style={{ height:7, borderRadius:99, background:"#F1F5F9", overflow:"hidden", position:"relative" }}>
-                          <div style={{ position:"absolute", inset:0, background:"linear-gradient(90deg, transparent, rgba(255,255,255,0.4))", zIndex:1, borderRadius:99, pointerEvents:"none" }}/>
-                          <div style={{ width:`${sc.score}%`, height:"100%", borderRadius:99, background:`linear-gradient(90deg,${sc.color}BB,${sc.color})`, transition:"width 1s cubic-bezier(0.4,0,0.2,1)" }}/>
+                        <div style={{ height:6, borderRadius:99, background:"rgba(255,255,255,0.08)", overflow:"hidden" }}>
+                          <div style={{ width:`${sc.score}%`, height:"100%", borderRadius:99, background:`linear-gradient(90deg, ${sc.color}88, ${sc.color})`, transition:"width 1s cubic-bezier(0.4,0,0.2,1)", boxShadow:`0 0 8px ${sc.color}66` }}/>
                         </div>
                       </div>
                     );
                   })}
                 </div>
 
-                {/* Tailored job-match panel (targeted mode only) */}
+                {/* Tailored job-match panel */}
                 {tailored !== null && (
-                  <div style={{ borderLeft:"1px solid #F1F5F9", paddingLeft:28, display:"flex", flexDirection:"column", alignItems:"center", gap:6 }}>
-                    <ScoreRing score={tailored} color={gradeColor(tailored)} size={88}/>
-                    <p style={{ fontSize:11, fontWeight:700, color:"#0A0A0F", marginTop:8, textAlign:"center" }}>Job Match</p>
-                    <span style={{ fontSize:10, color:"#68738A", textAlign:"center", lineHeight:1.4 }}>How well your resume targets this role</span>
-                    <span style={{ fontSize:10, fontWeight:700, padding:"2px 9px", borderRadius:99, background:gradeBackground(tailored), color:gradeColor(tailored) }}>
+                  <div style={{ borderLeft:"1px solid rgba(255,255,255,0.07)", paddingLeft:28, display:"flex", flexDirection:"column", alignItems:"center", gap:6 }}>
+                    <ScoreRing score={tailored} color={gradeColor(tailored)} size={92} dark={true}/>
+                    <p style={{ fontSize:11.5, fontWeight:700, color:"rgba(255,255,255,0.7)", marginTop:10, textAlign:"center" }}>Job Match</p>
+                    <span style={{ fontSize:10.5, color:"rgba(255,255,255,0.35)", textAlign:"center", lineHeight:1.45 }}>How closely you target this role</span>
+                    <span style={{ fontSize:11, fontWeight:700, padding:"3px 11px", borderRadius:99, background:`${gradeColor(tailored)}22`, color:gradeColor(tailored), border:`1px solid ${gradeColor(tailored)}44`, marginTop:2 }}>
                       {tailored>=75?"Strong fit":tailored>=55?"Partial fit":tailored>=35?"Weak fit":"Mismatch"}
                     </span>
                   </div>
                 )}
-
               </div>
             </div>
           );
@@ -2059,67 +2138,36 @@ function ScreenResume({ stage }: { stage: CareerStage }) {
           ))}
         </div>
 
-        <div style={{ display:"grid", gridTemplateColumns:"minmax(0,48%) 1fr", gap:20 }}>
+        <div style={{ display:"grid", gridTemplateColumns:"minmax(0,50%) 1fr", gap:20 }}>
           {/* ── Left: resume viewer ── */}
-          <div style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", overflow:"hidden", boxShadow:"0 4px 24px rgba(0,0,0,0.07)", height:"calc(100vh - 260px)", display:"flex", flexDirection:"column" }}>
+          <div style={{ background:"#ECEEF5", borderRadius:16, overflow:"hidden", height:"calc(100vh - 260px)", display:"flex", flexDirection:"column", border:"1px solid rgba(0,0,0,0.06)" }}>
             {/* Panel header */}
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 16px", borderBottom:"1px solid #F1F5F9", background:"#FAFBFF", flexShrink:0 }}>
-              <div style={{ display:"flex", background:"#F1F5F9", borderRadius:8, padding:3 }}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px", background:"#F4F6FC", borderBottom:"1px solid rgba(0,0,0,0.07)", flexShrink:0 }}>
+              <div style={{ display:"flex", background:"rgba(255,255,255,0.7)", borderRadius:9, padding:3, backdropFilter:"blur(4px)" }}>
                 {(["preview","suggestions"] as const).map(m => (
-                  <button key={m} onClick={()=>{ setResumeViewMode(m); setActiveSuggestion(null); }} style={{ fontSize:12, fontWeight:600, padding:"5px 14px", borderRadius:6, border:"none", background:resumeViewMode===m?"white":"transparent", color:resumeViewMode===m?"#0A0A0F":"#68738A", cursor:"pointer", boxShadow:resumeViewMode===m?"0 1px 4px rgba(0,0,0,0.12)":"none", transition:"all 0.12s" }}>
+                  <button key={m} onClick={()=>{ setResumeViewMode(m); setActiveSuggestion(null); }} style={{ fontSize:12, fontWeight:600, padding:"5px 14px", borderRadius:7, border:"none", background:resumeViewMode===m?"white":"transparent", color:resumeViewMode===m?"#0A0A0F":"#68738A", cursor:"pointer", boxShadow:resumeViewMode===m?"0 1px 6px rgba(0,0,0,0.1)":"none", transition:"all 0.12s" }}>
                     {m==="suggestions" ? `Suggestions${aiResult?.bullets?.length?` (${aiResult.bullets.length})`:""}`:"Preview"}
                   </button>
                 ))}
               </div>
               <div style={{ display:"flex", gap:6 }}>
                 {aiResult?.keywords?.some(k=>k.found) && (
-                  <button onClick={()=>setTab("keywords")} style={{ fontSize:11, color:"#14532D", background:"#DCFCE7", padding:"3px 10px", borderRadius:99, fontWeight:700, border:"none", cursor:"pointer" }}>
-                    {aiResult!.keywords!.filter(k=>k.found).length} keywords found →
+                  <button onClick={()=>setTab("keywords")} style={{ fontSize:11, color:"#14532D", background:"rgba(220,252,231,0.8)", padding:"3px 10px", borderRadius:99, fontWeight:700, border:"1px solid rgba(22,163,74,0.2)", cursor:"pointer" }}>
+                    {aiResult!.keywords!.filter(k=>k.found).length} keywords ✓
                   </button>
-                )}
-                {resumeViewMode==="suggestions" && !rawFileUrl && (
-                  <span style={{ fontSize:11, color:"#92400E", background:"#FEF3C7", padding:"3px 10px", borderRadius:99, fontWeight:700 }}>tap lines for suggestions</span>
                 )}
               </div>
             </div>
-            {/* Resume view — always show PDF when available; fall back to text renderer */}
-            {rawFileUrl
-              ? <div style={{ flex:1, position:"relative", minHeight:0, display:"flex", flexDirection:"column" }}>
-                  <iframe src={rawFileUrl} style={{ flex:1, width:"100%", border:"none", display:"block", minHeight:0 }} title="Resume"/>
-                  {/* Suggestions mode: expandable issue panel anchored to bottom */}
-                  {resumeViewMode==="suggestions" && (aiResult?.bullets?.length ?? 0) > 0 && (() => {
-                    const wk = aiResult!.bullets!.length;
-                    const nm = (aiResult?.wordIssues ?? []).filter(w=>w.type==="weak_verb"||w.type==="cliche").length;
-                    return (
-                      <div style={{ position:"absolute", bottom:0, left:0, right:0, background:"rgba(15,23,42,0.94)", backdropFilter:"blur(10px)", borderTop:"1px solid rgba(255,255,255,0.08)" }}>
-                        {/* Summary bar */}
-                        <div style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 16px" }}>
-                          <div style={{ display:"flex", gap:8, flex:1, flexWrap:"wrap" }}>
-                            {wk>0 && <span style={{ fontSize:11.5, fontWeight:700, padding:"3px 10px", borderRadius:99, background:"rgba(245,158,11,0.2)", color:"#FCD34D", border:"1px solid rgba(245,158,11,0.3)" }}>{wk} weak bullet{wk!==1?"s":""}</span>}
-                            {nm>0 && <span style={{ fontSize:11.5, fontWeight:700, padding:"3px 10px", borderRadius:99, background:"rgba(239,68,68,0.2)", color:"#FCA5A5", border:"1px solid rgba(239,68,68,0.25)" }}>{nm} word issue{nm!==1?"s":""}</span>}
-                          </div>
-                          <button onClick={()=>setTab("bullets")} style={{ fontSize:12, fontWeight:700, color:"#93C5FD", background:"rgba(96,165,250,0.15)", border:"1px solid rgba(96,165,250,0.25)", borderRadius:8, padding:"5px 12px", cursor:"pointer", whiteSpace:"nowrap" }}>
-                            View Line-by-Line →
-                          </button>
-                        </div>
-                        {/* Top-3 bullet previews */}
-                        <div style={{ borderTop:"1px solid rgba(255,255,255,0.06)", padding:"10px 16px", display:"flex", flexDirection:"column", gap:7 }}>
-                          {aiResult!.bullets!.slice(0,3).map((b, i) => (
-                            <div key={i} onClick={()=>{ setTab("bullets"); setActiveSuggestion(i); }} style={{ display:"flex", alignItems:"flex-start", gap:8, cursor:"pointer", padding:"6px 8px", borderRadius:8, background:"rgba(255,255,255,0.04)" }}>
-                              <span style={{ flexShrink:0, fontSize:10, fontWeight:700, padding:"2px 6px", borderRadius:99, background:"rgba(245,158,11,0.25)", color:"#FCD34D", marginTop:1 }}>fix</span>
-                              <p style={{ fontSize:11.5, color:"rgba(255,255,255,0.7)", lineHeight:1.5, margin:0, flex:1, overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" as const }}>{b.before}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-              : resumeViewMode==="suggestions"
-              ? <div style={{ padding:"20px 22px", overflowY:"auto", flex:1 }}>
+            {/* Resume view — suggestions mode always uses text renderer so highlights work */}
+            {resumeViewMode==="suggestions"
+              ? <div style={{ padding:"16px 14px", overflowY:"auto", flex:1 }}>
                   <SuggestionsResume text={resumeText} bullets={aiResult?.bullets ?? []} wordIssues={aiResult?.wordIssues} activeIdx={activeSuggestion} onClickLine={setActiveSuggestion}/>
                 </div>
-              : <div style={{ padding:"20px 22px", overflowY:"auto", flex:1 }}>
+              : rawFileUrl
+              ? <div style={{ flex:1, minHeight:0, display:"flex", flexDirection:"column" }}>
+                  <iframe src={rawFileUrl} style={{ flex:1, width:"100%", border:"none", display:"block", minHeight:0 }} title="Resume"/>
+                </div>
+              : <div style={{ padding:"16px 14px", overflowY:"auto", flex:1 }}>
                   <FormattedResume text={resumeText.slice(0,6000)} keywords={aiResult?.keywords}/>
                 </div>
             }
@@ -4185,7 +4233,11 @@ function ScreenDocuments({ onNavigate }: { onNavigate: (s: string) => void }) {
   const fileInputRef  = useRef<HTMLInputElement>(null);
 
   function reload() { setDocs(vaultRead()); }
-  useEffect(() => { reload(); }, []);
+  useEffect(() => {
+    reload();
+    window.addEventListener("vault-updated", reload);
+    return () => window.removeEventListener("vault-updated", reload);
+  }, []);
 
   async function handleFile(file: File) {
     setUploading(true);
@@ -4225,7 +4277,7 @@ function ScreenDocuments({ onNavigate }: { onNavigate: (s: string) => void }) {
   const words = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
 
   return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#FAFBFF" }}>
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F0F2F8" }}>
       {/* Preview modal */}
       {preview && (
         <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", zIndex:200, display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}
@@ -4252,18 +4304,40 @@ function ScreenDocuments({ onNavigate }: { onNavigate: (s: string) => void }) {
       <input ref={fileInputRef} type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }}
         onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleFile(f); e.target.value=""; }}/>
 
-      <div style={{ maxWidth:860, margin:"0 auto", padding:28 }}>
+      <div style={{ maxWidth:900, margin:"0 auto", padding:"28px 28px 56px" }}>
 
-        {/* Header */}
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:24 }}>
-          <div>
-            <h1 style={{ fontSize:22, fontWeight:900, letterSpacing:"-0.03em", color:"#0A0A0F", marginBottom:4 }}>Documents</h1>
-            <p style={{ fontSize:13, color:"#68738A" }}>Everything Zari has created or analyzed — all in one place</p>
+        {/* ── Hero header ── */}
+        <div style={{ background:"linear-gradient(135deg,#1E293B,#0F172A)", borderRadius:18, padding:"24px 28px", marginBottom:24, boxShadow:"0 12px 40px rgba(0,0,0,0.2)", border:"1px solid rgba(255,255,255,0.07)", position:"relative", overflow:"hidden" }}>
+          <div style={{ position:"absolute", top:-40, right:-20, width:160, height:160, background:"radial-gradient(circle,rgba(100,116,139,0.15) 0%,transparent 70%)", pointerEvents:"none" }}/>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:16, flexWrap:"wrap", position:"relative" }}>
+            <div>
+              <div style={{ fontSize:10.5, fontWeight:700, color:"rgba(148,163,184,0.7)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Document Vault</div>
+              <h1 style={{ fontSize:22, fontWeight:900, letterSpacing:"-0.03em", color:"white", marginBottom:4 }}>My Documents</h1>
+              <p style={{ fontSize:13, color:"rgba(255,255,255,0.4)" }}>
+                {docs.length === 0 ? "Your vault is empty — complete sections or upload files to get started" : `${docs.length} document${docs.length!==1?"s":""} · resume, cover letters, LinkedIn · all in one place`}
+              </p>
+            </div>
+            <button onClick={()=>fileInputRef.current?.click()} style={{ fontSize:13, fontWeight:700, padding:"10px 20px", borderRadius:11, border:"1px solid rgba(255,255,255,0.12)", background:"rgba(255,255,255,0.1)", color:"white", cursor:"pointer", display:"flex", alignItems:"center", gap:8, backdropFilter:"blur(4px)", flexShrink:0 }}>
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width:14,height:14 }}><path d="M10 3v12M4 9l6-6 6 6"/></svg>
+              Upload file
+            </button>
           </div>
-          <button onClick={()=>fileInputRef.current?.click()} style={{ fontSize:13, fontWeight:700, padding:"9px 18px", borderRadius:10, border:"none", background:"#4361EE", color:"white", cursor:"pointer", display:"flex", alignItems:"center", gap:7, boxShadow:"0 4px 14px rgba(67,97,238,0.28)", flexShrink:0 }}>
-            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:14,height:14 }}><path d="M10 3v12M4 9l6-6 6 6"/></svg>
-            Upload
-          </button>
+          {/* Doc type quick stats */}
+          {docs.length > 0 && (
+            <div style={{ display:"flex", gap:12, marginTop:18, flexWrap:"wrap", position:"relative" }}>
+              {(["resume","cover-letter","linkedin","upload"] as DocType[]).map(t => {
+                const count = docs.filter(d=>d.type===t).length;
+                if (!count) return null;
+                const meta = TYPE_META[t];
+                return (
+                  <div key={t} style={{ display:"flex", alignItems:"center", gap:6, padding:"5px 12px", borderRadius:99, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.1)" }}>
+                    <span style={{ color:meta.color }}>{meta.icon}</span>
+                    <span style={{ fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.65)" }}>{count} {meta.label}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Drop zone */}
@@ -4272,12 +4346,12 @@ function ScreenDocuments({ onNavigate }: { onNavigate: (s: string) => void }) {
           onDragLeave={()=>setDragging(false)}
           onDrop={e=>{ e.preventDefault(); setDragging(false); const f=e.dataTransfer.files?.[0]; if(f) void handleFile(f); }}
           onClick={()=>fileInputRef.current?.click()}
-          style={{ border:`2px dashed ${dragging?"#4361EE":"#CBD5E1"}`, borderRadius:16, padding:"24px 32px", textAlign:"center", marginBottom:24, cursor:"pointer", background:dragging?"#EEF2FF":"white", transition:"all 0.2s" }}>
+          style={{ border:`2px dashed ${dragging?"#4361EE":"rgba(0,0,0,0.12)"}`, borderRadius:14, padding:"20px 32px", textAlign:"center", marginBottom:24, cursor:"pointer", background:dragging?"rgba(67,97,238,0.05)":"rgba(255,255,255,0.6)", transition:"all 0.2s", backdropFilter:"blur(2px)" }}>
           {uploading ? (
             <p style={{ fontSize:13, fontWeight:600, color:"#4361EE" }}>Uploading and indexing…</p>
           ) : (
             <>
-              <p style={{ fontSize:13, fontWeight:600, color:"#0A0A0F", marginBottom:3 }}>Drop a file here to add it to your vault</p>
+              <p style={{ fontSize:13, fontWeight:600, color:"#0A0A0F", marginBottom:3 }}>Drop a file to add it to your vault</p>
               <p style={{ fontSize:12, color:"#A0AABF" }}>PDF · DOCX · TXT — resume, notes, job descriptions, anything</p>
             </>
           )}
@@ -4305,35 +4379,35 @@ function ScreenDocuments({ onNavigate }: { onNavigate: (s: string) => void }) {
 
         {/* Document list */}
         {docs.length === 0 ? (
-          <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:16, padding:"48px 32px", textAlign:"center" }}>
-            <div style={{ width:52, height:52, borderRadius:14, background:"#F5F7FF", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px", color:"#A0AABF" }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:24,height:24}}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <div style={{ background:"white", borderRadius:16, padding:"60px 32px", textAlign:"center", boxShadow:"0 2px 12px rgba(0,0,0,0.05)", border:"1px solid rgba(0,0,0,0.06)" }}>
+            <div style={{ width:60, height:60, borderRadius:16, background:"linear-gradient(135deg,#F1F5F9,#E8EBF4)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 18px", color:"#A0AABF" }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:26,height:26}}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             </div>
-            <p style={{ fontSize:15, fontWeight:700, color:"#0A0A0F", marginBottom:6 }}>Your vault is empty</p>
-            <p style={{ fontSize:13, color:"#68738A", marginBottom:18 }}>Complete a section above or upload a file to get started</p>
+            <p style={{ fontSize:16, fontWeight:800, color:"#0A0A0F", marginBottom:6, letterSpacing:"-0.02em" }}>Your vault is empty</p>
+            <p style={{ fontSize:13.5, color:"#68738A", marginBottom:0 }}>Complete a section above or upload a file to get started</p>
           </div>
         ) : (
-          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
             {docs.map(doc => {
               const m = TYPE_META[doc.type];
               const date = new Date(doc.createdAt).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
               const wc   = words(doc.content);
               return (
-                <div key={doc.id} style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:14, padding:"14px 18px", display:"flex", alignItems:"center", gap:14, boxShadow:"0 1px 4px rgba(0,0,0,0.04)" }}>
-                  <div style={{ width:44, height:44, borderRadius:12, background:m.bg, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:m.color }}>{m.icon}</div>
+                <div key={doc.id} style={{ background:"white", border:"1px solid rgba(0,0,0,0.07)", borderLeft:`3.5px solid ${m.color}`, borderRadius:"0 14px 14px 0", padding:"14px 18px", display:"flex", alignItems:"center", gap:14, boxShadow:"0 1px 6px rgba(0,0,0,0.05)", transition:"box-shadow 0.15s" }}>
+                  <div style={{ width:42, height:42, borderRadius:11, background:m.bg, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:m.color }}>{m.icon}</div>
                   <div style={{ flex:1, minWidth:0 }}>
                     <p style={{ fontSize:13.5, fontWeight:700, color:"#0A0A0F", marginBottom:3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{doc.name}</p>
                     <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
-                      <span style={{ fontSize:11, fontWeight:700, padding:"2px 8px", borderRadius:99, background:m.bg, color:m.color }}>{m.label}</span>
+                      <span style={{ fontSize:11, fontWeight:700, padding:"2px 8px", borderRadius:99, background:m.bg, color:m.color, border:`1px solid ${m.color}30` }}>{m.label}</span>
                       <span style={{ fontSize:11, color:"#A0AABF" }}>{wc.toLocaleString()} words · {date}</span>
-                      {doc.meta.score && <span style={{ fontSize:11, fontWeight:700, color:"#16A34A" }}>Score {doc.meta.score}</span>}
+                      {doc.meta.score && <span style={{ fontSize:11, fontWeight:700, color:"#16A34A", background:"#F0FFF4", padding:"1px 7px", borderRadius:99 }}>Score {doc.meta.score}</span>}
                     </div>
                   </div>
-                  <div style={{ display:"flex", gap:7, flexShrink:0 }}>
+                  <div style={{ display:"flex", gap:6, flexShrink:0 }}>
                     <button onClick={()=>setPreview(doc)} style={{ fontSize:11.5, fontWeight:600, padding:"6px 12px", borderRadius:8, border:"1px solid #E4E8F5", background:"white", color:"#68738A", cursor:"pointer" }}>Preview</button>
-                    <button onClick={()=>downloadDoc(doc)} style={{ fontSize:11.5, fontWeight:600, padding:"6px 12px", borderRadius:8, border:"1px solid #E4E8F5", background:"white", color:"#68738A", cursor:"pointer" }}>Download</button>
-                    <button onClick={()=>onNavigate(m.section)} style={{ fontSize:11.5, fontWeight:600, padding:"6px 14px", borderRadius:8, border:"none", background:"#4361EE", color:"white", cursor:"pointer" }}>Open</button>
-                    <button onClick={()=>{ vaultRemove(doc.id); reload(); }} style={{ fontSize:11.5, fontWeight:600, padding:"6px 10px", borderRadius:8, border:"1px solid #FEE2E2", background:"#FEF2F2", color:"#DC2626", cursor:"pointer" }}>✕</button>
+                    <button onClick={()=>downloadDoc(doc)} style={{ fontSize:11.5, fontWeight:600, padding:"6px 12px", borderRadius:8, border:"1px solid #E4E8F5", background:"white", color:"#68738A", cursor:"pointer" }}>↓</button>
+                    <button onClick={()=>onNavigate(m.section)} style={{ fontSize:11.5, fontWeight:700, padding:"6px 16px", borderRadius:8, border:"none", background:`linear-gradient(135deg,${m.color}DD,${m.color})`, color:"white", cursor:"pointer", boxShadow:`0 2px 8px ${m.color}44` }}>Open →</button>
+                    <button onClick={()=>{ vaultRemove(doc.id); }} style={{ fontSize:14, fontWeight:700, padding:"5px 9px", borderRadius:8, border:"1px solid #FEE2E2", background:"#FEF2F2", color:"#DC2626", cursor:"pointer", lineHeight:1 }}>×</button>
                   </div>
                 </div>
               );
@@ -4568,56 +4642,69 @@ function ScreenCoverLetter() {
 
   // ── Show result page once generated ──
   if (result || generating) return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#FAFBFF" }}>
-      <div style={{ maxWidth:720, margin:"0 auto", padding:"28px 24px" }}>
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F0F2F8" }}>
+      <div style={{ maxWidth:760, margin:"0 auto", padding:"28px 24px 56px" }}>
         {generating ? (
-          <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:18, padding:"60px 32px", textAlign:"center", boxShadow:"0 2px 16px rgba(0,0,0,0.06)" }}>
-            <div style={{ display:"flex", gap:6, justifyContent:"center", marginBottom:16 }}>
-              {[0,1,2].map(i=><div key={i} style={{ width:10,height:10,borderRadius:"50%",background:"#818CF8",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
+          <div style={{ background:"linear-gradient(135deg,#0D1321,#141E30)", borderRadius:20, padding:"72px 32px", textAlign:"center", boxShadow:"0 12px 48px rgba(0,0,0,0.22)", border:"1px solid rgba(255,255,255,0.07)" }}>
+            <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
+              {[0,1,2].map(i=><div key={i} style={{ width:11,height:11,borderRadius:"50%",background:"#818CF8",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite`, boxShadow:"0 0 10px rgba(129,140,248,0.5)" }}/>)}
             </div>
-            <p style={{ fontSize:16, fontWeight:700, color:"#0A0A0F", marginBottom:6 }}>Zari is writing your letter…</p>
-            <p style={{ fontSize:13, color:"#A0AABF" }}>Tailoring every sentence to your background and the role</p>
+            <p style={{ fontSize:17, fontWeight:800, color:"white", marginBottom:8, letterSpacing:"-0.02em" }}>Zari is writing your letter…</p>
+            <p style={{ fontSize:13.5, color:"rgba(255,255,255,0.4)" }}>Tailoring every sentence to your background and the role</p>
           </div>
         ) : result && (
-          <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:18, boxShadow:"0 4px 24px rgba(0,0,0,0.07)", overflow:"hidden" }}>
-            <div style={{ padding:"18px 22px", borderBottom:"1px solid #F1F5F9", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
-              <div>
-                <p style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"#A0AABF", marginBottom:3 }}>Subject line</p>
-                <p style={{ fontSize:14, fontWeight:700, color:"#0A0A0F" }}>{result.subject || "Cover letter"}</p>
-              </div>
-              <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-                <button onClick={()=>{ setResult(null); setStep(1); }} style={{ fontSize:12, fontWeight:600, padding:"7px 14px", borderRadius:9, border:"1px solid #E4E8F5", background:"white", color:"#68738A", cursor:"pointer" }}>← Start over</button>
-                <button onClick={()=>setEditMode(e=>!e)} style={{ fontSize:12, fontWeight:600, padding:"7px 14px", borderRadius:9, border:`1px solid ${editMode?"#4361EE":"#E4E8F5"}`, background:editMode?"#EEF2FF":"white", color:editMode?"#4361EE":"#68738A", cursor:"pointer" }}>{editMode?"Preview":"Edit"}</button>
-                <button onClick={copy} style={{ fontSize:12, fontWeight:600, padding:"7px 14px", borderRadius:9, border:"none", background:copied?"#F0FFF4":"#EEF2FF", color:copied?"#16A34A":"#4361EE", cursor:"pointer", transition:"all 0.2s" }}>{copied?"✓ Copied":"Copy"}</button>
-                <div style={{ position:"relative" }}>
-                  <button onClick={()=>setShowDlMenu(m=>!m)} style={{ fontSize:12, fontWeight:700, padding:"7px 18px", borderRadius:9, border:"none", background:"#0F172A", color:"white", cursor:"pointer", display:"flex", alignItems:"center", gap:6 }}>
-                    Download
-                    <svg viewBox="0 0 10 6" fill="none" stroke="white" strokeWidth="1.8" style={{width:10,height:10,transition:"transform 0.15s",transform:showDlMenu?"rotate(180deg)":"rotate(0deg)"}}><path d="M1 1l4 4 4-4"/></svg>
-                  </button>
-                  {showDlMenu && (
-                    <div style={{ position:"absolute", top:"calc(100% + 6px)", right:0, background:"white", border:"1px solid #E4E8F5", borderRadius:10, boxShadow:"0 8px 24px rgba(0,0,0,0.12)", overflow:"hidden", minWidth:140, zIndex:99 }}>
-                      <button onClick={()=>{ downloadPdf(); setShowDlMenu(false); }} style={{ width:"100%", padding:"10px 16px", border:"none", background:"transparent", textAlign:"left", fontSize:13, fontWeight:600, color:"#0A0A0F", cursor:"pointer", display:"flex", alignItems:"center", gap:9, borderBottom:"1px solid #F1F5F9" }}>
-                        <svg viewBox="0 0 16 16" fill="none" stroke="#DC2626" strokeWidth="1.6" style={{width:15,height:15,flexShrink:0}}><rect x="2" y="1" width="10" height="13" rx="1.5"/><path d="M5 5h4M5 7.5h4M5 10h2.5"/><path d="M10 1v3h2" strokeLinejoin="round"/></svg>
-                        PDF
-                      </button>
-                      <button onClick={()=>{ downloadWord(); setShowDlMenu(false); }} style={{ width:"100%", padding:"10px 16px", border:"none", background:"transparent", textAlign:"left", fontSize:13, fontWeight:600, color:"#0A0A0F", cursor:"pointer", display:"flex", alignItems:"center", gap:9 }}>
-                        <svg viewBox="0 0 16 16" fill="none" stroke="#2563EB" strokeWidth="1.6" style={{width:15,height:15,flexShrink:0}}><rect x="2" y="1" width="10" height="13" rx="1.5"/><path d="M5 5h4M5 7.5h4M5 10h4"/><path d="M10 1v3h2" strokeLinejoin="round"/></svg>
-                        Word
-                      </button>
-                    </div>
+          <>
+            {/* ── Hero header ── */}
+            <div style={{ background:"linear-gradient(135deg,#064E3B,#065F46)", borderRadius:18, padding:"22px 28px", marginBottom:20, boxShadow:"0 8px 32px rgba(5,150,105,0.2)", border:"1px solid rgba(255,255,255,0.07)", position:"relative", overflow:"hidden" }}>
+              <div style={{ position:"absolute", top:-30, right:-30, width:140, height:140, background:"radial-gradient(circle,rgba(52,211,153,0.18) 0%,transparent 70%)", pointerEvents:"none" }}/>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:16, flexWrap:"wrap", position:"relative" }}>
+                <div>
+                  <div style={{ fontSize:10.5, fontWeight:700, color:"rgba(52,211,153,0.8)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:5 }}>Cover Letter Ready</div>
+                  <p style={{ fontSize:17, fontWeight:800, color:"white", letterSpacing:"-0.025em", margin:0 }}>{result.subject || "Cover Letter"}</p>
+                  {(company||targetRole) && (
+                    <p style={{ fontSize:12.5, color:"rgba(255,255,255,0.5)", marginTop:4 }}>
+                      {[targetRole, company].filter(Boolean).join(" · ")}
+                    </p>
                   )}
+                </div>
+                <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                  <button onClick={()=>{ setResult(null); setStep(1); }} style={{ fontSize:12, fontWeight:600, padding:"7px 14px", borderRadius:9, border:"1px solid rgba(255,255,255,0.15)", background:"rgba(255,255,255,0.08)", color:"rgba(255,255,255,0.7)", cursor:"pointer" }}>← Start over</button>
+                  <button onClick={()=>setEditMode(e=>!e)} style={{ fontSize:12, fontWeight:600, padding:"7px 14px", borderRadius:9, border:`1px solid ${editMode?"rgba(52,211,153,0.6)":"rgba(255,255,255,0.15)"}`, background:editMode?"rgba(52,211,153,0.15)":"rgba(255,255,255,0.08)", color:editMode?"#34D399":"rgba(255,255,255,0.7)", cursor:"pointer" }}>{editMode?"Preview":"Edit"}</button>
+                  <button onClick={copy} style={{ fontSize:12, fontWeight:600, padding:"7px 14px", borderRadius:9, border:"none", background:copied?"rgba(52,211,153,0.2)":"rgba(255,255,255,0.1)", color:copied?"#34D399":"rgba(255,255,255,0.8)", cursor:"pointer", transition:"all 0.2s" }}>{copied?"✓ Copied":"Copy"}</button>
+                  <div style={{ position:"relative" }}>
+                    <button onClick={()=>setShowDlMenu(m=>!m)} style={{ fontSize:12, fontWeight:700, padding:"7px 18px", borderRadius:9, border:"none", background:"rgba(52,211,153,0.9)", color:"#064E3B", cursor:"pointer", display:"flex", alignItems:"center", gap:6, boxShadow:"0 4px 12px rgba(52,211,153,0.3)" }}>
+                      Download
+                      <svg viewBox="0 0 10 6" fill="none" stroke="currentColor" strokeWidth="2" style={{width:10,height:10,transition:"transform 0.15s",transform:showDlMenu?"rotate(180deg)":"rotate(0deg)"}}><path d="M1 1l4 4 4-4"/></svg>
+                    </button>
+                    {showDlMenu && (
+                      <div style={{ position:"absolute", top:"calc(100% + 6px)", right:0, background:"white", border:"1px solid #E4E8F5", borderRadius:12, boxShadow:"0 12px 40px rgba(0,0,0,0.15)", overflow:"hidden", minWidth:150, zIndex:99 }}>
+                        <button onClick={()=>{ downloadPdf(); setShowDlMenu(false); }} style={{ width:"100%", padding:"11px 16px", border:"none", background:"transparent", textAlign:"left", fontSize:13, fontWeight:600, color:"#0A0A0F", cursor:"pointer", display:"flex", alignItems:"center", gap:9, borderBottom:"1px solid #F1F5F9" }}>
+                          <svg viewBox="0 0 16 16" fill="none" stroke="#DC2626" strokeWidth="1.6" style={{width:15,height:15,flexShrink:0}}><rect x="2" y="1" width="10" height="13" rx="1.5"/><path d="M5 5h4M5 7.5h4M5 10h2.5"/><path d="M10 1v3h2" strokeLinejoin="round"/></svg>
+                          PDF
+                        </button>
+                        <button onClick={()=>{ downloadWord(); setShowDlMenu(false); }} style={{ width:"100%", padding:"11px 16px", border:"none", background:"transparent", textAlign:"left", fontSize:13, fontWeight:600, color:"#0A0A0F", cursor:"pointer", display:"flex", alignItems:"center", gap:9 }}>
+                          <svg viewBox="0 0 16 16" fill="none" stroke="#2563EB" strokeWidth="1.6" style={{width:15,height:15,flexShrink:0}}><rect x="2" y="1" width="10" height="13" rx="1.5"/><path d="M5 5h4M5 7.5h4M5 10h4"/><path d="M10 1v3h2" strokeLinejoin="round"/></svg>
+                          Word
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
-            <div style={{ padding:"28px 32px" }}>
-              {editMode ? (
-                <textarea style={{ width:"100%", minHeight:480, border:"1.5px solid #E4E8F5", borderRadius:10, padding:"14px 16px", fontSize:14, lineHeight:1.85, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"Georgia,'Times New Roman',serif", boxSizing:"border-box" }}
-                  value={editedLetter} onChange={e=>setEditedLetter(e.target.value)}/>
-              ) : (
-                <div style={{ fontSize:14, lineHeight:1.9, color:"#1E2235", fontFamily:"Georgia,'Times New Roman',serif", whiteSpace:"pre-wrap" }}>{result.coverLetter}</div>
-              )}
+
+            {/* ── Letter paper document ── */}
+            <div style={{ background:"white", borderRadius:10, boxShadow:"0 2px 4px rgba(0,0,0,0.04), 0 12px 40px rgba(0,0,0,0.1)", border:"1px solid rgba(0,0,0,0.06)", overflow:"hidden" }}>
+              <div style={{ padding:"52px 56px 56px", fontFamily:"Georgia,'Times New Roman',serif" }}>
+                {editMode ? (
+                  <textarea style={{ width:"100%", minHeight:560, border:"1.5px solid #E4E8F5", borderRadius:10, padding:"16px", fontSize:14, lineHeight:1.9, color:"#1A1A2E", outline:"none", resize:"vertical", fontFamily:"Georgia,'Times New Roman',serif", boxSizing:"border-box" }}
+                    value={editedLetter} onChange={e=>setEditedLetter(e.target.value)}/>
+                ) : (
+                  <div style={{ fontSize:14, lineHeight:1.95, color:"#1A1A2E", fontFamily:"inherit", whiteSpace:"pre-wrap" }}>{result.coverLetter}</div>
+                )}
+              </div>
             </div>
-          </div>
+          </>
         )}
         {error && <p style={{ fontSize:13, color:"#DC2626", textAlign:"center", marginTop:16 }}>{error} <button onClick={()=>void generate()} style={{ background:"none", border:"none", color:"#4361EE", fontWeight:600, cursor:"pointer", fontSize:13 }}>Try again</button></p>}
       </div>
@@ -4820,7 +4907,12 @@ function ScreenPlan({ stage, onNavigate }: { stage: CareerStage; onNavigate: (s:
   const [planLoading, setPlanLoading] = useState(false);
   const [docs,        setDocs]        = useState<DocEntry[]>([]);
 
-  useEffect(() => { setDocs(vaultRead()); }, [stage]);
+  useEffect(() => {
+    setDocs(vaultRead());
+    const onVaultUpdate = () => setDocs(vaultRead());
+    window.addEventListener("vault-updated", onVaultUpdate);
+    return () => window.removeEventListener("vault-updated", onVaultUpdate);
+  }, [stage]);
 
   const hasResume  = docs.some(d => d.type === "resume");
   const hasLI      = docs.some(d => d.type === "linkedin");
@@ -4913,115 +5005,211 @@ function ScreenPlan({ stage, onNavigate }: { stage: CareerStage; onNavigate: (s:
   const TASKS = aiTasks ?? STAGE_TASKS[stage];
   const pct   = TASKS.length ? Math.round((done.size / TASKS.length) * 100) : 0;
 
-  const CAT_COLORS: Record<string, { color: string; bg: string }> = {
-    Resume:     { color:"#7C3AED", bg:"#F5F3FF" },
-    LinkedIn:   { color:"#0A66C2", bg:"#EFF6FF" },
-    Interview:  { color:"#D97706", bg:"#FFF7ED" },
-    "Job Search":{ color:"#4361EE", bg:"#EEF2FF" },
-    "Cover Letter":{ color:"#059669", bg:"#ECFDF5" },
-    Session:    { color:"#68738A", bg:"#F5F7FF" },
+  const CAT_COLORS: Record<string, { color: string; bg: string; border: string }> = {
+    Resume:          { color:"#7C3AED", bg:"#F5F3FF", border:"#DDD6FE" },
+    LinkedIn:        { color:"#0A66C2", bg:"#EFF6FF", border:"#BFDBFE" },
+    Interview:       { color:"#D97706", bg:"#FFF7ED", border:"#FDE68A" },
+    "Job Search":    { color:"#4361EE", bg:"#EEF2FF", border:"#C7D2FE" },
+    "Cover Letter":  { color:"#059669", bg:"#ECFDF5", border:"#6EE7B7" },
+    Session:         { color:"#6366F1", bg:"#EEF2FF", border:"#C7D2FE" },
+    Network:         { color:"#0891B2", bg:"#ECFEFF", border:"#A5F3FC" },
+    Research:        { color:"#BE185D", bg:"#FDF2F8", border:"#F9A8D4" },
   };
 
+  const TIMELINE_GROUPS = [
+    {
+      id: "high",
+      label: "This Week",
+      sublabel: "High-impact moves — start here",
+      accent: "#DC2626",
+      accentBg: "linear-gradient(135deg, #FEF2F2, #FFF1F2)",
+      accentBorder: "#FECACA",
+      icon: (
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{width:16,height:16}}>
+          <circle cx="10" cy="10" r="8"/><path d="M10 6v4l3 3"/>
+        </svg>
+      ),
+    },
+    {
+      id: "med",
+      label: "This Month",
+      sublabel: "Build momentum over the next few weeks",
+      accent: "#D97706",
+      accentBg: "linear-gradient(135deg, #FFFBEB, #FFF7ED)",
+      accentBorder: "#FDE68A",
+      icon: (
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{width:16,height:16}}>
+          <rect x="3" y="4" width="14" height="13" rx="2"/><path d="M3 8h14M8 4V2M12 4V2"/>
+        </svg>
+      ),
+    },
+    {
+      id: "low",
+      label: "On the Horizon",
+      sublabel: "Worth doing when you have bandwidth",
+      accent: "#4361EE",
+      accentBg: "linear-gradient(135deg, #EEF2FF, #EDE9FE)",
+      accentBorder: "#C7D2FE",
+      icon: (
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{width:16,height:16}}>
+          <path d="M2 14c3-4 6-6 8-6s5 2 8 6"/><path d="M10 8V5M4 11l-2-1M16 11l2-1"/>
+        </svg>
+      ),
+    },
+  ];
+
   return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#FAFBFF" }}>
-      <div style={{ maxWidth:800, margin:"0 auto", padding:28 }}>
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F8F9FF" }}>
+      <div style={{ maxWidth:860, margin:"0 auto", padding:"28px 28px 48px" }}>
+
+        {/* ── Header ── */}
+        <div style={{ marginBottom:28 }}>
+          <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, flexWrap:"wrap" }}>
+            <div>
+              <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:6 }}>
+                <h1 style={{ fontSize:26, fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", margin:0 }}>Your Action Plan</h1>
+                {aiTasks && (
+                  <span style={{ fontSize:10.5, fontWeight:800, padding:"3px 9px", borderRadius:99, background:"linear-gradient(135deg,#DCFCE7,#D1FAE5)", color:"#059669", border:"1px solid #6EE7B7", letterSpacing:"0.02em" }}>
+                    AI · PERSONALIZED
+                  </span>
+                )}
+              </div>
+              <p style={{ fontSize:13.5, color:"#68738A", lineHeight:1.5 }}>
+                Based on your {[hasResume&&"resume",hasLI&&"LinkedIn",hasCL&&"cover letter"].filter(Boolean).join(", ")} · {readyCount}/3 sections complete
+              </p>
+            </div>
+
+            {/* Stats pill */}
+            <div style={{ display:"flex", gap:0, background:"white", border:"1px solid #E4E8F5", borderRadius:14, overflow:"hidden", boxShadow:"0 2px 12px rgba(0,0,0,0.05)" }}>
+              {[
+                { label:"Done", value:done.size, color:"#059669" },
+                { label:"Remaining", value:TASKS.length - done.size, color:"#4361EE" },
+                { label:"Total", value:TASKS.length, color:"#68738A" },
+              ].map((s, i) => (
+                <div key={s.label} style={{ padding:"12px 20px", textAlign:"center", borderLeft: i ? "1px solid #E4E8F5" : "none" }}>
+                  <div style={{ fontSize:22, fontWeight:900, color:s.color, lineHeight:1 }}>{s.value}</div>
+                  <div style={{ fontSize:10.5, color:"#A0AABF", marginTop:3, fontWeight:600, textTransform:"uppercase", letterSpacing:"0.04em" }}>{s.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
 
         {planLoading && (
-          <div style={{ display:"flex", alignItems:"center", gap:10, background:"#EEF2FF", border:"1px solid rgba(67,97,238,0.2)", borderRadius:12, padding:"12px 16px", marginBottom:18, fontSize:13, color:"#4361EE", fontWeight:600 }}>
-            <span style={{ width:14,height:14,borderRadius:"50%",border:"2px solid rgba(67,97,238,0.3)",borderTopColor:"#4361EE",animation:"spin-slow 0.7s linear infinite",display:"block",flexShrink:0 }}/>
-            Zari is building your personalized plan from your completed sections…
+          <div style={{ display:"flex", alignItems:"center", gap:12, background:"white", border:"1px solid rgba(67,97,238,0.2)", borderRadius:14, padding:"14px 18px", marginBottom:22, boxShadow:"0 2px 12px rgba(67,97,238,0.06)" }}>
+            <span style={{ width:16,height:16,borderRadius:"50%",border:"2.5px solid rgba(67,97,238,0.25)",borderTopColor:"#4361EE",animation:"spin-slow 0.7s linear infinite",display:"block",flexShrink:0 }}/>
+            <span style={{ fontSize:13.5, color:"#4361EE", fontWeight:600 }}>Zari is analyzing your sections and building a personalized plan…</span>
           </div>
         )}
 
-        {/* Header */}
-        <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:22, flexWrap:"wrap", gap:12 }}>
-          <div>
-            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
-              <h1 style={{ fontSize:22, fontWeight:900, letterSpacing:"-0.03em", color:"#0A0A0F", margin:0 }}>Action Plan</h1>
-              <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:11, fontWeight:700, padding:"3px 9px", borderRadius:99, background:STAGE_META[stage].bg, color:STAGE_META[stage].color, border:"1px solid "+STAGE_META[stage].color+"30" }}>{STAGE_ICONS[stage]} {STAGE_META[stage].label}</span>
-              {aiTasks && <span style={{ fontSize:10, fontWeight:700, padding:"2px 8px", borderRadius:99, background:"#F0FFF4", color:"#16A34A", border:"1px solid #BBF7D0" }}>AI · personalized</span>}
-            </div>
-            <p style={{ fontSize:13, color:"#68738A" }}>
-              Based on your {[hasResume&&"resume",hasLI&&"LinkedIn",hasCL&&"cover letter"].filter(Boolean).join(", ")} — {readyCount}/3 sections complete
-            </p>
+        {/* ── Progress bar ── */}
+        <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:16, padding:"18px 22px", marginBottom:24, boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+            <span style={{ fontSize:13, fontWeight:700, color:"#0A0A0F" }}>Overall Progress</span>
+            <span style={{ fontSize:18, fontWeight:900, color:pct===100?"#059669":"#4361EE" }}>{pct}%</span>
           </div>
-          <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:12, padding:"10px 18px", display:"flex", gap:16, alignItems:"center" }}>
-            <div style={{ textAlign:"center" }}>
-              <div style={{ fontSize:20, fontWeight:900, color:"#4361EE" }}>{done.size}</div>
-              <div style={{ fontSize:10, color:"#A0AABF" }}>Done</div>
-            </div>
-            <div style={{ width:1, height:32, background:"#E4E8F5" }}/>
-            <div style={{ textAlign:"center" }}>
-              <div style={{ fontSize:20, fontWeight:900, color:"#0A0A0F" }}>{TASKS.length - done.size}</div>
-              <div style={{ fontSize:10, color:"#A0AABF" }}>Left</div>
-            </div>
+          <div style={{ height:10, background:"#F1F5F9", borderRadius:99, overflow:"hidden" }}>
+            <div style={{ height:"100%", width:`${pct}%`, background:pct===100?"linear-gradient(90deg,#059669,#10B981)":"linear-gradient(90deg,#4361EE,#818CF8)", borderRadius:99, transition:"width 0.5s ease" }}/>
           </div>
-        </div>
-
-        {/* Context chips */}
-        <div style={{ display:"flex", gap:8, marginBottom:20, flexWrap:"wrap" }}>
-          {SECTION_CARDS.map(c => (
-            <button key={c.key} onClick={()=>onNavigate(c.key)}
-              style={{ display:"flex", alignItems:"center", gap:6, padding:"5px 12px", borderRadius:99, border:`1.5px solid ${c.done?c.color+"40":"#E4E8F5"}`, background:c.done?c.bg:"white", cursor:"pointer", fontSize:12, fontWeight:600, color:c.done?c.color:"#A0AABF", transition:"all 0.15s" }}>
-              {c.done && <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" style={{width:10,height:10}}><path d="M1.5 6l3 3 6-6"/></svg>}
-              {c.label}
-            </button>
-          ))}
-          {!SECTION_CARDS.every(c=>c.done) && (
-            <span style={{ fontSize:12, color:"#A0AABF", display:"flex", alignItems:"center", gap:4 }}>
-              · Complete more sections for a sharper plan
-            </span>
-          )}
-        </div>
-
-        {/* Progress */}
-        <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:16, padding:20, marginBottom:20, boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
-          <div style={{ display:"flex", justifyContent:"space-between", marginBottom:10 }}>
-            <span style={{ fontSize:14, fontWeight:700, color:"#0A0A0F" }}>Progress</span>
-            <span style={{ fontSize:14, fontWeight:800, color:"#4361EE" }}>{pct}%</span>
-          </div>
-          <Bar pct={pct} color="#4361EE" h={10}/>
-          <div style={{ display:"flex", gap:14, marginTop:10 }}>
-            {["high","med","low"].map(p => {
-              const total = TASKS.filter(t=>t.pri===p).length;
-              const doneC = TASKS.filter((t,i)=>t.pri===p&&done.has(i)).length;
-              return <span key={p} style={{ fontSize:11.5, color:"#68738A" }}>
-                <strong style={{ color:p==="high"?"#DC2626":p==="med"?"#D97706":"#4361EE" }}>{doneC}/{total}</strong> {p}
-              </span>;
+          <div style={{ display:"flex", gap:16, marginTop:12 }}>
+            {TIMELINE_GROUPS.map(g => {
+              const total = TASKS.filter(t=>t.pri===g.id).length;
+              const doneC = TASKS.filter((t,i)=>t.pri===g.id&&done.has(i)).length;
+              return (
+                <div key={g.id} style={{ display:"flex", alignItems:"center", gap:6 }}>
+                  <div style={{ width:8, height:8, borderRadius:99, background:g.accent }}/>
+                  <span style={{ fontSize:12, color:"#68738A" }}>
+                    <strong style={{ color:g.accent, fontWeight:700 }}>{doneC}/{total}</strong> {g.label}
+                  </span>
+                </div>
+              );
             })}
           </div>
         </div>
 
-        {/* Tasks */}
-        <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-          {TASKS.map((task, i) => {
-            const isDone = done.has(i);
-            const pc = task.pri==="high"?"#DC2626":task.pri==="med"?"#D97706":"#4361EE";
-            const pb = task.pri==="high"?"#FEF2F2":task.pri==="med"?"#FFF7ED":"#EEF2FF";
-            const cc = CAT_COLORS[task.cat] ?? { color:"#68738A", bg:"#F5F7FF" };
-            return (
-              <button key={i} onClick={()=>setDone(d=>{const n=new Set(d);n.has(i)?n.delete(i):n.add(i);return n;})}
-                style={{ display:"flex", alignItems:"center", gap:12, background:"white", border:`1px solid ${isDone?"#BBF7D0":"#E4E8F5"}`, borderRadius:14, padding:"12px 16px", cursor:"pointer", textAlign:"left", transition:"all 0.15s" }}>
-                <div style={{ width:22, height:22, borderRadius:6, border:`2px solid ${isDone?"#16A34A":"#CBD5E1"}`, background:isDone?"#F0FFF4":"white", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                  {isDone && <svg viewBox="0 0 12 12" fill="none" style={{width:10,height:10}}><path d="M1.5 6l3 3 6-6" stroke="#16A34A" strokeWidth="1.8" strokeLinecap="round"/></svg>}
-                </div>
-                <span style={{ flex:1, fontSize:13.5, color:isDone?"#A0AABF":"#0A0A0F", textDecoration:isDone?"line-through":"none", lineHeight:1.4 }}>{task.text}</span>
-                <Tag text={task.cat} color={cc.color} bg={cc.bg}/>
-                <Tag text={task.pri} color={pc} bg={pb}/>
-              </button>
-            );
-          })}
+        {/* ── Context chips ── */}
+        <div style={{ display:"flex", gap:8, marginBottom:28, flexWrap:"wrap", alignItems:"center" }}>
+          <span style={{ fontSize:12, color:"#A0AABF", fontWeight:600 }}>Sections:</span>
+          {SECTION_CARDS.map(c => (
+            <button key={c.key} onClick={()=>onNavigate(c.key)}
+              style={{ display:"flex", alignItems:"center", gap:5, padding:"5px 12px", borderRadius:99, border:`1.5px solid ${c.done?c.color+"50":"#E4E8F5"}`, background:c.done?c.bg:"white", cursor:"pointer", fontSize:12, fontWeight:600, color:c.done?c.color:"#A0AABF", transition:"all 0.15s" }}>
+              {c.done
+                ? <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.2" style={{width:10,height:10}}><path d="M1.5 6l3 3 6-6"/></svg>
+                : <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" style={{width:10,height:10}}><circle cx="6" cy="6" r="4.5"/></svg>
+              }
+              {c.label}
+            </button>
+          ))}
+          {!SECTION_CARDS.every(c=>c.done) && (
+            <span style={{ fontSize:12, color:"#A0AABF", fontStyle:"italic" }}>Complete more for a sharper plan</span>
+          )}
         </div>
 
-        {/* Zari note */}
-        <div style={{ marginTop:20, background:"linear-gradient(135deg,#EEF2FF,#F5F3FF)", border:"1px solid rgba(67,97,238,0.15)", borderRadius:16, padding:20 }}>
-          <div style={{ display:"flex", gap:12, alignItems:"flex-start" }}>
-            <div style={{ width:36, height:36, borderRadius:10, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:14, fontWeight:800, color:"white" }}>Z</div>
+        {/* ── Zari's coaching note (prominent) ── */}
+        <div style={{ marginBottom:28, background:"linear-gradient(135deg, #0A1628, #1E3A5F)", borderRadius:18, padding:"20px 24px", position:"relative", overflow:"hidden", boxShadow:"0 8px 32px rgba(10,22,40,0.18)" }}>
+          <div style={{ position:"absolute", top:-20, right:-20, width:100, height:100, background:"radial-gradient(circle, rgba(99,102,241,0.3) 0%, transparent 70%)", pointerEvents:"none" }}/>
+          <div style={{ display:"flex", gap:14, alignItems:"flex-start", position:"relative" }}>
+            <div style={{ width:38, height:38, borderRadius:11, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:15, fontWeight:900, color:"white", boxShadow:"0 4px 12px rgba(67,97,238,0.4)" }}>Z</div>
             <div>
-              <p style={{ fontSize:13, fontWeight:700, color:"#4361EE", marginBottom:6 }}>Zari&apos;s coaching note</p>
-              <p style={{ fontSize:13, color:"#3451D1", lineHeight:1.65 }}>{aiCoachNote ?? "Start with the high-priority tasks — they unlock the most momentum. Come back as you complete sections and your plan will get sharper."}</p>
+              <p style={{ fontSize:11.5, fontWeight:700, color:"rgba(129,140,248,0.9)", marginBottom:6, textTransform:"uppercase", letterSpacing:"0.08em" }}>Zari&apos;s Coaching Note</p>
+              <p style={{ fontSize:14, color:"rgba(255,255,255,0.88)", lineHeight:1.7, margin:0 }}>
+                {aiCoachNote ?? "Start with the high-priority tasks — they have the highest leverage right now. Each one you check off makes your search sharper. Come back as you complete sections and your plan will automatically get more specific."}
+              </p>
             </div>
           </div>
+        </div>
+
+        {/* ── Tasks by timeline group ── */}
+        <div style={{ display:"flex", flexDirection:"column", gap:24 }}>
+          {TIMELINE_GROUPS.map(group => {
+            const groupTasks = TASKS.map((t,i)=>({...t,idx:i})).filter(t=>t.pri===group.id);
+            if (!groupTasks.length) return null;
+            const groupDone  = groupTasks.filter(t=>done.has(t.idx)).length;
+            const groupTotal = groupTasks.length;
+            const groupPct   = groupTotal ? Math.round((groupDone/groupTotal)*100) : 0;
+
+            return (
+              <div key={group.id}>
+                {/* Group header */}
+                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
+                  <div style={{ width:32, height:32, borderRadius:9, background:group.accentBg, border:`1.5px solid ${group.accentBorder}`, display:"flex", alignItems:"center", justifyContent:"center", color:group.accent }}>
+                    {group.icon}
+                  </div>
+                  <div style={{ flex:1 }}>
+                    <div style={{ display:"flex", alignItems:"baseline", gap:8 }}>
+                      <span style={{ fontSize:15, fontWeight:800, color:"#0A0A0F", letterSpacing:"-0.02em" }}>{group.label}</span>
+                      <span style={{ fontSize:12, color:group.accent, fontWeight:700 }}>{groupDone}/{groupTotal}</span>
+                    </div>
+                    <div style={{ fontSize:12, color:"#A0AABF", marginTop:1 }}>{group.sublabel}</div>
+                  </div>
+                  <div style={{ width:60, height:5, background:"#E4E8F5", borderRadius:99, overflow:"hidden" }}>
+                    <div style={{ height:"100%", width:`${groupPct}%`, background:group.accent, borderRadius:99, transition:"width 0.4s ease" }}/>
+                  </div>
+                </div>
+
+                {/* Task cards */}
+                <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                  {groupTasks.map(task => {
+                    const isDone = done.has(task.idx);
+                    const cc = CAT_COLORS[task.cat] ?? { color:"#68738A", bg:"#F5F7FF", border:"#E4E8F5" };
+                    return (
+                      <button key={task.idx}
+                        onClick={()=>setDone(d=>{const n=new Set(d);n.has(task.idx)?n.delete(task.idx):n.add(task.idx);return n;})}
+                        style={{ display:"flex", alignItems:"flex-start", gap:12, background:"white", border:`1px solid ${isDone?"#BBF7D0":"#E4E8F5"}`, borderLeft:`3.5px solid ${isDone?"#16A34A":group.accent}`, borderRadius:"0 14px 14px 0", padding:"13px 16px", cursor:"pointer", textAlign:"left", transition:"all 0.15s", boxShadow:`0 1px 6px rgba(0,0,0,0.04)` }}>
+                        <div style={{ width:22, height:22, borderRadius:6, border:`2px solid ${isDone?"#16A34A":"#CBD5E1"}`, background:isDone?"#DCFCE7":"white", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>
+                          {isDone && <svg viewBox="0 0 12 12" fill="none" style={{width:10,height:10}}><path d="M1.5 6l3 3 6-6" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                        </div>
+                        <div style={{ flex:1 }}>
+                          <p style={{ fontSize:13.5, color:isDone?"#A0AABF":"#0A0A0F", textDecoration:isDone?"line-through":"none", lineHeight:1.5, margin:0 }}>{task.text}</p>
+                        </div>
+                        <span style={{ flexShrink:0, fontSize:11, fontWeight:700, padding:"3px 9px", borderRadius:99, background:cc.bg, color:cc.color, border:`1px solid ${cc.border}`, whiteSpace:"nowrap", alignSelf:"center" }}>{task.cat}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -5037,8 +5225,20 @@ export function ZariPortal() {
   const [stage, setStage] = useState<CareerStage>("job-search");
   const [stageOpen, setStageOpen] = useState(false);
 
+  // Section accent colors for topbar context
+  const SCREEN_ACCENTS: Record<string, { color: string; gradient: string; label: string }> = {
+    session:      { color:"#7C3AED", gradient:"linear-gradient(135deg,#7C3AED,#A78BFA)", label:"AI Coaching Session" },
+    resume:       { color:"#4361EE", gradient:"linear-gradient(135deg,#4361EE,#818CF8)", label:"Resume Analysis" },
+    interview:    { color:"#D97706", gradient:"linear-gradient(135deg,#D97706,#FBBF24)", label:"Interview Prep" },
+    "cover-letter":{ color:"#059669", gradient:"linear-gradient(135deg,#059669,#34D399)", label:"Cover Letter" },
+    linkedin:     { color:"#0A66C2", gradient:"linear-gradient(135deg,#0A66C2,#60A5FA)", label:"LinkedIn Review" },
+    documents:    { color:"#475569", gradient:"linear-gradient(135deg,#334155,#64748B)", label:"Documents" },
+    plan:         { color:"#E11D48", gradient:"linear-gradient(135deg,#E11D48,#FB7185)", label:"Action Plan" },
+  };
+  const accentInfo = SCREEN_ACCENTS[screen] ?? SCREEN_ACCENTS["session"];
+
   return (
-    <div style={{ display:"flex", height:"100vh", overflow:"hidden", background:"#FAFBFF", fontFamily:"var(--font-geist-sans,Inter,system-ui,sans-serif)" }}>
+    <div style={{ display:"flex", height:"100vh", overflow:"hidden", background:"#F0F2F8", fontFamily:"var(--font-geist-sans,Inter,system-ui,sans-serif)" }}>
       <style>{`
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.15} }
         @keyframes bubble-appear { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
@@ -5055,52 +5255,69 @@ export function ZariPortal() {
         @keyframes aurora-a { 0%,100%{transform:translate(-50%,0) scale(1)} 50%{transform:translate(-50%,10px) scale(1.05)} }
         @keyframes aurora-b { 0%,100%{transform:translate(0,0) scale(1)} 60%{transform:translate(-20px,15px) scale(1.04)} }
         @keyframes aurora-c { 0%,100%{transform:translate(0,0) scale(1)} 40%{transform:translate(10px,-10px) scale(1.03)} }
+        @keyframes nav-glow { 0%,100%{box-shadow:0 0 12px rgba(255,255,255,0.04)} 50%{box-shadow:0 0 20px rgba(255,255,255,0.08)} }
+        @keyframes sidebar-shimmer { 0%{opacity:0.4} 50%{opacity:0.7} 100%{opacity:0.4} }
+        .zari-nav-btn:hover { background: rgba(255,255,255,0.06) !important; }
+        .zari-nav-btn.active { background: rgba(255,255,255,0.1) !important; }
       `}</style>
 
-      {/* ── SIDEBAR ── */}
-      <aside style={{ width:220, flexShrink:0, background:"white", borderRight:"1px solid #E4E8F5", display:"flex", flexDirection:"column", padding:"0 0 16px 0" }}>
+      {/* ── DARK SIDEBAR ── */}
+      <aside style={{ width:232, flexShrink:0, background:"linear-gradient(180deg,#0D1321 0%,#111827 60%,#0D1321 100%)", display:"flex", flexDirection:"column", padding:"0 0 20px 0", position:"relative", overflow:"hidden", boxShadow:"4px 0 24px rgba(0,0,0,0.25)" }}>
+        {/* Ambient glow blobs */}
+        <div style={{ position:"absolute", top:-40, left:-40, width:180, height:180, background:"radial-gradient(circle,rgba(67,97,238,0.12) 0%,transparent 70%)", pointerEvents:"none", animation:"sidebar-shimmer 6s ease infinite" }}/>
+        <div style={{ position:"absolute", bottom:80, right:-30, width:140, height:140, background:"radial-gradient(circle,rgba(124,58,237,0.1) 0%,transparent 70%)", pointerEvents:"none", animation:"sidebar-shimmer 8s ease infinite 2s" }}/>
+
         {/* Logo */}
-        <div style={{ padding:"18px 16px 14px", borderBottom:"1px solid #F1F5F9" }}>
-          <Link href="/" style={{ display:"flex", alignItems:"center", gap:8, textDecoration:"none" }}>
-            <ZariLogo size={26}/>
-            <span style={{ fontSize:16, fontWeight:800, color:"#0A0A0F", letterSpacing:"-0.03em" }}>Zari</span>
+        <div style={{ padding:"20px 18px 16px", position:"relative" }}>
+          <Link href="/" style={{ display:"flex", alignItems:"center", gap:10, textDecoration:"none" }}>
+            <div style={{ width:34, height:34, borderRadius:10, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 4px 16px rgba(67,97,238,0.5)", flexShrink:0 }}>
+              <ZariLogo size={18}/>
+            </div>
+            <div>
+              <span style={{ fontSize:18, fontWeight:900, color:"white", letterSpacing:"-0.04em", lineHeight:1 }}>Zari</span>
+              <div style={{ fontSize:9.5, color:"rgba(255,255,255,0.35)", fontWeight:600, letterSpacing:"0.1em", textTransform:"uppercase", marginTop:1 }}>Career AI</div>
+            </div>
           </Link>
         </div>
 
+        {/* Divider */}
+        <div style={{ height:1, margin:"0 16px 14px", background:"linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent)" }}/>
+
         {/* User chip */}
-        <div style={{ margin:"12px 10px 8px", background:"#F5F7FF", borderRadius:12, padding:"10px 12px", display:"flex", gap:10, alignItems:"center" }}>
-          <div style={{ width:34, height:34, borderRadius:10, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:800, color:"white", flexShrink:0 }}>S</div>
+        <div style={{ margin:"0 12px 14px", background:"rgba(255,255,255,0.06)", borderRadius:13, padding:"10px 13px", display:"flex", gap:10, alignItems:"center", border:"1px solid rgba(255,255,255,0.07)" }}>
+          <div style={{ width:36, height:36, borderRadius:11, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, fontWeight:800, color:"white", flexShrink:0, boxShadow:"0 2px 8px rgba(67,97,238,0.4)" }}>S</div>
           <div style={{ minWidth:0 }}>
-            <div style={{ fontSize:13, fontWeight:700, color:"#0A0A0F" }}>Steve N.</div>
-            <div style={{ fontSize:10.5, color:"#68738A", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>Free plan</div>
+            <div style={{ fontSize:13, fontWeight:700, color:"rgba(255,255,255,0.9)" }}>Steve N.</div>
+            <div style={{ fontSize:10.5, color:"rgba(255,255,255,0.35)", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>Free plan</div>
           </div>
+          <div style={{ marginLeft:"auto", width:8, height:8, borderRadius:"50%", background:"#34D399", boxShadow:"0 0 6px rgba(52,211,153,0.6)", flexShrink:0 }}/>
         </div>
 
         {/* Career Stage Selector */}
-        <div style={{ margin:"0 10px 10px", position:"relative" }}>
+        <div style={{ margin:"0 12px 14px", position:"relative" }}>
           <button
             onClick={() => setStageOpen(o => !o)}
             style={{
               width:"100%", display:"flex", alignItems:"center", gap:8,
-              padding:"9px 11px", borderRadius:11,
-              border:`1.5px solid ${STAGE_META[stage].color}50`,
-              background: STAGE_META[stage].bg,
+              padding:"9px 12px", borderRadius:11,
+              border:`1px solid rgba(255,255,255,0.1)`,
+              background:"rgba(255,255,255,0.07)",
               cursor:"pointer", fontSize:12.5, fontWeight:700,
-              color: STAGE_META[stage].color,
+              color:"rgba(255,255,255,0.8)",
               transition:"all 0.15s",
             }}
           >
-            <span style={{ display:"flex", alignItems:"center" }}>{STAGE_ICONS[stage]}</span>
+            <span style={{ display:"flex", alignItems:"center", opacity:0.9 }}>{STAGE_ICONS[stage]}</span>
             <span style={{ flex:1, textAlign:"left" }}>{STAGE_META[stage].label}</span>
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:12, height:12, transition:"transform 0.2s", transform: stageOpen ? "rotate(180deg)" : "rotate(0)" }}><path d="M4 6l4 4 4-4"/></svg>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:12, height:12, transition:"transform 0.2s", transform: stageOpen ? "rotate(180deg)" : "rotate(0)", opacity:0.5 }}><path d="M4 6l4 4 4-4"/></svg>
           </button>
 
           {/* Dropdown */}
           {stageOpen && (
             <div style={{
               position:"absolute", top:"calc(100% + 6px)", left:0, right:0, zIndex:50,
-              background:"white", borderRadius:12, border:"1px solid #E4E8F5",
-              boxShadow:"0 8px 32px rgba(0,0,0,0.12)", overflow:"hidden",
+              background:"#1A2235", borderRadius:13, border:"1px solid rgba(255,255,255,0.1)",
+              boxShadow:"0 16px 48px rgba(0,0,0,0.5)", overflow:"hidden",
               animation:"bubble-appear 0.2s ease",
             }}>
               {(Object.entries(STAGE_META) as [CareerStage, typeof STAGE_META[CareerStage]][]).map(([key, meta]) => (
@@ -5108,55 +5325,71 @@ export function ZariPortal() {
                   key={key}
                   onClick={() => { setStage(key); setStageOpen(false); setScreen("session"); }}
                   style={{
-                    width:"100%", display:"flex", alignItems:"center", gap:8,
-                    padding:"9px 12px", border:"none", cursor:"pointer", textAlign:"left",
-                    background: stage === key ? meta.bg : "white",
+                    width:"100%", display:"flex", alignItems:"center", gap:9,
+                    padding:"9px 14px", border:"none", cursor:"pointer", textAlign:"left",
+                    background: stage === key ? "rgba(67,97,238,0.2)" : "transparent",
                     fontSize:12.5, fontWeight: stage === key ? 700 : 500,
-                    color: stage === key ? meta.color : "#1E2235",
+                    color: stage === key ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.55)",
                     transition:"background 0.1s",
+                    borderBottom:"1px solid rgba(255,255,255,0.04)",
                   }}
                 >
-                  <span style={{ display:"flex", alignItems:"center", color: stage === key ? meta.color : "#68738A" }}>{STAGE_ICONS[key]}</span>
+                  <span style={{ display:"flex", alignItems:"center", color: stage === key ? meta.color : "rgba(255,255,255,0.4)" }}>{STAGE_ICONS[key]}</span>
                   {meta.label}
-                  {stage === key && <svg viewBox="0 0 16 16" fill={meta.color} style={{ width:12,height:12,marginLeft:"auto" }}><path d="M3 8l4 4 6-6" stroke={meta.color} strokeWidth="2.2" fill="none"/></svg>}
+                  {stage === key && <svg viewBox="0 0 16 16" style={{ width:12,height:12,marginLeft:"auto" }}><path d="M3 8l4 4 6-6" stroke={meta.color} strokeWidth="2.2" fill="none"/></svg>}
                 </button>
               ))}
             </div>
           )}
         </div>
 
+        {/* Section label */}
+        <div style={{ padding:"0 18px 8px", fontSize:9.5, fontWeight:700, color:"rgba(255,255,255,0.25)", letterSpacing:"0.12em", textTransform:"uppercase" }}>Navigation</div>
+
         {/* Nav */}
-        <nav style={{ flex:1, padding:"0 8px 0" }}>
-          {getNav(stage).map(n => (
-            <button key={n.id} onClick={()=>setScreen(n.id)}
-              style={{ width:"100%", display:"flex", alignItems:"center", gap:9, padding:"9px 10px", borderRadius:10, border:"none", cursor:"pointer", textAlign:"left", marginBottom:2, background:screen===n.id?STAGE_META[stage].bg:"transparent", color:screen===n.id?STAGE_META[stage].color:"#68738A", fontWeight:screen===n.id?700:500, fontSize:13.5, transition:"all 0.15s" }}>
-              {n.icon}
-              {n.label}
-              {n.id==="session" && <span style={{ marginLeft:"auto", fontSize:9, fontWeight:700, padding:"2px 6px", borderRadius:99, background:STAGE_META[stage].color, color:"white" }}>Live</span>}
-            </button>
-          ))}
+        <nav style={{ flex:1, padding:"0 10px", display:"flex", flexDirection:"column", gap:2 }}>
+          {getNav(stage).map(n => {
+            const isActive = screen === n.id;
+            const sa = SCREEN_ACCENTS[n.id];
+            return (
+              <button key={n.id} onClick={()=>setScreen(n.id)} className={`zari-nav-btn${isActive?" active":""}`}
+                style={{ width:"100%", display:"flex", alignItems:"center", gap:10, padding:"9px 11px", borderRadius:11, border:"none", cursor:"pointer", textAlign:"left", background:isActive?"rgba(255,255,255,0.1)":"transparent", color:isActive?"white":"rgba(255,255,255,0.5)", fontWeight:isActive?700:500, fontSize:13.5, transition:"all 0.15s", position:"relative" }}>
+                {isActive && (
+                  <div style={{ position:"absolute", left:0, top:"50%", transform:"translateY(-50%)", width:3, height:"60%", borderRadius:"0 2px 2px 0", background:sa?.color ?? "#4361EE", boxShadow:`0 0 8px ${sa?.color ?? "#4361EE"}` }}/>
+                )}
+                <span style={{ display:"flex", alignItems:"center", opacity:isActive?1:0.7, color:isActive?(sa?.color ?? "white"):"inherit" }}>{n.icon}</span>
+                <span style={{ flex:1 }}>{n.label}</span>
+                {n.id==="session" && <span style={{ fontSize:9, fontWeight:800, padding:"2px 6px", borderRadius:99, background:"rgba(52,211,153,0.15)", color:"#34D399", border:"1px solid rgba(52,211,153,0.25)", letterSpacing:"0.06em" }}>LIVE</span>}
+              </button>
+            );
+          })}
         </nav>
 
         {/* Bottom: upgrade */}
-        <div style={{ margin:"0 10px", background:"linear-gradient(135deg,#4361EE,#818CF8)", borderRadius:14, padding:"14px 14px", color:"white" }}>
-          <div style={{ fontSize:13, fontWeight:700, marginBottom:3 }}>Unlock Pro</div>
-          <div style={{ fontSize:11, opacity:0.75, marginBottom:10, lineHeight:1.4 }}>Unlimited sessions, priority coaching, resume downloads</div>
-          <button style={{ width:"100%", fontSize:12, fontWeight:700, padding:"7px", borderRadius:8, border:"none", background:"white", color:"#4361EE", cursor:"pointer" }}>Upgrade →</button>
+        <div style={{ margin:"0 12px", background:"linear-gradient(135deg,rgba(67,97,238,0.9),rgba(129,140,248,0.85))", borderRadius:15, padding:"16px 16px", color:"white", position:"relative", overflow:"hidden", border:"1px solid rgba(255,255,255,0.15)" }}>
+          <div style={{ position:"absolute", top:-15, right:-15, width:80, height:80, background:"radial-gradient(circle,rgba(255,255,255,0.15) 0%,transparent 70%)", pointerEvents:"none" }}/>
+          <div style={{ fontSize:13.5, fontWeight:800, marginBottom:3, letterSpacing:"-0.02em" }}>Unlock Pro</div>
+          <div style={{ fontSize:11.5, opacity:0.7, marginBottom:12, lineHeight:1.45 }}>Unlimited sessions, priority coaching, resume downloads</div>
+          <button style={{ width:"100%", fontSize:12.5, fontWeight:800, padding:"8px", borderRadius:9, border:"none", background:"white", color:"#4361EE", cursor:"pointer", letterSpacing:"-0.01em" }}>Upgrade →</button>
         </div>
       </aside>
 
       {/* ── MAIN CONTENT ── */}
       <main style={{ flex:1, overflow:"hidden", display:"flex", flexDirection:"column" }}>
         {/* Top bar */}
-        <div style={{ flexShrink:0, height:56, background:"white", borderBottom:"1px solid #E4E8F5", display:"flex", alignItems:"center", padding:"0 24px", gap:16 }}>
-          <h2 style={{ fontSize:14.5, fontWeight:700, color:"#0A0A0F" }}>
-            {getNav(stage).find(n=>n.id===screen)?.label}
-          </h2>
-          <div style={{ marginLeft:"auto", display:"flex", gap:10, alignItems:"center" }}>
-            <button style={{ fontSize:12, fontWeight:600, padding:"6px 14px", borderRadius:9, border:"1px solid #E4E8F5", background:"#FAFBFF", color:"#68738A", cursor:"pointer", display:"flex", alignItems:"center", gap:5 }}>
-              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:14,height:14 }}><path d="M10 18a8 8 0 100-16 8 8 0 000 16zM10 10a2 2 0 110-4 2 2 0 010 4z"/></svg>
-              Help
-            </button>
+        <div style={{ flexShrink:0, height:58, background:"white", borderBottom:"1px solid #E8EBF4", display:"flex", alignItems:"center", padding:"0 24px", gap:14, boxShadow:"0 1px 8px rgba(0,0,0,0.04)" }}>
+          {/* Section accent dot + title */}
+          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+            <div style={{ width:6, height:28, borderRadius:99, background:accentInfo.gradient }}/>
+            <h2 style={{ fontSize:15.5, fontWeight:800, color:"#0A0A0F", letterSpacing:"-0.025em", margin:0 }}>
+              {accentInfo.label}
+            </h2>
+          </div>
+          <div style={{ marginLeft:"auto", display:"flex", gap:8, alignItems:"center" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:6, padding:"5px 12px", borderRadius:99, background:"#F8F9FF", border:"1px solid #E4E8F5" }}>
+              <span style={{ display:"inline-flex", alignItems:"center", color:STAGE_META[stage].color }}>{STAGE_ICONS[stage]}</span>
+              <span style={{ fontSize:12, fontWeight:600, color:STAGE_META[stage].color }}>{STAGE_META[stage].label}</span>
+            </div>
             <form action="/api/auth/logout" method="POST">
               <button type="submit" style={{ fontSize:12, fontWeight:600, padding:"6px 14px", borderRadius:9, border:"1px solid #E4E8F5", background:"white", color:"#68738A", cursor:"pointer" }}>Sign out</button>
             </form>
