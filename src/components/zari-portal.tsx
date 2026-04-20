@@ -3038,104 +3038,128 @@ function ScreenInterview({ stage }: { stage: CareerStage }) {
 
   const fmt = (s:number) => `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
 
+  const [resumeDragOver, setResumeDragOver] = useState(false);
+  const resumeInputRef = useRef<HTMLInputElement>(null);
+  const canStart = !!resumeText && !!jobDesc.trim();
+
   /* ── Setup step ── */
   if (!setupDone) return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#FAFBFF" }}>
-      <div style={{ maxWidth:620, margin:"0 auto", padding:"48px 24px" }}>
-        <div style={{ textAlign:"center", marginBottom:32 }}>
-          <div style={{ width:52, height:52, borderRadius:14, background:"linear-gradient(135deg,#0F172A,#1E3A8A)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 14px" }}>
-            <svg viewBox="0 0 20 20" fill="none" stroke="white" strokeWidth="1.6" style={{ width:22, height:22 }}><circle cx="10" cy="6" r="3"/><path d="M3 17c0-3.866 3.134-6 7-6s7 2.134 7 6"/></svg>
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#0A1628" }}>
+      <input ref={resumeInputRef} type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }}
+        onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleInterviewFile(f); e.target.value=""; }}/>
+
+      <div style={{ minHeight:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"40px 24px" }}>
+
+        <div style={{ textAlign:"center", marginBottom:36 }}>
+          <div style={{ width:52, height:52, borderRadius:14, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px", boxShadow:"0 8px 28px rgba(67,97,238,0.5)" }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" style={{ width:26,height:26 }}><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.582-7 8-7s8 3 8 7"/></svg>
           </div>
-          <h1 style={{ fontSize:24, fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", marginBottom:8 }}>{SCREEN_INTERVIEW_META[stage].title}</h1>
-          <p style={{ fontSize:14, color:"#68738A", lineHeight:1.6 }}>Give Zari your resume and the job you&apos;re targeting — she&apos;ll generate questions specific to you, not generic ones from a textbook.</p>
+          <h1 style={{ fontSize:28, fontWeight:900, color:"white", letterSpacing:"-0.04em", marginBottom:8 }}>{SCREEN_INTERVIEW_META[stage].title}</h1>
+          <p style={{ fontSize:14.5, color:"rgba(255,255,255,0.5)", maxWidth:440, margin:"0 auto", lineHeight:1.6 }}>
+            Give Zari your resume and the job you&apos;re targeting — she&apos;ll generate questions specific to you, not generic ones from a textbook.
+          </p>
         </div>
 
-        <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-          {/* Resume upload */}
-          <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:14, padding:16 }}>
-            <p style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", marginBottom:10 }}>Your resume <span style={{ color:"#A0AABF", fontWeight:400 }}>(optional but recommended)</span></p>
-            {resumeFileName ? (
-              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"9px 12px", background:"#F0FFF4", border:"1px solid #BBF7D0", borderRadius:9 }}>
-                <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                  <svg viewBox="0 0 16 16" fill="none" stroke="#16A34A" strokeWidth="1.8" style={{ width:14,height:14,flexShrink:0 }}><path d="M14 2H6a1.5 1.5 0 00-1.5 1.5v11A1.5 1.5 0 006 16h8a1.5 1.5 0 001.5-1.5V5.5L14 2z"/><polyline points="14,2 14,5.5 17.5,5.5"/><polyline points="6,9 7.5,10.5 10,8"/></svg>
-                  <span style={{ fontSize:12.5, fontWeight:600, color:"#15803D" }}>{resumeFileName}</span>
-                </div>
-                <label style={{ fontSize:11, color:"#68738A", cursor:"pointer", textDecoration:"underline" }}>
-                  Replace
-                  <input type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleInterviewFile(f); e.target.value=""; }}/>
-                </label>
+        {loadingQs ? (
+          <div style={{ background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:20, padding:"40px 56px", textAlign:"center", maxWidth:360, width:"100%" }}>
+            <div style={{ width:48, height:48, borderRadius:"50%", border:"3px solid rgba(67,97,238,0.3)", borderTopColor:"#4361EE", animation:"spin-slow 0.8s linear infinite", margin:"0 auto 20px" }}/>
+            <p style={{ fontSize:16, fontWeight:700, color:"white", marginBottom:6 }}>Generating your questions…</p>
+            <p style={{ fontSize:13, color:"rgba(255,255,255,0.4)" }}>Tailored to your background and this role</p>
+          </div>
+        ) : (
+          <div style={{ width:"100%", maxWidth:560, display:"flex", flexDirection:"column", gap:14 }}>
+
+            {/* Resume upload */}
+            <div>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
+                <p style={{ fontSize:12, fontWeight:700, color:"rgba(255,255,255,0.6)", textTransform:"uppercase", letterSpacing:"0.07em", margin:0 }}>Resume</p>
+                {resumeFileName && <span style={{ fontSize:11, color:"#4ADE80", fontWeight:600 }}>✓ {resumeFileName}</span>}
               </div>
-            ) : (
-              <label style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"11px", borderRadius:10, border:"1.5px dashed #CBD5E1", background:"#FAFBFF", cursor:"pointer", fontSize:13, color:"#4361EE", fontWeight:600 }}>
-                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:14,height:14 }}><path d="M8 10V3M4 6l4-3 4 3"/><path d="M2 12h12"/></svg>
-                Upload resume (PDF, DOCX, TXT)
-                <input type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleInterviewFile(f); e.target.value=""; }}/>
-              </label>
-            )}
-          </div>
+              {resumeFileName ? (
+                <div style={{ background:"rgba(74,222,128,0.08)", border:"1px solid rgba(74,222,128,0.25)", borderRadius:14, padding:"14px 18px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                    <div style={{ width:36, height:36, borderRadius:10, background:"rgba(74,222,128,0.15)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      <svg viewBox="0 0 16 16" fill="none" stroke="#4ADE80" strokeWidth="1.8" style={{ width:16,height:16 }}><path d="M13 2H5a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V2z"/><polyline points="4,6 6,8 9,5"/></svg>
+                    </div>
+                    <div>
+                      <p style={{ fontSize:13, fontWeight:600, color:"white", margin:0 }}>{resumeFileName}</p>
+                      <p style={{ fontSize:11, color:"rgba(255,255,255,0.4)", margin:0 }}>Ready to use</p>
+                    </div>
+                  </div>
+                  <label style={{ fontSize:11.5, fontWeight:600, color:"rgba(255,255,255,0.45)", cursor:"pointer", padding:"5px 12px", borderRadius:8, border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.05)" }}>
+                    Replace
+                    <input type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleInterviewFile(f); e.target.value=""; }}/>
+                  </label>
+                </div>
+              ) : (
+                <div
+                  onClick={()=>resumeInputRef.current?.click()}
+                  onDragOver={e=>{ e.preventDefault(); setResumeDragOver(true); }}
+                  onDragLeave={()=>setResumeDragOver(false)}
+                  onDrop={e=>{ e.preventDefault(); setResumeDragOver(false); const f=e.dataTransfer.files?.[0]; if(f) void handleInterviewFile(f); }}
+                  style={{ background:resumeDragOver?"rgba(67,97,238,0.18)":"rgba(255,255,255,0.04)", border:`2px dashed ${resumeDragOver?"#4361EE":"rgba(255,255,255,0.15)"}`, borderRadius:18, padding:"32px 24px", cursor:"pointer", textAlign:"center", transition:"all 0.15s" }}>
+                  <div style={{ width:44, height:44, borderRadius:12, background:"rgba(67,97,238,0.2)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 14px" }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#818CF8" strokeWidth="1.8" style={{ width:22,height:22 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
+                  </div>
+                  <p style={{ fontSize:15, fontWeight:700, color:"white", marginBottom:5 }}>{resumeDragOver ? "Drop your resume here" : "Upload your resume"}</p>
+                  <p style={{ fontSize:12.5, color:"rgba(255,255,255,0.4)", marginBottom:14 }}>Drag and drop, or click to browse · PDF, DOCX, TXT</p>
+                  <span style={{ fontSize:12, fontWeight:700, padding:"6px 16px", borderRadius:99, background:"rgba(67,97,238,0.3)", color:"#A5B4FC", border:"1px solid rgba(67,97,238,0.4)" }}>Choose file</span>
+                </div>
+              )}
+            </div>
 
-          {/* LinkedIn profile context */}
-          <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:14, padding:16 }}>
-            <p style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", marginBottom:6 }}>LinkedIn profile context <span style={{ color:"#A0AABF", fontWeight:400 }}>(optional — paste your About + experience)</span></p>
-            <textarea
-              style={{ width:"100%", minHeight:72, border:"1.5px solid #E4E8F5", borderRadius:10, padding:"9px 11px", fontSize:12.5, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"#FAFBFF", lineHeight:1.6 }}
-              placeholder="Paste your LinkedIn About section and experience — Zari uses this to ask questions specific to your actual background…"
-              value={linkedinText} onChange={e=>setLinkedinText(e.target.value)}
-            />
-            {linkedinText && <p style={{ fontSize:11, color:"#16A34A", marginTop:4, marginBottom:0 }}>✓ {linkedinText.length.toLocaleString()} chars — questions will reference your real background</p>}
-          </div>
-
-          {/* Job description */}
-          <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:14, padding:16 }}>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
-              <p style={{ fontSize:12, fontWeight:700, color:"#0A0A0F", margin:0 }}>Target job description <span style={{ color:"#A0AABF", fontWeight:400 }}>(optional)</span></p>
-              <div style={{ display:"flex", background:"#F1F5F9", borderRadius:8, padding:2 }}>
-                {(["paste","url"] as const).map(m => (
-                  <button key={m} onClick={()=>{ setJdMode(m); setUrlFetchErr(""); }} style={{ fontSize:11, fontWeight:600, padding:"4px 10px", borderRadius:6, border:"none", background:jdMode===m?"white":"transparent", color:jdMode===m?"#0A0A0F":"#68738A", cursor:"pointer", boxShadow:jdMode===m?"0 1px 3px rgba(0,0,0,0.1)":"none", transition:"all 0.15s" }}>
-                    {m === "paste" ? "Paste text" : "Job URL"}
-                  </button>
-                ))}
+            {/* Job description */}
+            <div>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
+                <p style={{ fontSize:12, fontWeight:700, color:"rgba(255,255,255,0.6)", textTransform:"uppercase", letterSpacing:"0.07em", margin:0 }}>Job Description</p>
+                {jobDesc && <span style={{ fontSize:11, color:"#4ADE80", fontWeight:600 }}>✓ {jobDesc.length.toLocaleString()} chars</span>}
+              </div>
+              <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:18, padding:16 }}>
+                <div style={{ display:"flex", background:"rgba(255,255,255,0.06)", borderRadius:8, padding:2, marginBottom:12, width:"fit-content" }}>
+                  {(["paste","url"] as const).map(m => (
+                    <button key={m} onClick={()=>{ setJdMode(m); setUrlFetchErr(""); }} style={{ fontSize:11.5, fontWeight:600, padding:"5px 14px", borderRadius:6, border:"none", background:jdMode===m?"rgba(255,255,255,0.12)":"transparent", color:jdMode===m?"white":"rgba(255,255,255,0.45)", cursor:"pointer", transition:"all 0.15s" }}>
+                      {m === "paste" ? "Paste text" : "Job URL"}
+                    </button>
+                  ))}
+                </div>
+                {jdMode === "paste" ? (
+                  <textarea
+                    style={{ width:"100%", minHeight:110, border:"1px solid rgba(255,255,255,0.1)", borderRadius:10, padding:"10px 12px", fontSize:13, color:"white", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"rgba(255,255,255,0.06)", lineHeight:1.6 }}
+                    placeholder="Paste the full job posting you're preparing for…"
+                    value={jobDesc} onChange={e=>setJobDesc(e.target.value)}
+                  />
+                ) : (
+                  <div>
+                    <div style={{ display:"flex", gap:8 }}>
+                      <input type="url" value={jobUrl} onChange={e=>{ setJobUrl(e.target.value); setUrlFetchErr(""); }} onKeyDown={e=>{ if(e.key==="Enter") void fetchJdFromUrl(); }}
+                        placeholder="https://jobs.lever.co/… or LinkedIn, Greenhouse, etc."
+                        style={{ flex:1, border:"1px solid rgba(255,255,255,0.12)", borderRadius:10, padding:"10px 12px", fontSize:13, color:"white", outline:"none", fontFamily:"inherit", background:"rgba(255,255,255,0.06)" }}/>
+                      <button onClick={()=>void fetchJdFromUrl()} disabled={fetchingUrl||!jobUrl.trim()}
+                        style={{ padding:"10px 18px", borderRadius:10, border:"none", background:jobUrl.trim()&&!fetchingUrl?"#4361EE":"rgba(255,255,255,0.08)", color:jobUrl.trim()&&!fetchingUrl?"white":"rgba(255,255,255,0.3)", fontSize:13, fontWeight:700, cursor:jobUrl.trim()&&!fetchingUrl?"pointer":"default", flexShrink:0 }}>
+                        {fetchingUrl ? "…" : "Fetch"}
+                      </button>
+                    </div>
+                    {urlFetchErr && <p style={{ fontSize:12, color:"#FCA5A5", marginTop:6, marginBottom:0 }}>{urlFetchErr} <button onClick={()=>setJdMode("paste")} style={{ background:"none", border:"none", color:"#A5B4FC", fontWeight:600, cursor:"pointer", fontSize:12, padding:0 }}>Switch to paste</button></p>}
+                    {jobDesc && !urlFetchErr && <p style={{ fontSize:11.5, color:"#4ADE80", marginTop:6, marginBottom:0 }}>✓ Job description fetched</p>}
+                  </div>
+                )}
               </div>
             </div>
 
-            {jdMode === "paste" ? (
-              <textarea
-                style={{ width:"100%", minHeight:90, border:"1.5px solid #E4E8F5", borderRadius:10, padding:"9px 11px", fontSize:13, color:"#1E2235", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"#FAFBFF", lineHeight:1.6 }}
-                placeholder="Paste the job posting you're preparing for…"
-                value={jobDesc} onChange={e=>setJobDesc(e.target.value)}
-              />
-            ) : (
-              <div>
-                <div style={{ display:"flex", gap:8 }}>
-                  <input
-                    type="url"
-                    value={jobUrl}
-                    onChange={e=>{ setJobUrl(e.target.value); setUrlFetchErr(""); }}
-                    placeholder="https://jobs.lever.co/… or LinkedIn, Greenhouse, etc."
-                    style={{ flex:1, border:"1.5px solid #E4E8F5", borderRadius:10, padding:"9px 11px", fontSize:13, color:"#1E2235", outline:"none", fontFamily:"inherit", background:"#FAFBFF" }}
-                    onKeyDown={e=>{ if(e.key==="Enter") void fetchJdFromUrl(); }}
-                  />
-                  <button
-                    onClick={()=>void fetchJdFromUrl()}
-                    disabled={fetchingUrl || !jobUrl.trim()}
-                    style={{ padding:"9px 16px", borderRadius:10, border:"none", background:jobUrl.trim()&&!fetchingUrl?"#4361EE":"#E4E8F5", color:jobUrl.trim()&&!fetchingUrl?"white":"#A0AABF", fontSize:13, fontWeight:700, cursor:jobUrl.trim()&&!fetchingUrl?"pointer":"default", flexShrink:0, transition:"all 0.15s" }}
-                  >
-                    {fetchingUrl ? "…" : "Fetch"}
-                  </button>
-                </div>
-                {urlFetchErr && <p style={{ fontSize:12, color:"#DC2626", marginTop:6, marginBottom:0 }}>{urlFetchErr} <button onClick={()=>setJdMode("paste")} style={{ background:"none", border:"none", color:"#4361EE", fontWeight:600, cursor:"pointer", fontSize:12, padding:0 }}>Switch to paste</button></p>}
-                {jobDesc && !urlFetchErr && <p style={{ fontSize:11.5, color:"#16A34A", marginTop:6, marginBottom:0 }}>✓ Job description fetched — {jobDesc.length.toLocaleString()} chars</p>}
-              </div>
+            {/* Start button */}
+            <button
+              onClick={()=>void startInterview()}
+              disabled={!canStart || loadingQs}
+              style={{ width:"100%", marginTop:4, fontSize:14.5, fontWeight:700, padding:"14px", borderRadius:14, border:"none", background:canStart?"linear-gradient(135deg,#4361EE,#818CF8)":"rgba(255,255,255,0.06)", color:canStart?"white":"rgba(255,255,255,0.25)", cursor:canStart?"pointer":"default", display:"flex", alignItems:"center", justifyContent:"center", gap:8, boxShadow:canStart?"0 8px 24px rgba(67,97,238,0.4)":"none", transition:"all 0.2s" }}>
+              Generate my questions →
+            </button>
+            {!canStart && (
+              <p style={{ textAlign:"center", fontSize:12, color:"rgba(255,255,255,0.3)", margin:0 }}>
+                {!resumeText && !jobDesc.trim() ? "Upload your resume and paste the job description to continue" : !resumeText ? "Upload your resume to continue" : "Paste the job description to continue"}
+              </p>
             )}
           </div>
-        </div>
-
-        <button onClick={()=>void startInterview()} disabled={loadingQs} style={{ width:"100%", marginTop:18, fontSize:14, fontWeight:700, padding:"12px", borderRadius:12, border:"none", background:"#0F172A", color:"white", cursor:loadingQs?"default":"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:8, opacity:loadingQs?0.7:1 }}>
-          {loadingQs ? (
-            <><span style={{ width:14,height:14,borderRadius:"50%",border:"2px solid rgba(255,255,255,0.3)",borderTopColor:"white",animation:"spin-slow 0.7s linear infinite",display:"block" }}/> Generating your questions…</>
-          ) : "Start interview →"}
-        </button>
-        <p style={{ textAlign:"center", fontSize:11.5, color:"#A0AABF", marginTop:10 }}>You can also skip straight in — Zari will use stage defaults.</p>
+        )}
       </div>
     </div>
   );
