@@ -1007,6 +1007,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
   const [avatarState, setAvatarState] = useState<AvatarState>("speaking");
   const [input, setInput] = useState("");
   const [isVoice, setIsVoice] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [msgs, setMsgs] = useState<ChatMsg[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -1015,6 +1016,60 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
   const [fileProcessing, setFileProcessing] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  async function startRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/ogg";
+      const recorder = new MediaRecorder(stream, { mimeType });
+      audioChunksRef.current = [];
+      recorder.ondataavailable = e => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
+      recorder.onstop = async () => {
+        stream.getTracks().forEach(t => t.stop());
+        const blob = new Blob(audioChunksRef.current, { type: mimeType });
+        setIsRecording(false);
+        if (blob.size < 1000) return;
+        const form = new FormData();
+        form.append("audio", blob);
+        try {
+          const res = await fetch("/api/zari/transcribe", { method: "POST", body: form });
+          const data = await res.json().catch(() => ({})) as { text?: string };
+          const text = (data.text ?? "").trim();
+          if (text) void sendMessage(text);
+        } catch { /* non-fatal */ }
+      };
+      recorder.start();
+      mediaRecorderRef.current = recorder;
+      setIsRecording(true);
+    } catch { /* mic permission denied or unavailable */ }
+  }
+
+  function stopRecording() {
+    mediaRecorderRef.current?.stop();
+    mediaRecorderRef.current = null;
+  }
+
+  async function speakText(text: string) {
+    if (!isVoice) return;
+    try {
+      if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+      const res = await fetch("/api/zari/speak", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      if (!res.ok) return;
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.onended = () => URL.revokeObjectURL(url);
+      void audio.play();
+    } catch { /* non-fatal */ }
+  }
 
   // Snapshot all section data from localStorage to give Zari full context
   function readSectionContext() {
@@ -1211,6 +1266,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
       const reply = data.message?.trim() || "I'm having a little trouble right now — try again in a moment.";
       setMsgs(m => [...m, { role: "coach", text: reply }]);
       setAvatarState("speaking");
+      void speakText(reply);
       setTimeout(() => setAvatarState("listening"), 3500);
     } catch {
       setMsgs(m => [...m, { role: "coach", text: "Connection issue — try again in a moment." }]);
@@ -1329,7 +1385,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
 
         {/* Voice toggle */}
         <div style={{ marginTop:16, paddingTop:16, borderTop:"1px solid #F1F5F9" }}>
-          <button onClick={() => setIsVoice(v=>!v)} style={{
+          <button onClick={() => { setIsVoice(v=>!v); if (isVoice && audioRef.current) { audioRef.current.pause(); audioRef.current = null; } }} style={{
             width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:8,
             padding:"9px", borderRadius:10, border:"none", cursor:"pointer",
             background: isVoice ? "#4361EE" : "#F5F7FF",
@@ -1337,7 +1393,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
             transition:"all 0.2s",
           }}>
             <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:15,height:15 }}><path d="M10 2a3 3 0 00-3 3v4a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M4 9v1a6 6 0 0012 0V9"/><line x1="10" y1="15" x2="10" y2="18"/></svg>
-            {isVoice ? "Voice on" : "Enable voice"}
+            {isVoice ? "Voice on — Zari speaks" : "Enable voice"}
           </button>
         </div>
       </div>
@@ -1388,11 +1444,11 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
               e.target.value = "";
             }}
           />
-          <div style={{ position:"relative", background:"#FAFBFF", border:`1.5px solid ${isLoading ? "#C7D2FE" : "#E0E4EF"}`, borderRadius:14, overflow:"hidden", boxShadow:"0 2px 8px rgba(0,0,0,0.04)", transition:"border-color 0.2s" }}>
+          <div style={{ position:"relative", background:"#FAFBFF", border:`1.5px solid ${isRecording ? "#EF4444" : isLoading ? "#C7D2FE" : "#E0E4EF"}`, borderRadius:14, overflow:"hidden", boxShadow:"0 2px 8px rgba(0,0,0,0.04)", transition:"border-color 0.2s" }}>
             <textarea
-              style={{ width:"100%", border:"none", outline:"none", fontSize:14, color:"#0A0A0F", background:"transparent", resize:"none", padding:"12px 96px 12px 14px", fontFamily:"inherit", lineHeight:1.6, display:"block", opacity: isLoading ? 0.5 : 1 }}
+              style={{ width:"100%", border:"none", outline:"none", fontSize:14, color:"#0A0A0F", background:"transparent", resize:"none", padding:"12px 136px 12px 14px", fontFamily:"inherit", lineHeight:1.6, display:"block", opacity: isLoading ? 0.5 : 1 }}
               rows={3}
-              placeholder={fileProcessing ? "Reading your file…" : isLoading ? "Zari is thinking…" : isVoice ? "Voice mode active — speak or type…" : "Ask Zari anything, upload a file, or practice a question…"}
+              placeholder={fileProcessing ? "Reading your file…" : isRecording ? "Listening… click mic to stop" : isLoading ? "Zari is thinking…" : isVoice ? "Speak or type…" : "Ask Zari anything, upload a file, or practice a question…"}
               value={input}
               onChange={e=>setInput(e.target.value)}
               onKeyDown={e=>{ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();void sendMessage(input);} }}
@@ -1403,11 +1459,23 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
               onClick={() => fileInputRef.current?.click()}
               disabled={isLoading}
               title="Upload resume, cover letter, or LinkedIn profile"
-              style={{ position:"absolute", bottom:10, right:52, width:34,height:34,borderRadius:10,border:"none",cursor:isLoading?"default":"pointer", background:"#F5F7FF", color:"#68738A", display:"flex",alignItems:"center",justifyContent:"center", transition:"all 0.15s" }}
+              style={{ position:"absolute", bottom:10, right:94, width:34,height:34,borderRadius:10,border:"none",cursor:isLoading?"default":"pointer", background:"#F5F7FF", color:"#68738A", display:"flex",alignItems:"center",justifyContent:"center", transition:"all 0.15s" }}
             >
               <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:15,height:15 }}>
                 <path d="M15.172 7l-6.586 6.586a2 2 0 01-2.828-2.828l6.414-6.586a4 4 0 015.656 5.656l-6.415 6.585a6 6 0 01-8.485-8.485l6.586-6.586"/>
               </svg>
+            </button>
+            {/* Mic button */}
+            <button
+              onClick={() => isRecording ? stopRecording() : void startRecording()}
+              disabled={isLoading}
+              title={isRecording ? "Stop recording" : "Speak to Zari"}
+              style={{ position:"absolute", bottom:10, right:52, width:34,height:34,borderRadius:10,border:"none",cursor:isLoading?"default":"pointer", background:isRecording?"#FEF2F2":"#F5F7FF", color:isRecording?"#EF4444":"#68738A", display:"flex",alignItems:"center",justifyContent:"center", transition:"all 0.15s" }}
+            >
+              {isRecording
+                ? <span style={{ width:10,height:10,borderRadius:2,background:"#EF4444",animation:"blink 0.7s step-end infinite" }}/>
+                : <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:15,height:15 }}><path d="M10 2a3 3 0 00-3 3v4a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M4 9v1a6 6 0 0012 0V9"/><line x1="10" y1="15" x2="10" y2="18"/></svg>
+              }
             </button>
             {/* Send button */}
             <button
@@ -1421,7 +1489,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
               }
             </button>
           </div>
-          <p style={{ textAlign:"center", fontSize:10, color:"#C4CDD8", marginTop:6 }}>Enter to send · Shift+Enter for newline · 📎 attach a file · Powered by Zari AI</p>
+          <p style={{ textAlign:"center", fontSize:10, color:"#C4CDD8", marginTop:6 }}>Enter to send · Shift+Enter for newline · 📎 attach · 🎤 speak · Powered by Zari AI</p>
         </div>
       </div>
     </div>
