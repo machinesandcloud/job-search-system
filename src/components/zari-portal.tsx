@@ -4278,6 +4278,7 @@ function ScreenCoverLetter() {
   const [urlFetchErr,   setUrlFetchErr]   = useState("");
   const [company,       setCompany]       = useState("");
   const [targetRole,    setTargetRole]    = useState("");
+  const [candidateName, setCandidateName] = useState("");
   const [tone,          setTone]          = useState<"professional"|"conversational"|"enthusiastic">("professional");
   const [generating,    setGenerating]    = useState(false);
   const [result,        setResult]        = useState<{ subject: string; coverLetter: string } | null>(null);
@@ -4314,7 +4315,7 @@ function ScreenCoverLetter() {
     try {
       const res = await fetch("/api/zari/cover-letter", {
         method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ profileText, jobDescription:jobDesc, company, targetRole, tone }),
+        body: JSON.stringify({ profileText, jobDescription:jobDesc, company, targetRole, tone, candidateName }),
       });
       const data = await res.json().catch(() => null) as { subject?: string; coverLetter?: string; error?: string } | null;
       if (data?.coverLetter) { setResult({ subject:data.subject ?? "", coverLetter:data.coverLetter }); setEditedLetter(data.coverLetter); }
@@ -4327,11 +4328,39 @@ function ScreenCoverLetter() {
     const text = editMode ? editedLetter : (result?.coverLetter ?? "");
     navigator.clipboard.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
   }
-  function download() {
-    const text = editMode ? editedLetter : (result?.coverLetter ?? "");
-    const blob = new Blob([text], { type:"text/plain" });
+  function getLetterText() { return editMode ? editedLetter : (result?.coverLetter ?? ""); }
+  function safeName() { return (targetRole || "cover_letter").replace(/\s+/g,"_"); }
+
+  function buildLetterHtml(forPrint: boolean) {
+    const text = getLetterText();
+    const subject = result?.subject ?? "Cover Letter";
+    const pOpen = "<p>", pEmpty = "<p style=\"margin:0;height:10pt\"></p>", pClose = "</p>";
+    const lines = text.split("\n").map(l => {
+      const safe = l.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+      return safe.trim() ? pOpen + safe + pClose : pEmpty;
+    }).join("");
+    const cssPrint = "*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Georgia,serif;font-size:11.5pt;line-height:1.75;color:#1a1a1a;padding:2.5cm 3cm;}p{margin-bottom:9pt;}h2{font-size:10pt;font-weight:600;color:#555;margin-bottom:18pt;letter-spacing:0.05em;text-transform:uppercase;}@media print{body{padding:2cm 2.5cm;}}";
+    const cssWord = "body{font-family:Calibri,Arial,sans-serif;font-size:11pt;line-height:1.6;margin:2cm;}p{margin:0 0 10pt;}";
+    const h2Open = "<h2>", h2Close = "</h2>";
+    const autoprint = forPrint ? "<scr" + "ipt>window.onload=function(){window.print();}</scr" + "ipt>" : "";
+    return "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>" + subject + "</title>"
+      + "<style>" + (forPrint ? cssPrint : cssWord) + "</style>"
+      + autoprint + "</head><body>"
+      + (forPrint ? h2Open + subject + h2Close : "")
+      + lines + "</body></html>";
+  }
+
+  function downloadWord() {
+    const blob = new Blob([buildLetterHtml(false)], { type:"application/msword" });
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
-    a.download = `cover_letter_${(targetRole || "role").replace(/\s+/g,"_")}.txt`; a.click();
+    a.download = safeName() + ".doc"; a.click();
+  }
+
+  function downloadPdf() {
+    const win = window.open("","_blank");
+    if (!win) return;
+    win.document.write(buildLetterHtml(true));
+    win.document.close();
   }
 
   const STEP_TITLES    = ["Your background", "Job description", "Customize"];
@@ -4364,7 +4393,8 @@ function ScreenCoverLetter() {
                 <button onClick={()=>{ setResult(null); setStep(1); }} style={{ fontSize:12, fontWeight:600, padding:"7px 14px", borderRadius:9, border:"1px solid #E4E8F5", background:"white", color:"#68738A", cursor:"pointer" }}>← Start over</button>
                 <button onClick={()=>setEditMode(e=>!e)} style={{ fontSize:12, fontWeight:600, padding:"7px 14px", borderRadius:9, border:`1px solid ${editMode?"#4361EE":"#E4E8F5"}`, background:editMode?"#EEF2FF":"white", color:editMode?"#4361EE":"#68738A", cursor:"pointer" }}>{editMode?"Preview":"Edit"}</button>
                 <button onClick={copy} style={{ fontSize:12, fontWeight:600, padding:"7px 14px", borderRadius:9, border:"none", background:copied?"#F0FFF4":"#EEF2FF", color:copied?"#16A34A":"#4361EE", cursor:"pointer", transition:"all 0.2s" }}>{copied?"✓ Copied":"Copy"}</button>
-                <button onClick={download} style={{ fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:9, border:"none", background:"#0F172A", color:"white", cursor:"pointer" }}>Download</button>
+                <button onClick={downloadWord} style={{ fontSize:12, fontWeight:700, padding:"7px 14px", borderRadius:9, border:"1px solid #CBD5E1", background:"white", color:"#374151", cursor:"pointer" }}>↓ Word</button>
+                <button onClick={downloadPdf} style={{ fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:9, border:"none", background:"#0F172A", color:"white", cursor:"pointer" }}>↓ PDF</button>
               </div>
             </div>
             <div style={{ padding:"28px 32px" }}>
@@ -4526,6 +4556,8 @@ function ScreenCoverLetter() {
                   <input value={targetRole} onChange={e=>setTargetRole(e.target.value)} placeholder="Target role"
                     style={{ border:"1px solid rgba(255,255,255,0.12)", borderRadius:10, padding:"11px 14px", fontSize:13, color:"white", outline:"none", fontFamily:"inherit", background:"rgba(255,255,255,0.06)" }}/>
                 </div>
+                <input value={candidateName} onChange={e=>setCandidateName(e.target.value)} placeholder="Your name (for the signature)"
+                  style={{ border:"1px solid rgba(255,255,255,0.12)", borderRadius:10, padding:"11px 14px", fontSize:13, color:"white", outline:"none", fontFamily:"inherit", background:"rgba(255,255,255,0.06)", width:"100%", boxSizing:"border-box" }}/>
               </div>
               {/* Tone */}
               <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:18, padding:18 }}>
