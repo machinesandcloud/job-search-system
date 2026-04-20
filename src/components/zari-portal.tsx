@@ -303,6 +303,56 @@ function loadPdfJs(): Promise<unknown> {
   return _pdfJsLoad;
 }
 
+/** Re-extract PDF text in visual reading order (top→bottom, left→right) using PDF.js positions.
+ *  Handles letter-spaced headings by merging items with tiny gaps. */
+async function extractPositionedText(pdfUrl: string): Promise<string> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const lib = await loadPdfJs() as any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const pdf = await lib.getDocument(pdfUrl).promise as any;
+  const pageLines: string[] = [];
+
+  for (let p = 1; p <= pdf.numPages; p++) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const page = await pdf.getPage(p) as any;
+    const content = await page.getTextContent() as { items: Array<{ str: string; transform: number[]; width: number }> };
+
+    // Group items into visual lines by Y bucket (PDF Y is from bottom of page)
+    const byY = new Map<number, Array<{ x: number; text: string; width: number }>>();
+    for (const item of content.items) {
+      if (!item.str) continue;
+      const y = Math.round(item.transform[5] / 2) * 2; // 2-unit bucket
+      if (!byY.has(y)) byY.set(y, []);
+      byY.get(y)!.push({ x: item.transform[4], text: item.str, width: item.width ?? 0 });
+    }
+
+    // Sort lines top→bottom (higher Y = higher on page in PDF coordinate space)
+    const sortedYs = [...byY.keys()].sort((a, b) => b - a);
+
+    for (const y of sortedYs) {
+      const items = byY.get(y)!.sort((a, b) => a.x - b.x);
+      let line = "";
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (i === 0) {
+          line = item.text;
+        } else {
+          const prev = items[i - 1];
+          const expectedEnd = prev.x + (prev.width > 0 ? prev.width : prev.text.length * 5.5);
+          const gap = item.x - expectedEnd;
+          // Gap < 3px → letter-spaced text, merge without space; otherwise add space
+          line += (gap < 3 ? "" : " ") + item.text;
+        }
+      }
+      const t = line.trim();
+      if (t) pageLines.push(t);
+    }
+    if (p < pdf.numPages) pageLines.push("");
+  }
+
+  return pageLines.join("\n");
+}
+
 type PdfHl = { x: number; y: number; w: number; h: number; bulletIdx: number };
 type PdfPageData = { dataUrl: string; width: number; height: number; highlights: PdfHl[] };
 
@@ -1272,13 +1322,19 @@ function generateResumeHtml(text: string, footerNote = ""): string {
     "VOLUNTEER","COMMUNITY","INTEREST","ACTIVIT","REFERENCE","PUBLICATION","CONTACT",
   ];
 
+  const SECTION_VOCAB = /\b(EXPERIENCE|EDUCATION|CERTIFICATION|LICENSE|SKILL|SUMMARY|OBJECTIVE|AWARD|PROJECT|VOLUNTEER|REFERENCE|PUBLICATION|EMPLOYMENT|HISTORY|WORK|ACADEMIC|BACKGROUND|COMPETENC|EXPERTISE|INTEREST|ACTIVIT|COMMUNITY|CONTACT|PROFILE|ABOUT)\b/;
+
   const isSectionHeader = (t: string): boolean => {
     if (!t) return false;
     const u = t.toUpperCase().trim();
+    // Exact match against known section keywords
     if (KNOWN_SECTIONS.includes(u)) return true;
-    // ALL-CAPS 2-5 words, no digits, not a date-range line
-    return /^[A-Z][A-Z\s&\/\-]{2,49}$/.test(u) && u.split(/\s+/).length <= 5
-      && !/\d/.test(u) && !/\bPRESENT\b|\bCURRENT\b/.test(u);
+    // General ALL-CAPS: must contain a recognised section word (prevents names & job titles matching)
+    return /^[A-Z][A-Z\s&\/\-]{2,49}$/.test(u)
+      && u.split(/\s+/).length <= 5
+      && !/\d/.test(u)
+      && !/\bPRESENT\b|\bCURRENT\b/.test(u)
+      && SECTION_VOCAB.test(u);
   };
 
   const sectionRank = (title: string): number => {
@@ -1484,9 +1540,15 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
     setTimeout(() => { win.print(); }, 400);
   }
 
-  function buildRevisedHtml(): string {
+  async function buildRevisedHtml(): Promise<string> {
     if (!aiResult) return "";
-    let revised = resumeText;
+    // Use positionally-extracted text so sections come out in visual reading order,
+    // not the potentially-scrambled order from the server-side PDF parser.
+    let baseText = resumeText;
+    if (rawFileUrl) {
+      try { baseText = await extractPositionedText(rawFileUrl); } catch { /* fall back */ }
+    }
+    let revised = baseText;
     (aiResult.bullets ?? []).forEach(b => {
       if (b.before && b.after) revised = revised.replace(b.before, b.after);
     });
@@ -1513,7 +1575,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
     const baseName = (fileName || "resume").replace(/\.[^.]+$/, "");
 
     if (modal?.type === "revised") {
-      const html = buildRevisedHtml();
+      const html = await buildRevisedHtml();
       if (!html) return;
       if (format === "word") triggerWordDownload(html, `${baseName}-revised.html`);
       else triggerPdfDownload(html);
