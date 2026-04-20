@@ -166,7 +166,7 @@ Be specific — quote actual phrases. Generic feedback is useless.`;
       { role: "user", content: content },
     ],
     {
-      model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
+      model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o-mini",
       temperature: 0.25,
       maxTokens: 5000,
       jsonMode: true,
