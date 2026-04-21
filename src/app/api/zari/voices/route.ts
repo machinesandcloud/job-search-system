@@ -1,18 +1,19 @@
 import { NextResponse } from "next/server";
 import { OPENAI_VOICES } from "../speak/route";
 
-// Ordered list — Lauren B is default (first)
-// These must be voice IDs present in the ElevenLabs account linked to ELEVENLABS_API_KEY
-const VOICES_CONFIG = [
-  { id: "DODLEQrClDo8wCz460ld", label: "Lauren",  gender: "f" },
-  { id: "l4Coq6695JDX9xtLqXDE", label: "Voice 2", gender: "f" },
-  { id: "ljX1ZrXuDIIRVcmiVSyR", label: "Voice 3", gender: "f" },
-  { id: "4O1sYUnmtThcBoSBrri7", label: "Voice 4", gender: "m" },
-  { id: "inGcvmoPgbvKUk9uCvHu", label: "Voice 5", gender: "m" },
-  { id: "Bwff1jnzl1s94AEcntUq", label: "Voice 6", gender: "m" },
-] as const;
-
 type Gender = "f" | "m";
+
+// Lauren B's ID — pinned as default when present
+const DEFAULT_VOICE_ID = "DODLEQrClDo8wCz460ld";
+
+function inferGender(labels?: { gender?: string }, name?: string): Gender {
+  if (labels?.gender === "male")   return "m";
+  if (labels?.gender === "female") return "f";
+  // Fallback: infer from name keywords
+  const n = (name ?? "").toLowerCase();
+  if (n.includes(" male") || n.includes("adam") || n.includes("gabriel") || n.includes(" man") || n.includes("guy")) return "m";
+  return "f";
+}
 
 export async function GET() {
   const elKey  = process.env.ELEVENLABS_API_KEY;
@@ -20,8 +21,7 @@ export async function GET() {
 
   if (elKey) {
     try {
-      // Single call — GET /v1/voices returns ALL voices in the account library at once
-      // Much faster and more reliable than 6 individual calls or a shared-voices search
+      // Fetch ALL voices in the account library — no hardcoded IDs needed
       const r = await fetch("https://api.elevenlabs.io/v1/voices", {
         headers: { "xi-api-key": elKey },
         cache: "no-store",
@@ -32,20 +32,24 @@ export async function GET() {
       } else {
         type ELVoice = { voice_id: string; name: string; labels?: { gender?: string } };
         const data = await r.json() as { voices: ELVoice[] };
-        const byId = new Map(data.voices.map(v => [v.voice_id, v]));
 
-        const voices = VOICES_CONFIG.map(cfg => {
-          const v = byId.get(cfg.id);
-          if (v) {
-            const gender: Gender = v.labels?.gender === "male" ? "m" : "f";
-            return { key: cfg.id, label: v.name, gender, provider: "elevenlabs" };
-          }
-          // Voice ID not found in library — will still show, TTS may fall back to OpenAI
-          console.error(`[voices] ${cfg.id} not in library (${data.voices.length} voices returned). Add it at elevenlabs.io/voice-library.`);
-          return { key: cfg.id, label: cfg.label, gender: cfg.gender as Gender, provider: "elevenlabs" };
-        });
+        if (data.voices?.length) {
+          const voices = data.voices.map(v => ({
+            key:      v.voice_id,
+            label:    v.name,
+            gender:   inferGender(v.labels, v.name),
+            provider: "elevenlabs" as const,
+          }));
 
-        return NextResponse.json({ voices, provider: "elevenlabs", hasGroq });
+          // Pin Lauren B first, then sort the rest alphabetically
+          voices.sort((a, b) => {
+            if (a.key === DEFAULT_VOICE_ID) return -1;
+            if (b.key === DEFAULT_VOICE_ID) return  1;
+            return a.label.localeCompare(b.label);
+          });
+
+          return NextResponse.json({ voices, provider: "elevenlabs", hasGroq });
+        }
       }
     } catch (e) {
       console.error("[voices] Unexpected error:", e);
@@ -54,10 +58,10 @@ export async function GET() {
 
   // Fallback: OpenAI voices
   const voices = OPENAI_VOICES.map(v => ({
-    key: v,
-    label: v.charAt(0).toUpperCase() + v.slice(1),
-    gender: (["nova", "shimmer"].includes(v) ? "f" : "m") as Gender,
-    provider: "openai",
+    key:      v,
+    label:    v.charAt(0).toUpperCase() + v.slice(1),
+    gender:   (["nova", "shimmer"].includes(v) ? "f" : "m") as Gender,
+    provider: "openai" as const,
   }));
   return NextResponse.json({ voices, provider: elKey ? "elevenlabs" : "openai", hasGroq });
 }
