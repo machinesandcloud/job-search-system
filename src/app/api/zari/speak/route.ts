@@ -26,8 +26,10 @@ export async function POST(request: Request) {
         headers: { "xi-api-key": elKey, "Content-Type": "application/json", Accept: "audio/mpeg" },
         body: JSON.stringify({
           text,
-          model_id: "eleven_multilingual_v2",
-          voice_settings: { stability: 0.5, similarity_boost: 0.8, style: 0.35, use_speaker_boost: true },
+          // eleven_turbo_v2_5: ~250ms latency, high quality — best for live voice conversations
+          // eleven_multilingual_v2: ~400ms+, highest quality — use for non-real-time
+          model_id: "eleven_turbo_v2_5",
+          voice_settings: { stability: 0.5, similarity_boost: 0.75, style: 0.4, use_speaker_boost: true },
         }),
       },
     );
