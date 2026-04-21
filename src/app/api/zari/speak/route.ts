@@ -31,14 +31,15 @@ export async function POST(request: Request) {
   if (elKey) {
     const v = ELEVENLABS_VOICES[voice] ?? ELEVENLABS_VOICES["aria"];
     const res = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${v.id}/stream?output_format=mp3_44100_128`,
+      `https://api.elevenlabs.io/v1/text-to-speech/${v.id}/stream`,
       {
         method: "POST",
         headers: { "xi-api-key": elKey, "Content-Type": "application/json", Accept: "audio/mpeg" },
         body: JSON.stringify({
           text,
           model_id: "eleven_flash_v2_5",
-          voice_settings: { stability: 0.45, similarity_boost: 0.8, style: 0.45, use_speaker_boost: true },
+          // Lower stability = more expressive/natural, higher style = more emotion
+          voice_settings: { stability: 0.28, similarity_boost: 0.75, style: 0.6, use_speaker_boost: true },
         }),
       },
     );
