@@ -2,6 +2,7 @@ import { ensureSameOrigin } from "@/lib/utils";
 
 // ElevenLabs pre-built voices — stable IDs
 export const ELEVENLABS_VOICES: Record<string, { id: string; label: string; gender: string }> = {
+  lauren:  { id: "DODLEQrClDo8wCz460ld", label: "Lauren",  gender: "f" },
   aria:    { id: "9BWtsMINqrJLrRacOk9x", label: "Aria",    gender: "f" },
   rachel:  { id: "21m00Tcm4TlvDq8ikWAM", label: "Rachel",  gender: "f" },
   jessica: { id: "cgSgspJ2msm6clMCkdW9", label: "Jessica", gender: "f" },
