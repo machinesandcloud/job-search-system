@@ -30,11 +30,14 @@ export async function GET() {
       if (!r.ok) {
         console.error(`[voices] GET /v1/voices → ${r.status}: ${await r.text().catch(() => "")}`);
       } else {
-        type ELVoice = { voice_id: string; name: string; labels?: { gender?: string } };
+        type ELVoice = { voice_id: string; name: string; category?: string; labels?: { gender?: string } };
         const data = await r.json() as { voices: ELVoice[] };
 
         if (data.voices?.length) {
-          const voices = data.voices.map(v => ({
+          // Exclude ElevenLabs built-in default voices (Alice, Bella, Bill, etc.)
+          // "premade" = ElevenLabs defaults; everything else = user's own/added voices
+          const custom = data.voices.filter(v => v.category !== "premade");
+          const voices = custom.map(v => ({
             key:      v.voice_id,
             label:    v.name,
             gender:   inferGender(v.labels, v.name),
@@ -48,7 +51,7 @@ export async function GET() {
             return a.label.localeCompare(b.label);
           });
 
-          return NextResponse.json({ voices, provider: "elevenlabs", hasGroq });
+          return NextResponse.json({ voices, provider: "elevenlabs", hasGroq, total: data.voices.length, custom: custom.length });
         }
       }
     } catch (e) {
