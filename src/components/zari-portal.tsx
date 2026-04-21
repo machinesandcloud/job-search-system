@@ -1583,83 +1583,30 @@ function ZariLiveMode({
     recognitionRef.current = null;
   }
 
-  /* ── Streaming TTS via MediaSource — starts playing on first bytes ── */
+  /* ── TTS: simple blob, guaranteed to resolve ── */
   async function playTTS(text: string): Promise<void> {
     if (!aliveRef.current) return;
-    return new Promise((resolve) => {
-      if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
-
-      const canStream = typeof MediaSource !== "undefined" && MediaSource.isTypeSupported("audio/mpeg");
-
-      if (canStream) {
-        const ms  = new MediaSource();
-        const url = URL.createObjectURL(ms);
-        const audio = new Audio(url);
-        audioRef.current = audio;
-
-        audio.addEventListener("ended",  () => { URL.revokeObjectURL(url); audioRef.current = null; resolve(); }, { once: true });
-        audio.addEventListener("error",  () => { URL.revokeObjectURL(url); audioRef.current = null; resolve(); }, { once: true });
-
-        ms.addEventListener("sourceopen", async () => {
-          let sb: SourceBuffer;
-          const pending: ArrayBuffer[] = [];
-          let fetchDone = false;
-
-          try { sb = ms.addSourceBuffer("audio/mpeg"); } catch { resolve(); return; }
-
-          function flush() {
-            if (sb.updating || pending.length === 0) return;
-            try { sb.appendBuffer(pending.shift()!); } catch {}
-          }
-          function tryEnd() {
-            if (!fetchDone || sb.updating || pending.length > 0) return;
-            try { ms.endOfStream(); } catch {}
-          }
-          sb.addEventListener("updateend", () => { flush(); tryEnd(); });
-
-          try {
-            const res = await fetch("/api/zari/speak", {
-              method: "POST", headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ text, voice: activeVoiceRef.current }),
-            });
-            if (!res.ok || !res.body || !aliveRef.current) { try { ms.endOfStream(); } catch {} resolve(); return; }
-
-            void audio.play().catch(() => {});
-
-            const reader = res.body.getReader();
-            while (aliveRef.current) {
-              const { done, value } = await reader.read();
-              if (done) break;
-              pending.push(value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength));
-              flush();
-            }
-            fetchDone = true;
-            flush();
-            tryEnd();
-          } catch { try { ms.endOfStream(); } catch {} resolve(); }
-        }, { once: true });
-      } else {
-        // Fallback: blob
-        (async () => {
-          try {
-            const res = await fetch("/api/zari/speak", {
-              method: "POST", headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ text, voice: activeVoiceRef.current }),
-            });
-            if (!res.ok || !aliveRef.current) { resolve(); return; }
-            const blobUrl = URL.createObjectURL(await res.blob());
-            const audio = new Audio(blobUrl);
-            audioRef.current = audio;
-            audio.onended = () => { URL.revokeObjectURL(blobUrl); resolve(); };
-            audio.onerror = () => { URL.revokeObjectURL(blobUrl); resolve(); };
-            void audio.play();
-          } catch { resolve(); }
-        })();
-      }
-    });
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    try {
+      const res = await fetch("/api/zari/speak", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, voice: activeVoiceRef.current }),
+      });
+      if (!res.ok || !aliveRef.current) return;
+      const url = URL.createObjectURL(await res.blob());
+      if (!aliveRef.current) { URL.revokeObjectURL(url); return; }
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      await new Promise<void>(resolve => {
+        const done = () => { URL.revokeObjectURL(url); audioRef.current = null; resolve(); };
+        audio.addEventListener("ended", done, { once: true });
+        audio.addEventListener("error", done, { once: true });
+        audio.play().catch(done);
+      });
+    } catch {}
   }
 
-  /* ── Chat → collect full response → single TTS call (smooth audio) ── */
+  /* ── Chat → collect full response → TTS ── */
   async function processInput(text: string) {
     if (!text.trim() || !aliveRef.current) return;
     setInterimText("");
@@ -1679,8 +1626,7 @@ function ZariLiveMode({
         body: JSON.stringify({ message: text, stage, history, sessionId, sectionContext, isVoice: true }),
       });
       if (!res.body) throw new Error("no stream");
-
-      const reader  = res.body.getReader();
+      const reader = res.body.getReader();
       const decoder = new TextDecoder();
       while (aliveRef.current) {
         const { done, value } = await reader.read();
@@ -1692,8 +1638,8 @@ function ZariLiveMode({
           if (d === "[DONE]") break;
           try {
             type C = { choices?: Array<{ delta?: { content?: string } }> };
-            const t = (JSON.parse(d) as C).choices?.[0]?.delta?.content ?? "";
-            if (t) fullReply += t;
+            const tok = (JSON.parse(d) as C).choices?.[0]?.delta?.content ?? "";
+            if (tok) fullReply += tok;
           } catch {}
         }
       }
@@ -1712,18 +1658,17 @@ function ZariLiveMode({
     setStatusText("Speaking…");
     await playTTS(fullReply.trim());
 
+    // Auto-restart listening after Zari finishes — no tap needed
     if (aliveRef.current && autoLoopRef.current) {
       setLiveState("idle");
       setStatusText("Your turn…");
-      setTimeout(() => { if (aliveRef.current && autoLoopRef.current) void startListening(); }, 350);
+      setTimeout(() => { if (aliveRef.current && autoLoopRef.current) void startListening(); }, 250);
     }
   }
 
-  /* ── Start listening (Web Speech API → Whisper fallback) ── */
-  async function startListening() {
+  /* ── Continuous speech recognition — stays open, no tapping ── */
+  function startListening() {
     if (!aliveRef.current || liveStateRef.current !== "idle") return;
-    setLiveState("listening");
-    setStatusText("Listening…");
 
     const SpeechRec = (typeof window !== "undefined")
       ? (((window as unknown) as Record<string, unknown>)["SpeechRecognition"] as (new () => SR) | undefined)
@@ -1737,28 +1682,35 @@ function ZariLiveMode({
     }
 
     const rec = new SpeechRec();
-    rec.continuous = false;
+    rec.continuous = true;      // stays open — no timeout between sentences
     rec.interimResults = true;
     rec.lang = "en-US";
     recognitionRef.current = rec;
 
+    setLiveState("listening");
+    setStatusText("Listening…");
+
     rec.onresult = (e: { results: { length: number; [i: number]: { isFinal: boolean; [j: number]: { transcript: string } } } }) => {
       const last = e.results[e.results.length - 1];
       const text = last[0].transcript;
-      if (last.isFinal) {
+      if (last.isFinal && text.trim()) {
         setInterimText("");
+        try { rec.stop(); } catch {}
         recognitionRef.current = null;
-        void processInput(text);
+        void processInput(text.trim());
       } else {
         setInterimText(text);
       }
     };
     rec.onerror = () => {
-      if (aliveRef.current) { setLiveState("idle"); setStatusText("Tap to speak"); setInterimText(""); }
+      if (aliveRef.current) { setLiveState("idle"); setStatusText("Your turn…"); setInterimText(""); }
     };
     rec.onend = () => {
-      if (aliveRef.current && liveStateRef.current === "listening") {
-        setLiveState("idle"); setStatusText("Tap to speak"); setInterimText("");
+      setInterimText("");
+      // If still in listening state (no result captured), restart automatically
+      if (aliveRef.current && autoLoopRef.current && liveStateRef.current === "listening") {
+        setLiveState("idle");
+        setTimeout(() => { if (aliveRef.current && autoLoopRef.current) void startListening(); }, 200);
       }
     };
     try { rec.start(); } catch {

@@ -199,13 +199,14 @@ FORMAT:
 Match the length to what the moment actually needs. A simple question gets a direct answer — 1-2 sentences, done. A venting message gets acknowledgment + one sharp redirect — 2-3 sentences. Only go longer when they ask for something structured (a rewrite, a script, a breakdown) or when the situation genuinely requires it. Default to shorter. If you can say it in one sentence, say it in one sentence. No bullet lists in regular conversation. End with a question or a clear next step. Write like a person, not a report.${isVoice ? `
 
 VOICE CONVERSATION — OVERRIDE EVERYTHING ELSE ON FORMAT:
-You are speaking out loud right now in a live voice call. Hard rules:
-- MAX 1-2 sentences. That's it. Every time.
-- Zero formatting — no dashes, no bullets, no colons before lists
-- Drop the navigation markers entirely
-- Talk exactly like you're on the phone. Casual. Direct. Real.
-- End with ONE short question to keep the conversation moving
-- If you need to give a script or example, say "try saying:" then the line` : ""}`;
+You are speaking out loud in a live voice call right now. Hard rules:
+- MAX 1-2 sentences. Every single time. No exceptions.
+- Zero formatting — no dashes, bullets, or lists.
+- Drop all navigation markers.
+- Talk exactly like you're on a phone call. Casual. Direct. Real.
+- End with ONE tight question to keep it moving.
+- If giving a script, say "try saying:" then just the line.
+- NEVER say: "I hear you", "I hear the frustration", "I understand", "I can see that", "That must be hard", "That sounds challenging", "Great question", "Absolutely", or any AI filler phrase. Just respond. Get to the point.` : ""}`;
 
   /* ── Build OpenAI messages ── */
   const messages: OAIMessage[] = [{ role: "system", content: systemPrompt }];
@@ -229,7 +230,7 @@ You are speaking out loud right now in a live voice call. Hard rules:
       : "https://api.openai.com/v1/chat/completions";
     const authKey = groqKey ?? process.env.OPENAI_API_KEY!;
     const model   = groqKey
-      ? (process.env.GROQ_MODEL ?? "llama-3.1-8b-instant")
+      ? (process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile")
       : (process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o-mini");
 
     const streamRes = await fetch(endpoint, {
