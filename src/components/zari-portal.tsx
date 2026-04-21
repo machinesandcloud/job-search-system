@@ -1552,7 +1552,8 @@ function ZariLiveMode({
   }, []);
 
   type SR = { continuous: boolean; interimResults: boolean; lang: string; start(): void; stop(): void; onresult: ((e: { results: { length: number; [i: number]: { isFinal: boolean; [j: number]: { transcript: string } } } }) => void) | null; onerror: (() => void) | null; onend: (() => void) | null };
-  const audioRef        = useRef<HTMLAudioElement | null>(null);
+  const audioCtxRef     = useRef<AudioContext | null>(null);
+  const sourceNodeRef   = useRef<AudioBufferSourceNode | null>(null);
   const newMsgsRef      = useRef<ChatMsg[]>([]);
   const liveStateRef    = useRef<LiveState>("idle");
   const autoLoopRef     = useRef(false);
@@ -1578,35 +1579,41 @@ function ZariLiveMode({
   }, []);
 
   function stopAll() {
-    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    try { sourceNodeRef.current?.stop(); } catch {}
+    sourceNodeRef.current = null;
     try { recognitionRef.current?.stop(); } catch {}
     recognitionRef.current = null;
   }
 
-  /* ── TTS: simple blob, guaranteed to resolve ── */
-  async function playTTS(text: string): Promise<void> {
-    if (!aliveRef.current) return;
-    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
-    try {
-      const res = await fetch("/api/zari/speak", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, voice: activeVoiceRef.current }),
-      });
-      if (!res.ok || !aliveRef.current) return;
-      const url = URL.createObjectURL(await res.blob());
-      if (!aliveRef.current) { URL.revokeObjectURL(url); return; }
-      const audio = new Audio(url);
-      audioRef.current = audio;
-      await new Promise<void>(resolve => {
-        const done = () => { URL.revokeObjectURL(url); audioRef.current = null; resolve(); };
-        audio.addEventListener("ended", done, { once: true });
-        audio.addEventListener("error", done, { once: true });
-        audio.play().catch(done);
-      });
-    } catch {}
+  /* ── Unlock AudioContext on first user gesture ── */
+  function ensureAudioCtx() {
+    if (!audioCtxRef.current) {
+      type AC = typeof AudioContext;
+      const Ctor: AC = (window.AudioContext ?? (window as unknown as { webkitAudioContext: AC }).webkitAudioContext);
+      audioCtxRef.current = new Ctor();
+    }
+    if (audioCtxRef.current.state === "suspended") void audioCtxRef.current.resume();
   }
 
-  /* ── Chat → collect full response → TTS ── */
+  /* ── Play one ArrayBuffer through AudioContext (no autoplay block) ── */
+  async function playBuffer(buf: ArrayBuffer): Promise<void> {
+    const ctx = audioCtxRef.current;
+    if (!ctx || !aliveRef.current) return;
+    try {
+      const audioBuf = await ctx.decodeAudioData(buf);
+      if (!aliveRef.current) return;
+      await new Promise<void>(resolve => {
+        const src = ctx.createBufferSource();
+        src.buffer = audioBuf;
+        src.connect(ctx.destination);
+        src.onended = () => { sourceNodeRef.current = null; resolve(); };
+        sourceNodeRef.current = src;
+        src.start(0);
+      });
+    } catch { /* decodeAudioData can throw on bad data */ }
+  }
+
+  /* ── Chat stream → sentence-pipelined TTS ── */
   async function processInput(text: string) {
     if (!text.trim() || !aliveRef.current) return;
     setInterimText("");
@@ -1618,47 +1625,70 @@ function ZariLiveMode({
     newMsgsRef.current = [...newMsgsRef.current, userMsg];
 
     let fullReply = "";
+    // Promise chain ensures sentences play in order while fetching in parallel
+    let playChain: Promise<void> = Promise.resolve();
+    let ttsStarted = false;
+
+    function queueSentence(sentence: string) {
+      const s = sentence.trim();
+      if (!s) return;
+      fullReply += (fullReply ? " " : "") + s;
+      // Start TTS fetch immediately (parallel with remaining stream)
+      const bufPromise = fetch("/api/zari/speak", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: s, voice: activeVoiceRef.current }),
+      }).then(r => r.ok ? r.arrayBuffer() : null).catch(() => null);
+      if (!ttsStarted) { ttsStarted = true; setLiveState("speaking"); setStatusText("Speaking…"); }
+      playChain = playChain.then(async () => {
+        if (!aliveRef.current) return;
+        const buf = await bufPromise;
+        if (buf && aliveRef.current) await playBuffer(buf);
+      });
+    }
+
     try {
       const history = [...msgs, ...newMsgsRef.current.slice(0, -1)].slice(-14);
       const res = await fetch("/api/zari/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text, stage, history, sessionId, sectionContext, isVoice: true }),
       });
       if (!res.body) throw new Error("no stream");
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
-      while (aliveRef.current) {
+      let buf = "";
+      outer: while (aliveRef.current) {
         const { done, value } = await reader.read();
         if (done) break;
         for (const line of decoder.decode(value, { stream: true }).split("\n")) {
           const p = line.trim();
           if (!p.startsWith("data:")) continue;
           const d = p.slice(5).trim();
-          if (d === "[DONE]") break;
+          if (d === "[DONE]") break outer;
           try {
             type C = { choices?: Array<{ delta?: { content?: string } }> };
             const tok = (JSON.parse(d) as C).choices?.[0]?.delta?.content ?? "";
-            if (tok) fullReply += tok;
+            if (tok) buf += tok;
           } catch {}
         }
+        // Fire TTS as soon as we have a complete sentence
+        const m = /[.!?][)'"»]?\s+/.exec(buf);
+        if (m) { queueSentence(buf.slice(0, m.index + m[0].trimEnd().length)); buf = buf.slice(m.index + m[0].length); }
       }
+      if (buf.trim()) queueSentence(buf); // flush remainder
     } catch {
-      if (aliveRef.current) { setLiveState("idle"); setStatusText("Something went wrong — tap to try again"); }
+      if (aliveRef.current) { setLiveState("idle"); setStatusText("Something went wrong — try again"); }
       return;
     }
 
-    if (!aliveRef.current || !fullReply.trim()) return;
+    await playChain; // wait for all audio segments to finish
+    if (!aliveRef.current) return;
 
-    const coachMsg: ChatMsg = { role: "coach", text: fullReply.trim() };
-    setTranscript(t => [...t, coachMsg]);
-    newMsgsRef.current = [...newMsgsRef.current, coachMsg];
+    if (fullReply.trim()) {
+      const coachMsg: ChatMsg = { role: "coach", text: fullReply.trim() };
+      setTranscript(t => [...t, coachMsg]);
+      newMsgsRef.current = [...newMsgsRef.current, coachMsg];
+    }
 
-    setLiveState("speaking");
-    setStatusText("Speaking…");
-    await playTTS(fullReply.trim());
-
-    // Auto-restart listening after Zari finishes — no tap needed
     if (aliveRef.current && autoLoopRef.current) {
       setLiveState("idle");
       setStatusText("Your turn…");
@@ -1720,6 +1750,7 @@ function ZariLiveMode({
   }
 
   function handleMicTap() {
+    ensureAudioCtx(); // must be called in user-gesture handler to unlock audio
     if (!started) {
       setStarted(true);
       autoLoopRef.current = true;
