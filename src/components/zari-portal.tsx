@@ -1853,19 +1853,14 @@ function ZariLiveMode({
       {/* Orb + rings */}
       <div style={{ position:"relative", zIndex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:18, marginBottom:20 }}>
 
-        {/* Listening ripple rings — start OUTSIDE the 200px orb, expand outward */}
-        {liveState === "listening" && [0,1,2].map(i => (
-          <div key={i} style={{ position:"absolute", top:"50%", left:"50%", width:220, height:220, borderRadius:"50%", border:"1.5px solid rgba(6,182,212,0.6)", animation:`listen-ripple-v2 ${1.8+i*0.6}s ease-out ${i*0.5}s infinite`, pointerEvents:"none" }}/>
+        {/* Listening: 2 clean ripple rings that start outside the orb */}
+        {liveState === "listening" && [0,1].map(i => (
+          <div key={i} style={{ position:"absolute", top:"50%", left:"50%", width:216, height:216, borderRadius:"50%", border:"1px solid rgba(6,182,212,0.45)", animation:`listen-ripple-v2 ${2.2+i*0.9}s ease-out ${i*0.85}s infinite`, pointerEvents:"none" }}/>
         ))}
 
-        {/* Thinking — single spinning arc */}
+        {/* Thinking: single spinning arc */}
         {liveState === "thinking" && (
-          <div style={{ position:"absolute", top:"50%", left:"50%", width:228, height:228, borderRadius:"50%", border:"2px solid transparent", borderTopColor:"rgba(139,92,246,0.85)", borderRightColor:"rgba(139,92,246,0.25)", animation:"spin-slow 1.1s linear infinite", transform:"translate(-50%,-50%)", pointerEvents:"none" }}/>
-        )}
-
-        {/* Speaking — soft outer glow ring (static, no expansion) */}
-        {liveState === "speaking" && (
-          <div style={{ position:"absolute", top:"50%", left:"50%", width:220, height:220, borderRadius:"50%", border:"1px solid rgba(99,102,241,0.25)", transform:"translate(-50%,-50%)", animation:"sphere-breathe 0.55s ease-in-out infinite", pointerEvents:"none" }}/>
+          <div style={{ position:"absolute", top:"50%", left:"50%", width:224, height:224, borderRadius:"50%", border:"2px solid transparent", borderTopColor:"rgba(139,92,246,0.8)", borderRightColor:"rgba(139,92,246,0.2)", animation:"spin-slow 1.1s linear infinite", transform:"translate(-50%,-50%)", pointerEvents:"none" }}/>
         )}
 
         <div style={{ width:200, height:200, borderRadius:"50%", background:orb.gradient, boxShadow:orb.shadow, animation:orb.animation, transition:"background 0.6s ease, box-shadow 0.6s ease", flexShrink:0, position:"relative", zIndex:1 }}/>
@@ -1934,22 +1929,46 @@ function ZariLiveMode({
         </p>
       </div>
 
-      {/* Voice picker */}
+      {/* Voice picker — avatar cards */}
       {voices.length > 0 && (
-        <div style={{ position:"relative", zIndex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:7, marginTop:16 }}>
-          <p style={{ color:"rgba(255,255,255,0.16)", fontSize:10, margin:0, letterSpacing:"0.1em", textTransform:"uppercase" }}>Voice</p>
-          <div style={{ display:"flex", gap:5, flexWrap:"wrap", justifyContent:"center" }}>
-            {voices.map(v => (
-              <button key={v.key} onClick={() => { setActiveVoice(v.key); activeVoiceRef.current = v.key; }} style={{
-                padding:"5px 11px", borderRadius:99, fontSize:11, fontWeight:600, cursor:"pointer",
-                border:`1px solid ${activeVoice===v.key ? "rgba(99,102,241,0.9)" : "rgba(255,255,255,0.07)"}`,
-                background: activeVoice===v.key ? "rgba(79,70,229,0.38)" : "rgba(255,255,255,0.03)",
-                color: activeVoice===v.key ? "rgba(165,180,252,1)" : "rgba(255,255,255,0.28)",
-                transition:"all 0.15s",
-              }}>
-                {v.gender === "f" ? "♀" : "♂"} {v.label}
-              </button>
-            ))}
+        <div style={{ position:"relative", zIndex:1, width:"100%", marginTop:14 }}>
+          <p style={{ color:"rgba(255,255,255,0.14)", fontSize:10, margin:"0 0 9px", letterSpacing:"0.1em", textTransform:"uppercase", textAlign:"center" }}>Voice</p>
+          <div style={{ display:"flex", gap:8, overflowX:"auto", padding:"2px 20px 4px", scrollbarWidth:"none", justifyContent:"center" }}>
+            {voices.map(v => {
+              const isFemale = v.gender === "f";
+              const selected = activeVoice === v.key;
+              const shortName = v.label.split(" - ")[0].split(",")[0].trim();
+              return (
+                <button key={v.key} onClick={() => { setActiveVoice(v.key); activeVoiceRef.current = v.key; }} style={{
+                  display:"flex", flexDirection:"column", alignItems:"center", gap:5,
+                  padding:"8px 9px 7px", borderRadius:14, flexShrink:0, minWidth:62,
+                  border:`1.5px solid ${selected ? (isFemale ? "rgba(192,132,252,0.8)" : "rgba(56,189,248,0.8)") : "rgba(255,255,255,0.06)"}`,
+                  background: selected ? (isFemale ? "rgba(124,58,237,0.25)" : "rgba(2,132,199,0.2)") : "rgba(255,255,255,0.03)",
+                  cursor:"pointer", transition:"all 0.15s",
+                }}>
+                  {/* Avatar circle */}
+                  <div style={{
+                    width:38, height:38, borderRadius:"50%", flexShrink:0,
+                    background: isFemale ? "linear-gradient(135deg,#d8b4fe,#8b5cf6)" : "linear-gradient(135deg,#7dd3fc,#0284c7)",
+                    display:"flex", alignItems:"center", justifyContent:"center",
+                    boxShadow: selected ? (isFemale ? "0 0 14px rgba(167,139,250,0.6)" : "0 0 14px rgba(56,189,248,0.6)") : "none",
+                    transition:"box-shadow 0.15s",
+                  }}>
+                    {isFemale
+                      ? <svg viewBox="0 0 24 24" fill="white" style={{ width:19, height:19 }}><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+                      : <svg viewBox="0 0 24 24" fill="white" style={{ width:19, height:19 }}><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/><rect x="10.5" y="1.2" width="3" height="2.4" rx="1" fill="white"/></svg>
+                    }
+                  </div>
+                  <span style={{
+                    fontSize:10, fontWeight:600, letterSpacing:"0.02em", lineHeight:1.2,
+                    color: selected ? (isFemale ? "rgba(216,180,254,1)" : "rgba(125,211,252,1)") : "rgba(255,255,255,0.35)",
+                    maxWidth:62, textOverflow:"ellipsis", overflow:"hidden", whiteSpace:"nowrap", textAlign:"center",
+                  }}>
+                    {shortName}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
