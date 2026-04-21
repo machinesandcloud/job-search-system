@@ -1563,7 +1563,8 @@ function ZariLiveMode({
   const newMsgsRef      = useRef<ChatMsg[]>([]);
   const liveStateRef    = useRef<LiveState>("idle");
   const autoLoopRef     = useRef(false);
-  const interruptRef    = useRef(false); // set true to cancel current playChain mid-flight
+  const playVersionRef  = useRef(0);    // increment to cancel all in-flight playChain callbacks
+  const userStoppedRef  = useRef(false); // true when user manually taps to stop listening
   const recognitionRef  = useRef<SR | null>(null);
   const transcriptRef   = useRef<HTMLDivElement>(null);
   const aliveRef        = useRef(true);
@@ -1657,7 +1658,7 @@ function ZariLiveMode({
       const s = sentence.trim();
       if (!s) return;
       fullReply += (fullReply ? " " : "") + s;
-      // Fire TTS fetch in parallel — don't wait for it here
+      const myVersion = playVersionRef.current; // capture version — if interrupted, version increments and this callback exits
       const bufPromise = fetch("/api/zari/speak", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: s, voice: activeVoiceRef.current }),
@@ -1667,13 +1668,13 @@ function ZariLiveMode({
       }).catch(e => { console.error("[Zari] speak fetch error:", e); return null; });
       if (!ttsStarted) { ttsStarted = true; setLiveState("speaking"); setStatusText("Speaking…"); }
       playChain = playChain.then(async () => {
-        if (!aliveRef.current || interruptRef.current) return;
+        if (!aliveRef.current || playVersionRef.current !== myVersion) return;
         const buf = await bufPromise;
-        if (!aliveRef.current || interruptRef.current) return;
+        if (!aliveRef.current || playVersionRef.current !== myVersion) return;
         if (buf) {
           const ok = await playBuffer(buf);
-          if (!ok && aliveRef.current && !interruptRef.current) await speakSynthesis(s);
-        } else if (aliveRef.current && !interruptRef.current) {
+          if (!ok && aliveRef.current && playVersionRef.current === myVersion) await speakSynthesis(s);
+        } else if (aliveRef.current && playVersionRef.current === myVersion) {
           await speakSynthesis(s);
         }
       });
@@ -1793,7 +1794,7 @@ function ZariLiveMode({
     };
     rec.onend = () => {
       setInterimText("");
-      // Restart only if we're still in listening state (no result was captured)
+      if (userStoppedRef.current) { userStoppedRef.current = false; return; } // manual stop — don't restart
       if (aliveRef.current && autoLoopRef.current && liveStateRef.current === "listening") {
         liveStateRef.current = "idle";
         setLiveState("idle");
@@ -1814,22 +1815,26 @@ function ZariLiveMode({
       void startListening();
       return;
     }
-    if (liveState === "idle") {
+    const state = liveStateRef.current; // always read from ref — never stale
+    if (state === "idle") {
+      autoLoopRef.current = true;
       void startListening();
-    } else if (liveState === "listening") {
+    } else if (state === "listening") {
+      // User tapping during listening = stop & pause (don't restart)
+      userStoppedRef.current = true;
+      autoLoopRef.current = false;
+      liveStateRef.current = "idle";
+      setLiveState("idle");
       try { recognitionRef.current?.stop(); } catch {}
       recognitionRef.current = null;
-    } else if (liveState === "speaking") {
-      // Interrupt: kill audio immediately, jump back to listening
-      interruptRef.current = true;
+    } else if (state === "speaking" || state === "thinking") {
+      // Interrupt: cancel all queued audio, go back to idle so user can tap to speak
+      playVersionRef.current++;
       stopAll();
       window.speechSynthesis?.cancel();
       liveStateRef.current = "idle";
       setLiveState("idle");
-      setTimeout(() => {
-        interruptRef.current = false;
-        if (aliveRef.current && autoLoopRef.current) void startListening();
-      }, 120);
+      autoLoopRef.current = false;
     }
   }
 
