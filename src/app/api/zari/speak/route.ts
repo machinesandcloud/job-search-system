@@ -27,35 +27,39 @@ export async function POST(request: Request) {
   const elKey = process.env.ELEVENLABS_API_KEY;
   const oaiKey = process.env.OPENAI_API_KEY;
 
-  /* ── ElevenLabs (preferred: better quality, lower latency) ── */
+  /* ── ElevenLabs (preferred) — output_format must be a query param, not body ── */
   if (elKey) {
     const v = ELEVENLABS_VOICES[voice] ?? ELEVENLABS_VOICES["aria"];
-    const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${v.id}/stream`, {
-      method: "POST",
-      headers: {
-        "xi-api-key": elKey,
-        "Content-Type": "application/json",
-        Accept: "audio/mpeg",
+    const res = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${v.id}/stream?output_format=mp3_44100_128`,
+      {
+        method: "POST",
+        headers: { "xi-api-key": elKey, "Content-Type": "application/json", Accept: "audio/mpeg" },
+        body: JSON.stringify({
+          text,
+          model_id: "eleven_flash_v2_5",
+          voice_settings: { stability: 0.45, similarity_boost: 0.8, style: 0.45, use_speaker_boost: true },
+        }),
       },
-      body: JSON.stringify({
-        text,
-        model_id: "eleven_flash_v2_5",
-        voice_settings: { stability: 0.45, similarity_boost: 0.8, style: 0.45, use_speaker_boost: true },
-        output_format: "mp3_44100_128",
-      }),
-    });
-    if (!res.ok) return new Response("ElevenLabs TTS failed", { status: 500 });
-    return new Response(res.body, { headers: { "Content-Type": "audio/mpeg", "Cache-Control": "no-store" } });
+    );
+    if (res.ok) {
+      return new Response(res.body, { headers: { "Content-Type": "audio/mpeg", "Cache-Control": "no-store" } });
+    }
+    // ElevenLabs failed — log and fall through to OpenAI
+    console.error(`ElevenLabs TTS ${res.status}: ${await res.text().catch(() => "")}`);
   }
 
   /* ── OpenAI TTS fallback ── */
-  if (!oaiKey) return new Response("No API key configured", { status: 500 });
+  if (!oaiKey) return new Response("No TTS provider configured", { status: 500 });
   const oaiVoice = (OPENAI_VOICES as readonly string[]).includes(voice) ? voice : "shimmer";
   const res = await fetch("https://api.openai.com/v1/audio/speech", {
     method: "POST",
     headers: { Authorization: `Bearer ${oaiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({ model: "tts-1", input: text.slice(0, 4096), voice: oaiVoice, response_format: "mp3" }),
   });
-  if (!res.ok) return new Response("TTS failed", { status: 500 });
+  if (!res.ok) {
+    console.error(`OpenAI TTS ${res.status}: ${await res.text().catch(() => "")}`);
+    return new Response("TTS failed", { status: 500 });
+  }
   return new Response(res.body, { headers: { "Content-Type": "audio/mpeg", "Cache-Control": "no-store" } });
 }

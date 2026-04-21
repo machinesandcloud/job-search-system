@@ -1595,13 +1595,26 @@ function ZariLiveMode({
     if (audioCtxRef.current.state === "suspended") void audioCtxRef.current.resume();
   }
 
-  /* ── Play one ArrayBuffer through AudioContext (no autoplay block) ── */
-  async function playBuffer(buf: ArrayBuffer): Promise<void> {
+  /* ── Browser SpeechSynthesis — zero-latency guaranteed fallback ── */
+  function speakSynthesis(text: string): Promise<void> {
+    return new Promise(resolve => {
+      if (typeof window === "undefined" || !("speechSynthesis" in window)) { resolve(); return; }
+      window.speechSynthesis.cancel();
+      const utt = new SpeechSynthesisUtterance(text);
+      utt.rate = 1.05;
+      utt.onend = () => resolve();
+      utt.onerror = () => resolve();
+      window.speechSynthesis.speak(utt);
+    });
+  }
+
+  /* ── Play one ArrayBuffer through AudioContext — returns true on success ── */
+  async function playBuffer(buf: ArrayBuffer): Promise<boolean> {
     const ctx = audioCtxRef.current;
-    if (!ctx || !aliveRef.current) return;
+    if (!ctx || !aliveRef.current) return false;
     try {
-      const audioBuf = await ctx.decodeAudioData(buf);
-      if (!aliveRef.current) return;
+      const audioBuf = await ctx.decodeAudioData(buf.slice(0));
+      if (!aliveRef.current) return false;
       await new Promise<void>(resolve => {
         const src = ctx.createBufferSource();
         src.buffer = audioBuf;
@@ -1610,7 +1623,11 @@ function ZariLiveMode({
         sourceNodeRef.current = src;
         src.start(0);
       });
-    } catch { /* decodeAudioData can throw on bad data */ }
+      return true;
+    } catch (e) {
+      console.error("[Zari] AudioContext decode failed:", e);
+      return false;
+    }
   }
 
   /* ── Chat stream → sentence-pipelined TTS ── */
@@ -1633,16 +1650,24 @@ function ZariLiveMode({
       const s = sentence.trim();
       if (!s) return;
       fullReply += (fullReply ? " " : "") + s;
-      // Start TTS fetch immediately (parallel with remaining stream)
+      // Fire TTS fetch in parallel — don't wait for it here
       const bufPromise = fetch("/api/zari/speak", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: s, voice: activeVoiceRef.current }),
-      }).then(r => r.ok ? r.arrayBuffer() : null).catch(() => null);
+      }).then(r => {
+        if (!r.ok) { console.error(`[Zari] speak API ${r.status}`); return null; }
+        return r.arrayBuffer();
+      }).catch(e => { console.error("[Zari] speak fetch error:", e); return null; });
       if (!ttsStarted) { ttsStarted = true; setLiveState("speaking"); setStatusText("Speaking…"); }
       playChain = playChain.then(async () => {
         if (!aliveRef.current) return;
         const buf = await bufPromise;
-        if (buf && aliveRef.current) await playBuffer(buf);
+        if (buf && aliveRef.current) {
+          const ok = await playBuffer(buf);
+          if (!ok && aliveRef.current) await speakSynthesis(s); // AudioContext decode failed
+        } else if (aliveRef.current) {
+          await speakSynthesis(s); // API TTS failed — browser voice guaranteed
+        }
       });
     }
 
