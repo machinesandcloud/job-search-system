@@ -1621,6 +1621,7 @@ function ZariLiveMode({
     const ctx = audioCtxRef.current;
     if (!ctx || !aliveRef.current) return false;
     try {
+      if (ctx.state === "suspended") await ctx.resume();
       const audioBuf = await ctx.decodeAudioData(buf.slice(0));
       if (!aliveRef.current) return false;
       await new Promise<void>(resolve => {
@@ -1726,11 +1727,7 @@ function ZariLiveMode({
       if (flushTimer) { clearTimeout(flushTimer); flushTimer = null; }
       if (buf.trim()) queueSentence(buf); // flush remainder
     } catch {
-      if (aliveRef.current) {
-        setLiveState("idle");
-        setStatusText("Connection issue — resuming…");
-        setTimeout(() => { if (aliveRef.current && autoLoopRef.current) void startListening(); }, 1200);
-      }
+      if (aliveRef.current) { setLiveState("idle"); setStatusText("Something went wrong — try again"); }
       return;
     }
 
