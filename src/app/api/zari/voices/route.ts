@@ -1,15 +1,17 @@
 import { NextResponse } from "next/server";
 import { OPENAI_VOICES } from "../speak/route";
 
-// Exactly the 6 voices the user wants — Lauren B (default) first
-const ALLOWED_VOICE_IDS = [
-  "DODLEQrClDo8wCz460ld", // Lauren B — default
-  "l4Coq6695JDX9xtLqXDE",
-  "ljX1ZrXuDIIRVcmiVSyR",
-  "4O1sYUnmtThcBoSBrri7",
-  "inGcvmoPgbvKUk9uCvHu",
-  "Bwff1jnzl1s94AEcntUq",
-];
+// Ordered list — Lauren B is default (first)
+const VOICES_CONFIG = [
+  { id: "DODLEQrClDo8wCz460ld", label: "Lauren",  gender: "f" },
+  { id: "l4Coq6695JDX9xtLqXDE", label: "Voice 2", gender: "f" },
+  { id: "ljX1ZrXuDIIRVcmiVSyR", label: "Voice 3", gender: "f" },
+  { id: "4O1sYUnmtThcBoSBrri7", label: "Voice 4", gender: "m" },
+  { id: "inGcvmoPgbvKUk9uCvHu", label: "Voice 5", gender: "m" },
+  { id: "Bwff1jnzl1s94AEcntUq", label: "Voice 6", gender: "m" },
+] as const;
+
+type Gender = "f" | "m";
 
 export async function GET() {
   const elKey  = process.env.ELEVENLABS_API_KEY;
@@ -17,37 +19,35 @@ export async function GET() {
 
   if (elKey) {
     try {
-      const res = await fetch("https://api.elevenlabs.io/v1/voices", {
-        headers: { "xi-api-key": elKey },
-        next: { revalidate: 300 },
-      });
-      if (res.ok) {
-        type ELVoice = { voice_id: string; name: string; labels?: { gender?: string } };
-        const data = await res.json() as { voices: ELVoice[] };
+      // Fetch each voice individually — works even if not in account library
+      const results = await Promise.all(
+        VOICES_CONFIG.map(async (cfg) => {
+          try {
+            const r = await fetch(`https://api.elevenlabs.io/v1/voices/${cfg.id}`, {
+              headers: { "xi-api-key": elKey },
+              next: { revalidate: 300 },
+            });
+            if (r.ok) {
+              type ELVoice = { name: string; labels?: { gender?: string } };
+              const v = await r.json() as ELVoice;
+              const gender: Gender = v.labels?.gender === "male" ? "m" : "f";
+              return { key: cfg.id, label: v.name, gender, provider: "elevenlabs" };
+            }
+          } catch { /* ignore, use fallback */ }
+          // Fallback: use hardcoded config so voice always appears
+          return { key: cfg.id, label: cfg.label, gender: cfg.gender as Gender, provider: "elevenlabs" };
+        }),
+      );
 
-        // Filter to only the 6 allowed IDs, preserve their order
-        const byId = new Map(data.voices.map(v => [v.voice_id, v]));
-        const voices = ALLOWED_VOICE_IDS
-          .map(id => {
-            const v = byId.get(id);
-            return v
-              ? { key: id, label: v.name, gender: v.labels?.gender === "male" ? "m" : "f", provider: "elevenlabs" }
-              : null;
-          })
-          .filter(Boolean);
-
-        if (voices.length > 0) {
-          return NextResponse.json({ voices, provider: "elevenlabs", hasGroq });
-        }
-      }
-    } catch { /* fall through */ }
+      return NextResponse.json({ voices: results, provider: "elevenlabs", hasGroq });
+    } catch { /* fall through to OpenAI */ }
   }
 
   // Fallback: OpenAI voices
   const voices = OPENAI_VOICES.map(v => ({
     key: v,
     label: v.charAt(0).toUpperCase() + v.slice(1),
-    gender: ["nova", "shimmer"].includes(v) ? "f" : "m",
+    gender: (["nova", "shimmer"].includes(v) ? "f" : "m") as Gender,
     provider: "openai",
   }));
   return NextResponse.json({ voices, provider: elKey ? "elevenlabs" : "openai", hasGroq });

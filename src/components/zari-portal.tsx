@@ -1853,17 +1853,26 @@ function ZariLiveMode({
       {/* Orb + rings */}
       <div style={{ position:"relative", zIndex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:18, marginBottom:20 }}>
 
-        {/* Listening: 2 clean ripple rings that start outside the orb */}
-        {liveState === "listening" && [0,1].map(i => (
-          <div key={i} style={{ position:"absolute", top:"50%", left:"50%", width:216, height:216, borderRadius:"50%", border:"1px solid rgba(6,182,212,0.45)", animation:`listen-ripple-v2 ${2.2+i*0.9}s ease-out ${i*0.85}s infinite`, pointerEvents:"none" }}/>
-        ))}
+        {/* Fixed-size orb wrapper — rings are positioned relative to THIS, not the flex container */}
+        <div style={{ position:"relative", width:200, height:200, flexShrink:0 }}>
 
-        {/* Thinking: single spinning arc */}
-        {liveState === "thinking" && (
-          <div style={{ position:"absolute", top:"50%", left:"50%", width:224, height:224, borderRadius:"50%", border:"2px solid transparent", borderTopColor:"rgba(139,92,246,0.8)", borderRightColor:"rgba(139,92,246,0.2)", animation:"spin-slow 1.1s linear infinite", transform:"translate(-50%,-50%)", pointerEvents:"none" }}/>
-        )}
+          {/* Listening: 2 clean ripple rings */}
+          {liveState === "listening" && [0,1].map(i => (
+            <div key={i} style={{ position:"absolute", top:"50%", left:"50%", width:216, height:216, borderRadius:"50%", border:"1px solid rgba(6,182,212,0.45)", animation:`listen-ripple-v2 ${2.2+i*0.9}s ease-out ${i*0.85}s infinite`, pointerEvents:"none" }}/>
+          ))}
 
-        <div style={{ width:200, height:200, borderRadius:"50%", background:orb.gradient, boxShadow:orb.shadow, animation:orb.animation, transition:"background 0.6s ease, box-shadow 0.6s ease", flexShrink:0, position:"relative", zIndex:1 }}/>
+          {/* Thinking: single spinning arc */}
+          {liveState === "thinking" && (
+            <div style={{ position:"absolute", top:"50%", left:"50%", width:224, height:224, borderRadius:"50%", border:"2px solid transparent", borderTopColor:"rgba(139,92,246,0.8)", borderRightColor:"rgba(139,92,246,0.2)", animation:"spin-arc 1.1s linear infinite", pointerEvents:"none" }}/>
+          )}
+
+          {/* Speaking: subtle outer glow ring */}
+          {liveState === "speaking" && (
+            <div style={{ position:"absolute", top:"50%", left:"50%", width:214, height:214, borderRadius:"50%", border:"1px solid rgba(99,102,241,0.35)", animation:"ring-pulse 2s ease-out infinite", pointerEvents:"none" }}/>
+          )}
+
+          <div style={{ position:"absolute", inset:0, borderRadius:"50%", background:orb.gradient, boxShadow:orb.shadow, animation:orb.animation, transition:"background 0.6s ease, box-shadow 0.6s ease" }}/>
+        </div>
 
         <div style={{ textAlign:"center", zIndex:1 }}>
           <p style={{ color:"rgba(255,255,255,0.95)", fontWeight:700, fontSize:20, letterSpacing:"0.16em", margin:0 }}>ZARI</p>
@@ -6466,12 +6475,13 @@ export function ZariPortal() {
         @keyframes voice-wave { from{height:3px} to{height:100%} }
         @keyframes sphere-breathe { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
         @keyframes spin-slow { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        @keyframes spin-arc { from{transform:translate(-50%,-50%) rotate(0deg)} to{transform:translate(-50%,-50%) rotate(360deg)} }
         @keyframes aurora-pulse { 0%,100%{opacity:0.8} 50%{opacity:1} }
         @keyframes neural-orbit-a { from{transform:rotate(0deg) translate(28px)} to{transform:rotate(360deg) translate(28px)} }
         @keyframes neural-orbit-b { from{transform:rotate(0deg) translate(20px)} to{transform:rotate(360deg) translate(20px)} }
-        @keyframes ring-pulse { 0%{transform:scale(1);opacity:0.6} 100%{transform:scale(1.5);opacity:0} }
+        @keyframes ring-pulse { 0%{transform:translate(-50%,-50%) scale(1);opacity:0.6} 100%{transform:translate(-50%,-50%) scale(1.5);opacity:0} }
         @keyframes listen-ripple { 0%{transform:scale(1);opacity:0.5} 100%{transform:scale(1.8);opacity:0} }
-        @keyframes listen-ripple-v2 { 0%{transform:translate(-50%,-50%) scale(1);opacity:0.65} 100%{transform:translate(-50%,-50%) scale(2.5);opacity:0} }
+        @keyframes listen-ripple-v2 { 0%{transform:translate(-50%,-50%) scale(1);opacity:0.65} 100%{transform:translate(-50%,-50%) scale(1.7);opacity:0} }
         @keyframes bar-eq { 0%,100%{height:3px} 50%{height:22px} }
         @keyframes eye-glow { 0%,100%{opacity:0.9} 50%{opacity:0.6} }
         @keyframes aurora-a { 0%,100%{transform:translate(-50%,0) scale(1)} 50%{transform:translate(-50%,10px) scale(1.05)} }

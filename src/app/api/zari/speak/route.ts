@@ -26,8 +26,8 @@ export async function POST(request: Request) {
         headers: { "xi-api-key": elKey, "Content-Type": "application/json", Accept: "audio/mpeg" },
         body: JSON.stringify({
           text,
-          model_id: "eleven_flash_v2_5",
-          voice_settings: { stability: 0.28, similarity_boost: 0.75, style: 0.6, use_speaker_boost: true },
+          model_id: "eleven_multilingual_v2",
+          voice_settings: { stability: 0.5, similarity_boost: 0.8, style: 0.35, use_speaker_boost: true },
         }),
       },
     );
