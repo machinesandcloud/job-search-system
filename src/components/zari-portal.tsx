@@ -1858,17 +1858,17 @@ function ZariLiveMode({
 
           {/* Listening: 2 clean ripple rings */}
           {liveState === "listening" && [0,1].map(i => (
-            <div key={i} style={{ position:"absolute", top:"50%", left:"50%", width:216, height:216, borderRadius:"50%", border:"1px solid rgba(6,182,212,0.45)", animation:`listen-ripple-v2 ${2.2+i*0.9}s ease-out ${i*0.85}s infinite`, pointerEvents:"none" }}/>
+            <div key={i} style={{ position:"absolute", top:"50%", left:"50%", width:216, height:216, borderRadius:"50%", border:"1px solid rgba(6,182,212,0.45)", animation:`listen-ripple-v2 ${2.2+i*0.9}s ease-out ${i*0.85}s infinite`, animationFillMode:"backwards", pointerEvents:"none" }}/>
           ))}
 
           {/* Thinking: single spinning arc */}
           {liveState === "thinking" && (
-            <div style={{ position:"absolute", top:"50%", left:"50%", width:224, height:224, borderRadius:"50%", border:"2px solid transparent", borderTopColor:"rgba(139,92,246,0.8)", borderRightColor:"rgba(139,92,246,0.2)", animation:"spin-arc 1.1s linear infinite", pointerEvents:"none" }}/>
+            <div style={{ position:"absolute", top:"50%", left:"50%", width:224, height:224, borderRadius:"50%", border:"2px solid transparent", borderTopColor:"rgba(139,92,246,0.8)", borderRightColor:"rgba(139,92,246,0.2)", animation:"spin-arc 1.1s linear infinite", animationFillMode:"backwards", pointerEvents:"none" }}/>
           )}
 
           {/* Speaking: subtle outer glow ring */}
           {liveState === "speaking" && (
-            <div style={{ position:"absolute", top:"50%", left:"50%", width:214, height:214, borderRadius:"50%", border:"1px solid rgba(99,102,241,0.35)", animation:"ring-pulse 2s ease-out infinite", pointerEvents:"none" }}/>
+            <div style={{ position:"absolute", top:"50%", left:"50%", width:214, height:214, borderRadius:"50%", border:"1px solid rgba(99,102,241,0.35)", animation:"ring-pulse 2s ease-out infinite", animationFillMode:"backwards", pointerEvents:"none" }}/>
           )}
 
           <div style={{ position:"absolute", inset:0, borderRadius:"50%", background:orb.gradient, boxShadow:orb.shadow, animation:orb.animation, transition:"background 0.6s ease, box-shadow 0.6s ease" }}/>

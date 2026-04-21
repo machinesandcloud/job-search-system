@@ -36,7 +36,10 @@ export async function POST(request: Request) {
       const audio = await res.arrayBuffer();
       return new Response(audio, { headers: { "Content-Type": "audio/mpeg", "Cache-Control": "no-store" } });
     }
-    console.error(`ElevenLabs TTS ${res.status} for voice ${voice}: ${await res.text().catch(() => "")}`);
+    const errBody = await res.text().catch(() => "");
+    console.error(`ElevenLabs TTS ${res.status} for voice "${voice}": ${errBody}`);
+    // 403 = voice not in account library (user must add it at elevenlabs.io/voice-library)
+    // 422 = validation error (bad voice_id format or model not available on plan)
   }
 
   /* ── OpenAI TTS fallback ── */
