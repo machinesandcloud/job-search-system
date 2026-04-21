@@ -1611,6 +1611,8 @@ function ZariLiveMode({
       utt.onend = () => resolve();
       utt.onerror = () => resolve();
       window.speechSynthesis.speak(utt);
+      // Safety net: some browsers never fire onend — don't let playChain hang forever
+      setTimeout(resolve, Math.max(3000, text.length * 70));
     });
   }
 
@@ -1808,10 +1810,26 @@ function ZariLiveMode({
       void startListening();
       return;
     }
-    if (liveState === "idle") void startListening();
-    else if (liveState === "listening") {
+    const state = liveStateRef.current; // always fresh — never stale React closure
+    if (state === "idle") {
+      autoLoopRef.current = true;
+      void startListening();
+    } else if (state === "listening") {
+      // Set to idle BEFORE rec.stop() so onend guard sees "idle" and does NOT restart
+      autoLoopRef.current = false;
+      liveStateRef.current = "idle";
+      setLiveState("idle");
+      setStatusText("Tap to start");
       try { recognitionRef.current?.stop(); } catch {}
       recognitionRef.current = null;
+    } else if (state === "speaking" || state === "thinking") {
+      // Interrupt bot: stop all audio immediately, return to idle
+      autoLoopRef.current = false;
+      liveStateRef.current = "idle";
+      setLiveState("idle");
+      setStatusText("Tap to start");
+      stopAll();
+      window.speechSynthesis?.cancel();
     }
   }
 

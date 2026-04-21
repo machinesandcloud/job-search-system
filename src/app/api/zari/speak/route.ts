@@ -18,9 +18,11 @@ export async function POST(request: Request) {
   const oaiKey = process.env.OPENAI_API_KEY;
 
   /* ── ElevenLabs ── */
-  if (elKey && voice) {
+  // If voice param is empty but EL is configured, fall back to default voice so EL is always used
+  const elVoice = voice || "DODLEQrClDo8wCz460ld";
+  if (elKey) {
     const res = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${voice}`,
+      `https://api.elevenlabs.io/v1/text-to-speech/${elVoice}`,
       {
         method: "POST",
         headers: { "xi-api-key": elKey, "Content-Type": "application/json", Accept: "audio/mpeg" },
@@ -36,7 +38,7 @@ export async function POST(request: Request) {
       const audio = await res.arrayBuffer();
       return new Response(audio, { headers: { "Content-Type": "audio/mpeg", "Cache-Control": "no-store" } });
     }
-    console.error(`ElevenLabs TTS ${res.status} for voice "${voice}": ${await res.text().catch(() => "")}`);
+    console.error(`ElevenLabs TTS ${res.status} for voice "${elVoice}": ${await res.text().catch(() => "")}`);
   }
 
   /* ── OpenAI TTS fallback ── */
