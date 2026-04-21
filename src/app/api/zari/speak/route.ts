@@ -2,17 +2,6 @@ import { ensureSameOrigin } from "@/lib/utils";
 
 export const OPENAI_VOICES = ["shimmer", "nova", "alloy", "echo", "onyx", "fable"] as const;
 
-// Models to try in order — first one that succeeds wins
-// eleven_turbo_v2_5 is available on Creator plan+; eleven_multilingual_v2 on all paid plans
-const EL_MODELS = ["eleven_turbo_v2_5", "eleven_multilingual_v2"] as const;
-
-const VOICE_SETTINGS = {
-  stability:        0.35,  // lower = more expressive, emotional variation per sentence
-  similarity_boost: 0.80,  // stay true to the voice character
-  style:            0.55,  // dynamic delivery — higher brings out personality
-  use_speaker_boost: true,
-};
-
 export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) {
     return new Response("Forbidden", { status: 403 });
@@ -20,7 +9,7 @@ export async function POST(request: Request) {
 
   const body = await request.json().catch(() => ({})) as { text?: string; voice?: string };
   const text  = (body.text ?? "").trim();
-  // DO NOT lowercase — ElevenLabs voice IDs are case-sensitive
+  // DO NOT lowercase — ElevenLabs voice IDs are case-sensitive (e.g. DODLEQrClDo8wCz460ld)
   const voice = (body.voice ?? "").trim();
 
   if (!text) return new Response("No text provided", { status: 400 });
@@ -28,28 +17,26 @@ export async function POST(request: Request) {
   const elKey  = process.env.ELEVENLABS_API_KEY;
   const oaiKey = process.env.OPENAI_API_KEY;
 
-  /* ── ElevenLabs — try each model until one succeeds ── */
+  /* ── ElevenLabs ── */
   if (elKey && voice) {
-    for (const model_id of EL_MODELS) {
-      const res = await fetch(
-        `https://api.elevenlabs.io/v1/text-to-speech/${voice}`,
-        {
-          method: "POST",
-          headers: { "xi-api-key": elKey, "Content-Type": "application/json", Accept: "audio/mpeg" },
-          body: JSON.stringify({ text, model_id, voice_settings: VOICE_SETTINGS }),
-        },
-      );
-      if (res.ok) {
-        // Buffer fully — Netlify serverless functions don't reliably stream res.body
-        const audio = await res.arrayBuffer();
-        return new Response(audio, { headers: { "Content-Type": "audio/mpeg", "Cache-Control": "no-store" } });
-      }
-      const errBody = await res.text().catch(() => "");
-      console.error(`ElevenLabs TTS [${model_id}] ${res.status} for voice "${voice}": ${errBody}`);
-      // 422 on this model = not available on plan → try next model
-      // 403 = voice not in library → no point retrying with another model
-      if (res.status === 403) break;
+    const res = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${voice}`,
+      {
+        method: "POST",
+        headers: { "xi-api-key": elKey, "Content-Type": "application/json", Accept: "audio/mpeg" },
+        body: JSON.stringify({
+          text,
+          model_id: "eleven_turbo_v2_5",
+          voice_settings: { stability: 0.5, similarity_boost: 0.75, style: 0.4, use_speaker_boost: true },
+        }),
+      },
+    );
+    if (res.ok) {
+      // Buffer fully — Netlify serverless functions don't reliably stream res.body
+      const audio = await res.arrayBuffer();
+      return new Response(audio, { headers: { "Content-Type": "audio/mpeg", "Cache-Control": "no-store" } });
     }
+    console.error(`ElevenLabs TTS ${res.status} for voice "${voice}": ${await res.text().catch(() => "")}`);
   }
 
   /* ── OpenAI TTS fallback ── */
