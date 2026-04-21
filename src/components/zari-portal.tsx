@@ -1544,6 +1544,7 @@ function ZariLiveMode({
   const [started, setStarted]       = useState(false);
   const [voices, setVoices]         = useState<VoiceOption[]>([]);
   const [activeVoice, setActiveVoice] = useState("");
+  const [showAllVoices, setShowAllVoices] = useState(false);
 
   useEffect(() => {
     fetch("/api/zari/voices").then(r => r.json()).then((d: { voices: VoiceOption[] }) => {
@@ -1562,6 +1563,7 @@ function ZariLiveMode({
   const newMsgsRef      = useRef<ChatMsg[]>([]);
   const liveStateRef    = useRef<LiveState>("idle");
   const autoLoopRef     = useRef(false);
+  const interruptRef    = useRef(false); // set true to cancel current playChain mid-flight
   const recognitionRef  = useRef<SR | null>(null);
   const transcriptRef   = useRef<HTMLDivElement>(null);
   const aliveRef        = useRef(true);
@@ -1665,13 +1667,14 @@ function ZariLiveMode({
       }).catch(e => { console.error("[Zari] speak fetch error:", e); return null; });
       if (!ttsStarted) { ttsStarted = true; setLiveState("speaking"); setStatusText("Speaking…"); }
       playChain = playChain.then(async () => {
-        if (!aliveRef.current) return;
+        if (!aliveRef.current || interruptRef.current) return;
         const buf = await bufPromise;
-        if (buf && aliveRef.current) {
+        if (!aliveRef.current || interruptRef.current) return;
+        if (buf) {
           const ok = await playBuffer(buf);
-          if (!ok && aliveRef.current) await speakSynthesis(s); // AudioContext decode failed
-        } else if (aliveRef.current) {
-          await speakSynthesis(s); // API TTS failed — browser voice guaranteed
+          if (!ok && aliveRef.current && !interruptRef.current) await speakSynthesis(s);
+        } else if (aliveRef.current && !interruptRef.current) {
+          await speakSynthesis(s);
         }
       });
     }
@@ -1722,7 +1725,11 @@ function ZariLiveMode({
       if (flushTimer) { clearTimeout(flushTimer); flushTimer = null; }
       if (buf.trim()) queueSentence(buf); // flush remainder
     } catch {
-      if (aliveRef.current) { setLiveState("idle"); setStatusText("Something went wrong — try again"); }
+      if (aliveRef.current) {
+        setLiveState("idle");
+        setStatusText("Connection issue — resuming…");
+        setTimeout(() => { if (aliveRef.current && autoLoopRef.current) void startListening(); }, 1200);
+      }
       return;
     }
 
@@ -1807,10 +1814,22 @@ function ZariLiveMode({
       void startListening();
       return;
     }
-    if (liveState === "idle") void startListening();
-    else if (liveState === "listening") {
+    if (liveState === "idle") {
+      void startListening();
+    } else if (liveState === "listening") {
       try { recognitionRef.current?.stop(); } catch {}
       recognitionRef.current = null;
+    } else if (liveState === "speaking") {
+      // Interrupt: kill audio immediately, jump back to listening
+      interruptRef.current = true;
+      stopAll();
+      window.speechSynthesis?.cancel();
+      liveStateRef.current = "idle";
+      setLiveState("idle");
+      setTimeout(() => {
+        interruptRef.current = false;
+        if (aliveRef.current && autoLoopRef.current) void startListening();
+      }, 120);
     }
   }
 
@@ -1939,48 +1958,79 @@ function ZariLiveMode({
       </div>
 
       {/* Voice picker — avatar cards */}
-      {voices.length > 0 && (
-        <div style={{ position:"relative", zIndex:1, width:"100%", marginTop:14 }}>
-          <p style={{ color:"rgba(255,255,255,0.14)", fontSize:10, margin:"0 0 9px", letterSpacing:"0.1em", textTransform:"uppercase", textAlign:"center" }}>Voice</p>
-          <div style={{ display:"flex", gap:8, overflowX:"auto", padding:"2px 20px 4px", scrollbarWidth:"none", justifyContent:"center" }}>
-            {voices.map(v => {
-              const isFemale = v.gender === "f";
-              const selected = activeVoice === v.key;
-              const shortName = v.label.split(" - ")[0].split(",")[0].trim();
-              return (
-                <button key={v.key} onClick={() => { setActiveVoice(v.key); activeVoiceRef.current = v.key; }} style={{
-                  display:"flex", flexDirection:"column", alignItems:"center", gap:5,
+      {voices.length > 0 && (() => {
+        // ElevenLabs single-name default voices — hide these unless user expands
+        const EL_DEFAULTS = new Set(["Alice","Aria","Bella","Bill","Brian","Callum","Charlie","Chris","Daniel","Domi","Eric","George","Harry","Jessica","Laura","Liam","Lily","Matilda","River","Roger","Sarah","Sara","Rachel","Antoni","Elli","Josh","Arnold","Sam","Nicole","Freya","Glinda","Grace","Ethan","Paul","Wayne","Fin","Thomas","Drew","Serena","Emily","Michael","Giovanni"]);
+        const featured = voices.filter(v => !EL_DEFAULTS.has(v.label.split(/[\s\-–]/)[0].trim()) || v.key === "DODLEQrClDo8wCz460ld");
+        const displayed = showAllVoices ? voices : (featured.length > 0 ? featured : voices);
+        const hiddenCount = voices.length - displayed.length;
+        return (
+          <div style={{ position:"relative", zIndex:1, width:"100%", marginTop:14 }}>
+            <p style={{ color:"rgba(255,255,255,0.14)", fontSize:10, margin:"0 0 9px", letterSpacing:"0.1em", textTransform:"uppercase", textAlign:"center" }}>Voice</p>
+            <div style={{ display:"flex", gap:8, overflowX:"auto", padding:"2px 20px 4px", scrollbarWidth:"none", justifyContent:"center", flexWrap:"wrap" }}>
+              {displayed.map(v => {
+                const isFemale = v.gender === "f";
+                const selected = activeVoice === v.key;
+                const shortName = v.label.split(" - ")[0].split(" – ")[0].split(",")[0].trim();
+                return (
+                  <button key={v.key} onClick={() => { setActiveVoice(v.key); activeVoiceRef.current = v.key; }} style={{
+                    display:"flex", flexDirection:"column", alignItems:"center", gap:5,
+                    padding:"8px 9px 7px", borderRadius:14, flexShrink:0, minWidth:62,
+                    border:`1.5px solid ${selected ? (isFemale ? "rgba(192,132,252,0.8)" : "rgba(56,189,248,0.8)") : "rgba(255,255,255,0.06)"}`,
+                    background: selected ? (isFemale ? "rgba(124,58,237,0.25)" : "rgba(2,132,199,0.2)") : "rgba(255,255,255,0.03)",
+                    cursor:"pointer", transition:"all 0.15s",
+                  }}>
+                    <div style={{
+                      width:38, height:38, borderRadius:"50%", flexShrink:0,
+                      background: isFemale ? "linear-gradient(135deg,#d8b4fe,#8b5cf6)" : "linear-gradient(135deg,#7dd3fc,#0284c7)",
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                      boxShadow: selected ? (isFemale ? "0 0 14px rgba(167,139,250,0.6)" : "0 0 14px rgba(56,189,248,0.6)") : "none",
+                      transition:"box-shadow 0.15s",
+                    }}>
+                      {isFemale
+                        ? <svg viewBox="0 0 24 24" fill="white" style={{ width:19, height:19 }}><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+                        : <svg viewBox="0 0 24 24" fill="white" style={{ width:19, height:19 }}><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/><rect x="10.5" y="1.2" width="3" height="2.4" rx="1" fill="white"/></svg>
+                      }
+                    </div>
+                    <span style={{
+                      fontSize:10, fontWeight:600, letterSpacing:"0.02em", lineHeight:1.2,
+                      color: selected ? (isFemale ? "rgba(216,180,254,1)" : "rgba(125,211,252,1)") : "rgba(255,255,255,0.35)",
+                      maxWidth:62, textOverflow:"ellipsis", overflow:"hidden", whiteSpace:"nowrap", textAlign:"center",
+                    }}>
+                      {shortName}
+                    </span>
+                  </button>
+                );
+              })}
+              {/* More / Less toggle */}
+              {hiddenCount > 0 && (
+                <button onClick={() => setShowAllVoices(true)} style={{
+                  display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:5,
                   padding:"8px 9px 7px", borderRadius:14, flexShrink:0, minWidth:62,
-                  border:`1.5px solid ${selected ? (isFemale ? "rgba(192,132,252,0.8)" : "rgba(56,189,248,0.8)") : "rgba(255,255,255,0.06)"}`,
-                  background: selected ? (isFemale ? "rgba(124,58,237,0.25)" : "rgba(2,132,199,0.2)") : "rgba(255,255,255,0.03)",
-                  cursor:"pointer", transition:"all 0.15s",
+                  border:"1.5px solid rgba(255,255,255,0.06)", background:"rgba(255,255,255,0.03)", cursor:"pointer",
                 }}>
-                  {/* Avatar circle */}
-                  <div style={{
-                    width:38, height:38, borderRadius:"50%", flexShrink:0,
-                    background: isFemale ? "linear-gradient(135deg,#d8b4fe,#8b5cf6)" : "linear-gradient(135deg,#7dd3fc,#0284c7)",
-                    display:"flex", alignItems:"center", justifyContent:"center",
-                    boxShadow: selected ? (isFemale ? "0 0 14px rgba(167,139,250,0.6)" : "0 0 14px rgba(56,189,248,0.6)") : "none",
-                    transition:"box-shadow 0.15s",
-                  }}>
-                    {isFemale
-                      ? <svg viewBox="0 0 24 24" fill="white" style={{ width:19, height:19 }}><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
-                      : <svg viewBox="0 0 24 24" fill="white" style={{ width:19, height:19 }}><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/><rect x="10.5" y="1.2" width="3" height="2.4" rx="1" fill="white"/></svg>
-                    }
+                  <div style={{ width:38, height:38, borderRadius:"50%", background:"rgba(255,255,255,0.07)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    <span style={{ color:"rgba(255,255,255,0.5)", fontSize:18, lineHeight:1 }}>+</span>
                   </div>
-                  <span style={{
-                    fontSize:10, fontWeight:600, letterSpacing:"0.02em", lineHeight:1.2,
-                    color: selected ? (isFemale ? "rgba(216,180,254,1)" : "rgba(125,211,252,1)") : "rgba(255,255,255,0.35)",
-                    maxWidth:62, textOverflow:"ellipsis", overflow:"hidden", whiteSpace:"nowrap", textAlign:"center",
-                  }}>
-                    {shortName}
-                  </span>
+                  <span style={{ fontSize:10, fontWeight:600, color:"rgba(255,255,255,0.25)", letterSpacing:"0.02em" }}>{hiddenCount} more</span>
                 </button>
-              );
-            })}
+              )}
+              {showAllVoices && voices.length > featured.length && (
+                <button onClick={() => setShowAllVoices(false)} style={{
+                  display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:5,
+                  padding:"8px 9px 7px", borderRadius:14, flexShrink:0, minWidth:62,
+                  border:"1.5px solid rgba(255,255,255,0.06)", background:"rgba(255,255,255,0.03)", cursor:"pointer",
+                }}>
+                  <div style={{ width:38, height:38, borderRadius:"50%", background:"rgba(255,255,255,0.07)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    <span style={{ color:"rgba(255,255,255,0.5)", fontSize:14, lineHeight:1 }}>↑</span>
+                  </div>
+                  <span style={{ fontSize:10, fontWeight:600, color:"rgba(255,255,255,0.25)", letterSpacing:"0.02em" }}>less</span>
+                </button>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
