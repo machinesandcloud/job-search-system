@@ -1546,8 +1546,13 @@ function ZariLiveMode({
   const [activeVoice, setActiveVoice] = useState("");
 
   useEffect(() => {
-    fetch("/api/zari/voices").then(r => r.json()).then((d: { voices: VoiceOption[]; }) => {
-      if (d.voices?.length) { setVoices(d.voices); setActiveVoice(d.voices[0].key); }
+    fetch("/api/zari/voices").then(r => r.json()).then((d: { voices: VoiceOption[] }) => {
+      if (!d.voices?.length) return;
+      setVoices(d.voices);
+      // Prefer Lauren B by ID, then first voice
+      const preferred = d.voices.find(v => v.key === "DODLEQrClDo8wCz460ld") ?? d.voices[0];
+      setActiveVoice(preferred.key);
+      activeVoiceRef.current = preferred.key; // set ref immediately, don't wait for useEffect
     }).catch(() => {});
   }, []);
 
@@ -1681,6 +1686,9 @@ function ZariLiveMode({
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buf = "";
+      // Early-flush: fire TTS 180ms after first token arrives rather than waiting
+      // for full stream — at Groq speed (750 tok/s) the model is usually done by then
+      let flushTimer: ReturnType<typeof setTimeout> | null = null;
       outer: while (aliveRef.current) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -1692,13 +1700,26 @@ function ZariLiveMode({
           try {
             type C = { choices?: Array<{ delta?: { content?: string } }> };
             const tok = (JSON.parse(d) as C).choices?.[0]?.delta?.content ?? "";
-            if (tok) buf += tok;
+            if (tok) {
+              buf += tok;
+              if (!flushTimer && !ttsStarted) {
+                flushTimer = setTimeout(() => {
+                  flushTimer = null;
+                  if (buf.trim() && !ttsStarted) { queueSentence(buf); buf = ""; }
+                }, 180);
+              }
+            }
           } catch {}
         }
-        // Fire TTS as soon as we have a complete sentence
+        // Also fire immediately on sentence boundary
         const m = /[.!?][)'"»]?\s+/.exec(buf);
-        if (m) { queueSentence(buf.slice(0, m.index + m[0].trimEnd().length)); buf = buf.slice(m.index + m[0].length); }
+        if (m) {
+          if (flushTimer) { clearTimeout(flushTimer); flushTimer = null; }
+          queueSentence(buf.slice(0, m.index + m[0].trimEnd().length));
+          buf = buf.slice(m.index + m[0].length);
+        }
       }
+      if (flushTimer) { clearTimeout(flushTimer); flushTimer = null; }
       if (buf.trim()) queueSentence(buf); // flush remainder
     } catch {
       if (aliveRef.current) { setLiveState("idle"); setStatusText("Something went wrong — try again"); }
@@ -1737,12 +1758,13 @@ function ZariLiveMode({
     }
 
     const rec = new SpeechRec();
-    rec.continuous = true;      // stays open — no timeout between sentences
+    rec.continuous = false;     // false = faster silence detection (lower latency)
     rec.interimResults = true;
     rec.lang = "en-US";
     recognitionRef.current = rec;
 
     setLiveState("listening");
+    liveStateRef.current = "listening"; // sync immediately
     setStatusText("Listening…");
 
     rec.onresult = (e: { results: { length: number; [i: number]: { isFinal: boolean; [j: number]: { transcript: string } } } }) => {
@@ -1750,22 +1772,25 @@ function ZariLiveMode({
       const text = last[0].transcript;
       if (last.isFinal && text.trim()) {
         setInterimText("");
-        try { rec.stop(); } catch {}
+        liveStateRef.current = "thinking"; // update ref BEFORE stop() triggers onend
         recognitionRef.current = null;
+        try { rec.stop(); } catch {}
         void processInput(text.trim());
       } else {
         setInterimText(text);
       }
     };
     rec.onerror = () => {
+      liveStateRef.current = "idle";
       if (aliveRef.current) { setLiveState("idle"); setStatusText("Your turn…"); setInterimText(""); }
     };
     rec.onend = () => {
       setInterimText("");
-      // If still in listening state (no result captured), restart automatically
+      // Restart only if we're still in listening state (no result was captured)
       if (aliveRef.current && autoLoopRef.current && liveStateRef.current === "listening") {
+        liveStateRef.current = "idle";
         setLiveState("idle");
-        setTimeout(() => { if (aliveRef.current && autoLoopRef.current) void startListening(); }, 200);
+        setTimeout(() => { if (aliveRef.current && autoLoopRef.current) void startListening(); }, 150);
       }
     };
     try { rec.start(); } catch {

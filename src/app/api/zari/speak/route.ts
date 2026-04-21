@@ -27,9 +27,12 @@ export async function POST(request: Request) {
   const elKey = process.env.ELEVENLABS_API_KEY;
   const oaiKey = process.env.OPENAI_API_KEY;
 
-  /* ── ElevenLabs (preferred) — output_format must be a query param, not body ── */
+  /* ── ElevenLabs (preferred) ── */
   if (elKey) {
-    const v = ELEVENLABS_VOICES[voice] ?? ELEVENLABS_VOICES["aria"];
+    // Accept either a direct ElevenLabs voice ID (20+ alphanum chars) or a named key
+    const isDirectId = voice.length >= 18 && /^[a-zA-Z0-9]+$/.test(voice);
+    const voiceId = isDirectId ? voice : (ELEVENLABS_VOICES[voice]?.id ?? ELEVENLABS_VOICES["aria"].id);
+    const v = { id: voiceId };
     const res = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${v.id}/stream`,
       {
