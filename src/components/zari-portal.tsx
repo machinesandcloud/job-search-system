@@ -1548,6 +1548,7 @@ function ZariLiveMode({
   const [activeVoice, setActiveVoice] = useState("");
   const [showAllVoices, setShowAllVoices] = useState(false);
   const [attachedFile, setAttachedFile] = useState<{ name: string; content: string } | null>(null);
+  const attachedFileRef = useRef<{ name: string; content: string } | null>(null); // ref so processInput always reads fresh value
   const [goActions, setGoActions] = useState<Screen[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -1692,7 +1693,7 @@ function ZariLiveMode({
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: text, stage, history, sessionId, sectionContext, isVoice: true,
-          ...(attachedFile ? { uploadedContent: attachedFile.content, uploadedFileName: attachedFile.name } : {}),
+          ...(attachedFileRef.current ? { uploadedContent: attachedFileRef.current.content, uploadedFileName: attachedFileRef.current.name } : {}),
         }),
       });
       if (!res.body) throw new Error("no stream");
@@ -1854,7 +1855,9 @@ function ZariLiveMode({
       const res = await fetch("/api/zari/extract", { method: "POST", body: fd });
       const data = await res.json().catch(() => ({})) as { text?: string };
       if (data.text) {
-        setAttachedFile({ name: file.name, content: data.text });
+        const doc = { name: file.name, content: data.text };
+        setAttachedFile(doc);
+        attachedFileRef.current = doc;
       }
     } catch { /* non-fatal */ }
   }
@@ -1998,7 +2001,7 @@ function ZariLiveMode({
             {attachedFile ? attachedFile.name.slice(0, 18) + (attachedFile.name.length > 18 ? "…" : "") : "Attach file"}
           </button>
           {attachedFile && (
-            <button onClick={() => setAttachedFile(null)} style={{
+            <button onClick={() => { setAttachedFile(null); attachedFileRef.current = null; }} style={{
               width:18, height:18, borderRadius:"50%", border:"none",
               background:"rgba(255,255,255,0.08)", color:"rgba(255,255,255,0.3)",
               cursor:"pointer", fontSize:10, display:"flex", alignItems:"center", justifyContent:"center",
