@@ -944,8 +944,8 @@ function renderMsgText(text: string, onNav?: (s: Screen) => void): React.ReactNo
           return (
             <button key={i} onClick={() => onNav(s)} style={{
               display:"inline-flex", alignItems:"center", gap:5,
-              fontSize:12, fontWeight:700, color:"#4361EE",
-              background:"rgba(67,97,238,0.09)", border:"1px solid rgba(67,97,238,0.22)",
+              fontSize:12, fontWeight:700, color:"#818CF8",
+              background:"rgba(129,140,248,0.12)", border:"1px solid rgba(129,140,248,0.28)",
               borderRadius:8, padding:"4px 11px", cursor:"pointer", margin:"5px 3px 0",
               transition:"background 0.15s",
             }}>
@@ -1015,11 +1015,35 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
   const [sessionReady, setSessionReady] = useState(false);
   const [fileProcessing, setFileProcessing] = useState(false);
   const [showLiveMode, setShowLiveMode] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [pastSessions, setPastSessions] = useState<Array<{ id: string; title: string; startedAt: string; transcript: Array<{ role: string; message: string }> }>>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [selectedHistory, setSelectedHistory] = useState<string | null>(null);
   const chatRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  async function loadHistory() {
+    setLoadingHistory(true);
+    try {
+      const res = await fetch("/api/sessions", { cache: "no-store" });
+      if (!res.ok) return;
+      const data = await res.json().catch(() => ({})) as {
+        sessions?: Array<{ id: string; title?: string; status: string; startedAt?: string; transcript?: Array<{ role: string; message: string }> }>;
+      };
+      const sessions = (data.sessions ?? []).filter(s => (s.transcript ?? []).length > 0);
+      setPastSessions(sessions.map(s => ({
+        id: s.id,
+        title: s.title ?? "Session",
+        startedAt: s.startedAt ?? "",
+        transcript: s.transcript ?? [],
+      })));
+    } catch { /* non-fatal */ } finally {
+      setLoadingHistory(false);
+    }
+  }
 
   async function startRecording() {
     try {
@@ -1135,6 +1159,8 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
     return ctx;
   }
 
+  const ERROR_PATTERNS = ["having trouble", "not fully set up", "try again in a moment", "connection issue"];
+
   /* ── Generate a dynamic, AI-powered opening message ── */
   async function generateOpening(sid: string | null, cancelled: () => boolean) {
     setIsLoading(true);
@@ -1153,8 +1179,10 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
         }),
       });
       const data = await res.json().catch(() => ({})) as { message?: string };
-      if (!cancelled() && data.message) {
-        setMsgs([{ role: "coach", text: data.message.trim() }]);
+      const msg = data.message?.trim() ?? "";
+      const isError = ERROR_PATTERNS.some(p => msg.toLowerCase().includes(p));
+      if (!cancelled() && msg && !isError) {
+        setMsgs([{ role: "coach", text: msg }]);
       }
       if (!cancelled()) {
         setAvatarState("speaking");
@@ -1323,187 +1351,237 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
   }
 
   return (
-    <div style={{ display:"flex", height:"calc(100vh - 56px)", overflow:"hidden" }}>
+    <div style={{ display:"flex", flexDirection:"column", height:"calc(100vh - 56px)", overflow:"hidden", background:"#09090F", position:"relative" }}>
 
-      {/* ── LEFT PANEL: Zari + prompts ── */}
+      {/* ── TOP HEADER BAR ── */}
       <div style={{
-        width:300, flexShrink:0,
-        background:"white", borderRight:"1px solid #E4E8F5",
-        display:"flex", flexDirection:"column",
-        padding:"24px 20px",
+        flexShrink:0, height:52,
+        display:"flex", alignItems:"center", justifyContent:"space-between",
+        padding:"0 20px",
+        borderBottom:"1px solid rgba(255,255,255,0.07)",
+        background:"rgba(255,255,255,0.02)",
       }}>
-        {/* Status chips */}
-        <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:20 }}>
-          <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:10.5, fontWeight:700, color:"#16A34A", padding:"3px 10px", borderRadius:99, background:"#F0FFF4", border:"1px solid #BBF7D0" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+          <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:11, fontWeight:700, color:"#22C55E", padding:"3px 10px", borderRadius:99, background:"rgba(34,197,94,0.1)", border:"1px solid rgba(34,197,94,0.2)" }}>
             <span style={{ width:5,height:5,borderRadius:"50%",background:"#22C55E",animation:"blink 1.1s ease-in-out infinite" }}/>
             Live
           </span>
-          <span style={{ fontFamily:"monospace", fontSize:10.5, color:"#68738A", padding:"3px 10px", borderRadius:99, background:"#F5F7FF", border:"1px solid #E4E8F5" }}>{fmt(elapsed)}</span>
-          <span style={{ display:"inline-flex", alignItems:"center", gap:4, fontSize:10.5, fontWeight:600, color: STAGE_META[stage].color, padding:"3px 8px", borderRadius:99, background: STAGE_META[stage].bg, border:`1px solid ${STAGE_META[stage].color}30` }}>{STAGE_ICONS[stage]} {STAGE_META[stage].label}</span>
+          <span style={{ fontFamily:"monospace", fontSize:11, color:"rgba(255,255,255,0.3)", padding:"3px 10px", borderRadius:99, background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)" }}>{fmt(elapsed)}</span>
+          <span style={{ display:"inline-flex", alignItems:"center", gap:4, fontSize:11, fontWeight:600, color:STAGE_META[stage].color, padding:"3px 9px", borderRadius:99, background:`${STAGE_META[stage].color}18`, border:`1px solid ${STAGE_META[stage].color}35` }}>{STAGE_ICONS[stage]} {STAGE_META[stage].label}</span>
         </div>
-
-        {/* Avatar — centred, contained */}
-        <div style={{ display:"flex", justifyContent:"center", marginBottom:16 }}>
-          <ZariAvatar state={avatarState} size={110} interactive />
-        </div>
-
-        {/* Name */}
-        <div style={{ textAlign:"center", fontSize:13, fontWeight:700, color:"#0A0A0F", marginBottom:8 }}>
-          Zari <span style={{ fontWeight:400, color:"#68738A" }}>— AI Career Coach</span>
-        </div>
-
-        {/* State indicator */}
-        <div style={{
-          textAlign:"center", fontSize:12, fontWeight:500, marginBottom:18,
-          color: avatarState==="speaking"?"#4361EE": avatarState==="listening"?"#06B6D4": avatarState==="thinking"?"#A78BFA":"#A0AABF",
-          display:"flex", alignItems:"center", justifyContent:"center", gap:5,
-        }}>
-          <span style={{ width:6,height:6,borderRadius:"50%", background: avatarState==="speaking"?"#4361EE": avatarState==="listening"?"#06B6D4": avatarState==="thinking"?"#A78BFA":"#A0AABF", animation:"blink 1.2s ease-in-out infinite" }}/>
-          {avatarState==="speaking" && "Speaking…"}
-          {avatarState==="listening" && "Listening…"}
-          {avatarState==="thinking" && "Thinking…"}
-          {avatarState==="idle" && "Ready"}
-        </div>
-
-        {/* Divider */}
-        <div style={{ height:1, background:"#F1F5F9", marginBottom:16 }}/>
-
-        {/* Quick prompts */}
-        <p style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.12em", color:"#A0AABF", marginBottom:10 }}>Quick prompts</p>
-        <div style={{ display:"flex", flexDirection:"column", gap:6, flex:1, overflowY:"auto" }}>
-          {STAGE_PROMPTS[stage].map(p => (
-            <button key={p} onClick={() => void sendMessage(p)} disabled={isLoading} style={{ opacity: isLoading ? 0.5 : 1,
-              fontSize:12, fontWeight:500, color: STAGE_META[stage].color,
-              padding:"8px 11px", borderRadius:9, textAlign:"left",
-              background: STAGE_META[stage].bg, border:`1px solid ${STAGE_META[stage].color}20`,
-              cursor:"pointer", lineHeight:1.4,
-              transition:"opacity 0.15s",
-            }}>
-              {p}
-            </button>
-          ))}
-        </div>
-
-        {/* Voice controls */}
-        <div style={{ marginTop:16, paddingTop:16, borderTop:"1px solid #F1F5F9", display:"flex", flexDirection:"column", gap:8 }}>
-          {/* Talk Live button */}
-          <button onClick={() => setShowLiveMode(true)} style={{
-            width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:8,
-            padding:"10px", borderRadius:10, border:"none", cursor:"pointer",
-            background:"linear-gradient(135deg,#1e1b4b,#3730a3)",
-            color:"white", fontSize:12.5, fontWeight:700,
-            boxShadow:"0 4px 14px rgba(67,56,202,0.35)",
+        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+          <button onClick={() => { setShowHistory(h => { const next = !h; if (next) void loadHistory(); return next; }); }} style={{
+            display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:600,
+            color: showHistory ? "white" : "rgba(255,255,255,0.5)",
+            padding:"6px 13px", borderRadius:8, border:"none", cursor:"pointer",
+            background: showHistory ? "rgba(67,97,238,0.3)" : "rgba(255,255,255,0.06)",
             transition:"all 0.2s",
           }}>
-            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:15,height:15 }}><circle cx="10" cy="10" r="7"/><path d="M10 7v3l2 2" strokeLinecap="round"/></svg>
-            Talk Live with Zari
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:13,height:13 }}><circle cx="10" cy="10" r="7"/><path d="M10 7v3l2 2" strokeLinecap="round"/></svg>
+            History
           </button>
-          {/* TTS toggle */}
-          <button onClick={() => { setIsVoice(v=>!v); if (isVoice && audioRef.current) { audioRef.current.pause(); audioRef.current = null; } }} style={{
-            width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:8,
-            padding:"8px", borderRadius:10, border:"none", cursor:"pointer",
-            background: isVoice ? "#4361EE" : "#F5F7FF",
-            color: isVoice ? "white" : "#4361EE", fontSize:12, fontWeight:600,
+          <button onClick={() => setShowLiveMode(true)} style={{
+            display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:700,
+            color:"white", padding:"6px 14px", borderRadius:8, border:"none", cursor:"pointer",
+            background:"linear-gradient(135deg,#3730a3,#4361EE)",
+            boxShadow:"0 0 18px rgba(67,97,238,0.45)",
             transition:"all 0.2s",
           }}>
-            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:14,height:14 }}><path d="M10 2a3 3 0 00-3 3v4a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M4 9v1a6 6 0 0012 0V9"/><line x1="10" y1="15" x2="10" y2="18"/></svg>
-            {isVoice ? "Voice replies: on" : "Voice replies: off"}
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:13,height:13 }}><path d="M10 2a3 3 0 00-3 3v4a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M4 9v1a6 6 0 0012 0V9"/></svg>
+            Talk Live
           </button>
         </div>
       </div>
 
-      {/* ── RIGHT PANEL: Transcript + input ── */}
-      <div style={{ flex:1, display:"flex", flexDirection:"column", background:"#FAFBFF", minWidth:0 }}>
-        <div ref={chatRef} style={{ flex:1, overflowY:"auto", padding:"24px 28px" }}>
-          {/* Session loading skeleton */}
-          {!sessionReady && msgs.length === 0 && (
-            <div style={{ display:"flex", gap:10, marginBottom:16, animation:"bubble-appear 0.3s ease" }}>
-              <div style={{ width:32,height:32,borderRadius:"50%",flexShrink:0,background:"linear-gradient(135deg,#4361EE,#818CF8)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"white" }}>Z</div>
-              <div style={{ display:"flex", alignItems:"center", gap:5, padding:"11px 16px", borderRadius:"4px 16px 16px 16px", background:"white", border:"1px solid #E4E8F5" }}>
-                {[0,1,2].map(i=><div key={i} style={{ width:7,height:7,borderRadius:"50%",background:"#C7D2FE",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
+      {/* ── MAIN BODY ── */}
+      <div style={{ flex:1, display:"flex", minHeight:0, overflow:"hidden" }}>
+
+        {/* ── LEFT PANEL ── */}
+        <div style={{
+          width:260, flexShrink:0, display:"flex", flexDirection:"column",
+          borderRight:"1px solid rgba(255,255,255,0.07)",
+          background:"rgba(255,255,255,0.015)",
+          overflow:"hidden",
+        }}>
+          {showHistory ? (
+            /* HISTORY PANEL */
+            <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden" }}>
+              <div style={{ padding:"14px 16px 12px", borderBottom:"1px solid rgba(255,255,255,0.07)", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                <p style={{ fontSize:10.5, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"rgba(255,255,255,0.3)", margin:0 }}>Past Sessions</p>
+                <button onClick={() => setShowHistory(false)} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,255,255,0.3)", display:"flex", alignItems:"center", padding:2 }}>
+                  <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:14,height:14 }}><path d="M15 5L5 15M5 5l10 10"/></svg>
+                </button>
+              </div>
+              <div style={{ flex:1, overflowY:"auto", padding:"8px" }}>
+                {loadingHistory && (
+                  <div style={{ display:"flex", justifyContent:"center", padding:24 }}>
+                    <div style={{ width:18,height:18,borderRadius:"50%",border:"2px solid rgba(255,255,255,0.1)",borderTopColor:"rgba(255,255,255,0.5)",animation:"spin-slow 0.7s linear infinite" }}/>
+                  </div>
+                )}
+                {!loadingHistory && pastSessions.length === 0 && (
+                  <p style={{ fontSize:12, color:"rgba(255,255,255,0.2)", padding:"16px 8px", textAlign:"center" }}>No past sessions yet</p>
+                )}
+                {pastSessions.map(s => {
+                  const firstCoach = s.transcript.find(t => t.role === "coach")?.message ?? "";
+                  const date = s.startedAt ? new Date(s.startedAt).toLocaleDateString("en-US", { month:"short", day:"numeric" }) : "";
+                  return (
+                    <button key={s.id} onClick={() => {
+                      setSelectedHistory(s.id);
+                      setMsgs(s.transcript.map(t => ({ role: t.role, text: t.message })));
+                      setShowHistory(false);
+                    }} style={{
+                      width:"100%", textAlign:"left", padding:"10px 12px",
+                      borderRadius:10, border:`1px solid ${selectedHistory === s.id ? "rgba(67,97,238,0.4)" : "rgba(255,255,255,0.05)"}`,
+                      cursor:"pointer", marginBottom:4,
+                      background: selectedHistory === s.id ? "rgba(67,97,238,0.15)" : "rgba(255,255,255,0.03)",
+                      transition:"all 0.15s",
+                    }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:3 }}>
+                        <p style={{ fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.8)", margin:0, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", maxWidth:160 }}>{s.title}</p>
+                        <span style={{ fontSize:10, color:"rgba(255,255,255,0.25)", flexShrink:0, marginLeft:6 }}>{date}</span>
+                      </div>
+                      <p style={{ fontSize:11, color:"rgba(255,255,255,0.3)", margin:0, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{firstCoach.slice(0,55)}{firstCoach.length>55?"…":""}</p>
+                    </button>
+                  );
+                })}
               </div>
             </div>
-          )}
-          {msgs.map((msg, i) => (
-            <div key={i} style={{ display:"flex", gap:10, marginBottom:16, flexDirection:msg.role==="user"?"row-reverse":"row", animation:`bubble-appear 0.3s ease ${i*0.05}s both` }}>
-              <div style={{ width:32, height:32, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700, background:msg.role==="coach"?"linear-gradient(135deg,#4361EE,#818CF8)":"#E4E8F5", color:msg.role==="coach"?"white":"#68738A", boxShadow:msg.role==="coach"?"0 0 10px rgba(67,97,238,0.25)":"none" }}>
-                {msg.role==="coach"?"Z":"S"}
+          ) : (
+            /* NORMAL LEFT PANEL */
+            <>
+              <div style={{ padding:"20px 16px 16px", display:"flex", flexDirection:"column", alignItems:"center", borderBottom:"1px solid rgba(255,255,255,0.07)" }}>
+                <ZariAvatar state={avatarState} size={90} interactive />
+                <div style={{ marginTop:12, fontSize:13, fontWeight:700, color:"rgba(255,255,255,0.9)" }}>
+                  Zari <span style={{ fontWeight:400, color:"rgba(255,255,255,0.3)" }}>— AI Career Coach</span>
+                </div>
+                <div style={{ marginTop:6, display:"flex", alignItems:"center", gap:5, fontSize:11, fontWeight:500,
+                  color: avatarState==="speaking"?"#818CF8": avatarState==="listening"?"#06B6D4": avatarState==="thinking"?"#A78BFA":"rgba(255,255,255,0.25)" }}>
+                  <span style={{ width:5,height:5,borderRadius:"50%", flexShrink:0,
+                    background: avatarState==="speaking"?"#818CF8": avatarState==="listening"?"#06B6D4": avatarState==="thinking"?"#A78BFA":"rgba(255,255,255,0.15)",
+                    animation:"blink 1.2s ease-in-out infinite" }}/>
+                  {avatarState==="speaking"&&"Speaking…"}{avatarState==="listening"&&"Listening…"}{avatarState==="thinking"&&"Thinking…"}{avatarState==="idle"&&"Ready"}
+                </div>
+                <button onClick={() => { setIsVoice(v=>!v); if (isVoice && audioRef.current) { audioRef.current.pause(); audioRef.current = null; } }} style={{
+                  marginTop:12, width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:6,
+                  padding:"7px", borderRadius:9, cursor:"pointer",
+                  border:`1px solid ${isVoice ? "rgba(129,140,248,0.5)" : "rgba(255,255,255,0.09)"}`,
+                  background: isVoice ? "rgba(129,140,248,0.12)" : "rgba(255,255,255,0.04)",
+                  color: isVoice ? "#818CF8" : "rgba(255,255,255,0.35)",
+                  fontSize:11.5, fontWeight:600, transition:"all 0.2s",
+                }}>
+                  <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:12,height:12 }}><path d="M10 2a3 3 0 00-3 3v4a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M4 9v1a6 6 0 0012 0V9"/><line x1="10" y1="15" x2="10" y2="18"/></svg>
+                  {isVoice ? "Voice replies: on" : "Voice replies: off"}
+                </button>
               </div>
-              <div style={{ maxWidth:"72%", padding:"11px 15px", fontSize:13.5, lineHeight:1.65, borderRadius:msg.role==="coach"?"4px 16px 16px 16px":"16px 4px 16px 16px", background:msg.role==="coach"?"white":"#4361EE", color:msg.role==="coach"?"#1E2235":"white", border:msg.role==="coach"?"1px solid #E4E8F5":"none", boxShadow:msg.role==="coach"?"0 2px 8px rgba(0,0,0,0.04)":"0 4px 14px rgba(67,97,238,0.28)" }}>
-                {msg.role === "coach" ? renderMsgText(msg.text, onNavigate) : msg.text}
+              <div style={{ flex:1, overflowY:"auto", padding:"12px" }}>
+                <p style={{ fontSize:9.5, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.12em", color:"rgba(255,255,255,0.2)", marginBottom:8, paddingLeft:4 }}>Quick prompts</p>
+                <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
+                  {STAGE_PROMPTS[stage].map(p => (
+                    <button key={p} onClick={() => void sendMessage(p)} disabled={isLoading} style={{
+                      opacity: isLoading ? 0.4 : 1, fontSize:12, fontWeight:500,
+                      color:"rgba(255,255,255,0.55)", padding:"8px 11px", borderRadius:9, textAlign:"left",
+                      background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)",
+                      cursor:"pointer", lineHeight:1.4, transition:"all 0.15s",
+                    }}>
+                      {p}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
-          {isLoading && (
-            <div style={{ display:"flex", gap:10, marginBottom:16, animation:"bubble-appear 0.2s ease" }}>
-              <div style={{ width:32,height:32,borderRadius:"50%",flexShrink:0,background:"linear-gradient(135deg,#4361EE,#818CF8)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"white" }}>Z</div>
-              <div style={{ display:"flex", alignItems:"center", gap:5, padding:"11px 16px", borderRadius:"4px 16px 16px 16px", background:"white", border:"1px solid #E4E8F5" }}>
-                {[0,1,2].map(i=><div key={i} style={{ width:7,height:7,borderRadius:"50%",background:"#818CF8",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
-              </div>
-            </div>
+            </>
           )}
         </div>
 
-        {/* Input */}
-        <div style={{ flexShrink:0, padding:"0 28px 20px", borderTop:"1px solid #E4E8F5", paddingTop:14, background:"white" }}>
-          {/* Hidden file input */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".pdf,.doc,.docx,.txt"
-            style={{ display:"none" }}
-            onChange={e => {
-              const f = e.target.files?.[0];
-              if (f) void handleFileUpload(f);
-              e.target.value = "";
-            }}
-          />
-          <div style={{ position:"relative", background:"#FAFBFF", border:`1.5px solid ${isRecording ? "#EF4444" : isLoading ? "#C7D2FE" : "#E0E4EF"}`, borderRadius:14, overflow:"hidden", boxShadow:"0 2px 8px rgba(0,0,0,0.04)", transition:"border-color 0.2s" }}>
-            <textarea
-              style={{ width:"100%", border:"none", outline:"none", fontSize:14, color:"#0A0A0F", background:"transparent", resize:"none", padding:"12px 136px 12px 14px", fontFamily:"inherit", lineHeight:1.6, display:"block", opacity: isLoading ? 0.5 : 1 }}
-              rows={3}
-              placeholder={fileProcessing ? "Reading your file…" : isRecording ? "Listening… click mic to stop" : isLoading ? "Zari is thinking…" : isVoice ? "Speak or type…" : "Ask Zari anything, upload a file, or practice a question…"}
-              value={input}
-              onChange={e=>setInput(e.target.value)}
-              onKeyDown={e=>{ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();void sendMessage(input);} }}
-              disabled={isLoading}
-            />
-            {/* Attach file button */}
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isLoading}
-              title="Upload resume, cover letter, or LinkedIn profile"
-              style={{ position:"absolute", bottom:10, right:94, width:34,height:34,borderRadius:10,border:"none",cursor:isLoading?"default":"pointer", background:"#F5F7FF", color:"#68738A", display:"flex",alignItems:"center",justifyContent:"center", transition:"all 0.15s" }}
-            >
-              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:15,height:15 }}>
-                <path d="M15.172 7l-6.586 6.586a2 2 0 01-2.828-2.828l6.414-6.586a4 4 0 015.656 5.656l-6.415 6.585a6 6 0 01-8.485-8.485l6.586-6.586"/>
-              </svg>
-            </button>
-            {/* Mic button */}
-            <button
-              onClick={() => isRecording ? stopRecording() : void startRecording()}
-              disabled={isLoading}
-              title={isRecording ? "Stop recording" : "Speak to Zari"}
-              style={{ position:"absolute", bottom:10, right:52, width:34,height:34,borderRadius:10,border:"none",cursor:isLoading?"default":"pointer", background:isRecording?"#FEF2F2":"#F5F7FF", color:isRecording?"#EF4444":"#68738A", display:"flex",alignItems:"center",justifyContent:"center", transition:"all 0.15s" }}
-            >
-              {isRecording
-                ? <span style={{ width:10,height:10,borderRadius:2,background:"#EF4444",animation:"blink 0.7s step-end infinite" }}/>
-                : <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:15,height:15 }}><path d="M10 2a3 3 0 00-3 3v4a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M4 9v1a6 6 0 0012 0V9"/><line x1="10" y1="15" x2="10" y2="18"/></svg>
-              }
-            </button>
-            {/* Send button */}
-            <button
-              onClick={()=>void sendMessage(input)}
-              disabled={isLoading || !input.trim()}
-              style={{ position:"absolute", bottom:10, right:10, width:34,height:34,borderRadius:10,border:"none",cursor:isLoading||!input.trim()?"default":"pointer", background:input.trim()&&!isLoading?"#4361EE":"#E4E8F5", color:input.trim()&&!isLoading?"white":"#A0AABF", display:"flex",alignItems:"center",justifyContent:"center", transition:"all 0.15s" }}
-            >
-              {isLoading
-                ? <span style={{ width:12,height:12,borderRadius:"50%",border:"2px solid #A0AABF",borderTopColor:"#4361EE",animation:"spin-slow 0.7s linear infinite",display:"block" }}/>
-                : <svg viewBox="0 0 20 20" fill="currentColor" style={{ width:14,height:14 }}><path d="M3.105 3.105a1 1 0 011.263-.237l12 6a1 1 0 010 1.764l-12 6a1 1 0 01-1.367-1.31L4.945 10 3 4.678a1 1 0 01.105-1.573z"/></svg>
-              }
-            </button>
+        {/* ── CHAT PANEL ── */}
+        <div style={{ flex:1, display:"flex", flexDirection:"column", minWidth:0 }}>
+          <div ref={chatRef} style={{ flex:1, overflowY:"auto", padding:"24px 28px 8px" }}>
+            {!sessionReady && msgs.length === 0 && (
+              <div style={{ display:"flex", gap:10, marginBottom:14, animation:"bubble-appear 0.3s ease" }}>
+                <div style={{ width:32,height:32,borderRadius:"50%",flexShrink:0,background:"linear-gradient(135deg,#3730a3,#4361EE)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"white",boxShadow:"0 0 14px rgba(67,97,238,0.4)" }}>Z</div>
+                <div style={{ display:"flex", alignItems:"center", gap:5, padding:"11px 16px", borderRadius:"4px 16px 16px 16px", background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.09)" }}>
+                  {[0,1,2].map(i=><div key={i} style={{ width:7,height:7,borderRadius:"50%",background:"rgba(129,140,248,0.55)",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
+                </div>
+              </div>
+            )}
+            {msgs.map((msg, i) => (
+              <div key={i} style={{ display:"flex", gap:10, marginBottom:14, flexDirection:msg.role==="user"?"row-reverse":"row", animation:`bubble-appear 0.3s ease ${i*0.04}s both` }}>
+                <div style={{
+                  width:32, height:32, borderRadius:"50%", flexShrink:0,
+                  display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700,
+                  background: msg.role==="coach" ? "linear-gradient(135deg,#3730a3,#4361EE)" : "rgba(255,255,255,0.1)",
+                  color: msg.role==="coach" ? "white" : "rgba(255,255,255,0.65)",
+                  boxShadow: msg.role==="coach" ? "0 0 14px rgba(67,97,238,0.4)" : "none",
+                }}>
+                  {msg.role==="coach"?"Z":"S"}
+                </div>
+                <div style={{
+                  maxWidth:"72%", padding:"11px 15px", fontSize:13.5, lineHeight:1.65,
+                  borderRadius: msg.role==="coach" ? "4px 16px 16px 16px" : "16px 4px 16px 16px",
+                  background: msg.role==="coach" ? "rgba(255,255,255,0.06)" : "linear-gradient(135deg,#3730a3,#4361EE)",
+                  color:"rgba(255,255,255,0.9)",
+                  border: msg.role==="coach" ? "1px solid rgba(255,255,255,0.09)" : "none",
+                  boxShadow: msg.role!=="coach" ? "0 4px 16px rgba(67,97,238,0.35)" : "none",
+                }}>
+                  {msg.role === "coach" ? renderMsgText(msg.text, onNavigate) : msg.text}
+                </div>
+              </div>
+            ))}
+            {isLoading && (
+              <div style={{ display:"flex", gap:10, marginBottom:14, animation:"bubble-appear 0.2s ease" }}>
+                <div style={{ width:32,height:32,borderRadius:"50%",flexShrink:0,background:"linear-gradient(135deg,#3730a3,#4361EE)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"white",boxShadow:"0 0 14px rgba(67,97,238,0.4)" }}>Z</div>
+                <div style={{ display:"flex", alignItems:"center", gap:5, padding:"11px 16px", borderRadius:"4px 16px 16px 16px", background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.09)" }}>
+                  {[0,1,2].map(i=><div key={i} style={{ width:7,height:7,borderRadius:"50%",background:"rgba(129,140,248,0.65)",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
+                </div>
+              </div>
+            )}
           </div>
-          <p style={{ textAlign:"center", fontSize:10, color:"#C4CDD8", marginTop:6 }}>Enter to send · Shift+Enter for newline · 📎 attach · 🎤 speak · Powered by Zari AI</p>
+
+          {/* Input */}
+          <div style={{ flexShrink:0, padding:"0 24px 20px" }}>
+            <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx,.txt" style={{ display:"none" }}
+              onChange={e => { const f = e.target.files?.[0]; if (f) void handleFileUpload(f); e.target.value = ""; }} />
+            <div style={{
+              position:"relative",
+              background:"rgba(255,255,255,0.05)",
+              border:`1.5px solid ${isRecording ? "rgba(239,68,68,0.6)" : isLoading ? "rgba(67,97,238,0.45)" : "rgba(255,255,255,0.1)"}`,
+              borderRadius:16, overflow:"hidden",
+              boxShadow: isLoading ? "0 0 24px rgba(67,97,238,0.12)" : "none",
+              transition:"border-color 0.2s, box-shadow 0.2s",
+            }}>
+              <textarea
+                style={{ width:"100%", border:"none", outline:"none", fontSize:14, color:"rgba(255,255,255,0.9)", background:"transparent", resize:"none", padding:"13px 148px 13px 16px", fontFamily:"inherit", lineHeight:1.6, display:"block", opacity: isLoading ? 0.55 : 1 }}
+                rows={3}
+                placeholder={fileProcessing ? "Reading your file…" : isRecording ? "Listening… click mic to stop" : isLoading ? "Zari is thinking…" : "Ask Zari anything, attach a file, or practice out loud…"}
+                value={input}
+                onChange={e=>setInput(e.target.value)}
+                onKeyDown={e=>{ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();void sendMessage(input);} }}
+                disabled={isLoading}
+              />
+              <button onClick={() => fileInputRef.current?.click()} disabled={isLoading} title="Upload resume, cover letter, or LinkedIn"
+                style={{ position:"absolute", bottom:10, right:100, width:34,height:34,borderRadius:10,border:"none",cursor:isLoading?"default":"pointer", background:"rgba(255,255,255,0.07)", color:"rgba(255,255,255,0.4)", display:"flex",alignItems:"center",justifyContent:"center", transition:"all 0.15s" }}>
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:15,height:15 }}><path d="M15.172 7l-6.586 6.586a2 2 0 01-2.828-2.828l6.414-6.586a4 4 0 015.656 5.656l-6.415 6.585a6 6 0 01-8.485-8.485l6.586-6.586"/></svg>
+              </button>
+              <button onClick={() => isRecording ? stopRecording() : void startRecording()} disabled={isLoading} title={isRecording?"Stop recording":"Speak to Zari"}
+                style={{ position:"absolute", bottom:10, right:56, width:34,height:34,borderRadius:10,border:"none",cursor:isLoading?"default":"pointer", background:isRecording?"rgba(239,68,68,0.18)":"rgba(255,255,255,0.07)", color:isRecording?"#EF4444":"rgba(255,255,255,0.4)", display:"flex",alignItems:"center",justifyContent:"center", transition:"all 0.15s" }}>
+                {isRecording
+                  ? <span style={{ width:10,height:10,borderRadius:2,background:"#EF4444",animation:"blink 0.7s step-end infinite" }}/>
+                  : <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:15,height:15 }}><path d="M10 2a3 3 0 00-3 3v4a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M4 9v1a6 6 0 0012 0V9"/><line x1="10" y1="15" x2="10" y2="18"/></svg>
+                }
+              </button>
+              <button onClick={()=>void sendMessage(input)} disabled={isLoading||!input.trim()}
+                style={{ position:"absolute", bottom:10, right:12, width:34,height:34,borderRadius:10,border:"none",cursor:isLoading||!input.trim()?"default":"pointer",
+                  background:input.trim()&&!isLoading?"linear-gradient(135deg,#3730a3,#4361EE)":"rgba(255,255,255,0.07)",
+                  color:input.trim()&&!isLoading?"white":"rgba(255,255,255,0.2)",
+                  boxShadow:input.trim()&&!isLoading?"0 0 14px rgba(67,97,238,0.45)":"none",
+                  display:"flex",alignItems:"center",justifyContent:"center", transition:"all 0.15s" }}>
+                {isLoading
+                  ? <span style={{ width:12,height:12,borderRadius:"50%",border:"2px solid rgba(255,255,255,0.15)",borderTopColor:"rgba(255,255,255,0.65)",animation:"spin-slow 0.7s linear infinite",display:"block" }}/>
+                  : <svg viewBox="0 0 20 20" fill="currentColor" style={{ width:14,height:14 }}><path d="M3.105 3.105a1 1 0 011.263-.237l12 6a1 1 0 010 1.764l-12 6a1 1 0 01-1.367-1.31L4.945 10 3 4.678a1 1 0 01.105-1.573z"/></svg>
+                }
+              </button>
+            </div>
+            <p style={{ textAlign:"center", fontSize:10, color:"rgba(255,255,255,0.15)", marginTop:6 }}>Enter to send · Shift+Enter for newline · 📎 attach · 🎤 speak</p>
+          </div>
         </div>
       </div>
 
