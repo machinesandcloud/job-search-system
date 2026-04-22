@@ -3,15 +3,14 @@ import { OPENAI_VOICES } from "../speak/route";
 
 type Gender = "f" | "m";
 
-// Lauren B's ID — pinned as default when present
-const DEFAULT_VOICE_ID = "DODLEQrClDo8wCz460ld";
+// Only these voices are shown — all work on ElevenLabs Free plan
+const ALLOWED = new Set(["charlie","chris","eric","jessica","laura","liam","matilda","roger","sarah","will"]);
 
 function inferGender(labels?: { gender?: string }, name?: string): Gender {
   if (labels?.gender === "male")   return "m";
   if (labels?.gender === "female") return "f";
-  // Fallback: infer from name keywords
   const n = (name ?? "").toLowerCase();
-  if (n.includes(" male") || n.includes("adam") || n.includes("gabriel") || n.includes(" man") || n.includes("guy")) return "m";
+  if (n.includes("charlie") || n.includes("chris") || n.includes("eric") || n.includes("liam") || n.includes("roger") || n.includes("will")) return "m";
   return "f";
 }
 
@@ -21,7 +20,6 @@ export async function GET() {
 
   if (elKey) {
     try {
-      // Fetch ALL voices in the account library — no hardcoded IDs needed
       const r = await fetch("https://api.elevenlabs.io/v1/voices", {
         headers: { "xi-api-key": elKey },
         cache: "no-store",
@@ -34,21 +32,19 @@ export async function GET() {
         const data = await r.json() as { voices: ELVoice[] };
 
         if (data.voices?.length) {
-          const voices = data.voices.map(v => ({
-            key:      v.voice_id,
-            label:    v.name,
-            gender:   inferGender(v.labels, v.name),
-            provider: "elevenlabs" as const,
-          }));
+          const voices = data.voices
+            .filter(v => ALLOWED.has(v.name.toLowerCase().split(/[\s\-_]/)[0]))
+            .map(v => ({
+              key:      v.voice_id,
+              label:    v.name,
+              gender:   inferGender(v.labels, v.name),
+              provider: "elevenlabs" as const,
+            }))
+            .sort((a, b) => a.label.localeCompare(b.label));
 
-          // Pin Lauren B first, then sort the rest alphabetically
-          voices.sort((a, b) => {
-            if (a.key === DEFAULT_VOICE_ID) return -1;
-            if (b.key === DEFAULT_VOICE_ID) return  1;
-            return a.label.localeCompare(b.label);
-          });
-
-          return NextResponse.json({ voices, provider: "elevenlabs", hasGroq });
+          if (voices.length) {
+            return NextResponse.json({ voices, provider: "elevenlabs", hasGroq });
+          }
         }
       }
     } catch (e) {

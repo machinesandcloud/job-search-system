@@ -1516,6 +1516,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
           sectionContext={readSectionContext()}
           onClose={() => setShowLiveMode(false)}
           onNewMessages={newMsgs => setMsgs(m => [...m, ...newMsgs])}
+          onNavigate={onNavigate}
         />
       )}
     </div>
@@ -1526,7 +1527,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
    ZARI LIVE MODE — immersive full-screen voice session
 ═══════════════════════════════════════════════════ */
 function ZariLiveMode({
-  stage, msgs, sessionId, sectionContext, onClose, onNewMessages,
+  stage, msgs, sessionId, sectionContext, onClose, onNewMessages, onNavigate,
 }: {
   stage: CareerStage;
   msgs: ChatMsg[];
@@ -1534,6 +1535,7 @@ function ZariLiveMode({
   sectionContext: Record<string, unknown>;
   onClose: () => void;
   onNewMessages: (m: ChatMsg[]) => void;
+  onNavigate?: (s: Screen) => void;
 }) {
   type LiveState = "idle" | "listening" | "thinking" | "speaking";
   type VoiceOption = { key: string; label: string; gender: string; provider: string };
@@ -1545,6 +1547,9 @@ function ZariLiveMode({
   const [voices, setVoices]         = useState<VoiceOption[]>([]);
   const [activeVoice, setActiveVoice] = useState("");
   const [showAllVoices, setShowAllVoices] = useState(false);
+  const [attachedFile, setAttachedFile] = useState<{ name: string; content: string } | null>(null);
+  const [goActions, setGoActions] = useState<Screen[]>([]);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     fetch("/api/zari/voices").then(r => r.json()).then((d: { voices: VoiceOption[] }) => {
@@ -1658,10 +1663,12 @@ function ZariLiveMode({
       const s = sentence.trim();
       if (!s) return;
       fullReply += (fullReply ? " " : "") + s;
-      // Fire TTS fetch in parallel — don't wait for it here
+      // Strip {{GO:xxx}} markers before TTS — they're UI buttons, not words to speak
+      const ttsText = s.replace(/\{\{GO:[a-z-]+\}\}/g, "").trim();
+      if (!ttsText) return;
       const bufPromise = fetch("/api/zari/speak", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: s, voice: activeVoiceRef.current }),
+        body: JSON.stringify({ text: ttsText, voice: activeVoiceRef.current }),
       }).then(r => {
         if (!r.ok) { console.error(`[Zari] speak API ${r.status}`); return null; }
         return r.arrayBuffer();
@@ -1683,7 +1690,10 @@ function ZariLiveMode({
       const history = [...msgs, ...newMsgsRef.current.slice(0, -1)].slice(-14);
       const res = await fetch("/api/zari/chat", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, stage, history, sessionId, sectionContext, isVoice: true }),
+        body: JSON.stringify({
+          message: text, stage, history, sessionId, sectionContext, isVoice: true,
+          ...(attachedFile ? { uploadedContent: attachedFile.content, uploadedFileName: attachedFile.name } : {}),
+        }),
       });
       if (!res.body) throw new Error("no stream");
       const reader = res.body.getReader();
@@ -1736,6 +1746,9 @@ function ZariLiveMode({
       const coachMsg: ChatMsg = { role: "coach", text: fullReply.trim() };
       setTranscript(t => [...t, coachMsg]);
       newMsgsRef.current = [...newMsgsRef.current, coachMsg];
+      // Extract any GO: navigation actions from the reply to show as tap buttons
+      const matches = [...fullReply.matchAll(/\{\{GO:([a-z-]+)\}\}/g)];
+      if (matches.length) setGoActions(matches.map(m => m[1] as Screen));
     }
 
     if (aliveRef.current && autoLoopRef.current) {
@@ -1831,6 +1844,19 @@ function ZariLiveMode({
       stopAll();
       window.speechSynthesis?.cancel();
     }
+  }
+
+  async function handleFileAttach(file: File) {
+    if (!file) return;
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/zari/extract", { method: "POST", body: fd });
+      const data = await res.json().catch(() => ({})) as { text?: string };
+      if (data.text) {
+        setAttachedFile({ name: file.name, content: data.text });
+      }
+    } catch { /* non-fatal */ }
   }
 
   function handleClose() {
@@ -1955,6 +1981,46 @@ function ZariLiveMode({
         <p style={{ color:"rgba(255,255,255,0.2)", fontSize:11, margin:0, letterSpacing:"0.03em" }}>
           {liveState==="listening" ? "listening · tap to interrupt" : liveState==="speaking" ? "tap to interrupt" : liveState==="thinking" ? "thinking…" : started ? "hands-free · auto-resumes" : "tap to start"}
         </p>
+
+        {/* Attach button + badge */}
+        <div style={{ display:"flex", alignItems:"center", gap:8, marginTop:10 }}>
+          <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx,.txt" style={{ display:"none" }}
+            onChange={e => { const f = e.target.files?.[0]; if (f) void handleFileAttach(f); e.target.value = ""; }}
+          />
+          <button onClick={() => fileInputRef.current?.click()} style={{
+            display:"flex", alignItems:"center", gap:5, padding:"5px 12px", borderRadius:20,
+            border:"1px solid rgba(255,255,255,0.12)", background:"rgba(255,255,255,0.05)",
+            color:"rgba(255,255,255,0.4)", fontSize:11, cursor:"pointer", transition:"all 0.15s",
+          }}>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" style={{ width:12, height:12 }}>
+              <path d="M2 12V4a1 1 0 011-1h6l3 3v6a1 1 0 01-1 1H3a1 1 0 01-1-1z"/><path d="M9 3v3h3"/>
+            </svg>
+            {attachedFile ? attachedFile.name.slice(0, 18) + (attachedFile.name.length > 18 ? "…" : "") : "Attach file"}
+          </button>
+          {attachedFile && (
+            <button onClick={() => setAttachedFile(null)} style={{
+              width:18, height:18, borderRadius:"50%", border:"none",
+              background:"rgba(255,255,255,0.08)", color:"rgba(255,255,255,0.3)",
+              cursor:"pointer", fontSize:10, display:"flex", alignItems:"center", justifyContent:"center",
+            }}>×</button>
+          )}
+        </div>
+
+        {/* GO: action chips — shown after bot suggests a tool */}
+        {goActions.length > 0 && onNavigate && (
+          <div style={{ display:"flex", gap:6, flexWrap:"wrap", justifyContent:"center", marginTop:10 }}>
+            {goActions.map(s => (
+              <button key={s} onClick={() => { setGoActions([]); onClose(); onNavigate(s); }} style={{
+                padding:"5px 13px", borderRadius:20, border:"1px solid rgba(99,102,241,0.45)",
+                background:"rgba(99,102,241,0.18)", color:"rgba(165,180,252,0.9)",
+                fontSize:11, fontWeight:600, cursor:"pointer", transition:"all 0.15s",
+              }}>
+                {NAV_LABELS[s] ?? `Open ${s} →`}
+              </button>
+            ))}
+            <button onClick={() => setGoActions([])} style={{ padding:"5px 10px", borderRadius:20, border:"1px solid rgba(255,255,255,0.06)", background:"transparent", color:"rgba(255,255,255,0.2)", fontSize:11, cursor:"pointer" }}>dismiss</button>
+          </div>
+        )}
       </div>
 
       {/* Voice picker — avatar cards */}
