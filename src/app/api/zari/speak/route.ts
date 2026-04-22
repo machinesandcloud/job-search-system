@@ -18,8 +18,8 @@ export async function POST(request: Request) {
   const oaiKey = process.env.OPENAI_API_KEY;
 
   /* ── ElevenLabs ── */
-  // If voice param is empty but EL is configured, fall back to default voice so EL is always used
-  const elVoice = voice || "DODLEQrClDo8wCz460ld";
+  // Rachel (21m00Tcm4TlvDq8ikWAM) — EL premade voice, works on all plans including Free
+  const elVoice = voice || "21m00Tcm4TlvDq8ikWAM";
   if (elKey) {
     const res = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${elVoice}`,
