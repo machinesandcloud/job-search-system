@@ -1015,7 +1015,6 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
   const [sessionReady, setSessionReady] = useState(false);
   const [fileProcessing, setFileProcessing] = useState(false);
   const [showLiveMode, setShowLiveMode] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
   const [pastSessions, setPastSessions] = useState<Array<{ id: string; title: string; startedAt: string; transcript: Array<{ role: string; message: string }> }>>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [selectedHistory, setSelectedHistory] = useState<string | null>(null);
@@ -1219,7 +1218,10 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
         if (live) {
           sid = live.id;
           setSessionId(live.id);
-          const transcript = (live.transcript ?? []).filter(t => t.message?.trim());
+          const transcript = (live.transcript ?? []).filter(t => {
+            const txt = t.message?.trim() ?? "";
+            return txt && !ERROR_PATTERNS.some(p => txt.toLowerCase().includes(p));
+          });
           if (transcript.length > 0) {
             setMsgs(transcript.map(t => ({ role: t.role, text: t.message })));
             setSessionReady(true);
@@ -1244,6 +1246,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
     return () => { dead = true; };
   }, [stage]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => { void loadHistory(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { const t = setInterval(() => setElapsed(e => e+1), 1000); return () => clearInterval(t); }, []);
   useEffect(() => { if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight; }, [msgs, isLoading]);
   useEffect(() => { if (sessionReady) setSessionReady(true); }, [sessionReady]);
@@ -1370,16 +1373,6 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
           <span style={{ display:"inline-flex", alignItems:"center", gap:4, fontSize:11, fontWeight:600, color:STAGE_META[stage].color, padding:"3px 9px", borderRadius:99, background:`${STAGE_META[stage].color}18`, border:`1px solid ${STAGE_META[stage].color}35` }}>{STAGE_ICONS[stage]} {STAGE_META[stage].label}</span>
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          <button onClick={() => { setShowHistory(h => { const next = !h; if (next) void loadHistory(); return next; }); }} style={{
-            display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:600,
-            color: showHistory ? "white" : "rgba(255,255,255,0.5)",
-            padding:"6px 13px", borderRadius:8, border:"none", cursor:"pointer",
-            background: showHistory ? "rgba(67,97,238,0.3)" : "rgba(255,255,255,0.06)",
-            transition:"all 0.2s",
-          }}>
-            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:13,height:13 }}><circle cx="10" cy="10" r="7"/><path d="M10 7v3l2 2" strokeLinecap="round"/></svg>
-            History
-          </button>
           <button onClick={() => setShowLiveMode(true)} style={{
             display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:700,
             color:"white", padding:"6px 14px", borderRadius:8, border:"none", cursor:"pointer",
@@ -1396,105 +1389,78 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
       {/* ── MAIN BODY ── */}
       <div style={{ flex:1, display:"flex", minHeight:0, overflow:"hidden" }}>
 
-        {/* ── LEFT PANEL ── */}
+        {/* ── LEFT PANEL: always history ── */}
         <div style={{
-          width:260, flexShrink:0, display:"flex", flexDirection:"column",
+          width:252, flexShrink:0, display:"flex", flexDirection:"column",
           borderRight:"1px solid rgba(255,255,255,0.07)",
           background:"rgba(255,255,255,0.015)",
           overflow:"hidden",
         }}>
-          {showHistory ? (
-            /* HISTORY PANEL */
-            <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden" }}>
-              <div style={{ padding:"14px 16px 12px", borderBottom:"1px solid rgba(255,255,255,0.07)", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-                <p style={{ fontSize:10.5, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"rgba(255,255,255,0.3)", margin:0 }}>Past Sessions</p>
-                <button onClick={() => setShowHistory(false)} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,255,255,0.3)", display:"flex", alignItems:"center", padding:2 }}>
-                  <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:14,height:14 }}><path d="M15 5L5 15M5 5l10 10"/></svg>
-                </button>
-              </div>
-              <div style={{ flex:1, overflowY:"auto", padding:"8px" }}>
-                {loadingHistory && (
-                  <div style={{ display:"flex", justifyContent:"center", padding:24 }}>
-                    <div style={{ width:18,height:18,borderRadius:"50%",border:"2px solid rgba(255,255,255,0.1)",borderTopColor:"rgba(255,255,255,0.5)",animation:"spin-slow 0.7s linear infinite" }}/>
-                  </div>
-                )}
-                {!loadingHistory && pastSessions.length === 0 && (
-                  <p style={{ fontSize:12, color:"rgba(255,255,255,0.2)", padding:"16px 8px", textAlign:"center" }}>No past sessions yet</p>
-                )}
-                {pastSessions.map(s => {
-                  const firstCoach = s.transcript.find(t => t.role === "coach")?.message ?? "";
-                  const date = s.startedAt ? new Date(s.startedAt).toLocaleDateString("en-US", { month:"short", day:"numeric" }) : "";
-                  return (
-                    <button key={s.id} onClick={() => {
-                      setSelectedHistory(s.id);
-                      setMsgs(s.transcript.map(t => ({ role: t.role, text: t.message })));
-                      setShowHistory(false);
-                    }} style={{
-                      width:"100%", textAlign:"left", padding:"10px 12px",
-                      borderRadius:10, border:`1px solid ${selectedHistory === s.id ? "rgba(67,97,238,0.4)" : "rgba(255,255,255,0.05)"}`,
-                      cursor:"pointer", marginBottom:4,
-                      background: selectedHistory === s.id ? "rgba(67,97,238,0.15)" : "rgba(255,255,255,0.03)",
-                      transition:"all 0.15s",
-                    }}>
-                      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:3 }}>
-                        <p style={{ fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.8)", margin:0, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", maxWidth:160 }}>{s.title}</p>
-                        <span style={{ fontSize:10, color:"rgba(255,255,255,0.25)", flexShrink:0, marginLeft:6 }}>{date}</span>
-                      </div>
-                      <p style={{ fontSize:11, color:"rgba(255,255,255,0.3)", margin:0, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{firstCoach.slice(0,55)}{firstCoach.length>55?"…":""}</p>
-                    </button>
-                  );
-                })}
+          {/* Compact avatar header */}
+          <div style={{ padding:"14px 16px 12px", borderBottom:"1px solid rgba(255,255,255,0.07)", display:"flex", alignItems:"center", gap:10 }}>
+            <ZariAvatar state={avatarState} size={36} />
+            <div>
+              <div style={{ fontSize:12, fontWeight:700, color:"rgba(255,255,255,0.85)" }}>Zari</div>
+              <div style={{ display:"flex", alignItems:"center", gap:4, fontSize:10.5, fontWeight:500,
+                color: avatarState==="speaking"?"#818CF8": avatarState==="listening"?"#06B6D4": avatarState==="thinking"?"#A78BFA":"rgba(255,255,255,0.3)" }}>
+                <span style={{ width:4,height:4,borderRadius:"50%",flexShrink:0,
+                  background: avatarState==="speaking"?"#818CF8": avatarState==="listening"?"#06B6D4": avatarState==="thinking"?"#A78BFA":"rgba(255,255,255,0.2)",
+                  animation:"blink 1.2s ease-in-out infinite" }}/>
+                {avatarState==="speaking"&&"Speaking…"}{avatarState==="listening"&&"Listening…"}{avatarState==="thinking"&&"Thinking…"}{avatarState==="idle"&&"Ready"}
               </div>
             </div>
-          ) : (
-            /* NORMAL LEFT PANEL */
-            <>
-              <div style={{ padding:"20px 16px 16px", display:"flex", flexDirection:"column", alignItems:"center", borderBottom:"1px solid rgba(255,255,255,0.07)" }}>
-                <ZariAvatar state={avatarState} size={90} interactive />
-                <div style={{ marginTop:12, fontSize:13, fontWeight:700, color:"rgba(255,255,255,0.9)" }}>
-                  Zari <span style={{ fontWeight:400, color:"rgba(255,255,255,0.3)" }}>— AI Career Coach</span>
-                </div>
-                <div style={{ marginTop:6, display:"flex", alignItems:"center", gap:5, fontSize:11, fontWeight:500,
-                  color: avatarState==="speaking"?"#818CF8": avatarState==="listening"?"#06B6D4": avatarState==="thinking"?"#A78BFA":"rgba(255,255,255,0.25)" }}>
-                  <span style={{ width:5,height:5,borderRadius:"50%", flexShrink:0,
-                    background: avatarState==="speaking"?"#818CF8": avatarState==="listening"?"#06B6D4": avatarState==="thinking"?"#A78BFA":"rgba(255,255,255,0.15)",
-                    animation:"blink 1.2s ease-in-out infinite" }}/>
-                  {avatarState==="speaking"&&"Speaking…"}{avatarState==="listening"&&"Listening…"}{avatarState==="thinking"&&"Thinking…"}{avatarState==="idle"&&"Ready"}
-                </div>
-                <button onClick={() => { setIsVoice(v=>!v); if (isVoice && audioRef.current) { audioRef.current.pause(); audioRef.current = null; } }} style={{
-                  marginTop:12, width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:6,
-                  padding:"7px", borderRadius:9, cursor:"pointer",
-                  border:`1px solid ${isVoice ? "rgba(129,140,248,0.5)" : "rgba(255,255,255,0.09)"}`,
-                  background: isVoice ? "rgba(129,140,248,0.12)" : "rgba(255,255,255,0.04)",
-                  color: isVoice ? "#818CF8" : "rgba(255,255,255,0.35)",
-                  fontSize:11.5, fontWeight:600, transition:"all 0.2s",
+            <button onClick={() => { setIsVoice(v=>!v); if (isVoice && audioRef.current) { audioRef.current.pause(); audioRef.current = null; } }}
+              title={isVoice ? "Voice replies: on" : "Voice replies: off"}
+              style={{ marginLeft:"auto", width:28,height:28,borderRadius:8,border:"none",cursor:"pointer",
+                background: isVoice ? "rgba(129,140,248,0.18)" : "rgba(255,255,255,0.05)",
+                color: isVoice ? "#818CF8" : "rgba(255,255,255,0.3)",
+                display:"flex",alignItems:"center",justifyContent:"center", transition:"all 0.2s", flexShrink:0 }}>
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:13,height:13 }}><path d="M10 2a3 3 0 00-3 3v4a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M4 9v1a6 6 0 0012 0V9"/><line x1="10" y1="15" x2="10" y2="18"/></svg>
+            </button>
+          </div>
+
+          {/* History list */}
+          <div style={{ padding:"10px 12px 6px", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
+            <p style={{ fontSize:9.5, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"rgba(255,255,255,0.25)", margin:0 }}>Session History</p>
+          </div>
+          <div style={{ flex:1, overflowY:"auto", padding:"6px 8px" }}>
+            {loadingHistory && (
+              <div style={{ display:"flex", justifyContent:"center", padding:20 }}>
+                <div style={{ width:16,height:16,borderRadius:"50%",border:"2px solid rgba(255,255,255,0.08)",borderTopColor:"rgba(255,255,255,0.45)",animation:"spin-slow 0.7s linear infinite" }}/>
+              </div>
+            )}
+            {!loadingHistory && pastSessions.length === 0 && (
+              <p style={{ fontSize:11.5, color:"rgba(255,255,255,0.18)", padding:"14px 6px", textAlign:"center", lineHeight:1.5 }}>Your past chats will appear here</p>
+            )}
+            {pastSessions.map(s => {
+              const firstCoach = s.transcript.find(t => t.role === "coach")?.message ?? "";
+              const date = s.startedAt ? new Date(s.startedAt).toLocaleDateString("en-US", { month:"short", day:"numeric" }) : "";
+              return (
+                <button key={s.id} onClick={() => {
+                  setSelectedHistory(s.id);
+                  setMsgs(s.transcript.map(t => ({ role: t.role, text: t.message })));
+                }} style={{
+                  width:"100%", textAlign:"left", padding:"9px 10px",
+                  borderRadius:9, border:`1px solid ${selectedHistory === s.id ? "rgba(67,97,238,0.4)" : "transparent"}`,
+                  cursor:"pointer", marginBottom:2,
+                  background: selectedHistory === s.id ? "rgba(67,97,238,0.12)" : "transparent",
+                  transition:"all 0.15s",
                 }}>
-                  <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:12,height:12 }}><path d="M10 2a3 3 0 00-3 3v4a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M4 9v1a6 6 0 0012 0V9"/><line x1="10" y1="15" x2="10" y2="18"/></svg>
-                  {isVoice ? "Voice replies: on" : "Voice replies: off"}
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:2 }}>
+                    <p style={{ fontSize:11.5, fontWeight:600, color:"rgba(255,255,255,0.75)", margin:0, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", maxWidth:150 }}>{s.title}</p>
+                    <span style={{ fontSize:9.5, color:"rgba(255,255,255,0.22)", flexShrink:0, marginLeft:5 }}>{date}</span>
+                  </div>
+                  <p style={{ fontSize:10.5, color:"rgba(255,255,255,0.28)", margin:0, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{firstCoach.slice(0,52)}{firstCoach.length>52?"…":""}</p>
                 </button>
-              </div>
-              <div style={{ flex:1, overflowY:"auto", padding:"12px" }}>
-                <p style={{ fontSize:9.5, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.12em", color:"rgba(255,255,255,0.2)", marginBottom:8, paddingLeft:4 }}>Quick prompts</p>
-                <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
-                  {STAGE_PROMPTS[stage].map(p => (
-                    <button key={p} onClick={() => void sendMessage(p)} disabled={isLoading} style={{
-                      opacity: isLoading ? 0.4 : 1, fontSize:12, fontWeight:500,
-                      color:"rgba(255,255,255,0.55)", padding:"8px 11px", borderRadius:9, textAlign:"left",
-                      background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)",
-                      cursor:"pointer", lineHeight:1.4, transition:"all 0.15s",
-                    }}>
-                      {p}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
+              );
+            })}
+          </div>
         </div>
 
         {/* ── CHAT PANEL ── */}
         <div style={{ flex:1, display:"flex", flexDirection:"column", minWidth:0 }}>
-          <div ref={chatRef} style={{ flex:1, overflowY:"auto", padding:"24px 28px 8px" }}>
+          {/* Messages */}
+          <div ref={chatRef} style={{ flex:1, overflowY:"auto", padding:"24px 26px 8px" }}>
             {!sessionReady && msgs.length === 0 && (
               <div style={{ display:"flex", gap:10, marginBottom:14, animation:"bubble-appear 0.3s ease" }}>
                 <div style={{ width:32,height:32,borderRadius:"50%",flexShrink:0,background:"linear-gradient(135deg,#3730a3,#4361EE)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"white",boxShadow:"0 0 14px rgba(67,97,238,0.4)" }}>Z</div>
@@ -1534,6 +1500,21 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Quick prompts row above input */}
+          <div style={{ flexShrink:0, padding:"0 26px 8px", overflowX:"auto", display:"flex", gap:6, scrollbarWidth:"none" }}>
+            {STAGE_PROMPTS[stage].map(p => (
+              <button key={p} onClick={() => void sendMessage(p)} disabled={isLoading} style={{
+                opacity: isLoading ? 0.4 : 1, whiteSpace:"nowrap",
+                fontSize:11.5, fontWeight:500, color:"rgba(255,255,255,0.5)",
+                padding:"5px 11px", borderRadius:99, flexShrink:0,
+                background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.09)",
+                cursor:"pointer", transition:"all 0.15s",
+              }}>
+                {p}
+              </button>
+            ))}
           </div>
 
           {/* Input */}

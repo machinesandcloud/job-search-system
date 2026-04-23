@@ -126,9 +126,9 @@ export function ZariAvatar({ state = "idle", size = 120, className = "", interac
         zIndex: 1,
       }}>
 
-        {/* Subtle listening glow ring */}
+        {/* Subtle listening glow ring — positioned at 50%/50% so ring-pulse translate(-50%,-50%) centers it */}
         {state === "listening" && (
-          <div style={{ position:"absolute", inset:-8, borderRadius:"50%", border:"1.5px solid rgba(6,182,212,0.35)", animation:"ring-pulse 2.2s ease-out infinite" }} />
+          <div style={{ position:"absolute", top:"50%", left:"50%", width:size+16, height:size+16, borderRadius:"50%", border:"1.5px solid rgba(6,182,212,0.35)", animation:"ring-pulse 2.2s ease-out infinite" }} />
         )}
 
         {/* Thinking neural orbits */}

@@ -260,8 +260,8 @@ You're on a live voice call. Speak accordingly.
 
   const responseText = reply ?? "Having trouble connecting right now — try again in a moment.";
 
-  /* ── Persist to session (authenticated users only) ── */
-  if (userId && sessionId && !isOpening) {
+  /* ── Persist to session (authenticated users only, only when AI replied) ── */
+  if (userId && sessionId && !isOpening && reply) {
     try {
       await appendSessionEvent(userId, sessionId, { role: "user",  message });
       await appendSessionEvent(userId, sessionId, { role: "coach", message: responseText });
