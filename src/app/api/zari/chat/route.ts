@@ -251,12 +251,34 @@ You're on a live voice call. Speak accordingly.
     });
   }
 
-  /* ── Standard (non-voice) call ── */
-  const reply = await openaiChat(messages, {
+  /* ── Standard (non-voice) call — OpenAI, with Groq fallback ── */
+  let reply = await openaiChat(messages, {
     model:       process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o-mini",
     temperature: 0.75,
     maxTokens:   400,
   });
+
+  if (!reply) {
+    const groqKey = process.env.GROQ_API_KEY;
+    if (groqKey) {
+      try {
+        const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${groqKey}` },
+          body: JSON.stringify({
+            model: process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile",
+            messages,
+            temperature: 0.75,
+            max_tokens: 400,
+          }),
+        });
+        if (groqRes.ok) {
+          const groqData = await groqRes.json() as { choices?: Array<{ message?: { content?: string } }> };
+          reply = groqData.choices?.[0]?.message?.content?.trim() ?? null;
+        }
+      } catch { /* Groq fallback failed */ }
+    }
+  }
 
   const responseText = reply ?? "Having trouble connecting right now — try again in a moment.";
 

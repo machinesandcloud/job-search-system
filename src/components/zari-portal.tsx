@@ -1015,6 +1015,8 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
   const [sessionReady, setSessionReady] = useState(false);
   const [fileProcessing, setFileProcessing] = useState(false);
   const [showLiveMode, setShowLiveMode] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const [lastFailedMsg, setLastFailedMsg] = useState<string | null>(null);
   const [pastSessions, setPastSessions] = useState<Array<{ id: string; title: string; startedAt: string; transcript: Array<{ role: string; message: string }> }>>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [selectedHistory, setSelectedHistory] = useState<string | null>(null);
@@ -1277,6 +1279,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
       setMsgs(m => [...m, { role: "user", text: trimmed }]);
     }
     setInput("");
+    setSendError(null);
     setAvatarState("thinking");
     setIsLoading(true);
 
@@ -1294,14 +1297,24 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
           uploadedFileName: opts?.uploadedFileName,
         }),
       });
-      const data = await res.json().catch(() => ({})) as { message?: string };
-      const reply = data.message?.trim() || "I'm having a little trouble right now — try again in a moment.";
-      setMsgs(m => [...m, { role: "coach", text: reply }]);
-      setAvatarState("speaking");
-      void speakText(reply);
-      setTimeout(() => setAvatarState("listening"), 3500);
+      const data = await res.json().catch(() => ({})) as { message?: string; aiEnabled?: boolean };
+      const reply = data.message?.trim() ?? "";
+      const isFailed = !reply || ERROR_PATTERNS.some(p => reply.toLowerCase().includes(p));
+      if (isFailed) {
+        setLastFailedMsg(trimmed);
+        setSendError("Couldn't reach Zari — check your connection and try again.");
+        setAvatarState("idle");
+      } else {
+        setSendError(null);
+        setLastFailedMsg(null);
+        setMsgs(m => [...m, { role: "coach", text: reply }]);
+        setAvatarState("speaking");
+        void speakText(reply);
+        setTimeout(() => setAvatarState("listening"), 3500);
+      }
     } catch {
-      setMsgs(m => [...m, { role: "coach", text: "Connection issue — try again in a moment." }]);
+      setLastFailedMsg(trimmed);
+      setSendError("Connection issue — check your network.");
       setAvatarState("idle");
     } finally {
       setIsLoading(false);
@@ -1501,6 +1514,16 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
               </div>
             )}
           </div>
+
+          {/* Error banner with retry */}
+          {sendError && (
+            <div style={{ flexShrink:0, margin:"0 24px 8px", padding:"9px 14px", borderRadius:10, background:"rgba(239,68,68,0.1)", border:"1px solid rgba(239,68,68,0.25)", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10 }}>
+              <span style={{ fontSize:12, color:"rgba(239,68,68,0.9)" }}>{sendError}</span>
+              <button onClick={() => { setSendError(null); if (lastFailedMsg) void sendMessage(lastFailedMsg, { skipUserMsg: true }); }} style={{ fontSize:11.5, fontWeight:700, color:"#EF4444", background:"rgba(239,68,68,0.15)", border:"1px solid rgba(239,68,68,0.3)", borderRadius:7, padding:"4px 10px", cursor:"pointer", flexShrink:0 }}>
+                Retry
+              </button>
+            </div>
+          )}
 
           {/* Quick prompts row above input */}
           <div style={{ flexShrink:0, padding:"0 26px 8px", overflowX:"auto", display:"flex", gap:6, scrollbarWidth:"none" }}>
