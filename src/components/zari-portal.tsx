@@ -886,11 +886,11 @@ const STAGE_NAV_LABELS: Record<CareerStage, Record<Screen, string>> = {
   },
   "promotion": {
     session:        "Talk to Zari",
-    resume:         "Promotion Case",
-    interview:      "Manager Pitch",
-    "cover-letter": "Self Review",
-    linkedin:       "Visibility Plan",
-    documents:      "Evidence Vault",
+    resume:         "Readiness Audit",
+    interview:      "Manager Conversation",
+    "cover-letter": "Evidence Builder",
+    linkedin:       "Sponsor Strategy",
+    documents:      "Toolkit",
     plan:           "Promotion Roadmap",
   },
   "salary": {
@@ -977,12 +977,12 @@ const STAGE_PROMPTS: Record<CareerStage, string[]> = {
     "What should I focus on today?",
   ],
   "promotion": [
-    "Map my work to the next-level rubric",
-    "What proof would make my promotion case stronger?",
-    "Practice the manager promotion pitch with me",
-    "Draft my self-review in promotion language",
-    "Who should sponsor me and how do I ask?",
-    "What gaps would block promotion right now?",
+    "Am I actually ready for promotion?",
+    "What proof would make my case stronger?",
+    "How should I ask my manager for actionable feedback?",
+    "What gaps are still blocking promotion?",
+    "Who needs to support me and how do I approach them?",
+    "What should I do in the next 30 days to improve my odds?",
   ],
   "salary": [
     "What's market rate for my role?",
@@ -2490,7 +2490,229 @@ function loadResumeSession(): { resumeText:string; fileName:string; aiResult:Res
   } catch { return null; }
 }
 
+type PromotionReadinessResult = {
+  verdict: "Strong case" | "Close but needs proof" | "Too early";
+  summary: string;
+  strengths: string[];
+  gaps: Array<{ area: string; why: string; nextStep: string }>;
+  managerQuestions: string[];
+  nextMoves: string[];
+};
+
+function ScreenPromotionReadiness() {
+  const [evidenceText, setEvidenceText] = useState("");
+  const [evidenceFile, setEvidenceFile] = useState("");
+  const [criteriaText, setCriteriaText] = useState("");
+  const [targetLevel, setTargetLevel] = useState("");
+  const [contextText, setContextText] = useState("");
+  const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState("");
+  const [result, setResult] = useState<PromotionReadinessResult | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleUpload(file: File) {
+    setEvidenceFile(file.name);
+    setError("");
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/zari/extract", { method:"POST", body:fd });
+      const data = await res.json().catch(() => ({})) as { text?: string };
+      if (data.text) setEvidenceText(data.text);
+      else setError("Could not extract text from that file. Paste the notes instead.");
+    } catch {
+      setError("Could not extract text from that file. Paste the notes instead.");
+    }
+  }
+
+  async function generate() {
+    if (!evidenceText.trim() && !criteriaText.trim()) {
+      setError("Add either your evidence or the next-level criteria before running the audit.");
+      return;
+    }
+    setGenerating(true);
+    setError("");
+    try {
+      const res = await fetch("/api/zari/promotion-readiness", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ evidenceText, criteriaText, targetLevel, contextText }),
+      });
+      const data = await res.json().catch(() => null) as (PromotionReadinessResult & { error?: string }) | null;
+      if (data?.summary) {
+        setResult(data);
+        const serialized = [
+          `Verdict: ${data.verdict}`,
+          "",
+          data.summary,
+          "",
+          "Strong signals",
+          ...data.strengths.map(item => `- ${item}`),
+          "",
+          "Gaps to close",
+          ...data.gaps.map(item => `- ${item.area}: ${item.why} | Next step: ${item.nextStep}`),
+          "",
+          "Questions for your manager",
+          ...data.managerQuestions.map(item => `- ${item}`),
+          "",
+          "Next moves",
+          ...data.nextMoves.map(item => `- ${item}`),
+        ].join("\n");
+        vaultSave({
+          type:"resume",
+          name:"Promotion Readiness Audit",
+          content:serialized,
+          meta:{ stage:"promotion", targetLevel, verdict:data.verdict },
+        });
+      } else {
+        setError(data?.error ?? "Could not generate the readiness audit.");
+      }
+    } catch {
+      setError("Could not generate the readiness audit.");
+    }
+    setGenerating(false);
+  }
+
+  const verdictMeta: Record<PromotionReadinessResult["verdict"], { color: string; bg: string; border: string }> = {
+    "Strong case": { color:"#166534", bg:"#ECFDF5", border:"#86EFAC" },
+    "Close but needs proof": { color:"#B45309", bg:"#FFFBEB", border:"#FCD34D" },
+    "Too early": { color:"#B91C1C", bg:"#FEF2F2", border:"#FCA5A5" },
+  };
+
+  if (result) {
+    const verdictStyle = verdictMeta[result.verdict];
+    return (
+      <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F8FAFC" }}>
+        <div style={{ maxWidth:980, margin:"0 auto", padding:"28px 24px 52px" }}>
+          <div style={{ background:"linear-gradient(135deg,#0F172A,#1E293B)", borderRadius:22, padding:"24px 26px", color:"white", marginBottom:20, boxShadow:"0 16px 48px rgba(15,23,42,0.18)" }}>
+            <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:14, flexWrap:"wrap" }}>
+              <div>
+                <div style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"5px 10px", borderRadius:999, background:verdictStyle.bg, color:verdictStyle.color, border:`1px solid ${verdictStyle.border}`, fontSize:11.5, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>
+                  {result.verdict}
+                </div>
+                <h1 style={{ fontSize:28, fontWeight:900, letterSpacing:"-0.04em", margin:"0 0 8px" }}>Readiness audit</h1>
+                <p style={{ fontSize:14, lineHeight:1.7, color:"rgba(255,255,255,0.72)", margin:0, maxWidth:700 }}>{result.summary}</p>
+              </div>
+              <button onClick={() => setResult(null)} style={{ fontSize:12.5, fontWeight:700, padding:"9px 14px", borderRadius:10, border:"1px solid rgba(255,255,255,0.14)", background:"rgba(255,255,255,0.08)", color:"white", cursor:"pointer" }}>
+                ← Start over
+              </button>
+            </div>
+          </div>
+
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:18, alignItems:"start" }}>
+            <div style={{ display:"grid", gap:16 }}>
+              <div style={{ background:"white", border:"1px solid #D1FAE5", borderRadius:18, padding:"20px 22px", boxShadow:"0 8px 24px rgba(5,150,105,0.06)" }}>
+                <div style={{ fontSize:11.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>Already strong</div>
+                <div style={{ display:"grid", gap:10 }}>
+                  {result.strengths.map(item => (
+                    <div key={item} style={{ fontSize:13, color:"#14532D", lineHeight:1.65, background:"#F0FDF4", border:"1px solid #BBF7D0", borderRadius:14, padding:"12px 13px" }}>
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ background:"white", border:"1px solid #E2E8F0", borderRadius:18, padding:"20px 22px", boxShadow:"0 8px 24px rgba(15,23,42,0.05)" }}>
+                <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>Next moves</div>
+                <div style={{ display:"grid", gap:10 }}>
+                  {result.nextMoves.map(item => (
+                    <div key={item} style={{ fontSize:13, color:"#334155", lineHeight:1.65, background:"#F8FAFC", border:"1px solid #E2E8F0", borderRadius:14, padding:"12px 13px" }}>
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display:"grid", gap:16 }}>
+              <div style={{ background:"white", border:"1px solid #FDE68A", borderRadius:18, padding:"20px 22px", boxShadow:"0 8px 24px rgba(217,119,6,0.06)" }}>
+                <div style={{ fontSize:11.5, fontWeight:800, color:"#B45309", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>What is still missing</div>
+                <div style={{ display:"grid", gap:12 }}>
+                  {result.gaps.map(item => (
+                    <div key={item.area} style={{ background:"#FFFBEB", border:"1px solid #FDE68A", borderRadius:16, padding:"14px 15px" }}>
+                      <div style={{ fontSize:13.5, fontWeight:800, color:"#92400E", marginBottom:6 }}>{item.area}</div>
+                      <div style={{ fontSize:12.5, color:"#78350F", lineHeight:1.6, marginBottom:8 }}>{item.why}</div>
+                      <div style={{ fontSize:12.5, color:"#1F2937", lineHeight:1.6 }}><strong>How to close it:</strong> {item.nextStep}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ background:"white", border:"1px solid #E2E8F0", borderRadius:18, padding:"20px 22px", boxShadow:"0 8px 24px rgba(15,23,42,0.05)" }}>
+                <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>Questions to ask your manager</div>
+                <div style={{ display:"grid", gap:10 }}>
+                  {result.managerQuestions.map(item => (
+                    <div key={item} style={{ fontSize:13, color:"#334155", lineHeight:1.65, background:"#F8FAFC", border:"1px solid #E2E8F0", borderRadius:14, padding:"12px 13px" }}>
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F8FAFC" }}>
+      <input ref={fileInputRef} type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e => { const f = e.target.files?.[0]; if (f) void handleUpload(f); e.target.value = ""; }} />
+      <div style={{ maxWidth:900, margin:"0 auto", padding:"32px 28px 56px" }}>
+        <div style={{ background:"linear-gradient(135deg,#0F172A,#334155)", borderRadius:22, padding:"28px 30px", color:"white", marginBottom:24, boxShadow:"0 18px 48px rgba(15,23,42,0.16)" }}>
+          <div style={{ fontSize:11, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.12em", color:"rgba(191,219,254,0.92)", marginBottom:8 }}>Promotion Readiness</div>
+          <h1 style={{ fontSize:30, fontWeight:900, letterSpacing:"-0.04em", margin:"0 0 10px" }}>Do you have a real promotion case yet?</h1>
+          <p style={{ maxWidth:720, fontSize:14.5, lineHeight:1.7, color:"rgba(255,255,255,0.72)", margin:0 }}>
+            This is not a resume score. It is a readiness audit: what already supports promotion, what is still weak, and what you should do before making the ask.
+          </p>
+        </div>
+
+        <div style={{ display:"grid", gap:16 }}>
+          <div style={{ background:"white", border:"1px solid #E2E8F0", borderRadius:18, padding:"22px", boxShadow:"0 4px 18px rgba(15,23,42,0.04)" }}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap", marginBottom:14 }}>
+              <div>
+                <div style={{ fontSize:12, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>Your evidence</div>
+                <h2 style={{ fontSize:18, fontWeight:850, color:"#111827", margin:"0 0 4px" }}>What have you actually done that suggests next-level readiness?</h2>
+                <p style={{ fontSize:13, color:"#6B7280", lineHeight:1.6, margin:0 }}>Paste wins, scope expansion, cross-functional work, leadership moments, feedback, or upload notes.</p>
+              </div>
+              <button onClick={() => fileInputRef.current?.click()} style={{ fontSize:12.5, fontWeight:700, padding:"9px 14px", borderRadius:10, border:"1px solid #CBD5E1", background:"#F8FAFC", color:"#334155", cursor:"pointer" }}>
+                Upload notes
+              </button>
+            </div>
+            {evidenceFile && <div style={{ marginBottom:12, fontSize:12.5, fontWeight:600, color:"#334155", background:"#F8FAFC", border:"1px solid #CBD5E1", borderRadius:10, padding:"9px 12px", display:"inline-flex" }}>{evidenceFile}</div>}
+            <textarea value={evidenceText} onChange={e => setEvidenceText(e.target.value)} placeholder="Paste accomplishments, outcomes, ownership, stakeholder feedback, scope changes, leadership examples..." style={{ width:"100%", minHeight:220, resize:"vertical", border:"1px solid #E5E7EB", borderRadius:14, padding:"14px 16px", fontSize:13.5, lineHeight:1.7, color:"#111827", outline:"none", boxSizing:"border-box", fontFamily:"inherit", background:"#FCFCFF" }} />
+          </div>
+
+          <div style={{ background:"white", border:"1px solid #E2E8F0", borderRadius:18, padding:"22px", boxShadow:"0 4px 18px rgba(15,23,42,0.04)" }}>
+            <div style={{ fontSize:12, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>Criteria + context</div>
+            <h2 style={{ fontSize:18, fontWeight:850, color:"#111827", margin:"0 0 4px" }}>What does your company expect for the next level?</h2>
+            <p style={{ fontSize:13, color:"#6B7280", lineHeight:1.6, margin:"0 0 16px" }}>If you know the rubric, paste it. If not, give whatever expectations, manager guidance, or context you have.</p>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))", gap:14, marginBottom:14 }}>
+              <input value={targetLevel} onChange={e => setTargetLevel(e.target.value)} placeholder="Target level — e.g. Senior PM, Staff Engineer" style={{ width:"100%", border:"1px solid #E5E7EB", borderRadius:12, padding:"12px 14px", fontSize:13.5, color:"#111827", outline:"none", boxSizing:"border-box", fontFamily:"inherit" }} />
+              <input value={contextText} onChange={e => setContextText(e.target.value)} placeholder="Context — timing, manager stance, review cycle, blockers" style={{ width:"100%", border:"1px solid #E5E7EB", borderRadius:12, padding:"12px 14px", fontSize:13.5, color:"#111827", outline:"none", boxSizing:"border-box", fontFamily:"inherit" }} />
+            </div>
+            <textarea value={criteriaText} onChange={e => setCriteriaText(e.target.value)} placeholder="Paste the next-level rubric, career ladder, performance expectations, or manager notes..." style={{ width:"100%", minHeight:180, resize:"vertical", border:"1px solid #E5E7EB", borderRadius:14, padding:"14px 16px", fontSize:13.5, lineHeight:1.7, color:"#111827", outline:"none", boxSizing:"border-box", fontFamily:"inherit", background:"#FCFCFF" }} />
+          </div>
+        </div>
+
+        {error && <div style={{ marginTop:16, background:"rgba(220,38,38,0.08)", border:"1px solid rgba(220,38,38,0.22)", borderRadius:14, padding:"12px 14px", fontSize:13, color:"#B91C1C" }}>{error}</div>}
+
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:16, marginTop:20, flexWrap:"wrap" }}>
+          <p style={{ fontSize:12.5, color:"#64748B", lineHeight:1.6, margin:0, maxWidth:560 }}>
+            The goal here is simple: help someone decide whether to ask now, gather more proof, or close specific gaps first.
+          </p>
+          <button onClick={() => void generate()} disabled={generating} style={{ fontSize:13.5, fontWeight:800, padding:"12px 20px", borderRadius:12, border:"none", background:generating ? "#CBD5E1" : "linear-gradient(135deg,#0F172A,#334155)", color:"white", cursor:generating ? "default" : "pointer", boxShadow:"0 12px 28px rgba(15,23,42,0.16)" }}>
+            {generating ? "Auditing..." : "Run Readiness Audit"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: (screen: string) => void }) {
+  if (stage === "promotion") return <ScreenPromotionReadiness />;
+
   const _saved = loadResumeSession();
   const [step, setStep]         = useState<ResumeStep>(_saved ? "results" : "choose");
   const [progress, setProgress] = useState(0);
@@ -4336,13 +4558,13 @@ const SCREEN_RESUME_META: Record<CareerStage, {
     ],
   },
   "promotion": {
-    title:"Promotion Case",
-    desc:"Upload your brag sheet, self-review, or recent work. Zari will map your evidence to next-level expectations and turn it into a case your manager can defend in calibration.",
+    title:"Readiness Audit",
+    desc:"Bring your wins, rubric, and blockers. Zari will tell you whether you have a real promotion case yet, what is still weak, and what to do next.",
     features:[
-      { icon:"🧭", title:"Rubric alignment",   body:"Maps your examples directly to next-level criteria and flags weak spots" },
-      { icon:"📈", title:"Business impact",    body:"Turns raw wins into quantified proof with scope, stakes, and outcomes" },
-      { icon:"🤝", title:"Influence proof",    body:"Surfaces cross-functional leadership and stakeholder leverage" },
-      { icon:"🗣️", title:"Manager-ready story",body:"Builds the case narrative your manager can carry into calibration" },
+      { icon:"🧭", title:"Readiness check",    body:"Separates strong signals from wishful thinking" },
+      { icon:"📈", title:"Proof gaps",         body:"Shows where your evidence is still too thin or too vague" },
+      { icon:"💬", title:"Manager questions",  body:"Gives you the exact questions to ask for useful feedback" },
+      { icon:"🗺️", title:"Next moves",         body:"Turns the audit into a concrete promotion plan" },
     ],
   },
   "salary": {
@@ -4380,7 +4602,7 @@ const SCREEN_RESUME_META: Record<CareerStage, {
 /* ── Per-stage interview questions ── */
 const SCREEN_INTERVIEW_META: Record<CareerStage, { title:string }> = {
   "job-search":    { title:"Mock Interview"  },
-  "promotion":     { title:"Manager Pitch"   },
+  "promotion":     { title:"Manager Conversation" },
   "salary":        { title:"Negotiation Sim" },
   "career-change": { title:"Pivot Interview" },
   "leadership":    { title:"Story Practice"  },
@@ -5045,8 +5267,8 @@ function ScreenPromotionPitch() {
           <div style={{ background:"linear-gradient(135deg,#1E1B4B,#6D28D9)", borderRadius:22, padding:"28px 30px", color:"white", marginBottom:24, position:"relative", overflow:"hidden", boxShadow:"0 18px 48px rgba(76,29,149,0.22)" }}>
             <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at top right,rgba(196,181,253,0.35),transparent 35%)", pointerEvents:"none" }}/>
             <div style={{ position:"relative" }}>
-              <div style={{ fontSize:11, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.12em", color:"rgba(221,214,254,0.9)", marginBottom:8 }}>Promotion Coaching</div>
-              <h1 style={{ fontSize:30, fontWeight:900, letterSpacing:"-0.04em", margin:"0 0 10px" }}>Practice the exact promotion conversation</h1>
+              <div style={{ fontSize:11, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.12em", color:"rgba(221,214,254,0.9)", marginBottom:8 }}>Manager Conversation</div>
+              <h1 style={{ fontSize:30, fontWeight:900, letterSpacing:"-0.04em", margin:"0 0 10px" }}>Practice the conversations that actually move promotion forward</h1>
               <p style={{ maxWidth:680, fontSize:14.5, lineHeight:1.7, color:"rgba(255,255,255,0.72)", margin:0 }}>
                 The strongest promotion cases combine clear next-level criteria, quantified impact, and sponsor-ready visibility.
                 This practice flow is built around those themes instead of job-search interview mechanics.
@@ -5153,7 +5375,7 @@ function ScreenPromotionPitch() {
               disabled={loadingQs}
               style={{ fontSize:13.5, fontWeight:800, padding:"12px 20px", borderRadius:12, border:"none", background:loadingQs ? "#C4B5FD" : "linear-gradient(135deg,#7C3AED,#A855F7)", color:"white", cursor:loadingQs ? "default" : "pointer", boxShadow:"0 12px 28px rgba(124,58,237,0.22)" }}
             >
-              {loadingQs ? "Generating questions..." : "Start Promotion Practice"}
+              {loadingQs ? "Generating questions..." : "Start Conversation Practice"}
             </button>
           </div>
         </div>
@@ -5210,7 +5432,7 @@ function ScreenPromotionPitch() {
             </div>
 
             <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:18, padding:"16px", boxShadow:"0 4px 18px rgba(15,23,42,0.04)" }}>
-              <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Signals to hit</div>
+              <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>What to prove</div>
               <div style={{ display:"grid", gap:8 }}>
                 {["Next-level scope", "Business impact", "Cross-functional influence", "Sponsor-ready clarity"].map(item => (
                   <div key={item} style={{ fontSize:12.5, color:"#334155", background:"#F8FAFC", border:"1px solid #E2E8F0", borderRadius:10, padding:"9px 10px" }}>
@@ -5296,10 +5518,10 @@ function ScreenPromotionPitch() {
 }
 
 type PromotionDocResult = {
-  title: string;
-  summary: string;
-  document: string;
-  talkingPoints: string[];
+  overview: string;
+  impactBullets: string[];
+  selfReview: string;
+  managerBrief: string;
 };
 
 function ScreenPromotionDocument() {
@@ -5308,12 +5530,10 @@ function ScreenPromotionDocument() {
   const [criteriaText, setCriteriaText] = useState("");
   const [contextText, setContextText] = useState("");
   const [targetLevel, setTargetLevel] = useState("");
-  const [audience, setAudience] = useState<"manager" | "committee" | "sponsor">("manager");
-  const [tone, setTone] = useState<"crisp" | "confident" | "strategic">("strategic");
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<PromotionDocResult | null>(null);
   const [error, setError] = useState("");
-  const [copied, setCopied] = useState(false);
+  const [copiedSection, setCopiedSection] = useState<"bullets" | "self" | "manager" | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function handleUpload(file: File) {
@@ -5343,32 +5563,44 @@ function ScreenPromotionDocument() {
       const res = await fetch("/api/zari/promotion-doc", {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ evidenceText, criteriaText, contextText, targetLevel, audience, tone }),
+        body: JSON.stringify({ evidenceText, criteriaText, contextText, targetLevel }),
       });
       const data = await res.json().catch(() => null) as (PromotionDocResult & { error?: string }) | null;
-      if (data?.document) {
+      if (data?.selfReview && data.managerBrief) {
         setResult(data);
+        const serialized = [
+          "Overview",
+          data.overview,
+          "",
+          "Impact bullets",
+          ...data.impactBullets.map(item => `- ${item}`),
+          "",
+          "Self-review draft",
+          data.selfReview,
+          "",
+          "Manager brief",
+          data.managerBrief,
+        ].join("\n");
         vaultSave({
           type:"cover-letter",
-          name:data.title || "Promotion Self Review",
-          content:data.document,
-          meta:{ stage:"promotion", audience, tone, targetLevel },
+          name:"Promotion Evidence Builder",
+          content:serialized,
+          meta:{ stage:"promotion", targetLevel },
         });
       } else {
-        setError(data?.error ?? "Could not generate your promotion document.");
+        setError(data?.error ?? "Could not generate your promotion evidence pack.");
       }
     } catch {
-      setError("Could not generate your promotion document.");
+      setError("Could not generate your promotion evidence pack.");
     }
     setGenerating(false);
   }
 
-  async function copy() {
-    if (!result) return;
+  async function copy(text: string, section: "bullets" | "self" | "manager") {
     try {
-      await navigator.clipboard.writeText(result.document);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1600);
+      await navigator.clipboard.writeText(text);
+      setCopiedSection(section);
+      window.setTimeout(() => setCopiedSection(null), 1600);
     } catch {
       /* ignore */
     }
@@ -5376,25 +5608,38 @@ function ScreenPromotionDocument() {
 
   function download() {
     if (!result) return;
-    const safeName = (result.title || "promotion-self-review").replace(/[^a-zA-Z0-9_\-. ]/g, "_");
-    const blob = new Blob([result.document], { type:"text/plain;charset=utf-8" });
+    const blob = new Blob([
+      [
+        "Overview",
+        result.overview,
+        "",
+        "Impact bullets",
+        ...result.impactBullets.map(item => `- ${item}`),
+        "",
+        "Self-review draft",
+        result.selfReview,
+        "",
+        "Manager brief",
+        result.managerBrief,
+      ].join("\n"),
+    ], { type:"text/plain;charset=utf-8" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `${safeName}.txt`;
+    a.download = "promotion-evidence-builder.txt";
     a.click();
   }
 
   if (result || generating) {
     return (
       <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F4F7FB" }}>
-        <div style={{ maxWidth:860, margin:"0 auto", padding:"28px 24px 52px" }}>
+        <div style={{ maxWidth:980, margin:"0 auto", padding:"28px 24px 52px" }}>
           {generating ? (
             <div style={{ background:"linear-gradient(135deg,#111827,#1F2937)", borderRadius:20, padding:"72px 32px", textAlign:"center", boxShadow:"0 16px 48px rgba(15,23,42,0.22)" }}>
               <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:18 }}>
                 {[0,1,2].map(i => <div key={i} style={{ width:11, height:11, borderRadius:"50%", background:"#34D399", animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
               </div>
-              <div style={{ fontSize:18, fontWeight:850, color:"white", marginBottom:8 }}>Building your self-review</div>
-              <div style={{ fontSize:13.5, color:"rgba(255,255,255,0.45)" }}>Translating evidence into a manager-ready promotion narrative</div>
+              <div style={{ fontSize:18, fontWeight:850, color:"white", marginBottom:8 }}>Building your evidence pack</div>
+              <div style={{ fontSize:13.5, color:"rgba(255,255,255,0.45)" }}>Pulling out reusable bullets, a self-review draft, and a manager brief</div>
             </div>
           ) : result && (
             <>
@@ -5402,34 +5647,63 @@ function ScreenPromotionDocument() {
                 <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at top right,rgba(167,243,208,0.28),transparent 32%)", pointerEvents:"none" }}/>
                 <div style={{ position:"relative", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, flexWrap:"wrap" }}>
                   <div>
-                    <div style={{ fontSize:10.5, fontWeight:800, color:"rgba(167,243,208,0.95)", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:6 }}>Self Review Ready</div>
-                    <h1 style={{ fontSize:24, fontWeight:900, letterSpacing:"-0.03em", color:"white", margin:"0 0 6px" }}>{result.title}</h1>
-                    <p style={{ fontSize:13, lineHeight:1.6, color:"rgba(255,255,255,0.7)", margin:0, maxWidth:560 }}>{result.summary}</p>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"rgba(167,243,208,0.95)", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:6 }}>Evidence Builder Ready</div>
+                    <h1 style={{ fontSize:24, fontWeight:900, letterSpacing:"-0.03em", color:"white", margin:"0 0 6px" }}>Reusable promotion material</h1>
+                    <p style={{ fontSize:13, lineHeight:1.6, color:"rgba(255,255,255,0.7)", margin:0, maxWidth:620 }}>{result.overview}</p>
                   </div>
                   <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
                     <button onClick={() => setResult(null)} style={{ fontSize:12, fontWeight:700, padding:"8px 12px", borderRadius:10, border:"1px solid rgba(255,255,255,0.14)", background:"rgba(255,255,255,0.08)", color:"rgba(255,255,255,0.85)", cursor:"pointer" }}>← Start over</button>
-                    <button onClick={() => void copy()} style={{ fontSize:12, fontWeight:700, padding:"8px 12px", borderRadius:10, border:"1px solid rgba(255,255,255,0.14)", background:copied ? "rgba(52,211,153,0.18)" : "rgba(255,255,255,0.08)", color:copied ? "#A7F3D0" : "rgba(255,255,255,0.85)", cursor:"pointer" }}>{copied ? "Copied" : "Copy"}</button>
                     <button onClick={download} style={{ fontSize:12, fontWeight:800, padding:"8px 14px", borderRadius:10, border:"none", background:"white", color:"#065F46", cursor:"pointer" }}>Download</button>
                   </div>
                 </div>
               </div>
 
-              {result.talkingPoints.length > 0 && (
-                <div style={{ background:"white", border:"1px solid #D1FAE5", borderRadius:18, padding:"18px 20px", marginBottom:18, boxShadow:"0 4px 18px rgba(5,150,105,0.06)" }}>
-                  <div style={{ fontSize:11.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Talking Points</div>
-                  <div style={{ display:"flex", flexWrap:"wrap", gap:10 }}>
-                    {result.talkingPoints.map(point => (
-                      <div key={point} style={{ fontSize:12.5, fontWeight:600, color:"#065F46", background:"#ECFDF5", border:"1px solid #A7F3D0", borderRadius:999, padding:"8px 12px" }}>
-                        {point}
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:18, alignItems:"start" }}>
+                <div style={{ background:"white", border:"1px solid #D1FAE5", borderRadius:18, padding:"20px 22px", boxShadow:"0 8px 24px rgba(5,150,105,0.06)" }}>
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:10, flexWrap:"wrap" }}>
+                    <div>
+                      <div style={{ fontSize:11.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:6 }}>Impact bullets</div>
+                      <div style={{ fontSize:12.5, color:"#6B7280", lineHeight:1.6 }}>Use these in a brag sheet, packet, or status update.</div>
+                    </div>
+                    <button onClick={() => void copy(result.impactBullets.map(item => `- ${item}`).join("\n"), "bullets")} style={{ fontSize:11.5, fontWeight:700, padding:"7px 10px", borderRadius:9, border:"1px solid #A7F3D0", background:"#ECFDF5", color:"#047857", cursor:"pointer" }}>
+                      {copiedSection === "bullets" ? "Copied" : "Copy"}
+                    </button>
+                  </div>
+                  <div style={{ display:"grid", gap:10 }}>
+                    {result.impactBullets.map(item => (
+                      <div key={item} style={{ fontSize:13, color:"#14532D", lineHeight:1.65, background:"#F0FDF4", border:"1px solid #BBF7D0", borderRadius:14, padding:"12px 13px" }}>
+                        {item}
                       </div>
                     ))}
                   </div>
                 </div>
-              )}
 
-              <div style={{ background:"white", borderRadius:12, border:"1px solid rgba(15,23,42,0.08)", boxShadow:"0 12px 36px rgba(15,23,42,0.08)", overflow:"hidden" }}>
-                <div style={{ padding:"48px 52px", fontFamily:"Georgia,'Times New Roman',serif" }}>
-                  <div style={{ fontSize:14, lineHeight:1.95, color:"#111827", whiteSpace:"pre-wrap" }}>{result.document}</div>
+                <div style={{ display:"grid", gap:18 }}>
+                  <div style={{ background:"white", border:"1px solid #E2E8F0", borderRadius:18, padding:"20px 22px", boxShadow:"0 8px 24px rgba(15,23,42,0.05)" }}>
+                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:10, flexWrap:"wrap" }}>
+                      <div>
+                        <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:6 }}>Self-review draft</div>
+                        <div style={{ fontSize:12.5, color:"#6B7280", lineHeight:1.6 }}>First person. Use this in your self-eval or promotion write-up.</div>
+                      </div>
+                      <button onClick={() => void copy(result.selfReview, "self")} style={{ fontSize:11.5, fontWeight:700, padding:"7px 10px", borderRadius:9, border:"1px solid #CBD5E1", background:"#F8FAFC", color:"#334155", cursor:"pointer" }}>
+                        {copiedSection === "self" ? "Copied" : "Copy"}
+                      </button>
+                    </div>
+                    <div style={{ fontSize:13.5, color:"#0F172A", lineHeight:1.8, whiteSpace:"pre-wrap" }}>{result.selfReview}</div>
+                  </div>
+
+                  <div style={{ background:"white", border:"1px solid #E2E8F0", borderRadius:18, padding:"20px 22px", boxShadow:"0 8px 24px rgba(15,23,42,0.05)" }}>
+                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:10, flexWrap:"wrap" }}>
+                      <div>
+                        <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:6 }}>Manager brief</div>
+                        <div style={{ fontSize:12.5, color:"#6B7280", lineHeight:1.6 }}>Third person. Use this to prep your manager or make your case easier to retell.</div>
+                      </div>
+                      <button onClick={() => void copy(result.managerBrief, "manager")} style={{ fontSize:11.5, fontWeight:700, padding:"7px 10px", borderRadius:9, border:"1px solid #CBD5E1", background:"#F8FAFC", color:"#334155", cursor:"pointer" }}>
+                        {copiedSection === "manager" ? "Copied" : "Copy"}
+                      </button>
+                    </div>
+                    <div style={{ fontSize:13.5, color:"#0F172A", lineHeight:1.8, whiteSpace:"pre-wrap" }}>{result.managerBrief}</div>
+                  </div>
                 </div>
               </div>
             </>
@@ -5444,10 +5718,10 @@ function ScreenPromotionDocument() {
       <input ref={fileInputRef} type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e => { const f = e.target.files?.[0]; if (f) void handleUpload(f); e.target.value = ""; }} />
       <div style={{ maxWidth:900, margin:"0 auto", padding:"32px 28px 56px" }}>
         <div style={{ background:"linear-gradient(135deg,#052E2B,#065F46)", borderRadius:22, padding:"28px 30px", color:"white", marginBottom:24, boxShadow:"0 18px 48px rgba(6,95,70,0.18)" }}>
-          <div style={{ fontSize:11, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.12em", color:"rgba(167,243,208,0.9)", marginBottom:8 }}>Promotion Writing</div>
-          <h1 style={{ fontSize:30, fontWeight:900, letterSpacing:"-0.04em", margin:"0 0 10px" }}>Write the document your manager wishes you had handed them</h1>
-          <p style={{ maxWidth:700, fontSize:14.5, lineHeight:1.7, color:"rgba(255,255,255,0.72)", margin:0 }}>
-            Promotions rarely hinge on effort alone. The document needs to make your scope, impact, influence, and next-level readiness easy to retell.
+          <div style={{ fontSize:11, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.12em", color:"rgba(167,243,208,0.9)", marginBottom:8 }}>Evidence Builder</div>
+          <h1 style={{ fontSize:30, fontWeight:900, letterSpacing:"-0.04em", margin:"0 0 10px" }}>Turn your raw wins into material you can actually use</h1>
+          <p style={{ maxWidth:720, fontSize:14.5, lineHeight:1.7, color:"rgba(255,255,255,0.72)", margin:0 }}>
+            You’ll get three things: reusable evidence bullets, a first-person self-review draft, and a third-person manager brief. That way the purpose of each output is explicit.
           </p>
         </div>
 
@@ -5457,7 +5731,7 @@ function ScreenPromotionDocument() {
               <div>
                 <div style={{ fontSize:12, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>Evidence</div>
                 <h2 style={{ fontSize:18, fontWeight:850, color:"#111827", margin:"0 0 4px" }}>Give Zari the raw material</h2>
-                <p style={{ fontSize:13, color:"#6B7280", lineHeight:1.6, margin:0 }}>Wins, brag sheet bullets, launch recaps, peer feedback, or self-eval notes all work.</p>
+                <p style={{ fontSize:13, color:"#6B7280", lineHeight:1.6, margin:0 }}>Wins, brag sheet bullets, self-eval notes, launch outcomes, peer feedback, and project recaps all work.</p>
               </div>
               <button onClick={() => fileInputRef.current?.click()} style={{ fontSize:12.5, fontWeight:700, padding:"9px 14px", borderRadius:10, border:"1px solid #D1FAE5", background:"#ECFDF5", color:"#047857", cursor:"pointer" }}>
                 Upload notes
@@ -5468,46 +5742,16 @@ function ScreenPromotionDocument() {
           </div>
 
           <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:18, padding:"22px", boxShadow:"0 4px 18px rgba(15,23,42,0.04)" }}>
-            <div style={{ fontSize:12, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>Audience + Criteria</div>
-            <h2 style={{ fontSize:18, fontWeight:850, color:"#111827", margin:"0 0 4px" }}>Frame the document for the room it needs to influence</h2>
-            <p style={{ fontSize:13, color:"#6B7280", lineHeight:1.6, margin:"0 0 16px" }}>A manager draft is not the same as a committee memo or sponsor brief. Tailor it on purpose.</p>
+            <div style={{ fontSize:12, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>Criteria + context</div>
+            <h2 style={{ fontSize:18, fontWeight:850, color:"#111827", margin:"0 0 4px" }}>Tell Zari what “ready for promotion” means in your context</h2>
+            <p style={{ fontSize:13, color:"#6B7280", lineHeight:1.6, margin:"0 0 16px" }}>If you know the rubric, paste it. If not, add whatever expectations, context, or timing notes you have.</p>
 
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))", gap:14, marginBottom:14 }}>
               <input value={targetLevel} onChange={e => setTargetLevel(e.target.value)} placeholder="Target level — e.g. Staff Engineer" style={{ width:"100%", border:"1px solid #E5E7EB", borderRadius:12, padding:"12px 14px", fontSize:13.5, color:"#111827", outline:"none", boxSizing:"border-box", fontFamily:"inherit" }} />
-              <input value={contextText} onChange={e => setContextText(e.target.value)} placeholder="Context — review cycle, manager stance, competing concerns" style={{ width:"100%", border:"1px solid #E5E7EB", borderRadius:12, padding:"12px 14px", fontSize:13.5, color:"#111827", outline:"none", boxSizing:"border-box", fontFamily:"inherit" }} />
+              <input value={contextText} onChange={e => setContextText(e.target.value)} placeholder="Context — review cycle, manager stance, timing, blockers" style={{ width:"100%", border:"1px solid #E5E7EB", borderRadius:12, padding:"12px 14px", fontSize:13.5, color:"#111827", outline:"none", boxSizing:"border-box", fontFamily:"inherit" }} />
             </div>
 
-            <textarea value={criteriaText} onChange={e => setCriteriaText(e.target.value)} placeholder="Paste the next-level rubric, evaluation criteria, or any internal guidance..." style={{ width:"100%", minHeight:170, resize:"vertical", border:"1px solid #E5E7EB", borderRadius:14, padding:"14px 16px", fontSize:13.5, lineHeight:1.7, color:"#111827", outline:"none", boxSizing:"border-box", fontFamily:"inherit", background:"#FCFCFF", marginBottom:16 }} />
-
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))", gap:12, marginBottom:14 }}>
-              {([
-                ["manager", "Manager draft"],
-                ["committee", "Committee memo"],
-                ["sponsor", "Sponsor brief"],
-              ] as const).map(([key, label]) => {
-                const active = audience === key;
-                return (
-                  <button key={key} onClick={() => setAudience(key)} style={{ textAlign:"left", border:`1.5px solid ${active ? "#059669" : "#E5E7EB"}`, background:active ? "#ECFDF5" : "white", color:active ? "#047857" : "#111827", borderRadius:14, padding:"14px 14px 12px", cursor:"pointer" }}>
-                    <div style={{ fontSize:13.5, fontWeight:800, marginBottom:4 }}>{label}</div>
-                    <div style={{ fontSize:12, lineHeight:1.5, color:active ? "#065F46" : "#6B7280" }}>
-                      {key === "manager" ? "Give your manager a case they can retell." : key === "committee" ? "Write for skeptics and calibration standards." : "Make advocacy easy for a senior sponsor."}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
-              {([
-                ["strategic", "Strategic"],
-                ["crisp", "Crisp"],
-                ["confident", "Confident"],
-              ] as const).map(([key, label]) => (
-                <button key={key} onClick={() => setTone(key)} style={{ fontSize:12.5, fontWeight:700, padding:"8px 12px", borderRadius:999, border:`1px solid ${tone === key ? "#6EE7B7" : "#E5E7EB"}`, background:tone === key ? "#ECFDF5" : "white", color:tone === key ? "#047857" : "#64748B", cursor:"pointer" }}>
-                  {label}
-                </button>
-              ))}
-            </div>
+            <textarea value={criteriaText} onChange={e => setCriteriaText(e.target.value)} placeholder="Paste the next-level rubric, evaluation criteria, or any internal guidance..." style={{ width:"100%", minHeight:170, resize:"vertical", border:"1px solid #E5E7EB", borderRadius:14, padding:"14px 16px", fontSize:13.5, lineHeight:1.7, color:"#111827", outline:"none", boxSizing:"border-box", fontFamily:"inherit", background:"#FCFCFF" }} />
           </div>
         </div>
 
@@ -5515,10 +5759,10 @@ function ScreenPromotionDocument() {
 
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:16, marginTop:20, flexWrap:"wrap" }}>
           <p style={{ fontSize:12.5, color:"#64748B", lineHeight:1.6, margin:0, maxWidth:560 }}>
-            This replaces the generic cover-letter flow with a promotion document built around evidence, rubric alignment, and a specific audience.
+            The goal is not “a document” in the abstract. The goal is reusable promotion material for your self-review, your manager, and your case-building process.
           </p>
           <button onClick={() => void generate()} disabled={generating} style={{ fontSize:13.5, fontWeight:800, padding:"12px 20px", borderRadius:12, border:"none", background:generating ? "#A7F3D0" : "linear-gradient(135deg,#059669,#10B981)", color:"white", cursor:generating ? "default" : "pointer", boxShadow:"0 12px 28px rgba(5,150,105,0.18)" }}>
-            {generating ? "Generating..." : "Generate Self Review"}
+            {generating ? "Generating..." : "Build My Evidence"}
           </button>
         </div>
       </div>
@@ -5594,15 +5838,15 @@ function ScreenPromotionVisibility() {
         ].join("\n");
         vaultSave({
           type:"linkedin",
-          name:"Promotion Visibility Plan",
+          name:"Promotion Sponsor Strategy",
           content:serialized,
           meta:{ stage:"promotion", targetLevel },
         });
       } else {
-        setError(data?.error ?? "Could not generate the visibility plan.");
+        setError(data?.error ?? "Could not generate the sponsor strategy.");
       }
     } catch {
-      setError("Could not generate the visibility plan.");
+      setError("Could not generate the sponsor strategy.");
     }
     setGenerating(false);
   }
@@ -5614,8 +5858,8 @@ function ScreenPromotionVisibility() {
           <div style={{ background:"linear-gradient(135deg,#0F172A,#0A66C2)", borderRadius:22, padding:"24px 26px", color:"white", marginBottom:20, boxShadow:"0 16px 48px rgba(10,102,194,0.18)" }}>
             <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:14, flexWrap:"wrap" }}>
               <div>
-                <div style={{ fontSize:11, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.12em", color:"rgba(191,219,254,0.92)", marginBottom:6 }}>Visibility Plan Ready</div>
-                <h1 style={{ fontSize:28, fontWeight:900, letterSpacing:"-0.04em", margin:"0 0 8px" }}>Make the right people aware of the right proof</h1>
+                <div style={{ fontSize:11, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.12em", color:"rgba(191,219,254,0.92)", marginBottom:6 }}>Sponsor Strategy Ready</div>
+                <h1 style={{ fontSize:28, fontWeight:900, letterSpacing:"-0.04em", margin:"0 0 8px" }}>Who matters, what they need to see, and what to do next</h1>
                 <p style={{ fontSize:14, lineHeight:1.7, color:"rgba(255,255,255,0.72)", margin:0, maxWidth:700 }}>{result.overallFocus}</p>
               </div>
               <button onClick={() => setResult(null)} style={{ fontSize:12.5, fontWeight:700, padding:"9px 14px", borderRadius:10, border:"1px solid rgba(255,255,255,0.14)", background:"rgba(255,255,255,0.08)", color:"white", cursor:"pointer" }}>
@@ -5627,12 +5871,12 @@ function ScreenPromotionVisibility() {
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))", gap:18, alignItems:"start" }}>
             <div style={{ display:"grid", gap:16 }}>
               <div style={{ background:"white", border:"1px solid #DBEAFE", borderRadius:18, padding:"20px 22px", boxShadow:"0 8px 24px rgba(10,102,194,0.07)" }}>
-                <div style={{ fontSize:11.5, fontWeight:800, color:"#0A66C2", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Executive Narrative</div>
+                <div style={{ fontSize:11.5, fontWeight:800, color:"#0A66C2", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>What leadership should believe</div>
                 <div style={{ fontSize:14, lineHeight:1.8, color:"#0F172A", whiteSpace:"pre-wrap" }}>{result.executiveNarrative}</div>
               </div>
 
               <div style={{ background:"white", border:"1px solid #E2E8F0", borderRadius:18, padding:"20px 22px", boxShadow:"0 8px 24px rgba(15,23,42,0.05)" }}>
-                <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>Visibility Moves</div>
+                <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>What to do</div>
                 <div style={{ display:"grid", gap:12 }}>
                   {result.visibilityMoves.map(item => (
                     <div key={item.title} style={{ background:"#F8FAFC", border:"1px solid #E2E8F0", borderRadius:16, padding:"15px 16px" }}>
@@ -5647,7 +5891,7 @@ function ScreenPromotionVisibility() {
 
             <div style={{ display:"grid", gap:16 }}>
               <div style={{ background:"white", border:"1px solid #E2E8F0", borderRadius:18, padding:"20px 22px", boxShadow:"0 8px 24px rgba(15,23,42,0.05)" }}>
-                <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>Sponsor Map</div>
+                <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>Who needs what</div>
                 <div style={{ display:"grid", gap:12 }}>
                   {result.sponsorMap.map(item => (
                     <div key={item.audience} style={{ border:"1px solid #E2E8F0", borderRadius:16, padding:"14px 15px" }}>
@@ -5660,7 +5904,7 @@ function ScreenPromotionVisibility() {
               </div>
 
               <div style={{ background:"white", border:"1px solid #E2E8F0", borderRadius:18, padding:"20px 22px", boxShadow:"0 8px 24px rgba(15,23,42,0.05)" }}>
-                <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Weekly Cadence</div>
+                <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Weekly rhythm</div>
                 <div style={{ display:"grid", gap:9, marginBottom:16 }}>
                   {result.weeklyCadence.map(item => (
                     <div key={item} style={{ fontSize:12.5, color:"#334155", lineHeight:1.6, background:"#F8FAFC", border:"1px solid #E2E8F0", borderRadius:12, padding:"10px 11px" }}>
@@ -5694,10 +5938,10 @@ function ScreenPromotionVisibility() {
       <input ref={fileInputRef} type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e => { const f = e.target.files?.[0]; if (f) void handleUpload(f); e.target.value = ""; }} />
       <div style={{ maxWidth:900, margin:"0 auto", padding:"32px 28px 56px" }}>
         <div style={{ background:"linear-gradient(135deg,#0F172A,#0A66C2)", borderRadius:22, padding:"28px 30px", color:"white", marginBottom:24, boxShadow:"0 18px 48px rgba(10,102,194,0.16)" }}>
-          <div style={{ fontSize:11, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.12em", color:"rgba(191,219,254,0.92)", marginBottom:8 }}>Strategic Visibility</div>
-          <h1 style={{ fontSize:30, fontWeight:900, letterSpacing:"-0.04em", margin:"0 0 10px" }}>Turn good work into promotion visibility without sounding performative</h1>
+          <div style={{ fontSize:11, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.12em", color:"rgba(191,219,254,0.92)", marginBottom:8 }}>Sponsor Strategy</div>
+          <h1 style={{ fontSize:30, fontWeight:900, letterSpacing:"-0.04em", margin:"0 0 10px" }}>Figure out who matters and how to build support</h1>
           <p style={{ maxWidth:720, fontSize:14.5, lineHeight:1.7, color:"rgba(255,255,255,0.72)", margin:0 }}>
-            Promotion decisions are rarely based on output alone. They also depend on whether the right people can see your impact, understand your scope, and advocate for you.
+            Promotion decisions are rarely based on output alone. You need the right people to understand your impact, trust your readiness, and be willing to support the case.
           </p>
         </div>
 
@@ -5706,8 +5950,8 @@ function ScreenPromotionVisibility() {
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap", marginBottom:14 }}>
               <div>
                 <div style={{ fontSize:12, fontWeight:800, color:"#0A66C2", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>Evidence</div>
-                <h2 style={{ fontSize:18, fontWeight:850, color:"#111827", margin:"0 0 4px" }}>What should people know you already delivered?</h2>
-                <p style={{ fontSize:13, color:"#6B7280", lineHeight:1.6, margin:0 }}>Use wins, launches, leadership moments, and stakeholder praise. This becomes the visibility plan’s raw material.</p>
+                <h2 style={{ fontSize:18, fontWeight:850, color:"#111827", margin:"0 0 4px" }}>What should your manager, sponsors, and stakeholders know?</h2>
+                <p style={{ fontSize:13, color:"#6B7280", lineHeight:1.6, margin:0 }}>Use wins, launches, leadership moments, and stakeholder praise. This becomes the raw material for your sponsor strategy.</p>
               </div>
               <button onClick={() => fileInputRef.current?.click()} style={{ fontSize:12.5, fontWeight:700, padding:"9px 14px", borderRadius:10, border:"1px solid #BFDBFE", background:"#EFF6FF", color:"#0A66C2", cursor:"pointer" }}>
                 Upload notes
@@ -5720,9 +5964,9 @@ function ScreenPromotionVisibility() {
           <div style={{ background:"white", border:"1px solid #E2E8F0", borderRadius:18, padding:"22px", boxShadow:"0 4px 18px rgba(15,23,42,0.04)" }}>
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))", gap:14, marginBottom:14 }}>
               <input value={targetLevel} onChange={e => setTargetLevel(e.target.value)} placeholder="Target level — e.g. Senior Designer, Group PM" style={{ width:"100%", border:"1px solid #E5E7EB", borderRadius:12, padding:"12px 14px", fontSize:13.5, color:"#111827", outline:"none", boxSizing:"border-box", fontFamily:"inherit" }} />
-              <input value={blockers} onChange={e => setBlockers(e.target.value)} placeholder="Blockers — e.g. quiet manager, low cross-org visibility, weak sponsor" style={{ width:"100%", border:"1px solid #E5E7EB", borderRadius:12, padding:"12px 14px", fontSize:13.5, color:"#111827", outline:"none", boxSizing:"border-box", fontFamily:"inherit" }} />
+              <input value={blockers} onChange={e => setBlockers(e.target.value)} placeholder="Blockers — e.g. unclear manager support, low cross-org visibility, weak sponsor" style={{ width:"100%", border:"1px solid #E5E7EB", borderRadius:12, padding:"12px 14px", fontSize:13.5, color:"#111827", outline:"none", boxSizing:"border-box", fontFamily:"inherit" }} />
             </div>
-            <textarea value={stakeholders} onChange={e => setStakeholders(e.target.value)} placeholder="Key stakeholders — manager, skip-level, cross-functional leads, calibration committee, HRBP..." style={{ width:"100%", minHeight:160, resize:"vertical", border:"1px solid #E5E7EB", borderRadius:14, padding:"14px 16px", fontSize:13.5, lineHeight:1.7, color:"#111827", outline:"none", boxSizing:"border-box", fontFamily:"inherit", background:"#FCFCFF" }} />
+            <textarea value={stakeholders} onChange={e => setStakeholders(e.target.value)} placeholder="Key people — manager, skip-level, cross-functional leads, calibration committee, HRBP, likely sponsor..." style={{ width:"100%", minHeight:160, resize:"vertical", border:"1px solid #E5E7EB", borderRadius:14, padding:"14px 16px", fontSize:13.5, lineHeight:1.7, color:"#111827", outline:"none", boxSizing:"border-box", fontFamily:"inherit", background:"#FCFCFF" }} />
           </div>
         </div>
 
@@ -5730,10 +5974,10 @@ function ScreenPromotionVisibility() {
 
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:16, marginTop:20, flexWrap:"wrap" }}>
           <p style={{ fontSize:12.5, color:"#64748B", lineHeight:1.6, margin:0, maxWidth:560 }}>
-            This replaces the generic LinkedIn review with a promotion-specific plan for visibility, sponsorship, and the right narrative in the right rooms.
+            The goal here is practical: who to talk to, what to share, what to ask for, and how to build support before the promotion decision happens.
           </p>
           <button onClick={() => void generate()} disabled={generating} style={{ fontSize:13.5, fontWeight:800, padding:"12px 20px", borderRadius:12, border:"none", background:generating ? "#93C5FD" : "linear-gradient(135deg,#0A66C2,#2563EB)", color:"white", cursor:generating ? "default" : "pointer", boxShadow:"0 12px 28px rgba(10,102,194,0.18)" }}>
-            {generating ? "Generating..." : "Build Visibility Plan"}
+            {generating ? "Generating..." : "Build Sponsor Strategy"}
           </button>
         </div>
       </div>
@@ -6562,9 +6806,9 @@ function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate
 
   const TYPE_META: Record<DocType, { label:string; color:string; bg:string; icon: React.ReactNode; section: string }> = stage === "promotion"
     ? {
-        "resume":       { label:"Promotion Case", color:"#7C3AED", bg:"#F5F3FF", section:"resume",       icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><path d="M13 2H5a1.5 1.5 0 00-1.5 1.5v13A1.5 1.5 0 005 18h10a1.5 1.5 0 001.5-1.5V6L13 2z"/><path d="M13 2v4h4"/><path d="M7 9h6M7 12h4"/></svg> },
-        "linkedin":     { label:"Visibility Plan", color:"#0A66C2", bg:"#EFF6FF", section:"linkedin",   icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><rect x="2" y="2" width="16" height="16" rx="3"/><path d="M6 9v5M6 7v.01M10 14v-3a2 2 0 014 0v3M10 9v5"/></svg> },
-        "cover-letter": { label:"Self Review", color:"#059669", bg:"#ECFDF5", section:"cover-letter",    icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><path d="M17 4H3a1 1 0 00-1 1v10a1 1 0 001 1h14a1 1 0 001-1V5a1 1 0 00-1-1z"/><path d="M1 5l9 7 9-7"/></svg> },
+        "resume":       { label:"Readiness Audit", color:"#7C3AED", bg:"#F5F3FF", section:"resume",       icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><path d="M13 2H5a1.5 1.5 0 00-1.5 1.5v13A1.5 1.5 0 005 18h10a1.5 1.5 0 001.5-1.5V6L13 2z"/><path d="M13 2v4h4"/><path d="M7 9h6M7 12h4"/></svg> },
+        "linkedin":     { label:"Sponsor Strategy", color:"#0A66C2", bg:"#EFF6FF", section:"linkedin",   icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><rect x="2" y="2" width="16" height="16" rx="3"/><path d="M6 9v5M6 7v.01M10 14v-3a2 2 0 014 0v3M10 9v5"/></svg> },
+        "cover-letter": { label:"Evidence Builder", color:"#059669", bg:"#ECFDF5", section:"cover-letter",    icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><path d="M17 4H3a1 1 0 00-1 1v10a1 1 0 001 1h14a1 1 0 001-1V5a1 1 0 00-1-1z"/><path d="M1 5l9 7 9-7"/></svg> },
         "upload":       { label:"Uploaded", color:"#68738A", bg:"#F5F7FF", section:"documents",         icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><path d="M14 2H6a1.5 1.5 0 00-1.5 1.5v13A1.5 1.5 0 006 18h8a1.5 1.5 0 001.5-1.5V6L14 2z"/><path d="M14 2v4h4"/></svg> },
       }
     : {
@@ -6576,9 +6820,9 @@ function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate
 
   const SECTION_CARDS = stage === "promotion"
     ? [
-        { type:"resume"       as DocType, label:"Promotion Case", desc:"Build the evidence packet for next-level readiness", section:"resume",       color:"#7C3AED", bg:"#F5F3FF" },
-        { type:"linkedin"     as DocType, label:"Visibility Plan", desc:"Map sponsors, stakeholders, and strategic visibility", section:"linkedin", color:"#0A66C2", bg:"#EFF6FF" },
-        { type:"cover-letter" as DocType, label:"Self Review", desc:"Write the manager-ready promotion narrative", section:"cover-letter", color:"#059669", bg:"#ECFDF5" },
+        { type:"resume"       as DocType, label:"Readiness Audit", desc:"Figure out whether you have a real promotion case yet", section:"resume",       color:"#7C3AED", bg:"#F5F3FF" },
+        { type:"linkedin"     as DocType, label:"Sponsor Strategy", desc:"Map who matters, what they need to see, and what to ask", section:"linkedin", color:"#0A66C2", bg:"#EFF6FF" },
+        { type:"cover-letter" as DocType, label:"Evidence Builder", desc:"Create reusable bullets, self-review text, and a manager brief", section:"cover-letter", color:"#059669", bg:"#ECFDF5" },
       ]
     : [
         { type:"resume"       as DocType, label:"Resume Review",   desc:"Upload and analyze your resume",          section:"resume",       color:"#7C3AED", bg:"#F5F3FF" },
@@ -6588,6 +6832,12 @@ function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate
 
   const missing = SECTION_CARDS.filter(c => !docs.some(d => d.type === c.type));
   const words = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
+  const PROMOTION_PLAYBOOK = [
+    { title:"1. Validate the bar", body:"Get explicit manager language on what 'ready now' means at the next level.", section:"resume" },
+    { title:"2. Build the proof", body:"Translate your wins into scope, impact, influence, and business outcomes.", section:"cover-letter" },
+    { title:"3. Build support", body:"Figure out who influences the decision and what each person needs to believe.", section:"linkedin" },
+    { title:"4. Time the ask", body:"Use the roadmap to decide when to ask and what to do before that conversation.", section:"plan" },
+  ] as const;
 
   return (
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F0F2F8" }}>
@@ -6625,14 +6875,14 @@ function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:16, flexWrap:"wrap", position:"relative" }}>
             <div>
               <div style={{ fontSize:10.5, fontWeight:700, color:"rgba(148,163,184,0.7)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>{stage === "promotion" ? "Promotion Evidence" : "Document Vault"}</div>
-              <h1 style={{ fontSize:22, fontWeight:900, letterSpacing:"-0.03em", color:"white", marginBottom:4 }}>{stage === "promotion" ? "Evidence Vault" : "My Documents"}</h1>
+              <h1 style={{ fontSize:22, fontWeight:900, letterSpacing:"-0.03em", color:"white", marginBottom:4 }}>{stage === "promotion" ? "Toolkit" : "My Documents"}</h1>
               <p style={{ fontSize:13, color:"rgba(255,255,255,0.4)" }}>
                 {docs.length === 0
                   ? stage === "promotion"
-                    ? "Your promotion vault is empty — build your case, self review, or visibility plan to start filling it"
+                    ? "This is your promotion toolkit: guidance, saved audits, evidence packs, sponsor strategy, and any notes you upload."
                     : "Your vault is empty — complete sections or upload files to get started"
                   : stage === "promotion"
-                    ? `${docs.length} document${docs.length!==1?"s":""} · case files, self reviews, visibility plans, and uploaded proof`
+                    ? `${docs.length} document${docs.length!==1?"s":""} · audits, evidence packs, sponsor strategy, and uploaded proof`
                     : `${docs.length} document${docs.length!==1?"s":""} · resume, cover letters, LinkedIn · all in one place`}
               </p>
             </div>
@@ -6658,6 +6908,20 @@ function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate
             </div>
           )}
         </div>
+
+        {stage === "promotion" && (
+          <div style={{ marginBottom:24 }}>
+            <p style={{ fontSize:12, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#94A3B8", marginBottom:12 }}>How To Use This Stage</p>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(210px,1fr))", gap:10 }}>
+              {PROMOTION_PLAYBOOK.map(card => (
+                <button key={card.title} onClick={() => onNavigate(card.section)} style={{ background:"white", border:"1px solid #E2E8F0", borderRadius:16, padding:"16px 16px 15px", textAlign:"left", cursor:"pointer", boxShadow:"0 2px 10px rgba(15,23,42,0.04)" }}>
+                  <div style={{ fontSize:13.5, fontWeight:800, color:"#0F172A", marginBottom:6 }}>{card.title}</div>
+                  <div style={{ fontSize:12.5, color:"#64748B", lineHeight:1.6 }}>{card.body}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Drop zone */}
         <div
@@ -6751,13 +7015,13 @@ const STAGE_TASKS: Record<CareerStage, { text:string; cat:string; pri:string }[]
     { text:"Book follow-up session to practice PM case interview",                 cat:"Session",    pri:"low"  },
   ],
   "promotion": [
-    { text:"Map 5 recent wins to the next-level rubric and note where proof is still weak", cat:"Case",       pri:"high" },
-    { text:"Rewrite your 3 strongest examples with scope, business impact, and stakeholder complexity", cat:"Docs", pri:"high" },
-    { text:"Ask your manager and one skip-level for explicit promotion blockers and timeline", cat:"Feedback", pri:"high" },
-    { text:"Build a sponsor map: who needs to see what before calibration",        cat:"Sponsorship",pri:"med"  },
-    { text:"Send one crisp weekly visibility update tied to team or business priorities", cat:"Visibility", pri:"med"  },
-    { text:"Practice the promotion pitch until the ask sounds direct and low-drama", cat:"Session", pri:"med"  },
-    { text:"Book the formal promotion conversation once your proof and support are in place", cat:"Milestone", pri:"low"  },
+    { text:"Ask your manager what 'ready now' looks like for the next level and write down the exact criteria", cat:"Feedback", pri:"high" },
+    { text:"Map your 5 strongest wins to those criteria and mark where your proof is still weak", cat:"Case", pri:"high" },
+    { text:"Turn your best work into crisp evidence bullets you can reuse in self-review and manager conversations", cat:"Docs", pri:"high" },
+    { text:"Identify who besides your manager influences promotion decisions and what each person needs to see", cat:"Sponsorship", pri:"med"  },
+    { text:"Create a low-drama update rhythm so your impact is visible before promotion discussions happen", cat:"Visibility", pri:"med"  },
+    { text:"Practice the promotion conversation until you can explain your case clearly in 2 minutes", cat:"Session", pri:"med"  },
+    { text:"Time the formal promotion ask around the review cycle once your proof and support are aligned", cat:"Milestone", pri:"low"  },
   ],
   "salary": [
     { text:"Research market rate on Levels.fyi, Glassdoor, and Blind",            cat:"Research",   pri:"high" },
@@ -7246,9 +7510,9 @@ function ScreenPlan({ stage, onNavigate }: { stage: CareerStage; onNavigate: (s:
 
   const SECTION_CARDS = stage === "promotion"
     ? [
-        { type:"resume"       as DocType, key:"resume",       label:"Promotion Case", desc:"Map your proof to next-level criteria and fill the evidence gaps", color:"#7C3AED", bg:"#F5F3FF", done:hasResume },
-        { type:"linkedin"     as DocType, key:"linkedin",     label:"Visibility Plan", desc:"Map sponsors, stakeholders, and the narrative each one needs", color:"#0A66C2", bg:"#EFF6FF", done:hasLI },
-        { type:"cover-letter" as DocType, key:"cover-letter", label:"Self Review", desc:"Write the manager-ready promotion memo or self-review draft", color:"#059669", bg:"#ECFDF5", done:hasCL },
+        { type:"resume"       as DocType, key:"resume",       label:"Readiness Audit", desc:"Figure out whether you are genuinely ready now or still need more proof", color:"#7C3AED", bg:"#F5F3FF", done:hasResume },
+        { type:"linkedin"     as DocType, key:"linkedin",     label:"Sponsor Strategy", desc:"Map who matters, what they need to see, and how to build support", color:"#0A66C2", bg:"#EFF6FF", done:hasLI },
+        { type:"cover-letter" as DocType, key:"cover-letter", label:"Evidence Builder", desc:"Create reusable bullets, self-review text, and a manager brief", color:"#059669", bg:"#ECFDF5", done:hasCL },
       ]
     : [
         { type:"resume"       as DocType, key:"resume",       label:"Resume Review",   desc:"Analyze your resume — Zari scores it and finds gaps", color:"#7C3AED", bg:"#F5F3FF", done:hasResume },
@@ -7335,7 +7599,7 @@ function ScreenPlan({ stage, onNavigate }: { stage: CareerStage; onNavigate: (s:
           <div style={{ width:36, height:36, borderRadius:10, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:14, fontWeight:800, color:"white" }}>Z</div>
           <p style={{ fontSize:13, color:"#3451D1", lineHeight:1.65 }}>
             {stage === "promotion"
-              ? "The more promotion surfaces you complete, the better Zari can sequence the work. Once it has your case, self-review, and visibility plan, the roadmap can get much sharper about sponsor asks and timing."
+              ? "The more promotion surfaces you complete, the better Zari can sequence the work. Once it has your readiness audit, evidence pack, and sponsor strategy, the roadmap can get much sharper about timing and support."
               : "The more sections you complete, the more specific your action plan gets. After your resume review Zari already knows what to fix — after LinkedIn it can sequence the work. Give it both and the plan is surgical."}
           </p>
         </div>
@@ -7425,8 +7689,8 @@ function ScreenPlan({ stage, onNavigate }: { stage: CareerStage; onNavigate: (s:
               <p style={{ fontSize:13.5, color:"#68738A", lineHeight:1.5 }}>
                 Based on your {[
                   hasResume && (stage === "promotion" ? "promotion case" : "resume"),
-                  hasLI && (stage === "promotion" ? "visibility plan" : "LinkedIn"),
-                  hasCL && (stage === "promotion" ? "self review" : "cover letter"),
+                  hasLI && (stage === "promotion" ? "sponsor strategy" : "LinkedIn"),
+                  hasCL && (stage === "promotion" ? "evidence builder" : "cover letter"),
                 ].filter(Boolean).join(", ")} · {readyCount}/3 sections complete
               </p>
             </div>

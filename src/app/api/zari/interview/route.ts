@@ -46,7 +46,7 @@ export async function POST(request: Request) {
     if (stage === "promotion") {
       const PROMOTION_SECTIONS: Record<string, { sections: { name: string; description: string; count: number }[] }> = {
         manager: { sections: [
-          { name:"Promotion Case", description:"Frame the ask and why you're already operating at the next level", count:4 },
+          { name:"Your Case", description:"Frame the ask and why you're already operating at the next level", count:4 },
           { name:"Scope & Impact", description:"Pressure-test business outcomes, complexity, and ownership", count:4 },
           { name:"Gaps & Objections", description:"Handle missing proof, timing concerns, or manager pushback", count:3 },
         ]},

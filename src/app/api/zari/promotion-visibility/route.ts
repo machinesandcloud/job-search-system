@@ -35,14 +35,14 @@ export async function POST(request: Request) {
     try { userContext = await buildUserContext(userId); } catch { /* non-fatal */ }
   }
 
-  const systemPrompt = `You are Zari, a sharp promotion coach. Build a promotion visibility and sponsorship plan that makes real work easier to notice without sounding performative.
+  const systemPrompt = `You are Zari, a sharp promotion coach. Build a promotion sponsor strategy that helps someone get the right people aligned before promotion decisions happen.
 
 ${targetLevel ? `Target level: ${targetLevel}` : ""}
 ${userContext ? `Known profile context:\n${userContext}\n` : ""}
 
 Return ONLY valid JSON:
 {
-  "overallFocus": "<1-2 sentences describing the visibility strategy>",
+  "overallFocus": "<1-2 sentences describing the strategy>",
   "executiveNarrative": "<a short narrative leadership should associate with this person>",
   "visibilityMoves": [
     { "title": "<short move name>", "move": "<what to do>", "why": "<why it matters for promotion>" }
@@ -60,6 +60,7 @@ Rules:
 - Include sponsorship, not just self-promotion.
 - Keep moves concrete and low-drama. No fake networking advice.
 - The executive narrative should sound like a sentence a leader could repeat in calibration.
+- Make the sponsorMap especially practical: who matters, what they need to believe, and what to ask them for.
 - Generate 4-5 visibility moves, 3-4 sponsor map entries, 3-4 weekly cadence actions, and 3 watchouts.`;
 
   const userPrompt = [
@@ -71,7 +72,7 @@ Rules:
   const reply = await openaiChat(
     [
       { role: "system" as const, content: systemPrompt },
-      { role: "user" as const, content: userPrompt || "Build a promotion visibility plan from the available information." },
+      { role: "user" as const, content: userPrompt || "Build a promotion sponsor strategy from the available information." },
     ],
     {
       model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",

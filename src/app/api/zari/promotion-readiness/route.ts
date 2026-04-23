@@ -16,14 +16,14 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => ({})) as {
     evidenceText?: string;
     criteriaText?: string;
-    contextText?: string;
     targetLevel?: string;
+    contextText?: string;
   };
 
   const evidenceText = (body.evidenceText ?? "").trim();
   const criteriaText = (body.criteriaText ?? "").trim();
-  const contextText = (body.contextText ?? "").trim();
   const targetLevel = (body.targetLevel ?? "").trim();
+  const contextText = (body.contextText ?? "").trim();
 
   if (!evidenceText && !criteriaText) {
     return NextResponse.json({ error: "Provide evidence or criteria" }, { status: 400 });
@@ -35,28 +35,30 @@ export async function POST(request: Request) {
     try { userContext = await buildUserContext(userId); } catch { /* non-fatal */ }
   }
 
-  const systemPrompt = `You are Zari, an elite career coach helping someone build a usable promotion evidence package.
+  const systemPrompt = `You are Zari, a sharp promotion coach. Audit whether someone has a real promotion case yet.
 
 ${targetLevel ? `Target level: ${targetLevel}` : ""}
 ${userContext ? `Known profile context:\n${userContext}\n` : ""}
 
 Return ONLY valid JSON:
 {
-  "overview": "<1-2 sentence explanation of the case>",
-  "impactBullets": ["<concise evidence bullet>", "<concise evidence bullet>", "<concise evidence bullet>"],
-  "selfReview": "<first-person self-review draft>",
-  "managerBrief": "<third-person brief a manager could reuse>"
+  "verdict": "<Strong case|Close but needs proof|Too early>",
+  "summary": "<2-3 sentence honest assessment>",
+  "strengths": ["<what already supports the promotion case>"],
+  "gaps": [
+    { "area": "<gap category>", "why": "<why it weakens the case>", "nextStep": "<specific way to close it>" }
+  ],
+  "managerQuestions": ["<question to ask manager or skip-level>"],
+  "nextMoves": ["<specific next step>"]
 }
 
-Requirements:
-- This is NOT a cover letter. Never mention applying, hiring managers, or job search.
-- The purpose is to help someone prepare for promotion with reusable material.
-- "selfReview" must be in FIRST PERSON. Use "I", not the person's name.
-- "managerBrief" must be in THIRD PERSON and sound like something a manager could adapt for calibration.
-- "impactBullets" should be concise, evidence-led, and reusable in brag sheets or packets.
-- Build the case around next-level scope, business impact, influence, and readiness.
-- Use only evidence that can be traced back to the provided material.
-- If evidence is thin, write the strongest honest version and avoid inventing numbers.`;
+Rules:
+- This is not a resume review. Never talk about ATS, job descriptions, recruiters, or interviewing.
+- Judge the case on next-level scope, business impact, influence, consistency, and decision-maker confidence.
+- Be honest. Not everyone is promotion-ready.
+- If the evidence is vague, say so directly.
+- Give 3-5 strengths, 3-5 gaps, 4-6 manager questions, and 4-6 next moves.
+- Make the manager questions actionable and specific enough to ask in a real 1:1.`;
 
   const userPrompt = [
     evidenceText ? `PROMOTION EVIDENCE:\n${evidenceText.slice(0, 5000)}` : "",
@@ -67,12 +69,12 @@ Requirements:
   const reply = await openaiChat(
     [
       { role: "system" as const, content: systemPrompt },
-      { role: "user" as const, content: userPrompt || "Build the strongest honest promotion evidence pack from the available information." },
+      { role: "user" as const, content: userPrompt || "Audit my promotion readiness from the available information." },
     ],
     {
       model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
-      temperature: 0.45,
-      maxTokens: 1900,
+      temperature: 0.4,
+      maxTokens: 1400,
       jsonMode: true,
     }
   );
