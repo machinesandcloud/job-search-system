@@ -54,7 +54,7 @@ ${contextBlock || "No profile data yet — build a strong general plan for the s
 Return ONLY a valid JSON object:
 {
   "tasks": [
-    { "text": "<specific, actionable task — reference their actual situation>", "cat": "<Resume|Interview|LinkedIn|Cover Letter|Job Search|Session|Network|Research>", "pri": "<high|med|low>" }
+    { "text": "<specific, actionable task — reference their actual situation>", "cat": "<Resume|Interview|LinkedIn|Cover Letter|Job Search|Session|Network|Research|Case|Docs|Feedback|Sponsorship|Visibility|Planning|Milestone>", "pri": "<high|med|low>" }
   ],
   "coachNote": "<2-3 sentences: what to focus on first and why, based on their actual scores and completed sections. Sound like a real coach, not a summary.>"
 }
@@ -67,7 +67,8 @@ Rules:
 - 3-4 high priority (this week), 2-3 medium (this month), 1-2 low (eventually)
 - Never write tasks they've already fully addressed in their completed sections unless there's a clear next step
 - Never write generic tasks — be specific about WHAT to do and WHY it matters for their situation
-- If cover letter is missing and they have a target role, make that a high-priority task`;
+- If cover letter is missing and they have a target role, make that a high-priority task
+- For the promotion stage, bias toward rubric alignment, business impact proof, actionable feedback, sponsorship, and decision-maker visibility`;
 
   const messages = [
     { role: "system" as const, content: systemPrompt },

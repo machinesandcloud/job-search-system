@@ -22,6 +22,8 @@ export async function POST(request: Request) {
     round?: string;
     resumeText?: string;
     jobDescription?: string;
+    criteriaText?: string;
+    contextText?: string;
   };
 
   const action = body.action ?? "score-answer";
@@ -38,6 +40,82 @@ export async function POST(request: Request) {
   if (action === "generate-questions") {
     const resumeText     = (body.resumeText     ?? "").trim();
     const jobDescription = (body.jobDescription ?? "").trim();
+    const criteriaText   = (body.criteriaText   ?? "").trim();
+    const contextText    = (body.contextText    ?? "").trim();
+
+    if (stage === "promotion") {
+      const PROMOTION_SECTIONS: Record<string, { sections: { name: string; description: string; count: number }[] }> = {
+        manager: { sections: [
+          { name:"Promotion Case", description:"Frame the ask and why you're already operating at the next level", count:4 },
+          { name:"Scope & Impact", description:"Pressure-test business outcomes, complexity, and ownership", count:4 },
+          { name:"Gaps & Objections", description:"Handle missing proof, timing concerns, or manager pushback", count:3 },
+        ]},
+        committee: { sections: [
+          { name:"Rubric Alignment", description:"Map concrete examples to next-level criteria", count:4 },
+          { name:"Influence & Complexity", description:"Defend cross-functional leadership, judgment, and scale", count:4 },
+          { name:"Calibration Risks", description:"Answer skepticism, comparison, or 'not yet' objections", count:3 },
+        ]},
+        sponsor: { sections: [
+          { name:"Case Summary", description:"Explain the case crisply enough for an executive to repeat it", count:3 },
+          { name:"Proof Points", description:"Surface the evidence a sponsor can actually advocate with", count:3 },
+          { name:"Advocacy Ask", description:"Make the sponsorship request direct, specific, and low-drama", count:3 },
+        ]},
+        "self-review": { sections: [
+          { name:"Narrative Arc", description:"State what changed, why it matters, and why now", count:4 },
+          { name:"Evidence", description:"Back your claims with outcomes, scale, and stakeholder impact", count:4 },
+          { name:"Forward Signal", description:"Show readiness for the next level, not just strong current-level work", count:3 },
+        ]},
+      };
+
+      const roundConfig = PROMOTION_SECTIONS[round] ?? PROMOTION_SECTIONS.manager;
+
+      const systemPrompt = `You are Zari, a sharp promotion coach. Generate promotion-practice questions organized by section for a ${round.replace("-", " ")} conversation.
+
+${userContext ? `What you know about them:\n${userContext}\n\n` : ""}
+${resumeText   ? `Promotion evidence and recent wins:\n${resumeText.slice(0, 2500)}\n\n` : ""}
+${criteriaText ? `Next-level criteria / rubric:\n${criteriaText.slice(0, 1800)}\n\n` : ""}
+${contextText  ? `Promotion context:\n${contextText.slice(0, 1000)}\n\n` : ""}
+
+Return ONLY valid JSON:
+{
+  "sections": [
+    {
+      "name": "<section name>",
+      "description": "<what this section tests — 1 sentence>",
+      "questions": [
+        { "cat": "<specific topic>", "level": "<target level or next-level signal>", "q": "<the question>" }
+      ]
+    }
+  ]
+}
+
+Sections to generate (in this order):
+${roundConfig.sections.map(s => `- "${s.name}" (${s.count} questions): ${s.description}`).join("\n")}
+
+Rules:
+- This is a promotion conversation, not a job interview. Never mention recruiters, job descriptions, or job search language.
+- Questions must test next-level scope, business impact, influence, judgment, and promotion readiness.
+- Reference actual evidence, projects, stakeholders, or themes from their material whenever possible.
+- Include at least one hard question per section that exposes a weak metric, unclear scope jump, weak sponsorship, or timing risk.
+- Ask like a real manager, calibration committee member, or sponsor would: direct, skeptical when needed, and concrete.
+- "level" should describe the next-level signal being tested, not generic seniority labels unless the target level is explicit.`;
+
+      const reply = await openaiChat(
+        [
+          { role: "system" as const, content: systemPrompt },
+          { role: "user" as const, content: "Generate my promotion-practice questions by section." },
+        ],
+        { model: process.env.OPENAI_MODEL ?? "gpt-4o-mini", temperature: 0.5, maxTokens: 2400, jsonMode: true }
+      );
+
+      if (!reply) return NextResponse.json({ error: "Could not generate questions" }, { status: 503 });
+
+      try {
+        return NextResponse.json(JSON.parse(reply));
+      } catch {
+        return NextResponse.json({ error: "Could not parse questions" }, { status: 500 });
+      }
+    }
 
     const ROUND_SECTIONS: Record<string, { sections: { name: string; description: string; count: number }[] }> = {
       "recruiter": { sections: [
@@ -118,9 +196,63 @@ Rules:
   const category = body.category ?? "";
   const resumeText = (body.resumeText ?? "").trim();
   const jobDescription = (body.jobDescription ?? "").trim();
+  const criteriaText = (body.criteriaText ?? "").trim();
+  const contextText = (body.contextText ?? "").trim();
 
   if (!question || !answer) {
     return NextResponse.json({ error: "Question and answer required" }, { status: 400 });
+  }
+
+  if (stage === "promotion") {
+    const systemPrompt = `You are Zari, a promotion coach who gives direct, useful feedback. Score this promotion answer based on whether it would actually strengthen a manager or committee case.
+
+${userContext ? `What you know about this person:\n${userContext}\n\n` : ""}
+${resumeText ? `Promotion evidence and wins:\n${resumeText.slice(0, 1800)}\n\n` : ""}
+${criteriaText ? `Next-level rubric / criteria:\n${criteriaText.slice(0, 1200)}\n\n` : ""}
+${contextText ? `Promotion context:\n${contextText.slice(0, 800)}\n\n` : ""}
+
+Return ONLY a valid JSON object:
+{
+  "overallScore": <number 0-100>,
+  "dimensions": [
+    { "label": "Rubric alignment", "score": <number 0-100> },
+    { "label": "Impact proof", "score": <number 0-100> },
+    { "label": "Scope & complexity", "score": <number 0-100> },
+    { "label": "Influence", "score": <number 0-100> },
+    { "label": "Executive clarity", "score": <number 0-100> },
+    { "label": "Confidence", "score": <number 0-100> }
+  ],
+  "coachNote": "<2-3 sentences in a warm but no-nonsense voice. Say what landed, what was vague, and what proof is still missing. Reference specifics from their answer.>",
+  "suggestedResult": "<a tighter, stronger version of the answer they could say verbatim in the promotion conversation>"
+}
+
+Scoring rules:
+- Be honest. Most answers should land between 55 and 82.
+- Penalize vague scope, fuzzy ownership, missing metrics, unclear next-level signal, or generic leadership claims.
+- Reward concrete business impact, expanded scope, cross-functional influence, and crisp framing.
+- The suggestedResult should sound like a stronger version of them, not generic executive-speak.
+- Stage: ${stage} · Mode: ${round} · Category: ${category}`;
+
+    const reply = await openaiChat(
+      [
+        { role: "system" as const, content: systemPrompt },
+        { role: "user" as const, content: `Question: ${question}\n\nAnswer: ${answer}` },
+      ],
+      {
+        model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
+        temperature: 0.3,
+        maxTokens: 700,
+        jsonMode: true,
+      }
+    );
+
+    if (!reply) return NextResponse.json({ error: "Scoring failed — try again" }, { status: 503 });
+
+    try {
+      return NextResponse.json(JSON.parse(reply));
+    } catch {
+      return NextResponse.json({ error: "Could not parse scoring" }, { status: 500 });
+    }
   }
 
   const systemPrompt = `You are Zari, a career coach who feels like a sharp, honest friend. Score this interview answer and give feedback that's real and actionable — not generic coaching-speak.

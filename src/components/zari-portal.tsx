@@ -67,6 +67,17 @@ const STAGE_META: Record<CareerStage, { label:string; color:string; bg:string }>
   "leadership":    { label:"Leadership & Exec",    color:"#D97706", bg:"#FFFBEB" },
 };
 
+function docMatchesStage(doc: DocEntry, stage: CareerStage): boolean {
+  if (doc.type === "upload") return true;
+  const savedStage = doc.meta.stage as CareerStage | undefined;
+  if (savedStage) return savedStage === stage;
+  return stage === "job-search";
+}
+
+function vaultReadForStage(stage: CareerStage): DocEntry[] {
+  return vaultRead().filter(doc => docMatchesStage(doc, stage));
+}
+
 /* ═══════════════════════════════════════════════════
    HELPERS
 ═══════════════════════════════════════════════════ */
@@ -875,12 +886,12 @@ const STAGE_NAV_LABELS: Record<CareerStage, Record<Screen, string>> = {
   },
   "promotion": {
     session:        "Talk to Zari",
-    resume:         "Build My Case",
-    interview:      "Pitch Practice",
-    "cover-letter": "Cover Letter",
-    linkedin:       "LinkedIn",
-    documents:      "My Documents",
-    plan:           "Promotion Plan",
+    resume:         "Promotion Case",
+    interview:      "Manager Pitch",
+    "cover-letter": "Self Review",
+    linkedin:       "Visibility Plan",
+    documents:      "Evidence Vault",
+    plan:           "Promotion Roadmap",
   },
   "salary": {
     session:        "Talk to Zari",
@@ -924,16 +935,12 @@ function getNav(stage: CareerStage): { id:Screen; label:string; icon:React.React
    SCREEN: VOICE COACHING SESSION
 ═══════════════════════════════════════════════════ */
 type ChatMsg = { role:string; text:string };
-// Navigation labels for {{GO:screen}} markers Zari can embed in responses
-const NAV_LABELS: Partial<Record<Screen, string>> = {
-  resume:          "Open Resume Review →",
-  linkedin:        "Open LinkedIn Review →",
-  "cover-letter":  "Open Cover Letter →",
-  interview:       "Open Interview Prep →",
-  plan:            "Open Action Plan →",
-};
+function navCtaLabel(stage: CareerStage, screen: Screen): string {
+  const label = STAGE_NAV_LABELS[stage][screen] ?? screen;
+  return `Open ${label} →`;
+}
 
-function renderMsgText(text: string, onNav?: (s: Screen) => void): React.ReactNode {
+function renderMsgText(text: string, stage: CareerStage, onNav?: (s: Screen) => void): React.ReactNode {
   const tokens = text.split(/(\{\{GO:[a-z-]+\}\}|\n)/);
   return (
     <>
@@ -949,7 +956,7 @@ function renderMsgText(text: string, onNav?: (s: Screen) => void): React.ReactNo
               borderRadius:8, padding:"4px 11px", cursor:"pointer", margin:"5px 3px 0",
               transition:"background 0.15s",
             }}>
-              {NAV_LABELS[s] ?? `Open ${s} →`}
+              {navCtaLabel(stage, s)}
             </button>
           );
         }
@@ -970,12 +977,12 @@ const STAGE_PROMPTS: Record<CareerStage, string[]> = {
     "What should I focus on today?",
   ],
   "promotion": [
-    "Help me build my promotion case",
-    "What gaps do I still need to close?",
-    "Practice my manager pitch",
-    "Write my impact statement",
-    "How do I get executive sponsorship?",
-    "What does 'next level' look like for me?",
+    "Map my work to the next-level rubric",
+    "What proof would make my promotion case stronger?",
+    "Practice the manager promotion pitch with me",
+    "Draft my self-review in promotion language",
+    "Who should sponsor me and how do I ask?",
+    "What gaps would block promotion right now?",
   ],
   "salary": [
     "What's market rate for my role?",
@@ -1501,7 +1508,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
                   border: msg.role==="coach" ? "1px solid rgba(255,255,255,0.09)" : "none",
                   boxShadow: msg.role!=="coach" ? "0 4px 16px rgba(67,97,238,0.35)" : "none",
                 }}>
-                  {msg.role === "coach" ? renderMsgText(msg.text, onNavigate) : msg.text}
+                  {msg.role === "coach" ? renderMsgText(msg.text, stage, onNavigate) : msg.text}
                 </div>
               </div>
             ))}
@@ -2100,7 +2107,7 @@ function ZariLiveMode({
                 background:"rgba(99,102,241,0.18)", color:"rgba(165,180,252,0.9)",
                 fontSize:11, fontWeight:600, cursor:"pointer", transition:"all 0.15s",
               }}>
-                {NAV_LABELS[s] ?? `Open ${s} →`}
+                {navCtaLabel(stage, s)}
               </button>
             ))}
             <button onClick={() => setGoActions([])} style={{ padding:"5px 10px", borderRadius:20, border:"1px solid rgba(255,255,255,0.06)", background:"transparent", color:"rgba(255,255,255,0.2)", fontSize:11, cursor:"pointer" }}>dismiss</button>
@@ -2810,7 +2817,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
         // Persist session so page refresh lands back on results
         try { localStorage.setItem(RESUME_SESSION_KEY, JSON.stringify({ resumeText:textToAnalyze, fileName:fileName||"resume", aiResult:data, reviewMode, targetRoleInput, careerLevel, savedAt:new Date().toISOString() })); } catch { /* non-fatal */ }
         // Save to doc vault
-        try { vaultSave({ type:"resume", name:fileName||"Resume", content:textToAnalyze, meta:{ score:String(data.overall), targetRole:targetRoleInput||"" } }); } catch { /* non-fatal */ }
+        try { vaultSave({ type:"resume", name:fileName||"Resume", content:textToAnalyze, meta:{ score:String(data.overall), targetRole:targetRoleInput||"", stage } }); } catch { /* non-fatal */ }
         // Always persist to localStorage so history works regardless of auth state
         pushLocalHistory({
           id: `local_${Date.now()}`,
@@ -4329,13 +4336,13 @@ const SCREEN_RESUME_META: Record<CareerStage, {
     ],
   },
   "promotion": {
-    title:"Build My Case",
-    desc:"Upload your self-assessment or recent work. Zari will build your promotion case with scope, impact, and the narrative your manager needs to go to bat for you.",
+    title:"Promotion Case",
+    desc:"Upload your brag sheet, self-review, or recent work. Zari will map your evidence to next-level expectations and turn it into a case your manager can defend in calibration.",
     features:[
-      { icon:"📋", title:"Gap analysis",       body:"Maps where you are against next-level expectations" },
-      { icon:"💪", title:"Impact statements",  body:"Turns your work into manager-ready evidence" },
-      { icon:"🎯", title:"Promo narrative",    body:"Builds the story your manager tells the committee" },
-      { icon:"🗣️", title:"Pitch dry run",      body:"Practice the exact conversation with your manager" },
+      { icon:"🧭", title:"Rubric alignment",   body:"Maps your examples directly to next-level criteria and flags weak spots" },
+      { icon:"📈", title:"Business impact",    body:"Turns raw wins into quantified proof with scope, stakes, and outcomes" },
+      { icon:"🤝", title:"Influence proof",    body:"Surfaces cross-functional leadership and stakeholder leverage" },
+      { icon:"🗣️", title:"Manager-ready story",body:"Builds the case narrative your manager can carry into calibration" },
     ],
   },
   "salary": {
@@ -4373,7 +4380,7 @@ const SCREEN_RESUME_META: Record<CareerStage, {
 /* ── Per-stage interview questions ── */
 const SCREEN_INTERVIEW_META: Record<CareerStage, { title:string }> = {
   "job-search":    { title:"Mock Interview"  },
-  "promotion":     { title:"Pitch Practice"  },
+  "promotion":     { title:"Manager Pitch"   },
   "salary":        { title:"Negotiation Sim" },
   "career-change": { title:"Pivot Interview" },
   "leadership":    { title:"Story Practice"  },
@@ -4405,6 +4412,8 @@ function dimColor(score: number) {
 }
 
 function ScreenInterview({ stage }: { stage: CareerStage }) {
+  if (stage === "promotion") return <ScreenPromotionPitch />;
+
   const [setupDone,    setSetupDone]    = useState(false);
   const [resumeText,   setResumeText]   = useState("");
   const [resumeFileName, setResumeFileName] = useState("");
@@ -4857,7 +4866,884 @@ type LinkedInResult = {
   missingKeywords: string[];
 };
 
+type PromotionPracticeMode = "manager" | "committee" | "sponsor" | "self-review";
+
+const PROMOTION_PRACTICE_META: Record<PromotionPracticeMode, {
+  label: string;
+  badge: string;
+  desc: string;
+  color: string;
+  bg: string;
+}> = {
+  manager: {
+    label: "Manager Conversation",
+    badge: "Most common",
+    desc: "Pressure-test your narrative, your ask, and the blockers your manager will likely raise.",
+    color: "#7C3AED",
+    bg: "rgba(124,58,237,0.12)",
+  },
+  committee: {
+    label: "Calibration Committee",
+    badge: "Hard mode",
+    desc: "Defend your scope, business impact, and next-level signals like a promotion packet would.",
+    color: "#D97706",
+    bg: "rgba(217,119,6,0.12)",
+  },
+  sponsor: {
+    label: "Sponsor Conversation",
+    badge: "Visibility",
+    desc: "Practice a focused ask with the proof points an executive or skip-level would need.",
+    color: "#0284C7",
+    bg: "rgba(2,132,199,0.12)",
+  },
+  "self-review": {
+    label: "Self-Review Dry Run",
+    badge: "Concise",
+    desc: "Say the case out loud until it sounds crisp, evidence-backed, and promotion-ready.",
+    color: "#059669",
+    bg: "rgba(5,150,105,0.12)",
+  },
+};
+
+function ScreenPromotionPitch() {
+  const [evidenceText, setEvidenceText] = useState("");
+  const [evidenceFile, setEvidenceFile] = useState("");
+  const [criteriaText, setCriteriaText] = useState("");
+  const [contextText, setContextText] = useState("");
+  const [targetLevel, setTargetLevel] = useState("");
+  const [mode, setMode] = useState<PromotionPracticeMode>("manager");
+  const [loadingQs, setLoadingQs] = useState(false);
+  const [setupError, setSetupError] = useState("");
+  const [sections, setSections] = useState<InterviewSection[] | null>(null);
+  const [activeSectionIdx, setActiveSectionIdx] = useState(0);
+  const [qIdx, setQIdx] = useState(0);
+  const [answer, setAnswer] = useState("");
+  const [feedback, setFeedback] = useState<InterviewFeedback | null>(null);
+  const [isScoring, setIsScoring] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleUpload(file: File) {
+    setEvidenceFile(file.name);
+    setSetupError("");
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/zari/extract", { method: "POST", body: fd });
+      const data = await res.json().catch(() => ({})) as { text?: string };
+      if (data.text) setEvidenceText(data.text);
+      else setSetupError("Could not extract text from that file. Paste the evidence instead.");
+    } catch {
+      setSetupError("Could not read that file. Paste the evidence instead.");
+    }
+  }
+
+  async function startPractice() {
+    if (!evidenceText.trim() && !criteriaText.trim()) {
+      setSetupError("Add either evidence or next-level expectations before starting.");
+      return;
+    }
+    setSetupError("");
+    setLoadingQs(true);
+    try {
+      const res = await fetch("/api/zari/interview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "generate-questions",
+          stage: "promotion",
+          round: mode,
+          resumeText: evidenceText,
+          criteriaText,
+          contextText: [targetLevel ? `Target level: ${targetLevel}` : "", contextText].filter(Boolean).join("\n\n"),
+        }),
+      });
+      const data = await res.json().catch(() => ({})) as { sections?: InterviewSection[]; error?: string };
+      if (data.sections?.length) {
+        setSections(data.sections);
+        setActiveSectionIdx(0);
+        setQIdx(0);
+        setAnswer("");
+        setFeedback(null);
+      } else {
+        setSetupError(data.error ?? "Could not generate promotion questions. Try again.");
+      }
+    } catch {
+      setSetupError("Could not generate promotion questions. Try again.");
+    }
+    setLoadingQs(false);
+  }
+
+  async function submit() {
+    const currentQuestion = sections?.[activeSectionIdx]?.questions?.[qIdx];
+    if (!currentQuestion || !answer.trim() || isScoring) return;
+    setIsScoring(true);
+    try {
+      const res = await fetch("/api/zari/interview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "score-answer",
+          stage: "promotion",
+          round: mode,
+          category: currentQuestion.cat,
+          question: currentQuestion.q,
+          answer,
+          resumeText: evidenceText,
+          criteriaText,
+          contextText: [targetLevel ? `Target level: ${targetLevel}` : "", contextText].filter(Boolean).join("\n\n"),
+        }),
+      });
+      const data = await res.json().catch(() => null) as InterviewFeedback | null;
+      if (data?.overallScore) setFeedback(data);
+    } catch {
+      /* feedback stays null */
+    }
+    setIsScoring(false);
+  }
+
+  function goToQuestion(nextSectionIdx: number, nextQIdx: number) {
+    setActiveSectionIdx(nextSectionIdx);
+    setQIdx(nextQIdx);
+    setAnswer("");
+    setFeedback(null);
+  }
+
+  function nextQuestion() {
+    const currentSection = sections?.[activeSectionIdx];
+    if (!currentSection) return;
+    if (qIdx < currentSection.questions.length - 1) {
+      goToQuestion(activeSectionIdx, qIdx + 1);
+      return;
+    }
+    if (sections && activeSectionIdx < sections.length - 1) {
+      goToQuestion(activeSectionIdx + 1, 0);
+    }
+  }
+
+  function prevQuestion() {
+    if (qIdx > 0) {
+      goToQuestion(activeSectionIdx, qIdx - 1);
+      return;
+    }
+    if (sections && activeSectionIdx > 0) {
+      const prevSection = sections[activeSectionIdx - 1];
+      goToQuestion(activeSectionIdx - 1, Math.max(prevSection.questions.length - 1, 0));
+    }
+  }
+
+  if (!sections) {
+    return (
+      <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F8F7FF" }}>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".pdf,.docx,.txt"
+          style={{ display:"none" }}
+          onChange={e => { const f = e.target.files?.[0]; if (f) void handleUpload(f); e.target.value = ""; }}
+        />
+        <div style={{ maxWidth:900, margin:"0 auto", padding:"32px 28px 56px" }}>
+          <div style={{ background:"linear-gradient(135deg,#1E1B4B,#6D28D9)", borderRadius:22, padding:"28px 30px", color:"white", marginBottom:24, position:"relative", overflow:"hidden", boxShadow:"0 18px 48px rgba(76,29,149,0.22)" }}>
+            <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at top right,rgba(196,181,253,0.35),transparent 35%)", pointerEvents:"none" }}/>
+            <div style={{ position:"relative" }}>
+              <div style={{ fontSize:11, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.12em", color:"rgba(221,214,254,0.9)", marginBottom:8 }}>Promotion Coaching</div>
+              <h1 style={{ fontSize:30, fontWeight:900, letterSpacing:"-0.04em", margin:"0 0 10px" }}>Practice the exact promotion conversation</h1>
+              <p style={{ maxWidth:680, fontSize:14.5, lineHeight:1.7, color:"rgba(255,255,255,0.72)", margin:0 }}>
+                The strongest promotion cases combine clear next-level criteria, quantified impact, and sponsor-ready visibility.
+                This practice flow is built around those themes instead of job-search interview mechanics.
+              </p>
+            </div>
+          </div>
+
+          <div style={{ display:"grid", gap:16 }}>
+            <div style={{ background:"white", border:"1px solid #E9D5FF", borderRadius:18, padding:"22px 22px 20px", boxShadow:"0 4px 18px rgba(124,58,237,0.06)" }}>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:14, flexWrap:"wrap" }}>
+                <div>
+                  <div style={{ fontSize:12, fontWeight:800, color:"#7C3AED", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>1. Promotion Evidence</div>
+                  <h2 style={{ fontSize:18, fontWeight:850, color:"#111827", margin:"0 0 4px" }}>Bring your actual proof</h2>
+                  <p style={{ fontSize:13, color:"#6B7280", lineHeight:1.6, margin:0 }}>Paste a brag sheet, self-review, project recap, or upload a file with recent wins and stakeholder feedback.</p>
+                </div>
+                <button onClick={() => fileInputRef.current?.click()} style={{ fontSize:12.5, fontWeight:700, padding:"9px 14px", borderRadius:10, border:"1px solid #DDD6FE", background:"#F5F3FF", color:"#6D28D9", cursor:"pointer" }}>
+                  Upload evidence
+                </button>
+              </div>
+              {evidenceFile && (
+                <div style={{ marginBottom:12, fontSize:12.5, fontWeight:600, color:"#6D28D9", background:"#F5F3FF", border:"1px solid #DDD6FE", borderRadius:10, padding:"9px 12px", display:"inline-flex" }}>
+                  {evidenceFile}
+                </div>
+              )}
+              <textarea
+                value={evidenceText}
+                onChange={e => setEvidenceText(e.target.value)}
+                placeholder="Paste wins, project impact, scope expansion, stakeholder feedback, team leadership examples..."
+                style={{ width:"100%", minHeight:220, resize:"vertical", border:"1px solid #E5E7EB", borderRadius:14, padding:"14px 16px", fontSize:13.5, lineHeight:1.7, color:"#111827", outline:"none", boxSizing:"border-box", fontFamily:"inherit", background:"#FCFCFF" }}
+              />
+            </div>
+
+            <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:18, padding:"22px", boxShadow:"0 4px 18px rgba(15,23,42,0.04)" }}>
+              <div style={{ fontSize:12, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>2. Next-Level Bar</div>
+              <h2 style={{ fontSize:18, fontWeight:850, color:"#111827", margin:"0 0 4px" }}>Define what promotion actually requires</h2>
+              <p style={{ fontSize:13, color:"#6B7280", lineHeight:1.6, margin:"0 0 16px" }}>Promotion coaches consistently push on the same thing: do you know the rubric, and can you prove you already operate there?</p>
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))", gap:14 }}>
+                <input
+                  value={targetLevel}
+                  onChange={e => setTargetLevel(e.target.value)}
+                  placeholder="Target level — e.g. Senior Manager, Staff PM"
+                  style={{ width:"100%", border:"1px solid #E5E7EB", borderRadius:12, padding:"12px 14px", fontSize:13.5, color:"#111827", outline:"none", boxSizing:"border-box", fontFamily:"inherit" }}
+                />
+                <input
+                  value={contextText}
+                  onChange={e => setContextText(e.target.value)}
+                  placeholder="Context — timing, manager stance, review cycle, blockers"
+                  style={{ width:"100%", border:"1px solid #E5E7EB", borderRadius:12, padding:"12px 14px", fontSize:13.5, color:"#111827", outline:"none", boxSizing:"border-box", fontFamily:"inherit" }}
+                />
+              </div>
+              <textarea
+                value={criteriaText}
+                onChange={e => setCriteriaText(e.target.value)}
+                placeholder="Paste the next-level rubric, promotion packet guidance, manager notes, or review criteria..."
+                style={{ width:"100%", minHeight:170, resize:"vertical", border:"1px solid #E5E7EB", borderRadius:14, padding:"14px 16px", fontSize:13.5, lineHeight:1.7, color:"#111827", outline:"none", boxSizing:"border-box", fontFamily:"inherit", marginTop:14, background:"#FCFCFF" }}
+              />
+            </div>
+
+            <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:18, padding:"22px", boxShadow:"0 4px 18px rgba(15,23,42,0.04)" }}>
+              <div style={{ fontSize:12, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>3. Practice Mode</div>
+              <h2 style={{ fontSize:18, fontWeight:850, color:"#111827", margin:"0 0 4px" }}>Choose the room you need to win</h2>
+              <p style={{ fontSize:13, color:"#6B7280", lineHeight:1.6, margin:"0 0 16px" }}>Each mode changes the questions. Manager conversations are not committee conversations, and sponsor asks are different again.</p>
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))", gap:12 }}>
+                {(Object.entries(PROMOTION_PRACTICE_META) as [PromotionPracticeMode, typeof PROMOTION_PRACTICE_META[PromotionPracticeMode]][]).map(([key, meta]) => {
+                  const active = mode === key;
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => setMode(key)}
+                      style={{
+                        textAlign:"left",
+                        border:`1.5px solid ${active ? meta.color : "#E5E7EB"}`,
+                        background:active ? meta.bg : "white",
+                        borderRadius:16,
+                        padding:"16px 16px 14px",
+                        cursor:"pointer",
+                        boxShadow:active ? `0 8px 24px ${meta.color}18` : "none",
+                      }}
+                    >
+                      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginBottom:8 }}>
+                        <div style={{ fontSize:14.5, fontWeight:800, color:active ? meta.color : "#111827" }}>{meta.label}</div>
+                        <span style={{ fontSize:10.5, fontWeight:800, padding:"4px 8px", borderRadius:999, background:active ? "rgba(255,255,255,0.7)" : "#F8FAFC", color:active ? meta.color : "#64748B", border:`1px solid ${active ? `${meta.color}33` : "#E5E7EB"}` }}>{meta.badge}</span>
+                      </div>
+                      <p style={{ fontSize:12.5, lineHeight:1.55, color:active ? "#3F3F46" : "#6B7280", margin:0 }}>{meta.desc}</p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {setupError && (
+            <div style={{ marginTop:16, background:"rgba(220,38,38,0.08)", border:"1px solid rgba(220,38,38,0.22)", borderRadius:14, padding:"12px 14px", fontSize:13, color:"#B91C1C" }}>
+              {setupError}
+            </div>
+          )}
+
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:16, marginTop:20, flexWrap:"wrap" }}>
+            <p style={{ fontSize:12.5, color:"#64748B", lineHeight:1.6, margin:0, maxWidth:560 }}>
+              Research-backed themes shaping this flow: explicit next-level criteria, actionable feedback from decision-makers, and sponsorship/visibility beyond your direct manager.
+            </p>
+            <button
+              onClick={() => void startPractice()}
+              disabled={loadingQs}
+              style={{ fontSize:13.5, fontWeight:800, padding:"12px 20px", borderRadius:12, border:"none", background:loadingQs ? "#C4B5FD" : "linear-gradient(135deg,#7C3AED,#A855F7)", color:"white", cursor:loadingQs ? "default" : "pointer", boxShadow:"0 12px 28px rgba(124,58,237,0.22)" }}
+            >
+              {loadingQs ? "Generating questions..." : "Start Promotion Practice"}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const activeSection = sections[activeSectionIdx];
+  const currentQuestion = activeSection?.questions[qIdx];
+  const totalQuestions = sections.reduce((sum, section) => sum + section.questions.length, 0);
+  const questionNumber = sections.slice(0, activeSectionIdx).reduce((sum, section) => sum + section.questions.length, 0) + qIdx + 1;
+
+  return (
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F8F7FF" }}>
+      <div style={{ maxWidth:1120, margin:"0 auto", padding:"28px 28px 52px" }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:16, flexWrap:"wrap", marginBottom:20 }}>
+          <div>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:6 }}>
+              <span style={{ fontSize:11, fontWeight:800, padding:"4px 9px", borderRadius:999, background:PROMOTION_PRACTICE_META[mode].bg, color:PROMOTION_PRACTICE_META[mode].color, border:`1px solid ${PROMOTION_PRACTICE_META[mode].color}22`, textTransform:"uppercase", letterSpacing:"0.06em" }}>
+                {PROMOTION_PRACTICE_META[mode].label}
+              </span>
+              <span style={{ fontSize:12, color:"#64748B" }}>Question {questionNumber} of {totalQuestions}</span>
+            </div>
+            <h1 style={{ fontSize:28, fontWeight:900, letterSpacing:"-0.04em", color:"#111827", margin:"0 0 6px" }}>Promotion pitch practice</h1>
+            <p style={{ fontSize:13.5, color:"#6B7280", lineHeight:1.6, margin:0 }}>Stay specific. Promotions are won on scope, impact, influence, and a clean narrative.</p>
+          </div>
+          <button onClick={() => setSections(null)} style={{ fontSize:12.5, fontWeight:700, padding:"10px 14px", borderRadius:10, border:"1px solid #DDD6FE", background:"white", color:"#6D28D9", cursor:"pointer" }}>
+            ← Rebuild questions
+          </button>
+        </div>
+
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:18, alignItems:"start" }}>
+          <div style={{ display:"grid", gap:14, position:"sticky", top:18 }}>
+            <div style={{ background:"white", border:"1px solid #E9D5FF", borderRadius:18, padding:"16px", boxShadow:"0 4px 18px rgba(124,58,237,0.06)" }}>
+              <div style={{ fontSize:11.5, fontWeight:800, color:"#7C3AED", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Sections</div>
+              <div style={{ display:"grid", gap:10 }}>
+                {sections.map((section, sectionIdx) => {
+                  const active = sectionIdx === activeSectionIdx;
+                  return (
+                    <button
+                      key={section.name}
+                      onClick={() => goToQuestion(sectionIdx, 0)}
+                      style={{ textAlign:"left", border:`1px solid ${active ? "#C4B5FD" : "#E5E7EB"}`, background:active ? "#F5F3FF" : "white", borderRadius:14, padding:"13px 14px", cursor:"pointer" }}
+                    >
+                      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginBottom:5 }}>
+                        <div style={{ fontSize:13.5, fontWeight:800, color:active ? "#6D28D9" : "#111827" }}>{section.name}</div>
+                        <span style={{ fontSize:11.5, color:"#64748B" }}>{section.questions.length} Qs</span>
+                      </div>
+                      <p style={{ fontSize:12, lineHeight:1.55, color:"#6B7280", margin:0 }}>{section.description}</p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:18, padding:"16px", boxShadow:"0 4px 18px rgba(15,23,42,0.04)" }}>
+              <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Signals to hit</div>
+              <div style={{ display:"grid", gap:8 }}>
+                {["Next-level scope", "Business impact", "Cross-functional influence", "Sponsor-ready clarity"].map(item => (
+                  <div key={item} style={{ fontSize:12.5, color:"#334155", background:"#F8FAFC", border:"1px solid #E2E8F0", borderRadius:10, padding:"9px 10px" }}>
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display:"grid", gap:16 }}>
+            <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 10px 30px rgba(15,23,42,0.05)" }}>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:14, flexWrap:"wrap" }}>
+                <div>
+                  <div style={{ fontSize:11.5, fontWeight:800, color:PROMOTION_PRACTICE_META[mode].color, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>
+                    {activeSection?.name}
+                  </div>
+                  <h2 style={{ fontSize:24, fontWeight:900, letterSpacing:"-0.03em", color:"#111827", margin:0 }}>{currentQuestion?.q}</h2>
+                </div>
+                {currentQuestion && (
+                  <span style={{ fontSize:11.5, fontWeight:700, padding:"5px 10px", borderRadius:999, background:"#F8FAFC", color:"#475569", border:"1px solid #E2E8F0" }}>
+                    {currentQuestion.cat} · {currentQuestion.level}
+                  </span>
+                )}
+              </div>
+
+              <textarea
+                value={answer}
+                onChange={e => setAnswer(e.target.value)}
+                placeholder="Answer out loud first, then capture the strongest version here. Aim for scope, decision-making, outcomes, and why this proves next-level readiness."
+                style={{ width:"100%", minHeight:230, resize:"vertical", border:"1px solid #E5E7EB", borderRadius:16, padding:"16px 18px", fontSize:14, lineHeight:1.75, color:"#111827", outline:"none", boxSizing:"border-box", fontFamily:"inherit", background:"#FCFCFF" }}
+              />
+
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:12, marginTop:16, flexWrap:"wrap" }}>
+                <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                  <button onClick={prevQuestion} disabled={activeSectionIdx === 0 && qIdx === 0} style={{ fontSize:12.5, fontWeight:700, padding:"10px 14px", borderRadius:10, border:"1px solid #E5E7EB", background:"white", color:"#475569", cursor:"pointer", opacity:activeSectionIdx === 0 && qIdx === 0 ? 0.45 : 1 }}>
+                    Previous
+                  </button>
+                  <button onClick={nextQuestion} disabled={questionNumber === totalQuestions} style={{ fontSize:12.5, fontWeight:700, padding:"10px 14px", borderRadius:10, border:"1px solid #E5E7EB", background:"white", color:"#475569", cursor:"pointer", opacity:questionNumber === totalQuestions ? 0.45 : 1 }}>
+                    Next
+                  </button>
+                </div>
+                <button onClick={() => void submit()} disabled={isScoring || !answer.trim()} style={{ fontSize:13, fontWeight:800, padding:"11px 18px", borderRadius:12, border:"none", background:isScoring || !answer.trim() ? "#C4B5FD" : "linear-gradient(135deg,#7C3AED,#A855F7)", color:"white", cursor:isScoring || !answer.trim() ? "default" : "pointer" }}>
+                  {isScoring ? "Scoring..." : "Score my answer"}
+                </button>
+              </div>
+            </div>
+
+            {feedback && (
+              <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:20, padding:"22px", boxShadow:"0 10px 30px rgba(15,23,42,0.05)" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:16, flexWrap:"wrap", marginBottom:18 }}>
+                  <ScoreRing score={feedback.overallScore} color={dimColor(feedback.overallScore)} size={70} />
+                  <div>
+                    <div style={{ fontSize:11.5, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:4 }}>Answer Review</div>
+                    <h3 style={{ fontSize:22, fontWeight:900, letterSpacing:"-0.03em", color:"#111827", margin:"0 0 4px" }}>{feedback.overallScore >= 80 ? "Promotion-ready signal" : "Needs sharper evidence"}</h3>
+                    <p style={{ fontSize:13.5, color:"#6B7280", lineHeight:1.6, margin:0 }}>{feedback.coachNote}</p>
+                  </div>
+                </div>
+
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))", gap:12, marginBottom:18 }}>
+                  {feedback.dimensions.map(dim => (
+                    <div key={dim.label} style={{ background:"#F8FAFC", border:"1px solid #E2E8F0", borderRadius:14, padding:"12px 13px" }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", gap:12, marginBottom:8 }}>
+                        <span style={{ fontSize:12.5, fontWeight:700, color:"#334155" }}>{dim.label}</span>
+                        <span style={{ fontSize:12.5, fontWeight:800, color:dimColor(dim.score) }}>{dim.score}</span>
+                      </div>
+                      <Bar pct={dim.score} color={dimColor(dim.score)} h={6} />
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ background:"linear-gradient(135deg,#F5F3FF,#EEF2FF)", border:"1px solid #DDD6FE", borderRadius:16, padding:"16px 18px" }}>
+                  <div style={{ fontSize:11.5, fontWeight:800, color:"#6D28D9", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Sharper version</div>
+                  <div style={{ fontSize:13.5, color:"#312E81", lineHeight:1.75, whiteSpace:"pre-wrap" }}>{feedback.suggestedResult}</div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type PromotionDocResult = {
+  title: string;
+  summary: string;
+  document: string;
+  talkingPoints: string[];
+};
+
+function ScreenPromotionDocument() {
+  const [evidenceText, setEvidenceText] = useState("");
+  const [evidenceFile, setEvidenceFile] = useState("");
+  const [criteriaText, setCriteriaText] = useState("");
+  const [contextText, setContextText] = useState("");
+  const [targetLevel, setTargetLevel] = useState("");
+  const [audience, setAudience] = useState<"manager" | "committee" | "sponsor">("manager");
+  const [tone, setTone] = useState<"crisp" | "confident" | "strategic">("strategic");
+  const [generating, setGenerating] = useState(false);
+  const [result, setResult] = useState<PromotionDocResult | null>(null);
+  const [error, setError] = useState("");
+  const [copied, setCopied] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleUpload(file: File) {
+    setEvidenceFile(file.name);
+    setError("");
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/zari/extract", { method:"POST", body:fd });
+      const data = await res.json().catch(() => ({})) as { text?: string };
+      if (data.text) setEvidenceText(data.text);
+      else setError("Could not extract text from that file. Paste the evidence instead.");
+    } catch {
+      setError("Could not extract text from that file. Paste the evidence instead.");
+    }
+  }
+
+  async function generate() {
+    if (!evidenceText.trim() && !criteriaText.trim()) {
+      setError("Add either promotion evidence or next-level criteria before generating.");
+      return;
+    }
+    setGenerating(true);
+    setError("");
+    setResult(null);
+    try {
+      const res = await fetch("/api/zari/promotion-doc", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ evidenceText, criteriaText, contextText, targetLevel, audience, tone }),
+      });
+      const data = await res.json().catch(() => null) as (PromotionDocResult & { error?: string }) | null;
+      if (data?.document) {
+        setResult(data);
+        vaultSave({
+          type:"cover-letter",
+          name:data.title || "Promotion Self Review",
+          content:data.document,
+          meta:{ stage:"promotion", audience, tone, targetLevel },
+        });
+      } else {
+        setError(data?.error ?? "Could not generate your promotion document.");
+      }
+    } catch {
+      setError("Could not generate your promotion document.");
+    }
+    setGenerating(false);
+  }
+
+  async function copy() {
+    if (!result) return;
+    try {
+      await navigator.clipboard.writeText(result.document);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function download() {
+    if (!result) return;
+    const safeName = (result.title || "promotion-self-review").replace(/[^a-zA-Z0-9_\-. ]/g, "_");
+    const blob = new Blob([result.document], { type:"text/plain;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${safeName}.txt`;
+    a.click();
+  }
+
+  if (result || generating) {
+    return (
+      <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F4F7FB" }}>
+        <div style={{ maxWidth:860, margin:"0 auto", padding:"28px 24px 52px" }}>
+          {generating ? (
+            <div style={{ background:"linear-gradient(135deg,#111827,#1F2937)", borderRadius:20, padding:"72px 32px", textAlign:"center", boxShadow:"0 16px 48px rgba(15,23,42,0.22)" }}>
+              <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:18 }}>
+                {[0,1,2].map(i => <div key={i} style={{ width:11, height:11, borderRadius:"50%", background:"#34D399", animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
+              </div>
+              <div style={{ fontSize:18, fontWeight:850, color:"white", marginBottom:8 }}>Building your self-review</div>
+              <div style={{ fontSize:13.5, color:"rgba(255,255,255,0.45)" }}>Translating evidence into a manager-ready promotion narrative</div>
+            </div>
+          ) : result && (
+            <>
+              <div style={{ background:"linear-gradient(135deg,#064E3B,#065F46)", borderRadius:20, padding:"22px 24px", marginBottom:20, boxShadow:"0 12px 36px rgba(5,150,105,0.2)", position:"relative", overflow:"hidden" }}>
+                <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at top right,rgba(167,243,208,0.28),transparent 32%)", pointerEvents:"none" }}/>
+                <div style={{ position:"relative", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, flexWrap:"wrap" }}>
+                  <div>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"rgba(167,243,208,0.95)", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:6 }}>Self Review Ready</div>
+                    <h1 style={{ fontSize:24, fontWeight:900, letterSpacing:"-0.03em", color:"white", margin:"0 0 6px" }}>{result.title}</h1>
+                    <p style={{ fontSize:13, lineHeight:1.6, color:"rgba(255,255,255,0.7)", margin:0, maxWidth:560 }}>{result.summary}</p>
+                  </div>
+                  <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                    <button onClick={() => setResult(null)} style={{ fontSize:12, fontWeight:700, padding:"8px 12px", borderRadius:10, border:"1px solid rgba(255,255,255,0.14)", background:"rgba(255,255,255,0.08)", color:"rgba(255,255,255,0.85)", cursor:"pointer" }}>← Start over</button>
+                    <button onClick={() => void copy()} style={{ fontSize:12, fontWeight:700, padding:"8px 12px", borderRadius:10, border:"1px solid rgba(255,255,255,0.14)", background:copied ? "rgba(52,211,153,0.18)" : "rgba(255,255,255,0.08)", color:copied ? "#A7F3D0" : "rgba(255,255,255,0.85)", cursor:"pointer" }}>{copied ? "Copied" : "Copy"}</button>
+                    <button onClick={download} style={{ fontSize:12, fontWeight:800, padding:"8px 14px", borderRadius:10, border:"none", background:"white", color:"#065F46", cursor:"pointer" }}>Download</button>
+                  </div>
+                </div>
+              </div>
+
+              {result.talkingPoints.length > 0 && (
+                <div style={{ background:"white", border:"1px solid #D1FAE5", borderRadius:18, padding:"18px 20px", marginBottom:18, boxShadow:"0 4px 18px rgba(5,150,105,0.06)" }}>
+                  <div style={{ fontSize:11.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Talking Points</div>
+                  <div style={{ display:"flex", flexWrap:"wrap", gap:10 }}>
+                    {result.talkingPoints.map(point => (
+                      <div key={point} style={{ fontSize:12.5, fontWeight:600, color:"#065F46", background:"#ECFDF5", border:"1px solid #A7F3D0", borderRadius:999, padding:"8px 12px" }}>
+                        {point}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div style={{ background:"white", borderRadius:12, border:"1px solid rgba(15,23,42,0.08)", boxShadow:"0 12px 36px rgba(15,23,42,0.08)", overflow:"hidden" }}>
+                <div style={{ padding:"48px 52px", fontFamily:"Georgia,'Times New Roman',serif" }}>
+                  <div style={{ fontSize:14, lineHeight:1.95, color:"#111827", whiteSpace:"pre-wrap" }}>{result.document}</div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F4F7FB" }}>
+      <input ref={fileInputRef} type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e => { const f = e.target.files?.[0]; if (f) void handleUpload(f); e.target.value = ""; }} />
+      <div style={{ maxWidth:900, margin:"0 auto", padding:"32px 28px 56px" }}>
+        <div style={{ background:"linear-gradient(135deg,#052E2B,#065F46)", borderRadius:22, padding:"28px 30px", color:"white", marginBottom:24, boxShadow:"0 18px 48px rgba(6,95,70,0.18)" }}>
+          <div style={{ fontSize:11, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.12em", color:"rgba(167,243,208,0.9)", marginBottom:8 }}>Promotion Writing</div>
+          <h1 style={{ fontSize:30, fontWeight:900, letterSpacing:"-0.04em", margin:"0 0 10px" }}>Write the document your manager wishes you had handed them</h1>
+          <p style={{ maxWidth:700, fontSize:14.5, lineHeight:1.7, color:"rgba(255,255,255,0.72)", margin:0 }}>
+            Promotions rarely hinge on effort alone. The document needs to make your scope, impact, influence, and next-level readiness easy to retell.
+          </p>
+        </div>
+
+        <div style={{ display:"grid", gap:16 }}>
+          <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:18, padding:"22px", boxShadow:"0 4px 18px rgba(15,23,42,0.04)" }}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap", marginBottom:14 }}>
+              <div>
+                <div style={{ fontSize:12, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>Evidence</div>
+                <h2 style={{ fontSize:18, fontWeight:850, color:"#111827", margin:"0 0 4px" }}>Give Zari the raw material</h2>
+                <p style={{ fontSize:13, color:"#6B7280", lineHeight:1.6, margin:0 }}>Wins, brag sheet bullets, launch recaps, peer feedback, or self-eval notes all work.</p>
+              </div>
+              <button onClick={() => fileInputRef.current?.click()} style={{ fontSize:12.5, fontWeight:700, padding:"9px 14px", borderRadius:10, border:"1px solid #D1FAE5", background:"#ECFDF5", color:"#047857", cursor:"pointer" }}>
+                Upload notes
+              </button>
+            </div>
+            {evidenceFile && <div style={{ marginBottom:12, fontSize:12.5, fontWeight:600, color:"#047857", background:"#ECFDF5", border:"1px solid #A7F3D0", borderRadius:10, padding:"9px 12px", display:"inline-flex" }}>{evidenceFile}</div>}
+            <textarea value={evidenceText} onChange={e => setEvidenceText(e.target.value)} placeholder="Paste accomplishments, projects, outcomes, feedback, and the work you want included..." style={{ width:"100%", minHeight:220, resize:"vertical", border:"1px solid #E5E7EB", borderRadius:14, padding:"14px 16px", fontSize:13.5, lineHeight:1.7, color:"#111827", outline:"none", boxSizing:"border-box", fontFamily:"inherit", background:"#FCFCFF" }} />
+          </div>
+
+          <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:18, padding:"22px", boxShadow:"0 4px 18px rgba(15,23,42,0.04)" }}>
+            <div style={{ fontSize:12, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>Audience + Criteria</div>
+            <h2 style={{ fontSize:18, fontWeight:850, color:"#111827", margin:"0 0 4px" }}>Frame the document for the room it needs to influence</h2>
+            <p style={{ fontSize:13, color:"#6B7280", lineHeight:1.6, margin:"0 0 16px" }}>A manager draft is not the same as a committee memo or sponsor brief. Tailor it on purpose.</p>
+
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))", gap:14, marginBottom:14 }}>
+              <input value={targetLevel} onChange={e => setTargetLevel(e.target.value)} placeholder="Target level — e.g. Staff Engineer" style={{ width:"100%", border:"1px solid #E5E7EB", borderRadius:12, padding:"12px 14px", fontSize:13.5, color:"#111827", outline:"none", boxSizing:"border-box", fontFamily:"inherit" }} />
+              <input value={contextText} onChange={e => setContextText(e.target.value)} placeholder="Context — review cycle, manager stance, competing concerns" style={{ width:"100%", border:"1px solid #E5E7EB", borderRadius:12, padding:"12px 14px", fontSize:13.5, color:"#111827", outline:"none", boxSizing:"border-box", fontFamily:"inherit" }} />
+            </div>
+
+            <textarea value={criteriaText} onChange={e => setCriteriaText(e.target.value)} placeholder="Paste the next-level rubric, evaluation criteria, or any internal guidance..." style={{ width:"100%", minHeight:170, resize:"vertical", border:"1px solid #E5E7EB", borderRadius:14, padding:"14px 16px", fontSize:13.5, lineHeight:1.7, color:"#111827", outline:"none", boxSizing:"border-box", fontFamily:"inherit", background:"#FCFCFF", marginBottom:16 }} />
+
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))", gap:12, marginBottom:14 }}>
+              {([
+                ["manager", "Manager draft"],
+                ["committee", "Committee memo"],
+                ["sponsor", "Sponsor brief"],
+              ] as const).map(([key, label]) => {
+                const active = audience === key;
+                return (
+                  <button key={key} onClick={() => setAudience(key)} style={{ textAlign:"left", border:`1.5px solid ${active ? "#059669" : "#E5E7EB"}`, background:active ? "#ECFDF5" : "white", color:active ? "#047857" : "#111827", borderRadius:14, padding:"14px 14px 12px", cursor:"pointer" }}>
+                    <div style={{ fontSize:13.5, fontWeight:800, marginBottom:4 }}>{label}</div>
+                    <div style={{ fontSize:12, lineHeight:1.5, color:active ? "#065F46" : "#6B7280" }}>
+                      {key === "manager" ? "Give your manager a case they can retell." : key === "committee" ? "Write for skeptics and calibration standards." : "Make advocacy easy for a senior sponsor."}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+              {([
+                ["strategic", "Strategic"],
+                ["crisp", "Crisp"],
+                ["confident", "Confident"],
+              ] as const).map(([key, label]) => (
+                <button key={key} onClick={() => setTone(key)} style={{ fontSize:12.5, fontWeight:700, padding:"8px 12px", borderRadius:999, border:`1px solid ${tone === key ? "#6EE7B7" : "#E5E7EB"}`, background:tone === key ? "#ECFDF5" : "white", color:tone === key ? "#047857" : "#64748B", cursor:"pointer" }}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {error && <div style={{ marginTop:16, background:"rgba(220,38,38,0.08)", border:"1px solid rgba(220,38,38,0.22)", borderRadius:14, padding:"12px 14px", fontSize:13, color:"#B91C1C" }}>{error}</div>}
+
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:16, marginTop:20, flexWrap:"wrap" }}>
+          <p style={{ fontSize:12.5, color:"#64748B", lineHeight:1.6, margin:0, maxWidth:560 }}>
+            This replaces the generic cover-letter flow with a promotion document built around evidence, rubric alignment, and a specific audience.
+          </p>
+          <button onClick={() => void generate()} disabled={generating} style={{ fontSize:13.5, fontWeight:800, padding:"12px 20px", borderRadius:12, border:"none", background:generating ? "#A7F3D0" : "linear-gradient(135deg,#059669,#10B981)", color:"white", cursor:generating ? "default" : "pointer", boxShadow:"0 12px 28px rgba(5,150,105,0.18)" }}>
+            {generating ? "Generating..." : "Generate Self Review"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type PromotionVisibilityResult = {
+  overallFocus: string;
+  executiveNarrative: string;
+  visibilityMoves: Array<{ title: string; move: string; why: string }>;
+  sponsorMap: Array<{ audience: string; goal: string; ask: string }>;
+  weeklyCadence: string[];
+  watchouts: string[];
+};
+
+function ScreenPromotionVisibility() {
+  const [evidenceText, setEvidenceText] = useState("");
+  const [evidenceFile, setEvidenceFile] = useState("");
+  const [targetLevel, setTargetLevel] = useState("");
+  const [stakeholders, setStakeholders] = useState("");
+  const [blockers, setBlockers] = useState("");
+  const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState("");
+  const [result, setResult] = useState<PromotionVisibilityResult | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleUpload(file: File) {
+    setEvidenceFile(file.name);
+    setError("");
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/zari/extract", { method:"POST", body:fd });
+      const data = await res.json().catch(() => ({})) as { text?: string };
+      if (data.text) setEvidenceText(data.text);
+      else setError("Could not extract text from that file. Paste the evidence instead.");
+    } catch {
+      setError("Could not extract text from that file. Paste the evidence instead.");
+    }
+  }
+
+  async function generate() {
+    if (!evidenceText.trim() && !stakeholders.trim()) {
+      setError("Add some evidence or stakeholder context before generating the plan.");
+      return;
+    }
+    setGenerating(true);
+    setError("");
+    try {
+      const res = await fetch("/api/zari/promotion-visibility", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ evidenceText, targetLevel, stakeholders, blockers }),
+      });
+      const data = await res.json().catch(() => null) as (PromotionVisibilityResult & { error?: string }) | null;
+      if (data?.overallFocus) {
+        setResult(data);
+        const serialized = [
+          data.overallFocus,
+          "",
+          "Executive narrative",
+          data.executiveNarrative,
+          "",
+          "Visibility moves",
+          ...data.visibilityMoves.map(item => `- ${item.title}: ${item.move}`),
+          "",
+          "Sponsor map",
+          ...data.sponsorMap.map(item => `- ${item.audience}: ${item.ask}`),
+          "",
+          "Weekly cadence",
+          ...data.weeklyCadence.map(item => `- ${item}`),
+        ].join("\n");
+        vaultSave({
+          type:"linkedin",
+          name:"Promotion Visibility Plan",
+          content:serialized,
+          meta:{ stage:"promotion", targetLevel },
+        });
+      } else {
+        setError(data?.error ?? "Could not generate the visibility plan.");
+      }
+    } catch {
+      setError("Could not generate the visibility plan.");
+    }
+    setGenerating(false);
+  }
+
+  if (result) {
+    return (
+      <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F3F8FC" }}>
+        <div style={{ maxWidth:980, margin:"0 auto", padding:"28px 24px 52px" }}>
+          <div style={{ background:"linear-gradient(135deg,#0F172A,#0A66C2)", borderRadius:22, padding:"24px 26px", color:"white", marginBottom:20, boxShadow:"0 16px 48px rgba(10,102,194,0.18)" }}>
+            <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:14, flexWrap:"wrap" }}>
+              <div>
+                <div style={{ fontSize:11, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.12em", color:"rgba(191,219,254,0.92)", marginBottom:6 }}>Visibility Plan Ready</div>
+                <h1 style={{ fontSize:28, fontWeight:900, letterSpacing:"-0.04em", margin:"0 0 8px" }}>Make the right people aware of the right proof</h1>
+                <p style={{ fontSize:14, lineHeight:1.7, color:"rgba(255,255,255,0.72)", margin:0, maxWidth:700 }}>{result.overallFocus}</p>
+              </div>
+              <button onClick={() => setResult(null)} style={{ fontSize:12.5, fontWeight:700, padding:"9px 14px", borderRadius:10, border:"1px solid rgba(255,255,255,0.14)", background:"rgba(255,255,255,0.08)", color:"white", cursor:"pointer" }}>
+                ← Start over
+              </button>
+            </div>
+          </div>
+
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))", gap:18, alignItems:"start" }}>
+            <div style={{ display:"grid", gap:16 }}>
+              <div style={{ background:"white", border:"1px solid #DBEAFE", borderRadius:18, padding:"20px 22px", boxShadow:"0 8px 24px rgba(10,102,194,0.07)" }}>
+                <div style={{ fontSize:11.5, fontWeight:800, color:"#0A66C2", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Executive Narrative</div>
+                <div style={{ fontSize:14, lineHeight:1.8, color:"#0F172A", whiteSpace:"pre-wrap" }}>{result.executiveNarrative}</div>
+              </div>
+
+              <div style={{ background:"white", border:"1px solid #E2E8F0", borderRadius:18, padding:"20px 22px", boxShadow:"0 8px 24px rgba(15,23,42,0.05)" }}>
+                <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>Visibility Moves</div>
+                <div style={{ display:"grid", gap:12 }}>
+                  {result.visibilityMoves.map(item => (
+                    <div key={item.title} style={{ background:"#F8FAFC", border:"1px solid #E2E8F0", borderRadius:16, padding:"15px 16px" }}>
+                      <div style={{ fontSize:14, fontWeight:800, color:"#111827", marginBottom:6 }}>{item.title}</div>
+                      <div style={{ fontSize:13, color:"#334155", lineHeight:1.65, marginBottom:8 }}>{item.move}</div>
+                      <div style={{ fontSize:12.5, color:"#64748B", lineHeight:1.6 }}>{item.why}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display:"grid", gap:16 }}>
+              <div style={{ background:"white", border:"1px solid #E2E8F0", borderRadius:18, padding:"20px 22px", boxShadow:"0 8px 24px rgba(15,23,42,0.05)" }}>
+                <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>Sponsor Map</div>
+                <div style={{ display:"grid", gap:12 }}>
+                  {result.sponsorMap.map(item => (
+                    <div key={item.audience} style={{ border:"1px solid #E2E8F0", borderRadius:16, padding:"14px 15px" }}>
+                      <div style={{ fontSize:13.5, fontWeight:800, color:"#111827", marginBottom:5 }}>{item.audience}</div>
+                      <div style={{ fontSize:12.5, color:"#334155", lineHeight:1.6, marginBottom:7 }}>{item.goal}</div>
+                      <div style={{ fontSize:12.5, color:"#0A66C2", lineHeight:1.6 }}>{item.ask}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ background:"white", border:"1px solid #E2E8F0", borderRadius:18, padding:"20px 22px", boxShadow:"0 8px 24px rgba(15,23,42,0.05)" }}>
+                <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Weekly Cadence</div>
+                <div style={{ display:"grid", gap:9, marginBottom:16 }}>
+                  {result.weeklyCadence.map(item => (
+                    <div key={item} style={{ fontSize:12.5, color:"#334155", lineHeight:1.6, background:"#F8FAFC", border:"1px solid #E2E8F0", borderRadius:12, padding:"10px 11px" }}>
+                      {item}
+                    </div>
+                  ))}
+                </div>
+
+                {result.watchouts.length > 0 && (
+                  <>
+                    <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Watchouts</div>
+                    <div style={{ display:"grid", gap:9 }}>
+                      {result.watchouts.map(item => (
+                        <div key={item} style={{ fontSize:12.5, color:"#7F1D1D", lineHeight:1.6, background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:12, padding:"10px 11px" }}>
+                          {item}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F3F8FC" }}>
+      <input ref={fileInputRef} type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e => { const f = e.target.files?.[0]; if (f) void handleUpload(f); e.target.value = ""; }} />
+      <div style={{ maxWidth:900, margin:"0 auto", padding:"32px 28px 56px" }}>
+        <div style={{ background:"linear-gradient(135deg,#0F172A,#0A66C2)", borderRadius:22, padding:"28px 30px", color:"white", marginBottom:24, boxShadow:"0 18px 48px rgba(10,102,194,0.16)" }}>
+          <div style={{ fontSize:11, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.12em", color:"rgba(191,219,254,0.92)", marginBottom:8 }}>Strategic Visibility</div>
+          <h1 style={{ fontSize:30, fontWeight:900, letterSpacing:"-0.04em", margin:"0 0 10px" }}>Turn good work into promotion visibility without sounding performative</h1>
+          <p style={{ maxWidth:720, fontSize:14.5, lineHeight:1.7, color:"rgba(255,255,255,0.72)", margin:0 }}>
+            Promotion decisions are rarely based on output alone. They also depend on whether the right people can see your impact, understand your scope, and advocate for you.
+          </p>
+        </div>
+
+        <div style={{ display:"grid", gap:16 }}>
+          <div style={{ background:"white", border:"1px solid #DBEAFE", borderRadius:18, padding:"22px", boxShadow:"0 4px 18px rgba(10,102,194,0.06)" }}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap", marginBottom:14 }}>
+              <div>
+                <div style={{ fontSize:12, fontWeight:800, color:"#0A66C2", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>Evidence</div>
+                <h2 style={{ fontSize:18, fontWeight:850, color:"#111827", margin:"0 0 4px" }}>What should people know you already delivered?</h2>
+                <p style={{ fontSize:13, color:"#6B7280", lineHeight:1.6, margin:0 }}>Use wins, launches, leadership moments, and stakeholder praise. This becomes the visibility plan’s raw material.</p>
+              </div>
+              <button onClick={() => fileInputRef.current?.click()} style={{ fontSize:12.5, fontWeight:700, padding:"9px 14px", borderRadius:10, border:"1px solid #BFDBFE", background:"#EFF6FF", color:"#0A66C2", cursor:"pointer" }}>
+                Upload notes
+              </button>
+            </div>
+            {evidenceFile && <div style={{ marginBottom:12, fontSize:12.5, fontWeight:600, color:"#0A66C2", background:"#EFF6FF", border:"1px solid #BFDBFE", borderRadius:10, padding:"9px 12px", display:"inline-flex" }}>{evidenceFile}</div>}
+            <textarea value={evidenceText} onChange={e => setEvidenceText(e.target.value)} placeholder="Paste accomplishments, proof points, and the work you want leadership to associate with your name..." style={{ width:"100%", minHeight:200, resize:"vertical", border:"1px solid #E5E7EB", borderRadius:14, padding:"14px 16px", fontSize:13.5, lineHeight:1.7, color:"#111827", outline:"none", boxSizing:"border-box", fontFamily:"inherit", background:"#FCFCFF" }} />
+          </div>
+
+          <div style={{ background:"white", border:"1px solid #E2E8F0", borderRadius:18, padding:"22px", boxShadow:"0 4px 18px rgba(15,23,42,0.04)" }}>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))", gap:14, marginBottom:14 }}>
+              <input value={targetLevel} onChange={e => setTargetLevel(e.target.value)} placeholder="Target level — e.g. Senior Designer, Group PM" style={{ width:"100%", border:"1px solid #E5E7EB", borderRadius:12, padding:"12px 14px", fontSize:13.5, color:"#111827", outline:"none", boxSizing:"border-box", fontFamily:"inherit" }} />
+              <input value={blockers} onChange={e => setBlockers(e.target.value)} placeholder="Blockers — e.g. quiet manager, low cross-org visibility, weak sponsor" style={{ width:"100%", border:"1px solid #E5E7EB", borderRadius:12, padding:"12px 14px", fontSize:13.5, color:"#111827", outline:"none", boxSizing:"border-box", fontFamily:"inherit" }} />
+            </div>
+            <textarea value={stakeholders} onChange={e => setStakeholders(e.target.value)} placeholder="Key stakeholders — manager, skip-level, cross-functional leads, calibration committee, HRBP..." style={{ width:"100%", minHeight:160, resize:"vertical", border:"1px solid #E5E7EB", borderRadius:14, padding:"14px 16px", fontSize:13.5, lineHeight:1.7, color:"#111827", outline:"none", boxSizing:"border-box", fontFamily:"inherit", background:"#FCFCFF" }} />
+          </div>
+        </div>
+
+        {error && <div style={{ marginTop:16, background:"rgba(220,38,38,0.08)", border:"1px solid rgba(220,38,38,0.22)", borderRadius:14, padding:"12px 14px", fontSize:13, color:"#B91C1C" }}>{error}</div>}
+
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:16, marginTop:20, flexWrap:"wrap" }}>
+          <p style={{ fontSize:12.5, color:"#64748B", lineHeight:1.6, margin:0, maxWidth:560 }}>
+            This replaces the generic LinkedIn review with a promotion-specific plan for visibility, sponsorship, and the right narrative in the right rooms.
+          </p>
+          <button onClick={() => void generate()} disabled={generating} style={{ fontSize:13.5, fontWeight:800, padding:"12px 20px", borderRadius:12, border:"none", background:generating ? "#93C5FD" : "linear-gradient(135deg,#0A66C2,#2563EB)", color:"white", cursor:generating ? "default" : "pointer", boxShadow:"0 12px 28px rgba(10,102,194,0.18)" }}>
+            {generating ? "Generating..." : "Build Visibility Plan"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
+  if (stage === "promotion") return <ScreenPromotionVisibility />;
+
   type LINav = "score"|"headline"|"summary"|"experience"|"education"|"other"|"networking"|"keywords";
   const [liSection,      setLISection]      = useState<LINav>("score");
   const [inputMode,      setInputMode]      = useState(true);
@@ -4924,7 +5810,7 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
         setHasPhoto(parsed.hasPhoto);
         setResult(reviewData); setInputMode(false); setLISection("score");
         // Save to doc vault
-        vaultSave({ type:"linkedin", name:parsed.headline||"LinkedIn Profile", content:[parsed.headline,parsed.summary].join("\n\n"), meta:{ score:String(reviewData.overall??0), headline:parsed.headline||"", targetRole } });
+        vaultSave({ type:"linkedin", name:parsed.headline||"LinkedIn Profile", content:[parsed.headline,parsed.summary].join("\n\n"), meta:{ score:String(reviewData.overall??0), headline:parsed.headline||"", targetRole, stage } });
       } else {
         setErr(reviewData?.error ?? `Analysis failed (HTTP ${reviewRes.status}) — try again.`);
       }
@@ -5639,19 +6525,19 @@ function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
 /* ═══════════════════════════════════════════════════
    SCREEN: DOCUMENTS — drag-drop vault
 ═══════════════════════════════════════════════════ */
-function ScreenDocuments({ onNavigate }: { onNavigate: (s: string) => void }) {
+function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate: (s: string) => void }) {
   const [docs,        setDocs]        = useState<DocEntry[]>([]);
   const [preview,     setPreview]     = useState<DocEntry | null>(null);
   const [dragging,    setDragging]    = useState(false);
   const [uploading,   setUploading]   = useState(false);
   const fileInputRef  = useRef<HTMLInputElement>(null);
 
-  function reload() { setDocs(vaultRead()); }
+  function reload() { setDocs(vaultReadForStage(stage)); }
   useEffect(() => {
     reload();
     window.addEventListener("vault-updated", reload);
     return () => window.removeEventListener("vault-updated", reload);
-  }, []);
+  }, [stage]);
 
   async function handleFile(file: File) {
     setUploading(true);
@@ -5674,18 +6560,31 @@ function ScreenDocuments({ onNavigate }: { onNavigate: (s: string) => void }) {
     a.click();
   }
 
-  const TYPE_META: Record<DocType, { label:string; color:string; bg:string; icon: React.ReactNode; section: string }> = {
-    "resume":       { label:"Resume",       color:"#7C3AED", bg:"#F5F3FF", section:"resume",       icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><path d="M13 2H5a1.5 1.5 0 00-1.5 1.5v13A1.5 1.5 0 005 18h10a1.5 1.5 0 001.5-1.5V6L13 2z"/><path d="M13 2v4h4"/><path d="M7 9h6M7 12h4"/></svg> },
-    "linkedin":     { label:"LinkedIn",     color:"#0A66C2", bg:"#EFF6FF", section:"linkedin",     icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><rect x="2" y="2" width="16" height="16" rx="3"/><path d="M6 9v5M6 7v.01M10 14v-3a2 2 0 014 0v3M10 9v5"/></svg> },
-    "cover-letter": { label:"Cover Letter", color:"#059669", bg:"#ECFDF5", section:"cover-letter", icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><path d="M17 4H3a1 1 0 00-1 1v10a1 1 0 001 1h14a1 1 0 001-1V5a1 1 0 00-1-1z"/><path d="M1 5l9 7 9-7"/></svg> },
-    "upload":       { label:"Uploaded",     color:"#68738A", bg:"#F5F7FF", section:"documents",    icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><path d="M14 2H6a1.5 1.5 0 00-1.5 1.5v13A1.5 1.5 0 006 18h8a1.5 1.5 0 001.5-1.5V6L14 2z"/><path d="M14 2v4h4"/></svg> },
-  };
+  const TYPE_META: Record<DocType, { label:string; color:string; bg:string; icon: React.ReactNode; section: string }> = stage === "promotion"
+    ? {
+        "resume":       { label:"Promotion Case", color:"#7C3AED", bg:"#F5F3FF", section:"resume",       icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><path d="M13 2H5a1.5 1.5 0 00-1.5 1.5v13A1.5 1.5 0 005 18h10a1.5 1.5 0 001.5-1.5V6L13 2z"/><path d="M13 2v4h4"/><path d="M7 9h6M7 12h4"/></svg> },
+        "linkedin":     { label:"Visibility Plan", color:"#0A66C2", bg:"#EFF6FF", section:"linkedin",   icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><rect x="2" y="2" width="16" height="16" rx="3"/><path d="M6 9v5M6 7v.01M10 14v-3a2 2 0 014 0v3M10 9v5"/></svg> },
+        "cover-letter": { label:"Self Review", color:"#059669", bg:"#ECFDF5", section:"cover-letter",    icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><path d="M17 4H3a1 1 0 00-1 1v10a1 1 0 001 1h14a1 1 0 001-1V5a1 1 0 00-1-1z"/><path d="M1 5l9 7 9-7"/></svg> },
+        "upload":       { label:"Uploaded", color:"#68738A", bg:"#F5F7FF", section:"documents",         icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><path d="M14 2H6a1.5 1.5 0 00-1.5 1.5v13A1.5 1.5 0 006 18h8a1.5 1.5 0 001.5-1.5V6L14 2z"/><path d="M14 2v4h4"/></svg> },
+      }
+    : {
+        "resume":       { label:"Resume",       color:"#7C3AED", bg:"#F5F3FF", section:"resume",       icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><path d="M13 2H5a1.5 1.5 0 00-1.5 1.5v13A1.5 1.5 0 005 18h10a1.5 1.5 0 001.5-1.5V6L13 2z"/><path d="M13 2v4h4"/><path d="M7 9h6M7 12h4"/></svg> },
+        "linkedin":     { label:"LinkedIn",     color:"#0A66C2", bg:"#EFF6FF", section:"linkedin",     icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><rect x="2" y="2" width="16" height="16" rx="3"/><path d="M6 9v5M6 7v.01M10 14v-3a2 2 0 014 0v3M10 9v5"/></svg> },
+        "cover-letter": { label:"Cover Letter", color:"#059669", bg:"#ECFDF5", section:"cover-letter", icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><path d="M17 4H3a1 1 0 00-1 1v10a1 1 0 001 1h14a1 1 0 001-1V5a1 1 0 00-1-1z"/><path d="M1 5l9 7 9-7"/></svg> },
+        "upload":       { label:"Uploaded",     color:"#68738A", bg:"#F5F7FF", section:"documents",    icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><path d="M14 2H6a1.5 1.5 0 00-1.5 1.5v13A1.5 1.5 0 006 18h8a1.5 1.5 0 001.5-1.5V6L14 2z"/><path d="M14 2v4h4"/></svg> },
+      };
 
-  const SECTION_CARDS = [
-    { type:"resume"       as DocType, label:"Resume Review",   desc:"Upload and analyze your resume",          section:"resume",       color:"#7C3AED", bg:"#F5F3FF" },
-    { type:"linkedin"     as DocType, label:"LinkedIn Profile", desc:"Review and optimize your LinkedIn",       section:"linkedin",     color:"#0A66C2", bg:"#EFF6FF" },
-    { type:"cover-letter" as DocType, label:"Cover Letter",     desc:"Generate a tailored cover letter",        section:"cover-letter", color:"#059669", bg:"#ECFDF5" },
-  ];
+  const SECTION_CARDS = stage === "promotion"
+    ? [
+        { type:"resume"       as DocType, label:"Promotion Case", desc:"Build the evidence packet for next-level readiness", section:"resume",       color:"#7C3AED", bg:"#F5F3FF" },
+        { type:"linkedin"     as DocType, label:"Visibility Plan", desc:"Map sponsors, stakeholders, and strategic visibility", section:"linkedin", color:"#0A66C2", bg:"#EFF6FF" },
+        { type:"cover-letter" as DocType, label:"Self Review", desc:"Write the manager-ready promotion narrative", section:"cover-letter", color:"#059669", bg:"#ECFDF5" },
+      ]
+    : [
+        { type:"resume"       as DocType, label:"Resume Review",   desc:"Upload and analyze your resume",          section:"resume",       color:"#7C3AED", bg:"#F5F3FF" },
+        { type:"linkedin"     as DocType, label:"LinkedIn Profile", desc:"Review and optimize your LinkedIn",       section:"linkedin",     color:"#0A66C2", bg:"#EFF6FF" },
+        { type:"cover-letter" as DocType, label:"Cover Letter",     desc:"Generate a tailored cover letter",        section:"cover-letter", color:"#059669", bg:"#ECFDF5" },
+      ];
 
   const missing = SECTION_CARDS.filter(c => !docs.some(d => d.type === c.type));
   const words = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
@@ -5725,10 +6624,16 @@ function ScreenDocuments({ onNavigate }: { onNavigate: (s: string) => void }) {
           <div style={{ position:"absolute", top:-40, right:-20, width:160, height:160, background:"radial-gradient(circle,rgba(100,116,139,0.15) 0%,transparent 70%)", pointerEvents:"none" }}/>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:16, flexWrap:"wrap", position:"relative" }}>
             <div>
-              <div style={{ fontSize:10.5, fontWeight:700, color:"rgba(148,163,184,0.7)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Document Vault</div>
-              <h1 style={{ fontSize:22, fontWeight:900, letterSpacing:"-0.03em", color:"white", marginBottom:4 }}>My Documents</h1>
+              <div style={{ fontSize:10.5, fontWeight:700, color:"rgba(148,163,184,0.7)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>{stage === "promotion" ? "Promotion Evidence" : "Document Vault"}</div>
+              <h1 style={{ fontSize:22, fontWeight:900, letterSpacing:"-0.03em", color:"white", marginBottom:4 }}>{stage === "promotion" ? "Evidence Vault" : "My Documents"}</h1>
               <p style={{ fontSize:13, color:"rgba(255,255,255,0.4)" }}>
-                {docs.length === 0 ? "Your vault is empty — complete sections or upload files to get started" : `${docs.length} document${docs.length!==1?"s":""} · resume, cover letters, LinkedIn · all in one place`}
+                {docs.length === 0
+                  ? stage === "promotion"
+                    ? "Your promotion vault is empty — build your case, self review, or visibility plan to start filling it"
+                    : "Your vault is empty — complete sections or upload files to get started"
+                  : stage === "promotion"
+                    ? `${docs.length} document${docs.length!==1?"s":""} · case files, self reviews, visibility plans, and uploaded proof`
+                    : `${docs.length} document${docs.length!==1?"s":""} · resume, cover letters, LinkedIn · all in one place`}
               </p>
             </div>
             <button onClick={()=>fileInputRef.current?.click()} style={{ fontSize:13, fontWeight:700, padding:"10px 20px", borderRadius:11, border:"1px solid rgba(255,255,255,0.12)", background:"rgba(255,255,255,0.1)", color:"white", cursor:"pointer", display:"flex", alignItems:"center", gap:8, backdropFilter:"blur(4px)", flexShrink:0 }}>
@@ -5846,13 +6751,13 @@ const STAGE_TASKS: Record<CareerStage, { text:string; cat:string; pri:string }[]
     { text:"Book follow-up session to practice PM case interview",                 cat:"Session",    pri:"low"  },
   ],
   "promotion": [
-    { text:"Document 3 scope-expansion stories with business impact numbers",      cat:"Case",       pri:"high" },
-    { text:"Identify 2 executive sponsors and schedule a 30-min conversation",     cat:"Sponsorship",pri:"high" },
-    { text:"Write the promotion self-review draft with Zari's framework",          cat:"Docs",       pri:"high" },
-    { text:"Practice the manager promotion pitch until it flows naturally",        cat:"Session",    pri:"high" },
-    { text:"Map your work to the next-level rubric — identify remaining gaps",     cat:"Planning",   pri:"med"  },
-    { text:"Get a written recommendation from your cross-functional stakeholder",  cat:"Sponsorship",pri:"med"  },
-    { text:"Schedule the formal promotion conversation with your manager",         cat:"Milestone",  pri:"low"  },
+    { text:"Map 5 recent wins to the next-level rubric and note where proof is still weak", cat:"Case",       pri:"high" },
+    { text:"Rewrite your 3 strongest examples with scope, business impact, and stakeholder complexity", cat:"Docs", pri:"high" },
+    { text:"Ask your manager and one skip-level for explicit promotion blockers and timeline", cat:"Feedback", pri:"high" },
+    { text:"Build a sponsor map: who needs to see what before calibration",        cat:"Sponsorship",pri:"med"  },
+    { text:"Send one crisp weekly visibility update tied to team or business priorities", cat:"Visibility", pri:"med"  },
+    { text:"Practice the promotion pitch until the ask sounds direct and low-drama", cat:"Session", pri:"med"  },
+    { text:"Book the formal promotion conversation once your proof and support are in place", cat:"Milestone", pri:"low"  },
   ],
   "salary": [
     { text:"Research market rate on Levels.fyi, Glassdoor, and Blind",            cat:"Research",   pri:"high" },
@@ -5885,7 +6790,9 @@ const STAGE_TASKS: Record<CareerStage, { text:string; cat:string; pri:string }[]
 /* ═══════════════════════════════════════════════════
    SCREEN: COVER LETTER
 ═══════════════════════════════════════════════════ */
-function ScreenCoverLetter() {
+function ScreenCoverLetter({ stage }: { stage: CareerStage }) {
+  if (stage === "promotion") return <ScreenPromotionDocument />;
+
   const [step,          setStep]          = useState(1); // 1=background, 2=jd, 3=customize
   const [profileText,   setProfileText]   = useState("");
   const [profileFile,   setProfileFile]   = useState("");
@@ -5941,7 +6848,7 @@ function ScreenCoverLetter() {
       const data = await res.json().catch(() => null) as { subject?: string; coverLetter?: string; error?: string } | null;
       if (data?.coverLetter) { setResult({ subject:data.subject ?? "", coverLetter:data.coverLetter }); setEditedLetter(data.coverLetter);
         // Save to doc vault
-        vaultSave({ type:"cover-letter", name:data.subject||targetRole||"Cover Letter", content:data.coverLetter, meta:{ subject:data.subject??"", targetRole, company, tone } }); }
+        vaultSave({ type:"cover-letter", name:data.subject||targetRole||"Cover Letter", content:data.coverLetter, meta:{ subject:data.subject??"", targetRole, company, tone, stage } }); }
       else setError(data?.error ?? "Generation failed — try again.");
     } catch { setError("Something went wrong — try again."); }
     setGenerating(false);
@@ -6325,8 +7232,8 @@ function ScreenPlan({ stage, onNavigate }: { stage: CareerStage; onNavigate: (s:
   const [docs,        setDocs]        = useState<DocEntry[]>([]);
 
   useEffect(() => {
-    setDocs(vaultRead());
-    const onVaultUpdate = () => setDocs(vaultRead());
+    setDocs(vaultReadForStage(stage));
+    const onVaultUpdate = () => setDocs(vaultReadForStage(stage));
     window.addEventListener("vault-updated", onVaultUpdate);
     return () => window.removeEventListener("vault-updated", onVaultUpdate);
   }, [stage]);
@@ -6337,11 +7244,17 @@ function ScreenPlan({ stage, onNavigate }: { stage: CareerStage; onNavigate: (s:
   const readyCount = [hasResume, hasLI, hasCL].filter(Boolean).length;
   const isReady    = readyCount >= 1;
 
-  const SECTION_CARDS = [
-    { type:"resume"       as DocType, key:"resume",       label:"Resume Review",   desc:"Analyze your resume — Zari scores it and finds gaps", color:"#7C3AED", bg:"#F5F3FF", done:hasResume },
-    { type:"linkedin"     as DocType, key:"linkedin",     label:"LinkedIn Profile", desc:"Review your profile and get an overall LinkedIn score", color:"#0A66C2", bg:"#EFF6FF", done:hasLI },
-    { type:"cover-letter" as DocType, key:"cover-letter", label:"Cover Letter",     desc:"Generate a tailored cover letter for a specific role",  color:"#059669", bg:"#ECFDF5", done:hasCL },
-  ];
+  const SECTION_CARDS = stage === "promotion"
+    ? [
+        { type:"resume"       as DocType, key:"resume",       label:"Promotion Case", desc:"Map your proof to next-level criteria and fill the evidence gaps", color:"#7C3AED", bg:"#F5F3FF", done:hasResume },
+        { type:"linkedin"     as DocType, key:"linkedin",     label:"Visibility Plan", desc:"Map sponsors, stakeholders, and the narrative each one needs", color:"#0A66C2", bg:"#EFF6FF", done:hasLI },
+        { type:"cover-letter" as DocType, key:"cover-letter", label:"Self Review", desc:"Write the manager-ready promotion memo or self-review draft", color:"#059669", bg:"#ECFDF5", done:hasCL },
+      ]
+    : [
+        { type:"resume"       as DocType, key:"resume",       label:"Resume Review",   desc:"Analyze your resume — Zari scores it and finds gaps", color:"#7C3AED", bg:"#F5F3FF", done:hasResume },
+        { type:"linkedin"     as DocType, key:"linkedin",     label:"LinkedIn Profile", desc:"Review your profile and get an overall LinkedIn score", color:"#0A66C2", bg:"#EFF6FF", done:hasLI },
+        { type:"cover-letter" as DocType, key:"cover-letter", label:"Cover Letter",     desc:"Generate a tailored cover letter for a specific role",  color:"#059669", bg:"#ECFDF5", done:hasCL },
+      ];
 
   useEffect(() => {
     if (!isReady) return;
@@ -6362,7 +7275,11 @@ function ScreenPlan({ stage, onNavigate }: { stage: CareerStage; onNavigate: (s:
         liScore:         liDoc     ? (liDoc.meta.score||"")    : "",
         resumeScore:     resumeDoc ? (resumeDoc.meta.score||"")    : "",
         targetRole:      resumeDoc?.meta.targetRole || clDoc?.meta.targetRole || "",
-        completedSections: [hasResume?"resume":"", hasLI?"linkedin":"", hasCL?"cover-letter":""].filter(Boolean),
+        completedSections: [
+          hasResume ? STAGE_NAV_LABELS[stage].resume : "",
+          hasLI ? STAGE_NAV_LABELS[stage].linkedin : "",
+          hasCL ? STAGE_NAV_LABELS[stage]["cover-letter"] : "",
+        ].filter(Boolean),
       }),
     })
       .then(r => r.json())
@@ -6381,9 +7298,12 @@ function ScreenPlan({ stage, onNavigate }: { stage: CareerStage; onNavigate: (s:
           <div style={{ width:64, height:64, borderRadius:18, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 18px", boxShadow:"0 8px 24px rgba(67,97,238,0.3)" }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" style={{width:28,height:28}}><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
           </div>
-          <h1 style={{ fontSize:24, fontWeight:900, letterSpacing:"-0.03em", color:"#0A0A0F", marginBottom:10 }}>Your Action Plan isn&apos;t ready yet</h1>
+          <h1 style={{ fontSize:24, fontWeight:900, letterSpacing:"-0.03em", color:"#0A0A0F", marginBottom:10 }}>Your {STAGE_NAV_LABELS[stage].plan} isn&apos;t ready yet</h1>
           <p style={{ fontSize:14, color:"#68738A", lineHeight:1.65, maxWidth:460, margin:"0 auto" }}>
-            Zari needs to see at least one completed section to build a personalized plan.
+            {stage === "promotion"
+              ? "Zari needs at least one promotion workspace completed before it can sequence the case, visibility, and sponsorship work."
+              : "Zari needs to see at least one completed section to build a personalized plan."}
+            {" "}
             Complete the steps below and come back — your plan will be waiting.
           </p>
         </div>
@@ -6413,7 +7333,11 @@ function ScreenPlan({ stage, onNavigate }: { stage: CareerStage; onNavigate: (s:
 
         <div style={{ marginTop:28, background:"linear-gradient(135deg,#EEF2FF,#F5F3FF)", border:"1px solid rgba(67,97,238,0.15)", borderRadius:16, padding:"16px 20px", display:"flex", gap:12, alignItems:"flex-start" }}>
           <div style={{ width:36, height:36, borderRadius:10, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:14, fontWeight:800, color:"white" }}>Z</div>
-          <p style={{ fontSize:13, color:"#3451D1", lineHeight:1.65 }}>The more sections you complete, the more specific your action plan gets. After your resume review Zari already knows what to fix — after LinkedIn it can sequence the work. Give it both and the plan is surgical.</p>
+          <p style={{ fontSize:13, color:"#3451D1", lineHeight:1.65 }}>
+            {stage === "promotion"
+              ? "The more promotion surfaces you complete, the better Zari can sequence the work. Once it has your case, self-review, and visibility plan, the roadmap can get much sharper about sponsor asks and timing."
+              : "The more sections you complete, the more specific your action plan gets. After your resume review Zari already knows what to fix — after LinkedIn it can sequence the work. Give it both and the plan is surgical."}
+          </p>
         </div>
       </div>
     </div>
@@ -6431,6 +7355,13 @@ function ScreenPlan({ stage, onNavigate }: { stage: CareerStage; onNavigate: (s:
     Session:         { color:"#6366F1", bg:"#EEF2FF", border:"#C7D2FE" },
     Network:         { color:"#0891B2", bg:"#ECFEFF", border:"#A5F3FC" },
     Research:        { color:"#BE185D", bg:"#FDF2F8", border:"#F9A8D4" },
+    Case:            { color:"#7C3AED", bg:"#F5F3FF", border:"#DDD6FE" },
+    Docs:            { color:"#059669", bg:"#ECFDF5", border:"#A7F3D0" },
+    Feedback:        { color:"#DC2626", bg:"#FEF2F2", border:"#FECACA" },
+    Sponsorship:     { color:"#0284C7", bg:"#EFF6FF", border:"#BFDBFE" },
+    Visibility:      { color:"#0A66C2", bg:"#EFF6FF", border:"#BFDBFE" },
+    Planning:        { color:"#6366F1", bg:"#EEF2FF", border:"#C7D2FE" },
+    Milestone:       { color:"#D97706", bg:"#FFF7ED", border:"#FDE68A" },
   };
 
   const TIMELINE_GROUPS = [
@@ -6484,7 +7415,7 @@ function ScreenPlan({ stage, onNavigate }: { stage: CareerStage; onNavigate: (s:
           <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, flexWrap:"wrap" }}>
             <div>
               <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:6 }}>
-                <h1 style={{ fontSize:26, fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", margin:0 }}>Your Action Plan</h1>
+                <h1 style={{ fontSize:26, fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", margin:0 }}>Your {STAGE_NAV_LABELS[stage].plan}</h1>
                 {aiTasks && (
                   <span style={{ fontSize:10.5, fontWeight:800, padding:"3px 9px", borderRadius:99, background:"linear-gradient(135deg,#DCFCE7,#D1FAE5)", color:"#059669", border:"1px solid #6EE7B7", letterSpacing:"0.02em" }}>
                     AI · PERSONALIZED
@@ -6492,7 +7423,11 @@ function ScreenPlan({ stage, onNavigate }: { stage: CareerStage; onNavigate: (s:
                 )}
               </div>
               <p style={{ fontSize:13.5, color:"#68738A", lineHeight:1.5 }}>
-                Based on your {[hasResume&&"resume",hasLI&&"LinkedIn",hasCL&&"cover letter"].filter(Boolean).join(", ")} · {readyCount}/3 sections complete
+                Based on your {[
+                  hasResume && (stage === "promotion" ? "promotion case" : "resume"),
+                  hasLI && (stage === "promotion" ? "visibility plan" : "LinkedIn"),
+                  hasCL && (stage === "promotion" ? "self review" : "cover letter"),
+                ].filter(Boolean).join(", ")} · {readyCount}/3 sections complete
               </p>
             </div>
 
@@ -6648,14 +7583,14 @@ export function ZariPortal() {
   const navigate = (s: Screen) => { setScreen(s); try { localStorage.setItem("zari_screen", s); } catch { /* ignore */ } };
 
   // Section accent colors for topbar context
-  const SCREEN_ACCENTS: Record<string, { color: string; gradient: string; label: string }> = {
-    session:      { color:"#7C3AED", gradient:"linear-gradient(135deg,#7C3AED,#A78BFA)", label:"AI Coaching Session" },
-    resume:       { color:"#4361EE", gradient:"linear-gradient(135deg,#4361EE,#818CF8)", label:"Resume Analysis" },
-    interview:    { color:"#D97706", gradient:"linear-gradient(135deg,#D97706,#FBBF24)", label:"Interview Prep" },
-    "cover-letter":{ color:"#059669", gradient:"linear-gradient(135deg,#059669,#34D399)", label:"Cover Letter" },
-    linkedin:     { color:"#0A66C2", gradient:"linear-gradient(135deg,#0A66C2,#60A5FA)", label:"LinkedIn Review" },
-    documents:    { color:"#475569", gradient:"linear-gradient(135deg,#334155,#64748B)", label:"Documents" },
-    plan:         { color:"#E11D48", gradient:"linear-gradient(135deg,#E11D48,#FB7185)", label:"Action Plan" },
+  const SCREEN_ACCENTS: Record<string, { color: string; gradient: string }> = {
+    session:      { color:"#7C3AED", gradient:"linear-gradient(135deg,#7C3AED,#A78BFA)" },
+    resume:       { color:"#4361EE", gradient:"linear-gradient(135deg,#4361EE,#818CF8)" },
+    interview:    { color:"#D97706", gradient:"linear-gradient(135deg,#D97706,#FBBF24)" },
+    "cover-letter":{ color:"#059669", gradient:"linear-gradient(135deg,#059669,#34D399)" },
+    linkedin:     { color:"#0A66C2", gradient:"linear-gradient(135deg,#0A66C2,#60A5FA)" },
+    documents:    { color:"#475569", gradient:"linear-gradient(135deg,#334155,#64748B)" },
+    plan:         { color:"#E11D48", gradient:"linear-gradient(135deg,#E11D48,#FB7185)" },
   };
   const accentInfo = SCREEN_ACCENTS[screen] ?? SCREEN_ACCENTS["session"];
 
@@ -6809,7 +7744,7 @@ export function ZariPortal() {
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
             <div style={{ width:6, height:28, borderRadius:99, background:accentInfo.gradient }}/>
             <h2 style={{ fontSize:15.5, fontWeight:800, color:"#0A0A0F", letterSpacing:"-0.025em", margin:0 }}>
-              {accentInfo.label}
+              {STAGE_NAV_LABELS[stage][screen]}
             </h2>
           </div>
           <div style={{ marginLeft:"auto", display:"flex", gap:8, alignItems:"center" }}>
@@ -6828,9 +7763,9 @@ export function ZariPortal() {
           <div style={{ display:screen==="session"      ? "block" : "none", height:"100%" }}><ScreenSession      stage={stage} onNavigate={navigate}/></div>
           <div style={{ display:screen==="resume"       ? "block" : "none", height:"100%" }}><ScreenResume       stage={stage} onNavigate={s=>navigate(s as Screen)}/></div>
           <div style={{ display:screen==="interview"    ? "block" : "none", height:"100%" }}><ScreenInterview    stage={stage}/></div>
-          <div style={{ display:screen==="cover-letter" ? "block" : "none", height:"100%" }}><ScreenCoverLetter/></div>
+          <div style={{ display:screen==="cover-letter" ? "block" : "none", height:"100%" }}><ScreenCoverLetter stage={stage}/></div>
           <div style={{ display:screen==="linkedin"     ? "block" : "none", height:"100%" }}><ScreenLinkedIn     stage={stage}/></div>
-          <div style={{ display:screen==="documents"    ? "block" : "none", height:"100%" }}><ScreenDocuments onNavigate={s=>navigate(s as Screen)}/></div>
+          <div style={{ display:screen==="documents"    ? "block" : "none", height:"100%" }}><ScreenDocuments stage={stage} onNavigate={s=>navigate(s as Screen)}/></div>
           <div style={{ display:screen==="plan"         ? "block" : "none", height:"100%" }}><ScreenPlan stage={stage} onNavigate={s=>navigate(s as Screen)}/></div>
         </div>
       </main>
