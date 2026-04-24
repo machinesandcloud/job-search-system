@@ -1024,6 +1024,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
   const [showLiveMode, setShowLiveMode] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
   const [lastFailedMsg, setLastFailedMsg] = useState<string | null>(null);
+  const [startingNewChat, setStartingNewChat] = useState(false);
   const [pastSessions, setPastSessions] = useState<Array<{ id: string; title: string; startedAt: string; transcript: Array<{ role: string; message: string }> }>>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [selectedHistory, setSelectedHistory] = useState<string | null>(null);
@@ -1050,6 +1051,39 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
       })));
     } catch { /* non-fatal */ } finally {
       setLoadingHistory(false);
+    }
+  }
+
+  async function startNewChat() {
+    if (isLoading || startingNewChat) return;
+    setStartingNewChat(true);
+    setSelectedHistory(null);
+    setMsgs([]);
+    setInput("");
+    setSendError(null);
+    setLastFailedMsg(null);
+    setSessionReady(false);
+    setAvatarState("thinking");
+
+    let sid: string | null = null;
+    try {
+      const createRes = await fetch("/api/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "career", title: `${STAGE_META[stage].label} Session` }),
+      });
+      const created = await createRes.json().catch(() => ({})) as { id?: string };
+      if (created.id) {
+        sid = created.id;
+        setSessionId(created.id);
+      }
+    } catch { /* non-fatal */ }
+
+    try {
+      await generateOpening(sid, () => false);
+    } finally {
+      await loadHistory();
+      setStartingNewChat(false);
     }
   }
 
@@ -1196,6 +1230,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
         setAvatarState("speaking");
         setTimeout(() => setAvatarState("listening"), 3000);
       }
+      if (!cancelled() && sid) void loadHistory();
     } catch {
       // Opening failed silently — user can still type
     } finally {
@@ -1315,6 +1350,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
         setSendError(null);
         setLastFailedMsg(null);
         setMsgs(m => [...m, { role: "coach", text: reply }]);
+        if (sid) void loadHistory();
         setAvatarState("speaking");
         void speakText(reply);
         setTimeout(() => setAvatarState("listening"), 3500);
@@ -1439,6 +1475,32 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
             </button>
           </div>
 
+          <div style={{ padding:"10px 12px", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
+            <button
+              onClick={() => void startNewChat()}
+              disabled={isLoading || startingNewChat}
+              style={{
+                width:"100%",
+                display:"flex",
+                alignItems:"center",
+                justifyContent:"center",
+                gap:8,
+                padding:"10px 12px",
+                borderRadius:10,
+                border:"1px solid rgba(67,97,238,0.28)",
+                background:"rgba(67,97,238,0.12)",
+                color:"#A5B4FC",
+                fontSize:12,
+                fontWeight:700,
+                cursor:isLoading || startingNewChat ? "default" : "pointer",
+                opacity:isLoading || startingNewChat ? 0.55 : 1,
+              }}
+            >
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:12,height:12 }}><path d="M8 3v10M3 8h10"/></svg>
+              {startingNewChat ? "Starting..." : "New chat"}
+            </button>
+          </div>
+
           {/* History list */}
           <div style={{ padding:"10px 12px 6px", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
             <p style={{ fontSize:9.5, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"rgba(255,255,255,0.25)", margin:0 }}>Session History</p>
@@ -1458,6 +1520,10 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
               return (
                 <button key={s.id} onClick={() => {
                   setSelectedHistory(s.id);
+                  setSessionId(s.id);
+                  setSessionReady(true);
+                  setSendError(null);
+                  setLastFailedMsg(null);
                   setMsgs(s.transcript.map(t => ({ role: t.role, text: t.message })));
                 }} style={{
                   width:"100%", textAlign:"left", padding:"9px 10px",
@@ -2512,7 +2578,7 @@ type PromotionTheme = {
   chipText: string;
 };
 
-const PROMOTION_DISPLAY_FONT = "\"Iowan Old Style\", \"Palatino Linotype\", \"Book Antiqua\", Georgia, serif";
+const PROMOTION_DISPLAY_FONT = "inherit";
 
 const PROMOTION_THEMES: Record<"readiness" | "conversation" | "evidence" | "visibility" | "toolkit" | "roadmap", PromotionTheme> = {
   readiness: {
@@ -2593,26 +2659,19 @@ function promotionPageStyle(theme: PromotionTheme) {
   return {
     height: "calc(100vh - 56px)",
     overflow: "auto",
-    background: [
-      `radial-gradient(circle at top left, ${theme.glowA} 0%, transparent 34%)`,
-      `radial-gradient(circle at 88% 14%, ${theme.glowB} 0%, transparent 30%)`,
-      "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px)",
-      "linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)",
-      `linear-gradient(180deg, ${theme.baseA} 0%, ${theme.baseB} 100%)`,
-    ].join(","),
-    backgroundSize: "auto, auto, 26px 26px, 26px 26px, auto",
+    background: "#F0F2F8",
   };
 }
 
 function promotionHeroStyle(theme: PromotionTheme) {
   return {
-    background: theme.hero,
-    borderRadius: 28,
-    padding: "32px 32px 30px",
+    background: "linear-gradient(135deg,#1A1240 0%,#0D1321 62%,#111827 100%)",
+    borderRadius: 20,
+    padding: "26px 28px 24px",
     color: "white",
-    marginBottom: 26,
-    border: "1px solid rgba(255,255,255,0.08)",
-    boxShadow: `0 32px 96px ${theme.glowA.replace(/0\.\d+\)/, "0.34)")}, inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(255,255,255,0.04)`,
+    marginBottom: 24,
+    border: "1px solid rgba(255,255,255,0.07)",
+    boxShadow: "0 12px 40px rgba(0,0,0,0.22)",
     position: "relative" as const,
     overflow: "hidden" as const,
   };
@@ -2620,32 +2679,28 @@ function promotionHeroStyle(theme: PromotionTheme) {
 
 function promotionPanelStyle(theme: PromotionTheme, featured = false) {
   return {
-    background: featured
-      ? "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(245,247,255,0.94) 100%)"
-      : "linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(240,244,252,0.9) 100%)",
-    border: `1px solid ${featured ? `${theme.accent}33` : "rgba(148,163,184,0.18)"}`,
-    borderRadius: 24,
-    padding: "22px 22px 20px",
+    background: "white",
+    border: `1px solid ${featured ? `${theme.accent}24` : "#E4E8F5"}`,
+    borderRadius: 16,
+    padding: "18px 18px 16px",
     boxShadow: featured
-      ? `0 20px 60px ${theme.glowA.replace(/0\.\d+\)/, "0.18)")}`
-      : "0 12px 36px rgba(15,23,42,0.14)",
-    backdropFilter: "blur(16px)",
+      ? "0 4px 16px rgba(15,23,42,0.07)"
+      : "0 2px 12px rgba(0,0,0,0.04)",
   };
 }
 
 function promotionInputStyle(theme: PromotionTheme) {
   return {
     width: "100%",
-    border: `1px solid ${theme.accent}22`,
-    borderRadius: 16,
-    padding: "13px 15px",
+    border: "1px solid rgba(0,0,0,0.12)",
+    borderRadius: 12,
+    padding: "12px 14px",
     fontSize: 13.5,
     color: "#0F172A",
     outline: "none",
     boxSizing: "border-box" as const,
     fontFamily: "inherit",
-    background: "rgba(248,250,252,0.96)",
-    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7)",
+    background: "white",
   };
 }
 
@@ -2667,24 +2722,24 @@ function promotionChipStyle(theme: PromotionTheme, solid = false) {
     padding: solid ? "6px 12px" : "5px 11px",
     borderRadius: 999,
     border: `1px solid ${solid ? `${theme.accent}40` : theme.chipBorder}`,
-    background: solid ? `linear-gradient(135deg, ${theme.accent}, ${theme.accent2})` : theme.chipBg,
-    color: solid ? "white" : theme.chipText,
+    background: solid ? "linear-gradient(135deg,#4361EE,#818CF8)" : "rgba(255,255,255,0.08)",
+    color: solid ? "white" : "rgba(255,255,255,0.78)",
     fontSize: solid ? 11.5 : 11,
     fontWeight: 800,
     letterSpacing: "0.08em",
     textTransform: "uppercase" as const,
-    boxShadow: solid ? `0 10px 28px ${theme.glowA.replace(/0\.\d+\)/, "0.24)")}` : "none",
+    boxShadow: solid ? "0 8px 24px rgba(67,97,238,0.35)" : "none",
   };
 }
 
 function promotionEyebrowStyle(theme: PromotionTheme) {
   return {
-    fontSize: 11,
+    fontSize: 10.5,
     fontWeight: 800,
     textTransform: "uppercase" as const,
-    letterSpacing: "0.12em",
-    color: theme.chipText,
-    marginBottom: 10,
+    letterSpacing: "0.1em",
+    color: "rgba(165,180,252,0.88)",
+    marginBottom: 8,
   };
 }
 
@@ -2692,19 +2747,19 @@ function promotionHeroGridStyle() {
   return {
     position: "relative" as const,
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))",
-    gap: 20,
+    gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))",
+    gap: 16,
     alignItems: "stretch",
   };
 }
 
 function promotionHeroTitleStyle(maxWidth = 780) {
   return {
-    fontSize: "clamp(2.35rem, 4.8vw, 3.55rem)",
-    lineHeight: 1.01,
-    fontWeight: 700,
+    fontSize: "clamp(2rem, 3.8vw, 2.55rem)",
+    lineHeight: 1.08,
+    fontWeight: 900,
     fontFamily: PROMOTION_DISPLAY_FONT,
-    letterSpacing: "-0.05em",
+    letterSpacing: "-0.04em",
     margin: "0 0 12px",
     maxWidth,
   };
@@ -2712,11 +2767,11 @@ function promotionHeroTitleStyle(maxWidth = 780) {
 
 function promotionSectionTitleStyle(maxWidth?: number) {
   return {
-    fontSize: "clamp(1.6rem, 2.6vw, 2rem)",
-    lineHeight: 1.07,
-    fontWeight: 700,
+    fontSize: "clamp(1.45rem, 2.3vw, 1.9rem)",
+    lineHeight: 1.1,
+    fontWeight: 900,
     fontFamily: PROMOTION_DISPLAY_FONT,
-    letterSpacing: "-0.035em",
+    letterSpacing: "-0.03em",
     color: "#0F172A",
     margin: "0 0 8px",
     ...(maxWidth ? { maxWidth } : {}),
@@ -2727,8 +2782,8 @@ function promotionHeroBodyStyle(maxWidth = 720) {
   return {
     maxWidth,
     fontSize: 14.5,
-    lineHeight: 1.75,
-    color: "rgba(255,255,255,0.76)",
+    lineHeight: 1.68,
+    color: "rgba(255,255,255,0.72)",
     margin: 0,
   };
 }
@@ -2747,27 +2802,22 @@ function PromotionHeroSpotlight({
   footer?: string;
 }) {
   return (
-    <div style={{ position:"relative", minHeight:220, alignSelf:"stretch", display:"flex", justifyContent:"stretch" }}>
-      <div style={{ position:"absolute", inset:"18px 12px -18px 26px", background:`radial-gradient(circle at top right, ${theme.glowB.replace(/0\.\d+\)/, "0.34)")}, transparent 64%)`, filter:"blur(26px)", pointerEvents:"none" }}/>
-      <div style={{ position:"relative", width:"100%", borderRadius:24, padding:"18px 18px 16px", background:"linear-gradient(180deg, rgba(5,10,20,0.2) 0%, rgba(255,255,255,0.08) 0%, rgba(9,14,28,0.28) 100%)", border:"1px solid rgba(255,255,255,0.16)", boxShadow:"inset 0 1px 0 rgba(255,255,255,0.12)", backdropFilter:"blur(18px)", overflow:"hidden" }}>
-        <div style={{ position:"absolute", width:160, height:160, right:-34, top:-54, borderRadius:"50%", background:`radial-gradient(circle, ${theme.glowA.replace(/0\.\d+\)/, "0.58)")}, transparent 68%)`, pointerEvents:"none" }}/>
-        <div style={{ position:"absolute", width:112, height:112, right:26, top:24, borderRadius:"50%", border:"1px solid rgba(255,255,255,0.16)", opacity:0.55, pointerEvents:"none" }}/>
-        <div style={{ position:"absolute", width:72, height:72, right:46, top:44, borderRadius:"50%", border:"1px solid rgba(255,255,255,0.12)", opacity:0.45, pointerEvents:"none" }}/>
-        <div style={{ position:"absolute", right:60, top:80, width:16, height:16, borderRadius:"50%", background:"rgba(255,255,255,0.86)", boxShadow:`0 0 24px ${theme.glowB.replace(/0\.\d+\)/, "0.52)")}`, pointerEvents:"none" }}/>
+    <div style={{ position:"relative", minHeight:0, alignSelf:"stretch", display:"flex", justifyContent:"stretch" }}>
+      <div style={{ position:"relative", width:"100%", borderRadius:16, padding:"16px 16px 14px", background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.12)", overflow:"hidden" }}>
         <div style={{ position:"relative" }}>
-          <div style={{ ...promotionChipStyle(theme), marginBottom:12, background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.16)", color:"rgba(255,255,255,0.88)" }}>{label}</div>
-          <div style={{ fontSize:22, lineHeight:1.08, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"white", marginBottom:14, maxWidth:240 }}>{title}</div>
+          <div style={{ ...promotionChipStyle(theme), marginBottom:10, border:"1px solid rgba(255,255,255,0.14)", color:"rgba(255,255,255,0.82)" }}>{label}</div>
+          <div style={{ fontSize:18, lineHeight:1.2, fontWeight:800, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.02em", color:"white", marginBottom:12, maxWidth:260 }}>{title}</div>
           <div style={{ display:"grid", gap:10 }}>
             {items.map((item, idx) => (
-              <div key={item} style={{ display:"grid", gridTemplateColumns:"30px minmax(0,1fr)", gap:10, alignItems:"start" }}>
-                <div style={{ width:30, height:30, borderRadius:10, background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.14)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:800, color:"rgba(255,255,255,0.82)" }}>
+              <div key={item} style={{ display:"grid", gridTemplateColumns:"26px minmax(0,1fr)", gap:10, alignItems:"start" }}>
+                <div style={{ width:26, height:26, borderRadius:8, background:`${theme.accent}2A`, border:`1px solid ${theme.accent}44`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:800, color:"white" }}>
                   {String(idx + 1).padStart(2, "0")}
                 </div>
-                <div style={{ fontSize:12.5, lineHeight:1.6, color:"rgba(255,255,255,0.74)" }}>{item}</div>
+                <div style={{ fontSize:12.5, lineHeight:1.55, color:"rgba(255,255,255,0.68)" }}>{item}</div>
               </div>
             ))}
           </div>
-          {footer && <div style={{ marginTop:14, paddingTop:12, borderTop:"1px solid rgba(255,255,255,0.12)", fontSize:11.5, lineHeight:1.6, color:"rgba(255,255,255,0.56)" }}>{footer}</div>}
+          {footer && <div style={{ marginTop:12, paddingTop:10, borderTop:"1px solid rgba(255,255,255,0.1)", fontSize:11.5, lineHeight:1.55, color:"rgba(255,255,255,0.5)" }}>{footer}</div>}
         </div>
       </div>
     </div>
@@ -3057,7 +3107,7 @@ function ScreenPromotionReadiness() {
         {error && <div style={{ marginTop:16, background:"rgba(254,242,242,0.94)", border:"1px solid rgba(248,113,113,0.28)", borderRadius:16, padding:"12px 14px", fontSize:13, color:"#B91C1C" }}>{error}</div>}
 
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:16, marginTop:22, flexWrap:"wrap" }}>
-          <p style={{ fontSize:12.8, color:"rgba(226,232,240,0.82)", lineHeight:1.7, margin:0, maxWidth:600 }}>
+          <p style={{ fontSize:12.8, color:"#68738A", lineHeight:1.7, margin:0, maxWidth:600 }}>
             The point is simple: leave with a call on timing, a clearer proof burden, and the right conversation to have next.
           </p>
           <button
@@ -5740,7 +5790,7 @@ function ScreenPromotionPitch() {
             )}
 
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:16, flexWrap:"wrap" }}>
-              <p style={{ fontSize:12.8, color:"rgba(226,232,240,0.82)", lineHeight:1.7, margin:0, maxWidth:620 }}>
+              <p style={{ fontSize:12.8, color:"#68738A", lineHeight:1.7, margin:0, maxWidth:620 }}>
                 This practice is tuned for promotion dynamics: explicit criteria, defensible proof, and the ability to explain your case differently to a manager, committee, or sponsor.
               </p>
               <button
@@ -6208,7 +6258,7 @@ function ScreenPromotionDocument() {
         {error && <div style={{ marginTop:16, background:"rgba(254,242,242,0.94)", border:"1px solid rgba(248,113,113,0.28)", borderRadius:16, padding:"12px 14px", fontSize:13, color:"#B91C1C" }}>{error}</div>}
 
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:16, marginTop:22, flexWrap:"wrap" }}>
-          <p style={{ fontSize:12.8, color:"rgba(226,232,240,0.82)", lineHeight:1.7, margin:0, maxWidth:620 }}>
+          <p style={{ fontSize:12.8, color:"#68738A", lineHeight:1.7, margin:0, maxWidth:620 }}>
             The real outcome here is leverage: one body of proof translated cleanly for you, your manager, and the promotion process.
           </p>
           <button onClick={() => void generate()} disabled={generating} style={{ ...promotionChipStyle(theme, true), padding:"13px 20px", border:"none", cursor:generating ? "default" : "pointer", opacity:generating ? 0.72 : 1 }}>
@@ -6483,7 +6533,7 @@ function ScreenPromotionVisibility() {
         {error && <div style={{ marginTop:16, background:"rgba(254,242,242,0.94)", border:"1px solid rgba(248,113,113,0.28)", borderRadius:16, padding:"12px 14px", fontSize:13, color:"#B91C1C" }}>{error}</div>}
 
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:16, marginTop:22, flexWrap:"wrap" }}>
-          <p style={{ fontSize:12.8, color:"rgba(226,232,240,0.82)", lineHeight:1.7, margin:0, maxWidth:620 }}>
+          <p style={{ fontSize:12.8, color:"#68738A", lineHeight:1.7, margin:0, maxWidth:620 }}>
             The goal is practical: who to talk to, what to share, what to ask for, and how to build support before the promotion decision happens.
           </p>
           <button onClick={() => void generate()} disabled={generating} style={{ ...promotionChipStyle(theme, true), padding:"13px 20px", border:"none", cursor:generating ? "default" : "pointer", opacity:generating ? 0.72 : 1 }}>
