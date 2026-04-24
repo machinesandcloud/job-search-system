@@ -57,6 +57,7 @@ function NeuralParticles({ size }: { size: number }) {
 ═══════════════════════════════════════════════════ */
 export function ZariAvatar({ state = "idle", size = 120, className = "", interactive = false }: ZariAvatarProps) {
   const sphereSize = size * 0.58;
+  const compactSpeaking = state === "speaking" && size <= 48;
   const containerRef = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [hovered, setHovered] = useState(false);
@@ -134,6 +135,39 @@ export function ZariAvatar({ state = "idle", size = 120, className = "", interac
         {/* Thinking neural orbits */}
         {state === "thinking" && <NeuralParticles size={size} />}
 
+        {/* Compact speaking state gets a tight pulse halo instead of the full waveform */}
+        {compactSpeaking && (
+          <>
+            <div
+              style={{
+                position:"absolute",
+                top:"50%",
+                left:"50%",
+                width:size + 8,
+                height:size + 8,
+                borderRadius:"50%",
+                border:"1.5px solid rgba(129,140,248,0.34)",
+                animation:"ring-pulse 1.6s ease-out infinite",
+                pointerEvents:"none",
+              }}
+            />
+            <div
+              style={{
+                position:"absolute",
+                top:"50%",
+                left:"50%",
+                width:size + 16,
+                height:size + 16,
+                borderRadius:"50%",
+                border:"1px solid rgba(99,102,241,0.22)",
+                animation:"ring-pulse 1.6s ease-out 0.45s infinite",
+                animationFillMode:"backwards",
+                pointerEvents:"none",
+              }}
+            />
+          </>
+        )}
+
         {/* ── CORE SPHERE — centered via flex (no absolute pos needed) ── */}
         <div
           style={{
@@ -175,7 +209,7 @@ export function ZariAvatar({ state = "idle", size = 120, className = "", interac
         </div>
 
         {/* External waveform arc below sphere (speaking) */}
-        {state === "speaking" && (
+        {state === "speaking" && !compactSpeaking && (
           <div style={{ position:"absolute", bottom: size*0.04, left:"50%", transform:"translateX(-50%)" }}>
             <WaveformBars size={sphereSize} external />
           </div>
