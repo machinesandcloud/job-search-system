@@ -2596,8 +2596,11 @@ function promotionPageStyle(theme: PromotionTheme) {
     background: [
       `radial-gradient(circle at top left, ${theme.glowA} 0%, transparent 34%)`,
       `radial-gradient(circle at 88% 14%, ${theme.glowB} 0%, transparent 30%)`,
+      "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px)",
+      "linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)",
       `linear-gradient(180deg, ${theme.baseA} 0%, ${theme.baseB} 100%)`,
     ].join(","),
+    backgroundSize: "auto, auto, 26px 26px, 26px 26px, auto",
   };
 }
 
@@ -2605,11 +2608,11 @@ function promotionHeroStyle(theme: PromotionTheme) {
   return {
     background: theme.hero,
     borderRadius: 28,
-    padding: "30px 30px 28px",
+    padding: "32px 32px 30px",
     color: "white",
     marginBottom: 26,
     border: "1px solid rgba(255,255,255,0.08)",
-    boxShadow: `0 28px 80px ${theme.glowA.replace(/0\.\d+\)/, "0.32)")}, inset 0 1px 0 rgba(255,255,255,0.08)`,
+    boxShadow: `0 32px 96px ${theme.glowA.replace(/0\.\d+\)/, "0.34)")}, inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(255,255,255,0.04)`,
     position: "relative" as const,
     overflow: "hidden" as const,
   };
@@ -2683,6 +2686,92 @@ function promotionEyebrowStyle(theme: PromotionTheme) {
     color: theme.chipText,
     marginBottom: 10,
   };
+}
+
+function promotionHeroGridStyle() {
+  return {
+    position: "relative" as const,
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))",
+    gap: 20,
+    alignItems: "stretch",
+  };
+}
+
+function promotionHeroTitleStyle(maxWidth = 780) {
+  return {
+    fontSize: "clamp(2.35rem, 4.8vw, 3.55rem)",
+    lineHeight: 1.01,
+    fontWeight: 700,
+    fontFamily: PROMOTION_DISPLAY_FONT,
+    letterSpacing: "-0.05em",
+    margin: "0 0 12px",
+    maxWidth,
+  };
+}
+
+function promotionSectionTitleStyle(maxWidth?: number) {
+  return {
+    fontSize: "clamp(1.6rem, 2.6vw, 2rem)",
+    lineHeight: 1.07,
+    fontWeight: 700,
+    fontFamily: PROMOTION_DISPLAY_FONT,
+    letterSpacing: "-0.035em",
+    color: "#0F172A",
+    margin: "0 0 8px",
+    ...(maxWidth ? { maxWidth } : {}),
+  };
+}
+
+function promotionHeroBodyStyle(maxWidth = 720) {
+  return {
+    maxWidth,
+    fontSize: 14.5,
+    lineHeight: 1.75,
+    color: "rgba(255,255,255,0.76)",
+    margin: 0,
+  };
+}
+
+function PromotionHeroSpotlight({
+  theme,
+  label,
+  title,
+  items,
+  footer,
+}: {
+  theme: PromotionTheme;
+  label: string;
+  title: string;
+  items: string[];
+  footer?: string;
+}) {
+  return (
+    <div style={{ position:"relative", minHeight:220, alignSelf:"stretch", display:"flex", justifyContent:"stretch" }}>
+      <div style={{ position:"absolute", inset:"18px 12px -18px 26px", background:`radial-gradient(circle at top right, ${theme.glowB.replace(/0\.\d+\)/, "0.34)")}, transparent 64%)`, filter:"blur(26px)", pointerEvents:"none" }}/>
+      <div style={{ position:"relative", width:"100%", borderRadius:24, padding:"18px 18px 16px", background:"linear-gradient(180deg, rgba(5,10,20,0.2) 0%, rgba(255,255,255,0.08) 0%, rgba(9,14,28,0.28) 100%)", border:"1px solid rgba(255,255,255,0.16)", boxShadow:"inset 0 1px 0 rgba(255,255,255,0.12)", backdropFilter:"blur(18px)", overflow:"hidden" }}>
+        <div style={{ position:"absolute", width:160, height:160, right:-34, top:-54, borderRadius:"50%", background:`radial-gradient(circle, ${theme.glowA.replace(/0\.\d+\)/, "0.58)")}, transparent 68%)`, pointerEvents:"none" }}/>
+        <div style={{ position:"absolute", width:112, height:112, right:26, top:24, borderRadius:"50%", border:"1px solid rgba(255,255,255,0.16)", opacity:0.55, pointerEvents:"none" }}/>
+        <div style={{ position:"absolute", width:72, height:72, right:46, top:44, borderRadius:"50%", border:"1px solid rgba(255,255,255,0.12)", opacity:0.45, pointerEvents:"none" }}/>
+        <div style={{ position:"absolute", right:60, top:80, width:16, height:16, borderRadius:"50%", background:"rgba(255,255,255,0.86)", boxShadow:`0 0 24px ${theme.glowB.replace(/0\.\d+\)/, "0.52)")}`, pointerEvents:"none" }}/>
+        <div style={{ position:"relative" }}>
+          <div style={{ ...promotionChipStyle(theme), marginBottom:12, background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.16)", color:"rgba(255,255,255,0.88)" }}>{label}</div>
+          <div style={{ fontSize:22, lineHeight:1.08, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"white", marginBottom:14, maxWidth:240 }}>{title}</div>
+          <div style={{ display:"grid", gap:10 }}>
+            {items.map((item, idx) => (
+              <div key={item} style={{ display:"grid", gridTemplateColumns:"30px minmax(0,1fr)", gap:10, alignItems:"start" }}>
+                <div style={{ width:30, height:30, borderRadius:10, background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.14)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:800, color:"rgba(255,255,255,0.82)" }}>
+                  {String(idx + 1).padStart(2, "0")}
+                </div>
+                <div style={{ fontSize:12.5, lineHeight:1.6, color:"rgba(255,255,255,0.74)" }}>{item}</div>
+              </div>
+            ))}
+          </div>
+          {footer && <div style={{ marginTop:14, paddingTop:12, borderTop:"1px solid rgba(255,255,255,0.12)", fontSize:11.5, lineHeight:1.6, color:"rgba(255,255,255,0.56)" }}>{footer}</div>}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function ScreenPromotionReadiness() {
@@ -2779,8 +2868,8 @@ function ScreenPromotionReadiness() {
                 <div>
                   <div style={{ ...promotionChipStyle(theme), background:verdictStyle.bg, border:`1px solid ${verdictStyle.border}`, color:verdictStyle.color, marginBottom:12 }}>{result.verdict}</div>
                   <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>Readiness Audit</div>
-                  <h1 style={{ fontSize:40, lineHeight:1.04, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.04em", margin:"0 0 10px" }}>Know whether you have a promotion case before you ask for one.</h1>
-                  <p style={{ maxWidth:720, fontSize:14.5, lineHeight:1.75, color:"rgba(255,255,255,0.78)", margin:0 }}>{result.summary}</p>
+                  <h1 style={promotionHeroTitleStyle(720)}>Know whether you have a promotion case before you ask for one.</h1>
+                  <p style={{ ...promotionHeroBodyStyle(720), color:"rgba(255,255,255,0.78)" }}>{result.summary}</p>
                 </div>
                 <button
                   onClick={() => setResult(null)}
@@ -2872,24 +2961,37 @@ function ScreenPromotionReadiness() {
       <div style={{ maxWidth:1040, margin:"0 auto", padding:"34px 24px 56px", position:"relative" }}>
         <div style={promotionHeroStyle(theme)}>
           <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 84% 22%, rgba(186,230,253,0.2), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
-          <div style={{ position:"relative" }}>
-            <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>Promotion Readiness</div>
-            <h1 style={{ fontSize:42, lineHeight:1.02, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.045em", margin:"0 0 12px", maxWidth:780 }}>Do you actually have a real case for promotion, or just a feeling that you should be next?</h1>
-            <p style={{ maxWidth:720, fontSize:14.5, lineHeight:1.75, color:"rgba(255,255,255,0.76)", margin:"0 0 20px" }}>
-              This is an audit, not a scorecard. It compares your proof against the bar, shows where the case is already persuasive, and tells you what still needs to become clear before you make the ask.
-            </p>
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))", gap:12 }}>
-              {[
-                { title:"Map wins to bar", body:"Bring scope, outcomes, leadership signals, and feedback." },
-                { title:"Pressure-test timing", body:"See whether the answer is ask now, wait, or gather proof." },
-                { title:"Get manager prompts", body:"Leave with the exact questions that de-risk the conversation." },
-              ].map(card => (
-                <div key={card.title} style={{ borderRadius:18, padding:"15px 15px 14px", background:"rgba(8,15,30,0.42)", border:"1px solid rgba(191,219,254,0.14)" }}>
-                  <div style={{ fontSize:13.5, fontWeight:800, color:"white", marginBottom:6 }}>{card.title}</div>
-                  <div style={{ fontSize:12.5, color:"rgba(255,255,255,0.62)", lineHeight:1.55 }}>{card.body}</div>
-                </div>
-              ))}
+          <div style={promotionHeroGridStyle()}>
+            <div style={{ position:"relative" }}>
+              <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>Promotion Readiness</div>
+              <h1 style={promotionHeroTitleStyle()}>Do you actually have a real case for promotion, or just a feeling that you should be next?</h1>
+              <p style={{ ...promotionHeroBodyStyle(), margin:"0 0 20px" }}>
+                This is an audit, not a scorecard. It compares your proof against the bar, shows where the case is already persuasive, and tells you what still needs to become clear before you make the ask.
+              </p>
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))", gap:12 }}>
+                {[
+                  { title:"Map wins to bar", body:"Bring scope, outcomes, leadership signals, and feedback." },
+                  { title:"Pressure-test timing", body:"See whether the answer is ask now, wait, or gather proof." },
+                  { title:"Get manager prompts", body:"Leave with the exact questions that de-risk the conversation." },
+                ].map(card => (
+                  <div key={card.title} style={{ borderRadius:18, padding:"15px 15px 14px", background:"rgba(8,15,30,0.42)", border:"1px solid rgba(191,219,254,0.14)" }}>
+                    <div style={{ fontSize:13.5, fontWeight:800, color:"white", marginBottom:6 }}>{card.title}</div>
+                    <div style={{ fontSize:12.5, color:"rgba(255,255,255,0.62)", lineHeight:1.55 }}>{card.body}</div>
+                  </div>
+                ))}
+              </div>
             </div>
+            <PromotionHeroSpotlight
+              theme={theme}
+              label="Audit Lens"
+              title="Ask now, collect proof, or reset the timing."
+              items={[
+                "Compare your work against the actual next-level bar.",
+                "Separate solid evidence from vague manager goodwill.",
+                "Leave with the exact next conversation worth having.",
+              ]}
+              footer="The goal is clarity: whether the case is real, how strong it is, and what would make it undeniable."
+            />
           </div>
         </div>
 
@@ -2898,7 +3000,7 @@ function ScreenPromotionReadiness() {
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap", marginBottom:14 }}>
               <div>
                 <div style={{ fontSize:11.5, fontWeight:800, color:theme.accent, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Your evidence</div>
-                <h2 style={{ fontSize:30, lineHeight:1.06, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 6px" }}>What have you done that already looks like the next level?</h2>
+                <h2 style={promotionSectionTitleStyle(520)}>What have you done that already looks like the next level?</h2>
                 <p style={{ fontSize:13, color:"#475569", lineHeight:1.7, margin:0 }}>Paste wins, bigger ownership, cross-functional influence, team leadership moments, stakeholder praise, or upload notes.</p>
               </div>
               <button onClick={() => fileInputRef.current?.click()} style={{ fontSize:12.5, fontWeight:700, padding:"10px 14px", borderRadius:12, border:`1px solid ${theme.accent}26`, background:"rgba(255,255,255,0.75)", color:theme.accent, cursor:"pointer" }}>
@@ -2921,7 +3023,7 @@ function ScreenPromotionReadiness() {
           <div style={{ display:"grid", gap:18 }}>
             <div style={promotionPanelStyle(theme)}>
               <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Criteria + context</div>
-              <h2 style={{ fontSize:28, lineHeight:1.08, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 8px" }}>What does “ready now” mean where you work?</h2>
+              <h2 style={promotionSectionTitleStyle(460)}>What does “ready now” mean where you work?</h2>
               <p style={{ fontSize:13, color:"#475569", lineHeight:1.7, margin:"0 0 16px" }}>Paste the rubric if you have it. If you do not, add any manager guidance, review-cycle context, or known blockers.</p>
               <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(210px,1fr))", gap:12, marginBottom:12 }}>
                 <input value={targetLevel} onChange={e => setTargetLevel(e.target.value)} placeholder="Target level — e.g. Senior PM, Staff Engineer" style={promotionInputStyle(theme)} />
@@ -5528,17 +5630,30 @@ function ScreenPromotionPitch() {
         <div style={{ maxWidth:1080, margin:"0 auto", padding:"34px 24px 56px", position:"relative" }}>
           <div style={promotionHeroStyle(theme)}>
             <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 82% 18%, rgba(251,207,232,0.18), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
-            <div style={{ position:"relative" }}>
-              <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>Manager Conversation</div>
-              <h1 style={{ fontSize:42, lineHeight:1.02, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.045em", margin:"0 0 12px", maxWidth:760 }}>Practice the conversations that actually move promotion forward.</h1>
-              <p style={{ maxWidth:720, fontSize:14.5, lineHeight:1.75, color:"rgba(255,255,255,0.76)", margin:"0 0 20px" }}>
-                Promotions are rarely won by sounding smart in the moment. They are won by telling a crisp, evidence-backed story that survives manager questions, committee skepticism, and sponsor scrutiny.
-              </p>
-              <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
-                <span style={promotionChipStyle(theme)}>Scope + impact</span>
-                <span style={promotionChipStyle(theme)}>Manager-ready framing</span>
-                <span style={promotionChipStyle(theme)}>Sponsor-safe clarity</span>
+            <div style={promotionHeroGridStyle()}>
+              <div style={{ position:"relative" }}>
+                <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>Manager Conversation</div>
+                <h1 style={promotionHeroTitleStyle(760)}>Practice the conversations that actually move promotion forward.</h1>
+                <p style={{ ...promotionHeroBodyStyle(), margin:"0 0 20px" }}>
+                  Promotions are rarely won by sounding smart in the moment. They are won by telling a crisp, evidence-backed story that survives manager questions, committee skepticism, and sponsor scrutiny.
+                </p>
+                <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+                  <span style={promotionChipStyle(theme)}>Scope + impact</span>
+                  <span style={promotionChipStyle(theme)}>Manager-ready framing</span>
+                  <span style={promotionChipStyle(theme)}>Sponsor-safe clarity</span>
+                </div>
               </div>
+              <PromotionHeroSpotlight
+                theme={theme}
+                label="Practice Target"
+                title="Sound calm, crisp, and defensible in every room."
+                items={[
+                  "Test how your case holds up with a manager.",
+                  "Pressure-test the story against committee skepticism.",
+                  "Build sponsor-safe language someone else can repeat.",
+                ]}
+                footer="Strong promotion conversations make your readiness easy to retell, not just easy to feel."
+              />
             </div>
           </div>
 
@@ -5548,7 +5663,7 @@ function ScreenPromotionPitch() {
                 <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap", marginBottom:14 }}>
                   <div>
                     <div style={{ fontSize:11.5, fontWeight:800, color:theme.accent, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>1. Promotion evidence</div>
-                    <h2 style={{ fontSize:30, lineHeight:1.06, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 6px" }}>Bring the proof you want this conversation to stand on.</h2>
+                    <h2 style={promotionSectionTitleStyle(520)}>Bring the proof you want this conversation to stand on.</h2>
                     <p style={{ fontSize:13, color:"#475569", lineHeight:1.7, margin:0 }}>Paste a brag sheet, self-review notes, recent wins, or upload a file with the scope and impact you want reflected back to you.</p>
                   </div>
                   <button onClick={() => fileInputRef.current?.click()} style={{ fontSize:12.5, fontWeight:700, padding:"10px 14px", borderRadius:12, border:`1px solid ${theme.accent}26`, background:"rgba(255,255,255,0.75)", color:theme.accent, cursor:"pointer" }}>
@@ -5571,7 +5686,7 @@ function ScreenPromotionPitch() {
               <div style={{ display:"grid", gap:18 }}>
                 <div style={promotionPanelStyle(theme)}>
                   <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>2. Next-level bar</div>
-                  <h2 style={{ fontSize:28, lineHeight:1.08, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 8px" }}>Define what promotion actually requires.</h2>
+                  <h2 style={promotionSectionTitleStyle(460)}>Define what promotion actually requires.</h2>
                   <p style={{ fontSize:13, color:"#475569", lineHeight:1.7, margin:"0 0 16px" }}>The most common miss is vague proof against a vague bar. Paste the rubric, packet guidance, or whatever your company uses to decide “ready now.”</p>
                   <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))", gap:12, marginBottom:12 }}>
                     <input value={targetLevel} onChange={e => setTargetLevel(e.target.value)} placeholder="Target level — e.g. Senior Manager, Staff PM" style={promotionInputStyle(theme)} />
@@ -5587,7 +5702,7 @@ function ScreenPromotionPitch() {
 
                 <div style={promotionPanelStyle(theme)}>
                   <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>3. Practice mode</div>
-                  <h2 style={{ fontSize:26, lineHeight:1.08, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 8px" }}>Choose the room you actually need to win.</h2>
+                  <h2 style={promotionSectionTitleStyle(460)}>Choose the room you actually need to win.</h2>
                   <div style={{ display:"grid", gap:10 }}>
                     {(Object.entries(PROMOTION_PRACTICE_META) as [PromotionPracticeMode, typeof PROMOTION_PRACTICE_META[PromotionPracticeMode]][]).map(([key, meta]) => {
                       const active = mode === key;
@@ -5659,8 +5774,8 @@ function ScreenPromotionPitch() {
                 <span style={{ ...promotionChipStyle(theme), background:activeModeMeta.bg, border:`1px solid ${activeModeMeta.color}33`, color:activeModeMeta.color }}>{activeModeMeta.label}</span>
                 <span style={promotionChipStyle(theme)}>Question {questionNumber} of {totalQuestions}</span>
               </div>
-              <h1 style={{ fontSize:40, lineHeight:1.03, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.04em", margin:"0 0 10px" }}>Practice your case until it sounds calm, sharp, and promotion-ready.</h1>
-              <p style={{ maxWidth:720, fontSize:14.5, lineHeight:1.75, color:"rgba(255,255,255,0.76)", margin:0 }}>
+              <h1 style={promotionHeroTitleStyle(760)}>Practice your case until it sounds calm, sharp, and promotion-ready.</h1>
+              <p style={promotionHeroBodyStyle(720)}>
                 Strong answers make the next level feel obvious. Stay concrete on scope, decisions, influence, business outcomes, and why those signals are already present in your work.
               </p>
             </div>
@@ -5930,8 +6045,8 @@ function ScreenPromotionDocument() {
                 <div style={{ position:"relative", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, flexWrap:"wrap" }}>
                   <div>
                     <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>Evidence Builder Ready</div>
-                    <h1 style={{ fontSize:40, lineHeight:1.04, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.04em", color:"white", margin:"0 0 10px" }}>Reusable promotion material you can actually use.</h1>
-                    <p style={{ fontSize:14.5, lineHeight:1.75, color:"rgba(255,255,255,0.76)", margin:0, maxWidth:720 }}>{result.overview}</p>
+                    <h1 style={promotionHeroTitleStyle(720)}>Reusable promotion material you can actually use.</h1>
+                    <p style={promotionHeroBodyStyle(720)}>{result.overview}</p>
                   </div>
                   <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
                     <button onClick={() => setResult(null)} style={{ fontSize:12, fontWeight:700, padding:"10px 14px", borderRadius:12, border:"1px solid rgba(255,255,255,0.14)", background:"rgba(255,255,255,0.08)", color:"rgba(255,255,255,0.85)", cursor:"pointer" }}>← Start over</button>
@@ -6018,17 +6133,30 @@ function ScreenPromotionDocument() {
       <div style={{ maxWidth:1040, margin:"0 auto", padding:"34px 24px 56px", position:"relative" }}>
         <div style={promotionHeroStyle(theme)}>
           <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 84% 18%, rgba(167,243,208,0.2), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
-          <div style={{ position:"relative" }}>
-            <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>Evidence Builder</div>
-            <h1 style={{ fontSize:42, lineHeight:1.02, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.045em", margin:"0 0 12px", maxWidth:780 }}>Turn raw wins into polished material for every part of the promotion case.</h1>
-            <p style={{ maxWidth:720, fontSize:14.5, lineHeight:1.75, color:"rgba(255,255,255,0.76)", margin:"0 0 20px" }}>
-              You are not generating “a doc.” You are building reusable proof in three formats: impact bullets, a first-person self-review draft, and a manager-friendly third-person brief.
-            </p>
-            <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
-              <span style={promotionChipStyle(theme)}>Impact bullets</span>
-              <span style={promotionChipStyle(theme)}>Self-review draft</span>
-              <span style={promotionChipStyle(theme)}>Manager brief</span>
+          <div style={promotionHeroGridStyle()}>
+            <div style={{ position:"relative" }}>
+              <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>Evidence Builder</div>
+              <h1 style={promotionHeroTitleStyle()}>Turn raw wins into polished material for every part of the promotion case.</h1>
+              <p style={{ ...promotionHeroBodyStyle(), margin:"0 0 20px" }}>
+                You are not generating “a doc.” You are building reusable proof in three formats: impact bullets, a first-person self-review draft, and a manager-friendly third-person brief.
+              </p>
+              <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+                <span style={promotionChipStyle(theme)}>Impact bullets</span>
+                <span style={promotionChipStyle(theme)}>Self-review draft</span>
+                <span style={promotionChipStyle(theme)}>Manager brief</span>
+              </div>
             </div>
+            <PromotionHeroSpotlight
+              theme={theme}
+              label="Output Stack"
+              title="One set of wins, translated three ways."
+              items={[
+                "Portable bullets for packets, docs, and updates.",
+                "A first-person narrative for your self-review.",
+                "A third-person manager brief others can reuse.",
+              ]}
+              footer="The point is leverage: make your best work easy to lift into every format the process needs."
+            />
           </div>
         </div>
 
@@ -6037,7 +6165,7 @@ function ScreenPromotionDocument() {
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap", marginBottom:14 }}>
               <div>
                 <div style={{ fontSize:11.5, fontWeight:800, color:theme.accent, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Evidence</div>
-                <h2 style={{ fontSize:30, lineHeight:1.06, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 6px" }}>Give Zari the raw material.</h2>
+                <h2 style={promotionSectionTitleStyle(480)}>Give Zari the raw material.</h2>
                 <p style={{ fontSize:13, color:"#475569", lineHeight:1.7, margin:0 }}>Wins, brag sheet bullets, self-eval notes, launch outcomes, stakeholder praise, and project recaps all work.</p>
               </div>
               <button onClick={() => fileInputRef.current?.click()} style={{ fontSize:12.5, fontWeight:700, padding:"10px 14px", borderRadius:12, border:`1px solid ${theme.accent}26`, background:"rgba(255,255,255,0.75)", color:theme.accent, cursor:"pointer" }}>
@@ -6051,7 +6179,7 @@ function ScreenPromotionDocument() {
           <div style={{ display:"grid", gap:18 }}>
             <div style={promotionPanelStyle(theme)}>
               <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Criteria + context</div>
-              <h2 style={{ fontSize:28, lineHeight:1.08, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 8px" }}>Tell Zari what “promotion ready” means in your world.</h2>
+              <h2 style={promotionSectionTitleStyle(460)}>Tell Zari what “promotion ready” means in your world.</h2>
               <p style={{ fontSize:13, color:"#475569", lineHeight:1.7, margin:"0 0 16px" }}>If you know the rubric, paste it. If not, add the level, timeline, manager stance, and any internal expectations you do know.</p>
               <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))", gap:12, marginBottom:12 }}>
                 <input value={targetLevel} onChange={e => setTargetLevel(e.target.value)} placeholder="Target level — e.g. Staff Engineer" style={promotionInputStyle(theme)} />
@@ -6183,8 +6311,8 @@ function ScreenPromotionVisibility() {
             <div style={{ position:"relative", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, flexWrap:"wrap" }}>
               <div>
                 <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>Sponsor Strategy Ready</div>
-                <h1 style={{ fontSize:40, lineHeight:1.04, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.04em", margin:"0 0 10px" }}>Who matters, what they need to see, and how to build support.</h1>
-                <p style={{ fontSize:14.5, lineHeight:1.75, color:"rgba(255,255,255,0.76)", margin:0, maxWidth:720 }}>{result.overallFocus}</p>
+                <h1 style={promotionHeroTitleStyle(720)}>Who matters, what they need to see, and how to build support.</h1>
+                <p style={promotionHeroBodyStyle(720)}>{result.overallFocus}</p>
               </div>
               <button onClick={() => setResult(null)} style={{ fontSize:12.5, fontWeight:700, padding:"10px 14px", borderRadius:12, border:"1px solid rgba(255,255,255,0.14)", background:"rgba(255,255,255,0.08)", color:"white", cursor:"pointer" }}>
                 ← Start over
@@ -6281,17 +6409,30 @@ function ScreenPromotionVisibility() {
       <div style={{ maxWidth:1040, margin:"0 auto", padding:"34px 24px 56px", position:"relative" }}>
         <div style={promotionHeroStyle(theme)}>
           <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 84% 18%, rgba(147,197,253,0.2), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
-          <div style={{ position:"relative" }}>
-            <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>Sponsor Strategy</div>
-            <h1 style={{ fontSize:42, lineHeight:1.02, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.045em", margin:"0 0 12px", maxWidth:780 }}>Figure out who matters, what they need to see, and how to build support.</h1>
-            <p style={{ maxWidth:720, fontSize:14.5, lineHeight:1.75, color:"rgba(255,255,255,0.76)", margin:"0 0 20px" }}>
-              Promotion decisions are rarely based on output alone. You need the right people to understand your impact, trust your readiness, and feel comfortable backing the case when it matters.
-            </p>
-            <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
-              <span style={promotionChipStyle(theme)}>Map power</span>
-              <span style={promotionChipStyle(theme)}>Choose asks</span>
-              <span style={promotionChipStyle(theme)}>Build weekly rhythm</span>
+          <div style={promotionHeroGridStyle()}>
+            <div style={{ position:"relative" }}>
+              <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>Sponsor Strategy</div>
+              <h1 style={promotionHeroTitleStyle()}>Figure out who matters, what they need to see, and how to build support.</h1>
+              <p style={{ ...promotionHeroBodyStyle(), margin:"0 0 20px" }}>
+                Promotion decisions are rarely based on output alone. You need the right people to understand your impact, trust your readiness, and feel comfortable backing the case when it matters.
+              </p>
+              <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+                <span style={promotionChipStyle(theme)}>Map power</span>
+                <span style={promotionChipStyle(theme)}>Choose asks</span>
+                <span style={promotionChipStyle(theme)}>Build weekly rhythm</span>
+              </div>
             </div>
+            <PromotionHeroSpotlight
+              theme={theme}
+              label="Support Map"
+              title="Build belief before the decision room."
+              items={[
+                "Identify who influences the promotion call.",
+                "Tailor what each person needs to hear from you.",
+                "Turn generic visibility into purposeful support.",
+              ]}
+              footer="Good visibility is not noise. It is targeted trust-building with the people who shape the outcome."
+            />
           </div>
         </div>
 
@@ -6300,7 +6441,7 @@ function ScreenPromotionVisibility() {
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap", marginBottom:14 }}>
               <div>
                 <div style={{ fontSize:11.5, fontWeight:800, color:theme.accent, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Evidence</div>
-                <h2 style={{ fontSize:30, lineHeight:1.06, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 6px" }}>What should the room associate with your name?</h2>
+                <h2 style={promotionSectionTitleStyle(500)}>What should the room associate with your name?</h2>
                 <p style={{ fontSize:13, color:"#475569", lineHeight:1.7, margin:0 }}>Use wins, launches, influence, stakeholder praise, and leadership moments. This becomes the raw material for who needs to hear what.</p>
               </div>
               <button onClick={() => fileInputRef.current?.click()} style={{ fontSize:12.5, fontWeight:700, padding:"10px 14px", borderRadius:12, border:`1px solid ${theme.accent}26`, background:"rgba(255,255,255,0.75)", color:theme.accent, cursor:"pointer" }}>
@@ -6314,7 +6455,7 @@ function ScreenPromotionVisibility() {
           <div style={{ display:"grid", gap:18 }}>
             <div style={promotionPanelStyle(theme)}>
               <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Stakeholder map</div>
-              <h2 style={{ fontSize:28, lineHeight:1.08, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 8px" }}>Name the people and the friction.</h2>
+              <h2 style={promotionSectionTitleStyle(430)}>Name the people and the friction.</h2>
               <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))", gap:12, marginBottom:12 }}>
                 <input value={targetLevel} onChange={e => setTargetLevel(e.target.value)} placeholder="Target level — e.g. Senior Designer, Group PM" style={promotionInputStyle(theme)} />
                 <input value={blockers} onChange={e => setBlockers(e.target.value)} placeholder="Blockers — low visibility, weak sponsor, timing" style={promotionInputStyle(theme)} />
@@ -7250,17 +7391,30 @@ function ScreenPromotionToolkit({ onNavigate }: { onNavigate: (s: string) => voi
       <div style={{ maxWidth:1040, margin:"0 auto", padding:"34px 24px 56px", position:"relative" }}>
         <div style={promotionHeroStyle(theme)}>
           <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 84% 18%, rgba(251,191,36,0.18), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
-          <div style={{ position:"relative", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, flexWrap:"wrap" }}>
-            <div>
+          <div style={promotionHeroGridStyle()}>
+            <div style={{ position:"relative" }}>
               <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>Promotion Toolkit</div>
-              <h1 style={{ fontSize:42, lineHeight:1.02, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.045em", margin:"0 0 12px", maxWidth:760 }}>Everything you build for promotion, in one place.</h1>
-              <p style={{ maxWidth:720, fontSize:14.5, lineHeight:1.75, color:"rgba(255,255,255,0.76)", margin:0 }}>
+              <h1 style={promotionHeroTitleStyle(760)}>Everything you build for promotion, in one place.</h1>
+              <p style={promotionHeroBodyStyle(720)}>
                 This is your working surface for the promotion process: audits, evidence packs, sponsor strategy, uploaded proof, and the stage guidance that ties them together.
               </p>
+              <div style={{ marginTop:18 }}>
+                <button onClick={() => fileInputRef.current?.click()} style={{ ...promotionChipStyle(theme, true), padding:"11px 16px", border:"none", cursor:"pointer" }}>
+                  Upload file
+                </button>
+              </div>
             </div>
-            <button onClick={() => fileInputRef.current?.click()} style={{ ...promotionChipStyle(theme, true), padding:"11px 16px", border:"none", cursor:"pointer" }}>
-              Upload file
-            </button>
+            <PromotionHeroSpotlight
+              theme={theme}
+              label="Command Center"
+              title="Artifacts, proof, and guidance that compound."
+              items={[
+                "Keep audits, evidence packs, and sponsor strategy in one place.",
+                "Upload raw notes and convert them into structured material later.",
+                "Move between steps without losing the full promotion narrative.",
+              ]}
+              footer="The toolkit should feel like a working table, not a dumping ground."
+            />
           </div>
 
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))", gap:12, marginTop:20, position:"relative" }}>
@@ -7290,7 +7444,7 @@ function ScreenPromotionToolkit({ onNavigate }: { onNavigate: (s: string) => voi
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(320px,1fr))", gap:18, alignItems:"start", marginBottom:20 }}>
           <div style={{ ...promotionPanelStyle(theme, true), padding:"20px 20px 18px" }}>
             <div style={{ fontSize:11.5, fontWeight:800, color:theme.accent, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Quick access</div>
-            <h2 style={{ fontSize:30, lineHeight:1.06, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 12px" }}>Jump to the next part of the case.</h2>
+            <h2 style={promotionSectionTitleStyle(420)}>Jump to the next part of the case.</h2>
             <div style={{ display:"grid", gap:10 }}>
               {SECTION_CARDS.map(card => (
                 <button key={card.label} onClick={() => onNavigate(card.section)} style={{ display:"flex", alignItems:"center", gap:12, textAlign:"left", border:"1px solid rgba(148,163,184,0.16)", background:"rgba(255,255,255,0.74)", borderRadius:16, padding:"13px 14px", cursor:"pointer" }}>
@@ -7311,7 +7465,7 @@ function ScreenPromotionToolkit({ onNavigate }: { onNavigate: (s: string) => voi
 
           <div style={promotionPanelStyle(theme)}>
             <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Add proof</div>
-            <h2 style={{ fontSize:30, lineHeight:1.06, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 12px" }}>Drop raw material into the toolkit.</h2>
+            <h2 style={promotionSectionTitleStyle(420)}>Drop raw material into the toolkit.</h2>
             <div
               onDragOver={e => { e.preventDefault(); setDragging(true); }}
               onDragLeave={() => setDragging(false)}
@@ -8131,12 +8285,25 @@ function ScreenPromotionRoadmap({ onNavigate }: { onNavigate: (s: string) => voi
         <div style={{ maxWidth:980, margin:"0 auto", padding:"34px 24px 56px", position:"relative" }}>
           <div style={promotionHeroStyle(theme)}>
             <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 84% 18%, rgba(251,207,232,0.18), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
-            <div style={{ position:"relative" }}>
-              <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>Promotion Roadmap</div>
-              <h1 style={{ fontSize:42, lineHeight:1.02, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.045em", margin:"0 0 12px", maxWidth:760 }}>Your roadmap sharpens as soon as Zari has some real signal.</h1>
-              <p style={{ maxWidth:720, fontSize:14.5, lineHeight:1.75, color:"rgba(255,255,255,0.76)", margin:0 }}>
-                Complete at least one core promotion workspace and the roadmap will start sequencing the case, support-building, and timing work around your actual situation.
-              </p>
+            <div style={promotionHeroGridStyle()}>
+              <div style={{ position:"relative" }}>
+                <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>Promotion Roadmap</div>
+                <h1 style={promotionHeroTitleStyle(760)}>Your roadmap sharpens as soon as Zari has some real signal.</h1>
+                <p style={promotionHeroBodyStyle(720)}>
+                  Complete at least one core promotion workspace and the roadmap will start sequencing the case, support-building, and timing work around your actual situation.
+                </p>
+              </div>
+              <PromotionHeroSpotlight
+                theme={theme}
+                label="Roadmap Logic"
+                title="Case first. Support second. Timing last."
+                items={[
+                  "Use real evidence before guessing what to do next.",
+                  "Sequence the work so the formal ask is not premature.",
+                  "Turn scattered activity into a deliberate promotion cycle.",
+                ]}
+                footer="The roadmap becomes useful once there is signal to organize."
+              />
             </div>
           </div>
 
@@ -8191,22 +8358,22 @@ function ScreenPromotionRoadmap({ onNavigate }: { onNavigate: (s: string) => voi
       <div style={{ maxWidth:1040, margin:"0 auto", padding:"34px 24px 56px", position:"relative" }}>
         <div style={promotionHeroStyle(theme)}>
           <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 84% 18%, rgba(251,207,232,0.18), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
-          <div style={{ position:"relative", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, flexWrap:"wrap" }}>
-            <div>
+          <div style={promotionHeroGridStyle()}>
+            <div style={{ position:"relative" }}>
               <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>Promotion Roadmap</div>
-              <h1 style={{ fontSize:42, lineHeight:1.02, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.045em", margin:"0 0 12px", maxWidth:760 }}>Sequence the case, the support, and the timing.</h1>
-              <p style={{ maxWidth:720, fontSize:14.5, lineHeight:1.75, color:"rgba(255,255,255,0.76)", margin:0 }}>
+              <h1 style={promotionHeroTitleStyle(760)}>Sequence the case, the support, and the timing.</h1>
+              <p style={promotionHeroBodyStyle(720)}>
                 This roadmap turns what Zari has learned so far into an order of operations: what to do first, what to keep building over time, and when the formal ask starts making sense.
               </p>
             </div>
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(110px,1fr))", gap:10, minWidth:230 }}>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(110px,1fr))", gap:10, alignSelf:"stretch" }}>
               {[
                 { label:"Progress", value:`${pct}%` },
                 { label:"Done", value:String(done.size).padStart(2, "0") },
                 { label:"Remaining", value:String(TASKS.length - done.size).padStart(2, "0") },
                 { label:"Sections", value:`${readyCount}/3` },
               ].map(card => (
-                <div key={card.label} style={{ borderRadius:16, padding:"14px 14px 13px", background:"rgba(24,12,41,0.44)", border:"1px solid rgba(251,207,232,0.14)" }}>
+                <div key={card.label} style={{ borderRadius:18, padding:"15px 15px 14px", background:"rgba(24,12,41,0.44)", border:"1px solid rgba(251,207,232,0.14)", boxShadow:"inset 0 1px 0 rgba(255,255,255,0.06)" }}>
                   <div style={{ fontSize:10.5, fontWeight:800, letterSpacing:"0.1em", textTransform:"uppercase", color:"rgba(252,231,243,0.82)", marginBottom:8 }}>{card.label}</div>
                   <div style={{ fontSize:24, fontWeight:900, lineHeight:1, color:"white", letterSpacing:"-0.04em" }}>{card.value}</div>
                 </div>
