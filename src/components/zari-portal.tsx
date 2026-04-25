@@ -2564,6 +2564,7 @@ function loadResumeSession(): { resumeText:string; fileName:string; aiResult:Res
 }
 
 type PromotionReadinessVerdict = "Ready now" | "Close, but not airtight" | "Needs more proof" | "Too early";
+type PromotionAuditTab = "overview" | "gaps" | "plan" | "conversation" | "examples";
 
 type PromotionReadinessResult = {
   readinessScore: number;
@@ -2576,6 +2577,12 @@ type PromotionReadinessResult = {
   gaps: Array<{ area: string; why: string; nextStep: string }>;
   managerQuestions: string[];
   nextMoves: string[];
+  quickWins: Array<{ title: string; body: string; jumpTo: PromotionAuditTab }>;
+  evidenceChecklist: string[];
+  exampleEvidence: string[];
+  managerPitchExample: string;
+  actionPlan: Array<{ label: string; action: string }>;
+  riskFlags: string[];
 };
 
 type PromotionReadinessForm = {
@@ -2585,22 +2592,15 @@ type PromotionReadinessForm = {
   askWindow: string;
   roleDescription: string;
   rubricClarity: string;
-  promotionProcess: string;
   recentProjects: string;
-  signatureProjects: string;
   scopeLevel: string;
   impactLevel: string;
   influenceLevel: string;
   reviewSignal: string;
   reviewSummary: string;
   managerSupport: string;
-  sponsorSupport: string;
   visibilityLevel: string;
-  leadershipLevel: string;
   blockers: string;
-  evidenceText: string;
-  evidenceFile: string;
-  additionalContext: string;
 };
 
 type PromotionReadinessOption = {
@@ -2616,22 +2616,15 @@ const PROMOTION_READINESS_DEFAULT_FORM: PromotionReadinessForm = {
   askWindow: "",
   roleDescription: "",
   rubricClarity: "",
-  promotionProcess: "",
   recentProjects: "",
-  signatureProjects: "",
   scopeLevel: "",
   impactLevel: "",
   influenceLevel: "",
   reviewSignal: "",
   reviewSummary: "",
   managerSupport: "",
-  sponsorSupport: "",
   visibilityLevel: "",
-  leadershipLevel: "",
   blockers: "",
-  evidenceText: "",
-  evidenceFile: "",
-  additionalContext: "",
 };
 
 const PROMOTION_READINESS_STEPS = [
@@ -2644,16 +2637,12 @@ const PROMOTION_READINESS_STEPS = [
     subtitle: "Give Zari the clearest version of what the next level actually expects at your company.",
   },
   {
-    title: "Scope and impact",
-    subtitle: "Show the projects, business outcomes, and cross-functional reach that support your case.",
+    title: "Proof of impact",
+    subtitle: "Show the projects, outcomes, and review evidence that make the promotion case real.",
   },
   {
-    title: "Feedback and support",
-    subtitle: "Map recent review signals, your manager's stance, and whether the right people already see your work.",
-  },
-  {
-    title: "Leadership and blockers",
-    subtitle: "Add leadership proof, any hard blockers, and extra evidence before Zari scores the case.",
+    title: "Support and blockers",
+    subtitle: "Pressure-test manager support, visibility, and whatever is still holding the case back.",
   },
 ] as const;
 
@@ -2708,23 +2697,11 @@ const PROMOTION_READINESS_OPTIONS = {
     { value: "unclear", label: "Unclear", description: "You do not really know where your manager stands yet." },
     { value: "skeptical", label: "Skeptical", description: "Your manager is signaling caution or resistance." },
   ] satisfies PromotionReadinessOption[],
-  sponsorSupport: [
-    { value: "strong_sponsors", label: "Strong sponsors", description: "Senior people beyond your manager know your work and would likely back you." },
-    { value: "a_few_supporters", label: "A few supporters", description: "You have some allies, but support is not yet broad or senior enough." },
-    { value: "limited_support", label: "Limited support", description: "A few people know your work, but the network is still thin." },
-    { value: "none_yet", label: "No real sponsors yet", description: "You mostly need to build support from scratch." },
-  ] satisfies PromotionReadinessOption[],
   visibilityLevel: [
     { value: "decision_makers_see_it", label: "Decision-makers see it", description: "The people who influence promotions already know your impact." },
     { value: "manager_and_partners", label: "Manager and partners see it", description: "Your work is visible, but not yet to every person who matters." },
     { value: "mostly_team", label: "Mostly team-level visibility", description: "Your impact is real, but it is still staying local." },
     { value: "low_visibility", label: "Low visibility", description: "Most of the right people do not really see the case yet." },
-  ] satisfies PromotionReadinessOption[],
-  leadershipLevel: [
-    { value: "leading_strategy", label: "Leading strategy", description: "You drive direction, unblock others, and shape decisions at a higher level." },
-    { value: "leading_projects", label: "Leading projects", description: "You own projects, mentor others, and show leadership in important pockets." },
-    { value: "occasional", label: "Occasional leadership", description: "You have some examples, but not yet a consistent pattern." },
-    { value: "mostly_execution", label: "Mostly execution", description: "The case still leans on doing work well rather than leading beyond the task." },
   ] satisfies PromotionReadinessOption[],
 } as const;
 
@@ -3044,12 +3021,12 @@ function PromotionChoiceGroup({
 }
 
 function ScreenPromotionReadiness() {
-  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [form, setForm] = useState<PromotionReadinessForm>(PROMOTION_READINESS_DEFAULT_FORM);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<PromotionReadinessResult | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [resultTab, setResultTab] = useState<PromotionAuditTab>("overview");
   const theme = PROMOTION_THEMES.readiness;
   const activeStep = PROMOTION_READINESS_STEPS[step - 1];
 
@@ -3085,37 +3062,16 @@ function ScreenPromotionReadiness() {
     if (error) setError("");
   }
 
-  function patchForm(patch: Partial<PromotionReadinessForm>) {
-    setForm(prev => ({ ...prev, ...patch }));
-    if (error) setError("");
-  }
-
-  async function handleUpload(file: File) {
-    patchForm({ evidenceFile: file.name });
-    try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const res = await fetch("/api/zari/extract", { method:"POST", body:fd });
-      const data = await res.json().catch(() => ({})) as { text?: string };
-      if (data.text) patchForm({ evidenceText: data.text });
-      else setError("Could not extract text from that file. Paste the notes instead.");
-    } catch {
-      setError("Could not extract text from that file. Paste the notes instead.");
-    }
-  }
-
   function validationMessage(targetStep = step) {
     switch (targetStep) {
       case 1:
         return "Add your current title, target title, time in role, and timing before continuing.";
       case 2:
-        return "Paste the next-level job description, rubric, or level expectations before continuing.";
+        return "Paste the next-level job description and tell Zari how clear the bar is.";
       case 3:
-        return "Add your recent projects and choose the scope, impact, and influence answers before continuing.";
+        return "Add your key projects, recent review notes, and the scope, impact, and influence answers before continuing.";
       case 4:
-        return "Tell Zari what your reviews say and how much support or visibility you already have.";
-      case 5:
-        return "Choose the leadership level and add any blockers or extra evidence before scoring the audit.";
+        return "Tell Zari the review signal, manager support, visibility, and what is still blocking the promotion case.";
       default:
         return "Complete the remaining questions before continuing.";
     }
@@ -3128,11 +3084,9 @@ function ScreenPromotionReadiness() {
       case 2:
         return Boolean(form.roleDescription.trim() && form.rubricClarity);
       case 3:
-        return Boolean(form.recentProjects.trim() && form.scopeLevel && form.impactLevel && form.influenceLevel);
+        return Boolean(form.recentProjects.trim() && form.reviewSummary.trim() && form.scopeLevel && form.impactLevel && form.influenceLevel);
       case 4:
-        return Boolean(form.reviewSignal && form.reviewSummary.trim() && form.managerSupport && form.sponsorSupport && form.visibilityLevel);
-      case 5:
-        return Boolean(form.leadershipLevel && (form.blockers.trim() || form.evidenceText.trim() || form.additionalContext.trim()));
+        return Boolean(form.reviewSignal && form.managerSupport && form.visibilityLevel && form.blockers.trim());
       default:
         return false;
     }
@@ -3144,17 +3098,17 @@ function ScreenPromotionReadiness() {
       return;
     }
     setError("");
-    setStep(prev => Math.min(5, prev + 1) as 1 | 2 | 3 | 4 | 5);
+    setStep(prev => Math.min(4, prev + 1) as 1 | 2 | 3 | 4);
   }
 
   function goBack() {
     setError("");
-    setStep(prev => Math.max(1, prev - 1) as 1 | 2 | 3 | 4 | 5);
+    setStep(prev => Math.max(1, prev - 1) as 1 | 2 | 3 | 4);
   }
 
   async function generate() {
-    if (!canContinue(5)) {
-      setError(validationMessage(5));
+    if (!canContinue(4)) {
+      setError(validationMessage(4));
       return;
     }
     setGenerating(true);
@@ -3168,6 +3122,7 @@ function ScreenPromotionReadiness() {
       const data = await res.json().catch(() => null) as (PromotionReadinessResult & { error?: string }) | null;
       if (data?.summary && typeof data.readinessScore === "number") {
         setResult(data);
+        setResultTab("overview");
         const serialized = [
           `Promotion readiness score: ${data.readinessScore}/100`,
           `Verdict: ${data.verdict}`,
@@ -3194,6 +3149,12 @@ function ScreenPromotionReadiness() {
           "",
           "Next moves",
           ...data.nextMoves.map(item => `- ${item}`),
+          "",
+          "Action plan",
+          ...data.actionPlan.map(item => `- ${item.label}: ${item.action}`),
+          "",
+          "Example evidence",
+          ...data.exampleEvidence.map(item => `- ${item}`),
         ].join("\n");
         vaultSave({
           type:"resume",
@@ -3229,7 +3190,7 @@ function ScreenPromotionReadiness() {
             </div>
             <p style={{ fontSize:17, fontWeight:800, color:"white", marginBottom:8, letterSpacing:"-0.02em" }}>Scoring your promotion readiness…</p>
             <p style={{ fontSize:13.5, color:"rgba(255,255,255,0.42)", maxWidth:420, margin:"0 auto", lineHeight:1.6 }}>
-              Zari is matching your answers against the next-level bar, your evidence, and the support around you.
+              Zari is turning your answers into a clearer promotion case, a gap map, and a concrete plan.
             </p>
           </div>
         </div>
@@ -3240,14 +3201,22 @@ function ScreenPromotionReadiness() {
   if (result) {
     const verdictStyle = verdictMeta[result.verdict];
     const scoreColor = dimColor(result.readinessScore);
+    const resultTabs: Array<{ id: PromotionAuditTab; label: string; badge?: string }> = [
+      { id:"overview", label:"Overview" },
+      { id:"gaps", label:"Proof Gaps", badge:String(result.gaps.length) },
+      { id:"plan", label:"Action Plan", badge:String(result.actionPlan.length) },
+      { id:"conversation", label:"Manager Plan", badge:String(result.managerQuestions.length) },
+      { id:"examples", label:"Examples" },
+    ];
+
     return (
       <div style={promotionPageStyle(theme)}>
-        <div style={{ maxWidth:1040, margin:"0 auto", padding:"34px 24px 56px", position:"relative" }}>
+        <div style={{ maxWidth:1120, margin:"0 auto", padding:"34px 24px 56px", position:"relative" }}>
           <div style={promotionHeroStyle(theme)}>
             <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 85% 18%, rgba(191,219,254,0.22), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
             <div style={{ position:"absolute", inset:0, background:"linear-gradient(120deg, rgba(255,255,255,0.06), transparent 38%)", pointerEvents:"none" }}/>
             <div style={{ position:"relative" }}>
-              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:18, alignItems:"start" }}>
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:18, alignItems:"start", marginBottom:18 }}>
                 <div>
                   <div style={{ ...promotionChipStyle(theme), background:verdictStyle.bg, border:`1px solid ${verdictStyle.border}`, color:verdictStyle.color, marginBottom:12 }}>{result.verdict}</div>
                   <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>Readiness Audit</div>
@@ -3256,24 +3225,25 @@ function ScreenPromotionReadiness() {
                   <p style={{ ...promotionHeroBodyStyle(720), marginTop:12, color:"rgba(255,255,255,0.62)" }}>{result.scoreReason}</p>
                   <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginTop:18 }}>
                     <button
-                      onClick={() => { setResult(null); setStep(1); }}
+                      onClick={() => { setResult(null); setResultTab("overview"); setStep(1); }}
                       style={{ fontSize:12.5, fontWeight:700, padding:"10px 15px", borderRadius:12, border:"1px solid rgba(255,255,255,0.14)", background:"rgba(255,255,255,0.08)", color:"white", cursor:"pointer", backdropFilter:"blur(12px)" }}
                     >
                       Edit answers
                     </button>
                     <button
-                      onClick={() => { setResult(null); setStep(1); setForm(PROMOTION_READINESS_DEFAULT_FORM); setError(""); }}
+                      onClick={() => { setResult(null); setResultTab("overview"); setStep(1); setForm(PROMOTION_READINESS_DEFAULT_FORM); setError(""); }}
                       style={{ fontSize:12.5, fontWeight:700, padding:"10px 15px", borderRadius:12, border:"1px solid rgba(255,255,255,0.14)", background:"transparent", color:"rgba(255,255,255,0.7)", cursor:"pointer" }}
                     >
                       Start fresh
                     </button>
                   </div>
                 </div>
+
                 <div style={{ borderRadius:20, padding:"18px 18px 16px", background:"rgba(8,15,30,0.46)", border:"1px solid rgba(191,219,254,0.14)", boxShadow:"inset 0 1px 0 rgba(255,255,255,0.06)" }}>
                   <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:16, marginBottom:16 }}>
                     <div>
                       <div style={{ fontSize:10.5, fontWeight:800, letterSpacing:"0.1em", textTransform:"uppercase", color:"rgba(191,219,254,0.82)", marginBottom:6 }}>Promotion Readiness</div>
-                      <div style={{ fontSize:12.5, color:"rgba(255,255,255,0.58)", lineHeight:1.5 }}>How strong the case looks right now, based on your bar, proof, support, and timing.</div>
+                      <div style={{ fontSize:12.5, color:"rgba(255,255,255,0.58)", lineHeight:1.5 }}>A higher score means the case is easier for your manager to repeat upward and easier for decision-makers to trust.</div>
                     </div>
                     <ScoreRing score={result.readinessScore} color={scoreColor} size={88} dark />
                   </div>
@@ -3281,7 +3251,7 @@ function ScreenPromotionReadiness() {
                     {[
                       { label:"Strong signals", value:String(result.strengths.length).padStart(2,"0") },
                       { label:"Gaps to close", value:String(result.gaps.length).padStart(2,"0") },
-                      { label:"Manager prompts", value:String(result.managerQuestions.length).padStart(2,"0") },
+                      { label:"Action steps", value:String(result.actionPlan.length).padStart(2,"0") },
                     ].map(card => (
                       <div key={card.label} style={{ borderRadius:14, padding:"12px 13px", background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.08)" }}>
                         <div style={{ fontSize:10, fontWeight:800, letterSpacing:"0.08em", textTransform:"uppercase", color:"rgba(191,219,254,0.72)", marginBottom:7 }}>{card.label}</div>
@@ -3291,74 +3261,17 @@ function ScreenPromotionReadiness() {
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))", gap:14, marginBottom:18 }}>
-            {result.dimensions.map(item => {
-              const color = dimColor(item.score);
-              return (
-                <div key={item.label} style={promotionPanelStyle(theme, item.score >= 75)}>
-                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:10 }}>
-                    <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.08em" }}>{item.label}</div>
-                    <div style={{ fontSize:18, fontWeight:900, color, letterSpacing:"-0.03em" }}>{item.score}</div>
-                  </div>
-                  <Bar pct={item.score} color={color} h={7} />
-                  <p style={{ fontSize:12.5, color:"#475569", lineHeight:1.65, margin:"12px 0 0" }}>{item.reason}</p>
-                </div>
-              );
-            })}
-          </div>
-
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))", gap:18, alignItems:"start" }}>
-            <div style={{ display:"grid", gap:18 }}>
-              <div style={promotionPanelStyle(theme)}>
-                <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Why You Landed Here</div>
-                <h2 style={{ fontSize:24, lineHeight:1.1, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 14px" }}>What is driving the score</h2>
-                <div style={{ display:"grid", gap:10 }}>
-                  {result.rationale.map(item => (
-                    <div key={item} style={{ fontSize:13.5, color:"#334155", lineHeight:1.7, background:"rgba(248,250,252,0.92)", border:"1px solid rgba(148,163,184,0.18)", borderRadius:16, padding:"13px 14px" }}>
-                      {item}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div style={{ ...promotionPanelStyle(theme, true), border:"1px solid rgba(16,185,129,0.24)" }}>
-                <div style={{ fontSize:11.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Already Working</div>
-                <h2 style={{ fontSize:24, lineHeight:1.1, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 14px" }}>What already reads as promotion-ready</h2>
-                <div style={{ display:"grid", gap:10 }}>
-                  {result.strengths.map(item => (
-                    <div key={item} style={{ fontSize:13.5, color:"#14532D", lineHeight:1.7, background:"linear-gradient(180deg,#F0FDF4,#ECFDF5)", border:"1px solid #BBF7D0", borderRadius:16, padding:"13px 14px" }}>
-                      {item}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div style={{ display:"grid", gap:18 }}>
-              <div style={{ ...promotionPanelStyle(theme, true), border:"1px solid rgba(245,158,11,0.22)" }}>
-                <div style={{ fontSize:11.5, fontWeight:800, color:"#B45309", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Proof Gaps</div>
-                <h2 style={{ fontSize:26, lineHeight:1.1, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 14px" }}>What is keeping the score where it is</h2>
-                <div style={{ display:"grid", gap:12 }}>
-                  {result.gaps.map(item => (
-                    <div key={item.area} style={{ background:"linear-gradient(180deg,#FFF8E8,#FFFBEF)", border:"1px solid #FCD34D", borderRadius:18, padding:"15px 16px" }}>
-                      <div style={{ fontSize:13.5, fontWeight:800, color:"#92400E", marginBottom:6 }}>{item.area}</div>
-                      <div style={{ fontSize:12.5, color:"#7C3D12", lineHeight:1.65, marginBottom:8 }}>{item.why}</div>
-                      <div style={{ fontSize:12.5, color:"#1F2937", lineHeight:1.65 }}><strong>How to close it:</strong> {item.nextStep}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div style={promotionPanelStyle(theme)}>
-                <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Next Moves</div>
-                <h2 style={{ fontSize:24, lineHeight:1.1, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 14px" }}>What to do before the ask</h2>
-                <div style={{ display:"grid", gap:10 }}>
-                  {result.nextMoves.map(item => (
-                    <div key={item} style={{ fontSize:13.5, color:"#334155", lineHeight:1.7, background:"rgba(248,250,252,0.92)", border:"1px solid rgba(148,163,184,0.18)", borderRadius:16, padding:"13px 14px" }}>
-                      {item}
+              <div style={{ borderTop:"1px solid rgba(255,255,255,0.08)", paddingTop:18 }}>
+                <p style={{ fontSize:12, fontWeight:800, color:"rgba(191,219,254,0.82)", letterSpacing:"0.08em", textTransform:"uppercase", margin:"0 0 12px" }}>Quick Wins</p>
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))", gap:10 }}>
+                  {result.quickWins.slice(0, 3).map((item, index) => (
+                    <div key={`${item.title}-${index}`} onClick={() => setResultTab(item.jumpTo)} style={{ background:"rgba(255,255,255,0.06)", borderRadius:16, border:"1px solid rgba(255,255,255,0.1)", padding:"14px 15px", cursor:"pointer", transition:"all 0.15s" }}>
+                      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:8 }}>
+                        <span style={{ fontSize:11.5, fontWeight:800, color:"white" }}>{item.title}</span>
+                        <span style={{ fontSize:10.5, fontWeight:800, color:"#A5B4FC", letterSpacing:"0.08em", textTransform:"uppercase" }}>Open</span>
+                      </div>
+                      <p style={{ fontSize:12.5, color:"rgba(255,255,255,0.62)", lineHeight:1.55, margin:0 }}>{item.body}</p>
                     </div>
                   ))}
                 </div>
@@ -3366,33 +3279,263 @@ function ScreenPromotionReadiness() {
             </div>
           </div>
 
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))", gap:18, alignItems:"start", marginTop:18 }}>
-            <div style={promotionPanelStyle(theme)}>
-              <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Manager Conversation</div>
-              <h2 style={{ fontSize:24, lineHeight:1.1, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 14px" }}>Questions to ask before you push timing</h2>
-              <div style={{ display:"grid", gap:10 }}>
-                {result.managerQuestions.map(item => (
-                  <div key={item} style={{ fontSize:13.5, color:"#334155", lineHeight:1.7, background:"rgba(248,250,252,0.92)", border:"1px solid rgba(148,163,184,0.18)", borderRadius:16, padding:"13px 14px" }}>
-                    {item}
-                  </div>
-                ))}
-              </div>
+          <div style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", boxShadow:"0 2px 12px rgba(0,0,0,0.04)", marginBottom:18, overflow:"hidden" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:0, overflowX:"auto", borderBottom:"1px solid #E4E8F5", background:"#FAFBFF" }}>
+              {resultTabs.map(tab => (
+                <button key={tab.id} onClick={() => setResultTab(tab.id)} style={{ padding:"12px 22px", border:"none", borderBottom:`2.5px solid ${resultTab===tab.id?"#4361EE":"transparent"}`, marginBottom:"-2px", background:"transparent", cursor:"pointer", fontSize:14, fontWeight:resultTab===tab.id?700:500, color:resultTab===tab.id?"#4361EE":"#68738A", display:"flex", alignItems:"center", gap:6, transition:"color 0.15s", whiteSpace:"nowrap" }}>
+                  {tab.label}
+                  {tab.badge && <span style={{ fontSize:11, fontWeight:700, padding:"2px 8px", borderRadius:99, background:resultTab===tab.id?"#EEF2FF":"#F1F5F9", color:resultTab===tab.id?"#4361EE":"#68738A" }}>{tab.badge}</span>}
+                </button>
+              ))}
             </div>
 
-            <div style={{ ...promotionPanelStyle(theme), background:"linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(239,246,255,0.92) 100%)" }}>
-              <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Score Meaning</div>
-              <h2 style={{ fontSize:24, lineHeight:1.1, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 14px" }}>How to use this audit</h2>
-              <div style={{ display:"grid", gap:10 }}>
-                {[
-                  "Treat the score as a decision aid, not a promise. The real goal is to know what evidence or support still needs work.",
-                  "Use the lowest dimensions first. They are the fastest way to raise confidence before you ask for a promotion.",
-                  "Bring the manager questions into your next 1:1 so you can replace assumptions with clear promotion criteria.",
-                ].map(item => (
-                  <div key={item} style={{ fontSize:13, color:"#334155", lineHeight:1.7, padding:"12px 13px", borderRadius:14, border:"1px solid rgba(148,163,184,0.16)", background:"rgba(255,255,255,0.76)" }}>
-                    {item}
+            <div style={{ padding:"20px 22px" }}>
+              {resultTab === "overview" && (
+                <div style={{ display:"grid", gap:18 }}>
+                  <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))", gap:14 }}>
+                    {result.dimensions.map(item => {
+                      const color = dimColor(item.score);
+                      return (
+                        <div key={item.label} style={{ background:"#FAFBFF", borderRadius:16, border:"1px solid #E4E8F5", padding:"16px 16px 14px" }}>
+                          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:10 }}>
+                            <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.08em" }}>{item.label}</div>
+                            <div style={{ fontSize:18, fontWeight:900, color, letterSpacing:"-0.03em" }}>{item.score}</div>
+                          </div>
+                          <Bar pct={item.score} color={color} h={7} />
+                          <p style={{ fontSize:12.5, color:"#475569", lineHeight:1.65, margin:"12px 0 0" }}>{item.reason}</p>
+                        </div>
+                      );
+                    })}
                   </div>
-                ))}
-              </div>
+
+                  <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))", gap:18, alignItems:"start" }}>
+                    <div style={{ display:"grid", gap:18 }}>
+                      <div style={promotionPanelStyle(theme)}>
+                        <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Why You Landed Here</div>
+                        <h2 style={{ fontSize:24, lineHeight:1.1, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 14px" }}>What is driving the score</h2>
+                        <div style={{ display:"grid", gap:10 }}>
+                          {result.rationale.map(item => (
+                            <div key={item} style={{ fontSize:13.5, color:"#334155", lineHeight:1.7, background:"rgba(248,250,252,0.92)", border:"1px solid rgba(148,163,184,0.18)", borderRadius:16, padding:"13px 14px" }}>
+                              {item}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div style={{ ...promotionPanelStyle(theme, true), border:"1px solid rgba(16,185,129,0.24)" }}>
+                        <div style={{ fontSize:11.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Already Working</div>
+                        <h2 style={{ fontSize:24, lineHeight:1.1, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 14px" }}>What already reads as promotion-ready</h2>
+                        <div style={{ display:"grid", gap:10 }}>
+                          {result.strengths.map(item => (
+                            <div key={item} style={{ fontSize:13.5, color:"#14532D", lineHeight:1.7, background:"linear-gradient(180deg,#F0FDF4,#ECFDF5)", border:"1px solid #BBF7D0", borderRadius:16, padding:"13px 14px" }}>
+                              {item}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ display:"grid", gap:18 }}>
+                      <div style={{ ...promotionPanelStyle(theme), background:"linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(239,246,255,0.92) 100%)" }}>
+                        <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Evidence Checklist</div>
+                        <h2 style={{ fontSize:24, lineHeight:1.1, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 14px" }}>What convincing proof should look like</h2>
+                        <div style={{ display:"grid", gap:10 }}>
+                          {result.evidenceChecklist.map(item => (
+                            <div key={item} style={{ display:"flex", gap:9, padding:"11px 12px", borderRadius:14, background:"rgba(255,255,255,0.78)", border:"1px solid rgba(148,163,184,0.16)" }}>
+                              <span style={{ color:"#4361EE", fontSize:12, fontWeight:900, marginTop:1 }}>•</span>
+                              <p style={{ fontSize:13, color:"#334155", lineHeight:1.65, margin:0 }}>{item}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div style={{ ...promotionPanelStyle(theme, true), border:"1px solid rgba(245,158,11,0.22)" }}>
+                        <div style={{ fontSize:11.5, fontWeight:800, color:"#B45309", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Watchouts</div>
+                        <h2 style={{ fontSize:24, lineHeight:1.1, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 14px" }}>What could still sink the case</h2>
+                        <div style={{ display:"grid", gap:10 }}>
+                          {result.riskFlags.map(item => (
+                            <div key={item} style={{ fontSize:13.5, color:"#7C3D12", lineHeight:1.7, background:"linear-gradient(180deg,#FFF8E8,#FFFBEF)", border:"1px solid #FCD34D", borderRadius:16, padding:"13px 14px" }}>
+                              {item}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {resultTab === "gaps" && (
+                <div style={{ display:"grid", gap:18 }}>
+                  <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:16 }}>
+                    {result.gaps.map(item => (
+                      <div key={item.area} style={{ background:"white", borderRadius:18, border:"1px solid #FCD34D", boxShadow:"0 2px 12px rgba(245,158,11,0.06)", overflow:"hidden" }}>
+                        <div style={{ padding:"14px 16px", background:"linear-gradient(180deg,#FFF8E8,#FFFBEF)", borderBottom:"1px solid #FDE68A" }}>
+                          <div style={{ fontSize:11, fontWeight:800, color:"#B45309", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:6 }}>Gap Area</div>
+                          <div style={{ fontSize:18, fontWeight:800, color:"#92400E", letterSpacing:"-0.02em" }}>{item.area}</div>
+                        </div>
+                        <div style={{ padding:"16px" }}>
+                          <p style={{ fontSize:13, color:"#7C3D12", lineHeight:1.7, margin:"0 0 12px" }}>{item.why}</p>
+                          <div style={{ padding:"12px 13px", borderRadius:14, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
+                            <div style={{ fontSize:10.5, fontWeight:800, color:"#4361EE", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:6 }}>How to close it</div>
+                            <div style={{ fontSize:12.8, color:"#334155", lineHeight:1.65 }}>{item.nextStep}</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div style={promotionPanelStyle(theme)}>
+                    <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>How To Use This</div>
+                    <h2 style={{ fontSize:24, lineHeight:1.1, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 14px" }}>Close the gaps in this order</h2>
+                    <div style={{ display:"grid", gap:10 }}>
+                      {[
+                        "Fix the lowest-scoring dimension first. It usually raises confidence faster than polishing a strength.",
+                        "Tie each gap to one concrete proof point, not a broad promise that you will improve later.",
+                        "If a gap depends on manager clarity, replace guesswork with a direct conversation in your next 1:1.",
+                      ].map(item => (
+                        <div key={item} style={{ fontSize:13.5, color:"#334155", lineHeight:1.7, background:"rgba(248,250,252,0.92)", border:"1px solid rgba(148,163,184,0.18)", borderRadius:16, padding:"13px 14px" }}>
+                          {item}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {resultTab === "plan" && (
+                <div style={{ display:"grid", gap:18 }}>
+                  <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))", gap:14 }}>
+                    {result.actionPlan.map(item => (
+                      <div key={item.label} style={{ background:"white", borderRadius:16, border:"1px solid #E4E8F5", padding:"16px 16px 15px", boxShadow:"0 2px 10px rgba(0,0,0,0.04)" }}>
+                        <div style={{ fontSize:10.5, fontWeight:800, color:"#4361EE", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>{item.label}</div>
+                        <div style={{ fontSize:13.5, color:"#1E2235", lineHeight:1.7 }}>{item.action}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))", gap:18, alignItems:"start" }}>
+                    <div style={promotionPanelStyle(theme)}>
+                      <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Next Moves</div>
+                      <h2 style={{ fontSize:24, lineHeight:1.1, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 14px" }}>What to do before the ask</h2>
+                      <div style={{ display:"grid", gap:10 }}>
+                        {result.nextMoves.map(item => (
+                          <div key={item} style={{ fontSize:13.5, color:"#334155", lineHeight:1.7, background:"rgba(248,250,252,0.92)", border:"1px solid rgba(148,163,184,0.18)", borderRadius:16, padding:"13px 14px" }}>
+                            {item}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div style={{ ...promotionPanelStyle(theme), background:"linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(239,246,255,0.92) 100%)" }}>
+                      <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Plan Rule</div>
+                      <h2 style={{ fontSize:24, lineHeight:1.1, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 14px" }}>Make the case easier to repeat upward</h2>
+                      <div style={{ display:"grid", gap:10 }}>
+                        {[
+                          "Every action should make your manager's job easier when they explain your case to someone else.",
+                          "Collect proof in a reusable format: scope, outcome, and why it read as next-level.",
+                          "The goal is not just more work. It is more undeniable evidence.",
+                        ].map(item => (
+                          <div key={item} style={{ fontSize:13, color:"#334155", lineHeight:1.7, padding:"12px 13px", borderRadius:14, border:"1px solid rgba(148,163,184,0.16)", background:"rgba(255,255,255,0.76)" }}>
+                            {item}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {resultTab === "conversation" && (
+                <div style={{ display:"grid", gap:18 }}>
+                  <div style={{ ...promotionPanelStyle(theme), background:"linear-gradient(135deg,#EEF2FF 0%,#F4F0FF 100%)", border:"1px solid #C7D2FE" }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
+                      <div style={{ width:32, height:32, borderRadius:10, background:"linear-gradient(135deg,#4361EE,#7C3AED)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:"0 4px 12px rgba(67,97,238,0.3)" }}>
+                        <svg viewBox="0 0 16 16" fill="none" stroke="white" strokeWidth="1.8" style={{ width:14,height:14 }}><path d="M3 5h10M3 8h10M3 11h6"/></svg>
+                      </div>
+                      <p style={{ fontSize:11, fontWeight:800, color:"#4361EE", textTransform:"uppercase", letterSpacing:"0.06em", margin:0 }}>Manager opener</p>
+                    </div>
+                    <p style={{ fontSize:14, color:"#1E1B4B", lineHeight:1.75, margin:0 }}>{result.managerPitchExample}</p>
+                  </div>
+
+                  <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))", gap:18, alignItems:"start" }}>
+                    <div style={promotionPanelStyle(theme)}>
+                      <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Questions to Ask</div>
+                      <h2 style={{ fontSize:24, lineHeight:1.1, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 14px" }}>Use these in your next 1:1</h2>
+                      <div style={{ display:"grid", gap:10 }}>
+                        {result.managerQuestions.map(item => (
+                          <div key={item} style={{ fontSize:13.5, color:"#334155", lineHeight:1.7, background:"rgba(248,250,252,0.92)", border:"1px solid rgba(148,163,184,0.18)", borderRadius:16, padding:"13px 14px" }}>
+                            {item}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div style={{ ...promotionPanelStyle(theme), background:"linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(239,246,255,0.92) 100%)" }}>
+                      <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Conversation Rule</div>
+                      <h2 style={{ fontSize:24, lineHeight:1.1, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 14px" }}>Keep the conversation factual</h2>
+                      <div style={{ display:"grid", gap:10 }}>
+                        {[
+                          "Lead with evidence and next-level behaviors, not with how long you have waited.",
+                          "Ask what still feels unproven instead of trying to argue every point live.",
+                          "Leave the conversation with a clearer proof bar, owner, and timing signal.",
+                        ].map(item => (
+                          <div key={item} style={{ fontSize:13, color:"#334155", lineHeight:1.7, padding:"12px 13px", borderRadius:14, border:"1px solid rgba(148,163,184,0.16)", background:"rgba(255,255,255,0.76)" }}>
+                            {item}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {resultTab === "examples" && (
+                <div style={{ display:"grid", gap:18 }}>
+                  <div style={promotionPanelStyle(theme)}>
+                    <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Example Evidence</div>
+                    <h2 style={{ fontSize:24, lineHeight:1.1, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 14px" }}>What stronger promotion proof can sound like</h2>
+                    <div style={{ display:"grid", gap:12 }}>
+                      {result.exampleEvidence.map(item => (
+                        <div key={item} style={{ background:"#FAFBFF", borderRadius:16, border:"1px solid #E4E8F5", padding:"14px 16px" }}>
+                          <div style={{ fontSize:11, fontWeight:800, color:"#4361EE", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:7 }}>Example bullet</div>
+                          <div style={{ fontSize:13.5, color:"#1E2235", lineHeight:1.75 }}>{item}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))", gap:18, alignItems:"start" }}>
+                    <div style={{ ...promotionPanelStyle(theme, true), border:"1px solid rgba(16,185,129,0.24)" }}>
+                      <div style={{ fontSize:11.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>What Great Looks Like</div>
+                      <h2 style={{ fontSize:24, lineHeight:1.1, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 14px" }}>Checklist for a stronger case</h2>
+                      <div style={{ display:"grid", gap:10 }}>
+                        {result.evidenceChecklist.map(item => (
+                          <div key={item} style={{ fontSize:13.5, color:"#14532D", lineHeight:1.7, background:"linear-gradient(180deg,#F0FDF4,#ECFDF5)", border:"1px solid #BBF7D0", borderRadius:16, padding:"13px 14px" }}>
+                            {item}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div style={promotionPanelStyle(theme)}>
+                      <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Clarity Tip</div>
+                      <h2 style={{ fontSize:24, lineHeight:1.1, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 14px" }}>Turn vague wins into promotion proof</h2>
+                      <div style={{ display:"grid", gap:10 }}>
+                        {[
+                          "Weak: I helped on a high-priority launch.",
+                          "Better: I led the launch across teams, handled blockers, and delivered the work on time.",
+                          "Best: I led a cross-functional launch, unblocked multiple teams, shipped ahead of plan, and created a repeatable model others now use.",
+                        ].map(item => (
+                          <div key={item} style={{ fontSize:13.5, color:"#334155", lineHeight:1.7, background:"rgba(248,250,252,0.92)", border:"1px solid rgba(148,163,184,0.18)", borderRadius:16, padding:"13px 14px" }}>
+                            {item}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -3404,31 +3547,19 @@ function ScreenPromotionReadiness() {
     return (
       <div style={{ textAlign:"center", marginBottom:32 }}>
         <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"rgba(255,255,255,0.35)", marginBottom:8 }}>
-          Step {step} of 5
+          Step {step} of 4
         </p>
         <h1 style={{ fontSize:28, fontWeight:900, color:"white", letterSpacing:"-0.04em", marginBottom:10 }}>{activeStep.title}</h1>
-        <p style={{ fontSize:14, color:"rgba(255,255,255,0.45)", lineHeight:1.6, maxWidth:420, margin:"0 auto" }}>{activeStep.subtitle}</p>
+        <p style={{ fontSize:14, color:"rgba(255,255,255,0.45)", lineHeight:1.6, maxWidth:440, margin:"0 auto" }}>{activeStep.subtitle}</p>
       </div>
     );
   }
 
   return (
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#0A1628" }}>
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".pdf,.docx,.txt"
-        style={{ display:"none" }}
-        onChange={e => {
-          const f = e.target.files?.[0];
-          if (f) void handleUpload(f);
-          e.target.value = "";
-        }}
-      />
-
       <div style={{ minHeight:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"48px 24px" }}>
         <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:40, flexWrap:"wrap", justifyContent:"center" }}>
-          {[1,2,3,4,5].map(s => (
+          {[1,2,3,4].map(s => (
             <div key={s} style={{ display:"flex", alignItems:"center", gap:10 }}>
               <div style={{ width:28, height:28, borderRadius:"50%", border:`2px solid ${s < step ? "#4ADE80" : s === step ? "#4361EE" : "rgba(255,255,255,0.15)"}`, background:s < step ? "rgba(74,222,128,0.15)" : s === step ? "rgba(67,97,238,0.2)" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
                 {s < step ? (
@@ -3437,7 +3568,7 @@ function ScreenPromotionReadiness() {
                   <span style={{ fontSize:11, fontWeight:700, color:s === step ? "#818CF8" : "rgba(255,255,255,0.25)" }}>{s}</span>
                 )}
               </div>
-              {s < 5 && <div style={{ width:28, height:2, borderRadius:99, background:s < step ? "rgba(74,222,128,0.4)" : "rgba(255,255,255,0.08)", transition:"all 0.3s" }}/>}
+              {s < 4 && <div style={{ width:28, height:2, borderRadius:99, background:s < step ? "rgba(74,222,128,0.4)" : "rgba(255,255,255,0.08)", transition:"all 0.3s" }}/>}
             </div>
           ))}
         </div>
@@ -3473,7 +3604,7 @@ function ScreenPromotionReadiness() {
               <div style={{ ...wizardCardStyle, background:"rgba(255,255,255,0.03)" }}>
                 <div style={{ fontSize:11.5, fontWeight:800, color:"#A5B4FC", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>What Zari is checking</div>
                 <p style={{ fontSize:13, color:"rgba(255,255,255,0.52)", lineHeight:1.7, margin:0 }}>
-                  A strong promotion case needs the right target, enough runway in role, and a realistic timeline. This step sets the context for the rest of the score.
+                  This step sets the move you want, the time you have had in role, and the timing pressure around the ask.
                 </p>
               </div>
             </div>
@@ -3486,7 +3617,7 @@ function ScreenPromotionReadiness() {
                 <textarea
                   value={form.roleDescription}
                   onChange={e => updateForm("roleDescription", e.target.value)}
-                  placeholder="Paste the job description, career ladder, promotion rubric, or the clearest notes you have about what the next level requires."
+                  placeholder="Paste the job description, career ladder, or the clearest notes you have about what the next level requires."
                   style={{ ...wizardTextareaStyle, minHeight:220 }}
                 />
               </div>
@@ -3495,37 +3626,27 @@ function ScreenPromotionReadiness() {
                 <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 10px" }}>How clear is the promotion bar today?</p>
                 <PromotionChoiceGroup value={form.rubricClarity} onChange={value => updateForm("rubricClarity", value)} options={PROMOTION_READINESS_OPTIONS.rubricClarity} />
               </div>
-
-              <div style={wizardCardStyle}>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 8px" }}>Anything else about the promotion process? <span style={{ color:"rgba(255,255,255,0.22)" }}>Optional</span></p>
-                <textarea
-                  value={form.promotionProcess}
-                  onChange={e => updateForm("promotionProcess", e.target.value)}
-                  placeholder="Examples: review cycle timing, calibration process, manager expectations, headcount limits, or anything political that matters."
-                  style={{ ...wizardTextareaStyle, minHeight:130 }}
-                />
-              </div>
             </div>
           )}
 
           {step === 3 && (
             <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
               <div style={wizardCardStyle}>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 8px" }}>Recent and past projects completed</p>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 8px" }}>Key projects and wins</p>
                 <textarea
                   value={form.recentProjects}
                   onChange={e => updateForm("recentProjects", e.target.value)}
-                  placeholder="List the most important projects or initiatives you have led recently. Focus on scope, outcomes, what changed because of your work, and who was affected."
+                  placeholder="List the most important projects or initiatives you have led. Focus on scope, outcomes, what changed because of your work, and who was affected."
                   style={{ ...wizardTextareaStyle, minHeight:190 }}
                 />
               </div>
 
               <div style={wizardCardStyle}>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 8px" }}>Signature wins or older proof <span style={{ color:"rgba(255,255,255,0.22)" }}>Optional</span></p>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 8px" }}>Recent review summary</p>
                 <textarea
-                  value={form.signatureProjects}
-                  onChange={e => updateForm("signatureProjects", e.target.value)}
-                  placeholder="Add earlier projects, big launches, org-wide work, or anything older that still strengthens the promotion case."
+                  value={form.reviewSummary}
+                  onChange={e => updateForm("reviewSummary", e.target.value)}
+                  placeholder="Paste recent review comments or summarize the feedback themes that matter most."
                   style={{ ...wizardTextareaStyle, minHeight:130 }}
                 />
               </div>
@@ -3550,18 +3671,8 @@ function ScreenPromotionReadiness() {
           {step === 4 && (
             <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
               <div style={wizardCardStyle}>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 10px" }}>What do recent reviews suggest?</p>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 10px" }}>Overall review signal</p>
                 <PromotionChoiceGroup value={form.reviewSignal} onChange={value => updateForm("reviewSignal", value)} options={PROMOTION_READINESS_OPTIONS.reviewSignal} />
-              </div>
-
-              <div style={wizardCardStyle}>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 8px" }}>Recent review notes or feedback summary</p>
-                <textarea
-                  value={form.reviewSummary}
-                  onChange={e => updateForm("reviewSummary", e.target.value)}
-                  placeholder="Paste review comments, manager feedback, or a quick summary of what keeps coming up in feedback."
-                  style={{ ...wizardTextareaStyle, minHeight:150 }}
-                />
               </div>
 
               <div style={wizardCardStyle}>
@@ -3570,67 +3681,17 @@ function ScreenPromotionReadiness() {
               </div>
 
               <div style={wizardCardStyle}>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 10px" }}>Do you have sponsors beyond your manager?</p>
-                <PromotionChoiceGroup value={form.sponsorSupport} onChange={value => updateForm("sponsorSupport", value)} options={PROMOTION_READINESS_OPTIONS.sponsorSupport} />
-              </div>
-
-              <div style={wizardCardStyle}>
                 <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 10px" }}>How visible is your work to the people who matter?</p>
                 <PromotionChoiceGroup value={form.visibilityLevel} onChange={value => updateForm("visibilityLevel", value)} options={PROMOTION_READINESS_OPTIONS.visibilityLevel} />
               </div>
-            </div>
-          )}
-
-          {step === 5 && (
-            <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-              <div style={wizardCardStyle}>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 10px" }}>How much leadership proof do you have today?</p>
-                <PromotionChoiceGroup value={form.leadershipLevel} onChange={value => updateForm("leadershipLevel", value)} options={PROMOTION_READINESS_OPTIONS.leadershipLevel} />
-              </div>
 
               <div style={wizardCardStyle}>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 8px" }}>What is getting in the way right now?</p>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 8px" }}>What is still getting in the way?</p>
                 <textarea
                   value={form.blockers}
                   onChange={e => updateForm("blockers", e.target.value)}
-                  placeholder="Examples: unclear rubric, low visibility, missing metrics, political blockers, manager hesitation, not enough org-level scope."
+                  placeholder="Examples: unclear rubric, low visibility, missing metrics, manager hesitation, or not enough next-level scope. If nothing is obvious, write 'none yet'."
                   style={{ ...wizardTextareaStyle, minHeight:135 }}
-                />
-              </div>
-
-              <div style={wizardCardStyle}>
-                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap", marginBottom:12 }}>
-                  <div>
-                    <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 6px" }}>Extra evidence or notes</p>
-                    <p style={{ fontSize:12.5, color:"rgba(255,255,255,0.4)", lineHeight:1.55, margin:0 }}>Paste brag docs, project summaries, self-review notes, or upload a file.</p>
-                  </div>
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    style={{ fontSize:12.5, fontWeight:700, padding:"9px 14px", borderRadius:12, border:"1px solid rgba(129,140,248,0.28)", background:"rgba(67,97,238,0.14)", color:"#A5B4FC", cursor:"pointer" }}
-                  >
-                    Upload notes
-                  </button>
-                </div>
-                {form.evidenceFile && (
-                  <div style={{ marginBottom:12, fontSize:12.5, fontWeight:700, color:"#A5B4FC", background:"rgba(67,97,238,0.14)", border:"1px solid rgba(129,140,248,0.28)", borderRadius:12, padding:"9px 12px", display:"inline-flex" }}>
-                    {form.evidenceFile}
-                  </div>
-                )}
-                <textarea
-                  value={form.evidenceText}
-                  onChange={e => updateForm("evidenceText", e.target.value)}
-                  placeholder="Paste supporting evidence here if you have it."
-                  style={{ ...wizardTextareaStyle, minHeight:150 }}
-                />
-              </div>
-
-              <div style={wizardCardStyle}>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 8px" }}>Anything else Zari should know? <span style={{ color:"rgba(255,255,255,0.22)" }}>Optional</span></p>
-                <textarea
-                  value={form.additionalContext}
-                  onChange={e => updateForm("additionalContext", e.target.value)}
-                  placeholder="Add context about your team, org changes, headcount, title constraints, or anything else that affects timing."
-                  style={{ ...wizardTextareaStyle, minHeight:120 }}
                 />
               </div>
             </div>
@@ -3650,11 +3711,11 @@ function ScreenPromotionReadiness() {
               {step === 1 ? "Clear answers" : "← Back"}
             </button>
             <button
-              onClick={() => { if (step === 5) void generate(); else goNext(); }}
+              onClick={() => { if (step === 4) void generate(); else goNext(); }}
               disabled={generating}
               style={{ minWidth:210, fontSize:14.5, fontWeight:700, padding:"14px 18px", borderRadius:14, border:"none", background:"linear-gradient(135deg,#4361EE,#818CF8)", color:"white", cursor:"pointer", boxShadow:"0 8px 24px rgba(67,97,238,0.4)", transition:"all 0.2s", opacity:generating ? 0.72 : 1 }}
             >
-              {step === 5 ? "Run readiness audit →" : "Continue →"}
+              {step === 4 ? "Run readiness audit →" : "Continue →"}
             </button>
           </div>
         </div>

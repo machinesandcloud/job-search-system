@@ -9,6 +9,7 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 type PromotionReadinessVerdict = "Ready now" | "Close, but not airtight" | "Needs more proof" | "Too early";
+type PromotionAuditTab = "overview" | "gaps" | "plan" | "conversation" | "examples";
 
 type PromotionReadinessBody = {
   currentTitle?: string;
@@ -17,21 +18,15 @@ type PromotionReadinessBody = {
   askWindow?: string;
   roleDescription?: string;
   rubricClarity?: string;
-  promotionProcess?: string;
   recentProjects?: string;
-  signatureProjects?: string;
   scopeLevel?: string;
   impactLevel?: string;
   influenceLevel?: string;
   reviewSignal?: string;
   reviewSummary?: string;
   managerSupport?: string;
-  sponsorSupport?: string;
   visibilityLevel?: string;
-  leadershipLevel?: string;
   blockers?: string;
-  evidenceText?: string;
-  additionalContext?: string;
 };
 
 type DimensionScore = {
@@ -45,6 +40,17 @@ type ReadinessGap = {
   nextStep: string;
 };
 
+type QuickWin = {
+  title: string;
+  body: string;
+  jumpTo: PromotionAuditTab;
+};
+
+type ActionPlanItem = {
+  label: string;
+  action: string;
+};
+
 type LlmPayload = {
   summary?: unknown;
   scoreReason?: unknown;
@@ -53,6 +59,12 @@ type LlmPayload = {
   gaps?: unknown;
   managerQuestions?: unknown;
   nextMoves?: unknown;
+  quickWins?: unknown;
+  evidenceChecklist?: unknown;
+  exampleEvidence?: unknown;
+  managerPitchExample?: unknown;
+  actionPlan?: unknown;
+  riskFlags?: unknown;
   dimensionReasons?: unknown;
 };
 
@@ -107,23 +119,11 @@ const LABELS = {
     unclear: "Unclear",
     skeptical: "Skeptical",
   },
-  sponsorSupport: {
-    strong_sponsors: "Strong sponsors",
-    a_few_supporters: "A few supporters",
-    limited_support: "Limited support",
-    none_yet: "No real sponsors yet",
-  },
   visibilityLevel: {
     decision_makers_see_it: "Decision-makers see it",
     manager_and_partners: "Manager and partners see it",
     mostly_team: "Mostly team-level visibility",
     low_visibility: "Low visibility",
-  },
-  leadershipLevel: {
-    leading_strategy: "Leading strategy",
-    leading_projects: "Leading projects",
-    occasional: "Occasional leadership",
-    mostly_execution: "Mostly execution",
   },
 } as const;
 
@@ -178,55 +178,47 @@ const SCORE_MAPS = {
     unclear: 46,
     skeptical: 20,
   },
-  sponsorSupport: {
-    strong_sponsors: 96,
-    a_few_supporters: 74,
-    limited_support: 46,
-    none_yet: 18,
-  },
   visibilityLevel: {
     decision_makers_see_it: 100,
     manager_and_partners: 76,
     mostly_team: 50,
     low_visibility: 22,
   },
-  leadershipLevel: {
-    leading_strategy: 100,
-    leading_projects: 80,
-    occasional: 54,
-    mostly_execution: 28,
-  },
 } as const;
 
 const DIMENSION_TEMPLATES: Record<string, { strong: string; gap: string; action: string }> = {
   "Bar clarity": {
-    strong: "You have a clearer view of what the next level expects than most people do at this stage.",
-    gap: "The promotion bar is still fuzzy, which makes it hard to know whether your evidence actually clears it.",
-    action: "Get the rubric, level guide, or your manager's exact criteria and map your work against it line by line.",
+    strong: "You have a clearer read on the next-level bar than most people do at this stage.",
+    gap: "The promotion bar is still fuzzy, which makes it hard to prove that your work clearly clears it.",
+    action: "Get the level guide or your manager's exact criteria and map your strongest wins to it line by line.",
   },
   "Scope and impact": {
-    strong: "Your work is starting to read like higher-level scope with meaningful business impact behind it.",
-    gap: "The case still needs clearer examples of bigger ownership and outcomes that look different from strong in-role performance.",
-    action: "Turn your recent projects into short proof points with scope, stakes, and outcomes that are easy to repeat in a promotion conversation.",
+    strong: "Your work already shows signs of bigger scope and meaningful business impact.",
+    gap: "The case still needs clearer examples of bigger ownership and outcomes that feel different from solid in-role performance.",
+    action: "Turn your strongest projects into short proof points with scope, stakes, and measurable outcomes.",
   },
   "Influence and leadership": {
-    strong: "You already have signals that you lead beyond task execution and influence people outside your immediate lane.",
-    gap: "The score is held back because the story still leans more on execution than on higher-level leadership or influence.",
-    action: "Collect examples where you drove alignment, changed decisions, mentored others, or led through ambiguity across teams.",
+    strong: "You have signs that you influence beyond your direct tasks and can move work across people or teams.",
+    gap: "The story still leans too much on execution and not enough on influence, alignment, or next-level leadership.",
+    action: "Collect examples where you drove decisions, aligned stakeholders, or moved work beyond your immediate lane.",
   },
   "Feedback and support": {
-    strong: "You have real support signals, not just self-belief, which makes the case easier for decision-makers to trust.",
-    gap: "Support and feedback are not strong enough yet to make the promotion feel low-risk for the people deciding it.",
-    action: "Pressure-test your manager's stance, get sharper feedback, and build backing beyond one person.",
+    strong: "You have real support signals, which makes the promotion case easier for decision-makers to trust.",
+    gap: "Support and review signals are not yet strong enough to make the promotion feel low-risk.",
+    action: "Pressure-test your manager's stance, get sharper feedback, and make the case more visible to the right people.",
   },
   "Timing and proof": {
-    strong: "The timing is reasonable and you have enough proof on hand to make a structured case soon.",
-    gap: "The case needs more proof, cleaner evidence, or simply more runway before the timing will feel convincing.",
-    action: "Use the next cycle to close the proof gaps and package your evidence before making the formal ask.",
+    strong: "The timing is reasonable and the proof burden is manageable if you package the case well.",
+    gap: "The timing still feels risky because the proof is thin, the story is not packaged, or more runway is needed.",
+    action: "Use the next cycle to close the proof gaps and package your case before making the formal ask.",
   },
 };
 
 function trim(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function cleanString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
@@ -263,10 +255,6 @@ function verdictForScore(score: number): PromotionReadinessVerdict {
   return "Too early";
 }
 
-function cleanString(value: unknown) {
-  return typeof value === "string" ? value.trim() : "";
-}
-
 function normalizeStringArray(value: unknown, fallback: string[], min: number, max: number) {
   const items = Array.isArray(value)
     ? value.map(item => cleanString(item)).filter(Boolean).slice(0, max)
@@ -287,6 +275,36 @@ function normalizeGaps(value: unknown, fallback: ReadinessGap[]) {
     })
     .filter(Boolean) as ReadinessGap[];
   return gaps.length >= 3 ? gaps.slice(0, 5) : fallback;
+}
+
+function normalizeActionPlan(value: unknown, fallback: ActionPlanItem[]) {
+  if (!Array.isArray(value)) return fallback;
+  const items = value
+    .map(item => {
+      if (!item || typeof item !== "object") return null;
+      const label = cleanString((item as Record<string, unknown>).label);
+      const action = cleanString((item as Record<string, unknown>).action);
+      if (!label || !action) return null;
+      return { label, action };
+    })
+    .filter(Boolean) as ActionPlanItem[];
+  return items.length >= 3 ? items.slice(0, 4) : fallback;
+}
+
+function normalizeQuickWins(value: unknown, fallback: QuickWin[]) {
+  if (!Array.isArray(value)) return fallback;
+  const allowed = new Set<PromotionAuditTab>(["overview", "gaps", "plan", "conversation", "examples"]);
+  const items = value
+    .map(item => {
+      if (!item || typeof item !== "object") return null;
+      const title = cleanString((item as Record<string, unknown>).title);
+      const body = cleanString((item as Record<string, unknown>).body);
+      const jumpTo = cleanString((item as Record<string, unknown>).jumpTo) as PromotionAuditTab;
+      if (!title || !body || !allowed.has(jumpTo)) return null;
+      return { title, body, jumpTo };
+    })
+    .filter(Boolean) as QuickWin[];
+  return items.length >= 3 ? items.slice(0, 3) : fallback;
 }
 
 function fallbackDimensionReason(label: string, score: number) {
@@ -313,19 +331,19 @@ function buildFallbackResponse(params: {
   const lowLabels = weakest.map(item => item.label.toLowerCase()).join(" and ");
 
   const summary = verdict === "Ready now"
-    ? `You have a credible promotion case for ${move || "the next role"} right now. The score is strong because your answers show real proof, not just good intentions.`
+    ? `You have a credible promotion case for ${move || "the next role"} right now. The score is strong because your answers point to real proof, not just ambition.`
     : verdict === "Close, but not airtight"
-      ? `You are close to having a credible case for ${move || "the next role"}, but it is not airtight yet. The evidence is promising, though a few areas still make the timing feel debatable.`
+      ? `You are close to having a credible case for ${move || "the next role"}, but it is not airtight yet. The core case is there, though a few weak spots still make the timing debatable.`
       : verdict === "Needs more proof"
-        ? `There is a base to build on, but the current case for ${move || "the next role"} is not strong enough yet. The score says you need more proof before the ask feels convincing.`
-        : `Right now the promotion case for ${move || "the next role"} is too early. The score reflects missing proof, support, or clarity on what the next level really requires.`;
+        ? `There is a base to build on, but the current case for ${move || "the next role"} is not strong enough yet. The score says you need clearer proof before the ask feels convincing.`
+        : `Right now the promotion case for ${move || "the next role"} is too early. The score reflects missing proof, weak support, or too much uncertainty around the next-level bar.`;
 
-  const scoreReason = `Your score lands at ${score}/100 because ${topLabels} are helping the case, while ${lowLabels} are still dragging it down. Promotion decisions are rarely about one big win alone; they usually require a clear bar, repeatable proof, and support from the people who matter.`;
+  const scoreReason = `Your score lands at ${score}/100 because ${topLabels} are helping the case, while ${lowLabels} are still dragging it down. Promotion decisions usually require a clear bar, repeatable proof, and support from the people who matter.`;
 
   const rationale = [
     `${strongest[0]?.label ?? "Your strongest area"} is the biggest reason the case has traction right now.`,
     `${weakest[0]?.label ?? "Your weakest area"} is the clearest reason the score is not higher.`,
-    `To move the score, focus first on the lowest dimensions instead of polishing what is already working.`,
+    `To raise the score, close the lowest-scoring areas before you spend time polishing what is already working.`,
   ];
 
   const strengths = strongest.map(item => fallbackDimensionReason(item.label, Math.max(item.score, 75)));
@@ -358,28 +376,67 @@ function buildFallbackResponse(params: {
     "Use your next 1:1 to replace assumptions with explicit promotion criteria and timing guidance.",
   ];
 
-  return { summary, scoreReason, rationale, strengths, gaps, managerQuestions, nextMoves };
+  const quickWins: QuickWin[] = [
+    { title: "Fix the weakest dimension", body: `${weakest[0]?.label ?? "Your weakest area"} is the fastest way to move the score.`, jumpTo: "gaps" },
+    { title: "Package the case", body: "Turn your wins into a short, repeatable case your manager can use upward.", jumpTo: "plan" },
+    { title: "Pressure-test your manager", body: "Use the right questions before you assume the timing is good.", jumpTo: "conversation" },
+  ];
+
+  const evidenceChecklist = [
+    "Tie each win to the next-level bar, not just to effort or ownership.",
+    "Use measurable outcomes where possible: revenue, savings, adoption, speed, quality, or risk reduction.",
+    "Show cross-functional influence, not just strong individual delivery.",
+    "Use recent review language if it supports the promotion case.",
+  ];
+
+  const exampleEvidence = [
+    `Led a cross-functional initiative that went beyond my current ${currentTitle || "role"}, aligned multiple stakeholders, and delivered a clear business outcome tied to the expectations of a ${desiredTitle || "next-level"} role.`,
+    `Owned a high-visibility project from ambiguity to launch, influenced partner teams without direct authority, and improved a business metric that leadership cared about.`,
+    `Created a repeatable approach that other teammates now use, showing not just delivery but leverage and next-level influence.`,
+  ];
+
+  const managerPitchExample = `I want to pressure-test whether I have a credible case for ${desiredTitle || "the next level"}. Based on the projects I have led, the outcomes, and the feedback I am getting, I think I may be close, but I want to understand exactly what still feels unproven to you before I push timing.`;
+
+  const actionPlan: ActionPlanItem[] = [
+    { label: "This week", action: "Turn your strongest wins into short proof points tied to the next-level bar." },
+    { label: "Next 2 weeks", action: "Close the weakest gap with one visible piece of evidence or stronger feedback." },
+    { label: "This cycle", action: "Make the case more visible to the people who influence promotion decisions." },
+    { label: "Before the ask", action: "Pressure-test the case with your manager and leave with explicit timing guidance." },
+  ];
+
+  const riskFlags = [
+    `${weakest[0]?.label ?? "A weak area"} is still weak enough to make the case feel risky.`,
+    "If the bar is unclear, your manager may interpret the same evidence very differently from you.",
+    "A strong case can still stall if the right people do not see it or cannot repeat it upward.",
+  ];
+
+  return { summary, scoreReason, rationale, strengths, gaps, managerQuestions, nextMoves, quickWins, evidenceChecklist, exampleEvidence, managerPitchExample, actionPlan, riskFlags };
 }
 
-function buildDimensionScores(body: Required<PromotionReadinessBody>) {
+function buildDimensionScores(body: {
+  currentTitle: string;
+  desiredTitle: string;
+  timeInRole: string;
+  askWindow: string;
+  roleDescription: string;
+  rubricClarity: string;
+  recentProjects: string;
+  scopeLevel: string;
+  impactLevel: string;
+  influenceLevel: string;
+  reviewSignal: string;
+  reviewSummary: string;
+  managerSupport: string;
+  visibilityLevel: string;
+  blockers: string;
+}) {
   const titlesScore = body.currentTitle && body.desiredTitle ? 100 : 35;
   const roleDescriptionScore = textScore(body.roleDescription, 100, 280, 700);
-  const processScore = body.promotionProcess ? textScore(body.promotionProcess, 40, 140, 320) : 35;
   const recentProjectsScore = textScore(body.recentProjects, 120, 320, 800);
-  const signatureProjectsScore = body.signatureProjects ? textScore(body.signatureProjects, 80, 220, 560) : 35;
-  const reviewSummaryScore = body.reviewSummary ? textScore(body.reviewSummary, 70, 180, 420) : 30;
-  const evidenceScore = body.evidenceText ? textScore(body.evidenceText, 90, 220, 600) : 30;
-  const blockersClarityScore = body.blockers ? textScore(body.blockers, 40, 140, 300) : 45;
-  const contextScore = body.additionalContext ? textScore(body.additionalContext, 40, 140, 300) : 50;
+  const reviewSummaryScore = textScore(body.reviewSummary, 70, 180, 420);
+  const blockersClarityScore = textScore(body.blockers, 30, 110, 260);
   const completenessScore = Math.round(
-    ([
-      body.roleDescription,
-      body.recentProjects,
-      body.reviewSummary,
-      body.blockers,
-      body.evidenceText,
-      body.additionalContext,
-    ].filter(value => value.trim().length > 0).length / 6) * 100,
+    ([body.roleDescription, body.recentProjects, body.reviewSummary, body.blockers].filter(value => value.trim().length > 0).length / 4) * 100,
   );
 
   const dimensions: DimensionScore[] = [
@@ -388,7 +445,6 @@ function buildDimensionScores(body: Required<PromotionReadinessBody>) {
       score: average([
         keyedScore("rubricClarity", body.rubricClarity),
         roleDescriptionScore,
-        processScore,
         titlesScore,
       ]),
     },
@@ -398,16 +454,14 @@ function buildDimensionScores(body: Required<PromotionReadinessBody>) {
         keyedScore("scopeLevel", body.scopeLevel),
         keyedScore("impactLevel", body.impactLevel),
         recentProjectsScore,
-        signatureProjectsScore,
       ]),
     },
     {
       label: "Influence and leadership",
       score: average([
         keyedScore("influenceLevel", body.influenceLevel),
-        keyedScore("leadershipLevel", body.leadershipLevel),
-        signatureProjectsScore,
-        contextScore,
+        recentProjectsScore,
+        reviewSummaryScore,
       ]),
     },
     {
@@ -415,7 +469,6 @@ function buildDimensionScores(body: Required<PromotionReadinessBody>) {
       score: average([
         keyedScore("reviewSignal", body.reviewSignal),
         keyedScore("managerSupport", body.managerSupport),
-        keyedScore("sponsorSupport", body.sponsorSupport),
         keyedScore("visibilityLevel", body.visibilityLevel),
         reviewSummaryScore,
       ]),
@@ -425,7 +478,6 @@ function buildDimensionScores(body: Required<PromotionReadinessBody>) {
       score: average([
         keyedScore("timeInRole", body.timeInRole),
         keyedScore("askWindow", body.askWindow),
-        evidenceScore,
         blockersClarityScore,
         completenessScore,
       ]),
@@ -456,24 +508,18 @@ export async function POST(request: Request) {
     askWindow: trim(rawBody.askWindow),
     roleDescription: trim(rawBody.roleDescription),
     rubricClarity: trim(rawBody.rubricClarity),
-    promotionProcess: trim(rawBody.promotionProcess),
     recentProjects: trim(rawBody.recentProjects),
-    signatureProjects: trim(rawBody.signatureProjects),
     scopeLevel: trim(rawBody.scopeLevel),
     impactLevel: trim(rawBody.impactLevel),
     influenceLevel: trim(rawBody.influenceLevel),
     reviewSignal: trim(rawBody.reviewSignal),
     reviewSummary: trim(rawBody.reviewSummary),
     managerSupport: trim(rawBody.managerSupport),
-    sponsorSupport: trim(rawBody.sponsorSupport),
     visibilityLevel: trim(rawBody.visibilityLevel),
-    leadershipLevel: trim(rawBody.leadershipLevel),
     blockers: trim(rawBody.blockers),
-    evidenceText: trim(rawBody.evidenceText),
-    additionalContext: trim(rawBody.additionalContext),
   };
 
-  if (!body.currentTitle || !body.desiredTitle || !body.roleDescription || !body.recentProjects) {
+  if (!body.currentTitle || !body.desiredTitle || !body.roleDescription || !body.recentProjects || !body.reviewSummary) {
     return NextResponse.json({ error: "Missing key promotion-readiness inputs" }, { status: 400 });
   }
 
@@ -512,22 +558,16 @@ export async function POST(request: Request) {
       influenceLevel: labelFor("influenceLevel", body.influenceLevel),
       reviewSignal: labelFor("reviewSignal", body.reviewSignal),
       managerSupport: labelFor("managerSupport", body.managerSupport),
-      sponsorSupport: labelFor("sponsorSupport", body.sponsorSupport),
       visibilityLevel: labelFor("visibilityLevel", body.visibilityLevel),
-      leadershipLevel: labelFor("leadershipLevel", body.leadershipLevel),
       roleDescription: clip(body.roleDescription, 2200),
-      promotionProcess: clip(body.promotionProcess, 1200),
       recentProjects: clip(body.recentProjects, 2200),
-      signatureProjects: clip(body.signatureProjects, 1800),
       reviewSummary: clip(body.reviewSummary, 1600),
       blockers: clip(body.blockers, 1200),
-      evidenceText: clip(body.evidenceText, 1800),
-      additionalContext: clip(body.additionalContext, 1200),
     },
     knownProfileContext: clip(userContext, 1600),
   };
 
-  const systemPrompt = `You are Zari, a pragmatic promotion coach. You are given a completed promotion-readiness questionnaire plus precomputed scores. Do not change the provided score, verdict, or dimension scores. Your job is to explain them clearly and tell the user what to do next.
+  const systemPrompt = `You are Zari, a pragmatic promotion coach. You are given a completed promotion-readiness questionnaire plus precomputed scores. Do not change the provided score, verdict, or dimension scores. Your job is to explain them clearly, tell the user what to do next, and give examples that make the advice easier to act on.
 
 Return ONLY valid JSON:
 {
@@ -538,8 +578,18 @@ Return ONLY valid JSON:
   "gaps": [
     { "area": "<gap area>", "why": "<why it matters>", "nextStep": "<specific next step>" }
   ],
-  "managerQuestions": ["<question for manager or sponsor>"],
+  "managerQuestions": ["<question for manager>"],
   "nextMoves": ["<specific next move>"],
+  "quickWins": [
+    { "title": "<short title>", "body": "<one sentence>", "jumpTo": "<overview|gaps|plan|conversation|examples>" }
+  ],
+  "evidenceChecklist": ["<what strong evidence should contain>"],
+  "exampleEvidence": ["<example proof bullet>"],
+  "managerPitchExample": "<1 short paragraph to open the conversation>",
+  "actionPlan": [
+    { "label": "<time label>", "action": "<what to do>" }
+  ],
+  "riskFlags": ["<what could still sink the case>"],
   "dimensionReasons": [
     { "label": "<dimension label exactly as provided>", "reason": "<1-2 sentence explanation>" }
   ]
@@ -551,7 +601,7 @@ Rules:
 - Never mention ATS, resumes, recruiting, interviews, or job search.
 - Be honest if support is weak, visibility is low, or the promotion bar is unclear.
 - Keep the advice grounded in the submitted answers.
-- Give 3 rationale bullets, 3-5 strengths, 3-5 gaps, 4-6 manager questions, and 4-6 next moves.
+- Give 3 rationale bullets, 3-5 strengths, 3-5 gaps, 4-6 manager questions, 4-6 next moves, 3 quickWins, 4-5 checklist items, 3 exampleEvidence bullets, 4 actionPlan items, and 3 riskFlags.
 - The dimensionReasons list must cover every provided dimension label exactly once.`;
 
   const reply = await openaiChat(
@@ -562,7 +612,7 @@ Rules:
     {
       model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
       temperature: 0.35,
-      maxTokens: 1800,
+      maxTokens: 2200,
       jsonMode: true,
     },
   );
@@ -578,7 +628,7 @@ Rules:
 
   const dimensionReasonMap = new Map<string, string>();
   if (Array.isArray(parsed?.dimensionReasons)) {
-    parsed?.dimensionReasons.forEach(item => {
+    parsed.dimensionReasons.forEach(item => {
       if (!item || typeof item !== "object") return;
       const label = cleanString((item as Record<string, unknown>).label);
       const reason = cleanString((item as Record<string, unknown>).reason);
@@ -602,5 +652,11 @@ Rules:
     gaps: normalizeGaps(parsed?.gaps, fallback.gaps),
     managerQuestions: normalizeStringArray(parsed?.managerQuestions, fallback.managerQuestions, 4, 6),
     nextMoves: normalizeStringArray(parsed?.nextMoves, fallback.nextMoves, 4, 6),
+    quickWins: normalizeQuickWins(parsed?.quickWins, fallback.quickWins),
+    evidenceChecklist: normalizeStringArray(parsed?.evidenceChecklist, fallback.evidenceChecklist, 4, 5),
+    exampleEvidence: normalizeStringArray(parsed?.exampleEvidence, fallback.exampleEvidence, 3, 4),
+    managerPitchExample: cleanString(parsed?.managerPitchExample) || fallback.managerPitchExample,
+    actionPlan: normalizeActionPlan(parsed?.actionPlan, fallback.actionPlan),
+    riskFlags: normalizeStringArray(parsed?.riskFlags, fallback.riskFlags, 3, 4),
   });
 }
