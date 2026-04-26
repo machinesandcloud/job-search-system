@@ -2570,6 +2570,7 @@ type PromotionReadinessResult = {
   readinessScore: number;
   verdict: PromotionReadinessVerdict;
   summary: string;
+  realityCheck: string;
   scoreReason: string;
   dimensions: Array<{ label: string; score: number; reason: string }>;
   rationale: string[];
@@ -2589,13 +2590,12 @@ type PromotionReadinessForm = {
   currentTitle: string;
   desiredTitle: string;
   timeInRole: string;
-  askWindow: string;
   roleDescription: string;
   rubricClarity: string;
   recentProjects: string;
   scopeLevel: string;
   impactLevel: string;
-  influenceLevel: string;
+  leadershipEvidence: string;
   reviewSignal: string;
   reviewSummary: string;
   managerSupport: string;
@@ -2613,13 +2613,12 @@ const PROMOTION_READINESS_DEFAULT_FORM: PromotionReadinessForm = {
   currentTitle: "",
   desiredTitle: "",
   timeInRole: "",
-  askWindow: "",
   roleDescription: "",
   rubricClarity: "",
   recentProjects: "",
   scopeLevel: "",
   impactLevel: "",
-  influenceLevel: "",
+  leadershipEvidence: "",
   reviewSignal: "",
   reviewSummary: "",
   managerSupport: "",
@@ -2630,7 +2629,7 @@ const PROMOTION_READINESS_DEFAULT_FORM: PromotionReadinessForm = {
 const PROMOTION_READINESS_STEPS = [
   {
     title: "Current move",
-    subtitle: "Define the promotion you want, how long you have been in role, and when you want to make the ask.",
+    subtitle: "Define the promotion you want and the current role you are trying to grow out of.",
   },
   {
     title: "Next-level bar",
@@ -2638,11 +2637,11 @@ const PROMOTION_READINESS_STEPS = [
   },
   {
     title: "Proof of impact",
-    subtitle: "Show the projects, outcomes, and review evidence that make the promotion case real.",
+    subtitle: "Show the work, outcomes, and leadership proof that make this more than ambition.",
   },
   {
     title: "Support and blockers",
-    subtitle: "Pressure-test manager support, visibility, and whatever is still holding the case back.",
+    subtitle: "Pressure-test feedback, manager support, visibility, and whatever still makes the case risky.",
   },
 ] as const;
 
@@ -2652,12 +2651,6 @@ const PROMOTION_READINESS_OPTIONS = {
     { value: "6_12m", label: "6 to 12 months", description: "You have some time in seat, but the proof bar usually needs to be sharper." },
     { value: "1_2y", label: "1 to 2 years", description: "A common window to make the case if the evidence is strong." },
     { value: "2plus_y", label: "2+ years", description: "You have had enough time to build a record, if the work supports it." },
-  ] satisfies PromotionReadinessOption[],
-  askWindow: [
-    { value: "this_quarter", label: "This quarter", description: "You want to push soon and need a tight, credible case now." },
-    { value: "next_cycle", label: "Next review cycle", description: "You have a real timeline and some room to close gaps before the ask." },
-    { value: "6_12m", label: "Within 6 to 12 months", description: "You are planning ahead and can use the score as a roadmap." },
-    { value: "exploring", label: "Just exploring", description: "You want to know how far off you are before setting a date." },
   ] satisfies PromotionReadinessOption[],
   rubricClarity: [
     { value: "exact_rubric", label: "I have the rubric", description: "You have a leveling guide, job description, or explicit expectations for the next level." },
@@ -2678,11 +2671,12 @@ const PROMOTION_READINESS_OPTIONS = {
     { value: "some_wins", label: "Good wins, weak proof", description: "You have meaningful work, but the evidence is still more anecdotal than crisp." },
     { value: "hard_to_show", label: "Hard to show impact", description: "You do not yet have a strong story around results or outcomes." },
   ] satisfies PromotionReadinessOption[],
-  influenceLevel: [
-    { value: "org_wide", label: "Org-wide influence", description: "You regularly shape decisions beyond your immediate team." },
-    { value: "cross_functional", label: "Cross-functional influence", description: "You influence peers and partners outside your core team." },
-    { value: "within_team", label: "Mostly within team", description: "Your influence is real, but it is still concentrated inside your local area." },
-    { value: "mostly_individual", label: "Mostly individual execution", description: "The case is still centered on doing work well, not leading beyond your lane." },
+  leadershipEvidence: [
+    { value: "managed_people", label: "Direct people leadership", description: "You manage people directly, set direction, and are accountable for team output." },
+    { value: "led_cross_functional", label: "Cross-functional leadership", description: "You lead important work across teams even without direct reports." },
+    { value: "mentored_owned_stream", label: "Mentoring plus major ownership", description: "You mentor others and own meaningful work, but leadership proof is still partial." },
+    { value: "mostly_individual", label: "Mostly individual execution", description: "You are strong personally, but the case still reads more like individual contributor output." },
+    { value: "none_yet", label: "No real leadership proof yet", description: "There is not yet clear evidence that you are leading people, systems, or decisions at the next level." },
   ] satisfies PromotionReadinessOption[],
   reviewSignal: [
     { value: "explicit_next_level", label: "Reviews say next-level", description: "Recent feedback explicitly says you are already operating at the higher level." },
@@ -3066,13 +3060,13 @@ function ScreenPromotionReadiness() {
   function validationMessage(targetStep = step) {
     switch (targetStep) {
       case 1:
-        return "Add your current title, target title, time in role, and timing before continuing.";
+        return "Add your current title, target title, and time in role before continuing.";
       case 2:
         return "Paste the next-level job description and tell Zari how clear the bar is.";
       case 3:
-        return "Add your key projects, recent review notes, and the scope, impact, and influence answers before continuing.";
+        return "Add your key projects and answer the scope, impact, and leadership questions before continuing.";
       case 4:
-        return "Tell Zari the review signal, manager support, visibility, and what is still blocking the promotion case.";
+        return "Tell Zari the review context, support, visibility, and blockers before running the audit.";
       default:
         return "Complete the remaining questions before continuing.";
     }
@@ -3081,13 +3075,13 @@ function ScreenPromotionReadiness() {
   function canContinue(targetStep = step) {
     switch (targetStep) {
       case 1:
-        return Boolean(form.currentTitle.trim() && form.desiredTitle.trim() && form.timeInRole && form.askWindow);
+        return Boolean(form.currentTitle.trim() && form.desiredTitle.trim() && form.timeInRole);
       case 2:
         return Boolean(form.roleDescription.trim() && form.rubricClarity);
       case 3:
-        return Boolean(form.recentProjects.trim() && form.reviewSummary.trim() && form.scopeLevel && form.impactLevel && form.influenceLevel);
+        return Boolean(form.recentProjects.trim() && form.scopeLevel && form.impactLevel && form.leadershipEvidence);
       case 4:
-        return Boolean(form.reviewSignal && form.managerSupport && form.visibilityLevel && form.blockers.trim());
+        return Boolean(form.reviewSummary.trim() && form.reviewSignal && form.managerSupport && form.visibilityLevel && form.blockers.trim());
       default:
         return false;
     }
@@ -3143,6 +3137,9 @@ function ScreenPromotionReadiness() {
           "",
           data.summary,
           "",
+          "Reality check",
+          data.realityCheck,
+          "",
           "Why this score",
           data.scoreReason,
           "",
@@ -3174,7 +3171,7 @@ function ScreenPromotionReadiness() {
           type:"resume",
           name:"Promotion Readiness Audit",
           content:serialized,
-          meta:{ stage:"promotion", desiredTitle: form.desiredTitle, verdict:data.verdict, readinessScore:String(data.readinessScore) },
+          meta:{ stage:"promotion", desiredTitle: form.desiredTitle, targetRole: form.desiredTitle, verdict:data.verdict, readinessScore:String(data.readinessScore) },
         });
       } else {
         setError(data?.error ?? "Could not generate the readiness audit.");
@@ -3236,7 +3233,7 @@ function ScreenPromotionReadiness() {
       { label:"Current role", value:form.currentTitle || "Not provided" },
       { label:"Target role", value:form.desiredTitle || "Not provided" },
       { label:"Time in role", value:optionLabel(PROMOTION_READINESS_OPTIONS.timeInRole, form.timeInRole) || "Not provided" },
-      { label:"Ask timing", value:optionLabel(PROMOTION_READINESS_OPTIONS.askWindow, form.askWindow) || "Not provided" },
+      { label:"Leadership proof", value:optionLabel(PROMOTION_READINESS_OPTIONS.leadershipEvidence, form.leadershipEvidence) || "Not provided" },
       { label:"Manager support", value:optionLabel(PROMOTION_READINESS_OPTIONS.managerSupport, form.managerSupport) || "Not provided" },
       { label:"Visibility", value:optionLabel(PROMOTION_READINESS_OPTIONS.visibilityLevel, form.visibilityLevel) || "Not provided" },
     ];
@@ -3362,6 +3359,9 @@ function ScreenPromotionReadiness() {
                         <p style={{ fontSize:16, color:"#1F2937", lineHeight:1.75, margin:"0 0 14px" }}>
                           <strong>{result.summary}</strong>
                         </p>
+                        <div style={{ fontSize:13.5, color:"#991B1B", lineHeight:1.7, margin:"0 0 14px", padding:"12px 13px", borderRadius:14, background:"#FEF2F2", border:"1px solid #FECACA" }}>
+                          <strong>Reality check:</strong> {result.realityCheck}
+                        </div>
                         <p style={{ fontSize:14.5, color:"#536276", lineHeight:1.8, margin:"0 0 16px" }}>{result.scoreReason}</p>
                         <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
                           {result.quickWins.slice(0, 3).map((item, index) => (
@@ -3379,7 +3379,7 @@ function ScreenPromotionReadiness() {
                   </div>
 
                   <div style={{ fontSize:14.5, color:"#536276", lineHeight:1.75 }}>
-                    The score is based on how clearly the next-level bar is defined, how strong your evidence is, and how much support exists around the case.
+                    This is not a potential score. It estimates how defensible your promotion case is today based on the bar, the proof, the leadership signal, and the support around you.
                   </div>
 
                   <div style={{ ...panelCardStyle, overflow:"hidden" }}>
@@ -3623,7 +3623,7 @@ function ScreenPromotionReadiness() {
                     {[
                       { label:"Current title", value:form.currentTitle || "Not provided" },
                       { label:"Desired title", value:form.desiredTitle || "Not provided" },
-                      { label:"Ask timing", value:optionLabel(PROMOTION_READINESS_OPTIONS.askWindow, form.askWindow) || "Not provided" },
+                      { label:"Time in role", value:optionLabel(PROMOTION_READINESS_OPTIONS.timeInRole, form.timeInRole) || "Not provided" },
                     ].map(item => (
                       <div key={item.label} style={statBoxStyle}>
                         <div style={{ fontSize:10.5, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:6 }}>{item.label}</div>
@@ -3648,7 +3648,7 @@ function ScreenPromotionReadiness() {
                     {[
                       { label:"Scope", value:optionLabel(PROMOTION_READINESS_OPTIONS.scopeLevel, form.scopeLevel) || "Not provided" },
                       { label:"Impact", value:optionLabel(PROMOTION_READINESS_OPTIONS.impactLevel, form.impactLevel) || "Not provided" },
-                      { label:"Influence", value:optionLabel(PROMOTION_READINESS_OPTIONS.influenceLevel, form.influenceLevel) || "Not provided" },
+                      { label:"Leadership proof", value:optionLabel(PROMOTION_READINESS_OPTIONS.leadershipEvidence, form.leadershipEvidence) || "Not provided" },
                     ].map(item => (
                       <div key={item.label} style={statBoxStyle}>
                         <div style={{ fontSize:10.5, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:6 }}>{item.label}</div>
@@ -3772,7 +3772,7 @@ function ScreenPromotionReadiness() {
                   </div>
                   <div>
                     <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 8px" }}>Desired job title</p>
-                    <input value={form.desiredTitle} onChange={e => updateForm("desiredTitle", e.target.value)} placeholder="e.g. Senior Product Manager" style={wizardInputStyle} />
+                    <input value={form.desiredTitle} onChange={e => updateForm("desiredTitle", e.target.value)} placeholder="e.g. Senior Product Manager or Senior Engineering Manager" style={wizardInputStyle} />
                   </div>
                 </div>
 
@@ -3780,17 +3780,12 @@ function ScreenPromotionReadiness() {
                   <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 10px" }}>How long have you been in your current role?</p>
                   <PromotionChoiceGroup value={form.timeInRole} onChange={value => updateForm("timeInRole", value)} options={PROMOTION_READINESS_OPTIONS.timeInRole} />
                 </div>
-
-                <div>
-                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 10px" }}>When do you want to make the promotion ask?</p>
-                  <PromotionChoiceGroup value={form.askWindow} onChange={value => updateForm("askWindow", value)} options={PROMOTION_READINESS_OPTIONS.askWindow} />
-                </div>
               </div>
 
               <div style={{ ...wizardCardStyle, background:"rgba(255,255,255,0.03)" }}>
                 <div style={{ fontSize:11.5, fontWeight:800, color:"#A5B4FC", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>What Zari is checking</div>
                 <p style={{ fontSize:13, color:"rgba(255,255,255,0.52)", lineHeight:1.7, margin:0 }}>
-                  This step sets the move you want, the time you have had in role, and the timing pressure around the ask.
+                  This step tells Zari whether this is a normal next move or a much bigger jump than your current role.
                 </p>
               </div>
             </div>
@@ -3822,18 +3817,8 @@ function ScreenPromotionReadiness() {
                 <textarea
                   value={form.recentProjects}
                   onChange={e => updateForm("recentProjects", e.target.value)}
-                  placeholder="List the most important projects or initiatives you have led. Focus on scope, outcomes, what changed because of your work, and who was affected."
+                  placeholder="List the few projects or initiatives that best prove you are already operating above your current level. Include scope, outcomes, and any metrics you can."
                   style={{ ...wizardTextareaStyle, minHeight:190 }}
-                />
-              </div>
-
-              <div style={wizardCardStyle}>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 8px" }}>Recent review summary</p>
-                <textarea
-                  value={form.reviewSummary}
-                  onChange={e => updateForm("reviewSummary", e.target.value)}
-                  placeholder="Paste recent review comments or summarize the feedback themes that matter most."
-                  style={{ ...wizardTextareaStyle, minHeight:130 }}
                 />
               </div>
 
@@ -3848,14 +3833,24 @@ function ScreenPromotionReadiness() {
               </div>
 
               <div style={wizardCardStyle}>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 10px" }}>How much influence do you have beyond your core team?</p>
-                <PromotionChoiceGroup value={form.influenceLevel} onChange={value => updateForm("influenceLevel", value)} options={PROMOTION_READINESS_OPTIONS.influenceLevel} />
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 10px" }}>What leadership proof do you actually have today?</p>
+                <PromotionChoiceGroup value={form.leadershipEvidence} onChange={value => updateForm("leadershipEvidence", value)} options={PROMOTION_READINESS_OPTIONS.leadershipEvidence} />
               </div>
             </div>
           )}
 
           {step === 4 && (
             <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+              <div style={wizardCardStyle}>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 8px" }}>Recent review summary</p>
+                <textarea
+                  value={form.reviewSummary}
+                  onChange={e => updateForm("reviewSummary", e.target.value)}
+                  placeholder="Paste recent review comments or summarize the feedback that matters most. Include praise, concerns, and anything that affects promotion timing."
+                  style={{ ...wizardTextareaStyle, minHeight:130 }}
+                />
+              </div>
+
               <div style={wizardCardStyle}>
                 <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 10px" }}>Overall review signal</p>
                 <PromotionChoiceGroup value={form.reviewSignal} onChange={value => updateForm("reviewSignal", value)} options={PROMOTION_READINESS_OPTIONS.reviewSignal} />
@@ -6749,6 +6744,8 @@ function ScreenPromotionPitch() {
 
 type PromotionDocResult = {
   overview: string;
+  realityCheck: string;
+  missingProof: string[];
   impactBullets: string[];
   selfReview: string;
   managerBrief: string;
@@ -6803,6 +6800,12 @@ function ScreenPromotionDocument() {
           "Overview",
           data.overview,
           "",
+          "Reality check",
+          data.realityCheck,
+          "",
+          "Missing proof",
+          ...data.missingProof.map(item => `- ${item}`),
+          "",
           "Impact bullets",
           ...data.impactBullets.map(item => `- ${item}`),
           "",
@@ -6816,7 +6819,7 @@ function ScreenPromotionDocument() {
           type:"cover-letter",
           name:"Promotion Evidence Builder",
           content:serialized,
-          meta:{ stage:"promotion", targetLevel },
+          meta:{ stage:"promotion", targetLevel, targetRole: targetLevel },
         });
       } else {
         setError(data?.error ?? "Could not generate your promotion evidence pack.");
@@ -6843,6 +6846,12 @@ function ScreenPromotionDocument() {
       [
         "Overview",
         result.overview,
+        "",
+        "Reality check",
+        result.realityCheck,
+        "",
+        "Missing proof",
+        ...result.missingProof.map(item => `- ${item}`),
         "",
         "Impact bullets",
         ...result.impactBullets.map(item => `- ${item}`),
@@ -6894,6 +6903,7 @@ function ScreenPromotionDocument() {
                 <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))", gap:12, marginTop:20, position:"relative" }}>
                   {[
                     { label:"Impact bullets", value:String(result.impactBullets.length).padStart(2, "0"), note:"Reusable proof" },
+                    { label:"Missing proof", value:String(result.missingProof.length).padStart(2, "0"), note:"Gaps still to close" },
                     { label:"Self-review", value:"1", note:"First-person draft" },
                     { label:"Manager brief", value:"1", note:"Third-person retell" },
                   ].map(card => (
@@ -6903,6 +6913,23 @@ function ScreenPromotionDocument() {
                       <div style={{ fontSize:12.5, color:"rgba(255,255,255,0.62)", lineHeight:1.5 }}>{card.note}</div>
                     </div>
                   ))}
+                </div>
+              </div>
+
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))", gap:18, marginBottom:18 }}>
+                <div style={{ ...promotionPanelStyle(theme, true), border:"1px solid rgba(239,68,68,0.24)", background:"linear-gradient(180deg,#FFF6F6 0%,#FFFFFF 100%)" }}>
+                  <div style={{ fontSize:11.5, fontWeight:800, color:"#B91C1C", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Reality check</div>
+                  <div style={{ fontSize:14, color:"#7F1D1D", lineHeight:1.8 }}>{result.realityCheck}</div>
+                </div>
+                <div style={promotionPanelStyle(theme)}>
+                  <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Missing proof</div>
+                  <div style={{ display:"grid", gap:10 }}>
+                    {result.missingProof.map(item => (
+                      <div key={item} style={{ fontSize:13.2, color:"#475569", lineHeight:1.7, padding:"11px 12px", borderRadius:14, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
+                        {item}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -7029,6 +7056,8 @@ function ScreenPromotionDocument() {
               <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>What comes out</div>
               <div style={{ display:"grid", gap:10 }}>
                 {[
+                  "A blunt reality check on what is still too weak to sell upward.",
+                  "The missing proof you still need before this becomes a clean case.",
                   "Impact bullets you can reuse everywhere without rewriting from scratch.",
                   "A first-person draft you can shape into your self-review or packet language.",
                   "A third-person brief that makes it easier for your manager to advocate for you.",
@@ -7059,9 +7088,11 @@ function ScreenPromotionDocument() {
 
 type PromotionVisibilityResult = {
   overallFocus: string;
+  hardTruth: string;
   executiveNarrative: string;
   visibilityMoves: Array<{ title: string; move: string; why: string }>;
   sponsorMap: Array<{ audience: string; goal: string; ask: string }>;
+  missingSupport: string[];
   weeklyCadence: string[];
   watchouts: string[];
 };
@@ -7112,6 +7143,9 @@ function ScreenPromotionVisibility() {
         const serialized = [
           data.overallFocus,
           "",
+          "Hard truth",
+          data.hardTruth,
+          "",
           "Executive narrative",
           data.executiveNarrative,
           "",
@@ -7121,6 +7155,9 @@ function ScreenPromotionVisibility() {
           "Sponsor map",
           ...data.sponsorMap.map(item => `- ${item.audience}: ${item.ask}`),
           "",
+          "Missing support",
+          ...data.missingSupport.map(item => `- ${item}`),
+          "",
           "Weekly cadence",
           ...data.weeklyCadence.map(item => `- ${item}`),
         ].join("\n");
@@ -7128,7 +7165,7 @@ function ScreenPromotionVisibility() {
           type:"linkedin",
           name:"Promotion Sponsor Strategy",
           content:serialized,
-          meta:{ stage:"promotion", targetLevel },
+          meta:{ stage:"promotion", targetLevel, targetRole: targetLevel },
         });
       } else {
         setError(data?.error ?? "Could not generate the sponsor strategy.");
@@ -7168,6 +7205,23 @@ function ScreenPromotionVisibility() {
                   <div style={{ fontSize:12.5, color:"rgba(255,255,255,0.62)", lineHeight:1.5 }}>{card.note}</div>
                 </div>
               ))}
+            </div>
+          </div>
+
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))", gap:18, marginBottom:18 }}>
+            <div style={{ ...promotionPanelStyle(theme, true), border:"1px solid rgba(239,68,68,0.24)", background:"linear-gradient(180deg,#FFF6F6 0%,#FFFFFF 100%)" }}>
+              <div style={{ fontSize:11.5, fontWeight:800, color:"#B91C1C", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Hard truth</div>
+              <div style={{ fontSize:14, color:"#7F1D1D", lineHeight:1.8 }}>{result.hardTruth}</div>
+            </div>
+            <div style={promotionPanelStyle(theme)}>
+              <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Missing support</div>
+              <div style={{ display:"grid", gap:10 }}>
+                {result.missingSupport.map(item => (
+                  <div key={item} style={{ fontSize:13.2, color:"#475569", lineHeight:1.7, padding:"11px 12px", borderRadius:14, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
+                    {item}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -7304,6 +7358,8 @@ function ScreenPromotionVisibility() {
               <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>What this gives you</div>
               <div style={{ display:"grid", gap:10 }}>
                 {[
+                  "A blunt hard-truth read on what will keep this case from landing.",
+                  "The support, sponsorship, and visibility gaps you still need to close.",
                   "A clear executive narrative for what you want others to believe.",
                   "Specific moves that increase the right visibility rather than just more noise.",
                   "A sponsor map with asks that fit each person’s role in the process.",
@@ -9096,8 +9152,9 @@ function ScreenPromotionRoadmap({ onNavigate }: { onNavigate: (s: string) => voi
         resumeSnippet: resumeDoc ? resumeDoc.content.slice(0, 600) : "",
         liHeadline: liDoc ? (liDoc.meta.headline || "") : "",
         liScore: liDoc ? (liDoc.meta.score || "") : "",
-        resumeScore: resumeDoc ? (resumeDoc.meta.score || "") : "",
-        targetRole: resumeDoc?.meta.targetRole || clDoc?.meta.targetRole || "",
+        resumeScore: resumeDoc ? (resumeDoc.meta.readinessScore || resumeDoc.meta.score || "") : "",
+        readinessVerdict: resumeDoc ? (resumeDoc.meta.verdict || "") : "",
+        targetRole: resumeDoc?.meta.desiredTitle || resumeDoc?.meta.targetRole || clDoc?.meta.targetLevel || clDoc?.meta.targetRole || liDoc?.meta.targetLevel || "",
         completedSections: [
           hasResume ? STAGE_NAV_LABELS.promotion.resume : "",
           hasLI ? STAGE_NAV_LABELS.promotion.linkedin : "",

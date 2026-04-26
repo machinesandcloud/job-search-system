@@ -227,8 +227,10 @@ Return ONLY a valid JSON object:
 }
 
 Scoring rules:
-- Be honest. Most answers should land between 55 and 82.
+- Be blunt. Most answers should land between 45 and 80, not 90+.
 - Penalize vague scope, fuzzy ownership, missing metrics, unclear next-level signal, or generic leadership claims.
+- If this is a manager-track answer without real people leadership, delegation, coaching, or cross-functional leadership proof, score it hard.
+- If the answer sounds like strong current-level execution rather than next-level behavior, score it down.
 - Reward concrete business impact, expanded scope, cross-functional influence, and crisp framing.
 - The suggestedResult should sound like a stronger version of them, not generic executive-speak.
 - Stage: ${stage} · Mode: ${round} · Category: ${category}`;

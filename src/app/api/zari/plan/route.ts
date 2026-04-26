@@ -19,6 +19,7 @@ export async function POST(request: Request) {
     liHeadline?: string;
     liScore?: string;
     resumeScore?: string;
+    readinessVerdict?: string;
     targetRole?: string;
     completedSections?: string[];
   };
@@ -28,8 +29,11 @@ export async function POST(request: Request) {
   const liHeadline        = (body.liHeadline        ?? "").trim();
   const liScore           = (body.liScore           ?? "").trim();
   const resumeScore       = (body.resumeScore       ?? "").trim();
+  const readinessVerdict  = (body.readinessVerdict  ?? "").trim();
   const targetRole        = (body.targetRole        ?? "").trim();
   const completedSections = body.completedSections  ?? [];
+  const scoreLabel = stage === "promotion" ? "Readiness score" : "Resume score";
+  const targetLabel = stage === "promotion" ? "Target level" : "Target role";
 
   const userId = await getCurrentUserId();
   let userContext = "";
@@ -41,9 +45,10 @@ export async function POST(request: Request) {
     userContext          ? `Profile context:\n${userContext}`                                               : "",
     resumeSnippet        ? `Resume snippet (first ~600 chars):\n${resumeSnippet}`                          : "",
     liHeadline           ? `LinkedIn headline: ${liHeadline}`                                              : "",
-    resumeScore          ? `Resume score: ${resumeScore}/100`                                              : "",
+    resumeScore          ? `${scoreLabel}: ${resumeScore}/100`                                             : "",
+    readinessVerdict     ? `Readiness verdict: ${readinessVerdict}`                                        : "",
     liScore              ? `LinkedIn score: ${liScore}/100`                                                : "",
-    targetRole           ? `Target role: ${targetRole}`                                                    : "",
+    targetRole           ? `${targetLabel}: ${targetRole}`                                                 : "",
     completedSections.length ? `Sections they've completed: ${completedSections.join(", ")}`              : "",
   ].filter(Boolean).join("\n\n");
 
@@ -68,7 +73,8 @@ Rules:
 - Never write tasks they've already fully addressed in their completed sections unless there's a clear next step
 - Never write generic tasks — be specific about WHAT to do and WHY it matters for their situation
 - If cover letter is missing and they have a target role, make that a high-priority task
-- For the promotion stage, bias toward rubric alignment, business impact proof, actionable feedback, sponsorship, and decision-maker visibility`;
+- For the promotion stage, bias toward rubric alignment, business impact proof, actionable feedback, sponsorship, and decision-maker visibility
+- If the promotion readiness verdict or score says the move is too early, focus the plan on closing proof gaps before any formal ask`;
 
   const messages = [
     { role: "system" as const, content: systemPrompt },
