@@ -488,7 +488,7 @@ export async function POST(request: Request) {
     knownProfileContext: clip(userContext, 1600),
   };
 
-  const systemPrompt = `You are Zari, a blunt, realistic promotion coach. Review the full questionnaire and judge how defensible the promotion case is today.
+  const coreSystemPrompt = `You are Zari, a blunt, realistic promotion coach. Review the full questionnaire and judge how defensible the promotion case is today.
 
 Important:
 - Review every single input together. Do not anchor too heavily on one field.
@@ -518,59 +518,40 @@ Return ONLY valid JSON:
     { "label": "Evidence & impact", "score": <0-100>, "reason": "<1-2 sentence explanation>" },
     { "label": "Support & visibility", "score": <0-100>, "reason": "<1-2 sentence explanation>" },
     { "label": "Timing & risk", "score": <0-100>, "reason": "<1-2 sentence explanation>" }
-  ],
-  "rationale": ["<specific reason>", "<specific reason>", "<specific reason>"],
-  "strengths": ["<specific strength>"],
-  "gaps": [
-    { "area": "<gap area>", "why": "<why it matters>", "nextStep": "<specific next step>" }
-  ],
-  "managerQuestions": ["<question for manager>"],
-  "nextMoves": ["<specific next move>"],
-  "quickWins": [
-    { "title": "<short title>", "body": "<one sentence>", "jumpTo": "<overview|gaps|plan|conversation|examples>" }
-  ],
-  "evidenceChecklist": ["<what strong evidence should contain>"],
-  "exampleEvidence": ["<example proof bullet>"],
-  "managerPitchExample": "<1 short paragraph to open the conversation>",
-  "actionPlan": [
-    { "label": "<time label>", "action": "<what to do>" }
-  ],
-  "riskFlags": ["<what could still sink the case>"]
+  ]
 }
 
 Rules:
 - Talk to the user as "you".
 - Never mention resumes, recruiting, or job search.
-- Use compact output. Prefer one sentence per bullet and avoid long paragraphs so the JSON stays short and parseable.
-- Return exactly 3 rationale bullets, 3 strengths, 3 gaps, 4 manager questions, 4 next moves, 3 quickWins, 4 checklist items, 3 exampleEvidence bullets, 4 actionPlan items, and 3 riskFlags.
 - The dimension labels must be exactly: Role fit, Bar clarity, Evidence & impact, Support & visibility, Timing & risk.
 - If the target role is materially above the evidence provided, say so directly.
 - If the input quality is weak, confusing, or incomplete, that should be visible in both the score and the written feedback.
 - Never "round up" because the user seems ambitious or because one dropdown implies strength.`;
 
-  const messages = [
-    { role: "system" as const, content: systemPrompt },
+  const coreMessages = [
+    { role: "system" as const, content: coreSystemPrompt },
     { role: "user" as const, content: JSON.stringify(payload) },
   ];
 
-  let parsed = safeParseLlmPayload(await openaiChat(messages, {
+  let coreParsed = safeParseLlmPayload(await openaiChat(coreMessages, {
     model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
-    temperature: 0.28,
-    maxTokens: 3200,
+    temperature: 0.18,
+    maxTokens: 1600,
     jsonMode: true,
   }));
 
-  if (!hasStructuredReadinessPayload(parsed)) {
-    parsed = safeParseLlmPayload(await openaiChat(
+  if (!hasCoreReadinessPayload(coreParsed)) {
+    coreParsed = safeParseLlmPayload(await openaiChat(
       [
         {
           role: "system" as const,
-          content: `${systemPrompt}
+          content: `${coreSystemPrompt}
 
 Your previous attempt was missing structure or was too generic.
 
 Repair instructions:
-- Keep the same core judgment if it was already justified, but fill any missing fields.
+- Re-evaluate the questionnaire from scratch if needed.
 - Keep every field concise and specific.
 - Do not output generic filler.
 - If the written evidence is weak or incoherent, score it low and say that clearly.
@@ -582,46 +563,140 @@ Repair instructions:
 ${JSON.stringify(payload)}
 
 PREVIOUS DRAFT:
-${parsed ? JSON.stringify(parsed) : "No usable draft was produced."}`,
+${coreParsed ? JSON.stringify(coreParsed) : "No usable draft was produced."}`,
         },
       ],
       {
         model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
-        temperature: 0.22,
-        maxTokens: 3200,
+        temperature: 0.14,
+        maxTokens: 1800,
         jsonMode: true,
       },
     ));
   }
 
-  if (!hasCoreReadinessPayload(parsed)) {
+  if (!hasCoreReadinessPayload(coreParsed)) {
     return NextResponse.json(
       { error: "Could not generate a tailored readiness audit right now. Please retry." },
       { status: 503 },
     );
   }
 
-  const completedParsed = parsed!;
-  const readinessScore = normalizeScore(completedParsed.readinessScore);
-  const verdict = normalizeVerdict(completedParsed.verdict, readinessScore);
+  const completedCore = coreParsed!;
+  const readinessScore = normalizeScore(completedCore.readinessScore);
+  const verdict = normalizeVerdict(completedCore.verdict, readinessScore);
+  const detailSystemPrompt = `You are Zari, a blunt, realistic promotion coach. You already judged the core readiness audit. Now produce the supporting material for the page.
+
+Return ONLY valid JSON:
+{
+  "rationale": ["<specific reason>", "<specific reason>", "<specific reason>"],
+  "strengths": ["<specific strength>", "<specific strength>", "<specific strength>"],
+  "gaps": [
+    { "area": "<gap area>", "why": "<why it matters>", "nextStep": "<specific next step>" },
+    { "area": "<gap area>", "why": "<why it matters>", "nextStep": "<specific next step>" },
+    { "area": "<gap area>", "why": "<why it matters>", "nextStep": "<specific next step>" }
+  ],
+  "managerQuestions": ["<question for manager>", "<question for manager>", "<question for manager>", "<question for manager>"],
+  "nextMoves": ["<specific next move>", "<specific next move>", "<specific next move>", "<specific next move>"],
+  "quickWins": [
+    { "title": "<short title>", "body": "<one sentence>", "jumpTo": "<overview|gaps|plan|conversation|examples>" },
+    { "title": "<short title>", "body": "<one sentence>", "jumpTo": "<overview|gaps|plan|conversation|examples>" },
+    { "title": "<short title>", "body": "<one sentence>", "jumpTo": "<overview|gaps|plan|conversation|examples>" }
+  ],
+  "evidenceChecklist": ["<what strong evidence should contain>", "<what strong evidence should contain>", "<what strong evidence should contain>", "<what strong evidence should contain>"],
+  "exampleEvidence": ["<example proof bullet>", "<example proof bullet>", "<example proof bullet>"],
+  "managerPitchExample": "<1 short paragraph to open the conversation>",
+  "actionPlan": [
+    { "label": "<time label>", "action": "<what to do>" },
+    { "label": "<time label>", "action": "<what to do>" },
+    { "label": "<time label>", "action": "<what to do>" },
+    { "label": "<time label>", "action": "<what to do>" }
+  ],
+  "riskFlags": ["<what could still sink the case>", "<what could still sink the case>", "<what could still sink the case>"]
+}
+
+Rules:
+- Keep every item concise and concrete.
+- Tailor every item to the actual questionnaire and the core judgment below.
+- If the input quality is weak, the strengths should stay modest and the gaps should be blunt.
+- Never soften obvious lack of proof.
+- Never mention resumes, recruiting, or job search.`;
+
+  let detailParsed = safeParseLlmPayload(await openaiChat(
+    [
+      { role: "system" as const, content: detailSystemPrompt },
+      {
+        role: "user" as const,
+        content: JSON.stringify({
+          questionnaire: payload,
+          coreAudit: {
+            readinessScore,
+            verdict,
+            summary: cleanString(completedCore.summary),
+            realityCheck: cleanString(completedCore.realityCheck),
+            scoreReason: cleanString(completedCore.scoreReason),
+            dimensions: normalizeDimensions(completedCore.dimensions, readinessScore),
+          },
+        }),
+      },
+    ],
+    {
+      model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
+      temperature: 0.22,
+      maxTokens: 2200,
+      jsonMode: true,
+    },
+  ));
+
+  if (!hasStructuredReadinessPayload({
+    ...completedCore,
+    ...(detailParsed ?? {}),
+  })) {
+    detailParsed = safeParseLlmPayload(await openaiChat(
+      [
+        { role: "system" as const, content: `${detailSystemPrompt}\n\nRepair any missing fields and keep the output compact.` },
+        {
+          role: "user" as const,
+          content: JSON.stringify({
+            questionnaire: payload,
+            coreAudit: {
+              readinessScore,
+              verdict,
+              summary: cleanString(completedCore.summary),
+              realityCheck: cleanString(completedCore.realityCheck),
+              scoreReason: cleanString(completedCore.scoreReason),
+              dimensions: normalizeDimensions(completedCore.dimensions, readinessScore),
+            },
+            previousDetailDraft: detailParsed,
+          }),
+        },
+      ],
+      {
+        model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
+        temperature: 0.18,
+        maxTokens: 2200,
+        jsonMode: true,
+      },
+    ));
+  }
 
   return NextResponse.json({
     readinessScore,
     verdict,
-    summary: cleanString(completedParsed.summary),
-    realityCheck: cleanString(completedParsed.realityCheck),
-    scoreReason: cleanString(completedParsed.scoreReason),
-    dimensions: normalizeDimensions(completedParsed.dimensions, readinessScore),
-    rationale: normalizeStringArray(completedParsed.rationale, [], 3, 4),
-    strengths: normalizeStringArray(completedParsed.strengths, [], 3, 5),
-    gaps: normalizeGaps(completedParsed.gaps, []),
-    managerQuestions: normalizeStringArray(completedParsed.managerQuestions, [], 4, 6),
-    nextMoves: normalizeStringArray(completedParsed.nextMoves, [], 4, 6),
-    quickWins: normalizeQuickWins(completedParsed.quickWins, []),
-    evidenceChecklist: normalizeStringArray(completedParsed.evidenceChecklist, [], 4, 5),
-    exampleEvidence: normalizeStringArray(completedParsed.exampleEvidence, [], 3, 4),
-    managerPitchExample: cleanString(completedParsed.managerPitchExample),
-    actionPlan: normalizeActionPlan(completedParsed.actionPlan, []),
-    riskFlags: normalizeStringArray(completedParsed.riskFlags, [], 3, 4),
+    summary: cleanString(completedCore.summary),
+    realityCheck: cleanString(completedCore.realityCheck),
+    scoreReason: cleanString(completedCore.scoreReason),
+    dimensions: normalizeDimensions(completedCore.dimensions, readinessScore),
+    rationale: normalizeStringArray(detailParsed?.rationale, [], 0, 4),
+    strengths: normalizeStringArray(detailParsed?.strengths, [], 0, 5),
+    gaps: normalizeGaps(detailParsed?.gaps, []),
+    managerQuestions: normalizeStringArray(detailParsed?.managerQuestions, [], 0, 6),
+    nextMoves: normalizeStringArray(detailParsed?.nextMoves, [], 0, 6),
+    quickWins: normalizeQuickWins(detailParsed?.quickWins, []),
+    evidenceChecklist: normalizeStringArray(detailParsed?.evidenceChecklist, [], 0, 5),
+    exampleEvidence: normalizeStringArray(detailParsed?.exampleEvidence, [], 0, 4),
+    managerPitchExample: cleanString(detailParsed?.managerPitchExample),
+    actionPlan: normalizeActionPlan(detailParsed?.actionPlan, []),
+    riskFlags: normalizeStringArray(detailParsed?.riskFlags, [], 0, 4),
   });
 }
