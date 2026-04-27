@@ -187,6 +187,78 @@ function scoreFromAnswer(answer: string) {
   return Math.round(score);
 }
 
+function isPlaceholderAnswer(answer: string) {
+  const cleaned = answer.trim().toLowerCase();
+  if (!cleaned) return true;
+  if (cleaned.length <= 18 && /\b(idk|i don't know|dont know|don't know|not sure|no idea|n\/a|na|none|nothing)\b/.test(cleaned)) return true;
+  return false;
+}
+
+function buildPromotionAnswerFallback(answer: string) {
+  if (isPlaceholderAnswer(answer)) {
+    return {
+      overallScore: 6,
+      headline: "You did not answer the question.",
+      dimensions: [
+        { label: "Rubric alignment", score: 5 },
+        { label: "Impact proof", score: 4 },
+        { label: "Scope & complexity", score: 6 },
+        { label: "Influence", score: 5 },
+        { label: "Executive clarity", score: 12 },
+        { label: "Confidence", score: 8 },
+      ],
+      coachNote: `Saying "${answer.trim()}" gives the reviewer nothing to work with. In a real promotion conversation, that reads as unprepared and it makes the whole case feel thinner, because you are signaling that you cannot defend your own evidence on the spot.`,
+      suggestedLabel: "How to rebuild this answer",
+      suggestedResult: "Do not invent something on the fly. Pick one real project and answer with four things in order: the problem, what you owned, the decision or leverage you provided, and what changed because of it.",
+    };
+  }
+
+  const fallbackScore = Math.max(18, Math.min(58, scoreFromAnswer(answer) - 10));
+  const excerpt = answer.trim().replace(/\s+/g, " ").slice(0, 120);
+  return {
+    overallScore: fallbackScore,
+    headline: excerpt.length <= 72 ? `"${excerpt}${answer.trim().length > 120 ? "…" : ""}" is still too vague to defend upward.` : "I still cannot tell what you actually owned here.",
+    dimensions: [
+      { label: "Rubric alignment", score: Math.max(16, fallbackScore - 5) },
+      { label: "Impact proof", score: Math.max(12, fallbackScore - 9) },
+      { label: "Scope & complexity", score: Math.max(14, fallbackScore - 4) },
+      { label: "Influence", score: Math.max(14, fallbackScore - 6) },
+      { label: "Executive clarity", score: Math.max(18, fallbackScore - 3) },
+      { label: "Confidence", score: Math.max(15, fallbackScore - 4) },
+    ],
+    coachNote: `Right now the answer still sounds too general to defend upward. If your real answer is "${excerpt}${answer.trim().length > 120 ? "…" : ""}", I still do not know the scope you owned, what decision was actually yours, or what changed because of it.`,
+    suggestedLabel: "How to tighten it",
+    suggestedResult: "Re-answer it in one clean arc: name the situation, what you personally owned, the decision or leverage you provided, and the concrete outcome or consequence. If you do not have a metric, say exactly what changed and who cared.",
+  };
+}
+
+function parsePromotionScoreReply(reply: string | null) {
+  if (!reply) return null;
+  try {
+    const parsed = JSON.parse(reply) as Record<string, unknown>;
+    const overallScore = typeof parsed.overallScore === "number" ? Math.max(0, Math.min(100, Math.round(parsed.overallScore))) : Number.NaN;
+    const dimensions = Array.isArray(parsed.dimensions)
+      ? parsed.dimensions
+          .map(item => {
+            if (!item || typeof item !== "object") return null;
+            const label = typeof (item as { label?: unknown }).label === "string" ? String((item as { label?: unknown }).label).trim() : "";
+            const rawScore = typeof (item as { score?: unknown }).score === "number" ? Number((item as { score?: unknown }).score) : Number.NaN;
+            return label && Number.isFinite(rawScore) ? { label, score: Math.max(0, Math.min(100, Math.round(rawScore))) } : null;
+          })
+          .filter(Boolean)
+      : [];
+    const coachNote = typeof parsed.coachNote === "string" ? parsed.coachNote.trim() : "";
+    const suggestedResult = typeof parsed.suggestedResult === "string" ? parsed.suggestedResult.trim() : "";
+    const headline = typeof parsed.headline === "string" ? parsed.headline.trim() : "";
+    const suggestedLabel = typeof parsed.suggestedLabel === "string" ? parsed.suggestedLabel.trim() : "";
+
+    if (!Number.isFinite(overallScore) || !coachNote || !suggestedResult || !dimensions.length) return null;
+    return { overallScore, dimensions, coachNote, suggestedResult, headline, suggestedLabel };
+  } catch {
+    return null;
+  }
+}
+
 export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) {
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
@@ -478,6 +550,7 @@ ${contextText ? `Promotion context:\n${contextText.slice(0, 800)}\n\n` : ""}
 Return ONLY a valid JSON object:
 {
   "overallScore": <number 0-100>,
+  "headline": "<1 short sentence that bluntly captures how this answer lands>",
   "dimensions": [
     { "label": "Rubric alignment", "score": <number 0-100> },
     { "label": "Impact proof", "score": <number 0-100> },
@@ -487,7 +560,8 @@ Return ONLY a valid JSON object:
     { "label": "Confidence", "score": <number 0-100> }
   ],
   "coachNote": "<2-4 sentences in a human, direct voice. Sound like a real manager or reviewer reacting to the answer in the room. Say what landed, what felt weak, and what proof is still missing. Reference specifics from their answer.>",
-  "suggestedResult": "<a tighter, stronger version of the answer they could say verbatim in the promotion conversation>"
+  "suggestedLabel": "<either How I'd say it instead or How to rebuild this answer>",
+  "suggestedResult": "<a tighter, stronger version of the answer they could say verbatim in the promotion conversation, or a direct rebuild instruction if the answer is too empty to rewrite honestly>"
 }
 
 Scoring rules:
@@ -497,8 +571,10 @@ Scoring rules:
 - If the answer sounds like strong current-level execution rather than next-level behavior, score it down.
 - Reward concrete business impact, expanded scope, cross-functional influence, and crisp framing.
 - If the answer dodges the question, say so plainly.
+- If the answer is basically "I don't know", "not sure", or another placeholder, score it extremely low and say directly that they did not answer the question.
 - The "coachNote" should not sound like a generic coach. It should sound like a smart blunt human who has to decide whether this case is credible.
 - The suggestedResult should sound like a stronger version of them, not generic executive-speak.
+- "headline" must be custom to the answer. Do not use a generic heading that could fit any weak answer.
 - Stage: ${stage} · Mode: ${round} · Category: ${category}`;
 
     const reply = await openaiChat(
@@ -514,41 +590,48 @@ Scoring rules:
       }
     );
 
-    if (!reply) {
-      const fallbackScore = scoreFromAnswer(answer);
-      return NextResponse.json({
-        overallScore: fallbackScore,
-        dimensions: [
-          { label: "Rubric alignment", score: Math.max(35, fallbackScore - 4) },
-          { label: "Impact proof", score: Math.max(30, fallbackScore + (/\b\d+[%x]?\b/.test(answer) ? 6 : -8)) },
-          { label: "Scope & complexity", score: Math.max(30, fallbackScore - 2) },
-          { label: "Influence", score: Math.max(30, fallbackScore - 4) },
-          { label: "Executive clarity", score: Math.max(30, fallbackScore - 1) },
-          { label: "Confidence", score: Math.max(30, fallbackScore - 3) },
+    let parsed = parsePromotionScoreReply(reply);
+    const placeholder = isPlaceholderAnswer(answer);
+    const looksTooGeneric = parsed
+      ? (!parsed.coachNote.toLowerCase().includes(answer.trim().toLowerCase()) &&
+          !parsed.coachNote.toLowerCase().includes("you did not answer") &&
+          !parsed.coachNote.toLowerCase().includes("don't know") &&
+          parsed.coachNote.length < 260)
+      : true;
+    const placeholderMismatch = Boolean(parsed && placeholder && parsed.overallScore > 18);
+
+    if (!parsed || looksTooGeneric || placeholderMismatch) {
+      const repair = await openaiChat(
+        [
+          {
+            role: "system" as const,
+            content: `${systemPrompt}
+
+Your previous attempt was missing structure, too generic, or too forgiving.
+
+Repair rules:
+- If the answer is empty, placeholder-like, or basically "I don't know", say that plainly.
+- The coach note must explicitly reference the actual answer or quote it.
+- Do not imply there is usable signal when there is not.
+- If the answer is too weak to rewrite honestly, use suggestedLabel = "How to rebuild this answer" and explain what the user should gather before trying again.
+- Return valid JSON only.`,
+          },
+          {
+            role: "user" as const,
+            content: `Question: ${question}\n\nAnswer: ${answer}\n\nPrevious draft:\n${reply || "(no draft)"}`,
+          },
         ],
-        coachNote: "This answer has some usable signal, but it still needs cleaner proof. Make the ownership, scale, and outcome easier to repeat upward, and stop assuming the listener will connect the dots for you.",
-        suggestedResult: "Rewrite the answer so it names the problem, your ownership, the decision or leverage you provided, and the measurable outcome in one tight arc.",
-      });
+        {
+          model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
+          temperature: 0.22,
+          maxTokens: 850,
+          jsonMode: true,
+        }
+      );
+      parsed = parsePromotionScoreReply(repair);
     }
 
-    try {
-      return NextResponse.json(JSON.parse(reply));
-    } catch {
-      const fallbackScore = scoreFromAnswer(answer);
-      return NextResponse.json({
-        overallScore: fallbackScore,
-        dimensions: [
-          { label: "Rubric alignment", score: Math.max(35, fallbackScore - 4) },
-          { label: "Impact proof", score: Math.max(30, fallbackScore + (/\b\d+[%x]?\b/.test(answer) ? 6 : -8)) },
-          { label: "Scope & complexity", score: Math.max(30, fallbackScore - 2) },
-          { label: "Influence", score: Math.max(30, fallbackScore - 4) },
-          { label: "Executive clarity", score: Math.max(30, fallbackScore - 1) },
-          { label: "Confidence", score: Math.max(30, fallbackScore - 3) },
-        ],
-        coachNote: "The answer is directionally useful, but it still reads too loosely. Tighten the next-level signal, make the outcome more concrete, and remove any place where the listener has to guess why this proves readiness.",
-        suggestedResult: "State the scope you owned, the decision or leverage you created, and the business effect in plain language. If there is no metric, say exactly what changed and who cared.",
-      });
-    }
+    return NextResponse.json(parsed ?? buildPromotionAnswerFallback(answer));
   }
 
   const systemPrompt = `You are Zari, a career coach who feels like a sharp, honest friend. Score this interview answer and give feedback that's real and actionable — not generic coaching-speak.
