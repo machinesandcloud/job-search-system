@@ -8,6 +8,156 @@ import { ensureSameOrigin } from "@/lib/utils";
 export const runtime     = "nodejs";
 export const maxDuration = 60;
 
+function buildPromotionQuestionFallback(round: string, criteriaText: string) {
+  const targetSignal = criteriaText.trim()
+    ? "Use the pasted criteria to make each answer feel tied to the actual promotion bar."
+    : "State the next-level signal directly since you do not have a fully explicit rubric.";
+
+  const FALLBACKS: Record<string, { sections: { name: string; description: string; questions: { cat: string; level: string; q: string }[] }[] }> = {
+    manager: {
+      sections: [
+        {
+          name: "Your Case",
+          description: "State the promotion case and why it should be believable now.",
+          questions: [
+            { cat: "Promotion case", level: "Readiness signal", q: "Why do you believe you are ready for the next level now, not just on a good trajectory toward it?" },
+            { cat: "Scope jump", level: "Next-level scope", q: "Which parts of your work already look bigger than your current title, and how would you prove that concretely?" },
+            { cat: "Timing", level: "Promotion timing", q: "Why is this the right cycle for the promotion ask instead of a later one?" },
+            { cat: "Rubric", level: "Bar clarity", q: `What do you think the next level actually expects, and how does your work map to that bar? ${targetSignal}` },
+          ],
+        },
+        {
+          name: "Scope & Impact",
+          description: "Pressure-test results, ownership, and business effect.",
+          questions: [
+            { cat: "Business impact", level: "Results", q: "Walk me through the strongest project outcome you would want in a promotion packet. What changed because of your work?" },
+            { cat: "Ownership", level: "Decision-making", q: "What did you personally own in that work that would not have happened without you?" },
+            { cat: "Complexity", level: "Scope", q: "What made the work more complex than normal execution at your current level?" },
+            { cat: "Proof gap", level: "Evidence quality", q: "If I challenged the numbers or outcomes behind your best example, what proof would you actually have?" },
+          ],
+        },
+        {
+          name: "Gaps & Objections",
+          description: "Handle the objections a manager is likely to raise.",
+          questions: [
+            { cat: "Missing proof", level: "Risk", q: "What part of your promotion case still feels weakest or easiest for someone to question?" },
+            { cat: "Manager pushback", level: "Objection handling", q: "If I said you are strong but not clearly next-level yet, what would your best evidence-based response be?" },
+            { cat: "Support", level: "Visibility", q: "Who besides your manager would need to believe the case, and do they actually see enough today?" },
+          ],
+        },
+      ],
+    },
+    committee: {
+      sections: [
+        {
+          name: "Rubric Alignment",
+          description: "Map examples to next-level expectations.",
+          questions: [
+            { cat: "Criteria fit", level: "Rubric alignment", q: "Which exact next-level expectations can you clearly prove today, and with what examples?" },
+            { cat: "Edge cases", level: "Calibration risk", q: "Where would a calibration committee say your case still reads as strong current-level performance rather than a level-up?" },
+            { cat: "Consistency", level: "Repeatability", q: "Is your best proof a one-off win or a repeatable pattern of next-level operating?" },
+            { cat: "Comparative risk", level: "Promotion bar", q: "Why should this case survive comparison with other people being considered for the same level?" },
+          ],
+        },
+        {
+          name: "Influence & Complexity",
+          description: "Defend influence, judgment, and operating range.",
+          questions: [
+            { cat: "Influence", level: "Cross-functional signal", q: "Where have you influenced outcomes outside your direct control in a way that reads as next-level?" },
+            { cat: "Judgment", level: "Decision-making", q: "What hard tradeoff or ambiguous situation best proves the judgment expected at the next level?" },
+            { cat: "Scope", level: "Complexity", q: "How large was the blast radius of your strongest work, and who cared about it?" },
+            { cat: "Leadership test", level: "Organizational impact", q: "What changed in the team, system, or org because of your work rather than just in your own output?" },
+          ],
+        },
+        {
+          name: "Calibration Risks",
+          description: "Expose the risks that could block the decision.",
+          questions: [
+            { cat: "Weakness", level: "Risk", q: "If the committee said the proof is still too thin, where would they be most justified?" },
+            { cat: "Timing", level: "Readiness timing", q: "What is the honest case against promoting you this cycle?" },
+            { cat: "Support", level: "Advocacy", q: "Who in the room would likely defend your case, and what would they actually say?" },
+          ],
+        },
+      ],
+    },
+    sponsor: {
+      sections: [
+        {
+          name: "Case Summary",
+          description: "Make the case easy for a sponsor to repeat.",
+          questions: [
+            { cat: "Narrative", level: "Executive clarity", q: "Give me the 90-second version of why you are ready for the next level." },
+            { cat: "Proof", level: "Supportable evidence", q: "Which two proof points would you want me to repeat if I advocated for you when you were not in the room?" },
+            { cat: "Timing", level: "Promotion timing", q: "Why is this a timely case rather than a premature one?" },
+          ],
+        },
+        {
+          name: "Proof Points",
+          description: "Surface the evidence a sponsor can safely use.",
+          questions: [
+            { cat: "Outcomes", level: "Business impact", q: "Which result best proves next-level impact in language a senior leader would trust immediately?" },
+            { cat: "Influence", level: "Cross-functional signal", q: "Where did you create leverage beyond your own execution?" },
+            { cat: "Risk", level: "Defensibility", q: "What part of the case would make an executive nervous to advocate for today?" },
+          ],
+        },
+        {
+          name: "Advocacy Ask",
+          description: "Practice the actual ask without sounding vague or awkward.",
+          questions: [
+            { cat: "Ask", level: "Sponsor ask", q: "What exactly are you asking a sponsor to do for you?" },
+            { cat: "Specificity", level: "Executive clarity", q: "How would you make that ask concrete enough that the sponsor knows how to help?" },
+            { cat: "Readiness signal", level: "Trust", q: "What would make a sponsor feel confident you are not asking them to overreach on your behalf?" },
+          ],
+        },
+      ],
+    },
+    "self-review": {
+      sections: [
+        {
+          name: "Narrative Arc",
+          description: "State the case cleanly in your own voice.",
+          questions: [
+            { cat: "Opening", level: "Narrative", q: "How would you open your self-review so it clearly frames next-level readiness instead of a list of tasks?" },
+            { cat: "Scope", level: "Role fit", q: "Which sentence best captures how your scope has grown beyond your current title?" },
+            { cat: "Impact", level: "Business outcomes", q: "Which outcome best proves the work mattered beyond effort?" },
+            { cat: "Timing", level: "Forward signal", q: "How would you explain why the next level is the right fit now?" },
+          ],
+        },
+        {
+          name: "Evidence",
+          description: "Pressure-test whether the proof is concrete enough.",
+          questions: [
+            { cat: "Metrics", level: "Evidence quality", q: "Where is your best evidence still too vague, and how would you rewrite it?" },
+            { cat: "Ownership", level: "Decision-making", q: "How would you separate your personal contribution from team effort in your strongest example?" },
+            { cat: "Influence", level: "Cross-functional signal", q: "What example best shows influence, judgment, or leverage beyond your own output?" },
+            { cat: "Weak spot", level: "Risk", q: "What part of the self-review still sounds flattering rather than provable?" },
+          ],
+        },
+        {
+          name: "Forward Signal",
+          description: "Show readiness for the next level, not just strength today.",
+          questions: [
+            { cat: "Readiness", level: "Next-level signal", q: "What makes your case read as already operating at the next level rather than simply growing toward it?" },
+            { cat: "Gaps", level: "Honesty", q: "Which gap would you acknowledge directly so the review sounds credible instead of inflated?" },
+            { cat: "Ask", level: "Clarity", q: "If you had to write one sentence asking reviewers to conclude something about your readiness, what would it be?" },
+          ],
+        },
+      ],
+    },
+  };
+
+  return FALLBACKS[round] ?? FALLBACKS.manager;
+}
+
+function scoreFromAnswer(answer: string) {
+  const words = answer.trim().split(/\s+/).filter(Boolean).length;
+  const hasNumber = /\b\d+[%x]?\b/.test(answer);
+  const hasOwnership = /\b(i|my|owned|led|drove|built|decided|influenced)\b/i.test(answer);
+  const hasImpact = /\b(result|impact|reduced|increased|saved|launched|improved|grew|shipped)\b/i.test(answer);
+  const score = Math.max(35, Math.min(88, 38 + Math.min(words, 180) * 0.18 + (hasNumber ? 10 : 0) + (hasOwnership ? 8 : 0) + (hasImpact ? 8 : 0)));
+  return Math.round(score);
+}
+
 export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) {
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
@@ -108,12 +258,12 @@ Rules:
         { model: process.env.OPENAI_MODEL ?? "gpt-4o-mini", temperature: 0.5, maxTokens: 2400, jsonMode: true }
       );
 
-      if (!reply) return NextResponse.json({ error: "Could not generate questions" }, { status: 503 });
+      if (!reply) return NextResponse.json(buildPromotionQuestionFallback(round, criteriaText));
 
       try {
         return NextResponse.json(JSON.parse(reply));
       } catch {
-        return NextResponse.json({ error: "Could not parse questions" }, { status: 500 });
+        return NextResponse.json(buildPromotionQuestionFallback(round, criteriaText));
       }
     }
 
@@ -248,12 +398,40 @@ Scoring rules:
       }
     );
 
-    if (!reply) return NextResponse.json({ error: "Scoring failed — try again" }, { status: 503 });
+    if (!reply) {
+      const fallbackScore = scoreFromAnswer(answer);
+      return NextResponse.json({
+        overallScore: fallbackScore,
+        dimensions: [
+          { label: "Rubric alignment", score: Math.max(35, fallbackScore - 4) },
+          { label: "Impact proof", score: Math.max(30, fallbackScore + (/\b\d+[%x]?\b/.test(answer) ? 6 : -8)) },
+          { label: "Scope & complexity", score: Math.max(30, fallbackScore - 2) },
+          { label: "Influence", score: Math.max(30, fallbackScore - 4) },
+          { label: "Executive clarity", score: Math.max(30, fallbackScore - 1) },
+          { label: "Confidence", score: Math.max(30, fallbackScore - 3) },
+        ],
+        coachNote: "This answer has some usable signal, but it still needs cleaner proof. Make the ownership, scale, and outcome easier to repeat upward, and stop assuming the listener will connect the dots for you.",
+        suggestedResult: "Rewrite the answer so it names the problem, your ownership, the decision or leverage you provided, and the measurable outcome in one tight arc.",
+      });
+    }
 
     try {
       return NextResponse.json(JSON.parse(reply));
     } catch {
-      return NextResponse.json({ error: "Could not parse scoring" }, { status: 500 });
+      const fallbackScore = scoreFromAnswer(answer);
+      return NextResponse.json({
+        overallScore: fallbackScore,
+        dimensions: [
+          { label: "Rubric alignment", score: Math.max(35, fallbackScore - 4) },
+          { label: "Impact proof", score: Math.max(30, fallbackScore + (/\b\d+[%x]?\b/.test(answer) ? 6 : -8)) },
+          { label: "Scope & complexity", score: Math.max(30, fallbackScore - 2) },
+          { label: "Influence", score: Math.max(30, fallbackScore - 4) },
+          { label: "Executive clarity", score: Math.max(30, fallbackScore - 1) },
+          { label: "Confidence", score: Math.max(30, fallbackScore - 3) },
+        ],
+        coachNote: "The answer is directionally useful, but it still reads too loosely. Tighten the next-level signal, make the outcome more concrete, and remove any place where the listener has to guess why this proves readiness.",
+        suggestedResult: "State the scope you owned, the decision or leverage you created, and the business effect in plain language. If there is no metric, say exactly what changed and who cared.",
+      });
     }
   }
 

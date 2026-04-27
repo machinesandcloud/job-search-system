@@ -2780,6 +2780,147 @@ const PROMOTION_THEMES: Record<"readiness" | "conversation" | "evidence" | "visi
   },
 };
 
+type PromotionSharedContext = {
+  currentTitle: string;
+  desiredTitle: string;
+  timeInRole: string;
+  roleDescription: string;
+  rubricClarity: string;
+  recentProjects: string;
+  scopeLevel: string;
+  impactLevel: string;
+  reviewSignal: string;
+  reviewSummary: string;
+  managerSupport: string;
+  visibilityLevel: string;
+  blockers: string;
+  readinessScore: number | null;
+  readinessVerdict: string;
+  readinessSummary: string;
+  realityCheck: string;
+  scoreReason: string;
+  strengths: string[];
+  gapAreas: string[];
+  nextMoves: string[];
+};
+
+function promotionOptionLabel(options: readonly PromotionReadinessOption[], value: string) {
+  return options.find(option => option.value === value)?.label ?? value;
+}
+
+function latestPromotionReadinessDoc() {
+  return vaultReadForStage("promotion")
+    .filter(doc => doc.type === "resume" && doc.name === "Promotion Readiness Audit")
+    .sort((a, b) => b.createdAt - a.createdAt)[0] ?? null;
+}
+
+function readPromotionSharedContext(): PromotionSharedContext | null {
+  const doc = latestPromotionReadinessDoc();
+  if (!doc) return null;
+
+  const serialized = doc.meta.promotionContext;
+  if (serialized) {
+    try {
+      const parsed = JSON.parse(serialized) as PromotionSharedContext;
+      if (parsed?.desiredTitle || parsed?.roleDescription || parsed?.recentProjects) return parsed;
+    } catch {
+      /* fall through to meta fallback */
+    }
+  }
+
+  return {
+    currentTitle: doc.meta.currentTitle ?? "",
+    desiredTitle: doc.meta.desiredTitle ?? doc.meta.targetRole ?? "",
+    timeInRole: doc.meta.timeInRole ?? "",
+    roleDescription: doc.meta.roleDescription ?? "",
+    rubricClarity: doc.meta.rubricClarity ?? "",
+    recentProjects: doc.meta.recentProjects ?? "",
+    scopeLevel: doc.meta.scopeLevel ?? "",
+    impactLevel: doc.meta.impactLevel ?? "",
+    reviewSignal: doc.meta.reviewSignal ?? "",
+    reviewSummary: doc.meta.reviewSummary ?? "",
+    managerSupport: doc.meta.managerSupport ?? "",
+    visibilityLevel: doc.meta.visibilityLevel ?? "",
+    blockers: doc.meta.blockers ?? "",
+    readinessScore: doc.meta.readinessScore ? Number.parseInt(doc.meta.readinessScore, 10) : null,
+    readinessVerdict: doc.meta.verdict ?? "",
+    readinessSummary: doc.meta.summary ?? "",
+    realityCheck: doc.meta.realityCheck ?? "",
+    scoreReason: doc.meta.scoreReason ?? "",
+    strengths: [],
+    gapAreas: [],
+    nextMoves: [],
+  };
+}
+
+function buildPromotionEvidenceSeed(context: PromotionSharedContext | null) {
+  if (!context) return "";
+  return [
+    context.currentTitle && context.desiredTitle ? `Promotion move: ${context.currentTitle} -> ${context.desiredTitle}` : "",
+    context.recentProjects ? `Key projects and wins:\n${context.recentProjects}` : "",
+    context.reviewSummary ? `Relevant review context:\n${context.reviewSummary}` : "",
+    context.strengths.length ? `Strong signals already present:\n${context.strengths.map(item => `- ${item}`).join("\n")}` : "",
+  ].filter(Boolean).join("\n\n");
+}
+
+function buildPromotionCriteriaSeed(context: PromotionSharedContext | null) {
+  if (!context) return "";
+  return [
+    context.desiredTitle ? `Target role: ${context.desiredTitle}` : "",
+    context.roleDescription ? `Promotion bar / next-level expectations:\n${context.roleDescription}` : "",
+    context.rubricClarity
+      ? `Bar clarity today: ${promotionOptionLabel(PROMOTION_READINESS_OPTIONS.rubricClarity, context.rubricClarity)}`
+      : "",
+  ].filter(Boolean).join("\n\n");
+}
+
+function buildPromotionContextSeed(context: PromotionSharedContext | null) {
+  if (!context) return "";
+  return [
+    context.readinessScore !== null ? `Readiness audit: ${context.readinessScore}/100${context.readinessVerdict ? ` (${context.readinessVerdict})` : ""}` : "",
+    context.readinessSummary ? `Audit summary:\n${context.readinessSummary}` : "",
+    context.realityCheck ? `Reality check:\n${context.realityCheck}` : "",
+    context.scoreReason ? `Why the score landed there:\n${context.scoreReason}` : "",
+    context.managerSupport
+      ? `Manager support: ${promotionOptionLabel(PROMOTION_READINESS_OPTIONS.managerSupport, context.managerSupport)}`
+      : "",
+    context.visibilityLevel
+      ? `Visibility: ${promotionOptionLabel(PROMOTION_READINESS_OPTIONS.visibilityLevel, context.visibilityLevel)}`
+      : "",
+    context.blockers ? `Known blockers:\n${context.blockers}` : "",
+    context.gapAreas.length ? `Biggest gaps to close:\n${context.gapAreas.map(item => `- ${item}`).join("\n")}` : "",
+    context.nextMoves.length ? `Priority next moves:\n${context.nextMoves.map(item => `- ${item}`).join("\n")}` : "",
+  ].filter(Boolean).join("\n\n");
+}
+
+function buildPromotionContextNote(context: PromotionSharedContext | null) {
+  if (!context) return "";
+  return [
+    context.readinessScore !== null ? `Audit ${context.readinessScore}/100` : "",
+    context.readinessVerdict || "",
+    context.managerSupport ? promotionOptionLabel(PROMOTION_READINESS_OPTIONS.managerSupport, context.managerSupport) : "",
+    context.visibilityLevel ? promotionOptionLabel(PROMOTION_READINESS_OPTIONS.visibilityLevel, context.visibilityLevel) : "",
+  ].filter(Boolean).join(" • ");
+}
+
+function buildPromotionBlockerNote(context: PromotionSharedContext | null) {
+  if (!context) return "";
+  if (context.blockers.trim()) return context.blockers.trim();
+  if (context.gapAreas.length) return context.gapAreas.join("; ");
+  return context.realityCheck || "";
+}
+
+function buildPromotionStakeholderSeed(context: PromotionSharedContext | null) {
+  if (!context) return "";
+  return [
+    "Manager",
+    "Skip-level or calibration lead",
+    "Cross-functional partners who have seen the work directly",
+    context.visibilityLevel === "decision_makers_see_it" ? "Decision-makers already aware of your impact" : "",
+    context.visibilityLevel === "mostly_team" || context.visibilityLevel === "low_visibility" ? "Decision-makers who still need to see the case clearly" : "",
+  ].filter(Boolean).join("\n");
+}
+
 function promotionPageStyle(theme: PromotionTheme) {
   return {
     height: "calc(100vh - 56px)",
@@ -3056,7 +3197,7 @@ function ScreenPromotionReadiness() {
       case 3:
         return "Add your key projects and answer the scope and impact questions before continuing.";
       case 4:
-        return "Tell Zari the review context, support, visibility, and blockers before running the audit.";
+        return "Set the review signal, manager support, and visibility before running the audit.";
       default:
         return "Complete the remaining questions before continuing.";
     }
@@ -3071,7 +3212,7 @@ function ScreenPromotionReadiness() {
       case 3:
         return Boolean(form.recentProjects.trim() && form.scopeLevel && form.impactLevel);
       case 4:
-        return Boolean(form.reviewSummary.trim() && form.reviewSignal && form.managerSupport && form.visibilityLevel && form.blockers.trim());
+        return Boolean(form.reviewSignal && form.managerSupport && form.visibilityLevel);
       default:
         return false;
     }
@@ -3120,6 +3261,29 @@ function ScreenPromotionReadiness() {
       if (data?.summary && typeof data.readinessScore === "number") {
         setResult(data);
         setResultTab("overview");
+        const promotionContextPayload: PromotionSharedContext = {
+          currentTitle: form.currentTitle,
+          desiredTitle: form.desiredTitle,
+          timeInRole: form.timeInRole,
+          roleDescription: form.roleDescription,
+          rubricClarity: form.rubricClarity,
+          recentProjects: form.recentProjects,
+          scopeLevel: form.scopeLevel,
+          impactLevel: form.impactLevel,
+          reviewSignal: form.reviewSignal,
+          reviewSummary: form.reviewSummary,
+          managerSupport: form.managerSupport,
+          visibilityLevel: form.visibilityLevel,
+          blockers: form.blockers,
+          readinessScore: data.readinessScore,
+          readinessVerdict: data.verdict,
+          readinessSummary: data.summary,
+          realityCheck: data.realityCheck,
+          scoreReason: data.scoreReason,
+          strengths: data.strengths,
+          gapAreas: data.gaps.map(item => item.area),
+          nextMoves: data.nextMoves,
+        };
         const serialized = [
           `Promotion readiness score: ${data.readinessScore}/100`,
           `Verdict: ${data.verdict}`,
@@ -3160,7 +3324,29 @@ function ScreenPromotionReadiness() {
           type:"resume",
           name:"Promotion Readiness Audit",
           content:serialized,
-          meta:{ stage:"promotion", desiredTitle: form.desiredTitle, targetRole: form.desiredTitle, verdict:data.verdict, readinessScore:String(data.readinessScore) },
+          meta:{
+            stage:"promotion",
+            desiredTitle: form.desiredTitle,
+            targetRole: form.desiredTitle,
+            currentTitle: form.currentTitle,
+            timeInRole: form.timeInRole,
+            roleDescription: form.roleDescription,
+            rubricClarity: form.rubricClarity,
+            recentProjects: form.recentProjects,
+            scopeLevel: form.scopeLevel,
+            impactLevel: form.impactLevel,
+            reviewSignal: form.reviewSignal,
+            reviewSummary: form.reviewSummary,
+            managerSupport: form.managerSupport,
+            visibilityLevel: form.visibilityLevel,
+            blockers: form.blockers,
+            verdict:data.verdict,
+            readinessScore:String(data.readinessScore),
+            summary:data.summary,
+            realityCheck:data.realityCheck,
+            scoreReason:data.scoreReason,
+            promotionContext: JSON.stringify(promotionContextPayload),
+          },
         });
       } else {
         setError(data?.error ?? "Could not generate the readiness audit.");
@@ -3720,7 +3906,7 @@ function ScreenPromotionReadiness() {
                 <textarea
                   value={form.reviewSummary}
                   onChange={e => updateForm("reviewSummary", e.target.value)}
-                  placeholder="Paste recent review comments or summarize the feedback that matters most. Include praise, concerns, and anything that affects promotion timing."
+                  placeholder="Optional: paste review comments or summarize the feedback that matters most. If you do not have formal reviews, leave this light and move on."
                   style={{ ...wizardTextareaStyle, minHeight:130 }}
                 />
               </div>
@@ -3745,7 +3931,7 @@ function ScreenPromotionReadiness() {
                 <textarea
                   value={form.blockers}
                   onChange={e => updateForm("blockers", e.target.value)}
-                  placeholder="Examples: unclear rubric, low visibility, missing metrics, manager hesitation, or not enough next-level scope. If nothing is obvious, write 'none yet'."
+                  placeholder="Optional: unclear rubric, low visibility, missing metrics, manager hesitation, or not enough next-level scope. If nothing stands out, leave this blank."
                   style={{ ...wizardTextareaStyle, minHeight:135 }}
                 />
               </div>
@@ -6202,6 +6388,7 @@ function ScreenPromotionPitch() {
   const [criteriaText, setCriteriaText] = useState("");
   const [contextText, setContextText] = useState("");
   const [targetLevel, setTargetLevel] = useState("");
+  const [sharedContext, setSharedContext] = useState<PromotionSharedContext | null>(null);
   const [mode, setMode] = useState<PromotionPracticeMode>("manager");
   const [loadingQs, setLoadingQs] = useState(false);
   const [setupError, setSetupError] = useState("");
@@ -6213,6 +6400,21 @@ function ScreenPromotionPitch() {
   const [isScoring, setIsScoring] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const theme = PROMOTION_THEMES.conversation;
+
+  useEffect(() => {
+    const sync = () => setSharedContext(readPromotionSharedContext());
+    sync();
+    window.addEventListener("vault-updated", sync);
+    return () => window.removeEventListener("vault-updated", sync);
+  }, []);
+
+  useEffect(() => {
+    if (!sharedContext || sections) return;
+    if (!targetLevel.trim() && sharedContext.desiredTitle) setTargetLevel(sharedContext.desiredTitle);
+    if (!criteriaText.trim()) setCriteriaText(buildPromotionCriteriaSeed(sharedContext));
+    if (!contextText.trim()) setContextText(buildPromotionContextNote(sharedContext));
+    if (!evidenceText.trim()) setEvidenceText(buildPromotionEvidenceSeed(sharedContext));
+  }, [sharedContext, sections, targetLevel, criteriaText, contextText, evidenceText]);
 
   async function handleUpload(file: File) {
     setEvidenceFile(file.name);
@@ -6230,7 +6432,15 @@ function ScreenPromotionPitch() {
   }
 
   async function startPractice() {
-    if (!evidenceText.trim() && !criteriaText.trim()) {
+    const seededEvidence = evidenceText.trim() || buildPromotionEvidenceSeed(sharedContext);
+    const seededCriteria = criteriaText.trim() || buildPromotionCriteriaSeed(sharedContext);
+    const seededContext = [
+      targetLevel ? `Target level: ${targetLevel}` : sharedContext?.desiredTitle ? `Target level: ${sharedContext.desiredTitle}` : "",
+      contextText.trim() || buildPromotionContextNote(sharedContext),
+      buildPromotionContextSeed(sharedContext),
+    ].filter(Boolean).join("\n\n");
+
+    if (!seededEvidence && !seededCriteria) {
       setSetupError("Add either evidence or next-level expectations before starting.");
       return;
     }
@@ -6244,9 +6454,9 @@ function ScreenPromotionPitch() {
           action: "generate-questions",
           stage: "promotion",
           round: mode,
-          resumeText: evidenceText,
-          criteriaText,
-          contextText: [targetLevel ? `Target level: ${targetLevel}` : "", contextText].filter(Boolean).join("\n\n"),
+          resumeText: seededEvidence,
+          criteriaText: seededCriteria,
+          contextText: seededContext,
         }),
       });
       const data = await res.json().catch(() => ({})) as { sections?: InterviewSection[]; error?: string };
@@ -6270,6 +6480,13 @@ function ScreenPromotionPitch() {
     if (!currentQuestion || !answer.trim() || isScoring) return;
     setIsScoring(true);
     try {
+      const seededEvidence = evidenceText.trim() || buildPromotionEvidenceSeed(sharedContext);
+      const seededCriteria = criteriaText.trim() || buildPromotionCriteriaSeed(sharedContext);
+      const seededContext = [
+        targetLevel ? `Target level: ${targetLevel}` : sharedContext?.desiredTitle ? `Target level: ${sharedContext.desiredTitle}` : "",
+        contextText.trim() || buildPromotionContextNote(sharedContext),
+        buildPromotionContextSeed(sharedContext),
+      ].filter(Boolean).join("\n\n");
       const res = await fetch("/api/zari/interview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -6280,9 +6497,9 @@ function ScreenPromotionPitch() {
           category: currentQuestion.cat,
           question: currentQuestion.q,
           answer,
-          resumeText: evidenceText,
-          criteriaText,
-          contextText: [targetLevel ? `Target level: ${targetLevel}` : "", contextText].filter(Boolean).join("\n\n"),
+          resumeText: seededEvidence,
+          criteriaText: seededCriteria,
+          contextText: seededContext,
         }),
       });
       const data = await res.json().catch(() => null) as InterviewFeedback | null;
@@ -6364,6 +6581,34 @@ function ScreenPromotionPitch() {
           </div>
 
           <div style={{ display:"grid", gap:18 }}>
+            {sharedContext && (
+              <div style={{ ...promotionPanelStyle(theme, true), padding:"16px 18px" }}>
+                <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
+                  <div>
+                    <div style={{ fontSize:11.5, fontWeight:800, color:theme.accent, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Pulled from Readiness Audit</div>
+                    <div style={{ fontSize:22, lineHeight:1.08, fontWeight:800, color:"#0F172A", letterSpacing:"-0.03em", marginBottom:8 }}>
+                      {sharedContext.currentTitle || "Current role"} {sharedContext.desiredTitle ? `-> ${sharedContext.desiredTitle}` : ""}
+                    </div>
+                    <p style={{ fontSize:13, color:"#475569", lineHeight:1.7, margin:0, maxWidth:720 }}>
+                      The target role, rubric, strongest wins, and readiness context from your audit were carried into this practice setup so you can sharpen the conversation instead of rebuilding the case from scratch.
+                    </p>
+                  </div>
+                  <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                    {sharedContext.readinessScore !== null && (
+                      <span style={{ fontSize:11.5, fontWeight:800, padding:"6px 10px", borderRadius:999, background:"#EEF2FF", color:"#4F46E5", border:"1px solid #C7D2FE" }}>
+                        Audit {sharedContext.readinessScore}/100
+                      </span>
+                    )}
+                    {sharedContext.readinessVerdict && (
+                      <span style={{ fontSize:11.5, fontWeight:800, padding:"6px 10px", borderRadius:999, background:"#F8FAFC", color:"#475569", border:"1px solid #E2E8F0" }}>
+                        {sharedContext.readinessVerdict}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(320px,1fr))", gap:18, alignItems:"start" }}>
               <div style={promotionPanelStyle(theme, true)}>
                 <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap", marginBottom:14 }}>
@@ -6625,18 +6870,37 @@ type PromotionDocResult = {
   managerBrief: string;
 };
 
+type PromotionDocTab = "overview" | "bullets" | "self" | "manager" | "reviewed";
+
 function ScreenPromotionDocument() {
   const [evidenceText, setEvidenceText] = useState("");
   const [evidenceFile, setEvidenceFile] = useState("");
   const [criteriaText, setCriteriaText] = useState("");
   const [contextText, setContextText] = useState("");
   const [targetLevel, setTargetLevel] = useState("");
+  const [sharedContext, setSharedContext] = useState<PromotionSharedContext | null>(null);
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<PromotionDocResult | null>(null);
+  const [resultTab, setResultTab] = useState<PromotionDocTab>("overview");
   const [error, setError] = useState("");
   const [copiedSection, setCopiedSection] = useState<"bullets" | "self" | "manager" | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const theme = PROMOTION_THEMES.evidence;
+
+  useEffect(() => {
+    const sync = () => setSharedContext(readPromotionSharedContext());
+    sync();
+    window.addEventListener("vault-updated", sync);
+    return () => window.removeEventListener("vault-updated", sync);
+  }, []);
+
+  useEffect(() => {
+    if (!sharedContext || result) return;
+    if (!targetLevel.trim() && sharedContext.desiredTitle) setTargetLevel(sharedContext.desiredTitle);
+    if (!criteriaText.trim()) setCriteriaText(buildPromotionCriteriaSeed(sharedContext));
+    if (!contextText.trim()) setContextText(buildPromotionContextNote(sharedContext));
+    if (!evidenceText.trim()) setEvidenceText(buildPromotionEvidenceSeed(sharedContext));
+  }, [sharedContext, result, targetLevel, criteriaText, contextText, evidenceText]);
 
   async function handleUpload(file: File) {
     setEvidenceFile(file.name);
@@ -6654,7 +6918,11 @@ function ScreenPromotionDocument() {
   }
 
   async function generate() {
-    if (!evidenceText.trim() && !criteriaText.trim()) {
+    const seededEvidence = evidenceText.trim() || buildPromotionEvidenceSeed(sharedContext);
+    const seededCriteria = criteriaText.trim() || buildPromotionCriteriaSeed(sharedContext);
+    const seededContext = [contextText.trim() || buildPromotionContextNote(sharedContext), buildPromotionContextSeed(sharedContext)].filter(Boolean).join("\n\n");
+
+    if (!seededEvidence && !seededCriteria) {
       setError("Add either promotion evidence or next-level criteria before generating.");
       return;
     }
@@ -6665,11 +6933,17 @@ function ScreenPromotionDocument() {
       const res = await fetch("/api/zari/promotion-doc", {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ evidenceText, criteriaText, contextText, targetLevel }),
+        body: JSON.stringify({
+          evidenceText: seededEvidence,
+          criteriaText: seededCriteria,
+          contextText: seededContext,
+          targetLevel: targetLevel || sharedContext?.desiredTitle || "",
+        }),
       });
       const data = await res.json().catch(() => null) as (PromotionDocResult & { error?: string }) | null;
       if (data?.selfReview && data.managerBrief) {
         setResult(data);
+        setResultTab("overview");
         const serialized = [
           "Overview",
           data.overview,
@@ -6693,7 +6967,13 @@ function ScreenPromotionDocument() {
           type:"cover-letter",
           name:"Promotion Evidence Builder",
           content:serialized,
-          meta:{ stage:"promotion", targetLevel, targetRole: targetLevel },
+          meta:{
+            stage:"promotion",
+            targetLevel: targetLevel || sharedContext?.desiredTitle || "",
+            targetRole: targetLevel || sharedContext?.desiredTitle || "",
+            sourceAuditScore: sharedContext?.readinessScore !== null && sharedContext?.readinessScore !== undefined ? String(sharedContext.readinessScore) : "",
+            sourceAuditVerdict: sharedContext?.readinessVerdict ?? "",
+          },
         });
       } else {
         setError(data?.error ?? "Could not generate your promotion evidence pack.");
@@ -6796,9 +7076,14 @@ function ScreenPromotionDocument() {
                   <div style={{ fontSize:14, color:"#7F1D1D", lineHeight:1.8 }}>{result.realityCheck}</div>
                 </div>
                 <div style={promotionPanelStyle(theme)}>
-                  <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Missing proof</div>
+                  <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>How to use this output</div>
                   <div style={{ display:"grid", gap:10 }}>
-                    {result.missingProof.map(item => (
+                    {[
+                      "Start with the missing proof before you over-polish the language.",
+                      "Use the bullets anywhere you need crisp evidence fast.",
+                      "Use the self-review for your own packet language.",
+                      "Use the manager brief to make the case easier to repeat upward.",
+                    ].map(item => (
                       <div key={item} style={{ fontSize:13.2, color:"#475569", lineHeight:1.7, padding:"11px 12px", borderRadius:14, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
                         {item}
                       </div>
@@ -6807,55 +7092,153 @@ function ScreenPromotionDocument() {
                 </div>
               </div>
 
-              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))", gap:18, alignItems:"start" }}>
-                <div style={{ ...promotionPanelStyle(theme, true), border:"1px solid rgba(16,185,129,0.24)" }}>
-                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:12, flexWrap:"wrap" }}>
-                    <div>
-                      <div style={{ fontSize:11.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Impact bullets</div>
-                      <h2 style={{ fontSize:28, lineHeight:1.08, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 6px" }}>Portable proof points.</h2>
-                      <div style={{ fontSize:12.5, color:"#64748B", lineHeight:1.6 }}>Use these in a brag sheet, packet, status update, or your manager conversation.</div>
-                    </div>
-                    <button onClick={() => void copy(result.impactBullets.map(item => `- ${item}`).join("\n"), "bullets")} style={{ fontSize:11.5, fontWeight:700, padding:"8px 10px", borderRadius:10, border:"1px solid #A7F3D0", background:"#ECFDF5", color:"#047857", cursor:"pointer" }}>
-                      {copiedSection === "bullets" ? "Copied" : "Copy"}
-                    </button>
-                  </div>
-                  <div style={{ display:"grid", gap:10 }}>
-                    {result.impactBullets.map(item => (
-                      <div key={item} style={{ fontSize:13.5, color:"#14532D", lineHeight:1.7, background:"linear-gradient(180deg,#F0FDF4,#ECFDF5)", border:"1px solid #BBF7D0", borderRadius:16, padding:"13px 14px" }}>
-                        {item}
-                      </div>
-                    ))}
-                  </div>
+              <div style={{ background:"white", border:"1px solid #D9E1F0", borderRadius:24, overflow:"hidden", boxShadow:"0 8px 30px rgba(15,23,42,0.06)" }}>
+                <div style={{ display:"flex", flexWrap:"wrap", borderBottom:"1px solid #E7EAF6", background:"#F8FAFF" }}>
+                  {[
+                    { id:"overview", label:"Overview" },
+                    { id:"bullets", label:`Impact Bullets ${result.impactBullets.length}` },
+                    { id:"self", label:"Self Review" },
+                    { id:"manager", label:"Manager Brief" },
+                    { id:"reviewed", label:"What Zari Reviewed" },
+                  ].map(tab => {
+                    const active = resultTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setResultTab(tab.id as PromotionDocTab)}
+                        style={{
+                          padding:"16px 20px",
+                          border:"none",
+                          cursor:"pointer",
+                          background:active ? "linear-gradient(135deg,#8B5CF6,#6366F1)" : "transparent",
+                          color:active ? "white" : "#334155",
+                          fontSize:13.5,
+                          fontWeight:800,
+                          letterSpacing:"-0.01em",
+                          borderRight:"1px solid #E7EAF6",
+                        }}
+                      >
+                        {tab.label}
+                      </button>
+                    );
+                  })}
                 </div>
 
-                <div style={{ display:"grid", gap:18 }}>
-                  <div style={promotionPanelStyle(theme)}>
-                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:12, flexWrap:"wrap" }}>
-                      <div>
-                        <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Self-review draft</div>
-                        <h2 style={{ fontSize:26, lineHeight:1.08, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 6px" }}>First-person version.</h2>
-                        <div style={{ fontSize:12.5, color:"#64748B", lineHeight:1.6 }}>Use this in your self-eval, promo packet, or as the first draft of your own case narrative.</div>
+                <div style={{ padding:"24px 24px 22px", display:"grid", gap:18 }}>
+                  {resultTab === "overview" && (
+                    <>
+                      <div style={{ ...promotionPanelStyle(theme, true), padding:"22px 24px 20px", border:"1px solid rgba(16,185,129,0.2)" }}>
+                        <div style={{ fontSize:11.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Evidence read</div>
+                        <div style={{ fontSize:15, color:"#0F172A", lineHeight:1.85 }}>{result.overview}</div>
                       </div>
-                      <button onClick={() => void copy(result.selfReview, "self")} style={{ fontSize:11.5, fontWeight:700, padding:"8px 10px", borderRadius:10, border:"1px solid #CBD5E1", background:"#F8FAFC", color:"#334155", cursor:"pointer" }}>
-                        {copiedSection === "self" ? "Copied" : "Copy"}
-                      </button>
-                    </div>
-                    <div style={{ fontSize:13.5, color:"#0F172A", lineHeight:1.8, whiteSpace:"pre-wrap" }}>{result.selfReview}</div>
-                  </div>
+                      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:16 }}>
+                        <div style={promotionPanelStyle(theme)}>
+                          <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Missing proof</div>
+                          <div style={{ display:"grid", gap:10 }}>
+                            {result.missingProof.map(item => (
+                              <div key={item} style={{ fontSize:13.4, color:"#475569", lineHeight:1.75, padding:"11px 12px", borderRadius:14, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
+                                {item}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        <div style={promotionPanelStyle(theme)}>
+                          <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Generated assets</div>
+                          <div style={{ display:"grid", gap:10 }}>
+                            {[
+                              `${result.impactBullets.length} impact bullets for brag sheets, packets, and updates.`,
+                              "A first-person self-review draft you can edit into your own voice.",
+                              "A third-person manager brief someone else can reuse in calibration.",
+                            ].map(item => (
+                              <div key={item} style={{ fontSize:13.4, color:"#475569", lineHeight:1.75, padding:"11px 12px", borderRadius:14, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
+                                {item}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
 
-                  <div style={promotionPanelStyle(theme)}>
-                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:12, flexWrap:"wrap" }}>
-                      <div>
-                        <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Manager brief</div>
-                        <h2 style={{ fontSize:26, lineHeight:1.08, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 6px" }}>Third-person retell.</h2>
-                        <div style={{ fontSize:12.5, color:"#64748B", lineHeight:1.6 }}>Use this to prep your manager, hand over talking points, or make your case easier for someone else to repeat.</div>
+                  {resultTab === "bullets" && (
+                    <div style={{ display:"grid", gap:18 }}>
+                      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
+                        <div>
+                          <div style={{ fontSize:11.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Impact bullets</div>
+                          <h2 style={{ fontSize:28, lineHeight:1.08, fontWeight:800, color:"#0F172A", letterSpacing:"-0.03em", margin:"0 0 6px" }}>Portable proof points.</h2>
+                          <div style={{ fontSize:13, color:"#64748B", lineHeight:1.6 }}>Use these in brag sheets, packet drafts, status updates, or your manager conversation.</div>
+                        </div>
+                        <button onClick={() => void copy(result.impactBullets.map(item => `- ${item}`).join("\n"), "bullets")} style={{ fontSize:11.5, fontWeight:700, padding:"8px 10px", borderRadius:10, border:"1px solid #A7F3D0", background:"#ECFDF5", color:"#047857", cursor:"pointer" }}>
+                          {copiedSection === "bullets" ? "Copied" : "Copy"}
+                        </button>
                       </div>
-                      <button onClick={() => void copy(result.managerBrief, "manager")} style={{ fontSize:11.5, fontWeight:700, padding:"8px 10px", borderRadius:10, border:"1px solid #CBD5E1", background:"#F8FAFC", color:"#334155", cursor:"pointer" }}>
-                        {copiedSection === "manager" ? "Copied" : "Copy"}
-                      </button>
+                      <div style={{ display:"grid", gap:10 }}>
+                        {result.impactBullets.map(item => (
+                          <div key={item} style={{ fontSize:13.5, color:"#14532D", lineHeight:1.7, background:"linear-gradient(180deg,#F0FDF4,#ECFDF5)", border:"1px solid #BBF7D0", borderRadius:16, padding:"13px 14px" }}>
+                            {item}
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <div style={{ fontSize:13.5, color:"#0F172A", lineHeight:1.8, whiteSpace:"pre-wrap" }}>{result.managerBrief}</div>
-                  </div>
+                  )}
+
+                  {resultTab === "self" && (
+                    <div style={{ display:"grid", gap:16 }}>
+                      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
+                        <div>
+                          <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Self-review draft</div>
+                          <h2 style={{ fontSize:28, lineHeight:1.08, fontWeight:800, color:"#0F172A", letterSpacing:"-0.03em", margin:"0 0 6px" }}>First-person version.</h2>
+                          <div style={{ fontSize:13, color:"#64748B", lineHeight:1.6 }}>Start here for your self-eval or packet narrative, then tighten it into your own voice.</div>
+                        </div>
+                        <button onClick={() => void copy(result.selfReview, "self")} style={{ fontSize:11.5, fontWeight:700, padding:"8px 10px", borderRadius:10, border:"1px solid #CBD5E1", background:"#F8FAFC", color:"#334155", cursor:"pointer" }}>
+                          {copiedSection === "self" ? "Copied" : "Copy"}
+                        </button>
+                      </div>
+                      <div style={{ ...promotionPanelStyle(theme, true), padding:"22px 24px 20px" }}>
+                        <div style={{ fontSize:13.5, color:"#0F172A", lineHeight:1.8, whiteSpace:"pre-wrap" }}>{result.selfReview}</div>
+                      </div>
+                    </div>
+                  )}
+
+                  {resultTab === "manager" && (
+                    <div style={{ display:"grid", gap:16 }}>
+                      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
+                        <div>
+                          <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Manager brief</div>
+                          <h2 style={{ fontSize:28, lineHeight:1.08, fontWeight:800, color:"#0F172A", letterSpacing:"-0.03em", margin:"0 0 6px" }}>Third-person retell.</h2>
+                          <div style={{ fontSize:13, color:"#64748B", lineHeight:1.6 }}>Use this to prep your manager or hand over talking points that can survive calibration.</div>
+                        </div>
+                        <button onClick={() => void copy(result.managerBrief, "manager")} style={{ fontSize:11.5, fontWeight:700, padding:"8px 10px", borderRadius:10, border:"1px solid #CBD5E1", background:"#F8FAFC", color:"#334155", cursor:"pointer" }}>
+                          {copiedSection === "manager" ? "Copied" : "Copy"}
+                        </button>
+                      </div>
+                      <div style={{ ...promotionPanelStyle(theme, true), padding:"22px 24px 20px" }}>
+                        <div style={{ fontSize:13.5, color:"#0F172A", lineHeight:1.8, whiteSpace:"pre-wrap" }}>{result.managerBrief}</div>
+                      </div>
+                    </div>
+                  )}
+
+                  {resultTab === "reviewed" && (
+                    <div style={{ display:"grid", gap:16 }}>
+                      <div style={{ ...promotionPanelStyle(theme, true), padding:"18px 20px 16px" }}>
+                        <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>What Zari reviewed</div>
+                        <div style={{ display:"grid", gap:14 }}>
+                          {[
+                            { label:"Promotion evidence", value:evidenceText.trim() || buildPromotionEvidenceSeed(sharedContext) || "No evidence text provided." },
+                            { label:"Promotion bar", value:criteriaText.trim() || buildPromotionCriteriaSeed(sharedContext) || "No rubric or criteria provided." },
+                            { label:"Context", value:contextText.trim() || buildPromotionContextSeed(sharedContext) || "No extra context provided." },
+                          ].map(section => (
+                            <div key={section.label}>
+                              <div style={{ fontSize:10.5, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>{section.label}</div>
+                              <div style={{ fontSize:13.3, color:"#334155", lineHeight:1.75, padding:"13px 14px", borderRadius:16, background:"#FAFBFF", border:"1px solid #E4E8F5", whiteSpace:"pre-wrap" }}>
+                                {section.value}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </>
@@ -6897,6 +7280,34 @@ function ScreenPromotionDocument() {
             />
           </div>
         </div>
+
+        {sharedContext && (
+          <div style={{ ...promotionPanelStyle(theme, true), marginBottom:18, padding:"16px 18px" }}>
+            <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
+              <div>
+                <div style={{ fontSize:11.5, fontWeight:800, color:theme.accent, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Using Your Readiness Audit</div>
+                <div style={{ fontSize:22, lineHeight:1.08, fontWeight:800, color:"#0F172A", letterSpacing:"-0.03em", marginBottom:8 }}>
+                  {sharedContext.currentTitle || "Current role"} {sharedContext.desiredTitle ? `-> ${sharedContext.desiredTitle}` : ""}
+                </div>
+                <p style={{ fontSize:13, color:"#475569", lineHeight:1.7, margin:0, maxWidth:720 }}>
+                  The role, rubric, strongest wins, and audit guidance were preloaded here. Edit the inputs if you want, but you should not have to restate the whole case.
+                </p>
+              </div>
+              <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                {sharedContext.readinessScore !== null && (
+                  <span style={{ fontSize:11.5, fontWeight:800, padding:"6px 10px", borderRadius:999, background:"#EEF2FF", color:"#4F46E5", border:"1px solid #C7D2FE" }}>
+                    Audit {sharedContext.readinessScore}/100
+                  </span>
+                )}
+                {sharedContext.readinessVerdict && (
+                  <span style={{ fontSize:11.5, fontWeight:800, padding:"6px 10px", borderRadius:999, background:"#F8FAFC", color:"#475569", border:"1px solid #E2E8F0" }}>
+                    {sharedContext.readinessVerdict}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(320px,1fr))", gap:18, alignItems:"start" }}>
           <div style={promotionPanelStyle(theme, true)}>
@@ -6971,17 +7382,36 @@ type PromotionVisibilityResult = {
   watchouts: string[];
 };
 
+type PromotionVisibilityTab = "overview" | "moves" | "sponsors" | "cadence" | "reviewed";
+
 function ScreenPromotionVisibility() {
   const [evidenceText, setEvidenceText] = useState("");
   const [evidenceFile, setEvidenceFile] = useState("");
   const [targetLevel, setTargetLevel] = useState("");
   const [stakeholders, setStakeholders] = useState("");
   const [blockers, setBlockers] = useState("");
+  const [sharedContext, setSharedContext] = useState<PromotionSharedContext | null>(null);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<PromotionVisibilityResult | null>(null);
+  const [resultTab, setResultTab] = useState<PromotionVisibilityTab>("overview");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const theme = PROMOTION_THEMES.visibility;
+
+  useEffect(() => {
+    const sync = () => setSharedContext(readPromotionSharedContext());
+    sync();
+    window.addEventListener("vault-updated", sync);
+    return () => window.removeEventListener("vault-updated", sync);
+  }, []);
+
+  useEffect(() => {
+    if (!sharedContext || result) return;
+    if (!targetLevel.trim() && sharedContext.desiredTitle) setTargetLevel(sharedContext.desiredTitle);
+    if (!evidenceText.trim()) setEvidenceText(buildPromotionEvidenceSeed(sharedContext));
+    if (!stakeholders.trim()) setStakeholders(buildPromotionStakeholderSeed(sharedContext));
+    if (!blockers.trim()) setBlockers(buildPromotionBlockerNote(sharedContext));
+  }, [sharedContext, result, targetLevel, evidenceText, stakeholders, blockers]);
 
   async function handleUpload(file: File) {
     setEvidenceFile(file.name);
@@ -6999,7 +7429,11 @@ function ScreenPromotionVisibility() {
   }
 
   async function generate() {
-    if (!evidenceText.trim() && !stakeholders.trim()) {
+    const seededEvidence = evidenceText.trim() || buildPromotionEvidenceSeed(sharedContext);
+    const seededStakeholders = stakeholders.trim() || buildPromotionStakeholderSeed(sharedContext);
+    const seededBlockers = [blockers.trim() || buildPromotionBlockerNote(sharedContext), buildPromotionContextSeed(sharedContext)].filter(Boolean).join("\n\n");
+
+    if (!seededEvidence && !seededStakeholders) {
       setError("Add some evidence or stakeholder context before generating the plan.");
       return;
     }
@@ -7009,11 +7443,17 @@ function ScreenPromotionVisibility() {
       const res = await fetch("/api/zari/promotion-visibility", {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ evidenceText, targetLevel, stakeholders, blockers }),
+        body: JSON.stringify({
+          evidenceText: seededEvidence,
+          targetLevel: targetLevel || sharedContext?.desiredTitle || "",
+          stakeholders: seededStakeholders,
+          blockers: seededBlockers,
+        }),
       });
       const data = await res.json().catch(() => null) as (PromotionVisibilityResult & { error?: string }) | null;
       if (data?.overallFocus) {
         setResult(data);
+        setResultTab("overview");
         const serialized = [
           data.overallFocus,
           "",
@@ -7039,7 +7479,13 @@ function ScreenPromotionVisibility() {
           type:"linkedin",
           name:"Promotion Sponsor Strategy",
           content:serialized,
-          meta:{ stage:"promotion", targetLevel, targetRole: targetLevel },
+          meta:{
+            stage:"promotion",
+            targetLevel: targetLevel || sharedContext?.desiredTitle || "",
+            targetRole: targetLevel || sharedContext?.desiredTitle || "",
+            sourceAuditScore: sharedContext?.readinessScore !== null && sharedContext?.readinessScore !== undefined ? String(sharedContext.readinessScore) : "",
+            sourceAuditVerdict: sharedContext?.readinessVerdict ?? "",
+          },
         });
       } else {
         setError(data?.error ?? "Could not generate the sponsor strategy.");
@@ -7088,9 +7534,14 @@ function ScreenPromotionVisibility() {
               <div style={{ fontSize:14, color:"#7F1D1D", lineHeight:1.8 }}>{result.hardTruth}</div>
             </div>
             <div style={promotionPanelStyle(theme)}>
-              <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Missing support</div>
+              <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>How to use this output</div>
               <div style={{ display:"grid", gap:10 }}>
-                {result.missingSupport.map(item => (
+                {[
+                  "Use the executive narrative to shape what leadership should associate with your name.",
+                  "Use the visibility moves to decide what to do this week, not someday.",
+                  "Use the sponsor map to make concrete asks instead of hoping support appears.",
+                  "Use the cadence and watchouts to stay visible without creating noise.",
+                ].map(item => (
                   <div key={item} style={{ fontSize:13.2, color:"#475569", lineHeight:1.7, padding:"11px 12px", borderRadius:14, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
                     {item}
                   </div>
@@ -7099,17 +7550,66 @@ function ScreenPromotionVisibility() {
             </div>
           </div>
 
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))", gap:18, alignItems:"start" }}>
-            <div style={{ display:"grid", gap:18 }}>
-              <div style={{ ...promotionPanelStyle(theme, true), border:"1px solid rgba(59,130,246,0.24)" }}>
-                <div style={{ fontSize:11.5, fontWeight:800, color:"#0A66C2", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Executive narrative</div>
-                <h2 style={{ fontSize:28, lineHeight:1.08, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 10px" }}>What leadership should believe when your name comes up.</h2>
-                <div style={{ fontSize:14, lineHeight:1.8, color:"#0F172A", whiteSpace:"pre-wrap" }}>{result.executiveNarrative}</div>
-              </div>
+          <div style={{ background:"white", border:"1px solid #D9E1F0", borderRadius:24, overflow:"hidden", boxShadow:"0 8px 30px rgba(15,23,42,0.06)" }}>
+            <div style={{ display:"flex", flexWrap:"wrap", borderBottom:"1px solid #E7EAF6", background:"#F8FAFF" }}>
+              {[
+                { id:"overview", label:"Overview" },
+                { id:"moves", label:`Visibility Moves ${result.visibilityMoves.length}` },
+                { id:"sponsors", label:`Sponsor Map ${result.sponsorMap.length}` },
+                { id:"cadence", label:"Cadence + Watchouts" },
+                { id:"reviewed", label:"What Zari Reviewed" },
+              ].map(tab => {
+                const active = resultTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setResultTab(tab.id as PromotionVisibilityTab)}
+                    style={{
+                      padding:"16px 20px",
+                      border:"none",
+                      cursor:"pointer",
+                      background:active ? "linear-gradient(135deg,#8B5CF6,#6366F1)" : "transparent",
+                      color:active ? "white" : "#334155",
+                      fontSize:13.5,
+                      fontWeight:800,
+                      letterSpacing:"-0.01em",
+                      borderRight:"1px solid #E7EAF6",
+                    }}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
 
-              <div style={promotionPanelStyle(theme)}>
-                <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>What to do</div>
-                <h2 style={{ fontSize:26, lineHeight:1.08, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 12px" }}>Moves that raise the right kind of visibility.</h2>
+            <div style={{ padding:"24px 24px 22px", display:"grid", gap:18 }}>
+              {resultTab === "overview" && (
+                <>
+                  <div style={{ ...promotionPanelStyle(theme, true), border:"1px solid rgba(59,130,246,0.24)", padding:"22px 24px 20px" }}>
+                    <div style={{ fontSize:11.5, fontWeight:800, color:"#0A66C2", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Executive narrative</div>
+                    <h2 style={{ fontSize:28, lineHeight:1.08, fontWeight:800, color:"#0F172A", letterSpacing:"-0.03em", margin:"0 0 10px" }}>What leadership should believe when your name comes up.</h2>
+                    <div style={{ fontSize:14, lineHeight:1.8, color:"#0F172A", whiteSpace:"pre-wrap" }}>{result.executiveNarrative}</div>
+                  </div>
+                  <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:16 }}>
+                    <div style={promotionPanelStyle(theme)}>
+                      <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Missing support</div>
+                      <div style={{ display:"grid", gap:10 }}>
+                        {result.missingSupport.map(item => (
+                          <div key={item} style={{ fontSize:13.4, color:"#475569", lineHeight:1.75, padding:"11px 12px", borderRadius:14, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
+                            {item}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div style={promotionPanelStyle(theme)}>
+                      <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Strategy focus</div>
+                      <div style={{ fontSize:13.5, color:"#334155", lineHeight:1.75 }}>{result.overallFocus}</div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {resultTab === "moves" && (
                 <div style={{ display:"grid", gap:12 }}>
                   {result.visibilityMoves.map(item => (
                     <div key={item.title} style={{ background:"rgba(248,250,252,0.92)", border:"1px solid rgba(148,163,184,0.18)", borderRadius:16, padding:"15px 16px" }}>
@@ -7119,13 +7619,9 @@ function ScreenPromotionVisibility() {
                     </div>
                   ))}
                 </div>
-              </div>
-            </div>
+              )}
 
-            <div style={{ display:"grid", gap:18 }}>
-              <div style={promotionPanelStyle(theme)}>
-                <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Sponsor map</div>
-                <h2 style={{ fontSize:26, lineHeight:1.08, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 12px" }}>Who needs what from you.</h2>
+              {resultTab === "sponsors" && (
                 <div style={{ display:"grid", gap:12 }}>
                   {result.sponsorMap.map(item => (
                     <div key={item.audience} style={{ border:"1px solid rgba(148,163,184,0.18)", borderRadius:16, padding:"14px 15px", background:"rgba(255,255,255,0.74)" }}>
@@ -7135,21 +7631,21 @@ function ScreenPromotionVisibility() {
                     </div>
                   ))}
                 </div>
-              </div>
+              )}
 
-              <div style={promotionPanelStyle(theme)}>
-                <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Weekly rhythm</div>
-                <h2 style={{ fontSize:26, lineHeight:1.08, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 12px" }}>How to stay visible without feeling performative.</h2>
-                <div style={{ display:"grid", gap:9, marginBottom:16 }}>
-                  {result.weeklyCadence.map(item => (
-                    <div key={item} style={{ fontSize:12.5, color:"#334155", lineHeight:1.6, background:"rgba(248,250,252,0.92)", border:"1px solid rgba(148,163,184,0.18)", borderRadius:12, padding:"10px 11px" }}>
-                      {item}
+              {resultTab === "cadence" && (
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:16 }}>
+                  <div style={promotionPanelStyle(theme)}>
+                    <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Weekly rhythm</div>
+                    <div style={{ display:"grid", gap:9 }}>
+                      {result.weeklyCadence.map(item => (
+                        <div key={item} style={{ fontSize:12.5, color:"#334155", lineHeight:1.6, background:"rgba(248,250,252,0.92)", border:"1px solid rgba(148,163,184,0.18)", borderRadius:12, padding:"10px 11px" }}>
+                          {item}
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-
-                {result.watchouts.length > 0 && (
-                  <>
+                  </div>
+                  <div style={promotionPanelStyle(theme)}>
                     <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Watchouts</div>
                     <div style={{ display:"grid", gap:9 }}>
                       {result.watchouts.map(item => (
@@ -7158,9 +7654,29 @@ function ScreenPromotionVisibility() {
                         </div>
                       ))}
                     </div>
-                  </>
-                )}
-              </div>
+                  </div>
+                </div>
+              )}
+
+              {resultTab === "reviewed" && (
+                <div style={{ ...promotionPanelStyle(theme, true), padding:"18px 20px 16px" }}>
+                  <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>What Zari reviewed</div>
+                  <div style={{ display:"grid", gap:14 }}>
+                    {[
+                      { label:"Evidence", value:evidenceText.trim() || buildPromotionEvidenceSeed(sharedContext) || "No evidence provided." },
+                      { label:"Stakeholders", value:stakeholders.trim() || buildPromotionStakeholderSeed(sharedContext) || "No stakeholder map provided." },
+                      { label:"Blockers and audit context", value:blockers.trim() || buildPromotionContextSeed(sharedContext) || "No blockers provided." },
+                    ].map(section => (
+                      <div key={section.label}>
+                        <div style={{ fontSize:10.5, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>{section.label}</div>
+                        <div style={{ fontSize:13.3, color:"#334155", lineHeight:1.75, padding:"13px 14px", borderRadius:16, background:"#FAFBFF", border:"1px solid #E4E8F5", whiteSpace:"pre-wrap" }}>
+                          {section.value}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -7200,6 +7716,34 @@ function ScreenPromotionVisibility() {
             />
           </div>
         </div>
+
+        {sharedContext && (
+          <div style={{ ...promotionPanelStyle(theme, true), marginBottom:18, padding:"16px 18px" }}>
+            <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
+              <div>
+                <div style={{ fontSize:11.5, fontWeight:800, color:theme.accent, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Using Your Readiness Audit</div>
+                <div style={{ fontSize:22, lineHeight:1.08, fontWeight:800, color:"#0F172A", letterSpacing:"-0.03em", marginBottom:8 }}>
+                  {sharedContext.currentTitle || "Current role"} {sharedContext.desiredTitle ? `-> ${sharedContext.desiredTitle}` : ""}
+                </div>
+                <p style={{ fontSize:13, color:"#475569", lineHeight:1.7, margin:0, maxWidth:720 }}>
+                  The sponsor strategy starts with your audited role, proof, blockers, and visibility signal. You can add names and politics, but the baseline context is already here.
+                </p>
+              </div>
+              <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                {sharedContext.readinessScore !== null && (
+                  <span style={{ fontSize:11.5, fontWeight:800, padding:"6px 10px", borderRadius:999, background:"#EEF2FF", color:"#4F46E5", border:"1px solid #C7D2FE" }}>
+                    Audit {sharedContext.readinessScore}/100
+                  </span>
+                )}
+                {sharedContext.readinessVerdict && (
+                  <span style={{ fontSize:11.5, fontWeight:800, padding:"6px 10px", borderRadius:999, background:"#F8FAFC", color:"#475569", border:"1px solid #E2E8F0" }}>
+                    {sharedContext.readinessVerdict}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(320px,1fr))", gap:18, alignItems:"start" }}>
           <div style={promotionPanelStyle(theme, true)}>

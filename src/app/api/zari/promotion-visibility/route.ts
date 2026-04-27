@@ -26,6 +26,41 @@ function cleanObjectList<T>(value: unknown, mapper: (item: Record<string, unknow
     : [];
 }
 
+function buildFallback(body: { evidenceText: string; targetLevel: string; stakeholders: string; blockers: string }) {
+  const target = body.targetLevel || "the next level";
+  return {
+    overallFocus: `This plan is about making your ${target} case easy for the right people to understand and defend. Visibility only helps when it builds belief in your readiness, not when it just creates more noise.`,
+    hardTruth: `If the decision-makers do not trust your next-level readiness before the room gets serious, late visibility will feel like lobbying instead of proof.`,
+    executiveNarrative: `This person is already operating in ways that suggest readiness for ${target}, and the remaining work is making that proof visible, repeatable, and easy for leadership to defend.`,
+    visibilityMoves: [
+      { title: "Package the strongest wins", move: "Turn your best work into a short, repeatable update that highlights scope, impact, and what changed because of you.", why: "Decision-makers need a crisp story, not a pile of effort." },
+      { title: "Target the real audience", move: "Make sure the people who influence promotion timing actually hear the strongest proof, not just your immediate team.", why: "Local visibility is not the same as promotion visibility." },
+      { title: "Use existing forums", move: "Share impact in status updates, cross-functional reviews, or readouts that already matter instead of creating performative new ones.", why: "The right signal lands better when it fits normal operating rhythms." },
+      { title: "Pressure-test support", move: "Ask your manager or likely sponsor what still feels unproven before you assume they are fully behind the case.", why: "Support that is vague now will disappear under pressure later." },
+    ],
+    sponsorMap: [
+      { audience: "Manager", goal: `Believe the ${target} case is real now, not merely promising.`, ask: "What still feels unproven, and what evidence would make this easier to advocate for?" },
+      { audience: "Skip-level or calibration lead", goal: "Recognize the scope and business impact behind your strongest work.", ask: "What examples would be most useful for you to understand the next-level case clearly?" },
+      { audience: "Cross-functional leader", goal: "Be able to speak credibly about your influence and operating range.", ask: "Would you be willing to reference the outcomes and collaboration impact you saw directly?" },
+    ],
+    missingSupport: [
+      "Any person who matters to promotion timing but still has only a fuzzy picture of your impact.",
+      "Any sponsor who likes your work but is not yet prepared to speak for your readiness under scrutiny.",
+      "Any gap between the story you tell yourself and the proof leadership is likely to recognize immediately.",
+    ],
+    weeklyCadence: [
+      "Ship one crisp update that ties current work to business outcomes or next-level scope.",
+      "Use one existing meeting or readout to make a strong result visible to the right audience.",
+      "Check in with your manager or sponsor on what still feels weak instead of assuming alignment.",
+    ],
+    watchouts: [
+      "More visibility will backfire if the underlying proof is still weak.",
+      "Do not confuse being well-liked with being advocate-backed.",
+      "Do not wait until the decision room to discover what still feels unconvincing.",
+    ],
+  };
+}
+
 export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) {
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
@@ -104,7 +139,9 @@ Rules:
     }
   );
 
-  if (!reply) return NextResponse.json({ error: "Generation failed" }, { status: 503 });
+  const fallback = buildFallback({ evidenceText, targetLevel, stakeholders, blockers });
+
+  if (!reply) return NextResponse.json(fallback);
 
   try {
     const parsed = JSON.parse(reply) as Record<string, unknown>;
@@ -128,21 +165,16 @@ Rules:
       weeklyCadence: cleanList(parsed.weeklyCadence, 4),
       watchouts: cleanList(parsed.watchouts, 4),
     };
-    if (!result.overallFocus || !result.executiveNarrative || !result.visibilityMoves.length || !result.sponsorMap.length) {
-      return NextResponse.json({ error: "Could not parse response" }, { status: 500 });
-    }
-    if (!result.hardTruth) {
-      result.hardTruth = "If the right people do not trust your next-level readiness before the decision room, more visibility alone will not save the case.";
-    }
-    if (!result.missingSupport.length) {
-      result.missingSupport = [
-        "Any decision-maker who still does not really understand your scope or impact.",
-        "Any sponsor who likes your work but is not yet willing to speak for your promotion.",
-        "Any credibility gap between how you see your readiness and how leadership is likely to see it.",
-      ];
-    }
+    result.overallFocus ||= fallback.overallFocus;
+    result.hardTruth ||= fallback.hardTruth;
+    result.executiveNarrative ||= fallback.executiveNarrative;
+    result.visibilityMoves = result.visibilityMoves.length ? result.visibilityMoves : fallback.visibilityMoves;
+    result.sponsorMap = result.sponsorMap.length ? result.sponsorMap : fallback.sponsorMap;
+    result.missingSupport = result.missingSupport.length ? result.missingSupport : fallback.missingSupport;
+    result.weeklyCadence = result.weeklyCadence.length ? result.weeklyCadence : fallback.weeklyCadence;
+    result.watchouts = result.watchouts.length ? result.watchouts : fallback.watchouts;
     return NextResponse.json(result);
   } catch {
-    return NextResponse.json({ error: "Could not parse response" }, { status: 500 });
+    return NextResponse.json(fallback);
   }
 }

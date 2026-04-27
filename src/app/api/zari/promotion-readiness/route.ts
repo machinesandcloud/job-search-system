@@ -141,6 +141,10 @@ function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
 }
 
+function wordCount(value: string) {
+  return value.trim().split(/\s+/).filter(Boolean).length;
+}
+
 function labelFor<T extends keyof typeof LABELS>(group: T, value: string) {
   return LABELS[group][value as keyof (typeof LABELS)[T]] ?? value;
 }
@@ -238,15 +242,96 @@ function normalizeDimensions(value: unknown, fallbackScore: number) {
   return items.slice(0, 5);
 }
 
-function buildFallback(body: {
+function safeParseLlmPayload(reply: string | null) {
+  if (!reply) return null;
+  const trimmed = reply.trim();
+  const candidates = [trimmed];
+  const firstBrace = trimmed.indexOf("{");
+  const lastBrace = trimmed.lastIndexOf("}");
+  if (firstBrace > -1 && lastBrace > firstBrace) {
+    candidates.push(trimmed.slice(firstBrace, lastBrace + 1));
+  }
+
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(candidate) as LlmPayload;
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+
+function looksLikeManagerTrack(title: string, roleDescription: string) {
+  const haystack = `${title} ${roleDescription}`.toLowerCase();
+  return /\b(manager|director|head|leadership|people leader|people management)\b/.test(haystack);
+}
+
+function hasLeadershipSignals(value: string) {
+  return /\b(led|leading|managed|managing|mentor|mentored|coached|delegated|delegation|hired|performance review|cross-functional|owned strategy|set direction)\b/i.test(value);
+}
+
+function estimateFallbackScore(body: PromotionReadinessBody) {
+  let score = 24;
+
+  const addFromMap = (value: string | undefined, map: Record<string, number>, fallback = 0) => {
+    score += map[value ?? ""] ?? fallback;
+  };
+
+  addFromMap(body.timeInRole, { under_6m: 2, "6_12m": 6, "1_2y": 10, "2plus_y": 12 });
+  addFromMap(body.rubricClarity, { exact_rubric: 14, main_expectations: 10, some_hints: 5, guessing: 1 });
+  addFromMap(body.scopeLevel, { already_next_level: 19, bigger_than_role: 14, strong_in_role: 8, mostly_expected_scope: 4, still_growing: 1 });
+  addFromMap(body.impactLevel, { repeatable_measured: 18, clear_some_measured: 12, some_wins: 7, hard_to_show: 2 });
+  addFromMap(body.reviewSignal, { explicit_next_level: 14, strong_stretch: 10, solid_but_neutral: 6, mixed: 2, weak: -4 });
+  addFromMap(body.managerSupport, { actively_advocating: 13, supportive_with_more_proof: 8, unclear: 3, skeptical: -5 });
+  addFromMap(body.visibilityLevel, { decision_makers_see_it: 12, manager_and_partners: 8, mostly_team: 4, low_visibility: -3 });
+
+  if (wordCount(trim(body.roleDescription)) >= 90) score += 3;
+  if (wordCount(trim(body.recentProjects)) >= 80) score += 4;
+  if (wordCount(trim(body.reviewSummary)) >= 30) score += 2;
+  if (wordCount(trim(body.blockers)) >= 3 && !/\bnone|nothing\b/i.test(trim(body.blockers))) score -= 2;
+
+  const managerTrack = looksLikeManagerTrack(trim(body.desiredTitle), trim(body.roleDescription));
+  if (managerTrack && !hasLeadershipSignals(`${trim(body.recentProjects)} ${trim(body.reviewSummary)}`)) {
+    score -= 16;
+  }
+
+  const targetTitle = trim(body.desiredTitle).toLowerCase();
+  const currentTitle = trim(body.currentTitle).toLowerCase();
+  const levelJump =
+    (/\bdirector|head|vp\b/.test(targetTitle) && !/\bdirector|head|vp\b/.test(currentTitle)) ||
+    (/\bprincipal|staff\b/.test(targetTitle) && !/\bprincipal|staff|lead\b/.test(currentTitle));
+  if (levelJump) score -= 7;
+
+  return clamp(score, 18, 92);
+}
+
+function buildFallback(body: PromotionReadinessBody & {
   currentTitle: string;
   desiredTitle: string;
-}) {
+}, readinessScore: number) {
   const target = body.desiredTitle || "the next role";
+  const managerTrack = looksLikeManagerTrack(body.desiredTitle, body.roleDescription ?? "");
+  const roleFitReason = managerTrack && !hasLeadershipSignals(`${body.recentProjects ?? ""} ${body.reviewSummary ?? ""}`)
+    ? `The target role sounds like it expects clear leadership proof, and your current evidence does not show enough of that yet.`
+    : `Your target role is believable only to the extent that your current work already looks like ${target}.`;
+  const barReason = body.rubricClarity
+    ? `Right now your clarity on the bar is "${labelFor("rubricClarity", body.rubricClarity)}", which affects how accurately you can judge readiness.`
+    : "The next-level bar is still too fuzzy, which makes it easy to overestimate the case.";
+  const evidenceReason = body.impactLevel
+    ? `Your impact signal reads as "${labelFor("impactLevel", body.impactLevel)}", so the case rises or falls on how concrete the outcomes actually are.`
+    : "The evidence is only useful if it proves scope, outcomes, and next-level judgment clearly.";
+  const supportReason = [body.managerSupport ? labelFor("managerSupport", body.managerSupport) : "", body.visibilityLevel ? labelFor("visibilityLevel", body.visibilityLevel) : ""]
+    .filter(Boolean)
+    .join(" / ");
+  const timingReason = body.timeInRole
+    ? `You have been in role for ${labelFor("timeInRole", body.timeInRole)}, so timing only helps if the proof already reads as next-level.`
+    : "Time in seat does not matter much if the case still lacks proof.";
+
   return {
-    summary: `This is a real promotion question, not a confidence exercise. Zari judged how believable your case for ${target} is today, based on the proof and context you gave.`,
-    realityCheck: `If the evidence is vague, thin, or below the level expected for ${target}, the score should stay low no matter how ambitious the target is.`,
-    scoreReason: "The score reflects current proof, not future potential. Strong intent does not close a weak case.",
+    summary: `This is a real promotion question, not a confidence exercise. Zari judged how believable your case for ${target} is today based on the proof, support, and bar clarity you provided. A ${readinessScore}/100 means the case is only as strong as the evidence that can survive scrutiny upward.`,
+    realityCheck: `If the evidence is vague, thin, or below the level expected for ${target}, the score should stay low. Wanting the title does not make the case promotable.`,
+    scoreReason: "The score reflects current proof, not future potential. Strong intent does not close a weak case, and unclear support does not become sponsorship by itself.",
     rationale: [
       "The next-level bar matters only if you can show proof against it.",
       "Promotion readiness is about defendable evidence, not effort alone.",
@@ -302,6 +387,13 @@ function buildFallback(body: {
       "Promotion timing is fragile when the evidence is vague or support is thin.",
       "A good performer still gets blocked when the case is hard to repeat upward.",
     ],
+    dimensions: [
+      { label: "Role fit", score: clamp(readinessScore + (managerTrack ? -6 : 2), 15, 95), reason: roleFitReason },
+      { label: "Bar clarity", score: clamp(readinessScore + (body.rubricClarity === "exact_rubric" ? 10 : body.rubricClarity === "guessing" ? -15 : 0), 10, 95), reason: barReason },
+      { label: "Evidence & impact", score: clamp(readinessScore + (body.impactLevel === "repeatable_measured" ? 8 : body.impactLevel === "hard_to_show" ? -12 : 0), 10, 95), reason: evidenceReason },
+      { label: "Support & visibility", score: clamp(readinessScore + (body.managerSupport === "actively_advocating" ? 8 : body.managerSupport === "skeptical" ? -12 : 0) + (body.visibilityLevel === "low_visibility" ? -8 : 0), 10, 95), reason: supportReason ? `Your current support picture is ${supportReason}. That affects how easily the case can be defended by other people.` : "Support matters because promotion cases are repeated upward, not judged in private." },
+      { label: "Timing & risk", score: clamp(readinessScore + (body.timeInRole === "2plus_y" ? 5 : body.timeInRole === "under_6m" ? -8 : 0), 10, 95), reason: `${timingReason}${body.blockers ? ` Current blockers: ${clip(body.blockers, 180)}.` : ""}` },
+    ],
   };
 }
 
@@ -327,7 +419,7 @@ export async function POST(request: Request) {
     blockers: trim(rawBody.blockers),
   };
 
-  if (!body.currentTitle || !body.desiredTitle || !body.roleDescription || !body.recentProjects || !body.reviewSummary) {
+  if (!body.currentTitle || !body.desiredTitle || !body.roleDescription || !body.recentProjects) {
     return NextResponse.json({ error: "Missing key promotion-readiness inputs" }, { status: 400 });
   }
 
@@ -411,40 +503,77 @@ Rules:
 - 3 rationale bullets, 3-5 strengths, 3-5 gaps, 4-6 manager questions, 4-6 next moves, 3 quickWins, 4-5 checklist items, 3 exampleEvidence bullets, 4 actionPlan items, and 3-4 riskFlags.
 - The dimension labels must be exactly: Role fit, Bar clarity, Evidence & impact, Support & visibility, Timing & risk.`;
 
-  const reply = await openaiChat(
-    [
-      { role: "system" as const, content: systemPrompt },
-      { role: "user" as const, content: JSON.stringify(payload) },
-    ],
-    {
-      model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
-      temperature: 0.28,
-      maxTokens: 2400,
-      jsonMode: true,
-    },
-  );
+  const messages = [
+    { role: "system" as const, content: systemPrompt },
+    { role: "user" as const, content: JSON.stringify(payload) },
+  ];
 
-  if (!reply) {
-    return NextResponse.json({ error: "Could not generate the readiness audit" }, { status: 503 });
-  }
-
-  let parsed: LlmPayload | null = null;
-  try {
-    parsed = JSON.parse(reply) as LlmPayload;
-  } catch {
-    parsed = null;
-  }
+  let parsed = safeParseLlmPayload(await openaiChat(messages, {
+    model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
+    temperature: 0.28,
+    maxTokens: 2800,
+    jsonMode: true,
+  }));
 
   if (!parsed) {
-    return NextResponse.json({ error: "Could not parse the readiness audit" }, { status: 500 });
+    parsed = safeParseLlmPayload(await openaiChat(
+      [
+        {
+          role: "system" as const,
+          content: `${systemPrompt}\n\nKeep every field concise. Prefer short bullets and compact sentences so the JSON stays parseable.`,
+        },
+        { role: "user" as const, content: JSON.stringify(payload) },
+      ],
+      {
+        model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
+        temperature: 0.22,
+        maxTokens: 1800,
+        jsonMode: true,
+      },
+    ));
+  }
+
+  const fallbackScore = estimateFallbackScore(body);
+  const fallback = buildFallback({
+    currentTitle: body.currentTitle,
+    desiredTitle: body.desiredTitle,
+    timeInRole: body.timeInRole,
+    roleDescription: body.roleDescription,
+    rubricClarity: body.rubricClarity,
+    recentProjects: body.recentProjects,
+    scopeLevel: body.scopeLevel,
+    impactLevel: body.impactLevel,
+    reviewSignal: body.reviewSignal,
+    reviewSummary: body.reviewSummary,
+    managerSupport: body.managerSupport,
+    visibilityLevel: body.visibilityLevel,
+    blockers: body.blockers,
+  }, fallbackScore);
+
+  if (!parsed) {
+    return NextResponse.json({
+      readinessScore: fallbackScore,
+      verdict: verdictForScore(fallbackScore),
+      summary: fallback.summary,
+      realityCheck: fallback.realityCheck,
+      scoreReason: fallback.scoreReason,
+      dimensions: fallback.dimensions,
+      rationale: fallback.rationale,
+      strengths: fallback.strengths,
+      gaps: fallback.gaps,
+      managerQuestions: fallback.managerQuestions,
+      nextMoves: fallback.nextMoves,
+      quickWins: fallback.quickWins,
+      evidenceChecklist: fallback.evidenceChecklist,
+      exampleEvidence: fallback.exampleEvidence,
+      managerPitchExample: fallback.managerPitchExample,
+      actionPlan: fallback.actionPlan,
+      riskFlags: fallback.riskFlags,
+    });
   }
 
   const readinessScore = normalizeScore(parsed.readinessScore);
   const verdict = normalizeVerdict(parsed.verdict, readinessScore);
-  const fallback = buildFallback({
-    currentTitle: body.currentTitle,
-    desiredTitle: body.desiredTitle,
-  });
 
   return NextResponse.json({
     readinessScore,
@@ -452,7 +581,11 @@ Rules:
     summary: cleanString(parsed.summary) || fallback.summary,
     realityCheck: cleanString(parsed.realityCheck) || fallback.realityCheck,
     scoreReason: cleanString(parsed.scoreReason) || fallback.scoreReason,
-    dimensions: normalizeDimensions(parsed.dimensions, readinessScore),
+    dimensions: normalizeDimensions(parsed.dimensions, readinessScore).map((item, index) => fallback.dimensions[index] ? {
+      label: item.label,
+      score: item.score,
+      reason: item.reason || fallback.dimensions[index].reason,
+    } : item),
     rationale: normalizeStringArray(parsed.rationale, fallback.rationale, 3, 4),
     strengths: normalizeStringArray(parsed.strengths, fallback.strengths, 3, 5),
     gaps: normalizeGaps(parsed.gaps, fallback.gaps),

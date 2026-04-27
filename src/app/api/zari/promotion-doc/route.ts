@@ -18,6 +18,39 @@ function cleanList(value: unknown, max = 6) {
     : [];
 }
 
+function pickEvidenceLines(source: string, max = 4) {
+  return source
+    .split(/\n+/)
+    .map(line => line.replace(/^[-*•\s]+/, "").trim())
+    .filter(line => line.length > 18)
+    .slice(0, max);
+}
+
+function buildFallback(body: { evidenceText: string; criteriaText: string; contextText: string; targetLevel: string }) {
+  const target = body.targetLevel || "the next level";
+  const evidenceLines = pickEvidenceLines(body.evidenceText || body.contextText, 4);
+  const impactBullets = evidenceLines.length
+    ? evidenceLines.map(line => line.endsWith(".") ? line : `${line}.`)
+    : [
+        `Summarize your strongest work in a way that clearly reads as ${target}-level scope, not just solid execution.`,
+        "Make every proof point show ownership, judgment, and business effect instead of activity alone.",
+        "Use metrics where you truly have them and plain language where you do not.",
+      ];
+
+  return {
+    overview: `This pack is meant to turn scattered promotion evidence into reusable material for ${target}. It is only credible to the extent that the proof sounds specific, next-level, and easy for someone else to repeat upward.`,
+    realityCheck: `If the current evidence still sounds like good current-level work instead of undeniable next-level proof, no amount of polish will rescue the case.`,
+    missingProof: [
+      "Any example that still lacks business impact, consequence, or measurable outcome.",
+      "Any claim of next-level scope that is not backed by a clear situation, decision, or cross-functional effect.",
+      "Any leadership or influence signal that still sounds implied rather than demonstrated.",
+    ],
+    impactBullets,
+    selfReview: `I am building a promotion case for ${target}. My strongest evidence needs to show not just good execution, but that I am already operating with the scope, judgment, and impact expected at that level. The strongest examples I should lead with are the ones that changed a result, influenced other teams, or created leverage beyond my own output.`,
+    managerBrief: `This promotion case for ${target} is strongest when framed around concrete outcomes, next-level scope, and evidence other reviewers can repeat upward. The work should be positioned as proof of readiness, not just strong performance in the current role.`,
+  };
+}
+
 export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) {
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
@@ -91,7 +124,9 @@ Requirements:
     }
   );
 
-  if (!reply) return NextResponse.json({ error: "Generation failed" }, { status: 503 });
+  const fallback = buildFallback({ evidenceText, criteriaText, contextText, targetLevel });
+
+  if (!reply) return NextResponse.json(fallback);
 
   try {
     const parsed = JSON.parse(reply) as Record<string, unknown>;
@@ -103,21 +138,14 @@ Requirements:
       selfReview: cleanString(parsed.selfReview),
       managerBrief: cleanString(parsed.managerBrief),
     };
-    if (!result.overview || !result.selfReview || !result.managerBrief) {
-      return NextResponse.json({ error: "Could not parse response" }, { status: 500 });
-    }
-    if (!result.realityCheck) {
-      result.realityCheck = "The package is only as strong as the evidence you gave it. If the proof is vague, leadership will feel that immediately.";
-    }
-    if (!result.missingProof.length) {
-      result.missingProof = [
-        "Any business impact that still lacks hard numbers or concrete outcomes.",
-        "Any next-level behavior you are claiming without a strong example behind it.",
-        "Any leadership or influence proof that still sounds implied instead of demonstrated.",
-      ];
-    }
+    result.overview ||= fallback.overview;
+    result.realityCheck ||= fallback.realityCheck;
+    result.missingProof = result.missingProof.length ? result.missingProof : fallback.missingProof;
+    result.impactBullets = result.impactBullets.length ? result.impactBullets : fallback.impactBullets;
+    result.selfReview ||= fallback.selfReview;
+    result.managerBrief ||= fallback.managerBrief;
     return NextResponse.json(result);
   } catch {
-    return NextResponse.json({ error: "Could not parse response" }, { status: 500 });
+    return NextResponse.json(fallback);
   }
 }
