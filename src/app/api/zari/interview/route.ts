@@ -218,8 +218,18 @@ export async function POST(request: Request) {
       };
 
       const roundConfig = PROMOTION_SECTIONS[round] ?? PROMOTION_SECTIONS.manager;
+      const roomLens =
+        round === "committee"
+          ? "You are speaking as a calibration committee member who compares this person against the actual next-level bar, not against effort or popularity."
+          : round === "sponsor"
+            ? "You are speaking as a sponsor or skip-level leader deciding whether this case is strong enough to repeat upward and spend political capital on."
+            : round === "self-review"
+              ? "You are speaking as the reviewer shaping a self-review narrative into something a manager and committee would actually believe."
+              : "You are speaking as the person's real direct manager deciding whether to back this promotion now, delay it, or push for more proof.";
 
-      const systemPrompt = `You are Zari, a sharp promotion coach. Generate promotion-practice questions organized by section for a ${round.replace("-", " ")} conversation.
+      const systemPrompt = `You are Zari. Generate promotion-practice questions organized by section for a ${round.replace("-", " ")} conversation.
+
+${roomLens}
 
 ${userContext ? `What you know about them:\n${userContext}\n\n` : ""}
 ${resumeText   ? `Promotion evidence and recent wins:\n${resumeText.slice(0, 2500)}\n\n` : ""}
@@ -245,9 +255,12 @@ ${roundConfig.sections.map(s => `- "${s.name}" (${s.count} questions): ${s.descr
 Rules:
 - This is a promotion conversation, not a job interview. Never mention recruiters, job descriptions, or job search language.
 - Questions must test next-level scope, business impact, influence, judgment, and promotion readiness.
+- Treat the full packet as real context. Use the promotion move, rubric, projects, review context, manager support, visibility, and blockers when forming the questions.
 - Reference actual evidence, projects, stakeholders, or themes from their material whenever possible.
 - Include at least one hard question per section that exposes a weak metric, unclear scope jump, weak sponsorship, or timing risk.
-- Ask like a real manager, calibration committee member, or sponsor would: direct, skeptical when needed, and concrete.
+- Ask like a real person in that room would: direct, skeptical when needed, specific, and slightly uncomfortable when the proof is weak.
+- If the user gave vague evidence, ask questions that expose the vagueness instead of filling gaps for them.
+- Do not ask generic filler like "tell me about yourself" or "why do you deserve this promotion?" unless the material clearly justifies a sharper version of it.
 - "level" should describe the next-level signal being tested, not generic seniority labels unless the target level is explicit.`;
 
       const reply = await openaiChat(
@@ -255,7 +268,7 @@ Rules:
           { role: "system" as const, content: systemPrompt },
           { role: "user" as const, content: "Generate my promotion-practice questions by section." },
         ],
-        { model: process.env.OPENAI_MODEL ?? "gpt-4o-mini", temperature: 0.5, maxTokens: 2400, jsonMode: true }
+        { model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o", temperature: 0.4, maxTokens: 2400, jsonMode: true }
       );
 
       if (!reply) return NextResponse.json(buildPromotionQuestionFallback(round, criteriaText));
@@ -354,7 +367,18 @@ Rules:
   }
 
   if (stage === "promotion") {
-    const systemPrompt = `You are Zari, a promotion coach who gives direct, useful feedback. Score this promotion answer based on whether it would actually strengthen a manager or committee case.
+    const roleLens =
+      round === "committee"
+        ? "React like a calibration committee member comparing the answer to the real next-level bar."
+        : round === "sponsor"
+          ? "React like a sponsor deciding whether this answer is strong enough to repeat upward."
+          : round === "self-review"
+            ? "React like a reviewer deciding whether this language sounds credible in a self-review packet."
+            : "React like the person's actual manager deciding whether this answer would make you more or less willing to back the promotion.";
+
+    const systemPrompt = `You are Zari. Score this promotion answer based on whether it would actually strengthen a manager or committee case.
+
+${roleLens}
 
 ${userContext ? `What you know about this person:\n${userContext}\n\n` : ""}
 ${resumeText ? `Promotion evidence and wins:\n${resumeText.slice(0, 1800)}\n\n` : ""}
@@ -372,7 +396,7 @@ Return ONLY a valid JSON object:
     { "label": "Executive clarity", "score": <number 0-100> },
     { "label": "Confidence", "score": <number 0-100> }
   ],
-  "coachNote": "<2-3 sentences in a warm but no-nonsense voice. Say what landed, what was vague, and what proof is still missing. Reference specifics from their answer.>",
+  "coachNote": "<2-4 sentences in a human, direct voice. Sound like a real manager or reviewer reacting to the answer in the room. Say what landed, what felt weak, and what proof is still missing. Reference specifics from their answer.>",
   "suggestedResult": "<a tighter, stronger version of the answer they could say verbatim in the promotion conversation>"
 }
 
@@ -382,6 +406,8 @@ Scoring rules:
 - If this is a manager-track answer without real people leadership, delegation, coaching, or cross-functional leadership proof, score it hard.
 - If the answer sounds like strong current-level execution rather than next-level behavior, score it down.
 - Reward concrete business impact, expanded scope, cross-functional influence, and crisp framing.
+- If the answer dodges the question, say so plainly.
+- The "coachNote" should not sound like a generic coach. It should sound like a smart blunt human who has to decide whether this case is credible.
 - The suggestedResult should sound like a stronger version of them, not generic executive-speak.
 - Stage: ${stage} · Mode: ${round} · Category: ${category}`;
 
@@ -391,7 +417,7 @@ Scoring rules:
         { role: "user" as const, content: `Question: ${question}\n\nAnswer: ${answer}` },
       ],
       {
-        model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
+        model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
         temperature: 0.3,
         maxTokens: 700,
         jsonMode: true,

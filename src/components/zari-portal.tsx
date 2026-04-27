@@ -3807,6 +3807,14 @@ function ScreenPromotionReadiness() {
       transition:"all 0.16s ease",
       flex:1,
     });
+    const snapshotCards = [
+      { label:"Current role", value:form.currentTitle || "Not provided" },
+      { label:"Target role", value:form.desiredTitle || "Not provided" },
+      { label:"Time in role", value:form.timeInRole ? promotionOptionLabel(PROMOTION_READINESS_OPTIONS.timeInRole, form.timeInRole) : "Unknown" },
+      { label:"Promotion bar", value:form.rubricClarity ? promotionOptionLabel(PROMOTION_READINESS_OPTIONS.rubricClarity, form.rubricClarity) : "Unknown" },
+      { label:"Manager support", value:form.managerSupport ? promotionOptionLabel(PROMOTION_READINESS_OPTIONS.managerSupport, form.managerSupport) : "Unknown" },
+      { label:"Visibility", value:form.visibilityLevel ? promotionOptionLabel(PROMOTION_READINESS_OPTIONS.visibilityLevel, form.visibilityLevel) : "Unknown" },
+    ];
 
     return (
       <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F0F2F8" }}>
@@ -3835,6 +3843,15 @@ function ScreenPromotionReadiness() {
                 Start fresh
               </button>
             </div>
+          </div>
+
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(170px,1fr))", gap:12, marginBottom:18 }}>
+            {snapshotCards.map(card => (
+              <div key={card.label} style={{ borderRadius:18, border:"1px solid #E2E8F5", background:"linear-gradient(180deg,#FFFFFF 0%,#F8FAFF 100%)", padding:"14px 15px", boxShadow:"0 8px 24px rgba(15,23,42,0.04)" }}>
+                <div style={{ fontSize:10.5, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>{card.label}</div>
+                <div style={{ fontSize:14.5, fontWeight:800, color:"#0F172A", lineHeight:1.45 }}>{card.value}</div>
+              </div>
+            ))}
           </div>
 
           <div style={{ background:"white", border:"1px solid #E2E6F6", borderRadius:28, overflow:"hidden", boxShadow:"0 22px 48px rgba(15,23,42,0.08)" }}>
@@ -3875,6 +3892,14 @@ function ScreenPromotionReadiness() {
                           <strong>Reality check:</strong> {result.realityCheck}
                         </div>
                         <p style={{ fontSize:14.5, color:"#536276", lineHeight:1.8, margin:"0 0 16px" }}>{result.scoreReason}</p>
+                        <div style={{ display:"grid", gap:8, marginBottom:16 }}>
+                          {result.quickWins.slice(0, 2).map((item, index) => (
+                            <div key={`${item.title}-${index}`} style={{ padding:"11px 12px", borderRadius:14, background:"linear-gradient(135deg,#F5F3FF 0%,#EEF2FF 100%)", border:"1px solid #D9D0FF" }}>
+                              <div style={{ fontSize:11, fontWeight:800, color:"#5B3DF5", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>{item.title}</div>
+                              <div style={{ fontSize:13.2, color:"#4338CA", lineHeight:1.65 }}>{item.body}</div>
+                            </div>
+                          ))}
+                        </div>
                         <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
                           {result.quickWins.slice(0, 3).map((item, index) => (
                             <button
@@ -6936,7 +6961,7 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
                 <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>Manager Conversation</div>
                 <h1 style={promotionHeroTitleStyle(760)}>Practice the conversations that actually move promotion forward.</h1>
                 <p style={{ ...promotionHeroBodyStyle(), margin:"0 0 20px" }}>
-                  Promotions are rarely won by sounding smart in the moment. They are won by telling a crisp, evidence-backed story that survives manager questions, committee skepticism, and sponsor scrutiny.
+                  Promotions are rarely won by sounding smart in the moment. They are won by telling a crisp, evidence-backed story that survives manager questions, committee skepticism, and sponsor scrutiny. Zari builds those questions from your actual target role, rubric, wins, review context, support level, visibility, and blockers.
                 </p>
                 <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
                   <span style={promotionChipStyle(theme)}>Scope + impact</span>
@@ -7220,9 +7245,18 @@ type PromotionDocResult = {
   impactBullets: string[];
   selfReview: string;
   managerBrief: string;
+  documents: Array<{
+    title: string;
+    audience: string;
+    channel: string;
+    purpose: string;
+    useWhen: string;
+    subject?: string;
+    body: string;
+  }>;
 };
 
-type PromotionDocTab = "overview" | "bullets" | "self" | "manager";
+type PromotionDocTab = "overview" | "bullets" | "documents" | "self" | "manager";
 
 function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
   const [evidenceText, setEvidenceText] = useState("");
@@ -7235,11 +7269,25 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
   const [result, setResult] = useState<PromotionDocResult | null>(null);
   const [resultTab, setResultTab] = useState<PromotionDocTab>("overview");
   const [error, setError] = useState("");
-  const [copiedSection, setCopiedSection] = useState<"bullets" | "self" | "manager" | null>(null);
+  const [copiedSection, setCopiedSection] = useState<string | null>(null);
   const [autoContext, setAutoContext] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const theme = PROMOTION_THEMES.evidence;
   const contextKey = promotionContextKey(sharedContext);
+
+  function normalizePromotionDocResult(data: PromotionDocResult | (Partial<PromotionDocResult> & { [key: string]: unknown })) {
+    return {
+      overview: typeof data.overview === "string" ? data.overview : "",
+      realityCheck: typeof data.realityCheck === "string" ? data.realityCheck : "",
+      missingProof: Array.isArray(data.missingProof) ? data.missingProof.filter((item): item is string => typeof item === "string") : [],
+      impactBullets: Array.isArray(data.impactBullets) ? data.impactBullets.filter((item): item is string => typeof item === "string") : [],
+      selfReview: typeof data.selfReview === "string" ? data.selfReview : "",
+      managerBrief: typeof data.managerBrief === "string" ? data.managerBrief : "",
+      documents: Array.isArray(data.documents)
+        ? data.documents.filter((item): item is PromotionDocResult["documents"][number] => Boolean(item && typeof item === "object" && typeof (item as { title?: unknown }).title === "string" && typeof (item as { body?: unknown }).body === "string"))
+        : [],
+    } satisfies PromotionDocResult;
+  }
 
   useEffect(() => {
     const sync = () => setSharedContext(readPromotionSharedContext());
@@ -7296,13 +7344,14 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
       });
       const data = await res.json().catch(() => null) as (PromotionDocResult & { error?: string }) | null;
       if (data?.selfReview && data.managerBrief) {
-        setResult(data);
+        const normalized = normalizePromotionDocResult(data);
+        setResult(normalized);
         setResultTab("overview");
         if (contextKey) {
           writePromotionCache("promotion-evidence-builder", {
             contextKey,
             payload: {
-              result: data,
+              result: normalized,
               evidenceText: seededEvidence,
               criteriaText: seededCriteria,
               contextText: contextText.trim() || buildPromotionContextNote(sharedContext),
@@ -7312,22 +7361,32 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
         }
         const serialized = [
           "Overview",
-          data.overview,
+          normalized.overview,
           "",
           "Reality check",
-          data.realityCheck,
+          normalized.realityCheck,
           "",
           "Missing proof",
-          ...data.missingProof.map(item => `- ${item}`),
+          ...normalized.missingProof.map(item => `- ${item}`),
           "",
           "Impact bullets",
-          ...data.impactBullets.map(item => `- ${item}`),
+          ...normalized.impactBullets.map(item => `- ${item}`),
           "",
           "Self-review draft",
-          data.selfReview,
+          normalized.selfReview,
           "",
           "Manager brief",
-          data.managerBrief,
+          normalized.managerBrief,
+          "",
+          "Documents",
+          ...normalized.documents.flatMap(doc => [
+            `- ${doc.title} (${doc.channel} · ${doc.audience})`,
+            doc.purpose ? `  Purpose: ${doc.purpose}` : "",
+            doc.useWhen ? `  Use when: ${doc.useWhen}` : "",
+            doc.subject ? `  Subject: ${doc.subject}` : "",
+            doc.body,
+            "",
+          ].filter(Boolean)),
         ].join("\n");
         vaultSave({
           type:"cover-letter",
@@ -7367,7 +7426,7 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
       setCriteriaText(cached.payload.criteriaText);
       setContextText(cached.payload.contextText);
       setTargetLevel(cached.payload.targetLevel);
-      setResult(cached.payload.result);
+      setResult(normalizePromotionDocResult(cached.payload.result));
       setResultTab("overview");
       setAutoContext(contextKey);
       return;
@@ -7379,7 +7438,20 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
     }
   }, [active, sharedContext, result, generating, contextKey, autoContext, targetLevel, criteriaText, contextText, evidenceText]);
 
-  async function copy(text: string, section: "bullets" | "self" | "manager") {
+  function formatArtifact(doc: PromotionDocResult["documents"][number]) {
+    return [
+      doc.title,
+      `Audience: ${doc.audience}`,
+      `Channel: ${doc.channel}`,
+      `Purpose: ${doc.purpose}`,
+      `Use when: ${doc.useWhen}`,
+      doc.subject ? `Subject: ${doc.subject}` : "",
+      "",
+      doc.body,
+    ].filter(Boolean).join("\n");
+  }
+
+  async function copy(text: string, section: string) {
     try {
       await navigator.clipboard.writeText(text);
       setCopiedSection(section);
@@ -7410,11 +7482,33 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
         "",
         "Manager brief",
         result.managerBrief,
+        "",
+        "Documents",
+        ...result.documents.flatMap(doc => [
+          doc.title,
+          `Audience: ${doc.audience}`,
+          `Channel: ${doc.channel}`,
+          `Purpose: ${doc.purpose}`,
+          `Use when: ${doc.useWhen}`,
+          doc.subject ? `Subject: ${doc.subject}` : "",
+          "",
+          doc.body,
+          "",
+        ].filter(Boolean)),
       ].join("\n"),
     ], { type:"text/plain;charset=utf-8" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = "promotion-evidence-builder.txt";
+    a.click();
+  }
+
+  function downloadDocument(doc: PromotionDocResult["documents"][number], index: number) {
+    const safeName = doc.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || `promotion-document-${index + 1}`;
+    const blob = new Blob([formatArtifact(doc)], { type:"text/plain;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${safeName}.txt`;
     a.click();
   }
 
@@ -7466,7 +7560,7 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
                   </div>
                   <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
                     <button onClick={() => setResult(null)} style={{ fontSize:12, fontWeight:700, padding:"10px 14px", borderRadius:12, border:"1px solid rgba(255,255,255,0.14)", background:"rgba(255,255,255,0.08)", color:"rgba(255,255,255,0.85)", cursor:"pointer" }}>← Start over</button>
-                    <button onClick={download} style={{ fontSize:12, fontWeight:800, padding:"10px 14px", borderRadius:12, border:"none", background:"white", color:"#065F46", cursor:"pointer" }}>Download</button>
+                    <button onClick={download} style={{ fontSize:12, fontWeight:800, padding:"10px 14px", borderRadius:12, border:"none", background:"white", color:"#065F46", cursor:"pointer" }}>Download bundle</button>
                   </div>
                 </div>
 
@@ -7474,6 +7568,7 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
                   {[
                     { label:"Impact bullets", value:String(result.impactBullets.length).padStart(2, "0"), note:"Reusable proof" },
                     { label:"Missing proof", value:String(result.missingProof.length).padStart(2, "0"), note:"Gaps still to close" },
+                    { label:"Documents", value:String(result.documents.length).padStart(2, "0"), note:"Ready-to-send artifacts" },
                     { label:"Self-review", value:"1", note:"First-person draft" },
                     { label:"Manager brief", value:"1", note:"Third-person retell" },
                   ].map(card => (
@@ -7497,6 +7592,7 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
                     {[
                       "Start with the missing proof before you over-polish the language.",
                       "Use the bullets anywhere you need crisp evidence fast.",
+                      "Use the generated documents when you need to ask for support, feedback, or a real manager checkpoint.",
                       "Use the self-review for your own packet language.",
                       "Use the manager brief to make the case easier to repeat upward.",
                     ].map(item => (
@@ -7513,6 +7609,7 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
                   {[
                     { id:"overview", label:"Overview" },
                     { id:"bullets", label:`Impact Bullets ${result.impactBullets.length}` },
+                    { id:"documents", label:`Documents ${result.documents.length}` },
                     { id:"self", label:"Self Review" },
                     { id:"manager", label:"Manager Brief" },
                   ].map(tab => {
@@ -7559,14 +7656,15 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
                         </div>
                         <div style={promotionPanelStyle(theme)}>
                           <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Generated assets</div>
-                          <div style={{ display:"grid", gap:10 }}>
-                            {[
-                              `${result.impactBullets.length} impact bullets for brag sheets, packets, and updates.`,
-                              "A first-person self-review draft you can edit into your own voice.",
-                              "A third-person manager brief someone else can reuse in calibration.",
-                            ].map(item => (
-                              <div key={item} style={{ fontSize:13.4, color:"#475569", lineHeight:1.75, padding:"11px 12px", borderRadius:14, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
-                                {item}
+                      <div style={{ display:"grid", gap:10 }}>
+                        {[
+                          `${result.impactBullets.length} impact bullets for brag sheets, packets, and updates.`,
+                          `${result.documents.length} internal promotion documents for manager alignment, feedback asks, and follow-through.`,
+                          "A first-person self-review draft you can edit into your own voice.",
+                          "A third-person manager brief someone else can reuse in calibration.",
+                        ].map(item => (
+                          <div key={item} style={{ fontSize:13.4, color:"#475569", lineHeight:1.75, padding:"11px 12px", borderRadius:14, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
+                            {item}
                               </div>
                             ))}
                           </div>
@@ -7591,6 +7689,59 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
                         {result.impactBullets.map(item => (
                           <div key={item} style={{ fontSize:13.5, color:"#14532D", lineHeight:1.7, background:"linear-gradient(180deg,#F0FDF4,#ECFDF5)", border:"1px solid #BBF7D0", borderRadius:16, padding:"13px 14px" }}>
                             {item}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {resultTab === "documents" && (
+                    <div style={{ display:"grid", gap:16 }}>
+                      <div>
+                        <div style={{ fontSize:11.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Internal promotion toolkit</div>
+                        <h2 style={{ fontSize:28, lineHeight:1.08, fontWeight:800, color:"#0F172A", letterSpacing:"-0.03em", margin:"0 0 6px" }}>Documents you can actually use.</h2>
+                        <div style={{ fontSize:13, color:"#64748B", lineHeight:1.6 }}>These are internal promotion artifacts. I intentionally did not default to LinkedIn messaging because that usually does not make sense for an internal promotion workflow.</div>
+                      </div>
+                      <div style={{ display:"grid", gap:14 }}>
+                        {result.documents.map((doc, index) => (
+                          <div key={`${doc.title}-${index}`} style={{ ...promotionPanelStyle(theme, true), padding:"20px 22px 18px" }}>
+                            <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12, flexWrap:"wrap", marginBottom:12 }}>
+                              <div>
+                                <div style={{ fontSize:20, lineHeight:1.15, fontWeight:800, color:"#0F172A", letterSpacing:"-0.03em", marginBottom:8 }}>{doc.title}</div>
+                                <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:10 }}>
+                                  {[
+                                    { label:doc.channel, color:"#047857", bg:"#ECFDF5", border:"#A7F3D0" },
+                                    { label:doc.audience, color:"#334155", bg:"#F8FAFC", border:"#CBD5E1" },
+                                  ].map(tag => (
+                                    <span key={tag.label} style={{ fontSize:11, fontWeight:800, padding:"5px 9px", borderRadius:999, color:tag.color, background:tag.bg, border:`1px solid ${tag.border}` }}>
+                                      {tag.label}
+                                    </span>
+                                  ))}
+                                </div>
+                                <div style={{ fontSize:13.2, color:"#475569", lineHeight:1.7, marginBottom:4 }}>
+                                  <strong>Purpose:</strong> {doc.purpose}
+                                </div>
+                                <div style={{ fontSize:13.2, color:"#475569", lineHeight:1.7 }}>
+                                  <strong>Use when:</strong> {doc.useWhen}
+                                </div>
+                              </div>
+                              <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                                <button onClick={() => void copy(formatArtifact(doc), `document-${index}`)} style={{ fontSize:11.5, fontWeight:700, padding:"8px 10px", borderRadius:10, border:"1px solid #A7F3D0", background:"#ECFDF5", color:"#047857", cursor:"pointer" }}>
+                                  {copiedSection === `document-${index}` ? "Copied" : "Copy"}
+                                </button>
+                                <button onClick={() => downloadDocument(doc, index)} style={{ fontSize:11.5, fontWeight:700, padding:"8px 10px", borderRadius:10, border:"1px solid #CBD5E1", background:"#F8FAFC", color:"#334155", cursor:"pointer" }}>
+                                  Download
+                                </button>
+                              </div>
+                            </div>
+                            {doc.subject && (
+                              <div style={{ fontSize:13.2, color:"#0F172A", lineHeight:1.7, padding:"10px 12px", borderRadius:14, background:"#F8FAFC", border:"1px solid #E4E8F5", marginBottom:12 }}>
+                                <strong>Subject:</strong> {doc.subject}
+                              </div>
+                            )}
+                            <div style={{ fontSize:13.6, color:"#0F172A", lineHeight:1.82, whiteSpace:"pre-wrap", padding:"16px 16px 14px", borderRadius:16, background:"linear-gradient(180deg,#FFFFFF 0%,#FAFBFF 100%)", border:"1px solid #E4E8F5" }}>
+                              {doc.body}
+                            </div>
                           </div>
                         ))}
                       </div>
