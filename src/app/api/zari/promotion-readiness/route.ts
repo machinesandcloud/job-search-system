@@ -262,6 +262,43 @@ function safeParseLlmPayload(reply: string | null) {
   return null;
 }
 
+function parsePlainTextCore(reply: string | null): LlmPayload | null {
+  if (!reply) return null;
+  const text = reply.trim();
+  if (!text) return null;
+
+  const scoreMatch = text.match(/readiness\s*score\s*:\s*(\d{1,3})/i) ?? text.match(/score\s*:\s*(\d{1,3})/i);
+  const verdictMatch = text.match(/verdict\s*:\s*(.+)/i);
+  const summaryMatch = text.match(/summary\s*:\s*([\s\S]*?)(?:\n(?:reality\s*check|score\s*reason|dimensions)\s*:|$)/i);
+  const realityMatch = text.match(/reality\s*check\s*:\s*([\s\S]*?)(?:\n(?:score\s*reason|dimensions)\s*:|$)/i);
+  const scoreReasonMatch = text.match(/score\s*reason\s*:\s*([\s\S]*?)(?:\n(?:dimensions)\s*:|$)/i);
+  const dimensionsBlock = text.match(/dimensions\s*:\s*([\s\S]*)/i)?.[1] ?? "";
+
+  const dimensionLines = dimensionsBlock
+    .split("\n")
+    .map(line => line.replace(/^[-*\s]+/, "").trim())
+    .filter(Boolean)
+    .map(line => {
+      const match = line.match(/^([^:]+):\s*(\d{1,3})\s*\|\s*(.+)$/);
+      if (!match) return null;
+      return { label: match[1].trim(), score: Number.parseInt(match[2], 10), reason: match[3].trim() };
+    })
+    .filter(Boolean);
+
+  if (!scoreMatch || !summaryMatch || !realityMatch || !scoreReasonMatch || dimensionLines.length < 3) {
+    return null;
+  }
+
+  return {
+    readinessScore: Number.parseInt(scoreMatch[1], 10),
+    verdict: verdictMatch?.[1]?.trim() ?? "",
+    summary: summaryMatch[1].trim(),
+    realityCheck: realityMatch[1].trim(),
+    scoreReason: scoreReasonMatch[1].trim(),
+    dimensions: dimensionLines,
+  };
+}
+
 function hasStructuredReadinessPayload(parsed: LlmPayload | null) {
   if (!parsed) return false;
   const score = typeof parsed.readinessScore === "number"
@@ -306,8 +343,15 @@ function hasLeadershipSignals(value: string) {
   return /\b(led|leading|managed|managing|mentor|mentored|coached|delegated|delegation|hired|performance review|cross-functional|owned strategy|set direction)\b/i.test(value);
 }
 
+function isPlaceholderLike(value: string) {
+  const cleaned = trim(value).toLowerCase();
+  if (!cleaned) return true;
+  if (wordCount(cleaned) <= 2 && /\b(na|n\/a|idk|none|nothing|unknown|tbd)\b/.test(cleaned)) return true;
+  return /\b(not sure|don't know|do not know|no idea|n\/a|na|none|nothing yet|unknown|tbd)\b/.test(cleaned);
+}
+
 function estimateFallbackScore(body: PromotionReadinessBody) {
-  let score = 24;
+  let score = 18;
 
   const addFromMap = (value: string | undefined, map: Record<string, number>, fallback = 0) => {
     score += map[value ?? ""] ?? fallback;
@@ -321,10 +365,20 @@ function estimateFallbackScore(body: PromotionReadinessBody) {
   addFromMap(body.managerSupport, { actively_advocating: 13, supportive_with_more_proof: 8, unclear: 3, skeptical: -5 });
   addFromMap(body.visibilityLevel, { decision_makers_see_it: 12, manager_and_partners: 8, mostly_team: 4, low_visibility: -3 });
 
-  if (wordCount(trim(body.roleDescription)) >= 90) score += 3;
-  if (wordCount(trim(body.recentProjects)) >= 80) score += 4;
-  if (wordCount(trim(body.reviewSummary)) >= 30) score += 2;
+  const roleDescription = trim(body.roleDescription);
+  const recentProjects = trim(body.recentProjects);
+  const reviewSummary = trim(body.reviewSummary);
+  const blockers = trim(body.blockers);
+
+  if (wordCount(roleDescription) >= 90) score += 3;
+  if (wordCount(recentProjects) >= 80) score += 4;
+  if (wordCount(reviewSummary) >= 30) score += 2;
   if (wordCount(trim(body.blockers)) >= 3 && !/\bnone|nothing\b/i.test(trim(body.blockers))) score -= 2;
+
+  if (wordCount(roleDescription) < 30 || isPlaceholderLike(roleDescription)) score -= 16;
+  if (wordCount(recentProjects) < 25 || isPlaceholderLike(recentProjects)) score -= 18;
+  if (reviewSummary && (wordCount(reviewSummary) < 8 || isPlaceholderLike(reviewSummary))) score -= 5;
+  if (blockers && isPlaceholderLike(blockers)) score -= 3;
 
   const managerTrack = looksLikeManagerTrack(trim(body.desiredTitle), trim(body.roleDescription));
   if (managerTrack && !hasLeadershipSignals(`${trim(body.recentProjects)} ${trim(body.reviewSummary)}`)) {
@@ -338,7 +392,7 @@ function estimateFallbackScore(body: PromotionReadinessBody) {
     (/\bprincipal|staff\b/.test(targetTitle) && !/\bprincipal|staff|lead\b/.test(currentTitle));
   if (levelJump) score -= 7;
 
-  return clamp(score, 18, 92);
+  return clamp(score, 8, 92);
 }
 
 function buildFallback(body: PromotionReadinessBody & {
@@ -576,10 +630,76 @@ ${coreParsed ? JSON.stringify(coreParsed) : "No usable draft was produced."}`,
   }
 
   if (!hasCoreReadinessPayload(coreParsed)) {
-    return NextResponse.json(
-      { error: "Could not generate a tailored readiness audit right now. Please retry." },
-      { status: 503 },
-    );
+    coreParsed = parsePlainTextCore(await openaiChat(
+      [
+        {
+          role: "system" as const,
+          content: `You are Zari, a blunt promotion coach. Review the questionnaire and return ONLY plain text in this exact format:
+
+Readiness score: <0-100>
+Verdict: <Ready now|Close, but not airtight|Needs more proof|Too early>
+Summary: <2 short sentences>
+Reality check: <1-2 blunt sentences>
+Score reason: <2 short sentences>
+Dimensions:
+- Role fit: <0-100> | <short reason>
+- Bar clarity: <0-100> | <short reason>
+- Evidence & impact: <0-100> | <short reason>
+- Support & visibility: <0-100> | <short reason>
+- Timing & risk: <0-100> | <short reason>
+
+Rules:
+- Use the questionnaire exactly as given.
+- Be harsh on vague or placeholder evidence.
+- Never round up for ambition.`,
+        },
+        { role: "user" as const, content: JSON.stringify(payload) },
+      ],
+      {
+        model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
+        temperature: 0.12,
+        maxTokens: 900,
+      },
+    ));
+  }
+
+  const fallbackScore = estimateFallbackScore(body);
+  const fallback = buildFallback({
+    currentTitle: body.currentTitle,
+    desiredTitle: body.desiredTitle,
+    timeInRole: body.timeInRole,
+    roleDescription: body.roleDescription,
+    rubricClarity: body.rubricClarity,
+    recentProjects: body.recentProjects,
+    scopeLevel: body.scopeLevel,
+    impactLevel: body.impactLevel,
+    reviewSignal: body.reviewSignal,
+    reviewSummary: body.reviewSummary,
+    managerSupport: body.managerSupport,
+    visibilityLevel: body.visibilityLevel,
+    blockers: body.blockers,
+  }, fallbackScore);
+
+  if (!hasCoreReadinessPayload(coreParsed)) {
+    return NextResponse.json({
+      readinessScore: fallbackScore,
+      verdict: verdictForScore(fallbackScore),
+      summary: fallback.summary,
+      realityCheck: fallback.realityCheck,
+      scoreReason: fallback.scoreReason,
+      dimensions: fallback.dimensions,
+      rationale: fallback.rationale,
+      strengths: fallback.strengths,
+      gaps: fallback.gaps,
+      managerQuestions: fallback.managerQuestions,
+      nextMoves: fallback.nextMoves,
+      quickWins: fallback.quickWins,
+      evidenceChecklist: fallback.evidenceChecklist,
+      exampleEvidence: fallback.exampleEvidence,
+      managerPitchExample: fallback.managerPitchExample,
+      actionPlan: fallback.actionPlan,
+      riskFlags: fallback.riskFlags,
+    });
   }
 
   const completedCore = coreParsed!;
@@ -687,16 +807,16 @@ Rules:
     realityCheck: cleanString(completedCore.realityCheck),
     scoreReason: cleanString(completedCore.scoreReason),
     dimensions: normalizeDimensions(completedCore.dimensions, readinessScore),
-    rationale: normalizeStringArray(detailParsed?.rationale, [], 0, 4),
-    strengths: normalizeStringArray(detailParsed?.strengths, [], 0, 5),
-    gaps: normalizeGaps(detailParsed?.gaps, []),
-    managerQuestions: normalizeStringArray(detailParsed?.managerQuestions, [], 0, 6),
-    nextMoves: normalizeStringArray(detailParsed?.nextMoves, [], 0, 6),
-    quickWins: normalizeQuickWins(detailParsed?.quickWins, []),
-    evidenceChecklist: normalizeStringArray(detailParsed?.evidenceChecklist, [], 0, 5),
-    exampleEvidence: normalizeStringArray(detailParsed?.exampleEvidence, [], 0, 4),
-    managerPitchExample: cleanString(detailParsed?.managerPitchExample),
-    actionPlan: normalizeActionPlan(detailParsed?.actionPlan, []),
-    riskFlags: normalizeStringArray(detailParsed?.riskFlags, [], 0, 4),
+    rationale: normalizeStringArray(detailParsed?.rationale, fallback.rationale, 0, 4),
+    strengths: normalizeStringArray(detailParsed?.strengths, fallback.strengths, 0, 5),
+    gaps: normalizeGaps(detailParsed?.gaps, fallback.gaps),
+    managerQuestions: normalizeStringArray(detailParsed?.managerQuestions, fallback.managerQuestions, 0, 6),
+    nextMoves: normalizeStringArray(detailParsed?.nextMoves, fallback.nextMoves, 0, 6),
+    quickWins: normalizeQuickWins(detailParsed?.quickWins, fallback.quickWins),
+    evidenceChecklist: normalizeStringArray(detailParsed?.evidenceChecklist, fallback.evidenceChecklist, 0, 5),
+    exampleEvidence: normalizeStringArray(detailParsed?.exampleEvidence, fallback.exampleEvidence, 0, 4),
+    managerPitchExample: cleanString(detailParsed?.managerPitchExample) || fallback.managerPitchExample,
+    actionPlan: normalizeActionPlan(detailParsed?.actionPlan, fallback.actionPlan),
+    riskFlags: normalizeStringArray(detailParsed?.riskFlags, fallback.riskFlags, 0, 4),
   });
 }
