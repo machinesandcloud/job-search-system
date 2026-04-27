@@ -2900,6 +2900,26 @@ function buildPromotionContextSeed(context: PromotionSharedContext | null) {
   ].filter(Boolean).join("\n\n");
 }
 
+function buildPromotionQuestionnaireSeed(context: PromotionSharedContext | null) {
+  if (!context) return "";
+  return [
+    "Promotion questionnaire",
+    context.currentTitle ? `Current role: ${context.currentTitle}` : "",
+    context.desiredTitle ? `Target role: ${context.desiredTitle}` : "",
+    context.timeInRole ? `Time in role: ${promotionOptionLabel(PROMOTION_READINESS_OPTIONS.timeInRole, context.timeInRole)}` : "",
+    context.rubricClarity ? `Bar clarity: ${promotionOptionLabel(PROMOTION_READINESS_OPTIONS.rubricClarity, context.rubricClarity)}` : "",
+    context.scopeLevel ? `Current scope: ${promotionOptionLabel(PROMOTION_READINESS_OPTIONS.scopeLevel, context.scopeLevel)}` : "",
+    context.impactLevel ? `Impact signal: ${promotionOptionLabel(PROMOTION_READINESS_OPTIONS.impactLevel, context.impactLevel)}` : "",
+    context.reviewSignal ? `Review signal: ${promotionOptionLabel(PROMOTION_READINESS_OPTIONS.reviewSignal, context.reviewSignal)}` : "",
+    context.managerSupport ? `Manager support: ${promotionOptionLabel(PROMOTION_READINESS_OPTIONS.managerSupport, context.managerSupport)}` : "",
+    context.visibilityLevel ? `Visibility: ${promotionOptionLabel(PROMOTION_READINESS_OPTIONS.visibilityLevel, context.visibilityLevel)}` : "",
+    context.roleDescription ? `Promotion bar:\n${context.roleDescription}` : "",
+    context.recentProjects ? `Projects and wins:\n${context.recentProjects}` : "",
+    context.reviewSummary ? `Review notes:\n${context.reviewSummary}` : "",
+    context.blockers ? `Blockers:\n${context.blockers}` : "",
+  ].filter(Boolean).join("\n\n");
+}
+
 function buildPromotionContextNote(context: PromotionSharedContext | null) {
   if (!context) return "";
   return [
@@ -3875,7 +3895,7 @@ function ScreenPromotionReadiness() {
                           <div style={{ fontSize:11, fontWeight:800, color:"#6D4CFF", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Readiness score</div>
                           <div style={{ fontSize:46, fontWeight:900, color:"#111827", letterSpacing:"-0.05em", lineHeight:1, marginBottom:10 }}>{result.readinessScore}</div>
                           <div style={{ fontSize:13.5, color:"#68738A", lineHeight:1.7, maxWidth:220 }}>
-                            This score estimates how defensible your promotion case is today.
+                            {result.rationale[0] ?? result.scoreReason}
                           </div>
                         </div>
                       </div>
@@ -3916,7 +3936,7 @@ function ScreenPromotionReadiness() {
                   </div>
 
                   <div style={{ fontSize:14.5, color:"#536276", lineHeight:1.75 }}>
-                    This is not a potential score. It reflects how a blunt reviewer would judge the case today based on the actual answers you gave.
+                    {result.rationale[1] ?? result.scoreReason}
                   </div>
 
                   <div style={{ ...panelCardStyle, overflow:"hidden" }}>
@@ -4062,11 +4082,7 @@ function ScreenPromotionReadiness() {
                       </div>
                       <div style={{ padding:"18px" }}>
                         <div style={{ display:"grid", gap:10 }}>
-                          {[
-                            "Lead with evidence and next-level behaviors, not with how long you have waited.",
-                            "Ask what still feels unproven instead of trying to argue every point live.",
-                            "Leave with a clearer proof bar, owner, and timing signal for the next check-in.",
-                          ].map(item => (
+                          {(result.nextMoves.slice(0, 3).length ? result.nextMoves.slice(0, 3) : result.riskFlags.slice(0, 3)).map(item => (
                             <div key={item} style={{ fontSize:13.5, color:"#334155", lineHeight:1.75, padding:"11px 12px", borderRadius:14, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
                               {item}
                             </div>
@@ -6756,6 +6772,7 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
       targetLevel ? `Target level: ${targetLevel}` : sharedContext?.desiredTitle ? `Target level: ${sharedContext.desiredTitle}` : "",
       contextText.trim() || buildPromotionContextNote(sharedContext),
       buildPromotionContextSeed(sharedContext),
+      buildPromotionQuestionnaireSeed(sharedContext),
     ].filter(Boolean).join("\n\n");
 
     if (!seededEvidence && !seededCriteria) {
@@ -6848,6 +6865,7 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
         targetLevel ? `Target level: ${targetLevel}` : sharedContext?.desiredTitle ? `Target level: ${sharedContext.desiredTitle}` : "",
         contextText.trim() || buildPromotionContextNote(sharedContext),
         buildPromotionContextSeed(sharedContext),
+        buildPromotionQuestionnaireSeed(sharedContext),
       ].filter(Boolean).join("\n\n");
       const res = await fetch("/api/zari/interview", {
         method: "POST",
@@ -7238,25 +7256,34 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
   );
 }
 
-type PromotionDocResult = {
-  overview: string;
-  realityCheck: string;
-  missingProof: string[];
-  impactBullets: string[];
-  selfReview: string;
-  managerBrief: string;
-  documents: Array<{
-    title: string;
-    audience: string;
-    channel: string;
-    purpose: string;
-    useWhen: string;
-    subject?: string;
-    body: string;
-  }>;
+type PromotionDocProof = {
+  title: string;
+  proof: string;
+  useFor: string;
 };
 
-type PromotionDocTab = "overview" | "bullets" | "documents" | "self" | "manager";
+type PromotionDocArtifact = {
+  title: string;
+  audience: string;
+  channel: string;
+  useCase: string;
+  useWhen: string;
+  subject?: string;
+  body: string;
+};
+
+type PromotionDocResult = {
+  coachTake: string;
+  realityCheck: string;
+  missingProof: string[];
+  proofBank: PromotionDocProof[];
+  promotionCase: string;
+  managerPrep: string;
+  calibrationBrief: string;
+  feedbackRequests: PromotionDocArtifact[];
+};
+
+type PromotionDocTab = "coach" | "proof" | "case" | "manager" | "requests";
 
 function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
   const [evidenceText, setEvidenceText] = useState("");
@@ -7267,7 +7294,7 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
   const [sharedContext, setSharedContext] = useState<PromotionSharedContext | null>(null);
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<PromotionDocResult | null>(null);
-  const [resultTab, setResultTab] = useState<PromotionDocTab>("overview");
+  const [resultTab, setResultTab] = useState<PromotionDocTab>("coach");
   const [error, setError] = useState("");
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
   const [autoContext, setAutoContext] = useState("");
@@ -7276,16 +7303,39 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
   const contextKey = promotionContextKey(sharedContext);
 
   function normalizePromotionDocResult(data: PromotionDocResult | (Partial<PromotionDocResult> & { [key: string]: unknown })) {
+    const legacyBullets = Array.isArray((data as { impactBullets?: unknown }).impactBullets)
+      ? ((data as { impactBullets?: unknown[] }).impactBullets ?? [])
+          .filter((item): item is string => typeof item === "string")
+          .map((proof, index) => ({
+            title: `Proof ${index + 1}`,
+            proof,
+            useFor: index === 0
+              ? "Use this near the top of your promotion case."
+              : "Use this when you need a crisp proof point in a packet, meeting, or follow-up.",
+          }))
+      : [];
+    const legacyDocuments = Array.isArray((data as { documents?: unknown }).documents)
+      ? ((data as { documents?: unknown[] }).documents ?? [])
+          .filter((item): item is PromotionDocArtifact => Boolean(item && typeof item === "object" && typeof (item as { title?: unknown }).title === "string" && typeof (item as { body?: unknown }).body === "string"))
+          .map(item => ({
+            ...item,
+            useCase: typeof item.useCase === "string" ? item.useCase : typeof (item as { purpose?: unknown }).purpose === "string" ? String((item as { purpose?: unknown }).purpose) : "",
+          }))
+      : [];
     return {
-      overview: typeof data.overview === "string" ? data.overview : "",
+      coachTake: typeof data.coachTake === "string" ? data.coachTake : typeof (data as { overview?: unknown }).overview === "string" ? String((data as { overview?: unknown }).overview) : "",
       realityCheck: typeof data.realityCheck === "string" ? data.realityCheck : "",
       missingProof: Array.isArray(data.missingProof) ? data.missingProof.filter((item): item is string => typeof item === "string") : [],
-      impactBullets: Array.isArray(data.impactBullets) ? data.impactBullets.filter((item): item is string => typeof item === "string") : [],
-      selfReview: typeof data.selfReview === "string" ? data.selfReview : "",
-      managerBrief: typeof data.managerBrief === "string" ? data.managerBrief : "",
-      documents: Array.isArray(data.documents)
-        ? data.documents.filter((item): item is PromotionDocResult["documents"][number] => Boolean(item && typeof item === "object" && typeof (item as { title?: unknown }).title === "string" && typeof (item as { body?: unknown }).body === "string"))
-        : [],
+      proofBank: Array.isArray(data.proofBank)
+        ? data.proofBank
+            .filter((item): item is PromotionDocProof => Boolean(item && typeof item === "object" && typeof (item as { title?: unknown }).title === "string" && typeof (item as { proof?: unknown }).proof === "string"))
+        : legacyBullets,
+      promotionCase: typeof data.promotionCase === "string" ? data.promotionCase : typeof (data as { selfReview?: unknown }).selfReview === "string" ? String((data as { selfReview?: unknown }).selfReview) : "",
+      managerPrep: typeof data.managerPrep === "string" ? data.managerPrep : "",
+      calibrationBrief: typeof data.calibrationBrief === "string" ? data.calibrationBrief : typeof (data as { managerBrief?: unknown }).managerBrief === "string" ? String((data as { managerBrief?: unknown }).managerBrief) : "",
+      feedbackRequests: Array.isArray(data.feedbackRequests)
+        ? data.feedbackRequests.filter((item): item is PromotionDocArtifact => Boolean(item && typeof item === "object" && typeof (item as { title?: unknown }).title === "string" && typeof (item as { body?: unknown }).body === "string"))
+        : legacyDocuments,
     } satisfies PromotionDocResult;
   }
 
@@ -7322,7 +7372,11 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
   async function generate() {
     const seededEvidence = evidenceText.trim() || buildPromotionEvidenceSeed(sharedContext);
     const seededCriteria = criteriaText.trim() || buildPromotionCriteriaSeed(sharedContext);
-    const seededContext = [contextText.trim() || buildPromotionContextNote(sharedContext), buildPromotionContextSeed(sharedContext)].filter(Boolean).join("\n\n");
+    const seededContext = [
+      contextText.trim() || buildPromotionContextNote(sharedContext),
+      buildPromotionQuestionnaireSeed(sharedContext),
+      buildPromotionContextSeed(sharedContext),
+    ].filter(Boolean).join("\n\n");
 
     if (!seededEvidence && !seededCriteria) {
       setError("Add either promotion evidence or next-level criteria before generating.");
@@ -7343,12 +7397,12 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
         }),
       });
       const data = await res.json().catch(() => null) as (PromotionDocResult & { error?: string }) | null;
-      if (data?.selfReview && data.managerBrief) {
+      if (data?.promotionCase && data.calibrationBrief) {
         const normalized = normalizePromotionDocResult(data);
         setResult(normalized);
-        setResultTab("overview");
+        setResultTab("coach");
         if (contextKey) {
-          writePromotionCache("promotion-evidence-builder", {
+          writePromotionCache("promotion-evidence-builder-v2", {
             contextKey,
             payload: {
               result: normalized,
@@ -7360,8 +7414,8 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
           });
         }
         const serialized = [
-          "Overview",
-          normalized.overview,
+          "Coach take",
+          normalized.coachTake,
           "",
           "Reality check",
           normalized.realityCheck,
@@ -7369,19 +7423,26 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
           "Missing proof",
           ...normalized.missingProof.map(item => `- ${item}`),
           "",
-          "Impact bullets",
-          ...normalized.impactBullets.map(item => `- ${item}`),
+          "Proof bank",
+          ...normalized.proofBank.flatMap(item => [
+            `- ${item.title}`,
+            `  Proof: ${item.proof}`,
+            item.useFor ? `  Use for: ${item.useFor}` : "",
+          ].filter(Boolean)),
           "",
-          "Self-review draft",
-          normalized.selfReview,
+          "Promotion case",
+          normalized.promotionCase,
           "",
-          "Manager brief",
-          normalized.managerBrief,
+          "Manager prep",
+          normalized.managerPrep,
           "",
-          "Documents",
-          ...normalized.documents.flatMap(doc => [
+          "Calibration brief",
+          normalized.calibrationBrief,
+          "",
+          "Support requests",
+          ...normalized.feedbackRequests.flatMap(doc => [
             `- ${doc.title} (${doc.channel} · ${doc.audience})`,
-            doc.purpose ? `  Purpose: ${doc.purpose}` : "",
+            doc.useCase ? `  Use case: ${doc.useCase}` : "",
             doc.useWhen ? `  Use when: ${doc.useWhen}` : "",
             doc.subject ? `  Subject: ${doc.subject}` : "",
             doc.body,
@@ -7419,7 +7480,7 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
       criteriaText: string;
       contextText: string;
       targetLevel: string;
-    }>("promotion-evidence-builder");
+    }>("promotion-evidence-builder-v2");
 
     if (cached && cached.contextKey === contextKey && cached.payload.result) {
       setEvidenceText(cached.payload.evidenceText);
@@ -7427,7 +7488,7 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
       setContextText(cached.payload.contextText);
       setTargetLevel(cached.payload.targetLevel);
       setResult(normalizePromotionDocResult(cached.payload.result));
-      setResultTab("overview");
+      setResultTab("coach");
       setAutoContext(contextKey);
       return;
     }
@@ -7438,12 +7499,12 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
     }
   }, [active, sharedContext, result, generating, contextKey, autoContext, targetLevel, criteriaText, contextText, evidenceText]);
 
-  function formatArtifact(doc: PromotionDocResult["documents"][number]) {
+  function formatArtifact(doc: PromotionDocArtifact) {
     return [
       doc.title,
       `Audience: ${doc.audience}`,
       `Channel: ${doc.channel}`,
-      `Purpose: ${doc.purpose}`,
+      `Use case: ${doc.useCase}`,
       `Use when: ${doc.useWhen}`,
       doc.subject ? `Subject: ${doc.subject}` : "",
       "",
@@ -7465,8 +7526,8 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
     if (!result) return;
     const blob = new Blob([
       [
-        "Overview",
-        result.overview,
+        "Coach take",
+        result.coachTake,
         "",
         "Reality check",
         result.realityCheck,
@@ -7474,21 +7535,29 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
         "Missing proof",
         ...result.missingProof.map(item => `- ${item}`),
         "",
-        "Impact bullets",
-        ...result.impactBullets.map(item => `- ${item}`),
+        "Proof bank",
+        ...result.proofBank.flatMap(item => [
+          item.title,
+          `Proof: ${item.proof}`,
+          item.useFor ? `Use for: ${item.useFor}` : "",
+          "",
+        ].filter(Boolean)),
         "",
-        "Self-review draft",
-        result.selfReview,
+        "Promotion case",
+        result.promotionCase,
         "",
-        "Manager brief",
-        result.managerBrief,
+        "Manager prep",
+        result.managerPrep,
         "",
-        "Documents",
-        ...result.documents.flatMap(doc => [
+        "Calibration brief",
+        result.calibrationBrief,
+        "",
+        "Support requests",
+        ...result.feedbackRequests.flatMap(doc => [
           doc.title,
           `Audience: ${doc.audience}`,
           `Channel: ${doc.channel}`,
-          `Purpose: ${doc.purpose}`,
+          `Use case: ${doc.useCase}`,
           `Use when: ${doc.useWhen}`,
           doc.subject ? `Subject: ${doc.subject}` : "",
           "",
@@ -7503,7 +7572,7 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
     a.click();
   }
 
-  function downloadDocument(doc: PromotionDocResult["documents"][number], index: number) {
+  function downloadDocument(doc: PromotionDocArtifact, index: number) {
     const safeName = doc.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || `promotion-document-${index + 1}`;
     const blob = new Blob([formatArtifact(doc)], { type:"text/plain;charset=utf-8" });
     const a = document.createElement("a");
@@ -7519,7 +7588,7 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
         sectionIntro="This subsection uses the same promotion intake as readiness audit so Zari can reuse one consistent promotion case across every output."
         submitLabel="Build evidence pack →"
         loadingTitle="Building your promotion context…"
-        loadingBody="Zari is scoring your promotion readiness first, then it will turn the same answers into bullets, self-review language, and a manager brief."
+        loadingBody="Zari is scoring your promotion readiness first, then turning the same answers into reusable proof, a promotion case, manager prep, and support asks."
         onComplete={(context) => {
           setSharedContext(context);
           setTargetLevel(context.desiredTitle);
@@ -7545,7 +7614,7 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
                   {[0,1,2].map(i => <div key={i} style={{ width:11, height:11, borderRadius:"50%", background:"#34D399", animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
                 </div>
                 <div style={{ fontSize:18, fontWeight:850, color:"white", marginBottom:8 }}>Building your evidence pack</div>
-                <div style={{ fontSize:13.5, color:"rgba(255,255,255,0.48)" }}>Pulling out reusable bullets, a self-review draft, and a manager brief.</div>
+                <div style={{ fontSize:13.5, color:"rgba(255,255,255,0.48)" }}>Turning your promotion context into reusable proof, a promotion case, manager prep, and support asks.</div>
               </div>
             </div>
           ) : result && (
@@ -7555,8 +7624,8 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
                 <div style={{ position:"relative", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, flexWrap:"wrap" }}>
                   <div>
                     <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>Evidence Builder Ready</div>
-                    <h1 style={promotionHeroTitleStyle(720)}>Reusable promotion material you can actually use.</h1>
-                    <p style={promotionHeroBodyStyle(720)}>{result.overview}</p>
+                    <h1 style={promotionHeroTitleStyle(720)}>Proof you can actually use in a promotion process.</h1>
+                    <p style={promotionHeroBodyStyle(720)}>{result.coachTake}</p>
                   </div>
                   <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
                     <button onClick={() => setResult(null)} style={{ fontSize:12, fontWeight:700, padding:"10px 14px", borderRadius:12, border:"1px solid rgba(255,255,255,0.14)", background:"rgba(255,255,255,0.08)", color:"rgba(255,255,255,0.85)", cursor:"pointer" }}>← Start over</button>
@@ -7566,11 +7635,11 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
 
                 <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))", gap:12, marginTop:20, position:"relative" }}>
                   {[
-                    { label:"Impact bullets", value:String(result.impactBullets.length).padStart(2, "0"), note:"Reusable proof" },
+                    { label:"Proof bank", value:String(result.proofBank.length).padStart(2, "0"), note:"Reusable proof statements" },
                     { label:"Missing proof", value:String(result.missingProof.length).padStart(2, "0"), note:"Gaps still to close" },
-                    { label:"Documents", value:String(result.documents.length).padStart(2, "0"), note:"Ready-to-send artifacts" },
-                    { label:"Self-review", value:"1", note:"First-person draft" },
-                    { label:"Manager brief", value:"1", note:"Third-person retell" },
+                    { label:"Support asks", value:String(result.feedbackRequests.length).padStart(2, "0"), note:"Ready-to-send requests" },
+                    { label:"Promotion case", value:"01", note:"First-person narrative" },
+                    { label:"Manager pack", value:"02", note:"Prep + calibration brief" },
                   ].map(card => (
                     <div key={card.label} style={{ borderRadius:18, padding:"16px 16px 15px", background:"rgba(6,24,20,0.44)", border:"1px solid rgba(167,243,208,0.14)" }}>
                       <div style={{ fontSize:10.5, fontWeight:800, letterSpacing:"0.1em", textTransform:"uppercase", color:"rgba(209,250,229,0.84)", marginBottom:10 }}>{card.label}</div>
@@ -7587,15 +7656,9 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
                   <div style={{ fontSize:14, color:"#7F1D1D", lineHeight:1.8 }}>{result.realityCheck}</div>
                 </div>
                 <div style={promotionPanelStyle(theme)}>
-                  <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>How to use this output</div>
+                  <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>What still needs proof</div>
                   <div style={{ display:"grid", gap:10 }}>
-                    {[
-                      "Start with the missing proof before you over-polish the language.",
-                      "Use the bullets anywhere you need crisp evidence fast.",
-                      "Use the generated documents when you need to ask for support, feedback, or a real manager checkpoint.",
-                      "Use the self-review for your own packet language.",
-                      "Use the manager brief to make the case easier to repeat upward.",
-                    ].map(item => (
+                    {result.missingProof.slice(0, 3).map(item => (
                       <div key={item} style={{ fontSize:13.2, color:"#475569", lineHeight:1.7, padding:"11px 12px", borderRadius:14, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
                         {item}
                       </div>
@@ -7607,11 +7670,11 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
               <div style={{ background:"white", border:"1px solid #D9E1F0", borderRadius:24, overflow:"hidden", boxShadow:"0 8px 30px rgba(15,23,42,0.06)" }}>
                 <div style={{ display:"flex", flexWrap:"wrap", borderBottom:"1px solid #E7EAF6", background:"#F8FAFF" }}>
                   {[
-                    { id:"overview", label:"Overview" },
-                    { id:"bullets", label:`Impact Bullets ${result.impactBullets.length}` },
-                    { id:"documents", label:`Documents ${result.documents.length}` },
-                    { id:"self", label:"Self Review" },
-                    { id:"manager", label:"Manager Brief" },
+                    { id:"coach", label:"Coach Read" },
+                    { id:"proof", label:`Proof Bank ${result.proofBank.length}` },
+                    { id:"case", label:"Promotion Case" },
+                    { id:"manager", label:"Manager Pack" },
+                    { id:"requests", label:`Support Requests ${result.feedbackRequests.length}` },
                   ].map(tab => {
                     const active = resultTab === tab.id;
                     return (
@@ -7637,11 +7700,11 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
                 </div>
 
                 <div style={{ padding:"24px 24px 22px", display:"grid", gap:18 }}>
-                  {resultTab === "overview" && (
+                  {resultTab === "coach" && (
                     <>
                       <div style={{ ...promotionPanelStyle(theme, true), padding:"22px 24px 20px", border:"1px solid rgba(16,185,129,0.2)" }}>
-                        <div style={{ fontSize:11.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Evidence read</div>
-                        <div style={{ fontSize:15, color:"#0F172A", lineHeight:1.85 }}>{result.overview}</div>
+                        <div style={{ fontSize:11.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Coach take</div>
+                        <div style={{ fontSize:15, color:"#0F172A", lineHeight:1.85 }}>{result.coachTake}</div>
                       </div>
                       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:16 }}>
                         <div style={promotionPanelStyle(theme)}>
@@ -7655,16 +7718,16 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
                           </div>
                         </div>
                         <div style={promotionPanelStyle(theme)}>
-                          <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Generated assets</div>
-                      <div style={{ display:"grid", gap:10 }}>
-                        {[
-                          `${result.impactBullets.length} impact bullets for brag sheets, packets, and updates.`,
-                          `${result.documents.length} internal promotion documents for manager alignment, feedback asks, and follow-through.`,
-                          "A first-person self-review draft you can edit into your own voice.",
-                          "A third-person manager brief someone else can reuse in calibration.",
-                        ].map(item => (
-                          <div key={item} style={{ fontSize:13.4, color:"#475569", lineHeight:1.75, padding:"11px 12px", borderRadius:14, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
-                            {item}
+                          <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>What this pack gives you</div>
+                          <div style={{ display:"grid", gap:10 }}>
+                            {[
+                              `${result.proofBank.length} proof statements you can reuse in a packet, meeting, or follow-up.`,
+                              "A first-person promotion case you can edit into your own voice.",
+                              "Manager-facing language someone else can actually reuse upward.",
+                              `${result.feedbackRequests.length} support asks you can send when you need written proof or alignment.`,
+                            ].map(item => (
+                              <div key={item} style={{ fontSize:13.4, color:"#475569", lineHeight:1.75, padding:"11px 12px", borderRadius:14, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
+                                {item}
                               </div>
                             ))}
                           </div>
@@ -7673,37 +7736,91 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
                     </>
                   )}
 
-                  {resultTab === "bullets" && (
+                  {resultTab === "proof" && (
                     <div style={{ display:"grid", gap:18 }}>
                       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
                         <div>
-                          <div style={{ fontSize:11.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Impact bullets</div>
-                          <h2 style={{ fontSize:28, lineHeight:1.08, fontWeight:800, color:"#0F172A", letterSpacing:"-0.03em", margin:"0 0 6px" }}>Portable proof points.</h2>
-                          <div style={{ fontSize:13, color:"#64748B", lineHeight:1.6 }}>Use these in brag sheets, packet drafts, status updates, or your manager conversation.</div>
+                          <div style={{ fontSize:11.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Proof bank</div>
+                          <h2 style={{ fontSize:28, lineHeight:1.08, fontWeight:800, color:"#0F172A", letterSpacing:"-0.03em", margin:"0 0 6px" }}>Proof points with a real job to do.</h2>
+                          <div style={{ fontSize:13, color:"#64748B", lineHeight:1.6 }}>Each proof statement comes with where to use it, so you are not left guessing whether it belongs in a packet, a meeting, or a follow-up.</div>
                         </div>
-                        <button onClick={() => void copy(result.impactBullets.map(item => `- ${item}`).join("\n"), "bullets")} style={{ fontSize:11.5, fontWeight:700, padding:"8px 10px", borderRadius:10, border:"1px solid #A7F3D0", background:"#ECFDF5", color:"#047857", cursor:"pointer" }}>
-                          {copiedSection === "bullets" ? "Copied" : "Copy"}
+                        <button onClick={() => void copy(result.proofBank.map(item => `${item.title}\n${item.proof}\nUse for: ${item.useFor}`).join("\n\n"), "proof")} style={{ fontSize:11.5, fontWeight:700, padding:"8px 10px", borderRadius:10, border:"1px solid #A7F3D0", background:"#ECFDF5", color:"#047857", cursor:"pointer" }}>
+                          {copiedSection === "proof" ? "Copied" : "Copy all"}
                         </button>
                       </div>
                       <div style={{ display:"grid", gap:10 }}>
-                        {result.impactBullets.map(item => (
-                          <div key={item} style={{ fontSize:13.5, color:"#14532D", lineHeight:1.7, background:"linear-gradient(180deg,#F0FDF4,#ECFDF5)", border:"1px solid #BBF7D0", borderRadius:16, padding:"13px 14px" }}>
-                            {item}
+                        {result.proofBank.map((item, index) => (
+                          <div key={`${item.title}-${index}`} style={{ ...promotionPanelStyle(theme, true), padding:"18px 18px 16px", border:"1px solid rgba(16,185,129,0.2)", background:"linear-gradient(180deg,#F7FFF9 0%,#FFFFFF 100%)" }}>
+                            <div style={{ fontSize:12, fontWeight:800, color:"#047857", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>{item.title}</div>
+                            <div style={{ fontSize:14.2, color:"#14532D", lineHeight:1.8, marginBottom:12 }}>{item.proof}</div>
+                            <div style={{ fontSize:12.8, color:"#475569", lineHeight:1.65, padding:"10px 11px", borderRadius:12, background:"white", border:"1px solid #D1FAE5" }}>
+                              <strong>Use this for:</strong> {item.useFor}
+                            </div>
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
 
-                  {resultTab === "documents" && (
+                  {resultTab === "case" && (
+                    <div style={{ display:"grid", gap:16 }}>
+                      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
+                        <div>
+                          <div style={{ fontSize:11.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Promotion case</div>
+                          <h2 style={{ fontSize:28, lineHeight:1.08, fontWeight:800, color:"#0F172A", letterSpacing:"-0.03em", margin:"0 0 6px" }}>The case in your own voice.</h2>
+                          <div style={{ fontSize:13, color:"#64748B", lineHeight:1.6 }}>Use this as the starting point for a self-review, promotion packet, or prep doc before a real conversation.</div>
+                        </div>
+                        <button onClick={() => void copy(result.promotionCase, "case")} style={{ fontSize:11.5, fontWeight:700, padding:"8px 10px", borderRadius:10, border:"1px solid #CBD5E1", background:"#F8FAFC", color:"#334155", cursor:"pointer" }}>
+                          {copiedSection === "case" ? "Copied" : "Copy"}
+                        </button>
+                      </div>
+                      <div style={{ ...promotionPanelStyle(theme, true), padding:"22px 24px 20px" }}>
+                        <div style={{ fontSize:13.5, color:"#0F172A", lineHeight:1.82, whiteSpace:"pre-wrap" }}>{result.promotionCase}</div>
+                      </div>
+                    </div>
+                  )}
+
+                  {resultTab === "manager" && (
+                    <div style={{ display:"grid", gap:16 }}>
+                      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:16 }}>
+                        <div style={{ ...promotionPanelStyle(theme, true), padding:"20px 22px 18px" }}>
+                          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:12, flexWrap:"wrap" }}>
+                            <div>
+                              <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Manager prep</div>
+                              <h2 style={{ fontSize:24, lineHeight:1.08, fontWeight:800, color:"#0F172A", letterSpacing:"-0.03em", margin:0 }}>What to send or say before the conversation.</h2>
+                            </div>
+                            <button onClick={() => void copy(result.managerPrep, "manager-prep")} style={{ fontSize:11.5, fontWeight:700, padding:"8px 10px", borderRadius:10, border:"1px solid #CBD5E1", background:"#F8FAFC", color:"#334155", cursor:"pointer" }}>
+                              {copiedSection === "manager-prep" ? "Copied" : "Copy"}
+                            </button>
+                          </div>
+                          <div style={{ fontSize:13.5, color:"#0F172A", lineHeight:1.8, whiteSpace:"pre-wrap" }}>{result.managerPrep}</div>
+                        </div>
+
+                        <div style={{ ...promotionPanelStyle(theme, true), padding:"20px 22px 18px" }}>
+                          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:12, flexWrap:"wrap" }}>
+                            <div>
+                              <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Calibration brief</div>
+                              <h2 style={{ fontSize:24, lineHeight:1.08, fontWeight:800, color:"#0F172A", letterSpacing:"-0.03em", margin:0 }}>What a manager can repeat upward.</h2>
+                            </div>
+                            <button onClick={() => void copy(result.calibrationBrief, "calibration")} style={{ fontSize:11.5, fontWeight:700, padding:"8px 10px", borderRadius:10, border:"1px solid #CBD5E1", background:"#F8FAFC", color:"#334155", cursor:"pointer" }}>
+                              {copiedSection === "calibration" ? "Copied" : "Copy"}
+                            </button>
+                          </div>
+                          <div style={{ fontSize:13.5, color:"#0F172A", lineHeight:1.8, whiteSpace:"pre-wrap" }}>{result.calibrationBrief}</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {resultTab === "requests" && (
                     <div style={{ display:"grid", gap:16 }}>
                       <div>
-                        <div style={{ fontSize:11.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Internal promotion toolkit</div>
-                        <h2 style={{ fontSize:28, lineHeight:1.08, fontWeight:800, color:"#0F172A", letterSpacing:"-0.03em", margin:"0 0 6px" }}>Documents you can actually use.</h2>
-                        <div style={{ fontSize:13, color:"#64748B", lineHeight:1.6 }}>These are internal promotion artifacts. I intentionally did not default to LinkedIn messaging because that usually does not make sense for an internal promotion workflow.</div>
+                        <div style={{ fontSize:11.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Support requests</div>
+                        <h2 style={{ fontSize:28, lineHeight:1.08, fontWeight:800, color:"#0F172A", letterSpacing:"-0.03em", margin:"0 0 6px" }}>Messages worth sending.</h2>
+                        <div style={{ fontSize:13, color:"#64748B", lineHeight:1.6 }}>These are the asks that actually make sense in an internal promotion process: manager alignment, written proof from peers, short Slack/Teams asks, and follow-up notes that lock the bar in writing.</div>
                       </div>
                       <div style={{ display:"grid", gap:14 }}>
-                        {result.documents.map((doc, index) => (
+                        {result.feedbackRequests.map((doc, index) => (
                           <div key={`${doc.title}-${index}`} style={{ ...promotionPanelStyle(theme, true), padding:"20px 22px 18px" }}>
                             <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12, flexWrap:"wrap", marginBottom:12 }}>
                               <div>
@@ -7719,15 +7836,15 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
                                   ))}
                                 </div>
                                 <div style={{ fontSize:13.2, color:"#475569", lineHeight:1.7, marginBottom:4 }}>
-                                  <strong>Purpose:</strong> {doc.purpose}
+                                  <strong>Use case:</strong> {doc.useCase}
                                 </div>
                                 <div style={{ fontSize:13.2, color:"#475569", lineHeight:1.7 }}>
                                   <strong>Use when:</strong> {doc.useWhen}
                                 </div>
                               </div>
                               <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-                                <button onClick={() => void copy(formatArtifact(doc), `document-${index}`)} style={{ fontSize:11.5, fontWeight:700, padding:"8px 10px", borderRadius:10, border:"1px solid #A7F3D0", background:"#ECFDF5", color:"#047857", cursor:"pointer" }}>
-                                  {copiedSection === `document-${index}` ? "Copied" : "Copy"}
+                                <button onClick={() => void copy(formatArtifact(doc), `request-${index}`)} style={{ fontSize:11.5, fontWeight:700, padding:"8px 10px", borderRadius:10, border:"1px solid #A7F3D0", background:"#ECFDF5", color:"#047857", cursor:"pointer" }}>
+                                  {copiedSection === `request-${index}` ? "Copied" : "Copy"}
                                 </button>
                                 <button onClick={() => downloadDocument(doc, index)} style={{ fontSize:11.5, fontWeight:700, padding:"8px 10px", borderRadius:10, border:"1px solid #CBD5E1", background:"#F8FAFC", color:"#334155", cursor:"pointer" }}>
                                   Download
@@ -7744,42 +7861,6 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
                             </div>
                           </div>
                         ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {resultTab === "self" && (
-                    <div style={{ display:"grid", gap:16 }}>
-                      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
-                        <div>
-                          <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Self-review draft</div>
-                          <h2 style={{ fontSize:28, lineHeight:1.08, fontWeight:800, color:"#0F172A", letterSpacing:"-0.03em", margin:"0 0 6px" }}>First-person version.</h2>
-                          <div style={{ fontSize:13, color:"#64748B", lineHeight:1.6 }}>Start here for your self-eval or packet narrative, then tighten it into your own voice.</div>
-                        </div>
-                        <button onClick={() => void copy(result.selfReview, "self")} style={{ fontSize:11.5, fontWeight:700, padding:"8px 10px", borderRadius:10, border:"1px solid #CBD5E1", background:"#F8FAFC", color:"#334155", cursor:"pointer" }}>
-                          {copiedSection === "self" ? "Copied" : "Copy"}
-                        </button>
-                      </div>
-                      <div style={{ ...promotionPanelStyle(theme, true), padding:"22px 24px 20px" }}>
-                        <div style={{ fontSize:13.5, color:"#0F172A", lineHeight:1.8, whiteSpace:"pre-wrap" }}>{result.selfReview}</div>
-                      </div>
-                    </div>
-                  )}
-
-                  {resultTab === "manager" && (
-                    <div style={{ display:"grid", gap:16 }}>
-                      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
-                        <div>
-                          <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Manager brief</div>
-                          <h2 style={{ fontSize:28, lineHeight:1.08, fontWeight:800, color:"#0F172A", letterSpacing:"-0.03em", margin:"0 0 6px" }}>Third-person retell.</h2>
-                          <div style={{ fontSize:13, color:"#64748B", lineHeight:1.6 }}>Use this to prep your manager or hand over talking points that can survive calibration.</div>
-                        </div>
-                        <button onClick={() => void copy(result.managerBrief, "manager")} style={{ fontSize:11.5, fontWeight:700, padding:"8px 10px", borderRadius:10, border:"1px solid #CBD5E1", background:"#F8FAFC", color:"#334155", cursor:"pointer" }}>
-                          {copiedSection === "manager" ? "Copied" : "Copy"}
-                        </button>
-                      </div>
-                      <div style={{ ...promotionPanelStyle(theme, true), padding:"22px 24px 20px" }}>
-                        <div style={{ fontSize:13.5, color:"#0F172A", lineHeight:1.8, whiteSpace:"pre-wrap" }}>{result.managerBrief}</div>
                       </div>
                     </div>
                   )}
@@ -7803,22 +7884,22 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
               <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>Evidence Builder</div>
               <h1 style={promotionHeroTitleStyle()}>Turn raw wins into polished material for every part of the promotion case.</h1>
               <p style={{ ...promotionHeroBodyStyle(), margin:"0 0 20px" }}>
-                You are not generating “a doc.” You are building reusable proof in three formats: impact bullets, a first-person self-review draft, and a manager-friendly third-person brief.
+                Zari will turn the same body of work into the things you actually need for an internal promotion push: reusable proof statements, a first-person promotion case, manager prep, and support requests you can really send.
               </p>
               <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
-                <span style={promotionChipStyle(theme)}>Impact bullets</span>
-                <span style={promotionChipStyle(theme)}>Self-review draft</span>
-                <span style={promotionChipStyle(theme)}>Manager brief</span>
+                <span style={promotionChipStyle(theme)}>Proof bank</span>
+                <span style={promotionChipStyle(theme)}>Promotion case</span>
+                <span style={promotionChipStyle(theme)}>Manager pack</span>
               </div>
             </div>
             <PromotionHeroSpotlight
               theme={theme}
               label="Output Stack"
-              title="One set of wins, translated three ways."
+              title="One set of wins, translated for the real promotion process."
               items={[
-                "Portable bullets for packets, docs, and updates.",
-                "A first-person narrative for your self-review.",
-                "A third-person manager brief others can reuse.",
+                "Reusable proof you can drop into a packet, memo, or follow-up.",
+                "A first-person promotion case you can edit into your own voice.",
+                "Manager-facing language and support asks that can survive upward.",
               ]}
               footer="The point is leverage: make your best work easy to lift into every format the process needs."
             />
@@ -7833,7 +7914,7 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
               <div>
                 <div style={{ fontSize:11.5, fontWeight:800, color:theme.accent, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Evidence</div>
                 <h2 style={promotionSectionTitleStyle(480)}>Give Zari the raw material.</h2>
-                <p style={{ fontSize:13, color:"#475569", lineHeight:1.7, margin:0 }}>Wins, brag sheet bullets, self-eval notes, launch outcomes, stakeholder praise, and project recaps all work.</p>
+                <p style={{ fontSize:13, color:"#475569", lineHeight:1.7, margin:0 }}>Paste wins, project recaps, review snippets, launch outcomes, stakeholder feedback, or even rough notes. Zari will sort the proof from the fluff.</p>
               </div>
               <button onClick={() => fileInputRef.current?.click()} style={{ fontSize:12.5, fontWeight:700, padding:"10px 14px", borderRadius:12, border:`1px solid ${theme.accent}26`, background:"rgba(255,255,255,0.75)", color:theme.accent, cursor:"pointer" }}>
                 Upload notes
@@ -7861,9 +7942,9 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
                 {[
                   "A blunt reality check on what is still too weak to sell upward.",
                   "The missing proof you still need before this becomes a clean case.",
-                  "Impact bullets you can reuse everywhere without rewriting from scratch.",
-                  "A first-person draft you can shape into your self-review or packet language.",
-                  "A third-person brief that makes it easier for your manager to advocate for you.",
+                  "A proof bank with each statement tied to where you should actually use it.",
+                  "A first-person promotion case you can shape into your packet or self-review.",
+                  "Manager-facing prep plus support requests you can actually send inside your company.",
                 ].map(item => (
                   <div key={item} style={{ fontSize:13, color:"#334155", lineHeight:1.7, padding:"12px 13px", borderRadius:14, border:"1px solid rgba(148,163,184,0.16)", background:"rgba(255,255,255,0.76)" }}>
                     {item}
@@ -9214,7 +9295,7 @@ function ScreenPromotionToolkit({ onNavigate }: { onNavigate: (s: string) => voi
 
   const SECTION_CARDS = [
     { key:"resume", label:"Readiness Audit", desc:"Validate whether you truly have a case right now.", section:"resume", color:"#8B5CF6", done:docs.some(d => d.type === "resume") },
-    { key:"cover-letter", label:"Evidence Builder", desc:"Turn wins into bullets, self-review copy, and a manager brief.", section:"cover-letter", color:"#10B981", done:docs.some(d => d.type === "cover-letter") },
+    { key:"cover-letter", label:"Evidence Builder", desc:"Turn wins into reusable proof, a promotion case, and manager-ready support materials.", section:"cover-letter", color:"#10B981", done:docs.some(d => d.type === "cover-letter") },
     { key:"linkedin", label:"Sponsor Strategy", desc:"Map power, shape your narrative, and build support.", section:"linkedin", color:"#3B82F6", done:docs.some(d => d.type === "linkedin") },
     { key:"plan", label:"Promotion Roadmap", desc:"Sequence what to do next and when to ask.", section:"plan", color:"#FB7185", done:docs.some(d => d.type === "resume" || d.type === "cover-letter" || d.type === "linkedin") },
   ];
@@ -10116,7 +10197,7 @@ function ScreenPromotionRoadmap({ onNavigate, active = false }: { onNavigate: (s
 
   const SECTION_CARDS = [
     { key:"resume", label:"Readiness Audit", desc:"Figure out whether you are genuinely ready now or still need more proof.", color:"#8B5CF6", done:hasResume },
-    { key:"cover-letter", label:"Evidence Builder", desc:"Create reusable bullets, self-review text, and a manager brief.", color:"#10B981", done:hasCL },
+    { key:"cover-letter", label:"Evidence Builder", desc:"Create reusable proof, a promotion case, and manager-ready support materials.", color:"#10B981", done:hasCL },
     { key:"linkedin", label:"Sponsor Strategy", desc:"Map who matters, what they need to see, and how to build support.", color:"#3B82F6", done:hasLI },
   ];
 

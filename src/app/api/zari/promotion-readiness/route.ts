@@ -418,63 +418,63 @@ function buildFallback(body: PromotionReadinessBody & {
     : "Time in seat does not matter much if the case still lacks proof.";
 
   return {
-    summary: `This is a real promotion question, not a confidence exercise. Zari judged how believable your case for ${target} is today based on the proof, support, and bar clarity you provided. A ${readinessScore}/100 means the case is only as strong as the evidence that can survive scrutiny upward.`,
-    realityCheck: `If the evidence is vague, thin, or below the level expected for ${target}, the score should stay low. Wanting the title does not make the case promotable.`,
-    scoreReason: "The score reflects current proof, not future potential. Strong intent does not close a weak case, and unclear support does not become sponsorship by itself.",
+    summary: `Here’s my blunt read: your case for ${target} lands at ${readinessScore}/100 today because I can only defend what your evidence actually proves. If the proof does not clearly read as next-level scope, impact, and judgment, I am not going to pretend the case is stronger than it is.`,
+    realityCheck: `Wanting ${target} is not the same as being ready for ${target}. If your examples are vague, thin, or still read like strong work at your current level, I need to score the case low and tell you that directly.`,
+    scoreReason: "I scored what you showed me, not the potential version of you. The dropdowns help with context, but the written proof, clarity of the promotion bar, and visible support are what really move the number.",
     rationale: [
-      "The next-level bar matters only if you can show proof against it.",
-      "Promotion readiness is about defendable evidence, not effort alone.",
-      "Weak support or vague outcomes can sink a case even when the work feels strong.",
+      "You only get credit for proof that would still hold up if someone challenged it in calibration.",
+      "Promotion readiness is about defendable evidence, not effort, intent, or how badly you want the title.",
+      "Even genuinely strong work gets blocked when the outcomes, scope jump, or sponsorship still sound fuzzy.",
     ],
     strengths: [
-      "You gave enough context for a direct readiness review instead of a generic answer.",
-      "The audit is anchored to a specific target role, not a vague growth goal.",
-      "The output is designed to tell you what is true now, not what might be true later.",
+      "You gave me a specific target role to judge instead of a vague growth goal.",
+      "There is at least enough context here for me to tell you where the case bends and where it breaks.",
+      "You gave me real promotion inputs to work with, which is already better than guessing in the dark.",
     ],
     gaps: [
-      { area: "Proof quality", why: "The current evidence still needs to read as clear next-level proof.", nextStep: "Rewrite your strongest wins with ownership, scope, and business outcomes." },
-      { area: "Promotion bar", why: "If the bar is fuzzy, the case is easier to overrate.", nextStep: "Get the clearest internal expectations you can and map your proof to them." },
-      { area: "Support", why: "Even strong work stalls when the right people cannot defend it upward.", nextStep: "Pressure-test manager support and visibility before pushing timing." },
+      { area: "Proof quality", why: "Your strongest examples still need to read like next-level evidence, not just solid execution.", nextStep: "Rewrite your best wins around ownership, scope, judgment, and business effect." },
+      { area: "Promotion bar", why: "If you are fuzzy on the real bar, you are probably over-crediting parts of the case.", nextStep: "Get the clearest internal expectations you can and map your proof against them line by line." },
+      { area: "Support", why: "A promotion case stalls fast when the right people cannot repeat it upward with confidence.", nextStep: "Pressure-test manager support and visibility before you push timing or ask for backing." },
     ],
     managerQuestions: [
-      `What specific evidence would make you confident I am already operating at the ${target} level?`,
-      "Which parts of my case already read as next-level and which parts still feel weak?",
-      "What would I need to show in the next cycle to make this an easier yes?",
-      "Who else needs to see stronger evidence before promotion timing is realistic?",
+      `If you had to defend my case for ${target} tomorrow, what exact proof would still be missing?`,
+      "Which parts of my case already sound next-level to you, and which parts still sound like strong current-level work?",
+      "What would I need to show in the next cycle to make this feel like an easier yes instead of a stretch?",
+      "Who else would need stronger evidence before promotion timing becomes realistic?",
     ],
     nextMoves: [
-      "Rewrite your best wins into tight proof points with hard outcomes.",
-      "Close the clearest evidence gap before you spend time polishing the rest.",
-      "Get direct feedback on what still feels unproven.",
-      "Make the case more visible to the people who influence the decision.",
+      "Rewrite your best wins into tight proof points with outcomes, stakes, and ownership.",
+      "Close the weakest evidence gap before you spend time polishing the rest of the story.",
+      "Get direct feedback on what still feels unproven instead of guessing where the resistance is.",
+      "Make the case more visible to the people who actually influence the decision.",
     ],
     quickWins: [
-      { title: "Read the gaps", body: "Start with what is still weak instead of what already sounds good.", jumpTo: "gaps" as const },
-      { title: "Pressure-test support", body: "Get an honest manager signal before assuming timing is good.", jumpTo: "conversation" as const },
-      { title: "Tighten the proof", body: "Make your best examples sharper before you make the ask.", jumpTo: "plan" as const },
+      { title: "Start with the weak spots", body: "Do not polish the happy parts first. Fix the part of the case that would collapse under pushback.", jumpTo: "gaps" as const },
+      { title: "Pressure-test support", body: "Get an honest manager signal before you tell yourself the timing is good.", jumpTo: "conversation" as const },
+      { title: "Tighten the proof", body: "Sharpen the examples before you sharpen the pitch.", jumpTo: "plan" as const },
     ],
     evidenceChecklist: [
-      "Tie each example to next-level behavior, not just effort.",
-      "Use business outcomes, metrics, or meaningful consequences.",
-      "Show ownership, judgment, and scope clearly.",
-      "Use review language only when it actually supports the case.",
+      "Tie every example to next-level behavior, not just effort or reliability.",
+      "Use business outcomes, metrics, or meaningful consequences whenever you honestly can.",
+      "Make ownership, judgment, and scope obvious enough that another person could repeat the story upward.",
+      "Use review language only when it truly helps the case instead of decorating it.",
     ],
     exampleEvidence: [
-      `Owned work that went beyond the expectations of my current role and changed a result leadership cared about.`,
-      `Led a high-visibility problem from ambiguity to outcome and can explain exactly what changed because of my work.`,
-      `Created leverage beyond my own output through strategy, influence, or repeatable systems.`,
+      `I owned work that clearly went beyond my current level and changed a result leadership actually cared about.`,
+      `I took a messy, high-visibility problem from ambiguity to outcome and I can explain exactly what changed because of my decisions.`,
+      `I created leverage beyond my own output through strategy, influence, or repeatable systems that other people benefited from.`,
     ],
-    managerPitchExample: `I want to pressure-test whether I really have a credible case for ${target}. I am not looking for encouragement. I want to understand what already reads as next-level and what still does not.`,
+    managerPitchExample: `I want to pressure-test whether I actually have a credible case for ${target}. I am not looking for encouragement. I want the blunt version of what already reads as next-level and what still does not.`,
     actionPlan: [
-      { label: "This week", action: "Rewrite your strongest examples into crisp proof points." },
-      { label: "Next 2 weeks", action: "Close the weakest evidence gap with a stronger example, metric, or visible outcome." },
-      { label: "This cycle", action: "Make the case clearer to your manager and the people who influence promotion decisions." },
-      { label: "Before the ask", action: "Leave a manager conversation with a clear proof bar and timing signal." },
+      { label: "This week", action: "Rewrite your strongest examples into crisp proof points that can survive challenge." },
+      { label: "Next 2 weeks", action: "Close the weakest evidence gap with a sharper example, a harder metric, or stronger outside proof." },
+      { label: "This cycle", action: "Make the case clearer to your manager and the people who will influence the promotion call." },
+      { label: "Before the ask", action: "Leave the manager conversation with a clear proof bar, owner, and timing signal." },
     ],
     riskFlags: [
-      "A weak case can feel stronger to you than it looks to a reviewer.",
-      "Promotion timing is fragile when the evidence is vague or support is thin.",
-      "A good performer still gets blocked when the case is hard to repeat upward.",
+      "A weak case often feels stronger from the inside than it does to a reviewer.",
+      "Promotion timing falls apart fast when the evidence is vague or the support is thin.",
+      "Good performers still get blocked when the case is hard for someone else to repeat upward.",
     ],
     dimensions: [
       { label: "Role fit", score: clamp(readinessScore + (managerTrack ? -6 : 2), 15, 95), reason: roleFitReason },
@@ -563,9 +563,9 @@ Return ONLY valid JSON:
 {
   "readinessScore": <integer 0-100>,
   "verdict": "<Ready now|Close, but not airtight|Needs more proof|Too early>",
-  "summary": "<2-3 sentence honest assessment>",
-  "realityCheck": "<1-3 sentence blunt truth about what is not believable yet>",
-  "scoreReason": "<2-3 sentence plain-English explanation of why the score lands there>",
+  "summary": "<2-3 sentence direct coach read spoken to the user in second person>",
+  "realityCheck": "<1-3 sentence blunt truth spoken to the user in second person>",
+  "scoreReason": "<2-3 sentence plain-English explanation spoken to the user in second person>",
   "dimensions": [
     { "label": "Role fit", "score": <0-100>, "reason": "<1-2 sentence explanation>" },
     { "label": "Bar clarity", "score": <0-100>, "reason": "<1-2 sentence explanation>" },
@@ -577,6 +577,8 @@ Return ONLY valid JSON:
 
 Rules:
 - Talk to the user as "you".
+- Sound like Zari speaking directly to the user, not like an assessment engine or detached product copy.
+- Never say "Zari judged", "this candidate", "this person", or narrate in the third person.
 - Never mention resumes, recruiting, or job search.
 - The dimension labels must be exactly: Role fit, Bar clarity, Evidence & impact, Support & visibility, Timing & risk.
 - If the target role is materially above the evidence provided, say so directly.
@@ -638,9 +640,9 @@ ${coreParsed ? JSON.stringify(coreParsed) : "No usable draft was produced."}`,
 
 Readiness score: <0-100>
 Verdict: <Ready now|Close, but not airtight|Needs more proof|Too early>
-Summary: <2 short sentences>
-Reality check: <1-2 blunt sentences>
-Score reason: <2 short sentences>
+Summary: <2 short sentences spoken directly to the user>
+Reality check: <1-2 blunt sentences spoken directly to the user>
+Score reason: <2 short sentences spoken directly to the user>
 Dimensions:
 - Role fit: <0-100> | <short reason>
 - Bar clarity: <0-100> | <short reason>
@@ -651,6 +653,7 @@ Dimensions:
 Rules:
 - Use the questionnaire exactly as given.
 - Be harsh on vague or placeholder evidence.
+- Sound like a human coach talking to the user directly.
 - Never round up for ambition.`,
         },
         { role: "user" as const, content: JSON.stringify(payload) },
@@ -740,6 +743,7 @@ Rules:
 - Tailor every item to the actual questionnaire and the core judgment below.
 - If the input quality is weak, the strengths should stay modest and the gaps should be blunt.
 - Never soften obvious lack of proof.
+- Write every line like a coach who actually read the packet, not a template engine.
 - Never mention resumes, recruiting, or job search.`;
 
   let detailParsed = safeParseLlmPayload(await openaiChat(

@@ -8,10 +8,39 @@ import { ensureSameOrigin } from "@/lib/utils";
 export const runtime     = "nodejs";
 export const maxDuration = 60;
 
-function buildPromotionQuestionFallback(round: string, criteriaText: string) {
+function cleanLine(value: string, max = 140) {
+  const cleaned = value.replace(/\s+/g, " ").trim();
+  return cleaned.length > max ? `${cleaned.slice(0, max - 1)}…` : cleaned;
+}
+
+function extractPromotionField(source: string, label: string) {
+  const match = source.match(new RegExp(`${label}:\\s*([^\\n]+)`, "i"));
+  return match?.[1]?.trim() ?? "";
+}
+
+function extractPromotionBlock(source: string, label: string) {
+  const match = source.match(new RegExp(`${label}:\\s*([\\s\\S]*?)(?:\\n[A-Z][^\\n]+:\\s|$)`, "i"));
+  return match?.[1]?.trim() ?? "";
+}
+
+function buildPromotionQuestionFallback(round: string, criteriaText: string, contextText = "", resumeText = "") {
+  const currentRole = extractPromotionField(contextText, "Current role");
+  const targetRole = extractPromotionField(contextText, "Target role");
+  const managerSupport = extractPromotionField(contextText, "Manager support");
+  const visibility = extractPromotionField(contextText, "Visibility");
+  const barClarity = extractPromotionField(contextText, "Bar clarity");
+  const projectSignal = cleanLine(extractPromotionBlock(contextText, "Projects and wins") || resumeText.split(/\n+/).find(line => line.trim().length > 24) || "");
+  const reviewSignal = cleanLine(extractPromotionBlock(contextText, "Review notes"));
+  const moveText = currentRole && targetRole ? `${currentRole} to ${targetRole}` : targetRole || "this promotion";
   const targetSignal = criteriaText.trim()
     ? "Use the pasted criteria to make each answer feel tied to the actual promotion bar."
     : "State the next-level signal directly since you do not have a fully explicit rubric.";
+  const rolePrompt = moveText ? `You are trying to move from ${moveText}.` : "You are trying to make a real promotion case.";
+  const projectPrompt = projectSignal ? `Your packet currently leans on work like: "${projectSignal}".` : "Your packet still needs sharper project proof.";
+  const managerPrompt = managerSupport ? `You said manager support is "${managerSupport}".` : "Your manager stance is not fully clear yet.";
+  const visibilityPrompt = visibility ? `You said visibility is "${visibility}".` : "Your visibility story may still be local.";
+  const reviewPrompt = reviewSignal ? `Your review context currently sounds like: "${reviewSignal}".` : "Your review context still needs to do real work for the case.";
+  const barPrompt = barClarity ? `You described bar clarity as "${barClarity}".` : targetSignal;
 
   const FALLBACKS: Record<string, { sections: { name: string; description: string; questions: { cat: string; level: string; q: string }[] }[] }> = {
     manager: {
@@ -20,20 +49,20 @@ function buildPromotionQuestionFallback(round: string, criteriaText: string) {
           name: "Your Case",
           description: "State the promotion case and why it should be believable now.",
           questions: [
-            { cat: "Promotion case", level: "Readiness signal", q: "Why do you believe you are ready for the next level now, not just on a good trajectory toward it?" },
-            { cat: "Scope jump", level: "Next-level scope", q: "Which parts of your work already look bigger than your current title, and how would you prove that concretely?" },
-            { cat: "Timing", level: "Promotion timing", q: "Why is this the right cycle for the promotion ask instead of a later one?" },
-            { cat: "Rubric", level: "Bar clarity", q: `What do you think the next level actually expects, and how does your work map to that bar? ${targetSignal}` },
+            { cat: "Promotion case", level: "Readiness signal", q: `${rolePrompt} Why should I believe you are ready now instead of simply on a decent trajectory?` },
+            { cat: "Scope jump", level: "Next-level scope", q: `${projectPrompt} Which part of that work already looks bigger than your current title, and how would you prove it concretely?` },
+            { cat: "Timing", level: "Promotion timing", q: `${managerPrompt} Why is this the right cycle to push the ask instead of waiting for stronger proof?` },
+            { cat: "Rubric", level: "Bar clarity", q: `${barPrompt} What do you think the next level actually expects, and where is your cleanest match to that bar?` },
           ],
         },
         {
           name: "Scope & Impact",
           description: "Pressure-test results, ownership, and business effect.",
           questions: [
-            { cat: "Business impact", level: "Results", q: "Walk me through the strongest project outcome you would want in a promotion packet. What changed because of your work?" },
+            { cat: "Business impact", level: "Results", q: `${projectPrompt} Walk me through the strongest outcome you would want in a promotion packet. What changed because of your work?` },
             { cat: "Ownership", level: "Decision-making", q: "What did you personally own in that work that would not have happened without you?" },
-            { cat: "Complexity", level: "Scope", q: "What made the work more complex than normal execution at your current level?" },
-            { cat: "Proof gap", level: "Evidence quality", q: "If I challenged the numbers or outcomes behind your best example, what proof would you actually have?" },
+            { cat: "Complexity", level: "Scope", q: `${rolePrompt} What made that work read as more complex than strong execution at your current level?` },
+            { cat: "Proof gap", level: "Evidence quality", q: "If I challenged the metrics, scope, or business effect behind your best example, what proof would you actually have?" },
           ],
         },
         {
@@ -42,7 +71,7 @@ function buildPromotionQuestionFallback(round: string, criteriaText: string) {
           questions: [
             { cat: "Missing proof", level: "Risk", q: "What part of your promotion case still feels weakest or easiest for someone to question?" },
             { cat: "Manager pushback", level: "Objection handling", q: "If I said you are strong but not clearly next-level yet, what would your best evidence-based response be?" },
-            { cat: "Support", level: "Visibility", q: "Who besides your manager would need to believe the case, and do they actually see enough today?" },
+            { cat: "Support", level: "Visibility", q: `${visibilityPrompt} Who besides your manager would need to believe the case, and do they actually see enough today?` },
           ],
         },
       ],
@@ -53,10 +82,10 @@ function buildPromotionQuestionFallback(round: string, criteriaText: string) {
           name: "Rubric Alignment",
           description: "Map examples to next-level expectations.",
           questions: [
-            { cat: "Criteria fit", level: "Rubric alignment", q: "Which exact next-level expectations can you clearly prove today, and with what examples?" },
+            { cat: "Criteria fit", level: "Rubric alignment", q: `${barPrompt} Which exact next-level expectations can you clearly prove today, and with what examples?` },
             { cat: "Edge cases", level: "Calibration risk", q: "Where would a calibration committee say your case still reads as strong current-level performance rather than a level-up?" },
             { cat: "Consistency", level: "Repeatability", q: "Is your best proof a one-off win or a repeatable pattern of next-level operating?" },
-            { cat: "Comparative risk", level: "Promotion bar", q: "Why should this case survive comparison with other people being considered for the same level?" },
+            { cat: "Comparative risk", level: "Promotion bar", q: `${rolePrompt} Why should this case survive comparison with other people being considered for the same level?` },
           ],
         },
         {
@@ -66,7 +95,7 @@ function buildPromotionQuestionFallback(round: string, criteriaText: string) {
             { cat: "Influence", level: "Cross-functional signal", q: "Where have you influenced outcomes outside your direct control in a way that reads as next-level?" },
             { cat: "Judgment", level: "Decision-making", q: "What hard tradeoff or ambiguous situation best proves the judgment expected at the next level?" },
             { cat: "Scope", level: "Complexity", q: "How large was the blast radius of your strongest work, and who cared about it?" },
-            { cat: "Leadership test", level: "Organizational impact", q: "What changed in the team, system, or org because of your work rather than just in your own output?" },
+            { cat: "Leadership test", level: "Organizational impact", q: `${projectPrompt} What changed in the team, system, or org because of your work rather than just in your own output?` },
           ],
         },
         {
@@ -75,7 +104,7 @@ function buildPromotionQuestionFallback(round: string, criteriaText: string) {
           questions: [
             { cat: "Weakness", level: "Risk", q: "If the committee said the proof is still too thin, where would they be most justified?" },
             { cat: "Timing", level: "Readiness timing", q: "What is the honest case against promoting you this cycle?" },
-            { cat: "Support", level: "Advocacy", q: "Who in the room would likely defend your case, and what would they actually say?" },
+            { cat: "Support", level: "Advocacy", q: `${managerPrompt} Who in the room would likely defend your case, and what would they actually say?` },
           ],
         },
       ],
@@ -86,9 +115,9 @@ function buildPromotionQuestionFallback(round: string, criteriaText: string) {
           name: "Case Summary",
           description: "Make the case easy for a sponsor to repeat.",
           questions: [
-            { cat: "Narrative", level: "Executive clarity", q: "Give me the 90-second version of why you are ready for the next level." },
-            { cat: "Proof", level: "Supportable evidence", q: "Which two proof points would you want me to repeat if I advocated for you when you were not in the room?" },
-            { cat: "Timing", level: "Promotion timing", q: "Why is this a timely case rather than a premature one?" },
+            { cat: "Narrative", level: "Executive clarity", q: `${rolePrompt} Give me the 90-second version of why you are ready for the next level.` },
+            { cat: "Proof", level: "Supportable evidence", q: `${projectPrompt} Which two proof points would you want me to repeat if I advocated for you when you were not in the room?` },
+            { cat: "Timing", level: "Promotion timing", q: `${reviewPrompt} Why is this a timely case rather than a premature one?` },
           ],
         },
         {
@@ -106,7 +135,7 @@ function buildPromotionQuestionFallback(round: string, criteriaText: string) {
           questions: [
             { cat: "Ask", level: "Sponsor ask", q: "What exactly are you asking a sponsor to do for you?" },
             { cat: "Specificity", level: "Executive clarity", q: "How would you make that ask concrete enough that the sponsor knows how to help?" },
-            { cat: "Readiness signal", level: "Trust", q: "What would make a sponsor feel confident you are not asking them to overreach on your behalf?" },
+            { cat: "Readiness signal", level: "Trust", q: `${visibilityPrompt} What would make a sponsor feel confident you are not asking them to overreach on your behalf?` },
           ],
         },
       ],
@@ -117,10 +146,10 @@ function buildPromotionQuestionFallback(round: string, criteriaText: string) {
           name: "Narrative Arc",
           description: "State the case cleanly in your own voice.",
           questions: [
-            { cat: "Opening", level: "Narrative", q: "How would you open your self-review so it clearly frames next-level readiness instead of a list of tasks?" },
-            { cat: "Scope", level: "Role fit", q: "Which sentence best captures how your scope has grown beyond your current title?" },
+            { cat: "Opening", level: "Narrative", q: `${rolePrompt} How would you open your self-review so it clearly frames next-level readiness instead of a list of tasks?` },
+            { cat: "Scope", level: "Role fit", q: `${projectPrompt} Which sentence best captures how your scope has grown beyond your current title?` },
             { cat: "Impact", level: "Business outcomes", q: "Which outcome best proves the work mattered beyond effort?" },
-            { cat: "Timing", level: "Forward signal", q: "How would you explain why the next level is the right fit now?" },
+            { cat: "Timing", level: "Forward signal", q: `${reviewPrompt} How would you explain why the next level is the right fit now?` },
           ],
         },
         {
@@ -129,7 +158,7 @@ function buildPromotionQuestionFallback(round: string, criteriaText: string) {
           questions: [
             { cat: "Metrics", level: "Evidence quality", q: "Where is your best evidence still too vague, and how would you rewrite it?" },
             { cat: "Ownership", level: "Decision-making", q: "How would you separate your personal contribution from team effort in your strongest example?" },
-            { cat: "Influence", level: "Cross-functional signal", q: "What example best shows influence, judgment, or leverage beyond your own output?" },
+            { cat: "Influence", level: "Cross-functional signal", q: `${visibilityPrompt} What example best shows influence, judgment, or leverage beyond your own output?` },
             { cat: "Weak spot", level: "Risk", q: "What part of the self-review still sounds flattering rather than provable?" },
           ],
         },
@@ -257,6 +286,8 @@ Rules:
 - Questions must test next-level scope, business impact, influence, judgment, and promotion readiness.
 - Treat the full packet as real context. Use the promotion move, rubric, projects, review context, manager support, visibility, and blockers when forming the questions.
 - Reference actual evidence, projects, stakeholders, or themes from their material whenever possible.
+- Assume you have already read their packet. Do not ask them to restate obvious facts unless you are challenging or pressure-testing them.
+- Each question should either pressure-test a specific claim from the packet or go straight at a missing proof gap.
 - Include at least one hard question per section that exposes a weak metric, unclear scope jump, weak sponsorship, or timing risk.
 - Ask like a real person in that room would: direct, skeptical when needed, specific, and slightly uncomfortable when the proof is weak.
 - If the user gave vague evidence, ask questions that expose the vagueness instead of filling gaps for them.
@@ -271,13 +302,72 @@ Rules:
         { model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o", temperature: 0.4, maxTokens: 2400, jsonMode: true }
       );
 
-      if (!reply) return NextResponse.json(buildPromotionQuestionFallback(round, criteriaText));
+      const parsePromotionSections = (raw: string | null) => {
+        if (!raw) return null;
+        try {
+          const parsed = JSON.parse(raw) as { sections?: Array<{ name?: unknown; description?: unknown; questions?: Array<{ cat?: unknown; level?: unknown; q?: unknown }> }> };
+          const sections = Array.isArray(parsed.sections)
+            ? parsed.sections
+                .map(section => {
+                  const name = typeof section.name === "string" ? section.name.trim() : "";
+                  const description = typeof section.description === "string" ? section.description.trim() : "";
+                  const questions = Array.isArray(section.questions)
+                    ? section.questions
+                        .map(question => ({
+                          cat: typeof question.cat === "string" ? question.cat.trim() : "",
+                          level: typeof question.level === "string" ? question.level.trim() : "",
+                          q: typeof question.q === "string" ? question.q.trim() : "",
+                        }))
+                        .filter(question => question.cat && question.level && question.q)
+                    : [];
+                  return name && description && questions.length ? { name, description, questions } : null;
+                })
+                .filter(Boolean)
+            : [];
+          return sections.length ? { sections } : null;
+        } catch {
+          return null;
+        }
+      };
 
-      try {
-        return NextResponse.json(JSON.parse(reply));
-      } catch {
-        return NextResponse.json(buildPromotionQuestionFallback(round, criteriaText));
+      let parsed = parsePromotionSections(reply);
+      if (!parsed) {
+        const repair = await openaiChat(
+          [
+            {
+              role: "system" as const,
+              content: `${systemPrompt}
+
+Your previous attempt was missing structure or too generic.
+
+Repair instructions:
+- Return valid JSON only.
+- Every section must include the requested number of questions.
+- Ground the questions in the actual promotion packet, not generic promotion advice.
+- If the packet is weak, make the questions sharper and more skeptical rather than broader.`,
+            },
+            {
+              role: "user" as const,
+              content: `SOURCE MATERIAL:
+Resume evidence:
+${resumeText || "(none provided)"}
+
+Criteria:
+${criteriaText || "(none provided)"}
+
+Promotion context:
+${contextText || "(none provided)"}
+
+Previous draft:
+${reply || "(no draft)"}`,
+            },
+          ],
+          { model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o", temperature: 0.28, maxTokens: 2600, jsonMode: true }
+        );
+        parsed = parsePromotionSections(repair);
       }
+
+      return NextResponse.json(parsed ?? buildPromotionQuestionFallback(round, criteriaText, contextText, resumeText));
     }
 
     const ROUND_SECTIONS: Record<string, { sections: { name: string; description: string; count: number }[] }> = {
