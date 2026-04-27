@@ -2595,7 +2595,6 @@ type PromotionReadinessForm = {
   recentProjects: string;
   scopeLevel: string;
   impactLevel: string;
-  leadershipEvidence: string;
   reviewSignal: string;
   reviewSummary: string;
   managerSupport: string;
@@ -2618,7 +2617,6 @@ const PROMOTION_READINESS_DEFAULT_FORM: PromotionReadinessForm = {
   recentProjects: "",
   scopeLevel: "",
   impactLevel: "",
-  leadershipEvidence: "",
   reviewSignal: "",
   reviewSummary: "",
   managerSupport: "",
@@ -2637,7 +2635,7 @@ const PROMOTION_READINESS_STEPS = [
   },
   {
     title: "Proof of impact",
-    subtitle: "Show the work, outcomes, and leadership proof that make this more than ambition.",
+    subtitle: "Show the work and outcomes that make this promotion case real.",
   },
   {
     title: "Support and blockers",
@@ -2670,13 +2668,6 @@ const PROMOTION_READINESS_OPTIONS = {
     { value: "clear_some_measured", label: "Clear wins, some metrics", description: "There is good impact, but some of it still needs better quantification." },
     { value: "some_wins", label: "Good wins, weak proof", description: "You have meaningful work, but the evidence is still more anecdotal than crisp." },
     { value: "hard_to_show", label: "Hard to show impact", description: "You do not yet have a strong story around results or outcomes." },
-  ] satisfies PromotionReadinessOption[],
-  leadershipEvidence: [
-    { value: "managed_people", label: "Direct people leadership", description: "You manage people directly, set direction, and are accountable for team output." },
-    { value: "led_cross_functional", label: "Cross-functional leadership", description: "You lead important work across teams even without direct reports." },
-    { value: "mentored_owned_stream", label: "Mentoring plus major ownership", description: "You mentor others and own meaningful work, but leadership proof is still partial." },
-    { value: "mostly_individual", label: "Mostly individual execution", description: "You are strong personally, but the case still reads more like individual contributor output." },
-    { value: "none_yet", label: "No real leadership proof yet", description: "There is not yet clear evidence that you are leading people, systems, or decisions at the next level." },
   ] satisfies PromotionReadinessOption[],
   reviewSignal: [
     { value: "explicit_next_level", label: "Reviews say next-level", description: "Recent feedback explicitly says you are already operating at the higher level." },
@@ -3021,7 +3012,6 @@ function ScreenPromotionReadiness() {
   const [error, setError] = useState("");
   const [result, setResult] = useState<PromotionReadinessResult | null>(null);
   const [resultTab, setResultTab] = useState<PromotionAuditTab>("overview");
-  const [sourceTab, setSourceTab] = useState<"side-by-side" | "promotion-bar" | "evidence" | "feedback">("side-by-side");
   const theme = PROMOTION_THEMES.readiness;
   const activeStep = PROMOTION_READINESS_STEPS[step - 1];
 
@@ -3064,7 +3054,7 @@ function ScreenPromotionReadiness() {
       case 2:
         return "Paste the next-level job description and tell Zari how clear the bar is.";
       case 3:
-        return "Add your key projects and answer the scope, impact, and leadership questions before continuing.";
+        return "Add your key projects and answer the scope and impact questions before continuing.";
       case 4:
         return "Tell Zari the review context, support, visibility, and blockers before running the audit.";
       default:
@@ -3079,7 +3069,7 @@ function ScreenPromotionReadiness() {
       case 2:
         return Boolean(form.roleDescription.trim() && form.rubricClarity);
       case 3:
-        return Boolean(form.recentProjects.trim() && form.scopeLevel && form.impactLevel && form.leadershipEvidence);
+        return Boolean(form.recentProjects.trim() && form.scopeLevel && form.impactLevel);
       case 4:
         return Boolean(form.reviewSummary.trim() && form.reviewSignal && form.managerSupport && form.visibilityLevel && form.blockers.trim());
       default:
@@ -3130,7 +3120,6 @@ function ScreenPromotionReadiness() {
       if (data?.summary && typeof data.readinessScore === "number") {
         setResult(data);
         setResultTab("overview");
-        setSourceTab("side-by-side");
         const serialized = [
           `Promotion readiness score: ${data.readinessScore}/100`,
           `Verdict: ${data.verdict}`,
@@ -3219,12 +3208,6 @@ function ScreenPromotionReadiness() {
       { id:"conversation", label:"Manager Plan", badge:String(result.managerQuestions.length) },
       { id:"examples", label:"Examples" },
     ];
-    const sourceTabs = [
-      { id:"side-by-side" as const, label:"Side by side" },
-      { id:"promotion-bar" as const, label:"Promotion bar" },
-      { id:"evidence" as const, label:"Your evidence" },
-      { id:"feedback" as const, label:"Feedback" },
-    ];
     const roleBlocks = blocksFromText(form.roleDescription, "No promotion bar or rubric was provided.");
     const evidenceBlocks = blocksFromText(form.recentProjects, "No project evidence was provided.");
     const reviewBlocks = blocksFromText(form.reviewSummary, "No recent review details were provided.");
@@ -3233,7 +3216,7 @@ function ScreenPromotionReadiness() {
       { label:"Current role", value:form.currentTitle || "Not provided" },
       { label:"Target role", value:form.desiredTitle || "Not provided" },
       { label:"Time in role", value:optionLabel(PROMOTION_READINESS_OPTIONS.timeInRole, form.timeInRole) || "Not provided" },
-      { label:"Leadership proof", value:optionLabel(PROMOTION_READINESS_OPTIONS.leadershipEvidence, form.leadershipEvidence) || "Not provided" },
+      { label:"Bar clarity", value:optionLabel(PROMOTION_READINESS_OPTIONS.rubricClarity, form.rubricClarity) || "Not provided" },
       { label:"Manager support", value:optionLabel(PROMOTION_READINESS_OPTIONS.managerSupport, form.managerSupport) || "Not provided" },
       { label:"Visibility", value:optionLabel(PROMOTION_READINESS_OPTIONS.visibilityLevel, form.visibilityLevel) || "Not provided" },
     ];
@@ -3296,9 +3279,59 @@ function ScreenPromotionReadiness() {
       </div>
     );
 
+    const sourceSnapshot = (
+      <div style={{ ...panelCardStyle, padding:"20px 22px 22px" }}>
+        <div style={{ fontSize:11, fontWeight:800, color:"#6D4CFF", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>What Zari reviewed</div>
+        <p style={{ fontSize:14, color:"#536276", lineHeight:1.75, margin:"0 0 16px" }}>
+          The audit is based on the role bar you gave, the proof you wrote, and the feedback/support context around the promotion.
+        </p>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))", gap:10, marginBottom:16 }}>
+          {readinessSignals.map(item => (
+            <div key={item.label} style={statBoxStyle}>
+              <div style={{ fontSize:10.5, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:6 }}>{item.label}</div>
+              <div style={{ fontSize:12.8, color:"#0F172A", lineHeight:1.65, fontWeight:700 }}>{item.value}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))", gap:16 }}>
+          <div>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:10 }}>
+              <span style={sourcePillStyle}>Promotion bar</span>
+              <span style={{ fontSize:12, color:"#64748B" }}>{optionLabel(PROMOTION_READINESS_OPTIONS.rubricClarity, form.rubricClarity)}</span>
+            </div>
+            {renderTextWindow(roleBlocks)}
+          </div>
+
+          <div>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:10 }}>
+              <span style={sourcePillStyle}>Your evidence</span>
+              <span style={{ fontSize:12, color:"#64748B" }}>{optionLabel(PROMOTION_READINESS_OPTIONS.impactLevel, form.impactLevel)}</span>
+            </div>
+            {renderTextWindow(evidenceBlocks)}
+          </div>
+
+          <div>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:10 }}>
+              <span style={sourcePillStyle}>Feedback</span>
+              <span style={{ fontSize:12, color:"#64748B" }}>{optionLabel(PROMOTION_READINESS_OPTIONS.reviewSignal, form.reviewSignal)}</span>
+            </div>
+            {renderTextWindow(reviewBlocks)}
+          </div>
+
+          <div>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:10 }}>
+              <span style={sourcePillStyle}>Blockers</span>
+              <span style={{ fontSize:12, color:"#64748B" }}>{blockerBlocks.length} noted</span>
+            </div>
+            {renderTextWindow(blockerBlocks, "warn")}
+          </div>
+        </div>
+      </div>
+    );
+
     return (
       <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F0F2F8" }}>
-        <div style={{ maxWidth:1450, margin:"0 auto", padding:"24px 32px 48px" }}>
+        <div style={{ maxWidth:1180, margin:"0 auto", padding:"24px 32px 48px" }}>
           <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, flexWrap:"wrap", marginBottom:18 }}>
             <div>
               <p style={{ fontSize:11.5, fontWeight:800, color:"#6D4CFF", textTransform:"uppercase", letterSpacing:"0.1em", margin:"0 0 8px" }}>Readiness Audit</p>
@@ -3311,13 +3344,13 @@ function ScreenPromotionReadiness() {
             </div>
             <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
               <button
-                onClick={() => { setResult(null); setResultTab("overview"); setSourceTab("side-by-side"); setStep(1); }}
+                onClick={() => { setResult(null); setResultTab("overview"); setStep(1); }}
                 style={{ fontSize:13, fontWeight:700, padding:"11px 16px", borderRadius:12, border:"1px solid #D7DDF0", background:"white", color:"#334155", cursor:"pointer" }}
               >
                 Edit answers
               </button>
               <button
-                onClick={() => { setResult(null); setResultTab("overview"); setSourceTab("side-by-side"); setStep(1); setForm(PROMOTION_READINESS_DEFAULT_FORM); setError(""); }}
+                onClick={() => { setResult(null); setResultTab("overview"); setStep(1); setForm(PROMOTION_READINESS_DEFAULT_FORM); setError(""); }}
                 style={{ fontSize:13, fontWeight:700, padding:"11px 16px", borderRadius:12, border:"1px solid #D7DDF0", background:"#F8FAFF", color:"#475569", cursor:"pointer" }}
               >
                 Start fresh
@@ -3325,8 +3358,8 @@ function ScreenPromotionReadiness() {
             </div>
           </div>
 
-          <div style={{ display:"grid", gridTemplateColumns:"minmax(0,1.06fr) minmax(360px,0.94fr)", gap:0, background:"#ECEBFA", border:"1px solid #E2E6F6", borderRadius:28, overflow:"hidden", boxShadow:"0 22px 48px rgba(15,23,42,0.08)" }}>
-            <div style={{ background:"white", padding:"20px 22px 24px", minWidth:0 }}>
+          <div style={{ background:"white", border:"1px solid #E2E6F6", borderRadius:28, overflow:"hidden", boxShadow:"0 22px 48px rgba(15,23,42,0.08)" }}>
+            <div style={{ padding:"20px 22px 24px" }}>
               <div style={{ display:"flex", alignItems:"center", gap:0, overflowX:"auto", border:"1px solid #E4E8F5", borderRadius:20, background:"#FFFFFF", marginBottom:20 }}>
                 {resultTabs.map((tab, index) => (
                   <button key={tab.id} onClick={() => setResultTab(tab.id)} style={{ ...segmentedButtonStyle(resultTab === tab.id), borderRight:index === resultTabs.length - 1 ? "none" : "1px solid #E7EAF6" }}>
@@ -3346,7 +3379,7 @@ function ScreenPromotionReadiness() {
                           <div style={{ fontSize:11, fontWeight:800, color:"#6D4CFF", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Readiness score</div>
                           <div style={{ fontSize:46, fontWeight:900, color:"#111827", letterSpacing:"-0.05em", lineHeight:1, marginBottom:10 }}>{result.readinessScore}</div>
                           <div style={{ fontSize:13.5, color:"#68738A", lineHeight:1.7, maxWidth:220 }}>
-                            This score estimates how easy your promotion case is to defend upward today.
+                            This score estimates how defensible your promotion case is today.
                           </div>
                         </div>
                       </div>
@@ -3379,8 +3412,10 @@ function ScreenPromotionReadiness() {
                   </div>
 
                   <div style={{ fontSize:14.5, color:"#536276", lineHeight:1.75 }}>
-                    This is not a potential score. It estimates how defensible your promotion case is today based on the bar, the proof, the leadership signal, and the support around you.
+                    This is not a potential score. It reflects how a blunt reviewer would judge the case today based on the actual answers you gave.
                   </div>
+
+                  {sourceSnapshot}
 
                   <div style={{ ...panelCardStyle, overflow:"hidden" }}>
                     <div style={{ display:"grid", gridTemplateColumns:"minmax(180px,0.8fr) 120px minmax(240px,1fr) minmax(240px,1fr)", gap:0, padding:"14px 18px", borderBottom:"1px solid #E7EAF6", background:"#F8FAFF" }}>
@@ -3567,162 +3602,6 @@ function ScreenPromotionReadiness() {
                 </div>
               )}
             </div>
-
-            <div style={{ background:"linear-gradient(180deg,#F7F5FF 0%,#F2F5FF 100%)", padding:"20px 22px 24px", minWidth:0, borderLeft:"1px solid #E2E6F6" }}>
-              <div style={{ display:"flex", alignItems:"center", gap:0, overflowX:"auto", border:"1px solid #D7DDF0", borderRadius:20, background:"rgba(255,255,255,0.82)", marginBottom:20 }}>
-                {sourceTabs.map((tab, index) => (
-                  <button key={tab.id} onClick={() => setSourceTab(tab.id)} style={{ ...segmentedButtonStyle(sourceTab === tab.id), borderRight:index === sourceTabs.length - 1 ? "none" : "1px solid #E7EAF6" }}>
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-
-              {sourceTab === "side-by-side" && (
-                <div style={{ display:"grid", gap:18 }}>
-                  <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))", gap:16 }}>
-                    <div>
-                      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:10 }}>
-                        <span style={sourcePillStyle}>Promotion bar</span>
-                        <span style={{ fontSize:12, color:"#64748B" }}>{optionLabel(PROMOTION_READINESS_OPTIONS.rubricClarity, form.rubricClarity)}</span>
-                      </div>
-                      {renderTextWindow(roleBlocks)}
-                    </div>
-
-                    <div>
-                      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:10 }}>
-                        <span style={sourcePillStyle}>Your evidence</span>
-                        <span style={{ fontSize:12, color:"#64748B" }}>{optionLabel(PROMOTION_READINESS_OPTIONS.impactLevel, form.impactLevel)}</span>
-                      </div>
-                      {renderTextWindow(evidenceBlocks)}
-                    </div>
-                  </div>
-
-                  <div style={{ ...panelCardStyle, padding:"18px 18px 16px" }}>
-                    <div style={{ fontSize:11, fontWeight:800, color:"#6D4CFF", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>What needs to change</div>
-                    <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:12 }}>
-                      {result.gaps.map(item => (
-                        <span key={item.area} style={{ fontSize:11.5, fontWeight:800, color:"#92400E", background:"#FFF8E8", border:"1px solid #FCD34D", padding:"6px 10px", borderRadius:999 }}>
-                          {item.area}
-                        </span>
-                      ))}
-                    </div>
-                    <div style={{ display:"grid", gap:10 }}>
-                      {result.rationale.map(item => (
-                        <div key={item} style={{ fontSize:13.5, color:"#334155", lineHeight:1.75, padding:"11px 12px", borderRadius:14, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
-                          {item}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {sourceTab === "promotion-bar" && (
-                <div style={{ display:"grid", gap:18 }}>
-                  <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))", gap:10 }}>
-                    {[
-                      { label:"Current title", value:form.currentTitle || "Not provided" },
-                      { label:"Desired title", value:form.desiredTitle || "Not provided" },
-                      { label:"Time in role", value:optionLabel(PROMOTION_READINESS_OPTIONS.timeInRole, form.timeInRole) || "Not provided" },
-                    ].map(item => (
-                      <div key={item.label} style={statBoxStyle}>
-                        <div style={{ fontSize:10.5, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:6 }}>{item.label}</div>
-                        <div style={{ fontSize:12.8, color:"#0F172A", lineHeight:1.65, fontWeight:700 }}>{item.value}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div>
-                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:10 }}>
-                      <span style={sourcePillStyle}>Promotion bar</span>
-                      <span style={{ fontSize:12, color:"#64748B" }}>{optionLabel(PROMOTION_READINESS_OPTIONS.rubricClarity, form.rubricClarity)}</span>
-                    </div>
-                    {renderTextWindow(roleBlocks)}
-                  </div>
-                </div>
-              )}
-
-              {sourceTab === "evidence" && (
-                <div style={{ display:"grid", gap:18 }}>
-                  <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))", gap:10 }}>
-                    {[
-                      { label:"Scope", value:optionLabel(PROMOTION_READINESS_OPTIONS.scopeLevel, form.scopeLevel) || "Not provided" },
-                      { label:"Impact", value:optionLabel(PROMOTION_READINESS_OPTIONS.impactLevel, form.impactLevel) || "Not provided" },
-                      { label:"Leadership proof", value:optionLabel(PROMOTION_READINESS_OPTIONS.leadershipEvidence, form.leadershipEvidence) || "Not provided" },
-                    ].map(item => (
-                      <div key={item.label} style={statBoxStyle}>
-                        <div style={{ fontSize:10.5, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:6 }}>{item.label}</div>
-                        <div style={{ fontSize:12.8, color:"#0F172A", lineHeight:1.65, fontWeight:700 }}>{item.value}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div>
-                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:10 }}>
-                      <span style={sourcePillStyle}>Your evidence</span>
-                      <span style={{ fontSize:12, color:"#64748B" }}>{optionLabel(PROMOTION_READINESS_OPTIONS.impactLevel, form.impactLevel)}</span>
-                    </div>
-                    {renderTextWindow(evidenceBlocks)}
-                  </div>
-
-                  <div style={{ ...panelCardStyle, padding:"18px 18px 16px" }}>
-                    <div style={{ fontSize:11, fontWeight:800, color:"#6D4CFF", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Stronger examples</div>
-                    <div style={{ display:"grid", gap:10 }}>
-                      {result.exampleEvidence.map(item => (
-                        <div key={item} style={{ fontSize:13.5, color:"#334155", lineHeight:1.75, padding:"11px 12px", borderRadius:14, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
-                          {item}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {sourceTab === "feedback" && (
-                <div style={{ display:"grid", gap:18 }}>
-                  <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))", gap:10 }}>
-                    {[
-                      { label:"Review signal", value:optionLabel(PROMOTION_READINESS_OPTIONS.reviewSignal, form.reviewSignal) || "Not provided" },
-                      { label:"Manager support", value:optionLabel(PROMOTION_READINESS_OPTIONS.managerSupport, form.managerSupport) || "Not provided" },
-                      { label:"Visibility", value:optionLabel(PROMOTION_READINESS_OPTIONS.visibilityLevel, form.visibilityLevel) || "Not provided" },
-                    ].map(item => (
-                      <div key={item.label} style={statBoxStyle}>
-                        <div style={{ fontSize:10.5, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:6 }}>{item.label}</div>
-                        <div style={{ fontSize:12.8, color:"#0F172A", lineHeight:1.65, fontWeight:700 }}>{item.value}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div>
-                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:10 }}>
-                      <span style={sourcePillStyle}>Review feedback</span>
-                      <span style={{ fontSize:12, color:"#64748B" }}>{optionLabel(PROMOTION_READINESS_OPTIONS.managerSupport, form.managerSupport)}</span>
-                    </div>
-                    {renderTextWindow(reviewBlocks)}
-                  </div>
-
-                  <div>
-                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:10 }}>
-                      <span style={sourcePillStyle}>Blockers</span>
-                      <span style={{ fontSize:12, color:"#64748B" }}>{blockerBlocks.length} noted</span>
-                    </div>
-                    {renderTextWindow(blockerBlocks, "warn")}
-                  </div>
-
-                  <div style={{ ...panelCardStyle, padding:"18px 18px 16px" }}>
-                    <div style={{ fontSize:11, fontWeight:800, color:"#6D4CFF", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Signal summary</div>
-                    <div style={{ display:"grid", gap:10 }}>
-                      {readinessSignals.map(item => (
-                        <div key={item.label} style={{ display:"grid", gridTemplateColumns:"120px minmax(0,1fr)", gap:12, padding:"10px 0", borderBottom:"1px solid #E7EAF6" }}>
-                          <div style={{ fontSize:10.5, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.08em" }}>{item.label}</div>
-                          <div style={{ fontSize:12.8, color:"#334155", lineHeight:1.6 }}>{item.value}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
         </div>
       </div>
@@ -3830,11 +3709,6 @@ function ScreenPromotionReadiness() {
               <div style={wizardCardStyle}>
                 <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 10px" }}>How strong is the measurable impact?</p>
                 <PromotionChoiceGroup value={form.impactLevel} onChange={value => updateForm("impactLevel", value)} options={PROMOTION_READINESS_OPTIONS.impactLevel} />
-              </div>
-
-              <div style={wizardCardStyle}>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 10px" }}>What leadership proof do you actually have today?</p>
-                <PromotionChoiceGroup value={form.leadershipEvidence} onChange={value => updateForm("leadershipEvidence", value)} options={PROMOTION_READINESS_OPTIONS.leadershipEvidence} />
               </div>
             </div>
           )}
