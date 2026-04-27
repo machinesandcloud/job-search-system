@@ -2928,6 +2928,104 @@ function buildPromotionStakeholderSeed(context: PromotionSharedContext | null) {
   ].filter(Boolean).join("\n");
 }
 
+function buildPromotionReadinessContext(form: PromotionReadinessForm, data: PromotionReadinessResult): PromotionSharedContext {
+  return {
+    currentTitle: form.currentTitle,
+    desiredTitle: form.desiredTitle,
+    timeInRole: form.timeInRole,
+    roleDescription: form.roleDescription,
+    rubricClarity: form.rubricClarity,
+    recentProjects: form.recentProjects,
+    scopeLevel: form.scopeLevel,
+    impactLevel: form.impactLevel,
+    reviewSignal: form.reviewSignal,
+    reviewSummary: form.reviewSummary,
+    managerSupport: form.managerSupport,
+    visibilityLevel: form.visibilityLevel,
+    blockers: form.blockers,
+    readinessScore: data.readinessScore,
+    readinessVerdict: data.verdict,
+    readinessSummary: data.summary,
+    realityCheck: data.realityCheck,
+    scoreReason: data.scoreReason,
+    strengths: data.strengths,
+    gapAreas: data.gaps.map(item => item.area),
+    nextMoves: data.nextMoves,
+  };
+}
+
+function serializePromotionReadinessAudit(data: PromotionReadinessResult) {
+  return [
+    `Promotion readiness score: ${data.readinessScore}/100`,
+    `Verdict: ${data.verdict}`,
+    "",
+    data.summary,
+    "",
+    "Reality check",
+    data.realityCheck,
+    "",
+    "Why this score",
+    data.scoreReason,
+    "",
+    "Dimension breakdown",
+    ...data.dimensions.map(item => `- ${item.label}: ${item.score}/100 — ${item.reason}`),
+    "",
+    "Why you landed here",
+    ...data.rationale.map(item => `- ${item}`),
+    "",
+    "Strong signals",
+    ...data.strengths.map(item => `- ${item}`),
+    "",
+    "Gaps to close",
+    ...data.gaps.map(item => `- ${item.area}: ${item.why} | Next step: ${item.nextStep}`),
+    "",
+    "Questions for your manager",
+    ...data.managerQuestions.map(item => `- ${item}`),
+    "",
+    "Next moves",
+    ...data.nextMoves.map(item => `- ${item}`),
+    "",
+    "Action plan",
+    ...data.actionPlan.map(item => `- ${item.label}: ${item.action}`),
+    "",
+    "Example evidence",
+    ...data.exampleEvidence.map(item => `- ${item}`),
+  ].join("\n");
+}
+
+function savePromotionReadinessAudit(form: PromotionReadinessForm, data: PromotionReadinessResult): PromotionSharedContext {
+  const promotionContextPayload = buildPromotionReadinessContext(form, data);
+  vaultSave({
+    type:"resume",
+    name:"Promotion Readiness Audit",
+    content:serializePromotionReadinessAudit(data),
+    meta:{
+      stage:"promotion",
+      desiredTitle: form.desiredTitle,
+      targetRole: form.desiredTitle,
+      currentTitle: form.currentTitle,
+      timeInRole: form.timeInRole,
+      roleDescription: form.roleDescription,
+      rubricClarity: form.rubricClarity,
+      recentProjects: form.recentProjects,
+      scopeLevel: form.scopeLevel,
+      impactLevel: form.impactLevel,
+      reviewSignal: form.reviewSignal,
+      reviewSummary: form.reviewSummary,
+      managerSupport: form.managerSupport,
+      visibilityLevel: form.visibilityLevel,
+      blockers: form.blockers,
+      verdict:data.verdict,
+      readinessScore:String(data.readinessScore),
+      summary:data.summary,
+      realityCheck:data.realityCheck,
+      scoreReason:data.scoreReason,
+      promotionContext: JSON.stringify(promotionContextPayload),
+    },
+  });
+  return promotionContextPayload;
+}
+
 function promotionContextKey(context: PromotionSharedContext | null) {
   if (!context) return "";
   return JSON.stringify({
@@ -3223,6 +3321,318 @@ function PromotionChoiceGroup({
   );
 }
 
+function PromotionSharedIntakeFlow({
+  sectionLabel,
+  sectionIntro,
+  submitLabel,
+  loadingTitle,
+  loadingBody,
+  onComplete,
+}: {
+  sectionLabel: string;
+  sectionIntro: string;
+  submitLabel: string;
+  loadingTitle: string;
+  loadingBody: string;
+  onComplete: (context: PromotionSharedContext, form: PromotionReadinessForm, data: PromotionReadinessResult) => void | Promise<void>;
+}) {
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  const [form, setForm] = useState<PromotionReadinessForm>(PROMOTION_READINESS_DEFAULT_FORM);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const activeStep = PROMOTION_READINESS_STEPS[step - 1];
+
+  const wizardCardStyle = {
+    background:"rgba(255,255,255,0.04)",
+    border:"1px solid rgba(255,255,255,0.1)",
+    borderRadius:20,
+    padding:20,
+  };
+
+  const wizardInputStyle = {
+    width:"100%",
+    border:"1px solid rgba(255,255,255,0.12)",
+    borderRadius:12,
+    padding:"12px 14px",
+    fontSize:13,
+    color:"white",
+    outline:"none",
+    fontFamily:"inherit",
+    background:"rgba(255,255,255,0.06)",
+    boxSizing:"border-box" as const,
+  };
+
+  const wizardTextareaStyle = {
+    ...wizardInputStyle,
+    minHeight:170,
+    resize:"vertical" as const,
+    lineHeight:1.68,
+  };
+
+  function updateForm<K extends keyof PromotionReadinessForm>(key: K, value: PromotionReadinessForm[K]) {
+    setForm(prev => ({ ...prev, [key]: value }));
+    if (error) setError("");
+  }
+
+  function validationMessage(targetStep = step) {
+    switch (targetStep) {
+      case 1:
+        return "Add your current title, target title, and time in role before continuing.";
+      case 2:
+        return "Paste the next-level job description and tell Zari how clear the bar is.";
+      case 3:
+        return "Add your key projects and answer the scope and impact questions before continuing.";
+      case 4:
+        return "Set the review signal, manager support, and visibility before continuing.";
+      default:
+        return "Complete the remaining questions before continuing.";
+    }
+  }
+
+  function canContinue(targetStep = step) {
+    switch (targetStep) {
+      case 1:
+        return Boolean(form.currentTitle.trim() && form.desiredTitle.trim() && form.timeInRole);
+      case 2:
+        return Boolean(form.roleDescription.trim() && form.rubricClarity);
+      case 3:
+        return Boolean(form.recentProjects.trim() && form.scopeLevel && form.impactLevel);
+      case 4:
+        return Boolean(form.reviewSignal && form.managerSupport && form.visibilityLevel);
+      default:
+        return false;
+    }
+  }
+
+  function goNext() {
+    if (!canContinue(step)) {
+      setError(validationMessage(step));
+      return;
+    }
+    setError("");
+    setStep(prev => Math.min(4, prev + 1) as 1 | 2 | 3 | 4);
+  }
+
+  function goBack() {
+    setError("");
+    setStep(prev => Math.max(1, prev - 1) as 1 | 2 | 3 | 4);
+  }
+
+  async function submit() {
+    if (!canContinue(4)) {
+      setError(validationMessage(4));
+      return;
+    }
+    setSubmitting(true);
+    setError("");
+    try {
+      const res = await fetch("/api/zari/promotion-readiness", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json().catch(() => null) as (PromotionReadinessResult & { error?: string }) | null;
+      if (data?.summary && typeof data.readinessScore === "number") {
+        const context = savePromotionReadinessAudit(form, data);
+        await onComplete(context, form, data);
+      } else {
+        setError(data?.error ?? "Could not generate the promotion intake.");
+      }
+    } catch {
+      setError("Could not generate the promotion intake.");
+    }
+    setSubmitting(false);
+  }
+
+  if (submitting) {
+    return (
+      <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#0A1628" }}>
+        <div style={{ maxWidth:760, margin:"0 auto", padding:"64px 24px 56px" }}>
+          <div style={{ background:"linear-gradient(135deg,#0D1321,#141E30)", borderRadius:20, padding:"72px 32px", textAlign:"center", boxShadow:"0 12px 48px rgba(0,0,0,0.22)", border:"1px solid rgba(255,255,255,0.07)" }}>
+            <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
+              {[0,1,2].map(i => (
+                <div key={i} style={{ width:11,height:11,borderRadius:"50%",background:"#818CF8",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite`, boxShadow:"0 0 10px rgba(129,140,248,0.5)" }}/>
+              ))}
+            </div>
+            <p style={{ fontSize:17, fontWeight:800, color:"white", marginBottom:8, letterSpacing:"-0.02em" }}>{loadingTitle}</p>
+            <p style={{ fontSize:13.5, color:"rgba(255,255,255,0.42)", maxWidth:440, margin:"0 auto", lineHeight:1.6 }}>
+              {loadingBody}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#0A1628" }}>
+      <div style={{ minHeight:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"48px 24px" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:40, flexWrap:"wrap", justifyContent:"center" }}>
+          {[1,2,3,4].map(s => (
+            <div key={s} style={{ display:"flex", alignItems:"center", gap:10 }}>
+              <div style={{ width:28, height:28, borderRadius:"50%", border:`2px solid ${s < step ? "#4ADE80" : s === step ? "#4361EE" : "rgba(255,255,255,0.15)"}`, background:s < step ? "rgba(74,222,128,0.15)" : s === step ? "rgba(67,97,238,0.2)" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
+                {s < step ? (
+                  <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2" style={{ width:12,height:12 }}><polyline points="2,6 5,9 10,3"/></svg>
+                ) : (
+                  <span style={{ fontSize:11, fontWeight:700, color:s === step ? "#818CF8" : "rgba(255,255,255,0.25)" }}>{s}</span>
+                )}
+              </div>
+              {s < 4 && <div style={{ width:28, height:2, borderRadius:99, background:s < step ? "rgba(74,222,128,0.4)" : "rgba(255,255,255,0.08)", transition:"all 0.3s" }}/>}
+            </div>
+          ))}
+        </div>
+
+        <div style={{ width:"100%", maxWidth:760 }}>
+          <div style={{ textAlign:"center", marginBottom:32 }}>
+            <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"#A5B4FC", marginBottom:8 }}>
+              {sectionLabel}
+            </p>
+            <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"rgba(255,255,255,0.35)", marginBottom:8 }}>
+              Step {step} of 4
+            </p>
+            <h1 style={{ fontSize:28, fontWeight:900, color:"white", letterSpacing:"-0.04em", marginBottom:10 }}>{activeStep.title}</h1>
+            <p style={{ fontSize:14, color:"rgba(255,255,255,0.45)", lineHeight:1.6, maxWidth:500, margin:"0 auto 12px" }}>{activeStep.subtitle}</p>
+            <p style={{ fontSize:12.5, color:"rgba(255,255,255,0.34)", lineHeight:1.65, maxWidth:560, margin:"0 auto" }}>{sectionIntro}</p>
+          </div>
+
+          {step === 1 && (
+            <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+              <div style={{ ...wizardCardStyle, display:"grid", gap:16 }}>
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))", gap:12 }}>
+                  <div>
+                    <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 8px" }}>Current job title</p>
+                    <input value={form.currentTitle} onChange={e => updateForm("currentTitle", e.target.value)} placeholder="e.g. Product Manager" style={wizardInputStyle} />
+                  </div>
+                  <div>
+                    <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 8px" }}>Desired job title</p>
+                    <input value={form.desiredTitle} onChange={e => updateForm("desiredTitle", e.target.value)} placeholder="e.g. Senior Product Manager or Senior Engineering Manager" style={wizardInputStyle} />
+                  </div>
+                </div>
+
+                <div>
+                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 10px" }}>How long have you been in your current role?</p>
+                  <PromotionChoiceGroup value={form.timeInRole} onChange={value => updateForm("timeInRole", value)} options={PROMOTION_READINESS_OPTIONS.timeInRole} />
+                </div>
+              </div>
+
+              <div style={{ ...wizardCardStyle, background:"rgba(255,255,255,0.03)" }}>
+                <div style={{ fontSize:11.5, fontWeight:800, color:"#A5B4FC", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Shared promotion intake</div>
+                <p style={{ fontSize:13, color:"rgba(255,255,255,0.52)", lineHeight:1.7, margin:0 }}>
+                  These answers become the shared promotion context for readiness, manager conversation, evidence builder, sponsor strategy, and roadmap.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {step === 2 && (
+            <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+              <div style={wizardCardStyle}>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 8px" }}>Next-level job description or rubric</p>
+                <textarea
+                  value={form.roleDescription}
+                  onChange={e => updateForm("roleDescription", e.target.value)}
+                  placeholder="Paste the job description, career ladder, or the clearest notes you have about what the next level requires."
+                  style={{ ...wizardTextareaStyle, minHeight:220 }}
+                />
+              </div>
+
+              <div style={wizardCardStyle}>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 10px" }}>How clear is the promotion bar today?</p>
+                <PromotionChoiceGroup value={form.rubricClarity} onChange={value => updateForm("rubricClarity", value)} options={PROMOTION_READINESS_OPTIONS.rubricClarity} />
+              </div>
+            </div>
+          )}
+
+          {step === 3 && (
+            <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+              <div style={wizardCardStyle}>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 8px" }}>Key projects and wins</p>
+                <textarea
+                  value={form.recentProjects}
+                  onChange={e => updateForm("recentProjects", e.target.value)}
+                  placeholder="List the few projects or initiatives that best prove you are already operating above your current level. Include scope, outcomes, and any metrics you can."
+                  style={{ ...wizardTextareaStyle, minHeight:190 }}
+                />
+              </div>
+
+              <div style={wizardCardStyle}>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 10px" }}>How far does your scope already extend?</p>
+                <PromotionChoiceGroup value={form.scopeLevel} onChange={value => updateForm("scopeLevel", value)} options={PROMOTION_READINESS_OPTIONS.scopeLevel} />
+              </div>
+
+              <div style={wizardCardStyle}>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 10px" }}>How strong is the measurable impact?</p>
+                <PromotionChoiceGroup value={form.impactLevel} onChange={value => updateForm("impactLevel", value)} options={PROMOTION_READINESS_OPTIONS.impactLevel} />
+              </div>
+            </div>
+          )}
+
+          {step === 4 && (
+            <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+              <div style={wizardCardStyle}>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 8px" }}>Recent review summary</p>
+                <textarea
+                  value={form.reviewSummary}
+                  onChange={e => updateForm("reviewSummary", e.target.value)}
+                  placeholder="Optional: paste review comments or summarize the feedback that matters most. If you do not have formal reviews, leave this light and move on."
+                  style={{ ...wizardTextareaStyle, minHeight:130 }}
+                />
+              </div>
+
+              <div style={wizardCardStyle}>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 10px" }}>Overall review signal</p>
+                <PromotionChoiceGroup value={form.reviewSignal} onChange={value => updateForm("reviewSignal", value)} options={PROMOTION_READINESS_OPTIONS.reviewSignal} />
+              </div>
+
+              <div style={wizardCardStyle}>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 10px" }}>How supportive is your manager?</p>
+                <PromotionChoiceGroup value={form.managerSupport} onChange={value => updateForm("managerSupport", value)} options={PROMOTION_READINESS_OPTIONS.managerSupport} />
+              </div>
+
+              <div style={wizardCardStyle}>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 10px" }}>How visible is your work to the people who matter?</p>
+                <PromotionChoiceGroup value={form.visibilityLevel} onChange={value => updateForm("visibilityLevel", value)} options={PROMOTION_READINESS_OPTIONS.visibilityLevel} />
+              </div>
+
+              <div style={wizardCardStyle}>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 8px" }}>What is still getting in the way?</p>
+                <textarea
+                  value={form.blockers}
+                  onChange={e => updateForm("blockers", e.target.value)}
+                  placeholder="Optional: unclear rubric, low visibility, missing metrics, manager hesitation, or not enough next-level scope. If nothing stands out, leave this blank."
+                  style={{ ...wizardTextareaStyle, minHeight:135 }}
+                />
+              </div>
+            </div>
+          )}
+
+          {error && (
+            <div style={{ marginTop:16, background:"rgba(127,29,29,0.2)", border:"1px solid rgba(248,113,113,0.28)", borderRadius:16, padding:"12px 14px", fontSize:13, color:"#FCA5A5" }}>
+              {error}
+            </div>
+          )}
+
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:10, marginTop:18, flexWrap:"wrap" }}>
+            <button
+              onClick={() => step === 1 ? setForm(PROMOTION_READINESS_DEFAULT_FORM) : goBack()}
+              style={{ padding:"14px 20px", borderRadius:14, border:"1px solid rgba(255,255,255,0.1)", background:"transparent", color:"rgba(255,255,255,0.45)", fontSize:14, fontWeight:600, cursor:"pointer" }}
+            >
+              {step === 1 ? "Clear answers" : "← Back"}
+            </button>
+            <button
+              onClick={() => { if (step === 4) void submit(); else goNext(); }}
+              disabled={submitting}
+              style={{ minWidth:230, fontSize:14.5, fontWeight:700, padding:"14px 18px", borderRadius:14, border:"none", background:"linear-gradient(135deg,#4361EE,#818CF8)", color:"white", cursor:"pointer", boxShadow:"0 8px 24px rgba(67,97,238,0.4)", transition:"all 0.2s", opacity:submitting ? 0.72 : 1 }}
+            >
+              {step === 4 ? submitLabel : "Continue →"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ScreenPromotionReadiness() {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [form, setForm] = useState<PromotionReadinessForm>(PROMOTION_READINESS_DEFAULT_FORM);
@@ -3326,93 +3736,7 @@ function ScreenPromotionReadiness() {
       if (data?.summary && typeof data.readinessScore === "number") {
         setResult(data);
         setResultTab("overview");
-        const promotionContextPayload: PromotionSharedContext = {
-          currentTitle: form.currentTitle,
-          desiredTitle: form.desiredTitle,
-          timeInRole: form.timeInRole,
-          roleDescription: form.roleDescription,
-          rubricClarity: form.rubricClarity,
-          recentProjects: form.recentProjects,
-          scopeLevel: form.scopeLevel,
-          impactLevel: form.impactLevel,
-          reviewSignal: form.reviewSignal,
-          reviewSummary: form.reviewSummary,
-          managerSupport: form.managerSupport,
-          visibilityLevel: form.visibilityLevel,
-          blockers: form.blockers,
-          readinessScore: data.readinessScore,
-          readinessVerdict: data.verdict,
-          readinessSummary: data.summary,
-          realityCheck: data.realityCheck,
-          scoreReason: data.scoreReason,
-          strengths: data.strengths,
-          gapAreas: data.gaps.map(item => item.area),
-          nextMoves: data.nextMoves,
-        };
-        const serialized = [
-          `Promotion readiness score: ${data.readinessScore}/100`,
-          `Verdict: ${data.verdict}`,
-          "",
-          data.summary,
-          "",
-          "Reality check",
-          data.realityCheck,
-          "",
-          "Why this score",
-          data.scoreReason,
-          "",
-          "Dimension breakdown",
-          ...data.dimensions.map(item => `- ${item.label}: ${item.score}/100 — ${item.reason}`),
-          "",
-          "Why you landed here",
-          ...data.rationale.map(item => `- ${item}`),
-          "",
-          "Strong signals",
-          ...data.strengths.map(item => `- ${item}`),
-          "",
-          "Gaps to close",
-          ...data.gaps.map(item => `- ${item.area}: ${item.why} | Next step: ${item.nextStep}`),
-          "",
-          "Questions for your manager",
-          ...data.managerQuestions.map(item => `- ${item}`),
-          "",
-          "Next moves",
-          ...data.nextMoves.map(item => `- ${item}`),
-          "",
-          "Action plan",
-          ...data.actionPlan.map(item => `- ${item.label}: ${item.action}`),
-          "",
-          "Example evidence",
-          ...data.exampleEvidence.map(item => `- ${item}`),
-        ].join("\n");
-        vaultSave({
-          type:"resume",
-          name:"Promotion Readiness Audit",
-          content:serialized,
-          meta:{
-            stage:"promotion",
-            desiredTitle: form.desiredTitle,
-            targetRole: form.desiredTitle,
-            currentTitle: form.currentTitle,
-            timeInRole: form.timeInRole,
-            roleDescription: form.roleDescription,
-            rubricClarity: form.rubricClarity,
-            recentProjects: form.recentProjects,
-            scopeLevel: form.scopeLevel,
-            impactLevel: form.impactLevel,
-            reviewSignal: form.reviewSignal,
-            reviewSummary: form.reviewSummary,
-            managerSupport: form.managerSupport,
-            visibilityLevel: form.visibilityLevel,
-            blockers: form.blockers,
-            verdict:data.verdict,
-            readinessScore:String(data.readinessScore),
-            summary:data.summary,
-            realityCheck:data.realityCheck,
-            scoreReason:data.scoreReason,
-            promotionContext: JSON.stringify(promotionContextPayload),
-          },
-        });
+        savePromotionReadinessAudit(form, data);
       } else {
         setError(data?.error ?? "Could not generate the readiness audit.");
       }
@@ -6573,6 +6897,27 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
     );
   }
 
+  if (!sharedContext && !sections) {
+    return (
+      <PromotionSharedIntakeFlow
+        sectionLabel="Manager Conversation"
+        sectionIntro="Use the same promotion intake once and Zari will turn it into both your readiness audit and your manager-conversation practice."
+        submitLabel="Build manager conversation →"
+        loadingTitle="Building your promotion context…"
+        loadingBody="Zari is scoring your promotion readiness first, then it will turn the same answers into a manager-conversation practice flow."
+        onComplete={(context) => {
+          setSharedContext(context);
+          setTargetLevel(context.desiredTitle);
+          setCriteriaText(buildPromotionCriteriaSeed(context));
+          setContextText(buildPromotionContextNote(context));
+          setEvidenceText(buildPromotionEvidenceSeed(context));
+          setSetupError("");
+          setAutoContext("");
+        }}
+      />
+    );
+  }
+
   if (!sections) {
     return (
       <div style={promotionPageStyle(theme)}>
@@ -7073,6 +7418,27 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
     a.click();
   }
 
+  if (!sharedContext && !result && !generating) {
+    return (
+      <PromotionSharedIntakeFlow
+        sectionLabel="Evidence Builder"
+        sectionIntro="This subsection uses the same promotion intake as readiness audit so Zari can reuse one consistent promotion case across every output."
+        submitLabel="Build evidence pack →"
+        loadingTitle="Building your promotion context…"
+        loadingBody="Zari is scoring your promotion readiness first, then it will turn the same answers into bullets, self-review language, and a manager brief."
+        onComplete={(context) => {
+          setSharedContext(context);
+          setTargetLevel(context.desiredTitle);
+          setCriteriaText(buildPromotionCriteriaSeed(context));
+          setContextText(buildPromotionContextNote(context));
+          setEvidenceText(buildPromotionEvidenceSeed(context));
+          setError("");
+          setAutoContext("");
+        }}
+      />
+    );
+  }
+
   if (result || generating) {
     return (
       <div style={promotionPageStyle(theme)}>
@@ -7539,6 +7905,47 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
       void generate();
     }
   }, [active, sharedContext, result, generating, contextKey, autoContext, targetLevel, evidenceText, stakeholders, blockers]);
+
+  if (!sharedContext && !result && !generating) {
+    return (
+      <PromotionSharedIntakeFlow
+        sectionLabel="Sponsor Strategy"
+        sectionIntro="This uses the same promotion intake as readiness audit so the sponsor plan is built from the same role bar, proof, support, and blocker context."
+        submitLabel="Build sponsor strategy →"
+        loadingTitle="Building your promotion context…"
+        loadingBody="Zari is scoring your promotion readiness first, then it will turn the same answers into a sponsor and visibility strategy."
+        onComplete={(context) => {
+          setSharedContext(context);
+          setTargetLevel(context.desiredTitle);
+          setEvidenceText(buildPromotionEvidenceSeed(context));
+          setStakeholders(buildPromotionStakeholderSeed(context));
+          setBlockers(buildPromotionBlockerNote(context));
+          setError("");
+          setAutoContext("");
+        }}
+      />
+    );
+  }
+
+  if (generating && !result) {
+    return (
+      <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#0A1628" }}>
+        <div style={{ maxWidth:760, margin:"0 auto", padding:"64px 24px 56px" }}>
+          <div style={{ background:"linear-gradient(135deg,#0D1321,#141E30)", borderRadius:20, padding:"72px 32px", textAlign:"center", boxShadow:"0 12px 48px rgba(0,0,0,0.22)", border:"1px solid rgba(255,255,255,0.07)" }}>
+            <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
+              {[0,1,2].map(i => (
+                <div key={i} style={{ width:11,height:11,borderRadius:"50%",background:"#818CF8",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite`, boxShadow:"0 0 10px rgba(129,140,248,0.5)" }}/>
+              ))}
+            </div>
+            <p style={{ fontSize:17, fontWeight:800, color:"white", marginBottom:8, letterSpacing:"-0.02em" }}>Building your sponsor strategy…</p>
+            <p style={{ fontSize:13.5, color:"rgba(255,255,255,0.42)", maxWidth:440, margin:"0 auto", lineHeight:1.6 }}>
+              Zari is mapping who matters, what they need to see, and which visibility moves will actually strengthen the promotion case.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (result) {
     return (
