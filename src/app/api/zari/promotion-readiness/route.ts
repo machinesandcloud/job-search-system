@@ -262,6 +262,29 @@ function safeParseLlmPayload(reply: string | null) {
   return null;
 }
 
+function hasStructuredReadinessPayload(parsed: LlmPayload | null) {
+  if (!parsed) return false;
+  const score = typeof parsed.readinessScore === "number"
+    ? parsed.readinessScore
+    : Number.parseInt(cleanString(parsed.readinessScore), 10);
+  return Number.isFinite(score)
+    && Boolean(cleanString(parsed.summary))
+    && Boolean(cleanString(parsed.realityCheck))
+    && Boolean(cleanString(parsed.scoreReason))
+    && Array.isArray(parsed.dimensions) && parsed.dimensions.length >= 5
+    && Array.isArray(parsed.rationale) && parsed.rationale.length >= 3
+    && Array.isArray(parsed.strengths) && parsed.strengths.length >= 3
+    && Array.isArray(parsed.gaps) && parsed.gaps.length >= 3
+    && Array.isArray(parsed.managerQuestions) && parsed.managerQuestions.length >= 4
+    && Array.isArray(parsed.nextMoves) && parsed.nextMoves.length >= 4
+    && Array.isArray(parsed.quickWins) && parsed.quickWins.length >= 3
+    && Array.isArray(parsed.evidenceChecklist) && parsed.evidenceChecklist.length >= 4
+    && Array.isArray(parsed.exampleEvidence) && parsed.exampleEvidence.length >= 3
+    && Boolean(cleanString(parsed.managerPitchExample))
+    && Array.isArray(parsed.actionPlan) && parsed.actionPlan.length >= 4
+    && Array.isArray(parsed.riskFlags) && parsed.riskFlags.length >= 3;
+}
+
 function looksLikeManagerTrack(title: string, roleDescription: string) {
   const haystack = `${title} ${roleDescription}`.toLowerCase();
   return /\b(manager|director|head|leadership|people leader|people management)\b/.test(haystack);
@@ -456,12 +479,18 @@ export async function POST(request: Request) {
   const systemPrompt = `You are Zari, a blunt, realistic promotion coach. Review the full questionnaire and judge how defensible the promotion case is today.
 
 Important:
+- Review every single input together. Do not anchor too heavily on one field.
+- The multiple-choice selections are self-reported signals, not proof by themselves.
+- The written inputs carry the most weight: the target role bar, the project evidence, the review summary, and the blocker context.
 - You must infer whether this target is an IC step, a technical leadership step, or a people-manager step from the title, rubric, and evidence.
 - Do NOT force people-management criteria onto IC promotions.
 - If the target clearly requires people leadership, organizational influence, or broader management scope, then demand that proof.
 - Score current readiness, not future potential.
 - Be honest and unsentimental. Do not inflate scores to be encouraging.
 - Vague answers, missing metrics, unclear promotion bars, weak support, and big level jumps should lower the score.
+- Placeholder answers like "not sure", "did a lot", "helped the team", short fragments, or generic filler are weak evidence and should drag the score down hard.
+- If the written evidence is vague, contradictory, or not promotion-grade, say that plainly. Do not reward someone just for filling the form.
+- Do not treat confidence, effort, or aspiration as evidence.
 - If the evidence is strong for a Staff/Principal/IC leadership track without direct reports, do not punish that just because there is no people management.
 
 Return ONLY valid JSON:
@@ -501,7 +530,10 @@ Rules:
 - Talk to the user as "you".
 - Never mention resumes, recruiting, or job search.
 - 3 rationale bullets, 3-5 strengths, 3-5 gaps, 4-6 manager questions, 4-6 next moves, 3 quickWins, 4-5 checklist items, 3 exampleEvidence bullets, 4 actionPlan items, and 3-4 riskFlags.
-- The dimension labels must be exactly: Role fit, Bar clarity, Evidence & impact, Support & visibility, Timing & risk.`;
+- The dimension labels must be exactly: Role fit, Bar clarity, Evidence & impact, Support & visibility, Timing & risk.
+- If the target role is materially above the evidence provided, say so directly.
+- If the input quality is weak, confusing, or incomplete, that should be visible in both the score and the written feedback.
+- Never "round up" because the user seems ambitious or because one dropdown implies strength.`;
 
   const messages = [
     { role: "system" as const, content: systemPrompt },
@@ -515,87 +547,67 @@ Rules:
     jsonMode: true,
   }));
 
-  if (!parsed) {
+  if (!hasStructuredReadinessPayload(parsed)) {
     parsed = safeParseLlmPayload(await openaiChat(
       [
         {
           role: "system" as const,
-          content: `${systemPrompt}\n\nKeep every field concise. Prefer short bullets and compact sentences so the JSON stays parseable.`,
+          content: `${systemPrompt}
+
+Your previous attempt was missing structure or was too generic.
+
+Repair instructions:
+- Re-evaluate the full questionnaire from scratch.
+- Keep every field concise and specific.
+- Do not output generic filler.
+- If the written evidence is weak or incoherent, score it low and say that clearly.`,
         },
-        { role: "user" as const, content: JSON.stringify(payload) },
+        {
+          role: "user" as const,
+          content: `QUESTIONNAIRE PAYLOAD:
+${JSON.stringify(payload)}
+
+PREVIOUS DRAFT:
+${parsed ? JSON.stringify(parsed) : "No usable draft was produced."}`,
+        },
       ],
       {
         model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
         temperature: 0.22,
-        maxTokens: 1800,
+        maxTokens: 2400,
         jsonMode: true,
       },
     ));
   }
 
-  const fallbackScore = estimateFallbackScore(body);
-  const fallback = buildFallback({
-    currentTitle: body.currentTitle,
-    desiredTitle: body.desiredTitle,
-    timeInRole: body.timeInRole,
-    roleDescription: body.roleDescription,
-    rubricClarity: body.rubricClarity,
-    recentProjects: body.recentProjects,
-    scopeLevel: body.scopeLevel,
-    impactLevel: body.impactLevel,
-    reviewSignal: body.reviewSignal,
-    reviewSummary: body.reviewSummary,
-    managerSupport: body.managerSupport,
-    visibilityLevel: body.visibilityLevel,
-    blockers: body.blockers,
-  }, fallbackScore);
-
-  if (!parsed) {
-    return NextResponse.json({
-      readinessScore: fallbackScore,
-      verdict: verdictForScore(fallbackScore),
-      summary: fallback.summary,
-      realityCheck: fallback.realityCheck,
-      scoreReason: fallback.scoreReason,
-      dimensions: fallback.dimensions,
-      rationale: fallback.rationale,
-      strengths: fallback.strengths,
-      gaps: fallback.gaps,
-      managerQuestions: fallback.managerQuestions,
-      nextMoves: fallback.nextMoves,
-      quickWins: fallback.quickWins,
-      evidenceChecklist: fallback.evidenceChecklist,
-      exampleEvidence: fallback.exampleEvidence,
-      managerPitchExample: fallback.managerPitchExample,
-      actionPlan: fallback.actionPlan,
-      riskFlags: fallback.riskFlags,
-    });
+  if (!hasStructuredReadinessPayload(parsed)) {
+    return NextResponse.json(
+      { error: "Could not generate a tailored readiness audit right now. Please retry." },
+      { status: 503 },
+    );
   }
 
-  const readinessScore = normalizeScore(parsed.readinessScore);
-  const verdict = normalizeVerdict(parsed.verdict, readinessScore);
+  const completedParsed = parsed!;
+  const readinessScore = normalizeScore(completedParsed.readinessScore);
+  const verdict = normalizeVerdict(completedParsed.verdict, readinessScore);
 
   return NextResponse.json({
     readinessScore,
     verdict,
-    summary: cleanString(parsed.summary) || fallback.summary,
-    realityCheck: cleanString(parsed.realityCheck) || fallback.realityCheck,
-    scoreReason: cleanString(parsed.scoreReason) || fallback.scoreReason,
-    dimensions: normalizeDimensions(parsed.dimensions, readinessScore).map((item, index) => fallback.dimensions[index] ? {
-      label: item.label,
-      score: item.score,
-      reason: item.reason || fallback.dimensions[index].reason,
-    } : item),
-    rationale: normalizeStringArray(parsed.rationale, fallback.rationale, 3, 4),
-    strengths: normalizeStringArray(parsed.strengths, fallback.strengths, 3, 5),
-    gaps: normalizeGaps(parsed.gaps, fallback.gaps),
-    managerQuestions: normalizeStringArray(parsed.managerQuestions, fallback.managerQuestions, 4, 6),
-    nextMoves: normalizeStringArray(parsed.nextMoves, fallback.nextMoves, 4, 6),
-    quickWins: normalizeQuickWins(parsed.quickWins, fallback.quickWins),
-    evidenceChecklist: normalizeStringArray(parsed.evidenceChecklist, fallback.evidenceChecklist, 4, 5),
-    exampleEvidence: normalizeStringArray(parsed.exampleEvidence, fallback.exampleEvidence, 3, 4),
-    managerPitchExample: cleanString(parsed.managerPitchExample) || fallback.managerPitchExample,
-    actionPlan: normalizeActionPlan(parsed.actionPlan, fallback.actionPlan),
-    riskFlags: normalizeStringArray(parsed.riskFlags, fallback.riskFlags, 3, 4),
+    summary: cleanString(completedParsed.summary),
+    realityCheck: cleanString(completedParsed.realityCheck),
+    scoreReason: cleanString(completedParsed.scoreReason),
+    dimensions: normalizeDimensions(completedParsed.dimensions, readinessScore),
+    rationale: normalizeStringArray(completedParsed.rationale, [], 3, 4),
+    strengths: normalizeStringArray(completedParsed.strengths, [], 3, 5),
+    gaps: normalizeGaps(completedParsed.gaps, []),
+    managerQuestions: normalizeStringArray(completedParsed.managerQuestions, [], 4, 6),
+    nextMoves: normalizeStringArray(completedParsed.nextMoves, [], 4, 6),
+    quickWins: normalizeQuickWins(completedParsed.quickWins, []),
+    evidenceChecklist: normalizeStringArray(completedParsed.evidenceChecklist, [], 4, 5),
+    exampleEvidence: normalizeStringArray(completedParsed.exampleEvidence, [], 3, 4),
+    managerPitchExample: cleanString(completedParsed.managerPitchExample),
+    actionPlan: normalizeActionPlan(completedParsed.actionPlan, []),
+    riskFlags: normalizeStringArray(completedParsed.riskFlags, [], 3, 4),
   });
 }
