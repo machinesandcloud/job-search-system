@@ -2707,28 +2707,28 @@ const PROMOTION_DISPLAY_FONT = "inherit";
 
 const PROMOTION_THEMES: Record<"readiness" | "conversation" | "evidence" | "visibility" | "toolkit" | "roadmap", PromotionTheme> = {
   readiness: {
-    accent: "#8B5CF6",
-    accent2: "#38BDF8",
+    accent: "#4361EE",
+    accent2: "#818CF8",
     hero: "linear-gradient(135deg,#0B1325 0%,#18243D 48%,#1D4ED8 100%)",
     baseA: "#070B15",
     baseB: "#10192B",
-    glowA: "rgba(139,92,246,0.24)",
-    glowB: "rgba(56,189,248,0.18)",
+    glowA: "rgba(67,97,238,0.24)",
+    glowB: "rgba(129,140,248,0.18)",
     chipBg: "rgba(15,23,42,0.42)",
-    chipBorder: "rgba(167,139,250,0.34)",
-    chipText: "#DDD6FE",
+    chipBorder: "rgba(129,140,248,0.34)",
+    chipText: "#C7D2FE",
   },
   conversation: {
-    accent: "#A855F7",
-    accent2: "#EC4899",
-    hero: "linear-gradient(135deg,#180F2B 0%,#34115D 55%,#7E22CE 100%)",
+    accent: "#D97706",
+    accent2: "#FBBF24",
+    hero: "linear-gradient(135deg,#1B1306 0%,#3B2507 55%,#B45309 100%)",
     baseA: "#090712",
     baseB: "#180C29",
-    glowA: "rgba(168,85,247,0.26)",
-    glowB: "rgba(236,72,153,0.18)",
-    chipBg: "rgba(46,16,101,0.34)",
-    chipBorder: "rgba(233,213,255,0.3)",
-    chipText: "#F3E8FF",
+    glowA: "rgba(217,119,6,0.24)",
+    glowB: "rgba(251,191,36,0.16)",
+    chipBg: "rgba(120,53,15,0.28)",
+    chipBorder: "rgba(251,191,36,0.28)",
+    chipText: "#FDE68A",
   },
   evidence: {
     accent: "#10B981",
@@ -2755,28 +2755,28 @@ const PROMOTION_THEMES: Record<"readiness" | "conversation" | "evidence" | "visi
     chipText: "#DBEAFE",
   },
   toolkit: {
-    accent: "#8B5CF6",
-    accent2: "#F59E0B",
-    hero: "linear-gradient(135deg,#0B1220 0%,#1E1B4B 52%,#7C3AED 100%)",
+    accent: "#475569",
+    accent2: "#94A3B8",
+    hero: "linear-gradient(135deg,#0B1220 0%,#1E293B 52%,#475569 100%)",
     baseA: "#070B14",
     baseB: "#10172A",
-    glowA: "rgba(124,58,237,0.24)",
-    glowB: "rgba(245,158,11,0.12)",
-    chipBg: "rgba(30,27,75,0.34)",
-    chipBorder: "rgba(196,181,253,0.24)",
-    chipText: "#EDE9FE",
+    glowA: "rgba(71,85,105,0.22)",
+    glowB: "rgba(148,163,184,0.14)",
+    chipBg: "rgba(30,41,59,0.32)",
+    chipBorder: "rgba(148,163,184,0.24)",
+    chipText: "#E2E8F0",
   },
   roadmap: {
-    accent: "#FB7185",
-    accent2: "#8B5CF6",
-    hero: "linear-gradient(135deg,#140A1B 0%,#22103E 48%,#7C3AED 100%)",
+    accent: "#E11D48",
+    accent2: "#FB7185",
+    hero: "linear-gradient(135deg,#1F0A12 0%,#3F1021 48%,#BE123C 100%)",
     baseA: "#090712",
     baseB: "#130C22",
-    glowA: "rgba(251,113,133,0.18)",
-    glowB: "rgba(139,92,246,0.22)",
-    chipBg: "rgba(59,7,100,0.28)",
-    chipBorder: "rgba(251,207,232,0.22)",
-    chipText: "#FCE7F3",
+    glowA: "rgba(225,29,72,0.18)",
+    glowB: "rgba(251,113,133,0.18)",
+    chipBg: "rgba(63,16,33,0.28)",
+    chipBorder: "rgba(251,113,133,0.22)",
+    chipText: "#FFE4E6",
   },
 };
 
@@ -2803,6 +2803,13 @@ type PromotionSharedContext = {
   gapAreas: string[];
   nextMoves: string[];
 };
+
+type PromotionCacheRecord<T> = {
+  contextKey: string;
+  payload: T;
+};
+
+const PROMOTION_CACHE_KEY = "zari-promotion-cache-v1";
 
 function promotionOptionLabel(options: readonly PromotionReadinessOption[], value: string) {
   return options.find(option => option.value === value)?.label ?? value;
@@ -2919,6 +2926,41 @@ function buildPromotionStakeholderSeed(context: PromotionSharedContext | null) {
     context.visibilityLevel === "decision_makers_see_it" ? "Decision-makers already aware of your impact" : "",
     context.visibilityLevel === "mostly_team" || context.visibilityLevel === "low_visibility" ? "Decision-makers who still need to see the case clearly" : "",
   ].filter(Boolean).join("\n");
+}
+
+function promotionContextKey(context: PromotionSharedContext | null) {
+  if (!context) return "";
+  return JSON.stringify({
+    currentTitle: context.currentTitle,
+    desiredTitle: context.desiredTitle,
+    roleDescription: context.roleDescription,
+    recentProjects: context.recentProjects,
+    reviewSummary: context.reviewSummary,
+    managerSupport: context.managerSupport,
+    visibilityLevel: context.visibilityLevel,
+    blockers: context.blockers,
+    readinessScore: context.readinessScore,
+    readinessVerdict: context.readinessVerdict,
+  });
+}
+
+function readPromotionCache<T>(key: string): PromotionCacheRecord<T> | null {
+  try {
+    const raw = JSON.parse(localStorage.getItem(PROMOTION_CACHE_KEY) ?? "{}") as Record<string, PromotionCacheRecord<T>>;
+    return raw[key] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function writePromotionCache<T>(key: string, record: PromotionCacheRecord<T>) {
+  try {
+    const raw = JSON.parse(localStorage.getItem(PROMOTION_CACHE_KEY) ?? "{}") as Record<string, PromotionCacheRecord<T>>;
+    raw[key] = record;
+    localStorage.setItem(PROMOTION_CACHE_KEY, JSON.stringify(raw));
+  } catch {
+    /* ignore */
+  }
 }
 
 function promotionPageStyle(theme: PromotionTheme) {
@@ -3090,6 +3132,41 @@ function PromotionHeroSpotlight({
   );
 }
 
+function PromotionInheritedContextBar({
+  context,
+  accent,
+  label = "Using your readiness audit",
+}: {
+  context: PromotionSharedContext | null;
+  accent: string;
+  label?: string;
+}) {
+  if (!context) return null;
+  const roleMove = [context.currentTitle, context.desiredTitle].filter(Boolean).join(" -> ");
+  return (
+    <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:18 }}>
+      <span style={{ fontSize:10.5, fontWeight:800, letterSpacing:"0.08em", textTransform:"uppercase", padding:"6px 10px", borderRadius:999, background:"#EEF2FF", color:"#4F46E5", border:"1px solid #C7D2FE" }}>
+        {label}
+      </span>
+      {roleMove && (
+        <span style={{ fontSize:11.5, fontWeight:700, padding:"6px 10px", borderRadius:999, background:"white", color:"#334155", border:"1px solid #E2E8F0" }}>
+          {roleMove}
+        </span>
+      )}
+      {context.readinessScore !== null && context.readinessScore !== undefined && (
+        <span style={{ fontSize:11.5, fontWeight:700, padding:"6px 10px", borderRadius:999, background:"white", color:accent, border:`1px solid ${accent}22` }}>
+          Audit {context.readinessScore}/100
+        </span>
+      )}
+      {context.readinessVerdict && (
+        <span style={{ fontSize:11.5, fontWeight:700, padding:"6px 10px", borderRadius:999, background:"white", color:"#475569", border:"1px solid #E2E8F0" }}>
+          {context.readinessVerdict}
+        </span>
+      )}
+    </div>
+  );
+}
+
 function PromotionChoiceGroup({
   value,
   onChange,
@@ -3230,18 +3307,6 @@ function ScreenPromotionReadiness() {
   function goBack() {
     setError("");
     setStep(prev => Math.max(1, prev - 1) as 1 | 2 | 3 | 4);
-  }
-
-  function blocksFromText(value: string, emptyFallback: string) {
-    const blocks = value
-      .split(/\n+/)
-      .map(item => item.trim())
-      .filter(Boolean);
-    return blocks.length ? blocks : [emptyFallback];
-  }
-
-  function optionLabel(options: readonly PromotionReadinessOption[], value: string) {
-    return options.find(option => option.value === value)?.label ?? value;
   }
 
   async function generate() {
@@ -3394,18 +3459,6 @@ function ScreenPromotionReadiness() {
       { id:"conversation", label:"Manager Plan", badge:String(result.managerQuestions.length) },
       { id:"examples", label:"Examples" },
     ];
-    const roleBlocks = blocksFromText(form.roleDescription, "No promotion bar or rubric was provided.");
-    const evidenceBlocks = blocksFromText(form.recentProjects, "No project evidence was provided.");
-    const reviewBlocks = blocksFromText(form.reviewSummary, "No recent review details were provided.");
-    const blockerBlocks = blocksFromText(form.blockers, "No blockers were listed.");
-    const readinessSignals = [
-      { label:"Current role", value:form.currentTitle || "Not provided" },
-      { label:"Target role", value:form.desiredTitle || "Not provided" },
-      { label:"Time in role", value:optionLabel(PROMOTION_READINESS_OPTIONS.timeInRole, form.timeInRole) || "Not provided" },
-      { label:"Bar clarity", value:optionLabel(PROMOTION_READINESS_OPTIONS.rubricClarity, form.rubricClarity) || "Not provided" },
-      { label:"Manager support", value:optionLabel(PROMOTION_READINESS_OPTIONS.managerSupport, form.managerSupport) || "Not provided" },
-      { label:"Visibility", value:optionLabel(PROMOTION_READINESS_OPTIONS.visibilityLevel, form.visibilityLevel) || "Not provided" },
-    ];
     const panelCardStyle = {
       borderRadius:20,
       border:"1px solid #E4E8F5",
@@ -3430,90 +3483,6 @@ function ScreenPromotionReadiness() {
       transition:"all 0.16s ease",
       flex:1,
     });
-    const sourcePillStyle = {
-      fontSize:10.5,
-      fontWeight:800,
-      color:"#6D4CFF",
-      textTransform:"uppercase" as const,
-      letterSpacing:"0.08em",
-      padding:"5px 9px",
-      borderRadius:999,
-      background:"rgba(109,76,255,0.09)",
-      border:"1px solid rgba(109,76,255,0.16)",
-    };
-    const sourceWindowStyle = {
-      borderRadius:20,
-      border:"1px solid #DCE2F3",
-      background:"rgba(255,255,255,0.88)",
-      padding:"18px 18px 16px",
-      minHeight:260,
-      boxShadow:"inset 0 1px 0 rgba(255,255,255,0.7)",
-    };
-    const statBoxStyle = {
-      borderRadius:14,
-      border:"1px solid #E4E8F5",
-      background:"white",
-      padding:"11px 12px",
-    };
-    const renderTextWindow = (blocks: string[], tone: "default" | "warn" = "default") => (
-      <div style={{ ...sourceWindowStyle, border: tone === "warn" ? "1px solid #FCD34D" : "1px solid #DCE2F3", background: tone === "warn" ? "linear-gradient(180deg,#FFFDF7 0%,#FFF7E8 100%)" : "rgba(255,255,255,0.88)" }}>
-        {blocks.map((item, index) => (
-          <p key={`${item}-${index}`} style={{ fontSize:14.5, color:tone === "warn" ? "#7C3D12" : "#334155", lineHeight:1.9, margin:index === 0 ? 0 : "18px 0 0" }}>
-            {item}
-          </p>
-        ))}
-      </div>
-    );
-
-    const sourceSnapshot = (
-      <div style={{ ...panelCardStyle, padding:"20px 22px 22px" }}>
-        <div style={{ fontSize:11, fontWeight:800, color:"#6D4CFF", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>What Zari reviewed</div>
-        <p style={{ fontSize:14, color:"#536276", lineHeight:1.75, margin:"0 0 16px" }}>
-          The audit is based on the role bar you gave, the proof you wrote, and the feedback/support context around the promotion.
-        </p>
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))", gap:10, marginBottom:16 }}>
-          {readinessSignals.map(item => (
-            <div key={item.label} style={statBoxStyle}>
-              <div style={{ fontSize:10.5, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:6 }}>{item.label}</div>
-              <div style={{ fontSize:12.8, color:"#0F172A", lineHeight:1.65, fontWeight:700 }}>{item.value}</div>
-            </div>
-          ))}
-        </div>
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))", gap:16 }}>
-          <div>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:10 }}>
-              <span style={sourcePillStyle}>Promotion bar</span>
-              <span style={{ fontSize:12, color:"#64748B" }}>{optionLabel(PROMOTION_READINESS_OPTIONS.rubricClarity, form.rubricClarity)}</span>
-            </div>
-            {renderTextWindow(roleBlocks)}
-          </div>
-
-          <div>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:10 }}>
-              <span style={sourcePillStyle}>Your evidence</span>
-              <span style={{ fontSize:12, color:"#64748B" }}>{optionLabel(PROMOTION_READINESS_OPTIONS.impactLevel, form.impactLevel)}</span>
-            </div>
-            {renderTextWindow(evidenceBlocks)}
-          </div>
-
-          <div>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:10 }}>
-              <span style={sourcePillStyle}>Feedback</span>
-              <span style={{ fontSize:12, color:"#64748B" }}>{optionLabel(PROMOTION_READINESS_OPTIONS.reviewSignal, form.reviewSignal)}</span>
-            </div>
-            {renderTextWindow(reviewBlocks)}
-          </div>
-
-          <div>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:10 }}>
-              <span style={sourcePillStyle}>Blockers</span>
-              <span style={{ fontSize:12, color:"#64748B" }}>{blockerBlocks.length} noted</span>
-            </div>
-            {renderTextWindow(blockerBlocks, "warn")}
-          </div>
-        </div>
-      </div>
-    );
 
     return (
       <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F0F2F8" }}>
@@ -3600,8 +3569,6 @@ function ScreenPromotionReadiness() {
                   <div style={{ fontSize:14.5, color:"#536276", lineHeight:1.75 }}>
                     This is not a potential score. It reflects how a blunt reviewer would judge the case today based on the actual answers you gave.
                   </div>
-
-                  {sourceSnapshot}
 
                   <div style={{ ...panelCardStyle, overflow:"hidden" }}>
                     <div style={{ display:"grid", gridTemplateColumns:"minmax(180px,0.8fr) 120px minmax(240px,1fr) minmax(240px,1fr)", gap:0, padding:"14px 18px", borderBottom:"1px solid #E7EAF6", background:"#F8FAFF" }}>
@@ -5888,8 +5855,8 @@ function dimColor(score: number) {
   return "#DC2626";
 }
 
-function ScreenInterview({ stage }: { stage: CareerStage }) {
-  if (stage === "promotion") return <ScreenPromotionPitch />;
+function ScreenInterview({ stage, active = false }: { stage: CareerStage; active?: boolean }) {
+  if (stage === "promotion") return <ScreenPromotionPitch active={active} />;
 
   const [setupDone,    setSetupDone]    = useState(false);
   const [resumeText,   setResumeText]   = useState("");
@@ -6382,7 +6349,7 @@ const PROMOTION_PRACTICE_META: Record<PromotionPracticeMode, {
   },
 };
 
-function ScreenPromotionPitch() {
+function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
   const [evidenceText, setEvidenceText] = useState("");
   const [evidenceFile, setEvidenceFile] = useState("");
   const [criteriaText, setCriteriaText] = useState("");
@@ -6398,8 +6365,10 @@ function ScreenPromotionPitch() {
   const [answer, setAnswer] = useState("");
   const [feedback, setFeedback] = useState<InterviewFeedback | null>(null);
   const [isScoring, setIsScoring] = useState(false);
+  const [autoContext, setAutoContext] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const theme = PROMOTION_THEMES.conversation;
+  const contextKey = promotionContextKey(sharedContext);
 
   useEffect(() => {
     const sync = () => setSharedContext(readPromotionSharedContext());
@@ -6466,6 +6435,18 @@ function ScreenPromotionPitch() {
         setQIdx(0);
         setAnswer("");
         setFeedback(null);
+        if (contextKey && mode === "manager") {
+          writePromotionCache("promotion-manager-conversation", {
+            contextKey,
+            payload: {
+              sections: data.sections,
+              evidenceText: seededEvidence,
+              criteriaText: seededCriteria,
+              contextText: contextText.trim() || buildPromotionContextNote(sharedContext),
+              targetLevel: targetLevel || sharedContext?.desiredTitle || "",
+            },
+          });
+        }
       } else {
         setSetupError(data.error ?? "Could not generate promotion questions. Try again.");
       }
@@ -6474,6 +6455,38 @@ function ScreenPromotionPitch() {
     }
     setLoadingQs(false);
   }
+
+  useEffect(() => {
+    if (!active || !sharedContext || sections || loadingQs) return;
+    if (contextKey && autoContext === contextKey) return;
+
+    const cached = readPromotionCache<{
+      sections: InterviewSection[];
+      evidenceText: string;
+      criteriaText: string;
+      contextText: string;
+      targetLevel: string;
+    }>("promotion-manager-conversation");
+
+    if (cached && cached.contextKey === contextKey && cached.payload.sections?.length) {
+      setEvidenceText(cached.payload.evidenceText);
+      setCriteriaText(cached.payload.criteriaText);
+      setContextText(cached.payload.contextText);
+      setTargetLevel(cached.payload.targetLevel);
+      setSections(cached.payload.sections);
+      setActiveSectionIdx(0);
+      setQIdx(0);
+      setAnswer("");
+      setFeedback(null);
+      setAutoContext(contextKey);
+      return;
+    }
+
+    if (sharedContext.desiredTitle || sharedContext.recentProjects || sharedContext.roleDescription) {
+      setAutoContext(contextKey);
+      void startPractice();
+    }
+  }, [active, sharedContext, sections, loadingQs, contextKey, autoContext, targetLevel, contextText, criteriaText, evidenceText]);
 
   async function submit() {
     const currentQuestion = sections?.[activeSectionIdx]?.questions?.[qIdx];
@@ -6540,6 +6553,26 @@ function ScreenPromotionPitch() {
     }
   }
 
+  if (loadingQs && !sections) {
+    return (
+      <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F0F2F8" }}>
+        <div style={{ maxWidth:820, margin:"0 auto", padding:"64px 24px 56px" }}>
+          <div style={{ background:"linear-gradient(135deg,#1A1240 0%,#0D1321 62%,#111827 100%)", borderRadius:24, padding:"74px 32px", textAlign:"center", boxShadow:"0 12px 48px rgba(0,0,0,0.22)", border:"1px solid rgba(255,255,255,0.07)" }}>
+            <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
+              {[0,1,2].map(i => (
+                <div key={i} style={{ width:11, height:11, borderRadius:"50%", background:"#F59E0B", animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite`, boxShadow:"0 0 10px rgba(245,158,11,0.35)" }}/>
+              ))}
+            </div>
+            <p style={{ fontSize:17, fontWeight:800, color:"white", marginBottom:8, letterSpacing:"-0.02em" }}>Building your manager conversation</p>
+            <p style={{ fontSize:13.5, color:"rgba(255,255,255,0.44)", maxWidth:460, margin:"0 auto", lineHeight:1.6 }}>
+              Zari is turning your readiness audit into role-specific questions so you can practice the actual conversation instead of filling the same context in again.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!sections) {
     return (
       <div style={promotionPageStyle(theme)}>
@@ -6581,33 +6614,7 @@ function ScreenPromotionPitch() {
           </div>
 
           <div style={{ display:"grid", gap:18 }}>
-            {sharedContext && (
-              <div style={{ ...promotionPanelStyle(theme, true), padding:"16px 18px" }}>
-                <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
-                  <div>
-                    <div style={{ fontSize:11.5, fontWeight:800, color:theme.accent, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Pulled from Readiness Audit</div>
-                    <div style={{ fontSize:22, lineHeight:1.08, fontWeight:800, color:"#0F172A", letterSpacing:"-0.03em", marginBottom:8 }}>
-                      {sharedContext.currentTitle || "Current role"} {sharedContext.desiredTitle ? `-> ${sharedContext.desiredTitle}` : ""}
-                    </div>
-                    <p style={{ fontSize:13, color:"#475569", lineHeight:1.7, margin:0, maxWidth:720 }}>
-                      The target role, rubric, strongest wins, and readiness context from your audit were carried into this practice setup so you can sharpen the conversation instead of rebuilding the case from scratch.
-                    </p>
-                  </div>
-                  <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-                    {sharedContext.readinessScore !== null && (
-                      <span style={{ fontSize:11.5, fontWeight:800, padding:"6px 10px", borderRadius:999, background:"#EEF2FF", color:"#4F46E5", border:"1px solid #C7D2FE" }}>
-                        Audit {sharedContext.readinessScore}/100
-                      </span>
-                    )}
-                    {sharedContext.readinessVerdict && (
-                      <span style={{ fontSize:11.5, fontWeight:800, padding:"6px 10px", borderRadius:999, background:"#F8FAFC", color:"#475569", border:"1px solid #E2E8F0" }}>
-                        {sharedContext.readinessVerdict}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
+            <PromotionInheritedContextBar context={sharedContext} accent={theme.accent} label="Readiness data loaded" />
 
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(320px,1fr))", gap:18, alignItems:"start" }}>
               <div style={promotionPanelStyle(theme, true)}>
@@ -6870,9 +6877,9 @@ type PromotionDocResult = {
   managerBrief: string;
 };
 
-type PromotionDocTab = "overview" | "bullets" | "self" | "manager" | "reviewed";
+type PromotionDocTab = "overview" | "bullets" | "self" | "manager";
 
-function ScreenPromotionDocument() {
+function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
   const [evidenceText, setEvidenceText] = useState("");
   const [evidenceFile, setEvidenceFile] = useState("");
   const [criteriaText, setCriteriaText] = useState("");
@@ -6884,8 +6891,10 @@ function ScreenPromotionDocument() {
   const [resultTab, setResultTab] = useState<PromotionDocTab>("overview");
   const [error, setError] = useState("");
   const [copiedSection, setCopiedSection] = useState<"bullets" | "self" | "manager" | null>(null);
+  const [autoContext, setAutoContext] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const theme = PROMOTION_THEMES.evidence;
+  const contextKey = promotionContextKey(sharedContext);
 
   useEffect(() => {
     const sync = () => setSharedContext(readPromotionSharedContext());
@@ -6944,6 +6953,18 @@ function ScreenPromotionDocument() {
       if (data?.selfReview && data.managerBrief) {
         setResult(data);
         setResultTab("overview");
+        if (contextKey) {
+          writePromotionCache("promotion-evidence-builder", {
+            contextKey,
+            payload: {
+              result: data,
+              evidenceText: seededEvidence,
+              criteriaText: seededCriteria,
+              contextText: contextText.trim() || buildPromotionContextNote(sharedContext),
+              targetLevel: targetLevel || sharedContext?.desiredTitle || "",
+            },
+          });
+        }
         const serialized = [
           "Overview",
           data.overview,
@@ -6983,6 +7004,35 @@ function ScreenPromotionDocument() {
     }
     setGenerating(false);
   }
+
+  useEffect(() => {
+    if (!active || !sharedContext || result || generating) return;
+    if (contextKey && autoContext === contextKey) return;
+
+    const cached = readPromotionCache<{
+      result: PromotionDocResult;
+      evidenceText: string;
+      criteriaText: string;
+      contextText: string;
+      targetLevel: string;
+    }>("promotion-evidence-builder");
+
+    if (cached && cached.contextKey === contextKey && cached.payload.result) {
+      setEvidenceText(cached.payload.evidenceText);
+      setCriteriaText(cached.payload.criteriaText);
+      setContextText(cached.payload.contextText);
+      setTargetLevel(cached.payload.targetLevel);
+      setResult(cached.payload.result);
+      setResultTab("overview");
+      setAutoContext(contextKey);
+      return;
+    }
+
+    if (sharedContext.desiredTitle || sharedContext.recentProjects || sharedContext.roleDescription) {
+      setAutoContext(contextKey);
+      void generate();
+    }
+  }, [active, sharedContext, result, generating, contextKey, autoContext, targetLevel, criteriaText, contextText, evidenceText]);
 
   async function copy(text: string, section: "bullets" | "self" | "manager") {
     try {
@@ -7099,7 +7149,6 @@ function ScreenPromotionDocument() {
                     { id:"bullets", label:`Impact Bullets ${result.impactBullets.length}` },
                     { id:"self", label:"Self Review" },
                     { id:"manager", label:"Manager Brief" },
-                    { id:"reviewed", label:"What Zari Reviewed" },
                   ].map(tab => {
                     const active = resultTab === tab.id;
                     return (
@@ -7217,28 +7266,6 @@ function ScreenPromotionDocument() {
                       </div>
                     </div>
                   )}
-
-                  {resultTab === "reviewed" && (
-                    <div style={{ display:"grid", gap:16 }}>
-                      <div style={{ ...promotionPanelStyle(theme, true), padding:"18px 20px 16px" }}>
-                        <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>What Zari reviewed</div>
-                        <div style={{ display:"grid", gap:14 }}>
-                          {[
-                            { label:"Promotion evidence", value:evidenceText.trim() || buildPromotionEvidenceSeed(sharedContext) || "No evidence text provided." },
-                            { label:"Promotion bar", value:criteriaText.trim() || buildPromotionCriteriaSeed(sharedContext) || "No rubric or criteria provided." },
-                            { label:"Context", value:contextText.trim() || buildPromotionContextSeed(sharedContext) || "No extra context provided." },
-                          ].map(section => (
-                            <div key={section.label}>
-                              <div style={{ fontSize:10.5, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>{section.label}</div>
-                              <div style={{ fontSize:13.3, color:"#334155", lineHeight:1.75, padding:"13px 14px", borderRadius:16, background:"#FAFBFF", border:"1px solid #E4E8F5", whiteSpace:"pre-wrap" }}>
-                                {section.value}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             </>
@@ -7281,33 +7308,7 @@ function ScreenPromotionDocument() {
           </div>
         </div>
 
-        {sharedContext && (
-          <div style={{ ...promotionPanelStyle(theme, true), marginBottom:18, padding:"16px 18px" }}>
-            <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
-              <div>
-                <div style={{ fontSize:11.5, fontWeight:800, color:theme.accent, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Using Your Readiness Audit</div>
-                <div style={{ fontSize:22, lineHeight:1.08, fontWeight:800, color:"#0F172A", letterSpacing:"-0.03em", marginBottom:8 }}>
-                  {sharedContext.currentTitle || "Current role"} {sharedContext.desiredTitle ? `-> ${sharedContext.desiredTitle}` : ""}
-                </div>
-                <p style={{ fontSize:13, color:"#475569", lineHeight:1.7, margin:0, maxWidth:720 }}>
-                  The role, rubric, strongest wins, and audit guidance were preloaded here. Edit the inputs if you want, but you should not have to restate the whole case.
-                </p>
-              </div>
-              <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-                {sharedContext.readinessScore !== null && (
-                  <span style={{ fontSize:11.5, fontWeight:800, padding:"6px 10px", borderRadius:999, background:"#EEF2FF", color:"#4F46E5", border:"1px solid #C7D2FE" }}>
-                    Audit {sharedContext.readinessScore}/100
-                  </span>
-                )}
-                {sharedContext.readinessVerdict && (
-                  <span style={{ fontSize:11.5, fontWeight:800, padding:"6px 10px", borderRadius:999, background:"#F8FAFC", color:"#475569", border:"1px solid #E2E8F0" }}>
-                    {sharedContext.readinessVerdict}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
+        <PromotionInheritedContextBar context={sharedContext} accent={theme.accent} />
 
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(320px,1fr))", gap:18, alignItems:"start" }}>
           <div style={promotionPanelStyle(theme, true)}>
@@ -7382,9 +7383,9 @@ type PromotionVisibilityResult = {
   watchouts: string[];
 };
 
-type PromotionVisibilityTab = "overview" | "moves" | "sponsors" | "cadence" | "reviewed";
+type PromotionVisibilityTab = "overview" | "moves" | "sponsors" | "cadence";
 
-function ScreenPromotionVisibility() {
+function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
   const [evidenceText, setEvidenceText] = useState("");
   const [evidenceFile, setEvidenceFile] = useState("");
   const [targetLevel, setTargetLevel] = useState("");
@@ -7395,8 +7396,10 @@ function ScreenPromotionVisibility() {
   const [error, setError] = useState("");
   const [result, setResult] = useState<PromotionVisibilityResult | null>(null);
   const [resultTab, setResultTab] = useState<PromotionVisibilityTab>("overview");
+  const [autoContext, setAutoContext] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const theme = PROMOTION_THEMES.visibility;
+  const contextKey = promotionContextKey(sharedContext);
 
   useEffect(() => {
     const sync = () => setSharedContext(readPromotionSharedContext());
@@ -7454,6 +7457,18 @@ function ScreenPromotionVisibility() {
       if (data?.overallFocus) {
         setResult(data);
         setResultTab("overview");
+        if (contextKey) {
+          writePromotionCache("promotion-sponsor-strategy", {
+            contextKey,
+            payload: {
+              result: data,
+              evidenceText: seededEvidence,
+              stakeholders: seededStakeholders,
+              blockers: blockers.trim() || buildPromotionBlockerNote(sharedContext),
+              targetLevel: targetLevel || sharedContext?.desiredTitle || "",
+            },
+          });
+        }
         const serialized = [
           data.overallFocus,
           "",
@@ -7495,6 +7510,35 @@ function ScreenPromotionVisibility() {
     }
     setGenerating(false);
   }
+
+  useEffect(() => {
+    if (!active || !sharedContext || result || generating) return;
+    if (contextKey && autoContext === contextKey) return;
+
+    const cached = readPromotionCache<{
+      result: PromotionVisibilityResult;
+      evidenceText: string;
+      stakeholders: string;
+      blockers: string;
+      targetLevel: string;
+    }>("promotion-sponsor-strategy");
+
+    if (cached && cached.contextKey === contextKey && cached.payload.result) {
+      setEvidenceText(cached.payload.evidenceText);
+      setStakeholders(cached.payload.stakeholders);
+      setBlockers(cached.payload.blockers);
+      setTargetLevel(cached.payload.targetLevel);
+      setResult(cached.payload.result);
+      setResultTab("overview");
+      setAutoContext(contextKey);
+      return;
+    }
+
+    if (sharedContext.desiredTitle || sharedContext.recentProjects || sharedContext.roleDescription) {
+      setAutoContext(contextKey);
+      void generate();
+    }
+  }, [active, sharedContext, result, generating, contextKey, autoContext, targetLevel, evidenceText, stakeholders, blockers]);
 
   if (result) {
     return (
@@ -7557,7 +7601,6 @@ function ScreenPromotionVisibility() {
                 { id:"moves", label:`Visibility Moves ${result.visibilityMoves.length}` },
                 { id:"sponsors", label:`Sponsor Map ${result.sponsorMap.length}` },
                 { id:"cadence", label:"Cadence + Watchouts" },
-                { id:"reviewed", label:"What Zari Reviewed" },
               ].map(tab => {
                 const active = resultTab === tab.id;
                 return (
@@ -7657,26 +7700,6 @@ function ScreenPromotionVisibility() {
                   </div>
                 </div>
               )}
-
-              {resultTab === "reviewed" && (
-                <div style={{ ...promotionPanelStyle(theme, true), padding:"18px 20px 16px" }}>
-                  <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>What Zari reviewed</div>
-                  <div style={{ display:"grid", gap:14 }}>
-                    {[
-                      { label:"Evidence", value:evidenceText.trim() || buildPromotionEvidenceSeed(sharedContext) || "No evidence provided." },
-                      { label:"Stakeholders", value:stakeholders.trim() || buildPromotionStakeholderSeed(sharedContext) || "No stakeholder map provided." },
-                      { label:"Blockers and audit context", value:blockers.trim() || buildPromotionContextSeed(sharedContext) || "No blockers provided." },
-                    ].map(section => (
-                      <div key={section.label}>
-                        <div style={{ fontSize:10.5, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>{section.label}</div>
-                        <div style={{ fontSize:13.3, color:"#334155", lineHeight:1.75, padding:"13px 14px", borderRadius:16, background:"#FAFBFF", border:"1px solid #E4E8F5", whiteSpace:"pre-wrap" }}>
-                          {section.value}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -7717,33 +7740,7 @@ function ScreenPromotionVisibility() {
           </div>
         </div>
 
-        {sharedContext && (
-          <div style={{ ...promotionPanelStyle(theme, true), marginBottom:18, padding:"16px 18px" }}>
-            <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
-              <div>
-                <div style={{ fontSize:11.5, fontWeight:800, color:theme.accent, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Using Your Readiness Audit</div>
-                <div style={{ fontSize:22, lineHeight:1.08, fontWeight:800, color:"#0F172A", letterSpacing:"-0.03em", marginBottom:8 }}>
-                  {sharedContext.currentTitle || "Current role"} {sharedContext.desiredTitle ? `-> ${sharedContext.desiredTitle}` : ""}
-                </div>
-                <p style={{ fontSize:13, color:"#475569", lineHeight:1.7, margin:0, maxWidth:720 }}>
-                  The sponsor strategy starts with your audited role, proof, blockers, and visibility signal. You can add names and politics, but the baseline context is already here.
-                </p>
-              </div>
-              <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-                {sharedContext.readinessScore !== null && (
-                  <span style={{ fontSize:11.5, fontWeight:800, padding:"6px 10px", borderRadius:999, background:"#EEF2FF", color:"#4F46E5", border:"1px solid #C7D2FE" }}>
-                    Audit {sharedContext.readinessScore}/100
-                  </span>
-                )}
-                {sharedContext.readinessVerdict && (
-                  <span style={{ fontSize:11.5, fontWeight:800, padding:"6px 10px", borderRadius:999, background:"#F8FAFC", color:"#475569", border:"1px solid #E2E8F0" }}>
-                    {sharedContext.readinessVerdict}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
+        <PromotionInheritedContextBar context={sharedContext} accent={theme.accent} />
 
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(320px,1fr))", gap:18, alignItems:"start" }}>
           <div style={promotionPanelStyle(theme, true)}>
@@ -7806,8 +7803,8 @@ function ScreenPromotionVisibility() {
   );
 }
 
-function ScreenLinkedIn({ stage }: { stage: CareerStage }) {
-  if (stage === "promotion") return <ScreenPromotionVisibility />;
+function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?: boolean }) {
+  if (stage === "promotion") return <ScreenPromotionVisibility active={active} />;
 
   type LINav = "score"|"headline"|"summary"|"experience"|"education"|"other"|"networking"|"keywords";
   const [liSection,      setLISection]      = useState<LINav>("score");
@@ -9092,8 +9089,8 @@ const STAGE_TASKS: Record<CareerStage, { text:string; cat:string; pri:string }[]
 /* ═══════════════════════════════════════════════════
    SCREEN: COVER LETTER
 ═══════════════════════════════════════════════════ */
-function ScreenCoverLetter({ stage }: { stage: CareerStage }) {
-  if (stage === "promotion") return <ScreenPromotionDocument />;
+function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; active?: boolean }) {
+  if (stage === "promotion") return <ScreenPromotionDocument active={active} />;
 
   const [step,          setStep]          = useState(1); // 1=background, 2=jd, 3=customize
   const [profileText,   setProfileText]   = useState("");
@@ -9526,12 +9523,13 @@ function ScreenCoverLetter({ stage }: { stage: CareerStage }) {
 ═══════════════════════════════════════════════════ */
 type PlanTask = { text: string; cat: string; pri: string };
 
-function ScreenPromotionRoadmap({ onNavigate }: { onNavigate: (s: string) => void }) {
+function ScreenPromotionRoadmap({ onNavigate, active = false }: { onNavigate: (s: string) => void; active?: boolean }) {
   const [done, setDone] = useState<Set<number>>(new Set());
   const [aiTasks, setAiTasks] = useState<PlanTask[] | null>(null);
   const [aiCoachNote, setAiCoachNote] = useState<string | null>(null);
   const [planLoading, setPlanLoading] = useState(false);
   const [docs, setDocs] = useState<DocEntry[]>([]);
+  const [autoContext, setAutoContext] = useState("");
   const theme = PROMOTION_THEMES.roadmap;
 
   useEffect(() => {
@@ -9546,6 +9544,17 @@ function ScreenPromotionRoadmap({ onNavigate }: { onNavigate: (s: string) => voi
   const hasCL = docs.some(d => d.type === "cover-letter");
   const readyCount = [hasResume, hasLI, hasCL].filter(Boolean).length;
   const isReady = readyCount >= 1;
+  const roadmapContextKey = JSON.stringify(docs
+    .filter(d => d.type === "resume" || d.type === "linkedin" || d.type === "cover-letter")
+    .map(d => ({
+      id: d.id,
+      type: d.type,
+      createdAt: d.createdAt,
+      targetRole: d.meta.targetRole ?? "",
+      targetLevel: d.meta.targetLevel ?? "",
+      readinessScore: d.meta.readinessScore ?? d.meta.score ?? "",
+      verdict: d.meta.verdict ?? "",
+    })));
 
   const SECTION_CARDS = [
     { key:"resume", label:"Readiness Audit", desc:"Figure out whether you are genuinely ready now or still need more proof.", color:"#8B5CF6", done:hasResume },
@@ -9554,11 +9563,23 @@ function ScreenPromotionRoadmap({ onNavigate }: { onNavigate: (s: string) => voi
   ];
 
   useEffect(() => {
-    if (!isReady) return;
+    if (!active || !isReady || planLoading) return;
+    if (roadmapContextKey && autoContext === roadmapContextKey) return;
+
+    const cached = readPromotionCache<{ tasks: PlanTask[]; coachNote: string | null }>("promotion-roadmap");
+    if (cached && cached.contextKey === roadmapContextKey && cached.payload.tasks?.length) {
+      setDone(new Set());
+      setAiTasks(cached.payload.tasks);
+      setAiCoachNote(cached.payload.coachNote ?? null);
+      setAutoContext(roadmapContextKey);
+      return;
+    }
+
     setDone(new Set());
     setAiTasks(null);
     setAiCoachNote(null);
     setPlanLoading(true);
+    setAutoContext(roadmapContextKey);
     const resumeDoc = docs.find(d => d.type === "resume");
     const liDoc = docs.find(d => d.type === "linkedin");
     const clDoc = docs.find(d => d.type === "cover-letter");
@@ -9585,11 +9606,18 @@ function ScreenPromotionRoadmap({ onNavigate }: { onNavigate: (s: string) => voi
         if (data.tasks?.length) {
           setAiTasks(data.tasks);
           setAiCoachNote(data.coachNote ?? null);
+          writePromotionCache("promotion-roadmap", {
+            contextKey: roadmapContextKey,
+            payload: {
+              tasks: data.tasks,
+              coachNote: data.coachNote ?? null,
+            },
+          });
         }
       })
       .catch(() => {})
       .finally(() => setPlanLoading(false));
-  }, [isReady, docs.length, hasResume, hasLI, hasCL, docs]);
+  }, [active, isReady, planLoading, roadmapContextKey, autoContext, aiTasks, docs, hasResume, hasLI, hasCL]);
 
   if (!isReady) {
     return (
@@ -9770,8 +9798,8 @@ function ScreenPromotionRoadmap({ onNavigate }: { onNavigate: (s: string) => voi
   );
 }
 
-function ScreenPlan({ stage, onNavigate }: { stage: CareerStage; onNavigate: (s: string) => void }) {
-  if (stage === "promotion") return <ScreenPromotionRoadmap onNavigate={onNavigate} />;
+function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage; onNavigate: (s: string) => void; active?: boolean }) {
+  if (stage === "promotion") return <ScreenPromotionRoadmap onNavigate={onNavigate} active={active} />;
 
   const [done,        setDone]        = useState<Set<number>>(new Set());
   const [aiTasks,     setAiTasks]     = useState<PlanTask[] | null>(null);
@@ -10299,11 +10327,11 @@ export function ZariPortal() {
         <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
           <div style={{ display:screen==="session"      ? "block" : "none", height:"100%" }}><ScreenSession      stage={stage} onNavigate={navigate}/></div>
           <div style={{ display:screen==="resume"       ? "block" : "none", height:"100%" }}><ScreenResume       stage={stage} onNavigate={s=>navigate(s as Screen)}/></div>
-          <div style={{ display:screen==="interview"    ? "block" : "none", height:"100%" }}><ScreenInterview    stage={stage}/></div>
-          <div style={{ display:screen==="cover-letter" ? "block" : "none", height:"100%" }}><ScreenCoverLetter stage={stage}/></div>
-          <div style={{ display:screen==="linkedin"     ? "block" : "none", height:"100%" }}><ScreenLinkedIn     stage={stage}/></div>
+          <div style={{ display:screen==="interview"    ? "block" : "none", height:"100%" }}><ScreenInterview    stage={stage} active={screen==="interview"}/></div>
+          <div style={{ display:screen==="cover-letter" ? "block" : "none", height:"100%" }}><ScreenCoverLetter stage={stage} active={screen==="cover-letter"}/></div>
+          <div style={{ display:screen==="linkedin"     ? "block" : "none", height:"100%" }}><ScreenLinkedIn     stage={stage} active={screen==="linkedin"}/></div>
           <div style={{ display:screen==="documents"    ? "block" : "none", height:"100%" }}><ScreenDocuments stage={stage} onNavigate={s=>navigate(s as Screen)}/></div>
-          <div style={{ display:screen==="plan"         ? "block" : "none", height:"100%" }}><ScreenPlan stage={stage} onNavigate={s=>navigate(s as Screen)}/></div>
+          <div style={{ display:screen==="plan"         ? "block" : "none", height:"100%" }}><ScreenPlan stage={stage} onNavigate={s=>navigate(s as Screen)} active={screen==="plan"}/></div>
         </div>
       </main>
     </div>
