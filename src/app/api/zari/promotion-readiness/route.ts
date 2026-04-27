@@ -285,6 +285,18 @@ function hasStructuredReadinessPayload(parsed: LlmPayload | null) {
     && Array.isArray(parsed.riskFlags) && parsed.riskFlags.length >= 3;
 }
 
+function hasCoreReadinessPayload(parsed: LlmPayload | null) {
+  if (!parsed) return false;
+  const score = typeof parsed.readinessScore === "number"
+    ? parsed.readinessScore
+    : Number.parseInt(cleanString(parsed.readinessScore), 10);
+  return Number.isFinite(score)
+    && Boolean(cleanString(parsed.summary))
+    && Boolean(cleanString(parsed.realityCheck))
+    && Boolean(cleanString(parsed.scoreReason))
+    && Array.isArray(parsed.dimensions) && parsed.dimensions.length >= 3;
+}
+
 function looksLikeManagerTrack(title: string, roleDescription: string) {
   const haystack = `${title} ${roleDescription}`.toLowerCase();
   return /\b(manager|director|head|leadership|people leader|people management)\b/.test(haystack);
@@ -529,7 +541,8 @@ Return ONLY valid JSON:
 Rules:
 - Talk to the user as "you".
 - Never mention resumes, recruiting, or job search.
-- 3 rationale bullets, 3-5 strengths, 3-5 gaps, 4-6 manager questions, 4-6 next moves, 3 quickWins, 4-5 checklist items, 3 exampleEvidence bullets, 4 actionPlan items, and 3-4 riskFlags.
+- Use compact output. Prefer one sentence per bullet and avoid long paragraphs so the JSON stays short and parseable.
+- Return exactly 3 rationale bullets, 3 strengths, 3 gaps, 4 manager questions, 4 next moves, 3 quickWins, 4 checklist items, 3 exampleEvidence bullets, 4 actionPlan items, and 3 riskFlags.
 - The dimension labels must be exactly: Role fit, Bar clarity, Evidence & impact, Support & visibility, Timing & risk.
 - If the target role is materially above the evidence provided, say so directly.
 - If the input quality is weak, confusing, or incomplete, that should be visible in both the score and the written feedback.
@@ -543,7 +556,7 @@ Rules:
   let parsed = safeParseLlmPayload(await openaiChat(messages, {
     model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
     temperature: 0.28,
-    maxTokens: 2800,
+    maxTokens: 3200,
     jsonMode: true,
   }));
 
@@ -557,10 +570,11 @@ Rules:
 Your previous attempt was missing structure or was too generic.
 
 Repair instructions:
-- Re-evaluate the full questionnaire from scratch.
+- Keep the same core judgment if it was already justified, but fill any missing fields.
 - Keep every field concise and specific.
 - Do not output generic filler.
-- If the written evidence is weak or incoherent, score it low and say that clearly.`,
+- If the written evidence is weak or incoherent, score it low and say that clearly.
+- The response must still be valid JSON and include every required field.`,
         },
         {
           role: "user" as const,
@@ -574,13 +588,13 @@ ${parsed ? JSON.stringify(parsed) : "No usable draft was produced."}`,
       {
         model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
         temperature: 0.22,
-        maxTokens: 2400,
+        maxTokens: 3200,
         jsonMode: true,
       },
     ));
   }
 
-  if (!hasStructuredReadinessPayload(parsed)) {
+  if (!hasCoreReadinessPayload(parsed)) {
     return NextResponse.json(
       { error: "Could not generate a tailored readiness audit right now. Please retry." },
       { status: 503 },
