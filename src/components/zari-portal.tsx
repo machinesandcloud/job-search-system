@@ -5093,7 +5093,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
   );
 
   if (step === "analyzing") return (
-    <div style={{ height:"calc(100vh - 56px)", display:"flex", alignItems:"center", justifyContent:"center", background:"#0A1628" }}>
+    <div style={{ height:"calc(100vh - 56px)", display:"flex", alignItems:"center", justifyContent:"center", background:"#F0F2F8" }}>
       <div style={{ maxWidth:480, width:"100%", padding:32, textAlign:"center" }}>
         <div style={{ width:80, height:80, borderRadius:"50%", background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 24px", animation:"sphere-breathe 2s ease-in-out infinite" }}>
           <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" style={{ width:36, height:36 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -5140,7 +5140,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
     s >= 77 ? "#F0FFF4" : s >= 63 ? "#EFF6FF" : s >= 50 ? "#FFFBEB" : "#FEF2F2";
 
   return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"linear-gradient(180deg,#0A1225 0%,#0D1628 180px,#EEF0FA 400px,#F0F3FA 100%)" }}>
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F0F2F8" }}>
 
       {/* ── Download Format Modal ── */}
       {downloadModal && (
@@ -5180,17 +5180,17 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
         {/* ── Top bar ── */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20, gap:12, flexWrap:"wrap" }}>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <button onClick={()=>{ setStep("choose"); setAiResult(null); setResumeText(""); setFileName(""); setAltVersions({}); setAltAttempt({}); setMagicWrite({}); setTab("overview"); if (rawFileUrlRef.current) { URL.revokeObjectURL(rawFileUrlRef.current); rawFileUrlRef.current = null; } setRawFileUrl(null); try { localStorage.removeItem(RESUME_SESSION_KEY); localStorage.removeItem(RESUME_PDF_KEY); } catch { /* ignore */ } }} style={{ display:"flex", alignItems:"center", gap:5, fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.55)", background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:8, padding:"6px 12px", cursor:"pointer" }}>
+            <button onClick={()=>{ setStep("choose"); setAiResult(null); setResumeText(""); setFileName(""); setAltVersions({}); setAltAttempt({}); setMagicWrite({}); setTab("overview"); if (rawFileUrlRef.current) { URL.revokeObjectURL(rawFileUrlRef.current); rawFileUrlRef.current = null; } setRawFileUrl(null); try { localStorage.removeItem(RESUME_SESSION_KEY); localStorage.removeItem(RESUME_PDF_KEY); } catch { /* ignore */ } }} style={{ display:"flex", alignItems:"center", gap:5, fontSize:12, fontWeight:600, color:"#68738A", background:"white", border:"1px solid #E4E8F5", borderRadius:8, padding:"6px 12px", cursor:"pointer" }}>
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:12,height:12 }}><path d="M10 3L5 8l5 5"/></svg>
               New review
             </button>
             <div>
-              <span style={{ fontSize:14, fontWeight:800, color:"white" }}>{fileName || "Resume"}</span>
-              <span style={{ fontSize:12, color:"rgba(255,255,255,0.35)", marginLeft:8 }}>{careerLevel.charAt(0).toUpperCase()+careerLevel.slice(1)}-level · {reviewMode === "targeted" && targetRoleInput ? targetRoleInput : "General review"}</span>
+              <span style={{ fontSize:14, fontWeight:800, color:"#0A0A0F" }}>{fileName || "Resume"}</span>
+              <span style={{ fontSize:12, color:"#A0AABF", marginLeft:8 }}>{careerLevel.charAt(0).toUpperCase()+careerLevel.slice(1)}-level · {reviewMode === "targeted" && targetRoleInput ? targetRoleInput : "General review"}</span>
             </div>
           </div>
           <div style={{ display:"flex", gap:8 }}>
-            <button onClick={downloadReconstructed} style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:700, padding:"8px 14px", borderRadius:10, border:"1px solid rgba(67,97,238,0.4)", background:"rgba(67,97,238,0.15)", color:"#A5B4FC", cursor:"pointer" }}>
+            <button onClick={downloadReconstructed} style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:700, padding:"8px 14px", borderRadius:10, border:"1.5px solid #C7D2FE", background:"white", color:"#4361EE", cursor:"pointer" }}>
               <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:13,height:13 }}><path d="M10 4v12M4 10l6 6 6-6"/></svg>
               Download Revised
             </button>
@@ -6582,8 +6582,8 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
   );
 
   if (!sections) return (
-    <div style={{ height:"calc(100vh - 56px)", display:"flex", alignItems:"center", justifyContent:"center", background:"#0A1628" }}>
-      <p style={{ fontSize:13, color:"rgba(255,255,255,0.3)" }}>No questions generated — go back and try again.</p>
+    <div style={{ height:"calc(100vh - 56px)", display:"flex", alignItems:"center", justifyContent:"center", background:"#F0F2F8" }}>
+      <p style={{ fontSize:13, color:"#A0AABF" }}>No questions generated — go back and try again.</p>
     </div>
   );
 
@@ -6591,20 +6591,20 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
   const q = SECTION_QUESTIONS[qIdx];
 
   return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"linear-gradient(180deg,#0A1225 0%,#0D1628 200px,#EEF0FA 420px,#F0F3FA 100%)" }}>
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F0F2F8" }}>
       <div style={{ maxWidth:900, margin:"0 auto", padding:"24px 28px" }}>
 
         {/* Header */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20, flexWrap:"wrap", gap:10 }}>
           <div>
             <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:3 }}>
-              <h1 style={{ fontSize:21, fontWeight:900, color:"white", letterSpacing:"-0.03em" }}>{SCREEN_INTERVIEW_META[stage].title}</h1>
+              <h1 style={{ fontSize:21, fontWeight:900, color:"#0A0A0F", letterSpacing:"-0.03em" }}>{SCREEN_INTERVIEW_META[stage].title}</h1>
               {activeRound && <span style={{ fontSize:11, fontWeight:700, padding:"3px 10px", borderRadius:99, background:activeRound.bg, color:activeRound.color, border:`1px solid ${activeRound.color}40` }}>{activeRound.label}</span>}
             </div>
-            <p style={{ fontSize:12.5, color:"rgba(255,255,255,0.4)" }}>{ACTIVE_SECTION?.name} · Question {qIdx+1} of {SECTION_QUESTIONS.length}</p>
+            <p style={{ fontSize:12.5, color:"#68738A" }}>{ACTIVE_SECTION?.name} · Question {qIdx+1} of {SECTION_QUESTIONS.length}</p>
           </div>
           <button onClick={()=>{ setSetupDone(false); setSetupStep(1); setSections(null); setRound(null); setQIdx(0); setActiveSectionIdx(0); setAnswer(""); setSubmitted(false); setFeedback(null); }}
-            style={{ fontSize:12, fontWeight:600, padding:"6px 14px", borderRadius:9, border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.55)", cursor:"pointer" }}>
+            style={{ fontSize:12, fontWeight:600, padding:"6px 14px", borderRadius:9, border:"1px solid #E4E8F5", background:"white", color:"#68738A", cursor:"pointer" }}>
             ← Start over
           </button>
         </div>
@@ -6613,9 +6613,9 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
         <div style={{ display:"flex", gap:6, marginBottom:20, overflowX:"auto", paddingBottom:2 }}>
           {sections.map((sec, i) => (
             <button key={i} onClick={()=>{ setActiveSectionIdx(i); setQIdx(0); setSubmitted(false); setAnswer(""); setFeedback(null); }}
-              style={{ flexShrink:0, padding:"8px 16px", borderRadius:10, border:`1.5px solid ${activeSectionIdx===i?"#4361EE":"rgba(255,255,255,0.1)"}`, background:activeSectionIdx===i?"rgba(67,97,238,0.25)":"rgba(255,255,255,0.05)", color:activeSectionIdx===i?"#A5B4FC":"rgba(255,255,255,0.45)", fontSize:12.5, fontWeight:activeSectionIdx===i?700:500, cursor:"pointer", transition:"all 0.15s", display:"flex", alignItems:"center", gap:6 }}>
+              style={{ flexShrink:0, padding:"8px 16px", borderRadius:10, border:`1.5px solid ${activeSectionIdx===i?"#4361EE":"#E4E8F5"}`, background:activeSectionIdx===i?"#EEF2FF":"white", color:activeSectionIdx===i?"#4361EE":"#68738A", fontSize:12.5, fontWeight:activeSectionIdx===i?700:500, cursor:"pointer", transition:"all 0.15s", display:"flex", alignItems:"center", gap:6 }}>
               {sec.name}
-              <span style={{ fontSize:10.5, fontWeight:600, padding:"1px 7px", borderRadius:99, background:activeSectionIdx===i?"rgba(67,97,238,0.3)":"rgba(255,255,255,0.08)", color:activeSectionIdx===i?"#A5B4FC":"rgba(255,255,255,0.3)" }}>
+              <span style={{ fontSize:10.5, fontWeight:600, padding:"1px 7px", borderRadius:99, background:activeSectionIdx===i?"rgba(67,97,238,0.15)":"#F1F5F9", color:activeSectionIdx===i?"#4361EE":"#A0AABF" }}>
                 {sec.questions.length}
               </span>
             </button>
@@ -6624,36 +6624,31 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
 
         {/* Section description */}
         {ACTIVE_SECTION?.description && (
-          <div style={{ background:"rgba(67,97,238,0.12)", borderRadius:10, padding:"10px 14px", marginBottom:18, fontSize:12.5, color:"#A5B4FC", lineHeight:1.5, border:"1px solid rgba(67,97,238,0.2)" }}>
+          <div style={{ background:"#F5F7FF", borderRadius:10, padding:"10px 14px", marginBottom:18, fontSize:12.5, color:"#3451D1", lineHeight:1.5 }}>
             <strong>This section: </strong>{ACTIVE_SECTION.description}
           </div>
         )}
 
         {/* Progress dots for current section */}
         <div style={{ display:"flex", gap:4, marginBottom:20 }}>
-          {SECTION_QUESTIONS.map((_,i) => <div key={i} style={{ height:4, flex:1, borderRadius:99, background:i<qIdx?"#4361EE":i===qIdx?"#818CF8":"rgba(255,255,255,0.1)", transition:"background 0.3s" }}/>)}
+          {SECTION_QUESTIONS.map((_,i) => <div key={i} style={{ height:4, flex:1, borderRadius:99, background:i<qIdx?"#4361EE":i===qIdx?"#818CF8":"#E4E8F5", transition:"background 0.3s" }}/>)}
         </div>
 
         {/* Question card */}
         {q && (
-          <div style={{ borderRadius:22, overflow:"hidden", marginBottom:20, boxShadow:"0 12px 40px rgba(0,0,0,0.3)" }}>
-          <div style={{ background:"linear-gradient(135deg,#0A0D1A 0%,#0F1E3A 50%,#162952 100%)", padding:"26px 28px 22px", position:"relative", overflow:"hidden" }}>
-            <div style={{ position:"absolute", top:-40, right:-40, width:180, height:180, background:"radial-gradient(circle,rgba(67,97,238,0.18) 0%,transparent 70%)", pointerEvents:"none" }}/>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:14 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                <span style={{ fontSize:10, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.1em", color:"rgba(255,255,255,0.4)" }}>{q.cat}</span>
-                <span style={{ width:3, height:3, borderRadius:"50%", background:"rgba(255,255,255,0.2)" }}/>
-                <span style={{ fontSize:10, fontWeight:700, color:"rgba(165,180,252,0.7)", textTransform:"capitalize" }}>{q.level}</span>
+          <div style={{ background:"linear-gradient(135deg,#0F172A,#1E3A8A)", borderRadius:18, padding:"22px 24px", marginBottom:20, boxShadow:"0 12px 32px rgba(15,23,42,0.25)" }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:12 }}>
+              <div style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.12em", color:"rgba(255,255,255,0.5)" }}>
+                {q.cat} · {q.level}
               </div>
-              <div style={{ display:"flex", gap:5 }}>
-                {["Situation","Task","Action","Result"].map(s => <span key={s} style={{ fontSize:9.5, fontWeight:600, padding:"2px 8px", borderRadius:99, background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.1)", color:"rgba(255,255,255,0.55)" }}>{s}</span>)}
+              <div style={{ display:"flex", gap:6 }}>
+                {["Situation","Task","Action","Result"].map(s => <span key={s} style={{ fontSize:9.5, fontWeight:600, padding:"2px 8px", borderRadius:99, background:"rgba(255,255,255,0.12)", color:"rgba(255,255,255,0.75)" }}>{s}</span>)}
               </div>
             </div>
-            <p style={{ fontSize:20, fontWeight:800, color:"white", lineHeight:1.5, letterSpacing:"-0.02em" }}>{q.q}</p>
-            <div style={{ marginTop:16, fontSize:11.5, color:"rgba(255,255,255,0.35)", background:"rgba(255,255,255,0.04)", borderRadius:8, padding:"8px 12px", border:"1px solid rgba(255,255,255,0.06)" }}>
-              Aim for 2–3 minutes · Lead with Situation → Task → Action → Result
+            <p style={{ fontSize:15.5, fontWeight:600, color:"white", lineHeight:1.65 }}>{q.q}</p>
+            <div style={{ marginTop:14, fontSize:12, color:"rgba(255,255,255,0.4)" }}>
+              Tip: Aim for 2–3 minutes. Lead with the Situation, make the Result specific and measurable.
             </div>
-          </div>
           </div>
         )}
 
@@ -6698,58 +6693,38 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
               </div>
             )}
             {!isScoring && (
-              <div style={{ borderRadius:22, overflow:"hidden", marginBottom:14, boxShadow:"0 12px 40px rgba(0,0,0,0.22)", border:"1px solid rgba(255,255,255,0.07)" }}>
-                {/* Dark score header */}
-                <div style={{ background:"linear-gradient(135deg,#050E1E 0%,#0A1628 55%,#0D1E38 100%)", padding:"24px 26px 20px", position:"relative", overflow:"hidden" }}>
-                  <div style={{ position:"absolute", top:-30, right:-30, width:160, height:160, background:`radial-gradient(circle,${dimColor(feedback?.overallScore ?? 79)}22 0%,transparent 70%)`, pointerEvents:"none" }}/>
-                  <div style={{ display:"flex", alignItems:"center", gap:20, position:"relative" }}>
-                    {/* Score ring */}
-                    <div style={{ position:"relative", width:96, height:96, flexShrink:0 }}>
-                      <svg viewBox="0 0 96 96" style={{ position:"absolute", inset:0, width:"100%", height:"100%", transform:"rotate(-90deg)" }}>
-                        <circle cx="48" cy="48" r="40" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="9"/>
-                        <circle cx="48" cy="48" r="40" fill="none" stroke={dimColor(feedback?.overallScore ?? 79)} strokeWidth="9" strokeLinecap="round"
-                          strokeDasharray={`${((feedback?.overallScore ?? 79) / 100) * 251.3} 251.3`}
-                          style={{ filter:`drop-shadow(0 0 6px ${dimColor(feedback?.overallScore ?? 79)}88)` }}/>
-                      </svg>
-                      <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
-                        <div style={{ fontSize:26, fontWeight:900, color:dimColor(feedback?.overallScore ?? 79), letterSpacing:"-0.05em", lineHeight:1 }}>{feedback?.overallScore ?? 79}</div>
-                        <div style={{ fontSize:10, color:"rgba(255,255,255,0.3)", marginTop:2 }}>/100</div>
-                      </div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize:11, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.4)", marginBottom:6 }}>Zari&apos;s feedback</div>
-                      <div style={{ fontSize:20, fontWeight:800, color:"white", letterSpacing:"-0.02em", marginBottom:4 }}>{(()=>{ const s=feedback?.overallScore??79; return (s>=95?"A+":s>=88?"A":s>=82?"A−":s>=77?"B+":s>=70?"B":s>=63?"B−":s>=57?"C+":s>=50?"C":s>=40?"D":"F") + " · " + (s>=85?"Excellent":s>=72?"Good":s>=55?"Fair":"Needs work"); })()}</div>
-                      <div style={{ fontSize:13, color:"rgba(255,255,255,0.45)", lineHeight:1.5 }}>{q?.cat} · {activeRound?.label ?? "Practice"}</div>
-                    </div>
+              <div style={{ background:"white", border:"1px solid #E4E8F5", borderRadius:18, padding:22, marginBottom:14, boxShadow:"0 2px 12px rgba(0,0,0,0.06)" }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:18 }}>
+                  <p style={{ fontSize:14, fontWeight:700, color:"#0A0A0F" }}>Zari&apos;s feedback</p>
+                  <div style={{ display:"flex", alignItems:"center", gap:6, padding:"4px 12px", borderRadius:99, background:"#F0FFF4", border:"1px solid #BBF7D0" }}>
+                    <span style={{ fontSize:20, fontWeight:900, color:"#16A34A" }}>{feedback?.overallScore ?? 79}</span>
+                    <span style={{ fontSize:11, color:"#16A34A", fontWeight:600 }}>/ 100</span>
                   </div>
                 </div>
-                {/* White body */}
-                <div style={{ background:"white", padding:"20px 26px 22px" }}>
-                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:18 }}>
-                    {(feedback?.dimensions ?? []).map(s => {
-                      const color = dimColor(s.score);
-                      return (
-                        <div key={s.label} style={{ background:"#FAFBFF", border:"1px solid #F1F5F9", borderRadius:10, padding:"10px 12px" }}>
-                          <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
-                            <span style={{ fontSize:11.5, color:"#68738A" }}>{s.label}</span>
-                            <span style={{ fontSize:13, fontWeight:800, color }}>{s.score}</span>
-                          </div>
-                          <Bar pct={s.score} color={color}/>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:18 }}>
+                  {(feedback?.dimensions ?? []).map(s => {
+                    const color = dimColor(s.score);
+                    return (
+                      <div key={s.label} style={{ background:"#FAFBFF", border:"1px solid #F1F5F9", borderRadius:10, padding:"10px 12px" }}>
+                        <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
+                          <span style={{ fontSize:11.5, color:"#68738A" }}>{s.label}</span>
+                          <span style={{ fontSize:13, fontWeight:800, color }}>{s.score}</span>
                         </div>
-                      );
-                    })}
-                  </div>
-                  <div style={{ background:"#F5F7FF", borderRadius:12, padding:16, marginBottom:12 }}>
-                    <p style={{ fontSize:12, fontWeight:700, color:"#4361EE", marginBottom:6 }}>Coaching note from Zari</p>
-                    <p style={{ fontSize:13, color:"#3451D1", lineHeight:1.65 }}>{feedback?.coachNote}</p>
-                  </div>
-                  {feedback?.suggestedResult && (
-                    <div style={{ background:"#F0FFF4", borderRadius:12, padding:"12px 16px" }}>
-                      <p style={{ fontSize:12, fontWeight:700, color:"#16A34A", marginBottom:5 }}>Suggested Result statement</p>
-                      <p style={{ fontSize:12.5, color:"#14532D", lineHeight:1.6, fontStyle:"italic" }}>&ldquo;{feedback.suggestedResult}&rdquo;</p>
-                    </div>
-                  )}
+                        <Bar pct={s.score} color={color}/>
+                      </div>
+                    );
+                  })}
                 </div>
+                <div style={{ background:"#F5F7FF", borderRadius:12, padding:16, marginBottom:12 }}>
+                  <p style={{ fontSize:12, fontWeight:700, color:"#4361EE", marginBottom:6 }}>Coaching note from Zari</p>
+                  <p style={{ fontSize:13, color:"#3451D1", lineHeight:1.65 }}>{feedback?.coachNote}</p>
+                </div>
+                {feedback?.suggestedResult && (
+                  <div style={{ background:"#F0FFF4", borderRadius:12, padding:"12px 16px" }}>
+                    <p style={{ fontSize:12, fontWeight:700, color:"#16A34A", marginBottom:5 }}>Suggested Result statement</p>
+                    <p style={{ fontSize:12.5, color:"#14532D", lineHeight:1.6, fontStyle:"italic" }}>&ldquo;{feedback.suggestedResult}&rdquo;</p>
+                  </div>
+                )}
               </div>
             )}
             <div style={{ display:"flex", gap:10 }}>
@@ -7057,7 +7032,7 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
 
   if (loadingQs && !sections) {
     return (
-      <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#0A1628" }}>
+      <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F0F2F8" }}>
         <div style={{ maxWidth:820, margin:"0 auto", padding:"64px 24px 56px" }}>
           <div style={{ background:"linear-gradient(135deg,#1A1240 0%,#0D1321 62%,#111827 100%)", borderRadius:24, padding:"74px 32px", textAlign:"center", boxShadow:"0 12px 48px rgba(0,0,0,0.22)", border:"1px solid rgba(255,255,255,0.07)" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
@@ -8885,7 +8860,7 @@ function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?
       </div>
 
       {/* ── Main content ── */}
-      <div style={{ flex:1, overflowY:"auto", background:"#F0F3FA", padding:"28px 30px" }}>
+      <div style={{ flex:1, overflowY:"auto", background:"#F0F2F8", padding:"28px 30px" }}>
 
         {/* OVERVIEW */}
         {liSection==="score" && (
@@ -9665,7 +9640,7 @@ function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate
   const words = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
 
   return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"linear-gradient(180deg,#0A1225 0%,#0D1628 180px,#EEF0FA 380px,#F0F3FA 100%)" }}>
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F0F2F8" }}>
       {/* Preview modal */}
       {preview && (
         <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", zIndex:200, display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}
@@ -10034,7 +10009,7 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
 
   // ── Show result page once generated ──
   if (result || generating) return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"linear-gradient(180deg,#0A1225 0%,#0D1628 180px,#EEF0FA 380px,#F0F3FA 100%)" }}>
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F0F2F8" }}>
       <div style={{ maxWidth:760, margin:"0 auto", padding:"28px 24px 56px" }}>
         {generating ? (
           <div style={{ background:"linear-gradient(135deg,#0D1321,#141E30)", borderRadius:20, padding:"72px 32px", textAlign:"center", boxShadow:"0 12px 48px rgba(0,0,0,0.22)", border:"1px solid rgba(255,255,255,0.07)" }}>
@@ -10649,14 +10624,14 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
 
   // ── Empty state: not enough context ──
   if (!isReady) return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"linear-gradient(180deg,#0A1225 0%,#0D1628 180px,#EEF0FA 360px,#F0F3FA 100%)" }}>
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#FAFBFF" }}>
       <div style={{ maxWidth:700, margin:"0 auto", padding:"48px 28px" }}>
         <div style={{ textAlign:"center", marginBottom:40 }}>
           <div style={{ width:64, height:64, borderRadius:18, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 18px", boxShadow:"0 8px 24px rgba(67,97,238,0.3)" }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" style={{width:28,height:28}}><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
           </div>
-          <h1 style={{ fontSize:24, fontWeight:900, letterSpacing:"-0.03em", color:"white", marginBottom:10 }}>Your {STAGE_NAV_LABELS[stage].plan} isn&apos;t ready yet</h1>
-          <p style={{ fontSize:14, color:"rgba(255,255,255,0.45)", lineHeight:1.65, maxWidth:460, margin:"0 auto" }}>
+          <h1 style={{ fontSize:24, fontWeight:900, letterSpacing:"-0.03em", color:"#0A0A0F", marginBottom:10 }}>Your {STAGE_NAV_LABELS[stage].plan} isn&apos;t ready yet</h1>
+          <p style={{ fontSize:14, color:"#68738A", lineHeight:1.65, maxWidth:460, margin:"0 auto" }}>
             Zari needs to see at least one completed section to build a personalized plan.
             {" "}Complete the steps below and come back — your plan will be waiting.
           </p>
@@ -10759,7 +10734,7 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
   ];
 
   return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"linear-gradient(180deg,#0A1225 0%,#0D1628 200px,#EEF0FA 420px,#F0F3FA 100%)" }}>
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F8F9FF" }}>
       <div style={{ maxWidth:860, margin:"0 auto", padding:"28px 28px 48px" }}>
 
         {/* ── Header ── */}
@@ -10767,14 +10742,14 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
           <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, flexWrap:"wrap" }}>
             <div>
               <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:6 }}>
-                <h1 style={{ fontSize:26, fontWeight:900, letterSpacing:"-0.04em", color:"white", margin:0 }}>Your {STAGE_NAV_LABELS[stage].plan}</h1>
+                <h1 style={{ fontSize:26, fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", margin:0 }}>Your {STAGE_NAV_LABELS[stage].plan}</h1>
                 {aiTasks && (
-                  <span style={{ fontSize:10.5, fontWeight:800, padding:"3px 9px", borderRadius:99, background:"rgba(5,150,105,0.2)", color:"#6EE7B7", border:"1px solid rgba(110,231,183,0.3)", letterSpacing:"0.02em" }}>
+                  <span style={{ fontSize:10.5, fontWeight:800, padding:"3px 9px", borderRadius:99, background:"linear-gradient(135deg,#DCFCE7,#D1FAE5)", color:"#059669", border:"1px solid #6EE7B7", letterSpacing:"0.02em" }}>
                     AI · PERSONALIZED
                   </span>
                 )}
               </div>
-              <p style={{ fontSize:13.5, color:"rgba(255,255,255,0.45)", lineHeight:1.5 }}>
+              <p style={{ fontSize:13.5, color:"#68738A", lineHeight:1.5 }}>
                 Based on your {[
                   hasResume && "resume",
                   hasLI && "LinkedIn",
