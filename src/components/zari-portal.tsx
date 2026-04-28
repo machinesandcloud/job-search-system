@@ -4513,6 +4513,24 @@ function ScreenSalaryCompensation() {
     ];
     return (
       <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#080C14" }}>
+        {/* Page header */}
+        <div style={{ background:"#0D1625", borderBottom:"1px solid rgba(255,255,255,0.08)", padding:"20px 40px" }}>
+          <div style={{ maxWidth:1140, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+              <div style={{ width:32, height:32, borderRadius:10, background:"rgba(16,185,129,0.18)", border:"1px solid rgba(16,185,129,0.35)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                <span style={{ fontSize:16 }}>💵</span>
+              </div>
+              <div>
+                <h1 style={{ fontSize:18, fontWeight:900, color:"white", letterSpacing:"-0.02em", margin:0 }}>Compensation Analysis</h1>
+                <p style={{ fontSize:13, color:"rgba(255,255,255,0.4)", margin:0 }}>Your market position and negotiation leverage.</p>
+              </div>
+            </div>
+            <button onClick={()=>setResult(null)}
+              style={{ padding:"7px 16px", borderRadius:8, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"rgba(255,255,255,0.7)", fontSize:12.5, fontWeight:600, cursor:"pointer" }}>
+              New analysis
+            </button>
+          </div>
+        </div>
         <div style={{ maxWidth:1140, margin:"0 auto" }}>
           <div style={{ background:"linear-gradient(135deg,#031009 0%,#071A10 55%,#062A18 100%)", padding:"40px 40px 32px", position:"relative", overflow:"hidden" }}>
             <div style={{ position:"absolute", inset:0, background:`radial-gradient(circle at 12% 50%, rgba(16,185,129,0.22), transparent 40%), radial-gradient(circle at 88% 20%, rgba(52,211,153,0.1), transparent 36%)`, pointerEvents:"none" }}/>
@@ -4862,6 +4880,24 @@ function ScreenPivotAnalysis() {
     ];
     return (
       <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#080C14" }}>
+        {/* Page header */}
+        <div style={{ background:"#0D1625", borderBottom:"1px solid rgba(255,255,255,0.08)", padding:"20px 40px" }}>
+          <div style={{ maxWidth:1140, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+              <div style={{ width:32, height:32, borderRadius:10, background:"rgba(56,189,248,0.18)", border:"1px solid rgba(56,189,248,0.35)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                <span style={{ fontSize:16 }}>🔀</span>
+              </div>
+              <div>
+                <h1 style={{ fontSize:18, fontWeight:900, color:"white", letterSpacing:"-0.02em", margin:0 }}>Pivot Analysis</h1>
+                <p style={{ fontSize:13, color:"rgba(255,255,255,0.4)", margin:0 }}>Your career change readiness and pivot strategy.</p>
+              </div>
+            </div>
+            <button onClick={()=>setResult(null)}
+              style={{ padding:"7px 16px", borderRadius:8, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"rgba(255,255,255,0.7)", fontSize:12.5, fontWeight:600, cursor:"pointer" }}>
+              New analysis
+            </button>
+          </div>
+        </div>
         <div style={{ maxWidth:1140, margin:"0 auto" }}>
           <div style={{ background:"linear-gradient(135deg,#020B15 0%,#071828 55%,#0A2A4A 100%)", padding:"40px 40px 32px", position:"relative", overflow:"hidden" }}>
             <div style={{ position:"absolute", inset:0, background:`radial-gradient(circle at 12% 50%, rgba(56,189,248,0.2), transparent 40%), radial-gradient(circle at 88% 20%, rgba(125,211,252,0.1), transparent 36%)`, pointerEvents:"none" }}/>
@@ -5202,6 +5238,24 @@ function ScreenExecPositioning() {
     ];
     return (
       <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#080C14" }}>
+        {/* Page header */}
+        <div style={{ background:"#0D1625", borderBottom:"1px solid rgba(255,255,255,0.08)", padding:"20px 40px" }}>
+          <div style={{ maxWidth:1140, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+              <div style={{ width:32, height:32, borderRadius:10, background:"rgba(245,158,11,0.18)", border:"1px solid rgba(245,158,11,0.35)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                <span style={{ fontSize:16 }}>🏛️</span>
+              </div>
+              <div>
+                <h1 style={{ fontSize:18, fontWeight:900, color:"white", letterSpacing:"-0.02em", margin:0 }}>Executive Positioning</h1>
+                <p style={{ fontSize:13, color:"rgba(255,255,255,0.4)", margin:0 }}>Your executive presence score and positioning strategy.</p>
+              </div>
+            </div>
+            <button onClick={()=>setResult(null)}
+              style={{ padding:"7px 16px", borderRadius:8, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"rgba(255,255,255,0.7)", fontSize:12.5, fontWeight:600, cursor:"pointer" }}>
+              New analysis
+            </button>
+          </div>
+        </div>
         <div style={{ maxWidth:1140, margin:"0 auto" }}>
           <div style={{ background:"linear-gradient(135deg,#0D0700 0%,#1F1100 55%,#3D2000 100%)", padding:"40px 40px 32px", position:"relative", overflow:"hidden" }}>
             <div style={{ position:"absolute", inset:0, background:`radial-gradient(circle at 12% 50%, rgba(245,158,11,0.22), transparent 40%), radial-gradient(circle at 88% 20%, rgba(252,211,77,0.1), transparent 36%)`, pointerEvents:"none" }}/>
