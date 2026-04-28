@@ -7702,19 +7702,38 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
             </div>
 
             {setupStep === 1 && (
-              <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+              <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+                {/* Hero feature card */}
+                <div style={{ borderRadius:20, background:"linear-gradient(135deg,#EEF2FF 0%,#E8EDFF 100%)", border:"1.5px solid rgba(67,97,238,0.2)", padding:"22px 26px", position:"relative", overflow:"hidden" }}>
+                  <div style={{ position:"absolute", top:-24, right:-24, width:100, height:100, background:"radial-gradient(circle,rgba(129,140,248,0.25) 0%,transparent 70%)", pointerEvents:"none" }}/>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:"#4361EE", letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:8 }}>What Zari builds for you</div>
+                  <div style={{ display:"flex", gap:16, flexWrap:"wrap" }}>
+                    {[
+                      { icon:<svg viewBox="0 0 18 18" fill="none" stroke="#4361EE" strokeWidth="1.8" style={{width:15,height:15}}><circle cx="9" cy="9" r="7"/><path d="M9 5v4l3 2"/></svg>, text:"Questions tailored to your background" },
+                      { icon:<svg viewBox="0 0 18 18" fill="none" stroke="#818CF8" strokeWidth="1.8" style={{width:15,height:15}}><path d="M9 2l2.4 4.8L17 7.6l-4 3.9.9 5.5L9 14.5l-4.9 2.5.9-5.5L1 7.6l5.6-.8z"/></svg>, text:"Live AI scoring on every answer" },
+                      { icon:<svg viewBox="0 0 18 18" fill="none" stroke="#7C3AED" strokeWidth="1.8" style={{width:15,height:15}}><path d="M14 3H4a1 1 0 00-1 1v9a1 1 0 001 1h10a1 1 0 001-1V4a1 1 0 00-1-1z"/><path d="M1 7h16"/></svg>, text:"Coaching on how to strengthen each answer" },
+                    ].map((f,i) => (
+                      <div key={i} style={{ display:"flex", alignItems:"center", gap:8, background:"rgba(255,255,255,0.6)", borderRadius:10, padding:"7px 12px", border:"1px solid rgba(67,97,238,0.12)" }}>
+                        {f.icon}
+                        <span style={{ fontSize:12, fontWeight:600, color:"#3730A3" }}>{f.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Upload zone */}
                 {resumeFileName ? (
-                  <div style={{ background:"rgba(74,222,128,0.08)", border:"1px solid rgba(74,222,128,0.3)", borderRadius:18, padding:"18px 22px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                  <div style={{ background:"linear-gradient(135deg,rgba(74,222,128,0.08),rgba(74,222,128,0.04))", border:"1.5px solid rgba(74,222,128,0.35)", borderRadius:18, padding:"20px 24px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
                     <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-                      <div style={{ width:40, height:40, borderRadius:11, background:"rgba(74,222,128,0.15)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                        <svg viewBox="0 0 20 20" fill="none" stroke="#4ADE80" strokeWidth="1.8" style={{ width:18,height:18 }}><path d="M13 2H5a1.5 1.5 0 00-1.5 1.5v13A1.5 1.5 0 005 18h10a1.5 1.5 0 001.5-1.5V6L13 2z"/><polyline points="4,11 7,14 11,9"/></svg>
+                      <div style={{ width:44, height:44, borderRadius:12, background:"linear-gradient(135deg,#4ADE80,#22C55E)", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 4px 12px rgba(74,222,128,0.35)" }}>
+                        <svg viewBox="0 0 20 20" fill="none" stroke="white" strokeWidth="2" style={{ width:18,height:18 }}><path d="M13 2H5a1.5 1.5 0 00-1.5 1.5v13A1.5 1.5 0 005 18h10a1.5 1.5 0 001.5-1.5V6L13 2z"/><polyline points="4,11 7,14 11,9"/></svg>
                       </div>
                       <div>
-                        <p style={{ fontSize:14, fontWeight:600, color:"var(--z-text)", margin:0 }}>{resumeFileName}</p>
-                        <p style={{ fontSize:11.5, color:"var(--z-text3)", margin:0 }}>Resume uploaded successfully</p>
+                        <p style={{ fontSize:14, fontWeight:700, color:"var(--z-text)", margin:0 }}>{resumeFileName}</p>
+                        <p style={{ fontSize:11.5, color:"#16A34A", margin:0, fontWeight:600 }}>✓ Resume uploaded successfully</p>
                       </div>
                     </div>
-                    <label style={{ fontSize:11.5, fontWeight:600, color:"var(--z-text3)", cursor:"pointer", padding:"6px 14px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-card)", boxShadow:"0 2px 20px rgba(0,0,0,0.07)", flexShrink:0 }}>
+                    <label style={{ fontSize:12, fontWeight:600, color:"var(--z-text2)", cursor:"pointer", padding:"7px 16px", borderRadius:10, border:"1px solid var(--z-bd)", background:"var(--z-card)", boxShadow:"0 2px 8px rgba(0,0,0,0.06)", flexShrink:0 }}>
                       Replace<input type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleInterviewFile(f); e.target.value=""; }}/>
                     </label>
                   </div>
@@ -7724,28 +7743,26 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
                     onDragOver={e=>{ e.preventDefault(); setResumeDragOver(true); }}
                     onDragLeave={()=>setResumeDragOver(false)}
                     onDrop={e=>{ e.preventDefault(); setResumeDragOver(false); const f=e.dataTransfer.files?.[0]; if(f) void handleInterviewFile(f); }}
-                    style={{ background:resumeDragOver?"rgba(67,97,238,0.18)":"var(--z-card)", border:`2px dashed ${resumeDragOver?"#4361EE":"var(--z-bd)"}`, borderRadius:20, padding:"48px 32px", cursor:"pointer", textAlign:"center", transition:"all 0.15s" }}>
-                    <div style={{ width:52, height:52, borderRadius:14, background:"rgba(67,97,238,0.2)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px" }}>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="#818CF8" strokeWidth="1.8" style={{ width:24,height:24 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
+                    style={{ background:resumeDragOver?"rgba(67,97,238,0.1)":"var(--z-card)", border:`2px dashed ${resumeDragOver?"#4361EE":"rgba(67,97,238,0.3)"}`, borderRadius:20, padding:"44px 32px", cursor:"pointer", textAlign:"center", transition:"all 0.15s", boxShadow:"0 2px 12px rgba(67,97,238,0.08)" }}>
+                    <div style={{ width:56, height:56, borderRadius:16, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px", boxShadow:"0 8px 24px rgba(67,97,238,0.35)" }}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" style={{ width:26,height:26 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
                     </div>
-                    <p style={{ fontSize:16, fontWeight:700, color:"var(--z-text)", marginBottom:6 }}>{resumeDragOver ? "Drop your resume here" : "Upload your resume"}</p>
-                    <p style={{ fontSize:13, color:"var(--z-text3)", marginBottom:16 }}>Drag and drop, or click to browse</p>
-                    <span style={{ fontSize:12, fontWeight:700, padding:"7px 18px", borderRadius:99, background:"#4361EE", color:"white", border:"none" }}>Choose file · PDF, DOCX, TXT</span>
+                    <p style={{ fontSize:17, fontWeight:800, color:"var(--z-text)", marginBottom:6, letterSpacing:"-0.02em" }}>{resumeDragOver ? "Drop your resume here" : "Upload your resume"}</p>
+                    <p style={{ fontSize:13, color:"var(--z-text2)", marginBottom:18, lineHeight:1.5 }}>Drag and drop, or click to browse · PDF, DOCX, or TXT</p>
+                    <span style={{ fontSize:13, fontWeight:700, padding:"9px 22px", borderRadius:12, background:"linear-gradient(135deg,#4361EE,#818CF8)", color:"white", border:"none", boxShadow:"0 6px 20px rgba(67,97,238,0.4)" }}>Choose file</span>
                   </div>
                 )}
-                <div style={{ display:"flex", gap:10 }}>
-                  <button onClick={()=>setSetupStep(2)} disabled={!resumeText}
-                    style={{ flex:1, fontSize:14.5, fontWeight:700, padding:"13px", borderRadius:14, border:"none", background:resumeText?"linear-gradient(135deg,#4361EE,#818CF8)":"var(--z-raise)", color:resumeText?"white":"var(--z-text3)", cursor:resumeText?"pointer":"default", boxShadow:resumeText?"0 8px 24px rgba(67,97,238,0.4)":"none", transition:"all 0.2s" }}>
-                    Continue →
-                  </button>
-                </div>
+                <button onClick={()=>setSetupStep(2)} disabled={!resumeText}
+                  style={{ width:"100%", fontSize:14.5, fontWeight:700, padding:"14px", borderRadius:14, border:"none", background:resumeText?"linear-gradient(135deg,#4361EE,#818CF8)":"var(--z-raise)", color:resumeText?"white":"var(--z-text3)", cursor:resumeText?"pointer":"default", boxShadow:resumeText?"0 8px 24px rgba(67,97,238,0.4)":"none", transition:"all 0.2s", letterSpacing:"-0.01em" }}>
+                  Continue →
+                </button>
               </div>
             )}
 
             {setupStep === 2 && (
               <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-                <div style={{ background:"var(--z-card)", boxShadow:"0 2px 20px rgba(0,0,0,0.07)", border:"1px solid var(--z-bd)", borderRadius:18, padding:20 }}>
-                  <div style={{ display:"flex", background:"rgba(0,0,0,0.03)", borderRadius:8, padding:2, marginBottom:14, width:"fit-content" }}>
+                <div style={{ background:"var(--z-card)", boxShadow:"0 2px 12px var(--z-sh)", border:"1px solid var(--z-bd)", borderRadius:18, padding:20 }}>
+                  <div style={{ display:"flex", background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderRadius:10, padding:3, marginBottom:14, width:"fit-content" }}>
                     {(["paste","url"] as const).map(m => (
                       <button key={m} onClick={()=>{ setJdMode(m); setUrlFetchErr(""); }} style={{ fontSize:12, fontWeight:600, padding:"6px 16px", borderRadius:6, border:"none", background:jdMode===m?"var(--z-card)":"transparent", color:jdMode===m?"var(--z-text)":"var(--z-text2)", cursor:"pointer", transition:"all 0.15s" }}>
                         {m === "paste" ? "Paste text" : "Job URL"}
@@ -7786,23 +7803,29 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
 
             {setupStep === 3 && (
               <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                   {(Object.entries(ROUND_META) as [InterviewRound, typeof ROUND_META[InterviewRound]][]).map(([id, meta]) => (
                     <button key={id} onClick={()=>setRound(id)}
-                      style={{ padding:"18px", borderRadius:16, border:`1.5px solid ${round===id ? meta.color : "var(--z-bd)"}`, background:round===id ? meta.bg : "var(--z-card)", cursor:"pointer", textAlign:"left", transition:"all 0.15s", boxShadow:round===id?`0 0 20px ${meta.color}20`:"0 2px 12px rgba(0,0,0,0.3)" }}>
-                      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
-                        <span style={{ fontSize:13.5, fontWeight:700, color:"var(--z-text)" }}>{meta.label}</span>
-                        <span style={{ fontSize:10, fontWeight:600, padding:"2px 8px", borderRadius:99, background:"rgba(0,0,0,0.04)", color:"var(--z-text3)" }}>{meta.badge}</span>
+                      onMouseEnter={e=>{ if(round!==id) { e.currentTarget.style.transform="translateY(-2px)"; e.currentTarget.style.boxShadow=`0 8px 24px ${meta.color}20`; } }}
+                      onMouseLeave={e=>{ if(round!==id) { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow="0 2px 8px var(--z-sh)"; } }}
+                      style={{ padding:"20px 22px", borderRadius:18, border:`1.5px solid ${round===id ? meta.color : "var(--z-bd)"}`, background:round===id ? `linear-gradient(135deg,${meta.bg.replace("0.12","0.18")},${meta.bg.replace("0.12","0.08")})` : "var(--z-card)", cursor:"pointer", textAlign:"left", transition:"all 0.2s", boxShadow:round===id?`0 8px 28px ${meta.color}25`:"0 2px 8px var(--z-sh)", position:"relative", overflow:"hidden" }}>
+                      {round === id && <div style={{ position:"absolute", left:0, top:0, bottom:0, width:4, background:meta.color, borderRadius:"18px 0 0 18px" }}/>}
+                      <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:10, gap:8 }}>
+                        <div style={{ width:38, height:38, borderRadius:10, background:round===id ? meta.color : `${meta.color}18`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                          <svg viewBox="0 0 18 18" fill="none" stroke={round===id?"white":meta.color} strokeWidth="1.8" style={{width:16,height:16}}><circle cx="9" cy="9" r="7"/><path d="M9 5v4l3 2"/></svg>
+                        </div>
+                        <span style={{ fontSize:10.5, fontWeight:700, padding:"3px 9px", borderRadius:99, background:round===id?`${meta.color}20`:"var(--z-raise)", color:round===id?meta.color:"var(--z-text3)", border:`1px solid ${round===id?`${meta.color}40`:"var(--z-bd)"}`, whiteSpace:"nowrap" }}>{meta.badge}</span>
                       </div>
-                      <p style={{ fontSize:11.5, color:"var(--z-text2)", margin:"0 0 10px", lineHeight:1.5 }}>{meta.desc}</p>
-                      <div style={{ display:"flex", flexWrap:"wrap", gap:4 }}>
-                        {meta.sections.map(s => <span key={s} style={{ fontSize:10, fontWeight:600, padding:"2px 8px", borderRadius:99, background:round===id?`${meta.color}20`:"var(--z-raise)", color:round===id?meta.color:"var(--z-text3)", border:`1px solid ${round===id?`${meta.color}30`:"var(--z-bd2)"}` }}>{s}</span>)}
+                      <div style={{ fontSize:14, fontWeight:800, color:"var(--z-text)", marginBottom:6, letterSpacing:"-0.02em" }}>{meta.label}</div>
+                      <p style={{ fontSize:12, color:"var(--z-text2)", margin:"0 0 12px", lineHeight:1.55 }}>{meta.desc}</p>
+                      <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
+                        {meta.sections.map(s => <span key={s} style={{ fontSize:10, fontWeight:600, padding:"3px 9px", borderRadius:99, background:round===id?`${meta.color}15`:"var(--z-raise)", color:round===id?meta.color:"var(--z-text2)", border:`1px solid ${round===id?`${meta.color}30`:"var(--z-bd)"}` }}>{s}</span>)}
                       </div>
                     </button>
                   ))}
                 </div>
                 <div style={{ display:"flex", gap:10, marginTop:4 }}>
-                  <button onClick={()=>setSetupStep(2)} style={{ padding:"13px 20px", borderRadius:14, border:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text3)", fontSize:13.5, fontWeight:600, cursor:"pointer" }}>← Back</button>
+                  <button onClick={()=>setSetupStep(2)} style={{ padding:"13px 20px", borderRadius:14, border:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text2)", fontSize:13.5, fontWeight:600, cursor:"pointer" }}>← Back</button>
                   <button onClick={()=>void startInterview()} disabled={!round || loadingQs}
                     style={{ flex:1, fontSize:14.5, fontWeight:700, padding:"13px", borderRadius:14, border:"none", background:round?"linear-gradient(135deg,#4361EE,#818CF8)":"var(--z-raise)", color:round?"white":"var(--z-text3)", cursor:round?"pointer":"default", boxShadow:round?"0 8px 24px rgba(67,97,238,0.4)":"none", transition:"all 0.2s" }}>
                     Generate my questions →
@@ -9913,62 +9936,101 @@ function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?
         </div>
       </div>
 
-      <div style={{ display:"flex", flexDirection:"column", alignItems:"center", padding:"40px 24px" }}>
+      <div style={{ padding:"32px 40px 56px" }}>
 
         {parseLoading ? (
-          <div style={{ background:"var(--z-card)", boxShadow:"0 2px 20px rgba(0,0,0,0.07)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"40px 56px", textAlign:"center", maxWidth:360, width:"100%" }}>
-            <div style={{ width:48, height:48, borderRadius:"50%", border:"3px solid rgba(0,119,181,0.3)", borderTopColor:"#0077B5", animation:"spin-slow 0.8s linear infinite", margin:"0 auto 20px" }}/>
-            <p style={{ fontSize:16, fontWeight:700, color:"var(--z-text)", marginBottom:6 }}>{loadingMsg || "Processing…"}</p>
-            <p style={{ fontSize:13, color:"var(--z-text3)" }}>This takes 10–20 seconds</p>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"center", minHeight:360 }}>
+            <div style={{ background:"var(--z-card)", boxShadow:"0 2px 20px var(--z-sh)", border:"1px solid var(--z-bd)", borderRadius:24, padding:"52px 64px", textAlign:"center", maxWidth:380, width:"100%" }}>
+              <div style={{ width:52, height:52, borderRadius:"50%", border:"3px solid rgba(0,119,181,0.25)", borderTopColor:"#0077B5", animation:"spin-slow 0.8s linear infinite", margin:"0 auto 20px" }}/>
+              <p style={{ fontSize:17, fontWeight:800, color:"var(--z-text)", marginBottom:6, letterSpacing:"-0.02em" }}>{loadingMsg || "Processing your profile…"}</p>
+              <p style={{ fontSize:13, color:"var(--z-text3)" }}>This takes 10–20 seconds</p>
+            </div>
           </div>
         ) : (
-          <div style={{ width:"100%", maxWidth:520 }}>
-            {err && (
-              <div style={{ background:"rgba(220,38,38,0.1)", border:"1px solid rgba(220,38,38,0.3)", borderRadius:12, padding:"12px 16px", marginBottom:18, fontSize:13.5, color:"#FCA5A5", lineHeight:1.5 }}>
-                {err}
-              </div>
-            )}
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 340px", gap:28, alignItems:"start" }}>
 
-            {/* Drop zone */}
-            <div
-              onClick={()=>{ setErr(""); fileInputRef.current?.click(); }}
-              onDragOver={e=>{ e.preventDefault(); setDragOver(true); }}
-              onDragLeave={()=>setDragOver(false)}
-              onDrop={e=>{ e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files?.[0]; if (f) handleFile(f); }}
-              style={{ background:dragOver?"rgba(0,119,181,0.18)":"var(--z-raise)", border:`2px dashed ${dragOver?"#0077B5":"var(--z-bd)"}`, borderRadius:20, padding:"48px 32px", cursor:"pointer", textAlign:"center", transition:"all 0.15s", marginBottom:16 }}>
-              <div style={{ width:56, height:56, borderRadius:16, background:"rgba(0,119,181,0.2)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 18px" }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="#0077B5" strokeWidth="1.8" style={{ width:28,height:28 }}>
-                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
-                  <line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/>
-                </svg>
+            {/* LEFT: Upload */}
+            <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+              {err && (
+                <div style={{ background:"rgba(220,38,38,0.08)", border:"1px solid rgba(220,38,38,0.25)", borderRadius:12, padding:"12px 16px", fontSize:13.5, color:"#DC2626", lineHeight:1.5 }}>
+                  {err}
+                </div>
+              )}
+
+              {/* Hero + drop zone */}
+              <div style={{ borderRadius:22, background:"linear-gradient(135deg,#EFF6FF 0%,#DBEAFE 100%)", border:"1.5px solid rgba(0,119,181,0.2)", overflow:"hidden", position:"relative" }}>
+                <div style={{ position:"absolute", top:-30, right:-30, width:120, height:120, background:"radial-gradient(circle,rgba(0,119,181,0.18) 0%,transparent 70%)", pointerEvents:"none" }}/>
+                <div style={{ padding:"24px 28px 20px" }}>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:"#0077B5", letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:6 }}>What you&apos;ll get</div>
+                  <div style={{ display:"flex", gap:10, flexWrap:"wrap", marginBottom:20 }}>
+                    {["Section-by-section scores","AI headline rewrite","Keyword gap analysis","Recruiter visibility tips"].map(t => (
+                      <span key={t} style={{ fontSize:11.5, fontWeight:600, padding:"4px 11px", borderRadius:99, background:"rgba(0,119,181,0.12)", color:"#0055A4", border:"1px solid rgba(0,119,181,0.2)" }}>{t}</span>
+                    ))}
+                  </div>
+                  <div
+                    onClick={()=>{ setErr(""); fileInputRef.current?.click(); }}
+                    onDragOver={e=>{ e.preventDefault(); setDragOver(true); }}
+                    onDragLeave={()=>setDragOver(false)}
+                    onDrop={e=>{ e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files?.[0]; if (f) handleFile(f); }}
+                    style={{ background:dragOver?"rgba(0,119,181,0.12)":"var(--z-card)", border:`2px dashed ${dragOver?"#0077B5":"rgba(0,119,181,0.35)"}`, borderRadius:18, padding:"36px 24px", cursor:"pointer", textAlign:"center", transition:"all 0.15s", boxShadow:"0 2px 12px rgba(0,119,181,0.1)" }}>
+                    <div style={{ width:58, height:58, borderRadius:16, background:"linear-gradient(135deg,#0077B5,#0A66C2)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px", boxShadow:"0 8px 24px rgba(0,119,181,0.4)" }}>
+                      <svg viewBox="0 0 24 24" fill="white" style={{ width:26,height:26 }}><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zM9 17H6.477v-7H9v7zM7.694 8.717c-.771 0-1.286-.514-1.286-1.2s.514-1.2 1.286-1.2c.771 0 1.286.514 1.286 1.2s-.514 1.2-1.286 1.2zM18 17h-2.442v-3.826c0-1.058-.651-1.302-1.044-1.302-.394 0-1.228.163-1.228 1.302V17h-2.557v-7h2.557v1.302c.325-.652 1.058-1.302 2.276-1.302C17.349 10 18 11.058 18 13.488V17z"/></svg>
+                    </div>
+                    <p style={{ fontSize:18, fontWeight:800, color:"var(--z-text)", marginBottom:6, letterSpacing:"-0.025em" }}>{dragOver ? "Drop your PDF here" : "Upload your LinkedIn PDF"}</p>
+                    <p style={{ fontSize:13, color:"var(--z-text2)", marginBottom:18 }}>Drag and drop, or click to browse</p>
+                    <span style={{ fontSize:13, fontWeight:700, padding:"10px 24px", borderRadius:12, background:"linear-gradient(135deg,#0077B5,#0A66C2)", color:"white", border:"none", boxShadow:"0 6px 20px rgba(0,119,181,0.4)", display:"inline-block" }}>Choose PDF file</span>
+                  </div>
+                </div>
               </div>
-              <p style={{ fontSize:17, fontWeight:800, color:"var(--z-text)", marginBottom:6 }}>
-                {dragOver ? "Drop your PDF here" : "Upload your LinkedIn PDF"}
-              </p>
-              <p style={{ fontSize:13.5, color:"var(--z-text2)", marginBottom:14 }}>
-                Drag and drop, or click to browse
-              </p>
-              <span style={{ fontSize:12, fontWeight:700, padding:"6px 16px", borderRadius:99, background:"#0077B5", color:"white", border:"none" }}>
-                Choose PDF file
-              </span>
+
+              {/* Target role */}
+              <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:14, padding:"14px 18px", display:"flex", alignItems:"center", gap:12, boxShadow:"0 2px 8px var(--z-sh)" }}>
+                <svg viewBox="0 0 20 20" fill="none" stroke="#0077B5" strokeWidth="1.6" style={{width:18,height:18,flexShrink:0}}><circle cx="10" cy="10" r="8"/><circle cx="10" cy="10" r="3"/></svg>
+                <input
+                  style={{ flex:1, background:"transparent", border:"none", outline:"none", fontSize:14, color:"var(--z-text)", fontFamily:"inherit" }}
+                  placeholder="Target role (optional) — e.g. Senior Product Manager"
+                  value={targetRole} onChange={e=>setTargetRole(e.target.value)}/>
+              </div>
             </div>
 
-            {/* Target role */}
-            <div style={{ background:"var(--z-card)", boxShadow:"0 2px 20px rgba(0,0,0,0.07)", border:"1px solid var(--z-bd)", borderRadius:12, padding:"14px 18px", display:"flex", alignItems:"center", gap:12, marginBottom:18 }}>
-              <svg viewBox="0 0 20 20" fill="none" stroke="var(--z-text3)" strokeWidth="1.5" style={{width:16,height:16,flexShrink:0}}><circle cx="10" cy="10" r="8"/><circle cx="10" cy="10" r="3"/></svg>
-              <input
-                style={{ flex:1, background:"transparent", border:"none", outline:"none", fontSize:14, color:"var(--z-text)", fontFamily:"inherit" }}
-                placeholder="Target role (optional) — e.g. Senior Product Manager"
-                value={targetRole} onChange={e=>setTargetRole(e.target.value)}/>
-            </div>
+            {/* RIGHT: Instructions + preview */}
+            <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+              <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 2px 12px var(--z-sh)" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
+                  <div style={{ width:28, height:28, borderRadius:8, background:"rgba(0,119,181,0.15)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    <svg viewBox="0 0 16 16" fill="none" stroke="#0077B5" strokeWidth="1.7" style={{width:13,height:13}}><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 10v.5"/></svg>
+                  </div>
+                  <div style={{ fontSize:12, fontWeight:800, color:"#0077B5", letterSpacing:"0.04em" }}>How to get your LinkedIn PDF</div>
+                </div>
+                <ol style={{ margin:0, paddingLeft:20, fontSize:13, color:"var(--z-text2)", lineHeight:1.9, display:"flex", flexDirection:"column", gap:4 }}>
+                  <li>Go to <strong style={{color:"var(--z-text)"}}>LinkedIn.com</strong></li>
+                  <li>Click <strong style={{color:"var(--z-text)"}}>Me</strong> → <strong style={{color:"var(--z-text)"}}>View Profile</strong></li>
+                  <li>Click <strong style={{color:"var(--z-text)"}}>More</strong> → <strong style={{color:"var(--z-text)"}}>Save to PDF</strong></li>
+                </ol>
+              </div>
 
-            {/* How-to tip */}
-            <div style={{ background:"rgba(0,0,0,0.02)", borderRadius:12, padding:"14px 16px" }}>
-              <p style={{ fontSize:12, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:8 }}>How to get your LinkedIn PDF</p>
-              <ol style={{ margin:0, paddingLeft:18, fontSize:12.5, color:"var(--z-text3)", lineHeight:2 }}>
-                <li>Go to LinkedIn.com → click <strong style={{color:"var(--z-text2)"}}>Me</strong> → <strong style={{color:"var(--z-text2)"}}>View Profile</strong></li>
-                <li>Click the <strong style={{color:"var(--z-text2)"}}>More</strong> button → <strong style={{color:"var(--z-text2)"}}>Save to PDF</strong></li>
-              </ol>
+              {/* Score preview */}
+              <div style={{ background:"linear-gradient(135deg,#EFF6FF,#DBEAFE)", border:"1px solid rgba(0,119,181,0.18)", borderRadius:20, padding:"20px 22px" }}>
+                <div style={{ fontSize:10.5, fontWeight:800, color:"#0077B5", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:14 }}>Sections scored</div>
+                {[
+                  { label:"Headline", pct:85, color:"#0077B5" },
+                  { label:"Summary / About", pct:70, color:"#0A66C2" },
+                  { label:"Experience", pct:78, color:"#1D4ED8" },
+                  { label:"Keywords & Skills", pct:60, color:"#2563EB" },
+                  { label:"Networking signals", pct:65, color:"#3B82F6" },
+                ].map(s => (
+                  <div key={s.label} style={{ marginBottom:10 }}>
+                    <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
+                      <span style={{ fontSize:11.5, fontWeight:600, color:"var(--z-text2)" }}>{s.label}</span>
+                      <span style={{ fontSize:11, fontWeight:700, color:s.color }}>?</span>
+                    </div>
+                    <div style={{ height:5, borderRadius:99, background:"rgba(0,0,0,0.08)", overflow:"hidden" }}>
+                      <div style={{ height:"100%", width:`${s.pct}%`, borderRadius:99, background:`linear-gradient(90deg,${s.color}80,${s.color}40)` }}/>
+                    </div>
+                  </div>
+                ))}
+                <p style={{ fontSize:11, color:"#0055A4", margin:"10px 0 0", lineHeight:1.5 }}>Upload your PDF to see your real scores and rewrites →</p>
+              </div>
             </div>
           </div>
         )}
@@ -11459,27 +11521,39 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
 
           {/* ── Step 1: Background ── */}
           {step === 1 && (
-            <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-              <div style={{ display:"flex", background:"rgba(0,0,0,0.03)", borderRadius:10, padding:2, width:"fit-content" }}>
-                {(["paste","upload"] as const).map(m => (
-                  <button key={m} onClick={()=>{ if(m==="upload") profileInputRef.current?.click(); }}
-                    style={{ fontSize:12, fontWeight:600, padding:"6px 18px", borderRadius:8, border:"none", background:"transparent", color:"var(--z-text2)", cursor:"pointer" }}>
-                    {m === "paste" ? "Paste text" : "Upload file"}
-                  </button>
-                ))}
+            <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+              {/* Hero feature card */}
+              <div style={{ borderRadius:18, background:"linear-gradient(135deg,#ECFDF5 0%,#D1FAE5 100%)", border:"1.5px solid rgba(16,185,129,0.2)", padding:"20px 24px", position:"relative", overflow:"hidden" }}>
+                <div style={{ position:"absolute", top:-20, right:-20, width:90, height:90, background:"radial-gradient(circle,rgba(52,211,153,0.25) 0%,transparent 70%)", pointerEvents:"none" }}/>
+                <div style={{ fontSize:10.5, fontWeight:800, color:"#059669", letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:8 }}>What Zari writes for you</div>
+                <div style={{ display:"flex", gap:12, flexWrap:"wrap" }}>
+                  {[
+                    { text:"Written in your actual voice" },
+                    { text:"Tailored to the specific role" },
+                    { text:"Ready to send in minutes" },
+                  ].map((f,i) => (
+                    <div key={i} style={{ display:"flex", alignItems:"center", gap:7, background:"rgba(255,255,255,0.7)", borderRadius:10, padding:"6px 12px", border:"1px solid rgba(16,185,129,0.15)" }}>
+                      <div style={{ width:16, height:16, borderRadius:"50%", background:"linear-gradient(135deg,#10B981,#34D399)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                        <svg viewBox="0 0 10 10" fill="none" stroke="white" strokeWidth="2" style={{width:8,height:8}}><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg>
+                      </div>
+                      <span style={{ fontSize:12, fontWeight:600, color:"#065F46" }}>{f.text}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
+
               {profileFile ? (
-                <div style={{ background:"rgba(74,222,128,0.08)", border:"1px solid rgba(74,222,128,0.3)", borderRadius:18, padding:"18px 22px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                <div style={{ background:"linear-gradient(135deg,rgba(74,222,128,0.08),rgba(74,222,128,0.04))", border:"1.5px solid rgba(74,222,128,0.35)", borderRadius:18, padding:"20px 24px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
                   <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-                    <div style={{ width:40, height:40, borderRadius:11, background:"rgba(74,222,128,0.15)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                      <svg viewBox="0 0 20 20" fill="none" stroke="#4ADE80" strokeWidth="1.8" style={{ width:18,height:18 }}><path d="M13 2H5a1.5 1.5 0 00-1.5 1.5v13A1.5 1.5 0 005 18h10a1.5 1.5 0 001.5-1.5V6L13 2z"/><polyline points="4,11 7,14 11,9"/></svg>
+                    <div style={{ width:44, height:44, borderRadius:12, background:"linear-gradient(135deg,#10B981,#34D399)", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 4px 12px rgba(16,185,129,0.35)" }}>
+                      <svg viewBox="0 0 20 20" fill="none" stroke="white" strokeWidth="2" style={{ width:18,height:18 }}><path d="M13 2H5a1.5 1.5 0 00-1.5 1.5v13A1.5 1.5 0 005 18h10a1.5 1.5 0 001.5-1.5V6L13 2z"/><polyline points="4,11 7,14 11,9"/></svg>
                     </div>
                     <div>
-                      <p style={{ fontSize:14, fontWeight:600, color:"var(--z-text)", margin:0 }}>{profileFile}</p>
-                      <p style={{ fontSize:11.5, color:"var(--z-text3)", margin:0 }}>Uploaded successfully</p>
+                      <p style={{ fontSize:14, fontWeight:700, color:"var(--z-text)", margin:0 }}>{profileFile}</p>
+                      <p style={{ fontSize:11.5, color:"#16A34A", margin:0, fontWeight:600 }}>✓ Uploaded successfully</p>
                     </div>
                   </div>
-                  <label style={{ fontSize:11.5, fontWeight:600, color:"var(--z-text3)", cursor:"pointer", padding:"6px 14px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-card)", boxShadow:"0 2px 20px rgba(0,0,0,0.07)", flexShrink:0 }}>
+                  <label style={{ fontSize:12, fontWeight:600, color:"var(--z-text2)", cursor:"pointer", padding:"7px 16px", borderRadius:10, border:"1px solid var(--z-bd)", background:"var(--z-card)", boxShadow:"0 2px 8px rgba(0,0,0,0.06)", flexShrink:0 }}>
                     Replace<input type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleUpload(f); e.target.value=""; }}/>
                   </label>
                 </div>
@@ -11490,24 +11564,24 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
                     onDragOver={e=>{ e.preventDefault(); setProfileDrag(true); }}
                     onDragLeave={()=>setProfileDrag(false)}
                     onDrop={e=>{ e.preventDefault(); setProfileDrag(false); const f=e.dataTransfer.files?.[0]; if(f) void handleUpload(f); }}
-                    style={{ background:profileDrag?"rgba(67,97,238,0.18)":"var(--z-raise)", border:`2px dashed ${profileDrag?"#4361EE":"var(--z-bd)"}`, borderRadius:16, padding:"28px 24px", cursor:"pointer", textAlign:"center", transition:"all 0.15s" }}>
-                    <div style={{ width:44, height:44, borderRadius:12, background:"rgba(52,211,153,0.18)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 14px" }}>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="#34D399" strokeWidth="1.8" style={{ width:22,height:22 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
+                    style={{ background:profileDrag?"rgba(16,185,129,0.1)":"var(--z-card)", border:`2px dashed ${profileDrag?"#10B981":"rgba(16,185,129,0.3)"}`, borderRadius:18, padding:"36px 24px", cursor:"pointer", textAlign:"center", transition:"all 0.15s", boxShadow:"0 2px 12px rgba(16,185,129,0.08)" }}>
+                    <div style={{ width:52, height:52, borderRadius:15, background:"linear-gradient(135deg,#10B981,#34D399)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 14px", boxShadow:"0 8px 20px rgba(16,185,129,0.35)" }}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" style={{ width:24,height:24 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
                     </div>
-                    <p style={{ fontSize:15, fontWeight:700, color:"var(--z-text)", marginBottom:5 }}>{profileDrag ? "Drop your file here" : "Upload resume or LinkedIn PDF"}</p>
-                    <p style={{ fontSize:12.5, color:"var(--z-text3)", marginBottom:14 }}>Drag and drop, or click to browse</p>
-                    <span style={{ fontSize:12, fontWeight:700, padding:"6px 16px", borderRadius:99, background:"#10B981", color:"white", border:"none" }}>Choose file · PDF, DOCX, TXT</span>
+                    <p style={{ fontSize:16, fontWeight:800, color:"var(--z-text)", marginBottom:5, letterSpacing:"-0.02em" }}>{profileDrag ? "Drop your file here" : "Upload your resume or LinkedIn PDF"}</p>
+                    <p style={{ fontSize:12.5, color:"var(--z-text2)", marginBottom:16 }}>Drag and drop, or click to browse</p>
+                    <span style={{ fontSize:13, fontWeight:700, padding:"9px 22px", borderRadius:12, background:"linear-gradient(135deg,#10B981,#34D399)", color:"white", border:"none", boxShadow:"0 6px 18px rgba(16,185,129,0.4)" }}>Choose file · PDF, DOCX, TXT</span>
                   </div>
-                  <p style={{ textAlign:"center", fontSize:12, color:"var(--z-text3)", margin:0 }}>— or paste below —</p>
+                  <p style={{ textAlign:"center", fontSize:12, color:"var(--z-text3)", margin:0 }}>— or paste your background below —</p>
                   <textarea
-                    style={{ width:"100%", minHeight:130, border:"1px solid var(--z-bd)", borderRadius:14, padding:"13px 16px", fontSize:14, color:"var(--z-text)", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"var(--z-raise)", lineHeight:1.65, transition:"border-color 0.15s" }}
+                    style={{ width:"100%", minHeight:120, border:"1.5px solid var(--z-bd)", borderRadius:14, padding:"13px 16px", fontSize:14, color:"var(--z-text)", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"var(--z-raise)", lineHeight:1.65, transition:"border-color 0.15s" }}
                     placeholder="Paste your resume text, LinkedIn About section, or a summary of your background…"
                     value={profileText} onChange={e=>setProfileText(e.target.value)}
                   />
                 </>
               )}
               <button onClick={()=>setStep(2)} disabled={!profileText.trim() && !profileFile}
-                style={{ width:"100%", fontSize:14.5, fontWeight:700, padding:"14px", borderRadius:14, border:"none", background:(profileText.trim()||profileFile)?"linear-gradient(135deg,#10B981,#34D399)":"var(--z-raise)", color:(profileText.trim()||profileFile)?"white":"var(--z-text3)", cursor:(profileText.trim()||profileFile)?"pointer":"default", boxShadow:(profileText.trim()||profileFile)?"0 8px 24px rgba(16,185,129,0.35)":"none", transition:"all 0.2s" }}>
+                style={{ width:"100%", fontSize:14.5, fontWeight:700, padding:"14px", borderRadius:14, border:"none", background:(profileText.trim()||profileFile)?"linear-gradient(135deg,#10B981,#34D399)":"var(--z-raise)", color:(profileText.trim()||profileFile)?"white":"var(--z-text3)", cursor:(profileText.trim()||profileFile)?"pointer":"default", boxShadow:(profileText.trim()||profileFile)?"0 8px 24px rgba(16,185,129,0.35)":"none", transition:"all 0.2s", letterSpacing:"-0.01em" }}>
                 Continue →
               </button>
             </div>
@@ -12029,20 +12103,26 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
         <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
           {SECTION_CARDS.map((c, i) => (
             <button key={c.key} onClick={()=>c.done ? undefined : onNavigate(c.key)}
-              style={{ background:"rgba(0,0,0,0.03)", border:`1.5px solid ${c.done?"#BBF7D0":"#E4E8F5"}`, borderRadius:16, padding:"18px 20px", cursor:c.done?"default":"pointer", textAlign:"left", display:"flex", alignItems:"center", gap:16, transition:"all 0.15s", boxShadow:"0 1px 4px rgba(0,0,0,0.04)" }}>
-              <div style={{ width:44, height:44, borderRadius:12, background:c.done?"#F0FFF4":c.bg, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+              onMouseEnter={e=>{ if(!c.done) { e.currentTarget.style.transform="translateY(-2px)"; e.currentTarget.style.boxShadow=`0 8px 24px ${c.color}25`; } }}
+              onMouseLeave={e=>{ if(!c.done) { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow="0 2px 8px var(--z-sh)"; } }}
+              style={{ background:c.done?"linear-gradient(135deg,rgba(74,222,128,0.08),rgba(74,222,128,0.04))":c.bg, border:`1.5px solid ${c.done?"rgba(74,222,128,0.35)":`${c.color}25`}`, borderRadius:18, padding:"20px 22px", cursor:c.done?"default":"pointer", textAlign:"left", display:"flex", alignItems:"center", gap:16, transition:"all 0.2s", boxShadow:"0 2px 8px var(--z-sh)", position:"relative", overflow:"hidden" }}>
+              {!c.done && <div style={{ position:"absolute", left:0, top:0, bottom:0, width:4, background:c.color, borderRadius:"18px 0 0 18px" }}/>}
+              <div style={{ width:48, height:48, borderRadius:14, background:c.done?"linear-gradient(135deg,#4ADE80,#22C55E)":`linear-gradient(135deg,${c.color},${c.color}CC)`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:c.done?"0 4px 12px rgba(74,222,128,0.4)":`0 4px 14px ${c.color}40` }}>
                 {c.done
-                  ? <svg viewBox="0 0 20 20" fill="none" stroke="#16A34A" strokeWidth="2.2" style={{width:20,height:20}}><path d="M4 10l5 5 7-7"/></svg>
-                  : <span style={{ fontSize:13, fontWeight:800, color:c.color }}>{i+1}</span>
+                  ? <svg viewBox="0 0 20 20" fill="none" stroke="white" strokeWidth="2.4" style={{width:20,height:20}}><path d="M4 10l5 5 7-7"/></svg>
+                  : <span style={{ fontSize:16, fontWeight:900, color:"white" }}>{i+1}</span>
                 }
               </div>
               <div style={{ flex:1 }}>
-                <div style={{ fontSize:14, fontWeight:700, color:c.done?"#16A34A":"var(--z-text)", marginBottom:3 }}>{c.label} {c.done && <span style={{ fontSize:11, fontWeight:600, color:"#16A34A" }}>✓ Done</span>}</div>
-                <div style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.45 }}>{c.desc}</div>
+                <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
+                  <span style={{ fontSize:15, fontWeight:800, color:c.done?"#16A34A":"var(--z-text)", letterSpacing:"-0.02em" }}>{c.label}</span>
+                  {c.done && <span style={{ fontSize:10.5, fontWeight:700, padding:"2px 9px", borderRadius:99, background:"rgba(74,222,128,0.15)", color:"#16A34A", border:"1px solid rgba(74,222,128,0.3)" }}>✓ Complete</span>}
+                </div>
+                <div style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.5 }}>{c.desc}</div>
               </div>
               {!c.done && (
-                <div style={{ flexShrink:0, width:32, height:32, borderRadius:10, background:c.bg, display:"flex", alignItems:"center", justifyContent:"center", color:c.color }}>
-                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.2" style={{width:14,height:14}}><path d="M4 8h8M9 4l4 4-4 4"/></svg>
+                <div style={{ flexShrink:0, width:36, height:36, borderRadius:10, background:`${c.color}18`, display:"flex", alignItems:"center", justifyContent:"center", color:c.color, border:`1px solid ${c.color}25` }}>
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.2" style={{width:15,height:15}}><path d="M4 8h8M9 4l4 4-4 4"/></svg>
                 </div>
               )}
             </button>
