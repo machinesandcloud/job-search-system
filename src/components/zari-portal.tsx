@@ -3498,7 +3498,7 @@ function PromotionSharedIntakeFlow({
   if (submitting) {
     return (
       <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
-        <div style={{ maxWidth:760, margin:"0 auto", padding:"64px 24px 56px" }}>
+        <div style={{ maxWidth:1100, margin:"0 auto", padding:"48px 40px 56px" }}>
           <div style={{ background:"var(--z-card)", borderRadius:20, padding:"72px 32px", textAlign:"center", boxShadow:"0 8px 40px rgba(0,0,0,0.09)", border:"1px solid var(--z-bd)" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
               {[0,1,2].map(i => (
@@ -3810,7 +3810,7 @@ function ScreenPromotionReadiness() {
   if (generating && !result) {
     return (
       <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
-        <div style={{ maxWidth:760, margin:"0 auto", padding:"64px 24px 56px" }}>
+        <div style={{ maxWidth:1100, margin:"0 auto", padding:"48px 40px 56px" }}>
           <div style={{ background:"var(--z-card)", borderRadius:20, padding:"72px 32px", textAlign:"center", boxShadow:"0 8px 40px rgba(0,0,0,0.09)", border:"1px solid var(--z-bd)" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
               {[0,1,2].map(i => (
@@ -4519,7 +4519,7 @@ function ScreenSalaryCompensation() {
   if (generating && !result) {
     return (
       <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:BG_DARK }}>
-        <div style={{ maxWidth:680, margin:"0 auto", padding:"72px 24px" }}>
+        <div style={{ maxWidth:1100, margin:"0 auto", padding:"72px 40px" }}>
           <div style={{ borderRadius:24, border:"1px solid rgba(16,185,129,0.2)", background:"var(--z-card)", boxShadow:"0 4px 32px rgba(0,0,0,0.09)", padding:"72px 32px", textAlign:"center" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
               {[0,1,2].map(i => <div key={i} style={{ width:11,height:11,borderRadius:"50%",background:ACCENT,animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite`,boxShadow:`0 0 10px ${ACCENT}80` }}/>)}
@@ -4886,7 +4886,7 @@ function ScreenPivotAnalysis() {
   if (generating && !result) {
     return (
       <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:BG_DARK }}>
-        <div style={{ maxWidth:680, margin:"0 auto", padding:"72px 24px" }}>
+        <div style={{ maxWidth:1100, margin:"0 auto", padding:"72px 40px" }}>
           <div style={{ borderRadius:24, border:"1px solid rgba(56,189,248,0.2)", background:"var(--z-card)", boxShadow:"0 4px 32px rgba(0,0,0,0.09)", padding:"72px 32px", textAlign:"center" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
               {[0,1,2].map(i => <div key={i} style={{ width:11,height:11,borderRadius:"50%",background:ACCENT,animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite`,boxShadow:`0 0 10px ${ACCENT}80` }}/>)}
@@ -5244,7 +5244,7 @@ function ScreenExecPositioning() {
   if (generating && !result) {
     return (
       <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:BG_DARK }}>
-        <div style={{ maxWidth:680, margin:"0 auto", padding:"72px 24px" }}>
+        <div style={{ maxWidth:1100, margin:"0 auto", padding:"72px 40px" }}>
           <div style={{ borderRadius:24, border:"1px solid rgba(245,158,11,0.22)", background:"var(--z-card)", boxShadow:"0 4px 32px rgba(0,0,0,0.09)", padding:"72px 32px", textAlign:"center" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
               {[0,1,2].map(i => <div key={i} style={{ width:11,height:11,borderRadius:"50%",background:ACCENT,animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite`,boxShadow:`0 0 10px ${ACCENT}80` }}/>)}
@@ -5942,7 +5942,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
   ══════════════════════════════════ */
   if (step === "choose") return (
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
-      <div style={{ maxWidth:720, margin:"0 auto", padding:"40px 24px 64px" }}>
+      <div style={{ maxWidth:1100, margin:"0 auto", padding:"40px 40px 64px" }}>
 
         {/* Dark hero banner */}
         <div style={{ background:"linear-gradient(135deg,#4361EE,#6479F0)", borderRadius:20, padding:"32px 36px 36px", marginBottom:28, boxShadow:"0 12px 48px rgba(0,0,0,0.08)", border:"1px solid var(--z-bd)", position:"relative", overflow:"hidden" }}>
@@ -6033,7 +6033,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
   ══════════════════════════════════ */
   if (step === "job") return (
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
-      <div style={{ maxWidth:580, margin:"0 auto", padding:"44px 24px 56px" }}>
+      <div style={{ maxWidth:900, margin:"0 auto", padding:"40px 40px 56px" }}>
 
         {/* Step progress */}
         <div style={{ display:"flex", justifyContent:"center", alignItems:"center", gap:0, marginBottom:32 }}>
@@ -7803,7 +7803,7 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
 
   return (
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
-      <div style={{ maxWidth:900, margin:"0 auto", padding:"24px 28px" }}>
+      <div style={{ maxWidth:1200, margin:"0 auto", padding:"28px 40px" }}>
 
         {/* Header */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20, flexWrap:"wrap", gap:10 }}>
@@ -8244,7 +8244,7 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
   if (loadingQs && !sections) {
     return (
       <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
-        <div style={{ maxWidth:820, margin:"0 auto", padding:"64px 24px 56px" }}>
+        <div style={{ maxWidth:1100, margin:"0 auto", padding:"48px 40px 56px" }}>
           <div style={{ background:"var(--z-card)", borderRadius:24, padding:"74px 32px", textAlign:"center", boxShadow:"0 2px 12px rgba(0,0,0,0.06)", border:"1px solid var(--z-bd)" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
               {[0,1,2].map(i => (
@@ -9391,7 +9391,7 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
   if (generating && !result) {
     return (
       <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
-        <div style={{ maxWidth:760, margin:"0 auto", padding:"64px 24px 56px" }}>
+        <div style={{ maxWidth:1100, margin:"0 auto", padding:"48px 40px 56px" }}>
           <div style={{ background:"var(--z-card)", borderRadius:20, padding:"72px 32px", textAlign:"center", boxShadow:"0 8px 40px rgba(0,0,0,0.09)", border:"1px solid var(--z-bd)" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
               {[0,1,2].map(i => (
@@ -10901,7 +10901,7 @@ function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate
 
       {/* Page header */}
       <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"20px 40px" }}>
-        <div style={{ maxWidth:900, margin:"0 auto", display:"flex", alignItems:"center", gap:12 }}>
+        <div style={{ maxWidth:1200, margin:"0 auto", display:"flex", alignItems:"center", gap:12 }}>
           <div style={{ width:32, height:32, borderRadius:10, background:"rgba(100,116,139,0.2)", border:"1px solid rgba(100,116,139,0.35)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="1.8" style={{ width:16,height:16 }}><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
           </div>
@@ -10912,7 +10912,7 @@ function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate
         </div>
       </div>
 
-      <div style={{ maxWidth:900, margin:"0 auto", padding:"28px 28px 56px" }}>
+      <div style={{ maxWidth:1200, margin:"0 auto", padding:"28px 40px 56px" }}>
 
         {/* ── Hero header ── */}
         <div style={{ background:"linear-gradient(135deg,#1E293B,#0F172A)", borderRadius:18, padding:"24px 28px", marginBottom:24, boxShadow:"0 12px 40px rgba(0,0,0,0.2)", border:"1px solid var(--z-bd)", position:"relative", overflow:"hidden" }}>
@@ -11271,7 +11271,7 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
           </button>
         </div>
       </div>
-      <div style={{ maxWidth:760, margin:"0 auto", padding:"28px 24px 56px" }}>
+      <div style={{ maxWidth:1100, margin:"0 auto", padding:"28px 40px 56px" }}>
         {generating ? (
           <div style={{ background:"var(--z-card)", borderRadius:20, padding:"72px 32px", textAlign:"center", boxShadow:"0 8px 40px rgba(0,0,0,0.09)", border:"1px solid var(--z-bd)" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
@@ -11686,7 +11686,7 @@ function ScreenPromotionRoadmap({ onNavigate, active = false }: { onNavigate: (s
   if (!isReady) {
     return (
       <div style={promotionPageStyle(theme)}>
-        <div style={{ maxWidth:980, margin:"0 auto", padding:"34px 24px 56px", position:"relative" }}>
+        <div style={{ maxWidth:1200, margin:"0 auto", padding:"34px 40px 56px", position:"relative" }}>
           <div style={promotionHeroStyle(theme)}>
             <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 84% 18%, rgba(251,207,232,0.18), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
             <div style={promotionHeroGridStyle()}>
@@ -11954,7 +11954,7 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
           </div>
         </div>
       </div>
-      <div style={{ maxWidth:700, margin:"0 auto", padding:"48px 28px" }}>
+      <div style={{ maxWidth:1000, margin:"0 auto", padding:"48px 40px" }}>
         <div style={{ textAlign:"center", marginBottom:40 }}>
           <div style={{ width:64, height:64, borderRadius:18, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 18px", boxShadow:"0 8px 24px rgba(67,97,238,0.3)" }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" style={{width:28,height:28}}><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
@@ -12076,7 +12076,7 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
           </div>
         </div>
       </div>
-      <div style={{ maxWidth:860, margin:"0 auto", padding:"28px 28px 48px" }}>
+      <div style={{ maxWidth:1200, margin:"0 auto", padding:"28px 40px 48px" }}>
 
         {/* ── Header ── */}
         <div style={{ marginBottom:28 }}>
