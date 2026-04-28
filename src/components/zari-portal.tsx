@@ -1622,7 +1622,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
           )}
 
           {/* Quick prompts grid */}
-          <div style={{ flexShrink:0, padding:"0 26px 10px", display:"flex", gap:8, flexWrap:"wrap" }}>
+          <div style={{ flexShrink:0, padding:"0 26px 10px", display:"flex", gap:8, flexWrap:"wrap", justifyContent:"center" }}>
             {STAGE_PROMPTS[stage].map(p => (
               <button key={p} onClick={() => void sendMessage(p)} disabled={isLoading} style={{
                 opacity: isLoading ? 0.4 : 1,
@@ -5951,68 +5951,136 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
         </div>
 
         {/* Two path cards */}
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:18 }}>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:20 }}>
+
           {/* Score My Resume */}
           <button
             onClick={()=>{ setReviewMode("general"); setStep("upload"); }}
-            style={{ textAlign:"left", padding:"22px 20px", borderRadius:18, border:"1px solid rgba(67,97,238,0.3)", background:"rgba(67,97,238,0.08)", cursor:"pointer", transition:"all 0.18s", position:"relative", overflow:"hidden" }}
-            onMouseEnter={e=>(e.currentTarget.style.background="rgba(67,97,238,0.14)",e.currentTarget.style.transform="translateY(-2px)")}
-            onMouseLeave={e=>(e.currentTarget.style.background="rgba(67,97,238,0.08)",e.currentTarget.style.transform="translateY(0)")}
+            style={{ textAlign:"left", padding:"28px 28px 28px 32px", borderRadius:20, border:"1.5px solid rgba(67,97,238,0.22)", background:"linear-gradient(135deg,#EEF2FF 0%,#E8EDFF 100%)", cursor:"pointer", transition:"all 0.2s", position:"relative", overflow:"hidden", display:"flex", alignItems:"stretch", gap:0, minHeight:260 }}
+            onMouseEnter={e=>(e.currentTarget.style.transform="translateY(-3px)",e.currentTarget.style.boxShadow="0 16px 48px rgba(67,97,238,0.16)")}
+            onMouseLeave={e=>(e.currentTarget.style.transform="translateY(0)",e.currentTarget.style.boxShadow="none")}
           >
-            <div style={{ position:"absolute", left:0, top:0, bottom:0, width:3, background:"linear-gradient(180deg,#4361EE,#818CF8)", borderRadius:"18px 0 0 18px" }}/>
-            <div style={{ width:40, height:40, borderRadius:12, background:"rgba(67,97,238,0.25)", border:"1px solid rgba(67,97,238,0.4)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:12 }}>
-              <svg viewBox="0 0 20 20" fill="none" stroke="#818CF8" strokeWidth="1.8" style={{ width:18,height:18 }}><rect x="3" y="2" width="14" height="16" rx="2"/><path d="M7 7h6M7 10h6M7 13h4"/></svg>
+            <div style={{ position:"absolute", left:0, top:0, bottom:0, width:4, background:"linear-gradient(180deg,#4361EE,#818CF8)", borderRadius:"20px 0 0 20px" }}/>
+            <div style={{ position:"absolute", top:0, right:0, bottom:0, width:"42%", background:"radial-gradient(ellipse at 80% 50%, rgba(67,97,238,0.08) 0%, transparent 70%)", pointerEvents:"none" }}/>
+            {/* Left content */}
+            <div style={{ flex:1, display:"flex", flexDirection:"column", paddingLeft:8 }}>
+              <div style={{ width:52, height:52, borderRadius:16, background:"linear-gradient(135deg,#4361EE,#6C8EFF)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:16, boxShadow:"0 6px 20px rgba(67,97,238,0.35)" }}>
+                <svg viewBox="0 0 20 20" fill="none" stroke="white" strokeWidth="1.8" style={{ width:22,height:22 }}><rect x="3" y="2" width="14" height="16" rx="2"/><path d="M7 7h6M7 10h6M7 13h4"/></svg>
+              </div>
+              <p style={{ fontSize:18, fontWeight:900, color:"#1E1B4B", marginBottom:6, letterSpacing:"-0.03em", lineHeight:1.2 }}>Score My Resume</p>
+              <p style={{ fontSize:13, color:"#4338CA", lineHeight:1.6, marginBottom:16, opacity:0.8 }}>Instant feedback. Zari scores ATS, impact, and clarity against universal standards.</p>
+              <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:20 }}>
+                {["ATS compatibility","Bullet rewrites","Impact scoring","Downloadable version"].map(f => (
+                  <div key={f} style={{ display:"flex", alignItems:"center", gap:8 }}>
+                    <div style={{ width:18, height:18, borderRadius:"50%", background:"#4361EE", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                      <svg viewBox="0 0 10 10" fill="none" stroke="white" strokeWidth="2" style={{ width:9,height:9 }}><path d="M1.5 5l2.5 2.5 4.5-4.5"/></svg>
+                    </div>
+                    <span style={{ fontSize:13, color:"#3730A3", fontWeight:500 }}>{f}</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop:"auto" }}>
+                <span style={{ fontSize:13.5, fontWeight:700, padding:"10px 22px", borderRadius:12, background:"linear-gradient(135deg,#4361EE,#6C8EFF)", color:"white", display:"inline-block", boxShadow:"0 4px 16px rgba(67,97,238,0.4)", letterSpacing:"-0.01em" }}>Start →</span>
+              </div>
             </div>
-            <p style={{ fontSize:16, fontWeight:800, color:"var(--z-text)", marginBottom:5, letterSpacing:"-0.02em" }}>Score My Resume</p>
-            <p style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.55, marginBottom:14 }}>Instant feedback. Zari scores ATS, impact, and clarity against universal standards.</p>
-            <div style={{ display:"flex", flexDirection:"column", gap:6, marginBottom:16 }}>
-              {["ATS compatibility","Bullet rewrites","Impact scoring","Downloadable version"].map(f => (
-                <div key={f} style={{ display:"flex", alignItems:"center", gap:6 }}>
-                  <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2" style={{ width:10,height:10,flexShrink:0 }}><path d="M2 6l3 3 5-5"/></svg>
-                  <span style={{ fontSize:11.5, color:"var(--z-text2)" }}>{f}</span>
+            {/* Right decorative: mock score ring */}
+            <div style={{ width:160, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", flexShrink:0, gap:12 }}>
+              <div style={{ position:"relative", width:108, height:108 }}>
+                <svg viewBox="0 0 108 108" style={{ position:"absolute", inset:0, transform:"rotate(-90deg)" }}>
+                  <circle cx="54" cy="54" r="44" fill="none" stroke="rgba(67,97,238,0.12)" strokeWidth="9"/>
+                  <circle cx="54" cy="54" r="44" fill="none" stroke="url(#blueGrad)" strokeWidth="9" strokeLinecap="round" strokeDasharray="235 277"/>
+                  <defs><linearGradient id="blueGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#4361EE"/><stop offset="100%" stopColor="#818CF8"/></linearGradient></defs>
+                </svg>
+                <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
+                  <span style={{ fontSize:28, fontWeight:900, color:"#4361EE", letterSpacing:"-0.05em", lineHeight:1 }}>87</span>
+                  <span style={{ fontSize:10, fontWeight:700, color:"#6366F1", letterSpacing:"0.04em" }}>/100</span>
                 </div>
-              ))}
+              </div>
+              <div style={{ display:"flex", flexDirection:"column", gap:5, width:"100%" }}>
+                {[["ATS","94%"],["Impact","81%"],["Clarity","88%"]].map(([l,v]) => (
+                  <div key={l} style={{ display:"flex", alignItems:"center", gap:7 }}>
+                    <span style={{ fontSize:10.5, fontWeight:600, color:"#4338CA", width:44, flexShrink:0 }}>{l}</span>
+                    <div style={{ flex:1, height:5, borderRadius:99, background:"rgba(67,97,238,0.12)", overflow:"hidden" }}>
+                      <div style={{ height:"100%", width:v, background:"linear-gradient(90deg,#4361EE,#818CF8)", borderRadius:99 }}/>
+                    </div>
+                    <span style={{ fontSize:10, fontWeight:700, color:"#4361EE", width:28, textAlign:"right" }}>{v}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-            <span style={{ fontSize:12.5, fontWeight:700, padding:"7px 16px", borderRadius:9, background:"#4361EE", color:"white", border:"1px solid #3251CC", display:"inline-block" }}>Start →</span>
           </button>
 
           {/* Targeted Resume */}
           <button
             onClick={()=>{ setReviewMode("targeted"); setStep("job"); }}
-            style={{ textAlign:"left", padding:"22px 20px", borderRadius:18, border:"1px solid rgba(124,58,237,0.35)", background:"rgba(124,58,237,0.08)", cursor:"pointer", transition:"all 0.18s", position:"relative", overflow:"hidden" }}
-            onMouseEnter={e=>(e.currentTarget.style.background="rgba(124,58,237,0.14)",e.currentTarget.style.transform="translateY(-2px)")}
-            onMouseLeave={e=>(e.currentTarget.style.background="rgba(124,58,237,0.08)",e.currentTarget.style.transform="translateY(0)")}
+            style={{ textAlign:"left", padding:"28px 28px 28px 32px", borderRadius:20, border:"1.5px solid rgba(124,58,237,0.22)", background:"linear-gradient(135deg,#F5F3FF 0%,#EDE9FE 100%)", cursor:"pointer", transition:"all 0.2s", position:"relative", overflow:"hidden", display:"flex", alignItems:"stretch", gap:0, minHeight:260 }}
+            onMouseEnter={e=>(e.currentTarget.style.transform="translateY(-3px)",e.currentTarget.style.boxShadow="0 16px 48px rgba(124,58,237,0.16)")}
+            onMouseLeave={e=>(e.currentTarget.style.transform="translateY(0)",e.currentTarget.style.boxShadow="none")}
           >
-            <div style={{ position:"absolute", left:0, top:0, bottom:0, width:3, background:"linear-gradient(180deg,#7C3AED,#A78BFA)", borderRadius:"18px 0 0 18px" }}/>
-            <div style={{ position:"absolute", top:14, right:14, background:"rgba(167,139,250,0.2)", border:"1px solid rgba(167,139,250,0.4)", color:"#C4B5FD", fontSize:9.5, fontWeight:800, padding:"2px 9px", borderRadius:99, letterSpacing:"0.06em" }}>RECOMMENDED</div>
-            <div style={{ width:40, height:40, borderRadius:12, background:"rgba(124,58,237,0.25)", border:"1px solid rgba(124,58,237,0.4)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:12 }}>
-              <svg viewBox="0 0 20 20" fill="none" stroke="#A78BFA" strokeWidth="1.8" style={{ width:18,height:18 }}><circle cx="9" cy="9" r="5.5"/><path d="M15 15l3 3"/><path d="M7 9l2 2 4-4"/></svg>
+            <div style={{ position:"absolute", left:0, top:0, bottom:0, width:4, background:"linear-gradient(180deg,#7C3AED,#A78BFA)", borderRadius:"20px 0 0 20px" }}/>
+            <div style={{ position:"absolute", top:0, right:0, bottom:0, width:"42%", background:"radial-gradient(ellipse at 80% 50%, rgba(124,58,237,0.08) 0%, transparent 70%)", pointerEvents:"none" }}/>
+            {/* RECOMMENDED badge */}
+            <div style={{ position:"absolute", top:16, right:16, background:"linear-gradient(135deg,#7C3AED,#A78BFA)", color:"white", fontSize:9.5, fontWeight:800, padding:"4px 12px", borderRadius:99, letterSpacing:"0.08em", boxShadow:"0 2px 8px rgba(124,58,237,0.4)" }}>RECOMMENDED</div>
+            {/* Left content */}
+            <div style={{ flex:1, display:"flex", flexDirection:"column", paddingLeft:8 }}>
+              <div style={{ width:52, height:52, borderRadius:16, background:"linear-gradient(135deg,#7C3AED,#A78BFA)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:16, boxShadow:"0 6px 20px rgba(124,58,237,0.35)" }}>
+                <svg viewBox="0 0 20 20" fill="none" stroke="white" strokeWidth="1.8" style={{ width:22,height:22 }}><circle cx="9" cy="9" r="5.5"/><path d="M15 15l3 3"/><path d="M7 9l2 2 4-4"/></svg>
+              </div>
+              <p style={{ fontSize:18, fontWeight:900, color:"#2E1065", marginBottom:6, letterSpacing:"-0.03em", lineHeight:1.2 }}>Targeted Resume</p>
+              <p style={{ fontSize:13, color:"#6D28D9", lineHeight:1.6, marginBottom:16, opacity:0.85 }}>Applying to a specific job? Paste the JD and Zari scores against every requirement.</p>
+              <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:20 }}>
+                {["Keyword match vs. JD","Job Match score","JD-tuned rewrites","Missing skills callout"].map(f => (
+                  <div key={f} style={{ display:"flex", alignItems:"center", gap:8 }}>
+                    <div style={{ width:18, height:18, borderRadius:"50%", background:"#7C3AED", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                      <svg viewBox="0 0 10 10" fill="none" stroke="white" strokeWidth="2" style={{ width:9,height:9 }}><path d="M1.5 5l2.5 2.5 4.5-4.5"/></svg>
+                    </div>
+                    <span style={{ fontSize:13, color:"#5B21B6", fontWeight:500 }}>{f}</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop:"auto" }}>
+                <span style={{ fontSize:13.5, fontWeight:700, padding:"10px 22px", borderRadius:12, background:"linear-gradient(135deg,#7C3AED,#A78BFA)", color:"white", display:"inline-block", boxShadow:"0 4px 16px rgba(124,58,237,0.4)", letterSpacing:"-0.01em" }}>Start →</span>
+              </div>
             </div>
-            <p style={{ fontSize:16, fontWeight:800, color:"var(--z-text)", marginBottom:5, letterSpacing:"-0.02em" }}>Targeted Resume</p>
-            <p style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.55, marginBottom:14 }}>Applying to a specific job? Paste the JD and Zari scores against every requirement.</p>
-            <div style={{ display:"flex", flexDirection:"column", gap:6, marginBottom:16 }}>
-              {["Keyword match vs. JD","Job Match score","JD-tuned rewrites","Missing skills callout"].map(f => (
-                <div key={f} style={{ display:"flex", alignItems:"center", gap:6 }}>
-                  <svg viewBox="0 0 12 12" fill="none" stroke="#C4B5FD" strokeWidth="2" style={{ width:10,height:10,flexShrink:0 }}><path d="M2 6l3 3 5-5"/></svg>
-                  <span style={{ fontSize:11.5, color:"var(--z-text2)" }}>{f}</span>
+            {/* Right decorative: match score */}
+            <div style={{ width:160, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", flexShrink:0, gap:12 }}>
+              <div style={{ position:"relative", width:108, height:108 }}>
+                <svg viewBox="0 0 108 108" style={{ position:"absolute", inset:0, transform:"rotate(-90deg)" }}>
+                  <circle cx="54" cy="54" r="44" fill="none" stroke="rgba(124,58,237,0.12)" strokeWidth="9"/>
+                  <circle cx="54" cy="54" r="44" fill="none" stroke="url(#purpleGrad)" strokeWidth="9" strokeLinecap="round" strokeDasharray="207 277"/>
+                  <defs><linearGradient id="purpleGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#7C3AED"/><stop offset="100%" stopColor="#A78BFA"/></linearGradient></defs>
+                </svg>
+                <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
+                  <span style={{ fontSize:22, fontWeight:900, color:"#7C3AED", letterSpacing:"-0.05em", lineHeight:1 }}>75%</span>
+                  <span style={{ fontSize:9.5, fontWeight:700, color:"#8B5CF6", letterSpacing:"0.04em" }}>MATCH</span>
                 </div>
-              ))}
+              </div>
+              <div style={{ display:"flex", flexDirection:"column", gap:5, width:"100%" }}>
+                {[["Keywords","82%"],["Skills","71%"],["Format","78%"]].map(([l,v]) => (
+                  <div key={l} style={{ display:"flex", alignItems:"center", gap:7 }}>
+                    <span style={{ fontSize:10.5, fontWeight:600, color:"#5B21B6", width:44, flexShrink:0 }}>{l}</span>
+                    <div style={{ flex:1, height:5, borderRadius:99, background:"rgba(124,58,237,0.12)", overflow:"hidden" }}>
+                      <div style={{ height:"100%", width:v, background:"linear-gradient(90deg,#7C3AED,#A78BFA)", borderRadius:99 }}/>
+                    </div>
+                    <span style={{ fontSize:10, fontWeight:700, color:"#7C3AED", width:28, textAlign:"right" }}>{v}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-            <span style={{ fontSize:12.5, fontWeight:700, padding:"7px 16px", borderRadius:9, background:"#7C3AED", color:"white", border:"1px solid #6D28D9", display:"inline-block" }}>Start →</span>
           </button>
         </div>
 
         {/* Feature strip */}
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:8 }}>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10 }}>
           {[
-            { icon:<svg viewBox="0 0 16 16" fill="none" stroke="#818CF8" strokeWidth="1.6" style={{width:13,height:13}}><path d="M13 3L6 11l-3-3"/></svg>, label:"ATS-optimized" },
-            { icon:<svg viewBox="0 0 16 16" fill="none" stroke="#818CF8" strokeWidth="1.6" style={{width:13,height:13}}><path d="M8 2v8M4 7l4 4 4-4"/><path d="M2 13h12"/></svg>, label:"Download ready" },
-            { icon:<svg viewBox="0 0 16 16" fill="none" stroke="#818CF8" strokeWidth="1.6" style={{width:13,height:13}}><path d="M3 8l4-8 3 5 2-3 3 6"/></svg>, label:"Score history" },
-            { icon:<svg viewBox="0 0 16 16" fill="none" stroke="#818CF8" strokeWidth="1.6" style={{width:13,height:13}}><path d="M13 2l1 4-8.5 8.5L2 16l1.5-3.5L12 4l1-2z"/></svg>, label:"Magic Write" },
+            { icon:<svg viewBox="0 0 16 16" fill="none" stroke="#4361EE" strokeWidth="1.8" style={{width:15,height:15}}><path d="M13 3L6 11l-3-3"/></svg>, label:"ATS-optimized", bg:"rgba(67,97,238,0.08)" },
+            { icon:<svg viewBox="0 0 16 16" fill="none" stroke="#059669" strokeWidth="1.8" style={{width:15,height:15}}><path d="M8 2v8M4 7l4 4 4-4"/><path d="M2 13h12"/></svg>, label:"Download ready", bg:"rgba(5,150,105,0.08)" },
+            { icon:<svg viewBox="0 0 16 16" fill="none" stroke="#D97706" strokeWidth="1.8" style={{width:15,height:15}}><path d="M3 8l4-8 3 5 2-3 3 6"/></svg>, label:"Score history", bg:"rgba(217,119,6,0.08)" },
+            { icon:<svg viewBox="0 0 16 16" fill="none" stroke="#7C3AED" strokeWidth="1.8" style={{width:15,height:15}}><path d="M13 2l1 4-8.5 8.5L2 16l1.5-3.5L12 4l1-2z"/></svg>, label:"Magic Write", bg:"rgba(124,58,237,0.08)" },
           ].map((f,i) => (
-            <div key={i} style={{ background:"var(--z-card)", boxShadow:"0 2px 20px rgba(0,0,0,0.07)", borderRadius:11, border:"1px solid var(--z-bd)", padding:"9px 11px", textAlign:"center", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
+            <div key={i} style={{ background:f.bg, borderRadius:12, border:"1px solid var(--z-bd)", padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
               {f.icon}
-              <p style={{ fontSize:11, color:"var(--z-text3)", fontWeight:600, margin:0 }}>{f.label}</p>
+              <p style={{ fontSize:12, color:"var(--z-text2)", fontWeight:600, margin:0 }}>{f.label}</p>
             </div>
           ))}
         </div>
