@@ -10,9 +10,9 @@ import { ZariAvatar, type AvatarState } from "@/components/zari-avatar";
    THEME SYSTEM  (CSS custom properties via inline style)
 ═══════════════════════════════════════════════════ */
 const LIGHT_THEME: Record<string,string> = {
-  "--z-bg":    "#F6F4F0",
+  "--z-bg":    "#FAF9F7",
   "--z-card":  "#FFFFFF",
-  "--z-raise": "#F6F4F0",
+  "--z-raise": "#FAF9F7",
   "--z-text":  "#0A0A0F",
   "--z-text2": "#4B5563",
   "--z-text3": "#6B7280",
