@@ -10,15 +10,15 @@ import { ZariAvatar, type AvatarState } from "@/components/zari-avatar";
    THEME SYSTEM  (CSS custom properties via inline style)
 ═══════════════════════════════════════════════════ */
 const LIGHT_THEME: Record<string,string> = {
-  "--z-bg":    "#FDFCFB",
+  "--z-bg":    "#F8FAFC",
   "--z-card":  "#FFFFFF",
-  "--z-raise": "#FDFCFB",
-  "--z-text":  "#0A0A0F",
-  "--z-text2": "#4B5563",
-  "--z-text3": "#6B7280",
-  "--z-bd":    "#E4E8F5",
-  "--z-bd2":   "#EDF0F7",
-  "--z-sh":    "rgba(0,0,0,0.07)",
+  "--z-raise": "#F1F5F9",
+  "--z-text":  "#0F172A",
+  "--z-text2": "#64748B",
+  "--z-text3": "#94A3B8",
+  "--z-bd":    "#E2E8F0",
+  "--z-bd2":   "#F1F5F9",
+  "--z-sh":    "rgba(15,23,42,0.06)",
 };
 const DARK_THEME: Record<string,string> = {
   "--z-bg":    "#07080F",
@@ -86,8 +86,8 @@ const STAGE_ICONS: Record<CareerStage, React.ReactNode> = {
 };
 
 const STAGE_META: Record<CareerStage, { label:string; color:string; bg:string }> = {
-  "job-search":    { label:"Job Search",          color:"#4361EE", bg:"#EEF2FF" },
-  "promotion":     { label:"Get Promoted",         color:"#7C3AED", bg:"#F5F3FF" },
+  "job-search":    { label:"Job Search",          color:"#2563EB", bg:"#EFF6FF" },
+  "promotion":     { label:"Get Promoted",         color:"#0F766E", bg:"#F0FDFA" },
   "salary":        { label:"Salary & Negotiation", color:"#059669", bg:"#ECFDF5" },
   "career-change": { label:"Career Change",        color:"#0284C7", bg:"#EFF6FF" },
   "leadership":    { label:"Leadership & Exec",    color:"#D97706", bg:"#FFFBEB" },
@@ -107,7 +107,7 @@ function vaultReadForStage(stage: CareerStage): DocEntry[] {
 /* ═══════════════════════════════════════════════════
    HELPERS
 ═══════════════════════════════════════════════════ */
-function ScoreRing({ score, color="#4361EE", size=56, dark=false }: { score:number; color?:string; size?:number; dark?:boolean }) {
+function ScoreRing({ score, color="#2563EB", size=56, dark=false }: { score:number; color?:string; size?:number; dark?:boolean }) {
   const sw = Math.max(5, size * 0.065);
   const r = (size - sw * 2) / 2;
   const circ = 2 * Math.PI * r;
@@ -135,7 +135,7 @@ function ScoreRing({ score, color="#4361EE", size=56, dark=false }: { score:numb
   );
 }
 
-function Bar({ pct, color="#4361EE", h=5 }: { pct:number; color?:string; h?:number }) {
+function Bar({ pct, color="#2563EB", h=5 }: { pct:number; color?:string; h?:number }) {
   return (
     <div style={{ height:h, borderRadius:99, background:"rgba(0,0,0,0.04)", overflow:"hidden" }}>
       <div style={{ width:`${pct}%`, height:"100%", background:`linear-gradient(90deg, ${color}CC, ${color})`, borderRadius:99, transition:"width 0.8s cubic-bezier(0.4,0,0.2,1)", boxShadow:`0 0 6px ${color}55` }}/>
@@ -147,7 +147,7 @@ function Tag({ text, color, bg }:{ text:string; color:string; bg:string }) {
   return <span style={{ fontSize:10, fontWeight:700, padding:"2px 9px", borderRadius:99, background:bg, color }}>{text}</span>;
 }
 
-function Sparkline({ values, color="#4361EE", width=80, height=24 }: { values:number[]; color?:string; width?:number; height?:number }) {
+function Sparkline({ values, color="#2563EB", width=80, height=24 }: { values:number[]; color?:string; width?:number; height?:number }) {
   if (values.length < 2) return null;
   const min = Math.min(...values);
   const max = Math.max(...values);
@@ -661,7 +661,7 @@ function SuggestionsResume({
     passive: {
       dotColor: "#A855F7", lineBg: "rgba(168,85,247,0.06)", activeLineBg: "rgba(168,85,247,0.12)", leftBar: "#A855F7",
       badge: "~ passive", badgeBg: "rgba(168,85,247,0.12)", badgeColor: "#6B21A8", badgeBorder: "rgba(168,85,247,0.35)",
-      popupBorder: "#C4B5FD", popupBg: "#FAF5FF", popupHeaderBg: "#F3E8FF",
+      popupBorder: "#93C5FD", popupBg: "#FAF5FF", popupHeaderBg: "#F3E8FF",
     },
   };
 
@@ -977,8 +977,8 @@ function renderMsgText(text: string, stage: CareerStage, onNav?: (s: Screen) => 
           return (
             <button key={i} onClick={() => onNav(s)} style={{
               display:"inline-flex", alignItems:"center", gap:5,
-              fontSize:12, fontWeight:700, color:"#818CF8",
-              background:"rgba(129,140,248,0.12)", border:"1px solid rgba(129,140,248,0.28)",
+              fontSize:12, fontWeight:700, color:"#60A5FA",
+              background:"rgba(96,165,250,0.12)", border:"1px solid rgba(96,165,250,0.28)",
               borderRadius:8, padding:"4px 11px", cursor:"pointer", margin:"5px 3px 0",
               transition:"background 0.15s",
             }}>
@@ -1455,8 +1455,8 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
           <button onClick={() => setShowLiveMode(true)} style={{
             display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:700,
             color:"white", padding:"6px 14px", borderRadius:8, border:"none", cursor:"pointer",
-            background:"linear-gradient(135deg,#3730a3,#4361EE)",
-            boxShadow:"0 0 18px rgba(67,97,238,0.45)",
+            background:"linear-gradient(135deg,#3730a3,#2563EB)",
+            boxShadow:"0 0 18px rgba(37,99,235,0.45)",
             transition:"all 0.2s",
           }}>
             <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:13,height:13 }}><path d="M10 2a3 3 0 00-3 3v4a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M4 9v1a6 6 0 0012 0V9"/></svg>
@@ -1481,9 +1481,9 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
             <div>
               <div style={{ fontSize:12, fontWeight:700, color:"var(--z-text)" }}>Zari</div>
               <div style={{ display:"flex", alignItems:"center", gap:4, fontSize:10.5, fontWeight:500,
-                color: avatarState==="speaking"?"#818CF8": avatarState==="listening"?"#06B6D4": avatarState==="thinking"?"#A78BFA":"var(--z-text3)" }}>
+                color: avatarState==="speaking"?"#60A5FA": avatarState==="listening"?"#06B6D4": avatarState==="thinking"?"#93C5FD":"var(--z-text3)" }}>
                 <span style={{ width:4,height:4,borderRadius:"50%",flexShrink:0,
-                  background: avatarState==="speaking"?"#818CF8": avatarState==="listening"?"#06B6D4": avatarState==="thinking"?"#A78BFA":"var(--z-text3)",
+                  background: avatarState==="speaking"?"#60A5FA": avatarState==="listening"?"#06B6D4": avatarState==="thinking"?"#93C5FD":"var(--z-text3)",
                   animation:"blink 1.2s ease-in-out infinite" }}/>
                 {avatarState==="speaking"&&"Speaking…"}{avatarState==="listening"&&"Listening…"}{avatarState==="thinking"&&"Thinking…"}{avatarState==="idle"&&"Ready"}
               </div>
@@ -1491,8 +1491,8 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
             <button onClick={() => { setIsVoice(v=>!v); if (isVoice && audioRef.current) { audioRef.current.pause(); audioRef.current = null; } }}
               title={isVoice ? "Voice replies: on" : "Voice replies: off"}
               style={{ marginLeft:"auto", width:28,height:28,borderRadius:8,border:"none",cursor:"pointer",
-                background: isVoice ? "rgba(129,140,248,0.18)" : "var(--z-raise)",
-                color: isVoice ? "#818CF8" : "var(--z-text3)",
+                background: isVoice ? "rgba(96,165,250,0.18)" : "var(--z-raise)",
+                color: isVoice ? "#60A5FA" : "var(--z-text3)",
                 display:"flex",alignItems:"center",justifyContent:"center", transition:"all 0.2s", flexShrink:0 }}>
               <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:13,height:13 }}><path d="M10 2a3 3 0 00-3 3v4a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M4 9v1a6 6 0 0012 0V9"/><line x1="10" y1="15" x2="10" y2="18"/></svg>
             </button>
@@ -1510,8 +1510,8 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
                 gap:8,
                 padding:"10px 12px",
                 borderRadius:10,
-                border:"1px solid rgba(67,97,238,0.28)",
-                background:"rgba(67,97,238,0.12)",
+                border:"1px solid rgba(37,99,235,0.28)",
+                background:"rgba(37,99,235,0.12)",
                 color:"#A5B4FC",
                 fontSize:12,
                 fontWeight:700,
@@ -1550,9 +1550,9 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
                   setMsgs(s.transcript.map(t => ({ role: t.role, text: t.message })));
                 }} style={{
                   width:"100%", textAlign:"left", padding:"9px 10px",
-                  borderRadius:9, border:`1px solid ${selectedHistory === s.id ? "rgba(67,97,238,0.4)" : "transparent"}`,
+                  borderRadius:9, border:`1px solid ${selectedHistory === s.id ? "rgba(37,99,235,0.4)" : "transparent"}`,
                   cursor:"pointer", marginBottom:2,
-                  background: selectedHistory === s.id ? "rgba(67,97,238,0.12)" : "transparent",
+                  background: selectedHistory === s.id ? "rgba(37,99,235,0.12)" : "transparent",
                   transition:"all 0.15s",
                 }}>
                   <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:2 }}>
@@ -1572,9 +1572,9 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
           <div ref={chatRef} style={{ flex:1, overflowY:"auto", padding:"24px 26px 8px" }}>
             {!sessionReady && msgs.length === 0 && (
               <div style={{ display:"flex", gap:10, marginBottom:14, animation:"bubble-appear 0.3s ease" }}>
-                <div style={{ width:32,height:32,borderRadius:"50%",flexShrink:0,background:"linear-gradient(135deg,#3730a3,#4361EE)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"white",boxShadow:"0 0 14px rgba(67,97,238,0.4)" }}>Z</div>
+                <div style={{ width:32,height:32,borderRadius:"50%",flexShrink:0,background:"linear-gradient(135deg,#3730a3,#2563EB)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"white",boxShadow:"0 0 14px rgba(37,99,235,0.4)" }}>Z</div>
                 <div style={{ display:"flex", alignItems:"center", gap:5, padding:"11px 16px", borderRadius:"4px 16px 16px 16px", background:"var(--z-card)", border:"1px solid var(--z-bd)" }}>
-                  {[0,1,2].map(i=><div key={i} style={{ width:7,height:7,borderRadius:"50%",background:"rgba(129,140,248,0.55)",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
+                  {[0,1,2].map(i=><div key={i} style={{ width:7,height:7,borderRadius:"50%",background:"rgba(96,165,250,0.55)",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
                 </div>
               </div>
             )}
@@ -1583,19 +1583,19 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
                 <div style={{
                   width:32, height:32, borderRadius:"50%", flexShrink:0,
                   display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700,
-                  background: msg.role==="coach" ? "linear-gradient(135deg,#3730a3,#4361EE)" : "var(--z-raise)",
+                  background: msg.role==="coach" ? "linear-gradient(135deg,#3730a3,#2563EB)" : "var(--z-raise)",
                   color: msg.role==="coach" ? "white" : "var(--z-text2)",
-                  boxShadow: msg.role==="coach" ? "0 0 14px rgba(67,97,238,0.4)" : "none",
+                  boxShadow: msg.role==="coach" ? "0 0 14px rgba(37,99,235,0.4)" : "none",
                 }}>
                   {msg.role==="coach"?"Z":"S"}
                 </div>
                 <div style={{
                   maxWidth:"72%", padding:"11px 15px", fontSize:13.5, lineHeight:1.65,
                   borderRadius: msg.role==="coach" ? "4px 16px 16px 16px" : "16px 4px 16px 16px",
-                  background: msg.role==="coach" ? "var(--z-card)" : "linear-gradient(135deg,#3730a3,#4361EE)",
+                  background: msg.role==="coach" ? "var(--z-card)" : "linear-gradient(135deg,#3730a3,#2563EB)",
                   color:"var(--z-text)",
                   border: msg.role==="coach" ? "1px solid var(--z-bd)" : "none",
-                  boxShadow: msg.role!=="coach" ? "0 4px 16px rgba(67,97,238,0.35)" : "none",
+                  boxShadow: msg.role!=="coach" ? "0 4px 16px rgba(37,99,235,0.35)" : "none",
                 }}>
                   {msg.role === "coach" ? renderMsgText(msg.text, stage, onNavigate) : msg.text}
                 </div>
@@ -1603,9 +1603,9 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
             ))}
             {isLoading && (
               <div style={{ display:"flex", gap:10, marginBottom:14, animation:"bubble-appear 0.2s ease" }}>
-                <div style={{ width:32,height:32,borderRadius:"50%",flexShrink:0,background:"linear-gradient(135deg,#3730a3,#4361EE)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"white",boxShadow:"0 0 14px rgba(67,97,238,0.4)" }}>Z</div>
+                <div style={{ width:32,height:32,borderRadius:"50%",flexShrink:0,background:"linear-gradient(135deg,#3730a3,#2563EB)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"white",boxShadow:"0 0 14px rgba(37,99,235,0.4)" }}>Z</div>
                 <div style={{ display:"flex", alignItems:"center", gap:5, padding:"11px 16px", borderRadius:"4px 16px 16px 16px", background:"var(--z-card)", border:"1px solid var(--z-bd)" }}>
-                  {[0,1,2].map(i=><div key={i} style={{ width:7,height:7,borderRadius:"50%",background:"rgba(129,140,248,0.65)",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
+                  {[0,1,2].map(i=><div key={i} style={{ width:7,height:7,borderRadius:"50%",background:"rgba(96,165,250,0.65)",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
                 </div>
               </div>
             )}
@@ -1645,9 +1645,9 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
             <div style={{
               position:"relative",
               background:"var(--z-raise)",
-              border:`1.5px solid ${isRecording ? "rgba(239,68,68,0.6)" : isLoading ? "rgba(67,97,238,0.45)" : "var(--z-bd)"}`,
+              border:`1.5px solid ${isRecording ? "rgba(239,68,68,0.6)" : isLoading ? "rgba(37,99,235,0.45)" : "var(--z-bd)"}`,
               borderRadius:16, overflow:"hidden",
-              boxShadow: isLoading ? "0 0 24px rgba(67,97,238,0.12)" : "none",
+              boxShadow: isLoading ? "0 0 24px rgba(37,99,235,0.12)" : "none",
               transition:"border-color 0.2s, box-shadow 0.2s",
             }}>
               <textarea
@@ -1672,9 +1672,9 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
               </button>
               <button onClick={()=>void sendMessage(input)} disabled={isLoading||!input.trim()}
                 style={{ position:"absolute", bottom:10, right:12, width:34,height:34,borderRadius:10,border:"none",cursor:isLoading||!input.trim()?"default":"pointer",
-                  background:input.trim()&&!isLoading?"linear-gradient(135deg,#3730a3,#4361EE)":"var(--z-raise)",
+                  background:input.trim()&&!isLoading?"linear-gradient(135deg,#3730a3,#2563EB)":"var(--z-raise)",
                   color:input.trim()&&!isLoading?"white":"var(--z-text3)",
-                  boxShadow:input.trim()&&!isLoading?"0 0 14px rgba(67,97,238,0.45)":"none",
+                  boxShadow:input.trim()&&!isLoading?"0 0 14px rgba(37,99,235,0.45)":"none",
                   display:"flex",alignItems:"center",justifyContent:"center", transition:"all 0.15s" }}>
                 {isLoading
                   ? <span style={{ width:12,height:12,borderRadius:"50%",border:"2px solid rgba(255,255,255,0.15)",borderTopColor:"rgba(255,255,255,0.65)",animation:"spin-slow 0.7s linear infinite",display:"block" }}/>
@@ -2051,8 +2051,8 @@ function ZariLiveMode({
   const ORB: Record<LiveState, { gradient: string; shadow: string; animation: string }> = {
     idle:      { gradient:"radial-gradient(circle at 32% 32%, #9a8ff5, #4f46e5 50%, #1a1756 100%)", shadow:"0 0 60px 22px rgba(79,70,229,0.32), 0 0 130px 50px rgba(67,56,202,0.12)", animation:"sphere-breathe 4s ease-in-out infinite" },
     listening: { gradient:"radial-gradient(circle at 32% 32%, #7ef3ff, #06b6d4 50%, #0c3d52 100%)", shadow:"0 0 75px 28px rgba(6,182,212,0.55), 0 0 150px 60px rgba(6,182,212,0.18)", animation:"sphere-breathe 1.1s ease-in-out infinite" },
-    thinking:  { gradient:"radial-gradient(circle at 32% 32%, #d8b4fe, #8b5cf6 50%, #2e1065 100%)", shadow:"0 0 65px 24px rgba(139,92,246,0.48), 0 0 140px 55px rgba(124,58,237,0.18)", animation:"sphere-breathe 2.5s ease-in-out infinite" },
-    speaking:  { gradient:"radial-gradient(circle at 32% 32%, #c7d2fe, #6366f1 42%, #1e1b4b 100%)", shadow:"0 0 95px 40px rgba(99,102,241,0.68), 0 0 190px 75px rgba(67,56,202,0.28)", animation:"sphere-breathe 0.55s ease-in-out infinite" },
+    thinking:  { gradient:"radial-gradient(circle at 32% 32%, #d8b4fe, #8b5cf6 50%, #2e1065 100%)", shadow:"0 0 65px 24px rgba(139,92,246,0.48), 0 0 140px 55px rgba(15,118,110,0.18)", animation:"sphere-breathe 2.5s ease-in-out infinite" },
+    speaking:  { gradient:"radial-gradient(circle at 32% 32%, #c7d2fe, #6366f1 42%, #1e1b4b 100%)", shadow:"0 0 95px 40px rgba(59,130,246,0.68), 0 0 190px 75px rgba(67,56,202,0.28)", animation:"sphere-breathe 0.55s ease-in-out infinite" },
   };
   const orb = ORB[liveState];
 
@@ -2062,14 +2062,14 @@ function ZariLiveMode({
       {/* Deep space background */}
       <div style={{ position:"absolute", inset:0, background:"radial-gradient(ellipse at 50% 20%, #100d30 0%, #080514 50%, #000000 100%)" }}/>
       <div style={{ position:"absolute", top:"4%", left:"8%", width:650, height:650, borderRadius:"50%", background:"radial-gradient(circle, rgba(67,56,202,0.22) 0%, transparent 65%)", filter:"blur(90px)", animation:"aurora-a 9s ease-in-out infinite", pointerEvents:"none" }}/>
-      <div style={{ position:"absolute", bottom:"8%", right:"4%", width:520, height:520, borderRadius:"50%", background:"radial-gradient(circle, rgba(99,102,241,0.16) 0%, transparent 65%)", filter:"blur(80px)", animation:"aurora-b 12s ease-in-out infinite", pointerEvents:"none" }}/>
+      <div style={{ position:"absolute", bottom:"8%", right:"4%", width:520, height:520, borderRadius:"50%", background:"radial-gradient(circle, rgba(59,130,246,0.16) 0%, transparent 65%)", filter:"blur(80px)", animation:"aurora-b 12s ease-in-out infinite", pointerEvents:"none" }}/>
       <div style={{ position:"absolute", top:"50%", left:"50%", width:900, height:420, borderRadius:"50%", background:"radial-gradient(circle, rgba(79,70,229,0.09) 0%, transparent 70%)", filter:"blur(110px)", transform:"translate(-50%,-50%)", pointerEvents:"none" }}/>
       <div style={{ position:"absolute", top:"25%", right:"12%", width:340, height:340, borderRadius:"50%", background:"radial-gradient(circle, rgba(139,92,246,0.14) 0%, transparent 65%)", filter:"blur(55px)", animation:"aurora-c 14s ease-in-out infinite", pointerEvents:"none" }}/>
 
       {/* Top bar */}
       <div style={{ position:"absolute", top:0, left:0, right:0, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"20px 24px", zIndex:1 }}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          <div style={{ width:28, height:28, borderRadius:"50%", background:"linear-gradient(135deg,#4f46e5,#818cf8)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:800, color:"white", boxShadow:"0 0 18px rgba(99,102,241,0.55)" }}>Z</div>
+          <div style={{ width:28, height:28, borderRadius:"50%", background:"linear-gradient(135deg,#4f46e5,#818cf8)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:800, color:"white", boxShadow:"0 0 18px rgba(59,130,246,0.55)" }}>Z</div>
           <span style={{ color:"var(--z-text)", fontWeight:700, fontSize:14, letterSpacing:"0.06em" }}>ZARI</span>
           <span style={{ fontSize:10, color:"var(--z-text3)", fontWeight:500, marginLeft:2, letterSpacing:"0.1em" }}>LIVE</span>
         </div>
@@ -2096,7 +2096,7 @@ function ZariLiveMode({
 
           {/* Speaking: subtle outer glow ring */}
           {liveState === "speaking" && (
-            <div style={{ position:"absolute", top:"50%", left:"50%", width:214, height:214, borderRadius:"50%", border:"1px solid rgba(99,102,241,0.35)", animation:"ring-pulse 2s ease-out infinite", animationFillMode:"backwards", pointerEvents:"none" }}/>
+            <div style={{ position:"absolute", top:"50%", left:"50%", width:214, height:214, borderRadius:"50%", border:"1px solid rgba(59,130,246,0.35)", animation:"ring-pulse 2s ease-out infinite", animationFillMode:"backwards", pointerEvents:"none" }}/>
           )}
 
           <div style={{ position:"absolute", inset:0, borderRadius:"50%", background:orb.gradient, boxShadow:orb.shadow, animation:orb.animation, transition:"background 0.6s ease, box-shadow 0.6s ease" }}/>
@@ -2123,7 +2123,7 @@ function ZariLiveMode({
         )}
         {transcript.slice(-6).map((m, i) => (
           <div key={i} style={{ display:"flex", justifyContent:m.role==="user"?"flex-end":"flex-start", animation:"bubble-appear 0.2s ease" }}>
-            <div style={{ maxWidth:"80%", padding:"9px 14px", borderRadius:m.role==="user"?"16px 4px 16px 16px":"4px 16px 16px 16px", background:m.role==="user"?"rgba(255,255,255,0.07)":"rgba(79,70,229,0.26)", border:`1px solid ${m.role==="user"?"rgba(255,255,255,0.08)":"rgba(99,102,241,0.32)"}`, color:"var(--z-text)", fontSize:13.5, lineHeight:1.6 }}>
+            <div style={{ maxWidth:"80%", padding:"9px 14px", borderRadius:m.role==="user"?"16px 4px 16px 16px":"4px 16px 16px 16px", background:m.role==="user"?"rgba(255,255,255,0.07)":"rgba(79,70,229,0.26)", border:`1px solid ${m.role==="user"?"rgba(255,255,255,0.08)":"rgba(59,130,246,0.32)"}`, color:"var(--z-text)", fontSize:13.5, lineHeight:1.6 }}>
               {m.text}
             </div>
           </div>
@@ -2145,8 +2145,8 @@ function ZariLiveMode({
           style={{
             width:70, height:70, borderRadius:"50%", border:"none",
             cursor: liveState==="thinking" ? "not-allowed" : "pointer",
-            background: liveState==="listening" ? "rgba(239,68,68,0.85)" : liveState==="speaking" ? "rgba(99,102,241,0.28)" : "rgba(99,102,241,0.85)",
-            boxShadow: liveState==="listening" ? "0 0 0 10px rgba(239,68,68,0.1), 0 0 32px rgba(239,68,68,0.5)" : liveState==="idle" ? "0 0 0 10px rgba(99,102,241,0.1), 0 0 32px rgba(99,102,241,0.4)" : "none",
+            background: liveState==="listening" ? "rgba(239,68,68,0.85)" : liveState==="speaking" ? "rgba(59,130,246,0.28)" : "rgba(59,130,246,0.85)",
+            boxShadow: liveState==="listening" ? "0 0 0 10px rgba(239,68,68,0.1), 0 0 32px rgba(239,68,68,0.5)" : liveState==="idle" ? "0 0 0 10px rgba(59,130,246,0.1), 0 0 32px rgba(59,130,246,0.4)" : "none",
             display:"flex", alignItems:"center", justifyContent:"center",
             transition:"all 0.25s ease",
             animation: liveState==="listening" ? "sphere-breathe 1.2s ease-in-out infinite" : "none",
@@ -2194,8 +2194,8 @@ function ZariLiveMode({
           <div style={{ display:"flex", gap:6, flexWrap:"wrap", justifyContent:"center", marginTop:10 }}>
             {goActions.map(s => (
               <button key={s} onClick={() => { setGoActions([]); onClose(); onNavigate(s); }} style={{
-                padding:"5px 13px", borderRadius:20, border:"1px solid rgba(99,102,241,0.45)",
-                background:"rgba(99,102,241,0.18)", color:"rgba(165,180,252,0.9)",
+                padding:"5px 13px", borderRadius:20, border:"1px solid rgba(59,130,246,0.45)",
+                background:"rgba(59,130,246,0.18)", color:"rgba(165,180,252,0.9)",
                 fontSize:11, fontWeight:600, cursor:"pointer", transition:"all 0.15s",
               }}>
                 {navCtaLabel(stage, s)}
@@ -2220,7 +2220,7 @@ function ZariLiveMode({
                   display:"flex", flexDirection:"column", alignItems:"center", gap:5,
                   padding:"8px 9px 7px", borderRadius:14, flexShrink:0, minWidth:62,
                   border:`1.5px solid ${selected ? (isFemale ? "rgba(192,132,252,0.8)" : "rgba(56,189,248,0.8)") : "rgba(255,255,255,0.06)"}`,
-                  background: selected ? (isFemale ? "rgba(124,58,237,0.25)" : "rgba(2,132,199,0.2)") : "rgba(255,255,255,0.03)",
+                  background: selected ? (isFemale ? "rgba(15,118,110,0.25)" : "rgba(2,132,199,0.2)") : "rgba(255,255,255,0.03)",
                   cursor:"pointer", transition:"all 0.15s",
                 }}>
                   <div style={{
@@ -2726,16 +2726,16 @@ const PROMOTION_DISPLAY_FONT = "inherit";
 
 const PROMOTION_THEMES: Record<"readiness" | "conversation" | "evidence" | "visibility" | "toolkit" | "roadmap", PromotionTheme> = {
   readiness: {
-    accent: "#4361EE",
-    accent2: "#818CF8",
-    hero: "linear-gradient(135deg,#4361EE 0%,#6479F0 55%,#818CF8 100%)",
+    accent: "#2563EB",
+    accent2: "#60A5FA",
+    hero: "linear-gradient(135deg,#2563EB 0%,#6479F0 55%,#60A5FA 100%)",
     baseA: "#F5F7FF",
     baseB: "#FFFFFF",
-    glowA: "rgba(67,97,238,0.10)",
-    glowB: "rgba(129,140,248,0.07)",
-    chipBg: "#EEF2FF",
-    chipBorder: "rgba(67,97,238,0.2)",
-    chipText: "#4361EE",
+    glowA: "rgba(37,99,235,0.10)",
+    glowB: "rgba(96,165,250,0.07)",
+    chipBg: "#EFF6FF",
+    chipBorder: "rgba(37,99,235,0.2)",
+    chipText: "#2563EB",
   },
   conversation: {
     accent: "#D97706",
@@ -2762,16 +2762,16 @@ const PROMOTION_THEMES: Record<"readiness" | "conversation" | "evidence" | "visi
     chipText: "#059669",
   },
   visibility: {
-    accent: "#8B5CF6",
-    accent2: "#A78BFA",
-    hero: "linear-gradient(135deg,#8B5CF6 0%,#9B6EF7 55%,#A78BFA 100%)",
+    accent: "#3B82F6",
+    accent2: "#93C5FD",
+    hero: "linear-gradient(135deg,#3B82F6 0%,#9B6EF7 55%,#93C5FD 100%)",
     baseA: "#F5F0FF",
     baseB: "#FFFFFF",
     glowA: "rgba(139,92,246,0.10)",
     glowB: "rgba(167,139,250,0.07)",
     chipBg: "#F3EFFE",
     chipBorder: "rgba(139,92,246,0.2)",
-    chipText: "#7C3AED",
+    chipText: "#0F766E",
   },
   toolkit: {
     accent: "#475569",
@@ -3326,8 +3326,8 @@ function PromotionChoiceGroup({
             style={{
               padding:"15px 16px",
               borderRadius:14,
-              border:`1.5px solid ${active ? "#4361EE" : "var(--z-bd)"}`,
-              background:active ? "rgba(67,97,238,0.16)" : "var(--z-raise)",
+              border:`1.5px solid ${active ? "#2563EB" : "var(--z-bd)"}`,
+              background:active ? "rgba(37,99,235,0.16)" : "var(--z-raise)",
               cursor:"pointer",
               textAlign:"left",
               transition:"all 0.18s",
@@ -3341,8 +3341,8 @@ function PromotionChoiceGroup({
               width:18,
               height:18,
               borderRadius:"50%",
-              border:`2px solid ${active ? "#4361EE" : "var(--z-bd)"}`,
-              background:active ? "#4361EE" : "transparent",
+              border:`2px solid ${active ? "#2563EB" : "var(--z-bd)"}`,
+              background:active ? "#2563EB" : "transparent",
               flexShrink:0,
               display:"flex",
               alignItems:"center",
@@ -3494,7 +3494,7 @@ function PromotionSharedIntakeFlow({
           <div style={{ background:"var(--z-card)", borderRadius:20, padding:"72px 32px", textAlign:"center", boxShadow:"0 8px 40px rgba(0,0,0,0.09)", border:"1px solid var(--z-bd)" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
               {[0,1,2].map(i => (
-                <div key={i} style={{ width:11,height:11,borderRadius:"50%",background:"#818CF8",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite`, boxShadow:"0 0 10px rgba(129,140,248,0.5)" }}/>
+                <div key={i} style={{ width:11,height:11,borderRadius:"50%",background:"#60A5FA",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite`, boxShadow:"0 0 10px rgba(96,165,250,0.5)" }}/>
               ))}
             </div>
             <p style={{ fontSize:17, fontWeight:800, color:"var(--z-text)", marginBottom:8, letterSpacing:"-0.02em" }}>{loadingTitle}</p>
@@ -3513,11 +3513,11 @@ function PromotionSharedIntakeFlow({
         <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:40, flexWrap:"wrap", justifyContent:"center" }}>
           {[1,2,3,4].map(s => (
             <div key={s} style={{ display:"flex", alignItems:"center", gap:10 }}>
-              <div style={{ width:28, height:28, borderRadius:"50%", border:`2px solid ${s < step ? "#4ADE80" : s === step ? "#4361EE" : "var(--z-bd)"}`, background:s < step ? "rgba(74,222,128,0.15)" : s === step ? "rgba(67,97,238,0.2)" : "var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
+              <div style={{ width:28, height:28, borderRadius:"50%", border:`2px solid ${s < step ? "#4ADE80" : s === step ? "#2563EB" : "var(--z-bd)"}`, background:s < step ? "rgba(74,222,128,0.15)" : s === step ? "rgba(37,99,235,0.2)" : "var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
                 {s < step ? (
                   <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2" style={{ width:12,height:12 }}><polyline points="2,6 5,9 10,3"/></svg>
                 ) : (
-                  <span style={{ fontSize:11, fontWeight:700, color:s === step ? "#818CF8" : "var(--z-text3)" }}>{s}</span>
+                  <span style={{ fontSize:11, fontWeight:700, color:s === step ? "#60A5FA" : "var(--z-text3)" }}>{s}</span>
                 )}
               </div>
               {s < 4 && <div style={{ width:28, height:2, borderRadius:99, background:s < step ? "rgba(74,222,128,0.4)" : "var(--z-bd2)", transition:"all 0.3s" }}/>}
@@ -3665,7 +3665,7 @@ function PromotionSharedIntakeFlow({
             <button
               onClick={() => { if (step === 4) void submit(); else goNext(); }}
               disabled={submitting}
-              style={{ minWidth:230, fontSize:14.5, fontWeight:700, padding:"14px 18px", borderRadius:14, border:"none", background:"linear-gradient(135deg,#4361EE,#818CF8)", color:"white", cursor:"pointer", boxShadow:"0 8px 24px rgba(67,97,238,0.4)", transition:"all 0.2s", opacity:submitting ? 0.72 : 1 }}
+              style={{ minWidth:230, fontSize:14.5, fontWeight:700, padding:"14px 18px", borderRadius:14, border:"none", background:"linear-gradient(135deg,#2563EB,#60A5FA)", color:"white", cursor:"pointer", boxShadow:"0 8px 24px rgba(37,99,235,0.4)", transition:"all 0.2s", opacity:submitting ? 0.72 : 1 }}
             >
               {step === 4 ? submitLabel : "Continue →"}
             </button>
@@ -3806,7 +3806,7 @@ function ScreenPromotionReadiness() {
           <div style={{ background:"var(--z-card)", borderRadius:20, padding:"72px 32px", textAlign:"center", boxShadow:"0 8px 40px rgba(0,0,0,0.09)", border:"1px solid var(--z-bd)" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
               {[0,1,2].map(i => (
-                <div key={i} style={{ width:11,height:11,borderRadius:"50%",background:"#818CF8",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite`, boxShadow:"0 0 10px rgba(129,140,248,0.5)" }}/>
+                <div key={i} style={{ width:11,height:11,borderRadius:"50%",background:"#60A5FA",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite`, boxShadow:"0 0 10px rgba(96,165,250,0.5)" }}/>
               ))}
             </div>
             <p style={{ fontSize:17, fontWeight:800, color:"var(--z-text)", marginBottom:8, letterSpacing:"-0.02em" }}>Scoring your case…</p>
@@ -3878,7 +3878,7 @@ function ScreenPromotionReadiness() {
       padding:"14px 18px",
       border:"none",
       borderRight:"1px solid rgba(255,255,255,0.08)",
-      background:active ? "linear-gradient(135deg,#6D4CFF 0%,#7C3AED 100%)" : "rgba(255,255,255,0.05)",
+      background:active ? "linear-gradient(135deg,#6D4CFF 0%,#0F766E 100%)" : "rgba(255,255,255,0.05)",
       color:active ? "white" : "rgba(255,255,255,0.55)",
       fontSize:13,
       fontWeight:800,
@@ -4010,13 +4010,13 @@ function ScreenPromotionReadiness() {
                 <div style={{ borderRadius:20, background:"linear-gradient(135deg,#0F0A25 0%,#1B1245 60%,#2D1F6E 100%)", border:"1px solid rgba(139,92,246,0.22)", boxShadow:"0 4px 20px rgba(109,76,255,0.15)", padding:"22px 24px" }}>
                   <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:14, flexWrap:"wrap" }}>
                     <div style={{ fontSize:10.5, fontWeight:800, color:"rgba(196,181,253,0.8)", textTransform:"uppercase", letterSpacing:"0.1em" }}>What calibration might say about you</div>
-                    <span style={{ fontSize:10.5, fontWeight:800, padding:"4px 9px", borderRadius:999, background:"rgba(139,92,246,0.25)", color:"#C4B5FD", border:"1px solid rgba(196,181,253,0.2)" }}>Unique to Zari</span>
+                    <span style={{ fontSize:10.5, fontWeight:800, padding:"4px 9px", borderRadius:999, background:"rgba(139,92,246,0.25)", color:"#93C5FD", border:"1px solid rgba(196,181,253,0.2)" }}>Unique to Zari</span>
                   </div>
                   <div style={{ display:"grid", gap:10 }}>
                     {calibrationLines.map((line, i) => (
                       <div key={i} style={{ display:"flex", gap:12, alignItems:"flex-start" }}>
                         <div style={{ width:22, height:22, borderRadius:"50%", background:`rgba(139,92,246,${i === 0 ? "0.35" : i === 1 ? "0.25" : "0.18"})`, border:"1px solid rgba(196,181,253,0.25)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:2 }}>
-                          <span style={{ fontSize:10, fontWeight:900, color:"#C4B5FD" }}>{i + 1}</span>
+                          <span style={{ fontSize:10, fontWeight:900, color:"#93C5FD" }}>{i + 1}</span>
                         </div>
                         <p style={{ fontSize:14, color:`rgba(255,255,255,${i === 0 ? "0.88" : "0.72"})`, lineHeight:1.75, margin:0 }}>{line}</p>
                       </div>
@@ -4042,7 +4042,7 @@ function ScreenPromotionReadiness() {
                     <div style={{ display:"grid", gap:10 }}>
                       {result.quickWins.map((item, index) => (
                         <div key={`${item.title}-${index}`} onClick={() => setResultTab(item.jumpTo)} style={{ padding:"14px 16px", borderRadius:14, background:"rgba(109,76,255,0.1)", border:"1px solid rgba(109,76,255,0.25)", cursor:"pointer" }}>
-                          <div style={{ fontSize:10.5, fontWeight:800, color:"#A78BFA", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:4 }}>{item.title}</div>
+                          <div style={{ fontSize:10.5, fontWeight:800, color:"#93C5FD", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:4 }}>{item.title}</div>
                           <div style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.65 }}>{item.body}</div>
                         </div>
                       ))}
@@ -4104,12 +4104,12 @@ function ScreenPromotionReadiness() {
 
             {resultTab === "conversation" && (
               <div style={{ display:"grid", gap:16, paddingBottom:40 }}>
-                <div style={{ borderRadius:18, background:"rgba(67,97,238,0.1)", border:"1px solid rgba(67,97,238,0.3)", padding:"22px 24px" }}>
+                <div style={{ borderRadius:18, background:"rgba(37,99,235,0.1)", border:"1px solid rgba(37,99,235,0.3)", padding:"22px 24px" }}>
                   <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:10, flexWrap:"wrap" }}>
                     <div style={{ fontSize:10.5, fontWeight:800, color:"#7B9EFF", textTransform:"uppercase", letterSpacing:"0.08em" }}>How to open it</div>
                     <button
                       onClick={() => { void navigator.clipboard.writeText(result.managerPitchExample); setPitchCopied(true); setTimeout(() => setPitchCopied(false), 2000); }}
-                      style={{ fontSize:11.5, fontWeight:700, padding:"6px 12px", borderRadius:10, border:"1px solid rgba(67,97,238,0.3)", background:"rgba(67,97,238,0.15)", color:"#7B9EFF", cursor:"pointer" }}
+                      style={{ fontSize:11.5, fontWeight:700, padding:"6px 12px", borderRadius:10, border:"1px solid rgba(37,99,235,0.3)", background:"rgba(37,99,235,0.15)", color:"#7B9EFF", cursor:"pointer" }}
                     >
                       {pitchCopied ? "Copied!" : "Copy"}
                     </button>
@@ -4128,7 +4128,7 @@ function ScreenPromotionReadiness() {
                       </div>
                       {pair.yourResponse && (
                         <div style={{ padding:"12px 14px", borderRadius:12, background:"rgba(109,76,255,0.1)", border:"1px solid rgba(109,76,255,0.25)", marginLeft:16 }}>
-                          <div style={{ fontSize:10, fontWeight:800, color:"#A78BFA", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>Your response</div>
+                          <div style={{ fontSize:10, fontWeight:800, color:"#93C5FD", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>Your response</div>
                           <div style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.7 }}>{pair.yourResponse}</div>
                         </div>
                       )}
@@ -4222,10 +4222,10 @@ function ScreenPromotionReadiness() {
                 {/* Example evidence */}
                 {result.exampleEvidence.length > 0 && (
                   <div style={{ borderRadius:20, background:"rgba(0,0,0,0.03)", border:"1px solid var(--z-bd)", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", padding:"20px 22px" }}>
-                    <div style={{ fontSize:10.5, fontWeight:800, color:"#7C3AED", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>What strong evidence actually sounds like</div>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"#0F766E", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>What strong evidence actually sounds like</div>
                     <div style={{ display:"grid", gap:10 }}>
                       {result.exampleEvidence.map(item => (
-                        <div key={item} style={{ borderRadius:14, background:"rgba(124,58,237,0.1)", border:"1px solid rgba(124,58,237,0.25)", borderLeft:"3px solid #7C3AED", padding:"14px 16px" }}>
+                        <div key={item} style={{ borderRadius:14, background:"rgba(15,118,110,0.1)", border:"1px solid rgba(15,118,110,0.25)", borderLeft:"3px solid #0F766E", padding:"14px 16px" }}>
                           <div style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.82 }}>{item}</div>
                         </div>
                       ))}
@@ -4265,14 +4265,14 @@ function ScreenPromotionReadiness() {
             {([1,2,3,4] as const).map(s => (
               <div key={s} style={{ display:"flex", alignItems:"center" }}>
                 <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:5 }}>
-                  <div style={{ width:32, height:32, borderRadius:"50%", border:`2px solid ${s < step ? "#4ADE80" : s === step ? "#818CF8" : "var(--z-bd)"}`, background:s < step ? "rgba(74,222,128,0.15)" : s === step ? "rgba(129,140,248,0.18)" : "var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
+                  <div style={{ width:32, height:32, borderRadius:"50%", border:`2px solid ${s < step ? "#4ADE80" : s === step ? "#60A5FA" : "var(--z-bd)"}`, background:s < step ? "rgba(74,222,128,0.15)" : s === step ? "rgba(96,165,250,0.18)" : "var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
                     {s < step ? (
                       <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2.5" style={{ width:12,height:12 }}><polyline points="2,6 5,9 10,3"/></svg>
                     ) : (
-                      <span style={{ fontSize:12, fontWeight:700, color:s === step ? "#818CF8" : "var(--z-text3)" }}>{s}</span>
+                      <span style={{ fontSize:12, fontWeight:700, color:s === step ? "#60A5FA" : "var(--z-text3)" }}>{s}</span>
                     )}
                   </div>
-                  <span style={{ fontSize:10, fontWeight:700, color:s === step ? "#818CF8" : s < step ? "rgba(74,222,128,0.7)" : "var(--z-text3)", letterSpacing:"0.04em", whiteSpace:"nowrap" }}>{READINESS_STEP_CONTEXT[s-1].label}</span>
+                  <span style={{ fontSize:10, fontWeight:700, color:s === step ? "#60A5FA" : s < step ? "rgba(74,222,128,0.7)" : "var(--z-text3)", letterSpacing:"0.04em", whiteSpace:"nowrap" }}>{READINESS_STEP_CONTEXT[s-1].label}</span>
                 </div>
                 {s < 4 && <div style={{ width:40, height:2, borderRadius:99, background:s < step ? "rgba(74,222,128,0.35)" : "var(--z-bd2)", margin:"0 6px", marginBottom:18, transition:"all 0.3s" }}/>}
               </div>
@@ -4403,7 +4403,7 @@ function ScreenPromotionReadiness() {
             <button
               onClick={() => { if (step === 4) void generate(); else goNext(); }}
               disabled={generating}
-              style={{ minWidth:200, fontSize:14.5, fontWeight:700, padding:"13px 20px", borderRadius:14, border:"none", background:"linear-gradient(135deg,#4361EE,#818CF8)", color:"white", cursor:"pointer", boxShadow:"0 8px 24px rgba(67,97,238,0.35)", transition:"all 0.2s", opacity:generating ? 0.72 : 1 }}
+              style={{ minWidth:200, fontSize:14.5, fontWeight:700, padding:"13px 20px", borderRadius:14, border:"none", background:"linear-gradient(135deg,#2563EB,#60A5FA)", color:"white", cursor:"pointer", boxShadow:"0 8px 24px rgba(37,99,235,0.35)", transition:"all 0.2s", opacity:generating ? 0.72 : 1 }}
             >
               {step === 4 ? "Score my case →" : "Continue →"}
             </button>
@@ -4415,13 +4415,13 @@ function ScreenPromotionReadiness() {
           <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
               <span style={{ fontSize:20 }}>{stepCtx.icon}</span>
-              <div style={{ fontSize:12, fontWeight:800, color:"#818CF8", letterSpacing:"0.04em" }}>{stepCtx.label}</div>
+              <div style={{ fontSize:12, fontWeight:800, color:"#60A5FA", letterSpacing:"0.04em" }}>{stepCtx.label}</div>
             </div>
             <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.72, margin:"0 0 16px" }}>{stepCtx.desc}</p>
             <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
               {stepCtx.tips.map((tip, i) => (
                 <div key={i} style={{ display:"flex", gap:9, alignItems:"flex-start" }}>
-                  <div style={{ width:4, height:4, borderRadius:"50%", background:"rgba(129,140,248,0.6)", flexShrink:0, marginTop:6 }}/>
+                  <div style={{ width:4, height:4, borderRadius:"50%", background:"rgba(96,165,250,0.6)", flexShrink:0, marginTop:6 }}/>
                   <span style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.6 }}>{tip}</span>
                 </div>
               ))}
@@ -5230,7 +5230,7 @@ function ScreenExecPositioning() {
     "Board-ready":     { color:"#4ADE80", bg:"rgba(74,222,128,0.12)", border:"rgba(74,222,128,0.3)" },
     "Emerging exec":   { color:"#FBBF24", bg:"rgba(251,191,36,0.12)", border:"rgba(251,191,36,0.3)" },
     "Strong operator": { color:"#38BDF8", bg:"rgba(56,189,248,0.12)", border:"rgba(56,189,248,0.3)" },
-    "Pre-executive":   { color:"#A78BFA", bg:"rgba(167,139,250,0.12)", border:"rgba(167,139,250,0.3)" },
+    "Pre-executive":   { color:"#93C5FD", bg:"rgba(167,139,250,0.12)", border:"rgba(167,139,250,0.3)" },
   };
 
   if (generating && !result) {
@@ -5937,9 +5937,9 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
       <div style={{ padding:"40px 48px 64px" }}>
 
         {/* Dark hero banner */}
-        <div style={{ background:"linear-gradient(135deg,#4361EE,#6479F0)", borderRadius:20, padding:"32px 36px 36px", marginBottom:28, boxShadow:"0 12px 48px rgba(0,0,0,0.08)", border:"1px solid var(--z-bd)", position:"relative", overflow:"hidden" }}>
+        <div style={{ background:"linear-gradient(135deg,#2563EB,#6479F0)", borderRadius:20, padding:"32px 36px 36px", marginBottom:28, boxShadow:"0 12px 48px rgba(0,0,0,0.08)", border:"1px solid var(--z-bd)", position:"relative", overflow:"hidden" }}>
           {/* Glow blob */}
-          <div style={{ position:"absolute", top:-60, right:-40, width:260, height:260, background:"radial-gradient(circle,rgba(99,102,241,0.18) 0%,transparent 70%)", pointerEvents:"none" }}/>
+          <div style={{ position:"absolute", top:-60, right:-40, width:260, height:260, background:"radial-gradient(circle,rgba(59,130,246,0.18) 0%,transparent 70%)", pointerEvents:"none" }}/>
           <div style={{ position:"relative" }}>
             <div style={{ display:"inline-flex", alignItems:"center", gap:8, background:"rgba(255,255,255,0.18)", border:"1px solid rgba(255,255,255,0.35)", borderRadius:99, padding:"5px 14px", marginBottom:16 }}>
               <div style={{ width:6, height:6, borderRadius:"50%", background:"rgba(255,255,255,0.8)" }}/>
@@ -5956,54 +5956,54 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
           {/* Score My Resume */}
           <button
             onClick={()=>{ setReviewMode("general"); setStep("upload"); }}
-            style={{ textAlign:"left", padding:"28px 28px 28px 32px", borderRadius:20, border:"1.5px solid rgba(67,97,238,0.22)", background:"linear-gradient(135deg,#EEF2FF 0%,#E8EDFF 100%)", cursor:"pointer", transition:"all 0.2s", position:"relative", overflow:"hidden", display:"flex", alignItems:"stretch", gap:0, minHeight:260 }}
-            onMouseEnter={e=>(e.currentTarget.style.transform="translateY(-3px)",e.currentTarget.style.boxShadow="0 16px 48px rgba(67,97,238,0.16)")}
+            style={{ textAlign:"left", padding:"28px 28px 28px 32px", borderRadius:20, border:"1.5px solid rgba(37,99,235,0.22)", background:"linear-gradient(135deg,#EFF6FF 0%,#DBEAFE 100%)", cursor:"pointer", transition:"all 0.2s", position:"relative", overflow:"hidden", display:"flex", alignItems:"stretch", gap:0, minHeight:260 }}
+            onMouseEnter={e=>(e.currentTarget.style.transform="translateY(-3px)",e.currentTarget.style.boxShadow="0 16px 48px rgba(37,99,235,0.16)")}
             onMouseLeave={e=>(e.currentTarget.style.transform="translateY(0)",e.currentTarget.style.boxShadow="none")}
           >
-            <div style={{ position:"absolute", left:0, top:0, bottom:0, width:4, background:"linear-gradient(180deg,#4361EE,#818CF8)", borderRadius:"20px 0 0 20px" }}/>
-            <div style={{ position:"absolute", top:0, right:0, bottom:0, width:"42%", background:"radial-gradient(ellipse at 80% 50%, rgba(67,97,238,0.08) 0%, transparent 70%)", pointerEvents:"none" }}/>
+            <div style={{ position:"absolute", left:0, top:0, bottom:0, width:4, background:"linear-gradient(180deg,#2563EB,#60A5FA)", borderRadius:"20px 0 0 20px" }}/>
+            <div style={{ position:"absolute", top:0, right:0, bottom:0, width:"42%", background:"radial-gradient(ellipse at 80% 50%, rgba(37,99,235,0.08) 0%, transparent 70%)", pointerEvents:"none" }}/>
             {/* Left content */}
             <div style={{ flex:1, display:"flex", flexDirection:"column", paddingLeft:8 }}>
-              <div style={{ width:52, height:52, borderRadius:16, background:"linear-gradient(135deg,#4361EE,#6C8EFF)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:16, boxShadow:"0 6px 20px rgba(67,97,238,0.35)" }}>
+              <div style={{ width:52, height:52, borderRadius:16, background:"linear-gradient(135deg,#2563EB,#6C8EFF)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:16, boxShadow:"0 6px 20px rgba(37,99,235,0.35)" }}>
                 <svg viewBox="0 0 20 20" fill="none" stroke="white" strokeWidth="1.8" style={{ width:22,height:22 }}><rect x="3" y="2" width="14" height="16" rx="2"/><path d="M7 7h6M7 10h6M7 13h4"/></svg>
               </div>
-              <p style={{ fontSize:18, fontWeight:900, color:"#1E1B4B", marginBottom:6, letterSpacing:"-0.03em", lineHeight:1.2 }}>Score My Resume</p>
-              <p style={{ fontSize:13, color:"#4338CA", lineHeight:1.6, marginBottom:16, opacity:0.8 }}>Instant feedback. Zari scores ATS, impact, and clarity against universal standards.</p>
+              <p style={{ fontSize:18, fontWeight:900, color:"#1E3A8A", marginBottom:6, letterSpacing:"-0.03em", lineHeight:1.2 }}>Score My Resume</p>
+              <p style={{ fontSize:13, color:"#1D4ED8", lineHeight:1.6, marginBottom:16, opacity:0.8 }}>Instant feedback. Zari scores ATS, impact, and clarity against universal standards.</p>
               <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:20 }}>
                 {["ATS compatibility","Bullet rewrites","Impact scoring","Downloadable version"].map(f => (
                   <div key={f} style={{ display:"flex", alignItems:"center", gap:8 }}>
-                    <div style={{ width:18, height:18, borderRadius:"50%", background:"#4361EE", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                    <div style={{ width:18, height:18, borderRadius:"50%", background:"#2563EB", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                       <svg viewBox="0 0 10 10" fill="none" stroke="white" strokeWidth="2" style={{ width:9,height:9 }}><path d="M1.5 5l2.5 2.5 4.5-4.5"/></svg>
                     </div>
-                    <span style={{ fontSize:13, color:"#3730A3", fontWeight:500 }}>{f}</span>
+                    <span style={{ fontSize:13, color:"#1E40AF", fontWeight:500 }}>{f}</span>
                   </div>
                 ))}
               </div>
               <div style={{ marginTop:"auto" }}>
-                <span style={{ fontSize:13.5, fontWeight:700, padding:"10px 22px", borderRadius:12, background:"linear-gradient(135deg,#4361EE,#6C8EFF)", color:"white", display:"inline-block", boxShadow:"0 4px 16px rgba(67,97,238,0.4)", letterSpacing:"-0.01em" }}>Start →</span>
+                <span style={{ fontSize:13.5, fontWeight:700, padding:"10px 22px", borderRadius:12, background:"linear-gradient(135deg,#2563EB,#6C8EFF)", color:"white", display:"inline-block", boxShadow:"0 4px 16px rgba(37,99,235,0.4)", letterSpacing:"-0.01em" }}>Start →</span>
               </div>
             </div>
             {/* Right decorative: mock score ring */}
             <div style={{ width:160, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", flexShrink:0, gap:12 }}>
               <div style={{ position:"relative", width:108, height:108 }}>
                 <svg viewBox="0 0 108 108" style={{ position:"absolute", inset:0, transform:"rotate(-90deg)" }}>
-                  <circle cx="54" cy="54" r="44" fill="none" stroke="rgba(67,97,238,0.12)" strokeWidth="9"/>
+                  <circle cx="54" cy="54" r="44" fill="none" stroke="rgba(37,99,235,0.12)" strokeWidth="9"/>
                   <circle cx="54" cy="54" r="44" fill="none" stroke="url(#blueGrad)" strokeWidth="9" strokeLinecap="round" strokeDasharray="235 277"/>
-                  <defs><linearGradient id="blueGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#4361EE"/><stop offset="100%" stopColor="#818CF8"/></linearGradient></defs>
+                  <defs><linearGradient id="blueGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#2563EB"/><stop offset="100%" stopColor="#60A5FA"/></linearGradient></defs>
                 </svg>
                 <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
-                  <span style={{ fontSize:28, fontWeight:900, color:"#4361EE", letterSpacing:"-0.05em", lineHeight:1 }}>87</span>
-                  <span style={{ fontSize:10, fontWeight:700, color:"#6366F1", letterSpacing:"0.04em" }}>/100</span>
+                  <span style={{ fontSize:28, fontWeight:900, color:"#2563EB", letterSpacing:"-0.05em", lineHeight:1 }}>87</span>
+                  <span style={{ fontSize:10, fontWeight:700, color:"#3B82F6", letterSpacing:"0.04em" }}>/100</span>
                 </div>
               </div>
               <div style={{ display:"flex", flexDirection:"column", gap:5, width:"100%" }}>
                 {[["ATS","94%"],["Impact","81%"],["Clarity","88%"]].map(([l,v]) => (
                   <div key={l} style={{ display:"flex", alignItems:"center", gap:7 }}>
-                    <span style={{ fontSize:10.5, fontWeight:600, color:"#4338CA", width:44, flexShrink:0 }}>{l}</span>
-                    <div style={{ flex:1, height:5, borderRadius:99, background:"rgba(67,97,238,0.12)", overflow:"hidden" }}>
-                      <div style={{ height:"100%", width:v, background:"linear-gradient(90deg,#4361EE,#818CF8)", borderRadius:99 }}/>
+                    <span style={{ fontSize:10.5, fontWeight:600, color:"#1D4ED8", width:44, flexShrink:0 }}>{l}</span>
+                    <div style={{ flex:1, height:5, borderRadius:99, background:"rgba(37,99,235,0.12)", overflow:"hidden" }}>
+                      <div style={{ height:"100%", width:v, background:"linear-gradient(90deg,#2563EB,#60A5FA)", borderRadius:99 }}/>
                     </div>
-                    <span style={{ fontSize:10, fontWeight:700, color:"#4361EE", width:28, textAlign:"right" }}>{v}</span>
+                    <span style={{ fontSize:10, fontWeight:700, color:"#2563EB", width:28, textAlign:"right" }}>{v}</span>
                   </div>
                 ))}
               </div>
@@ -6013,56 +6013,56 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
           {/* Targeted Resume */}
           <button
             onClick={()=>{ setReviewMode("targeted"); setStep("job"); }}
-            style={{ textAlign:"left", padding:"28px 28px 28px 32px", borderRadius:20, border:"1.5px solid rgba(124,58,237,0.22)", background:"linear-gradient(135deg,#F5F3FF 0%,#EDE9FE 100%)", cursor:"pointer", transition:"all 0.2s", position:"relative", overflow:"hidden", display:"flex", alignItems:"stretch", gap:0, minHeight:260 }}
-            onMouseEnter={e=>(e.currentTarget.style.transform="translateY(-3px)",e.currentTarget.style.boxShadow="0 16px 48px rgba(124,58,237,0.16)")}
+            style={{ textAlign:"left", padding:"28px 28px 28px 32px", borderRadius:20, border:"1.5px solid rgba(15,118,110,0.22)", background:"linear-gradient(135deg,#F0FDFA 0%,#CCFBF1 100%)", cursor:"pointer", transition:"all 0.2s", position:"relative", overflow:"hidden", display:"flex", alignItems:"stretch", gap:0, minHeight:260 }}
+            onMouseEnter={e=>(e.currentTarget.style.transform="translateY(-3px)",e.currentTarget.style.boxShadow="0 16px 48px rgba(15,118,110,0.16)")}
             onMouseLeave={e=>(e.currentTarget.style.transform="translateY(0)",e.currentTarget.style.boxShadow="none")}
           >
-            <div style={{ position:"absolute", left:0, top:0, bottom:0, width:4, background:"linear-gradient(180deg,#7C3AED,#A78BFA)", borderRadius:"20px 0 0 20px" }}/>
-            <div style={{ position:"absolute", top:0, right:0, bottom:0, width:"42%", background:"radial-gradient(ellipse at 80% 50%, rgba(124,58,237,0.08) 0%, transparent 70%)", pointerEvents:"none" }}/>
+            <div style={{ position:"absolute", left:0, top:0, bottom:0, width:4, background:"linear-gradient(180deg,#0F766E,#93C5FD)", borderRadius:"20px 0 0 20px" }}/>
+            <div style={{ position:"absolute", top:0, right:0, bottom:0, width:"42%", background:"radial-gradient(ellipse at 80% 50%, rgba(15,118,110,0.08) 0%, transparent 70%)", pointerEvents:"none" }}/>
             {/* RECOMMENDED badge */}
-            <div style={{ position:"absolute", top:16, right:16, background:"linear-gradient(135deg,#7C3AED,#A78BFA)", color:"white", fontSize:9.5, fontWeight:800, padding:"4px 12px", borderRadius:99, letterSpacing:"0.08em", boxShadow:"0 2px 8px rgba(124,58,237,0.4)" }}>RECOMMENDED</div>
+            <div style={{ position:"absolute", top:16, right:16, background:"linear-gradient(135deg,#0F766E,#93C5FD)", color:"white", fontSize:9.5, fontWeight:800, padding:"4px 12px", borderRadius:99, letterSpacing:"0.08em", boxShadow:"0 2px 8px rgba(15,118,110,0.4)" }}>RECOMMENDED</div>
             {/* Left content */}
             <div style={{ flex:1, display:"flex", flexDirection:"column", paddingLeft:8 }}>
-              <div style={{ width:52, height:52, borderRadius:16, background:"linear-gradient(135deg,#7C3AED,#A78BFA)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:16, boxShadow:"0 6px 20px rgba(124,58,237,0.35)" }}>
+              <div style={{ width:52, height:52, borderRadius:16, background:"linear-gradient(135deg,#0F766E,#93C5FD)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:16, boxShadow:"0 6px 20px rgba(15,118,110,0.35)" }}>
                 <svg viewBox="0 0 20 20" fill="none" stroke="white" strokeWidth="1.8" style={{ width:22,height:22 }}><circle cx="9" cy="9" r="5.5"/><path d="M15 15l3 3"/><path d="M7 9l2 2 4-4"/></svg>
               </div>
-              <p style={{ fontSize:18, fontWeight:900, color:"#2E1065", marginBottom:6, letterSpacing:"-0.03em", lineHeight:1.2 }}>Targeted Resume</p>
-              <p style={{ fontSize:13, color:"#6D28D9", lineHeight:1.6, marginBottom:16, opacity:0.85 }}>Applying to a specific job? Paste the JD and Zari scores against every requirement.</p>
+              <p style={{ fontSize:18, fontWeight:900, color:"#134E4A", marginBottom:6, letterSpacing:"-0.03em", lineHeight:1.2 }}>Targeted Resume</p>
+              <p style={{ fontSize:13, color:"#0F766E", lineHeight:1.6, marginBottom:16, opacity:0.85 }}>Applying to a specific job? Paste the JD and Zari scores against every requirement.</p>
               <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:20 }}>
                 {["Keyword match vs. JD","Job Match score","JD-tuned rewrites","Missing skills callout"].map(f => (
                   <div key={f} style={{ display:"flex", alignItems:"center", gap:8 }}>
-                    <div style={{ width:18, height:18, borderRadius:"50%", background:"#7C3AED", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                    <div style={{ width:18, height:18, borderRadius:"50%", background:"#0F766E", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                       <svg viewBox="0 0 10 10" fill="none" stroke="white" strokeWidth="2" style={{ width:9,height:9 }}><path d="M1.5 5l2.5 2.5 4.5-4.5"/></svg>
                     </div>
-                    <span style={{ fontSize:13, color:"#5B21B6", fontWeight:500 }}>{f}</span>
+                    <span style={{ fontSize:13, color:"#0F766E", fontWeight:500 }}>{f}</span>
                   </div>
                 ))}
               </div>
               <div style={{ marginTop:"auto" }}>
-                <span style={{ fontSize:13.5, fontWeight:700, padding:"10px 22px", borderRadius:12, background:"linear-gradient(135deg,#7C3AED,#A78BFA)", color:"white", display:"inline-block", boxShadow:"0 4px 16px rgba(124,58,237,0.4)", letterSpacing:"-0.01em" }}>Start →</span>
+                <span style={{ fontSize:13.5, fontWeight:700, padding:"10px 22px", borderRadius:12, background:"linear-gradient(135deg,#0F766E,#93C5FD)", color:"white", display:"inline-block", boxShadow:"0 4px 16px rgba(15,118,110,0.4)", letterSpacing:"-0.01em" }}>Start →</span>
               </div>
             </div>
             {/* Right decorative: match score */}
             <div style={{ width:160, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", flexShrink:0, gap:12 }}>
               <div style={{ position:"relative", width:108, height:108 }}>
                 <svg viewBox="0 0 108 108" style={{ position:"absolute", inset:0, transform:"rotate(-90deg)" }}>
-                  <circle cx="54" cy="54" r="44" fill="none" stroke="rgba(124,58,237,0.12)" strokeWidth="9"/>
+                  <circle cx="54" cy="54" r="44" fill="none" stroke="rgba(15,118,110,0.12)" strokeWidth="9"/>
                   <circle cx="54" cy="54" r="44" fill="none" stroke="url(#purpleGrad)" strokeWidth="9" strokeLinecap="round" strokeDasharray="207 277"/>
-                  <defs><linearGradient id="purpleGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#7C3AED"/><stop offset="100%" stopColor="#A78BFA"/></linearGradient></defs>
+                  <defs><linearGradient id="purpleGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#0F766E"/><stop offset="100%" stopColor="#93C5FD"/></linearGradient></defs>
                 </svg>
                 <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
-                  <span style={{ fontSize:22, fontWeight:900, color:"#7C3AED", letterSpacing:"-0.05em", lineHeight:1 }}>75%</span>
-                  <span style={{ fontSize:9.5, fontWeight:700, color:"#8B5CF6", letterSpacing:"0.04em" }}>MATCH</span>
+                  <span style={{ fontSize:22, fontWeight:900, color:"#0F766E", letterSpacing:"-0.05em", lineHeight:1 }}>75%</span>
+                  <span style={{ fontSize:9.5, fontWeight:700, color:"#0F766E", letterSpacing:"0.04em" }}>MATCH</span>
                 </div>
               </div>
               <div style={{ display:"flex", flexDirection:"column", gap:5, width:"100%" }}>
                 {[["Keywords","82%"],["Skills","71%"],["Format","78%"]].map(([l,v]) => (
                   <div key={l} style={{ display:"flex", alignItems:"center", gap:7 }}>
-                    <span style={{ fontSize:10.5, fontWeight:600, color:"#5B21B6", width:44, flexShrink:0 }}>{l}</span>
-                    <div style={{ flex:1, height:5, borderRadius:99, background:"rgba(124,58,237,0.12)", overflow:"hidden" }}>
-                      <div style={{ height:"100%", width:v, background:"linear-gradient(90deg,#7C3AED,#A78BFA)", borderRadius:99 }}/>
+                    <span style={{ fontSize:10.5, fontWeight:600, color:"#0F766E", width:44, flexShrink:0 }}>{l}</span>
+                    <div style={{ flex:1, height:5, borderRadius:99, background:"rgba(15,118,110,0.12)", overflow:"hidden" }}>
+                      <div style={{ height:"100%", width:v, background:"linear-gradient(90deg,#0F766E,#93C5FD)", borderRadius:99 }}/>
                     </div>
-                    <span style={{ fontSize:10, fontWeight:700, color:"#7C3AED", width:28, textAlign:"right" }}>{v}</span>
+                    <span style={{ fontSize:10, fontWeight:700, color:"#0F766E", width:28, textAlign:"right" }}>{v}</span>
                   </div>
                 ))}
               </div>
@@ -6073,10 +6073,10 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
         {/* Feature strip */}
         <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10 }}>
           {[
-            { icon:<svg viewBox="0 0 16 16" fill="none" stroke="#4361EE" strokeWidth="1.8" style={{width:15,height:15}}><path d="M13 3L6 11l-3-3"/></svg>, label:"ATS-optimized", bg:"rgba(67,97,238,0.08)" },
+            { icon:<svg viewBox="0 0 16 16" fill="none" stroke="#2563EB" strokeWidth="1.8" style={{width:15,height:15}}><path d="M13 3L6 11l-3-3"/></svg>, label:"ATS-optimized", bg:"rgba(37,99,235,0.08)" },
             { icon:<svg viewBox="0 0 16 16" fill="none" stroke="#059669" strokeWidth="1.8" style={{width:15,height:15}}><path d="M8 2v8M4 7l4 4 4-4"/><path d="M2 13h12"/></svg>, label:"Download ready", bg:"rgba(5,150,105,0.08)" },
             { icon:<svg viewBox="0 0 16 16" fill="none" stroke="#D97706" strokeWidth="1.8" style={{width:15,height:15}}><path d="M3 8l4-8 3 5 2-3 3 6"/></svg>, label:"Score history", bg:"rgba(217,119,6,0.08)" },
-            { icon:<svg viewBox="0 0 16 16" fill="none" stroke="#7C3AED" strokeWidth="1.8" style={{width:15,height:15}}><path d="M13 2l1 4-8.5 8.5L2 16l1.5-3.5L12 4l1-2z"/></svg>, label:"Magic Write", bg:"rgba(124,58,237,0.08)" },
+            { icon:<svg viewBox="0 0 16 16" fill="none" stroke="#0F766E" strokeWidth="1.8" style={{width:15,height:15}}><path d="M13 2l1 4-8.5 8.5L2 16l1.5-3.5L12 4l1-2z"/></svg>, label:"Magic Write", bg:"rgba(15,118,110,0.08)" },
           ].map((f,i) => (
             <div key={i} style={{ background:f.bg, borderRadius:12, border:"1px solid var(--z-bd)", padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
               {f.icon}
@@ -6101,11 +6101,11 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
             const active = i === 0;
             return (
               <div key={i} style={{ display:"flex", alignItems:"center" }}>
-                <div style={{ display:"flex", alignItems:"center", gap:8, padding:"6px 16px", borderRadius:99, background:active?"rgba(67,97,238,0.12)":"rgba(0,0,0,0.04)", border:`1.5px solid ${active?"rgba(67,97,238,0.5)":"#D4D8E8"}` }}>
-                  <div style={{ width:18, height:18, borderRadius:"50%", background:active?"rgba(67,97,238,0.15)":"rgba(0,0,0,0.04)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                    <span style={{ fontSize:10.5, fontWeight:800, color:active?"#4361EE":"#9AA5B4" }}>{i+1}</span>
+                <div style={{ display:"flex", alignItems:"center", gap:8, padding:"6px 16px", borderRadius:99, background:active?"rgba(37,99,235,0.12)":"rgba(0,0,0,0.04)", border:`1.5px solid ${active?"rgba(37,99,235,0.5)":"#D4D8E8"}` }}>
+                  <div style={{ width:18, height:18, borderRadius:"50%", background:active?"rgba(37,99,235,0.15)":"rgba(0,0,0,0.04)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                    <span style={{ fontSize:10.5, fontWeight:800, color:active?"#2563EB":"#9AA5B4" }}>{i+1}</span>
                   </div>
-                  <span style={{ fontSize:12, fontWeight:700, color:active?"#4361EE":"#68738A" }}>{label}</span>
+                  <span style={{ fontSize:12, fontWeight:700, color:active?"#2563EB":"#68738A" }}>{label}</span>
                 </div>
                 {i === 0 && <div style={{ width:28, height:1.5, background:"rgba(0,0,0,0.05)" }}/>}
               </div>
@@ -6123,8 +6123,8 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
             <p style={{ fontSize:11.5, fontWeight:700, color:"var(--z-text2)", marginBottom:8 }}>Your career level</p>
             <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:7 }}>
               {([["entry","Entry","0–2 yrs"],["mid","Mid-Level","3–7 yrs"],["senior","Senior","8–15 yrs"],["executive","Executive","VP+"]] as [CareerLevel,string,string][]).map(([lvl,label,sub])=>(
-                <button key={lvl} onClick={()=>setCareerLevel(lvl)} style={{ padding:"8px 6px", borderRadius:10, border:`1.5px solid ${careerLevel===lvl?"rgba(67,97,238,0.7)":"#D4D8E8"}`, background:careerLevel===lvl?"rgba(67,97,238,0.10)":"#F7F8FC", cursor:"pointer", textAlign:"center", transition:"all 0.12s" }}>
-                  <p style={{ fontSize:12, fontWeight:700, color:careerLevel===lvl?"#4361EE":"#68738A", margin:0 }}>{label}</p>
+                <button key={lvl} onClick={()=>setCareerLevel(lvl)} style={{ padding:"8px 6px", borderRadius:10, border:`1.5px solid ${careerLevel===lvl?"rgba(37,99,235,0.7)":"#D4D8E8"}`, background:careerLevel===lvl?"rgba(37,99,235,0.10)":"#F7F8FC", cursor:"pointer", textAlign:"center", transition:"all 0.12s" }}>
+                  <p style={{ fontSize:12, fontWeight:700, color:careerLevel===lvl?"#2563EB":"#68738A", margin:0 }}>{label}</p>
                   <p style={{ fontSize:10, color:"var(--z-text3)", margin:0 }}>{sub}</p>
                 </button>
               ))}
@@ -6166,20 +6166,20 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
               <div>
                 <div style={{ display:"flex", gap:8 }}>
                   <input type="url" value={jdUrl} onChange={e=>{ setJdUrl(e.target.value); setJdUrlErr(""); }} placeholder="https://jobs.lever.co/…" style={{ flex:1, border:"1.5px solid var(--z-bd)", borderRadius:10, padding:"10px 11px", fontSize:13, color:"var(--z-text)", outline:"none", fontFamily:"inherit", background:"var(--z-card)", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }} onKeyDown={e=>{ if(e.key==="Enter") void fetchResumeJdFromUrl(); }}/>
-                  <button onClick={()=>void fetchResumeJdFromUrl()} disabled={fetchingJdUrl||!jdUrl.trim()} style={{ padding:"10px 18px", borderRadius:10, border:"none", background:jdUrl.trim()&&!fetchingJdUrl?"#4361EE":"rgba(255,255,255,0.06)", color:jdUrl.trim()&&!fetchingJdUrl?"white":"rgba(255,255,255,0.25)", fontSize:13, fontWeight:700, cursor:jdUrl.trim()&&!fetchingJdUrl?"pointer":"default", flexShrink:0 }}>
+                  <button onClick={()=>void fetchResumeJdFromUrl()} disabled={fetchingJdUrl||!jdUrl.trim()} style={{ padding:"10px 18px", borderRadius:10, border:"none", background:jdUrl.trim()&&!fetchingJdUrl?"#2563EB":"rgba(255,255,255,0.06)", color:jdUrl.trim()&&!fetchingJdUrl?"white":"rgba(255,255,255,0.25)", fontSize:13, fontWeight:700, cursor:jdUrl.trim()&&!fetchingJdUrl?"pointer":"default", flexShrink:0 }}>
                     {fetchingJdUrl?"…":"Fetch"}
                   </button>
                 </div>
-                {jdUrlErr && <p style={{ fontSize:12, color:"#F87171", marginTop:6, marginBottom:0 }}>{jdUrlErr} <button onClick={()=>setJdInputMode("paste")} style={{ background:"none", border:"none", color:"#818CF8", fontWeight:600, cursor:"pointer", fontSize:12, padding:0 }}>Paste instead</button></p>}
+                {jdUrlErr && <p style={{ fontSize:12, color:"#F87171", marginTop:6, marginBottom:0 }}>{jdUrlErr} <button onClick={()=>setJdInputMode("paste")} style={{ background:"none", border:"none", color:"#60A5FA", fontWeight:600, cursor:"pointer", fontSize:12, padding:0 }}>Paste instead</button></p>}
                 {jobDescription && !jdUrlErr && <p style={{ fontSize:11.5, color:"#4ADE80", marginTop:6, marginBottom:0, fontWeight:600 }}>✓ Fetched — {jobDescription.length.toLocaleString()} characters</p>}
               </div>
             )}
           </div>
 
           {/* Info tip */}
-          <div style={{ display:"flex", gap:8, padding:"10px 12px", background:"rgba(124,58,237,0.1)", borderRadius:10, border:"1px solid rgba(124,58,237,0.25)", marginBottom:20 }}>
-            <svg viewBox="0 0 16 16" fill="none" stroke="#A78BFA" strokeWidth="1.6" style={{ width:14,height:14,flexShrink:0,marginTop:1 }}><circle cx="8" cy="8" r="6"/><path d="M8 5v4M8 10v1"/></svg>
-            <p style={{ fontSize:12, color:"#C4B5FD", lineHeight:1.55, margin:0 }}>Paste the roles, responsibilities, and qualifications. Skip the &quot;About Us&quot;, benefits, and salary sections — those don&apos;t affect keyword matching.</p>
+          <div style={{ display:"flex", gap:8, padding:"10px 12px", background:"rgba(15,118,110,0.1)", borderRadius:10, border:"1px solid rgba(15,118,110,0.25)", marginBottom:20 }}>
+            <svg viewBox="0 0 16 16" fill="none" stroke="#93C5FD" strokeWidth="1.6" style={{ width:14,height:14,flexShrink:0,marginTop:1 }}><circle cx="8" cy="8" r="6"/><path d="M8 5v4M8 10v1"/></svg>
+            <p style={{ fontSize:12, color:"#93C5FD", lineHeight:1.55, margin:0 }}>Paste the roles, responsibilities, and qualifications. Skip the &quot;About Us&quot;, benefits, and salary sections — those don&apos;t affect keyword matching.</p>
           </div>
 
           {analyzeErr && <div style={{ background:"rgba(239,68,68,0.12)", border:"1px solid rgba(239,68,68,0.3)", borderRadius:10, padding:"9px 14px", marginBottom:14, fontSize:13, color:"#FCA5A5" }}>{analyzeErr}</div>}
@@ -6189,7 +6189,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
             <button
               onClick={()=>setStep("upload")}
               disabled={!jobDescription.trim() && !targetRoleInput.trim()}
-              style={{ flex:1, fontSize:14, fontWeight:700, padding:"11px", borderRadius:11, border:"none", background:(jobDescription.trim()||targetRoleInput.trim())?"linear-gradient(135deg,#4361EE,#818CF8)":"rgba(255,255,255,0.06)", color:(jobDescription.trim()||targetRoleInput.trim())?"white":"rgba(255,255,255,0.2)", cursor:(jobDescription.trim()||targetRoleInput.trim())?"pointer":"default", boxShadow:(jobDescription.trim()||targetRoleInput.trim())?"0 6px 20px rgba(67,97,238,0.4)":"none", transition:"all 0.2s" }}
+              style={{ flex:1, fontSize:14, fontWeight:700, padding:"11px", borderRadius:11, border:"none", background:(jobDescription.trim()||targetRoleInput.trim())?"linear-gradient(135deg,#2563EB,#60A5FA)":"rgba(255,255,255,0.06)", color:(jobDescription.trim()||targetRoleInput.trim())?"white":"rgba(255,255,255,0.2)", cursor:(jobDescription.trim()||targetRoleInput.trim())?"pointer":"default", boxShadow:(jobDescription.trim()||targetRoleInput.trim())?"0 6px 20px rgba(37,99,235,0.4)":"none", transition:"all 0.2s" }}
             >
               Next: Upload your resume →
             </button>
@@ -6218,7 +6218,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
           <div style={{ display:"flex", gap:10, marginTop:14 }}>
             <button onClick={() => setStep("upload")} style={{ fontSize:13, fontWeight:600, padding:"10px 20px", borderRadius:10, border:"1px solid var(--z-bd)", background:"rgba(0,0,0,0.03)", color:"var(--z-text2)", cursor:"pointer" }}>← Back</button>
             <button onClick={() => void runAnalysis()} disabled={!resumeText.trim() || targetedInvalid}
-              style={{ flex:1, fontSize:14, fontWeight:700, padding:"11px", borderRadius:10, border:"none", background:resumeText.trim()&&!targetedInvalid?"linear-gradient(135deg,#4361EE,#818CF8)":"rgba(0,0,0,0.04)", color:resumeText.trim()&&!targetedInvalid?"white":"#B0BCCF", cursor:resumeText.trim()&&!targetedInvalid?"pointer":"default", boxShadow:resumeText.trim()&&!targetedInvalid?"0 6px 20px rgba(67,97,238,0.4)":"none", transition:"all 0.2s" }}>
+              style={{ flex:1, fontSize:14, fontWeight:700, padding:"11px", borderRadius:10, border:"none", background:resumeText.trim()&&!targetedInvalid?"linear-gradient(135deg,#2563EB,#60A5FA)":"rgba(0,0,0,0.04)", color:resumeText.trim()&&!targetedInvalid?"white":"#B0BCCF", cursor:resumeText.trim()&&!targetedInvalid?"pointer":"default", boxShadow:resumeText.trim()&&!targetedInvalid?"0 6px 20px rgba(37,99,235,0.4)":"none", transition:"all 0.2s" }}>
               Analyze with Zari →
             </button>
           </div>
@@ -6261,15 +6261,15 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
             onDragOver={e=>{e.preventDefault();setDragging(true);}}
             onDragLeave={()=>setDragging(false)}
             onDrop={e=>{e.preventDefault();setDragging(false);const f=e.dataTransfer.files?.[0];if(f)void handleFile(f);}}
-            style={{ display:"block", border:`2px dashed ${dragging?"#4361EE":"#D4D8E8"}`, borderRadius:20, padding:"44px 32px", textAlign:"center", cursor:"pointer", background:dragging?"rgba(67,97,238,0.05)":"#FFFFFF", transition:"all 0.2s", boxShadow:dragging?"0 0 0 4px rgba(67,97,238,0.15)":"none", marginBottom:14 }}
+            style={{ display:"block", border:`2px dashed ${dragging?"#2563EB":"#D4D8E8"}`, borderRadius:20, padding:"44px 32px", textAlign:"center", cursor:"pointer", background:dragging?"rgba(37,99,235,0.05)":"#FFFFFF", transition:"all 0.2s", boxShadow:dragging?"0 0 0 4px rgba(37,99,235,0.15)":"none", marginBottom:14 }}
           >
             <input type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleFile(f); e.target.value=""; }}/>
-            <div style={{ width:54, height:54, borderRadius:15, background:"rgba(67,97,238,0.2)", border:"1px solid rgba(67,97,238,0.4)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px" }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="#818CF8" strokeWidth="1.8" style={{ width:24, height:24 }}><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <div style={{ width:54, height:54, borderRadius:15, background:"rgba(37,99,235,0.2)", border:"1px solid rgba(37,99,235,0.4)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px" }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="#60A5FA" strokeWidth="1.8" style={{ width:24, height:24 }}><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             </div>
             <p style={{ fontSize:16, fontWeight:700, color:"var(--z-text)", marginBottom:5 }}>Drop your resume here</p>
             <p style={{ fontSize:13, color:"var(--z-text3)", marginBottom:18 }}>PDF, DOCX, or TXT — or click to browse</p>
-            <span style={{ fontSize:12.5, fontWeight:700, padding:"8px 22px", borderRadius:99, background:"rgba(67,97,238,0.3)", color:"#A5B4FC", border:"1px solid rgba(67,97,238,0.4)" }}>Choose file</span>
+            <span style={{ fontSize:12.5, fontWeight:700, padding:"8px 22px", borderRadius:99, background:"rgba(37,99,235,0.3)", color:"#A5B4FC", border:"1px solid rgba(37,99,235,0.4)" }}>Choose file</span>
           </label>
 
           {/* Level + controls */}
@@ -6284,7 +6284,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                 <option value="executive">Executive</option>
               </select>
             </div>
-            <button onClick={()=>setStep("paste")} style={{ background:"none", border:"none", color:"#818CF8", fontWeight:600, cursor:"pointer", fontSize:12.5, padding:0 }}>paste text instead</button>
+            <button onClick={()=>setStep("paste")} style={{ background:"none", border:"none", color:"#60A5FA", fontWeight:600, cursor:"pointer", fontSize:12.5, padding:0 }}>paste text instead</button>
           </div>
 
           {/* Feature list */}
@@ -6316,19 +6316,19 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
   if (step === "analyzing") return (
     <div style={{ height:"calc(100vh - 56px)", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--z-raise)" }}>
       <div style={{ maxWidth:480, width:"100%", padding:32, textAlign:"center" }}>
-        <div style={{ width:80, height:80, borderRadius:"50%", background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 24px", animation:"sphere-breathe 2s ease-in-out infinite", boxShadow:"0 0 40px rgba(67,97,238,0.4)" }}>
+        <div style={{ width:80, height:80, borderRadius:"50%", background:"linear-gradient(135deg,#2563EB,#60A5FA)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 24px", animation:"sphere-breathe 2s ease-in-out infinite", boxShadow:"0 0 40px rgba(37,99,235,0.4)" }}>
           <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" style={{ width:36, height:36 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         </div>
         <h2 style={{ fontSize:22, fontWeight:800, color:"var(--z-text)", marginBottom:8 }}>Zari is analyzing your resume…</h2>
         <p style={{ fontSize:14, color:"var(--z-text2)", marginBottom:32 }}>{ANALYSIS_STAGES[stageIdx]}</p>
         <div style={{ background:"rgba(0,0,0,0.04)", borderRadius:99, height:8, overflow:"hidden", marginBottom:16 }}>
-          <div style={{ width:`${progress}%`, height:"100%", background:"linear-gradient(90deg,#4361EE,#06B6D4)", borderRadius:99, transition:"width 0.3s ease", boxShadow:"0 0 12px rgba(67,97,238,0.5)" }}/>
+          <div style={{ width:`${progress}%`, height:"100%", background:"linear-gradient(90deg,#2563EB,#06B6D4)", borderRadius:99, transition:"width 0.3s ease", boxShadow:"0 0 12px rgba(37,99,235,0.5)" }}/>
         </div>
         <p style={{ fontSize:12, color:"var(--z-text3)" }}>{Math.round(progress)}% complete</p>
         <div style={{ marginTop:28, display:"flex", flexDirection:"column", gap:8 }}>
           {ANALYSIS_STAGES.slice(0, stageIdx+1).map((s,i) => (
-            <div key={i} style={{ display:"flex", alignItems:"center", gap:10, fontSize:13, color: i===stageIdx?"#4361EE":"#B0BCCF" }}>
-              <svg viewBox="0 0 16 16" fill={i<stageIdx?"#22C55E":"none"} stroke={i===stageIdx?"#4361EE":"#D4D8E8"} strokeWidth="2" style={{ width:16, height:16, flexShrink:0, animation: i===stageIdx?"spin-slow 1.5s linear infinite":"none" }}>
+            <div key={i} style={{ display:"flex", alignItems:"center", gap:10, fontSize:13, color: i===stageIdx?"#2563EB":"#B0BCCF" }}>
+              <svg viewBox="0 0 16 16" fill={i<stageIdx?"#22C55E":"none"} stroke={i===stageIdx?"#2563EB":"#D4D8E8"} strokeWidth="2" style={{ width:16, height:16, flexShrink:0, animation: i===stageIdx?"spin-slow 1.5s linear infinite":"none" }}>
                 {i < stageIdx ? <polyline points="3,8 6,11 13,4"/> : <circle cx="8" cy="8" r="6"/>}
               </svg>
               {s}
@@ -6408,12 +6408,12 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
             </div>
           </div>
           <div style={{ display:"flex", gap:8 }}>
-            <button onClick={downloadReconstructed} style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:700, padding:"8px 14px", borderRadius:10, border:"1.5px solid rgba(67,97,238,0.4)", background:"rgba(0,0,0,0.03)", color:"#7B9EFF", cursor:"pointer" }}>
+            <button onClick={downloadReconstructed} style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:700, padding:"8px 14px", borderRadius:10, border:"1.5px solid rgba(37,99,235,0.4)", background:"rgba(0,0,0,0.03)", color:"#7B9EFF", cursor:"pointer" }}>
               <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:13,height:13 }}><path d="M10 4v12M4 10l6 6 6-6"/></svg>
               Download Revised
             </button>
             {reviewMode==="targeted" && (
-              <button onClick={()=>void downloadPowerOptimized()} disabled={powerOptimizing} style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:700, padding:"8px 16px", borderRadius:10, border:"none", background: powerOptimizing?"rgba(255,255,255,0.08)":"linear-gradient(135deg,#7C3AED,#4361EE)", color: powerOptimizing?"rgba(255,255,255,0.35)":"white", cursor: powerOptimizing?"default":"pointer", boxShadow: powerOptimizing?"none":"0 4px 14px rgba(124,58,237,0.35)" }}>
+              <button onClick={()=>void downloadPowerOptimized()} disabled={powerOptimizing} style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:700, padding:"8px 16px", borderRadius:10, border:"none", background: powerOptimizing?"rgba(255,255,255,0.08)":"linear-gradient(135deg,#0F766E,#2563EB)", color: powerOptimizing?"rgba(255,255,255,0.35)":"white", cursor: powerOptimizing?"default":"pointer", boxShadow: powerOptimizing?"none":"0 4px 14px rgba(15,118,110,0.35)" }}>
                 <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:13,height:13 }}><path d="M11 3L5 11h7l-3 6 8-10h-7l3-6z"/></svg>
                 {powerOptimizing ? "Optimizing…" : "Power Optimized"}
               </button>
@@ -6442,10 +6442,10 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
             { label:"ATS Match", key:"ats" as const,    score:aiResult?.ats??0,    color:"#4ADE80",
               icon:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13}}><path d="M13 3L6 11l-3-3"/></svg>,
               note: kwTotal>0 ? `${kwFound}/${kwTotal} keywords` : "Format & keywords" },
-            { label:"Impact",    key:"impact" as const,  score:aiResult?.impact??0, color:"#4361EE",
+            { label:"Impact",    key:"impact" as const,  score:aiResult?.impact??0, color:"#2563EB",
               icon:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13}}><path d="M3 12l4-8 3 5 2-3 3 6"/></svg>,
               note: bs ? `${bs.withMetrics}/${bs.total} bullets have metrics` : "Metrics & outcomes" },
-            { label:"Clarity",   key:"clarity" as const, score:aiResult?.clarity??0,color:"#7C3AED",
+            { label:"Clarity",   key:"clarity" as const, score:aiResult?.clarity??0,color:"#0F766E",
               icon:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13}}><circle cx="8" cy="8" r="6"/><path d="M8 5v4M8 11v1"/></svg>,
               note: `${finds.filter(f=>f.type!=="ok").length} issue${finds.filter(f=>f.type!=="ok").length!==1?"s":""} found` },
           ];
@@ -6454,7 +6454,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
             <div style={{ background:"var(--z-card)", borderRadius:20, border:"1px solid var(--z-bd)", padding:"24px 28px", marginBottom:20, boxShadow:"0 12px 48px rgba(0,0,0,0.08)", position:"relative", overflow:"hidden" }}>
               {/* Ambient glow blobs */}
               <div style={{ position:"absolute", top:-50, right:tailored!==null?200:80, width:220, height:220, background:`radial-gradient(circle,${lcolor}22 0%,transparent 70%)`, pointerEvents:"none" }}/>
-              <div style={{ position:"absolute", bottom:-60, left:40, width:160, height:160, background:"radial-gradient(circle,rgba(67,97,238,0.12) 0%,transparent 70%)", pointerEvents:"none" }}/>
+              <div style={{ position:"absolute", bottom:-60, left:40, width:160, height:160, background:"radial-gradient(circle,rgba(37,99,235,0.12) 0%,transparent 70%)", pointerEvents:"none" }}/>
 
               <div style={{ display:"grid", gridTemplateColumns: tailored!==null ? "168px 1fr 168px" : "168px 1fr", gap:28, alignItems:"center", position:"relative" }}>
 
@@ -6541,8 +6541,8 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                 <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ overflow:"visible" }}>
                   <defs>
                     <linearGradient id="sparkGrad" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stopColor="#4361EE" stopOpacity="0.4"/>
-                      <stop offset="100%" stopColor="#4361EE"/>
+                      <stop offset="0%" stopColor="#2563EB" stopOpacity="0.4"/>
+                      <stop offset="100%" stopColor="#2563EB"/>
                     </linearGradient>
                   </defs>
                   <polyline points={pts} fill="none" stroke="url(#sparkGrad)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -6552,8 +6552,8 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                     const isLast = i === last5.length-1;
                     return (
                       <g key={i}>
-                        {isLast && <circle cx={x} cy={y} r={9} fill="rgba(67,97,238,0.1)"/>}
-                        <circle cx={x} cy={y} r={isLast?5:3.5} fill={isLast?"#4361EE":"white"} stroke="#4361EE" strokeWidth="2"/>
+                        {isLast && <circle cx={x} cy={y} r={9} fill="rgba(37,99,235,0.1)"/>}
+                        <circle cx={x} cy={y} r={isLast?5:3.5} fill={isLast?"#2563EB":"white"} stroke="#2563EB" strokeWidth="2"/>
                       </g>
                     );
                   })}
@@ -6583,7 +6583,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
         {(aiResult?.quickWins?.length ?? 0) > 0 && (() => {
           const PRIORITY_STYLE = {
             high:   { dot:"#F59E0B", bg:"rgba(245,158,11,0.15)", border:"rgba(245,158,11,0.3)", label:"High impact" },
-            medium: { dot:"#7B9EFF", bg:"rgba(67,97,238,0.15)",  border:"rgba(67,97,238,0.3)",  label:"Quick fix"   },
+            medium: { dot:"#7B9EFF", bg:"rgba(37,99,235,0.15)",  border:"rgba(37,99,235,0.3)",  label:"Quick fix"   },
           };
           const EFFORT_COLOR: Record<string,string> = { "5 min":"#16A34A", "15 min":"#D97706", "30 min":"#DC2626" };
           return (
@@ -6608,7 +6608,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                         <span style={{ fontSize:10, fontWeight:700, color:ec, background:`${ec}15`, padding:"1px 6px", borderRadius:99, flexShrink:0, marginLeft:4 }}>{w.effort}</span>
                       </div>
                       <p style={{ fontSize:11.5, color:"var(--z-text2)", lineHeight:1.55, margin:"0 0 10px" }}>{w.action}</p>
-                      <span style={{ fontSize:10.5, fontWeight:600, color:"#4361EE" }}>Go to {w.tab} tab →</span>
+                      <span style={{ fontSize:10.5, fontWeight:600, color:"#2563EB" }}>Go to {w.tab} tab →</span>
                     </div>
                   );
                 })}
@@ -6628,9 +6628,9 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
               : []),
             ["history","History", scoreHistory.length > 0 ? `${scoreHistory.length}` : ""],
           ] as ["overview"|"bullets"|"rewrite"|"keywords"|"history", string, string][]).map(([t, label, badge]) => (
-            <button key={t} onClick={()=>setTab(t)} style={{ padding:"12px 22px", border:"none", borderBottom:`2.5px solid ${tab===t?"#4361EE":"transparent"}`, marginBottom:"-2px", background:"transparent", cursor:"pointer", fontSize:14, fontWeight:tab===t?700:500, color:tab===t?"#7B9EFF":"rgba(255,255,255,0.42)", display:"flex", alignItems:"center", gap:6, transition:"color 0.15s", whiteSpace:"nowrap" }}>
+            <button key={t} onClick={()=>setTab(t)} style={{ padding:"12px 22px", border:"none", borderBottom:`2.5px solid ${tab===t?"#2563EB":"transparent"}`, marginBottom:"-2px", background:"transparent", cursor:"pointer", fontSize:14, fontWeight:tab===t?700:500, color:tab===t?"#7B9EFF":"rgba(255,255,255,0.42)", display:"flex", alignItems:"center", gap:6, transition:"color 0.15s", whiteSpace:"nowrap" }}>
               {label}
-              {badge && <span style={{ fontSize:11, fontWeight:700, padding:"2px 8px", borderRadius:99, background:tab===t?"rgba(67,97,238,0.2)":"rgba(255,255,255,0.08)", color:tab===t?"#7B9EFF":"rgba(255,255,255,0.42)" }}>{badge}</span>}
+              {badge && <span style={{ fontSize:11, fontWeight:700, padding:"2px 8px", borderRadius:99, background:tab===t?"rgba(37,99,235,0.2)":"rgba(255,255,255,0.08)", color:tab===t?"#7B9EFF":"rgba(255,255,255,0.42)" }}>{badge}</span>}
             </button>
           ))}
         </div>
@@ -6667,7 +6667,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
               : <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:12, background:"rgba(0,0,0,0.02)" }}>
                   <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                   <p style={{ fontSize:13, color:"var(--z-text2)", margin:0, textAlign:"center", maxWidth:220 }}>Re-upload your PDF to restore the preview</p>
-                  <label style={{ fontSize:12.5, fontWeight:600, color:"#4361EE", cursor:"pointer", padding:"7px 16px", borderRadius:8, border:"1.5px solid #4361EE", background:"rgba(67,97,238,0.05)" }}>
+                  <label style={{ fontSize:12.5, fontWeight:600, color:"#2563EB", cursor:"pointer", padding:"7px 16px", borderRadius:8, border:"1.5px solid #2563EB", background:"rgba(37,99,235,0.05)" }}>
                     Upload PDF
                     <input type="file" accept=".pdf" style={{ display:"none" }} onChange={e => {
                       const f = e.target.files?.[0];
@@ -6688,8 +6688,8 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
             {tab==="overview" && (() => {
               const CATEGORY_META: Record<string,{label:string;color:string;bg:string;border:string}> = {
                 weak_verbs:        { label:"Weak Verbs",      color:"#FCD34D", bg:"rgba(252,211,77,0.1)",   border:"rgba(252,211,77,0.3)"  },
-                quantify_impact:   { label:"Missing Metrics", color:"#7B9EFF", bg:"rgba(67,97,238,0.12)",   border:"rgba(67,97,238,0.3)"   },
-                summary:           { label:"Summary",         color:"#C4B5FD", bg:"rgba(109,40,217,0.12)",  border:"rgba(109,40,217,0.3)"  },
+                quantify_impact:   { label:"Missing Metrics", color:"#7B9EFF", bg:"rgba(37,99,235,0.12)",   border:"rgba(37,99,235,0.3)"   },
+                summary:           { label:"Summary",         color:"#93C5FD", bg:"rgba(109,40,217,0.12)",  border:"rgba(109,40,217,0.3)"  },
                 ats_keywords:      { label:"ATS Keywords",    color:"#34D399", bg:"rgba(52,211,153,0.1)",   border:"rgba(52,211,153,0.3)"  },
                 repetition:        { label:"Repetition",      color:"#FBBF24", bg:"rgba(251,191,36,0.1)",   border:"rgba(251,191,36,0.3)"  },
                 readability:       { label:"Readability",     color:"#38BDF8", bg:"rgba(56,189,248,0.1)",   border:"rgba(56,189,248,0.3)"  },
@@ -6705,12 +6705,12 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
               };
               const VERDICT_STYLE: Record<string,{color:string;bg:string;border:string}> = {
                 Strong:          { color:"#4ADE80", bg:"rgba(74,222,128,0.12)",   border:"rgba(74,222,128,0.3)"  },
-                Good:            { color:"#7B9EFF", bg:"rgba(67,97,238,0.12)",    border:"rgba(67,97,238,0.3)"   },
+                Good:            { color:"#7B9EFF", bg:"rgba(37,99,235,0.12)",    border:"rgba(37,99,235,0.3)"   },
                 "Needs work":    { color:"#FCD34D", bg:"rgba(252,211,77,0.1)",    border:"rgba(252,211,77,0.3)"  },
                 "Weak verbs":    { color:"#FBBF24", bg:"rgba(251,191,36,0.1)",    border:"rgba(251,191,36,0.3)"  },
-                "No metrics":    { color:"#7B9EFF", bg:"rgba(67,97,238,0.12)",    border:"rgba(67,97,238,0.3)"   },
+                "No metrics":    { color:"#7B9EFF", bg:"rgba(37,99,235,0.12)",    border:"rgba(37,99,235,0.3)"   },
                 Missing:         { color:"#F87171", bg:"rgba(248,113,113,0.1)",   border:"rgba(248,113,113,0.3)" },
-                Incomplete:      { color:"#C4B5FD", bg:"rgba(109,40,217,0.12)",   border:"rgba(109,40,217,0.3)"  },
+                Incomplete:      { color:"#93C5FD", bg:"rgba(109,40,217,0.12)",   border:"rgba(109,40,217,0.3)"  },
                 Generic:         { color:"var(--z-text2)", bg:"rgba(255,255,255,0.06)", border:"rgba(255,255,255,0.12)" },
                 "Too long":      { color:"#FBBF24", bg:"rgba(251,191,36,0.1)",    border:"rgba(251,191,36,0.3)"  },
                 Outdated:        { color:"var(--z-text2)", bg:"rgba(255,255,255,0.06)", border:"rgba(255,255,255,0.12)" },
@@ -6739,14 +6739,14 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                           const vs = VERDICT_STYLE[s.verdict] ?? { color:"var(--z-text2)", bg:"#F1F5F9", border:"#E4E8F5" };
                           return (
                             <div key={si} style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 12px", borderRadius:12, background:"rgba(0,0,0,0.02)" }}>
-                              <div style={{ width:34, height:34, borderRadius:10, background: s.present?(s.score>=75?"rgba(22,163,74,0.15)":s.score>=55?"rgba(67,97,238,0.15)":"rgba(220,38,38,0.15)"):"rgba(255,255,255,0.06)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                                <span style={{ fontSize:14, fontWeight:900, color: s.present?(s.score>=75?"#16A34A":s.score>=55?"#4361EE":"#DC2626"):"#A0AABF" }}>{s.present?s.score:"—"}</span>
+                              <div style={{ width:34, height:34, borderRadius:10, background: s.present?(s.score>=75?"rgba(22,163,74,0.15)":s.score>=55?"rgba(37,99,235,0.15)":"rgba(220,38,38,0.15)"):"rgba(255,255,255,0.06)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                                <span style={{ fontSize:14, fontWeight:900, color: s.present?(s.score>=75?"#16A34A":s.score>=55?"#2563EB":"#DC2626"):"#A0AABF" }}>{s.present?s.score:"—"}</span>
                               </div>
                               <span style={{ flex:1, fontSize:13.5, fontWeight:600, color:"var(--z-text)" }}>{s.name}</span>
                               <span style={{ fontSize:11, fontWeight:700, padding:"3px 10px", borderRadius:99, background:vs.bg, color:vs.color, border:`1px solid ${vs.border}` }}>{s.present?s.verdict:"Missing"}</span>
                               <div style={{ width:90 }}>
                                 <div style={{ height:5, borderRadius:99, background:"rgba(0,0,0,0.04)", overflow:"hidden" }}>
-                                  <div style={{ width:`${s.present?s.score:0}%`, height:"100%", borderRadius:99, background: s.score>=75?"#16A34A":s.score>=55?"#4361EE":"#DC2626", transition:"width 0.7s ease" }}/>
+                                  <div style={{ width:`${s.present?s.score:0}%`, height:"100%", borderRadius:99, background: s.score>=75?"#16A34A":s.score>=55?"#2563EB":"#DC2626", transition:"width 0.7s ease" }}/>
                                 </div>
                               </div>
                             </div>
@@ -6764,7 +6764,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                         {[
                           { val:bs.total,           label:"Total bullets",   color:"var(--z-text2)", bg:"rgba(255,255,255,0.06)" },
                           { val:bs.withMetrics,      label:"Have metrics",   color:`${bs.withMetrics/Math.max(bs.total,1)>=0.6?"#4ADE80":"#F87171"}`, bg:`${bs.withMetrics/Math.max(bs.total,1)>=0.6?"rgba(74,222,128,0.1)":"rgba(248,113,113,0.1)"}` },
-                          { val:bs.withStrongVerbs,  label:"Strong verbs",   color:`${bs.withStrongVerbs/Math.max(bs.total,1)>=0.7?"#7B9EFF":"#FBBF24"}`, bg:`${bs.withStrongVerbs/Math.max(bs.total,1)>=0.7?"rgba(67,97,238,0.12)":"rgba(251,191,36,0.1)"}` },
+                          { val:bs.withStrongVerbs,  label:"Strong verbs",   color:`${bs.withStrongVerbs/Math.max(bs.total,1)>=0.7?"#7B9EFF":"#FBBF24"}`, bg:`${bs.withStrongVerbs/Math.max(bs.total,1)>=0.7?"rgba(37,99,235,0.12)":"rgba(251,191,36,0.1)"}` },
                           { val:bs.weak,             label:"Need work",      color:bs.weak===0?"#4ADE80":"#F87171", bg:bs.weak===0?"rgba(74,222,128,0.1)":"rgba(248,113,113,0.1)" },
                         ].map((st,i) => (
                           <div key={i} style={{ background:st.bg, borderRadius:12, padding:"14px 10px", textAlign:"center" }}>
@@ -6800,7 +6800,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                             repetition: { bg:"rgba(252,211,77,0.1)",   color:"#FCD34D", border:"rgba(252,211,77,0.3)"  },
                             filler:     { bg:"rgba(248,113,113,0.1)",  color:"#F87171", border:"rgba(248,113,113,0.3)" },
                             weak_verb:  { bg:"rgba(251,191,36,0.1)",   color:"#FBBF24", border:"rgba(251,191,36,0.3)"  },
-                            cliche:     { bg:"rgba(109,40,217,0.12)",  color:"#C4B5FD", border:"rgba(109,40,217,0.3)"  },
+                            cliche:     { bg:"rgba(109,40,217,0.12)",  color:"#93C5FD", border:"rgba(109,40,217,0.3)"  },
                           };
                           const tc = TYPE_COLOR[w.type] ?? { bg:"rgba(255,255,255,0.06)", color:"var(--z-text2)", border:"rgba(255,255,255,0.12)" };
                           return (
@@ -6906,9 +6906,9 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
 
                   {/* ── Zari's recommendation ── */}
                   {aiResult?.recommendation && (
-                    <div style={{ background:"rgba(67,97,238,0.1)", borderRadius:16, border:"1px solid rgba(67,97,238,0.3)", padding:"16px 18px" }}>
+                    <div style={{ background:"rgba(37,99,235,0.1)", borderRadius:16, border:"1px solid rgba(37,99,235,0.3)", padding:"16px 18px" }}>
                       <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
-                        <div style={{ width:32, height:32, borderRadius:10, background:"linear-gradient(135deg,#4361EE,#7C3AED)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:"0 4px 12px rgba(67,97,238,0.3)" }}>
+                        <div style={{ width:32, height:32, borderRadius:10, background:"linear-gradient(135deg,#2563EB,#0F766E)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:"0 4px 12px rgba(37,99,235,0.3)" }}>
                           <svg viewBox="0 0 16 16" fill="none" stroke="white" strokeWidth="1.8" style={{ width:14,height:14 }}><path d="M8 2a3 3 0 00-3 3v3a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M4 8v1a4 4 0 008 0V8"/></svg>
                         </div>
                         <div>
@@ -7026,16 +7026,16 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                           </div>
                           {/* Magic Write */}
                           {!mw ? (
-                            <button onClick={()=>openMagicWrite(i)} style={{ fontSize:11.5, fontWeight:700, padding:"7px 15px", borderRadius:9, border:"1.5px solid rgba(67,97,238,0.4)", background:"rgba(67,97,238,0.12)", color:"#7B9EFF", cursor:"pointer", display:"inline-flex", alignItems:"center", gap:6 }}>
+                            <button onClick={()=>openMagicWrite(i)} style={{ fontSize:11.5, fontWeight:700, padding:"7px 15px", borderRadius:9, border:"1.5px solid rgba(37,99,235,0.4)", background:"rgba(37,99,235,0.12)", color:"#7B9EFF", cursor:"pointer", display:"inline-flex", alignItems:"center", gap:6 }}>
                               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:11, height:11 }}><path d="M13 2l1 4-8.5 8.5L2 16l1.5-3.5L12 4l1-2z"/><path d="M10 4l2 2"/></svg>
                               Magic Write — customize this rewrite
                             </button>
                           ) : (
-                            <div style={{ border:"1.5px solid rgba(67,97,238,0.3)", borderRadius:12, overflow:"hidden" }}>
+                            <div style={{ border:"1.5px solid rgba(37,99,235,0.3)", borderRadius:12, overflow:"hidden" }}>
                               <div style={{ display:"flex", background:"rgba(0,0,0,0.02)", borderBottom:"1px solid var(--z-bd)", padding:"8px 12px", gap:4, alignItems:"center", justifyContent:"space-between" }}>
                                 <div style={{ display:"flex", gap:4 }}>
                                   {([["refine","Refine"],["describe","I did..."],["variations","3 versions"]] as [MagicWriteMode,string][]).map(([m,l]) => (
-                                    <button key={m} onClick={()=>setMagicWrite(p=>({...p,[i]:{...p[i],mode:m,results:[],input:""}}))} style={{ fontSize:10.5, fontWeight:600, padding:"4px 10px", borderRadius:7, border:"none", background:mw.mode===m?"#4361EE":"rgba(255,255,255,0.08)", color:mw.mode===m?"white":"rgba(255,255,255,0.55)", cursor:"pointer" }}>{l}</button>
+                                    <button key={m} onClick={()=>setMagicWrite(p=>({...p,[i]:{...p[i],mode:m,results:[],input:""}}))} style={{ fontSize:10.5, fontWeight:600, padding:"4px 10px", borderRadius:7, border:"none", background:mw.mode===m?"#2563EB":"rgba(255,255,255,0.08)", color:mw.mode===m?"white":"rgba(255,255,255,0.55)", cursor:"pointer" }}>{l}</button>
                                   ))}
                                 </div>
                                 <button onClick={()=>closeMagicWrite(i)} style={{ fontSize:13, background:"none", border:"none", color:"var(--z-text3)", cursor:"pointer", padding:"0 4px" }}>✕</button>
@@ -7046,7 +7046,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                                 ) : (
                                   <p style={{ fontSize:11, color:"var(--z-text2)", margin:"0 0 8px" }}>{mw.mode==="refine"?"Zari will tighten and strengthen the AI suggestion.":"3 meaningfully different takes — different verb, angle, structure."}</p>
                                 )}
-                                <button onClick={()=>void runMagicWrite(i, b)} disabled={mw.loading||(mw.mode==="describe"&&!mw.input.trim())} style={{ fontSize:12, fontWeight:700, padding:"7px 18px", borderRadius:8, border:"none", background:(!mw.loading&&(mw.mode!=="describe"||mw.input.trim()))?"#4361EE":"rgba(255,255,255,0.08)", color:(!mw.loading&&(mw.mode!=="describe"||mw.input.trim()))?"white":"rgba(255,255,255,0.35)", cursor:(!mw.loading&&(mw.mode!=="describe"||mw.input.trim()))?"pointer":"default" }}>
+                                <button onClick={()=>void runMagicWrite(i, b)} disabled={mw.loading||(mw.mode==="describe"&&!mw.input.trim())} style={{ fontSize:12, fontWeight:700, padding:"7px 18px", borderRadius:8, border:"none", background:(!mw.loading&&(mw.mode!=="describe"||mw.input.trim()))?"#2563EB":"rgba(255,255,255,0.08)", color:(!mw.loading&&(mw.mode!=="describe"||mw.input.trim()))?"white":"rgba(255,255,255,0.35)", cursor:(!mw.loading&&(mw.mode!=="describe"||mw.input.trim()))?"pointer":"default" }}>
                                   {mw.loading?"Writing…":"Generate"}
                                 </button>
                               </div>
@@ -7054,8 +7054,8 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                                 <div style={{ padding:"0 12px 12px", display:"flex", flexDirection:"column", gap:7 }}>
                                   {mw.results.map((r,ri)=>(
                                     <div key={ri} style={{ display:"flex", gap:6 }}>
-                                      <p style={{ flex:1, fontSize:11.5, color:"var(--z-text)", background:"rgba(67,97,238,0.1)", border:"1px solid rgba(67,97,238,0.25)", borderRadius:9, padding:"9px 12px", lineHeight:1.6, margin:0 }}>{r}</p>
-                                      <button onClick={()=>{ void navigator.clipboard.writeText(r); setMagicWrite(p=>({...p,[i]:{...p[i],copied:ri}})); setTimeout(()=>setMagicWrite(p=>({...p,[i]:{...p[i],copied:null}})),1500); }} style={{ padding:"7px 10px", borderRadius:8, border:"1px solid rgba(67,97,238,0.25)", background:"rgba(67,97,238,0.1)", color:mw.copied===ri?"#4ADE80":"#7B9EFF", cursor:"pointer", fontSize:10.5, fontWeight:700, flexShrink:0 }}>{mw.copied===ri?"✓":"Copy"}</button>
+                                      <p style={{ flex:1, fontSize:11.5, color:"var(--z-text)", background:"rgba(37,99,235,0.1)", border:"1px solid rgba(37,99,235,0.25)", borderRadius:9, padding:"9px 12px", lineHeight:1.6, margin:0 }}>{r}</p>
+                                      <button onClick={()=>{ void navigator.clipboard.writeText(r); setMagicWrite(p=>({...p,[i]:{...p[i],copied:ri}})); setTimeout(()=>setMagicWrite(p=>({...p,[i]:{...p[i],copied:null}})),1500); }} style={{ padding:"7px 10px", borderRadius:8, border:"1px solid rgba(37,99,235,0.25)", background:"rgba(37,99,235,0.1)", color:mw.copied===ri?"#4ADE80":"#7B9EFF", cursor:"pointer", fontSize:10.5, fontWeight:700, flexShrink:0 }}>{mw.copied===ri?"✓":"Copy"}</button>
                                     </div>
                                   ))}
                                 </div>
@@ -7118,7 +7118,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                           {attempt > 1 && <span style={{ fontSize:10, color:"var(--z-text3)", background:"rgba(0,0,0,0.04)", padding:"1px 6px", borderRadius:99 }}>v{attempt}</span>}
                           <span style={{ fontSize:11, fontWeight:700, color:grade.color, background:`${grade.color}18`, padding:"2px 8px", borderRadius:99 }}>{s.score}/100</span>
                         </div>
-                        <button onClick={()=>void rewriteSection(idx, s)} disabled={isRegen} style={{ fontSize:11, fontWeight:600, padding:"6px 13px", borderRadius:8, border:"1px solid rgba(67,97,238,0.3)", background:"rgba(67,97,238,0.1)", color:isRegen?"rgba(255,255,255,0.35)":"#7B9EFF", cursor:isRegen?"default":"pointer" }}>
+                        <button onClick={()=>void rewriteSection(idx, s)} disabled={isRegen} style={{ fontSize:11, fontWeight:600, padding:"6px 13px", borderRadius:8, border:"1px solid rgba(37,99,235,0.3)", background:"rgba(37,99,235,0.1)", color:isRegen?"rgba(255,255,255,0.35)":"#7B9EFF", cursor:isRegen?"default":"pointer" }}>
                           {isRegen ? "Rewriting…" : "Try another version"}
                         </button>
                       </div>
@@ -7198,8 +7198,8 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
 
               // Group by skillType for richer display
               const SKILL_TYPE_META: Record<string,{label:string;color:string;bg:string}> = {
-                technical:    { label:"Technical",    color:"#7B9EFF", bg:"rgba(67,97,238,0.15)"   },
-                tool:         { label:"Tool",         color:"#C4B5FD", bg:"rgba(109,40,217,0.15)"  },
+                technical:    { label:"Technical",    color:"#7B9EFF", bg:"rgba(37,99,235,0.15)"   },
+                tool:         { label:"Tool",         color:"#93C5FD", bg:"rgba(109,40,217,0.15)"  },
                 certification:{ label:"Certification",color:"#34D399", bg:"rgba(52,211,153,0.12)"  },
                 domain:       { label:"Domain",       color:"#38BDF8", bg:"rgba(56,189,248,0.1)"   },
                 soft:         { label:"Soft skill",   color:"var(--z-text2)", bg:"rgba(255,255,255,0.07)" },
@@ -7292,13 +7292,13 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                           <p style={{ fontSize:12.5, fontWeight:800, color:"var(--z-text)" }}>Preferred Skills</p>
                           <p style={{ fontSize:11, color:"var(--z-text2)", marginTop:1 }}>Nice to have — adds bonus points with recruiters</p>
                         </div>
-                        <span style={{ fontSize:11, fontWeight:700, color:"#7B9EFF", background:"rgba(67,97,238,0.15)", padding:"3px 10px", borderRadius:99 }}>{foundPref}/{preferred.length}</span>
+                        <span style={{ fontSize:11, fontWeight:700, color:"#7B9EFF", background:"rgba(37,99,235,0.15)", padding:"3px 10px", borderRadius:99 }}>{foundPref}/{preferred.length}</span>
                       </div>
                       <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
                         {preferred.map((kw,i) => {
                           const stm = SKILL_TYPE_META[kw.skillType ?? "soft"] ?? SKILL_TYPE_META.soft;
                           return (
-                            <div key={i} title={kw.found&&kw.context?`Found: "${kw.context}"`:"Not found"} style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"5px 12px", borderRadius:99, border:`1.5px solid ${kw.found?"rgba(67,97,238,0.4)":"rgba(255,255,255,0.1)"}`, background:kw.found?"rgba(67,97,238,0.1)":"rgba(255,255,255,0.04)", cursor:"default" }}>
+                            <div key={i} title={kw.found&&kw.context?`Found: "${kw.context}"`:"Not found"} style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"5px 12px", borderRadius:99, border:`1.5px solid ${kw.found?"rgba(37,99,235,0.4)":"rgba(255,255,255,0.1)"}`, background:kw.found?"rgba(37,99,235,0.1)":"rgba(255,255,255,0.04)", cursor:"default" }}>
                               <span style={{ width:6, height:6, borderRadius:"50%", background:kw.found?"#7B9EFF":"rgba(255,255,255,0.25)", flexShrink:0 }}/>
                               <span style={{ fontSize:12, fontWeight:700, color:kw.found?"#7B9EFF":"rgba(255,255,255,0.55)" }}>{kw.word}</span>
                               <span style={{ fontSize:9, fontWeight:600, color:stm.color, background:`${stm.color}20`, padding:"0 4px", borderRadius:4 }}>{stm.label}</span>
@@ -7311,7 +7311,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
 
                   {kws.length===0 && (
                     <div style={{ background:"var(--z-card)", boxShadow:"0 2px 20px rgba(0,0,0,0.07)", borderRadius:16, border:"1px solid var(--z-bd)", padding:"48px 20px", textAlign:"center" }}>
-                      <div style={{ width:52, height:52, borderRadius:16, background:"rgba(67,97,238,0.15)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 14px" }}>
+                      <div style={{ width:52, height:52, borderRadius:16, background:"rgba(37,99,235,0.15)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 14px" }}>
                         <svg viewBox="0 0 20 20" fill="none" stroke="#7B9EFF" strokeWidth="1.8" style={{ width:22,height:22 }}><circle cx="9" cy="9" r="6"/><path d="M15 15l3 3"/></svg>
                       </div>
                       <p style={{ fontSize:14, fontWeight:700, color:"var(--z-text)" }}>No keyword data</p>
@@ -7390,12 +7390,12 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                   const d = (k:keyof ResumeScores) => prev ? entry.scores[k]-prev.scores[k] : null;
                   const g = scoreGrade(entry.scores.overall);
                   return (
-                    <div key={entry.id} style={{ background:"var(--z-card)", borderRadius:14, border:`1px solid ${i===0?"rgba(67,97,238,0.4)":"rgba(255,255,255,0.1)"}`, padding:"14px 16px", boxShadow: i===0?"0 2px 12px rgba(67,97,238,0.15)":"0 1px 4px rgba(0,0,0,0.2)" }}>
+                    <div key={entry.id} style={{ background:"var(--z-card)", borderRadius:14, border:`1px solid ${i===0?"rgba(37,99,235,0.4)":"rgba(255,255,255,0.1)"}`, padding:"14px 16px", boxShadow: i===0?"0 2px 12px rgba(37,99,235,0.15)":"0 1px 4px rgba(0,0,0,0.2)" }}>
                       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:10 }}>
                         <div>
                           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                             <p style={{ fontSize:13, fontWeight:700, color:"var(--z-text)" }}>{entry.filename}</p>
-                            {i===0 && <span style={{ fontSize:10, fontWeight:700, padding:"2px 8px", borderRadius:99, background:"rgba(67,97,238,0.2)", color:"#7B9EFF" }}>Latest</span>}
+                            {i===0 && <span style={{ fontSize:10, fontWeight:700, padding:"2px 8px", borderRadius:99, background:"rgba(37,99,235,0.2)", color:"#7B9EFF" }}>Latest</span>}
                           </div>
                           <p style={{ fontSize:11, color:"var(--z-text3)", marginTop:2 }}>
                             {new Date(entry.submittedAt).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"2-digit",minute:"2-digit"})}
@@ -7507,7 +7507,7 @@ type InterviewRound = "recruiter" | "hiring-manager" | "technical" | "panel";
 
 const ROUND_META: Record<InterviewRound, { label:string; badge:string; desc:string; color:string; bg:string; sections:string[] }> = {
   "recruiter":      { label:"Recruiter Screen",  badge:"~30 min", desc:"Fit, motivation, salary expectations, and logistics",             color:"#0284C7", bg:"rgba(2,132,199,0.12)",   sections:["Background & Motivation","Logistics & Expectations"] },
-  "hiring-manager": { label:"Hiring Manager",    badge:"~45 min", desc:"Behavioral stories, leadership signals, and situational judgment", color:"#7C3AED", bg:"rgba(124,58,237,0.12)", sections:["Behavioral","Leadership & Influence","Situational Judgment"] },
+  "hiring-manager": { label:"Hiring Manager",    badge:"~45 min", desc:"Behavioral stories, leadership signals, and situational judgment", color:"#0F766E", bg:"rgba(15,118,110,0.12)", sections:["Behavioral","Leadership & Influence","Situational Judgment"] },
   "technical":      { label:"Technical Round",   badge:"~60 min", desc:"Role-specific depth, problem solving, and domain knowledge",       color:"#059669", bg:"rgba(5,150,105,0.12)",  sections:["Technical Depth","Problem Solving","Domain Knowledge"] },
   "panel":          { label:"Panel Interview",   badge:"~60–90 min", desc:"Mixed format — behavioral, technical, strategic, and cultural", color:"#D97706", bg:"rgba(217,119,6,0.12)",  sections:["Behavioral","Technical","Strategic Thinking","Culture & Values"] },
 };
@@ -7661,7 +7661,7 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
           <div>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4 }}>
-              <div style={{ width:32, height:32, borderRadius:10, background:"rgba(67,97,238,0.22)", border:"1px solid rgba(67,97,238,0.4)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:15 }}>🎤</div>
+              <div style={{ width:32, height:32, borderRadius:10, background:"rgba(37,99,235,0.22)", border:"1px solid rgba(37,99,235,0.4)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:15 }}>🎤</div>
               <h1 style={{ fontSize:18, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:0 }}>Mock Interview</h1>
             </div>
             <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>Practice with real questions tailored to your background and the role you're targeting.</p>
@@ -7670,10 +7670,10 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
             {([1,2,3] as const).map(s => (
               <div key={s} style={{ display:"flex", alignItems:"center" }}>
                 <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:5 }}>
-                  <div style={{ width:32, height:32, borderRadius:"50%", border:`2px solid ${s < setupStep ? "#4ADE80" : s === setupStep ? "#818CF8" : "var(--z-bd)"}`, background:s < setupStep ? "rgba(74,222,128,0.15)" : s === setupStep ? "rgba(129,140,248,0.18)" : "var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
-                    {s < setupStep ? <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2.5" style={{width:12,height:12}}><polyline points="2,6 5,9 10,3"/></svg> : <span style={{ fontSize:12, fontWeight:700, color:s === setupStep ? "#818CF8" : "var(--z-text3)" }}>{s}</span>}
+                  <div style={{ width:32, height:32, borderRadius:"50%", border:`2px solid ${s < setupStep ? "#4ADE80" : s === setupStep ? "#60A5FA" : "var(--z-bd)"}`, background:s < setupStep ? "rgba(74,222,128,0.15)" : s === setupStep ? "rgba(96,165,250,0.18)" : "var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
+                    {s < setupStep ? <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2.5" style={{width:12,height:12}}><polyline points="2,6 5,9 10,3"/></svg> : <span style={{ fontSize:12, fontWeight:700, color:s === setupStep ? "#60A5FA" : "var(--z-text3)" }}>{s}</span>}
                   </div>
-                  <span style={{ fontSize:10, fontWeight:700, color:s === setupStep ? "#818CF8" : s < setupStep ? "#22C55E" : "var(--z-text3)", letterSpacing:"0.04em", whiteSpace:"nowrap" }}>{INTERVIEW_STEP_CTX[s-1].label}</span>
+                  <span style={{ fontSize:10, fontWeight:700, color:s === setupStep ? "#60A5FA" : s < setupStep ? "#22C55E" : "var(--z-text3)", letterSpacing:"0.04em", whiteSpace:"nowrap" }}>{INTERVIEW_STEP_CTX[s-1].label}</span>
                 </div>
                 {s < 3 && <div style={{ width:40, height:2, borderRadius:99, background:s < setupStep ? "rgba(74,222,128,0.35)" : "var(--z-bd2)", margin:"0 6px", marginBottom:18, transition:"all 0.3s" }}/>}
               </div>
@@ -7685,7 +7685,7 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
       {loadingQs ? (
         <div style={{ display:"flex", alignItems:"center", justifyContent:"center", minHeight:"calc(100% - 73px)", padding:40 }}>
           <div style={{ background:"var(--z-card)", boxShadow:"0 2px 20px rgba(0,0,0,0.07)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"56px 64px", textAlign:"center", maxWidth:400, width:"100%" }}>
-            <div style={{ width:48, height:48, borderRadius:"50%", border:"3px solid rgba(67,97,238,0.3)", borderTopColor:"#4361EE", animation:"spin-slow 0.8s linear infinite", margin:"0 auto 20px" }}/>
+            <div style={{ width:48, height:48, borderRadius:"50%", border:"3px solid rgba(37,99,235,0.3)", borderTopColor:"#2563EB", animation:"spin-slow 0.8s linear infinite", margin:"0 auto 20px" }}/>
             <p style={{ fontSize:16, fontWeight:700, color:"var(--z-text)", marginBottom:6 }}>Generating your questions…</p>
             <p style={{ fontSize:13, color:"var(--z-text3)" }}>Tailored to your background and this role</p>
           </div>
@@ -7704,18 +7704,18 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
             {setupStep === 1 && (
               <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
                 {/* Hero feature card */}
-                <div style={{ borderRadius:20, background:"linear-gradient(135deg,#EEF2FF 0%,#E8EDFF 100%)", border:"1.5px solid rgba(67,97,238,0.2)", padding:"22px 26px", position:"relative", overflow:"hidden" }}>
-                  <div style={{ position:"absolute", top:-24, right:-24, width:100, height:100, background:"radial-gradient(circle,rgba(129,140,248,0.25) 0%,transparent 70%)", pointerEvents:"none" }}/>
-                  <div style={{ fontSize:10.5, fontWeight:800, color:"#4361EE", letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:8 }}>What Zari builds for you</div>
+                <div style={{ borderRadius:20, background:"linear-gradient(135deg,#EFF6FF 0%,#DBEAFE 100%)", border:"1.5px solid rgba(37,99,235,0.2)", padding:"22px 26px", position:"relative", overflow:"hidden" }}>
+                  <div style={{ position:"absolute", top:-24, right:-24, width:100, height:100, background:"radial-gradient(circle,rgba(96,165,250,0.25) 0%,transparent 70%)", pointerEvents:"none" }}/>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:"#2563EB", letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:8 }}>What Zari builds for you</div>
                   <div style={{ display:"flex", gap:16, flexWrap:"wrap" }}>
                     {[
-                      { icon:<svg viewBox="0 0 18 18" fill="none" stroke="#4361EE" strokeWidth="1.8" style={{width:15,height:15}}><circle cx="9" cy="9" r="7"/><path d="M9 5v4l3 2"/></svg>, text:"Questions tailored to your background" },
-                      { icon:<svg viewBox="0 0 18 18" fill="none" stroke="#818CF8" strokeWidth="1.8" style={{width:15,height:15}}><path d="M9 2l2.4 4.8L17 7.6l-4 3.9.9 5.5L9 14.5l-4.9 2.5.9-5.5L1 7.6l5.6-.8z"/></svg>, text:"Live AI scoring on every answer" },
-                      { icon:<svg viewBox="0 0 18 18" fill="none" stroke="#7C3AED" strokeWidth="1.8" style={{width:15,height:15}}><path d="M14 3H4a1 1 0 00-1 1v9a1 1 0 001 1h10a1 1 0 001-1V4a1 1 0 00-1-1z"/><path d="M1 7h16"/></svg>, text:"Coaching on how to strengthen each answer" },
+                      { icon:<svg viewBox="0 0 18 18" fill="none" stroke="#2563EB" strokeWidth="1.8" style={{width:15,height:15}}><circle cx="9" cy="9" r="7"/><path d="M9 5v4l3 2"/></svg>, text:"Questions tailored to your background" },
+                      { icon:<svg viewBox="0 0 18 18" fill="none" stroke="#60A5FA" strokeWidth="1.8" style={{width:15,height:15}}><path d="M9 2l2.4 4.8L17 7.6l-4 3.9.9 5.5L9 14.5l-4.9 2.5.9-5.5L1 7.6l5.6-.8z"/></svg>, text:"Live AI scoring on every answer" },
+                      { icon:<svg viewBox="0 0 18 18" fill="none" stroke="#0F766E" strokeWidth="1.8" style={{width:15,height:15}}><path d="M14 3H4a1 1 0 00-1 1v9a1 1 0 001 1h10a1 1 0 001-1V4a1 1 0 00-1-1z"/><path d="M1 7h16"/></svg>, text:"Coaching on how to strengthen each answer" },
                     ].map((f,i) => (
-                      <div key={i} style={{ display:"flex", alignItems:"center", gap:8, background:"rgba(255,255,255,0.6)", borderRadius:10, padding:"7px 12px", border:"1px solid rgba(67,97,238,0.12)" }}>
+                      <div key={i} style={{ display:"flex", alignItems:"center", gap:8, background:"rgba(255,255,255,0.6)", borderRadius:10, padding:"7px 12px", border:"1px solid rgba(37,99,235,0.12)" }}>
                         {f.icon}
-                        <span style={{ fontSize:12, fontWeight:600, color:"#3730A3" }}>{f.text}</span>
+                        <span style={{ fontSize:12, fontWeight:600, color:"#1E40AF" }}>{f.text}</span>
                       </div>
                     ))}
                   </div>
@@ -7743,17 +7743,17 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
                     onDragOver={e=>{ e.preventDefault(); setResumeDragOver(true); }}
                     onDragLeave={()=>setResumeDragOver(false)}
                     onDrop={e=>{ e.preventDefault(); setResumeDragOver(false); const f=e.dataTransfer.files?.[0]; if(f) void handleInterviewFile(f); }}
-                    style={{ background:resumeDragOver?"rgba(67,97,238,0.1)":"var(--z-card)", border:`2px dashed ${resumeDragOver?"#4361EE":"rgba(67,97,238,0.3)"}`, borderRadius:20, padding:"44px 32px", cursor:"pointer", textAlign:"center", transition:"all 0.15s", boxShadow:"0 2px 12px rgba(67,97,238,0.08)" }}>
-                    <div style={{ width:56, height:56, borderRadius:16, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px", boxShadow:"0 8px 24px rgba(67,97,238,0.35)" }}>
+                    style={{ background:resumeDragOver?"rgba(37,99,235,0.1)":"var(--z-card)", border:`2px dashed ${resumeDragOver?"#2563EB":"rgba(37,99,235,0.3)"}`, borderRadius:20, padding:"44px 32px", cursor:"pointer", textAlign:"center", transition:"all 0.15s", boxShadow:"0 2px 12px rgba(37,99,235,0.08)" }}>
+                    <div style={{ width:56, height:56, borderRadius:16, background:"linear-gradient(135deg,#2563EB,#60A5FA)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px", boxShadow:"0 8px 24px rgba(37,99,235,0.35)" }}>
                       <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" style={{ width:26,height:26 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
                     </div>
                     <p style={{ fontSize:17, fontWeight:800, color:"var(--z-text)", marginBottom:6, letterSpacing:"-0.02em" }}>{resumeDragOver ? "Drop your resume here" : "Upload your resume"}</p>
                     <p style={{ fontSize:13, color:"var(--z-text2)", marginBottom:18, lineHeight:1.5 }}>Drag and drop, or click to browse · PDF, DOCX, or TXT</p>
-                    <span style={{ fontSize:13, fontWeight:700, padding:"9px 22px", borderRadius:12, background:"linear-gradient(135deg,#4361EE,#818CF8)", color:"white", border:"none", boxShadow:"0 6px 20px rgba(67,97,238,0.4)" }}>Choose file</span>
+                    <span style={{ fontSize:13, fontWeight:700, padding:"9px 22px", borderRadius:12, background:"linear-gradient(135deg,#2563EB,#60A5FA)", color:"white", border:"none", boxShadow:"0 6px 20px rgba(37,99,235,0.4)" }}>Choose file</span>
                   </div>
                 )}
                 <button onClick={()=>setSetupStep(2)} disabled={!resumeText}
-                  style={{ width:"100%", fontSize:14.5, fontWeight:700, padding:"14px", borderRadius:14, border:"none", background:resumeText?"linear-gradient(135deg,#4361EE,#818CF8)":"var(--z-raise)", color:resumeText?"white":"var(--z-text3)", cursor:resumeText?"pointer":"default", boxShadow:resumeText?"0 8px 24px rgba(67,97,238,0.4)":"none", transition:"all 0.2s", letterSpacing:"-0.01em" }}>
+                  style={{ width:"100%", fontSize:14.5, fontWeight:700, padding:"14px", borderRadius:14, border:"none", background:resumeText?"linear-gradient(135deg,#2563EB,#60A5FA)":"var(--z-raise)", color:resumeText?"white":"var(--z-text3)", cursor:resumeText?"pointer":"default", boxShadow:resumeText?"0 8px 24px rgba(37,99,235,0.4)":"none", transition:"all 0.2s", letterSpacing:"-0.01em" }}>
                   Continue →
                 </button>
               </div>
@@ -7782,7 +7782,7 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
                           placeholder="https://jobs.lever.co/… or LinkedIn, Greenhouse, etc."
                           style={{ flex:1, border:"1px solid var(--z-bd)", borderRadius:10, padding:"13px 16px", fontSize:14, color:"var(--z-text)", outline:"none", fontFamily:"inherit", background:"var(--z-raise)", transition:"border-color 0.15s" }}/>
                         <button onClick={()=>void fetchJdFromUrl()} disabled={fetchingUrl||!jobUrl.trim()}
-                          style={{ padding:"13px 20px", borderRadius:10, border:"none", background:jobUrl.trim()&&!fetchingUrl?"#4361EE":"var(--z-raise)", color:jobUrl.trim()&&!fetchingUrl?"white":"var(--z-text3)", fontSize:13, fontWeight:700, cursor:jobUrl.trim()&&!fetchingUrl?"pointer":"default", flexShrink:0 }}>
+                          style={{ padding:"13px 20px", borderRadius:10, border:"none", background:jobUrl.trim()&&!fetchingUrl?"#2563EB":"var(--z-raise)", color:jobUrl.trim()&&!fetchingUrl?"white":"var(--z-text3)", fontSize:13, fontWeight:700, cursor:jobUrl.trim()&&!fetchingUrl?"pointer":"default", flexShrink:0 }}>
                           {fetchingUrl ? "…" : "Fetch"}
                         </button>
                       </div>
@@ -7794,7 +7794,7 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
                 <div style={{ display:"flex", gap:10 }}>
                   <button onClick={()=>setSetupStep(1)} style={{ padding:"13px 20px", borderRadius:14, border:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text3)", fontSize:13.5, fontWeight:600, cursor:"pointer" }}>← Back</button>
                   <button onClick={()=>setSetupStep(3)} disabled={!jobDesc.trim()}
-                    style={{ flex:1, fontSize:14.5, fontWeight:700, padding:"13px", borderRadius:14, border:"none", background:jobDesc.trim()?"linear-gradient(135deg,#4361EE,#818CF8)":"var(--z-raise)", color:jobDesc.trim()?"white":"var(--z-text3)", cursor:jobDesc.trim()?"pointer":"default", boxShadow:jobDesc.trim()?"0 8px 24px rgba(67,97,238,0.4)":"none", transition:"all 0.2s" }}>
+                    style={{ flex:1, fontSize:14.5, fontWeight:700, padding:"13px", borderRadius:14, border:"none", background:jobDesc.trim()?"linear-gradient(135deg,#2563EB,#60A5FA)":"var(--z-raise)", color:jobDesc.trim()?"white":"var(--z-text3)", cursor:jobDesc.trim()?"pointer":"default", boxShadow:jobDesc.trim()?"0 8px 24px rgba(37,99,235,0.4)":"none", transition:"all 0.2s" }}>
                     Continue →
                   </button>
                 </div>
@@ -7827,7 +7827,7 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
                 <div style={{ display:"flex", gap:10, marginTop:4 }}>
                   <button onClick={()=>setSetupStep(2)} style={{ padding:"13px 20px", borderRadius:14, border:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text2)", fontSize:13.5, fontWeight:600, cursor:"pointer" }}>← Back</button>
                   <button onClick={()=>void startInterview()} disabled={!round || loadingQs}
-                    style={{ flex:1, fontSize:14.5, fontWeight:700, padding:"13px", borderRadius:14, border:"none", background:round?"linear-gradient(135deg,#4361EE,#818CF8)":"var(--z-raise)", color:round?"white":"var(--z-text3)", cursor:round?"pointer":"default", boxShadow:round?"0 8px 24px rgba(67,97,238,0.4)":"none", transition:"all 0.2s" }}>
+                    style={{ flex:1, fontSize:14.5, fontWeight:700, padding:"13px", borderRadius:14, border:"none", background:round?"linear-gradient(135deg,#2563EB,#60A5FA)":"var(--z-raise)", color:round?"white":"var(--z-text3)", cursor:round?"pointer":"default", boxShadow:round?"0 8px 24px rgba(37,99,235,0.4)":"none", transition:"all 0.2s" }}>
                     Generate my questions →
                   </button>
                 </div>
@@ -7840,13 +7840,13 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
             <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
               <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
                 <span style={{ fontSize:20 }}>{interviewStepCtx.icon}</span>
-                <div style={{ fontSize:12, fontWeight:800, color:"#818CF8", letterSpacing:"0.04em" }}>{interviewStepCtx.label}</div>
+                <div style={{ fontSize:12, fontWeight:800, color:"#60A5FA", letterSpacing:"0.04em" }}>{interviewStepCtx.label}</div>
               </div>
               <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.72, margin:"0 0 16px" }}>{interviewStepCtx.desc}</p>
               <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                 {interviewStepCtx.tips.map((tip, i) => (
                   <div key={i} style={{ display:"flex", gap:9, alignItems:"flex-start" }}>
-                    <div style={{ width:4, height:4, borderRadius:"50%", background:"rgba(129,140,248,0.6)", flexShrink:0, marginTop:6 }}/>
+                    <div style={{ width:4, height:4, borderRadius:"50%", background:"rgba(96,165,250,0.6)", flexShrink:0, marginTop:6 }}/>
                     <span style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.6 }}>{tip}</span>
                   </div>
                 ))}
@@ -7907,9 +7907,9 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
         <div style={{ display:"flex", gap:6, marginBottom:20, overflowX:"auto", paddingBottom:2 }}>
           {sections.map((sec, i) => (
             <button key={i} onClick={()=>{ setActiveSectionIdx(i); setQIdx(0); setSubmitted(false); setAnswer(""); setFeedback(null); }}
-              style={{ flexShrink:0, padding:"8px 16px", borderRadius:10, border:`1.5px solid ${activeSectionIdx===i?"#4361EE":"rgba(255,255,255,0.1)"}`, background:activeSectionIdx===i?"rgba(67,97,238,0.18)":"rgba(255,255,255,0.06)", color:activeSectionIdx===i?"#818CF8":"rgba(255,255,255,0.55)", fontSize:12.5, fontWeight:activeSectionIdx===i?700:500, cursor:"pointer", transition:"all 0.15s", display:"flex", alignItems:"center", gap:6 }}>
+              style={{ flexShrink:0, padding:"8px 16px", borderRadius:10, border:`1.5px solid ${activeSectionIdx===i?"#2563EB":"rgba(255,255,255,0.1)"}`, background:activeSectionIdx===i?"rgba(37,99,235,0.18)":"rgba(255,255,255,0.06)", color:activeSectionIdx===i?"#60A5FA":"rgba(255,255,255,0.55)", fontSize:12.5, fontWeight:activeSectionIdx===i?700:500, cursor:"pointer", transition:"all 0.15s", display:"flex", alignItems:"center", gap:6 }}>
               {sec.name}
-              <span style={{ fontSize:10.5, fontWeight:600, padding:"1px 7px", borderRadius:99, background:activeSectionIdx===i?"rgba(67,97,238,0.2)":"rgba(255,255,255,0.07)", color:activeSectionIdx===i?"#818CF8":"rgba(255,255,255,0.35)" }}>
+              <span style={{ fontSize:10.5, fontWeight:600, padding:"1px 7px", borderRadius:99, background:activeSectionIdx===i?"rgba(37,99,235,0.2)":"rgba(255,255,255,0.07)", color:activeSectionIdx===i?"#60A5FA":"rgba(255,255,255,0.35)" }}>
                 {sec.questions.length}
               </span>
             </button>
@@ -7918,14 +7918,14 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
 
         {/* Section description */}
         {ACTIVE_SECTION?.description && (
-          <div style={{ background:"rgba(67,97,238,0.1)", borderRadius:10, padding:"10px 14px", marginBottom:18, fontSize:12.5, color:"#A5B4FC", lineHeight:1.5, border:"1px solid rgba(67,97,238,0.2)" }}>
+          <div style={{ background:"rgba(37,99,235,0.1)", borderRadius:10, padding:"10px 14px", marginBottom:18, fontSize:12.5, color:"#A5B4FC", lineHeight:1.5, border:"1px solid rgba(37,99,235,0.2)" }}>
             <strong>This section: </strong>{ACTIVE_SECTION.description}
           </div>
         )}
 
         {/* Progress dots for current section */}
         <div style={{ display:"flex", gap:4, marginBottom:20 }}>
-          {SECTION_QUESTIONS.map((_,i) => <div key={i} style={{ height:4, flex:1, borderRadius:99, background:i<qIdx?"#4361EE":i===qIdx?"#818CF8":"rgba(255,255,255,0.1)", transition:"background 0.3s" }}/>)}
+          {SECTION_QUESTIONS.map((_,i) => <div key={i} style={{ height:4, flex:1, borderRadius:99, background:i<qIdx?"#2563EB":i===qIdx?"#60A5FA":"rgba(255,255,255,0.1)", transition:"background 0.3s" }}/>)}
         </div>
 
         {/* Question card */}
@@ -7950,16 +7950,16 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
           <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:18, padding:22, boxShadow:"0 2px 12px rgba(0,0,0,0.07)" }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
               <p style={{ fontSize:14, fontWeight:700, color:"var(--z-text)" }}>Your answer</p>
-              <button onClick={() => { setIsRecording(r=>!r); if(isRecording) setRecTime(0); }} style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:99, border:`1px solid ${isRecording?"rgba(248,113,113,0.3)":"rgba(67,97,238,0.3)"}`, cursor:"pointer", background:isRecording?"rgba(248,113,113,0.12)":"rgba(67,97,238,0.12)", color:isRecording?"#F87171":"#818CF8" }}>
-                <span style={{ width:7, height:7, borderRadius:"50%", background:isRecording?"#DC2626":"#4361EE", animation:isRecording?"blink 0.7s step-end infinite":"none" }}/>
+              <button onClick={() => { setIsRecording(r=>!r); if(isRecording) setRecTime(0); }} style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:99, border:`1px solid ${isRecording?"rgba(248,113,113,0.3)":"rgba(37,99,235,0.3)"}`, cursor:"pointer", background:isRecording?"rgba(248,113,113,0.12)":"rgba(37,99,235,0.12)", color:isRecording?"#F87171":"#60A5FA" }}>
+                <span style={{ width:7, height:7, borderRadius:"50%", background:isRecording?"#DC2626":"#2563EB", animation:isRecording?"blink 0.7s step-end infinite":"none" }}/>
                 {isRecording ? `Stop · ${fmt(recTime)}` : "Record voice"}
               </button>
             </div>
             {isRecording && (
-              <div style={{ background:"rgba(67,97,238,0.1)", border:"1px solid rgba(67,97,238,0.25)", borderRadius:12, padding:"14px 18px", marginBottom:14, display:"flex", alignItems:"center", gap:12 }}>
-                <span style={{ fontSize:11, fontWeight:700, color:"#818CF8" }}>Recording…</span>
+              <div style={{ background:"rgba(37,99,235,0.1)", border:"1px solid rgba(37,99,235,0.25)", borderRadius:12, padding:"14px 18px", marginBottom:14, display:"flex", alignItems:"center", gap:12 }}>
+                <span style={{ fontSize:11, fontWeight:700, color:"#60A5FA" }}>Recording…</span>
                 <div style={{ display:"flex", gap:2, alignItems:"flex-end", height:24 }}>
-                  {Array.from({length:24}).map((_,i) => <div key={i} style={{ width:3, borderRadius:99, background:"#818CF8", height:Math.random()*20+4, animation:`voice-wave ${0.4+Math.random()*0.4}s ease-in-out ${i*0.03}s infinite alternate` }}/>)}
+                  {Array.from({length:24}).map((_,i) => <div key={i} style={{ width:3, borderRadius:99, background:"#60A5FA", height:Math.random()*20+4, animation:`voice-wave ${0.4+Math.random()*0.4}s ease-in-out ${i*0.03}s infinite alternate` }}/>)}
                 </div>
               </div>
             )}
@@ -7970,7 +7970,7 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
             />
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:12 }}>
               <span style={{ fontSize:12, color:"var(--z-text3)" }}>{answer.split(" ").filter(Boolean).length} words · aim for 150–250</span>
-              <button onClick={()=>void submit()} disabled={!answer.trim() || isScoring} style={{ fontSize:13.5, fontWeight:700, padding:"10px 24px", borderRadius:12, border:"none", background:answer.trim()&&!isScoring?"#4361EE":"rgba(255,255,255,0.07)", color:answer.trim()&&!isScoring?"white":"rgba(255,255,255,0.3)", cursor:answer.trim()&&!isScoring?"pointer":"default", boxShadow:answer.trim()&&!isScoring?"0 4px 16px rgba(67,97,238,0.32)":"none" }}>
+              <button onClick={()=>void submit()} disabled={!answer.trim() || isScoring} style={{ fontSize:13.5, fontWeight:700, padding:"10px 24px", borderRadius:12, border:"none", background:answer.trim()&&!isScoring?"#2563EB":"rgba(255,255,255,0.07)", color:answer.trim()&&!isScoring?"white":"rgba(255,255,255,0.3)", cursor:answer.trim()&&!isScoring?"pointer":"default", boxShadow:answer.trim()&&!isScoring?"0 4px 16px rgba(37,99,235,0.32)":"none" }}>
                 {isScoring ? "Scoring…" : "Get feedback →"}
               </button>
             </div>
@@ -7980,9 +7980,9 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
             {isScoring && (
               <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:18, padding:32, marginBottom:14, textAlign:"center", boxShadow:"0 2px 12px rgba(0,0,0,0.07)" }}>
                 <div style={{ display:"flex", gap:6, justifyContent:"center", marginBottom:14 }}>
-                  {[0,1,2].map(i=><div key={i} style={{ width:9,height:9,borderRadius:"50%",background:"#818CF8",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
+                  {[0,1,2].map(i=><div key={i} style={{ width:9,height:9,borderRadius:"50%",background:"#60A5FA",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
                 </div>
-                <p style={{ fontSize:14, fontWeight:600, color:"#818CF8" }}>Zari is scoring your answer…</p>
+                <p style={{ fontSize:14, fontWeight:600, color:"#60A5FA" }}>Zari is scoring your answer…</p>
                 <p style={{ fontSize:12, color:"var(--z-text3)", marginTop:5 }}>Analyzing STAR structure, impact clarity, and coaching opportunities</p>
               </div>
             )}
@@ -8009,7 +8009,7 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
                     );
                   })}
                 </div>
-                <div style={{ background:"rgba(67,97,238,0.08)", border:"1px solid rgba(67,97,238,0.2)", borderRadius:12, padding:16, marginBottom:12 }}>
+                <div style={{ background:"rgba(37,99,235,0.08)", border:"1px solid rgba(37,99,235,0.2)", borderRadius:12, padding:16, marginBottom:12 }}>
                   <p style={{ fontSize:12, fontWeight:700, color:"#A5B4FC", marginBottom:6 }}>Coaching note from Zari</p>
                   <p style={{ fontSize:13, color:"var(--z-text)", lineHeight:1.65 }}>{feedback?.coachNote}</p>
                 </div>
@@ -8031,7 +8031,7 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
                   if (nextSec < sections.length) { setActiveSectionIdx(nextSec); setQIdx(0); }
                 }
                 setSubmitted(false); setAnswer(""); setFeedback(null);
-              }} style={{ flex:1, fontSize:13.5, fontWeight:700, padding:"12px", borderRadius:12, border:"none", background:"#4361EE", color:"white", cursor:"pointer", boxShadow:"0 4px 14px rgba(67,97,238,0.28)" }}>
+              }} style={{ flex:1, fontSize:13.5, fontWeight:700, padding:"12px", borderRadius:12, border:"none", background:"#2563EB", color:"white", cursor:"pointer", boxShadow:"0 4px 14px rgba(37,99,235,0.28)" }}>
                 {qIdx+1 < SECTION_QUESTIONS.length ? "Next question →" : activeSectionIdx+1 < sections.length ? `Next section: ${sections[activeSectionIdx+1]?.name} →` : "All done ✓"}
               </button>
             </div>
@@ -8074,8 +8074,8 @@ const PROMOTION_PRACTICE_META: Record<PromotionPracticeMode, {
     label: "With your manager",
     badge: "Most critical",
     desc: "Run the ask until you've handled every objection your manager will raise.",
-    color: "#7C3AED",
-    bg: "rgba(124,58,237,0.12)",
+    color: "#0F766E",
+    bg: "rgba(15,118,110,0.12)",
   },
   committee: {
     label: "In the review room",
@@ -8666,7 +8666,7 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
               const shownScore = displayScore ?? feedback.overallScore;
               return (
               <div style={{ borderRadius:24, overflow:"hidden", border:"1px solid var(--z-bd)", boxShadow:"0 8px 40px rgba(0,0,0,0.18)" }}>
-                <div style={{ display:"flex", alignItems:"center", gap:20, padding:"24px 24px 22px", background:"linear-gradient(135deg,#4361EE 0%,#5A72F0 55%,#6479F0 100%)", borderBottom:"1px solid rgba(67,97,238,0.2)" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:20, padding:"24px 24px 22px", background:"linear-gradient(135deg,#2563EB 0%,#5A72F0 55%,#6479F0 100%)", borderBottom:"1px solid rgba(37,99,235,0.2)" }}>
                   {/* Animated circular score ring */}
                   <div style={{ position:"relative", width:100, height:100, flexShrink:0 }}>
                     <svg viewBox="0 0 100 100" style={{ position:"absolute", inset:0, width:"100%", height:"100%", transform:"rotate(-90deg)" }}>
@@ -9122,7 +9122,7 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
                 </div>
                 {result.documents.map((doc, index) => {
                   const sendLabel = index === 0 ? "Send first — Week 1" : index <= 2 ? "Send Week 2-3" : "Send Week 3-4+";
-                  const sendColor = index === 0 ? { color:"#FBBF24", bg:"rgba(251,191,36,0.12)", border:"rgba(251,191,36,0.3)" } : index <= 2 ? { color:"#38BDF8", bg:"rgba(56,189,248,0.12)", border:"rgba(56,189,248,0.3)" } : { color:"#A78BFA", bg:"rgba(167,139,250,0.12)", border:"rgba(167,139,250,0.3)" };
+                  const sendColor = index === 0 ? { color:"#FBBF24", bg:"rgba(251,191,36,0.12)", border:"rgba(251,191,36,0.3)" } : index <= 2 ? { color:"#38BDF8", bg:"rgba(56,189,248,0.12)", border:"rgba(56,189,248,0.3)" } : { color:"#93C5FD", bg:"rgba(167,139,250,0.12)", border:"rgba(167,139,250,0.3)" };
                   return (
                   <div key={`${doc.title}-${index}`} style={{ borderRadius:20, background:"rgba(0,0,0,0.03)", border:"1px solid var(--z-bd)", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", overflow:"hidden" }}>
                     <div style={{ padding:"18px 22px 14px", borderBottom:"1px solid var(--z-bd)" }}>
@@ -9478,7 +9478,7 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
           <div style={{ background:"var(--z-card)", borderRadius:20, padding:"72px 32px", textAlign:"center", boxShadow:"0 8px 40px rgba(0,0,0,0.09)", border:"1px solid var(--z-bd)" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
               {[0,1,2].map(i => (
-                <div key={i} style={{ width:11,height:11,borderRadius:"50%",background:"#818CF8",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite`, boxShadow:"0 0 10px rgba(129,140,248,0.5)" }}/>
+                <div key={i} style={{ width:11,height:11,borderRadius:"50%",background:"#60A5FA",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite`, boxShadow:"0 0 10px rgba(96,165,250,0.5)" }}/>
               ))}
             </div>
             <p style={{ fontSize:17, fontWeight:800, color:"var(--z-text)", marginBottom:8, letterSpacing:"-0.02em" }}>Mapping the room…</p>
@@ -9552,10 +9552,10 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
                     style={{
                       padding:"14px 18px",
                       border:"none",
-                      borderBottom:`2px solid ${isActive ? "#8B5CF6" : "transparent"}`,
+                      borderBottom:`2px solid ${isActive ? "#3B82F6" : "transparent"}`,
                       cursor:"pointer",
                       background:"transparent",
-                      color:isActive ? "#8B5CF6" : "#475569",
+                      color:isActive ? "#3B82F6" : "#475569",
                       fontSize:13,
                       fontWeight:800,
                       letterSpacing:"-0.01em",
@@ -9582,7 +9582,7 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
                         </div>
                         <button
                           onClick={() => { void navigator.clipboard.writeText(result.executiveNarrative); setNarrativeCopied(true); setTimeout(() => setNarrativeCopied(false), 2000); }}
-                          style={{ fontSize:11.5, fontWeight:700, padding:"7px 14px", borderRadius:10, border:"1px solid rgba(196,181,253,0.25)", background:"rgba(139,92,246,0.22)", color:"#C4B5FD", cursor:"pointer", flexShrink:0 }}
+                          style={{ fontSize:11.5, fontWeight:700, padding:"7px 14px", borderRadius:10, border:"1px solid rgba(196,181,253,0.25)", background:"rgba(139,92,246,0.22)", color:"#93C5FD", cursor:"pointer", flexShrink:0 }}
                         >
                           {narrativeCopied ? "Copied!" : "Copy"}
                         </button>
@@ -9605,7 +9605,7 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
                       </div>
                     </div>
                     <div style={{ borderRadius:18, background:"var(--z-card)", border:"1px solid var(--z-bd)", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", padding:"18px 18px 16px" }}>
-                      <div style={{ fontSize:10.5, fontWeight:800, color:"#8B5CF6", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>The priority</div>
+                      <div style={{ fontSize:10.5, fontWeight:800, color:"#0F766E", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>The priority</div>
                       <div style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.78 }}>{result.overallFocus}</div>
                     </div>
                   </div>
@@ -9624,7 +9624,7 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
                     >
                       <button
                         onClick={() => setCheckedMoves(prev => { const n = new Set(prev); if (n.has(index)) n.delete(index); else n.add(index); return n; })}
-                        style={{ width:52, flexShrink:0, background:isChecked ? "linear-gradient(180deg,#16A34A,#15803D)" : "linear-gradient(180deg,#8B5CF6,#7C3AED)", display:"flex", alignItems:"center", justifyContent:"center", border:"none", cursor:"pointer" }}
+                        style={{ width:52, flexShrink:0, background:isChecked ? "linear-gradient(180deg,#16A34A,#15803D)" : "linear-gradient(180deg,#3B82F6,#0F766E)", display:"flex", alignItems:"center", justifyContent:"center", border:"none", cursor:"pointer" }}
                       >
                         {isChecked
                           ? <svg viewBox="0 0 20 20" fill="none" stroke="white" strokeWidth="2.5" style={{width:18,height:18}}><path d="M4 10l4 4 8-8"/></svg>
@@ -9633,7 +9633,7 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
                       <div style={{ padding:"15px 17px", flex:1, opacity:isChecked ? 0.6 : 1, transition:"opacity 0.18s" }}>
                         <div style={{ fontSize:14, fontWeight:800, color:isChecked ? "#15803D" : "#111827", marginBottom:6, textDecoration:isChecked ? "line-through" : "none" }}>{item.title}</div>
                         <div style={{ fontSize:13.2, color:"var(--z-text)", lineHeight:1.68, marginBottom:7 }}>{item.move}</div>
-                        <div style={{ fontSize:12, color:"#8B5CF6", lineHeight:1.55, fontWeight:600 }}>{item.why}</div>
+                        <div style={{ fontSize:12, color:"#0F766E", lineHeight:1.55, fontWeight:600 }}>{item.why}</div>
                       </div>
                     </div>
                     );
@@ -9651,14 +9651,14 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
                           <div style={{ fontSize:14, fontWeight:800, color:"var(--z-text)", marginBottom:4 }}>{item.audience}</div>
                           <div style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.65 }}>{item.goal}</div>
                         </div>
-                        <span style={{ fontSize:10.5, fontWeight:800, padding:"3px 9px", borderRadius:999, background:"rgba(109,76,255,0.1)", color:"#7C3AED", border:"1px solid rgba(109,76,255,0.3)", whiteSpace:"nowrap" }}>Sponsor</span>
+                        <span style={{ fontSize:10.5, fontWeight:800, padding:"3px 9px", borderRadius:999, background:"rgba(109,76,255,0.1)", color:"#0F766E", border:"1px solid rgba(109,76,255,0.3)", whiteSpace:"nowrap" }}>Sponsor</span>
                       </div>
                       <div style={{ marginTop:12 }}>
                         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginBottom:8 }}>
-                          <div style={{ fontSize:10.5, fontWeight:800, color:"#8B5CF6", textTransform:"uppercase", letterSpacing:"0.08em" }}>What to say</div>
+                          <div style={{ fontSize:10.5, fontWeight:800, color:"#0F766E", textTransform:"uppercase", letterSpacing:"0.08em" }}>What to say</div>
                           <button
                             onClick={() => { void navigator.clipboard.writeText(item.ask); setCopiedAsk(idx); setTimeout(() => setCopiedAsk(null), 2000); }}
-                            style={{ fontSize:11.5, fontWeight:700, padding:"5px 11px", borderRadius:9, border:"1px solid rgba(109,76,255,0.3)", background:"rgba(109,76,255,0.1)", color:"#7C3AED", cursor:"pointer" }}
+                            style={{ fontSize:11.5, fontWeight:700, padding:"5px 11px", borderRadius:9, border:"1px solid rgba(109,76,255,0.3)", background:"rgba(109,76,255,0.1)", color:"#0F766E", cursor:"pointer" }}
                           >
                             {copiedAsk === idx ? "Copied!" : "Copy ask"}
                           </button>
@@ -10680,8 +10680,8 @@ function ScreenPromotionToolkit({ onNavigate }: { onNavigate: (s: string) => voi
   const TYPE_META: Record<DocType, { label:string; color:string; bg:string; section:string; icon: React.ReactNode }> = {
     "resume": {
       label:"Reality Check",
-      color:"#8B5CF6",
-      bg:"#F5F3FF",
+      color:"#0F766E",
+      bg:"#F0FDFA",
       section:"resume",
       icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><path d="M13 2H5a1.5 1.5 0 00-1.5 1.5v13A1.5 1.5 0 005 18h10a1.5 1.5 0 001.5-1.5V6L13 2z"/><path d="M13 2v4h4"/><path d="M7 9h6M7 12h4"/></svg>,
     },
@@ -10709,9 +10709,9 @@ function ScreenPromotionToolkit({ onNavigate }: { onNavigate: (s: string) => voi
   };
 
   const SECTION_CARDS = [
-    { key:"resume", label:"Reality Check", desc:"Find out if you actually have a case right now.", section:"resume", color:"#8B5CF6", done:docs.some(d => d.type === "resume") },
+    { key:"resume", label:"Reality Check", desc:"Find out if you actually have a case right now.", section:"resume", color:"#0F766E", done:docs.some(d => d.type === "resume") },
     { key:"cover-letter", label:"Build the Case", desc:"Turn wins into the documents that move it forward.", section:"cover-letter", color:"#10B981", done:docs.some(d => d.type === "cover-letter") },
-    { key:"linkedin", label:"Get Allies", desc:"Figure out who you need and make the right asks.", section:"linkedin", color:"#8B5CF6", done:docs.some(d => d.type === "linkedin") },
+    { key:"linkedin", label:"Get Allies", desc:"Figure out who you need and make the right asks.", section:"linkedin", color:"#0F766E", done:docs.some(d => d.type === "linkedin") },
     { key:"plan", label:"The Sequence", desc:"Get a sequenced plan based on what Zari knows.", section:"plan", color:"#FB7185", done:docs.some(d => d.type === "resume" || d.type === "cover-letter" || d.type === "linkedin") },
   ];
 
@@ -10732,9 +10732,9 @@ function ScreenPromotionToolkit({ onNavigate }: { onNavigate: (s: string) => voi
   const readinessTarget = readinessDoc?.meta.desiredTitle ?? readinessDoc?.meta.targetRole ?? null;
 
   const nextAction = (() => {
-    if (!docs.some(d => d.type === "resume")) return { label:"Start here", action:"Run a Reality Check to get your honest score before doing anything else.", section:"resume", color:"#8B5CF6" };
+    if (!docs.some(d => d.type === "resume")) return { label:"Start here", action:"Run a Reality Check to get your honest score before doing anything else.", section:"resume", color:"#0F766E" };
     if (!docs.some(d => d.type === "cover-letter")) return { label:"Next up", action:"Build the Case — turn your wins into the specific documents your situation needs.", section:"cover-letter", color:"#10B981" };
-    if (!docs.some(d => d.type === "linkedin")) return { label:"Then", action:"Get Allies — map who controls the decision and what each person needs to see.", section:"linkedin", color:"#8B5CF6" };
+    if (!docs.some(d => d.type === "linkedin")) return { label:"Then", action:"Get Allies — map who controls the decision and what each person needs to see.", section:"linkedin", color:"#0F766E" };
     return { label:"All three done", action:"Run The Sequence to get a prioritized AI-generated plan based on what Zari now knows about your situation.", section:"plan", color:"#FB7185" };
   })();
 
@@ -10804,9 +10804,9 @@ function ScreenPromotionToolkit({ onNavigate }: { onNavigate: (s: string) => voi
             <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text2)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:14 }}>Section progress</div>
             <div style={{ display:"grid", gap:12 }}>
               {[
-                { label:"Reality Check", done:docs.some(d => d.type === "resume"), color:"#8B5CF6", section:"resume" },
+                { label:"Reality Check", done:docs.some(d => d.type === "resume"), color:"#0F766E", section:"resume" },
                 { label:"Build the Case", done:docs.some(d => d.type === "cover-letter"), color:"#10B981", section:"cover-letter" },
-                { label:"Get Allies", done:docs.some(d => d.type === "linkedin"), color:"#8B5CF6", section:"linkedin" },
+                { label:"Get Allies", done:docs.some(d => d.type === "linkedin"), color:"#0F766E", section:"linkedin" },
               ].map(s => (
                 <div key={s.label} style={{ display:"flex", alignItems:"center", gap:14 }}>
                   <div style={{ width:22, height:22, borderRadius:"50%", background:s.done ? `${s.color}33` : "rgba(255,255,255,0.06)", border:`1.5px solid ${s.done ? s.color : "rgba(255,255,255,0.15)"}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
@@ -10978,14 +10978,14 @@ function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate
   }
 
   const TYPE_META: Record<DocType, { label:string; color:string; bg:string; icon: React.ReactNode; section: string }> = {
-    "resume":       { label:"Resume",       color:"#7C3AED", bg:"#F5F3FF", section:"resume",       icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><path d="M13 2H5a1.5 1.5 0 00-1.5 1.5v13A1.5 1.5 0 005 18h10a1.5 1.5 0 001.5-1.5V6L13 2z"/><path d="M13 2v4h4"/><path d="M7 9h6M7 12h4"/></svg> },
+    "resume":       { label:"Resume",       color:"#0F766E", bg:"#F0FDFA", section:"resume",       icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><path d="M13 2H5a1.5 1.5 0 00-1.5 1.5v13A1.5 1.5 0 005 18h10a1.5 1.5 0 001.5-1.5V6L13 2z"/><path d="M13 2v4h4"/><path d="M7 9h6M7 12h4"/></svg> },
     "linkedin":     { label:"LinkedIn",     color:"#0A66C2", bg:"#EFF6FF", section:"linkedin",     icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><rect x="2" y="2" width="16" height="16" rx="3"/><path d="M6 9v5M6 7v.01M10 14v-3a2 2 0 014 0v3M10 9v5"/></svg> },
     "cover-letter": { label:"Cover Letter", color:"#059669", bg:"#ECFDF5", section:"cover-letter", icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><path d="M17 4H3a1 1 0 00-1 1v10a1 1 0 001 1h14a1 1 0 001-1V5a1 1 0 00-1-1z"/><path d="M1 5l9 7 9-7"/></svg> },
     "upload":       { label:"Uploaded",     color:"var(--z-text2)", bg:"#F5F7FF", section:"documents",    icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><path d="M14 2H6a1.5 1.5 0 00-1.5 1.5v13A1.5 1.5 0 006 18h8a1.5 1.5 0 001.5-1.5V6L14 2z"/><path d="M14 2v4h4"/></svg> },
   };
 
   const SECTION_CARDS = [
-    { type:"resume"       as DocType, label:"Resume Review",   desc:"Upload and analyze your resume",    section:"resume",       color:"#7C3AED", bg:"#F5F3FF" },
+    { type:"resume"       as DocType, label:"Resume Review",   desc:"Upload and analyze your resume",    section:"resume",       color:"#0F766E", bg:"#F0FDFA" },
     { type:"linkedin"     as DocType, label:"LinkedIn Profile", desc:"Review and optimize your LinkedIn", section:"linkedin",     color:"#0A66C2", bg:"#EFF6FF" },
     { type:"cover-letter" as DocType, label:"Cover Letter",     desc:"Generate a tailored cover letter",  section:"cover-letter", color:"#059669", bg:"#ECFDF5" },
   ];
@@ -11078,9 +11078,9 @@ function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate
           onDragLeave={()=>setDragging(false)}
           onDrop={e=>{ e.preventDefault(); setDragging(false); const f=e.dataTransfer.files?.[0]; if(f) void handleFile(f); }}
           onClick={()=>fileInputRef.current?.click()}
-          style={{ border:`2px dashed ${dragging?"#4361EE":"rgba(0,0,0,0.12)"}`, borderRadius:14, padding:"20px 32px", textAlign:"center", marginBottom:24, cursor:"pointer", background:dragging?"rgba(67,97,238,0.05)":"rgba(255,255,255,0.6)", transition:"all 0.2s", backdropFilter:"blur(2px)" }}>
+          style={{ border:`2px dashed ${dragging?"#2563EB":"rgba(0,0,0,0.12)"}`, borderRadius:14, padding:"20px 32px", textAlign:"center", marginBottom:24, cursor:"pointer", background:dragging?"rgba(37,99,235,0.05)":"rgba(255,255,255,0.6)", transition:"all 0.2s", backdropFilter:"blur(2px)" }}>
           {uploading ? (
-            <p style={{ fontSize:13, fontWeight:600, color:"#4361EE" }}>Uploading and indexing…</p>
+            <p style={{ fontSize:13, fontWeight:600, color:"#2563EB" }}>Uploading and indexing…</p>
           ) : (
             <>
               <p style={{ fontSize:13, fontWeight:600, color:"var(--z-text)", marginBottom:3 }}>Drop a file to add it to your vault</p>
@@ -11397,7 +11397,7 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
         {generating ? (
           <div style={{ background:"var(--z-card)", borderRadius:20, padding:"72px 32px", textAlign:"center", boxShadow:"0 8px 40px rgba(0,0,0,0.09)", border:"1px solid var(--z-bd)" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
-              {[0,1,2].map(i=><div key={i} style={{ width:11,height:11,borderRadius:"50%",background:"#818CF8",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite`, boxShadow:"0 0 10px rgba(129,140,248,0.5)" }}/>)}
+              {[0,1,2].map(i=><div key={i} style={{ width:11,height:11,borderRadius:"50%",background:"#60A5FA",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite`, boxShadow:"0 0 10px rgba(96,165,250,0.5)" }}/>)}
             </div>
             <p style={{ fontSize:17, fontWeight:800, color:"var(--z-text)", marginBottom:8, letterSpacing:"-0.02em" }}>Zari is writing your letter…</p>
             <p style={{ fontSize:13.5, color:"var(--z-text3)" }}>Tailoring every sentence to your background and the role</p>
@@ -11459,7 +11459,7 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
             </div>
           </>
         )}
-        {error && <p style={{ fontSize:13, color:"#DC2626", textAlign:"center", marginTop:16 }}>{error} <button onClick={()=>void generate()} style={{ background:"none", border:"none", color:"#4361EE", fontWeight:600, cursor:"pointer", fontSize:13 }}>Try again</button></p>}
+        {error && <p style={{ fontSize:13, color:"#DC2626", textAlign:"center", marginTop:16 }}>{error} <button onClick={()=>void generate()} style={{ background:"none", border:"none", color:"#2563EB", fontWeight:600, cursor:"pointer", fontSize:13 }}>Try again</button></p>}
       </div>
     </div>
   );
@@ -11755,7 +11755,7 @@ function ScreenPromotionRoadmap({ onNavigate, active = false }: { onNavigate: (s
     })));
 
   const SECTION_CARDS = [
-    { key:"resume", label:"Reality Check", desc:"Find out if you genuinely have a case right now.", color:"#8B5CF6", done:hasResume },
+    { key:"resume", label:"Reality Check", desc:"Find out if you genuinely have a case right now.", color:"#0F766E", done:hasResume },
     { key:"cover-letter", label:"Build the Case", desc:"Turn your wins into the docs that move this forward.", color:"#10B981", done:hasCL },
     { key:"linkedin", label:"Get Allies", desc:"Map who matters and make the right asks.", color:"#3B82F6", done:hasLI },
   ];
@@ -11876,19 +11876,19 @@ function ScreenPromotionRoadmap({ onNavigate, active = false }: { onNavigate: (s
   const pct = TASKS.length ? Math.round((done.size / TASKS.length) * 100) : 0;
 
   const CAT_COLORS: Record<string, { color: string; bg: string; border: string }> = {
-    Case: { color:"#8B5CF6", bg:"#F5F3FF", border:"#DDD6FE" },
+    Case: { color:"#0F766E", bg:"#F0FDFA", border:"#BFDBFE" },
     Docs: { color:"#10B981", bg:"#ECFDF5", border:"#A7F3D0" },
     Feedback: { color:"#DC2626", bg:"#FEF2F2", border:"#FECACA" },
     Sponsorship: { color:"#3B82F6", bg:"#EFF6FF", border:"#BFDBFE" },
     Visibility: { color:"#0284C7", bg:"#EFF6FF", border:"#BFDBFE" },
-    Session: { color:"#7C3AED", bg:"#F5F3FF", border:"#DDD6FE" },
+    Session: { color:"#0F766E", bg:"#F0FDFA", border:"#BFDBFE" },
     Milestone: { color:"#D97706", bg:"#FFFBEB", border:"#FDE68A" },
   };
 
   const TIMELINE_GROUPS = [
     { id:"high", label:"Do this week", sublabel:"Highest leverage first", accent:"#FB7185", bg:"rgba(251,113,133,0.12)", border:"rgba(251,113,133,0.22)" },
     { id:"med", label:"Do this month", sublabel:"Build support and fill gaps", accent:"#F59E0B", bg:"rgba(245,158,11,0.12)", border:"rgba(245,158,11,0.22)" },
-    { id:"low", label:"When it's time", sublabel:"Timing and asks once proof and support align", accent:"#8B5CF6", bg:"rgba(139,92,246,0.12)", border:"rgba(139,92,246,0.22)" },
+    { id:"low", label:"When it's time", sublabel:"Timing and asks once proof and support align", accent:"#3B82F6", bg:"rgba(139,92,246,0.12)", border:"rgba(139,92,246,0.22)" },
   ] as const;
 
   return (
@@ -12034,7 +12034,7 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
   const isReady    = readyCount >= 1;
 
   const SECTION_CARDS = [
-    { type:"resume"       as DocType, key:"resume",       label:"Resume Review",   desc:"Analyze your resume — Zari scores it and finds gaps", color:"#7C3AED", bg:"#F5F3FF", done:hasResume },
+    { type:"resume"       as DocType, key:"resume",       label:"Resume Review",   desc:"Analyze your resume — Zari scores it and finds gaps", color:"#0F766E", bg:"#F0FDFA", done:hasResume },
     { type:"linkedin"     as DocType, key:"linkedin",     label:"LinkedIn Profile", desc:"Review your profile and get an overall LinkedIn score", color:"#0A66C2", bg:"#EFF6FF", done:hasLI },
     { type:"cover-letter" as DocType, key:"cover-letter", label:"Cover Letter",     desc:"Generate a tailored cover letter for a specific role",  color:"#059669", bg:"#ECFDF5", done:hasCL },
   ];
@@ -12079,8 +12079,8 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
       {/* Page header */}
       <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"20px 40px" }}>
         <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-          <div style={{ width:32, height:32, borderRadius:10, background:"rgba(67,97,238,0.2)", border:"1px solid rgba(67,97,238,0.35)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="#818CF8" strokeWidth="1.8" style={{width:16,height:16}}><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+          <div style={{ width:32, height:32, borderRadius:10, background:"rgba(37,99,235,0.2)", border:"1px solid rgba(37,99,235,0.35)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#60A5FA" strokeWidth="1.8" style={{width:16,height:16}}><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
           </div>
           <div>
             <h1 style={{ fontSize:18, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:0 }}>Action Plan</h1>
@@ -12090,7 +12090,7 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
       </div>
       <div style={{ padding:"48px 40px" }}>
         <div style={{ textAlign:"center", marginBottom:40 }}>
-          <div style={{ width:64, height:64, borderRadius:18, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 18px", boxShadow:"0 8px 24px rgba(67,97,238,0.3)" }}>
+          <div style={{ width:64, height:64, borderRadius:18, background:"linear-gradient(135deg,#2563EB,#60A5FA)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 18px", boxShadow:"0 8px 24px rgba(37,99,235,0.3)" }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" style={{width:28,height:28}}><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
           </div>
           <h1 style={{ fontSize:24, fontWeight:900, letterSpacing:"-0.03em", color:"var(--z-text)", marginBottom:10 }}>Your {STAGE_NAV_LABELS[stage].plan} isn&apos;t ready yet</h1>
@@ -12129,8 +12129,8 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
           ))}
         </div>
 
-        <div style={{ marginTop:28, background:"linear-gradient(135deg,#EEF2FF,#F5F3FF)", border:"1px solid rgba(67,97,238,0.15)", borderRadius:16, padding:"16px 20px", display:"flex", gap:12, alignItems:"flex-start" }}>
-          <div style={{ width:36, height:36, borderRadius:10, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:14, fontWeight:800, color:"white" }}>Z</div>
+        <div style={{ marginTop:28, background:"linear-gradient(135deg,#EFF6FF,#F0FDFA)", border:"1px solid rgba(37,99,235,0.15)", borderRadius:16, padding:"16px 20px", display:"flex", gap:12, alignItems:"flex-start" }}>
+          <div style={{ width:36, height:36, borderRadius:10, background:"linear-gradient(135deg,#2563EB,#60A5FA)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:14, fontWeight:800, color:"white" }}>Z</div>
           <p style={{ fontSize:13, color:"#3451D1", lineHeight:1.65 }}>
             The more sections you complete, the more specific your action plan gets. After your resume review Zari already knows what to fix — after LinkedIn it can sequence the work. Give it both and the plan is surgical.
           </p>
@@ -12143,20 +12143,20 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
   const pct   = TASKS.length ? Math.round((done.size / TASKS.length) * 100) : 0;
 
   const CAT_COLORS: Record<string, { color: string; bg: string; border: string }> = {
-    Resume:          { color:"#7C3AED", bg:"#F5F3FF", border:"#DDD6FE" },
+    Resume:          { color:"#0F766E", bg:"#F0FDFA", border:"#BFDBFE" },
     LinkedIn:        { color:"#0A66C2", bg:"#EFF6FF", border:"#BFDBFE" },
     Interview:       { color:"#D97706", bg:"#FFF7ED", border:"#FDE68A" },
-    "Job Search":    { color:"#4361EE", bg:"#EEF2FF", border:"#C7D2FE" },
+    "Job Search":    { color:"#2563EB", bg:"#EFF6FF", border:"#BFDBFE" },
     "Cover Letter":  { color:"#059669", bg:"#ECFDF5", border:"#6EE7B7" },
-    Session:         { color:"#6366F1", bg:"#EEF2FF", border:"#C7D2FE" },
+    Session:         { color:"#3B82F6", bg:"#EFF6FF", border:"#BFDBFE" },
     Network:         { color:"#0891B2", bg:"#ECFEFF", border:"#A5F3FC" },
     Research:        { color:"#BE185D", bg:"#FDF2F8", border:"#F9A8D4" },
-    Case:            { color:"#7C3AED", bg:"#F5F3FF", border:"#DDD6FE" },
+    Case:            { color:"#0F766E", bg:"#F0FDFA", border:"#BFDBFE" },
     Docs:            { color:"#059669", bg:"#ECFDF5", border:"#A7F3D0" },
     Feedback:        { color:"#DC2626", bg:"#FEF2F2", border:"#FECACA" },
     Sponsorship:     { color:"#0284C7", bg:"#EFF6FF", border:"#BFDBFE" },
     Visibility:      { color:"#0A66C2", bg:"#EFF6FF", border:"#BFDBFE" },
-    Planning:        { color:"#6366F1", bg:"#EEF2FF", border:"#C7D2FE" },
+    Planning:        { color:"#3B82F6", bg:"#EFF6FF", border:"#BFDBFE" },
     Milestone:       { color:"#D97706", bg:"#FFF7ED", border:"#FDE68A" },
   };
 
@@ -12191,9 +12191,9 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
       id: "low",
       label: "On the Horizon",
       sublabel: "Worth doing when you have bandwidth",
-      accent: "#4361EE",
-      accentBg: "linear-gradient(135deg, #EEF2FF, #EDE9FE)",
-      accentBorder: "#C7D2FE",
+      accent: "#2563EB",
+      accentBg: "linear-gradient(135deg, #EFF6FF, #CCFBF1)",
+      accentBorder: "#BFDBFE",
       icon: (
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{width:16,height:16}}>
           <path d="M2 14c3-4 6-6 8-6s5 2 8 6"/><path d="M10 8V5M4 11l-2-1M16 11l2-1"/>
@@ -12207,8 +12207,8 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
       {/* Page header */}
       <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"20px 40px" }}>
         <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-          <div style={{ width:32, height:32, borderRadius:10, background:"rgba(67,97,238,0.2)", border:"1px solid rgba(67,97,238,0.35)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="#818CF8" strokeWidth="1.8" style={{width:16,height:16}}><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+          <div style={{ width:32, height:32, borderRadius:10, background:"rgba(37,99,235,0.2)", border:"1px solid rgba(37,99,235,0.35)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#60A5FA" strokeWidth="1.8" style={{width:16,height:16}}><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
           </div>
           <div>
             <h1 style={{ fontSize:18, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:0 }}>Action Plan</h1>
@@ -12243,7 +12243,7 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
             <div style={{ display:"flex", gap:0, background:"rgba(0,0,0,0.03)", border:"1px solid var(--z-bd)", borderRadius:14, overflow:"hidden", boxShadow:"0 2px 12px rgba(0,0,0,0.07)" }}>
               {[
                 { label:"Done", value:done.size, color:"#059669" },
-                { label:"Remaining", value:TASKS.length - done.size, color:"#4361EE" },
+                { label:"Remaining", value:TASKS.length - done.size, color:"#2563EB" },
                 { label:"Total", value:TASKS.length, color:"var(--z-text2)" },
               ].map((s, i) => (
                 <div key={s.label} style={{ padding:"12px 20px", textAlign:"center", borderLeft: i ? "1px solid var(--z-bd)" : "none" }}>
@@ -12256,9 +12256,9 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
         </div>
 
         {planLoading && (
-          <div style={{ display:"flex", alignItems:"center", gap:12, background:"var(--z-card)", border:"1px solid rgba(67,97,238,0.2)", borderRadius:14, padding:"14px 18px", marginBottom:22, boxShadow:"0 2px 12px rgba(67,97,238,0.06)" }}>
-            <span style={{ width:16,height:16,borderRadius:"50%",border:"2.5px solid rgba(67,97,238,0.25)",borderTopColor:"#4361EE",animation:"spin-slow 0.7s linear infinite",display:"block",flexShrink:0 }}/>
-            <span style={{ fontSize:13.5, color:"#4361EE", fontWeight:600 }}>Zari is analyzing your sections and building a personalized plan…</span>
+          <div style={{ display:"flex", alignItems:"center", gap:12, background:"var(--z-card)", border:"1px solid rgba(37,99,235,0.2)", borderRadius:14, padding:"14px 18px", marginBottom:22, boxShadow:"0 2px 12px rgba(37,99,235,0.06)" }}>
+            <span style={{ width:16,height:16,borderRadius:"50%",border:"2.5px solid rgba(37,99,235,0.25)",borderTopColor:"#2563EB",animation:"spin-slow 0.7s linear infinite",display:"block",flexShrink:0 }}/>
+            <span style={{ fontSize:13.5, color:"#2563EB", fontWeight:600 }}>Zari is analyzing your sections and building a personalized plan…</span>
           </div>
         )}
 
@@ -12266,10 +12266,10 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
         <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:16, padding:"18px 22px", marginBottom:24, boxShadow:"0 2px 12px rgba(0,0,0,0.07)" }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
             <span style={{ fontSize:13, fontWeight:700, color:"var(--z-text)" }}>Overall Progress</span>
-            <span style={{ fontSize:18, fontWeight:900, color:pct===100?"#059669":"#4361EE" }}>{pct}%</span>
+            <span style={{ fontSize:18, fontWeight:900, color:pct===100?"#059669":"#2563EB" }}>{pct}%</span>
           </div>
           <div style={{ height:10, background:"rgba(0,0,0,0.04)", borderRadius:99, overflow:"hidden" }}>
-            <div style={{ height:"100%", width:`${pct}%`, background:pct===100?"linear-gradient(90deg,#059669,#10B981)":"linear-gradient(90deg,#4361EE,#818CF8)", borderRadius:99, transition:"width 0.5s ease" }}/>
+            <div style={{ height:"100%", width:`${pct}%`, background:pct===100?"linear-gradient(90deg,#059669,#10B981)":"linear-gradient(90deg,#2563EB,#60A5FA)", borderRadius:99, transition:"width 0.5s ease" }}/>
           </div>
           <div style={{ display:"flex", gap:16, marginTop:12 }}>
             {TIMELINE_GROUPS.map(g => {
@@ -12306,12 +12306,12 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
         </div>
 
         {/* ── Zari's coaching note (prominent) ── */}
-        <div style={{ marginBottom:28, background:"#EEF2FF", borderRadius:18, padding:"20px 24px", position:"relative", overflow:"hidden", boxShadow:"0 2px 12px rgba(67,97,238,0.08)", border:"1px solid rgba(67,97,238,0.15)" }}>
-          <div style={{ position:"absolute", top:-20, right:-20, width:100, height:100, background:"radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)", pointerEvents:"none" }}/>
+        <div style={{ marginBottom:28, background:"#EFF6FF", borderRadius:18, padding:"20px 24px", position:"relative", overflow:"hidden", boxShadow:"0 2px 12px rgba(37,99,235,0.08)", border:"1px solid rgba(37,99,235,0.15)" }}>
+          <div style={{ position:"absolute", top:-20, right:-20, width:100, height:100, background:"radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%)", pointerEvents:"none" }}/>
           <div style={{ display:"flex", gap:14, alignItems:"flex-start", position:"relative" }}>
-            <div style={{ width:38, height:38, borderRadius:11, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:15, fontWeight:900, color:"white", boxShadow:"0 4px 12px rgba(67,97,238,0.4)" }}>Z</div>
+            <div style={{ width:38, height:38, borderRadius:11, background:"linear-gradient(135deg,#2563EB,#60A5FA)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:15, fontWeight:900, color:"white", boxShadow:"0 4px 12px rgba(37,99,235,0.4)" }}>Z</div>
             <div>
-              <p style={{ fontSize:11.5, fontWeight:700, color:"#4361EE", marginBottom:6, textTransform:"uppercase", letterSpacing:"0.08em" }}>Zari&apos;s Coaching Note</p>
+              <p style={{ fontSize:11.5, fontWeight:700, color:"#2563EB", marginBottom:6, textTransform:"uppercase", letterSpacing:"0.08em" }}>Zari&apos;s Coaching Note</p>
               <p style={{ fontSize:14, color:"var(--z-text)", lineHeight:1.7, margin:0 }}>
                 {aiCoachNote ?? "Start with the high-priority tasks — they have the highest leverage right now. Each one you check off makes your search sharper. Come back as you complete sections and your plan will automatically get more specific."}
               </p>
@@ -12397,13 +12397,13 @@ export function ZariPortal() {
 
   // Section accent colors for topbar context
   const SCREEN_ACCENTS: Record<string, { color: string; gradient: string }> = {
-    session:      { color:"#7C3AED", gradient:"linear-gradient(135deg,#7C3AED,#A78BFA)" },
-    resume:       { color:"#4361EE", gradient:"linear-gradient(135deg,#4361EE,#818CF8)" },
-    interview:    { color:"#D97706", gradient:"linear-gradient(135deg,#D97706,#FBBF24)" },
+    session:       { color:"#2563EB", gradient:"linear-gradient(135deg,#2563EB,#60A5FA)" },
+    resume:        { color:"#2563EB", gradient:"linear-gradient(135deg,#2563EB,#60A5FA)" },
+    interview:     { color:"#D97706", gradient:"linear-gradient(135deg,#D97706,#FBBF24)" },
     "cover-letter":{ color:"#059669", gradient:"linear-gradient(135deg,#059669,#34D399)" },
-    linkedin:     { color:"#0A66C2", gradient:"linear-gradient(135deg,#0A66C2,#60A5FA)" },
-    documents:    { color:"var(--z-text2)", gradient:"linear-gradient(135deg,#334155,#64748B)" },
-    plan:         { color:"#E11D48", gradient:"linear-gradient(135deg,#E11D48,#FB7185)" },
+    linkedin:      { color:"#0A66C2", gradient:"linear-gradient(135deg,#0A66C2,#38BDF8)" },
+    documents:     { color:"#64748B", gradient:"linear-gradient(135deg,#334155,#64748B)" },
+    plan:          { color:"#2563EB", gradient:"linear-gradient(135deg,#2563EB,#60A5FA)" },
   };
   const accentInfo = SCREEN_ACCENTS[screen] ?? SCREEN_ACCENTS["session"];
 
@@ -12434,147 +12434,123 @@ export function ZariPortal() {
         @keyframes live-msg-in { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
         * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
         textarea::placeholder, input::placeholder { color: var(--z-text3); opacity: 1; }
-        .zari-nav-btn:hover { background: rgba(0,0,0,0.04) !important; }
-        .zari-nav-btn.active { background: rgba(67,97,238,0.08) !important; }
+        .zari-nav-btn:hover { background: rgba(37,99,235,0.05) !important; }
+        .zari-nav-btn.active { background: rgba(37,99,235,0.08) !important; }
         .zari-dark .zari-nav-btn:hover { background: rgba(255,255,255,0.06) !important; }
-        .zari-dark .zari-nav-btn.active { background: rgba(67,97,238,0.18) !important; }
+        .zari-dark .zari-nav-btn.active { background: rgba(37,99,235,0.18) !important; }
       `}</style>
 
       {/* ── SIDEBAR ── */}
-      <aside style={{ width:232, flexShrink:0, background:"var(--z-card)", display:"flex", flexDirection:"column", padding:"0 0 20px 0", position:"relative", overflow:"hidden", borderRight:"1px solid var(--z-bd)", boxShadow:"2px 0 12px rgba(0,0,0,0.04)" }}>
+      <aside style={{ width:240, flexShrink:0, background:"var(--z-card)", display:"flex", flexDirection:"column", padding:"0 0 16px", position:"relative", borderRight:"1px solid var(--z-bd)" }}>
 
-        {/* Logo */}
-        <div style={{ padding:"20px 18px 16px", position:"relative" }}>
-          <Link href="/" style={{ display:"flex", alignItems:"center", gap:10, textDecoration:"none" }}>
-            <div style={{ width:34, height:34, borderRadius:10, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 4px 12px rgba(67,97,238,0.3)", flexShrink:0 }}>
-              <ZariLogo size={18}/>
+        {/* Logo + user */}
+        <div style={{ padding:"16px 16px 12px", display:"flex", alignItems:"center", gap:10 }}>
+          <Link href="/" style={{ display:"flex", alignItems:"center", gap:9, textDecoration:"none", flex:1 }}>
+            <div style={{ width:32, height:32, borderRadius:9, background:"#2563EB", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+              <ZariLogo size={16}/>
             </div>
-            <div>
-              <span style={{ fontSize:18, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.04em", lineHeight:1 }}>Zari</span>
-              <div style={{ fontSize:9.5, color:"var(--z-text3)", fontWeight:600, letterSpacing:"0.1em", textTransform:"uppercase", marginTop:1 }}>Career AI</div>
-            </div>
+            <span style={{ fontSize:17, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.04em", lineHeight:1 }}>Zari</span>
           </Link>
-        </div>
-
-        {/* Divider */}
-        <div style={{ height:1, margin:"0 16px 14px", background:"var(--z-bd)" }}/>
-
-        {/* User chip */}
-        <div style={{ margin:"0 12px 14px", background:"var(--z-raise)", borderRadius:13, padding:"10px 13px", display:"flex", gap:10, alignItems:"center", border:"1px solid var(--z-bd)" }}>
-          <div style={{ width:36, height:36, borderRadius:11, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, fontWeight:800, color:"white", flexShrink:0, boxShadow:"0 2px 8px rgba(67,97,238,0.3)" }}>S</div>
-          <div style={{ minWidth:0 }}>
-            <div style={{ fontSize:13, fontWeight:700, color:"var(--z-text)" }}>Steve N.</div>
-            <div style={{ fontSize:10.5, color:"var(--z-text3)", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>Free plan</div>
-          </div>
-          <div style={{ marginLeft:"auto", width:8, height:8, borderRadius:"50%", background:"#34D399", boxShadow:"0 0 6px rgba(52,211,153,0.5)", flexShrink:0 }}/>
+          <button onClick={toggleDark} title={isDark?"Light mode":"Dark mode"} style={{ width:30, height:30, borderRadius:8, border:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text3)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+            {isDark ? (
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:14,height:14}}><circle cx="10" cy="10" r="4"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.93 4.93l1.41 1.41M13.66 13.66l1.41 1.41M4.93 15.07l1.41-1.41M13.66 6.34l1.41-1.41"/></svg>
+            ) : (
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:14,height:14}}><path d="M17.5 12.5A7.5 7.5 0 1 1 7.5 2.5a5.83 5.83 0 0 0 10 10z"/></svg>
+            )}
+          </button>
         </div>
 
         {/* Career Stage Selector */}
-        <div style={{ margin:"0 12px 14px", position:"relative" }}>
+        <div style={{ margin:"0 10px 10px", position:"relative" }}>
           <button
             onClick={() => setStageOpen(o => !o)}
-            style={{
-              width:"100%", display:"flex", alignItems:"center", gap:8,
-              padding:"9px 12px", borderRadius:11,
-              border:`1px solid #E4E8F5`,
-              background:"var(--z-raise)",
-              cursor:"pointer", fontSize:12.5, fontWeight:700,
-              color:`${STAGE_META[stage].color}`,
-              transition:"all 0.15s",
-            }}
+            style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"8px 11px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", cursor:"pointer", fontSize:12.5, fontWeight:600, color:"var(--z-text2)", transition:"all 0.15s" }}
           >
-            <span style={{ display:"flex", alignItems:"center", opacity:0.9 }}>{STAGE_ICONS[stage]}</span>
-            <span style={{ flex:1, textAlign:"left" }}>{STAGE_META[stage].label}</span>
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:12, height:12, transition:"transform 0.2s", transform: stageOpen ? "rotate(180deg)" : "rotate(0)", opacity:0.5 }}><path d="M4 6l4 4 4-4"/></svg>
+            <span style={{ display:"flex", alignItems:"center" }}>{STAGE_ICONS[stage]}</span>
+            <span style={{ flex:1, textAlign:"left", color:"var(--z-text)", fontWeight:700 }}>{STAGE_META[stage].label}</span>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:11,height:11, transition:"transform 0.2s", transform:stageOpen?"rotate(180deg)":"rotate(0)", opacity:0.4 }}><path d="M4 6l4 4 4-4"/></svg>
           </button>
-
-          {/* Dropdown */}
           {stageOpen && (
-            <div style={{
-              position:"absolute", top:"calc(100% + 6px)", left:0, right:0, zIndex:50,
-              background:"var(--z-card)", borderRadius:13, border:"1px solid var(--z-bd)",
-              boxShadow:"0 16px 48px rgba(0,0,0,0.12)", overflow:"hidden",
-              animation:"bubble-appear 0.2s ease",
-            }}>
+            <div style={{ position:"absolute", top:"calc(100% + 4px)", left:0, right:0, zIndex:50, background:"var(--z-card)", borderRadius:11, border:"1px solid var(--z-bd)", boxShadow:"0 12px 36px rgba(0,0,0,0.12)", overflow:"hidden", animation:"bubble-appear 0.2s ease" }}>
               {(Object.entries(STAGE_META) as [CareerStage, typeof STAGE_META[CareerStage]][]).map(([key, meta]) => (
-                <button
-                  key={key}
-                  onClick={() => { setStage(key); setStageOpen(false); navigate("session"); }}
-                  style={{
-                    width:"100%", display:"flex", alignItems:"center", gap:9,
-                    padding:"9px 14px", border:"none", cursor:"pointer", textAlign:"left",
-                    background: stage === key ? `${meta.color}10` : "transparent",
-                    fontSize:12.5, fontWeight: stage === key ? 700 : 500,
-                    color: stage === key ? meta.color : "var(--z-text2)",
-                    transition:"background 0.1s",
-                    borderBottom:"1px solid var(--z-bd)",
-                  }}
-                >
-                  <span style={{ display:"flex", alignItems:"center", color: stage === key ? meta.color : "var(--z-text3)" }}>{STAGE_ICONS[key]}</span>
+                <button key={key} onClick={() => { setStage(key); setStageOpen(false); navigate("session"); }}
+                  style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"9px 13px", border:"none", cursor:"pointer", textAlign:"left", background:stage===key?"rgba(37,99,235,0.06)":"transparent", fontSize:13, fontWeight:stage===key?700:500, color:stage===key?"#2563EB":"var(--z-text2)", transition:"background 0.1s", borderBottom:"1px solid var(--z-bd2)" }}>
+                  <span style={{ display:"flex", alignItems:"center", opacity:0.8 }}>{STAGE_ICONS[key]}</span>
                   {meta.label}
-                  {stage === key && <svg viewBox="0 0 16 16" style={{ width:12,height:12,marginLeft:"auto" }}><path d="M3 8l4 4 6-6" stroke={meta.color} strokeWidth="2.2" fill="none"/></svg>}
+                  {stage===key && <svg viewBox="0 0 16 16" style={{ width:11,height:11,marginLeft:"auto" }}><path d="M3 8l4 4 6-6" stroke="#2563EB" strokeWidth="2.2" fill="none"/></svg>}
                 </button>
               ))}
             </div>
           )}
         </div>
 
-        {/* Section label */}
-        <div style={{ padding:"0 18px 8px", fontSize:9.5, fontWeight:700, color:"var(--z-text3)", letterSpacing:"0.12em", textTransform:"uppercase" }}>Navigation</div>
+        {/* Chat CTA — like Kleo's "Chat" button */}
+        <div style={{ padding:"0 10px 10px" }}>
+          <button onClick={()=>navigate("session")} style={{ width:"100%", display:"flex", alignItems:"center", gap:9, padding:"10px 13px", borderRadius:9, border:"none", background:screen==="session"?"#2563EB":"#EFF6FF", color:screen==="session"?"white":"#2563EB", fontWeight:700, fontSize:13.5, cursor:"pointer", transition:"all 0.15s", letterSpacing:"-0.01em" }}>
+            <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.9" style={{width:15,height:15,flexShrink:0}}><path d="M3 3h12a1 1 0 011 1v7a1 1 0 01-1 1H6l-4 3V4a1 1 0 011-1z"/></svg>
+            Chat with Zari
+          </button>
+        </div>
 
-        {/* Nav */}
-        <nav style={{ flex:1, padding:"0 10px", display:"flex", flexDirection:"column", gap:2 }}>
-          {getNav(stage).map(n => {
-            const isActive = screen === n.id;
-            const sa = SCREEN_ACCENTS[n.id];
-            return (
-              <button key={n.id} onClick={()=>navigate(n.id as Screen)} className={`zari-nav-btn${isActive?" active":""}`}
-                style={{ width:"100%", display:"flex", alignItems:"center", gap:10, padding:"9px 11px", borderRadius:11, border:"none", cursor:"pointer", textAlign:"left", background:isActive?`${sa?.color ?? "#4361EE"}12`:"transparent", color:isActive?(sa?.color ?? "#4361EE"):"var(--z-text2)", fontWeight:isActive?700:500, fontSize:13.5, transition:"all 0.15s", position:"relative" }}>
-                {isActive && (
-                  <div style={{ position:"absolute", left:0, top:"50%", transform:"translateY(-50%)", width:3, height:"60%", borderRadius:"0 2px 2px 0", background:sa?.color ?? "#4361EE" }}/>
-                )}
-                <span style={{ display:"flex", alignItems:"center", opacity:isActive?1:0.7, color:isActive?(sa?.color ?? "#4361EE"):"var(--z-text3)" }}>{n.icon}</span>
-                <span style={{ flex:1 }}>{n.label}</span>
-                {n.id==="session" && <span style={{ fontSize:9, fontWeight:800, padding:"2px 6px", borderRadius:99, background:"rgba(52,211,153,0.12)", color:"#059669", border:"1px solid rgba(52,211,153,0.25)", letterSpacing:"0.06em" }}>LIVE</span>}
-              </button>
-            );
-          })}
+        <div style={{ height:1, margin:"0 10px 10px", background:"var(--z-bd)" }}/>
+
+        {/* Nav — grouped like Kleo */}
+        <nav style={{ flex:1, padding:"0 8px", display:"flex", flexDirection:"column", gap:1, overflowY:"auto" }}>
+          {(() => {
+            const nav = getNav(stage).filter(n => n.id !== "session");
+            const groups: { label: string; ids: string[] }[] = [
+              { label:"Tools", ids:["resume","interview","cover-letter","linkedin"] },
+              { label:"Workspace", ids:["documents","plan"] },
+            ];
+            return groups.map(g => {
+              const items = nav.filter(n => g.ids.includes(n.id));
+              if (!items.length) return null;
+              return (
+                <div key={g.label}>
+                  <div style={{ padding:"8px 8px 4px", fontSize:10, fontWeight:700, color:"var(--z-text3)", letterSpacing:"0.1em", textTransform:"uppercase" }}>{g.label}</div>
+                  {items.map(n => {
+                    const isActive = screen === n.id;
+                    return (
+                      <button key={n.id} onClick={()=>navigate(n.id as Screen)} className={`zari-nav-btn${isActive?" active":""}`}
+                        style={{ width:"100%", display:"flex", alignItems:"center", gap:9, padding:"8px 10px", borderRadius:8, border:"none", cursor:"pointer", textAlign:"left", background:isActive?"rgba(37,99,235,0.08)":"transparent", color:isActive?"#2563EB":"var(--z-text2)", fontWeight:isActive?600:400, fontSize:13.5, transition:"all 0.12s" }}>
+                        <span style={{ display:"flex", alignItems:"center", opacity:isActive?1:0.55 }}>{n.icon}</span>
+                        {n.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            });
+          })()}
         </nav>
 
-        {/* Bottom: upgrade */}
-        <div style={{ margin:"0 12px", background:"linear-gradient(135deg,#4361EE,#818CF8)", borderRadius:15, padding:"16px 16px", color:"white", position:"relative", overflow:"hidden" }}>
-          <div style={{ position:"absolute", top:-15, right:-15, width:80, height:80, background:"radial-gradient(circle,rgba(255,255,255,0.15) 0%,transparent 70%)", pointerEvents:"none" }}/>
-          <div style={{ fontSize:13.5, fontWeight:800, marginBottom:3, letterSpacing:"-0.02em" }}>Unlock Pro</div>
-          <div style={{ fontSize:11.5, opacity:0.8, marginBottom:12, lineHeight:1.45 }}>Unlimited sessions, priority coaching, resume downloads</div>
-          <button style={{ width:"100%", fontSize:12.5, fontWeight:800, padding:"8px", borderRadius:9, border:"none", background:"rgba(255,255,255,0.22)", color:"white", cursor:"pointer", letterSpacing:"-0.01em" }}>Upgrade →</button>
+        {/* Bottom: upgrade — clean like Kleo */}
+        <div style={{ margin:"12px 10px 0", background:"var(--z-raise)", borderRadius:11, padding:"14px 14px", border:"1px solid var(--z-bd)" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
+            <div style={{ width:26, height:26, borderRadius:7, background:"#2563EB", display:"flex", alignItems:"center", justifyContent:"center" }}>
+              <svg viewBox="0 0 14 14" fill="none" stroke="white" strokeWidth="1.8" style={{width:11,height:11}}><path d="M7 1l1.7 3.4L12 5l-2.5 2.4.6 3.5L7 9.3l-3.1 1.6.6-3.5L2 5l3.3-.6z"/></svg>
+            </div>
+            <div style={{ fontSize:12.5, fontWeight:700, color:"var(--z-text)", letterSpacing:"-0.01em" }}>Upgrade to Pro</div>
+          </div>
+          <div style={{ fontSize:11.5, color:"var(--z-text3)", marginBottom:10, lineHeight:1.5 }}>Unlimited sessions, downloads, and priority coaching</div>
+          <button style={{ width:"100%", fontSize:12.5, fontWeight:700, padding:"8px", borderRadius:8, border:"none", background:"#2563EB", color:"white", cursor:"pointer" }}>Upgrade →</button>
         </div>
       </aside>
 
       {/* ── MAIN CONTENT ── */}
       <main style={{ flex:1, overflow:"hidden", display:"flex", flexDirection:"column" }}>
-        {/* Top bar */}
-        <div style={{ flexShrink:0, height:58, background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", display:"flex", alignItems:"center", padding:"0 24px", gap:14, boxShadow:"0 1px 6px rgba(0,0,0,0.04)" }}>
-          {/* Section accent dot + title */}
-          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <div style={{ width:4, height:24, borderRadius:99, background:accentInfo.gradient }}/>
-            <h2 style={{ fontSize:15.5, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.025em", margin:0 }}>
-              {STAGE_NAV_LABELS[stage][screen]}
-            </h2>
-          </div>
+        {/* Top bar — clean like Kleo */}
+        <div style={{ flexShrink:0, height:52, background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", display:"flex", alignItems:"center", padding:"0 28px", gap:12 }}>
+          <h2 style={{ fontSize:15, fontWeight:700, color:"var(--z-text)", letterSpacing:"-0.02em", margin:0 }}>
+            {STAGE_NAV_LABELS[stage][screen]}
+          </h2>
           <div style={{ marginLeft:"auto", display:"flex", gap:8, alignItems:"center" }}>
-            <div style={{ display:"flex", alignItems:"center", gap:6, padding:"5px 12px", borderRadius:99, background:`${STAGE_META[stage].color}10`, border:`1px solid ${STAGE_META[stage].color}30` }}>
-              <span style={{ display:"inline-flex", alignItems:"center", color:STAGE_META[stage].color }}>{STAGE_ICONS[stage]}</span>
-              <span style={{ fontSize:12, fontWeight:600, color:STAGE_META[stage].color }}>{STAGE_META[stage].label}</span>
+            <div style={{ display:"flex", alignItems:"center", gap:5, padding:"4px 11px", borderRadius:99, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
+              <span style={{ display:"inline-flex", alignItems:"center", color:"var(--z-text3)" }}>{STAGE_ICONS[stage]}</span>
+              <span style={{ fontSize:11.5, fontWeight:600, color:"var(--z-text2)" }}>{STAGE_META[stage].label}</span>
             </div>
-            <button onClick={toggleDark} title={isDark?"Switch to light mode":"Switch to dark mode"} style={{ width:34, height:34, borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, transition:"all 0.15s", flexShrink:0 }}>
-              {isDark ? (
-                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:16,height:16}}><circle cx="10" cy="10" r="4"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.93 4.93l1.41 1.41M13.66 13.66l1.41 1.41M4.93 15.07l1.41-1.41M13.66 6.34l1.41-1.41"/></svg>
-              ) : (
-                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:16,height:16}}><path d="M17.5 12.5A7.5 7.5 0 1 1 7.5 2.5a5.83 5.83 0 0 0 10 10z"/></svg>
-              )}
-            </button>
             <form action="/api/auth/logout" method="POST">
-              <button type="submit" style={{ fontSize:12, fontWeight:600, padding:"6px 14px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Sign out</button>
+              <button type="submit" style={{ fontSize:12, fontWeight:600, padding:"5px 13px", borderRadius:8, border:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text3)", cursor:"pointer" }}>Sign out</button>
             </form>
           </div>
         </div>
