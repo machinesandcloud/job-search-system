@@ -367,50 +367,70 @@ function isPlaceholderLike(value: string) {
   const cleaned = trim(value).toLowerCase();
   if (!cleaned) return true;
   if (wordCount(cleaned) <= 2 && /\b(na|n\/a|idk|none|nothing|unknown|tbd)\b/.test(cleaned)) return true;
-  return /\b(not sure|don't know|do not know|no idea|n\/a|na|none|nothing yet|unknown|tbd)\b/.test(cleaned);
+  return /\b(not sure|don’t know|do not know|no idea|n\/a|na|none|nothing yet|unknown|tbd)\b/.test(cleaned);
+}
+
+type JumpSeverity = "step" | "leap" | "reinvention";
+
+function detectJumpSeverity(current: string, desired: string): JumpSeverity {
+  const cur = current.toLowerCase();
+  const des = desired.toLowerCase();
+  if (/\b(cto|ceo|coo|cpo|cio|ciso|cfo|cmo|chief\s+\w+\s+officer|chief)\b/.test(des) && !/\b(cto|ceo|coo|cpo|cio|ciso|cfo|cmo|chief)\b/.test(cur)) return "reinvention";
+  if (/\bsvp|evp\b|senior vice president/.test(des) && !/\bvp|svp|evp|vice president\b/.test(cur)) return "reinvention";
+  if ((/\bvp\b|vice president/.test(des)) && !/\bvp\b|vice president|director|head of/.test(cur)) return "leap";
+  if (/\bdirector\b/.test(des) && /\bengineer|analyst|developer|dev\b|designer|specialist|scientist|devops|sre|ops\b/.test(cur) && !/\bdirector|manager|lead|head\b/.test(cur)) return "leap";
+  if (/\bmanager\b/.test(des) && !/\bmanager|director|lead|head\b/.test(cur)) return "step";
+  if (/\bstaff|principal\b/.test(des) && !/\bstaff|principal|distinguished\b/.test(cur)) return "step";
+  return "step";
+}
+
+function computeDimensionScores(body: PromotionReadinessBody, jump: JumpSeverity) {
+  const jp: Record<JumpSeverity, number> = { step: 0, leap: -12, reinvention: -26 };
+  const penalty = jp[jump];
+
+  const roleFit = clamp(({ already_next_level: 86, bigger_than_role: 70, strong_in_role: 52, mostly_expected_scope: 35, still_growing: 20 }[body.scopeLevel ?? ""] ?? 45) + penalty, 8, 95);
+  const barClarity = clamp({ exact_rubric: 88, main_expectations: 68, some_hints: 42, guessing: 20 }[body.rubricClarity ?? ""] ?? 38, 8, 95);
+  const evidence = clamp(({ repeatable_measured: 84, clear_some_measured: 64, some_wins: 44, hard_to_show: 22 }[body.impactLevel ?? ""] ?? 40) + penalty, 8, 95);
+
+  const supportMatrix: Record<string, Record<string, number>> = {
+    actively_advocating:         { decision_makers_see_it: 90, manager_and_partners: 76, mostly_team: 58, low_visibility: 44 },
+    supportive_with_more_proof:  { decision_makers_see_it: 72, manager_and_partners: 60, mostly_team: 46, low_visibility: 32 },
+    unclear:                     { decision_makers_see_it: 52, manager_and_partners: 42, mostly_team: 34, low_visibility: 22 },
+    skeptical:                   { decision_makers_see_it: 36, manager_and_partners: 28, mostly_team: 20, low_visibility: 14 },
+  };
+  const support = clamp((supportMatrix[body.managerSupport ?? ""]?.[body.visibilityLevel ?? ""] ?? 40) + Math.round(penalty / 2), 8, 95);
+
+  const timing = clamp(({ "2plus_y": 78, "1_2y": 62, "6_12m": 44, under_6m: 24 }[body.timeInRole ?? ""] ?? 50) + penalty, 8, 95);
+  return { roleFit, barClarity, evidence, support, timing };
 }
 
 function estimateFallbackScore(body: PromotionReadinessBody) {
   let score = 18;
+  const add = (v: string | undefined, map: Record<string, number>) => { score += map[v ?? ""] ?? 0; };
 
-  const addFromMap = (value: string | undefined, map: Record<string, number>, fallback = 0) => {
-    score += map[value ?? ""] ?? fallback;
-  };
+  add(body.timeInRole,      { under_6m: 2, "6_12m": 6, "1_2y": 10, "2plus_y": 12 });
+  add(body.rubricClarity,   { exact_rubric: 14, main_expectations: 10, some_hints: 5, guessing: 1 });
+  add(body.scopeLevel,      { already_next_level: 19, bigger_than_role: 14, strong_in_role: 8, mostly_expected_scope: 4, still_growing: 1 });
+  add(body.impactLevel,     { repeatable_measured: 18, clear_some_measured: 12, some_wins: 7, hard_to_show: 2 });
+  add(body.reviewSignal,    { explicit_next_level: 14, strong_stretch: 10, solid_but_neutral: 6, mixed: 2, weak: -4 });
+  add(body.managerSupport,  { actively_advocating: 13, supportive_with_more_proof: 8, unclear: 3, skeptical: -5 });
+  add(body.visibilityLevel, { decision_makers_see_it: 12, manager_and_partners: 8, mostly_team: 4, low_visibility: -3 });
 
-  addFromMap(body.timeInRole, { under_6m: 2, "6_12m": 6, "1_2y": 10, "2plus_y": 12 });
-  addFromMap(body.rubricClarity, { exact_rubric: 14, main_expectations: 10, some_hints: 5, guessing: 1 });
-  addFromMap(body.scopeLevel, { already_next_level: 19, bigger_than_role: 14, strong_in_role: 8, mostly_expected_scope: 4, still_growing: 1 });
-  addFromMap(body.impactLevel, { repeatable_measured: 18, clear_some_measured: 12, some_wins: 7, hard_to_show: 2 });
-  addFromMap(body.reviewSignal, { explicit_next_level: 14, strong_stretch: 10, solid_but_neutral: 6, mixed: 2, weak: -4 });
-  addFromMap(body.managerSupport, { actively_advocating: 13, supportive_with_more_proof: 8, unclear: 3, skeptical: -5 });
-  addFromMap(body.visibilityLevel, { decision_makers_see_it: 12, manager_and_partners: 8, mostly_team: 4, low_visibility: -3 });
-
-  const roleDescription = trim(body.roleDescription);
-  const recentProjects = trim(body.recentProjects);
-  const reviewSummary = trim(body.reviewSummary);
-  const blockers = trim(body.blockers);
-
-  if (wordCount(roleDescription) >= 90) score += 3;
-  if (wordCount(recentProjects) >= 80) score += 4;
-  if (wordCount(reviewSummary) >= 30) score += 2;
-  if (wordCount(trim(body.blockers)) >= 3 && !/\bnone|nothing\b/i.test(trim(body.blockers))) score -= 2;
-
-  if (wordCount(roleDescription) < 30 || isPlaceholderLike(roleDescription)) score -= 16;
-  if (wordCount(recentProjects) < 25 || isPlaceholderLike(recentProjects)) score -= 18;
-  if (reviewSummary && (wordCount(reviewSummary) < 8 || isPlaceholderLike(reviewSummary))) score -= 5;
-  if (blockers && isPlaceholderLike(blockers)) score -= 3;
+  const rd = trim(body.roleDescription), rp = trim(body.recentProjects), rs = trim(body.reviewSummary), bl = trim(body.blockers);
+  if (wordCount(rd) >= 90) score += 3;
+  if (wordCount(rp) >= 80) score += 4;
+  if (wordCount(rs) >= 30) score += 2;
+  if (wordCount(bl) >= 3 && !/\bnone|nothing\b/i.test(bl)) score -= 2;
+  if (wordCount(rd) < 30 || isPlaceholderLike(rd)) score -= 16;
+  if (wordCount(rp) < 25 || isPlaceholderLike(rp)) score -= 18;
+  if (rs && (wordCount(rs) < 8 || isPlaceholderLike(rs))) score -= 5;
 
   const managerTrack = looksLikeManagerTrack(trim(body.desiredTitle), trim(body.roleDescription));
-  if (managerTrack && !hasLeadershipSignals(`${trim(body.recentProjects)} ${trim(body.reviewSummary)}`)) {
-    score -= 16;
-  }
+  if (managerTrack && !hasLeadershipSignals(`${trim(body.recentProjects)} ${trim(body.reviewSummary)}`)) score -= 16;
 
-  const targetTitle = trim(body.desiredTitle).toLowerCase();
-  const currentTitle = trim(body.currentTitle).toLowerCase();
-  const levelJump =
-    (/\bdirector|head|vp\b/.test(targetTitle) && !/\bdirector|head|vp\b/.test(currentTitle)) ||
-    (/\bprincipal|staff\b/.test(targetTitle) && !/\bprincipal|staff|lead\b/.test(currentTitle));
-  if (levelJump) score -= 7;
+  const jump = detectJumpSeverity(trim(body.currentTitle), trim(body.desiredTitle));
+  if (jump === "reinvention") score -= 22;
+  else if (jump === "leap") score -= 12;
 
   return clamp(score, 8, 92);
 }
@@ -419,111 +439,259 @@ function buildFallback(body: PromotionReadinessBody & {
   currentTitle: string;
   desiredTitle: string;
 }, readinessScore: number) {
-  const target = body.desiredTitle || "the next role";
-  const managerTrack = looksLikeManagerTrack(body.desiredTitle, body.roleDescription ?? "");
-  const roleFitReason = managerTrack && !hasLeadershipSignals(`${body.recentProjects ?? ""} ${body.reviewSummary ?? ""}`)
-    ? `The target role sounds like it expects clear leadership proof, and your current evidence does not show enough of that yet.`
-    : `Your target role is believable only to the extent that your current work already looks like ${target}.`;
-  const barReason = body.rubricClarity
-    ? `Right now your clarity on the bar is "${labelFor("rubricClarity", body.rubricClarity)}", which affects how accurately you can judge readiness.`
-    : "The next-level bar is still too fuzzy, which makes it easy to overestimate the case.";
-  const evidenceReason = body.impactLevel
-    ? `Your impact signal reads as "${labelFor("impactLevel", body.impactLevel)}", so the case rises or falls on how concrete the outcomes actually are.`
-    : "The evidence is only useful if it proves scope, outcomes, and next-level judgment clearly.";
-  const supportReason = [body.managerSupport ? labelFor("managerSupport", body.managerSupport) : "", body.visibilityLevel ? labelFor("visibilityLevel", body.visibilityLevel) : ""]
-    .filter(Boolean)
-    .join(" / ");
-  const timingReason = body.timeInRole
-    ? `You have been in role for ${labelFor("timeInRole", body.timeInRole)}, so timing only helps if the proof already reads as next-level.`
-    : "Time in seat does not matter much if the case still lacks proof.";
+  const cur = body.currentTitle || "your current role";
+  const target = body.desiredTitle || "the next level";
+  const jump = detectJumpSeverity(body.currentTitle || "", body.desiredTitle || "");
+  const dim = computeDimensionScores(body, jump);
+
+  const barLabel = body.rubricClarity ? labelFor("rubricClarity", body.rubricClarity) : "unclear";
+  const impactLabel = body.impactLevel ? labelFor("impactLevel", body.impactLevel) : "unclear";
+  const managerLabel = body.managerSupport ? labelFor("managerSupport", body.managerSupport) : "unclear";
+  const visLabel = body.visibilityLevel ? labelFor("visibilityLevel", body.visibilityLevel) : "unknown";
+  const timeLabel = body.timeInRole ? labelFor("timeInRole", body.timeInRole) : "unknown";
+  const scopeLabel = body.scopeLevel ? labelFor("scopeLevel", body.scopeLevel) : "unclear";
+  const reviewLabel = body.reviewSignal ? labelFor("reviewSignal", body.reviewSignal) : "unclear";
+  const hasProjects = body.recentProjects && wordCount(trim(body.recentProjects)) > 20;
+  const projectSnippet = hasProjects ? `"${clip(trim(body.recentProjects), 80)}"` : "your recent work";
+
+  const summaryByJump: Record<JumpSeverity, string> = {
+    reinvention: `The move from ${cur} to ${target} is not a promotion — it is a career reinvention. ${target} requires organizational leadership, executive presence, business strategy ownership, and the ability to operate at board and C-suite level. Technical excellence in ${cur} gets you into the conversation; it does not close it. Your case sits at ${readinessScore}/100 because right now the evidence reflects strong ${cur} execution, not ${target}-level scope.`,
+    leap: `Going from ${cur} to ${target} is a significant level jump, not a natural next step. At ${readinessScore}/100, the case has real structural gaps — most importantly around proof that you are already operating at ${target} scope and can show the organizational influence, strategic thinking, and cross-functional leadership that role demands.`,
+    step: `Your case for ${target} lands at ${readinessScore}/100. The score reflects what the evidence actually proves today — not what you are capable of or what you are aiming for. The weakest areas are ${dim.roleFit < dim.barClarity ? "how clearly the case reads as next-level scope" : "the clarity of the bar and how tightly your evidence maps to it"}, and those are the things that move the number most.`,
+  };
+
+  const realityByJump: Record<JumpSeverity, string> = {
+    reinvention: `The gap between ${cur} and ${target} is not just a title change — it is a fundamentally different job. ${target} roles are judged on whether you can run a company function, develop executives, set long-term technical or business direction, and carry credibility with investors, boards, or the full leadership team. Being the best ${cur} in the room is not a credible argument for that. The question is what your evidence shows about operating at that level today.`,
+    leap: `Making the case for ${target} from ${cur} means proving you have already been doing ${target}-level work — not that you are ready to try it. Scope, organizational influence, and cross-functional decision-making at the right altitude are what the decision-makers will look for. If the strongest examples still read like excellent ${cur} execution, the case will not hold up.`,
+    step: `The question is not whether you do good work. It is whether your evidence reads as clearly next-level to someone who has never seen you in action. If your examples still sound like strong ${cur} performance rather than ${target}-level thinking and scope, the case will not survive a hard calibration.`,
+  };
+
+  const scoreReasonByJump: Record<JumpSeverity, string> = {
+    reinvention: `The score is this low because the jump from ${cur} to ${target} is enormous. Your impact signal is "${impactLabel}", your scope reads as "${scopeLabel}", and your visibility is "${visLabel}". None of those, individually or together, currently prove the organizational leadership and executive judgment that ${target} demands.`,
+    leap: `The score reflects the size of this jump combined with what the evidence actually shows. Scope is "${scopeLabel}", impact is "${impactLabel}", and bar clarity is "${barLabel}". Closing this gap requires proving next-level operating range, not just strong current-level execution.`,
+    step: `I scored what you gave me — not the version of you that might exist in your head. Scope is "${scopeLabel}", impact is "${impactLabel}", bar clarity is "${barLabel}", and support is "${managerLabel}". Those signals together produce this number. The written proof and the clarity of how it maps to the ${target} bar are what move it.`,
+  };
+
+  const gapsByJump: Record<JumpSeverity, { area: string; why: string; nextStep: string }[]> = {
+    reinvention: [
+      { area: "Executive leadership proof", why: `${target} requires evidence of organizational leadership at scale — setting direction for a function, developing other leaders, and operating with board or C-suite-level accountability. Your current evidence as a ${cur} does not yet demonstrate this.`, nextStep: `Document any experience leading orgs, setting company-level technical or product strategy, or managing managers. If that experience does not exist yet, you need to build it before the ${target} case becomes credible.` },
+      { area: "Scope of decision-making", why: `The decisions that matter for ${target} are ones that shape the direction of the business, not just deliver within it. Right now your scope reads as "${scopeLabel}", which is ${dim.roleFit < 50 ? "below" : "at"} what a ${target} candidate needs to show.`, nextStep: "Find examples where your decisions changed the direction of something beyond your immediate team or product area. If none exist, that is the gap to close first." },
+      { area: "External and executive visibility", why: `${target}-level candidates are usually known beyond their immediate manager — by the board, investors, or the full leadership team. Your visibility is currently "${visLabel}", which limits how many people can defend the case.`, nextStep: "Start building relationships and presence at the level above your current visibility ceiling. This is a long-term move, not a quick fix." },
+    ],
+    leap: [
+      { area: "Operating scope", why: `${target} candidates need to show they are already working at that level — not just aspiring to it. Your current scope reads as "${scopeLabel}", and the gap to ${target} is real.`, nextStep: `Find or create opportunities to operate at ${target} scope before the ask. Proof that you already do the job makes the case far stronger than proof that you are ready to try.` },
+      { area: "Evidence quality", why: `Your impact signal is "${impactLabel}". For a jump to ${target}, reviewers need to see business outcomes at significant scale — not just team wins or solid project delivery.`, nextStep: "Identify your three strongest examples and stress-test each one: does it prove next-level scope, judgment, and outcome? If not, sharpen it or find a better one." },
+      { area: "Decision-maker visibility", why: `With visibility at "${visLabel}", the people who need to believe this case may not have enough direct exposure to your work to feel confident backing it.`, nextStep: "Get your work in front of the right people through legitimate channels — project readouts, cross-functional partnerships, or skip-level conversations where your work gets direct exposure." },
+    ],
+    step: [
+      { area: "Proof quality", why: `Your impact reads as "${impactLabel}". The difference between ${cur} and ${target} often comes down to whether your evidence shows ownership, judgment, and scope beyond execution.`, nextStep: `Rewrite ${projectSnippet} to surface the decisions, stakes, and outcomes that prove next-level operating. Remove anything that sounds like activity.` },
+      { area: "Bar clarity", why: `Your clarity on the ${target} bar is "${barLabel}". If you are fuzzy on what exactly is expected, you cannot tell how close or far you actually are.`, nextStep: "Get the clearest possible version of the next-level expectations — from your manager, skip-level, or internal rubrics — and map your strongest evidence against them explicitly." },
+      { area: "Support and advocacy", why: `Your manager support is "${managerLabel}" and visibility is "${visLabel}". The case can be strong and still stall if the right people cannot repeat it upward with confidence.`, nextStep: "Pressure-test whether your manager is genuinely prepared to advocate, and whether the people who influence the decision have seen enough of your work to do the same." },
+    ],
+  };
+
+  const managerPitchByJump: Record<JumpSeverity, string> = {
+    reinvention: `I want a direct conversation about what a credible path to ${target} actually looks like from where I am as a ${cur}. I am not looking for encouragement. I want to know what the real gap is — what evidence of organizational leadership, executive scope, and strategic impact would need to exist before this becomes a defensible case — and whether you think that gap is closeable in a realistic timeframe.`,
+    leap: `I want to pressure-test whether the case for ${target} is real or still premature. I can walk you through the strongest proof I have around scope and impact, and I want your honest read on how close it actually lands. Specifically, I want to know what still reads as ${cur}-level thinking and what I would need to show to close that gap.`,
+    step: `I want to check whether my case for ${target} is actually ready or whether I am overestimating it. I am not looking for reassurance — I want the blunt version of what already reads as next-level and what still does not. If the timing is wrong, I would rather know now and work against the real gaps than push and get blocked.`,
+  };
+
+  const weakestDimKey = Object.entries(dim).sort((a, b) => a[1] - b[1])[0][0];
+  const weakestLabel = { roleFit: "how your scope reads", barClarity: "bar clarity", evidence: "your impact evidence", support: "manager and decision-maker support", timing: "timing" }[weakestDimKey] ?? "your weakest area";
+
+  const quickWins = [
+    {
+      title: jump === "reinvention" ? "Prove executive scope" : "Start with the gaps",
+      body: jump === "reinvention"
+        ? `The weakest part of the case is organizational leadership proof. Start building or documenting that before anything else.`
+        : `Fix ${weakestLabel} first — that is where the case collapses under pressure.`,
+      jumpTo: "gaps" as const,
+    },
+    {
+      title: "Pressure-test support",
+      body: `With support at ${dim.support < 50 ? "a concerning level" : "a reasonable level"}, you need a direct conversation before you assume the backing is real.`,
+      jumpTo: "conversation" as const,
+    },
+    {
+      title: "Sharpen the evidence",
+      body: `Impact reads as "${impactLabel}". The strongest moves in the fix are about making your proof harder to challenge, not adding more of it.`,
+      jumpTo: "plan" as const,
+    },
+  ];
+
+  const evidenceChecklistByJump: Record<JumpSeverity, string[]> = {
+    reinvention: [
+      `Show organizational leadership: who did you develop, what direction did you set, what did leadership change because of your judgment?`,
+      `Show business-level impact, not team-level impact: what changed at the company or function level because of decisions you made?`,
+      `Show executive presence: can you operate with boards, investors, or the full leadership team with credibility?`,
+      `Show that other leaders trust your technical and strategic judgment — not just your individual output.`,
+    ],
+    leap: [
+      `Prove you are already operating at ${target} scope — not planning to. Find examples where you did the actual job at the higher level.`,
+      `Show organizational influence: outcomes that happened because of your decisions, not just your execution.`,
+      `Show cross-functional impact at significant scale — not just team collaboration.`,
+      `Make the business effect of each example impossible to miss — outcomes, stakes, and why it mattered to leadership.`,
+    ],
+    step: [
+      "Every example must show ownership, scope, and business effect — not just completion and effort.",
+      `Tie your strongest win in ${projectSnippet} to a specific outcome that mattered beyond your immediate team.`,
+      "Make next-level judgment visible: where did you take ownership of an ambiguous or high-stakes decision?",
+      `Show the bar clearly: which ${target} expectations does each example satisfy, and which ones does it fall short of?`,
+    ],
+  };
+
+  const exampleEvidenceByJump: Record<JumpSeverity, string[]> = {
+    reinvention: [
+      `I set the technical or product direction for an area of the business and the outcome changed how leadership made decisions about resourcing or strategy.`,
+      `I built or transformed a team or function — not just led a project — and the results were defensible to leadership, investors, or the board.`,
+      `I operated at the level above my title, and the people at that level treated my judgment as equivalent to theirs in high-stakes decisions.`,
+    ],
+    leap: [
+      `I owned a high-stakes outcome that crossed team or org boundaries, and what changed because of my decisions is clear and specific.`,
+      `I made decisions that a director or VP would normally make, and the outcome justified the trust — with evidence other people can repeat.`,
+      `I drove cross-functional alignment on something complex and the result mattered at a level the business cared about.`,
+    ],
+    step: [
+      `On ${projectSnippet}, the decision I made that reads as next-level is [specific decision] — and the outcome was [specific measurable result].`,
+      `I operated beyond my formal scope when [specific situation], took ownership of [specific outcome], and the result changed [specific thing].`,
+      `The proof that this is not just strong ${cur} execution is [specific evidence of scope, judgment, or business impact beyond the expected level].`,
+    ],
+  };
+
+  const conversationPairs: ConversationPair[] = jump === "reinvention" ? [
+    {
+      theyMightSay: `${target} is a very different job from ${cur}. What makes you think you’re ready for that level?`,
+      yourResponse: `I do not think I am fully ready yet — that is why I want to have this conversation. What I want to understand is what proof of organizational leadership and executive scope would need to exist before this becomes a defensible case. I want to work backward from that bar, not forward from where I am.`,
+    },
+    {
+      theyMightSay: `Your technical depth is strong, but I’m not sure it translates to the organizational and strategic demands of ${target}.`,
+      yourResponse: `That is a fair challenge. The question is whether I have shown enough evidence of organizational scope and business-level judgment, not just technical execution. I want to map my strongest examples against what you think the real ${target} bar looks like and hear directly where the gaps are.`,
+    },
+    {
+      theyMightSay: "I’d need to see you operating at a much bigger level before I could support this.",
+      yourResponse: `I agree that the bar is higher than where I am today. What I want to know is whether the path is realistic given my current role and what evidence would be most convincing. I would rather build toward the right thing than guess at what matters.`,
+    },
+    {
+      theyMightSay: `The visibility at ${visLabel} level is not enough for a ${target} case. I can’t fully back someone leadership hasn’t seen operate.`,
+      yourResponse: `That is one of the clearest gaps in my case right now. What would the right kind of visibility look like — specific people, specific contexts, or specific proof points I should be getting in front of them?`,
+    },
+  ] : jump === "leap" ? [
+    {
+      theyMightSay: `This feels like a bigger jump than you might realize. What makes you confident the case is ready now?`,
+      yourResponse: `I am not entirely confident it is ready — that is part of why I want a direct conversation. What I want to pressure-test is whether my strongest examples around scope and impact already read as ${target}-level or whether they still sound like excellent ${cur} work. I want your honest read on that.`,
+    },
+    {
+      theyMightSay: `Your impact has been strong but mostly at the team level. ${target} needs to see organizational scope.`,
+      yourResponse: `That is the gap I want to close specifically. My strongest cross-org example is around ${projectSnippet}. I want to know if that reads as the right kind of scope or whether I need to find a bigger example before the case becomes defensible.`,
+    },
+    {
+      theyMightSay: "I’d want to see more sustained evidence of operating above your level before I could support this.",
+      yourResponse: `I understand. What specific behaviors, decisions, or outcomes would count as that evidence in your read? I would rather know what "sustained" means to you than assume I am on track when I might not be.`,
+    },
+    {
+      theyMightSay: `Support at ${managerLabel} level might not be enough to carry this through calibration.`,
+      yourResponse: `That is something I want to address directly. Who else needs to see stronger evidence, and what is the best way for me to get my work in front of those people through real work rather than just asking for face time?`,
+    },
+  ] : [
+    {
+      theyMightSay: `You’re doing strong work, but I’m not convinced you’re operating at ${target} level consistently yet.`,
+      yourResponse: `I want to test that directly. The examples I would lead with are around ${projectSnippet}. Can you tell me where that reads as next-level and where it still sounds like strong ${cur} execution? I want the specific feedback, not the general read.`,
+    },
+    {
+      theyMightSay: "What’s the strongest proof point you have that you’re ready for this level?",
+      yourResponse: `The example I would lead with is ${projectSnippet}. The reason I think it reads as ${target}-level is [specific ownership, decision, outcome]. I want to hear whether that lands that way to you or whether the case needs a stronger example.`,
+    },
+    {
+      theyMightSay: "Your bar clarity is still developing — I’m not sure you know exactly what’s expected at the next level.",
+      yourResponse: `That is one of the things I want your help with. My current read on the bar is "${barLabel}". I would rather map my proof against what you think the actual expectations are than keep calibrating against my own guess. What should the strongest ${target} case look like to you?`,
+    },
+    {
+      theyMightSay: `The timing feels slightly premature. I’d want to see this for one more cycle.`,
+      yourResponse: `I can accept that — I just want to know what specifically would be different after one more cycle. Is it a single missing proof point, a visibility gap, or something about the consistency of the evidence? I would rather leave with a specific target than a general "not yet."`,
+    },
+  ];
+
+  const actionPlanByJump: Record<JumpSeverity, { label: string; action: string }[]> = {
+    reinvention: [
+      { label: "This week", action: `Have a direct conversation about whether the ${target} path is realistic from ${cur} and what the organizational leadership proof bar actually requires. Leave with specific criteria, not encouragement.` },
+      { label: "Next 30 days", action: "Identify experiences that prove leadership at an organizational level — people development, function-setting, business-level decisions — and document them in a way that would survive scrutiny from a board or executive team." },
+      { label: "This quarter", action: "Build visibility beyond your manager by getting your work, your judgment, and your strategic thinking in front of the people who would need to believe the case before they would support it." },
+      { label: "Before the ask", action: "Do not make a formal push for the role until the organizational leadership evidence exists and the right people have seen enough of your work to defend it independently." },
+    ],
+    leap: [
+      { label: "This week", action: `Rewrite your three strongest examples around ${projectSnippet} to surface the organizational scope, decisions, and business impact — not just the delivery. Test whether each one reads as ${target}-level or still sounds like great ${cur} work.` },
+      { label: "Next 30 days", action: `Close the biggest gap in ${weakestLabel}. If it is scope, find or create a concrete opportunity to operate at ${target} level. If it is visibility, get your work in front of the right people through real work.` },
+      { label: "This quarter", action: "Have a direct, specific promotion-readiness conversation with your manager — not a general check-in. Come with the evidence, ask for the specific gaps, and leave with a clear bar and a timeline." },
+      { label: "Before the ask", action: "Confirm that your manager is genuinely prepared to defend the case, not just supportive in the abstract. If the backing is soft, close that gap before you push timing." },
+    ],
+    step: [
+      { label: "This week", action: `Take ${projectSnippet} and rewrite the strongest outcome as a proof point — ownership, decision, business effect, why it matters at the ${target} level. That one example done well is more useful than polishing five weak ones.` },
+      { label: "Next 2 weeks", action: `Address ${weakestLabel} directly. Get the real bar from your manager or internal rubric, map your evidence against it specifically, and identify the single most important gap to close first.` },
+      { label: "This cycle", action: "Make the case more visible to the people who actually influence the promotion call. Not through self-promotion, but through getting work in front of them that they can judge firsthand." },
+      { label: "Before the ask", action: "Leave your next manager conversation with three clear things: the proof that already reads as next-level, the specific gap still missing, and a realistic timing signal." },
+    ],
+  };
+
+  const riskFlagsByJump: Record<JumpSeverity, string[]> = {
+    reinvention: [
+      `The gap between ${cur} and ${target} is structural, not incremental. Technical credibility alone does not make the case — you need proof of organizational leadership that most ${cur} roles do not naturally produce.`,
+      "If the people who need to support this have not seen you operate at the level the role requires, the backing will evaporate when it matters.",
+      "Pushing before the organizational evidence exists makes the ask harder to land, not easier.",
+    ],
+    leap: [
+      `Strong ${cur} execution looks different from ${target} scope to a calibration committee. The risk is having evidence that sounds impressive but still reads as one level below where it needs to be.`,
+      `With support at "${managerLabel}", the backing may not hold under the scrutiny that a ${target} promotion typically gets.`,
+      "Moving too fast without the right visibility means the decision-makers will not have enough direct proof to feel confident supporting it.",
+    ],
+    step: [
+      `Bar clarity at "${barLabel}" means you may be over-crediting parts of the case that do not actually meet the ${target} bar. Get the real criteria before you finalize the evidence.`,
+      `Impact at "${impactLabel}" means the evidence needs to be sharper, not just present. The risk is having the right stories but telling them at the wrong altitude.`,
+      "Good performers still get blocked when the case is easy to question. Make sure every example would survive a hard challenge on ownership, scope, and business effect.",
+    ],
+  };
 
   return {
-    summary: `Here’s my blunt read: your case for ${target} lands at ${readinessScore}/100 today because I can only defend what your evidence actually proves. If the proof does not clearly read as next-level scope, impact, and judgment, I am not going to pretend the case is stronger than it is.`,
-    realityCheck: `Wanting ${target} is not the same as being ready for ${target}. If your examples are vague, thin, or still read like strong work at your current level, I need to score the case low and tell you that directly.`,
-    scoreReason: "I scored what you showed me, not the potential version of you. The dropdowns help with context, but the written proof, clarity of the promotion bar, and visible support are what really move the number.",
+    summary: summaryByJump[jump],
+    realityCheck: realityByJump[jump],
+    scoreReason: scoreReasonByJump[jump],
     rationale: [
-      "You only get credit for proof that would still hold up if someone challenged it in calibration.",
-      "Promotion readiness is about defendable evidence, not effort, intent, or how badly you want the title.",
-      "Even genuinely strong work gets blocked when the outcomes, scope jump, or sponsorship still sound fuzzy.",
+      `The case for ${target} from ${cur} requires proving ${jump === "reinvention" ? "organizational leadership and executive judgment" : jump === "leap" ? "you are already operating at that level" : "the evidence reads as next-level, not just strong at your current level"}.`,
+      `Your impact signal is "${impactLabel}" and your scope reads as "${scopeLabel}" — those two signals together define how much work the case still needs.`,
+      `Visibility at "${visLabel}" and manager support at "${managerLabel}" determine whether the right people can repeat the case upward without needing you in the room.`,
     ],
     strengths: [
-      "You gave me a specific target role to judge instead of a vague growth goal.",
-      "There is at least enough context here for me to tell you where the case bends and where it breaks.",
-      "You gave me real promotion inputs to work with, which is already better than guessing in the dark.",
+      reviewLabel && reviewLabel !== "unclear" ? `Your review signal reads as "${reviewLabel}" — that is the most credible external proof source you have, and it matters.` : `You are clear-eyed enough about the gap to get a real diagnosis instead of just looking for validation.`,
+      body.managerSupport === "actively_advocating" ? "Your manager is actively advocating — that is rare and meaningful. Do not waste it by presenting a case that is harder to defend than it needs to be." : `You have ${timeLabel} in this role, which means the evidence base is real, not thin.`,
+      hasProjects ? `You have specific project work to point to in ${projectSnippet} — that is a better foundation than vague claims about general contributions.` : "You know exactly what role you are targeting, which makes the gap analysis possible.",
     ],
-    gaps: [
-      { area: "Proof quality", why: "Your strongest examples still need to read like next-level evidence, not just solid execution.", nextStep: "Rewrite your best wins around ownership, scope, judgment, and business effect." },
-      { area: "Promotion bar", why: "If you are fuzzy on the real bar, you are probably over-crediting parts of the case.", nextStep: "Get the clearest internal expectations you can and map your proof against them line by line." },
-      { area: "Support", why: "A promotion case stalls fast when the right people cannot repeat it upward with confidence.", nextStep: "Pressure-test manager support and visibility before you push timing or ask for backing." },
-    ],
-    conversationPairs: [
-      {
-        theyMightSay: `I'm not sure your work on ${body.recentProjects ? body.recentProjects.slice(0, 80).trim() : "recent projects"} really demonstrates ${target}-level scope yet.`,
-        yourResponse: `That's fair to push on. The strongest case I can make is around the ownership and outcomes — specifically ${body.impactLevel === "repeatable_measured" ? "the measurable, repeatable results I can point to" : "the business outcomes I drove even where the metrics are still thin"}. I want to close that gap specifically.`,
-      },
-      {
-        theyMightSay: "The timing feels a bit early — I'd want to see you sustain this for another cycle.",
-        yourResponse: `I understand. I'd rather know exactly what "sustained" looks like to you — is it scope, consistency, or specific proof I haven't shown yet? I want to work against the real bar, not my own assumptions.`,
-      },
-      {
-        theyMightSay: `Other ${target} candidates have had more cross-functional impact. I'm not sure the visibility is there yet.`,
-        yourResponse: `That's one of the areas I want to directly address. My visibility is currently ${body.visibilityLevel ? body.visibilityLevel.replace(/_/g, " ") : "mostly team-level"}, and I know that affects how the case lands. Can you help me understand which audiences need to see this work most?`,
-      },
-      {
-        theyMightSay: "I'm not fully convinced the promotion bar is clear to you yet.",
-        yourResponse: `That's a real concern. My clarity on the bar is ${body.rubricClarity ? body.rubricClarity.replace(/_/g, " ") : "limited"} right now. I'd rather get your direct read on where my case meets the bar and where it falls short than keep calibrating against my own guess.`,
-      },
-      {
-        theyMightSay: "I want to support you but I'm not sure I can defend the full case yet.",
-        yourResponse: `That's exactly what I want to understand. Which parts of the case still feel thin or hard to repeat upward? I want to close those gaps before I ask for backing, not after.`,
-      },
-    ],
+    gaps: gapsByJump[jump],
+    conversationPairs,
     managerQuestions: [
-      `If you had to defend my case for ${target} to the decision-makers today, what specific proof would still be missing?`,
-      `Which parts of my recent work already read as ${target}-level to you, and which parts still sound like strong current-level execution?`,
-      "What would change the timing from 'not yet' to 'this cycle' — is it a specific proof point, a visibility gap, or something else?",
-      "Who else besides you needs to see stronger evidence before my promotion becomes easy to support in calibration?",
+      `If you had to defend my case for ${target} to the decision-makers right now, what specific proof would be hardest to justify?`,
+      `Which parts of ${projectSnippet} already read as ${target}-level work to you, and which parts still sound like strong ${cur} execution?`,
+      jump === "reinvention"
+        ? `What does a credible ${target} candidate from an ${cur} background actually need to prove — and how far do you think I am from that bar?`
+        : `What would change the timing from "not yet" to "this cycle" — is it one missing proof point, a visibility gap, or something else entirely?`,
+      "Who else besides you needs to see stronger evidence before my promotion becomes easy to support in calibration — and how do I get my work in front of them through real work?",
     ],
     nextMoves: [
-      "Rewrite your best wins into tight proof points with outcomes, stakes, and ownership.",
-      "Close the weakest evidence gap before you spend time polishing the rest of the story.",
-      "Get direct feedback on what still feels unproven instead of guessing where the resistance is.",
-      "Make the case more visible to the people who actually influence the decision.",
+      `Take the strongest example from ${projectSnippet} and rewrite it so the ownership, decision, and business effect are impossible to miss.`,
+      `Address ${weakestLabel} directly this week — that is the part of the case that would collapse first under real scrutiny.`,
+      "Get a direct read from your manager on where the case is most vulnerable, not the general ‘you’re doing great’ version.",
+      "Make sure the people who influence the decision have seen enough of your work firsthand to say something specific — not just be vaguely supportive.",
     ],
-    quickWins: [
-      { title: "Start with the weak spots", body: "Do not polish the happy parts first. Fix the part of the case that would collapse under pushback.", jumpTo: "gaps" as const },
-      { title: "Pressure-test support", body: "Get an honest manager signal before you tell yourself the timing is good.", jumpTo: "conversation" as const },
-      { title: "Tighten the proof", body: "Sharpen the examples before you sharpen the pitch.", jumpTo: "plan" as const },
-    ],
-    evidenceChecklist: [
-      "Tie every example to next-level behavior, not just effort or reliability.",
-      "Use business outcomes, metrics, or meaningful consequences whenever you honestly can.",
-      "Make ownership, judgment, and scope obvious enough that another person could repeat the story upward.",
-      "Use review language only when it truly helps the case instead of decorating it.",
-    ],
-    exampleEvidence: [
-      `I owned work that clearly went beyond my current level and changed a result leadership actually cared about.`,
-      `I took a messy, high-visibility problem from ambiguity to outcome and I can explain exactly what changed because of my decisions.`,
-      `I created leverage beyond my own output through strategy, influence, or repeatable systems that other people benefited from.`,
-    ],
-    managerPitchExample: `I want to pressure-test whether I actually have a credible case for ${target}. I am not looking for encouragement. I want the blunt version of what already reads as next-level and what still does not.`,
-    actionPlan: [
-      { label: "This week", action: "Rewrite your strongest examples into crisp proof points that can survive challenge." },
-      { label: "Next 2 weeks", action: "Close the weakest evidence gap with a sharper example, a harder metric, or stronger outside proof." },
-      { label: "This cycle", action: "Make the case clearer to your manager and the people who will influence the promotion call." },
-      { label: "Before the ask", action: "Leave the manager conversation with a clear proof bar, owner, and timing signal." },
-    ],
-    riskFlags: [
-      "A weak case often feels stronger from the inside than it does to a reviewer.",
-      "Promotion timing falls apart fast when the evidence is vague or the support is thin.",
-      "Good performers still get blocked when the case is hard for someone else to repeat upward.",
-    ],
+    quickWins,
+    evidenceChecklist: evidenceChecklistByJump[jump],
+    exampleEvidence: exampleEvidenceByJump[jump],
+    managerPitchExample: managerPitchByJump[jump],
+    actionPlan: actionPlanByJump[jump],
+    riskFlags: riskFlagsByJump[jump],
     dimensions: [
-      { label: "Role fit", score: clamp(readinessScore + (managerTrack ? -6 : 2), 15, 95), reason: roleFitReason },
-      { label: "Bar clarity", score: clamp(readinessScore + (body.rubricClarity === "exact_rubric" ? 10 : body.rubricClarity === "guessing" ? -15 : 0), 10, 95), reason: barReason },
-      { label: "Evidence & impact", score: clamp(readinessScore + (body.impactLevel === "repeatable_measured" ? 8 : body.impactLevel === "hard_to_show" ? -12 : 0), 10, 95), reason: evidenceReason },
-      { label: "Support & visibility", score: clamp(readinessScore + (body.managerSupport === "actively_advocating" ? 8 : body.managerSupport === "skeptical" ? -12 : 0) + (body.visibilityLevel === "low_visibility" ? -8 : 0), 10, 95), reason: supportReason ? `Your current support picture is ${supportReason}. That affects how easily the case can be defended by other people.` : "Support matters because promotion cases are repeated upward, not judged in private." },
-      { label: "Timing & risk", score: clamp(readinessScore + (body.timeInRole === "2plus_y" ? 5 : body.timeInRole === "under_6m" ? -8 : 0), 10, 95), reason: `${timingReason}${body.blockers ? ` Current blockers: ${clip(body.blockers, 180)}.` : ""}` },
+      { label: "Role fit", score: dim.roleFit, reason: jump === "reinvention" ? `The scope gap between ${cur} and ${target} is substantial. Your current scope reads as "${scopeLabel}", and ${target} requires organizational leadership and executive-level operating range well beyond that.` : `Your scope reads as "${scopeLabel}". ${dim.roleFit < 55 ? `For ${target}, you need evidence that you are already operating above that level — not just aspiring to.` : `That is a reasonable foundation for the case, but it needs to be backed by clear outcome evidence to hold up.`}` },
+      { label: "Bar clarity", score: dim.barClarity, reason: `Your clarity on the ${target} bar is "${barLabel}". ${dim.barClarity < 50 ? `That is one of the highest-risk gaps in your case — if you are guessing what the bar is, you cannot accurately judge how far your evidence actually goes.` : `That clarity helps, but make sure the criteria you think matter are the ones that actually move the decision.`}` },
+      { label: "Evidence & impact", score: dim.evidence, reason: `Your impact signal is "${impactLabel}". ${dim.evidence < 50 ? `For the ${target} case to hold up, the evidence needs to show business-level outcomes, ownership, and scope — not just solid work.` : `That is a real foundation, but the evidence needs to be presented at the right altitude to read as ${target}-level rather than ${cur}-level.`}` },
+      { label: "Support & visibility", score: dim.support, reason: `Manager support is "${managerLabel}" and visibility is "${visLabel}". ${dim.support < 50 ? `That combination makes the case hard to defend in calibration — the people who need to believe it may not have enough direct exposure to your work to back it with confidence.` : `That base is usable, but promotion cases are won or lost on advocacy quality, not just good intent from your manager.`}` },
+      { label: "Timing & risk", score: dim.timing, reason: `You have been in role for "${timeLabel}". ${dim.timing < 50 ? `That timing, combined with the other gaps, makes a push this cycle high-risk.` : `Timing is not the bottleneck — the limiting factor is the strength of the evidence and the readiness of the support.`}${body.blockers && !isPlaceholderLike(body.blockers) ? ` Noted blockers: ${clip(trim(body.blockers), 160)}.` : ""}` },
     ],
   };
 }
