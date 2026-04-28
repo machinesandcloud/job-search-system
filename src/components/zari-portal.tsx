@@ -890,8 +890,8 @@ const STAGE_NAV_LABELS: Record<CareerStage, Record<Screen, string>> = {
     interview:      "Practice the Ask",
     "cover-letter": "Build the Case",
     linkedin:       "Get Allies",
-    documents:      "My Files",
-    plan:           "What's Next",
+    documents:      "The Vault",
+    plan:           "The Sequence",
   },
   "salary": {
     session:        "Talk to Zari",
@@ -981,7 +981,7 @@ const STAGE_PROMPTS: Record<CareerStage, string[]> = {
     "What's the one thing still blocking my case?",
     "Help me figure out who I need on my side",
     "Walk me through how to ask for the promotion",
-    "What should I do this week?",
+    "What's the one move that matters most this week?",
     "My manager keeps moving the goalposts — what do I do?",
   ],
   "salary": [
@@ -2626,20 +2626,20 @@ const PROMOTION_READINESS_DEFAULT_FORM: PromotionReadinessForm = {
 
 const PROMOTION_READINESS_STEPS = [
   {
-    title: "Where you're trying to go",
-    subtitle: "Name the title you want and the current role you're trying to grow out of.",
+    title: "The destination",
+    subtitle: "Name exactly where you're trying to land, and what role you're leaving behind.",
   },
   {
-    title: "What does next level actually mean?",
-    subtitle: "Give Zari the clearest version of what promotion-ready means at your company.",
+    title: "The bar",
+    subtitle: "What does promotion-ready mean at your company? Be specific — this is what Zari scores you against.",
   },
   {
-    title: "Show me your best work",
-    subtitle: "The wins and outcomes that make this case real.",
+    title: "The evidence",
+    subtitle: "Your strongest wins. The outcomes that should be undeniable.",
   },
   {
-    title: "Who's with you — and what's in the way",
-    subtitle: "Check manager support, review signal, visibility, and what still makes the case risky.",
+    title: "The real picture",
+    subtitle: "Manager support, review history, visibility, and what could still kill this.",
   },
 ] as const;
 
@@ -3399,7 +3399,7 @@ function PromotionSharedIntakeFlow({
       case 1:
         return "Add your current title, target title, and time in role before continuing.";
       case 2:
-        return "Paste the next-level job description and tell Zari how clear the bar is.";
+        return "Describe the promotion bar and tell Zari how clear it is before continuing.";
       case 3:
         return "Add your key projects and answer the scope and impact questions before continuing.";
       case 4:
@@ -3700,11 +3700,11 @@ function ScreenPromotionReadiness() {
       case 1:
         return "Add your current title, target title, and time in role before continuing.";
       case 2:
-        return "Paste the next-level job description and tell Zari how clear the bar is.";
+        return "Describe the promotion bar and tell Zari how clear it is before continuing.";
       case 3:
         return "Add your key projects and answer the scope and impact questions before continuing.";
       case 4:
-        return "Set the review signal, manager support, and visibility before running the audit.";
+        return "Set the review signal, manager support, and visibility before scoring.";
       default:
         return "Complete the remaining questions before continuing.";
     }
@@ -3783,9 +3783,9 @@ function ScreenPromotionReadiness() {
                 <div key={i} style={{ width:11,height:11,borderRadius:"50%",background:"#818CF8",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite`, boxShadow:"0 0 10px rgba(129,140,248,0.5)" }}/>
               ))}
             </div>
-            <p style={{ fontSize:17, fontWeight:800, color:"white", marginBottom:8, letterSpacing:"-0.02em" }}>Running your reality check…</p>
+            <p style={{ fontSize:17, fontWeight:800, color:"white", marginBottom:8, letterSpacing:"-0.02em" }}>Scoring your case…</p>
             <p style={{ fontSize:13.5, color:"rgba(255,255,255,0.42)", maxWidth:420, margin:"0 auto", lineHeight:1.6 }}>
-              Zari is scoring your case, mapping the gaps, and building a concrete plan.
+              Measuring what you have against what the next level actually requires.
             </p>
           </div>
         </div>
@@ -3797,11 +3797,11 @@ function ScreenPromotionReadiness() {
     const verdictStyle = verdictMeta[result.verdict];
     const scoreColor = dimColor(result.readinessScore);
     const resultTabs: Array<{ id: PromotionAuditTab; label: string; badge?: string }> = [
-      { id:"overview", label:"Your Score" },
-      { id:"gaps", label:"Gaps", badge:String(result.gaps.length) },
-      { id:"plan", label:"What to Do", badge:String(result.actionPlan.length) },
-      { id:"conversation", label:"Manager Prep", badge:String(result.managerQuestions.length) },
-      { id:"examples", label:"Examples" },
+      { id:"overview", label:"The Verdict" },
+      { id:"gaps", label:"Blockers", badge:String(result.gaps.length) },
+      { id:"plan", label:"The Fix", badge:String(result.actionPlan.length) },
+      { id:"conversation", label:"The Conversation", badge:String(result.managerQuestions.length) },
+      { id:"examples", label:"What Good Looks Like" },
     ];
     const panelCardStyle = {
       borderRadius:20,
@@ -3846,7 +3846,7 @@ function ScreenPromotionReadiness() {
                 {form.desiredTitle || "Your promotion case"} — is it ready?
               </h1>
               <p style={{ fontSize:14, color:"#68738A", lineHeight:1.7, margin:0, maxWidth:760 }}>
-                Zari's blunt read on where your case stands, what's missing, and what to do next.
+                No softening. Here's where you are, what's weak, and what to fix first.
               </p>
             </div>
             <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
@@ -3892,7 +3892,7 @@ function ScreenPromotionReadiness() {
                       <div style={{ display:"flex", alignItems:"center", gap:18 }}>
                         <ScoreRing score={result.readinessScore} color={scoreColor} size={180} />
                         <div>
-                          <div style={{ fontSize:11, fontWeight:800, color:"#6D4CFF", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Your score</div>
+                          <div style={{ fontSize:11, fontWeight:800, color:"#6D4CFF", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Readiness score</div>
                           <div style={{ fontSize:46, fontWeight:900, color:"#111827", letterSpacing:"-0.05em", lineHeight:1, marginBottom:10 }}>{result.readinessScore}</div>
                           <div style={{ fontSize:13.5, color:"#68738A", lineHeight:1.7, maxWidth:220 }}>
                             {result.rationale[0] ?? result.scoreReason}
@@ -3968,7 +3968,7 @@ function ScreenPromotionReadiness() {
 
                   <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:16 }}>
                     <div style={{ ...panelCardStyle, padding:"18px 18px 16px" }}>
-                      <div style={{ fontSize:11, fontWeight:800, color:"#16A34A", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>What's working</div>
+                      <div style={{ fontSize:11, fontWeight:800, color:"#16A34A", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>What's solid</div>
                       <div style={{ display:"grid", gap:10 }}>
                         {result.strengths.map(item => (
                           <div key={item} style={{ fontSize:13.5, color:"#14532D", lineHeight:1.75, padding:"11px 12px", borderRadius:14, background:"#F0FFF4", border:"1px solid #BBF7D0" }}>
@@ -3995,9 +3995,9 @@ function ScreenPromotionReadiness() {
               {resultTab === "gaps" && (
                 <div style={{ display:"grid", gap:18 }}>
                   <div style={{ ...panelCardStyle, padding:"22px 24px 20px" }}>
-                    <div style={{ fontSize:11, fontWeight:800, color:"#6D4CFF", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>What's missing</div>
+                    <div style={{ fontSize:11, fontWeight:800, color:"#6D4CFF", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>The gaps</div>
                     <p style={{ fontSize:15, color:"#334155", lineHeight:1.8, margin:"0 0 16px" }}>
-                      The gaps that make the case harder to approve. Close them in order, starting with the weakest signal.
+                      What makes the case harder to approve. Close them in order — start with the weakest signal.
                     </p>
                     <div style={{ display:"grid", gap:12 }}>
                       {result.gaps.map(item => (
@@ -4013,7 +4013,7 @@ function ScreenPromotionReadiness() {
                   </div>
 
                   <div style={{ ...panelCardStyle, padding:"18px 20px 16px" }}>
-                    <div style={{ fontSize:11, fontWeight:800, color:"#6D4CFF", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>What strong proof looks like</div>
+                    <div style={{ fontSize:11, fontWeight:800, color:"#6D4CFF", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>The proof bar</div>
                     <div style={{ display:"grid", gap:10 }}>
                       {result.evidenceChecklist.map(item => (
                         <div key={item} style={{ fontSize:13.5, color:"#334155", lineHeight:1.75, padding:"11px 12px", borderRadius:14, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
@@ -4045,7 +4045,7 @@ function ScreenPromotionReadiness() {
                   </div>
 
                   <div style={{ ...panelCardStyle, padding:"18px 20px 16px" }}>
-                    <div style={{ fontSize:11, fontWeight:800, color:"#6D4CFF", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Also do these</div>
+                    <div style={{ fontSize:11, fontWeight:800, color:"#6D4CFF", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Supporting moves</div>
                     <div style={{ display:"grid", gap:10 }}>
                       {result.nextMoves.map(item => (
                         <div key={item} style={{ fontSize:13.5, color:"#334155", lineHeight:1.75, padding:"11px 12px", borderRadius:14, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
@@ -4060,13 +4060,13 @@ function ScreenPromotionReadiness() {
               {resultTab === "conversation" && (
                 <div style={{ display:"grid", gap:18 }}>
                   <div style={{ ...panelCardStyle, padding:"22px 24px 20px", background:"linear-gradient(135deg,#EEF2FF 0%,#F4F0FF 100%)", border:"1px solid #C7D2FE" }}>
-                    <div style={{ fontSize:11, fontWeight:800, color:"#4361EE", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>How to start it</div>
+                    <div style={{ fontSize:11, fontWeight:800, color:"#4361EE", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Opening line</div>
                     <p style={{ fontSize:15, color:"#1E1B4B", lineHeight:1.85, margin:0 }}>{result.managerPitchExample}</p>
                   </div>
 
                   <div style={{ ...panelCardStyle, overflow:"hidden" }}>
                     <div style={{ display:"grid", gridTemplateColumns:"minmax(240px,1fr) minmax(240px,1fr)", gap:0, padding:"14px 18px", borderBottom:"1px solid #E7EAF6", background:"#F8FAFF" }}>
-                      {["Ask your manager", "How to respond"].map(label => (
+                      {["Questions to ask them", "How to answer"].map(label => (
                         <div key={label} style={{ fontSize:10.5, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.08em" }}>{label}</div>
                       ))}
                     </div>
@@ -4097,7 +4097,7 @@ function ScreenPromotionReadiness() {
               {resultTab === "examples" && (
                 <div style={{ display:"grid", gap:18 }}>
                   <div style={{ ...panelCardStyle, padding:"22px 24px 20px" }}>
-                    <div style={{ fontSize:11, fontWeight:800, color:"#6D4CFF", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>What strong proof looks like</div>
+                    <div style={{ fontSize:11, fontWeight:800, color:"#6D4CFF", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>What proof actually looks like</div>
                     <div style={{ display:"grid", gap:12 }}>
                       {result.exampleEvidence.map(item => (
                         <div key={item} style={{ fontSize:14, color:"#1E2235", lineHeight:1.8, padding:"13px 14px", borderRadius:16, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
@@ -4288,7 +4288,7 @@ function ScreenPromotionReadiness() {
               disabled={generating}
               style={{ minWidth:210, fontSize:14.5, fontWeight:700, padding:"14px 18px", borderRadius:14, border:"none", background:"linear-gradient(135deg,#4361EE,#818CF8)", color:"white", cursor:"pointer", boxShadow:"0 8px 24px rgba(67,97,238,0.4)", transition:"all 0.2s", opacity:generating ? 0.72 : 1 }}
             >
-              {step === 4 ? "Run readiness audit →" : "Continue →"}
+              {step === 4 ? "Score my case →" : "Continue →"}
             </button>
           </div>
         </div>
@@ -6688,29 +6688,29 @@ const PROMOTION_PRACTICE_META: Record<PromotionPracticeMode, {
 }> = {
   manager: {
     label: "With your manager",
-    badge: "Most important",
-    desc: "Go through the ask conversation until you've answered every objection.",
+    badge: "Most critical",
+    desc: "Run the ask until you've handled every objection your manager will raise.",
     color: "#7C3AED",
     bg: "rgba(124,58,237,0.12)",
   },
   committee: {
     label: "In the review room",
     badge: "Hard mode",
-    desc: "Answer the committee questions before they're asked.",
+    desc: "Answer the questions they ask about you when you're not in the room.",
     color: "#D97706",
     bg: "rgba(217,119,6,0.12)",
   },
   sponsor: {
     label: "With a sponsor",
     badge: "Visibility",
-    desc: "Ask clearly and show only what a sponsor actually needs to hear.",
+    desc: "Ask clearly and give them only what they need to repeat your case upward.",
     color: "#0284C7",
     bg: "rgba(2,132,199,0.12)",
   },
   "self-review": {
-    label: "Solo first run",
-    badge: "Concise",
-    desc: "Say the case out loud until it sounds crisp and you stop hesitating.",
+    label: "Solo run first",
+    badge: "Warm-up",
+    desc: "Get the case into words until it stops sounding rehearsed.",
     color: "#059669",
     bg: "rgba(5,150,105,0.12)",
   },
@@ -6932,9 +6932,9 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
                 <div key={i} style={{ width:11, height:11, borderRadius:"50%", background:"#F59E0B", animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite`, boxShadow:"0 0 10px rgba(245,158,11,0.35)" }}/>
               ))}
             </div>
-            <p style={{ fontSize:17, fontWeight:800, color:"white", marginBottom:8, letterSpacing:"-0.02em" }}>Building your practice questions…</p>
+            <p style={{ fontSize:17, fontWeight:800, color:"white", marginBottom:8, letterSpacing:"-0.02em" }}>Building questions from your actual situation…</p>
             <p style={{ fontSize:13.5, color:"rgba(255,255,255,0.44)", maxWidth:460, margin:"0 auto", lineHeight:1.6 }}>
-              Generating questions from your actual situation — rubric, wins, manager stance, and blockers.
+              Rubric, wins, manager stance, blockers — questions that match what they'll actually ask.
             </p>
           </div>
         </div>
@@ -6946,10 +6946,10 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
     return (
       <PromotionSharedIntakeFlow
         sectionLabel="Practice the Ask"
-        sectionIntro="Uses the same intake from Reality Check so the practice is built from your actual situation, not generic scenarios."
+        sectionIntro="So Zari generates questions from your specific situation — not someone else's."
         submitLabel="Build my practice →"
         loadingTitle="Building your practice…"
-        loadingBody="Zari is turning your answers into role-specific practice questions. You won't have to fill anything in twice."
+        loadingBody="Turning your answers into questions that match what they'll actually ask in the real conversation."
         onComplete={(context) => {
           setSharedContext(context);
           setTargetLevel(context.desiredTitle);
@@ -6979,9 +6979,9 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
             <div style={promotionHeroGridStyle()}>
               <div style={{ position:"relative" }}>
                 <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>Practice the Ask</div>
-                <h1 style={promotionHeroTitleStyle(760)}>Say your case out loud until it holds up everywhere.</h1>
+                <h1 style={promotionHeroTitleStyle(760)}>The case breaks in rehearsal — not in the real room.</h1>
                 <p style={{ ...promotionHeroBodyStyle(), margin:"0 0 20px" }}>
-                  The only way to know your case is tight is to say it out loud, get pushed back on, and do it again. Zari generates questions from your actual situation — rubric, wins, manager stance, and known blockers.
+                  Zari generates questions from your actual situation: rubric, wins, manager stance, and blockers. Practice until the hesitation is gone.
                 </p>
                 <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
                   <span style={promotionChipStyle(theme)}>Evidence-backed</span>
@@ -6991,7 +6991,7 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
               </div>
               <PromotionHeroSpotlight
                 theme={theme}
-                label="The goal"
+                label="Why this works"
                 title="Make the case obvious, not just convincing."
                 items={[
                   "Find out where your case breaks before the real room does.",
@@ -7010,9 +7010,9 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
               <div style={promotionPanelStyle(theme, true)}>
                 <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap", marginBottom:14 }}>
                   <div>
-                    <div style={{ fontSize:11.5, fontWeight:800, color:theme.accent, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Your proof</div>
-                    <h2 style={promotionSectionTitleStyle(520)}>What you want this practice to be based on.</h2>
-                    <p style={{ fontSize:13, color:"#475569", lineHeight:1.7, margin:0 }}>Paste wins, scope examples, review snippets, or upload a file. This is what Zari builds the questions from.</p>
+                    <div style={{ fontSize:11.5, fontWeight:800, color:theme.accent, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Your evidence</div>
+                    <h2 style={promotionSectionTitleStyle(520)}>What Zari builds your questions from.</h2>
+                    <p style={{ fontSize:13, color:"#475569", lineHeight:1.7, margin:0 }}>Paste wins, scope examples, review snippets, or upload a file. The more specific, the better the questions.</p>
                   </div>
                   <button onClick={() => fileInputRef.current?.click()} style={{ fontSize:12.5, fontWeight:700, padding:"10px 14px", borderRadius:12, border:`1px solid ${theme.accent}26`, background:"rgba(255,255,255,0.75)", color:theme.accent, cursor:"pointer" }}>
                     Upload evidence
@@ -7049,8 +7049,8 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
                 </div>
 
                 <div style={promotionPanelStyle(theme)}>
-                  <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Pick a room</div>
-                  <h2 style={promotionSectionTitleStyle(460)}>Which conversation are you preparing for?</h2>
+                  <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Choose the room</div>
+                  <h2 style={promotionSectionTitleStyle(460)}>Which room are you walking into?</h2>
                   <div style={{ display:"grid", gap:10 }}>
                     {(Object.entries(PROMOTION_PRACTICE_META) as [PromotionPracticeMode, typeof PROMOTION_PRACTICE_META[PromotionPracticeMode]][]).map(([key, meta]) => {
                       const active = mode === key;
@@ -7089,14 +7089,14 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
 
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:16, flexWrap:"wrap" }}>
               <p style={{ fontSize:12.8, color:"#68738A", lineHeight:1.7, margin:0, maxWidth:620 }}>
-                Pick a room and practice until you stop hesitating.
+                Choose a room. Practice until the hesitation is gone.
               </p>
               <button
                 onClick={() => void startPractice()}
                 disabled={loadingQs}
                 style={{ ...promotionChipStyle(theme, true), padding:"13px 20px", border:"none", cursor:loadingQs ? "default" : "pointer", opacity:loadingQs ? 0.72 : 1 }}
               >
-                {loadingQs ? "Generating questions..." : "Start Practice"}
+                {loadingQs ? "Generating questions..." : "Start the Session"}
               </button>
             </div>
           </div>
@@ -7122,7 +7122,7 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
                 <span style={{ ...promotionChipStyle(theme), background:activeModeMeta.bg, border:`1px solid ${activeModeMeta.color}33`, color:activeModeMeta.color }}>{activeModeMeta.label}</span>
                 <span style={promotionChipStyle(theme)}>Question {questionNumber} of {totalQuestions}</span>
               </div>
-              <h1 style={promotionHeroTitleStyle(760)}>Say it until it holds up.</h1>
+              <h1 style={promotionHeroTitleStyle(760)}>Make the case until it's obvious.</h1>
               <p style={promotionHeroBodyStyle(720)}>
                 Stay concrete. Scope, outcomes, decisions, influence. Make the next level feel inevitable, not just possible.
               </p>
@@ -7167,7 +7167,7 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
             </div>
 
             <div style={promotionPanelStyle(theme)}>
-              <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Strong answers show</div>
+              <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>What strong answers have</div>
               <div style={{ display:"grid", gap:9 }}>
                 {["Next-level scope", "Business impact", "Cross-functional influence", "Sponsor-ready clarity"].map(item => (
                   <div key={item} style={{ fontSize:12.5, color:"#334155", background:"rgba(248,250,252,0.92)", border:"1px solid rgba(148,163,184,0.18)", borderRadius:14, padding:"10px 11px" }}>
@@ -7225,7 +7225,7 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
                 <div style={{ display:"flex", alignItems:"center", gap:16, flexWrap:"wrap", marginBottom:18 }}>
                   <ScoreRing score={feedback.overallScore} color={dimColor(feedback.overallScore)} size={72} />
                   <div>
-                    <div style={{ fontSize:11.5, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:4 }}>Zari's take</div>
+                    <div style={{ fontSize:11.5, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:4 }}>Zari says</div>
                     <h3 style={{ fontSize:28, lineHeight:1.08, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 6px" }}>
                       {feedback.headline || feedback.coachNote.split(/(?<=[.!?])\s+/)[0]?.trim() || "Zari's read on this answer."}
                     </h3>
@@ -7582,10 +7582,10 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
     return (
       <PromotionSharedIntakeFlow
         sectionLabel="Build the Case"
-        sectionIntro="Uses the same intake from Reality Check so the documents actually match your situation — not a pile of generic templates."
+        sectionIntro="So Zari builds documents for your actual situation — not off-the-shelf templates."
         submitLabel="Build my docs →"
         loadingTitle="Building your docs…"
-        loadingBody="Zari is turning your answers into the emails, briefs, and follow-ups that actually fit where you are."
+        loadingBody="Turning your answers into the emails, briefs, and follow-ups that actually fit where you are."
         onComplete={(context) => {
           setSharedContext(context);
           setTargetLevel(context.desiredTitle);
@@ -7610,8 +7610,8 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
                 <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:18 }}>
                   {[0,1,2].map(i => <div key={i} style={{ width:11, height:11, borderRadius:"50%", background:"#34D399", animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
                 </div>
-                <div style={{ fontSize:18, fontWeight:850, color:"white", marginBottom:8 }}>Building your document pack</div>
-                <div style={{ fontSize:13.5, color:"rgba(255,255,255,0.48)" }}>Picking the docs that actually fit where you are right now.</div>
+                <div style={{ fontSize:18, fontWeight:850, color:"white", marginBottom:8 }}>Picking the documents that fit where you are</div>
+                <div style={{ fontSize:13.5, color:"rgba(255,255,255,0.48)" }}>Not template generation. Deciding which artifacts your situation actually justifies.</div>
               </div>
             </div>
           ) : result && (
@@ -7620,8 +7620,8 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
                 <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 82% 18%, rgba(167,243,208,0.2), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
                 <div style={{ position:"relative", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, flexWrap:"wrap" }}>
                   <div>
-                    <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>Docs ready</div>
-                    <h1 style={promotionHeroTitleStyle(720)}>Here's what I'd actually use for this case.</h1>
+                    <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>Document pack</div>
+                    <h1 style={promotionHeroTitleStyle(720)}>Here's what fits your case.</h1>
                     <p style={promotionHeroBodyStyle(720)}>{result.coachTake}</p>
                   </div>
                   <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
@@ -7633,8 +7633,8 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
                 <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))", gap:12, marginTop:20, position:"relative" }}>
                   {[
                     { label:"Docs", value:String(result.documents.length).padStart(2, "0"), note:"Selected for this stage" },
-                    { label:"Watch these", value:String(result.redFlags.length).padStart(2, "0"), note:"Ways to weaken the case" },
-                    { label:"Lead with", value:result.documents[0]?.channel ?? "Doc", note:result.documents[0]?.title ?? "No primary document" },
+                    { label:"Watch out for", value:String(result.redFlags.length).padStart(2, "0"), note:"Ways to weaken the case" },
+                    { label:"Start with", value:result.documents[0]?.channel ?? "Doc", note:result.documents[0]?.title ?? "No primary document" },
                   ].map(card => (
                     <div key={card.label} style={{ borderRadius:18, padding:"16px 16px 15px", background:"rgba(6,24,20,0.44)", border:"1px solid rgba(167,243,208,0.14)" }}>
                       <div style={{ fontSize:10.5, fontWeight:800, letterSpacing:"0.1em", textTransform:"uppercase", color:"rgba(209,250,229,0.84)", marginBottom:10 }}>{card.label}</div>
@@ -7647,11 +7647,11 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
 
               <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))", gap:18, marginBottom:18 }}>
                 <div style={promotionPanelStyle(theme)}>
-                  <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>How to use this</div>
+                  <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>The strategy</div>
                   <div style={{ fontSize:13.8, color:"#475569", lineHeight:1.8 }}>{result.strategy}</div>
                 </div>
                 <div style={{ ...promotionPanelStyle(theme, true), border:"1px solid rgba(239,68,68,0.24)", background:"linear-gradient(180deg,#FFF6F6 0%,#FFFFFF 100%)" }}>
-                  <div style={{ fontSize:11.5, fontWeight:800, color:"#B91C1C", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Don't do this</div>
+                  <div style={{ fontSize:11.5, fontWeight:800, color:"#B91C1C", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>What would backfire</div>
                   <div style={{ display:"grid", gap:10 }}>
                     {result.redFlags.map(item => (
                       <div key={item} style={{ fontSize:13.2, color:"#7F1D1D", lineHeight:1.7, padding:"11px 12px", borderRadius:14, background:"#FFF8F8", border:"1px solid #FECACA" }}>
@@ -7666,7 +7666,7 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
                 <div style={{ display:"flex", flexWrap:"wrap", borderBottom:"1px solid #E7EAF6", background:"#F8FAFF" }}>
                   {[
                     { id:"overview", label:"Overview" },
-                    { id:"documents", label:`Documents ${result.documents.length}` },
+                    { id:"documents", label:`The docs (${result.documents.length})` },
                   ].map(tab => {
                     const active = resultTab === tab.id;
                     return (
@@ -7695,12 +7695,12 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
                   {resultTab === "overview" && (
                     <>
                       <div style={{ ...promotionPanelStyle(theme, true), padding:"22px 24px 20px", border:"1px solid rgba(16,185,129,0.2)" }}>
-                        <div style={{ fontSize:11.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Coach take</div>
+                        <div style={{ fontSize:11.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Zari says</div>
                         <div style={{ fontSize:15, color:"#0F172A", lineHeight:1.85 }}>{result.coachTake}</div>
                       </div>
                       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:16 }}>
                         <div style={promotionPanelStyle(theme)}>
-                          <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Use in this order</div>
+                          <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Send order</div>
                           <div style={{ display:"grid", gap:10 }}>
                             {result.documents.map((doc, index) => (
                               <div key={`${doc.title}-${index}`} style={{ fontSize:13.4, color:"#475569", lineHeight:1.75, padding:"11px 12px", borderRadius:14, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
@@ -7711,7 +7711,7 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
                           </div>
                         </div>
                         <div style={promotionPanelStyle(theme)}>
-                          <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>What this pack gives you</div>
+                          <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>What you're walking away with</div>
                           <div style={{ display:"grid", gap:10 }}>
                             {[
                               `${result.documents.length} internal promotion documents chosen for the stage you are actually in.`,
@@ -7732,9 +7732,9 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
                   {resultTab === "documents" && (
                     <div style={{ display:"grid", gap:16 }}>
                       <div>
-                        <div style={{ fontSize:11.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Document stack</div>
+                        <div style={{ fontSize:11.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Your documents</div>
                         <h2 style={{ fontSize:28, lineHeight:1.08, fontWeight:800, color:"#0F172A", letterSpacing:"-0.03em", margin:"0 0 6px" }}>The actual messages and docs.</h2>
-                        <div style={{ fontSize:13, color:"#64748B", lineHeight:1.6 }}>Every item below has a job, a moment when it should be used, and a draft you can actually edit and send. The point is to help you move the case forward, not generate filler.</div>
+                        <div style={{ fontSize:13, color:"#64748B", lineHeight:1.6 }}>Every item has a job, a moment when it should be used, and a draft you can edit and send. The point is to move the case forward — not generate filler.</div>
                       </div>
                       <div style={{ display:"grid", gap:14 }}>
                         {result.documents.map((doc, index) => (
@@ -7799,9 +7799,9 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
           <div style={promotionHeroGridStyle()}>
             <div style={{ position:"relative" }}>
               <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>Build the Case</div>
-              <h1 style={promotionHeroTitleStyle()}>The messages, docs, and briefs that move this forward.</h1>
+              <h1 style={promotionHeroTitleStyle()}>The right document at the wrong time loses the case.</h1>
               <p style={{ ...promotionHeroBodyStyle(), margin:"0 0 20px" }}>
-                Paste your wins and Zari picks the documents that actually fit where you are — the right email, brief, or memo for this stage, not a pile of generic templates.
+                Paste your wins. Zari picks the artifacts that fit exactly where you are — not templates, not filler, just what moves the case forward right now.
               </p>
               <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
                 <span style={promotionChipStyle(theme)}>Manager email</span>
@@ -7811,11 +7811,11 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
             </div>
             <PromotionHeroSpotlight
               theme={theme}
-              label="What you get"
-              title="The right documents for where you actually are."
+              label="What comes out"
+              title="Not a template pack. The exact documents for this stage."
               items={[
-                "The doc mix for this stage — not a one-size-fits-all packet.",
-                "Manager emails, feedback asks, briefs, and memos you can actually send.",
+                "Only the documents your case at this stage actually justifies.",
+                "Manager emails, briefs, and asks you can actually send.",
                 "What to use first, what to hold, and what would backfire.",
               ]}
               footer="The point is judgment: the right document at the right moment."
@@ -7843,7 +7843,7 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
 
           <div style={{ display:"grid", gap:18 }}>
             <div style={promotionPanelStyle(theme)}>
-              <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>The bar + context</div>
+              <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>The bar</div>
               <h2 style={promotionSectionTitleStyle(460)}>What does next level mean, and where do things stand?</h2>
               <p style={{ fontSize:13, color:"#475569", lineHeight:1.7, margin:"0 0 16px" }}>Paste the rubric if you have it. Otherwise: the level, timing, your manager's stance, and anything else that changes what documents would actually help.</p>
               <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))", gap:12, marginBottom:12 }}>
@@ -7854,7 +7854,7 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
             </div>
 
             <div style={promotionPanelStyle(theme)}>
-              <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>What you'll get</div>
+              <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>How it works</div>
               <div style={{ display:"grid", gap:10 }}>
                 {[
                   "A blunt read on whether you need alignment docs, support requests, or a real memo.",
@@ -7879,7 +7879,7 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
             Not a document dump. The right artifacts for where you are right now.
           </p>
           <button onClick={() => void generate()} disabled={generating} style={{ ...promotionChipStyle(theme, true), padding:"13px 20px", border:"none", cursor:generating ? "default" : "pointer", opacity:generating ? 0.72 : 1 }}>
-            {generating ? "Generating..." : "Build My Docs"}
+            {generating ? "Generating..." : "Build the Pack"}
           </button>
         </div>
       </div>
@@ -8059,10 +8059,10 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
     return (
       <PromotionSharedIntakeFlow
         sectionLabel="Get Allies"
-        sectionIntro="Uses the same intake from Reality Check so the ally map is built from your actual situation — not generic advice."
+        sectionIntro="So the ally map is built around your actual blind spots — not generic advice."
         submitLabel="Build my ally map →"
-        loadingTitle="Building your ally map…"
-        loadingBody="Zari is turning your answers into a stakeholder map with specific asks and a weekly rhythm."
+        loadingTitle="Mapping the room…"
+        loadingBody="Turning your answers into a stakeholder map with specific asks and a weekly rhythm."
         onComplete={(context) => {
           setSharedContext(context);
           setTargetLevel(context.desiredTitle);
@@ -8086,9 +8086,9 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
                 <div key={i} style={{ width:11,height:11,borderRadius:"50%",background:"#818CF8",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite`, boxShadow:"0 0 10px rgba(129,140,248,0.5)" }}/>
               ))}
             </div>
-            <p style={{ fontSize:17, fontWeight:800, color:"white", marginBottom:8, letterSpacing:"-0.02em" }}>Building your ally map…</p>
+            <p style={{ fontSize:17, fontWeight:800, color:"white", marginBottom:8, letterSpacing:"-0.02em" }}>Mapping the room…</p>
             <p style={{ fontSize:13.5, color:"rgba(255,255,255,0.42)", maxWidth:440, margin:"0 auto", lineHeight:1.6 }}>
-              Mapping who matters, what each person needs to believe, and how to get their support.
+              Who controls this decision, what each person needs to believe, and how to earn their support.
             </p>
           </div>
         </div>
@@ -8104,7 +8104,7 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
             <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 82% 18%, rgba(147,197,253,0.2), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
             <div style={{ position:"relative", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, flexWrap:"wrap" }}>
               <div>
-                <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>Ally map ready</div>
+                <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>Ally map</div>
                 <h1 style={promotionHeroTitleStyle(720)}>Here's who you need and what each one needs to believe.</h1>
                 <p style={promotionHeroBodyStyle(720)}>{result.overallFocus}</p>
               </div>
@@ -8117,7 +8117,7 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
               {[
                 { label:"Moves to make", value:String(result.visibilityMoves.length).padStart(2, "0"), note:"Things to do next" },
                 { label:"Key people", value:String(result.sponsorMap.length).padStart(2, "0"), note:"People who matter" },
-                { label:"Keep up weekly", value:String(result.weeklyCadence.length).padStart(2, "0"), note:"Cadence to maintain" },
+                { label:"Weekly rhythm", value:String(result.weeklyCadence.length).padStart(2, "0"), note:"Cadence to maintain" },
               ].map(card => (
                 <div key={card.label} style={{ borderRadius:18, padding:"16px 16px 15px", background:"rgba(8,22,40,0.44)", border:"1px solid rgba(147,197,253,0.14)" }}>
                   <div style={{ fontSize:10.5, fontWeight:800, letterSpacing:"0.1em", textTransform:"uppercase", color:"rgba(219,234,254,0.84)", marginBottom:10 }}>{card.label}</div>
@@ -8154,9 +8154,9 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
             <div style={{ display:"flex", flexWrap:"wrap", borderBottom:"1px solid #E7EAF6", background:"#F8FAFF" }}>
               {[
                 { id:"overview", label:"Overview" },
-                { id:"moves", label:`Moves ${result.visibilityMoves.length}` },
-                { id:"sponsors", label:`Key People ${result.sponsorMap.length}` },
-                { id:"cadence", label:"Rhythm + Watchouts" },
+                { id:"moves", label:`Visibility moves (${result.visibilityMoves.length})` },
+                { id:"sponsors", label:`Who matters (${result.sponsorMap.length})` },
+                { id:"cadence", label:"The cadence" },
               ].map(tab => {
                 const active = resultTab === tab.id;
                 return (
@@ -8185,13 +8185,13 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
               {resultTab === "overview" && (
                 <>
                   <div style={{ ...promotionPanelStyle(theme, true), border:"1px solid rgba(59,130,246,0.24)", padding:"22px 24px 20px" }}>
-                    <div style={{ fontSize:11.5, fontWeight:800, color:"#0A66C2", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Your narrative</div>
+                    <div style={{ fontSize:11.5, fontWeight:800, color:"#0A66C2", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Your story</div>
                     <h2 style={{ fontSize:28, lineHeight:1.08, fontWeight:800, color:"#0F172A", letterSpacing:"-0.03em", margin:"0 0 10px" }}>What you want decision-makers to think.</h2>
                     <div style={{ fontSize:14, lineHeight:1.8, color:"#0F172A", whiteSpace:"pre-wrap" }}>{result.executiveNarrative}</div>
                   </div>
                   <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:16 }}>
                     <div style={promotionPanelStyle(theme)}>
-                      <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>What's missing</div>
+                      <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Support gaps</div>
                       <div style={{ display:"grid", gap:10 }}>
                         {result.missingSupport.map(item => (
                           <div key={item} style={{ fontSize:13.4, color:"#475569", lineHeight:1.75, padding:"11px 12px", borderRadius:14, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
@@ -8201,7 +8201,7 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
                       </div>
                     </div>
                     <div style={promotionPanelStyle(theme)}>
-                      <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>The focus</div>
+                      <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>The priority</div>
                       <div style={{ fontSize:13.5, color:"#334155", lineHeight:1.75 }}>{result.overallFocus}</div>
                     </div>
                   </div>
@@ -8235,7 +8235,7 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
               {resultTab === "cadence" && (
                 <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:16 }}>
                   <div style={promotionPanelStyle(theme)}>
-                    <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Keep this up</div>
+                    <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Weekly rhythm</div>
                     <div style={{ display:"grid", gap:9 }}>
                       {result.weeklyCadence.map(item => (
                         <div key={item} style={{ fontSize:12.5, color:"#334155", lineHeight:1.6, background:"rgba(248,250,252,0.92)", border:"1px solid rgba(148,163,184,0.18)", borderRadius:12, padding:"10px 11px" }}>
@@ -8272,19 +8272,19 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
           <div style={promotionHeroGridStyle()}>
             <div style={{ position:"relative" }}>
               <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>Get Allies</div>
-              <h1 style={promotionHeroTitleStyle()}>Know who you need, what they need to believe, and how to get there.</h1>
+              <h1 style={promotionHeroTitleStyle()}>Promotion doesn't happen in a room you're not in.</h1>
               <p style={{ ...promotionHeroBodyStyle(), margin:"0 0 20px" }}>
-                Getting promoted is as much about who's in your corner as what you've done. Zari maps your stakeholders and tells you exactly what each person needs to see.
+                You can have the strongest case in the building and still lose at calibration. Zari maps who controls the decision and what each person needs to see from you.
               </p>
               <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
-                <span style={promotionChipStyle(theme)}>Know who matters</span>
+                <span style={promotionChipStyle(theme)}>Know the room</span>
                 <span style={promotionChipStyle(theme)}>Make the ask</span>
-                <span style={promotionChipStyle(theme)}>Keep the rhythm</span>
+                <span style={promotionChipStyle(theme)}>Stay visible</span>
               </div>
             </div>
             <PromotionHeroSpotlight
               theme={theme}
-              label="Ally map"
+              label="The map"
               title="Build support before you need it."
               items={[
                 "Figure out who controls the decision.",
@@ -8303,7 +8303,7 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap", marginBottom:14 }}>
               <div>
                 <div style={{ fontSize:11.5, fontWeight:800, color:theme.accent, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Your wins</div>
-                <h2 style={promotionSectionTitleStyle(500)}>What do you want them to know about you?</h2>
+                <h2 style={promotionSectionTitleStyle(500)}>What should leadership associate with your name?</h2>
                 <p style={{ fontSize:13, color:"#475569", lineHeight:1.7, margin:0 }}>Wins, launches, influence, praise, leadership moments. This becomes the raw material for who needs to hear what.</p>
               </div>
               <button onClick={() => fileInputRef.current?.click()} style={{ fontSize:12.5, fontWeight:700, padding:"10px 14px", borderRadius:12, border:`1px solid ${theme.accent}26`, background:"rgba(255,255,255,0.75)", color:theme.accent, cursor:"pointer" }}>
@@ -8326,7 +8326,7 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
             </div>
 
             <div style={promotionPanelStyle(theme)}>
-              <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>What you'll get</div>
+              <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>How it works</div>
               <div style={{ display:"grid", gap:10 }}>
                 {[
                   "A hard-truth read on what will keep this case from landing.",
@@ -8348,10 +8348,10 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
 
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:16, marginTop:22, flexWrap:"wrap" }}>
           <p style={{ fontSize:12.8, color:"#68738A", lineHeight:1.7, margin:0, maxWidth:620 }}>
-            Concrete: who to reach, what to say, and how to ask.
+            Concrete: who matters, what to say, and exactly how to ask.
           </p>
           <button onClick={() => void generate()} disabled={generating} style={{ ...promotionChipStyle(theme, true), padding:"13px 20px", border:"none", cursor:generating ? "default" : "pointer", opacity:generating ? 0.72 : 1 }}>
-            {generating ? "Generating..." : "Build My Ally Map"}
+            {generating ? "Generating..." : "Map My Allies"}
           </button>
         </div>
       </div>
@@ -9214,14 +9214,14 @@ function ScreenPromotionToolkit({ onNavigate }: { onNavigate: (s: string) => voi
     { key:"resume", label:"Reality Check", desc:"Find out if you actually have a case right now.", section:"resume", color:"#8B5CF6", done:docs.some(d => d.type === "resume") },
     { key:"cover-letter", label:"Build the Case", desc:"Turn wins into the documents that move it forward.", section:"cover-letter", color:"#10B981", done:docs.some(d => d.type === "cover-letter") },
     { key:"linkedin", label:"Get Allies", desc:"Figure out who you need and make the right asks.", section:"linkedin", color:"#3B82F6", done:docs.some(d => d.type === "linkedin") },
-    { key:"plan", label:"What's Next", desc:"Get a sequenced plan based on what Zari knows.", section:"plan", color:"#FB7185", done:docs.some(d => d.type === "resume" || d.type === "cover-letter" || d.type === "linkedin") },
+    { key:"plan", label:"The Sequence", desc:"Get a sequenced plan based on what Zari knows.", section:"plan", color:"#FB7185", done:docs.some(d => d.type === "resume" || d.type === "cover-letter" || d.type === "linkedin") },
   ];
 
   const playbook = [
     { title:"Reality Check", body:"Find out if your case is actually ready.", section:"resume" },
     { title:"Build the Case", body:"Turn your wins into the documents that move it forward.", section:"cover-letter" },
     { title:"Get Allies", body:"Figure out who you need and what each person needs to believe.", section:"linkedin" },
-    { title:"What's Next", body:"Get a sequenced plan based on what Zari knows.", section:"plan" },
+    { title:"The Sequence", body:"Get a sequenced plan based on what Zari knows.", section:"plan" },
   ] as const;
 
   const completedCore = ["resume","cover-letter","linkedin"].filter(type => docs.some(d => d.type === type)).length;
@@ -9257,10 +9257,10 @@ function ScreenPromotionToolkit({ onNavigate }: { onNavigate: (s: string) => voi
           <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 84% 18%, rgba(251,191,36,0.18), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
           <div style={promotionHeroGridStyle()}>
             <div style={{ position:"relative" }}>
-              <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>My Files</div>
-              <h1 style={promotionHeroTitleStyle(760)}>All your promotion work, in one place.</h1>
+              <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>The Vault</div>
+              <h1 style={promotionHeroTitleStyle(760)}>Everything you've built, right here.</h1>
               <p style={promotionHeroBodyStyle(720)}>
-                Every reality check, doc pack, ally map, and uploaded file you create lands here.
+                Reality checks, doc packs, ally maps, uploaded evidence — it all accumulates here.
               </p>
               <div style={{ marginTop:18 }}>
                 <button onClick={() => fileInputRef.current?.click()} style={{ ...promotionChipStyle(theme, true), padding:"11px 16px", border:"none", cursor:"pointer" }}>
@@ -9270,14 +9270,14 @@ function ScreenPromotionToolkit({ onNavigate }: { onNavigate: (s: string) => voi
             </div>
             <PromotionHeroSpotlight
               theme={theme}
-              label="The vault"
-              title="Everything in one place."
+              label="How it works"
+              title="Built as you work."
               items={[
                 "Reality checks, doc packs, and ally maps all accumulate here.",
-                "Upload raw notes and drop them in without losing anything.",
+                "Drop in brag sheets, review feedback, and ladder docs.",
                 "Jump between sections without starting over.",
               ]}
-              footer="This shouldn't feel like a dumping ground."
+              footer="Everything in one place so nothing gets lost before it matters."
             />
           </div>
 
@@ -9308,7 +9308,7 @@ function ScreenPromotionToolkit({ onNavigate }: { onNavigate: (s: string) => voi
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(320px,1fr))", gap:18, alignItems:"start", marginBottom:20 }}>
           <div style={{ ...promotionPanelStyle(theme, true), padding:"20px 20px 18px" }}>
             <div style={{ fontSize:11.5, fontWeight:800, color:theme.accent, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Jump back in</div>
-            <h2 style={promotionSectionTitleStyle(420)}>Open any section.</h2>
+            <h2 style={promotionSectionTitleStyle(420)}>Pick up where you left off.</h2>
             <div style={{ display:"grid", gap:10 }}>
               {SECTION_CARDS.map(card => (
                 <button key={card.label} onClick={() => onNavigate(card.section)} style={{ display:"flex", alignItems:"center", gap:12, textAlign:"left", border:"1px solid rgba(148,163,184,0.16)", background:"rgba(255,255,255,0.74)", borderRadius:16, padding:"13px 14px", cursor:"pointer" }}>
@@ -9329,7 +9329,7 @@ function ScreenPromotionToolkit({ onNavigate }: { onNavigate: (s: string) => voi
 
           <div style={promotionPanelStyle(theme)}>
             <div style={{ fontSize:11.5, fontWeight:800, color:"#475569", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Add proof</div>
-            <h2 style={promotionSectionTitleStyle(420)}>Add proof to the vault.</h2>
+            <h2 style={promotionSectionTitleStyle(420)}>Drop files here.</h2>
             <div
               onDragOver={e => { e.preventDefault(); setDragging(true); }}
               onDragLeave={() => setDragging(false)}
@@ -9344,7 +9344,7 @@ function ScreenPromotionToolkit({ onNavigate }: { onNavigate: (s: string) => voi
                   <div style={{ width:54, height:54, borderRadius:16, background:"rgba(139,92,246,0.12)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 14px", color:theme.accent }}>
                     <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:22,height:22}}><path d="M10 3v10M5.5 7.5L10 3l4.5 4.5"/><path d="M4 15.5h12"/></svg>
                   </div>
-                  <p style={{ fontSize:15, fontWeight:800, color:"#0F172A", margin:"0 0 6px" }}>Drop a file to add it to the toolkit</p>
+                  <p style={{ fontSize:15, fontWeight:800, color:"#0F172A", margin:"0 0 6px" }}>Drop a file to add it to the vault</p>
                   <p style={{ fontSize:12.5, color:"#64748B", lineHeight:1.6, margin:0 }}>PDF, DOCX, or TXT. Brag sheets, review notes, ladder docs, manager feedback, and calibration notes all belong here.</p>
                 </>
               )}
@@ -9357,8 +9357,8 @@ function ScreenPromotionToolkit({ onNavigate }: { onNavigate: (s: string) => voi
             <div style={{ width:60, height:60, borderRadius:18, background:"rgba(139,92,246,0.1)", color:theme.accent, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 18px" }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" style={{width:26,height:26}}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             </div>
-            <p style={{ fontSize:18, fontWeight:800, color:"#0F172A", margin:"0 0 6px" }}>Nothing here yet.</p>
-            <p style={{ fontSize:13.5, color:"#64748B", lineHeight:1.65, maxWidth:420, margin:"0 auto" }}>Run the Reality Check, build your docs, map your allies, or upload raw files — everything will accumulate here.</p>
+            <p style={{ fontSize:18, fontWeight:800, color:"#0F172A", margin:"0 0 6px" }}>The vault is empty.</p>
+            <p style={{ fontSize:13.5, color:"#64748B", lineHeight:1.65, maxWidth:420, margin:"0 auto" }}>Complete a section or drop in a file — everything lands here.</p>
           </div>
         ) : (
           <div style={{ display:"grid", gap:12 }}>
@@ -10115,7 +10115,7 @@ function ScreenPromotionRoadmap({ onNavigate, active = false }: { onNavigate: (s
   const SECTION_CARDS = [
     { key:"resume", label:"Reality Check", desc:"Find out if you genuinely have a case right now.", color:"#8B5CF6", done:hasResume },
     { key:"cover-letter", label:"Build the Case", desc:"Turn your wins into the docs that move this forward.", color:"#10B981", done:hasCL },
-    { key:"linkedin", label:"Get Allies", desc:"Map who matters and get specific about the asks.", color:"#3B82F6", done:hasLI },
+    { key:"linkedin", label:"Get Allies", desc:"Map who matters and make the right asks.", color:"#3B82F6", done:hasLI },
   ];
 
   useEffect(() => {
@@ -10183,10 +10183,10 @@ function ScreenPromotionRoadmap({ onNavigate, active = false }: { onNavigate: (s
             <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 84% 18%, rgba(251,207,232,0.18), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
             <div style={promotionHeroGridStyle()}>
               <div style={{ position:"relative" }}>
-                <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>What's Next</div>
-                <h1 style={promotionHeroTitleStyle(760)}>Nothing to sequence yet — run at least one section first.</h1>
+                <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>The Sequence</div>
+                <h1 style={promotionHeroTitleStyle(760)}>Run at least one section — then Zari can sequence what comes next.</h1>
                 <p style={promotionHeroBodyStyle(720)}>
-                  Once you've run the Reality Check, Build the Case, or Get Allies, Zari will sequence what to do next based on what it learned.
+                  After Reality Check, Build the Case, or Get Allies, Zari sequences what to do next based on what it learned about your situation.
                 </p>
               </div>
               <PromotionHeroSpotlight
@@ -10198,7 +10198,7 @@ function ScreenPromotionRoadmap({ onNavigate, active = false }: { onNavigate: (s
                   "Sequence the work so the ask isn't premature.",
                   "Turn scattered activity into a deliberate cycle.",
                 ]}
-                footer="The roadmap becomes useful once there is signal to organize."
+                footer="The sequence only gets useful once there's signal to work from."
               />
             </div>
           </div>
@@ -10222,7 +10222,7 @@ function ScreenPromotionRoadmap({ onNavigate, active = false }: { onNavigate: (s
 
           <div style={promotionPanelStyle(theme)}>
             <div style={{ fontSize:13.5, color:"#475569", lineHeight:1.75 }}>
-              The more Zari knows, the sharper the sequence gets.
+              The more sections you complete, the sharper and more specific the sequence gets.
             </div>
           </div>
         </div>
@@ -10256,10 +10256,10 @@ function ScreenPromotionRoadmap({ onNavigate, active = false }: { onNavigate: (s
           <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 84% 18%, rgba(251,207,232,0.18), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
           <div style={promotionHeroGridStyle()}>
             <div style={{ position:"relative" }}>
-              <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>What's Next</div>
-              <h1 style={promotionHeroTitleStyle(760)}>Here's what to do and in what order.</h1>
+              <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>The Sequence</div>
+              <h1 style={promotionHeroTitleStyle(760)}>The sequence, based on where you actually are.</h1>
               <p style={promotionHeroBodyStyle(720)}>
-                Sequenced from your actual situation — case strength, support gaps, and timing signals.
+                Ordered by impact — not a generic checklist.
               </p>
             </div>
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(110px,1fr))", gap:10, alignSelf:"stretch" }}>
