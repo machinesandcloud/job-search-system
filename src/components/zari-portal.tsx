@@ -14,8 +14,8 @@ const LIGHT_THEME: Record<string,string> = {
   "--z-card":  "#FFFFFF",
   "--z-raise": "#F7F8FC",
   "--z-text":  "#0A0A0F",
-  "--z-text2": "#68738A",
-  "--z-text3": "#A0AABF",
+  "--z-text2": "#4B5563",
+  "--z-text3": "#6B7280",
   "--z-bd":    "#E4E8F5",
   "--z-bd2":   "#EDF0F7",
   "--z-sh":    "rgba(0,0,0,0.07)",
@@ -26,8 +26,8 @@ const DARK_THEME: Record<string,string> = {
   "--z-raise": "#131D30",
   "--z-text":  "rgba(255,255,255,0.92)",
   "--z-text2": "rgba(255,255,255,0.55)",
-  "--z-text3": "rgba(255,255,255,0.30)",
-  "--z-bd":    "rgba(255,255,255,0.09)",
+  "--z-text3": "rgba(255,255,255,0.50)",
+  "--z-bd":    "rgba(255,255,255,0.14)",
   "--z-bd2":   "rgba(255,255,255,0.06)",
   "--z-sh":    "rgba(0,0,0,0.40)",
 };
@@ -1638,7 +1638,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
                 opacity: isLoading ? 0.4 : 1, whiteSpace:"nowrap",
                 fontSize:11.5, fontWeight:500, color:"var(--z-text2)",
                 padding:"5px 11px", borderRadius:99, flexShrink:0,
-                background:"rgba(0,0,0,0.02)", border:"1px solid rgba(255,255,255,0.09)",
+                background:"var(--z-raise)", border:"1px solid var(--z-bd)",
                 cursor:"pointer", transition:"all 0.15s",
               }}>
                 {p}
@@ -1652,8 +1652,8 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
               onChange={e => { const f = e.target.files?.[0]; if (f) void handleFileUpload(f); e.target.value = ""; }} />
             <div style={{
               position:"relative",
-              background:"rgba(255,255,255,0.05)",
-              border:`1.5px solid ${isRecording ? "rgba(239,68,68,0.6)" : isLoading ? "rgba(67,97,238,0.45)" : "rgba(255,255,255,0.1)"}`,
+              background:"var(--z-raise)",
+              border:`1.5px solid ${isRecording ? "rgba(239,68,68,0.6)" : isLoading ? "rgba(67,97,238,0.45)" : "var(--z-bd)"}`,
               borderRadius:16, overflow:"hidden",
               boxShadow: isLoading ? "0 0 24px rgba(67,97,238,0.12)" : "none",
               transition:"border-color 0.2s, box-shadow 0.2s",
@@ -1672,7 +1672,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
                 <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:15,height:15 }}><path d="M15.172 7l-6.586 6.586a2 2 0 01-2.828-2.828l6.414-6.586a4 4 0 015.656 5.656l-6.415 6.585a6 6 0 01-8.485-8.485l6.586-6.586"/></svg>
               </button>
               <button onClick={() => isRecording ? stopRecording() : void startRecording()} disabled={isLoading} title={isRecording?"Stop recording":"Speak to Zari"}
-                style={{ position:"absolute", bottom:10, right:56, width:34,height:34,borderRadius:10,border:"none",cursor:isLoading?"default":"pointer", background:isRecording?"rgba(239,68,68,0.18)":"rgba(255,255,255,0.07)", color:isRecording?"#EF4444":"rgba(255,255,255,0.4)", display:"flex",alignItems:"center",justifyContent:"center", transition:"all 0.15s" }}>
+                style={{ position:"absolute", bottom:10, right:56, width:34,height:34,borderRadius:10,border:"none",cursor:isLoading?"default":"pointer", background:isRecording?"rgba(239,68,68,0.18)":"var(--z-raise)", color:isRecording?"#EF4444":"var(--z-text2)", display:"flex",alignItems:"center",justifyContent:"center", transition:"all 0.15s" }}>
                 {isRecording
                   ? <span style={{ width:10,height:10,borderRadius:2,background:"#EF4444",animation:"blink 0.7s step-end infinite" }}/>
                   : <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:15,height:15 }}><path d="M10 2a3 3 0 00-3 3v4a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M4 9v1a6 6 0 0012 0V9"/><line x1="10" y1="15" x2="10" y2="18"/></svg>
@@ -1680,8 +1680,8 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
               </button>
               <button onClick={()=>void sendMessage(input)} disabled={isLoading||!input.trim()}
                 style={{ position:"absolute", bottom:10, right:12, width:34,height:34,borderRadius:10,border:"none",cursor:isLoading||!input.trim()?"default":"pointer",
-                  background:input.trim()&&!isLoading?"linear-gradient(135deg,#3730a3,#4361EE)":"rgba(255,255,255,0.07)",
-                  color:input.trim()&&!isLoading?"white":"rgba(255,255,255,0.2)",
+                  background:input.trim()&&!isLoading?"linear-gradient(135deg,#3730a3,#4361EE)":"var(--z-raise)",
+                  color:input.trim()&&!isLoading?"white":"var(--z-text3)",
                   boxShadow:input.trim()&&!isLoading?"0 0 14px rgba(67,97,238,0.45)":"none",
                   display:"flex",alignItems:"center",justifyContent:"center", transition:"all 0.15s" }}>
                 {isLoading
@@ -1690,7 +1690,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
                 }
               </button>
             </div>
-            <p style={{ textAlign:"center", fontSize:10, color:"#CDD5E0", marginTop:6 }}>Enter to send · Shift+Enter for newline · 📎 attach · 🎤 speak</p>
+            <p style={{ textAlign:"center", fontSize:10, color:"var(--z-text3)", marginTop:6 }}>Enter to send · Shift+Enter for newline · 📎 attach · 🎤 speak</p>
           </div>
         </div>
       </div>
@@ -12292,6 +12292,7 @@ export function ZariPortal() {
         @keyframes sidebar-shimmer { 0%{opacity:0.4} 50%{opacity:0.7} 100%{opacity:0.4} }
         @keyframes live-ring-out { 0%{transform:translate(-50%,-50%) scale(1);opacity:0.6} 100%{transform:translate(-50%,-50%) scale(2.2);opacity:0} }
         @keyframes live-msg-in { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+        textarea::placeholder, input::placeholder { color: var(--z-text3); opacity: 1; }
         .zari-nav-btn:hover { background: rgba(0,0,0,0.04) !important; }
         .zari-nav-btn.active { background: rgba(67,97,238,0.08) !important; }
         .zari-dark .zari-nav-btn:hover { background: rgba(255,255,255,0.06) !important; }
@@ -12363,12 +12364,12 @@ export function ZariPortal() {
                     padding:"9px 14px", border:"none", cursor:"pointer", textAlign:"left",
                     background: stage === key ? `${meta.color}10` : "transparent",
                     fontSize:12.5, fontWeight: stage === key ? 700 : 500,
-                    color: stage === key ? meta.color : "#68738A",
+                    color: stage === key ? meta.color : "var(--z-text2)",
                     transition:"background 0.1s",
                     borderBottom:"1px solid var(--z-bd)",
                   }}
                 >
-                  <span style={{ display:"flex", alignItems:"center", color: stage === key ? meta.color : "#A0AABF" }}>{STAGE_ICONS[key]}</span>
+                  <span style={{ display:"flex", alignItems:"center", color: stage === key ? meta.color : "var(--z-text3)" }}>{STAGE_ICONS[key]}</span>
                   {meta.label}
                   {stage === key && <svg viewBox="0 0 16 16" style={{ width:12,height:12,marginLeft:"auto" }}><path d="M3 8l4 4 6-6" stroke={meta.color} strokeWidth="2.2" fill="none"/></svg>}
                 </button>
@@ -12387,11 +12388,11 @@ export function ZariPortal() {
             const sa = SCREEN_ACCENTS[n.id];
             return (
               <button key={n.id} onClick={()=>navigate(n.id as Screen)} className={`zari-nav-btn${isActive?" active":""}`}
-                style={{ width:"100%", display:"flex", alignItems:"center", gap:10, padding:"9px 11px", borderRadius:11, border:"none", cursor:"pointer", textAlign:"left", background:isActive?`${sa?.color ?? "#4361EE"}12`:"transparent", color:isActive?(sa?.color ?? "#4361EE"):"#68738A", fontWeight:isActive?700:500, fontSize:13.5, transition:"all 0.15s", position:"relative" }}>
+                style={{ width:"100%", display:"flex", alignItems:"center", gap:10, padding:"9px 11px", borderRadius:11, border:"none", cursor:"pointer", textAlign:"left", background:isActive?`${sa?.color ?? "#4361EE"}12`:"transparent", color:isActive?(sa?.color ?? "#4361EE"):"var(--z-text2)", fontWeight:isActive?700:500, fontSize:13.5, transition:"all 0.15s", position:"relative" }}>
                 {isActive && (
                   <div style={{ position:"absolute", left:0, top:"50%", transform:"translateY(-50%)", width:3, height:"60%", borderRadius:"0 2px 2px 0", background:sa?.color ?? "#4361EE" }}/>
                 )}
-                <span style={{ display:"flex", alignItems:"center", opacity:isActive?1:0.7, color:isActive?(sa?.color ?? "#4361EE"):"#A0AABF" }}>{n.icon}</span>
+                <span style={{ display:"flex", alignItems:"center", opacity:isActive?1:0.7, color:isActive?(sa?.color ?? "#4361EE"):"var(--z-text3)" }}>{n.icon}</span>
                 <span style={{ flex:1 }}>{n.label}</span>
                 {n.id==="session" && <span style={{ fontSize:9, fontWeight:800, padding:"2px 6px", borderRadius:99, background:"rgba(52,211,153,0.12)", color:"#059669", border:"1px solid rgba(52,211,153,0.25)", letterSpacing:"0.06em" }}>LIVE</span>}
               </button>
