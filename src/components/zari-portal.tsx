@@ -3334,8 +3334,8 @@ function PromotionChoiceGroup({
             style={{
               padding:"15px 16px",
               borderRadius:14,
-              border:`1.5px solid ${active ? "#4361EE" : "rgba(255,255,255,0.1)"}`,
-              background:active ? "rgba(67,97,238,0.16)" : "rgba(255,255,255,0.03)",
+              border:`1.5px solid ${active ? "#4361EE" : "var(--z-bd)"}`,
+              background:active ? "rgba(67,97,238,0.16)" : "var(--z-raise)",
               cursor:"pointer",
               textAlign:"left",
               transition:"all 0.18s",
@@ -3349,7 +3349,7 @@ function PromotionChoiceGroup({
               width:18,
               height:18,
               borderRadius:"50%",
-              border:`2px solid ${active ? "#4361EE" : "rgba(255,255,255,0.22)"}`,
+              border:`2px solid ${active ? "#4361EE" : "var(--z-bd)"}`,
               background:active ? "#4361EE" : "transparent",
               flexShrink:0,
               display:"flex",
@@ -3360,8 +3360,8 @@ function PromotionChoiceGroup({
               {active && <div style={{ width:6, height:6, borderRadius:"50%", background:"white" }}/>}
             </div>
             <div>
-              <div style={{ fontSize:13.5, fontWeight:700, color:"white", marginBottom:4 }}>{option.label}</div>
-              <div style={{ fontSize:11.8, color:"rgba(255,255,255,0.44)", lineHeight:1.55 }}>{option.description}</div>
+              <div style={{ fontSize:13.5, fontWeight:700, color:"var(--z-text)", marginBottom:4 }}>{option.label}</div>
+              <div style={{ fontSize:11.8, color:"var(--z-text2)", lineHeight:1.55 }}>{option.description}</div>
             </div>
           </button>
         );
@@ -3405,10 +3405,10 @@ function PromotionSharedIntakeFlow({
     borderRadius:12,
     padding:"13px 16px",
     fontSize:14,
-    color:"white",
+    color:"var(--z-text)",
     outline:"none",
     fontFamily:"inherit",
-    background:"rgba(255,255,255,0.05)",
+    background:"var(--z-raise)",
     boxSizing:"border-box" as const,
     transition:"border-color 0.15s",
   };
@@ -3505,7 +3505,7 @@ function PromotionSharedIntakeFlow({
                 <div key={i} style={{ width:11,height:11,borderRadius:"50%",background:"#818CF8",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite`, boxShadow:"0 0 10px rgba(129,140,248,0.5)" }}/>
               ))}
             </div>
-            <p style={{ fontSize:17, fontWeight:800, color:"white", marginBottom:8, letterSpacing:"-0.02em" }}>{loadingTitle}</p>
+            <p style={{ fontSize:17, fontWeight:800, color:"var(--z-text)", marginBottom:8, letterSpacing:"-0.02em" }}>{loadingTitle}</p>
             <p style={{ fontSize:13.5, color:"var(--z-text3)", maxWidth:440, margin:"0 auto", lineHeight:1.6 }}>
               {loadingBody}
             </p>
@@ -3521,14 +3521,14 @@ function PromotionSharedIntakeFlow({
         <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:40, flexWrap:"wrap", justifyContent:"center" }}>
           {[1,2,3,4].map(s => (
             <div key={s} style={{ display:"flex", alignItems:"center", gap:10 }}>
-              <div style={{ width:28, height:28, borderRadius:"50%", border:`2px solid ${s < step ? "#4ADE80" : s === step ? "#4361EE" : "rgba(255,255,255,0.15)"}`, background:s < step ? "rgba(74,222,128,0.15)" : s === step ? "rgba(67,97,238,0.2)" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
+              <div style={{ width:28, height:28, borderRadius:"50%", border:`2px solid ${s < step ? "#4ADE80" : s === step ? "#4361EE" : "var(--z-bd)"}`, background:s < step ? "rgba(74,222,128,0.15)" : s === step ? "rgba(67,97,238,0.2)" : "var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
                 {s < step ? (
                   <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2" style={{ width:12,height:12 }}><polyline points="2,6 5,9 10,3"/></svg>
                 ) : (
-                  <span style={{ fontSize:11, fontWeight:700, color:s === step ? "#818CF8" : "rgba(255,255,255,0.25)" }}>{s}</span>
+                  <span style={{ fontSize:11, fontWeight:700, color:s === step ? "#818CF8" : "var(--z-text3)" }}>{s}</span>
                 )}
               </div>
-              {s < 4 && <div style={{ width:28, height:2, borderRadius:99, background:s < step ? "rgba(74,222,128,0.4)" : "rgba(255,255,255,0.08)", transition:"all 0.3s" }}/>}
+              {s < 4 && <div style={{ width:28, height:2, borderRadius:99, background:s < step ? "rgba(74,222,128,0.4)" : "var(--z-bd2)", transition:"all 0.3s" }}/>}
             </div>
           ))}
         </div>
@@ -3541,9 +3541,9 @@ function PromotionSharedIntakeFlow({
             <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"var(--z-text3)", marginBottom:8 }}>
               Step {step} of 4
             </p>
-            <h1 style={{ fontSize:28, fontWeight:900, color:"white", letterSpacing:"-0.04em", marginBottom:10 }}>{activeStep.title}</h1>
+            <h1 style={{ fontSize:28, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.04em", marginBottom:10 }}>{activeStep.title}</h1>
             <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.6, maxWidth:500, margin:"0 auto 12px" }}>{activeStep.subtitle}</p>
-            <p style={{ fontSize:12.5, color:"rgba(255,255,255,0.34)", lineHeight:1.65, maxWidth:560, margin:"0 auto" }}>{sectionIntro}</p>
+            <p style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.65, maxWidth:560, margin:"0 auto" }}>{sectionIntro}</p>
           </div>
 
           {step === 1 && (
@@ -3568,7 +3568,7 @@ function PromotionSharedIntakeFlow({
 
               <div style={{ ...wizardCardStyle, background:"rgba(0,0,0,0.02)" }}>
                 <div style={{ fontSize:11.5, fontWeight:800, color:"#A5B4FC", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Shared promotion intake</div>
-                <p style={{ fontSize:13, color:"rgba(255,255,255,0.52)", lineHeight:1.7, margin:0 }}>
+                <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.7, margin:0 }}>
                   These answers become the shared promotion context for readiness, manager conversation, evidence builder, sponsor strategy, and roadmap.
                 </p>
               </div>
@@ -3709,10 +3709,10 @@ function ScreenPromotionReadiness() {
     borderRadius:12,
     padding:"13px 16px",
     fontSize:14,
-    color:"white",
+    color:"var(--z-text)",
     outline:"none",
     fontFamily:"inherit",
-    background:"rgba(255,255,255,0.05)",
+    background:"var(--z-raise)",
     boxSizing:"border-box" as const,
     transition:"border-color 0.15s",
   };
@@ -3817,7 +3817,7 @@ function ScreenPromotionReadiness() {
                 <div key={i} style={{ width:11,height:11,borderRadius:"50%",background:"#818CF8",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite`, boxShadow:"0 0 10px rgba(129,140,248,0.5)" }}/>
               ))}
             </div>
-            <p style={{ fontSize:17, fontWeight:800, color:"white", marginBottom:8, letterSpacing:"-0.02em" }}>Scoring your case…</p>
+            <p style={{ fontSize:17, fontWeight:800, color:"var(--z-text)", marginBottom:8, letterSpacing:"-0.02em" }}>Scoring your case…</p>
             <p style={{ fontSize:13.5, color:"var(--z-text3)", maxWidth:420, margin:"0 auto", lineHeight:1.6 }}>
               Measuring what you have against what the next level actually requires.
             </p>
@@ -4264,7 +4264,7 @@ function ScreenPromotionReadiness() {
           <div>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4 }}>
               <div style={{ width:32, height:32, borderRadius:10, background:"rgba(109,76,255,0.2)", border:"1px solid rgba(109,76,255,0.35)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:15 }}>📊</div>
-              <h1 style={{ fontSize:18, fontWeight:900, color:"white", letterSpacing:"-0.02em", margin:0 }}>Promotion Readiness</h1>
+              <h1 style={{ fontSize:18, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:0 }}>Promotion Readiness</h1>
             </div>
             <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>Find out exactly where you stand before you make the ask.</p>
           </div>
@@ -4273,16 +4273,16 @@ function ScreenPromotionReadiness() {
             {([1,2,3,4] as const).map(s => (
               <div key={s} style={{ display:"flex", alignItems:"center" }}>
                 <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:5 }}>
-                  <div style={{ width:32, height:32, borderRadius:"50%", border:`2px solid ${s < step ? "#4ADE80" : s === step ? "#818CF8" : "rgba(255,255,255,0.12)"}`, background:s < step ? "rgba(74,222,128,0.15)" : s === step ? "rgba(129,140,248,0.18)" : "rgba(255,255,255,0.04)", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
+                  <div style={{ width:32, height:32, borderRadius:"50%", border:`2px solid ${s < step ? "#4ADE80" : s === step ? "#818CF8" : "var(--z-bd)"}`, background:s < step ? "rgba(74,222,128,0.15)" : s === step ? "rgba(129,140,248,0.18)" : "var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
                     {s < step ? (
                       <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2.5" style={{ width:12,height:12 }}><polyline points="2,6 5,9 10,3"/></svg>
                     ) : (
-                      <span style={{ fontSize:12, fontWeight:700, color:s === step ? "#818CF8" : "rgba(255,255,255,0.22)" }}>{s}</span>
+                      <span style={{ fontSize:12, fontWeight:700, color:s === step ? "#818CF8" : "var(--z-text3)" }}>{s}</span>
                     )}
                   </div>
-                  <span style={{ fontSize:10, fontWeight:700, color:s === step ? "#818CF8" : s < step ? "rgba(74,222,128,0.7)" : "rgba(255,255,255,0.2)", letterSpacing:"0.04em", whiteSpace:"nowrap" }}>{READINESS_STEP_CONTEXT[s-1].label}</span>
+                  <span style={{ fontSize:10, fontWeight:700, color:s === step ? "#818CF8" : s < step ? "rgba(74,222,128,0.7)" : "var(--z-text3)", letterSpacing:"0.04em", whiteSpace:"nowrap" }}>{READINESS_STEP_CONTEXT[s-1].label}</span>
                 </div>
-                {s < 4 && <div style={{ width:40, height:2, borderRadius:99, background:s < step ? "rgba(74,222,128,0.35)" : "rgba(255,255,255,0.07)", margin:"0 6px", marginBottom:18, transition:"all 0.3s" }}/>}
+                {s < 4 && <div style={{ width:40, height:2, borderRadius:99, background:s < step ? "rgba(74,222,128,0.35)" : "var(--z-bd2)", margin:"0 6px", marginBottom:18, transition:"all 0.3s" }}/>}
               </div>
             ))}
           </div>
@@ -4295,7 +4295,7 @@ function ScreenPromotionReadiness() {
         <div>
           <div style={{ marginBottom:28 }}>
             <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"var(--z-text3)", marginBottom:6 }}>Step {step} of 4</p>
-            <h2 style={{ fontSize:24, fontWeight:900, color:"white", letterSpacing:"-0.03em", margin:"0 0 8px" }}>{activeStep.title}</h2>
+            <h2 style={{ fontSize:24, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 8px" }}>{activeStep.title}</h2>
             <p style={{ fontSize:14, color:"rgba(255,255,255,0.48)", lineHeight:1.65, margin:0 }}>{activeStep.subtitle}</p>
           </div>
 
@@ -4451,7 +4451,7 @@ function ScreenPromotionReadiness() {
                 </div>
               ))}
               {!form.currentTitle && !form.desiredTitle && (
-                <span style={{ fontSize:12, color:"rgba(255,255,255,0.22)", fontStyle:"italic" }}>Nothing filled in yet.</span>
+                <span style={{ fontSize:12, color:"var(--z-text3)", fontStyle:"italic" }}>Nothing filled in yet.</span>
               )}
             </div>
           </div>
@@ -4478,7 +4478,7 @@ type SalaryAnalysisResult = {
 
 function ScreenSalaryCompensation() {
   const ACCENT = "#10B981";
-  const BG_DARK = "#070C18";
+  const BG_DARK = "var(--z-bg)";
   type SalaryTab = "overview" | "leverage" | "moves" | "script";
   const [step, setStep] = useState<1|2|3>(1);
   const [form, setForm] = useState({ title:"", level:"", industry:"", companySize:"", askType:"raise", currentComp:"", targetComp:"", packageContext:"", location:"", yearsExperience:"", additionalContext:"" });
@@ -4524,7 +4524,7 @@ function ScreenSalaryCompensation() {
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
               {[0,1,2].map(i => <div key={i} style={{ width:11,height:11,borderRadius:"50%",background:ACCENT,animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite`,boxShadow:`0 0 10px ${ACCENT}80` }}/>)}
             </div>
-            <p style={{ fontSize:18, fontWeight:800, color:"white", marginBottom:8, letterSpacing:"-0.02em" }}>Analyzing your position…</p>
+            <p style={{ fontSize:18, fontWeight:800, color:"var(--z-text)", marginBottom:8, letterSpacing:"-0.02em" }}>Analyzing your position…</p>
             <p style={{ fontSize:13.5, color:"var(--z-text3)", lineHeight:1.65, maxWidth:380, margin:"0 auto" }}>Calculating market benchmarks and building your negotiation strategy.</p>
           </div>
         </div>
@@ -4549,7 +4549,7 @@ function ScreenSalaryCompensation() {
                 <span style={{ fontSize:16 }}>💵</span>
               </div>
               <div>
-                <h1 style={{ fontSize:18, fontWeight:900, color:"white", letterSpacing:"-0.02em", margin:0 }}>Compensation Analysis</h1>
+                <h1 style={{ fontSize:18, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:0 }}>Compensation Analysis</h1>
                 <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>Your market position and negotiation leverage.</p>
               </div>
             </div>
@@ -4600,7 +4600,7 @@ function ScreenSalaryCompensation() {
                   {result.benchmarks.map((b, i) => (
                     <div key={i} style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"20px 22px", boxShadow:"0 2px 16px rgba(0,0,0,0.07)" }}>
                       <div style={{ fontSize:10.5, fontWeight:800, color:ACCENT, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>{b.label}</div>
-                      <div style={{ fontSize:20, fontWeight:900, color:"white", letterSpacing:"-0.03em", marginBottom:4 }}>{b.value}</div>
+                      <div style={{ fontSize:20, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", marginBottom:4 }}>{b.value}</div>
                       <div style={{ fontSize:12, color:"var(--z-text2)", lineHeight:1.6 }}>{b.context}</div>
                     </div>
                   ))}
@@ -4637,7 +4637,7 @@ function ScreenSalaryCompensation() {
                   <div key={i} style={{ borderRadius:18, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"24px 26px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
                     <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
                       <span style={{ fontSize:11, fontWeight:900, color:ACCENT, background:`${ACCENT}18`, borderRadius:999, width:26, height:26, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{i+1}</span>
-                      <div style={{ fontSize:15, fontWeight:800, color:"white" }}>{m.title}</div>
+                      <div style={{ fontSize:15, fontWeight:800, color:"var(--z-text)" }}>{m.title}</div>
                     </div>
                     <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.78, margin:"0 0 10px" }}>{m.move}</p>
                     <div style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 10px", borderRadius:8, background:`${ACCENT}12`, border:`1px solid ${ACCENT}30` }}>
@@ -4678,7 +4678,7 @@ function ScreenSalaryCompensation() {
           <div>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4 }}>
               <div style={{ width:32, height:32, borderRadius:10, background:`${ACCENT}22`, border:`1px solid ${ACCENT}40`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:15 }}>💵</div>
-              <h1 style={{ fontSize:18, fontWeight:900, color:"white", letterSpacing:"-0.02em", margin:0 }}>Compensation Analysis</h1>
+              <h1 style={{ fontSize:18, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:0 }}>Compensation Analysis</h1>
             </div>
             <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>Know your market position and build a negotiation strategy that actually works.</p>
           </div>
@@ -4686,12 +4686,12 @@ function ScreenSalaryCompensation() {
             {([1,2,3] as const).map(s => (
               <div key={s} style={{ display:"flex", alignItems:"center" }}>
                 <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:5 }}>
-                  <div style={{ width:32, height:32, borderRadius:"50%", border:`2px solid ${s < step ? "#4ADE80" : s === step ? ACCENT : "rgba(255,255,255,0.12)"}`, background:s < step ? "rgba(74,222,128,0.15)" : s === step ? `${ACCENT}22` : "rgba(255,255,255,0.04)", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
-                    {s < step ? <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2.5" style={{ width:12,height:12 }}><polyline points="2,6 5,9 10,3"/></svg> : <span style={{ fontSize:12, fontWeight:700, color:s === step ? ACCENT : "rgba(255,255,255,0.22)" }}>{s}</span>}
+                  <div style={{ width:32, height:32, borderRadius:"50%", border:`2px solid ${s < step ? "#4ADE80" : s === step ? ACCENT : "var(--z-bd)"}`, background:s < step ? "rgba(74,222,128,0.15)" : s === step ? `${ACCENT}22` : "var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
+                    {s < step ? <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2.5" style={{ width:12,height:12 }}><polyline points="2,6 5,9 10,3"/></svg> : <span style={{ fontSize:12, fontWeight:700, color:s === step ? ACCENT : "var(--z-text3)" }}>{s}</span>}
                   </div>
-                  <span style={{ fontSize:10, fontWeight:700, color:s === step ? ACCENT : s < step ? "rgba(74,222,128,0.7)" : "rgba(255,255,255,0.2)", letterSpacing:"0.04em", whiteSpace:"nowrap" }}>{SALARY_STEPS[s-1].label}</span>
+                  <span style={{ fontSize:10, fontWeight:700, color:s === step ? ACCENT : s < step ? "rgba(74,222,128,0.7)" : "var(--z-text3)", letterSpacing:"0.04em", whiteSpace:"nowrap" }}>{SALARY_STEPS[s-1].label}</span>
                 </div>
-                {s < 3 && <div style={{ width:40, height:2, borderRadius:99, background:s < step ? "rgba(74,222,128,0.35)" : "rgba(255,255,255,0.07)", margin:"0 6px", marginBottom:18, transition:"all 0.3s" }}/>}
+                {s < 3 && <div style={{ width:40, height:2, borderRadius:99, background:s < step ? "rgba(74,222,128,0.35)" : "var(--z-bd2)", margin:"0 6px", marginBottom:18, transition:"all 0.3s" }}/>}
               </div>
             ))}
           </div>
@@ -4703,8 +4703,8 @@ function ScreenSalaryCompensation() {
         <div>
           <div style={{ marginBottom:28 }}>
             <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"var(--z-text3)", marginBottom:6 }}>Step {step} of 3</p>
-            <h2 style={{ fontSize:24, fontWeight:900, color:"white", letterSpacing:"-0.03em", margin:"0 0 8px" }}>{salaryStepCtx.title}</h2>
-            <p style={{ fontSize:14, color:"rgba(255,255,255,0.48)", lineHeight:1.65, margin:0 }}>{salaryStepCtx.subtitle}</p>
+            <h2 style={{ fontSize:24, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 8px" }}>{salaryStepCtx.title}</h2>
+            <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.65, margin:0 }}>{salaryStepCtx.subtitle}</p>
           </div>
           {step === 1 && (
             <div style={{ ...card, display:"grid", gap:14 }}>
@@ -4823,7 +4823,7 @@ function ScreenSalaryCompensation() {
                   <span style={{ fontSize:11.5, fontWeight:700, color:"var(--z-text2)", textAlign:"right", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.value}</span>
                 </div>
               ))}
-              {!form.title && <span style={{ fontSize:12, color:"rgba(255,255,255,0.22)", fontStyle:"italic" }}>Nothing filled in yet.</span>}
+              {!form.title && <span style={{ fontSize:12, color:"var(--z-text3)", fontStyle:"italic" }}>Nothing filled in yet.</span>}
             </div>
           </div>
         </div>
@@ -4849,7 +4849,7 @@ type PivotAnalysisResult = {
 
 function ScreenPivotAnalysis() {
   const ACCENT = "#38BDF8";
-  const BG_DARK = "#070C18";
+  const BG_DARK = "var(--z-bg)";
   type PivotTab = "overview" | "assets" | "gaps" | "plan";
   const [step, setStep] = useState<1|2|3>(1);
   const [form, setForm] = useState({ fromRole:"", fromIndustry:"", toRole:"", toIndustry:"", accomplishments:"", skills:"", biggestConcern:"", timeline:"", resumeText:"" });
@@ -4891,7 +4891,7 @@ function ScreenPivotAnalysis() {
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
               {[0,1,2].map(i => <div key={i} style={{ width:11,height:11,borderRadius:"50%",background:ACCENT,animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite`,boxShadow:`0 0 10px ${ACCENT}80` }}/>)}
             </div>
-            <p style={{ fontSize:18, fontWeight:800, color:"white", marginBottom:8, letterSpacing:"-0.02em" }}>Analyzing your pivot…</p>
+            <p style={{ fontSize:18, fontWeight:800, color:"var(--z-text)", marginBottom:8, letterSpacing:"-0.02em" }}>Analyzing your pivot…</p>
             <p style={{ fontSize:13.5, color:"var(--z-text3)", lineHeight:1.65, maxWidth:380, margin:"0 auto" }}>Mapping your transferable assets and identifying what it takes to make this move credible.</p>
           </div>
         </div>
@@ -4916,7 +4916,7 @@ function ScreenPivotAnalysis() {
                 <span style={{ fontSize:16 }}>🔀</span>
               </div>
               <div>
-                <h1 style={{ fontSize:18, fontWeight:900, color:"white", letterSpacing:"-0.02em", margin:0 }}>Pivot Analysis</h1>
+                <h1 style={{ fontSize:18, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:0 }}>Pivot Analysis</h1>
                 <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>Your career change readiness and pivot strategy.</p>
               </div>
             </div>
@@ -4971,7 +4971,7 @@ function ScreenPivotAnalysis() {
                     {result.targetRoles.map((r, i) => (
                       <div key={i} style={{ display:"flex", gap:12, alignItems:"flex-start", padding:"12px 14px", borderRadius:12, background:`${ACCENT}0F`, border:`1px solid ${ACCENT}28` }}>
                         <svg viewBox="0 0 12 12" fill="none" stroke={ACCENT} strokeWidth="2" style={{ width:12,height:12,flexShrink:0,marginTop:2 }}><path d="M2 6h8M7 3l3 3-3 3"/></svg>
-                        <span style={{ fontSize:13, color:"rgba(255,255,255,0.78)", lineHeight:1.7 }}>{r}</span>
+                        <span style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.7 }}>{r}</span>
                       </div>
                     ))}
                   </div>
@@ -4985,10 +4985,10 @@ function ScreenPivotAnalysis() {
                   return (
                     <div key={i} style={{ borderRadius:18, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"24px 26px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
                       <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
-                        <div style={{ fontSize:14, fontWeight:800, color:"white", flex:1 }}>{a.skill}</div>
+                        <div style={{ fontSize:14, fontWeight:800, color:"var(--z-text)", flex:1 }}>{a.skill}</div>
                         <span style={{ fontSize:11, fontWeight:800, color:sColor, background:`${sColor}18`, border:`1px solid ${sColor}35`, padding:"3px 10px", borderRadius:999, textTransform:"uppercase", letterSpacing:"0.06em" }}>{a.strength}</span>
                       </div>
-                      <p style={{ fontSize:13, color:"rgba(255,255,255,0.62)", lineHeight:1.75, margin:0 }}>{a.evidence}</p>
+                      <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.75, margin:0 }}>{a.evidence}</p>
                     </div>
                   );
                 })}
@@ -5001,12 +5001,12 @@ function ScreenPivotAnalysis() {
                   return (
                     <div key={i} style={{ borderRadius:18, background:"var(--z-card)", border:`1px solid ${gColor}40`, padding:"24px 26px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
                       <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
-                        <div style={{ fontSize:14, fontWeight:800, color:"white", flex:1 }}>{g.gap}</div>
+                        <div style={{ fontSize:14, fontWeight:800, color:"var(--z-text)", flex:1 }}>{g.gap}</div>
                         <span style={{ fontSize:11, fontWeight:800, color:gColor, background:`${gColor}18`, border:`1px solid ${gColor}35`, padding:"3px 10px", borderRadius:999, textTransform:"uppercase", letterSpacing:"0.06em" }}>{g.severity}</span>
                       </div>
                       <div style={{ display:"flex", gap:8, alignItems:"flex-start" }}>
                         <svg viewBox="0 0 12 12" fill="none" stroke={gColor} strokeWidth="2" style={{ width:12,height:12,flexShrink:0,marginTop:2 }}><path d="M6 1v6M6 9v.5"/></svg>
-                        <p style={{ fontSize:13, color:"rgba(255,255,255,0.62)", lineHeight:1.75, margin:0 }}>{g.path}</p>
+                        <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.75, margin:0 }}>{g.path}</p>
                       </div>
                     </div>
                   );
@@ -5057,7 +5057,7 @@ function ScreenPivotAnalysis() {
           <div>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4 }}>
               <div style={{ width:32, height:32, borderRadius:10, background:`${ACCENT}22`, border:`1px solid ${ACCENT}40`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:15 }}>🔀</div>
-              <h1 style={{ fontSize:18, fontWeight:900, color:"white", letterSpacing:"-0.02em", margin:0 }}>Pivot Analysis</h1>
+              <h1 style={{ fontSize:18, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:0 }}>Pivot Analysis</h1>
             </div>
             <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>Understand your readiness, map the gaps, and build a credible path to your target role.</p>
           </div>
@@ -5065,12 +5065,12 @@ function ScreenPivotAnalysis() {
             {([1,2,3] as const).map(s => (
               <div key={s} style={{ display:"flex", alignItems:"center" }}>
                 <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:5 }}>
-                  <div style={{ width:32, height:32, borderRadius:"50%", border:`2px solid ${s < step ? "#4ADE80" : s === step ? ACCENT : "rgba(255,255,255,0.12)"}`, background:s < step ? "rgba(74,222,128,0.15)" : s === step ? `${ACCENT}22` : "rgba(255,255,255,0.04)", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
-                    {s < step ? <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2.5" style={{ width:12,height:12 }}><polyline points="2,6 5,9 10,3"/></svg> : <span style={{ fontSize:12, fontWeight:700, color:s === step ? ACCENT : "rgba(255,255,255,0.22)" }}>{s}</span>}
+                  <div style={{ width:32, height:32, borderRadius:"50%", border:`2px solid ${s < step ? "#4ADE80" : s === step ? ACCENT : "var(--z-bd)"}`, background:s < step ? "rgba(74,222,128,0.15)" : s === step ? `${ACCENT}22` : "var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
+                    {s < step ? <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2.5" style={{ width:12,height:12 }}><polyline points="2,6 5,9 10,3"/></svg> : <span style={{ fontSize:12, fontWeight:700, color:s === step ? ACCENT : "var(--z-text3)" }}>{s}</span>}
                   </div>
-                  <span style={{ fontSize:10, fontWeight:700, color:s === step ? ACCENT : s < step ? "rgba(74,222,128,0.7)" : "rgba(255,255,255,0.2)", letterSpacing:"0.04em", whiteSpace:"nowrap" }}>{PIVOT_STEPS[s-1].label}</span>
+                  <span style={{ fontSize:10, fontWeight:700, color:s === step ? ACCENT : s < step ? "rgba(74,222,128,0.7)" : "var(--z-text3)", letterSpacing:"0.04em", whiteSpace:"nowrap" }}>{PIVOT_STEPS[s-1].label}</span>
                 </div>
-                {s < 3 && <div style={{ width:40, height:2, borderRadius:99, background:s < step ? "rgba(74,222,128,0.35)" : "rgba(255,255,255,0.07)", margin:"0 6px", marginBottom:18, transition:"all 0.3s" }}/>}
+                {s < 3 && <div style={{ width:40, height:2, borderRadius:99, background:s < step ? "rgba(74,222,128,0.35)" : "var(--z-bd2)", margin:"0 6px", marginBottom:18, transition:"all 0.3s" }}/>}
               </div>
             ))}
           </div>
@@ -5082,8 +5082,8 @@ function ScreenPivotAnalysis() {
         <div>
           <div style={{ marginBottom:28 }}>
             <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"var(--z-text3)", marginBottom:6 }}>Step {step} of 3</p>
-            <h2 style={{ fontSize:24, fontWeight:900, color:"white", letterSpacing:"-0.03em", margin:"0 0 8px" }}>{pivotStepCtx.title}</h2>
-            <p style={{ fontSize:14, color:"rgba(255,255,255,0.48)", lineHeight:1.65, margin:0 }}>{pivotStepCtx.subtitle}</p>
+            <h2 style={{ fontSize:24, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 8px" }}>{pivotStepCtx.title}</h2>
+            <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.65, margin:0 }}>{pivotStepCtx.subtitle}</p>
           </div>
           {step === 1 && (
             <div style={{ ...card, display:"grid", gap:14 }}>
@@ -5182,7 +5182,7 @@ function ScreenPivotAnalysis() {
                   <span style={{ fontSize:11.5, fontWeight:700, color:"var(--z-text2)", textAlign:"right", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.value}</span>
                 </div>
               ))}
-              {!form.fromRole && !form.toRole && <span style={{ fontSize:12, color:"rgba(255,255,255,0.22)", fontStyle:"italic" }}>Nothing filled in yet.</span>}
+              {!form.fromRole && !form.toRole && <span style={{ fontSize:12, color:"var(--z-text3)", fontStyle:"italic" }}>Nothing filled in yet.</span>}
             </div>
           </div>
         </div>
@@ -5208,7 +5208,7 @@ type ExecPositioningResult = {
 
 function ScreenExecPositioning() {
   const ACCENT = "#F59E0B";
-  const BG_DARK = "#070C18";
+  const BG_DARK = "var(--z-bg)";
   type ExecTab = "overview" | "gaps" | "moves" | "bio";
   const [step, setStep] = useState<1|2|3>(1);
   const [form, setForm] = useState({ currentTitle:"", targetRole:"", currentScope:"", teamSize:"", businessOutcomes:"", execExposure:"", boardExperience:"", specificGoal:"", bioText:"" });
@@ -5249,7 +5249,7 @@ function ScreenExecPositioning() {
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
               {[0,1,2].map(i => <div key={i} style={{ width:11,height:11,borderRadius:"50%",background:ACCENT,animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite`,boxShadow:`0 0 10px ${ACCENT}80` }}/>)}
             </div>
-            <p style={{ fontSize:18, fontWeight:800, color:"white", marginBottom:8, letterSpacing:"-0.02em" }}>Assessing your executive presence…</p>
+            <p style={{ fontSize:18, fontWeight:800, color:"var(--z-text)", marginBottom:8, letterSpacing:"-0.02em" }}>Assessing your executive presence…</p>
             <p style={{ fontSize:13.5, color:"var(--z-text3)", lineHeight:1.65, maxWidth:400, margin:"0 auto" }}>Measuring your positioning against what C-suite and board-level credibility actually requires.</p>
           </div>
         </div>
@@ -5274,7 +5274,7 @@ function ScreenExecPositioning() {
                 <span style={{ fontSize:16 }}>🏛️</span>
               </div>
               <div>
-                <h1 style={{ fontSize:18, fontWeight:900, color:"white", letterSpacing:"-0.02em", margin:0 }}>Executive Positioning</h1>
+                <h1 style={{ fontSize:18, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:0 }}>Executive Positioning</h1>
                 <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>Your executive presence score and positioning strategy.</p>
               </div>
             </div>
@@ -5341,7 +5341,7 @@ function ScreenExecPositioning() {
                     <div style={{ fontSize:10.5, fontWeight:800, color:"#F59E0B", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>Watchouts</div>
                     <div style={{ display:"grid", gap:8 }}>
                       {result.watchouts.map((w, i) => (
-                        <div key={i} style={{ display:"flex", gap:10, alignItems:"flex-start", fontSize:13, color:"rgba(255,255,255,0.72)", lineHeight:1.7 }}>
+                        <div key={i} style={{ display:"flex", gap:10, alignItems:"flex-start", fontSize:13, color:"var(--z-text2)", lineHeight:1.7 }}>
                           <svg viewBox="0 0 12 12" fill="none" stroke="#F59E0B" strokeWidth="2" style={{ width:12,height:12,flexShrink:0,marginTop:2 }}><path d="M6 1v5M6 8v.5"/></svg>
                           {w}
                         </div>
@@ -5358,7 +5358,7 @@ function ScreenExecPositioning() {
                   return (
                     <div key={i} style={{ borderRadius:18, background:"var(--z-card)", border:`1px solid ${gColor}40`, padding:"24px 26px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
                       <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
-                        <div style={{ fontSize:14, fontWeight:800, color:"white", flex:1 }}>{g.area}</div>
+                        <div style={{ fontSize:14, fontWeight:800, color:"var(--z-text)", flex:1 }}>{g.area}</div>
                         <span style={{ fontSize:11, fontWeight:800, color:gColor, background:`${gColor}18`, border:`1px solid ${gColor}35`, padding:"3px 10px", borderRadius:999, textTransform:"uppercase", letterSpacing:"0.06em" }}>{g.severity}</span>
                       </div>
                       <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.75, margin:0 }}>{g.action}</p>
@@ -5373,9 +5373,9 @@ function ScreenExecPositioning() {
                   <div key={i} style={{ borderRadius:18, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"24px 26px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
                     <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
                       <span style={{ fontSize:11, fontWeight:900, color:ACCENT, background:`${ACCENT}18`, borderRadius:999, width:26, height:26, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{i+1}</span>
-                      <div style={{ fontSize:15, fontWeight:800, color:"white" }}>{m.title}</div>
+                      <div style={{ fontSize:15, fontWeight:800, color:"var(--z-text)" }}>{m.title}</div>
                     </div>
-                    <p style={{ fontSize:13.5, color:"rgba(255,255,255,0.78)", lineHeight:1.78, margin:"0 0 10px" }}>{m.move}</p>
+                    <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.78, margin:"0 0 10px" }}>{m.move}</p>
                     <div style={{ display:"flex", gap:8, alignItems:"flex-start", padding:"10px 12px", borderRadius:10, background:`${ACCENT}12`, border:`1px solid ${ACCENT}30` }}>
                       <svg viewBox="0 0 12 12" fill="none" stroke={ACCENT} strokeWidth="1.8" style={{ width:11,height:11,flexShrink:0,marginTop:2 }}><path d="M6 1l1.5 3 3.5.5-2.5 2.5.5 3.5L6 9l-3 1.5.5-3.5L1 4.5 4.5 4z"/></svg>
                       <span style={{ fontSize:12, color:"var(--z-text2)", lineHeight:1.65 }}>{m.why}</span>
@@ -5414,7 +5414,7 @@ function ScreenExecPositioning() {
           <div>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4 }}>
               <div style={{ width:32, height:32, borderRadius:10, background:`${ACCENT}22`, border:`1px solid ${ACCENT}40`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:15 }}>🏛️</div>
-              <h1 style={{ fontSize:18, fontWeight:900, color:"white", letterSpacing:"-0.02em", margin:0 }}>Executive Positioning</h1>
+              <h1 style={{ fontSize:18, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:0 }}>Executive Positioning</h1>
             </div>
             <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>Assess your executive presence and build a concrete strategy to close the gap to the top.</p>
           </div>
@@ -5422,12 +5422,12 @@ function ScreenExecPositioning() {
             {([1,2,3] as const).map(s => (
               <div key={s} style={{ display:"flex", alignItems:"center" }}>
                 <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:5 }}>
-                  <div style={{ width:32, height:32, borderRadius:"50%", border:`2px solid ${s < step ? "#4ADE80" : s === step ? ACCENT : "rgba(255,255,255,0.12)"}`, background:s < step ? "rgba(74,222,128,0.15)" : s === step ? `${ACCENT}22` : "rgba(255,255,255,0.04)", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
-                    {s < step ? <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2.5" style={{ width:12,height:12 }}><polyline points="2,6 5,9 10,3"/></svg> : <span style={{ fontSize:12, fontWeight:700, color:s === step ? ACCENT : "rgba(255,255,255,0.22)" }}>{s}</span>}
+                  <div style={{ width:32, height:32, borderRadius:"50%", border:`2px solid ${s < step ? "#4ADE80" : s === step ? ACCENT : "var(--z-bd)"}`, background:s < step ? "rgba(74,222,128,0.15)" : s === step ? `${ACCENT}22` : "var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
+                    {s < step ? <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2.5" style={{ width:12,height:12 }}><polyline points="2,6 5,9 10,3"/></svg> : <span style={{ fontSize:12, fontWeight:700, color:s === step ? ACCENT : "var(--z-text3)" }}>{s}</span>}
                   </div>
-                  <span style={{ fontSize:10, fontWeight:700, color:s === step ? ACCENT : s < step ? "rgba(74,222,128,0.7)" : "rgba(255,255,255,0.2)", letterSpacing:"0.04em", whiteSpace:"nowrap" }}>{EXEC_STEPS[s-1].label}</span>
+                  <span style={{ fontSize:10, fontWeight:700, color:s === step ? ACCENT : s < step ? "rgba(74,222,128,0.7)" : "var(--z-text3)", letterSpacing:"0.04em", whiteSpace:"nowrap" }}>{EXEC_STEPS[s-1].label}</span>
                 </div>
-                {s < 3 && <div style={{ width:40, height:2, borderRadius:99, background:s < step ? "rgba(74,222,128,0.35)" : "rgba(255,255,255,0.07)", margin:"0 6px", marginBottom:18, transition:"all 0.3s" }}/>}
+                {s < 3 && <div style={{ width:40, height:2, borderRadius:99, background:s < step ? "rgba(74,222,128,0.35)" : "var(--z-bd2)", margin:"0 6px", marginBottom:18, transition:"all 0.3s" }}/>}
               </div>
             ))}
           </div>
@@ -5439,8 +5439,8 @@ function ScreenExecPositioning() {
         <div>
           <div style={{ marginBottom:28 }}>
             <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"var(--z-text3)", marginBottom:6 }}>Step {step} of 3</p>
-            <h2 style={{ fontSize:24, fontWeight:900, color:"white", letterSpacing:"-0.03em", margin:"0 0 8px" }}>{execStepCtx.title}</h2>
-            <p style={{ fontSize:14, color:"rgba(255,255,255,0.48)", lineHeight:1.65, margin:0 }}>{execStepCtx.subtitle}</p>
+            <h2 style={{ fontSize:24, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 8px" }}>{execStepCtx.title}</h2>
+            <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.65, margin:0 }}>{execStepCtx.subtitle}</p>
           </div>
           {step === 1 && (
             <div style={{ ...card, display:"grid", gap:14 }}>
@@ -5536,7 +5536,7 @@ function ScreenExecPositioning() {
                   <span style={{ fontSize:11.5, fontWeight:700, color:"var(--z-text2)", textAlign:"right", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.value}</span>
                 </div>
               ))}
-              {!form.currentTitle && <span style={{ fontSize:12, color:"rgba(255,255,255,0.22)", fontStyle:"italic" }}>Nothing filled in yet.</span>}
+              {!form.currentTitle && <span style={{ fontSize:12, color:"var(--z-text3)", fontStyle:"italic" }}>Nothing filled in yet.</span>}
             </div>
           </div>
         </div>
@@ -6233,7 +6233,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
               <div key={f.title} style={{ background:"var(--z-card)", boxShadow:"0 2px 20px rgba(0,0,0,0.07)", border:"1px solid var(--z-bd)", borderRadius:13, padding:"12px 14px", display:"flex", gap:10, alignItems:"flex-start" }}>
                 <span style={{ fontSize:18, lineHeight:1, flexShrink:0 }}>{f.icon}</span>
                 <div>
-                  <p style={{ fontSize:12, fontWeight:700, color:"rgba(255,255,255,0.8)", marginBottom:2 }}>{f.title}</p>
+                  <p style={{ fontSize:12, fontWeight:700, color:"var(--z-text)", marginBottom:2 }}>{f.title}</p>
                   <p style={{ fontSize:11, color:"var(--z-text3)", lineHeight:1.5 }}>{f.body}</p>
                 </div>
               </div>
@@ -7694,7 +7694,7 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
                   </div>
                   {jdMode === "paste" ? (
                     <textarea
-                      style={{ width:"100%", minHeight:180, border:"1px solid var(--z-bd)", borderRadius:10, padding:"13px 16px", fontSize:14, color:"white", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"rgba(255,255,255,0.05)", lineHeight:1.65, transition:"border-color 0.15s" }}
+                      style={{ width:"100%", minHeight:180, border:"1px solid var(--z-bd)", borderRadius:10, padding:"13px 16px", fontSize:14, color:"var(--z-text)", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"rgba(255,255,255,0.05)", lineHeight:1.65, transition:"border-color 0.15s" }}
                       placeholder="Paste the full job posting you're preparing for…"
                       value={jobDesc} onChange={e=>setJobDesc(e.target.value)}
                     />
@@ -7703,7 +7703,7 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
                       <div style={{ display:"flex", gap:8 }}>
                         <input type="url" value={jobUrl} onChange={e=>{ setJobUrl(e.target.value); setUrlFetchErr(""); }} onKeyDown={e=>{ if(e.key==="Enter") void fetchJdFromUrl(); }}
                           placeholder="https://jobs.lever.co/… or LinkedIn, Greenhouse, etc."
-                          style={{ flex:1, border:"1px solid var(--z-bd)", borderRadius:10, padding:"13px 16px", fontSize:14, color:"white", outline:"none", fontFamily:"inherit", background:"rgba(255,255,255,0.05)", transition:"border-color 0.15s" }}/>
+                          style={{ flex:1, border:"1px solid var(--z-bd)", borderRadius:10, padding:"13px 16px", fontSize:14, color:"var(--z-text)", outline:"none", fontFamily:"inherit", background:"rgba(255,255,255,0.05)", transition:"border-color 0.15s" }}/>
                         <button onClick={()=>void fetchJdFromUrl()} disabled={fetchingUrl||!jobUrl.trim()}
                           style={{ padding:"13px 20px", borderRadius:10, border:"none", background:jobUrl.trim()&&!fetchingUrl?"#4361EE":"rgba(255,255,255,0.08)", color:jobUrl.trim()&&!fetchingUrl?"white":"rgba(255,255,255,0.3)", fontSize:13, fontWeight:700, cursor:jobUrl.trim()&&!fetchingUrl?"pointer":"default", flexShrink:0 }}>
                           {fetchingUrl ? "…" : "Fetch"}
@@ -7933,7 +7933,7 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
                 {feedback?.suggestedResult && (
                   <div style={{ background:"rgba(74,222,128,0.08)", borderRadius:12, padding:"12px 16px" }}>
                     <p style={{ fontSize:12, fontWeight:700, color:"#4ADE80", marginBottom:5 }}>Suggested Result statement</p>
-                    <p style={{ fontSize:12.5, color:"rgba(255,255,255,0.72)", lineHeight:1.6, fontStyle:"italic" }}>&ldquo;{feedback.suggestedResult}&rdquo;</p>
+                    <p style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.6, fontStyle:"italic" }}>&ldquo;{feedback.suggestedResult}&rdquo;</p>
                   </div>
                 )}
               </div>
@@ -9398,7 +9398,7 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
                 <div key={i} style={{ width:11,height:11,borderRadius:"50%",background:"#818CF8",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite`, boxShadow:"0 0 10px rgba(129,140,248,0.5)" }}/>
               ))}
             </div>
-            <p style={{ fontSize:17, fontWeight:800, color:"white", marginBottom:8, letterSpacing:"-0.02em" }}>Mapping the room…</p>
+            <p style={{ fontSize:17, fontWeight:800, color:"var(--z-text)", marginBottom:8, letterSpacing:"-0.02em" }}>Mapping the room…</p>
             <p style={{ fontSize:13.5, color:"var(--z-text3)", maxWidth:440, margin:"0 auto", lineHeight:1.6 }}>
               Who controls this decision, what each person needs to believe, and how to earn their support.
             </p>
@@ -9514,7 +9514,7 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
                       <div style={{ fontSize:10.5, fontWeight:800, color:"#F87171", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Support gaps</div>
                       <div style={{ display:"grid", gap:9 }}>
                         {result.missingSupport.map(item => (
-                          <div key={item} style={{ fontSize:13.4, color:"rgba(255,255,255,0.78)", lineHeight:1.75, padding:"10px 12px", borderRadius:12, background:"rgba(220,38,38,0.1)", border:"1px solid rgba(220,38,38,0.2)", display:"flex", gap:10, alignItems:"flex-start" }}>
+                          <div key={item} style={{ fontSize:13.4, color:"var(--z-text2)", lineHeight:1.75, padding:"10px 12px", borderRadius:12, background:"rgba(220,38,38,0.1)", border:"1px solid rgba(220,38,38,0.2)", display:"flex", gap:10, alignItems:"flex-start" }}>
                             <svg viewBox="0 0 16 16" fill="none" stroke="#DC2626" strokeWidth="2" style={{ width:13, height:13, flexShrink:0, marginTop:3 }}><path d="M8 3v5M8 11v1"/><circle cx="8" cy="8" r="6.5"/></svg>
                             {item}
                           </div>
@@ -9847,7 +9847,7 @@ function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?
             <svg viewBox="0 0 24 24" fill="#38BDF8" style={{ width:16,height:16 }}><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zM9 17H6.477v-7H9v7zM7.694 8.717c-.771 0-1.286-.514-1.286-1.2s.514-1.2 1.286-1.2c.771 0 1.286.514 1.286 1.2s-.514 1.2-1.286 1.2zM18 17h-2.442v-3.826c0-1.058-.651-1.302-1.044-1.302-.394 0-1.228.163-1.228 1.302V17h-2.557v-7h2.557v1.302c.325-.652 1.058-1.302 2.276-1.302C17.349 10 18 11.058 18 13.488V17z"/></svg>
           </div>
           <div>
-            <h1 style={{ fontSize:18, fontWeight:900, color:"white", letterSpacing:"-0.02em", margin:0 }}>LinkedIn Profile Reviewer</h1>
+            <h1 style={{ fontSize:18, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:0 }}>LinkedIn Profile Reviewer</h1>
             <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>Upload your LinkedIn PDF and get a score on every section with AI rewrites.</p>
           </div>
         </div>
@@ -9858,7 +9858,7 @@ function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?
         {parseLoading ? (
           <div style={{ background:"var(--z-card)", boxShadow:"0 2px 20px rgba(0,0,0,0.07)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"40px 56px", textAlign:"center", maxWidth:360, width:"100%" }}>
             <div style={{ width:48, height:48, borderRadius:"50%", border:"3px solid rgba(0,119,181,0.3)", borderTopColor:"#0077B5", animation:"spin-slow 0.8s linear infinite", margin:"0 auto 20px" }}/>
-            <p style={{ fontSize:16, fontWeight:700, color:"white", marginBottom:6 }}>{loadingMsg || "Processing…"}</p>
+            <p style={{ fontSize:16, fontWeight:700, color:"var(--z-text)", marginBottom:6 }}>{loadingMsg || "Processing…"}</p>
             <p style={{ fontSize:13, color:"var(--z-text3)" }}>This takes 10–20 seconds</p>
           </div>
         ) : (
@@ -9875,14 +9875,14 @@ function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?
               onDragOver={e=>{ e.preventDefault(); setDragOver(true); }}
               onDragLeave={()=>setDragOver(false)}
               onDrop={e=>{ e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files?.[0]; if (f) handleFile(f); }}
-              style={{ background:dragOver?"rgba(0,119,181,0.18)":"rgba(255,255,255,0.04)", border:`2px dashed ${dragOver?"#0077B5":"rgba(255,255,255,0.15)"}`, borderRadius:20, padding:"48px 32px", cursor:"pointer", textAlign:"center", transition:"all 0.15s", marginBottom:16 }}>
+              style={{ background:dragOver?"rgba(0,119,181,0.18)":"var(--z-raise)", border:`2px dashed ${dragOver?"#0077B5":"rgba(255,255,255,0.15)"}`, borderRadius:20, padding:"48px 32px", cursor:"pointer", textAlign:"center", transition:"all 0.15s", marginBottom:16 }}>
               <div style={{ width:56, height:56, borderRadius:16, background:"rgba(0,119,181,0.2)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 18px" }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="#0077B5" strokeWidth="1.8" style={{ width:28,height:28 }}>
                   <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
                   <line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/>
                 </svg>
               </div>
-              <p style={{ fontSize:17, fontWeight:800, color:"white", marginBottom:6 }}>
+              <p style={{ fontSize:17, fontWeight:800, color:"var(--z-text)", marginBottom:6 }}>
                 {dragOver ? "Drop your PDF here" : "Upload your LinkedIn PDF"}
               </p>
               <p style={{ fontSize:13.5, color:"var(--z-text2)", marginBottom:14 }}>
@@ -9895,9 +9895,9 @@ function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?
 
             {/* Target role */}
             <div style={{ background:"var(--z-card)", boxShadow:"0 2px 20px rgba(0,0,0,0.07)", border:"1px solid var(--z-bd)", borderRadius:12, padding:"14px 18px", display:"flex", alignItems:"center", gap:12, marginBottom:18 }}>
-              <svg viewBox="0 0 20 20" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="1.5" style={{width:16,height:16,flexShrink:0}}><circle cx="10" cy="10" r="8"/><circle cx="10" cy="10" r="3"/></svg>
+              <svg viewBox="0 0 20 20" fill="none" stroke="var(--z-text3)" strokeWidth="1.5" style={{width:16,height:16,flexShrink:0}}><circle cx="10" cy="10" r="8"/><circle cx="10" cy="10" r="3"/></svg>
               <input
-                style={{ flex:1, background:"transparent", border:"none", outline:"none", fontSize:14, color:"white", fontFamily:"inherit" }}
+                style={{ flex:1, background:"transparent", border:"none", outline:"none", fontSize:14, color:"var(--z-text)", fontFamily:"inherit" }}
                 placeholder="Target role (optional) — e.g. Senior Product Manager"
                 value={targetRole} onChange={e=>setTargetRole(e.target.value)}/>
             </div>
@@ -10002,7 +10002,7 @@ function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?
           <div style={{ width:28, height:28, borderRadius:8, background:"rgba(0,119,181,0.2)", border:"1px solid rgba(0,119,181,0.4)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
             <svg viewBox="0 0 24 24" fill="#38BDF8" style={{ width:14,height:14 }}><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zM9 17H6.477v-7H9v7zM7.694 8.717c-.771 0-1.286-.514-1.286-1.2s.514-1.2 1.286-1.2c.771 0 1.286.514 1.286 1.2s-.514 1.2-1.286 1.2zM18 17h-2.442v-3.826c0-1.058-.651-1.302-1.044-1.302-.394 0-1.228.163-1.228 1.302V17h-2.557v-7h2.557v1.302c.325-.652 1.058-1.302 2.276-1.302C17.349 10 18 11.058 18 13.488V17z"/></svg>
           </div>
-          <h1 style={{ fontSize:16, fontWeight:900, color:"white", letterSpacing:"-0.02em", margin:0, flex:1 }}>LinkedIn Profile Reviewer</h1>
+          <h1 style={{ fontSize:16, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:0, flex:1 }}>LinkedIn Profile Reviewer</h1>
           <button onClick={()=>{ setInputMode(true); setResult(null); }}
             style={{ padding:"7px 16px", borderRadius:8, background:"rgba(0,0,0,0.03)", border:"1px solid var(--z-bd)", color:"var(--z-text2)", fontSize:12.5, fontWeight:600, cursor:"pointer" }}>
             Analyze new profile
@@ -10906,7 +10906,7 @@ function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate
             <svg viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="1.8" style={{ width:16,height:16 }}><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
           </div>
           <div>
-            <h1 style={{ fontSize:18, fontWeight:900, color:"white", letterSpacing:"-0.02em", margin:0 }}>Document Vault</h1>
+            <h1 style={{ fontSize:18, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:0 }}>Document Vault</h1>
             <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>All your career documents — resumes, cover letters, LinkedIn exports — in one place.</p>
           </div>
         </div>
@@ -11262,7 +11262,7 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
             <svg viewBox="0 0 24 24" fill="none" stroke="#34D399" strokeWidth="1.8" style={{ width:16,height:16 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
           </div>
           <div style={{ flex:1 }}>
-            <h1 style={{ fontSize:18, fontWeight:900, color:"white", letterSpacing:"-0.02em", margin:0 }}>Cover Letter</h1>
+            <h1 style={{ fontSize:18, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:0 }}>Cover Letter</h1>
             <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>AI-tailored letter written in your voice from your background.</p>
           </div>
           <button onClick={()=>{ setResult(null); setGenerating(false); setStep(1); }}
@@ -11277,7 +11277,7 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
               {[0,1,2].map(i=><div key={i} style={{ width:11,height:11,borderRadius:"50%",background:"#818CF8",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite`, boxShadow:"0 0 10px rgba(129,140,248,0.5)" }}/>)}
             </div>
-            <p style={{ fontSize:17, fontWeight:800, color:"white", marginBottom:8, letterSpacing:"-0.02em" }}>Zari is writing your letter…</p>
+            <p style={{ fontSize:17, fontWeight:800, color:"var(--z-text)", marginBottom:8, letterSpacing:"-0.02em" }}>Zari is writing your letter…</p>
             <p style={{ fontSize:13.5, color:"var(--z-text3)" }}>Tailoring every sentence to your background and the role</p>
           </div>
         ) : result && (
@@ -11363,7 +11363,7 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
               <svg viewBox="0 0 24 24" fill="none" stroke="#34D399" strokeWidth="1.8" style={{ width:16,height:16 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
             </div>
             <div>
-              <h1 style={{ fontSize:18, fontWeight:900, color:"white", letterSpacing:"-0.02em", margin:0 }}>Cover Letter</h1>
+              <h1 style={{ fontSize:18, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:0 }}>Cover Letter</h1>
               <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>AI-tailored letter written in your voice.</p>
             </div>
           </div>
@@ -11372,15 +11372,15 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
             {([1,2,3] as const).map(s => (
               <div key={s} style={{ display:"flex", alignItems:"center" }}>
                 <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:5 }}>
-                  <div style={{ width:32, height:32, borderRadius:"50%", border:`2px solid ${s < step ? "#4ADE80" : s === step ? "#34D399" : "rgba(255,255,255,0.12)"}`, background:s < step ? "rgba(74,222,128,0.15)" : s === step ? "rgba(52,211,153,0.18)" : "rgba(255,255,255,0.04)", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
+                  <div style={{ width:32, height:32, borderRadius:"50%", border:`2px solid ${s < step ? "#4ADE80" : s === step ? "#34D399" : "var(--z-bd)"}`, background:s < step ? "rgba(74,222,128,0.15)" : s === step ? "rgba(52,211,153,0.18)" : "var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
                     {s < step
                       ? <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2.5" style={{width:12,height:12}}><polyline points="2,6 5,9 10,3"/></svg>
-                      : <span style={{ fontSize:12, fontWeight:700, color:s === step ? "#34D399" : "rgba(255,255,255,0.22)" }}>{s}</span>
+                      : <span style={{ fontSize:12, fontWeight:700, color:s === step ? "#34D399" : "var(--z-text3)" }}>{s}</span>
                     }
                   </div>
-                  <span style={{ fontSize:10, fontWeight:700, color:s === step ? "#34D399" : s < step ? "rgba(74,222,128,0.7)" : "rgba(255,255,255,0.2)", letterSpacing:"0.04em", whiteSpace:"nowrap" }}>{CL_STEP_CTX[s-1].label}</span>
+                  <span style={{ fontSize:10, fontWeight:700, color:s === step ? "#34D399" : s < step ? "rgba(74,222,128,0.7)" : "var(--z-text3)", letterSpacing:"0.04em", whiteSpace:"nowrap" }}>{CL_STEP_CTX[s-1].label}</span>
                 </div>
-                {s < 3 && <div style={{ width:40, height:2, borderRadius:99, background:s < step ? "rgba(74,222,128,0.35)" : "rgba(255,255,255,0.07)", margin:"0 6px", marginBottom:18, transition:"all 0.3s" }}/>}
+                {s < 3 && <div style={{ width:40, height:2, borderRadius:99, background:s < step ? "rgba(74,222,128,0.35)" : "var(--z-bd2)", margin:"0 6px", marginBottom:18, transition:"all 0.3s" }}/>}
               </div>
             ))}
           </div>
@@ -11393,7 +11393,7 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
         {/* LEFT: form */}
         <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"28px 28px 24px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
           <div style={{ marginBottom:24 }}>
-            <h2 style={{ fontSize:20, fontWeight:900, color:"white", letterSpacing:"-0.03em", margin:"0 0 6px" }}>{STEP_TITLES[step-1]}</h2>
+            <h2 style={{ fontSize:20, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 6px" }}>{STEP_TITLES[step-1]}</h2>
             <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.6, margin:0 }}>{STEP_SUBTITLES[step-1]}</p>
           </div>
 
@@ -11415,7 +11415,7 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
                       <svg viewBox="0 0 20 20" fill="none" stroke="#4ADE80" strokeWidth="1.8" style={{ width:18,height:18 }}><path d="M13 2H5a1.5 1.5 0 00-1.5 1.5v13A1.5 1.5 0 005 18h10a1.5 1.5 0 001.5-1.5V6L13 2z"/><polyline points="4,11 7,14 11,9"/></svg>
                     </div>
                     <div>
-                      <p style={{ fontSize:14, fontWeight:600, color:"white", margin:0 }}>{profileFile}</p>
+                      <p style={{ fontSize:14, fontWeight:600, color:"var(--z-text)", margin:0 }}>{profileFile}</p>
                       <p style={{ fontSize:11.5, color:"var(--z-text3)", margin:0 }}>Uploaded successfully</p>
                     </div>
                   </div>
@@ -11430,17 +11430,17 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
                     onDragOver={e=>{ e.preventDefault(); setProfileDrag(true); }}
                     onDragLeave={()=>setProfileDrag(false)}
                     onDrop={e=>{ e.preventDefault(); setProfileDrag(false); const f=e.dataTransfer.files?.[0]; if(f) void handleUpload(f); }}
-                    style={{ background:profileDrag?"rgba(67,97,238,0.18)":"rgba(255,255,255,0.04)", border:`2px dashed ${profileDrag?"#4361EE":"rgba(255,255,255,0.15)"}`, borderRadius:16, padding:"28px 24px", cursor:"pointer", textAlign:"center", transition:"all 0.15s" }}>
+                    style={{ background:profileDrag?"rgba(67,97,238,0.18)":"var(--z-raise)", border:`2px dashed ${profileDrag?"#4361EE":"rgba(255,255,255,0.15)"}`, borderRadius:16, padding:"28px 24px", cursor:"pointer", textAlign:"center", transition:"all 0.15s" }}>
                     <div style={{ width:44, height:44, borderRadius:12, background:"rgba(52,211,153,0.18)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 14px" }}>
                       <svg viewBox="0 0 24 24" fill="none" stroke="#34D399" strokeWidth="1.8" style={{ width:22,height:22 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
                     </div>
-                    <p style={{ fontSize:15, fontWeight:700, color:"white", marginBottom:5 }}>{profileDrag ? "Drop your file here" : "Upload resume or LinkedIn PDF"}</p>
+                    <p style={{ fontSize:15, fontWeight:700, color:"var(--z-text)", marginBottom:5 }}>{profileDrag ? "Drop your file here" : "Upload resume or LinkedIn PDF"}</p>
                     <p style={{ fontSize:12.5, color:"var(--z-text3)", marginBottom:14 }}>Drag and drop, or click to browse</p>
                     <span style={{ fontSize:12, fontWeight:700, padding:"6px 16px", borderRadius:99, background:"rgba(52,211,153,0.2)", color:"#6EE7B7", border:"1px solid rgba(52,211,153,0.35)" }}>Choose file · PDF, DOCX, TXT</span>
                   </div>
                   <p style={{ textAlign:"center", fontSize:12, color:"var(--z-text3)", margin:0 }}>— or paste below —</p>
                   <textarea
-                    style={{ width:"100%", minHeight:130, border:"1px solid var(--z-bd)", borderRadius:14, padding:"13px 16px", fontSize:14, color:"white", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"rgba(255,255,255,0.05)", lineHeight:1.65, transition:"border-color 0.15s" }}
+                    style={{ width:"100%", minHeight:130, border:"1px solid var(--z-bd)", borderRadius:14, padding:"13px 16px", fontSize:14, color:"var(--z-text)", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"rgba(255,255,255,0.05)", lineHeight:1.65, transition:"border-color 0.15s" }}
                     placeholder="Paste your resume text, LinkedIn About section, or a summary of your background…"
                     value={profileText} onChange={e=>setProfileText(e.target.value)}
                   />
@@ -11466,7 +11466,7 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
                 </div>
                 {jdMode === "paste" ? (
                   <textarea
-                    style={{ width:"100%", minHeight:200, border:"1px solid var(--z-bd)", borderRadius:10, padding:"13px 16px", fontSize:14, color:"white", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"rgba(255,255,255,0.05)", lineHeight:1.65, transition:"border-color 0.15s" }}
+                    style={{ width:"100%", minHeight:200, border:"1px solid var(--z-bd)", borderRadius:10, padding:"13px 16px", fontSize:14, color:"var(--z-text)", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"rgba(255,255,255,0.05)", lineHeight:1.65, transition:"border-color 0.15s" }}
                     placeholder="Paste the full job posting…"
                     value={jobDesc} onChange={e=>setJobDesc(e.target.value)}
                   />
@@ -11475,7 +11475,7 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
                     <div style={{ display:"flex", gap:8 }}>
                       <input type="url" value={jobUrl} onChange={e=>{ setJobUrl(e.target.value); setUrlFetchErr(""); }} onKeyDown={e=>{ if(e.key==="Enter") void fetchJd(); }}
                         placeholder="https://jobs.lever.co/… or LinkedIn, Greenhouse, etc."
-                        style={{ flex:1, border:"1px solid var(--z-bd)", borderRadius:10, padding:"13px 16px", fontSize:14, color:"white", outline:"none", fontFamily:"inherit", background:"rgba(255,255,255,0.05)", transition:"border-color 0.15s" }}/>
+                        style={{ flex:1, border:"1px solid var(--z-bd)", borderRadius:10, padding:"13px 16px", fontSize:14, color:"var(--z-text)", outline:"none", fontFamily:"inherit", background:"rgba(255,255,255,0.05)", transition:"border-color 0.15s" }}/>
                       <button onClick={()=>void fetchJd()} disabled={fetchingUrl||!jobUrl.trim()}
                         style={{ padding:"11px 20px", borderRadius:10, border:"none", background:jobUrl.trim()&&!fetchingUrl?"#10B981":"rgba(255,255,255,0.08)", color:jobUrl.trim()&&!fetchingUrl?"white":"rgba(255,255,255,0.3)", fontSize:13, fontWeight:700, cursor:jobUrl.trim()&&!fetchingUrl?"pointer":"default", flexShrink:0 }}>
                         {fetchingUrl ? "…" : "Fetch"}
@@ -11503,12 +11503,12 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
                 <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.07em", color:"var(--z-text3)", margin:0 }}>Role details (optional)</p>
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
                   <input value={company} onChange={e=>setCompany(e.target.value)} placeholder="Company name"
-                    style={{ border:"1px solid var(--z-bd)", borderRadius:10, padding:"13px 16px", fontSize:14, color:"white", outline:"none", fontFamily:"inherit", background:"rgba(255,255,255,0.05)", transition:"border-color 0.15s" }}/>
+                    style={{ border:"1px solid var(--z-bd)", borderRadius:10, padding:"13px 16px", fontSize:14, color:"var(--z-text)", outline:"none", fontFamily:"inherit", background:"rgba(255,255,255,0.05)", transition:"border-color 0.15s" }}/>
                   <input value={targetRole} onChange={e=>setTargetRole(e.target.value)} placeholder="Target role"
-                    style={{ border:"1px solid var(--z-bd)", borderRadius:10, padding:"13px 16px", fontSize:14, color:"white", outline:"none", fontFamily:"inherit", background:"rgba(255,255,255,0.05)", transition:"border-color 0.15s" }}/>
+                    style={{ border:"1px solid var(--z-bd)", borderRadius:10, padding:"13px 16px", fontSize:14, color:"var(--z-text)", outline:"none", fontFamily:"inherit", background:"rgba(255,255,255,0.05)", transition:"border-color 0.15s" }}/>
                 </div>
                 <input value={candidateName} onChange={e=>setCandidateName(e.target.value)} placeholder="Your name (for the signature)"
-                  style={{ border:"1px solid var(--z-bd)", borderRadius:10, padding:"13px 16px", fontSize:14, color:"white", outline:"none", fontFamily:"inherit", background:"rgba(255,255,255,0.05)", width:"100%", boxSizing:"border-box", transition:"border-color 0.15s" }}/>
+                  style={{ border:"1px solid var(--z-bd)", borderRadius:10, padding:"13px 16px", fontSize:14, color:"var(--z-text)", outline:"none", fontFamily:"inherit", background:"rgba(255,255,255,0.05)", width:"100%", boxSizing:"border-box", transition:"border-color 0.15s" }}/>
               </div>
               <div style={{ border:"1px solid var(--z-bd)", borderRadius:14, padding:18 }}>
                 <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.07em", color:"var(--z-text3)", marginBottom:12 }}>Tone</p>
@@ -11949,7 +11949,7 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
             <svg viewBox="0 0 24 24" fill="none" stroke="#818CF8" strokeWidth="1.8" style={{width:16,height:16}}><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
           </div>
           <div>
-            <h1 style={{ fontSize:18, fontWeight:900, color:"white", letterSpacing:"-0.02em", margin:0 }}>Action Plan</h1>
+            <h1 style={{ fontSize:18, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:0 }}>Action Plan</h1>
             <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>Your personalized step-by-step roadmap based on completed sections.</p>
           </div>
         </div>
@@ -12071,7 +12071,7 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
             <svg viewBox="0 0 24 24" fill="none" stroke="#818CF8" strokeWidth="1.8" style={{width:16,height:16}}><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
           </div>
           <div>
-            <h1 style={{ fontSize:18, fontWeight:900, color:"white", letterSpacing:"-0.02em", margin:0 }}>Action Plan</h1>
+            <h1 style={{ fontSize:18, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:0 }}>Action Plan</h1>
             <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>Your personalized step-by-step roadmap based on completed sections.</p>
           </div>
         </div>
