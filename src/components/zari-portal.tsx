@@ -137,7 +137,7 @@ function ScoreRing({ score, color="#2563EB", size=56, dark=false }: { score:numb
 
 function Bar({ pct, color="#2563EB", h=5 }: { pct:number; color?:string; h?:number }) {
   return (
-    <div style={{ height:h, borderRadius:99, background:"rgba(0,0,0,0.04)", overflow:"hidden" }}>
+    <div style={{ height:h, borderRadius:99, background:"var(--z-raise)", overflow:"hidden" }}>
       <div style={{ width:`${pct}%`, height:"100%", background:`linear-gradient(90deg, ${color}CC, ${color})`, borderRadius:99, transition:"width 0.8s cubic-bezier(0.4,0,0.2,1)", boxShadow:`0 0 6px ${color}55` }}/>
     </div>
   );
@@ -1660,7 +1660,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
                 disabled={isLoading}
               />
               <button onClick={() => fileInputRef.current?.click()} disabled={isLoading} title="Upload resume, cover letter, or LinkedIn"
-                style={{ position:"absolute", bottom:10, right:100, width:34,height:34,borderRadius:10,border:"none",cursor:isLoading?"default":"pointer", background:"rgba(0,0,0,0.03)", color:"var(--z-text3)", display:"flex",alignItems:"center",justifyContent:"center", transition:"all 0.15s" }}>
+                style={{ position:"absolute", bottom:10, right:100, width:34,height:34,borderRadius:10,border:"none",cursor:isLoading?"default":"pointer", background:"var(--z-raise)", color:"var(--z-text3)", display:"flex",alignItems:"center",justifyContent:"center", transition:"all 0.15s" }}>
                 <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:15,height:15 }}><path d="M15.172 7l-6.586 6.586a2 2 0 01-2.828-2.828l6.414-6.586a4 4 0 015.656 5.656l-6.415 6.585a6 6 0 01-8.485-8.485l6.586-6.586"/></svg>
               </button>
               <button onClick={() => isRecording ? stopRecording() : void startRecording()} disabled={isLoading} title={isRecording?"Stop recording":"Speak to Zari"}
@@ -2130,7 +2130,7 @@ function ZariLiveMode({
         ))}
         {interimText && (
           <div style={{ display:"flex", justifyContent:"flex-end", animation:"bubble-appear 0.15s ease" }}>
-            <div style={{ maxWidth:"80%", padding:"9px 14px", borderRadius:"16px 4px 16px 16px", background:"var(--z-card)", boxShadow:"0 2px 20px rgba(0,0,0,0.07)", border:"1px solid var(--z-bd2)", color:"#A8B4C6", fontSize:13.5, fontStyle:"italic" }}>
+            <div style={{ maxWidth:"80%", padding:"9px 14px", borderRadius:"16px 4px 16px 16px", background:"var(--z-card)", boxShadow:"0 2px 20px rgba(0,0,0,0.07)", border:"1px solid var(--z-bd2)", color:"var(--z-text3)", fontSize:13.5, fontStyle:"italic" }}>
               {interimText}
             </div>
           </div>
@@ -2183,7 +2183,7 @@ function ZariLiveMode({
           {attachedFile && (
             <button onClick={() => { setAttachedFile(null); attachedFileRef.current = null; }} style={{
               width:18, height:18, borderRadius:"50%", border:"none",
-              background:"rgba(0,0,0,0.04)", color:"var(--z-text3)",
+              background:"var(--z-raise)", color:"var(--z-text3)",
               cursor:"pointer", fontSize:10, display:"flex", alignItems:"center", justifyContent:"center",
             }}>×</button>
           )}
@@ -2249,9 +2249,9 @@ function ZariLiveMode({
               <button onClick={() => setShowAllVoices(true)} style={{
                 display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:5,
                 padding:"8px 9px 7px", borderRadius:14, flexShrink:0, minWidth:62,
-                border:"1.5px solid rgba(255,255,255,0.06)", background:"rgba(0,0,0,0.02)", cursor:"pointer",
+                border:"1.5px solid rgba(255,255,255,0.06)", background:"var(--z-raise)", cursor:"pointer",
               }}>
-                <div style={{ width:38, height:38, borderRadius:"50%", background:"rgba(0,0,0,0.03)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                <div style={{ width:38, height:38, borderRadius:"50%", background:"var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"center" }}>
                   <span style={{ color:"var(--z-text2)", fontSize:18, lineHeight:1 }}>+</span>
                 </div>
                 <span style={{ fontSize:10, fontWeight:600, color:"var(--z-text3)", letterSpacing:"0.02em" }}>{voices.length - 8} more</span>
@@ -2261,9 +2261,9 @@ function ZariLiveMode({
               <button onClick={() => setShowAllVoices(false)} style={{
                 display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:5,
                 padding:"8px 9px 7px", borderRadius:14, flexShrink:0, minWidth:62,
-                border:"1.5px solid rgba(255,255,255,0.06)", background:"rgba(0,0,0,0.02)", cursor:"pointer",
+                border:"1.5px solid rgba(255,255,255,0.06)", background:"var(--z-raise)", cursor:"pointer",
               }}>
-                <div style={{ width:38, height:38, borderRadius:"50%", background:"rgba(0,0,0,0.03)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                <div style={{ width:38, height:38, borderRadius:"50%", background:"var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"center" }}>
                   <span style={{ color:"var(--z-text2)", fontSize:14, lineHeight:1 }}>↑</span>
                 </div>
                 <span style={{ fontSize:10, fontWeight:600, color:"var(--z-text3)", letterSpacing:"0.02em" }}>less</span>
@@ -3554,7 +3554,7 @@ function PromotionSharedIntakeFlow({
                 </div>
               </div>
 
-              <div style={{ ...wizardCardStyle, background:"rgba(0,0,0,0.02)" }}>
+              <div style={{ ...wizardCardStyle, background:"var(--z-raise)" }}>
                 <div style={{ fontSize:11.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Shared promotion intake</div>
                 <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.7, margin:0 }}>
                   These answers become the shared promotion context for readiness, manager conversation, evidence builder, sponsor strategy, and roadmap.
@@ -3956,7 +3956,7 @@ function ScreenPromotionReadiness() {
                 </div>
 
                 <div style={{ borderRadius:20, background:"var(--z-card)", border:"1px solid var(--z-bd)", boxShadow:"0 4px 28px rgba(0,0,0,0.09)", overflow:"hidden" }}>
-                  <div style={{ padding:"18px 24px 16px", borderBottom:"1px solid var(--z-bd)", background:"rgba(0,0,0,0.02)" }}>
+                  <div style={{ padding:"18px 24px 16px", borderBottom:"1px solid var(--z-bd)", background:"var(--z-raise)" }}>
                     <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em" }}>Dimension breakdown</div>
                   </div>
                   {result.dimensions.map((item, index) => {
@@ -4027,7 +4027,7 @@ function ScreenPromotionReadiness() {
                 </div>
 
                 {result.quickWins.length > 0 && (
-                  <div style={{ borderRadius:20, background:"rgba(0,0,0,0.03)", border:"1px solid var(--z-bd)", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", padding:"20px 22px" }}>
+                  <div style={{ borderRadius:20, background:"var(--z-raise)", border:"1px solid var(--z-bd)", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", padding:"20px 22px" }}>
                     <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>Start here</div>
                     <div style={{ display:"grid", gap:10 }}>
                       {result.quickWins.map((item, index) => (
@@ -4066,7 +4066,7 @@ function ScreenPromotionReadiness() {
                   <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>The proof bar</div>
                   <div style={{ display:"grid", gap:8 }}>
                     {result.evidenceChecklist.map(item => (
-                      <div key={item} style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.75, padding:"11px 12px", borderRadius:12, background:"rgba(0,0,0,0.02)", border:"1px solid var(--z-bd)" }}>{item}</div>
+                      <div key={item} style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.75, padding:"11px 12px", borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>{item}</div>
                     ))}
                   </div>
                 </div>
@@ -4076,7 +4076,7 @@ function ScreenPromotionReadiness() {
             {resultTab === "plan" && (
               <div style={{ display:"grid", gap:12, paddingBottom:40 }}>
                 {result.actionPlan.map((item, index) => (
-                  <div key={item.label} style={{ borderRadius:18, background:"rgba(0,0,0,0.03)", border:"1px solid var(--z-bd)", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", overflow:"hidden", display:"flex" }}>
+                  <div key={item.label} style={{ borderRadius:18, background:"var(--z-raise)", border:"1px solid var(--z-bd)", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", overflow:"hidden", display:"flex" }}>
                     <div style={{ width:58, flexShrink:0, background:"var(--z-raise)", borderRight:"1px solid var(--z-bd)", display:"flex", alignItems:"center", justifyContent:"center" }}>
                       <span style={{ fontSize:22, fontWeight:900, color:"var(--z-text3)" }}>{index + 1}</span>
                     </div>
@@ -4106,13 +4106,13 @@ function ScreenPromotionReadiness() {
                   </div>
                   <p style={{ fontSize:16, color:"var(--z-text)", lineHeight:1.85, margin:0, fontStyle:"italic" }}>&ldquo;{result.managerPitchExample}&rdquo;</p>
                 </div>
-                <div style={{ borderRadius:20, background:"rgba(0,0,0,0.03)", border:"1px solid var(--z-bd)", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", overflow:"hidden" }}>
-                  <div style={{ padding:"15px 20px 13px", borderBottom:"1px solid var(--z-bd)", background:"rgba(0,0,0,0.02)" }}>
+                <div style={{ borderRadius:20, background:"var(--z-raise)", border:"1px solid var(--z-bd)", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", overflow:"hidden" }}>
+                  <div style={{ padding:"15px 20px 13px", borderBottom:"1px solid var(--z-bd)", background:"var(--z-raise)" }}>
                     <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text2)", textTransform:"uppercase", letterSpacing:"0.08em" }}>Prepare for pushback</div>
                   </div>
                   {(result.conversationPairs ?? result.managerQuestions.map((q, idx) => ({ theyMightSay: q, yourResponse: result.nextMoves[idx] ?? "" }))).map((pair, index) => (
                     <div key={index} style={{ padding:"18px 20px", borderBottom:index === (result.conversationPairs ?? result.managerQuestions).length - 1 ? "none" : "1px solid var(--z-bd)" }}>
-                      <div style={{ padding:"12px 14px", borderRadius:12, background:"rgba(0,0,0,0.02)", border:"1px solid var(--z-bd)", marginBottom:10 }}>
+                      <div style={{ padding:"12px 14px", borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)", marginBottom:10 }}>
                         <div style={{ fontSize:10, fontWeight:800, color:"var(--z-text2)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>They might say</div>
                         <div style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.7 }}>{pair.theyMightSay}</div>
                       </div>
@@ -4130,7 +4130,7 @@ function ScreenPromotionReadiness() {
                     <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>Questions to bring to your manager</div>
                     <div style={{ display:"grid", gap:8 }}>
                       {result.managerQuestions.map(q => (
-                        <div key={q} style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.75, padding:"11px 12px", borderRadius:12, background:"rgba(0,0,0,0.02)", border:"1px solid var(--z-bd)" }}>{q}</div>
+                        <div key={q} style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.75, padding:"11px 12px", borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>{q}</div>
                       ))}
                     </div>
                   </div>
@@ -4153,7 +4153,7 @@ function ScreenPromotionReadiness() {
                       <div style={{ fontSize:11.5, color:"var(--z-text3)" }}>Highest urgency. Do these before anything else.</div>
                     </div>
                   </div>
-                  <div style={{ background:"rgba(0,0,0,0.03)", padding:"16px 20px 18px", display:"grid", gap:10 }}>
+                  <div style={{ background:"var(--z-raise)", padding:"16px 20px 18px", display:"grid", gap:10 }}>
                     {result.actionPlan.slice(0, 2).map((item, i) => (
                       <div key={i} style={{ display:"flex", gap:12, alignItems:"flex-start", padding:"12px 14px", borderRadius:10, background:"var(--z-card)", border:"1px solid var(--z-bd)" }}>
                         <div style={{ width:22, height:22, borderRadius:"50%", background:"var(--z-raise)", border:"1px solid var(--z-bd)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>
@@ -4180,7 +4180,7 @@ function ScreenPromotionReadiness() {
                         <div style={{ fontSize:11.5, color:"var(--z-text3)" }}>Evidence gathering and stakeholder alignment.</div>
                       </div>
                     </div>
-                    <div style={{ background:"rgba(0,0,0,0.03)", padding:"16px 20px 18px", display:"grid", gap:10 }}>
+                    <div style={{ background:"var(--z-raise)", padding:"16px 20px 18px", display:"grid", gap:10 }}>
                       {result.actionPlan.slice(2, 4).map((item, i) => (
                         <div key={i} style={{ display:"flex", gap:12, alignItems:"flex-start", padding:"12px 14px", borderRadius:10, background:"var(--z-card)", border:"1px solid var(--z-bd)" }}>
                           <div style={{ width:22, height:22, borderRadius:"50%", background:"var(--z-raise)", border:"1px solid var(--z-bd)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>
@@ -4211,7 +4211,7 @@ function ScreenPromotionReadiness() {
 
                 {/* Example evidence */}
                 {result.exampleEvidence.length > 0 && (
-                  <div style={{ borderRadius:20, background:"rgba(0,0,0,0.03)", border:"1px solid var(--z-bd)", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", padding:"20px 22px" }}>
+                  <div style={{ borderRadius:20, background:"var(--z-raise)", border:"1px solid var(--z-bd)", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", padding:"20px 22px" }}>
                     <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text2)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>What strong evidence actually sounds like</div>
                     <div style={{ display:"grid", gap:10 }}>
                       {result.exampleEvidence.map(item => (
@@ -4277,7 +4277,7 @@ function ScreenPromotionReadiness() {
           <div style={{ marginBottom:28 }}>
             <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"var(--z-text3)", marginBottom:6 }}>Step {step} of 4</p>
             <h2 style={{ fontSize:24, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 8px" }}>{activeStep.title}</h2>
-            <p style={{ fontSize:14, color:"rgba(255,255,255,0.48)", lineHeight:1.65, margin:0 }}>{activeStep.subtitle}</p>
+            <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.65, margin:0 }}>{activeStep.subtitle}</p>
           </div>
 
           {step === 1 && (
@@ -4418,7 +4418,7 @@ function ScreenPromotionReadiness() {
           </div>
 
           {/* Progress summary */}
-          <div style={{ background:"rgba(0,0,0,0.02)", border:"1px solid var(--z-bd2)", borderRadius:16, padding:"16px 18px" }}>
+          <div style={{ background:"var(--z-raise)", border:"1px solid var(--z-bd2)", borderRadius:16, padding:"16px 18px" }}>
             <div style={{ fontSize:10.5, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", marginBottom:10 }}>Your answers so far</div>
             <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
               {[
@@ -4427,7 +4427,7 @@ function ScreenPromotionReadiness() {
                 { label:"Time in role", value:form.timeInRole ? promotionOptionLabel(PROMOTION_READINESS_OPTIONS.timeInRole, form.timeInRole) : null },
               ].filter(r => r.value).map(r => (
                 <div key={r.label} style={{ display:"flex", justifyContent:"space-between", gap:8, flexWrap:"wrap" }}>
-                  <span style={{ fontSize:11.5, color:"#A8B4C6" }}>{r.label}</span>
+                  <span style={{ fontSize:11.5, color:"var(--z-text3)" }}>{r.label}</span>
                   <span style={{ fontSize:11.5, fontWeight:700, color:"var(--z-text2)", textAlign:"right", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.value}</span>
                 </div>
               ))}
@@ -4687,11 +4687,11 @@ function ScreenSalaryCompensation() {
             <div style={{ ...card, display:"grid", gap:14 }}>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                 <div>
-                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A8B4C6", margin:"0 0 8px" }}>Job title <span style={{ color:"#F87171" }}>*</span></p>
+                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Job title <span style={{ color:"#F87171" }}>*</span></p>
                   <input value={form.title} onChange={e => setForm(f => ({...f,title:e.target.value}))} placeholder="e.g. Senior Product Manager" style={inp} />
                 </div>
                 <div>
-                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A8B4C6", margin:"0 0 8px" }}>Level / band</p>
+                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Level / band</p>
                   <select value={form.level} onChange={e => setForm(f => ({...f,level:e.target.value}))} style={sel}>
                     <option value="">Select level…</option>
                     {["IC1 / Junior","IC2 / Mid","IC3 / Senior","IC4 / Staff","Principal / Lead","Manager","Senior Manager","Director","Sr. Director","VP","SVP / EVP","C-Level"].map(l => <option key={l} value={l}>{l}</option>)}
@@ -4700,11 +4700,11 @@ function ScreenSalaryCompensation() {
               </div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                 <div>
-                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A8B4C6", margin:"0 0 8px" }}>Industry</p>
+                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Industry</p>
                   <input value={form.industry} onChange={e => setForm(f => ({...f,industry:e.target.value}))} placeholder="e.g. Tech / SaaS" style={inp} />
                 </div>
                 <div>
-                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A8B4C6", margin:"0 0 8px" }}>Company size</p>
+                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Company size</p>
                   <select value={form.companySize} onChange={e => setForm(f => ({...f,companySize:e.target.value}))} style={sel}>
                     <option value="">Select size…</option>
                     {["Startup (1–50)","Growth (51–250)","Mid-market (251–1000)","Enterprise (1000+)","Public company"].map(sz => <option key={sz} value={sz}>{sz}</option>)}
@@ -4712,7 +4712,7 @@ function ScreenSalaryCompensation() {
                 </div>
               </div>
               <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A8B4C6", margin:"0 0 8px" }}>What type of negotiation?</p>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>What type of negotiation?</p>
                 <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
                   {[{v:"raise",l:"Annual raise"},{v:"new-offer",l:"New job offer"},{v:"counter",l:"Counter offer"},{v:"promotion",l:"Promotion"}].map(opt => (
                     <button key={opt.v} onClick={() => setForm(f => ({...f,askType:opt.v}))} style={{ padding:"9px 16px", borderRadius:12, border:`1px solid ${form.askType===opt.v ? "#2563EB" : "var(--z-bd)"}`, background:form.askType===opt.v ? "rgba(37,99,235,0.1)" : "var(--z-raise)", color:form.askType===opt.v ? "#2563EB" : "var(--z-text2)", fontSize:13, fontWeight:700, cursor:"pointer", transition:"all 0.15s" }}>{opt.l}</button>
@@ -4725,16 +4725,16 @@ function ScreenSalaryCompensation() {
             <div style={{ ...card, display:"grid", gap:14 }}>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                 <div>
-                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A8B4C6", margin:"0 0 8px" }}>Current base salary</p>
+                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Current base salary</p>
                   <input value={form.currentComp} onChange={e => setForm(f => ({...f,currentComp:e.target.value}))} placeholder="e.g. $120,000" style={inp} />
                 </div>
                 <div>
-                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A8B4C6", margin:"0 0 8px" }}>Target base salary</p>
+                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Target base salary</p>
                   <input value={form.targetComp} onChange={e => setForm(f => ({...f,targetComp:e.target.value}))} placeholder="e.g. $145,000" style={inp} />
                 </div>
               </div>
               <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A8B4C6", margin:"0 0 8px" }}>Total package context</p>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Total package context</p>
                 <textarea value={form.packageContext} onChange={e => setForm(f => ({...f,packageContext:e.target.value}))} placeholder="Optional: bonus, equity, benefits, or competing offers that give you leverage…" style={textarea} />
               </div>
             </div>
@@ -4743,11 +4743,11 @@ function ScreenSalaryCompensation() {
             <div style={{ ...card, display:"grid", gap:14 }}>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                 <div>
-                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A8B4C6", margin:"0 0 8px" }}>Location</p>
+                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Location</p>
                   <input value={form.location} onChange={e => setForm(f => ({...f,location:e.target.value}))} placeholder="e.g. San Francisco, CA / Remote" style={inp} />
                 </div>
                 <div>
-                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A8B4C6", margin:"0 0 8px" }}>Years of experience</p>
+                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Years of experience</p>
                   <select value={form.yearsExperience} onChange={e => setForm(f => ({...f,yearsExperience:e.target.value}))} style={sel}>
                     <option value="">Select…</option>
                     {["Less than 1 year","1–2 years","3–5 years","6–9 years","10–15 years","15+ years"].map(y => <option key={y} value={y}>{y}</option>)}
@@ -4755,7 +4755,7 @@ function ScreenSalaryCompensation() {
                 </div>
               </div>
               <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A8B4C6", margin:"0 0 8px" }}>Anything that gives you leverage?</p>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Anything that gives you leverage?</p>
                 <textarea value={form.additionalContext} onChange={e => setForm(f => ({...f,additionalContext:e.target.value}))} placeholder="Optional: recent wins, competing offers, specialized skills, why you're valuable…" style={textarea} />
               </div>
             </div>
@@ -4786,7 +4786,7 @@ function ScreenSalaryCompensation() {
               ))}
             </div>
           </div>
-          <div style={{ background:"rgba(0,0,0,0.02)", border:"1px solid var(--z-bd2)", borderRadius:16, padding:"16px 18px" }}>
+          <div style={{ background:"var(--z-raise)", border:"1px solid var(--z-bd2)", borderRadius:16, padding:"16px 18px" }}>
             <div style={{ fontSize:10.5, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", marginBottom:10 }}>Your answers so far</div>
             <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
               {[
@@ -4796,7 +4796,7 @@ function ScreenSalaryCompensation() {
                 { label:"Target comp", value:form.targetComp },
               ].filter(r => r.value).map(r => (
                 <div key={r.label} style={{ display:"flex", justifyContent:"space-between", gap:8 }}>
-                  <span style={{ fontSize:11.5, color:"#A8B4C6" }}>{r.label}</span>
+                  <span style={{ fontSize:11.5, color:"var(--z-text3)" }}>{r.label}</span>
                   <span style={{ fontSize:11.5, fontWeight:700, color:"var(--z-text2)", textAlign:"right", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.value}</span>
                 </div>
               ))}
@@ -5061,21 +5061,21 @@ function ScreenPivotAnalysis() {
             <div style={{ ...card, display:"grid", gap:14 }}>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                 <div>
-                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A8B4C6", margin:"0 0 8px" }}>Current role / title</p>
+                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Current role / title</p>
                   <input value={form.fromRole} onChange={e => setForm(f => ({...f,fromRole:e.target.value}))} placeholder="e.g. Software Engineer" style={inp} />
                 </div>
                 <div>
-                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A8B4C6", margin:"0 0 8px" }}>Current industry</p>
+                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Current industry</p>
                   <input value={form.fromIndustry} onChange={e => setForm(f => ({...f,fromIndustry:e.target.value}))} placeholder="e.g. Fintech" style={inp} />
                 </div>
               </div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                 <div>
-                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A8B4C6", margin:"0 0 8px" }}>Target role / title <span style={{ color:"#F87171" }}>*</span></p>
+                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Target role / title <span style={{ color:"#F87171" }}>*</span></p>
                   <input value={form.toRole} onChange={e => setForm(f => ({...f,toRole:e.target.value}))} placeholder="e.g. Product Manager" style={inp} />
                 </div>
                 <div>
-                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A8B4C6", margin:"0 0 8px" }}>Target industry</p>
+                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Target industry</p>
                   <input value={form.toIndustry} onChange={e => setForm(f => ({...f,toIndustry:e.target.value}))} placeholder="e.g. HealthTech" style={inp} />
                 </div>
               </div>
@@ -5084,11 +5084,11 @@ function ScreenPivotAnalysis() {
           {step === 2 && (
             <div style={{ ...card, display:"grid", gap:14 }}>
               <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A8B4C6", margin:"0 0 8px" }}>Key accomplishments</p>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Key accomplishments</p>
                 <textarea value={form.accomplishments} onChange={e => setForm(f => ({...f,accomplishments:e.target.value}))} placeholder="Your strongest results — projects you shipped, outcomes you drove, problems you solved. Be specific." style={textarea} />
               </div>
               <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A8B4C6", margin:"0 0 8px" }}>Skills you want to leverage</p>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Skills you want to leverage</p>
                 <textarea value={form.skills} onChange={e => setForm(f => ({...f,skills:e.target.value}))} placeholder="Which of your skills are most relevant to where you're going? What do you do especially well?" style={{ ...textarea, minHeight:100 }} />
               </div>
             </div>
@@ -5097,19 +5097,19 @@ function ScreenPivotAnalysis() {
             <div style={{ ...card, display:"grid", gap:14 }}>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                 <div>
-                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A8B4C6", margin:"0 0 8px" }}>Timeline</p>
+                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Timeline</p>
                   <select value={form.timeline} onChange={e => setForm(f => ({...f,timeline:e.target.value}))} style={sel}>
                     <option value="">Select timeline…</option>
                     {["ASAP / Already interviewing","Within 3 months","3–6 months","6–12 months","Exploring / no deadline"].map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
                 <div>
-                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A8B4C6", margin:"0 0 8px" }}>Biggest concern</p>
+                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Biggest concern</p>
                   <input value={form.biggestConcern} onChange={e => setForm(f => ({...f,biggestConcern:e.target.value}))} placeholder="e.g. No direct experience" style={inp} />
                 </div>
               </div>
               <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A8B4C6", margin:"0 0 8px" }}>Paste your resume or background (optional)</p>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Paste your resume or background (optional)</p>
                 <textarea value={form.resumeText} onChange={e => setForm(f => ({...f,resumeText:e.target.value}))} placeholder="Paste your resume text here for a more tailored analysis…" style={textarea} />
               </div>
             </div>
@@ -5140,7 +5140,7 @@ function ScreenPivotAnalysis() {
               ))}
             </div>
           </div>
-          <div style={{ background:"rgba(0,0,0,0.02)", border:"1px solid var(--z-bd2)", borderRadius:16, padding:"16px 18px" }}>
+          <div style={{ background:"var(--z-raise)", border:"1px solid var(--z-bd2)", borderRadius:16, padding:"16px 18px" }}>
             <div style={{ fontSize:10.5, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", marginBottom:10 }}>Your answers so far</div>
             <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
               {[
@@ -5150,7 +5150,7 @@ function ScreenPivotAnalysis() {
                 { label:"Timeline", value:form.timeline },
               ].filter(r => r.value).map(r => (
                 <div key={r.label} style={{ display:"flex", justifyContent:"space-between", gap:8 }}>
-                  <span style={{ fontSize:11.5, color:"#A8B4C6" }}>{r.label}</span>
+                  <span style={{ fontSize:11.5, color:"var(--z-text3)" }}>{r.label}</span>
                   <span style={{ fontSize:11.5, fontWeight:700, color:"var(--z-text2)", textAlign:"right", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.value}</span>
                 </div>
               ))}
@@ -5248,7 +5248,7 @@ function ScreenExecPositioning() {
               </div>
             </div>
             <button onClick={()=>setResult(null)}
-              style={{ padding:"7px 16px", borderRadius:8, background:"rgba(0,0,0,0.03)", border:"1px solid var(--z-bd)", color:"var(--z-text2)", fontSize:12.5, fontWeight:600, cursor:"pointer" }}>
+              style={{ padding:"7px 16px", borderRadius:8, background:"var(--z-raise)", border:"1px solid var(--z-bd)", color:"var(--z-text2)", fontSize:12.5, fontWeight:600, cursor:"pointer" }}>
               New analysis
             </button>
           </div>
@@ -5411,21 +5411,21 @@ function ScreenExecPositioning() {
             <div style={{ ...card, display:"grid", gap:14 }}>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                 <div>
-                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A8B4C6", margin:"0 0 8px" }}>Current title <span style={{ color:"#F87171" }}>*</span></p>
+                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Current title <span style={{ color:"#F87171" }}>*</span></p>
                   <input value={form.currentTitle} onChange={e => setForm(f => ({...f,currentTitle:e.target.value}))} placeholder="e.g. VP of Engineering" style={inp} />
                 </div>
                 <div>
-                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A8B4C6", margin:"0 0 8px" }}>Target role / level</p>
+                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Target role / level</p>
                   <input value={form.targetRole} onChange={e => setForm(f => ({...f,targetRole:e.target.value}))} placeholder="e.g. CTO / Board Director" style={inp} />
                 </div>
               </div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                 <div>
-                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A8B4C6", margin:"0 0 8px" }}>Current scope</p>
+                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Current scope</p>
                   <input value={form.currentScope} onChange={e => setForm(f => ({...f,currentScope:e.target.value}))} placeholder="e.g. Org of 80, $20M P&L" style={inp} />
                 </div>
                 <div>
-                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A8B4C6", margin:"0 0 8px" }}>Team / org size</p>
+                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Team / org size</p>
                   <input value={form.teamSize} onChange={e => setForm(f => ({...f,teamSize:e.target.value}))} placeholder="e.g. 40 direct + 80 org" style={inp} />
                 </div>
               </div>
@@ -5434,15 +5434,15 @@ function ScreenExecPositioning() {
           {step === 2 && (
             <div style={{ ...card, display:"grid", gap:14 }}>
               <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A8B4C6", margin:"0 0 8px" }}>Key business outcomes</p>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Key business outcomes</p>
                 <textarea value={form.businessOutcomes} onChange={e => setForm(f => ({...f,businessOutcomes:e.target.value}))} placeholder="Revenue impact, cost savings, strategic decisions you led, products shipped, organizations built. Quantify where possible." style={textarea} />
               </div>
               <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A8B4C6", margin:"0 0 8px" }}>Executive-level exposure</p>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Executive-level exposure</p>
                 <textarea value={form.execExposure} onChange={e => setForm(f => ({...f,execExposure:e.target.value}))} placeholder="Board presentations, C-suite relationships, investor interactions, external speaking…" style={{ ...textarea, minHeight:100 }} />
               </div>
               <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A8B4C6", margin:"0 0 8px" }}>Board experience (if any)</p>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Board experience (if any)</p>
                 <input value={form.boardExperience} onChange={e => setForm(f => ({...f,boardExperience:e.target.value}))} placeholder="e.g. Advisory board at X, Observer at Y, or none yet" style={inp} />
               </div>
             </div>
@@ -5450,14 +5450,14 @@ function ScreenExecPositioning() {
           {step === 3 && (
             <div style={{ ...card, display:"grid", gap:14 }}>
               <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A8B4C6", margin:"0 0 8px" }}>Specific goal</p>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Specific goal</p>
                 <select value={form.specificGoal} onChange={e => setForm(f => ({...f,specificGoal:e.target.value}))} style={sel}>
                   <option value="">Select your goal…</option>
                   {["Move to C-suite (CEO/CTO/CFO/COO/CMO)","Join a board of directors","Transition to PE/VC portfolio role","Move to a larger org at exec level","Build toward advisory / fractional exec","General executive positioning"].map(g => <option key={g} value={g}>{g}</option>)}
                 </select>
               </div>
               <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"#A8B4C6", margin:"0 0 8px" }}>Paste your bio or resume (optional)</p>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Paste your bio or resume (optional)</p>
                 <textarea value={form.bioText} onChange={e => setForm(f => ({...f,bioText:e.target.value}))} placeholder="Paste your current executive bio, LinkedIn summary, or resume for a more tailored analysis…" style={textarea} />
               </div>
             </div>
@@ -5465,7 +5465,7 @@ function ScreenExecPositioning() {
           {error && <div style={{ marginTop:14, background:"rgba(127,29,29,0.2)", border:"1px solid rgba(248,113,113,0.28)", borderRadius:14, padding:"11px 14px", fontSize:13, color:"#FCA5A5" }}>{error}</div>}
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:10, marginTop:22 }}>
             <button onClick={() => step === 1 ? setForm(f => ({...f,currentTitle:""})) : setStep(s => (s-1) as 1|2|3)} style={{ padding:"13px 20px", borderRadius:14, border:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text3)", fontSize:13.5, fontWeight:600, cursor:"pointer" }}>{step === 1 ? "Clear" : "← Back"}</button>
-            <button onClick={() => { if (step === 1 && !form.currentTitle.trim()) { setError("Add your current title to continue."); return; } setError(""); if (step === 3) void generate(); else setStep(s => (s+1) as 1|2|3); }} disabled={generating} style={{ minWidth:200, fontSize:14.5, fontWeight:700, padding:"13px 20px", borderRadius:14, border:"none", background:`linear-gradient(135deg, ${ACCENT}, #D97706)`, color:"white", cursor:"pointer", boxShadow:`0 8px 24px ${ACCENT}40`, opacity:generating ? 0.7 : 1 }}>
+            <button onClick={() => { if (step === 1 && !form.currentTitle.trim()) { setError("Add your current title to continue."); return; } setError(""); if (step === 3) void generate(); else setStep(s => (s+1) as 1|2|3); }} disabled={generating} style={{ minWidth:200, fontSize:14.5, fontWeight:700, padding:"13px 20px", borderRadius:14, border:"none", background:"#2563EB", color:"white", cursor:"pointer", opacity:generating ? 0.7 : 1 }}>
               {step === 3 ? "Analyze my positioning →" : "Continue →"}
             </button>
           </div>
@@ -5488,7 +5488,7 @@ function ScreenExecPositioning() {
               ))}
             </div>
           </div>
-          <div style={{ background:"rgba(0,0,0,0.02)", border:"1px solid var(--z-bd2)", borderRadius:16, padding:"16px 18px" }}>
+          <div style={{ background:"var(--z-raise)", border:"1px solid var(--z-bd2)", borderRadius:16, padding:"16px 18px" }}>
             <div style={{ fontSize:10.5, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", marginBottom:10 }}>Your answers so far</div>
             <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
               {[
@@ -5497,7 +5497,7 @@ function ScreenExecPositioning() {
                 { label:"Scope", value:form.currentScope },
               ].filter(r => r.value).map(r => (
                 <div key={r.label} style={{ display:"flex", justifyContent:"space-between", gap:8 }}>
-                  <span style={{ fontSize:11.5, color:"#A8B4C6" }}>{r.label}</span>
+                  <span style={{ fontSize:11.5, color:"var(--z-text3)" }}>{r.label}</span>
                   <span style={{ fontSize:11.5, fontWeight:700, color:"var(--z-text2)", textAlign:"right", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.value}</span>
                 </div>
               ))}
@@ -5965,7 +5965,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
               ))}
             </div>
             <div style={{ marginTop:"auto" }}>
-              <span style={{ fontSize:13, fontWeight:700, padding:"9px 20px", borderRadius:10, background:"#1F2937", color:"white", display:"inline-block" }}>Start →</span>
+              <span style={{ fontSize:13, fontWeight:700, padding:"9px 20px", borderRadius:10, background:"#2563EB", color:"white", display:"inline-block" }}>Start →</span>
             </div>
           </button>
         </div>
@@ -6047,7 +6047,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
           <div style={{ marginBottom:20 }}>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:6 }}>
               <label style={{ fontSize:11.5, fontWeight:700, color:"var(--z-text2)" }}>Job description <span style={{ color:"#F87171", fontWeight:700 }}>*</span></label>
-              <div style={{ display:"flex", background:"rgba(0,0,0,0.03)", borderRadius:8, padding:2 }}>
+              <div style={{ display:"flex", background:"var(--z-raise)", borderRadius:8, padding:2 }}>
                 {(["paste","url"] as const).map(m=>(
                   <button key={m} onClick={()=>{ setJdInputMode(m); setJdUrlErr(""); }} style={{ fontSize:11, fontWeight:600, padding:"3px 9px", borderRadius:6, border:"none", background:jdInputMode===m?"rgba(255,255,255,0.12)":"transparent", color:jdInputMode===m?"white":"rgba(255,255,255,0.35)", cursor:"pointer", transition:"all 0.12s" }}>
                     {m==="paste"?"Paste text":"Job URL"}
@@ -6085,7 +6085,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
           {analyzeErr && <div style={{ background:"rgba(239,68,68,0.12)", border:"1px solid rgba(239,68,68,0.3)", borderRadius:10, padding:"9px 14px", marginBottom:14, fontSize:13, color:"#FCA5A5" }}>{analyzeErr}</div>}
 
           <div style={{ display:"flex", gap:10 }}>
-            <button onClick={()=>setStep("choose")} style={{ fontSize:13, fontWeight:600, padding:"11px 20px", borderRadius:11, border:"1px solid var(--z-bd)", background:"rgba(0,0,0,0.03)", color:"var(--z-text2)", cursor:"pointer" }}>← Back</button>
+            <button onClick={()=>setStep("choose")} style={{ fontSize:13, fontWeight:600, padding:"11px 20px", borderRadius:11, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>← Back</button>
             <button
               onClick={()=>setStep("upload")}
               disabled={!jobDescription.trim() && !targetRoleInput.trim()}
@@ -6116,7 +6116,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
             onChange={e => setResumeText(e.target.value)}
           />
           <div style={{ display:"flex", gap:10, marginTop:14 }}>
-            <button onClick={() => setStep("upload")} style={{ fontSize:13, fontWeight:600, padding:"10px 20px", borderRadius:10, border:"1px solid var(--z-bd)", background:"rgba(0,0,0,0.03)", color:"var(--z-text2)", cursor:"pointer" }}>← Back</button>
+            <button onClick={() => setStep("upload")} style={{ fontSize:13, fontWeight:600, padding:"10px 20px", borderRadius:10, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>← Back</button>
             <button onClick={() => void runAnalysis()} disabled={!resumeText.trim() || targetedInvalid}
               style={{ flex:1, fontSize:14, fontWeight:700, padding:"11px", borderRadius:10, border:"none", background:resumeText.trim()&&!targetedInvalid?"#2563EB":"rgba(0,0,0,0.04)", color:resumeText.trim()&&!targetedInvalid?"white":"#B0BCCF", cursor:resumeText.trim()&&!targetedInvalid?"pointer":"default", boxShadow:"none", transition:"all 0.2s" }}>
               Analyze with Zari →
@@ -6174,7 +6174,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
 
           {/* Level + controls */}
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:18 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(0,0,0,0.03)", border:"1px solid var(--z-bd)", borderRadius:9, padding:"5px 12px" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:6, background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderRadius:9, padding:"5px 12px" }}>
               <span style={{ fontSize:11.5, color:"var(--z-text3)" }}>Level:</span>
               <select value={careerLevel} onChange={e=>setCareerLevel(e.target.value as CareerLevel)}
                 style={{ fontSize:12, fontWeight:700, color:"var(--z-text)", background:"transparent", border:"none", outline:"none", cursor:"pointer", fontFamily:"inherit" }}>
@@ -6201,7 +6201,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
           </div>
 
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-            <button onClick={()=>setStep(reviewMode==="targeted"?"job":"choose")} style={{ fontSize:12.5, fontWeight:600, padding:"9px 16px", borderRadius:10, border:"1px solid var(--z-bd)", background:"rgba(0,0,0,0.03)", color:"var(--z-text2)", cursor:"pointer" }}>← Back</button>
+            <button onClick={()=>setStep(reviewMode==="targeted"?"job":"choose")} style={{ fontSize:12.5, fontWeight:600, padding:"9px 16px", borderRadius:10, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>← Back</button>
             <p style={{ fontSize:11, color:"var(--z-text3)", display:"flex", alignItems:"center", gap:5 }}>
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" style={{ width:11,height:11 }}><rect x="3" y="7" width="10" height="8" rx="1.5"/><path d="M5 7V5a3 3 0 016 0v2"/></svg>
               Private &amp; secure
@@ -6221,7 +6221,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
         </div>
         <h2 style={{ fontSize:22, fontWeight:800, color:"var(--z-text)", marginBottom:8 }}>Zari is analyzing your resume…</h2>
         <p style={{ fontSize:14, color:"var(--z-text2)", marginBottom:32 }}>{ANALYSIS_STAGES[stageIdx]}</p>
-        <div style={{ background:"rgba(0,0,0,0.04)", borderRadius:99, height:8, overflow:"hidden", marginBottom:16 }}>
+        <div style={{ background:"var(--z-raise)", borderRadius:99, height:8, overflow:"hidden", marginBottom:16 }}>
           <div style={{ width:`${progress}%`, height:"100%", background:"linear-gradient(90deg,#2563EB,#06B6D4)", borderRadius:99, transition:"width 0.3s ease", boxShadow:"0 0 12px rgba(37,99,235,0.5)" }}/>
         </div>
         <p style={{ fontSize:12, color:"var(--z-text3)" }}>{Math.round(progress)}% complete</p>
@@ -6263,13 +6263,13 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
       {/* ── Download Format Modal ── */}
       {downloadModal && (
         <div style={{ position:"fixed", inset:0, zIndex:9999, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(10,10,15,0.55)", backdropFilter:"blur(3px)" }} onClick={()=>setDownloadModal(null)}>
-          <div style={{ background:"rgba(0,0,0,0.03)", borderRadius:18, padding:"28px 28px 22px", width:340, boxShadow:"0 20px 60px rgba(0,0,0,0.10)" }} onClick={e=>e.stopPropagation()}>
+          <div style={{ background:"var(--z-raise)", borderRadius:18, padding:"28px 28px 22px", width:340, boxShadow:"0 20px 60px rgba(0,0,0,0.10)" }} onClick={e=>e.stopPropagation()}>
             <p style={{ fontSize:16, fontWeight:800, color:"var(--z-text)", marginBottom:4 }}>Choose format</p>
             <p style={{ fontSize:12.5, color:"var(--z-text2)", marginBottom:20 }}>
               {downloadModal.type === "powerOptimized" ? "Zari will AI-optimize your resume before downloading." : "Download your resume with Zari's improvements applied."}
             </p>
             <div style={{ display:"flex", flexDirection:"column", gap:10, marginBottom:18 }}>
-              <button onClick={()=>void executeDownload("word")} style={{ display:"flex", alignItems:"center", gap:12, padding:"13px 16px", borderRadius:12, border:"1.5px solid #D9DFF0", background:"rgba(0,0,0,0.02)", cursor:"pointer", textAlign:"left" }}>
+              <button onClick={()=>void executeDownload("word")} style={{ display:"flex", alignItems:"center", gap:12, padding:"13px 16px", borderRadius:12, border:"1.5px solid #D9DFF0", background:"var(--z-raise)", cursor:"pointer", textAlign:"left" }}>
                 <div style={{ width:36, height:36, borderRadius:8, background:"#2B579A", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                   <svg viewBox="0 0 24 24" fill="white" style={{ width:20, height:20 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8" fill="none" stroke="white" strokeWidth="1.5"/><path d="M9 13l1.5 4 1.5-3 1.5 3L15 13" fill="none" stroke="white" strokeWidth="1.2"/></svg>
                 </div>
@@ -6278,7 +6278,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                   <p style={{ fontSize:11, color:"var(--z-text2)", margin:0 }}>Edit in Microsoft Word or Google Docs</p>
                 </div>
               </button>
-              <button onClick={()=>void executeDownload("pdf")} style={{ display:"flex", alignItems:"center", gap:12, padding:"13px 16px", borderRadius:12, border:"1.5px solid #D9DFF0", background:"rgba(0,0,0,0.02)", cursor:"pointer", textAlign:"left" }}>
+              <button onClick={()=>void executeDownload("pdf")} style={{ display:"flex", alignItems:"center", gap:12, padding:"13px 16px", borderRadius:12, border:"1.5px solid #D9DFF0", background:"var(--z-raise)", cursor:"pointer", textAlign:"left" }}>
                 <div style={{ width:36, height:36, borderRadius:8, background:"#DC2626", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                   <svg viewBox="0 0 24 24" fill="white" style={{ width:20, height:20 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8" fill="none" stroke="white" strokeWidth="1.5"/><text x="7" y="19" fontSize="7" fill="white" fontWeight="bold">PDF</text></svg>
                 </div>
@@ -6288,7 +6288,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                 </div>
               </button>
             </div>
-            <button onClick={()=>setDownloadModal(null)} style={{ width:"100%", padding:"9px", borderRadius:10, border:"1px solid var(--z-bd)", background:"rgba(0,0,0,0.03)", fontSize:12.5, color:"var(--z-text2)", cursor:"pointer", fontWeight:600 }}>Cancel</button>
+            <button onClick={()=>setDownloadModal(null)} style={{ width:"100%", padding:"9px", borderRadius:10, border:"1px solid var(--z-bd)", background:"var(--z-raise)", fontSize:12.5, color:"var(--z-text2)", cursor:"pointer", fontWeight:600 }}>Cancel</button>
           </div>
         </div>
       )}
@@ -6298,7 +6298,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
         {/* ── Top bar ── */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20, gap:12, flexWrap:"wrap" }}>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <button onClick={()=>{ setStep("choose"); setAiResult(null); setResumeText(""); setFileName(""); setAltVersions({}); setAltAttempt({}); setMagicWrite({}); setTab("overview"); if (rawFileUrlRef.current) { URL.revokeObjectURL(rawFileUrlRef.current); rawFileUrlRef.current = null; } setRawFileUrl(null); try { localStorage.removeItem(RESUME_SESSION_KEY); localStorage.removeItem(RESUME_PDF_KEY); } catch { /* ignore */ } }} style={{ display:"flex", alignItems:"center", gap:5, fontSize:12, fontWeight:600, color:"var(--z-text2)", background:"rgba(0,0,0,0.03)", border:"1px solid var(--z-bd)", borderRadius:8, padding:"6px 12px", cursor:"pointer" }}>
+            <button onClick={()=>{ setStep("choose"); setAiResult(null); setResumeText(""); setFileName(""); setAltVersions({}); setAltAttempt({}); setMagicWrite({}); setTab("overview"); if (rawFileUrlRef.current) { URL.revokeObjectURL(rawFileUrlRef.current); rawFileUrlRef.current = null; } setRawFileUrl(null); try { localStorage.removeItem(RESUME_SESSION_KEY); localStorage.removeItem(RESUME_PDF_KEY); } catch { /* ignore */ } }} style={{ display:"flex", alignItems:"center", gap:5, fontSize:12, fontWeight:600, color:"var(--z-text2)", background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderRadius:8, padding:"6px 12px", cursor:"pointer" }}>
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:12,height:12 }}><path d="M10 3L5 8l5 5"/></svg>
               New review
             </button>
@@ -6308,12 +6308,12 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
             </div>
           </div>
           <div style={{ display:"flex", gap:8 }}>
-            <button onClick={downloadReconstructed} style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:700, padding:"8px 14px", borderRadius:10, border:"1.5px solid rgba(37,99,235,0.4)", background:"rgba(0,0,0,0.03)", color:"#7B9EFF", cursor:"pointer" }}>
+            <button onClick={downloadReconstructed} style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:700, padding:"8px 14px", borderRadius:10, border:"1.5px solid rgba(37,99,235,0.4)", background:"var(--z-raise)", color:"#7B9EFF", cursor:"pointer" }}>
               <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:13,height:13 }}><path d="M10 4v12M4 10l6 6 6-6"/></svg>
               Download Revised
             </button>
             {reviewMode==="targeted" && (
-              <button onClick={()=>void downloadPowerOptimized()} disabled={powerOptimizing} style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:700, padding:"8px 16px", borderRadius:10, border:"none", background: powerOptimizing?"rgba(255,255,255,0.08)":"linear-gradient(135deg,#0F766E,#2563EB)", color: powerOptimizing?"rgba(255,255,255,0.35)":"white", cursor: powerOptimizing?"default":"pointer", boxShadow: powerOptimizing?"none":"0 4px 14px rgba(15,118,110,0.35)" }}>
+              <button onClick={()=>void downloadPowerOptimized()} disabled={powerOptimizing} style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:700, padding:"8px 16px", borderRadius:10, border:"none", background: powerOptimizing?"var(--z-raise)":"#2563EB", color: powerOptimizing?"var(--z-text3)":"white", cursor: powerOptimizing?"default":"pointer" }}>
                 <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:13,height:13 }}><path d="M11 3L5 11h7l-3 6 8-10h-7l3-6z"/></svg>
                 {powerOptimizing ? "Optimizing…" : "Power Optimized"}
               </button>
@@ -6396,7 +6396,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                             <span style={{ fontSize:22, fontWeight:900, color:sc.color, lineHeight:1, letterSpacing:"-0.03em", textShadow:`0 0 16px ${sc.color}66` }}>{sc.score}</span>
                           </div>
                         </div>
-                        <div style={{ height:6, borderRadius:99, background:"rgba(0,0,0,0.04)", overflow:"hidden" }}>
+                        <div style={{ height:6, borderRadius:99, background:"var(--z-raise)", overflow:"hidden" }}>
                           <div style={{ width:`${sc.score}%`, height:"100%", borderRadius:99, background:`linear-gradient(90deg, ${sc.color}88, ${sc.color})`, transition:"width 1s cubic-bezier(0.4,0,0.2,1)", boxShadow:`0 0 8px ${sc.color}66` }}/>
                         </div>
                       </div>
@@ -6497,7 +6497,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                   const ps = PRIORITY_STYLE[w.impact] ?? PRIORITY_STYLE.medium;
                   const ec = EFFORT_COLOR[w.effort] ?? "#68738A";
                   return (
-                    <div key={i} onClick={()=>{ if (w.tab==="bullets" && w.bulletRef) setPendingBulletScroll(w.bulletRef); setTab(w.tab); }} style={{ background:"rgba(0,0,0,0.03)", borderRadius:14, border:`1px solid ${ps.border}`, padding:"14px 16px", cursor:"pointer", transition:"all 0.12s", boxShadow:"0 2px 8px rgba(0,0,0,0.07)" }}>
+                    <div key={i} onClick={()=>{ if (w.tab==="bullets" && w.bulletRef) setPendingBulletScroll(w.bulletRef); setTab(w.tab); }} style={{ background:"var(--z-raise)", borderRadius:14, border:`1px solid ${ps.border}`, padding:"14px 16px", cursor:"pointer", transition:"all 0.12s", boxShadow:"0 2px 8px rgba(0,0,0,0.07)" }}>
                       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
                         <div style={{ display:"flex", alignItems:"center", gap:7 }}>
                           <div style={{ width:22, height:22, borderRadius:7, background:ps.bg, border:`1px solid ${ps.border}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
@@ -6539,8 +6539,8 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
           {/* ── Left: resume viewer ── */}
           <div style={{ background:"var(--z-card)", boxShadow:"0 2px 20px rgba(0,0,0,0.07)", borderRadius:16, overflow:"hidden", height:"calc(100vh - 260px)", display:"flex", flexDirection:"column", border:"1px solid var(--z-bd)" }}>
             {/* Panel header */}
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px", background:"rgba(0,0,0,0.02)", borderBottom:"1px solid var(--z-bd)", flexShrink:0 }}>
-              <div style={{ display:"flex", background:"rgba(0,0,0,0.04)", borderRadius:9, padding:3 }}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px", background:"var(--z-raise)", borderBottom:"1px solid var(--z-bd)", flexShrink:0 }}>
+              <div style={{ display:"flex", background:"var(--z-raise)", borderRadius:9, padding:3 }}>
                 {(["preview","suggestions"] as const).map(m => (
                   <button key={m} onClick={()=>{ setResumeViewMode(m); setActiveSuggestion(null); }} style={{ fontSize:12, fontWeight:600, padding:"5px 14px", borderRadius:7, border:"none", background:resumeViewMode===m?"rgba(255,255,255,0.15)":"transparent", color:resumeViewMode===m?"white":"rgba(255,255,255,0.55)", cursor:"pointer", boxShadow:resumeViewMode===m?"0 1px 6px rgba(0,0,0,0.3)":"none", transition:"all 0.12s" }}>
                     {m==="suggestions" ? `Suggestions${aiResult?.bullets?.length?` (${aiResult.bullets.length})`:""}`:"Preview"}
@@ -6564,7 +6564,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                   </div>
               : rawFileUrl
               ? <iframe src={`${rawFileUrl}#toolbar=0&navpanes=0`} style={{ flex:1, width:"100%", border:"none", display:"block", minHeight:0 }} title="Resume"/>
-              : <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:12, background:"rgba(0,0,0,0.02)" }}>
+              : <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:12, background:"var(--z-raise)" }}>
                   <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                   <p style={{ fontSize:13, color:"var(--z-text2)", margin:0, textAlign:"center", maxWidth:220 }}>Re-upload your PDF to restore the preview</p>
                   <label style={{ fontSize:12.5, fontWeight:600, color:"#2563EB", cursor:"pointer", padding:"7px 16px", borderRadius:8, border:"1.5px solid #2563EB", background:"rgba(37,99,235,0.05)" }}>
@@ -6638,14 +6638,14 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                         {ss.map((s, si) => {
                           const vs = VERDICT_STYLE[s.verdict] ?? { color:"var(--z-text2)", bg:"#F1F5F9", border:"#E4E8F5" };
                           return (
-                            <div key={si} style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 12px", borderRadius:12, background:"rgba(0,0,0,0.02)" }}>
+                            <div key={si} style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 12px", borderRadius:12, background:"var(--z-raise)" }}>
                               <div style={{ width:34, height:34, borderRadius:10, background: s.present?(s.score>=75?"rgba(22,163,74,0.15)":s.score>=55?"rgba(37,99,235,0.15)":"rgba(220,38,38,0.15)"):"rgba(255,255,255,0.06)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                                 <span style={{ fontSize:14, fontWeight:900, color: s.present?(s.score>=75?"#16A34A":s.score>=55?"#2563EB":"#DC2626"):"#A0AABF" }}>{s.present?s.score:"—"}</span>
                               </div>
                               <span style={{ flex:1, fontSize:13.5, fontWeight:600, color:"var(--z-text)" }}>{s.name}</span>
                               <span style={{ fontSize:11, fontWeight:700, padding:"3px 10px", borderRadius:99, background:vs.bg, color:vs.color, border:`1px solid ${vs.border}` }}>{s.present?s.verdict:"Missing"}</span>
                               <div style={{ width:90 }}>
-                                <div style={{ height:5, borderRadius:99, background:"rgba(0,0,0,0.04)", overflow:"hidden" }}>
+                                <div style={{ height:5, borderRadius:99, background:"var(--z-raise)", overflow:"hidden" }}>
                                   <div style={{ width:`${s.present?s.score:0}%`, height:"100%", borderRadius:99, background: s.score>=75?"#16A34A":s.score>=55?"#2563EB":"#DC2626", transition:"width 0.7s ease" }}/>
                                 </div>
                               </div>
@@ -6679,7 +6679,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                             <span style={{ fontSize:12, color:"var(--z-text2)" }}>Quantification rate</span>
                             <span style={{ fontSize:12, fontWeight:700, color:bs.withMetrics/bs.total>=0.6?"#16A34A":"#DC2626" }}>{Math.round((bs.withMetrics/bs.total)*100)}% <span style={{ color:"var(--z-text3)", fontWeight:400 }}>(target: 60%+)</span></span>
                           </div>
-                          <div style={{ height:7, borderRadius:99, background:"rgba(0,0,0,0.04)", overflow:"hidden" }}>
+                          <div style={{ height:7, borderRadius:99, background:"var(--z-raise)", overflow:"hidden" }}>
                             <div style={{ width:`${Math.round((bs.withMetrics/bs.total)*100)}%`, height:"100%", borderRadius:99, background:bs.withMetrics/bs.total>=0.6?"#16A34A":"#DC2626", transition:"width 0.7s ease" }}/>
                           </div>
                         </div>
@@ -6736,7 +6736,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                                   <span style={{ fontSize:11.5, fontWeight:600, color:"var(--z-text)" }}>{meta.label}</span>
                                   <span style={{ fontSize:11, fontWeight:700, color:meta.color }}>{count} issue{count>1?"s":""}</span>
                                 </div>
-                                <div style={{ height:5, borderRadius:99, background:"rgba(0,0,0,0.04)", overflow:"hidden" }}>
+                                <div style={{ height:5, borderRadius:99, background:"var(--z-raise)", overflow:"hidden" }}>
                                   <div style={{ width:`${(count/maxCount)*100}%`, height:"100%", borderRadius:99, background:meta.color, opacity:0.75 }}/>
                                 </div>
                               </div>
@@ -6871,9 +6871,9 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                     const improve = b.newScore - b.oldScore;
                     const ds = DIFF_STYLE[b.difficulty ?? "medium"];
                     return (
-                      <div key={i} id={`bullet-${i}`} style={{ background:"rgba(0,0,0,0.03)", borderRadius:16, border:"1px solid var(--z-bd)", boxShadow:"0 2px 10px rgba(0,0,0,0.07)", scrollMarginTop:16 }}>
+                      <div key={i} id={`bullet-${i}`} style={{ background:"var(--z-raise)", borderRadius:16, border:"1px solid var(--z-bd)", boxShadow:"0 2px 10px rgba(0,0,0,0.07)", scrollMarginTop:16 }}>
                         {/* Card header */}
-                        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px", background:"rgba(0,0,0,0.02)", borderBottom:"1px solid var(--z-bd2)", borderRadius:"16px 16px 0 0" }}>
+                        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px", background:"var(--z-raise)", borderBottom:"1px solid var(--z-bd2)", borderRadius:"16px 16px 0 0" }}>
                           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                             <span style={{ fontSize:11, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em" }}>Bullet {i+1}</span>
                             <span style={{ fontSize:10, fontWeight:700, padding:"2px 8px", borderRadius:99, background:ds.bg, color:ds.color, border:`1px solid ${ds.border}` }}>{ds.label}</span>
@@ -6932,7 +6932,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                             </button>
                           ) : (
                             <div style={{ border:"1.5px solid rgba(37,99,235,0.3)", borderRadius:12, overflow:"hidden" }}>
-                              <div style={{ display:"flex", background:"rgba(0,0,0,0.02)", borderBottom:"1px solid var(--z-bd)", padding:"8px 12px", gap:4, alignItems:"center", justifyContent:"space-between" }}>
+                              <div style={{ display:"flex", background:"var(--z-raise)", borderBottom:"1px solid var(--z-bd)", padding:"8px 12px", gap:4, alignItems:"center", justifyContent:"space-between" }}>
                                 <div style={{ display:"flex", gap:4 }}>
                                   {([["refine","Refine"],["describe","I did..."],["variations","3 versions"]] as [MagicWriteMode,string][]).map(([m,l]) => (
                                     <button key={m} onClick={()=>setMagicWrite(p=>({...p,[i]:{...p[i],mode:m,results:[],input:""}}))} style={{ fontSize:10.5, fontWeight:600, padding:"4px 10px", borderRadius:7, border:"none", background:mw.mode===m?"#2563EB":"rgba(255,255,255,0.08)", color:mw.mode===m?"white":"rgba(255,255,255,0.55)", cursor:"pointer" }}>{l}</button>
@@ -6942,7 +6942,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                               </div>
                               <div style={{ padding:12 }}>
                                 {mw.mode==="describe" ? (
-                                  <textarea value={mw.input} onChange={e=>setMagicWrite(p=>({...p,[i]:{...p[i],input:e.target.value}}))} placeholder="Describe what you actually did — metrics, scale, outcome…" style={{ width:"100%", minHeight:56, border:"1.5px solid #D9DFF0", borderRadius:8, padding:"8px 10px", fontSize:11.5, color:"var(--z-text)", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"rgba(0,0,0,0.03)" }}/>
+                                  <textarea value={mw.input} onChange={e=>setMagicWrite(p=>({...p,[i]:{...p[i],input:e.target.value}}))} placeholder="Describe what you actually did — metrics, scale, outcome…" style={{ width:"100%", minHeight:56, border:"1.5px solid #D9DFF0", borderRadius:8, padding:"8px 10px", fontSize:11.5, color:"var(--z-text)", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"var(--z-raise)" }}/>
                                 ) : (
                                   <p style={{ fontSize:11, color:"var(--z-text2)", margin:"0 0 8px" }}>{mw.mode==="refine"?"Zari will tighten and strengthen the AI suggestion.":"3 meaningfully different takes — different verb, angle, structure."}</p>
                                 )}
@@ -6967,14 +6967,13 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                     );
                   })}
                   {/* ── Interview Prep CTA ── */}
-                  <div style={{ marginTop:20, marginBottom:24, background:"linear-gradient(135deg,#D97706,#F59E0B)", borderRadius:16, padding:"18px 22px", position:"relative" }}>
-                    <div style={{ position:"absolute", top:-20, right:-20, width:120, height:120, background:"radial-gradient(circle,rgba(245,158,11,0.18) 0%,transparent 70%)", pointerEvents:"none", borderRadius:"50%", overflow:"hidden" }}/>
+                  <div style={{ marginTop:20, marginBottom:24, background:"var(--z-card)", borderRadius:12, padding:"18px 22px", border:"1px solid var(--z-bd)" }}>
                     <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:14 }}>
                       <div>
-                        <p style={{ fontSize:13.5, fontWeight:800, color:"white", marginBottom:4, letterSpacing:"-0.02em" }}>Ready to practice interviews?</p>
-                        <p style={{ fontSize:12, color:"rgba(255,255,255,0.75)", lineHeight:1.5 }}>Zari can generate interview questions tailored to the bullets and experience on this resume.</p>
+                        <p style={{ fontSize:13.5, fontWeight:800, color:"var(--z-text)", marginBottom:4, letterSpacing:"-0.02em" }}>Ready to practice interviews?</p>
+                        <p style={{ fontSize:12, color:"var(--z-text2)", lineHeight:1.5 }}>Zari can generate interview questions tailored to the bullets and experience on this resume.</p>
                       </div>
-                      <button onClick={onNavigate ? ()=>onNavigate("session") : undefined} style={{ flexShrink:0, fontSize:12.5, fontWeight:700, padding:"10px 20px", borderRadius:10, border:"none", background:"rgba(245,158,11,0.9)", color:"var(--z-text)", cursor:"pointer", whiteSpace:"nowrap", boxShadow:"0 4px 14px rgba(245,158,11,0.35)" }}>
+                      <button onClick={onNavigate ? ()=>onNavigate("session") : undefined} style={{ flexShrink:0, fontSize:12.5, fontWeight:700, padding:"10px 20px", borderRadius:10, border:"none", background:"#2563EB", color:"white", cursor:"pointer", whiteSpace:"nowrap" }}>
                         Practice Interview →
                       </button>
                     </div>
@@ -7012,10 +7011,10 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                   return (
                     <div key={s.label} style={{ borderRadius:16, border:"1px solid var(--z-bd)", overflow:"hidden", boxShadow:"0 2px 10px rgba(0,0,0,0.07)" }}>
                       {/* Section header */}
-                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"12px 16px", background:"rgba(0,0,0,0.02)", borderBottom:"1px solid var(--z-bd)" }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"12px 16px", background:"var(--z-raise)", borderBottom:"1px solid var(--z-bd)" }}>
                         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                           <span style={{ fontSize:12, fontWeight:800, textTransform:"uppercase", color:"#7B9EFF", letterSpacing:"0.1em" }}>{s.label}</span>
-                          {attempt > 1 && <span style={{ fontSize:10, color:"var(--z-text3)", background:"rgba(0,0,0,0.04)", padding:"1px 6px", borderRadius:99 }}>v{attempt}</span>}
+                          {attempt > 1 && <span style={{ fontSize:10, color:"var(--z-text3)", background:"var(--z-raise)", padding:"1px 6px", borderRadius:99 }}>v{attempt}</span>}
                           <span style={{ fontSize:11, fontWeight:700, color:grade.color, background:`${grade.color}18`, padding:"2px 8px", borderRadius:99 }}>{s.score}/100</span>
                         </div>
                         <button onClick={()=>void rewriteSection(idx, s)} disabled={isRegen} style={{ fontSize:11, fontWeight:600, padding:"6px 13px", borderRadius:8, border:"1px solid rgba(37,99,235,0.3)", background:"var(--z-raise)", color:isRegen?"rgba(255,255,255,0.35)":"#7B9EFF", cursor:isRegen?"default":"pointer" }}>
@@ -7041,9 +7040,9 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                         {/* Arrow */}
                         {s.originalText && (
                           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                            <div style={{ flex:1, height:1, background:"rgba(0,0,0,0.04)" }}/>
+                            <div style={{ flex:1, height:1, background:"var(--z-raise)" }}/>
                             <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="2" style={{ width:16,height:16,flexShrink:0 }}><path d="M12 5v14M5 12l7 7 7-7"/></svg>
-                            <div style={{ flex:1, height:1, background:"rgba(0,0,0,0.04)" }}/>
+                            <div style={{ flex:1, height:1, background:"var(--z-raise)" }}/>
                           </div>
                         )}
 
@@ -7079,7 +7078,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                     </div>
                   );
                 })}
-                <button onClick={()=>{ const all=(aiResult?.rewrittenSections??[]).map((s,i)=>`${s.label}:\n${altVersions[i]??s.text}`).join("\n\n"); void navigator.clipboard.writeText(all); }} style={{ fontSize:13, fontWeight:700, padding:"11px", borderRadius:11, border:"none", background:"linear-gradient(135deg,#0A0A0F,#1E2235)", color:"white", cursor:"pointer" }}>
+                <button onClick={()=>{ const all=(aiResult?.rewrittenSections??[]).map((s,i)=>`${s.label}:\n${altVersions[i]??s.text}`).join("\n\n"); void navigator.clipboard.writeText(all); }} style={{ fontSize:13, fontWeight:700, padding:"11px", borderRadius:11, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>
                   Copy all rewrites →
                 </button>
               </div>
@@ -7115,7 +7114,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                         { label:"Required found",   val:`${foundReq}/${required.length}`, color:reqCoverage>=70?"#4ADE80":reqCoverage>=45?"#FBBF24":"#F87171", sub:`${missingReq.length} still missing` },
                         { label:"Preferred found",  val:`${foundPref}/${preferred.length}`, color:foundPref===preferred.length?"#4ADE80":"#FBBF24", sub:"bonus points with recruiter" },
                       ].map((s,i) => (
-                        <div key={i} style={{ textAlign:"center", padding:"10px 8px", borderRadius:12, background:"rgba(0,0,0,0.02)" }}>
+                        <div key={i} style={{ textAlign:"center", padding:"10px 8px", borderRadius:12, background:"var(--z-raise)" }}>
                           <p style={{ fontSize:20, fontWeight:900, color:s.color, lineHeight:1, marginBottom:3 }}>{s.val}</p>
                           <p style={{ fontSize:11, fontWeight:600, color:"var(--z-text)", marginBottom:2 }}>{s.label}</p>
                           <p style={{ fontSize:10, color:"var(--z-text3)" }}>{s.sub}</p>
@@ -7127,7 +7126,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                         <span style={{ fontSize:11, fontWeight:600, color:"var(--z-text2)" }}>Overall match</span>
                         <span style={{ fontSize:11, fontWeight:700, color:coverage>=70?"#16A34A":coverage>=45?"#D97706":"#DC2626" }}>{coverage>=70?"Strong":"Needs work"}</span>
                       </div>
-                      <div style={{ height:8, borderRadius:99, background:"rgba(0,0,0,0.04)", overflow:"hidden" }}>
+                      <div style={{ height:8, borderRadius:99, background:"var(--z-raise)", overflow:"hidden" }}>
                         <div style={{ width:`${coverage}%`, height:"100%", borderRadius:99, background:`linear-gradient(90deg,${coverage>=70?"#16A34A":coverage>=45?"#F59E0B":"#DC2626"},${coverage>=70?"#22C55E":coverage>=45?"#FCD34D":"#EF4444"})`, transition:"width 1s cubic-bezier(0.4,0,0.2,1)" }}/>
                       </div>
                     </div>
@@ -7266,7 +7265,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                           const fv = rev[0].scores[key], lv = rev[rev.length-1].scores[key], d = lv-fv;
                           const c = d>0?"#16A34A":d<0?"#DC2626":"#A0AABF";
                           return (
-                            <div key={key} style={{ padding:"8px 10px", background:"rgba(0,0,0,0.02)", borderRadius:10, border:"1px solid var(--z-bd)", textAlign:"center" }}>
+                            <div key={key} style={{ padding:"8px 10px", background:"var(--z-raise)", borderRadius:10, border:"1px solid var(--z-bd)", textAlign:"center" }}>
                               <p style={{ fontSize:10, color:"var(--z-text2)", textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:3 }}>{key==="ats"?"ATS":key==="impact"?"Impact":"Clarity"}</p>
                               <p style={{ fontSize:17, fontWeight:900, color:c, lineHeight:1 }}>{d>0?"+":""}{d}</p>
                             </div>
@@ -7312,7 +7311,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                           const delta = d(key);
                           const dc = delta===null?"#A0AABF":delta>0?"#16A34A":delta<0?"#DC2626":"#A0AABF";
                           return (
-                            <div key={key} style={{ padding:"6px 8px", background:"rgba(0,0,0,0.02)", borderRadius:8, border:"1px solid var(--z-bd)" }}>
+                            <div key={key} style={{ padding:"6px 8px", background:"var(--z-raise)", borderRadius:8, border:"1px solid var(--z-bd)" }}>
                               <p style={{ fontSize:9, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:2 }}>{key==="ats"?"ATS Match":key==="impact"?"Impact":"Clarity"}</p>
                               <div style={{ display:"flex", alignItems:"baseline", gap:5 }}>
                                 <span style={{ fontSize:16, fontWeight:900, color:"var(--z-text)" }}>{entry.scores[key]}</span>
@@ -7793,7 +7792,7 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
             <p style={{ fontSize:12.5, color:"var(--z-text2)" }}>{ACTIVE_SECTION?.name} · Question {qIdx+1} of {SECTION_QUESTIONS.length}</p>
           </div>
           <button onClick={()=>{ setSetupDone(false); setSetupStep(1); setSections(null); setRound(null); setQIdx(0); setActiveSectionIdx(0); setAnswer(""); setSubmitted(false); setFeedback(null); }}
-            style={{ fontSize:12, fontWeight:600, padding:"6px 14px", borderRadius:9, border:"1px solid var(--z-bd)", background:"rgba(0,0,0,0.03)", color:"var(--z-text2)", cursor:"pointer" }}>
+            style={{ fontSize:12, fontWeight:600, padding:"6px 14px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>
             ← Start over
           </button>
         </div>
@@ -7802,9 +7801,9 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
         <div style={{ display:"flex", gap:6, marginBottom:20, overflowX:"auto", paddingBottom:2 }}>
           {sections.map((sec, i) => (
             <button key={i} onClick={()=>{ setActiveSectionIdx(i); setQIdx(0); setSubmitted(false); setAnswer(""); setFeedback(null); }}
-              style={{ flexShrink:0, padding:"8px 16px", borderRadius:10, border:`1.5px solid ${activeSectionIdx===i?"#2563EB":"rgba(255,255,255,0.1)"}`, background:activeSectionIdx===i?"rgba(37,99,235,0.18)":"rgba(255,255,255,0.06)", color:activeSectionIdx===i?"#60A5FA":"rgba(255,255,255,0.55)", fontSize:12.5, fontWeight:activeSectionIdx===i?700:500, cursor:"pointer", transition:"all 0.15s", display:"flex", alignItems:"center", gap:6 }}>
+              style={{ flexShrink:0, padding:"8px 16px", borderRadius:10, border:`1.5px solid ${activeSectionIdx===i?"#2563EB":"var(--z-bd)"}`, background:activeSectionIdx===i?"rgba(37,99,235,0.08)":"var(--z-raise)", color:activeSectionIdx===i?"#2563EB":"var(--z-text2)", fontSize:12.5, fontWeight:activeSectionIdx===i?700:500, cursor:"pointer", transition:"all 0.15s", display:"flex", alignItems:"center", gap:6 }}>
               {sec.name}
-              <span style={{ fontSize:10.5, fontWeight:600, padding:"1px 7px", borderRadius:99, background:activeSectionIdx===i?"rgba(37,99,235,0.2)":"rgba(255,255,255,0.07)", color:activeSectionIdx===i?"#60A5FA":"rgba(255,255,255,0.35)" }}>
+              <span style={{ fontSize:10.5, fontWeight:600, padding:"1px 7px", borderRadius:99, background:activeSectionIdx===i?"rgba(37,99,235,0.12)":"var(--z-card)", color:activeSectionIdx===i?"#2563EB":"var(--z-text3)", border:"1px solid var(--z-bd)" }}>
                 {sec.questions.length}
               </span>
             </button>
@@ -7820,22 +7819,22 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
 
         {/* Progress dots for current section */}
         <div style={{ display:"flex", gap:4, marginBottom:20 }}>
-          {SECTION_QUESTIONS.map((_,i) => <div key={i} style={{ height:4, flex:1, borderRadius:99, background:i<qIdx?"#2563EB":i===qIdx?"#60A5FA":"rgba(255,255,255,0.1)", transition:"background 0.3s" }}/>)}
+          {SECTION_QUESTIONS.map((_,i) => <div key={i} style={{ height:4, flex:1, borderRadius:99, background:i<qIdx?"#2563EB":i===qIdx?"rgba(37,99,235,0.4)":"var(--z-bd)", transition:"background 0.3s" }}/>)}
         </div>
 
         {/* Question card */}
         {q && (
-          <div style={{ background:"linear-gradient(135deg,#0F172A,#1E3A8A)", borderRadius:18, padding:"22px 24px", marginBottom:20, boxShadow:"0 12px 32px rgba(15,23,42,0.25)" }}>
+          <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #2563EB", borderRadius:12, padding:"22px 24px", marginBottom:20 }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:12 }}>
-              <div style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.12em", color:"var(--z-text2)" }}>
+              <div style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.12em", color:"var(--z-text3)" }}>
                 {q.cat} · {q.level}
               </div>
               <div style={{ display:"flex", gap:6 }}>
-                {["Situation","Task","Action","Result"].map(s => <span key={s} style={{ fontSize:9.5, fontWeight:600, padding:"2px 8px", borderRadius:99, background:"rgba(0,0,0,0.05)", color:"var(--z-text2)" }}>{s}</span>)}
+                {["Situation","Task","Action","Result"].map(s => <span key={s} style={{ fontSize:9.5, fontWeight:600, padding:"2px 8px", borderRadius:99, background:"var(--z-raise)", border:"1px solid var(--z-bd)", color:"var(--z-text3)" }}>{s}</span>)}
               </div>
             </div>
-            <p style={{ fontSize:15.5, fontWeight:600, color:"var(--z-text)", lineHeight:1.65 }}>{q.q}</p>
-            <div style={{ marginTop:14, fontSize:12, color:"var(--z-text3)" }}>
+            <p style={{ fontSize:16, fontWeight:700, color:"var(--z-text)", lineHeight:1.65, margin:"0 0 14px" }}>{q.q}</p>
+            <div style={{ fontSize:12, color:"var(--z-text3)" }}>
               Tip: Aim for 2–3 minutes. Lead with the Situation, make the Result specific and measurable.
             </div>
           </div>
@@ -7845,27 +7844,27 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
           <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:18, padding:22, boxShadow:"0 2px 12px rgba(0,0,0,0.07)" }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
               <p style={{ fontSize:14, fontWeight:700, color:"var(--z-text)" }}>Your answer</p>
-              <button onClick={() => { setIsRecording(r=>!r); if(isRecording) setRecTime(0); }} style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:99, border:`1px solid ${isRecording?"rgba(248,113,113,0.3)":"rgba(37,99,235,0.3)"}`, cursor:"pointer", background:isRecording?"rgba(248,113,113,0.12)":"rgba(37,99,235,0.12)", color:isRecording?"#F87171":"#60A5FA" }}>
+              <button onClick={() => { setIsRecording(r=>!r); if(isRecording) setRecTime(0); }} style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:99, border:`1px solid ${isRecording?"rgba(239,68,68,0.3)":"var(--z-bd)"}`, cursor:"pointer", background:isRecording?"rgba(239,68,68,0.08)":"var(--z-raise)", color:isRecording?"#EF4444":"var(--z-text2)" }}>
                 <span style={{ width:7, height:7, borderRadius:"50%", background:isRecording?"#DC2626":"#2563EB", animation:isRecording?"blink 0.7s step-end infinite":"none" }}/>
                 {isRecording ? `Stop · ${fmt(recTime)}` : "Record voice"}
               </button>
             </div>
             {isRecording && (
-              <div style={{ background:"var(--z-raise)", border:"1px solid rgba(37,99,235,0.25)", borderRadius:12, padding:"14px 18px", marginBottom:14, display:"flex", alignItems:"center", gap:12 }}>
-                <span style={{ fontSize:11, fontWeight:700, color:"#60A5FA" }}>Recording…</span>
+              <div style={{ background:"var(--z-raise)", border:"1px solid rgba(239,68,68,0.25)", borderRadius:12, padding:"14px 18px", marginBottom:14, display:"flex", alignItems:"center", gap:12 }}>
+                <span style={{ fontSize:11, fontWeight:700, color:"#EF4444" }}>Recording…</span>
                 <div style={{ display:"flex", gap:2, alignItems:"flex-end", height:24 }}>
-                  {Array.from({length:24}).map((_,i) => <div key={i} style={{ width:3, borderRadius:99, background:"#60A5FA", height:Math.random()*20+4, animation:`voice-wave ${0.4+Math.random()*0.4}s ease-in-out ${i*0.03}s infinite alternate` }}/>)}
+                  {Array.from({length:24}).map((_,i) => <div key={i} style={{ width:3, borderRadius:99, background:"#EF4444", height:Math.random()*20+4, animation:`voice-wave ${0.4+Math.random()*0.4}s ease-in-out ${i*0.03}s infinite alternate` }}/>)}
                 </div>
               </div>
             )}
             <textarea
-              style={{ width:"100%", minHeight:160, border:"1.5px solid #D9DFF0", borderRadius:12, padding:"13px 16px", fontSize:14, lineHeight:1.7, color:"var(--z-text)", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", transition:"border-color 0.2s", background:"rgba(0,0,0,0.02)" }}
+              style={{ width:"100%", minHeight:160, border:"1.5px solid #D9DFF0", borderRadius:12, padding:"13px 16px", fontSize:14, lineHeight:1.7, color:"var(--z-text)", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", transition:"border-color 0.2s", background:"var(--z-raise)" }}
               placeholder="Type your answer here, or click 'Record voice' to speak. Use Situation → Task → Action → Result."
               value={answer} onChange={e=>setAnswer(e.target.value)}
             />
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:12 }}>
               <span style={{ fontSize:12, color:"var(--z-text3)" }}>{answer.split(" ").filter(Boolean).length} words · aim for 150–250</span>
-              <button onClick={()=>void submit()} disabled={!answer.trim() || isScoring} style={{ fontSize:13.5, fontWeight:700, padding:"10px 24px", borderRadius:12, border:"none", background:answer.trim()&&!isScoring?"#2563EB":"rgba(255,255,255,0.07)", color:answer.trim()&&!isScoring?"white":"rgba(255,255,255,0.3)", cursor:answer.trim()&&!isScoring?"pointer":"default", boxShadow:answer.trim()&&!isScoring?"0 4px 16px rgba(37,99,235,0.32)":"none" }}>
+              <button onClick={()=>void submit()} disabled={!answer.trim() || isScoring} style={{ fontSize:13.5, fontWeight:700, padding:"10px 24px", borderRadius:12, border:"none", background:answer.trim()&&!isScoring?"#2563EB":"var(--z-bd)", color:answer.trim()&&!isScoring?"white":"var(--z-text3)", cursor:answer.trim()&&!isScoring?"pointer":"default" }}>
                 {isScoring ? "Scoring…" : "Get feedback →"}
               </button>
             </div>
@@ -7877,7 +7876,7 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
                 <div style={{ display:"flex", gap:6, justifyContent:"center", marginBottom:14 }}>
                   {[0,1,2].map(i=><div key={i} style={{ width:9,height:9,borderRadius:"50%",background:"#2563EB",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
                 </div>
-                <p style={{ fontSize:14, fontWeight:600, color:"#60A5FA" }}>Zari is scoring your answer…</p>
+                <p style={{ fontSize:14, fontWeight:600, color:"var(--z-text2)" }}>Zari is scoring your answer…</p>
                 <p style={{ fontSize:12, color:"var(--z-text3)", marginTop:5 }}>Analyzing STAR structure, impact clarity, and coaching opportunities</p>
               </div>
             )}
@@ -7885,16 +7884,16 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
               <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:18, padding:22, marginBottom:14, boxShadow:"0 2px 12px rgba(0,0,0,0.07)" }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:18 }}>
                   <p style={{ fontSize:14, fontWeight:700, color:"var(--z-text)" }}>Zari&apos;s feedback</p>
-                  <div style={{ display:"flex", alignItems:"center", gap:6, padding:"4px 12px", borderRadius:99, background:"rgba(74,222,128,0.12)", border:"1px solid rgba(74,222,128,0.3)" }}>
-                    <span style={{ fontSize:20, fontWeight:900, color:"#4ADE80" }}>{feedback?.overallScore ?? 79}</span>
-                    <span style={{ fontSize:11, color:"#4ADE80", fontWeight:600 }}>/ 100</span>
+                  <div style={{ display:"flex", alignItems:"center", gap:6, padding:"4px 12px", borderRadius:99, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
+                    <span style={{ fontSize:20, fontWeight:900, color:"var(--z-text)" }}>{feedback?.overallScore ?? 79}</span>
+                    <span style={{ fontSize:11, color:"var(--z-text3)", fontWeight:600 }}>/ 100</span>
                   </div>
                 </div>
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:18 }}>
                   {(feedback?.dimensions ?? []).map(s => {
                     const color = dimColor(s.score);
                     return (
-                      <div key={s.label} style={{ background:"rgba(0,0,0,0.02)", border:"1px solid var(--z-bd)", borderRadius:10, padding:"10px 12px" }}>
+                      <div key={s.label} style={{ background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderRadius:10, padding:"10px 12px" }}>
                         <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
                           <span style={{ fontSize:11.5, color:"var(--z-text2)" }}>{s.label}</span>
                           <span style={{ fontSize:13, fontWeight:800, color }}>{s.score}</span>
@@ -7905,19 +7904,19 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
                   })}
                 </div>
                 <div style={{ background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderRadius:12, padding:16, marginBottom:12 }}>
-                  <p style={{ fontSize:12, fontWeight:700, color:"#A5B4FC", marginBottom:6 }}>Coaching note from Zari</p>
+                  <p style={{ fontSize:12, fontWeight:700, color:"var(--z-text3)", marginBottom:6 }}>Coaching note from Zari</p>
                   <p style={{ fontSize:13, color:"var(--z-text)", lineHeight:1.65 }}>{feedback?.coachNote}</p>
                 </div>
                 {feedback?.suggestedResult && (
-                  <div style={{ background:"rgba(74,222,128,0.08)", borderRadius:12, padding:"12px 16px" }}>
-                    <p style={{ fontSize:12, fontWeight:700, color:"#4ADE80", marginBottom:5 }}>Suggested Result statement</p>
+                  <div style={{ background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderRadius:12, padding:"12px 16px" }}>
+                    <p style={{ fontSize:12, fontWeight:700, color:"var(--z-text3)", marginBottom:5 }}>Suggested Result statement</p>
                     <p style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.6, fontStyle:"italic" }}>&ldquo;{feedback.suggestedResult}&rdquo;</p>
                   </div>
                 )}
               </div>
             )}
             <div style={{ display:"flex", gap:10 }}>
-              <button onClick={()=>{setSubmitted(false);setAnswer("");setFeedback(null);}} style={{ flex:1, fontSize:13.5, fontWeight:600, padding:"12px", borderRadius:12, border:"1px solid var(--z-bd)", background:"rgba(0,0,0,0.03)", color:"var(--z-text)", cursor:"pointer" }}>Try again</button>
+              <button onClick={()=>{setSubmitted(false);setAnswer("");setFeedback(null);}} style={{ flex:1, fontSize:13.5, fontWeight:600, padding:"12px", borderRadius:12, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text)", cursor:"pointer" }}>Try again</button>
               <button onClick={()=>{
                 const nextQ = qIdx + 1;
                 if (nextQ < SECTION_QUESTIONS.length) { setQIdx(nextQ); }
@@ -8226,7 +8225,7 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
           <div style={{ background:"var(--z-card)", borderRadius:24, padding:"74px 32px", textAlign:"center", boxShadow:"0 2px 12px rgba(0,0,0,0.06)", border:"1px solid var(--z-bd)" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
               {[0,1,2].map(i => (
-                <div key={i} style={{ width:11, height:11, borderRadius:"50%", background:"#F59E0B", animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite`, boxShadow:"0 0 10px rgba(245,158,11,0.35)" }}/>
+                <div key={i} style={{ width:11, height:11, borderRadius:"50%", background:"#2563EB", animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>
               ))}
             </div>
             <p style={{ fontSize:17, fontWeight:800, color:"var(--z-text)", marginBottom:8, letterSpacing:"-0.02em" }}>Building questions from your actual situation…</p>
@@ -8357,18 +8356,17 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
                           onClick={() => setMode(key)}
                           style={{
                             textAlign:"left",
-                            border:`1px solid ${active ? `${meta.color}55` : "rgba(255,255,255,0.1)"}`,
-                            background:active ? `linear-gradient(135deg, ${meta.bg}22, rgba(255,255,255,0.04))` : "rgba(255,255,255,0.04)",
-                            borderRadius:18,
+                            border:`1px solid ${active ? "#2563EB" : "var(--z-bd)"}`,
+                            background:active ? "#EFF6FF" : "var(--z-card)",
+                            borderRadius:12,
                             padding:"16px 16px 15px",
                             cursor:"pointer",
-                            boxShadow:active ? `0 8px 32px ${meta.color}20` : "none",
                             transition:"all 0.15s",
                           }}
                         >
                           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginBottom:8 }}>
-                            <div style={{ fontSize:14.5, fontWeight:800, color:active ? meta.color : "rgba(255,255,255,0.82)" }}>{meta.label}</div>
-                            <span style={{ fontSize:10.5, fontWeight:800, padding:"4px 8px", borderRadius:999, background:active ? `${meta.color}22` : "rgba(255,255,255,0.08)", color:active ? meta.color : "rgba(255,255,255,0.45)", border:`1px solid ${active ? `${meta.color}40` : "rgba(255,255,255,0.1)"}` }}>{meta.badge}</span>
+                            <div style={{ fontSize:14.5, fontWeight:800, color:active ? "#2563EB" : "var(--z-text)" }}>{meta.label}</div>
+                            <span style={{ fontSize:10.5, fontWeight:800, padding:"4px 8px", borderRadius:999, background:"var(--z-raise)", color:"var(--z-text3)", border:"1px solid var(--z-bd)" }}>{meta.badge}</span>
                           </div>
                           <p style={{ fontSize:12.5, lineHeight:1.6, color:"var(--z-text2)", margin:0 }}>{meta.desc}</p>
                         </button>
@@ -8380,7 +8378,7 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
             </div>
 
             {setupError && (
-              <div style={{ background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.25)", borderRadius:16, padding:"12px 14px", fontSize:13, color:"#FCA5A5" }}>
+              <div style={{ background:"var(--z-raise)", border:"1px solid #FCA5A5", borderRadius:10, padding:"12px 14px", fontSize:13, color:"#DC2626" }}>
                 {setupError}
               </div>
             )}
@@ -8417,7 +8415,7 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
           <div style={{ position:"relative", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, flexWrap:"wrap" }}>
             <div>
               <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap", marginBottom:10 }}>
-                <span style={{ ...promotionChipStyle(theme), background:activeModeMeta.bg, border:`1px solid ${activeModeMeta.color}33`, color:activeModeMeta.color }}>{activeModeMeta.label}</span>
+                <span style={{ ...promotionChipStyle(theme), background:"var(--z-raise)", border:"1px solid var(--z-bd)", color:"var(--z-text3)" }}>{activeModeMeta.label}</span>
                 <span style={promotionChipStyle(theme)}>Question {questionNumber} of {totalQuestions}</span>
               </div>
               <h1 style={promotionHeroTitleStyle(760)}>Make the case until it's obvious.</h1>
@@ -8425,7 +8423,7 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
                 Stay concrete. Scope, outcomes, decisions, influence. Make the next level feel inevitable, not just possible.
               </p>
             </div>
-            <button onClick={() => setSections(null)} style={{ fontSize:12.5, fontWeight:700, padding:"10px 15px", borderRadius:12, border:"1px solid rgba(255,255,255,0.14)", background:"rgba(0,0,0,0.04)", color:"white", cursor:"pointer", backdropFilter:"blur(12px)" }}>
+            <button onClick={() => setSections(null)} style={{ fontSize:12.5, fontWeight:700, padding:"10px 15px", borderRadius:12, border:"1px solid var(--z-bd)", background:"var(--z-card)", color:"var(--z-text2)", cursor:"pointer" }}>
               ← Rebuild questions
             </button>
           </div>
@@ -8434,7 +8432,7 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))", gap:18, alignItems:"start" }}>
           <div style={{ display:"grid", gap:18, position:"sticky", top:18 }}>
             <div style={promotionPanelStyle(theme, true)}>
-              <div style={{ fontSize:11.5, fontWeight:800, color:theme.accent, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Questions</div>
+              <div style={{ fontSize:11.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Questions</div>
               <h2 style={{ fontSize:26, lineHeight:1.08, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"var(--z-text)", margin:"0 0 14px" }}>Cover all of it.</h2>
               <div style={{ display:"grid", gap:10 }}>
                 {sections.map((section, sectionIdx) => {
@@ -8445,17 +8443,16 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
                       onClick={() => goToQuestion(sectionIdx, 0)}
                       style={{
                         textAlign:"left",
-                        border:`1px solid ${active ? `${activeModeMeta.color}55` : "rgba(255,255,255,0.08)"}`,
-                        background:active ? `${activeModeMeta.color}18` : "rgba(255,255,255,0.04)",
-                        borderRadius:14,
+                        border:`1px solid ${active ? "#2563EB" : "var(--z-bd)"}`,
+                        background:active ? "#EFF6FF" : "var(--z-raise)",
+                        borderRadius:10,
                         padding:"14px 15px",
                         cursor:"pointer",
-                        boxShadow:active ? `0 4px 20px ${activeModeMeta.color}20` : "none",
                         transition:"all 0.15s",
                       }}
                     >
                       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginBottom:6 }}>
-                        <div style={{ fontSize:14, fontWeight:800, color:active ? activeModeMeta.color : "rgba(255,255,255,0.82)" }}>{section.name}</div>
+                        <div style={{ fontSize:14, fontWeight:800, color:active ? "#2563EB" : "var(--z-text)" }}>{section.name}</div>
                         <span style={{ fontSize:11.5, color:"var(--z-text3)" }}>{section.questions.length} Qs</span>
                       </div>
                       <p style={{ fontSize:12.5, lineHeight:1.6, color:"var(--z-text2)", margin:0 }}>{section.description}</p>
@@ -8496,7 +8493,7 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
               <div style={{ fontSize:11.5, fontWeight:800, color:"var(--z-text2)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>What strong answers have</div>
               <div style={{ display:"grid", gap:9 }}>
                 {["Next-level scope", "Business impact", "Cross-functional influence", "Sponsor-ready clarity"].map(item => (
-                  <div key={item} style={{ fontSize:12.5, color:"var(--z-text)", background:"rgba(0,0,0,0.03)", border:"1px solid var(--z-bd)", borderRadius:14, padding:"10px 11px" }}>
+                  <div key={item} style={{ fontSize:12.5, color:"var(--z-text)", background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderRadius:14, padding:"10px 11px" }}>
                     {item}
                   </div>
                 ))}
@@ -8505,40 +8502,39 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
           </div>
 
           <div style={{ display:"grid", gap:18 }}>
-            <div style={{ borderRadius:24, overflow:"hidden", boxShadow:"0 8px 40px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08)" }}>
-              {/* Question card - theatrical dark header */}
-              <div style={{ background:`linear-gradient(135deg,#1B1306 0%,#2D1E06 55%,${theme.accent}33 100%)`, padding:"24px 24px 22px", borderBottom:`1px solid ${theme.accent}22`, position:"relative", overflow:"hidden" }}>
-                <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 90% 20%, rgba(251,191,36,0.12), transparent 40%)", pointerEvents:"none" }}/>
-                <div style={{ position:"relative", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
+            <div style={{ borderRadius:14, overflow:"hidden", border:"1px solid var(--z-bd)" }}>
+              {/* Question card */}
+              <div style={{ background:"var(--z-card)", padding:"24px 24px 22px", borderBottom:"1px solid var(--z-bd)", borderLeft:"4px solid #2563EB" }}>
+                <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
                   <div style={{ flex:1 }}>
                     <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12, flexWrap:"wrap" }}>
-                      <span style={{ fontSize:10.5, fontWeight:800, padding:"4px 10px", borderRadius:999, background:`${activeModeMeta.color}22`, color:activeModeMeta.color, border:`1px solid ${activeModeMeta.color}33`, textTransform:"uppercase", letterSpacing:"0.08em" }}>{activeSection?.name}</span>
-                      <span style={{ fontSize:10.5, fontWeight:700, color:"rgba(255,255,255,0.38)", textTransform:"uppercase", letterSpacing:"0.08em" }}>Q{questionNumber} / {totalQuestions}</span>
+                      <span style={{ fontSize:10.5, fontWeight:800, padding:"4px 10px", borderRadius:999, background:"var(--z-raise)", color:"var(--z-text3)", border:"1px solid var(--z-bd)", textTransform:"uppercase", letterSpacing:"0.08em" }}>{activeSection?.name}</span>
+                      <span style={{ fontSize:10.5, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em" }}>Q{questionNumber} / {totalQuestions}</span>
                     </div>
-                    <h2 style={{ fontSize:28, lineHeight:1.15, fontWeight:800, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"white", margin:0 }}>{currentQuestion?.q}</h2>
+                    <h2 style={{ fontSize:22, lineHeight:1.25, fontWeight:800, letterSpacing:"-0.02em", color:"var(--z-text)", margin:0 }}>{currentQuestion?.q}</h2>
                   </div>
                   {currentQuestion && (
-                    <span style={{ fontSize:10.5, fontWeight:800, padding:"5px 10px", borderRadius:999, background:"rgba(0,0,0,0.04)", color:"rgba(255,255,255,0.62)", border:"1px solid var(--z-bd)", whiteSpace:"nowrap", flexShrink:0 }}>
+                    <span style={{ fontSize:10.5, fontWeight:700, padding:"5px 10px", borderRadius:999, background:"var(--z-raise)", color:"var(--z-text3)", border:"1px solid var(--z-bd)", whiteSpace:"nowrap", flexShrink:0 }}>
                       {currentQuestion.cat} · {currentQuestion.level}
                     </span>
                   )}
                 </div>
               </div>
               {/* Answer area */}
-              <div style={{ background:"rgba(0,0,0,0.03)", padding:"20px 24px 22px" }}>
+              <div style={{ background:"var(--z-raise)", padding:"20px 24px 22px" }}>
               <textarea
                 value={answer}
                 onChange={e => setAnswer(e.target.value)}
                 placeholder="Answer out loud first, then capture the strongest version here. Aim for scope, decision-making, outcomes, and why this proves next-level readiness."
-                style={{ ...promotionTextareaStyle(theme, 240), border:"1px solid var(--z-bd)", background:"rgba(0,0,0,0.02)" }}
+                style={{ ...promotionTextareaStyle(theme, 240), border:"1px solid var(--z-bd)", background:"var(--z-raise)" }}
               />
 
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:12, marginTop:16, flexWrap:"wrap" }}>
                 <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-                  <button onClick={prevQuestion} disabled={activeSectionIdx === 0 && qIdx === 0} style={{ fontSize:12.5, fontWeight:700, padding:"10px 14px", borderRadius:12, border:"1px solid var(--z-bd)", background:"rgba(0,0,0,0.03)", color:"var(--z-text2)", cursor:"pointer", opacity:activeSectionIdx === 0 && qIdx === 0 ? 0.45 : 1 }}>
+                  <button onClick={prevQuestion} disabled={activeSectionIdx === 0 && qIdx === 0} style={{ fontSize:12.5, fontWeight:700, padding:"10px 14px", borderRadius:12, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer", opacity:activeSectionIdx === 0 && qIdx === 0 ? 0.45 : 1 }}>
                     Previous
                   </button>
-                  <button onClick={nextQuestion} disabled={questionNumber === totalQuestions} style={{ fontSize:12.5, fontWeight:700, padding:"10px 14px", borderRadius:12, border:"1px solid var(--z-bd)", background:"rgba(0,0,0,0.03)", color:"var(--z-text2)", cursor:"pointer", opacity:questionNumber === totalQuestions ? 0.45 : 1 }}>
+                  <button onClick={nextQuestion} disabled={questionNumber === totalQuestions} style={{ fontSize:12.5, fontWeight:700, padding:"10px 14px", borderRadius:12, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer", opacity:questionNumber === totalQuestions ? 0.45 : 1 }}>
                     Next
                   </button>
                 </div>
@@ -8560,31 +8556,28 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
                 s >= 77 ? "#22C55E" : s >= 63 ? "#0284C7" : s >= 50 ? "#D97706" : "#EF4444";
               const shownScore = displayScore ?? feedback.overallScore;
               return (
-              <div style={{ borderRadius:24, overflow:"hidden", border:"1px solid var(--z-bd)", boxShadow:"0 8px 40px rgba(0,0,0,0.18)" }}>
-                <div style={{ display:"flex", alignItems:"center", gap:20, padding:"24px 24px 22px", background:"linear-gradient(135deg,#2563EB 0%,#5A72F0 55%,#6479F0 100%)", borderBottom:"1px solid rgba(37,99,235,0.2)" }}>
-                  {/* Animated circular score ring */}
-                  <div style={{ position:"relative", width:100, height:100, flexShrink:0 }}>
-                    <svg viewBox="0 0 100 100" style={{ position:"absolute", inset:0, width:"100%", height:"100%", transform:"rotate(-90deg)" }}>
-                      <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="9"/>
-                      <circle cx="50" cy="50" r="42" fill="none" stroke={dimColor(feedback.overallScore)} strokeWidth="9" strokeLinecap="round" strokeDasharray={`${(shownScore / 100) * 263.9} 263.9`} style={{ transition:"stroke-dasharray 0.06s linear", filter:`drop-shadow(0 0 6px ${dimColor(feedback.overallScore)}88)` }}/>
+              <div style={{ borderRadius:14, overflow:"hidden", border:"1px solid var(--z-bd)" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:20, padding:"24px 24px 22px", background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)" }}>
+                  <div style={{ position:"relative", width:90, height:90, flexShrink:0 }}>
+                    <svg viewBox="0 0 90 90" style={{ position:"absolute", inset:0, width:"100%", height:"100%", transform:"rotate(-90deg)" }}>
+                      <circle cx="45" cy="45" r="38" fill="none" stroke="var(--z-raise)" strokeWidth="7"/>
+                      <circle cx="45" cy="45" r="38" fill="none" stroke={dimColor(feedback.overallScore)} strokeWidth="7" strokeLinecap="round" strokeDasharray={`${(shownScore / 100) * 238.8} 238.8`} style={{ transition:"stroke-dasharray 0.06s linear" }}/>
                     </svg>
                     <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
-                      <div style={{ fontSize:28, fontWeight:900, color:dimColor(feedback.overallScore), letterSpacing:"-0.05em", lineHeight:1 }}>{shownScore}</div>
-                      <div style={{ fontSize:12, fontWeight:900, color:gradeColorFn(feedback.overallScore), marginTop:2 }}>{letterGradeFn(shownScore)}</div>
+                      <div style={{ fontSize:26, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.05em", lineHeight:1 }}>{shownScore}</div>
+                      <div style={{ fontSize:11, fontWeight:900, color:gradeColorFn(feedback.overallScore), marginTop:2 }}>{letterGradeFn(shownScore)}</div>
                     </div>
                   </div>
                   <div style={{ flex:1, minWidth:0 }}>
-                  </div>
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontSize:10.5, fontWeight:800, color:"rgba(255,255,255,0.7)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Zari's read</div>
-                    <h3 style={{ fontSize:19, lineHeight:1.28, fontWeight:800, letterSpacing:"-0.03em", color:"white", margin:"0 0 8px" }}>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Zari's read</div>
+                    <h3 style={{ fontSize:18, lineHeight:1.3, fontWeight:800, letterSpacing:"-0.02em", color:"var(--z-text)", margin:"0 0 8px" }}>
                       {feedback.headline || feedback.coachNote.split(/(?<=[.!?])\s+/)[0]?.trim() || "Here's what Zari found."}
                     </h3>
-                    <p style={{ fontSize:13.5, color:"rgba(255,255,255,0.58)", lineHeight:1.72, margin:0 }}>{feedback.coachNote}</p>
+                    <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.72, margin:0 }}>{feedback.coachNote}</p>
                   </div>
                 </div>
 
-                <div style={{ padding:"20px 24px 22px", background:"rgba(0,0,0,0.03)", display:"grid", gap:10 }}>
+                <div style={{ padding:"20px 24px 22px", background:"var(--z-raise)", display:"grid", gap:10 }}>
                   <div style={{ display:"grid", gap:8 }}>
                     {feedback.dimensions.map(dim => (
                       <div key={dim.label} style={{ display:"grid", gridTemplateColumns:"160px 1fr 36px", alignItems:"center", gap:12 }}>
@@ -8595,8 +8588,8 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
                     ))}
                   </div>
 
-                  <div style={{ borderRadius:16, background:`linear-gradient(135deg, ${activeModeMeta.color}12, rgba(255,255,255,0.03))`, border:`1px solid ${activeModeMeta.color}30`, padding:"18px 20px", marginTop:4 }}>
-                    <div style={{ fontSize:10.5, fontWeight:800, color:activeModeMeta.color, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>{feedback.suggestedLabel || "Sharper version"}</div>
+                  <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #2563EB", padding:"18px 20px", marginTop:4 }}>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>{feedback.suggestedLabel || "Sharper version"}</div>
                     <div style={{ fontSize:13.8, color:"var(--z-text)", lineHeight:1.82, whiteSpace:"pre-wrap", fontStyle:"italic" }}>{feedback.suggestedResult}</div>
                   </div>
                 </div>
@@ -8960,10 +8953,10 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
               <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 50% 12%, rgba(167,243,208,0.2), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
               <div style={{ position:"relative" }}>
                 <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:18 }}>
-                  {[0,1,2].map(i => <div key={i} style={{ width:11, height:11, borderRadius:"50%", background:"#34D399", animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
+                  {[0,1,2].map(i => <div key={i} style={{ width:11, height:11, borderRadius:"50%", background:"#2563EB", animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
                 </div>
-                <div style={{ fontSize:18, fontWeight:850, color:"white", marginBottom:8 }}>Picking the documents that fit where you are</div>
-                <div style={{ fontSize:13.5, color:"rgba(255,255,255,0.48)" }}>Not template generation. Deciding which artifacts your situation actually justifies.</div>
+                <div style={{ fontSize:18, fontWeight:850, color:"var(--z-text)", marginBottom:8 }}>Picking the documents that fit where you are</div>
+                <div style={{ fontSize:13.5, color:"var(--z-text2)" }}>Not template generation. Deciding which artifacts your situation actually justifies.</div>
               </div>
             </div>
           ) : result && (
@@ -8975,11 +8968,11 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
                     <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>Document pack</div>
                     <h1 style={promotionHeroTitleStyle(720)}>Here's what fits your case.</h1>
                     <p style={{ ...promotionHeroBodyStyle(660), marginBottom:16 }}>{result.coachTake}</p>
-                    <p style={{ fontSize:13.5, color:"rgba(255,255,255,0.52)", lineHeight:1.7, margin:0, maxWidth:580, background:"rgba(0,0,0,0.15)", borderRadius:12, padding:"10px 14px", border:"1px solid rgba(167,243,208,0.12)" }}>{result.strategy}</p>
+                    <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.7, margin:0, maxWidth:580, background:"var(--z-raise)", borderRadius:10, padding:"10px 14px", border:"1px solid var(--z-bd)" }}>{result.strategy}</p>
                   </div>
                   <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-                    <button onClick={() => setResult(null)} style={{ fontSize:12, fontWeight:700, padding:"10px 14px", borderRadius:12, border:"1px solid rgba(255,255,255,0.14)", background:"rgba(0,0,0,0.04)", color:"var(--z-text)", cursor:"pointer" }}>← Start over</button>
-                    <button onClick={download} style={{ fontSize:12, fontWeight:800, padding:"10px 14px", borderRadius:12, border:"none", background:"rgba(0,0,0,0.03)", color:"var(--z-text)", cursor:"pointer" }}>Download bundle</button>
+                    <button onClick={() => setResult(null)} style={{ fontSize:12, fontWeight:700, padding:"10px 14px", borderRadius:12, border:"1px solid rgba(255,255,255,0.14)", background:"var(--z-raise)", color:"var(--z-text)", cursor:"pointer" }}>← Start over</button>
+                    <button onClick={download} style={{ fontSize:12, fontWeight:800, padding:"10px 14px", borderRadius:12, border:"none", background:"var(--z-raise)", color:"var(--z-text)", cursor:"pointer" }}>Download bundle</button>
                   </div>
                 </div>
 
@@ -8989,20 +8982,20 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
                     { label:"Watch out for", value:String(result.redFlags.length).padStart(2, "0"), note:"Ways to weaken the case" },
                     { label:"Start with", value:result.documents[0]?.channel ?? "Doc", note:result.documents[0]?.title ?? "No primary document" },
                   ].map(card => (
-                    <div key={card.label} style={{ borderRadius:18, padding:"16px 16px 15px", background:"rgba(6,24,20,0.44)", border:"1px solid rgba(167,243,208,0.14)" }}>
-                      <div style={{ fontSize:10.5, fontWeight:800, letterSpacing:"0.1em", textTransform:"uppercase", color:"rgba(209,250,229,0.84)", marginBottom:10 }}>{card.label}</div>
-                      <div style={{ fontSize:card.label === "Use first" ? 18 : 28, fontWeight:900, lineHeight:1.2, color:"white", letterSpacing:"-0.04em", marginBottom:6 }}>{card.value}</div>
-                      <div style={{ fontSize:12.5, color:"rgba(255,255,255,0.62)", lineHeight:1.5 }}>{card.note}</div>
+                    <div key={card.label} style={{ borderRadius:12, padding:"16px 16px 15px", background:"var(--z-card)", border:"1px solid var(--z-bd)" }}>
+                      <div style={{ fontSize:10.5, fontWeight:800, letterSpacing:"0.1em", textTransform:"uppercase", color:"var(--z-text3)", marginBottom:10 }}>{card.label}</div>
+                      <div style={{ fontSize:card.label === "Use first" ? 18 : 28, fontWeight:900, lineHeight:1.2, color:"var(--z-text)", letterSpacing:"-0.04em", marginBottom:6 }}>{card.value}</div>
+                      <div style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.5 }}>{card.note}</div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div style={{ borderRadius:20, background:"linear-gradient(135deg,#1F0A12 0%,#3B0E1E 100%)", border:"1px solid rgba(248,113,133,0.22)", padding:"18px 22px", marginBottom:18, boxShadow:"0 2px 12px rgba(180,20,50,0.14)" }}>
-                <div style={{ fontSize:10.5, fontWeight:800, color:"#FB7185", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>What would backfire</div>
+              <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #EF4444", padding:"18px 22px", marginBottom:18 }}>
+                <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>What would backfire</div>
                 <div style={{ display:"grid", gap:8 }}>
                   {result.redFlags.map(item => (
-                    <div key={item} style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.7, padding:"10px 14px", borderRadius:12, background:"var(--z-card)", boxShadow:"0 2px 20px rgba(0,0,0,0.07)", border:"1px solid rgba(251,113,133,0.16)", display:"flex", gap:10, alignItems:"flex-start" }}>
+                    <div key={item} style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.7, padding:"10px 14px", borderRadius:10, background:"var(--z-raise)", border:"1px solid var(--z-bd)", display:"flex", gap:10, alignItems:"flex-start" }}>
                       <svg viewBox="0 0 16 16" fill="none" stroke="#FB7185" strokeWidth="2" style={{width:13,height:13,flexShrink:0,marginTop:3}}><path d="M8 3v5M8 11v1"/><circle cx="8" cy="8" r="6.5"/></svg>
                       {item}
                     </div>
@@ -9012,38 +9005,38 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
 
               <div style={{ display:"grid", gap:14 }}>
                 <div>
-                  <div style={{ fontSize:10.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>The documents ({result.documents.length})</div>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>The documents ({result.documents.length})</div>
                   <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.65, margin:0 }}>Every item has a job, a send order, and a draft you can edit and use. Use them in sequence — the order is deliberate.</p>
                 </div>
                 {result.documents.map((doc, index) => {
                   const sendLabel = index === 0 ? "Send first — Week 1" : index <= 2 ? "Send Week 2-3" : "Send Week 3-4+";
                   const sendColor = index === 0 ? { color:"#FBBF24", bg:"rgba(251,191,36,0.12)", border:"rgba(251,191,36,0.3)" } : index <= 2 ? { color:"#38BDF8", bg:"rgba(56,189,248,0.12)", border:"rgba(56,189,248,0.3)" } : { color:"#93C5FD", bg:"rgba(167,139,250,0.12)", border:"rgba(167,139,250,0.3)" };
                   return (
-                  <div key={`${doc.title}-${index}`} style={{ borderRadius:20, background:"rgba(0,0,0,0.03)", border:"1px solid var(--z-bd)", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", overflow:"hidden" }}>
+                  <div key={`${doc.title}-${index}`} style={{ borderRadius:20, background:"var(--z-raise)", border:"1px solid var(--z-bd)", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", overflow:"hidden" }}>
                     <div style={{ padding:"18px 22px 14px", borderBottom:"1px solid var(--z-bd)" }}>
                       <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
                         <div>
                           <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8, flexWrap:"wrap" }}>
-                            <div style={{ width:24, height:24, borderRadius:7, background:"linear-gradient(135deg,#10B981,#059669)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                              <span style={{ fontSize:11, fontWeight:900, color:"white" }}>{index + 1}</span>
+                            <div style={{ width:24, height:24, borderRadius:7, background:"var(--z-raise)", border:"1px solid var(--z-bd)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                              <span style={{ fontSize:11, fontWeight:900, color:"var(--z-text3)" }}>{index + 1}</span>
                             </div>
                             <div style={{ fontSize:18, lineHeight:1.2, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.025em" }}>{doc.title}</div>
-                            <span style={{ fontSize:10.5, fontWeight:800, padding:"3px 9px", borderRadius:999, color:sendColor.color, background:sendColor.bg, border:`1px solid ${sendColor.border}` }}>{sendLabel}</span>
+                            <span style={{ fontSize:10.5, fontWeight:800, padding:"3px 9px", borderRadius:999, color:"var(--z-text3)", background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>{sendLabel}</span>
                           </div>
                           <div style={{ display:"flex", gap:7, flexWrap:"wrap" }}>
                             {[
-                              { label:doc.channel, color:"#34D399", bg:"rgba(52,211,153,0.12)", border:"rgba(52,211,153,0.3)" },
-                              { label:doc.audience, color:"var(--z-text2)", bg:"rgba(255,255,255,0.08)", border:"rgba(255,255,255,0.12)" },
+                              { label:doc.channel, color:"var(--z-text3)", bg:"var(--z-raise)", border:"var(--z-bd)" },
+                              { label:doc.audience, color:"var(--z-text3)", bg:"var(--z-raise)", border:"var(--z-bd)" },
                             ].map(tag => (
                               <span key={tag.label} style={{ fontSize:10.5, fontWeight:800, padding:"4px 9px", borderRadius:999, color:tag.color, background:tag.bg, border:`1px solid ${tag.border}` }}>{tag.label}</span>
                             ))}
                           </div>
                         </div>
                         <div style={{ display:"flex", gap:7, flexWrap:"wrap" }}>
-                          <button onClick={() => void copy(formatArtifact(doc), `document-${index}`)} style={{ fontSize:11.5, fontWeight:700, padding:"8px 11px", borderRadius:10, border:"1px solid rgba(52,211,153,0.3)", background:"rgba(52,211,153,0.12)", color:"#34D399", cursor:"pointer" }}>
+                          <button onClick={() => void copy(formatArtifact(doc), `document-${index}`)} style={{ fontSize:11.5, fontWeight:700, padding:"8px 11px", borderRadius:10, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>
                             {copiedSection === `document-${index}` ? "Copied" : "Copy"}
                           </button>
-                          <button onClick={() => downloadDocument(doc, index)} style={{ fontSize:11.5, fontWeight:700, padding:"8px 11px", borderRadius:10, border:"1px solid #CBD5E1", background:"rgba(0,0,0,0.02)", color:"var(--z-text)", cursor:"pointer" }}>
+                          <button onClick={() => downloadDocument(doc, index)} style={{ fontSize:11.5, fontWeight:700, padding:"8px 11px", borderRadius:10, border:"1px solid #CBD5E1", background:"var(--z-raise)", color:"var(--z-text)", cursor:"pointer" }}>
                             Download
                           </button>
                         </div>
@@ -9057,7 +9050,7 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
                       {doc.subject && (
                         <div style={{ fontSize:13, color:"var(--z-text)", lineHeight:1.65, padding:"9px 14px", borderRadius:10, background:"var(--z-card)", boxShadow:"0 2px 20px rgba(0,0,0,0.07)", border:"1px solid var(--z-bd)", marginBottom:14, display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
                           <span><strong style={{ color:"var(--z-text2)", fontWeight:800 }}>Subject:</strong> <span style={{ fontWeight:700 }}>{doc.subject}</span></span>
-                          <button onClick={() => void copy(doc.subject ?? "", `subject-${index}`)} style={{ fontSize:11, fontWeight:700, padding:"4px 9px", borderRadius:8, border:"1px solid var(--z-bd)", background:"rgba(0,0,0,0.03)", color:"var(--z-text2)", cursor:"pointer", flexShrink:0 }}>
+                          <button onClick={() => void copy(doc.subject ?? "", `subject-${index}`)} style={{ fontSize:11, fontWeight:700, padding:"4px 9px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer", flexShrink:0 }}>
                             {copiedSection === `subject-${index}` ? "Copied" : "Copy subject"}
                           </button>
                         </div>
@@ -9398,7 +9391,7 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
                 <h1 style={promotionHeroTitleStyle(720)}>Here's who you need and what each one needs to believe.</h1>
                 <p style={promotionHeroBodyStyle(720)}>{result.overallFocus}</p>
               </div>
-              <button onClick={() => setResult(null)} style={{ fontSize:12.5, fontWeight:700, padding:"10px 14px", borderRadius:12, border:"1px solid rgba(255,255,255,0.14)", background:"rgba(0,0,0,0.04)", color:"white", cursor:"pointer" }}>
+              <button onClick={() => setResult(null)} style={{ fontSize:12.5, fontWeight:700, padding:"10px 14px", borderRadius:12, border:"1px solid var(--z-bd)", background:"var(--z-card)", color:"var(--z-text2)", cursor:"pointer" }}>
                 ← Start over
               </button>
             </div>
@@ -9409,30 +9402,26 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
                 { label:"Key people", value:String(result.sponsorMap.length).padStart(2, "0"), note:"People who matter" },
                 { label:"Done", value:String(checkedMoves.size).padStart(2, "0"), note:`of ${result.visibilityMoves.length} moves completed` },
               ].map(card => (
-                <div key={card.label} style={{ borderRadius:18, padding:"16px 16px 15px", background:"rgba(20,8,60,0.52)", border:"1px solid rgba(196,181,253,0.14)" }}>
-                  <div style={{ fontSize:10.5, fontWeight:800, letterSpacing:"0.1em", textTransform:"uppercase", color:"rgba(237,233,254,0.84)", marginBottom:10 }}>{card.label}</div>
-                  <div style={{ fontSize:28, fontWeight:900, lineHeight:1, color:"white", letterSpacing:"-0.04em", marginBottom:6 }}>{card.value}</div>
+                <div key={card.label} style={{ borderRadius:12, padding:"16px 16px 15px", background:"var(--z-card)", border:"1px solid var(--z-bd)" }}>
+                  <div style={{ fontSize:10.5, fontWeight:800, letterSpacing:"0.1em", textTransform:"uppercase", color:"var(--z-text3)", marginBottom:10 }}>{card.label}</div>
+                  <div style={{ fontSize:28, fontWeight:900, lineHeight:1, color:"var(--z-text)", letterSpacing:"-0.04em", marginBottom:6 }}>{card.value}</div>
                   <div style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.5 }}>{card.note}</div>
                 </div>
               ))}
             </div>
           </div>
 
-          <div style={{ borderRadius:22, background:"linear-gradient(135deg,#18060F 0%,#2D0C1A 55%,#18060F 100%)", border:"1px solid rgba(251,113,133,0.28)", boxShadow:"0 4px 28px rgba(180,20,50,0.2), 0 1px 3px rgba(0,0,0,0.12)", padding:"22px 26px", marginBottom:20, position:"relative", overflow:"hidden" }}>
-            <div style={{ position:"absolute", top:-30, right:-30, width:140, height:140, borderRadius:"50%", background:"radial-gradient(circle,rgba(251,113,133,0.16),transparent 70%)", pointerEvents:"none" }}/>
-            <div style={{ position:"relative", display:"flex", alignItems:"flex-start", gap:14 }}>
-              <div style={{ width:36, height:36, borderRadius:12, background:"rgba(251,113,133,0.2)", border:"1px solid rgba(251,113,133,0.3)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:2 }}>
-                <svg viewBox="0 0 20 20" fill="none" stroke="#FB7185" strokeWidth="2" style={{width:16,height:16}}><path d="M10 3v7M10 14v1"/><circle cx="10" cy="10" r="8.5"/></svg>
-              </div>
+          <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #EF4444", padding:"22px 26px", marginBottom:20 }}>
+            <div style={{ display:"flex", alignItems:"flex-start", gap:14 }}>
               <div>
-                <div style={{ fontSize:10.5, fontWeight:800, color:"#FB7185", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:8 }}>Hard truth</div>
+                <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:8 }}>Hard truth</div>
                 <div style={{ fontSize:16, color:"var(--z-text)", lineHeight:1.82, fontWeight:500 }}>{result.hardTruth}</div>
               </div>
             </div>
           </div>
 
-          <div style={{ background:"rgba(0,0,0,0.03)", border:"1px solid var(--z-bd)", borderRadius:24, overflow:"hidden", boxShadow:"0 8px 30px rgba(0,0,0,0.3)" }}>
-            <div style={{ display:"flex", flexWrap:"wrap", borderBottom:"1px solid var(--z-bd)", background:"rgba(0,0,0,0.02)" }}>
+          <div style={{ background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderRadius:24, overflow:"hidden", boxShadow:"0 8px 30px rgba(0,0,0,0.3)" }}>
+            <div style={{ display:"flex", flexWrap:"wrap", borderBottom:"1px solid var(--z-bd)", background:"var(--z-raise)" }}>
               {[
                 { id:"overview", label:"Overview" },
                 { id:"moves", label:`Moves (${result.visibilityMoves.length})` },
@@ -9467,24 +9456,21 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
             <div style={{ padding:"22px 22px 20px", display:"grid", gap:16 }}>
               {resultTab === "overview" && (
                 <>
-                  <div style={{ borderRadius:22, background:"linear-gradient(135deg,#0A0322 0%,#160945 55%,#1E0E5E 100%)", border:"1px solid rgba(139,92,246,0.28)", padding:"26px 28px", position:"relative", overflow:"hidden", boxShadow:"0 4px 28px rgba(109,76,255,0.18)" }}>
-                    <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 80% 20%, rgba(139,92,246,0.22), transparent 50%), radial-gradient(circle at 20% 80%, rgba(167,139,250,0.12), transparent 40%)", pointerEvents:"none" }}/>
-                    <div style={{ position:"relative" }}>
-                      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:16, flexWrap:"wrap" }}>
-                        <div>
-                          <div style={{ fontSize:10.5, fontWeight:800, color:"rgba(196,181,253,0.8)", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:4 }}>What you want decision-makers to say</div>
-                          <div style={{ fontSize:11.5, color:"rgba(255,255,255,0.38)", fontWeight:500 }}>Your calibration narrative — copy and share with your manager or sponsor</div>
-                        </div>
-                        <button
-                          onClick={() => { void navigator.clipboard.writeText(result.executiveNarrative); setNarrativeCopied(true); setTimeout(() => setNarrativeCopied(false), 2000); }}
-                          style={{ fontSize:11.5, fontWeight:700, padding:"7px 14px", borderRadius:10, border:"1px solid rgba(196,181,253,0.25)", background:"rgba(139,92,246,0.22)", color:"#93C5FD", cursor:"pointer", flexShrink:0 }}
-                        >
-                          {narrativeCopied ? "Copied!" : "Copy"}
-                        </button>
+                  <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"26px 28px" }}>
+                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:16, flexWrap:"wrap" }}>
+                      <div>
+                        <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:4 }}>What you want decision-makers to say</div>
+                        <div style={{ fontSize:11.5, color:"var(--z-text2)", fontWeight:500 }}>Your calibration narrative — copy and share with your manager or sponsor</div>
                       </div>
-                      <div style={{ fontSize:17.5, lineHeight:1.85, color:"var(--z-text)", whiteSpace:"pre-wrap", fontStyle:"italic", borderLeft:"3px solid rgba(139,92,246,0.6)", paddingLeft:20 }}>
-                        &ldquo;{result.executiveNarrative}&rdquo;
-                      </div>
+                      <button
+                        onClick={() => { void navigator.clipboard.writeText(result.executiveNarrative); setNarrativeCopied(true); setTimeout(() => setNarrativeCopied(false), 2000); }}
+                        style={{ fontSize:11.5, fontWeight:700, padding:"7px 14px", borderRadius:10, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer", flexShrink:0 }}
+                      >
+                        {narrativeCopied ? "Copied!" : "Copy"}
+                      </button>
+                    </div>
+                    <div style={{ fontSize:17.5, lineHeight:1.85, color:"var(--z-text)", whiteSpace:"pre-wrap", fontStyle:"italic", borderLeft:"3px solid #2563EB", paddingLeft:20 }}>
+                      &ldquo;{result.executiveNarrative}&rdquo;
                     </div>
                   </div>
                   <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:14 }}>
@@ -9492,7 +9478,7 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
                       <div style={{ fontSize:10.5, fontWeight:800, color:"#F87171", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Support gaps</div>
                       <div style={{ display:"grid", gap:9 }}>
                         {result.missingSupport.map(item => (
-                          <div key={item} style={{ fontSize:13.4, color:"var(--z-text2)", lineHeight:1.75, padding:"10px 12px", borderRadius:12, background:"rgba(220,38,38,0.1)", border:"1px solid rgba(220,38,38,0.2)", display:"flex", gap:10, alignItems:"flex-start" }}>
+                          <div key={item} style={{ fontSize:13.4, color:"var(--z-text2)", lineHeight:1.75, padding:"10px 12px", borderRadius:10, background:"var(--z-raise)", border:"1px solid var(--z-bd)", display:"flex", gap:10, alignItems:"flex-start" }}>
                             <svg viewBox="0 0 16 16" fill="none" stroke="#DC2626" strokeWidth="2" style={{ width:13, height:13, flexShrink:0, marginTop:3 }}><path d="M8 3v5M8 11v1"/><circle cx="8" cy="8" r="6.5"/></svg>
                             {item}
                           </div>
@@ -9515,18 +9501,18 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
                     return (
                     <div
                       key={item.title}
-                      style={{ borderRadius:18, background:isChecked ? "#F0FFF4" : "white", border:`1px solid ${isChecked ? "#BBF7D0" : "#E4E8F5"}`, boxShadow:"0 2px 12px rgba(0,0,0,0.07)", overflow:"hidden", display:"flex", transition:"all 0.18s" }}
+                      style={{ borderRadius:12, background:"var(--z-card)", border:`1px solid ${isChecked ? "#2563EB" : "var(--z-bd)"}`, overflow:"hidden", display:"flex", transition:"all 0.18s" }}
                     >
                       <button
                         onClick={() => setCheckedMoves(prev => { const n = new Set(prev); if (n.has(index)) n.delete(index); else n.add(index); return n; })}
-                        style={{ width:52, flexShrink:0, background:isChecked ? "linear-gradient(180deg,#16A34A,#15803D)" : "linear-gradient(180deg,#3B82F6,#0F766E)", display:"flex", alignItems:"center", justifyContent:"center", border:"none", cursor:"pointer" }}
+                        style={{ width:44, flexShrink:0, background:isChecked ? "#2563EB" : "var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"center", border:"none", borderRight:"1px solid var(--z-bd)", cursor:"pointer" }}
                       >
                         {isChecked
-                          ? <svg viewBox="0 0 20 20" fill="none" stroke="white" strokeWidth="2.5" style={{width:18,height:18}}><path d="M4 10l4 4 8-8"/></svg>
-                          : <span style={{ fontSize:14, fontWeight:900, color:"white" }}>{index + 1}</span>}
+                          ? <svg viewBox="0 0 20 20" fill="none" stroke="white" strokeWidth="2.5" style={{width:16,height:16}}><path d="M4 10l4 4 8-8"/></svg>
+                          : <span style={{ fontSize:13, fontWeight:900, color:"var(--z-text3)" }}>{index + 1}</span>}
                       </button>
-                      <div style={{ padding:"15px 17px", flex:1, opacity:isChecked ? 0.6 : 1, transition:"opacity 0.18s" }}>
-                        <div style={{ fontSize:14, fontWeight:800, color:isChecked ? "#15803D" : "#111827", marginBottom:6, textDecoration:isChecked ? "line-through" : "none" }}>{item.title}</div>
+                      <div style={{ padding:"15px 17px", flex:1, opacity:isChecked ? 0.55 : 1, transition:"opacity 0.18s" }}>
+                        <div style={{ fontSize:14, fontWeight:800, color:"var(--z-text)", marginBottom:6, textDecoration:isChecked ? "line-through" : "none" }}>{item.title}</div>
                         <div style={{ fontSize:13.2, color:"var(--z-text)", lineHeight:1.68, marginBottom:7 }}>{item.move}</div>
                         <div style={{ fontSize:12, color:"var(--z-text2)", lineHeight:1.55, fontWeight:600 }}>{item.why}</div>
                       </div>
@@ -9546,19 +9532,19 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
                           <div style={{ fontSize:14, fontWeight:800, color:"var(--z-text)", marginBottom:4 }}>{item.audience}</div>
                           <div style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.65 }}>{item.goal}</div>
                         </div>
-                        <span style={{ fontSize:10.5, fontWeight:800, padding:"3px 9px", borderRadius:999, background:"rgba(109,76,255,0.1)", color:"var(--z-text2)", border:"1px solid rgba(109,76,255,0.3)", whiteSpace:"nowrap" }}>Sponsor</span>
+                        <span style={{ fontSize:10.5, fontWeight:800, padding:"3px 9px", borderRadius:999, background:"var(--z-raise)", color:"var(--z-text3)", border:"1px solid var(--z-bd)", whiteSpace:"nowrap" }}>Sponsor</span>
                       </div>
                       <div style={{ marginTop:12 }}>
                         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginBottom:8 }}>
                           <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text2)", textTransform:"uppercase", letterSpacing:"0.08em" }}>What to say</div>
                           <button
                             onClick={() => { void navigator.clipboard.writeText(item.ask); setCopiedAsk(idx); setTimeout(() => setCopiedAsk(null), 2000); }}
-                            style={{ fontSize:11.5, fontWeight:700, padding:"5px 11px", borderRadius:9, border:"1px solid rgba(109,76,255,0.3)", background:"rgba(109,76,255,0.1)", color:"var(--z-text2)", cursor:"pointer" }}
+                            style={{ fontSize:11.5, fontWeight:700, padding:"5px 11px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}
                           >
                             {copiedAsk === idx ? "Copied!" : "Copy ask"}
                           </button>
                         </div>
-                        <div style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.75, padding:"14px 16px", borderRadius:12, background:"rgba(109,76,255,0.12)", border:"1px solid rgba(109,76,255,0.3)", fontStyle:"italic" }}>
+                        <div style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.75, padding:"14px 16px", borderRadius:10, background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderLeft:"3px solid #2563EB", fontStyle:"italic" }}>
                           &ldquo;{item.ask}&rdquo;
                         </div>
                       </div>
@@ -9573,17 +9559,17 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
                     <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Weekly rhythm</div>
                     <div style={{ display:"grid", gap:8 }}>
                       {result.weeklyCadence.map(item => (
-                        <div key={item} style={{ fontSize:13, color:"var(--z-text)", lineHeight:1.65, background:"rgba(0,0,0,0.02)", border:"1px solid var(--z-bd)", borderRadius:12, padding:"10px 12px" }}>
+                        <div key={item} style={{ fontSize:13, color:"var(--z-text)", lineHeight:1.65, background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderRadius:12, padding:"10px 12px" }}>
                           {item}
                         </div>
                       ))}
                     </div>
                   </div>
-                  <div style={{ borderRadius:18, background:"rgba(220,38,38,0.1)", border:"1px solid rgba(220,38,38,0.3)", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", padding:"18px 18px 16px" }}>
-                    <div style={{ fontSize:10.5, fontWeight:800, color:"#F87171", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Watchouts</div>
+                  <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"18px 18px 16px" }}>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Watchouts</div>
                     <div style={{ display:"grid", gap:8 }}>
                       {result.watchouts.map(item => (
-                        <div key={item} style={{ fontSize:13, color:"rgba(255,255,255,0.78)", lineHeight:1.65, background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.2)", borderRadius:12, padding:"10px 12px" }}>
+                        <div key={item} style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.65, background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderRadius:10, padding:"10px 12px" }}>
                           {item}
                         </div>
                       ))}
@@ -10018,7 +10004,7 @@ function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?
           </div>
           <h1 style={{ fontSize:16, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:0, flex:1 }}>LinkedIn Profile Reviewer</h1>
           <button onClick={()=>{ setInputMode(true); setResult(null); }}
-            style={{ padding:"7px 16px", borderRadius:8, background:"rgba(0,0,0,0.03)", border:"1px solid var(--z-bd)", color:"var(--z-text2)", fontSize:12.5, fontWeight:600, cursor:"pointer" }}>
+            style={{ padding:"7px 16px", borderRadius:8, background:"var(--z-raise)", border:"1px solid var(--z-bd)", color:"var(--z-text2)", fontSize:12.5, fontWeight:600, cursor:"pointer" }}>
             Analyze new profile
           </button>
         </div>
@@ -10138,7 +10124,7 @@ function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?
                 <p style={{ fontSize:11, color:"var(--z-text2)", textAlign:"center", lineHeight:1.5, position:"relative" }}>Aim for 85+ to stand out to recruiters</p>
               </div>
 
-              <div style={{ background:"rgba(0,0,0,0.03)", borderRadius:16, padding:"20px 22px", boxShadow:"0 2px 12px rgba(0,0,0,0.07)" }}>
+              <div style={{ background:"var(--z-raise)", borderRadius:16, padding:"20px 22px", boxShadow:"0 2px 12px rgba(0,0,0,0.07)" }}>
                 <p style={{ fontSize:12, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:14 }}>Priority Fixes</p>
                 {(["headline","summary","experience","education","other","networking"] as SecKey[]).filter(k => {
                   const s = secData[k];
@@ -10148,7 +10134,7 @@ function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?
                   const failCount = s.checks.filter(c=>!c.pass).length;
                   return (
                     <div key={k} onClick={()=>{ setLISection(k); setExpandedCheck(null); }}
-                      style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 12px", border:"1px solid var(--z-bd)", borderRadius:10, marginBottom:8, cursor:"pointer", background:"rgba(0,0,0,0.02)", transition:"background 0.12s" }}>
+                      style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 12px", border:"1px solid var(--z-bd)", borderRadius:10, marginBottom:8, cursor:"pointer", background:"var(--z-raise)", transition:"background 0.12s" }}>
                       <div style={{ width:34, height:34, borderRadius:9, background:scoreBg(s.score), display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                         <span style={{ fontSize:14, fontWeight:900, color:scoreColor(s.score) }}>{s.score}</span>
                       </div>
@@ -10167,7 +10153,7 @@ function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?
             </div>
 
             {/* Full breakdown */}
-            <div style={{ background:"rgba(0,0,0,0.03)", borderRadius:16, padding:"20px 22px", boxShadow:"0 2px 12px rgba(0,0,0,0.07)" }}>
+            <div style={{ background:"var(--z-raise)", borderRadius:16, padding:"20px 22px", boxShadow:"0 2px 12px rgba(0,0,0,0.07)" }}>
               <p style={{ fontSize:12, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:16 }}>Section Scores</p>
               {(["headline","summary","experience","education","other","networking"] as SecKey[]).map(k => {
                 const s = secData[k];
@@ -10181,7 +10167,7 @@ function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?
                       </div>
                       <span style={{ fontSize:13, fontWeight:800, color:scoreColor(s.score) }}>{s.score}/10</span>
                     </div>
-                    <div style={{ height:6, borderRadius:99, background:"rgba(0,0,0,0.04)", overflow:"hidden" }}>
+                    <div style={{ height:6, borderRadius:99, background:"var(--z-raise)", overflow:"hidden" }}>
                       <div style={{ width:`${s.score*10}%`, height:"100%", borderRadius:99, background:scoreColor(s.score), transition:"width 1s ease" }}/>
                     </div>
                   </div>
@@ -10209,7 +10195,7 @@ function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?
             </div>
 
             {/* Core Checks */}
-            <div style={{ background:"rgba(0,0,0,0.03)", borderRadius:16, padding:"20px 22px", marginBottom:16, boxShadow:"0 2px 10px rgba(0,0,0,0.07)" }}>
+            <div style={{ background:"var(--z-raise)", borderRadius:16, padding:"20px 22px", marginBottom:16, boxShadow:"0 2px 10px rgba(0,0,0,0.07)" }}>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
                 <p style={{ fontSize:12, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.07em" }}>Core Checks</p>
                 <div style={{ display:"flex", gap:10, fontSize:11.5, fontWeight:600 }}>
@@ -10222,7 +10208,7 @@ function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?
 
             {/* AI Coach — only for sections that have a rewrite */}
             {activeSec.rewrite && (
-              <div style={{ background:"rgba(0,0,0,0.03)", borderRadius:16, padding:"20px 22px", boxShadow:"0 2px 10px rgba(0,0,0,0.07)" }}>
+              <div style={{ background:"var(--z-raise)", borderRadius:16, padding:"20px 22px", boxShadow:"0 2px 10px rgba(0,0,0,0.07)" }}>
                 <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16 }}>
                   <div style={{ width:28, height:28, borderRadius:8, background:"linear-gradient(135deg,#667EEA,#764BA2)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                     <svg viewBox="0 0 16 16" fill="white" style={{width:14,height:14}}><path d="M8 1l1.5 3.5L13 6l-2.5 2.5.5 3.5L8 10.5 5 12l.5-3.5L3 6l3.5-1.5L8 1z"/></svg>
@@ -10230,7 +10216,7 @@ function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?
                   <p style={{ fontSize:15, fontWeight:800, color:"var(--z-text)" }}>AI Coach — Suggested Rewrite</p>
                 </div>
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-                  <div style={{ background:"rgba(0,0,0,0.02)", borderRadius:12, padding:"14px 16px", border:"1px solid var(--z-bd)" }}>
+                  <div style={{ background:"var(--z-raise)", borderRadius:12, padding:"14px 16px", border:"1px solid var(--z-bd)" }}>
                     <p style={{ fontSize:10.5, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Current</p>
                     <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.7, whiteSpace:"pre-wrap" }}>{secInputs[activeSecKey] || "(not provided)"}</p>
                   </div>
@@ -10279,7 +10265,7 @@ function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?
 
             {/* Overall experience checks */}
             {result.experience.checks.length > 0 && (
-              <div style={{ background:"rgba(0,0,0,0.03)", borderRadius:16, padding:"20px 22px", marginBottom:16, boxShadow:"0 2px 10px rgba(0,0,0,0.07)" }}>
+              <div style={{ background:"var(--z-raise)", borderRadius:16, padding:"20px 22px", marginBottom:16, boxShadow:"0 2px 10px rgba(0,0,0,0.07)" }}>
                 <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
                   <p style={{ fontSize:12, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.07em" }}>Overall Checks</p>
                   <div style={{ display:"flex", gap:10, fontSize:11.5, fontWeight:600 }}>
@@ -10293,7 +10279,7 @@ function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?
 
             {/* Per-job cards */}
             {(result.experience.jobs ?? []).map((job, ji) => (
-              <div key={ji} style={{ background:"rgba(0,0,0,0.03)", borderRadius:16, padding:"20px 22px", marginBottom:14, boxShadow:"0 2px 10px rgba(0,0,0,0.07)" }}>
+              <div key={ji} style={{ background:"var(--z-raise)", borderRadius:16, padding:"20px 22px", marginBottom:14, boxShadow:"0 2px 10px rgba(0,0,0,0.07)" }}>
                 {/* Job header */}
                 <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12, marginBottom:16 }}>
                   <div style={{ flex:1 }}>
@@ -10325,7 +10311,7 @@ function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?
                       <p style={{ fontSize:14, fontWeight:800, color:"var(--z-text)" }}>AI Coach — Suggested Rewrite</p>
                     </div>
                     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-                      <div style={{ background:"rgba(0,0,0,0.02)", borderRadius:12, padding:"14px 16px", border:"1px solid var(--z-bd)" }}>
+                      <div style={{ background:"var(--z-raise)", borderRadius:12, padding:"14px 16px", border:"1px solid var(--z-bd)" }}>
                         <p style={{ fontSize:10.5, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Current</p>
                         <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.7, whiteSpace:"pre-wrap" }}>
                           {(experienceJobs[ji]?.description) || "(not provided)"}
@@ -10375,7 +10361,7 @@ function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?
                 </span>
               </div>
             </div>
-            <div style={{ background:"rgba(0,0,0,0.03)", borderRadius:16, padding:"20px 22px", boxShadow:"0 2px 10px rgba(0,0,0,0.07)" }}>
+            <div style={{ background:"var(--z-raise)", borderRadius:16, padding:"20px 22px", boxShadow:"0 2px 10px rgba(0,0,0,0.07)" }}>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
                 <p style={{ fontSize:12, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.07em" }}>Networking Signals</p>
                 <div style={{ display:"flex", gap:10, fontSize:11.5, fontWeight:600 }}>
@@ -10418,7 +10404,7 @@ function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?
             </div>
 
             {(result?.missingKeywords ?? []).length > 0 && (
-              <div style={{ background:"rgba(0,0,0,0.03)", borderRadius:16, padding:"20px 22px", boxShadow:"0 2px 10px rgba(0,0,0,0.07)" }}>
+              <div style={{ background:"var(--z-raise)", borderRadius:16, padding:"20px 22px", boxShadow:"0 2px 10px rgba(0,0,0,0.07)" }}>
                 <p style={{ fontSize:12, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:6 }}>Keywords to add</p>
                 <p style={{ fontSize:13, color:"var(--z-text2)", marginBottom:14 }}>These appear in similar job postings and would improve your match rate.</p>
                 <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
@@ -10433,11 +10419,11 @@ function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?
       </div>
 
       {/* ── Right preview panel ── */}
-      <div style={{ width:280, flexShrink:0, borderLeft:"1px solid var(--z-bd)", background:"rgba(0,0,0,0.03)", overflowY:"auto", display:"flex", flexDirection:"column" }}>
+      <div style={{ width:280, flexShrink:0, borderLeft:"1px solid var(--z-bd)", background:"var(--z-raise)", overflowY:"auto", display:"flex", flexDirection:"column" }}>
         {/* Tab switcher */}
         <div style={{ padding:"14px 14px 10px", borderBottom:"1px solid var(--z-bd2)" }}>
           <p style={{ fontSize:10.5, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Profile Preview</p>
-          <div style={{ display:"flex", gap:3, background:"rgba(0,0,0,0.04)", borderRadius:8, padding:3 }}>
+          <div style={{ display:"flex", gap:3, background:"var(--z-raise)", borderRadius:8, padding:3 }}>
             {(["current","rewritten"] as const).map(t => (
               <button key={t} onClick={()=>setPreviewTab(t)}
                 style={{ flex:1, fontSize:11.5, fontWeight:600, padding:"5px 6px", borderRadius:6, border:"none", background:previewTab===t?"rgba(255,255,255,0.12)":"transparent", color:previewTab===t?"white":"rgba(255,255,255,0.4)", cursor:"pointer", boxShadow:previewTab===t?"0 1px 4px rgba(0,0,0,0.3)":"none", textTransform:"capitalize" }}>
@@ -10452,10 +10438,10 @@ function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?
           <div style={{ border:"1px solid var(--z-bd)", borderRadius:12, overflow:"hidden", marginBottom:12, boxShadow:"0 2px 8px rgba(0,0,0,0.06)" }}>
             {/* Banner */}
             <div style={{ height:52, background:"linear-gradient(135deg,#004471,#0077B5,#00A0DC)", position:"relative" }}>
-              {previewTab==="rewritten" && <span style={{ position:"absolute", top:6, right:8, fontSize:9, fontWeight:700, padding:"2px 7px", borderRadius:99, background:"rgba(34,197,94,0.9)", color:"white" }}>Optimized</span>}
+              {previewTab==="rewritten" && <span style={{ position:"absolute", top:6, right:8, fontSize:9, fontWeight:700, padding:"2px 7px", borderRadius:99, background:"white", color:"#2563EB", border:"1px solid #BFDBFE" }}>Optimized</span>}
             </div>
-            <div style={{ padding:"28px 12px 12px", position:"relative", background:"rgba(0,0,0,0.03)" }}>
-              <div style={{ width:48, height:48, borderRadius:"50%", background:hasPhoto?"rgba(22,163,74,0.2)":"rgba(255,255,255,0.08)", border:"3px solid rgba(255,255,255,0.15)", position:"absolute", top:-24, left:12, display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 6px rgba(0,0,0,0.4)" }}>
+            <div style={{ padding:"28px 12px 12px", position:"relative", background:"var(--z-raise)" }}>
+              <div style={{ width:48, height:48, borderRadius:"50%", background:hasPhoto?"#EFF6FF":"var(--z-raise)", border:"3px solid white", position:"absolute", top:-24, left:12, display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 6px rgba(0,0,0,0.12)" }}>
                 {hasPhoto
                   ? <svg viewBox="0 0 24 24" fill="#16A34A" style={{width:22,height:22}}><path d="M12 12c2.67 0 4.8-2.13 4.8-4.8S14.67 2.4 12 2.4 7.2 4.53 7.2 7.2 9.33 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
                   : <svg viewBox="0 0 24 24" fill="#CBD5E1" style={{width:22,height:22}}><path d="M12 12c2.67 0 4.8-2.13 4.8-4.8S14.67 2.4 12 2.4 7.2 4.53 7.2 7.2 9.33 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
@@ -10641,8 +10627,8 @@ function ScreenPromotionToolkit({ onNavigate }: { onNavigate: (s: string) => voi
                 <p style={{ fontSize:15, fontWeight:800, color:"var(--z-text)", margin:0 }}>{preview.name}</p>
               </div>
               <div style={{ display:"flex", gap:8 }}>
-                <button onClick={() => downloadDoc(preview)} style={{ fontSize:12, fontWeight:700, padding:"7px 12px", borderRadius:10, border:"1px solid var(--z-bd)", background:"rgba(0,0,0,0.03)", color:"var(--z-text2)", cursor:"pointer" }}>Download</button>
-                <button onClick={() => setPreview(null)} style={{ width:32, height:32, borderRadius:"50%", border:"none", background:"rgba(0,0,0,0.04)", color:"var(--z-text2)", cursor:"pointer", fontSize:16, fontWeight:700 }}>×</button>
+                <button onClick={() => downloadDoc(preview)} style={{ fontSize:12, fontWeight:700, padding:"7px 12px", borderRadius:10, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Download</button>
+                <button onClick={() => setPreview(null)} style={{ width:32, height:32, borderRadius:"50%", border:"none", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer", fontSize:16, fontWeight:700 }}>×</button>
               </div>
             </div>
             <div style={{ padding:"22px 24px", overflowY:"auto", flex:1 }}>
@@ -10684,7 +10670,7 @@ function ScreenPromotionToolkit({ onNavigate }: { onNavigate: (s: string) => voi
                   <div>
                     <div style={{ fontSize:12, color:"var(--z-text3)", marginBottom:4 }}>/100</div>
                     {readinessVerdict && <div style={{ fontSize:12, fontWeight:800, color:dimColor(readinessScore), marginBottom:4 }}>{readinessVerdict}</div>}
-                    {readinessTarget && <div style={{ fontSize:11.5, color:"rgba(255,255,255,0.48)" }}>→ {readinessTarget}</div>}
+                    {readinessTarget && <div style={{ fontSize:11.5, color:"var(--z-text3)" }}>→ {readinessTarget}</div>}
                   </div>
                 </div>
               </div>
@@ -10692,24 +10678,24 @@ function ScreenPromotionToolkit({ onNavigate }: { onNavigate: (s: string) => voi
           </div>
 
           {/* Progress bars */}
-          <div style={{ position:"relative", background:"rgba(15,23,42,0.4)", border:"1px solid var(--z-bd)", borderRadius:16, padding:"16px 18px", marginBottom:0 }}>
-            <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text2)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:14 }}>Section progress</div>
+          <div style={{ position:"relative", background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:12, padding:"16px 18px", marginBottom:0 }}>
+            <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:14 }}>Section progress</div>
             <div style={{ display:"grid", gap:12 }}>
               {[
-                { label:"Reality Check", done:docs.some(d => d.type === "resume"), color:"var(--z-text2)", section:"resume" },
-                { label:"Build the Case", done:docs.some(d => d.type === "cover-letter"), color:"#10B981", section:"cover-letter" },
-                { label:"Get Allies", done:docs.some(d => d.type === "linkedin"), color:"var(--z-text2)", section:"linkedin" },
+                { label:"Reality Check", done:docs.some(d => d.type === "resume"), section:"resume" },
+                { label:"Build the Case", done:docs.some(d => d.type === "cover-letter"), section:"cover-letter" },
+                { label:"Get Allies", done:docs.some(d => d.type === "linkedin"), section:"linkedin" },
               ].map(s => (
                 <div key={s.label} style={{ display:"flex", alignItems:"center", gap:14 }}>
-                  <div style={{ width:22, height:22, borderRadius:"50%", background:s.done ? `${s.color}33` : "rgba(255,255,255,0.06)", border:`1.5px solid ${s.done ? s.color : "rgba(255,255,255,0.15)"}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                  <div style={{ width:22, height:22, borderRadius:"50%", background:s.done ? "#EFF6FF" : "var(--z-raise)", border:`1.5px solid ${s.done ? "#2563EB" : "var(--z-bd)"}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                     {s.done
-                      ? <svg viewBox="0 0 12 12" fill="none" stroke={s.color} strokeWidth="2.2" style={{width:10,height:10}}><path d="M1.5 6l3 3 6-6"/></svg>
-                      : <div style={{ width:6, height:6, borderRadius:"50%", background:"rgba(255,255,255,0.2)" }}/>}
+                      ? <svg viewBox="0 0 12 12" fill="none" stroke="#2563EB" strokeWidth="2.2" style={{width:10,height:10}}><path d="M1.5 6l3 3 6-6"/></svg>
+                      : <div style={{ width:6, height:6, borderRadius:"50%", background:"var(--z-bd2)" }}/>}
                   </div>
-                  <div style={{ fontSize:12.5, fontWeight:700, color:s.done ? "rgba(255,255,255,0.88)" : "rgba(255,255,255,0.38)", flex:1 }}>{s.label}</div>
+                  <div style={{ fontSize:12.5, fontWeight:700, color:s.done ? "#2563EB" : "var(--z-text2)", flex:1 }}>{s.label}</div>
                   {s.done
-                    ? <span style={{ fontSize:10.5, fontWeight:800, color:s.color, textTransform:"uppercase", letterSpacing:"0.08em" }}>Done</span>
-                    : <button onClick={() => onNavigate(s.section)} style={{ fontSize:11, fontWeight:700, padding:"4px 10px", borderRadius:8, border:"1px solid #CDD3E8", background:"rgba(0,0,0,0.03)", color:"var(--z-text2)", cursor:"pointer" }}>Start</button>}
+                    ? <span style={{ fontSize:10.5, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.08em" }}>Done</span>
+                    : <button onClick={() => onNavigate(s.section)} style={{ fontSize:11, fontWeight:700, padding:"4px 10px", borderRadius:8, border:"1px solid #CDD3E8", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Start</button>}
                 </div>
               ))}
             </div>
@@ -10721,35 +10707,35 @@ function ScreenPromotionToolkit({ onNavigate }: { onNavigate: (s: string) => voi
               { label:"Sections done", value:`${completedCore}/3`, note:"Reality check, docs, allies" },
               { label:"Uploaded files", value:String(uploadedProof).padStart(2, "0"), note:"Notes, packets, raw docs" },
             ].map(card => (
-              <div key={card.label} style={{ borderRadius:18, padding:"16px 16px 15px", background:"rgba(12,18,34,0.42)", border:"1px solid rgba(196,181,253,0.14)" }}>
-                <div style={{ fontSize:10.5, fontWeight:800, letterSpacing:"0.1em", textTransform:"uppercase", color:"rgba(237,233,254,0.84)", marginBottom:10 }}>{card.label}</div>
-                <div style={{ fontSize:28, fontWeight:900, lineHeight:1, color:"white", letterSpacing:"-0.04em", marginBottom:6 }}>{card.value}</div>
-                <div style={{ fontSize:12.5, color:"rgba(255,255,255,0.62)", lineHeight:1.5 }}>{card.note}</div>
+              <div key={card.label} style={{ borderRadius:12, padding:"16px 16px 15px", background:"var(--z-card)", border:"1px solid var(--z-bd)" }}>
+                <div style={{ fontSize:10.5, fontWeight:800, letterSpacing:"0.1em", textTransform:"uppercase", color:"var(--z-text3)", marginBottom:10 }}>{card.label}</div>
+                <div style={{ fontSize:28, fontWeight:900, lineHeight:1, color:"var(--z-text)", letterSpacing:"-0.04em", marginBottom:6 }}>{card.value}</div>
+                <div style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.5 }}>{card.note}</div>
               </div>
             ))}
           </div>
         </div>
 
         {/* Next action card */}
-        <button onClick={() => onNavigate(nextAction.section)} style={{ width:"100%", textAlign:"left", borderRadius:20, background:`linear-gradient(135deg,${nextAction.color}18,${nextAction.color}08)`, border:`1.5px solid ${nextAction.color}33`, padding:"20px 22px", cursor:"pointer", marginBottom:18, display:"flex", alignItems:"center", gap:16, boxShadow:`0 4px 20px ${nextAction.color}18` }}>
-          <div style={{ width:44, height:44, borderRadius:14, background:`${nextAction.color}22`, border:`1px solid ${nextAction.color}33`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-            <svg viewBox="0 0 20 20" fill="none" stroke={nextAction.color} strokeWidth="2" style={{width:20,height:20}}><path d="M4 10h12M10 4l6 6-6 6"/></svg>
+        <button onClick={() => onNavigate(nextAction.section)} style={{ width:"100%", textAlign:"left", borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #2563EB", padding:"20px 22px", cursor:"pointer", marginBottom:18, display:"flex", alignItems:"center", gap:16 }}>
+          <div style={{ width:44, height:44, borderRadius:14, background:"var(--z-raise)", border:"1px solid var(--z-bd)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+            <svg viewBox="0 0 20 20" fill="none" stroke="#2563EB" strokeWidth="2" style={{width:20,height:20}}><path d="M4 10h12M10 4l6 6-6 6"/></svg>
           </div>
           <div style={{ flex:1 }}>
-            <div style={{ fontSize:10.5, fontWeight:800, color:nextAction.color, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:4 }}>{nextAction.label}</div>
+            <div style={{ fontSize:10.5, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:4 }}>{nextAction.label}</div>
             <div style={{ fontSize:14, fontWeight:700, color:"var(--z-text)", lineHeight:1.6 }}>{nextAction.action}</div>
           </div>
-          <svg viewBox="0 0 20 20" fill="none" stroke={nextAction.color} strokeWidth="2" style={{width:18,height:18,flexShrink:0,opacity:0.5}}><path d="M7 4l6 6-6 6"/></svg>
+          <svg viewBox="0 0 20 20" fill="none" stroke="#2563EB" strokeWidth="2" style={{width:18,height:18,flexShrink:0,opacity:0.5}}><path d="M7 4l6 6-6 6"/></svg>
         </button>
 
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(320px,1fr))", gap:18, alignItems:"start", marginBottom:20 }}>
           <div style={{ ...promotionPanelStyle(theme, true), padding:"20px 20px 18px" }}>
-            <div style={{ fontSize:11.5, fontWeight:800, color:theme.accent, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Jump back in</div>
+            <div style={{ fontSize:11.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Jump back in</div>
             <h2 style={promotionSectionTitleStyle(420)}>Pick up where you left off.</h2>
             <div style={{ display:"grid", gap:10 }}>
               {SECTION_CARDS.map(card => (
                 <button key={card.label} onClick={() => onNavigate(card.section)} style={{ display:"flex", alignItems:"center", gap:12, textAlign:"left", border:"1px solid rgba(148,163,184,0.16)", background:"var(--z-card)", borderRadius:16, padding:"13px 14px", cursor:"pointer" }}>
-                  <div style={{ width:38, height:38, borderRadius:12, background:card.done ? "rgba(16,185,129,0.14)" : `${card.color}18`, color:card.done ? "#059669" : card.color, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                  <div style={{ width:38, height:38, borderRadius:12, background:card.done ? "#EFF6FF" : "var(--z-raise)", color:card.done ? "#2563EB" : "var(--z-text3)", border:"1px solid var(--z-bd)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                     {card.done
                       ? <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.2" style={{width:18,height:18}}><path d="M4 10l4 4 8-8"/></svg>
                       : <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{width:18,height:18}}><path d="M4 10h12M10 4l6 6-6 6"/></svg>}
@@ -10758,7 +10744,7 @@ function ScreenPromotionToolkit({ onNavigate }: { onNavigate: (s: string) => voi
                     <div style={{ fontSize:13.5, fontWeight:800, color:"var(--z-text)", marginBottom:4 }}>{card.label}</div>
                     <div style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.55 }}>{card.desc}</div>
                   </div>
-                  {card.done && <span style={{ fontSize:10.5, fontWeight:800, color:"#059669", letterSpacing:"0.08em", textTransform:"uppercase" }}>Ready</span>}
+                  {card.done && <span style={{ fontSize:10.5, fontWeight:800, color:"#2563EB", letterSpacing:"0.08em", textTransform:"uppercase" }}>Ready</span>}
                 </button>
               ))}
             </div>
@@ -10814,10 +10800,10 @@ function ScreenPromotionToolkit({ onNavigate }: { onNavigate: (s: string) => voi
                     </div>
                   </div>
                   <div style={{ display:"flex", gap:8, flexShrink:0 }}>
-                    <button onClick={() => setPreview(doc)} style={{ fontSize:11.5, fontWeight:700, padding:"7px 11px", borderRadius:10, border:"1px solid var(--z-bd)", background:"rgba(0,0,0,0.03)", color:"var(--z-text2)", cursor:"pointer" }}>Preview</button>
-                    <button onClick={() => downloadDoc(doc)} style={{ fontSize:11.5, fontWeight:700, padding:"7px 11px", borderRadius:10, border:"1px solid var(--z-bd)", background:"rgba(0,0,0,0.03)", color:"var(--z-text2)", cursor:"pointer" }}>Download</button>
-                    <button onClick={() => onNavigate(meta.section)} style={{ fontSize:11.5, fontWeight:800, padding:"7px 12px", borderRadius:10, border:"none", background:`linear-gradient(135deg, ${meta.color}, ${theme.accent2})`, color:"white", cursor:"pointer" }}>Open</button>
-                    <button onClick={() => vaultRemove(doc.id)} style={{ fontSize:13, fontWeight:800, padding:"7px 10px", borderRadius:10, border:"1px solid rgba(220,38,38,0.3)", background:"rgba(220,38,38,0.1)", color:"#DC2626", cursor:"pointer", lineHeight:1 }}>×</button>
+                    <button onClick={() => setPreview(doc)} style={{ fontSize:11.5, fontWeight:700, padding:"7px 11px", borderRadius:10, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Preview</button>
+                    <button onClick={() => downloadDoc(doc)} style={{ fontSize:11.5, fontWeight:700, padding:"7px 11px", borderRadius:10, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Download</button>
+                    <button onClick={() => onNavigate(meta.section)} style={{ fontSize:11.5, fontWeight:800, padding:"7px 12px", borderRadius:10, border:"none", background:"#2563EB", color:"white", cursor:"pointer" }}>Open</button>
+                    <button onClick={() => vaultRemove(doc.id)} style={{ fontSize:13, fontWeight:800, padding:"7px 10px", borderRadius:10, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer", lineHeight:1 }}>×</button>
                   </div>
                 </div>
               );
@@ -10891,7 +10877,7 @@ function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate
       {preview && (
         <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", zIndex:200, display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}
           onClick={()=>setPreview(null)}>
-          <div style={{ background:"rgba(0,0,0,0.03)", borderRadius:20, width:"100%", maxWidth:680, maxHeight:"80vh", display:"flex", flexDirection:"column", overflow:"hidden", boxShadow:"0 24px 80px rgba(0,0,0,0.25)" }}
+          <div style={{ background:"var(--z-raise)", borderRadius:20, width:"100%", maxWidth:680, maxHeight:"80vh", display:"flex", flexDirection:"column", overflow:"hidden", boxShadow:"0 24px 80px rgba(0,0,0,0.25)" }}
             onClick={e=>e.stopPropagation()}>
             <div style={{ padding:"16px 20px", borderBottom:"1px solid var(--z-bd2)", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
               <div>
@@ -10899,8 +10885,8 @@ function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate
                 <p style={{ fontSize:14, fontWeight:700, color:"var(--z-text)", margin:0 }}>{preview.name}</p>
               </div>
               <div style={{ display:"flex", gap:8 }}>
-                <button onClick={()=>downloadDoc(preview)} style={{ fontSize:12, fontWeight:600, padding:"6px 14px", borderRadius:9, border:"1px solid var(--z-bd)", background:"rgba(0,0,0,0.03)", color:"var(--z-text2)", cursor:"pointer" }}>Download</button>
-                <button onClick={()=>setPreview(null)} style={{ width:30, height:30, borderRadius:"50%", border:"none", background:"rgba(0,0,0,0.04)", color:"var(--z-text2)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, fontWeight:700 }}>×</button>
+                <button onClick={()=>downloadDoc(preview)} style={{ fontSize:12, fontWeight:600, padding:"6px 14px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Download</button>
+                <button onClick={()=>setPreview(null)} style={{ width:30, height:30, borderRadius:"50%", border:"none", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, fontWeight:700 }}>×</button>
               </div>
             </div>
             <div style={{ padding:"20px 24px", overflowY:"auto", flex:1 }}>
@@ -10929,19 +10915,18 @@ function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate
       <div style={{ padding:"32px 48px 64px" }}>
 
         {/* ── Hero header ── */}
-        <div style={{ background:"linear-gradient(135deg,#1E293B,#0F172A)", borderRadius:18, padding:"24px 28px", marginBottom:24, boxShadow:"0 12px 40px rgba(0,0,0,0.2)", border:"1px solid var(--z-bd)", position:"relative", overflow:"hidden" }}>
-          <div style={{ position:"absolute", top:-40, right:-20, width:160, height:160, background:"radial-gradient(circle,rgba(100,116,139,0.15) 0%,transparent 70%)", pointerEvents:"none" }}/>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:16, flexWrap:"wrap", position:"relative" }}>
+        <div style={{ background:"var(--z-card)", borderRadius:14, padding:"24px 28px", marginBottom:24, border:"1px solid var(--z-bd)" }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:16, flexWrap:"wrap" }}>
             <div>
-              <div style={{ fontSize:10.5, fontWeight:700, color:"rgba(148,163,184,0.7)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Document Vault</div>
-              <h1 style={{ fontSize:22, fontWeight:900, letterSpacing:"-0.03em", color:"white", marginBottom:4 }}>My Documents</h1>
+              <div style={{ fontSize:10.5, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Document Vault</div>
+              <h1 style={{ fontSize:22, fontWeight:900, letterSpacing:"-0.03em", color:"var(--z-text)", marginBottom:4 }}>My Documents</h1>
               <p style={{ fontSize:13, color:"var(--z-text3)" }}>
                 {docs.length === 0
                   ? "Your vault is empty — complete sections or upload files to get started"
                   : `${docs.length} document${docs.length!==1?"s":""} · resume, cover letters, LinkedIn · all in one place`}
               </p>
             </div>
-            <button onClick={()=>fileInputRef.current?.click()} style={{ fontSize:13, fontWeight:700, padding:"10px 20px", borderRadius:11, border:"1px solid var(--z-bd)", background:"rgba(255,255,255,0.1)", color:"white", cursor:"pointer", display:"flex", alignItems:"center", gap:8, backdropFilter:"blur(4px)", flexShrink:0 }}>
+            <button onClick={()=>fileInputRef.current?.click()} style={{ fontSize:13, fontWeight:700, padding:"10px 20px", borderRadius:11, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer", display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
               <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width:14,height:14 }}><path d="M10 3v12M4 9l6-6 6 6"/></svg>
               Upload file
             </button>
@@ -10954,7 +10939,7 @@ function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate
                 if (!count) return null;
                 const meta = TYPE_META[t];
                 return (
-                  <div key={t} style={{ display:"flex", alignItems:"center", gap:6, padding:"5px 12px", borderRadius:99, background:"rgba(0,0,0,0.03)", border:"1px solid var(--z-bd)" }}>
+                  <div key={t} style={{ display:"flex", alignItems:"center", gap:6, padding:"5px 12px", borderRadius:99, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
                     <span style={{ color:meta.color }}>{meta.icon}</span>
                     <span style={{ fontSize:12, fontWeight:600, color:"var(--z-text2)" }}>{count} {meta.label}</span>
                   </div>
@@ -10988,7 +10973,7 @@ function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))", gap:10 }}>
               {missing.map(c => (
                 <button key={c.type} onClick={()=>onNavigate(c.section)}
-                  style={{ background:"rgba(0,0,0,0.03)", border:`1.5px dashed ${c.color}50`, borderRadius:14, padding:"14px 16px", cursor:"pointer", textAlign:"left", display:"flex", alignItems:"center", gap:12, transition:"all 0.15s" }}>
+                  style={{ background:"var(--z-raise)", border:`1.5px dashed ${c.color}50`, borderRadius:14, padding:"14px 16px", cursor:"pointer", textAlign:"left", display:"flex", alignItems:"center", gap:12, transition:"all 0.15s" }}>
                   <div style={{ width:36, height:36, borderRadius:10, background:c.bg, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:c.color }}>{TYPE_META[c.type].icon}</div>
                   <div>
                     <div style={{ fontSize:13, fontWeight:700, color:"var(--z-text)", marginBottom:2 }}>{c.label}</div>
@@ -11017,21 +11002,21 @@ function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate
               const date = new Date(doc.createdAt).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
               const wc   = words(doc.content);
               return (
-                <div key={doc.id} style={{ background:"rgba(0,0,0,0.03)", border:"1px solid var(--z-bd)", borderLeft:`3.5px solid ${m.color}`, borderRadius:"0 14px 14px 0", padding:"14px 18px", display:"flex", alignItems:"center", gap:14, boxShadow:"0 1px 6px rgba(0,0,0,0.05)", transition:"box-shadow 0.15s" }}>
+                <div key={doc.id} style={{ background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderLeft:`3.5px solid ${m.color}`, borderRadius:"0 14px 14px 0", padding:"14px 18px", display:"flex", alignItems:"center", gap:14, boxShadow:"0 1px 6px rgba(0,0,0,0.05)", transition:"box-shadow 0.15s" }}>
                   <div style={{ width:42, height:42, borderRadius:11, background:m.bg, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:m.color }}>{m.icon}</div>
                   <div style={{ flex:1, minWidth:0 }}>
                     <p style={{ fontSize:13.5, fontWeight:700, color:"var(--z-text)", marginBottom:3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{doc.name}</p>
                     <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
                       <span style={{ fontSize:11, fontWeight:700, padding:"2px 8px", borderRadius:99, background:m.bg, color:m.color, border:`1px solid ${m.color}30` }}>{m.label}</span>
                       <span style={{ fontSize:11, color:"var(--z-text3)" }}>{wc.toLocaleString()} words · {date}</span>
-                      {doc.meta.score && <span style={{ fontSize:11, fontWeight:700, color:"#4ADE80", background:"rgba(52,211,153,0.1)", padding:"1px 7px", borderRadius:99 }}>Score {doc.meta.score}</span>}
+                      {doc.meta.score && <span style={{ fontSize:11, fontWeight:700, color:"var(--z-text3)", background:"var(--z-raise)", border:"1px solid var(--z-bd)", padding:"1px 7px", borderRadius:99 }}>Score {doc.meta.score}</span>}
                     </div>
                   </div>
                   <div style={{ display:"flex", gap:6, flexShrink:0 }}>
-                    <button onClick={()=>setPreview(doc)} style={{ fontSize:11.5, fontWeight:600, padding:"6px 12px", borderRadius:8, border:"1px solid var(--z-bd)", background:"rgba(0,0,0,0.03)", color:"var(--z-text2)", cursor:"pointer" }}>Preview</button>
-                    <button onClick={()=>downloadDoc(doc)} style={{ fontSize:11.5, fontWeight:600, padding:"6px 12px", borderRadius:8, border:"1px solid var(--z-bd)", background:"rgba(0,0,0,0.03)", color:"var(--z-text2)", cursor:"pointer" }}>↓</button>
-                    <button onClick={()=>onNavigate(m.section)} style={{ fontSize:11.5, fontWeight:700, padding:"6px 16px", borderRadius:8, border:"none", background:`linear-gradient(135deg,${m.color}DD,${m.color})`, color:"white", cursor:"pointer", boxShadow:`0 2px 8px ${m.color}44` }}>Open →</button>
-                    <button onClick={()=>{ vaultRemove(doc.id); }} style={{ fontSize:14, fontWeight:700, padding:"5px 9px", borderRadius:8, border:"1px solid #FEE2E2", background:"rgba(220,38,38,0.1)", color:"#DC2626", cursor:"pointer", lineHeight:1 }}>×</button>
+                    <button onClick={()=>setPreview(doc)} style={{ fontSize:11.5, fontWeight:600, padding:"6px 12px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Preview</button>
+                    <button onClick={()=>downloadDoc(doc)} style={{ fontSize:11.5, fontWeight:600, padding:"6px 12px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>↓</button>
+                    <button onClick={()=>onNavigate(m.section)} style={{ fontSize:11.5, fontWeight:700, padding:"6px 16px", borderRadius:8, border:"none", background:"#2563EB", color:"white", cursor:"pointer" }}>Open →</button>
+                    <button onClick={()=>{ vaultRemove(doc.id); }} style={{ fontSize:14, fontWeight:700, padding:"5px 9px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer", lineHeight:1 }}>×</button>
                   </div>
                 </div>
               );
@@ -11280,7 +11265,7 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
             <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>AI-tailored letter written in your voice from your background.</p>
           </div>
           <button onClick={()=>{ setResult(null); setGenerating(false); setStep(1); }}
-            style={{ padding:"7px 16px", borderRadius:8, background:"rgba(0,0,0,0.03)", border:"1px solid var(--z-bd)", color:"var(--z-text2)", fontSize:12.5, fontWeight:600, cursor:"pointer" }}>
+            style={{ padding:"7px 16px", borderRadius:8, background:"var(--z-raise)", border:"1px solid var(--z-bd)", color:"var(--z-text2)", fontSize:12.5, fontWeight:600, cursor:"pointer" }}>
             New letter
           </button>
         </div>
@@ -11297,15 +11282,11 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
         ) : result && (
           <>
             {/* ── Hero header ── */}
-            <div style={{ background:"linear-gradient(135deg,#064E3B,#065F46)", borderRadius:18, padding:"22px 28px", marginBottom:20, boxShadow:"0 8px 32px rgba(5,150,105,0.2)", border:"1px solid var(--z-bd)", position:"relative" }}>
-              {/* glow blob — clipped in its own container so the dropdown isn't cut */}
-              <div style={{ position:"absolute", inset:0, borderRadius:18, overflow:"hidden", pointerEvents:"none" }}>
-                <div style={{ position:"absolute", top:-30, right:-30, width:140, height:140, background:"radial-gradient(circle,rgba(52,211,153,0.18) 0%,transparent 70%)" }}/>
-              </div>
-              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:16, flexWrap:"wrap", position:"relative" }}>
+            <div style={{ background:"var(--z-card)", borderRadius:14, padding:"22px 28px", marginBottom:20, border:"1px solid var(--z-bd)" }}>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:16, flexWrap:"wrap" }}>
                 <div>
-                  <div style={{ fontSize:10.5, fontWeight:700, color:"rgba(52,211,153,0.8)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:5 }}>Cover Letter Ready</div>
-                  <p style={{ fontSize:17, fontWeight:800, color:"white", letterSpacing:"-0.025em", margin:0 }}>{result.subject || "Cover Letter"}</p>
+                  <div style={{ fontSize:10.5, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:5 }}>Cover Letter Ready</div>
+                  <p style={{ fontSize:17, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.025em", margin:0 }}>{result.subject || "Cover Letter"}</p>
                   {(company||targetRole) && (
                     <p style={{ fontSize:12.5, color:"var(--z-text2)", marginTop:4 }}>
                       {[targetRole, company].filter(Boolean).join(" · ")}
@@ -11313,16 +11294,16 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
                   )}
                 </div>
                 <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-                  <button onClick={()=>{ setResult(null); setStep(1); }} style={{ fontSize:12, fontWeight:600, padding:"7px 14px", borderRadius:9, border:"1px solid #CDD3E8", background:"rgba(0,0,0,0.04)", color:"var(--z-text2)", cursor:"pointer" }}>← Start over</button>
-                  <button onClick={()=>setEditMode(e=>!e)} style={{ fontSize:12, fontWeight:600, padding:"7px 14px", borderRadius:9, border:`1px solid ${editMode?"rgba(52,211,153,0.6)":"rgba(255,255,255,0.15)"}`, background:editMode?"rgba(52,211,153,0.15)":"rgba(255,255,255,0.08)", color:editMode?"#34D399":"rgba(255,255,255,0.7)", cursor:"pointer" }}>{editMode?"Preview":"Edit"}</button>
-                  <button onClick={copy} style={{ fontSize:12, fontWeight:600, padding:"7px 14px", borderRadius:9, border:"none", background:copied?"rgba(52,211,153,0.2)":"rgba(255,255,255,0.1)", color:copied?"#34D399":"rgba(255,255,255,0.8)", cursor:"pointer", transition:"all 0.2s" }}>{copied?"✓ Copied":"Copy"}</button>
+                  <button onClick={()=>{ setResult(null); setStep(1); }} style={{ fontSize:12, fontWeight:600, padding:"7px 14px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>← Start over</button>
+                  <button onClick={()=>setEditMode(e=>!e)} style={{ fontSize:12, fontWeight:600, padding:"7px 14px", borderRadius:9, border:`1px solid ${editMode?"#2563EB":"var(--z-bd)"}`, background:editMode?"#EFF6FF":"var(--z-raise)", color:editMode?"#2563EB":"var(--z-text2)", cursor:"pointer" }}>{editMode?"Preview":"Edit"}</button>
+                  <button onClick={copy} style={{ fontSize:12, fontWeight:600, padding:"7px 14px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:copied?"#2563EB":"var(--z-text2)", cursor:"pointer", transition:"all 0.2s" }}>{copied?"✓ Copied":"Copy"}</button>
                   <div style={{ position:"relative" }}>
-                    <button onClick={()=>setShowDlMenu(m=>!m)} style={{ fontSize:12, fontWeight:700, padding:"7px 18px", borderRadius:9, border:"none", background:"#1F2937", color:"white", cursor:"pointer", display:"flex", alignItems:"center", gap:6 }}>
+                    <button onClick={()=>setShowDlMenu(m=>!m)} style={{ fontSize:12, fontWeight:700, padding:"7px 18px", borderRadius:9, border:"1px solid var(--z-bd)", background:"#2563EB", color:"white", cursor:"pointer", display:"flex", alignItems:"center", gap:6 }}>
                       Download
                       <svg viewBox="0 0 10 6" fill="none" stroke="currentColor" strokeWidth="2" style={{width:10,height:10,transition:"transform 0.15s",transform:showDlMenu?"rotate(180deg)":"rotate(0deg)"}}><path d="M1 1l4 4 4-4"/></svg>
                     </button>
                     {showDlMenu && (
-                      <div style={{ position:"absolute", top:"calc(100% + 6px)", right:0, background:"rgba(0,0,0,0.03)", border:"1px solid var(--z-bd)", borderRadius:12, boxShadow:"0 12px 40px rgba(0,0,0,0.15)", overflow:"hidden", minWidth:150, zIndex:99 }}>
+                      <div style={{ position:"absolute", top:"calc(100% + 6px)", right:0, background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderRadius:12, boxShadow:"0 12px 40px rgba(0,0,0,0.15)", overflow:"hidden", minWidth:150, zIndex:99 }}>
                         <button onClick={()=>{ downloadPdf(); setShowDlMenu(false); }} style={{ width:"100%", padding:"11px 16px", border:"none", background:"transparent", textAlign:"left", fontSize:13, fontWeight:600, color:"var(--z-text)", cursor:"pointer", display:"flex", alignItems:"center", gap:9, borderBottom:"1px solid var(--z-bd2)" }}>
                           <svg viewBox="0 0 16 16" fill="none" stroke="#DC2626" strokeWidth="1.6" style={{width:15,height:15,flexShrink:0}}><rect x="2" y="1" width="10" height="13" rx="1.5"/><path d="M5 5h4M5 7.5h4M5 10h2.5"/><path d="M10 1v3h2" strokeLinejoin="round"/></svg>
                           PDF
@@ -11339,7 +11320,7 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
             </div>
 
             {/* ── Letter paper document ── */}
-            <div style={{ background:"rgba(0,0,0,0.03)", borderRadius:10, boxShadow:"0 8px 40px rgba(0,0,0,0.4)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
+            <div style={{ background:"var(--z-raise)", borderRadius:10, boxShadow:"0 8px 40px rgba(0,0,0,0.4)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
               <div style={{ padding:"52px 56px 56px", fontFamily:"Georgia,'Times New Roman',serif" }}>
                 {editMode ? (
                   <textarea style={{ width:"100%", minHeight:560, border:"1.5px solid #D9DFF0", borderRadius:10, padding:"16px", fontSize:14, lineHeight:1.9, color:"var(--z-text)", outline:"none", resize:"vertical", fontFamily:"Georgia,'Times New Roman',serif", boxSizing:"border-box" }}
@@ -11471,7 +11452,7 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
           {step === 2 && (
             <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
               <div style={{ border:"1px solid var(--z-bd)", borderRadius:14, padding:16 }}>
-                <div style={{ display:"flex", background:"rgba(0,0,0,0.03)", borderRadius:8, padding:2, marginBottom:14, width:"fit-content" }}>
+                <div style={{ display:"flex", background:"var(--z-raise)", borderRadius:8, padding:2, marginBottom:14, width:"fit-content" }}>
                   {(["paste","url"] as const).map(m => (
                     <button key={m} onClick={()=>{ setJdMode(m); setUrlFetchErr(""); }} style={{ fontSize:12, fontWeight:600, padding:"6px 16px", borderRadius:6, border:"none", background:jdMode===m?"var(--z-card)":"transparent", color:jdMode===m?"var(--z-text)":"var(--z-text2)", cursor:"pointer", transition:"all 0.15s" }}>
                       {m === "paste" ? "Paste text" : "Job URL"}
@@ -11788,11 +11769,11 @@ function ScreenPromotionRoadmap({ onNavigate, active = false }: { onNavigate: (s
               {/* Overall completion ring */}
               <div style={{ position:"relative", width:110, height:110, flexShrink:0 }}>
                 <svg viewBox="0 0 110 110" style={{ position:"absolute", inset:0, width:"100%", height:"100%", transform:"rotate(-90deg)" }}>
-                  <circle cx="55" cy="55" r="46" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="10"/>
-                  <circle cx="55" cy="55" r="46" fill="none" stroke={theme.accent} strokeWidth="10" strokeLinecap="round" strokeDasharray={`${(pct / 100) * 289} 289`} style={{ transition:"stroke-dasharray 0.5s ease", filter:`drop-shadow(0 0 8px ${theme.accent}88)` }}/>
+                  <circle cx="55" cy="55" r="46" fill="none" stroke="var(--z-raise)" strokeWidth="10"/>
+                  <circle cx="55" cy="55" r="46" fill="none" stroke="#2563EB" strokeWidth="10" strokeLinecap="round" strokeDasharray={`${(pct / 100) * 289} 289`} style={{ transition:"stroke-dasharray 0.5s ease" }}/>
                 </svg>
                 <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
-                  <div style={{ fontSize:26, fontWeight:900, color:"white", letterSpacing:"-0.04em", lineHeight:1 }}>{pct}%</div>
+                  <div style={{ fontSize:26, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.04em", lineHeight:1 }}>{pct}%</div>
                   <div style={{ fontSize:9.5, color:"var(--z-text3)", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", marginTop:3 }}>done</div>
                 </div>
               </div>
@@ -11802,9 +11783,9 @@ function ScreenPromotionRoadmap({ onNavigate, active = false }: { onNavigate: (s
                   { label:"Remaining", value:String(TASKS.length - done.size).padStart(2, "0") },
                   { label:"Sections", value:`${readyCount}/3` },
                 ].map(card => (
-                  <div key={card.label} style={{ borderRadius:16, padding:"13px 14px 12px", background:"rgba(24,12,41,0.44)", border:"1px solid rgba(251,207,232,0.14)", boxShadow:"inset 0 1px 0 rgba(255,255,255,0.06)" }}>
-                    <div style={{ fontSize:10, fontWeight:800, letterSpacing:"0.1em", textTransform:"uppercase", color:"rgba(252,231,243,0.72)", marginBottom:7 }}>{card.label}</div>
-                    <div style={{ fontSize:22, fontWeight:900, lineHeight:1, color:"white", letterSpacing:"-0.04em" }}>{card.value}</div>
+                  <div key={card.label} style={{ borderRadius:10, padding:"13px 14px 12px", background:"var(--z-card)", border:"1px solid var(--z-bd)" }}>
+                    <div style={{ fontSize:10, fontWeight:800, letterSpacing:"0.1em", textTransform:"uppercase", color:"var(--z-text3)", marginBottom:7 }}>{card.label}</div>
+                    <div style={{ fontSize:22, fontWeight:900, lineHeight:1, color:"var(--z-text)", letterSpacing:"-0.04em" }}>{card.value}</div>
                   </div>
                 ))}
               </div>
@@ -11814,13 +11795,13 @@ function ScreenPromotionRoadmap({ onNavigate, active = false }: { onNavigate: (s
 
         {planLoading && (
           <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", boxShadow:"0 1px 3px rgba(15,23,42,0.06)", marginBottom:18, display:"flex", alignItems:"center", gap:12, padding:"16px 18px" }}>
-            <span style={{ width:16, height:16, borderRadius:"50%", border:"2.5px solid rgba(251,113,133,0.25)", borderTopColor:"#FB7185", animation:"spin-slow 0.7s linear infinite", display:"block", flexShrink:0 }}/>
-            <span style={{ fontSize:13.5, color:"#BE123C", fontWeight:700 }}>Zari is putting the sequence together…</span>
+            <span style={{ width:16, height:16, borderRadius:"50%", border:"2.5px solid var(--z-bd)", borderTopColor:"#2563EB", animation:"spin-slow 0.7s linear infinite", display:"block", flexShrink:0 }}/>
+            <span style={{ fontSize:13.5, color:"var(--z-text2)", fontWeight:700 }}>Zari is putting the sequence together…</span>
           </div>
         )}
 
-        <div style={{ borderRadius:20, background:"linear-gradient(135deg,#2D1854 0%,#1E1245 100%)", border:"1px solid rgba(251,207,232,0.16)", boxShadow:"0 2px 12px rgba(15,23,42,0.12)", padding:"22px 24px", marginBottom:18 }}>
-          <div style={{ fontSize:10.5, fontWeight:800, color:"rgba(251,207,232,0.72)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Zari's take</div>
+        <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #2563EB", padding:"22px 24px", marginBottom:18 }}>
+          <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Zari's take</div>
           <p style={{ fontSize:15.5, color:"var(--z-text)", lineHeight:1.78, margin:0 }}>
             {aiCoachNote ?? "Start with the highest-leverage tasks. The goal is to tighten the case first, then build support, then time the ask so the decision feels inevitable rather than premature."}
           </p>
@@ -11828,7 +11809,7 @@ function ScreenPromotionRoadmap({ onNavigate, active = false }: { onNavigate: (s
 
         <div style={{ display:"flex", gap:8, marginBottom:22, flexWrap:"wrap" }}>
           {SECTION_CARDS.map(card => (
-            <button key={card.key} onClick={() => onNavigate(card.key)} style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 13px", borderRadius:999, border:`1px solid ${card.done ? `${card.color}44` : "rgba(148,163,184,0.2)"}`, background:card.done ? `${card.color}16` : "rgba(255,255,255,0.72)", color:card.done ? card.color : "#64748B", cursor:"pointer", fontSize:12.5, fontWeight:700 }}>
+            <button key={card.key} onClick={() => onNavigate(card.key)} style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 13px", borderRadius:999, border:`1px solid ${card.done ? "#2563EB" : "var(--z-bd)"}`, background:card.done ? "#EFF6FF" : "var(--z-card)", color:card.done ? "#2563EB" : "var(--z-text2)", cursor:"pointer", fontSize:12.5, fontWeight:700 }}>
               {card.done
                 ? <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.2" style={{width:10,height:10}}><path d="M1.5 6l3 3 6-6"/></svg>
                 : <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" style={{width:10,height:10}}><circle cx="6" cy="6" r="4.5"/></svg>}
@@ -11844,19 +11825,19 @@ function ScreenPromotionRoadmap({ onNavigate, active = false }: { onNavigate: (s
             const groupDone = groupTasks.filter(t => done.has(t.idx)).length;
             const groupPct = groupTasks.length ? Math.round((groupDone / groupTasks.length) * 100) : 0;
             return (
-              <div key={group.id} style={{ borderRadius:20, background:"rgba(0,0,0,0.03)", border:"1px solid var(--z-bd)", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", padding:"20px 22px" }}>
+              <div key={group.id} style={{ borderRadius:20, background:"var(--z-raise)", border:"1px solid var(--z-bd)", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", padding:"20px 22px" }}>
                 <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:16, flexWrap:"wrap" }}>
                   <div>
                     <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:6 }}>
-                      <span style={{ fontSize:10.5, fontWeight:800, padding:"5px 10px", borderRadius:999, background:group.bg, color:group.accent, border:`1px solid ${group.border}`, letterSpacing:"0.08em", textTransform:"uppercase" }}>{group.label}</span>
+                      <span style={{ fontSize:10.5, fontWeight:800, padding:"5px 10px", borderRadius:999, background:"var(--z-raise)", color:"var(--z-text3)", border:"1px solid var(--z-bd)", letterSpacing:"0.08em", textTransform:"uppercase" }}>{group.label}</span>
                       <span style={{ fontSize:12, color:"#94A3B8" }}>{groupDone}/{groupTasks.length} done</span>
                     </div>
-                    <h2 style={{ fontSize:22, lineHeight:1.15, fontWeight:800, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:0 }}>{group.sublabel}</h2>
+                    <h2 style={{ fontSize:22, lineHeight:1.15, fontWeight:800, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"var(--z-text)", margin:0 }}>{group.sublabel}</h2>
                   </div>
                   <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                    <div style={{ fontSize:14, fontWeight:900, color:group.accent }}>{groupPct}%</div>
-                    <div style={{ width:100, height:7, borderRadius:999, background:"rgba(148,163,184,0.16)", overflow:"hidden" }}>
-                      <div style={{ width:`${groupPct}%`, height:"100%", borderRadius:999, background:group.accent, transition:"width 0.4s ease" }}/>
+                    <div style={{ fontSize:14, fontWeight:900, color:"var(--z-text2)" }}>{groupPct}%</div>
+                    <div style={{ width:100, height:7, borderRadius:999, background:"var(--z-bd2)", overflow:"hidden" }}>
+                      <div style={{ width:`${groupPct}%`, height:"100%", borderRadius:999, background:"#2563EB", transition:"width 0.4s ease" }}/>
                     </div>
                   </div>
                 </div>
@@ -11869,15 +11850,15 @@ function ScreenPromotionRoadmap({ onNavigate, active = false }: { onNavigate: (s
                       <button
                         key={task.idx}
                         onClick={() => setDone(d => { const next = new Set(d); next.has(task.idx) ? next.delete(task.idx) : next.add(task.idx); return next; })}
-                        style={{ display:"flex", alignItems:"flex-start", gap:12, border:`1px solid ${isDone ? "rgba(16,185,129,0.28)" : "rgba(148,163,184,0.16)"}`, borderRadius:16, padding:"14px 16px", background:isDone ? "linear-gradient(135deg,rgba(16,185,129,0.07),rgba(16,185,129,0.03))" : "white", textAlign:"left", cursor:"pointer", transition:"all 0.18s", boxShadow:isDone ? "none" : "0 1px 3px rgba(15,23,42,0.04)" }}
+                        style={{ display:"flex", alignItems:"flex-start", gap:12, border:`1px solid ${isDone ? "#2563EB" : "var(--z-bd)"}`, borderRadius:12, padding:"14px 16px", background:isDone ? "#EFF6FF" : "var(--z-card)", textAlign:"left", cursor:"pointer", transition:"all 0.18s" }}
                       >
-                        <div style={{ width:24, height:24, borderRadius:8, border:`2px solid ${isDone ? "#10B981" : "#CBD5E1"}`, background:isDone ? "#10B981" : "white", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1, transition:"all 0.18s" }}>
+                        <div style={{ width:24, height:24, borderRadius:8, border:`2px solid ${isDone ? "#2563EB" : "var(--z-bd)"}`, background:isDone ? "#2563EB" : "var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1, transition:"all 0.18s" }}>
                           {isDone && <svg viewBox="0 0 12 12" fill="none" style={{width:10,height:10}}><path d="M1.5 6l3 3 6-6" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                         </div>
                         <div style={{ flex:1 }}>
-                          <p style={{ fontSize:13.5, color:isDone ? "#94A3B8" : "#0F172A", textDecoration:isDone ? "line-through" : "none", lineHeight:1.6, margin:0, transition:"all 0.18s" }}>{task.text}</p>
+                          <p style={{ fontSize:13.5, color:isDone ? "var(--z-text3)" : "var(--z-text)", textDecoration:isDone ? "line-through" : "none", lineHeight:1.6, margin:0, transition:"all 0.18s" }}>{task.text}</p>
                         </div>
-                        <span style={{ flexShrink:0, fontSize:10.5, fontWeight:800, padding:"4px 9px", borderRadius:999, background:isDone ? "#F0FDF4" : cc.bg, color:isDone ? "#059669" : cc.color, border:`1px solid ${isDone ? "#BBF7D0" : cc.border}`, whiteSpace:"nowrap" }}>{isDone ? "Done" : task.cat}</span>
+                        <span style={{ flexShrink:0, fontSize:10.5, fontWeight:800, padding:"4px 9px", borderRadius:999, background:"var(--z-raise)", color:isDone ? "#2563EB" : "var(--z-text3)", border:`1px solid ${isDone ? "#2563EB" : "var(--z-bd)"}`, whiteSpace:"nowrap" }}>{isDone ? "Done" : task.cat}</span>
                       </button>
                     );
                   })}
@@ -11976,26 +11957,24 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
         <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
           {SECTION_CARDS.map((c, i) => (
             <button key={c.key} onClick={()=>c.done ? undefined : onNavigate(c.key)}
-              onMouseEnter={e=>{ if(!c.done) { e.currentTarget.style.transform="translateY(-2px)"; e.currentTarget.style.boxShadow=`0 8px 24px ${c.color}25`; } }}
-              onMouseLeave={e=>{ if(!c.done) { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow="0 2px 8px var(--z-sh)"; } }}
-              style={{ background:c.done?"linear-gradient(135deg,rgba(74,222,128,0.08),rgba(74,222,128,0.04))":c.bg, border:`1.5px solid ${c.done?"rgba(74,222,128,0.35)":`${c.color}25`}`, borderRadius:18, padding:"20px 22px", cursor:c.done?"default":"pointer", textAlign:"left", display:"flex", alignItems:"center", gap:16, transition:"all 0.2s", boxShadow:"0 2px 8px var(--z-sh)", position:"relative", overflow:"hidden" }}>
-              {!c.done && <div style={{ position:"absolute", left:0, top:0, bottom:0, width:4, background:c.color, borderRadius:"18px 0 0 18px" }}/>}
-              <div style={{ width:48, height:48, borderRadius:14, background:c.done?"linear-gradient(135deg,#4ADE80,#22C55E)":`linear-gradient(135deg,${c.color},${c.color}CC)`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:c.done?"0 4px 12px rgba(74,222,128,0.4)":`0 4px 14px ${c.color}40` }}>
+              style={{ background:"var(--z-card)", border:`1px solid ${c.done ? "#2563EB" : "var(--z-bd)"}`, borderRadius:12, padding:"20px 22px", cursor:c.done?"default":"pointer", textAlign:"left", display:"flex", alignItems:"center", gap:16, transition:"all 0.2s", position:"relative", overflow:"hidden" }}>
+              {!c.done && <div style={{ position:"absolute", left:0, top:0, bottom:0, width:3, background:"#2563EB", borderRadius:"12px 0 0 12px" }}/>}
+              <div style={{ width:44, height:44, borderRadius:12, background:c.done ? "#EFF6FF" : "var(--z-raise)", border:"1px solid var(--z-bd)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                 {c.done
-                  ? <svg viewBox="0 0 20 20" fill="none" stroke="white" strokeWidth="2.4" style={{width:20,height:20}}><path d="M4 10l5 5 7-7"/></svg>
-                  : <span style={{ fontSize:16, fontWeight:900, color:"white" }}>{i+1}</span>
+                  ? <svg viewBox="0 0 20 20" fill="none" stroke="#2563EB" strokeWidth="2.4" style={{width:18,height:18}}><path d="M4 10l5 5 7-7"/></svg>
+                  : <span style={{ fontSize:15, fontWeight:900, color:"var(--z-text3)" }}>{i+1}</span>
                 }
               </div>
               <div style={{ flex:1 }}>
                 <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
-                  <span style={{ fontSize:15, fontWeight:800, color:c.done?"#16A34A":"var(--z-text)", letterSpacing:"-0.02em" }}>{c.label}</span>
-                  {c.done && <span style={{ fontSize:10.5, fontWeight:700, padding:"2px 9px", borderRadius:99, background:"rgba(74,222,128,0.15)", color:"#16A34A", border:"1px solid rgba(74,222,128,0.3)" }}>✓ Complete</span>}
+                  <span style={{ fontSize:15, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.02em" }}>{c.label}</span>
+                  {c.done && <span style={{ fontSize:10.5, fontWeight:700, padding:"2px 9px", borderRadius:99, background:"#EFF6FF", color:"#2563EB", border:"1px solid #BFDBFE" }}>✓ Complete</span>}
                 </div>
                 <div style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.5 }}>{c.desc}</div>
               </div>
               {!c.done && (
-                <div style={{ flexShrink:0, width:36, height:36, borderRadius:10, background:`${c.color}18`, display:"flex", alignItems:"center", justifyContent:"center", color:c.color, border:`1px solid ${c.color}25` }}>
-                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.2" style={{width:15,height:15}}><path d="M4 8h8M9 4l4 4-4 4"/></svg>
+                <div style={{ flexShrink:0, width:32, height:32, borderRadius:8, background:"var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"center", color:"#2563EB", border:"1px solid var(--z-bd)" }}>
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.2" style={{width:14,height:14}}><path d="M4 8h8M9 4l4 4-4 4"/></svg>
                 </div>
               )}
             </button>
@@ -12093,7 +12072,7 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
               <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:6 }}>
                 <h1 style={{ fontSize:26, fontWeight:900, letterSpacing:"-0.04em", color:"var(--z-text)", margin:0 }}>Your {STAGE_NAV_LABELS[stage].plan}</h1>
                 {aiTasks && (
-                  <span style={{ fontSize:10.5, fontWeight:800, padding:"3px 9px", borderRadius:99, background:"linear-gradient(135deg,#DCFCE7,#D1FAE5)", color:"#059669", border:"1px solid #6EE7B7", letterSpacing:"0.02em" }}>
+                  <span style={{ fontSize:10.5, fontWeight:800, padding:"3px 9px", borderRadius:99, background:"var(--z-raise)", color:"var(--z-text3)", border:"1px solid var(--z-bd)", letterSpacing:"0.02em" }}>
                     AI · PERSONALIZED
                   </span>
                 )}
@@ -12108,7 +12087,7 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
             </div>
 
             {/* Stats pill */}
-            <div style={{ display:"flex", gap:0, background:"rgba(0,0,0,0.03)", border:"1px solid var(--z-bd)", borderRadius:14, overflow:"hidden", boxShadow:"0 2px 12px rgba(0,0,0,0.07)" }}>
+            <div style={{ display:"flex", gap:0, background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderRadius:14, overflow:"hidden", boxShadow:"0 2px 12px rgba(0,0,0,0.07)" }}>
               {[
                 { label:"Done", value:done.size, color:"#059669" },
                 { label:"Remaining", value:TASKS.length - done.size, color:"#2563EB" },
@@ -12222,7 +12201,7 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
                     return (
                       <button key={task.idx}
                         onClick={()=>setDone(d=>{const n=new Set(d);n.has(task.idx)?n.delete(task.idx):n.add(task.idx);return n;})}
-                        style={{ display:"flex", alignItems:"flex-start", gap:12, background:"rgba(0,0,0,0.03)", border:`1px solid ${isDone?"#BBF7D0":"#E4E8F5"}`, borderLeft:`3.5px solid ${isDone?"#16A34A":group.accent}`, borderRadius:"0 14px 14px 0", padding:"13px 16px", cursor:"pointer", textAlign:"left", transition:"all 0.15s", boxShadow:`0 1px 6px rgba(0,0,0,0.04)` }}>
+                        style={{ display:"flex", alignItems:"flex-start", gap:12, background:"var(--z-raise)", border:`1px solid ${isDone?"#BBF7D0":"#E4E8F5"}`, borderLeft:`3.5px solid ${isDone?"#16A34A":group.accent}`, borderRadius:"0 14px 14px 0", padding:"13px 16px", cursor:"pointer", textAlign:"left", transition:"all 0.15s", boxShadow:`0 1px 6px rgba(0,0,0,0.04)` }}>
                         <div style={{ width:22, height:22, borderRadius:6, border:`2px solid ${isDone?"#16A34A":"#CBD5E1"}`, background:isDone?"#DCFCE7":"white", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>
                           {isDone && <svg viewBox="0 0 12 12" fill="none" style={{width:10,height:10}}><path d="M1.5 6l3 3 6-6" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                         </div>
