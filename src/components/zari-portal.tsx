@@ -4220,38 +4220,56 @@ function ScreenPromotionReadiness() {
     );
   }
 
-  function StepHeader() {
-    return (
-      <div style={{ textAlign:"center", marginBottom:32 }}>
-        <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"rgba(255,255,255,0.35)", marginBottom:8 }}>
-          Step {step} of 4
-        </p>
-        <h1 style={{ fontSize:28, fontWeight:900, color:"white", letterSpacing:"-0.04em", marginBottom:10 }}>{activeStep.title}</h1>
-        <p style={{ fontSize:14, color:"rgba(255,255,255,0.45)", lineHeight:1.6, maxWidth:440, margin:"0 auto" }}>{activeStep.subtitle}</p>
-      </div>
-    );
-  }
+  const READINESS_STEP_CONTEXT = [
+    { icon:"🎯", label:"Setting the target", desc:"Zari maps the exact gap between your current role and the next level. Specificity matters — the more precise the title, the sharper the scoring.", tips:["Use the full job title, not just 'senior'.", "Time in role is a key signal — promotions before 12 months are rare at most companies.", "If you're unsure of the target title, use the one you'd put on a resume."] },
+    { icon:"📋", label:"The promotion bar", desc:"Zari scores your case against what the level actually requires, not just your sense of performance. The closer to the real rubric, the more accurate the result.", tips:["Paste the career ladder or job description if you have one.", "If no formal rubric exists, describe what you've heard in conversations with your manager.", "Unclear bars are a red flag — Zari will flag this in the scoring."] },
+    { icon:"📈", label:"Your evidence", desc:"Strong promotion cases are built on proof, not effort. Zari looks for scope, impact, and operating-above-level signals.", tips:["Include outcomes and numbers where you can.", "Describe the cross-functional or leadership scope, not just the output.", "The best evidence shows judgment, not just execution."] },
+    { icon:"🔑", label:"The decision context", desc:"Promotions are decisions made by humans. Zari models the political and organizational reality — manager support, visibility, and review signals all matter.", tips:["Be honest about manager support — low advocacy is a blocker regardless of performance.", "Visibility to decision-makers above your manager is often underrated.", "Review scores are a proxy, not the whole story. Add context if the signal is mixed."] },
+  ];
+  const stepCtx = READINESS_STEP_CONTEXT[step - 1];
 
   return (
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#070C18" }}>
-      <div style={{ minHeight:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"48px 24px" }}>
-        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:40, flexWrap:"wrap", justifyContent:"center" }}>
-          {[1,2,3,4].map(s => (
-            <div key={s} style={{ display:"flex", alignItems:"center", gap:10 }}>
-              <div style={{ width:28, height:28, borderRadius:"50%", border:`2px solid ${s < step ? "#4ADE80" : s === step ? "#4361EE" : "rgba(255,255,255,0.15)"}`, background:s < step ? "rgba(74,222,128,0.15)" : s === step ? "rgba(67,97,238,0.2)" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
-                {s < step ? (
-                  <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2" style={{ width:12,height:12 }}><polyline points="2,6 5,9 10,3"/></svg>
-                ) : (
-                  <span style={{ fontSize:11, fontWeight:700, color:s === step ? "#818CF8" : "rgba(255,255,255,0.25)" }}>{s}</span>
-                )}
-              </div>
-              {s < 4 && <div style={{ width:28, height:2, borderRadius:99, background:s < step ? "rgba(74,222,128,0.4)" : "rgba(255,255,255,0.08)", transition:"all 0.3s" }}/>}
+      {/* Page header */}
+      <div style={{ background:"#0D1625", borderBottom:"1px solid rgba(255,255,255,0.08)", padding:"20px 40px" }}>
+        <div style={{ maxWidth:1100, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
+          <div>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4 }}>
+              <div style={{ width:32, height:32, borderRadius:10, background:"rgba(109,76,255,0.2)", border:"1px solid rgba(109,76,255,0.35)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:15 }}>📊</div>
+              <h1 style={{ fontSize:18, fontWeight:900, color:"white", letterSpacing:"-0.02em", margin:0 }}>Promotion Readiness</h1>
             </div>
-          ))}
+            <p style={{ fontSize:13, color:"rgba(255,255,255,0.4)", margin:0 }}>Find out exactly where you stand before you make the ask.</p>
+          </div>
+          {/* Step progress bar */}
+          <div style={{ display:"flex", alignItems:"center", gap:0 }}>
+            {([1,2,3,4] as const).map(s => (
+              <div key={s} style={{ display:"flex", alignItems:"center" }}>
+                <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:5 }}>
+                  <div style={{ width:32, height:32, borderRadius:"50%", border:`2px solid ${s < step ? "#4ADE80" : s === step ? "#818CF8" : "rgba(255,255,255,0.12)"}`, background:s < step ? "rgba(74,222,128,0.15)" : s === step ? "rgba(129,140,248,0.18)" : "rgba(255,255,255,0.04)", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
+                    {s < step ? (
+                      <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2.5" style={{ width:12,height:12 }}><polyline points="2,6 5,9 10,3"/></svg>
+                    ) : (
+                      <span style={{ fontSize:12, fontWeight:700, color:s === step ? "#818CF8" : "rgba(255,255,255,0.22)" }}>{s}</span>
+                    )}
+                  </div>
+                  <span style={{ fontSize:10, fontWeight:700, color:s === step ? "#818CF8" : s < step ? "rgba(74,222,128,0.7)" : "rgba(255,255,255,0.2)", letterSpacing:"0.04em", whiteSpace:"nowrap" }}>{READINESS_STEP_CONTEXT[s-1].label}</span>
+                </div>
+                {s < 4 && <div style={{ width:40, height:2, borderRadius:99, background:s < step ? "rgba(74,222,128,0.35)" : "rgba(255,255,255,0.07)", margin:"0 6px", marginBottom:18, transition:"all 0.3s" }}/>}
+              </div>
+            ))}
+          </div>
         </div>
+      </div>
 
-        <div style={{ width:"100%", maxWidth:760 }}>
-          <StepHeader />
+      {/* Two-column body */}
+      <div style={{ maxWidth:1100, margin:"0 auto", padding:"32px 40px 56px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
+        {/* LEFT: Form */}
+        <div>
+          <div style={{ marginBottom:28 }}>
+            <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"rgba(255,255,255,0.28)", marginBottom:6 }}>Step {step} of 4</p>
+            <h2 style={{ fontSize:24, fontWeight:900, color:"white", letterSpacing:"-0.03em", margin:"0 0 8px" }}>{activeStep.title}</h2>
+            <p style={{ fontSize:14, color:"rgba(255,255,255,0.48)", lineHeight:1.65, margin:0 }}>{activeStep.subtitle}</p>
+          </div>
 
           {step === 1 && (
             <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
@@ -4263,21 +4281,13 @@ function ScreenPromotionReadiness() {
                   </div>
                   <div>
                     <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 8px" }}>Desired job title</p>
-                    <input value={form.desiredTitle} onChange={e => updateForm("desiredTitle", e.target.value)} placeholder="e.g. Senior Product Manager or Senior Engineering Manager" style={wizardInputStyle} />
+                    <input value={form.desiredTitle} onChange={e => updateForm("desiredTitle", e.target.value)} placeholder="e.g. Senior Product Manager" style={wizardInputStyle} />
                   </div>
                 </div>
-
                 <div>
                   <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 10px" }}>How long have you been in your current role?</p>
                   <PromotionChoiceGroup value={form.timeInRole} onChange={value => updateForm("timeInRole", value)} options={PROMOTION_READINESS_OPTIONS.timeInRole} />
                 </div>
-              </div>
-
-              <div style={{ ...wizardCardStyle, background:"rgba(255,255,255,0.03)" }}>
-                <div style={{ fontSize:11.5, fontWeight:800, color:"#A5B4FC", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Why this matters</div>
-                <p style={{ fontSize:13, color:"rgba(255,255,255,0.52)", lineHeight:1.7, margin:0 }}>
-                  Zari needs to know the gap before it can judge whether your proof is actually enough.
-                </p>
               </div>
             </div>
           )}
@@ -4293,7 +4303,6 @@ function ScreenPromotionReadiness() {
                   style={{ ...wizardTextareaStyle, minHeight:220 }}
                 />
               </div>
-
               <div style={wizardCardStyle}>
                 <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 10px" }}>How clear is the promotion bar today?</p>
                 <PromotionChoiceGroup value={form.rubricClarity} onChange={value => updateForm("rubricClarity", value)} options={PROMOTION_READINESS_OPTIONS.rubricClarity} />
@@ -4308,16 +4317,14 @@ function ScreenPromotionReadiness() {
                 <textarea
                   value={form.recentProjects}
                   onChange={e => updateForm("recentProjects", e.target.value)}
-                  placeholder="List the few projects or initiatives that best prove you are already operating above your current level. Include scope, outcomes, and any metrics you can."
+                  placeholder="List the projects or initiatives that best prove you are already operating above your current level. Include scope, outcomes, and any metrics you can."
                   style={{ ...wizardTextareaStyle, minHeight:190 }}
                 />
               </div>
-
               <div style={wizardCardStyle}>
                 <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 10px" }}>How far does your scope already extend?</p>
                 <PromotionChoiceGroup value={form.scopeLevel} onChange={value => updateForm("scopeLevel", value)} options={PROMOTION_READINESS_OPTIONS.scopeLevel} />
               </div>
-
               <div style={wizardCardStyle}>
                 <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 10px" }}>How strong is the measurable impact?</p>
                 <PromotionChoiceGroup value={form.impactLevel} onChange={value => updateForm("impactLevel", value)} options={PROMOTION_READINESS_OPTIONS.impactLevel} />
@@ -4332,32 +4339,28 @@ function ScreenPromotionReadiness() {
                 <textarea
                   value={form.reviewSummary}
                   onChange={e => updateForm("reviewSummary", e.target.value)}
-                  placeholder="Optional: paste review comments or summarize the feedback that matters most. If you do not have formal reviews, leave this light and move on."
+                  placeholder="Optional: paste review comments or summarize the feedback that matters most."
                   style={{ ...wizardTextareaStyle, minHeight:130 }}
                 />
               </div>
-
               <div style={wizardCardStyle}>
                 <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 10px" }}>Overall review signal</p>
                 <PromotionChoiceGroup value={form.reviewSignal} onChange={value => updateForm("reviewSignal", value)} options={PROMOTION_READINESS_OPTIONS.reviewSignal} />
               </div>
-
               <div style={wizardCardStyle}>
                 <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 10px" }}>How supportive is your manager?</p>
                 <PromotionChoiceGroup value={form.managerSupport} onChange={value => updateForm("managerSupport", value)} options={PROMOTION_READINESS_OPTIONS.managerSupport} />
               </div>
-
               <div style={wizardCardStyle}>
                 <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 10px" }}>How visible is your work to the people who matter?</p>
                 <PromotionChoiceGroup value={form.visibilityLevel} onChange={value => updateForm("visibilityLevel", value)} options={PROMOTION_READINESS_OPTIONS.visibilityLevel} />
               </div>
-
               <div style={wizardCardStyle}>
                 <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.35)", margin:"0 0 8px" }}>What is still getting in the way?</p>
                 <textarea
                   value={form.blockers}
                   onChange={e => updateForm("blockers", e.target.value)}
-                  placeholder="Optional: unclear rubric, low visibility, missing metrics, manager hesitation, or not enough next-level scope. If nothing stands out, leave this blank."
+                  placeholder="Optional: unclear rubric, low visibility, missing metrics, manager hesitation, or not enough next-level scope."
                   style={{ ...wizardTextareaStyle, minHeight:135 }}
                 />
               </div>
@@ -4370,20 +4373,59 @@ function ScreenPromotionReadiness() {
             </div>
           )}
 
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:10, marginTop:18, flexWrap:"wrap" }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:10, marginTop:22 }}>
             <button
               onClick={() => step === 1 ? setForm(PROMOTION_READINESS_DEFAULT_FORM) : goBack()}
-              style={{ padding:"14px 20px", borderRadius:14, border:"1px solid rgba(255,255,255,0.1)", background:"transparent", color:"rgba(255,255,255,0.45)", fontSize:14, fontWeight:600, cursor:"pointer" }}
+              style={{ padding:"13px 20px", borderRadius:14, border:"1px solid rgba(255,255,255,0.1)", background:"transparent", color:"rgba(255,255,255,0.42)", fontSize:13.5, fontWeight:600, cursor:"pointer" }}
             >
-              {step === 1 ? "Clear answers" : "← Back"}
+              {step === 1 ? "Clear" : "← Back"}
             </button>
             <button
               onClick={() => { if (step === 4) void generate(); else goNext(); }}
               disabled={generating}
-              style={{ minWidth:210, fontSize:14.5, fontWeight:700, padding:"14px 18px", borderRadius:14, border:"none", background:"linear-gradient(135deg,#4361EE,#818CF8)", color:"white", cursor:"pointer", boxShadow:"0 8px 24px rgba(67,97,238,0.4)", transition:"all 0.2s", opacity:generating ? 0.72 : 1 }}
+              style={{ minWidth:200, fontSize:14.5, fontWeight:700, padding:"13px 20px", borderRadius:14, border:"none", background:"linear-gradient(135deg,#4361EE,#818CF8)", color:"white", cursor:"pointer", boxShadow:"0 8px 24px rgba(67,97,238,0.35)", transition:"all 0.2s", opacity:generating ? 0.72 : 1 }}
             >
               {step === 4 ? "Score my case →" : "Continue →"}
             </button>
+          </div>
+        </div>
+
+        {/* RIGHT: Sidebar */}
+        <div style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
+          <div style={{ background:"#0D1625", border:"1px solid rgba(255,255,255,0.08)", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 2px 20px rgba(0,0,0,0.4)" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+              <span style={{ fontSize:20 }}>{stepCtx.icon}</span>
+              <div style={{ fontSize:12, fontWeight:800, color:"#818CF8", letterSpacing:"0.04em" }}>{stepCtx.label}</div>
+            </div>
+            <p style={{ fontSize:13, color:"rgba(255,255,255,0.55)", lineHeight:1.72, margin:"0 0 16px" }}>{stepCtx.desc}</p>
+            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+              {stepCtx.tips.map((tip, i) => (
+                <div key={i} style={{ display:"flex", gap:9, alignItems:"flex-start" }}>
+                  <div style={{ width:4, height:4, borderRadius:"50%", background:"rgba(129,140,248,0.6)", flexShrink:0, marginTop:6 }}/>
+                  <span style={{ fontSize:12.5, color:"rgba(255,255,255,0.45)", lineHeight:1.6 }}>{tip}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Progress summary */}
+          <div style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.06)", borderRadius:16, padding:"16px 18px" }}>
+            <div style={{ fontSize:10.5, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.28)", marginBottom:10 }}>Your answers so far</div>
+            <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+              {[
+                { label:"Current title", value:form.currentTitle },
+                { label:"Target title", value:form.desiredTitle },
+                { label:"Time in role", value:form.timeInRole ? promotionOptionLabel(PROMOTION_READINESS_OPTIONS.timeInRole, form.timeInRole) : null },
+              ].filter(r => r.value).map(r => (
+                <div key={r.label} style={{ display:"flex", justifyContent:"space-between", gap:8, flexWrap:"wrap" }}>
+                  <span style={{ fontSize:11.5, color:"rgba(255,255,255,0.32)" }}>{r.label}</span>
+                  <span style={{ fontSize:11.5, fontWeight:700, color:"rgba(255,255,255,0.65)", textAlign:"right", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.value}</span>
+                </div>
+              ))}
+              {!form.currentTitle && !form.desiredTitle && (
+                <span style={{ fontSize:12, color:"rgba(255,255,255,0.22)", fontStyle:"italic" }}>Nothing filled in yet.</span>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -4575,29 +4617,48 @@ function ScreenSalaryCompensation() {
     );
   }
 
-  const STEPS = [
-    { title:"Your Role", subtitle:"Tell Zari about your current position and what you're negotiating for." },
-    { title:"Compensation Details", subtitle:"What are you currently earning, and what's your target?" },
-    { title:"Your Context", subtitle:"Location, experience, and anything else that gives you leverage." },
+  const SALARY_STEPS = [
+    { title:"Your Role", subtitle:"Tell Zari about your current position and what you're negotiating for.", icon:"💼", label:"Your role", desc:"Zari uses your title, level, and industry to benchmark accurately against the right market data.", tips:["Be specific with your title — 'Senior PM' and 'PM' can be a $30K difference.","Industry matters. Tech SaaS benchmarks are very different from nonprofit or government.","The negotiation type shapes the strategy — new offer vs. raise require different scripts."] },
+    { title:"Compensation Details", subtitle:"What are you currently earning, and what's your target?", icon:"💰", label:"Comp details", desc:"Without numbers, Zari can only give generic advice. The more specific your figures, the sharper the strategy.", tips:["Include total package if you can — equity and bonuses shift the real number significantly.","Your target should be what you actually want, not a hedge. Zari won't judge you.","Competing offers are your strongest leverage — mention them if you have them."] },
+    { title:"Your Context", subtitle:"Location, experience, and anything else that gives you leverage.", icon:"🌍", label:"Your context", desc:"Geographic market and tenure shape both what you can ask for and how you should frame the ask.", tips:["Remote roles at SF-based companies often pay SF rates — include that if relevant.","Highly specialized skills or rare domain expertise can shift your leverage significantly.","If you've had outsized wins recently, name them — it reinforces why now is the right time."] },
   ];
+  const salaryStepCtx = SALARY_STEPS[step - 1];
+
   return (
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:BG_DARK }}>
-      <div style={{ minHeight:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"48px 24px" }}>
-        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:40, justifyContent:"center" }}>
-          {[1,2,3].map(s => (
-            <div key={s} style={{ display:"flex", alignItems:"center", gap:10 }}>
-              <div style={{ width:28, height:28, borderRadius:"50%", border:`2px solid ${s < step ? "#4ADE80" : s === step ? ACCENT : "rgba(255,255,255,0.14)"}`, background:s < step ? "rgba(74,222,128,0.15)" : s === step ? "rgba(16,185,129,0.18)" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
-                {s < step ? <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2" style={{ width:11,height:11 }}><polyline points="2,6 5,9 10,3"/></svg> : <span style={{ fontSize:11, fontWeight:700, color:s === step ? ACCENT : "rgba(255,255,255,0.22)" }}>{s}</span>}
-              </div>
-              {s < 3 && <div style={{ width:28, height:2, borderRadius:99, background:s < step ? "rgba(74,222,128,0.35)" : "rgba(255,255,255,0.08)", transition:"all 0.3s" }}/>}
+      {/* Page header */}
+      <div style={{ background:"#0D1625", borderBottom:"1px solid rgba(255,255,255,0.08)", padding:"20px 40px" }}>
+        <div style={{ maxWidth:1100, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
+          <div>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4 }}>
+              <div style={{ width:32, height:32, borderRadius:10, background:`${ACCENT}22`, border:`1px solid ${ACCENT}40`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:15 }}>💵</div>
+              <h1 style={{ fontSize:18, fontWeight:900, color:"white", letterSpacing:"-0.02em", margin:0 }}>Compensation Analysis</h1>
             </div>
-          ))}
+            <p style={{ fontSize:13, color:"rgba(255,255,255,0.4)", margin:0 }}>Know your market position and build a negotiation strategy that actually works.</p>
+          </div>
+          <div style={{ display:"flex", alignItems:"center", gap:0 }}>
+            {([1,2,3] as const).map(s => (
+              <div key={s} style={{ display:"flex", alignItems:"center" }}>
+                <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:5 }}>
+                  <div style={{ width:32, height:32, borderRadius:"50%", border:`2px solid ${s < step ? "#4ADE80" : s === step ? ACCENT : "rgba(255,255,255,0.12)"}`, background:s < step ? "rgba(74,222,128,0.15)" : s === step ? `${ACCENT}22` : "rgba(255,255,255,0.04)", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
+                    {s < step ? <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2.5" style={{ width:12,height:12 }}><polyline points="2,6 5,9 10,3"/></svg> : <span style={{ fontSize:12, fontWeight:700, color:s === step ? ACCENT : "rgba(255,255,255,0.22)" }}>{s}</span>}
+                  </div>
+                  <span style={{ fontSize:10, fontWeight:700, color:s === step ? ACCENT : s < step ? "rgba(74,222,128,0.7)" : "rgba(255,255,255,0.2)", letterSpacing:"0.04em", whiteSpace:"nowrap" }}>{SALARY_STEPS[s-1].label}</span>
+                </div>
+                {s < 3 && <div style={{ width:40, height:2, borderRadius:99, background:s < step ? "rgba(74,222,128,0.35)" : "rgba(255,255,255,0.07)", margin:"0 6px", marginBottom:18, transition:"all 0.3s" }}/>}
+              </div>
+            ))}
+          </div>
         </div>
-        <div style={{ width:"100%", maxWidth:720 }}>
-          <div style={{ textAlign:"center", marginBottom:30 }}>
-            <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"rgba(255,255,255,0.3)", marginBottom:8 }}>Step {step} of 3</p>
-            <h1 style={{ fontSize:28, fontWeight:900, color:"white", letterSpacing:"-0.04em", marginBottom:10 }}>{STEPS[step-1].title}</h1>
-            <p style={{ fontSize:14, color:"rgba(255,255,255,0.42)", lineHeight:1.6, maxWidth:420, margin:"0 auto" }}>{STEPS[step-1].subtitle}</p>
+      </div>
+
+      {/* Two-column body */}
+      <div style={{ maxWidth:1100, margin:"0 auto", padding:"32px 40px 56px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
+        <div>
+          <div style={{ marginBottom:28 }}>
+            <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"rgba(255,255,255,0.28)", marginBottom:6 }}>Step {step} of 3</p>
+            <h2 style={{ fontSize:24, fontWeight:900, color:"white", letterSpacing:"-0.03em", margin:"0 0 8px" }}>{salaryStepCtx.title}</h2>
+            <p style={{ fontSize:14, color:"rgba(255,255,255,0.48)", lineHeight:1.65, margin:0 }}>{salaryStepCtx.subtitle}</p>
           </div>
           {step === 1 && (
             <div style={{ ...card, display:"grid", gap:14 }}>
@@ -4623,7 +4684,7 @@ function ScreenSalaryCompensation() {
                   <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.32)", margin:"0 0 8px" }}>Company size</p>
                   <select value={form.companySize} onChange={e => setForm(f => ({...f,companySize:e.target.value}))} style={sel}>
                     <option value="">Select size…</option>
-                    {["Startup (1–50)","Growth (51–250)","Mid-market (251–1000)","Enterprise (1000+)","Public company"].map(s => <option key={s} value={s}>{s}</option>)}
+                    {["Startup (1–50)","Growth (51–250)","Mid-market (251–1000)","Enterprise (1000+)","Public company"].map(sz => <option key={sz} value={sz}>{sz}</option>)}
                   </select>
                 </div>
               </div>
@@ -4631,7 +4692,7 @@ function ScreenSalaryCompensation() {
                 <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.32)", margin:"0 0 8px" }}>What type of negotiation?</p>
                 <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
                   {[{v:"raise",l:"Annual raise"},{v:"new-offer",l:"New job offer"},{v:"counter",l:"Counter offer"},{v:"promotion",l:"Promotion"}].map(opt => (
-                    <button key={opt.v} onClick={() => setForm(f => ({...f,askType:opt.v}))} style={{ padding:"9px 16px", borderRadius:12, border:`1px solid ${form.askType===opt.v ? ACCENT : "rgba(255,255,255,0.12)"}`, background:form.askType===opt.v ? "rgba(16,185,129,0.15)" : "rgba(255,255,255,0.04)", color:form.askType===opt.v ? ACCENT : "rgba(255,255,255,0.52)", fontSize:13, fontWeight:700, cursor:"pointer", transition:"all 0.15s" }}>{opt.l}</button>
+                    <button key={opt.v} onClick={() => setForm(f => ({...f,askType:opt.v}))} style={{ padding:"9px 16px", borderRadius:12, border:`1px solid ${form.askType===opt.v ? ACCENT : "rgba(255,255,255,0.12)"}`, background:form.askType===opt.v ? `${ACCENT}18` : "rgba(255,255,255,0.04)", color:form.askType===opt.v ? ACCENT : "rgba(255,255,255,0.52)", fontSize:13, fontWeight:700, cursor:"pointer", transition:"all 0.15s" }}>{opt.l}</button>
                   ))}
                 </div>
               </div>
@@ -4677,11 +4738,47 @@ function ScreenSalaryCompensation() {
             </div>
           )}
           {error && <div style={{ marginTop:14, background:"rgba(127,29,29,0.2)", border:"1px solid rgba(248,113,113,0.28)", borderRadius:14, padding:"11px 14px", fontSize:13, color:"#FCA5A5" }}>{error}</div>}
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:10, marginTop:18 }}>
-            <button onClick={() => step === 1 ? setForm(f => ({...f,title:""})) : setStep(s => (s-1) as 1|2|3)} style={{ padding:"13px 20px", borderRadius:14, border:"1px solid rgba(255,255,255,0.1)", background:"transparent", color:"rgba(255,255,255,0.4)", fontSize:14, fontWeight:600, cursor:"pointer" }}>{step === 1 ? "Clear" : "← Back"}</button>
-            <button onClick={() => { if (!canContinue() && step < 3) { setError("Fill in the required field to continue."); return; } setError(""); if (step === 3) void generate(); else setStep(s => (s+1) as 1|2|3); }} disabled={generating} style={{ minWidth:200, fontSize:14.5, fontWeight:700, padding:"14px 18px", borderRadius:14, border:"none", background:`linear-gradient(135deg, ${ACCENT}, #059669)`, color:"white", cursor:"pointer", boxShadow:"0 8px 24px rgba(16,185,129,0.38)", opacity:generating ? 0.7 : 1 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:10, marginTop:22 }}>
+            <button onClick={() => step === 1 ? setForm(f => ({...f,title:""})) : setStep(s => (s-1) as 1|2|3)} style={{ padding:"13px 20px", borderRadius:14, border:"1px solid rgba(255,255,255,0.1)", background:"transparent", color:"rgba(255,255,255,0.4)", fontSize:13.5, fontWeight:600, cursor:"pointer" }}>{step === 1 ? "Clear" : "← Back"}</button>
+            <button onClick={() => { if (!canContinue() && step < 3) { setError("Fill in the required field to continue."); return; } setError(""); if (step === 3) void generate(); else setStep(s => (s+1) as 1|2|3); }} disabled={generating} style={{ minWidth:200, fontSize:14.5, fontWeight:700, padding:"13px 20px", borderRadius:14, border:"none", background:`linear-gradient(135deg, ${ACCENT}, #059669)`, color:"white", cursor:"pointer", boxShadow:`0 8px 24px ${ACCENT}40`, opacity:generating ? 0.7 : 1 }}>
               {step === 3 ? "Analyze my position →" : "Continue →"}
             </button>
+          </div>
+        </div>
+
+        {/* RIGHT: Sidebar */}
+        <div style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
+          <div style={{ background:"#0D1625", border:"1px solid rgba(255,255,255,0.08)", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 2px 20px rgba(0,0,0,0.4)" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+              <span style={{ fontSize:20 }}>{salaryStepCtx.icon}</span>
+              <div style={{ fontSize:12, fontWeight:800, color:ACCENT, letterSpacing:"0.04em" }}>{salaryStepCtx.label}</div>
+            </div>
+            <p style={{ fontSize:13, color:"rgba(255,255,255,0.55)", lineHeight:1.72, margin:"0 0 16px" }}>{salaryStepCtx.desc}</p>
+            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+              {salaryStepCtx.tips.map((tip, i) => (
+                <div key={i} style={{ display:"flex", gap:9, alignItems:"flex-start" }}>
+                  <div style={{ width:4, height:4, borderRadius:"50%", background:`${ACCENT}80`, flexShrink:0, marginTop:6 }}/>
+                  <span style={{ fontSize:12.5, color:"rgba(255,255,255,0.45)", lineHeight:1.6 }}>{tip}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.06)", borderRadius:16, padding:"16px 18px" }}>
+            <div style={{ fontSize:10.5, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.28)", marginBottom:10 }}>Your answers so far</div>
+            <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+              {[
+                { label:"Title", value:form.title },
+                { label:"Type", value:form.askType },
+                { label:"Current comp", value:form.currentComp },
+                { label:"Target comp", value:form.targetComp },
+              ].filter(r => r.value).map(r => (
+                <div key={r.label} style={{ display:"flex", justifyContent:"space-between", gap:8 }}>
+                  <span style={{ fontSize:11.5, color:"rgba(255,255,255,0.32)" }}>{r.label}</span>
+                  <span style={{ fontSize:11.5, fontWeight:700, color:"rgba(255,255,255,0.65)", textAlign:"right", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.value}</span>
+                </div>
+              ))}
+              {!form.title && <span style={{ fontSize:12, color:"rgba(255,255,255,0.22)", fontStyle:"italic" }}>Nothing filled in yet.</span>}
+            </div>
           </div>
         </div>
       </div>
@@ -4881,29 +4978,48 @@ function ScreenPivotAnalysis() {
     );
   }
 
-  const STEPS = [
-    { title:"Your Pivot", subtitle:"Where are you coming from, and where do you want to go?" },
-    { title:"Your Case", subtitle:"What have you built, and what are you bringing to the table?" },
-    { title:"Context & Concerns", subtitle:"Timeline, background, and what worries you most about this move." },
+  const PIVOT_STEPS = [
+    { title:"Your Pivot", subtitle:"Where are you coming from, and where do you want to go?", icon:"🔀", label:"Your pivot", desc:"Zari needs to understand both ends of the move to accurately assess what transfers, what gaps need bridging, and what the hiring market will actually see.", tips:["Be specific about roles — 'Software Engineer to PM' gives very different advice than 'SWE to SWE at a startup'.","Industry context matters as much as title — B2B SaaS vs. healthcare are different hiring markets.","If you're not sure about the target, use the most specific version of what you want."] },
+    { title:"Your Case", subtitle:"What have you built, and what are you bringing to the table?", icon:"📊", label:"Your case", desc:"The pivot succeeds or fails based on how well you translate past work into the language of the new domain. Zari maps your proof points to the target role.", tips:["Write outcomes, not tasks — 'launched a product' is weak, 'launched a product that reached 10K users in 3 months' is strong.","Include any skills that might be underrated in your current role but relevant to the target.","Don't pre-filter. Include things you think are adjacent — let Zari decide what maps."] },
+    { title:"Context & Concerns", subtitle:"Timeline, background, and what worries you most about this move.", icon:"🗺️", label:"Context", desc:"Your timeline and biggest concern shape the strategy. A pivot in 3 months requires different moves than exploring over a year.", tips:["Be honest about your biggest concern — Zari will address it directly in the output.","Pasting your resume gives Zari more signal and produces a more specific analysis.","Your timeline affects the recommendation. If you're already interviewing, Zari will front-load quick wins."] },
   ];
+  const pivotStepCtx = PIVOT_STEPS[step - 1];
+
   return (
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:BG_DARK }}>
-      <div style={{ minHeight:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"48px 24px" }}>
-        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:40, justifyContent:"center" }}>
-          {[1,2,3].map(s => (
-            <div key={s} style={{ display:"flex", alignItems:"center", gap:10 }}>
-              <div style={{ width:28, height:28, borderRadius:"50%", border:`2px solid ${s < step ? "#4ADE80" : s === step ? ACCENT : "rgba(255,255,255,0.14)"}`, background:s < step ? "rgba(74,222,128,0.15)" : s === step ? "rgba(56,189,248,0.18)" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
-                {s < step ? <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2" style={{ width:11,height:11 }}><polyline points="2,6 5,9 10,3"/></svg> : <span style={{ fontSize:11, fontWeight:700, color:s === step ? ACCENT : "rgba(255,255,255,0.22)" }}>{s}</span>}
-              </div>
-              {s < 3 && <div style={{ width:28, height:2, borderRadius:99, background:s < step ? "rgba(74,222,128,0.35)" : "rgba(255,255,255,0.08)", transition:"all 0.3s" }}/>}
+      {/* Page header */}
+      <div style={{ background:"#0D1625", borderBottom:"1px solid rgba(255,255,255,0.08)", padding:"20px 40px" }}>
+        <div style={{ maxWidth:1100, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
+          <div>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4 }}>
+              <div style={{ width:32, height:32, borderRadius:10, background:`${ACCENT}22`, border:`1px solid ${ACCENT}40`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:15 }}>🔀</div>
+              <h1 style={{ fontSize:18, fontWeight:900, color:"white", letterSpacing:"-0.02em", margin:0 }}>Pivot Analysis</h1>
             </div>
-          ))}
+            <p style={{ fontSize:13, color:"rgba(255,255,255,0.4)", margin:0 }}>Understand your readiness, map the gaps, and build a credible path to your target role.</p>
+          </div>
+          <div style={{ display:"flex", alignItems:"center", gap:0 }}>
+            {([1,2,3] as const).map(s => (
+              <div key={s} style={{ display:"flex", alignItems:"center" }}>
+                <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:5 }}>
+                  <div style={{ width:32, height:32, borderRadius:"50%", border:`2px solid ${s < step ? "#4ADE80" : s === step ? ACCENT : "rgba(255,255,255,0.12)"}`, background:s < step ? "rgba(74,222,128,0.15)" : s === step ? `${ACCENT}22` : "rgba(255,255,255,0.04)", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
+                    {s < step ? <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2.5" style={{ width:12,height:12 }}><polyline points="2,6 5,9 10,3"/></svg> : <span style={{ fontSize:12, fontWeight:700, color:s === step ? ACCENT : "rgba(255,255,255,0.22)" }}>{s}</span>}
+                  </div>
+                  <span style={{ fontSize:10, fontWeight:700, color:s === step ? ACCENT : s < step ? "rgba(74,222,128,0.7)" : "rgba(255,255,255,0.2)", letterSpacing:"0.04em", whiteSpace:"nowrap" }}>{PIVOT_STEPS[s-1].label}</span>
+                </div>
+                {s < 3 && <div style={{ width:40, height:2, borderRadius:99, background:s < step ? "rgba(74,222,128,0.35)" : "rgba(255,255,255,0.07)", margin:"0 6px", marginBottom:18, transition:"all 0.3s" }}/>}
+              </div>
+            ))}
+          </div>
         </div>
-        <div style={{ width:"100%", maxWidth:720 }}>
-          <div style={{ textAlign:"center", marginBottom:30 }}>
-            <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"rgba(255,255,255,0.3)", marginBottom:8 }}>Step {step} of 3</p>
-            <h1 style={{ fontSize:28, fontWeight:900, color:"white", letterSpacing:"-0.04em", marginBottom:10 }}>{STEPS[step-1].title}</h1>
-            <p style={{ fontSize:14, color:"rgba(255,255,255,0.42)", lineHeight:1.6, maxWidth:420, margin:"0 auto" }}>{STEPS[step-1].subtitle}</p>
+      </div>
+
+      {/* Two-column body */}
+      <div style={{ maxWidth:1100, margin:"0 auto", padding:"32px 40px 56px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
+        <div>
+          <div style={{ marginBottom:28 }}>
+            <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"rgba(255,255,255,0.28)", marginBottom:6 }}>Step {step} of 3</p>
+            <h2 style={{ fontSize:24, fontWeight:900, color:"white", letterSpacing:"-0.03em", margin:"0 0 8px" }}>{pivotStepCtx.title}</h2>
+            <p style={{ fontSize:14, color:"rgba(255,255,255,0.48)", lineHeight:1.65, margin:0 }}>{pivotStepCtx.subtitle}</p>
           </div>
           {step === 1 && (
             <div style={{ ...card, display:"grid", gap:14 }}>
@@ -4963,11 +5079,47 @@ function ScreenPivotAnalysis() {
             </div>
           )}
           {error && <div style={{ marginTop:14, background:"rgba(127,29,29,0.2)", border:"1px solid rgba(248,113,113,0.28)", borderRadius:14, padding:"11px 14px", fontSize:13, color:"#FCA5A5" }}>{error}</div>}
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:10, marginTop:18 }}>
-            <button onClick={() => step === 1 ? setForm(f => ({...f,fromRole:"",toRole:""})) : setStep(s => (s-1) as 1|2|3)} style={{ padding:"13px 20px", borderRadius:14, border:"1px solid rgba(255,255,255,0.1)", background:"transparent", color:"rgba(255,255,255,0.4)", fontSize:14, fontWeight:600, cursor:"pointer" }}>{step === 1 ? "Clear" : "← Back"}</button>
-            <button onClick={() => { if (step === 1 && !form.fromRole.trim() && !form.toRole.trim()) { setError("Add your current and target roles to continue."); return; } setError(""); if (step === 3) void generate(); else setStep(s => (s+1) as 1|2|3); }} disabled={generating} style={{ minWidth:200, fontSize:14.5, fontWeight:700, padding:"14px 18px", borderRadius:14, border:"none", background:`linear-gradient(135deg, ${ACCENT}, #0284C7)`, color:"white", cursor:"pointer", boxShadow:"0 8px 24px rgba(56,189,248,0.32)", opacity:generating ? 0.7 : 1 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:10, marginTop:22 }}>
+            <button onClick={() => step === 1 ? setForm(f => ({...f,fromRole:"",toRole:""})) : setStep(s => (s-1) as 1|2|3)} style={{ padding:"13px 20px", borderRadius:14, border:"1px solid rgba(255,255,255,0.1)", background:"transparent", color:"rgba(255,255,255,0.4)", fontSize:13.5, fontWeight:600, cursor:"pointer" }}>{step === 1 ? "Clear" : "← Back"}</button>
+            <button onClick={() => { if (step === 1 && !form.fromRole.trim() && !form.toRole.trim()) { setError("Add your current and target roles to continue."); return; } setError(""); if (step === 3) void generate(); else setStep(s => (s+1) as 1|2|3); }} disabled={generating} style={{ minWidth:200, fontSize:14.5, fontWeight:700, padding:"13px 20px", borderRadius:14, border:"none", background:`linear-gradient(135deg, ${ACCENT}, #0284C7)`, color:"white", cursor:"pointer", boxShadow:`0 8px 24px ${ACCENT}40`, opacity:generating ? 0.7 : 1 }}>
               {step === 3 ? "Analyze my pivot →" : "Continue →"}
             </button>
+          </div>
+        </div>
+
+        {/* RIGHT: Sidebar */}
+        <div style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
+          <div style={{ background:"#0D1625", border:"1px solid rgba(255,255,255,0.08)", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 2px 20px rgba(0,0,0,0.4)" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+              <span style={{ fontSize:20 }}>{pivotStepCtx.icon}</span>
+              <div style={{ fontSize:12, fontWeight:800, color:ACCENT, letterSpacing:"0.04em" }}>{pivotStepCtx.label}</div>
+            </div>
+            <p style={{ fontSize:13, color:"rgba(255,255,255,0.55)", lineHeight:1.72, margin:"0 0 16px" }}>{pivotStepCtx.desc}</p>
+            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+              {pivotStepCtx.tips.map((tip, i) => (
+                <div key={i} style={{ display:"flex", gap:9, alignItems:"flex-start" }}>
+                  <div style={{ width:4, height:4, borderRadius:"50%", background:`${ACCENT}80`, flexShrink:0, marginTop:6 }}/>
+                  <span style={{ fontSize:12.5, color:"rgba(255,255,255,0.45)", lineHeight:1.6 }}>{tip}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.06)", borderRadius:16, padding:"16px 18px" }}>
+            <div style={{ fontSize:10.5, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.28)", marginBottom:10 }}>Your answers so far</div>
+            <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+              {[
+                { label:"From", value:form.fromRole },
+                { label:"To", value:form.toRole },
+                { label:"Industry", value:form.toIndustry || form.fromIndustry },
+                { label:"Timeline", value:form.timeline },
+              ].filter(r => r.value).map(r => (
+                <div key={r.label} style={{ display:"flex", justifyContent:"space-between", gap:8 }}>
+                  <span style={{ fontSize:11.5, color:"rgba(255,255,255,0.32)" }}>{r.label}</span>
+                  <span style={{ fontSize:11.5, fontWeight:700, color:"rgba(255,255,255,0.65)", textAlign:"right", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.value}</span>
+                </div>
+              ))}
+              {!form.fromRole && !form.toRole && <span style={{ fontSize:12, color:"rgba(255,255,255,0.22)", fontStyle:"italic" }}>Nothing filled in yet.</span>}
+            </div>
           </div>
         </div>
       </div>
@@ -5165,29 +5317,48 @@ function ScreenExecPositioning() {
     );
   }
 
-  const STEPS = [
-    { title:"Your Level", subtitle:"Where are you now, and where are you trying to go?" },
-    { title:"Your Impact", subtitle:"What business outcomes have you driven? Who have you influenced?" },
-    { title:"Context & Goal", subtitle:"Paste your bio, name your specific target, and tell Zari what you're building toward." },
+  const EXEC_STEPS = [
+    { title:"Your Level", subtitle:"Where are you now, and where are you trying to go?", icon:"🏛️", label:"Your level", desc:"Executive positioning is about gap analysis at the top — Zari needs to know the current level, scope, and target to calibrate the scoring accurately.", tips:["Be specific about scope — 'org of 80, $20M P&L' is more useful than 'large team'.","The target matters — board director, C-suite, and SVP have very different positioning requirements.","If you're not sure of the target, use the most ambitious version of what you want."] },
+    { title:"Your Impact", subtitle:"What business outcomes have you driven? Who have you influenced?", icon:"📈", label:"Your impact", desc:"Executive presence is proven by outcomes at scale and influence across the organization. Zari looks for business-level proof, not functional task completion.", tips:["Quantify where possible — revenue, cost savings, org size, product outcomes.","Exec exposure matters — board presentations, C-suite relationships, and investor interactions all signal readiness.","External advisory or board roles are strong credibility signals even if informal."] },
+    { title:"Context & Goal", subtitle:"Paste your bio, name your specific target, and tell Zari what you're building toward.", icon:"🎯", label:"Goal & context", desc:"Your bio gives Zari real signal to work with. The specific goal sharpens the strategy — different targets require very different positioning moves.", tips:["Paste your LinkedIn summary or executive bio — the more specific, the better the output.","Your specific goal shapes everything. 'Join a board' and 'move to C-suite' have different playbooks.","If you don't have a bio, describe your career trajectory in a paragraph."] },
   ];
+  const execStepCtx = EXEC_STEPS[step - 1];
+
   return (
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:BG_DARK }}>
-      <div style={{ minHeight:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"48px 24px" }}>
-        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:40, justifyContent:"center" }}>
-          {[1,2,3].map(s => (
-            <div key={s} style={{ display:"flex", alignItems:"center", gap:10 }}>
-              <div style={{ width:28, height:28, borderRadius:"50%", border:`2px solid ${s < step ? "#4ADE80" : s === step ? ACCENT : "rgba(255,255,255,0.14)"}`, background:s < step ? "rgba(74,222,128,0.15)" : s === step ? "rgba(245,158,11,0.18)" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
-                {s < step ? <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2" style={{ width:11,height:11 }}><polyline points="2,6 5,9 10,3"/></svg> : <span style={{ fontSize:11, fontWeight:700, color:s === step ? ACCENT : "rgba(255,255,255,0.22)" }}>{s}</span>}
-              </div>
-              {s < 3 && <div style={{ width:28, height:2, borderRadius:99, background:s < step ? "rgba(74,222,128,0.35)" : "rgba(255,255,255,0.08)", transition:"all 0.3s" }}/>}
+      {/* Page header */}
+      <div style={{ background:"#0D1625", borderBottom:"1px solid rgba(255,255,255,0.08)", padding:"20px 40px" }}>
+        <div style={{ maxWidth:1100, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
+          <div>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4 }}>
+              <div style={{ width:32, height:32, borderRadius:10, background:`${ACCENT}22`, border:`1px solid ${ACCENT}40`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:15 }}>🏛️</div>
+              <h1 style={{ fontSize:18, fontWeight:900, color:"white", letterSpacing:"-0.02em", margin:0 }}>Executive Positioning</h1>
             </div>
-          ))}
+            <p style={{ fontSize:13, color:"rgba(255,255,255,0.4)", margin:0 }}>Assess your executive presence and build a concrete strategy to close the gap to the top.</p>
+          </div>
+          <div style={{ display:"flex", alignItems:"center", gap:0 }}>
+            {([1,2,3] as const).map(s => (
+              <div key={s} style={{ display:"flex", alignItems:"center" }}>
+                <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:5 }}>
+                  <div style={{ width:32, height:32, borderRadius:"50%", border:`2px solid ${s < step ? "#4ADE80" : s === step ? ACCENT : "rgba(255,255,255,0.12)"}`, background:s < step ? "rgba(74,222,128,0.15)" : s === step ? `${ACCENT}22` : "rgba(255,255,255,0.04)", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
+                    {s < step ? <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2.5" style={{ width:12,height:12 }}><polyline points="2,6 5,9 10,3"/></svg> : <span style={{ fontSize:12, fontWeight:700, color:s === step ? ACCENT : "rgba(255,255,255,0.22)" }}>{s}</span>}
+                  </div>
+                  <span style={{ fontSize:10, fontWeight:700, color:s === step ? ACCENT : s < step ? "rgba(74,222,128,0.7)" : "rgba(255,255,255,0.2)", letterSpacing:"0.04em", whiteSpace:"nowrap" }}>{EXEC_STEPS[s-1].label}</span>
+                </div>
+                {s < 3 && <div style={{ width:40, height:2, borderRadius:99, background:s < step ? "rgba(74,222,128,0.35)" : "rgba(255,255,255,0.07)", margin:"0 6px", marginBottom:18, transition:"all 0.3s" }}/>}
+              </div>
+            ))}
+          </div>
         </div>
-        <div style={{ width:"100%", maxWidth:720 }}>
-          <div style={{ textAlign:"center", marginBottom:30 }}>
-            <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"rgba(255,255,255,0.3)", marginBottom:8 }}>Step {step} of 3</p>
-            <h1 style={{ fontSize:28, fontWeight:900, color:"white", letterSpacing:"-0.04em", marginBottom:10 }}>{STEPS[step-1].title}</h1>
-            <p style={{ fontSize:14, color:"rgba(255,255,255,0.42)", lineHeight:1.6, maxWidth:420, margin:"0 auto" }}>{STEPS[step-1].subtitle}</p>
+      </div>
+
+      {/* Two-column body */}
+      <div style={{ maxWidth:1100, margin:"0 auto", padding:"32px 40px 56px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
+        <div>
+          <div style={{ marginBottom:28 }}>
+            <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"rgba(255,255,255,0.28)", marginBottom:6 }}>Step {step} of 3</p>
+            <h2 style={{ fontSize:24, fontWeight:900, color:"white", letterSpacing:"-0.03em", margin:"0 0 8px" }}>{execStepCtx.title}</h2>
+            <p style={{ fontSize:14, color:"rgba(255,255,255,0.48)", lineHeight:1.65, margin:0 }}>{execStepCtx.subtitle}</p>
           </div>
           {step === 1 && (
             <div style={{ ...card, display:"grid", gap:14 }}>
@@ -5217,11 +5388,11 @@ function ScreenExecPositioning() {
             <div style={{ ...card, display:"grid", gap:14 }}>
               <div>
                 <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.32)", margin:"0 0 8px" }}>Key business outcomes</p>
-                <textarea value={form.businessOutcomes} onChange={e => setForm(f => ({...f,businessOutcomes:e.target.value}))} placeholder="Revenue impact, cost savings, strategic decisions you led, products shipped, organizations built. Be specific and quantify where possible." style={textarea} />
+                <textarea value={form.businessOutcomes} onChange={e => setForm(f => ({...f,businessOutcomes:e.target.value}))} placeholder="Revenue impact, cost savings, strategic decisions you led, products shipped, organizations built. Quantify where possible." style={textarea} />
               </div>
               <div>
                 <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.32)", margin:"0 0 8px" }}>Executive-level exposure</p>
-                <textarea value={form.execExposure} onChange={e => setForm(f => ({...f,execExposure:e.target.value}))} placeholder="Board presentations, C-suite relationships, investor interactions, external speaking — any signal of exec-level presence…" style={{ ...textarea, minHeight:100 }} />
+                <textarea value={form.execExposure} onChange={e => setForm(f => ({...f,execExposure:e.target.value}))} placeholder="Board presentations, C-suite relationships, investor interactions, external speaking…" style={{ ...textarea, minHeight:100 }} />
               </div>
               <div>
                 <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.32)", margin:"0 0 8px" }}>Board experience (if any)</p>
@@ -5245,11 +5416,46 @@ function ScreenExecPositioning() {
             </div>
           )}
           {error && <div style={{ marginTop:14, background:"rgba(127,29,29,0.2)", border:"1px solid rgba(248,113,113,0.28)", borderRadius:14, padding:"11px 14px", fontSize:13, color:"#FCA5A5" }}>{error}</div>}
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:10, marginTop:18 }}>
-            <button onClick={() => step === 1 ? setForm(f => ({...f,currentTitle:""})) : setStep(s => (s-1) as 1|2|3)} style={{ padding:"13px 20px", borderRadius:14, border:"1px solid rgba(255,255,255,0.1)", background:"transparent", color:"rgba(255,255,255,0.4)", fontSize:14, fontWeight:600, cursor:"pointer" }}>{step === 1 ? "Clear" : "← Back"}</button>
-            <button onClick={() => { if (step === 1 && !form.currentTitle.trim()) { setError("Add your current title to continue."); return; } setError(""); if (step === 3) void generate(); else setStep(s => (s+1) as 1|2|3); }} disabled={generating} style={{ minWidth:200, fontSize:14.5, fontWeight:700, padding:"14px 18px", borderRadius:14, border:"none", background:`linear-gradient(135deg, ${ACCENT}, #D97706)`, color:"white", cursor:"pointer", boxShadow:"0 8px 24px rgba(245,158,11,0.35)", opacity:generating ? 0.7 : 1 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:10, marginTop:22 }}>
+            <button onClick={() => step === 1 ? setForm(f => ({...f,currentTitle:""})) : setStep(s => (s-1) as 1|2|3)} style={{ padding:"13px 20px", borderRadius:14, border:"1px solid rgba(255,255,255,0.1)", background:"transparent", color:"rgba(255,255,255,0.4)", fontSize:13.5, fontWeight:600, cursor:"pointer" }}>{step === 1 ? "Clear" : "← Back"}</button>
+            <button onClick={() => { if (step === 1 && !form.currentTitle.trim()) { setError("Add your current title to continue."); return; } setError(""); if (step === 3) void generate(); else setStep(s => (s+1) as 1|2|3); }} disabled={generating} style={{ minWidth:200, fontSize:14.5, fontWeight:700, padding:"13px 20px", borderRadius:14, border:"none", background:`linear-gradient(135deg, ${ACCENT}, #D97706)`, color:"white", cursor:"pointer", boxShadow:`0 8px 24px ${ACCENT}40`, opacity:generating ? 0.7 : 1 }}>
               {step === 3 ? "Analyze my positioning →" : "Continue →"}
             </button>
+          </div>
+        </div>
+
+        {/* RIGHT: Sidebar */}
+        <div style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
+          <div style={{ background:"#0D1625", border:"1px solid rgba(255,255,255,0.08)", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 2px 20px rgba(0,0,0,0.4)" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+              <span style={{ fontSize:20 }}>{execStepCtx.icon}</span>
+              <div style={{ fontSize:12, fontWeight:800, color:ACCENT, letterSpacing:"0.04em" }}>{execStepCtx.label}</div>
+            </div>
+            <p style={{ fontSize:13, color:"rgba(255,255,255,0.55)", lineHeight:1.72, margin:"0 0 16px" }}>{execStepCtx.desc}</p>
+            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+              {execStepCtx.tips.map((tip, i) => (
+                <div key={i} style={{ display:"flex", gap:9, alignItems:"flex-start" }}>
+                  <div style={{ width:4, height:4, borderRadius:"50%", background:`${ACCENT}80`, flexShrink:0, marginTop:6 }}/>
+                  <span style={{ fontSize:12.5, color:"rgba(255,255,255,0.45)", lineHeight:1.6 }}>{tip}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.06)", borderRadius:16, padding:"16px 18px" }}>
+            <div style={{ fontSize:10.5, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"rgba(255,255,255,0.28)", marginBottom:10 }}>Your answers so far</div>
+            <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+              {[
+                { label:"Title", value:form.currentTitle },
+                { label:"Target", value:form.targetRole },
+                { label:"Scope", value:form.currentScope },
+              ].filter(r => r.value).map(r => (
+                <div key={r.label} style={{ display:"flex", justifyContent:"space-between", gap:8 }}>
+                  <span style={{ fontSize:11.5, color:"rgba(255,255,255,0.32)" }}>{r.label}</span>
+                  <span style={{ fontSize:11.5, fontWeight:700, color:"rgba(255,255,255,0.65)", textAlign:"right", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.value}</span>
+                </div>
+              ))}
+              {!form.currentTitle && <span style={{ fontSize:12, color:"rgba(255,255,255,0.22)", fontStyle:"italic" }}>Nothing filled in yet.</span>}
+            </div>
           </div>
         </div>
       </div>
