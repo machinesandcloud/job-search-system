@@ -3837,289 +3837,211 @@ function ScreenPromotionReadiness() {
     ];
 
     return (
-      <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F0F2F8" }}>
-        <div style={{ maxWidth:1180, margin:"0 auto", padding:"24px 32px 48px" }}>
-          <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, flexWrap:"wrap", marginBottom:18 }}>
-            <div>
-              <p style={{ fontSize:11.5, fontWeight:800, color:"#6D4CFF", textTransform:"uppercase", letterSpacing:"0.1em", margin:"0 0 8px" }}>Reality Check</p>
-              <h1 style={{ fontSize:28, fontWeight:900, letterSpacing:"-0.04em", color:"#111827", margin:"0 0 8px" }}>
-                {form.desiredTitle || "Your promotion case"} — is it ready?
-              </h1>
-              <p style={{ fontSize:14, color:"#68738A", lineHeight:1.7, margin:0, maxWidth:760 }}>
-                No softening. Here's where you are, what's weak, and what to fix first.
-              </p>
-            </div>
-            <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
-              <button
-                onClick={() => { setResult(null); setResultTab("overview"); setStep(1); }}
-                style={{ fontSize:13, fontWeight:700, padding:"11px 16px", borderRadius:12, border:"1px solid #D7DDF0", background:"white", color:"#334155", cursor:"pointer" }}
-              >
-                Edit answers
-              </button>
-              <button
-                onClick={() => { setResult(null); setResultTab("overview"); setStep(1); setForm(PROMOTION_READINESS_DEFAULT_FORM); setError(""); }}
-                style={{ fontSize:13, fontWeight:700, padding:"11px 16px", borderRadius:12, border:"1px solid #D7DDF0", background:"#F8FAFF", color:"#475569", cursor:"pointer" }}
-              >
-                Start fresh
-              </button>
-            </div>
-          </div>
+      <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F7F8FD" }}>
+        <div style={{ maxWidth:1180, margin:"0 auto" }}>
 
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(170px,1fr))", gap:12, marginBottom:18 }}>
-            {snapshotCards.map(card => (
-              <div key={card.label} style={{ borderRadius:18, border:"1px solid #E2E8F5", background:"linear-gradient(180deg,#FFFFFF 0%,#F8FAFF 100%)", padding:"14px 15px", boxShadow:"0 8px 24px rgba(15,23,42,0.04)" }}>
-                <div style={{ fontSize:10.5, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>{card.label}</div>
-                <div style={{ fontSize:14.5, fontWeight:800, color:"#0F172A", lineHeight:1.45 }}>{card.value}</div>
+          {/* Dark verdict banner */}
+          <div style={{ background:"linear-gradient(135deg, #0F1629 0%, #1A2240 55%, #0F1629 100%)", padding:"36px 40px 30px", position:"relative", overflow:"hidden" }}>
+            <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 14% 55%, rgba(109,76,255,0.2), transparent 40%), radial-gradient(circle at 86% 18%, rgba(59,130,246,0.13), transparent 36%)", pointerEvents:"none" }}/>
+            <div style={{ position:"relative", display:"flex", alignItems:"center", justifyContent:"space-between", gap:24, flexWrap:"wrap", marginBottom:24 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:28, flexWrap:"wrap" }}>
+                <div>
+                  <div style={{ fontSize:86, fontWeight:900, color:scoreColor, letterSpacing:"-0.06em", lineHeight:1 }}>{result.readinessScore}</div>
+                  <div style={{ fontSize:14, color:"rgba(255,255,255,0.32)", letterSpacing:"-0.01em", marginTop:2 }}>/100</div>
+                </div>
+                <div style={{ maxWidth:580 }}>
+                  <span style={{ fontSize:10.5, fontWeight:800, color:verdictStyle.color, background:verdictStyle.bg, border:`1px solid ${verdictStyle.border}`, padding:"5px 10px", borderRadius:999, display:"inline-block", marginBottom:10, textTransform:"uppercase", letterSpacing:"0.08em" }}>{result.verdict}</span>
+                  <h2 style={{ fontSize:21, fontWeight:800, color:"white", letterSpacing:"-0.03em", lineHeight:1.3, margin:"0 0 9px" }}>{result.summary}</h2>
+                  <p style={{ fontSize:14, color:"rgba(255,255,255,0.52)", lineHeight:1.72, margin:0 }}>{result.scoreReason}</p>
+                </div>
               </div>
-            ))}
+              <div style={{ display:"flex", gap:8, flexWrap:"wrap", alignSelf:"flex-start" }}>
+                <button onClick={() => { setResult(null); setResultTab("overview"); setStep(1); }} style={{ fontSize:12.5, fontWeight:700, padding:"9px 14px", borderRadius:12, border:"1px solid rgba(255,255,255,0.16)", background:"rgba(255,255,255,0.08)", color:"rgba(255,255,255,0.82)", cursor:"pointer" }}>Edit answers</button>
+                <button onClick={() => { setResult(null); setResultTab("overview"); setStep(1); setForm(PROMOTION_READINESS_DEFAULT_FORM); setError(""); }} style={{ fontSize:12.5, fontWeight:700, padding:"9px 14px", borderRadius:12, border:"1px solid rgba(255,255,255,0.09)", background:"rgba(255,255,255,0.04)", color:"rgba(255,255,255,0.44)", cursor:"pointer" }}>Start fresh</button>
+              </div>
+            </div>
+            <div style={{ position:"relative", display:"flex", gap:8, flexWrap:"wrap" }}>
+              {snapshotCards.map(card => (
+                <div key={card.label} style={{ display:"flex", alignItems:"center", gap:7, padding:"7px 13px", borderRadius:999, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.1)" }}>
+                  <span style={{ fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.38)", textTransform:"uppercase", letterSpacing:"0.09em" }}>{card.label}</span>
+                  <span style={{ fontSize:12, fontWeight:800, color:"rgba(255,255,255,0.84)" }}>{card.value}</span>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <div style={{ background:"white", border:"1px solid #E2E6F6", borderRadius:28, overflow:"hidden", boxShadow:"0 22px 48px rgba(15,23,42,0.08)" }}>
-            <div style={{ padding:"20px 22px 24px" }}>
-              <div style={{ display:"flex", alignItems:"center", gap:0, overflowX:"auto", border:"1px solid #E4E8F5", borderRadius:20, background:"#FFFFFF", marginBottom:20 }}>
-                {resultTabs.map((tab, index) => (
-                  <button key={tab.id} onClick={() => setResultTab(tab.id)} style={{ ...segmentedButtonStyle(resultTab === tab.id), borderRight:index === resultTabs.length - 1 ? "none" : "1px solid #E7EAF6" }}>
+          {/* Pill tab nav */}
+          <div style={{ padding:"22px 40px 0" }}>
+            <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:22 }}>
+              {resultTabs.map(tab => {
+                const active = resultTab === tab.id;
+                return (
+                  <button key={tab.id} onClick={() => setResultTab(tab.id)} style={{ display:"flex", alignItems:"center", gap:7, padding:"9px 16px", borderRadius:999, border:active ? "none" : "1px solid #D1D5DB", background:active ? "linear-gradient(135deg,#6D4CFF,#7C3AED)" : "white", color:active ? "white" : "#475569", fontSize:13, fontWeight:800, cursor:"pointer", transition:"all 0.14s", boxShadow:active ? "0 2px 8px rgba(109,76,255,0.28)" : "none" }}>
                     {tab.label}
-                    {tab.badge && <span style={{ fontSize:10.5, fontWeight:800, padding:"3px 8px", borderRadius:999, background:resultTab===tab.id ? "rgba(255,255,255,0.18)" : "#EEF2FF", color:resultTab===tab.id ? "white" : "#4361EE" }}>{tab.badge}</span>}
+                    {tab.badge && <span style={{ fontSize:10.5, fontWeight:800, padding:"2px 7px", borderRadius:999, background:active ? "rgba(255,255,255,0.2)" : "#EEF2FF", color:active ? "white" : "#4361EE" }}>{tab.badge}</span>}
                   </button>
-                ))}
-              </div>
+                );
+              })}
+            </div>
 
-              {resultTab === "overview" && (
-                <div style={{ display:"grid", gap:18 }}>
-                  <div style={{ ...panelCardStyle, padding:"26px 28px" }}>
-                    <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))", gap:24, alignItems:"center" }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:18 }}>
-                        <ScoreRing score={result.readinessScore} color={scoreColor} size={180} />
-                        <div>
-                          <div style={{ fontSize:11, fontWeight:800, color:"#6D4CFF", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Readiness score</div>
-                          <div style={{ fontSize:46, fontWeight:900, color:"#111827", letterSpacing:"-0.05em", lineHeight:1, marginBottom:10 }}>{result.readinessScore}</div>
-                          <div style={{ fontSize:13.5, color:"#68738A", lineHeight:1.7, maxWidth:220 }}>
-                            {result.rationale[0] ?? result.scoreReason}
-                          </div>
-                        </div>
-                      </div>
+            {resultTab === "overview" && (
+              <div style={{ display:"grid", gap:16, paddingBottom:40 }}>
+                <div style={{ borderRadius:16, background:"linear-gradient(135deg,#FEF2F2,#FFF5F5)", border:"1px solid #FECACA", padding:"18px 20px" }}>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:"#B91C1C", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:7 }}>Reality check</div>
+                  <p style={{ fontSize:14.5, color:"#7F1D1D", lineHeight:1.75, margin:0 }}>{result.realityCheck}</p>
+                </div>
 
-                      <div>
-                        <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap", marginBottom:12 }}>
-                          <span style={{ fontSize:12, fontWeight:800, color:verdictStyle.color, background:verdictStyle.bg, border:`1px solid ${verdictStyle.border}`, padding:"6px 10px", borderRadius:999 }}>{result.verdict}</span>
-                          <span style={{ fontSize:12, color:"#64748B" }}>{result.dimensions.length} dimensions scored</span>
-                        </div>
-                        <p style={{ fontSize:16, color:"#1F2937", lineHeight:1.75, margin:"0 0 14px" }}>
-                          <strong>{result.summary}</strong>
-                        </p>
-                        <div style={{ fontSize:13.5, color:"#991B1B", lineHeight:1.7, margin:"0 0 14px", padding:"12px 13px", borderRadius:14, background:"#FEF2F2", border:"1px solid #FECACA" }}>
-                          <strong>Reality check:</strong> {result.realityCheck}
-                        </div>
-                        <p style={{ fontSize:14.5, color:"#536276", lineHeight:1.8, margin:"0 0 16px" }}>{result.scoreReason}</p>
-                        <div style={{ display:"grid", gap:8, marginBottom:16 }}>
-                          {result.quickWins.slice(0, 2).map((item, index) => (
-                            <div key={`${item.title}-${index}`} style={{ padding:"11px 12px", borderRadius:14, background:"linear-gradient(135deg,#F5F3FF 0%,#EEF2FF 100%)", border:"1px solid #D9D0FF" }}>
-                              <div style={{ fontSize:11, fontWeight:800, color:"#5B3DF5", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>{item.title}</div>
-                              <div style={{ fontSize:13.2, color:"#4338CA", lineHeight:1.65 }}>{item.body}</div>
-                            </div>
-                          ))}
-                        </div>
-                        <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-                          {result.quickWins.slice(0, 3).map((item, index) => (
-                            <button
-                              key={`${item.title}-${index}`}
-                              onClick={() => setResultTab(item.jumpTo)}
-                              style={{ fontSize:12, fontWeight:800, color:"#5B3DF5", background:"#F2EEFF", border:"1px solid #D9D0FF", borderRadius:999, padding:"7px 11px", cursor:"pointer" }}
-                            >
-                              {item.title}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
+                <div style={{ borderRadius:20, background:"white", border:"1px solid #E4E8F5", boxShadow:"0 1px 3px rgba(15,23,42,0.06), 0 6px 20px rgba(15,23,42,0.04)", overflow:"hidden" }}>
+                  <div style={{ padding:"15px 20px 13px", borderBottom:"1px solid #EEF2F7", background:"#FAFBFF" }}>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.08em" }}>Dimension breakdown</div>
                   </div>
+                  {result.dimensions.map((item, index) => {
+                    const color = dimColor(item.score);
+                    return (
+                      <div key={item.label} style={{ padding:"17px 20px", borderBottom:index === result.dimensions.length - 1 ? "none" : "1px solid #EEF2F7", borderLeft:`3px solid ${color}` }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:8 }}>
+                          <div style={{ fontSize:13.5, fontWeight:800, color:"#0F172A", flex:1 }}>{item.label}</div>
+                          <div style={{ fontSize:24, fontWeight:900, color, letterSpacing:"-0.04em", lineHeight:1 }}>{item.score}</div>
+                        </div>
+                        <Bar pct={item.score} color={color} h={6} />
+                        <div style={{ fontSize:13, color:"#475569", lineHeight:1.72, marginTop:9 }}>{item.reason}</div>
+                      </div>
+                    );
+                  })}
+                </div>
 
-                  <div style={{ fontSize:14.5, color:"#536276", lineHeight:1.75 }}>
-                    {result.rationale[1] ?? result.scoreReason}
-                  </div>
-
-                  <div style={{ ...panelCardStyle, overflow:"hidden" }}>
-                    <div style={{ display:"grid", gridTemplateColumns:"minmax(180px,0.8fr) 120px minmax(240px,1fr) minmax(240px,1fr)", gap:0, padding:"14px 18px", borderBottom:"1px solid #E7EAF6", background:"#F8FAFF" }}>
-                      {["Dimension", "Score", "What it means", "What to improve"].map(label => (
-                        <div key={label} style={{ fontSize:10.5, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.08em" }}>{label}</div>
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:14 }}>
+                  <div style={{ borderRadius:18, background:"#F0FFF4", border:"1px solid #BBF7D0", padding:"18px 18px 16px" }}>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"#16A34A", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>What's solid</div>
+                    <div style={{ display:"grid", gap:8 }}>
+                      {result.strengths.map(item => (
+                        <div key={item} style={{ fontSize:13.5, color:"#14532D", lineHeight:1.75, padding:"10px 12px", borderRadius:12, background:"rgba(255,255,255,0.72)", border:"1px solid rgba(134,239,172,0.44)" }}>{item}</div>
                       ))}
                     </div>
-                    <div>
-                      {result.dimensions.map((item, index) => {
-                        const color = dimColor(item.score);
-                        const linkedGap = result.gaps[index] ?? result.gaps[0];
-                        return (
-                          <div key={item.label} style={{ display:"grid", gridTemplateColumns:"minmax(180px,0.8fr) 120px minmax(240px,1fr) minmax(240px,1fr)", gap:0, padding:"16px 18px", borderBottom:index === result.dimensions.length - 1 ? "none" : "1px solid #EEF2F7", alignItems:"start" }}>
-                            <div>
-                              <div style={{ fontSize:14, fontWeight:800, color:"#0F172A", marginBottom:8 }}>{item.label}</div>
-                              <Bar pct={item.score} color={color} h={7} />
-                            </div>
-                            <div style={{ fontSize:32, fontWeight:900, color, letterSpacing:"-0.05em", lineHeight:1 }}>{item.score}</div>
-                            <div style={{ fontSize:13.5, color:"#475569", lineHeight:1.75, paddingRight:16 }}>{item.reason}</div>
-                            <div style={{ fontSize:13.5, color:"#334155", lineHeight:1.75 }}>
-                              {linkedGap ? linkedGap.nextStep : "Keep sharpening the proof so the case is easier to repeat upward."}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
                   </div>
-
-                  <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:16 }}>
-                    <div style={{ ...panelCardStyle, padding:"18px 18px 16px" }}>
-                      <div style={{ fontSize:11, fontWeight:800, color:"#16A34A", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>What's solid</div>
-                      <div style={{ display:"grid", gap:10 }}>
-                        {result.strengths.map(item => (
-                          <div key={item} style={{ fontSize:13.5, color:"#14532D", lineHeight:1.75, padding:"11px 12px", borderRadius:14, background:"#F0FFF4", border:"1px solid #BBF7D0" }}>
-                            {item}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div style={{ ...panelCardStyle, padding:"18px 18px 16px" }}>
-                      <div style={{ fontSize:11, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>What's risky</div>
-                      <div style={{ display:"grid", gap:10 }}>
-                        {result.riskFlags.map(item => (
-                          <div key={item} style={{ fontSize:13.5, color:"#7C3D12", lineHeight:1.75, padding:"11px 12px", borderRadius:14, background:"#FFF8E8", border:"1px solid #FCD34D" }}>
-                            {item}
-                          </div>
-                        ))}
-                      </div>
+                  <div style={{ borderRadius:18, background:"#FFFBEB", border:"1px solid #FDE68A", padding:"18px 18px 16px" }}>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>What's risky</div>
+                    <div style={{ display:"grid", gap:8 }}>
+                      {result.riskFlags.map(item => (
+                        <div key={item} style={{ fontSize:13.5, color:"#78350F", lineHeight:1.75, padding:"10px 12px", borderRadius:12, background:"rgba(255,255,255,0.72)", border:"1px solid rgba(251,191,36,0.4)" }}>{item}</div>
+                      ))}
                     </div>
                   </div>
                 </div>
-              )}
 
-              {resultTab === "gaps" && (
-                <div style={{ display:"grid", gap:18 }}>
-                  <div style={{ ...panelCardStyle, padding:"22px 24px 20px" }}>
-                    <div style={{ fontSize:11, fontWeight:800, color:"#6D4CFF", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>The gaps</div>
-                    <p style={{ fontSize:15, color:"#334155", lineHeight:1.8, margin:"0 0 16px" }}>
-                      What makes the case harder to approve. Close them in order — start with the weakest signal.
-                    </p>
-                    <div style={{ display:"grid", gap:12 }}>
-                      {result.gaps.map(item => (
-                        <div key={item.area} style={{ borderRadius:18, border:"1px solid #FCD34D", background:"linear-gradient(180deg,#FFFDF7 0%,#FFF8E8 100%)", padding:"16px 18px" }}>
-                          <div style={{ fontSize:13.5, fontWeight:800, color:"#92400E", marginBottom:8 }}>{item.area}</div>
-                          <p style={{ fontSize:13.5, color:"#7C3D12", lineHeight:1.75, margin:"0 0 10px" }}>{item.why}</p>
-                          <div style={{ fontSize:12.8, color:"#334155", lineHeight:1.7, padding:"11px 12px", borderRadius:14, background:"white", border:"1px solid #E4E8F5" }}>
-                            <strong>What to do:</strong> {item.nextStep}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div style={{ ...panelCardStyle, padding:"18px 20px 16px" }}>
-                    <div style={{ fontSize:11, fontWeight:800, color:"#6D4CFF", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>The proof bar</div>
+                {result.quickWins.length > 0 && (
+                  <div style={{ borderRadius:20, background:"white", border:"1px solid #E4E8F5", boxShadow:"0 1px 3px rgba(15,23,42,0.06), 0 6px 20px rgba(15,23,42,0.04)", padding:"20px 22px" }}>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"#6D4CFF", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>Start here</div>
                     <div style={{ display:"grid", gap:10 }}>
-                      {result.evidenceChecklist.map(item => (
-                        <div key={item} style={{ fontSize:13.5, color:"#334155", lineHeight:1.75, padding:"11px 12px", borderRadius:14, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
-                          {item}
+                      {result.quickWins.map((item, index) => (
+                        <div key={`${item.title}-${index}`} onClick={() => setResultTab(item.jumpTo)} style={{ padding:"14px 16px", borderRadius:14, background:"linear-gradient(135deg,#F5F3FF,#EEF2FF)", border:"1px solid #DDD6FE", cursor:"pointer" }}>
+                          <div style={{ fontSize:10.5, fontWeight:800, color:"#5B3DF5", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:4 }}>{item.title}</div>
+                          <div style={{ fontSize:13.5, color:"#4338CA", lineHeight:1.65 }}>{item.body}</div>
                         </div>
                       ))}
                     </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
+            )}
 
-              {resultTab === "plan" && (
-                <div style={{ display:"grid", gap:18 }}>
-                  <div style={{ ...panelCardStyle, overflow:"hidden" }}>
-                    <div style={{ display:"grid", gridTemplateColumns:"120px minmax(260px,1.1fr) minmax(220px,0.9fr)", gap:0, padding:"14px 18px", borderBottom:"1px solid #E7EAF6", background:"#F8FAFF" }}>
-                      {["Step", "Action", "Why it matters"].map(label => (
-                        <div key={label} style={{ fontSize:10.5, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.08em" }}>{label}</div>
-                      ))}
-                    </div>
-                    {result.actionPlan.map((item, index) => (
-                      <div key={item.label} style={{ display:"grid", gridTemplateColumns:"120px minmax(260px,1.1fr) minmax(220px,0.9fr)", gap:0, padding:"16px 18px", borderBottom:index === result.actionPlan.length - 1 ? "none" : "1px solid #EEF2F7", alignItems:"start" }}>
-                        <div style={{ fontSize:12.5, fontWeight:800, color:"#6D4CFF", textTransform:"uppercase", letterSpacing:"0.08em" }}>{item.label}</div>
-                        <div style={{ fontSize:13.8, color:"#1F2937", lineHeight:1.75, paddingRight:16 }}>{item.action}</div>
-                        <div style={{ fontSize:13.2, color:"#536276", lineHeight:1.7 }}>
-                          {result.nextMoves[index] ?? "This step makes your promotion case easier to repeat upward."}
-                        </div>
+            {resultTab === "gaps" && (
+              <div style={{ display:"grid", gap:14, paddingBottom:40 }}>
+                <p style={{ fontSize:14, color:"#536276", lineHeight:1.8, margin:"0 0 4px" }}>What makes the case harder to approve. Close them in order — start with the weakest signal.</p>
+                {result.gaps.map((item, index) => (
+                  <div key={item.area} style={{ borderRadius:18, background:"white", border:"1px solid #E4E8F5", boxShadow:"0 1px 3px rgba(15,23,42,0.06), 0 6px 20px rgba(15,23,42,0.04)", overflow:"hidden" }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:14, padding:"17px 20px 13px" }}>
+                      <div style={{ width:32, height:32, borderRadius:10, background:"linear-gradient(135deg,#FCD34D,#F59E0B)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                        <span style={{ fontSize:15, fontWeight:900, color:"white" }}>{index + 1}</span>
                       </div>
+                      <div style={{ fontSize:14.5, fontWeight:800, color:"#92400E" }}>{item.area}</div>
+                    </div>
+                    <div style={{ padding:"0 20px 18px" }}>
+                      <p style={{ fontSize:13.5, color:"#7C3D12", lineHeight:1.75, margin:"0 0 12px" }}>{item.why}</p>
+                      <div style={{ fontSize:13, color:"#334155", lineHeight:1.7, padding:"12px 14px", borderRadius:12, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
+                        <strong>What to do:</strong> {item.nextStep}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <div style={{ borderRadius:18, background:"white", border:"1px solid #E4E8F5", boxShadow:"0 1px 3px rgba(15,23,42,0.06), 0 6px 20px rgba(15,23,42,0.04)", padding:"20px 22px" }}>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:"#6D4CFF", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>The proof bar</div>
+                  <div style={{ display:"grid", gap:8 }}>
+                    {result.evidenceChecklist.map(item => (
+                      <div key={item} style={{ fontSize:13.5, color:"#334155", lineHeight:1.75, padding:"11px 12px", borderRadius:12, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>{item}</div>
                     ))}
                   </div>
-
-                  <div style={{ ...panelCardStyle, padding:"18px 20px 16px" }}>
-                    <div style={{ fontSize:11, fontWeight:800, color:"#6D4CFF", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Supporting moves</div>
-                    <div style={{ display:"grid", gap:10 }}>
-                      {result.nextMoves.map(item => (
-                        <div key={item} style={{ fontSize:13.5, color:"#334155", lineHeight:1.75, padding:"11px 12px", borderRadius:14, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
-                          {item}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
                 </div>
-              )}
+              </div>
+            )}
 
-              {resultTab === "conversation" && (
-                <div style={{ display:"grid", gap:18 }}>
-                  <div style={{ ...panelCardStyle, padding:"22px 24px 20px", background:"linear-gradient(135deg,#EEF2FF 0%,#F4F0FF 100%)", border:"1px solid #C7D2FE" }}>
-                    <div style={{ fontSize:11, fontWeight:800, color:"#4361EE", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Opening line</div>
-                    <p style={{ fontSize:15, color:"#1E1B4B", lineHeight:1.85, margin:0 }}>{result.managerPitchExample}</p>
-                  </div>
-
-                  <div style={{ ...panelCardStyle, overflow:"hidden" }}>
-                    <div style={{ display:"grid", gridTemplateColumns:"minmax(240px,1fr) minmax(240px,1fr)", gap:0, padding:"14px 18px", borderBottom:"1px solid #E7EAF6", background:"#F8FAFF" }}>
-                      {["Questions to ask them", "How to answer"].map(label => (
-                        <div key={label} style={{ fontSize:10.5, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.08em" }}>{label}</div>
-                      ))}
+            {resultTab === "plan" && (
+              <div style={{ display:"grid", gap:12, paddingBottom:40 }}>
+                {result.actionPlan.map((item, index) => (
+                  <div key={item.label} style={{ borderRadius:18, background:"white", border:"1px solid #E4E8F5", boxShadow:"0 1px 3px rgba(15,23,42,0.06), 0 6px 20px rgba(15,23,42,0.04)", overflow:"hidden", display:"flex" }}>
+                    <div style={{ width:58, flexShrink:0, background:"linear-gradient(180deg,#6D4CFF,#4F46E5)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      <span style={{ fontSize:22, fontWeight:900, color:"white" }}>{index + 1}</span>
                     </div>
-                    <div style={{ display:"grid", gridTemplateColumns:"minmax(240px,1fr) minmax(240px,1fr)", gap:0 }}>
-                      <div style={{ padding:"18px", borderRight:"1px solid #EEF2F7" }}>
-                        <div style={{ display:"grid", gap:10 }}>
-                          {result.managerQuestions.map(item => (
-                            <div key={item} style={{ fontSize:13.5, color:"#334155", lineHeight:1.75, padding:"11px 12px", borderRadius:14, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
-                              {item}
-                            </div>
-                          ))}
+                    <div style={{ padding:"18px 20px", flex:1 }}>
+                      <div style={{ fontSize:10.5, fontWeight:800, color:"#6D4CFF", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>{item.label}</div>
+                      <div style={{ fontSize:14.5, color:"#0F172A", lineHeight:1.72, marginBottom:item.action && result.nextMoves[index] ? 9 : 0 }}>{item.action}</div>
+                      {result.nextMoves[index] && (
+                        <div style={{ fontSize:12.5, color:"#64748B", lineHeight:1.65 }}>{result.nextMoves[index]}</div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {resultTab === "conversation" && (
+              <div style={{ display:"grid", gap:16, paddingBottom:40 }}>
+                <div style={{ borderRadius:18, background:"linear-gradient(135deg,#EEF2FF,#F4F0FF)", border:"1px solid #C7D2FE", padding:"22px 24px" }}>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:"#4361EE", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Opening line</div>
+                  <p style={{ fontSize:16, color:"#1E1B4B", lineHeight:1.85, margin:0, fontStyle:"italic" }}>&ldquo;{result.managerPitchExample}&rdquo;</p>
+                </div>
+                <div style={{ borderRadius:20, background:"white", border:"1px solid #E4E8F5", boxShadow:"0 1px 3px rgba(15,23,42,0.06), 0 6px 20px rgba(15,23,42,0.04)", overflow:"hidden" }}>
+                  <div style={{ padding:"15px 20px 13px", borderBottom:"1px solid #EEF2F7", background:"#FAFBFF" }}>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.08em" }}>The conversation</div>
+                  </div>
+                  {result.managerQuestions.map((question, index) => {
+                    const ans = result.nextMoves[index] ?? (result.riskFlags[index] ?? "");
+                    return (
+                      <div key={question} style={{ padding:"18px 20px", borderBottom:index === result.managerQuestions.length - 1 ? "none" : "1px solid #EEF2F7" }}>
+                        <div style={{ padding:"12px 14px", borderRadius:12, background:"#F8FAFC", border:"1px solid #E2E8F0", marginBottom:10 }}>
+                          <div style={{ fontSize:10, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>They might ask</div>
+                          <div style={{ fontSize:13.5, color:"#334155", lineHeight:1.7 }}>{question}</div>
                         </div>
+                        {ans && (
+                          <div style={{ padding:"12px 14px", borderRadius:12, background:"#F5F3FF", border:"1px solid #DDD6FE", marginLeft:16 }}>
+                            <div style={{ fontSize:10, fontWeight:800, color:"#6D4CFF", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>How to answer</div>
+                            <div style={{ fontSize:13.5, color:"#4338CA", lineHeight:1.7 }}>{ans}</div>
+                          </div>
+                        )}
                       </div>
-                      <div style={{ padding:"18px" }}>
-                        <div style={{ display:"grid", gap:10 }}>
-                          {(result.nextMoves.slice(0, 3).length ? result.nextMoves.slice(0, 3) : result.riskFlags.slice(0, 3)).map(item => (
-                            <div key={item} style={{ fontSize:13.5, color:"#334155", lineHeight:1.75, padding:"11px 12px", borderRadius:14, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
-                              {item}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {resultTab === "examples" && (
+              <div style={{ display:"grid", gap:13, paddingBottom:40 }}>
+                {result.exampleEvidence.map(item => (
+                  <div key={item} style={{ borderRadius:16, background:"white", border:"1px solid #E4E8F5", borderLeft:"4px solid #7C3AED", boxShadow:"0 1px 3px rgba(15,23,42,0.05), 0 4px 16px rgba(15,23,42,0.04)", padding:"18px 20px" }}>
+                    <div style={{ fontSize:14, color:"#1E2235", lineHeight:1.82 }}>{item}</div>
+                  </div>
+                ))}
+                <div style={{ borderRadius:18, background:"#F0FFF4", border:"1px solid #BBF7D0", padding:"20px 22px", marginTop:4 }}>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:"#16A34A", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>The bar you're aiming for</div>
+                  <div style={{ display:"grid", gap:8 }}>
+                    {result.evidenceChecklist.map(item => (
+                      <div key={item} style={{ fontSize:13.5, color:"#14532D", lineHeight:1.75, padding:"10px 12px", borderRadius:12, background:"rgba(255,255,255,0.64)", border:"1px solid rgba(134,239,172,0.42)" }}>{item}</div>
+                    ))}
                   </div>
                 </div>
-              )}
-
-              {resultTab === "examples" && (
-                <div style={{ display:"grid", gap:18 }}>
-                  <div style={{ ...panelCardStyle, padding:"22px 24px 20px" }}>
-                    <div style={{ fontSize:11, fontWeight:800, color:"#6D4CFF", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>What proof actually looks like</div>
-                    <div style={{ display:"grid", gap:12 }}>
-                      {result.exampleEvidence.map(item => (
-                        <div key={item} style={{ fontSize:14, color:"#1E2235", lineHeight:1.8, padding:"13px 14px", borderRadius:16, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
-                          {item}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div style={{ ...panelCardStyle, padding:"18px 20px 16px" }}>
-                    <div style={{ fontSize:11, fontWeight:800, color:"#16A34A", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>The bar you're aiming for</div>
-                    <div style={{ display:"grid", gap:10 }}>
-                      {result.evidenceChecklist.map(item => (
-                        <div key={item} style={{ fontSize:13.5, color:"#14532D", lineHeight:1.75, padding:"11px 12px", borderRadius:14, background:"#F0FFF4", border:"1px solid #BBF7D0" }}>
-                          {item}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -7222,32 +7144,33 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
 
             {feedback && (
               <div style={promotionPanelStyle(theme)}>
-                <div style={{ display:"flex", alignItems:"center", gap:16, flexWrap:"wrap", marginBottom:18 }}>
-                  <ScoreRing score={feedback.overallScore} color={dimColor(feedback.overallScore)} size={72} />
-                  <div>
-                    <div style={{ fontSize:11.5, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:4 }}>Zari says</div>
-                    <h3 style={{ fontSize:28, lineHeight:1.08, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 6px" }}>
+                <div style={{ display:"flex", alignItems:"flex-start", gap:20, flexWrap:"wrap", marginBottom:20 }}>
+                  <div style={{ textAlign:"center", flexShrink:0 }}>
+                    <div style={{ fontSize:54, fontWeight:900, color:dimColor(feedback.overallScore), letterSpacing:"-0.05em", lineHeight:1 }}>{feedback.overallScore}</div>
+                    <div style={{ fontSize:10.5, fontWeight:700, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.08em", marginTop:3 }}>/100</div>
+                  </div>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:5 }}>Zari says</div>
+                    <h3 style={{ fontSize:22, lineHeight:1.22, fontWeight:800, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 7px" }}>
                       {feedback.headline || feedback.coachNote.split(/(?<=[.!?])\s+/)[0]?.trim() || "Zari's read on this answer."}
                     </h3>
-                    <p style={{ fontSize:13.5, color:"#475569", lineHeight:1.7, margin:0 }}>{feedback.coachNote}</p>
+                    <p style={{ fontSize:13.5, color:"#475569", lineHeight:1.72, margin:0 }}>{feedback.coachNote}</p>
                   </div>
                 </div>
 
-                <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))", gap:12, marginBottom:18 }}>
+                <div style={{ display:"grid", gap:8, marginBottom:20 }}>
                   {feedback.dimensions.map(dim => (
-                    <div key={dim.label} style={{ background:"rgba(248,250,252,0.92)", border:"1px solid rgba(148,163,184,0.18)", borderRadius:16, padding:"12px 13px" }}>
-                      <div style={{ display:"flex", justifyContent:"space-between", gap:12, marginBottom:8 }}>
-                        <span style={{ fontSize:12.5, fontWeight:700, color:"#334155" }}>{dim.label}</span>
-                        <span style={{ fontSize:12.5, fontWeight:800, color:dimColor(dim.score) }}>{dim.score}</span>
-                      </div>
-                      <Bar pct={dim.score} color={dimColor(dim.score)} h={6} />
+                    <div key={dim.label} style={{ display:"grid", gridTemplateColumns:"160px 1fr 36px", alignItems:"center", gap:12 }}>
+                      <div style={{ fontSize:12.5, fontWeight:700, color:"#475569", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{dim.label}</div>
+                      <Bar pct={dim.score} color={dimColor(dim.score)} h={7} />
+                      <div style={{ fontSize:13, fontWeight:800, color:dimColor(dim.score), textAlign:"right" }}>{dim.score}</div>
                     </div>
                   ))}
                 </div>
 
-                <div style={{ background:`linear-gradient(135deg, ${activeModeMeta.bg}, rgba(255,255,255,0.9))`, border:`1px solid ${activeModeMeta.color}2A`, borderRadius:18, padding:"16px 18px" }}>
-                  <div style={{ fontSize:11.5, fontWeight:800, color:activeModeMeta.color, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>{feedback.suggestedLabel || "Sharper version"}</div>
-                  <div style={{ fontSize:13.5, color:"#312E81", lineHeight:1.75, whiteSpace:"pre-wrap" }}>{feedback.suggestedResult}</div>
+                <div style={{ borderRadius:16, background:`linear-gradient(135deg, ${activeModeMeta.bg}, rgba(255,255,255,0.88))`, border:`1px solid ${activeModeMeta.color}28`, padding:"18px 20px" }}>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:activeModeMeta.color, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>{feedback.suggestedLabel || "Sharper version"}</div>
+                  <div style={{ fontSize:13.8, color:"#1E1B4B", lineHeight:1.78, whiteSpace:"pre-wrap", fontStyle:"italic" }}>{feedback.suggestedResult}</div>
                 </div>
               </div>
             )}
@@ -7645,16 +7568,16 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
                 </div>
               </div>
 
-              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))", gap:18, marginBottom:18 }}>
-                <div style={promotionPanelStyle(theme)}>
-                  <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>The strategy</div>
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))", gap:14, marginBottom:18 }}>
+                <div style={{ borderRadius:18, background:"white", border:"1px solid #E4E8F5", boxShadow:"0 1px 3px rgba(15,23,42,0.06), 0 6px 18px rgba(15,23,42,0.04)", padding:"18px 20px" }}>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>The strategy</div>
                   <div style={{ fontSize:13.8, color:"#475569", lineHeight:1.8 }}>{result.strategy}</div>
                 </div>
-                <div style={{ ...promotionPanelStyle(theme, true), border:"1px solid rgba(239,68,68,0.24)", background:"linear-gradient(180deg,#FFF6F6 0%,#FFFFFF 100%)" }}>
-                  <div style={{ fontSize:11.5, fontWeight:800, color:"#B91C1C", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>What would backfire</div>
-                  <div style={{ display:"grid", gap:10 }}>
+                <div style={{ borderRadius:18, background:"linear-gradient(180deg,#FFF6F6 0%,#FFFFFF 100%)", border:"1px solid rgba(239,68,68,0.22)", boxShadow:"0 1px 3px rgba(15,23,42,0.06), 0 6px 18px rgba(15,23,42,0.04)", padding:"18px 20px" }}>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:"#B91C1C", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>What would backfire</div>
+                  <div style={{ display:"grid", gap:9 }}>
                     {result.redFlags.map(item => (
-                      <div key={item} style={{ fontSize:13.2, color:"#7F1D1D", lineHeight:1.7, padding:"11px 12px", borderRadius:14, background:"#FFF8F8", border:"1px solid #FECACA" }}>
+                      <div key={item} style={{ fontSize:13.2, color:"#7F1D1D", lineHeight:1.7, padding:"10px 12px", borderRadius:12, background:"rgba(255,248,248,0.9)", border:"1px solid #FECACA" }}>
                         {item}
                       </div>
                     ))}
@@ -7662,126 +7585,57 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
                 </div>
               </div>
 
-              <div style={{ background:"white", border:"1px solid #D9E1F0", borderRadius:24, overflow:"hidden", boxShadow:"0 8px 30px rgba(15,23,42,0.06)" }}>
-                <div style={{ display:"flex", flexWrap:"wrap", borderBottom:"1px solid #E7EAF6", background:"#F8FAFF" }}>
-                  {[
-                    { id:"overview", label:"Overview" },
-                    { id:"documents", label:`The docs (${result.documents.length})` },
-                  ].map(tab => {
-                    const active = resultTab === tab.id;
-                    return (
-                      <button
-                        key={tab.id}
-                        onClick={() => setResultTab(tab.id as PromotionDocTab)}
-                        style={{
-                          padding:"16px 20px",
-                          border:"none",
-                          cursor:"pointer",
-                          background:active ? "linear-gradient(135deg,#8B5CF6,#6366F1)" : "transparent",
-                          color:active ? "white" : "#334155",
-                          fontSize:13.5,
-                          fontWeight:800,
-                          letterSpacing:"-0.01em",
-                          borderRight:"1px solid #E7EAF6",
-                        }}
-                      >
-                        {tab.label}
-                      </button>
-                    );
-                  })}
+              <div style={{ display:"grid", gap:14 }}>
+                <div>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>The documents ({result.documents.length})</div>
+                  <p style={{ fontSize:13.5, color:"#64748B", lineHeight:1.65, margin:0 }}>Every item has a job, a send order, and a draft you can edit and use. The point is to move the case forward — not generate filler.</p>
                 </div>
-
-                <div style={{ padding:"24px 24px 22px", display:"grid", gap:18 }}>
-                  {resultTab === "overview" && (
-                    <>
-                      <div style={{ ...promotionPanelStyle(theme, true), padding:"22px 24px 20px", border:"1px solid rgba(16,185,129,0.2)" }}>
-                        <div style={{ fontSize:11.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Zari says</div>
-                        <div style={{ fontSize:15, color:"#0F172A", lineHeight:1.85 }}>{result.coachTake}</div>
-                      </div>
-                      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:16 }}>
-                        <div style={promotionPanelStyle(theme)}>
-                          <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Send order</div>
-                          <div style={{ display:"grid", gap:10 }}>
-                            {result.documents.map((doc, index) => (
-                              <div key={`${doc.title}-${index}`} style={{ fontSize:13.4, color:"#475569", lineHeight:1.75, padding:"11px 12px", borderRadius:14, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
-                                <strong>{index + 1}. {doc.title}</strong>
-                                <div style={{ marginTop:6 }}>{doc.useWhen}</div>
-                              </div>
-                            ))}
+                {result.documents.map((doc, index) => (
+                  <div key={`${doc.title}-${index}`} style={{ borderRadius:20, background:"white", border:"1px solid #E4E8F5", boxShadow:"0 1px 3px rgba(15,23,42,0.06), 0 6px 20px rgba(15,23,42,0.04)", overflow:"hidden" }}>
+                    <div style={{ padding:"18px 22px 14px", borderBottom:"1px solid #EEF2F7" }}>
+                      <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
+                        <div>
+                          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
+                            <div style={{ width:24, height:24, borderRadius:7, background:"linear-gradient(135deg,#10B981,#059669)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                              <span style={{ fontSize:11, fontWeight:900, color:"white" }}>{index + 1}</span>
+                            </div>
+                            <div style={{ fontSize:18, lineHeight:1.2, fontWeight:800, color:"#0F172A", letterSpacing:"-0.025em" }}>{doc.title}</div>
                           </div>
-                        </div>
-                        <div style={promotionPanelStyle(theme)}>
-                          <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>What you're walking away with</div>
-                          <div style={{ display:"grid", gap:10 }}>
+                          <div style={{ display:"flex", gap:7, flexWrap:"wrap" }}>
                             {[
-                              `${result.documents.length} internal promotion documents chosen for the stage you are actually in.`,
-                              "A send order, so you do not lead with the wrong artifact too early.",
-                              "Clear purpose and timing on every document.",
-                              "Copyable and downloadable drafts you can edit instead of starting from zero.",
-                            ].map(item => (
-                              <div key={item} style={{ fontSize:13.4, color:"#475569", lineHeight:1.75, padding:"11px 12px", borderRadius:14, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
-                                {item}
-                              </div>
+                              { label:doc.channel, color:"#047857", bg:"#ECFDF5", border:"#A7F3D0" },
+                              { label:doc.audience, color:"#334155", bg:"#F8FAFC", border:"#CBD5E1" },
+                            ].map(tag => (
+                              <span key={tag.label} style={{ fontSize:10.5, fontWeight:800, padding:"4px 9px", borderRadius:999, color:tag.color, background:tag.bg, border:`1px solid ${tag.border}` }}>{tag.label}</span>
                             ))}
                           </div>
                         </div>
+                        <div style={{ display:"flex", gap:7, flexWrap:"wrap" }}>
+                          <button onClick={() => void copy(formatArtifact(doc), `document-${index}`)} style={{ fontSize:11.5, fontWeight:700, padding:"8px 11px", borderRadius:10, border:"1px solid #A7F3D0", background:"#ECFDF5", color:"#047857", cursor:"pointer" }}>
+                            {copiedSection === `document-${index}` ? "Copied" : "Copy"}
+                          </button>
+                          <button onClick={() => downloadDocument(doc, index)} style={{ fontSize:11.5, fontWeight:700, padding:"8px 11px", borderRadius:10, border:"1px solid #CBD5E1", background:"#F8FAFC", color:"#334155", cursor:"pointer" }}>
+                            Download
+                          </button>
+                        </div>
                       </div>
-                    </>
-                  )}
-
-                  {resultTab === "documents" && (
-                    <div style={{ display:"grid", gap:16 }}>
-                      <div>
-                        <div style={{ fontSize:11.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Your documents</div>
-                        <h2 style={{ fontSize:28, lineHeight:1.08, fontWeight:800, color:"#0F172A", letterSpacing:"-0.03em", margin:"0 0 6px" }}>The actual messages and docs.</h2>
-                        <div style={{ fontSize:13, color:"#64748B", lineHeight:1.6 }}>Every item has a job, a moment when it should be used, and a draft you can edit and send. The point is to move the case forward — not generate filler.</div>
-                      </div>
-                      <div style={{ display:"grid", gap:14 }}>
-                        {result.documents.map((doc, index) => (
-                          <div key={`${doc.title}-${index}`} style={{ ...promotionPanelStyle(theme, true), padding:"20px 22px 18px" }}>
-                            <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12, flexWrap:"wrap", marginBottom:12 }}>
-                              <div>
-                                <div style={{ fontSize:20, lineHeight:1.15, fontWeight:800, color:"#0F172A", letterSpacing:"-0.03em", marginBottom:8 }}>{doc.title}</div>
-                                <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:10 }}>
-                                  {[
-                                    { label:doc.channel, color:"#047857", bg:"#ECFDF5", border:"#A7F3D0" },
-                                    { label:doc.audience, color:"#334155", bg:"#F8FAFC", border:"#CBD5E1" },
-                                  ].map(tag => (
-                                    <span key={tag.label} style={{ fontSize:11, fontWeight:800, padding:"5px 9px", borderRadius:999, color:tag.color, background:tag.bg, border:`1px solid ${tag.border}` }}>
-                                  {tag.label}
-                                    </span>
-                                  ))}
-                                </div>
-                                <div style={{ fontSize:13.2, color:"#475569", lineHeight:1.7, marginBottom:4 }}>
-                                  <strong>Use case:</strong> {doc.useCase}
-                                </div>
-                                <div style={{ fontSize:13.2, color:"#475569", lineHeight:1.7 }}>
-                                  <strong>Use when:</strong> {doc.useWhen}
-                                </div>
-                              </div>
-                              <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-                                <button onClick={() => void copy(formatArtifact(doc), `document-${index}`)} style={{ fontSize:11.5, fontWeight:700, padding:"8px 10px", borderRadius:10, border:"1px solid #A7F3D0", background:"#ECFDF5", color:"#047857", cursor:"pointer" }}>
-                                  {copiedSection === `document-${index}` ? "Copied" : "Copy"}
-                                </button>
-                                <button onClick={() => downloadDocument(doc, index)} style={{ fontSize:11.5, fontWeight:700, padding:"8px 10px", borderRadius:10, border:"1px solid #CBD5E1", background:"#F8FAFC", color:"#334155", cursor:"pointer" }}>
-                                  Download
-                                </button>
-                              </div>
-                            </div>
-                            {doc.subject && (
-                              <div style={{ fontSize:13.2, color:"#0F172A", lineHeight:1.7, padding:"10px 12px", borderRadius:14, background:"#F8FAFC", border:"1px solid #E4E8F5", marginBottom:12 }}>
-                                <strong>Subject:</strong> {doc.subject}
-                              </div>
-                            )}
-                            <div style={{ fontSize:13.6, color:"#0F172A", lineHeight:1.82, whiteSpace:"pre-wrap", padding:"16px 16px 14px", borderRadius:16, background:"linear-gradient(180deg,#FFFFFF 0%,#FAFBFF 100%)", border:"1px solid #E4E8F5" }}>
-                              {doc.body}
-                            </div>
-                          </div>
-                        ))}
+                      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))", gap:10, marginTop:12 }}>
+                        <div style={{ fontSize:12.8, color:"#475569", lineHeight:1.65 }}><strong style={{ color:"#334155" }}>Use case:</strong> {doc.useCase}</div>
+                        <div style={{ fontSize:12.8, color:"#475569", lineHeight:1.65 }}><strong style={{ color:"#334155" }}>Use when:</strong> {doc.useWhen}</div>
                       </div>
                     </div>
-                  )}
-                </div>
+                    <div style={{ padding:"16px 22px 18px" }}>
+                      {doc.subject && (
+                        <div style={{ fontSize:13, color:"#0F172A", lineHeight:1.65, padding:"9px 12px", borderRadius:10, background:"#F8FAFC", border:"1px solid #E4E8F5", marginBottom:12 }}>
+                          <strong>Subject:</strong> {doc.subject}
+                        </div>
+                      )}
+                      <div style={{ fontSize:13.8, color:"#0F172A", lineHeight:1.84, whiteSpace:"pre-wrap", padding:"16px 18px 15px", borderRadius:14, background:"linear-gradient(180deg,#FFFFFF 0%,#FAFBFF 100%)", border:"1px solid #E4E8F5" }}>
+                        {doc.body}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </>
           )}
@@ -8128,35 +7982,18 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
             </div>
           </div>
 
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))", gap:18, marginBottom:18 }}>
-            <div style={{ ...promotionPanelStyle(theme, true), border:"1px solid rgba(239,68,68,0.24)", background:"linear-gradient(180deg,#FFF6F6 0%,#FFFFFF 100%)" }}>
-              <div style={{ fontSize:11.5, fontWeight:800, color:"#B91C1C", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Hard truth</div>
-              <div style={{ fontSize:14, color:"#7F1D1D", lineHeight:1.8 }}>{result.hardTruth}</div>
-            </div>
-            <div style={promotionPanelStyle(theme)}>
-              <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>How to use this</div>
-              <div style={{ display:"grid", gap:10 }}>
-                {[
-                  "Use the executive narrative to shape what leadership should associate with your name.",
-                  "Use the visibility moves to decide what to do this week, not someday.",
-                  "Use the sponsor map to make concrete asks instead of hoping support appears.",
-                  "Use the cadence and watchouts to stay visible without creating noise.",
-                ].map(item => (
-                  <div key={item} style={{ fontSize:13.2, color:"#475569", lineHeight:1.7, padding:"11px 12px", borderRadius:14, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
-                    {item}
-                  </div>
-                ))}
-              </div>
-            </div>
+          <div style={{ borderRadius:18, background:"linear-gradient(180deg,#FFF6F6 0%,#FFFFFF 100%)", border:"1px solid rgba(239,68,68,0.22)", boxShadow:"0 1px 3px rgba(15,23,42,0.06), 0 6px 18px rgba(15,23,42,0.04)", padding:"18px 20px", marginBottom:18 }}>
+            <div style={{ fontSize:10.5, fontWeight:800, color:"#B91C1C", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Hard truth</div>
+            <div style={{ fontSize:14.5, color:"#7F1D1D", lineHeight:1.8 }}>{result.hardTruth}</div>
           </div>
 
           <div style={{ background:"white", border:"1px solid #D9E1F0", borderRadius:24, overflow:"hidden", boxShadow:"0 8px 30px rgba(15,23,42,0.06)" }}>
             <div style={{ display:"flex", flexWrap:"wrap", borderBottom:"1px solid #E7EAF6", background:"#F8FAFF" }}>
               {[
                 { id:"overview", label:"Overview" },
-                { id:"moves", label:`Visibility moves (${result.visibilityMoves.length})` },
-                { id:"sponsors", label:`Who matters (${result.sponsorMap.length})` },
-                { id:"cadence", label:"The cadence" },
+                { id:"moves", label:`Moves (${result.visibilityMoves.length})` },
+                { id:"sponsors", label:`Key people (${result.sponsorMap.length})` },
+                { id:"cadence", label:"Cadence" },
               ].map(tab => {
                 const active = resultTab === tab.id;
                 return (
@@ -8164,12 +8001,12 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
                     key={tab.id}
                     onClick={() => setResultTab(tab.id as PromotionVisibilityTab)}
                     style={{
-                      padding:"16px 20px",
+                      padding:"15px 18px",
                       border:"none",
                       cursor:"pointer",
                       background:active ? "linear-gradient(135deg,#8B5CF6,#6366F1)" : "transparent",
                       color:active ? "white" : "#334155",
-                      fontSize:13.5,
+                      fontSize:13,
                       fontWeight:800,
                       letterSpacing:"-0.01em",
                       borderRight:"1px solid #E7EAF6",
@@ -8181,27 +8018,27 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
               })}
             </div>
 
-            <div style={{ padding:"24px 24px 22px", display:"grid", gap:18 }}>
+            <div style={{ padding:"22px 22px 20px", display:"grid", gap:16 }}>
               {resultTab === "overview" && (
                 <>
-                  <div style={{ ...promotionPanelStyle(theme, true), border:"1px solid rgba(59,130,246,0.24)", padding:"22px 24px 20px" }}>
-                    <div style={{ fontSize:11.5, fontWeight:800, color:"#0A66C2", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Your story</div>
-                    <h2 style={{ fontSize:28, lineHeight:1.08, fontWeight:800, color:"#0F172A", letterSpacing:"-0.03em", margin:"0 0 10px" }}>What you want decision-makers to think.</h2>
-                    <div style={{ fontSize:14, lineHeight:1.8, color:"#0F172A", whiteSpace:"pre-wrap" }}>{result.executiveNarrative}</div>
+                  <div style={{ borderRadius:18, background:"linear-gradient(135deg,#EFF6FF,#F0F9FF)", border:"1px solid rgba(59,130,246,0.22)", padding:"22px 24px" }}>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"#0A66C2", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Your story</div>
+                    <h2 style={{ fontSize:22, lineHeight:1.2, fontWeight:800, color:"#0F172A", letterSpacing:"-0.03em", margin:"0 0 12px" }}>What you want decision-makers to think.</h2>
+                    <div style={{ fontSize:14, lineHeight:1.82, color:"#0F172A", whiteSpace:"pre-wrap" }}>{result.executiveNarrative}</div>
                   </div>
-                  <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:16 }}>
-                    <div style={promotionPanelStyle(theme)}>
-                      <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Support gaps</div>
-                      <div style={{ display:"grid", gap:10 }}>
+                  <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:14 }}>
+                    <div style={{ borderRadius:18, background:"white", border:"1px solid #E4E8F5", boxShadow:"0 1px 3px rgba(15,23,42,0.05), 0 4px 14px rgba(15,23,42,0.04)", padding:"18px 18px 16px" }}>
+                      <div style={{ fontSize:10.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Support gaps</div>
+                      <div style={{ display:"grid", gap:9 }}>
                         {result.missingSupport.map(item => (
-                          <div key={item} style={{ fontSize:13.4, color:"#475569", lineHeight:1.75, padding:"11px 12px", borderRadius:14, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
+                          <div key={item} style={{ fontSize:13.4, color:"#475569", lineHeight:1.75, padding:"10px 12px", borderRadius:12, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>
                             {item}
                           </div>
                         ))}
                       </div>
                     </div>
-                    <div style={promotionPanelStyle(theme)}>
-                      <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>The priority</div>
+                    <div style={{ borderRadius:18, background:"white", border:"1px solid #E4E8F5", boxShadow:"0 1px 3px rgba(15,23,42,0.05), 0 4px 14px rgba(15,23,42,0.04)", padding:"18px 18px 16px" }}>
+                      <div style={{ fontSize:10.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>The priority</div>
                       <div style={{ fontSize:13.5, color:"#334155", lineHeight:1.75 }}>{result.overallFocus}</div>
                     </div>
                   </div>
@@ -8210,11 +8047,16 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
 
               {resultTab === "moves" && (
                 <div style={{ display:"grid", gap:12 }}>
-                  {result.visibilityMoves.map(item => (
-                    <div key={item.title} style={{ background:"rgba(248,250,252,0.92)", border:"1px solid rgba(148,163,184,0.18)", borderRadius:16, padding:"15px 16px" }}>
-                      <div style={{ fontSize:14, fontWeight:800, color:"#111827", marginBottom:6 }}>{item.title}</div>
-                      <div style={{ fontSize:13, color:"#334155", lineHeight:1.65, marginBottom:8 }}>{item.move}</div>
-                      <div style={{ fontSize:12.5, color:"#64748B", lineHeight:1.6 }}>{item.why}</div>
+                  {result.visibilityMoves.map((item, index) => (
+                    <div key={item.title} style={{ borderRadius:18, background:"white", border:"1px solid #E4E8F5", boxShadow:"0 1px 3px rgba(15,23,42,0.05), 0 4px 14px rgba(15,23,42,0.04)", overflow:"hidden", display:"flex" }}>
+                      <div style={{ width:48, flexShrink:0, background:"linear-gradient(180deg,#8B5CF6,#6366F1)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                        <span style={{ fontSize:16, fontWeight:900, color:"white" }}>{index + 1}</span>
+                      </div>
+                      <div style={{ padding:"15px 17px", flex:1 }}>
+                        <div style={{ fontSize:14, fontWeight:800, color:"#111827", marginBottom:6 }}>{item.title}</div>
+                        <div style={{ fontSize:13.2, color:"#334155", lineHeight:1.68, marginBottom:7 }}>{item.move}</div>
+                        <div style={{ fontSize:12.5, color:"#64748B", lineHeight:1.62 }}>{item.why}</div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -8223,32 +8065,34 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
               {resultTab === "sponsors" && (
                 <div style={{ display:"grid", gap:12 }}>
                   {result.sponsorMap.map(item => (
-                    <div key={item.audience} style={{ border:"1px solid rgba(148,163,184,0.18)", borderRadius:16, padding:"14px 15px", background:"rgba(255,255,255,0.74)" }}>
-                      <div style={{ fontSize:13.5, fontWeight:800, color:"#111827", marginBottom:5 }}>{item.audience}</div>
-                      <div style={{ fontSize:12.5, color:"#334155", lineHeight:1.6, marginBottom:7 }}>{item.goal}</div>
-                      <div style={{ fontSize:12.5, color:"#0A66C2", lineHeight:1.6 }}>{item.ask}</div>
+                    <div key={item.audience} style={{ borderRadius:18, background:"white", border:"1px solid #E4E8F5", boxShadow:"0 1px 3px rgba(15,23,42,0.05), 0 4px 14px rgba(15,23,42,0.04)", padding:"16px 18px" }}>
+                      <div style={{ fontSize:14, fontWeight:800, color:"#111827", marginBottom:5 }}>{item.audience}</div>
+                      <div style={{ fontSize:13, color:"#475569", lineHeight:1.65, marginBottom:12 }}>{item.goal}</div>
+                      <div style={{ fontSize:13.2, color:"#1E1B4B", lineHeight:1.7, padding:"12px 14px", borderRadius:12, background:"#F5F3FF", border:"1px solid #DDD6FE", fontStyle:"italic" }}>
+                        &ldquo;{item.ask}&rdquo;
+                      </div>
                     </div>
                   ))}
                 </div>
               )}
 
               {resultTab === "cadence" && (
-                <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:16 }}>
-                  <div style={promotionPanelStyle(theme)}>
-                    <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Weekly rhythm</div>
-                    <div style={{ display:"grid", gap:9 }}>
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:14 }}>
+                  <div style={{ borderRadius:18, background:"white", border:"1px solid #E4E8F5", boxShadow:"0 1px 3px rgba(15,23,42,0.05), 0 4px 14px rgba(15,23,42,0.04)", padding:"18px 18px 16px" }}>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Weekly rhythm</div>
+                    <div style={{ display:"grid", gap:8 }}>
                       {result.weeklyCadence.map(item => (
-                        <div key={item} style={{ fontSize:12.5, color:"#334155", lineHeight:1.6, background:"rgba(248,250,252,0.92)", border:"1px solid rgba(148,163,184,0.18)", borderRadius:12, padding:"10px 11px" }}>
+                        <div key={item} style={{ fontSize:13, color:"#334155", lineHeight:1.65, background:"#FAFBFF", border:"1px solid rgba(148,163,184,0.18)", borderRadius:12, padding:"10px 12px" }}>
                           {item}
                         </div>
                       ))}
                     </div>
                   </div>
-                  <div style={promotionPanelStyle(theme)}>
-                    <div style={{ fontSize:11.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Watchouts</div>
-                    <div style={{ display:"grid", gap:9 }}>
+                  <div style={{ borderRadius:18, background:"#FEF2F2", border:"1px solid #FECACA", boxShadow:"0 1px 3px rgba(15,23,42,0.05), 0 4px 14px rgba(15,23,42,0.04)", padding:"18px 18px 16px" }}>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"#B91C1C", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Watchouts</div>
+                    <div style={{ display:"grid", gap:8 }}>
                       {result.watchouts.map(item => (
-                        <div key={item} style={{ fontSize:12.5, color:"#7F1D1D", lineHeight:1.6, background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:12, padding:"10px 11px" }}>
+                        <div key={item} style={{ fontSize:13, color:"#7F1D1D", lineHeight:1.65, background:"rgba(255,255,255,0.64)", border:"1px solid rgba(254,202,202,0.6)", borderRadius:12, padding:"10px 12px" }}>
                           {item}
                         </div>
                       ))}
@@ -10279,22 +10123,22 @@ function ScreenPromotionRoadmap({ onNavigate, active = false }: { onNavigate: (s
         </div>
 
         {planLoading && (
-          <div style={{ ...promotionPanelStyle(theme), marginBottom:18, display:"flex", alignItems:"center", gap:12 }}>
+          <div style={{ borderRadius:16, background:"white", border:"1px solid #E4E8F5", boxShadow:"0 1px 3px rgba(15,23,42,0.06)", marginBottom:18, display:"flex", alignItems:"center", gap:12, padding:"16px 18px" }}>
             <span style={{ width:16, height:16, borderRadius:"50%", border:"2.5px solid rgba(251,113,133,0.25)", borderTopColor:"#FB7185", animation:"spin-slow 0.7s linear infinite", display:"block", flexShrink:0 }}/>
             <span style={{ fontSize:13.5, color:"#BE123C", fontWeight:700 }}>Zari is putting the sequence together…</span>
           </div>
         )}
 
-        <div style={{ ...promotionPanelStyle(theme, true), marginBottom:18 }}>
-          <div style={{ fontSize:11.5, fontWeight:800, color:theme.accent, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Zari's take</div>
-          <p style={{ fontSize:14, color:"#334155", lineHeight:1.75, margin:0 }}>
+        <div style={{ borderRadius:20, background:"linear-gradient(135deg,#2D1854 0%,#1E1245 100%)", border:"1px solid rgba(251,207,232,0.16)", boxShadow:"0 2px 12px rgba(15,23,42,0.12)", padding:"22px 24px", marginBottom:18 }}>
+          <div style={{ fontSize:10.5, fontWeight:800, color:"rgba(251,207,232,0.72)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Zari's take</div>
+          <p style={{ fontSize:15.5, color:"rgba(255,255,255,0.88)", lineHeight:1.78, margin:0 }}>
             {aiCoachNote ?? "Start with the highest-leverage tasks. The goal is to tighten the case first, then build support, then time the ask so the decision feels inevitable rather than premature."}
           </p>
         </div>
 
         <div style={{ display:"flex", gap:8, marginBottom:22, flexWrap:"wrap" }}>
           {SECTION_CARDS.map(card => (
-            <button key={card.key} onClick={() => onNavigate(card.key)} style={{ display:"flex", alignItems:"center", gap:6, padding:"6px 12px", borderRadius:999, border:`1px solid ${card.done ? `${card.color}44` : "rgba(148,163,184,0.2)"}`, background:card.done ? `${card.color}16` : "rgba(255,255,255,0.72)", color:card.done ? card.color : "#64748B", cursor:"pointer", fontSize:12, fontWeight:700 }}>
+            <button key={card.key} onClick={() => onNavigate(card.key)} style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 13px", borderRadius:999, border:`1px solid ${card.done ? `${card.color}44` : "rgba(148,163,184,0.2)"}`, background:card.done ? `${card.color}16` : "rgba(255,255,255,0.72)", color:card.done ? card.color : "#64748B", cursor:"pointer", fontSize:12.5, fontWeight:700 }}>
               {card.done
                 ? <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.2" style={{width:10,height:10}}><path d="M1.5 6l3 3 6-6"/></svg>
                 : <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" style={{width:10,height:10}}><circle cx="6" cy="6" r="4.5"/></svg>}
@@ -10310,17 +10154,20 @@ function ScreenPromotionRoadmap({ onNavigate, active = false }: { onNavigate: (s
             const groupDone = groupTasks.filter(t => done.has(t.idx)).length;
             const groupPct = groupTasks.length ? Math.round((groupDone / groupTasks.length) * 100) : 0;
             return (
-              <div key={group.id} style={promotionPanelStyle(theme, true)}>
-                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:14, flexWrap:"wrap" }}>
+              <div key={group.id} style={{ borderRadius:20, background:"white", border:"1px solid #E4E8F5", boxShadow:"0 1px 3px rgba(15,23,42,0.06), 0 6px 20px rgba(15,23,42,0.04)", padding:"20px 22px" }}>
+                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:16, flexWrap:"wrap" }}>
                   <div>
-                    <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:5 }}>
-                      <span style={{ fontSize:10.5, fontWeight:800, padding:"4px 8px", borderRadius:999, background:group.bg, color:group.accent, border:`1px solid ${group.border}`, letterSpacing:"0.08em", textTransform:"uppercase" }}>{group.label}</span>
-                      <span style={{ fontSize:12, color:"#64748B" }}>{groupDone}/{groupTasks.length} complete</span>
+                    <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:6 }}>
+                      <span style={{ fontSize:10.5, fontWeight:800, padding:"5px 10px", borderRadius:999, background:group.bg, color:group.accent, border:`1px solid ${group.border}`, letterSpacing:"0.08em", textTransform:"uppercase" }}>{group.label}</span>
+                      <span style={{ fontSize:12, color:"#94A3B8" }}>{groupDone}/{groupTasks.length} done</span>
                     </div>
-                    <h2 style={{ fontSize:28, lineHeight:1.08, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 4px" }}>{group.sublabel}</h2>
+                    <h2 style={{ fontSize:22, lineHeight:1.15, fontWeight:800, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:0 }}>{group.sublabel}</h2>
                   </div>
-                  <div style={{ width:120, height:8, borderRadius:999, background:"rgba(148,163,184,0.16)", overflow:"hidden" }}>
-                    <div style={{ width:`${groupPct}%`, height:"100%", borderRadius:999, background:group.accent, transition:"width 0.4s ease" }}/>
+                  <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                    <div style={{ fontSize:14, fontWeight:900, color:group.accent }}>{groupPct}%</div>
+                    <div style={{ width:100, height:7, borderRadius:999, background:"rgba(148,163,184,0.16)", overflow:"hidden" }}>
+                      <div style={{ width:`${groupPct}%`, height:"100%", borderRadius:999, background:group.accent, transition:"width 0.4s ease" }}/>
+                    </div>
                   </div>
                 </div>
 
