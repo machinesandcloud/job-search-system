@@ -1,0 +1,154 @@
+import { NextResponse } from "next/server";
+
+import { getCurrentUserId } from "@/lib/mvp/auth";
+import { buildUserContext } from "@/lib/mvp/context";
+import { openaiChat } from "@/lib/openai";
+import { ensureSameOrigin } from "@/lib/utils";
+
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
+function cleanStr(v: unknown) { return typeof v === "string" ? v.trim() : ""; }
+function cleanList(v: unknown, max = 6) {
+  return Array.isArray(v) ? v.map(cleanStr).filter(Boolean).slice(0, max) : [];
+}
+function mapList<T>(v: unknown, fn: (r: Record<string,unknown>) => T | null, max = 5): T[] {
+  if (!Array.isArray(v)) return [];
+  return v.map(i => i && typeof i === "object" ? fn(i as Record<string,unknown>) : null).filter(Boolean).slice(0, max) as T[];
+}
+
+function buildFallback() {
+  return {
+    compensationScore: 58,
+    marketPosition: "at",
+    marketPositionDetail: "Based on the information provided, your compensation appears near market median. Precise benchmarks require specific role, level, and location data.",
+    hardTruth: "Most professionals leave 10-25% on the table simply by not knowing the real range — or by accepting the first number before they've established their anchor.",
+    leveragePoints: [
+      "Your experience trajectory and current scope carry more weight than your title.",
+      "Remote eligibility expands your negotiable market beyond local comp bands.",
+      "The cost of replacing you is typically 50-200% of annual comp — that is the leverage floor.",
+      "Competing offers or active interviews — even early-stage — are the single strongest signal in any negotiation.",
+      "Specialized depth commands premiums. Identify what you do that is genuinely rare in your market.",
+    ],
+    benchmarks: [
+      { label: "Entry-band", value: "Market floor", context: "Minimum for qualified candidates in this function" },
+      { label: "Median", value: "Market median", context: "Mid-point for experienced professionals at this level" },
+      { label: "Top quartile", value: "Upper range", context: "What high-leverage candidates at top companies command" },
+    ],
+    negotiationMoves: [
+      { title: "Anchor first", move: "Name your number before they do. Research shows the first number sets the frame — anchor 15-20% above your actual target.", when: "At the start of any comp conversation or before an offer is made." },
+      { title: "Never accept on the spot", move: "Always ask for 48-72 hours to review any offer. Instant acceptance signals you were expecting less.", when: "When an offer or counter comes in." },
+      { title: "Bundle the ask", move: "Do not negotiate base alone. Request signing bonus, equity, title, remote flexibility, and accelerated review — all at once.", when: "When making your counter or primary ask." },
+      { title: "Silence is leverage", move: "After naming your number, stop talking. The first person to fill the silence loses ground.", when: "After every anchor or counter-offer." },
+    ],
+    counterScript: `Hi [Name],\n\nThank you for the offer — I'm genuinely excited about this opportunity. After reviewing the details carefully, I'd like to discuss the compensation package.\n\nBased on my research into market rates for this role at my experience level, and given [the specific value I bring — e.g., your domain expertise, existing relationships, or relevant track record], I'm targeting a base of [your target]. I believe this reflects fair market value for this scope and level.\n\nI'm committed to making this work and happy to discuss. When is a good time to connect?\n\n[Your Name]`,
+    watchouts: [
+      "Revealing your current comp before you have an offer weakens your anchor.",
+      "Accepting or declining the first number without a counter signals you were expecting it.",
+      "Apologizing or hedging while negotiating undermines your position before it starts.",
+    ],
+  };
+}
+
+export async function POST(request: Request) {
+  if (!ensureSameOrigin(request)) {
+    return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
+  }
+
+  const body = await request.json().catch(() => ({})) as {
+    title?: string; level?: string; industry?: string; companySize?: string;
+    currentComp?: string; targetComp?: string; packageContext?: string;
+    askType?: string; location?: string; yearsExperience?: string;
+    additionalContext?: string;
+  };
+
+  const title = (body.title ?? "").trim();
+  if (!title) return NextResponse.json({ error: "Provide your role title" }, { status: 400 });
+
+  const userId = await getCurrentUserId();
+  let userContext = "";
+  if (userId) { try { userContext = await buildUserContext(userId); } catch { /* non-fatal */ } }
+
+  const systemPrompt = `You are Zari, a sharp compensation and negotiation strategist. Analyze this person's compensation situation and build a concrete strategy for their negotiation.
+
+${userContext ? `Profile context:\n${userContext}\n` : ""}
+
+Return ONLY valid JSON:
+{
+  "compensationScore": <0-100: how well-positioned this person is to negotiate successfully>,
+  "marketPosition": "<below | at | above>",
+  "marketPositionDetail": "<1-2 sentences estimating their position vs market, honest about data limitations>",
+  "hardTruth": "<1-2 blunt sentences about their biggest risk or mistake in this negotiation>",
+  "leveragePoints": ["<specific leverage>", "<specific leverage>", "<specific leverage>", "<specific leverage>"],
+  "benchmarks": [
+    { "label": "<band name>", "value": "<concrete comp figure or range>", "context": "<what this represents>" }
+  ],
+  "negotiationMoves": [
+    { "title": "<short name>", "move": "<exactly what to do>", "when": "<when to use this>" }
+  ],
+  "counterScript": "<full email or message ready to send, with [bracket placeholders] for personalization only>",
+  "watchouts": ["<mistake to avoid>", "<mistake to avoid>", "<mistake to avoid>"]
+}
+
+Rules:
+- Be specific to their role, level, location, and ask type. No generic filler.
+- compensationScore = their negotiating LEVERAGE and preparation level, not raw comp.
+- hardTruth must be plain and direct. No reassurance. Name the real risk.
+- Benchmarks: give honest estimates or ranges. If data is limited, say so directly.
+- Generate 4-5 leverage points, 3 benchmarks, 3-4 negotiation moves, 3 watchouts.
+- The counterScript must be ready to send, professional, and specific to their situation.`;
+
+  const userPrompt = [
+    `ROLE: ${title}`,
+    body.level ? `LEVEL: ${body.level}` : "",
+    body.industry ? `INDUSTRY: ${body.industry}` : "",
+    body.companySize ? `COMPANY SIZE: ${body.companySize}` : "",
+    body.location ? `LOCATION: ${body.location}` : "",
+    body.yearsExperience ? `YEARS OF EXPERIENCE: ${body.yearsExperience}` : "",
+    body.askType ? `ASK TYPE: ${body.askType}` : "",
+    body.currentComp ? `CURRENT COMP: ${body.currentComp}` : "",
+    body.targetComp ? `TARGET COMP: ${body.targetComp}` : "",
+    body.packageContext ? `PACKAGE CONTEXT: ${body.packageContext}` : "",
+    body.additionalContext ? `ADDITIONAL CONTEXT:\n${body.additionalContext.slice(0, 2000)}` : "",
+  ].filter(Boolean).join("\n");
+
+  const reply = await openaiChat(
+    [
+      { role: "system" as const, content: systemPrompt },
+      { role: "user" as const, content: userPrompt },
+    ],
+    { model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o", temperature: 0.28, maxTokens: 1400, jsonMode: true }
+  );
+
+  const fallback = buildFallback();
+  if (!reply) return NextResponse.json(fallback);
+
+  try {
+    const p = JSON.parse(reply) as Record<string, unknown>;
+    return NextResponse.json({
+      compensationScore: typeof p.compensationScore === "number" ? Math.min(100, Math.max(0, Math.round(p.compensationScore))) : fallback.compensationScore,
+      marketPosition: cleanStr(p.marketPosition) || fallback.marketPosition,
+      marketPositionDetail: cleanStr(p.marketPositionDetail) || fallback.marketPositionDetail,
+      hardTruth: cleanStr(p.hardTruth) || fallback.hardTruth,
+      leveragePoints: cleanList(p.leveragePoints, 5).length ? cleanList(p.leveragePoints, 5) : fallback.leveragePoints,
+      benchmarks: mapList(p.benchmarks, i => {
+        const label = cleanStr(i.label), value = cleanStr(i.value), context = cleanStr(i.context);
+        return label && value ? { label, value, context } : null;
+      }, 3).length ? mapList(p.benchmarks, i => {
+        const label = cleanStr(i.label), value = cleanStr(i.value), context = cleanStr(i.context);
+        return label && value ? { label, value, context } : null;
+      }, 3) : fallback.benchmarks,
+      negotiationMoves: mapList(p.negotiationMoves, i => {
+        const title = cleanStr(i.title), move = cleanStr(i.move), when = cleanStr(i.when);
+        return title && move ? { title, move, when } : null;
+      }, 4).length ? mapList(p.negotiationMoves, i => {
+        const title = cleanStr(i.title), move = cleanStr(i.move), when = cleanStr(i.when);
+        return title && move ? { title, move, when } : null;
+      }, 4) : fallback.negotiationMoves,
+      counterScript: cleanStr(p.counterScript) || fallback.counterScript,
+      watchouts: cleanList(p.watchouts, 4).length ? cleanList(p.watchouts, 4) : fallback.watchouts,
+    });
+  } catch {
+    return NextResponse.json(fallback);
+  }
+}
