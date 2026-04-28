@@ -3498,7 +3498,7 @@ function PromotionSharedIntakeFlow({
   if (submitting) {
     return (
       <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
-        <div style={{ maxWidth:1200, margin:"0 auto", padding:"48px 40px 56px" }}>
+        <div style={{ padding:"48px 48px 56px" }}>
           <div style={{ background:"var(--z-card)", borderRadius:20, padding:"72px 32px", textAlign:"center", boxShadow:"0 8px 40px rgba(0,0,0,0.09)", border:"1px solid var(--z-bd)" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
               {[0,1,2].map(i => (
@@ -3543,7 +3543,7 @@ function PromotionSharedIntakeFlow({
             </p>
             <h1 style={{ fontSize:28, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.04em", marginBottom:10 }}>{activeStep.title}</h1>
             <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.6, maxWidth:500, margin:"0 auto 12px" }}>{activeStep.subtitle}</p>
-            <p style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.65, maxWidth:560, margin:"0 auto" }}>{sectionIntro}</p>
+            <p style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.65, }}>{sectionIntro}</p>
           </div>
 
           {step === 1 && (
@@ -3810,7 +3810,7 @@ function ScreenPromotionReadiness() {
   if (generating && !result) {
     return (
       <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
-        <div style={{ maxWidth:1200, margin:"0 auto", padding:"48px 40px 56px" }}>
+        <div style={{ padding:"48px 48px 56px" }}>
           <div style={{ background:"var(--z-card)", borderRadius:20, padding:"72px 32px", textAlign:"center", boxShadow:"0 8px 40px rgba(0,0,0,0.09)", border:"1px solid var(--z-bd)" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
               {[0,1,2].map(i => (
@@ -3911,7 +3911,7 @@ function ScreenPromotionReadiness() {
 
     return (
       <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
-        <div style={{ maxWidth:1200, margin:"0 auto" }}>
+        <div style={{ }}>
 
           {/* Dark verdict banner */}
           <div style={{ background:"linear-gradient(135deg, #070E1F 0%, #0C1830 55%, #070E1F 100%)", padding:"40px 40px 32px", position:"relative", overflow:"hidden" }}>
@@ -4260,7 +4260,7 @@ function ScreenPromotionReadiness() {
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
       {/* Page header */}
       <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"20px 40px" }}>
-        <div style={{ maxWidth:1100, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
           <div>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4 }}>
               <div style={{ width:32, height:32, borderRadius:10, background:"rgba(109,76,255,0.2)", border:"1px solid rgba(109,76,255,0.35)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:15 }}>📊</div>
@@ -4290,7 +4290,7 @@ function ScreenPromotionReadiness() {
       </div>
 
       {/* Two-column body */}
-      <div style={{ maxWidth:1200, margin:"0 auto", padding:"32px 40px 56px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
+      <div style={{ padding:"32px 48px 56px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
         {/* LEFT: Form */}
         <div>
           <div style={{ marginBottom:28 }}>
@@ -4519,13 +4519,13 @@ function ScreenSalaryCompensation() {
   if (generating && !result) {
     return (
       <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:BG_DARK }}>
-        <div style={{ maxWidth:1200, margin:"0 auto", padding:"72px 40px" }}>
+        <div style={{ padding:"72px 40px" }}>
           <div style={{ borderRadius:24, border:"1px solid rgba(16,185,129,0.2)", background:"var(--z-card)", boxShadow:"0 4px 32px rgba(0,0,0,0.09)", padding:"72px 32px", textAlign:"center" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
               {[0,1,2].map(i => <div key={i} style={{ width:11,height:11,borderRadius:"50%",background:ACCENT,animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite`,boxShadow:`0 0 10px ${ACCENT}80` }}/>)}
             </div>
             <p style={{ fontSize:18, fontWeight:800, color:"var(--z-text)", marginBottom:8, letterSpacing:"-0.02em" }}>Analyzing your position…</p>
-            <p style={{ fontSize:13.5, color:"var(--z-text3)", lineHeight:1.65, maxWidth:380, margin:"0 auto" }}>Calculating market benchmarks and building your negotiation strategy.</p>
+            <p style={{ fontSize:13.5, color:"var(--z-text3)", lineHeight:1.65, }}>Calculating market benchmarks and building your negotiation strategy.</p>
           </div>
         </div>
       </div>
@@ -4543,7 +4543,7 @@ function ScreenSalaryCompensation() {
       <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
         {/* Page header */}
         <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"20px 40px" }}>
-          <div style={{ maxWidth:1140, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
             <div style={{ display:"flex", alignItems:"center", gap:12 }}>
               <div style={{ width:32, height:32, borderRadius:10, background:"rgba(16,185,129,0.18)", border:"1px solid rgba(16,185,129,0.35)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                 <span style={{ fontSize:16 }}>💵</span>
@@ -4559,7 +4559,7 @@ function ScreenSalaryCompensation() {
             </button>
           </div>
         </div>
-        <div style={{ maxWidth:1200, margin:"0 auto" }}>
+        <div style={{ }}>
           <div style={{ background:"linear-gradient(135deg,#031009 0%,#071A10 55%,#062A18 100%)", padding:"40px 40px 32px", position:"relative", overflow:"hidden" }}>
             <div style={{ position:"absolute", inset:0, background:`radial-gradient(circle at 12% 50%, rgba(16,185,129,0.22), transparent 40%), radial-gradient(circle at 88% 20%, rgba(52,211,153,0.1), transparent 36%)`, pointerEvents:"none" }}/>
             <div style={{ position:"relative", display:"flex", alignItems:"center", gap:32, flexWrap:"wrap", marginBottom:24 }}>
@@ -4589,7 +4589,7 @@ function ScreenSalaryCompensation() {
               })}
             </div>
           </div>
-          <div style={{ padding:"28px 40px 56px" }}>
+          <div style={{ padding:"32px 48px 64px" }}>
             {tab === "overview" && (
               <div style={{ display:"grid", gap:14 }}>
                 <div style={{ borderRadius:18, background:"linear-gradient(135deg,#1A0505,#2E0A0A)", border:"1px solid rgba(239,68,68,0.22)", padding:"20px 24px" }}>
@@ -4674,7 +4674,7 @@ function ScreenSalaryCompensation() {
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:BG_DARK }}>
       {/* Page header */}
       <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"20px 40px" }}>
-        <div style={{ maxWidth:1100, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
           <div>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4 }}>
               <div style={{ width:32, height:32, borderRadius:10, background:`${ACCENT}22`, border:`1px solid ${ACCENT}40`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:15 }}>💵</div>
@@ -4699,7 +4699,7 @@ function ScreenSalaryCompensation() {
       </div>
 
       {/* Two-column body */}
-      <div style={{ maxWidth:1200, margin:"0 auto", padding:"32px 40px 56px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
+      <div style={{ padding:"32px 48px 56px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
         <div>
           <div style={{ marginBottom:28 }}>
             <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"var(--z-text3)", marginBottom:6 }}>Step {step} of 3</p>
@@ -4886,13 +4886,13 @@ function ScreenPivotAnalysis() {
   if (generating && !result) {
     return (
       <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:BG_DARK }}>
-        <div style={{ maxWidth:1200, margin:"0 auto", padding:"72px 40px" }}>
+        <div style={{ padding:"72px 40px" }}>
           <div style={{ borderRadius:24, border:"1px solid rgba(56,189,248,0.2)", background:"var(--z-card)", boxShadow:"0 4px 32px rgba(0,0,0,0.09)", padding:"72px 32px", textAlign:"center" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
               {[0,1,2].map(i => <div key={i} style={{ width:11,height:11,borderRadius:"50%",background:ACCENT,animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite`,boxShadow:`0 0 10px ${ACCENT}80` }}/>)}
             </div>
             <p style={{ fontSize:18, fontWeight:800, color:"var(--z-text)", marginBottom:8, letterSpacing:"-0.02em" }}>Analyzing your pivot…</p>
-            <p style={{ fontSize:13.5, color:"var(--z-text3)", lineHeight:1.65, maxWidth:380, margin:"0 auto" }}>Mapping your transferable assets and identifying what it takes to make this move credible.</p>
+            <p style={{ fontSize:13.5, color:"var(--z-text3)", lineHeight:1.65, }}>Mapping your transferable assets and identifying what it takes to make this move credible.</p>
           </div>
         </div>
       </div>
@@ -4910,7 +4910,7 @@ function ScreenPivotAnalysis() {
       <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
         {/* Page header */}
         <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"20px 40px" }}>
-          <div style={{ maxWidth:1140, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
             <div style={{ display:"flex", alignItems:"center", gap:12 }}>
               <div style={{ width:32, height:32, borderRadius:10, background:"rgba(56,189,248,0.18)", border:"1px solid rgba(56,189,248,0.35)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                 <span style={{ fontSize:16 }}>🔀</span>
@@ -4926,7 +4926,7 @@ function ScreenPivotAnalysis() {
             </button>
           </div>
         </div>
-        <div style={{ maxWidth:1200, margin:"0 auto" }}>
+        <div style={{ }}>
           <div style={{ background:"linear-gradient(135deg,#020B15 0%,#071828 55%,#0A2A4A 100%)", padding:"40px 40px 32px", position:"relative", overflow:"hidden" }}>
             <div style={{ position:"absolute", inset:0, background:`radial-gradient(circle at 12% 50%, rgba(56,189,248,0.2), transparent 40%), radial-gradient(circle at 88% 20%, rgba(125,211,252,0.1), transparent 36%)`, pointerEvents:"none" }}/>
             <div style={{ position:"relative", display:"flex", alignItems:"center", gap:32, flexWrap:"wrap", marginBottom:24 }}>
@@ -4958,7 +4958,7 @@ function ScreenPivotAnalysis() {
               })}
             </div>
           </div>
-          <div style={{ padding:"28px 40px 56px" }}>
+          <div style={{ padding:"32px 48px 64px" }}>
             {tab === "overview" && (
               <div style={{ display:"grid", gap:14 }}>
                 <div style={{ borderRadius:18, background:"linear-gradient(135deg,#1A0505,#2E0A0A)", border:"1px solid rgba(239,68,68,0.22)", padding:"20px 24px" }}>
@@ -5053,7 +5053,7 @@ function ScreenPivotAnalysis() {
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:BG_DARK }}>
       {/* Page header */}
       <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"20px 40px" }}>
-        <div style={{ maxWidth:1100, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
           <div>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4 }}>
               <div style={{ width:32, height:32, borderRadius:10, background:`${ACCENT}22`, border:`1px solid ${ACCENT}40`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:15 }}>🔀</div>
@@ -5078,7 +5078,7 @@ function ScreenPivotAnalysis() {
       </div>
 
       {/* Two-column body */}
-      <div style={{ maxWidth:1200, margin:"0 auto", padding:"32px 40px 56px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
+      <div style={{ padding:"32px 48px 56px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
         <div>
           <div style={{ marginBottom:28 }}>
             <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"var(--z-text3)", marginBottom:6 }}>Step {step} of 3</p>
@@ -5244,13 +5244,13 @@ function ScreenExecPositioning() {
   if (generating && !result) {
     return (
       <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:BG_DARK }}>
-        <div style={{ maxWidth:1200, margin:"0 auto", padding:"72px 40px" }}>
+        <div style={{ padding:"72px 40px" }}>
           <div style={{ borderRadius:24, border:"1px solid rgba(245,158,11,0.22)", background:"var(--z-card)", boxShadow:"0 4px 32px rgba(0,0,0,0.09)", padding:"72px 32px", textAlign:"center" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
               {[0,1,2].map(i => <div key={i} style={{ width:11,height:11,borderRadius:"50%",background:ACCENT,animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite`,boxShadow:`0 0 10px ${ACCENT}80` }}/>)}
             </div>
             <p style={{ fontSize:18, fontWeight:800, color:"var(--z-text)", marginBottom:8, letterSpacing:"-0.02em" }}>Assessing your executive presence…</p>
-            <p style={{ fontSize:13.5, color:"var(--z-text3)", lineHeight:1.65, maxWidth:400, margin:"0 auto" }}>Measuring your positioning against what C-suite and board-level credibility actually requires.</p>
+            <p style={{ fontSize:13.5, color:"var(--z-text3)", lineHeight:1.65, }}>Measuring your positioning against what C-suite and board-level credibility actually requires.</p>
           </div>
         </div>
       </div>
@@ -5268,7 +5268,7 @@ function ScreenExecPositioning() {
       <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
         {/* Page header */}
         <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"20px 40px" }}>
-          <div style={{ maxWidth:1140, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
             <div style={{ display:"flex", alignItems:"center", gap:12 }}>
               <div style={{ width:32, height:32, borderRadius:10, background:"rgba(245,158,11,0.18)", border:"1px solid rgba(245,158,11,0.35)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                 <span style={{ fontSize:16 }}>🏛️</span>
@@ -5284,7 +5284,7 @@ function ScreenExecPositioning() {
             </button>
           </div>
         </div>
-        <div style={{ maxWidth:1200, margin:"0 auto" }}>
+        <div style={{ }}>
           <div style={{ background:"linear-gradient(135deg,#0D0700 0%,#1F1100 55%,#3D2000 100%)", padding:"40px 40px 32px", position:"relative", overflow:"hidden" }}>
             <div style={{ position:"absolute", inset:0, background:`radial-gradient(circle at 12% 50%, rgba(245,158,11,0.22), transparent 40%), radial-gradient(circle at 88% 20%, rgba(252,211,77,0.1), transparent 36%)`, pointerEvents:"none" }}/>
             <div style={{ position:"relative", display:"flex", alignItems:"center", gap:32, flexWrap:"wrap", marginBottom:24 }}>
@@ -5314,7 +5314,7 @@ function ScreenExecPositioning() {
               })}
             </div>
           </div>
-          <div style={{ padding:"28px 40px 56px" }}>
+          <div style={{ padding:"32px 48px 64px" }}>
             {tab === "overview" && (
               <div style={{ display:"grid", gap:14 }}>
                 <div style={{ borderRadius:18, background:"linear-gradient(135deg,#1A0505,#2E0A0A)", border:"1px solid rgba(239,68,68,0.22)", padding:"20px 24px" }}>
@@ -5410,7 +5410,7 @@ function ScreenExecPositioning() {
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:BG_DARK }}>
       {/* Page header */}
       <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"20px 40px" }}>
-        <div style={{ maxWidth:1100, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
           <div>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4 }}>
               <div style={{ width:32, height:32, borderRadius:10, background:`${ACCENT}22`, border:`1px solid ${ACCENT}40`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:15 }}>🏛️</div>
@@ -5435,7 +5435,7 @@ function ScreenExecPositioning() {
       </div>
 
       {/* Two-column body */}
-      <div style={{ maxWidth:1200, margin:"0 auto", padding:"32px 40px 56px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
+      <div style={{ padding:"32px 48px 56px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
         <div>
           <div style={{ marginBottom:28 }}>
             <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"var(--z-text3)", marginBottom:6 }}>Step {step} of 3</p>
@@ -5942,7 +5942,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
   ══════════════════════════════════ */
   if (step === "choose") return (
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
-      <div style={{ maxWidth:1200, margin:"0 auto", padding:"40px 40px 64px" }}>
+      <div style={{ padding:"40px 48px 64px" }}>
 
         {/* Dark hero banner */}
         <div style={{ background:"linear-gradient(135deg,#4361EE,#6479F0)", borderRadius:20, padding:"32px 36px 36px", marginBottom:28, boxShadow:"0 12px 48px rgba(0,0,0,0.08)", border:"1px solid var(--z-bd)", position:"relative", overflow:"hidden" }}>
@@ -6033,7 +6033,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
   ══════════════════════════════════ */
   if (step === "job") return (
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
-      <div style={{ maxWidth:900, margin:"0 auto", padding:"40px 40px 56px" }}>
+      <div style={{ padding:"40px 40px 56px" }}>
 
         {/* Step progress */}
         <div style={{ display:"flex", justifyContent:"center", alignItems:"center", gap:0, marginBottom:32 }}>
@@ -6180,7 +6180,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
             <h1 style={{ fontSize:28, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.04em", marginBottom:10, lineHeight:1.15 }}>
               {reviewMode==="targeted" ? "Now upload your resume" : "Upload your resume"}
             </h1>
-            <p style={{ fontSize:14, color:"var(--z-text3)", lineHeight:1.6, maxWidth:380, margin:"0 auto" }}>
+            <p style={{ fontSize:14, color:"var(--z-text3)", lineHeight:1.6, }}>
               Zari scores ATS compatibility, rewrites every weak bullet, and gives you a job-ready version to send tonight.
             </p>
             {reviewMode==="targeted" && (jobDescription||targetRoleInput) && (
@@ -6333,7 +6333,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
         </div>
       )}
 
-      <div style={{ maxWidth:1400, margin:"0 auto", padding:"24px 32px 48px" }}>
+      <div style={{ padding:"24px 32px 48px" }}>
 
         {/* ── Top bar ── */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20, gap:12, flexWrap:"wrap" }}>
@@ -7598,7 +7598,7 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
 
       {/* Page header */}
       <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"20px 40px" }}>
-        <div style={{ maxWidth:1100, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
           <div>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4 }}>
               <div style={{ width:32, height:32, borderRadius:10, background:"rgba(67,97,238,0.22)", border:"1px solid rgba(67,97,238,0.4)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:15 }}>🎤</div>
@@ -7631,7 +7631,7 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
           </div>
         </div>
       ) : (
-        <div style={{ maxWidth:1200, margin:"0 auto", padding:"32px 40px 56px", display:"grid", gridTemplateColumns:"1fr 300px", gap:28, alignItems:"start" }}>
+        <div style={{ padding:"32px 48px 56px", display:"grid", gridTemplateColumns:"1fr 300px", gap:28, alignItems:"start" }}>
 
           {/* LEFT: Form */}
           <div>
@@ -7803,7 +7803,7 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
 
   return (
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
-      <div style={{ maxWidth:1200, margin:"0 auto", padding:"28px 40px" }}>
+      <div style={{ padding:"28px 40px" }}>
 
         {/* Header */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20, flexWrap:"wrap", gap:10 }}>
@@ -8244,7 +8244,7 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
   if (loadingQs && !sections) {
     return (
       <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
-        <div style={{ maxWidth:1200, margin:"0 auto", padding:"48px 40px 56px" }}>
+        <div style={{ padding:"48px 48px 56px" }}>
           <div style={{ background:"var(--z-card)", borderRadius:24, padding:"74px 32px", textAlign:"center", boxShadow:"0 2px 12px rgba(0,0,0,0.06)", border:"1px solid var(--z-bd)" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
               {[0,1,2].map(i => (
@@ -8292,7 +8292,7 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
           style={{ display:"none" }}
           onChange={e => { const f = e.target.files?.[0]; if (f) void handleUpload(f); e.target.value = ""; }}
         />
-        <div style={{ maxWidth:1200, margin:"0 auto", padding:"34px 40px 56px", position:"relative" }}>
+        <div style={{ padding:"34px 48px 56px", position:"relative" }}>
           <div style={promotionHeroStyle(theme)}>
             <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 82% 18%, rgba(251,207,232,0.18), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
             <div style={promotionHeroGridStyle()}>
@@ -8433,7 +8433,7 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
 
   return (
     <div style={promotionPageStyle(theme)}>
-      <div style={{ maxWidth:1200, margin:"0 auto", padding:"34px 40px 56px", position:"relative" }}>
+      <div style={{ padding:"34px 48px 56px", position:"relative" }}>
         <div style={promotionHeroStyle(theme)}>
           <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 84% 18%, rgba(251,207,232,0.16), transparent 26%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
           <div style={{ position:"relative", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, flexWrap:"wrap" }}>
@@ -8976,7 +8976,7 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
   if (result || generating) {
     return (
       <div style={promotionPageStyle(theme)}>
-        <div style={{ maxWidth:1200, margin:"0 auto", padding:"34px 40px 56px", position:"relative" }}>
+        <div style={{ padding:"34px 48px 56px", position:"relative" }}>
           {generating ? (
             <div style={{ ...promotionHeroStyle(theme), padding:"82px 32px", textAlign:"center" }}>
               <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 50% 12%, rgba(167,243,208,0.2), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
@@ -9102,7 +9102,7 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
   return (
     <div style={promotionPageStyle(theme)}>
       <input ref={fileInputRef} type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e => { const f = e.target.files?.[0]; if (f) void handleUpload(f); e.target.value = ""; }} />
-      <div style={{ maxWidth:1200, margin:"0 auto", padding:"34px 40px 56px", position:"relative" }}>
+      <div style={{ padding:"34px 48px 56px", position:"relative" }}>
         <div style={promotionHeroStyle(theme)}>
           <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 84% 18%, rgba(167,243,208,0.2), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
           <div style={promotionHeroGridStyle()}>
@@ -9391,7 +9391,7 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
   if (generating && !result) {
     return (
       <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
-        <div style={{ maxWidth:1200, margin:"0 auto", padding:"48px 40px 56px" }}>
+        <div style={{ padding:"48px 48px 56px" }}>
           <div style={{ background:"var(--z-card)", borderRadius:20, padding:"72px 32px", textAlign:"center", boxShadow:"0 8px 40px rgba(0,0,0,0.09)", border:"1px solid var(--z-bd)" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
               {[0,1,2].map(i => (
@@ -9411,7 +9411,7 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
   if (result) {
     return (
       <div style={promotionPageStyle(theme)}>
-        <div style={{ maxWidth:1200, margin:"0 auto", padding:"34px 40px 56px", position:"relative" }}>
+        <div style={{ padding:"34px 48px 56px", position:"relative" }}>
           <div style={promotionHeroStyle(theme)}>
             <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 82% 18%, rgba(147,197,253,0.2), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
             <div style={{ position:"relative", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, flexWrap:"wrap" }}>
@@ -9623,7 +9623,7 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
   return (
     <div style={promotionPageStyle(theme)}>
       <input ref={fileInputRef} type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e => { const f = e.target.files?.[0]; if (f) void handleUpload(f); e.target.value = ""; }} />
-      <div style={{ maxWidth:1200, margin:"0 auto", padding:"34px 40px 56px", position:"relative" }}>
+      <div style={{ padding:"34px 48px 56px", position:"relative" }}>
         <div style={promotionHeroStyle(theme)}>
           <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 84% 18%, rgba(147,197,253,0.2), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
           <div style={promotionHeroGridStyle()}>
@@ -9842,7 +9842,7 @@ function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?
 
       {/* Page header */}
       <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"20px 40px" }}>
-        <div style={{ maxWidth:1100, margin:"0 auto", display:"flex", alignItems:"center", gap:12 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:12 }}>
           <div style={{ width:32, height:32, borderRadius:10, background:"rgba(0,119,181,0.2)", border:"1px solid rgba(0,119,181,0.4)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
             <svg viewBox="0 0 24 24" fill="#38BDF8" style={{ width:16,height:16 }}><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zM9 17H6.477v-7H9v7zM7.694 8.717c-.771 0-1.286-.514-1.286-1.2s.514-1.2 1.286-1.2c.771 0 1.286.514 1.286 1.2s-.514 1.2-1.286 1.2zM18 17h-2.442v-3.826c0-1.058-.651-1.302-1.044-1.302-.394 0-1.228.163-1.228 1.302V17h-2.557v-7h2.557v1.302c.325-.652 1.058-1.302 2.276-1.302C17.349 10 18 11.058 18 13.488V17z"/></svg>
           </div>
@@ -10640,7 +10640,7 @@ function ScreenPromotionToolkit({ onNavigate }: { onNavigate: (s: string) => voi
 
       <input ref={fileInputRef} type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e => { const f = e.target.files?.[0]; if (f) void handleFile(f); e.target.value = ""; }} />
 
-      <div style={{ maxWidth:1200, margin:"0 auto", padding:"34px 40px 56px", position:"relative" }}>
+      <div style={{ padding:"34px 48px 56px", position:"relative" }}>
         <div style={promotionHeroStyle(theme)}>
           <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 84% 18%, rgba(148,163,184,0.12), transparent 32%), radial-gradient(circle at 16% 72%, rgba(100,116,139,0.1), transparent 30%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
           <div style={{ position:"relative", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:20, flexWrap:"wrap", marginBottom:20 }}>
@@ -10781,7 +10781,7 @@ function ScreenPromotionToolkit({ onNavigate }: { onNavigate: (s: string) => voi
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" style={{width:26,height:26}}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             </div>
             <p style={{ fontSize:18, fontWeight:800, color:"var(--z-text)", margin:"0 0 6px" }}>The vault is empty.</p>
-            <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.65, maxWidth:420, margin:"0 auto" }}>Complete a section or drop in a file — everything lands here.</p>
+            <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.65, }}>Complete a section or drop in a file — everything lands here.</p>
           </div>
         ) : (
           <div style={{ display:"grid", gap:12 }}>
@@ -10901,7 +10901,7 @@ function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate
 
       {/* Page header */}
       <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"20px 40px" }}>
-        <div style={{ maxWidth:1200, margin:"0 auto", display:"flex", alignItems:"center", gap:12 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:12 }}>
           <div style={{ width:32, height:32, borderRadius:10, background:"rgba(100,116,139,0.2)", border:"1px solid rgba(100,116,139,0.35)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="1.8" style={{ width:16,height:16 }}><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
           </div>
@@ -10912,7 +10912,7 @@ function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate
         </div>
       </div>
 
-      <div style={{ maxWidth:1200, margin:"0 auto", padding:"28px 40px 56px" }}>
+      <div style={{ padding:"32px 48px 64px" }}>
 
         {/* ── Hero header ── */}
         <div style={{ background:"linear-gradient(135deg,#1E293B,#0F172A)", borderRadius:18, padding:"24px 28px", marginBottom:24, boxShadow:"0 12px 40px rgba(0,0,0,0.2)", border:"1px solid var(--z-bd)", position:"relative", overflow:"hidden" }}>
@@ -11257,7 +11257,7 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
       {/* Page header */}
       <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"20px 40px" }}>
-        <div style={{ maxWidth:1100, margin:"0 auto", display:"flex", alignItems:"center", gap:12 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:12 }}>
           <div style={{ width:32, height:32, borderRadius:10, background:"rgba(16,185,129,0.18)", border:"1px solid rgba(16,185,129,0.35)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="#34D399" strokeWidth="1.8" style={{ width:16,height:16 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
           </div>
@@ -11271,7 +11271,7 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
           </button>
         </div>
       </div>
-      <div style={{ maxWidth:1200, margin:"0 auto", padding:"28px 40px 56px" }}>
+      <div style={{ padding:"32px 48px 64px" }}>
         {generating ? (
           <div style={{ background:"var(--z-card)", borderRadius:20, padding:"72px 32px", textAlign:"center", boxShadow:"0 8px 40px rgba(0,0,0,0.09)", border:"1px solid var(--z-bd)" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
@@ -11357,7 +11357,7 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
 
       {/* Page header */}
       <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"20px 40px" }}>
-        <div style={{ maxWidth:1100, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
           <div style={{ display:"flex", alignItems:"center", gap:12 }}>
             <div style={{ width:32, height:32, borderRadius:10, background:"rgba(16,185,129,0.18)", border:"1px solid rgba(16,185,129,0.35)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="#34D399" strokeWidth="1.8" style={{ width:16,height:16 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
@@ -11388,7 +11388,7 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
       </div>
 
       {/* Two-column body */}
-      <div style={{ maxWidth:1200, margin:"0 auto", padding:"32px 40px 56px", display:"grid", gridTemplateColumns:"1fr 300px", gap:28, alignItems:"start" }}>
+      <div style={{ padding:"32px 48px 56px", display:"grid", gridTemplateColumns:"1fr 300px", gap:28, alignItems:"start" }}>
 
         {/* LEFT: form */}
         <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"28px 28px 24px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
@@ -11686,7 +11686,7 @@ function ScreenPromotionRoadmap({ onNavigate, active = false }: { onNavigate: (s
   if (!isReady) {
     return (
       <div style={promotionPageStyle(theme)}>
-        <div style={{ maxWidth:1200, margin:"0 auto", padding:"34px 40px 56px", position:"relative" }}>
+        <div style={{ padding:"34px 48px 56px", position:"relative" }}>
           <div style={promotionHeroStyle(theme)}>
             <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 84% 18%, rgba(251,207,232,0.18), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
             <div style={promotionHeroGridStyle()}>
@@ -11759,7 +11759,7 @@ function ScreenPromotionRoadmap({ onNavigate, active = false }: { onNavigate: (s
 
   return (
     <div style={promotionPageStyle(theme)}>
-      <div style={{ maxWidth:1200, margin:"0 auto", padding:"34px 40px 56px", position:"relative" }}>
+      <div style={{ padding:"34px 48px 56px", position:"relative" }}>
         <div style={promotionHeroStyle(theme)}>
           <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 84% 18%, rgba(251,207,232,0.18), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
           <div style={promotionHeroGridStyle()}>
@@ -11944,7 +11944,7 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
       {/* Page header */}
       <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"20px 40px" }}>
-        <div style={{ maxWidth:1100, margin:"0 auto", display:"flex", alignItems:"center", gap:12 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:12 }}>
           <div style={{ width:32, height:32, borderRadius:10, background:"rgba(67,97,238,0.2)", border:"1px solid rgba(67,97,238,0.35)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="#818CF8" strokeWidth="1.8" style={{width:16,height:16}}><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
           </div>
@@ -11954,13 +11954,13 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
           </div>
         </div>
       </div>
-      <div style={{ maxWidth:1000, margin:"0 auto", padding:"48px 40px" }}>
+      <div style={{ padding:"48px 40px" }}>
         <div style={{ textAlign:"center", marginBottom:40 }}>
           <div style={{ width:64, height:64, borderRadius:18, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 18px", boxShadow:"0 8px 24px rgba(67,97,238,0.3)" }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" style={{width:28,height:28}}><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
           </div>
           <h1 style={{ fontSize:24, fontWeight:900, letterSpacing:"-0.03em", color:"var(--z-text)", marginBottom:10 }}>Your {STAGE_NAV_LABELS[stage].plan} isn&apos;t ready yet</h1>
-          <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.65, maxWidth:460, margin:"0 auto" }}>
+          <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.65, }}>
             Zari needs to see at least one completed section to build a personalized plan.
             {" "}Complete the steps below and come back — your plan will be waiting.
           </p>
@@ -12066,7 +12066,7 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
       {/* Page header */}
       <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"20px 40px" }}>
-        <div style={{ maxWidth:1100, margin:"0 auto", display:"flex", alignItems:"center", gap:12 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:12 }}>
           <div style={{ width:32, height:32, borderRadius:10, background:"rgba(67,97,238,0.2)", border:"1px solid rgba(67,97,238,0.35)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="#818CF8" strokeWidth="1.8" style={{width:16,height:16}}><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
           </div>
@@ -12076,7 +12076,7 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
           </div>
         </div>
       </div>
-      <div style={{ maxWidth:1200, margin:"0 auto", padding:"28px 40px 48px" }}>
+      <div style={{ padding:"28px 40px 48px" }}>
 
         {/* ── Header ── */}
         <div style={{ marginBottom:28 }}>
@@ -12268,7 +12268,7 @@ export function ZariPortal() {
   const accentInfo = SCREEN_ACCENTS[screen] ?? SCREEN_ACCENTS["session"];
 
   return (
-    <div className={isDark?"zari-dark":""} style={{ display:"flex", height:"100vh", overflow:"hidden", background:"var(--z-bg)", fontFamily:"var(--font-geist-sans,Inter,system-ui,sans-serif)", ...themeVars }}>
+    <div className={isDark?"zari-dark":""} style={{ display:"flex", height:"100vh", overflow:"hidden", background:"var(--z-bg)", fontFamily:"var(--font-geist-sans,Inter,system-ui,sans-serif)", WebkitFontSmoothing:"antialiased", MozOsxFontSmoothing:"grayscale", ...themeVars }}>
       <style>{`
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.15} }
         @keyframes bubble-appear { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
@@ -12292,6 +12292,7 @@ export function ZariPortal() {
         @keyframes sidebar-shimmer { 0%{opacity:0.4} 50%{opacity:0.7} 100%{opacity:0.4} }
         @keyframes live-ring-out { 0%{transform:translate(-50%,-50%) scale(1);opacity:0.6} 100%{transform:translate(-50%,-50%) scale(2.2);opacity:0} }
         @keyframes live-msg-in { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+        * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
         textarea::placeholder, input::placeholder { color: var(--z-text3); opacity: 1; }
         .zari-nav-btn:hover { background: rgba(0,0,0,0.04) !important; }
         .zari-nav-btn.active { background: rgba(67,97,238,0.08) !important; }
