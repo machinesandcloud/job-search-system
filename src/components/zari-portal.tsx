@@ -9756,17 +9756,20 @@ function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?
       <input ref={fileInputRef} type="file" accept=".pdf" style={{ display:"none" }}
         onChange={e=>{ const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value=""; }}/>
 
-      <div style={{ minHeight:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"40px 24px" }}>
-
-        <div style={{ textAlign:"center", marginBottom:36 }}>
-          <div style={{ width:52, height:52, borderRadius:14, background:"linear-gradient(135deg,#0077B5,#00A0DC)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px", boxShadow:"0 8px 28px rgba(0,119,181,0.5)" }}>
-            <svg viewBox="0 0 24 24" fill="white" style={{ width:26,height:26 }}><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zM9 17H6.477v-7H9v7zM7.694 8.717c-.771 0-1.286-.514-1.286-1.2s.514-1.2 1.286-1.2c.771 0 1.286.514 1.286 1.2s-.514 1.2-1.286 1.2zM18 17h-2.442v-3.826c0-1.058-.651-1.302-1.044-1.302-.394 0-1.228.163-1.228 1.302V17h-2.557v-7h2.557v1.302c.325-.652 1.058-1.302 2.276-1.302C17.349 10 18 11.058 18 13.488V17z"/></svg>
+      {/* Page header */}
+      <div style={{ background:"#0D1625", borderBottom:"1px solid rgba(255,255,255,0.08)", padding:"20px 40px" }}>
+        <div style={{ maxWidth:1100, margin:"0 auto", display:"flex", alignItems:"center", gap:12 }}>
+          <div style={{ width:32, height:32, borderRadius:10, background:"rgba(0,119,181,0.2)", border:"1px solid rgba(0,119,181,0.4)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+            <svg viewBox="0 0 24 24" fill="#38BDF8" style={{ width:16,height:16 }}><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zM9 17H6.477v-7H9v7zM7.694 8.717c-.771 0-1.286-.514-1.286-1.2s.514-1.2 1.286-1.2c.771 0 1.286.514 1.286 1.2s-.514 1.2-1.286 1.2zM18 17h-2.442v-3.826c0-1.058-.651-1.302-1.044-1.302-.394 0-1.228.163-1.228 1.302V17h-2.557v-7h2.557v1.302c.325-.652 1.058-1.302 2.276-1.302C17.349 10 18 11.058 18 13.488V17z"/></svg>
           </div>
-          <h1 style={{ fontSize:28, fontWeight:900, color:"white", letterSpacing:"-0.04em", marginBottom:8 }}>LinkedIn Profile Reviewer</h1>
-          <p style={{ fontSize:14.5, color:"rgba(255,255,255,0.5)", maxWidth:420, margin:"0 auto", lineHeight:1.6 }}>
-            Upload your LinkedIn profile PDF and get a detailed score on every section with AI rewrites.
-          </p>
+          <div>
+            <h1 style={{ fontSize:18, fontWeight:900, color:"white", letterSpacing:"-0.02em", margin:0 }}>LinkedIn Profile Reviewer</h1>
+            <p style={{ fontSize:13, color:"rgba(255,255,255,0.4)", margin:0 }}>Upload your LinkedIn PDF and get a score on every section with AI rewrites.</p>
+          </div>
         </div>
+      </div>
+
+      <div style={{ display:"flex", flexDirection:"column", alignItems:"center", padding:"40px 24px" }}>
 
         {parseLoading ? (
           <div style={{ background:"#0D1625", boxShadow:"0 2px 20px rgba(0,0,0,0.4)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:20, padding:"40px 56px", textAlign:"center", maxWidth:360, width:"100%" }}>
@@ -9907,7 +9910,24 @@ function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?
   }
 
   return (
-    <div style={{ height:"calc(100vh - 56px)", display:"flex", overflow:"hidden" }}>
+    <div style={{ height:"calc(100vh - 56px)", display:"flex", flexDirection:"column", overflow:"hidden" }}>
+
+      {/* Page header */}
+      <div style={{ background:"#0D1625", borderBottom:"1px solid rgba(255,255,255,0.08)", padding:"16px 24px", flexShrink:0 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+          <div style={{ width:28, height:28, borderRadius:8, background:"rgba(0,119,181,0.2)", border:"1px solid rgba(0,119,181,0.4)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+            <svg viewBox="0 0 24 24" fill="#38BDF8" style={{ width:14,height:14 }}><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zM9 17H6.477v-7H9v7zM7.694 8.717c-.771 0-1.286-.514-1.286-1.2s.514-1.2 1.286-1.2c.771 0 1.286.514 1.286 1.2s-.514 1.2-1.286 1.2zM18 17h-2.442v-3.826c0-1.058-.651-1.302-1.044-1.302-.394 0-1.228.163-1.228 1.302V17h-2.557v-7h2.557v1.302c.325-.652 1.058-1.302 2.276-1.302C17.349 10 18 11.058 18 13.488V17z"/></svg>
+          </div>
+          <h1 style={{ fontSize:16, fontWeight:900, color:"white", letterSpacing:"-0.02em", margin:0, flex:1 }}>LinkedIn Profile Reviewer</h1>
+          <button onClick={()=>{ setInputMode(true); setResult(null); }}
+            style={{ padding:"7px 16px", borderRadius:8, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"rgba(255,255,255,0.7)", fontSize:12.5, fontWeight:600, cursor:"pointer" }}>
+            Analyze new profile
+          </button>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div style={{ flex:1, display:"flex", overflow:"hidden" }}>
 
       {/* ── Left sidebar ── */}
       <div style={{ width:224, background:"linear-gradient(180deg,#0D1321 0%,#0A1628 60%,#0D1321 100%)", flexShrink:0, display:"flex", flexDirection:"column", overflowY:"auto", position:"relative" }}>
@@ -10409,6 +10429,7 @@ function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?
           </div>
         </div>
       </div>
+      </div>{/* /Content */}
     </div>
   );
 }
@@ -10796,6 +10817,19 @@ function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate
       <input ref={fileInputRef} type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }}
         onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleFile(f); e.target.value=""; }}/>
 
+      {/* Page header */}
+      <div style={{ background:"#0D1625", borderBottom:"1px solid rgba(255,255,255,0.08)", padding:"20px 40px" }}>
+        <div style={{ maxWidth:900, margin:"0 auto", display:"flex", alignItems:"center", gap:12 }}>
+          <div style={{ width:32, height:32, borderRadius:10, background:"rgba(100,116,139,0.2)", border:"1px solid rgba(100,116,139,0.35)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="1.8" style={{ width:16,height:16 }}><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+          </div>
+          <div>
+            <h1 style={{ fontSize:18, fontWeight:900, color:"white", letterSpacing:"-0.02em", margin:0 }}>Document Vault</h1>
+            <p style={{ fontSize:13, color:"rgba(255,255,255,0.4)", margin:0 }}>All your career documents — resumes, cover letters, LinkedIn exports — in one place.</p>
+          </div>
+        </div>
+      </div>
+
       <div style={{ maxWidth:900, margin:"0 auto", padding:"28px 28px 56px" }}>
 
         {/* ── Hero header ── */}
@@ -11139,6 +11173,22 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
   // ── Show result page once generated ──
   if (result || generating) return (
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#080C14" }}>
+      {/* Page header */}
+      <div style={{ background:"#0D1625", borderBottom:"1px solid rgba(255,255,255,0.08)", padding:"20px 40px" }}>
+        <div style={{ maxWidth:1100, margin:"0 auto", display:"flex", alignItems:"center", gap:12 }}>
+          <div style={{ width:32, height:32, borderRadius:10, background:"rgba(16,185,129,0.18)", border:"1px solid rgba(16,185,129,0.35)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#34D399" strokeWidth="1.8" style={{ width:16,height:16 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          </div>
+          <div style={{ flex:1 }}>
+            <h1 style={{ fontSize:18, fontWeight:900, color:"white", letterSpacing:"-0.02em", margin:0 }}>Cover Letter</h1>
+            <p style={{ fontSize:13, color:"rgba(255,255,255,0.4)", margin:0 }}>AI-tailored letter written in your voice from your background.</p>
+          </div>
+          <button onClick={()=>{ setResult(null); setGenerating(false); setStep(1); }}
+            style={{ padding:"7px 16px", borderRadius:8, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"rgba(255,255,255,0.7)", fontSize:12.5, fontWeight:600, cursor:"pointer" }}>
+            New letter
+          </button>
+        </div>
+      </div>
       <div style={{ maxWidth:760, margin:"0 auto", padding:"28px 24px 56px" }}>
         {generating ? (
           <div style={{ background:"#0D1625", borderRadius:20, padding:"72px 32px", textAlign:"center", boxShadow:"0 8px 40px rgba(0,0,0,0.5)", border:"1px solid rgba(255,255,255,0.08)" }}>
@@ -11211,40 +11261,63 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
   );
 
   // ── Setup wizard ──
+  const CL_STEP_CTX = [
+    { icon:"📄", label:"Your background", desc:"Zari writes in your voice — the more context you give it about your background, the more personalized your letter.", tips:["Paste your resume or LinkedIn About section","A full background lets Zari match your tone and story","Upload a PDF if that's easier than pasting"] },
+    { icon:"🎯", label:"Job description", desc:"The job posting is the brief. Zari tailors every sentence to the specific role, not a generic version of the letter.", tips:["Paste the full posting for the best match","Use the URL fetcher if you have a link","Longer postings give Zari more to work with"] },
+    { icon:"✍️", label:"Customize", desc:"Role details and tone shape the letter's opening, sign-off, and overall register — small inputs, big impact.", tips:["Add the company name so Zari uses it naturally","Your name appears in the closing signature","Pick the tone that fits the company's culture"] },
+  ];
+  const clCtx = CL_STEP_CTX[step - 1];
+
   return (
     <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#070C18" }}>
       <input ref={profileInputRef} type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }}
         onChange={e=>{ const f=e.target.files?.[0]; if(f) { void handleUpload(f); } e.target.value=""; }}/>
 
-      <div style={{ minHeight:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"48px 24px" }}>
-
-        {/* Step dots */}
-        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:40 }}>
-          {[1,2,3].map(s => (
-            <div key={s} style={{ display:"flex", alignItems:"center", gap:10 }}>
-              <div style={{ width:28, height:28, borderRadius:"50%", border:`2px solid ${s < step ? "#4ADE80" : s === step ? "#4361EE" : "rgba(255,255,255,0.15)"}`, background:s < step ? "rgba(74,222,128,0.15)" : s === step ? "rgba(67,97,238,0.2)" : "transparent", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
-                {s < step
-                  ? <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2" style={{width:12,height:12}}><polyline points="2,6 5,9 10,3"/></svg>
-                  : <span style={{ fontSize:11, fontWeight:700, color:s === step ? "#818CF8" : "rgba(255,255,255,0.25)" }}>{s}</span>
-                }
-              </div>
-              {s < 3 && <div style={{ width:32, height:2, borderRadius:99, background:s < step ? "rgba(74,222,128,0.4)" : "rgba(255,255,255,0.08)", transition:"all 0.3s" }}/>}
+      {/* Page header */}
+      <div style={{ background:"#0D1625", borderBottom:"1px solid rgba(255,255,255,0.08)", padding:"20px 40px" }}>
+        <div style={{ maxWidth:1100, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+            <div style={{ width:32, height:32, borderRadius:10, background:"rgba(16,185,129,0.18)", border:"1px solid rgba(16,185,129,0.35)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="#34D399" strokeWidth="1.8" style={{ width:16,height:16 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
             </div>
-          ))}
+            <div>
+              <h1 style={{ fontSize:18, fontWeight:900, color:"white", letterSpacing:"-0.02em", margin:0 }}>Cover Letter</h1>
+              <p style={{ fontSize:13, color:"rgba(255,255,255,0.4)", margin:0 }}>AI-tailored letter written in your voice.</p>
+            </div>
+          </div>
+          {/* Step progress bar */}
+          <div style={{ display:"flex", alignItems:"center" }}>
+            {([1,2,3] as const).map(s => (
+              <div key={s} style={{ display:"flex", alignItems:"center" }}>
+                <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:5 }}>
+                  <div style={{ width:32, height:32, borderRadius:"50%", border:`2px solid ${s < step ? "#4ADE80" : s === step ? "#34D399" : "rgba(255,255,255,0.12)"}`, background:s < step ? "rgba(74,222,128,0.15)" : s === step ? "rgba(52,211,153,0.18)" : "rgba(255,255,255,0.04)", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
+                    {s < step
+                      ? <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2.5" style={{width:12,height:12}}><polyline points="2,6 5,9 10,3"/></svg>
+                      : <span style={{ fontSize:12, fontWeight:700, color:s === step ? "#34D399" : "rgba(255,255,255,0.22)" }}>{s}</span>
+                    }
+                  </div>
+                  <span style={{ fontSize:10, fontWeight:700, color:s === step ? "#34D399" : s < step ? "rgba(74,222,128,0.7)" : "rgba(255,255,255,0.2)", letterSpacing:"0.04em", whiteSpace:"nowrap" }}>{CL_STEP_CTX[s-1].label}</span>
+                </div>
+                {s < 3 && <div style={{ width:40, height:2, borderRadius:99, background:s < step ? "rgba(74,222,128,0.35)" : "rgba(255,255,255,0.07)", margin:"0 6px", marginBottom:18, transition:"all 0.3s" }}/>}
+              </div>
+            ))}
+          </div>
         </div>
+      </div>
 
-        <div style={{ width:"100%", maxWidth:520 }}>
-          {/* Step heading */}
-          <div style={{ textAlign:"center", marginBottom:32 }}>
-            <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"rgba(255,255,255,0.35)", marginBottom:8 }}>Step {step} of 3</p>
-            <h1 style={{ fontSize:28, fontWeight:900, color:"white", letterSpacing:"-0.04em", marginBottom:10 }}>{STEP_TITLES[step-1]}</h1>
-            <p style={{ fontSize:14, color:"rgba(255,255,255,0.45)", lineHeight:1.6, maxWidth:380, margin:"0 auto" }}>{STEP_SUBTITLES[step-1]}</p>
+      {/* Two-column body */}
+      <div style={{ maxWidth:1100, margin:"0 auto", padding:"32px 40px 56px", display:"grid", gridTemplateColumns:"1fr 300px", gap:28, alignItems:"start" }}>
+
+        {/* LEFT: form */}
+        <div style={{ background:"#0D1625", border:"1px solid rgba(255,255,255,0.08)", borderRadius:20, padding:"28px 28px 24px", boxShadow:"0 2px 20px rgba(0,0,0,0.4)" }}>
+          <div style={{ marginBottom:24 }}>
+            <h2 style={{ fontSize:20, fontWeight:900, color:"white", letterSpacing:"-0.03em", margin:"0 0 6px" }}>{STEP_TITLES[step-1]}</h2>
+            <p style={{ fontSize:13.5, color:"rgba(255,255,255,0.45)", lineHeight:1.6, margin:0 }}>{STEP_SUBTITLES[step-1]}</p>
           </div>
 
           {/* ── Step 1: Background ── */}
           {step === 1 && (
             <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-              {/* Paste or upload toggle */}
               <div style={{ display:"flex", background:"rgba(255,255,255,0.06)", borderRadius:10, padding:2, width:"fit-content" }}>
                 {(["paste","upload"] as const).map(m => (
                   <button key={m} onClick={()=>{ if(m==="upload") profileInputRef.current?.click(); }}
@@ -11253,7 +11326,6 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
                   </button>
                 ))}
               </div>
-
               {profileFile ? (
                 <div style={{ background:"rgba(74,222,128,0.08)", border:"1px solid rgba(74,222,128,0.3)", borderRadius:18, padding:"18px 22px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
                   <div style={{ display:"flex", alignItems:"center", gap:12 }}>
@@ -11276,24 +11348,24 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
                     onDragOver={e=>{ e.preventDefault(); setProfileDrag(true); }}
                     onDragLeave={()=>setProfileDrag(false)}
                     onDrop={e=>{ e.preventDefault(); setProfileDrag(false); const f=e.dataTransfer.files?.[0]; if(f) void handleUpload(f); }}
-                    style={{ background:profileDrag?"rgba(67,97,238,0.18)":"rgba(255,255,255,0.04)", border:`2px dashed ${profileDrag?"#4361EE":"rgba(255,255,255,0.15)"}`, borderRadius:20, padding:"32px 24px", cursor:"pointer", textAlign:"center", transition:"all 0.15s" }}>
-                    <div style={{ width:44, height:44, borderRadius:12, background:"rgba(67,97,238,0.2)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 14px" }}>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="#818CF8" strokeWidth="1.8" style={{ width:22,height:22 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
+                    style={{ background:profileDrag?"rgba(67,97,238,0.18)":"rgba(255,255,255,0.04)", border:`2px dashed ${profileDrag?"#4361EE":"rgba(255,255,255,0.15)"}`, borderRadius:16, padding:"28px 24px", cursor:"pointer", textAlign:"center", transition:"all 0.15s" }}>
+                    <div style={{ width:44, height:44, borderRadius:12, background:"rgba(52,211,153,0.18)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 14px" }}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="#34D399" strokeWidth="1.8" style={{ width:22,height:22 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
                     </div>
                     <p style={{ fontSize:15, fontWeight:700, color:"white", marginBottom:5 }}>{profileDrag ? "Drop your file here" : "Upload resume or LinkedIn PDF"}</p>
                     <p style={{ fontSize:12.5, color:"rgba(255,255,255,0.4)", marginBottom:14 }}>Drag and drop, or click to browse</p>
-                    <span style={{ fontSize:12, fontWeight:700, padding:"6px 16px", borderRadius:99, background:"rgba(67,97,238,0.3)", color:"#A5B4FC", border:"1px solid rgba(67,97,238,0.4)" }}>Choose file · PDF, DOCX, TXT</span>
+                    <span style={{ fontSize:12, fontWeight:700, padding:"6px 16px", borderRadius:99, background:"rgba(52,211,153,0.2)", color:"#6EE7B7", border:"1px solid rgba(52,211,153,0.35)" }}>Choose file · PDF, DOCX, TXT</span>
                   </div>
                   <p style={{ textAlign:"center", fontSize:12, color:"rgba(255,255,255,0.25)", margin:0 }}>— or paste below —</p>
                   <textarea
-                    style={{ width:"100%", minHeight:130, border:"1px solid rgba(255,255,255,0.08)", borderRadius:14, padding:"12px 14px", fontSize:13, color:"white", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"#0D1625", boxShadow:"0 2px 20px rgba(0,0,0,0.4)", lineHeight:1.65 }}
+                    style={{ width:"100%", minHeight:130, border:"1px solid rgba(255,255,255,0.08)", borderRadius:14, padding:"13px 16px", fontSize:14, color:"white", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"rgba(255,255,255,0.05)", lineHeight:1.65, transition:"border-color 0.15s" }}
                     placeholder="Paste your resume text, LinkedIn About section, or a summary of your background…"
                     value={profileText} onChange={e=>setProfileText(e.target.value)}
                   />
                 </>
               )}
               <button onClick={()=>setStep(2)} disabled={!profileText.trim() && !profileFile}
-                style={{ width:"100%", fontSize:14.5, fontWeight:700, padding:"14px", borderRadius:14, border:"none", background:(profileText.trim()||profileFile)?"linear-gradient(135deg,#4361EE,#818CF8)":"rgba(255,255,255,0.06)", color:(profileText.trim()||profileFile)?"white":"rgba(255,255,255,0.25)", cursor:(profileText.trim()||profileFile)?"pointer":"default", boxShadow:(profileText.trim()||profileFile)?"0 8px 24px rgba(67,97,238,0.4)":"none", transition:"all 0.2s" }}>
+                style={{ width:"100%", fontSize:14.5, fontWeight:700, padding:"14px", borderRadius:14, border:"none", background:(profileText.trim()||profileFile)?"linear-gradient(135deg,#10B981,#34D399)":"rgba(255,255,255,0.06)", color:(profileText.trim()||profileFile)?"white":"rgba(255,255,255,0.25)", cursor:(profileText.trim()||profileFile)?"pointer":"default", boxShadow:(profileText.trim()||profileFile)?"0 8px 24px rgba(16,185,129,0.35)":"none", transition:"all 0.2s" }}>
                 Continue →
               </button>
             </div>
@@ -11302,7 +11374,7 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
           {/* ── Step 2: Job description ── */}
           {step === 2 && (
             <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-              <div style={{ background:"#0D1625", boxShadow:"0 2px 20px rgba(0,0,0,0.4)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:18, padding:18 }}>
+              <div style={{ border:"1px solid rgba(255,255,255,0.08)", borderRadius:14, padding:16 }}>
                 <div style={{ display:"flex", background:"rgba(255,255,255,0.06)", borderRadius:8, padding:2, marginBottom:14, width:"fit-content" }}>
                   {(["paste","url"] as const).map(m => (
                     <button key={m} onClick={()=>{ setJdMode(m); setUrlFetchErr(""); }} style={{ fontSize:12, fontWeight:600, padding:"6px 16px", borderRadius:6, border:"none", background:jdMode===m?"rgba(255,255,255,0.12)":"transparent", color:jdMode===m?"white":"rgba(255,255,255,0.45)", cursor:"pointer", transition:"all 0.15s" }}>
@@ -11312,7 +11384,7 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
                 </div>
                 {jdMode === "paste" ? (
                   <textarea
-                    style={{ width:"100%", minHeight:180, border:"1px solid rgba(255,255,255,0.08)", borderRadius:10, padding:"12px 14px", fontSize:13, color:"white", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"#0D1625", boxShadow:"0 2px 20px rgba(0,0,0,0.4)", lineHeight:1.65 }}
+                    style={{ width:"100%", minHeight:200, border:"1px solid rgba(255,255,255,0.08)", borderRadius:10, padding:"13px 16px", fontSize:14, color:"white", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"rgba(255,255,255,0.05)", lineHeight:1.65, transition:"border-color 0.15s" }}
                     placeholder="Paste the full job posting…"
                     value={jobDesc} onChange={e=>setJobDesc(e.target.value)}
                   />
@@ -11321,9 +11393,9 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
                     <div style={{ display:"flex", gap:8 }}>
                       <input type="url" value={jobUrl} onChange={e=>{ setJobUrl(e.target.value); setUrlFetchErr(""); }} onKeyDown={e=>{ if(e.key==="Enter") void fetchJd(); }}
                         placeholder="https://jobs.lever.co/… or LinkedIn, Greenhouse, etc."
-                        style={{ flex:1, border:"1px solid rgba(255,255,255,0.12)", borderRadius:10, padding:"11px 14px", fontSize:13, color:"white", outline:"none", fontFamily:"inherit", background:"#0D1625", boxShadow:"0 2px 20px rgba(0,0,0,0.4)" }}/>
+                        style={{ flex:1, border:"1px solid rgba(255,255,255,0.08)", borderRadius:10, padding:"13px 16px", fontSize:14, color:"white", outline:"none", fontFamily:"inherit", background:"rgba(255,255,255,0.05)", transition:"border-color 0.15s" }}/>
                       <button onClick={()=>void fetchJd()} disabled={fetchingUrl||!jobUrl.trim()}
-                        style={{ padding:"11px 20px", borderRadius:10, border:"none", background:jobUrl.trim()&&!fetchingUrl?"#4361EE":"rgba(255,255,255,0.08)", color:jobUrl.trim()&&!fetchingUrl?"white":"rgba(255,255,255,0.3)", fontSize:13, fontWeight:700, cursor:jobUrl.trim()&&!fetchingUrl?"pointer":"default", flexShrink:0 }}>
+                        style={{ padding:"11px 20px", borderRadius:10, border:"none", background:jobUrl.trim()&&!fetchingUrl?"#10B981":"rgba(255,255,255,0.08)", color:jobUrl.trim()&&!fetchingUrl?"white":"rgba(255,255,255,0.3)", fontSize:13, fontWeight:700, cursor:jobUrl.trim()&&!fetchingUrl?"pointer":"default", flexShrink:0 }}>
                         {fetchingUrl ? "…" : "Fetch"}
                       </button>
                     </div>
@@ -11335,7 +11407,7 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
               <div style={{ display:"flex", gap:10 }}>
                 <button onClick={()=>setStep(1)} style={{ padding:"14px 20px", borderRadius:14, border:"1px solid rgba(255,255,255,0.1)", background:"transparent", color:"rgba(255,255,255,0.45)", fontSize:14, fontWeight:600, cursor:"pointer" }}>← Back</button>
                 <button onClick={()=>setStep(3)} disabled={!jobDesc.trim()}
-                  style={{ flex:1, fontSize:14.5, fontWeight:700, padding:"14px", borderRadius:14, border:"none", background:jobDesc.trim()?"linear-gradient(135deg,#4361EE,#818CF8)":"rgba(255,255,255,0.06)", color:jobDesc.trim()?"white":"rgba(255,255,255,0.25)", cursor:jobDesc.trim()?"pointer":"default", boxShadow:jobDesc.trim()?"0 8px 24px rgba(67,97,238,0.4)":"none", transition:"all 0.2s" }}>
+                  style={{ flex:1, fontSize:14.5, fontWeight:700, padding:"14px", borderRadius:14, border:"none", background:jobDesc.trim()?"linear-gradient(135deg,#10B981,#34D399)":"rgba(255,255,255,0.06)", color:jobDesc.trim()?"white":"rgba(255,255,255,0.25)", cursor:jobDesc.trim()?"pointer":"default", boxShadow:jobDesc.trim()?"0 8px 24px rgba(16,185,129,0.35)":"none", transition:"all 0.2s" }}>
                   Continue →
                 </button>
               </div>
@@ -11345,20 +11417,18 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
           {/* ── Step 3: Customize ── */}
           {step === 3 && (
             <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-              {/* Company + role */}
-              <div style={{ background:"#0D1625", boxShadow:"0 2px 20px rgba(0,0,0,0.4)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:18, padding:18, display:"flex", flexDirection:"column", gap:10 }}>
+              <div style={{ border:"1px solid rgba(255,255,255,0.08)", borderRadius:14, padding:18, display:"flex", flexDirection:"column", gap:12 }}>
                 <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.07em", color:"rgba(255,255,255,0.35)", margin:0 }}>Role details (optional)</p>
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
                   <input value={company} onChange={e=>setCompany(e.target.value)} placeholder="Company name"
-                    style={{ border:"1px solid rgba(255,255,255,0.12)", borderRadius:10, padding:"11px 14px", fontSize:13, color:"white", outline:"none", fontFamily:"inherit", background:"#0D1625", boxShadow:"0 2px 20px rgba(0,0,0,0.4)" }}/>
+                    style={{ border:"1px solid rgba(255,255,255,0.08)", borderRadius:10, padding:"13px 16px", fontSize:14, color:"white", outline:"none", fontFamily:"inherit", background:"rgba(255,255,255,0.05)", transition:"border-color 0.15s" }}/>
                   <input value={targetRole} onChange={e=>setTargetRole(e.target.value)} placeholder="Target role"
-                    style={{ border:"1px solid rgba(255,255,255,0.12)", borderRadius:10, padding:"11px 14px", fontSize:13, color:"white", outline:"none", fontFamily:"inherit", background:"#0D1625", boxShadow:"0 2px 20px rgba(0,0,0,0.4)" }}/>
+                    style={{ border:"1px solid rgba(255,255,255,0.08)", borderRadius:10, padding:"13px 16px", fontSize:14, color:"white", outline:"none", fontFamily:"inherit", background:"rgba(255,255,255,0.05)", transition:"border-color 0.15s" }}/>
                 </div>
                 <input value={candidateName} onChange={e=>setCandidateName(e.target.value)} placeholder="Your name (for the signature)"
-                  style={{ border:"1px solid rgba(255,255,255,0.12)", borderRadius:10, padding:"11px 14px", fontSize:13, color:"white", outline:"none", fontFamily:"inherit", background:"#0D1625", boxShadow:"0 2px 20px rgba(0,0,0,0.4)", width:"100%", boxSizing:"border-box" }}/>
+                  style={{ border:"1px solid rgba(255,255,255,0.08)", borderRadius:10, padding:"13px 16px", fontSize:14, color:"white", outline:"none", fontFamily:"inherit", background:"rgba(255,255,255,0.05)", width:"100%", boxSizing:"border-box", transition:"border-color 0.15s" }}/>
               </div>
-              {/* Tone */}
-              <div style={{ background:"#0D1625", boxShadow:"0 2px 20px rgba(0,0,0,0.4)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:18, padding:18 }}>
+              <div style={{ border:"1px solid rgba(255,255,255,0.08)", borderRadius:14, padding:18 }}>
                 <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.07em", color:"rgba(255,255,255,0.35)", marginBottom:12 }}>Tone</p>
                 <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                   {([
@@ -11367,9 +11437,9 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
                     { id:"enthusiastic"   as const, label:"Enthusiastic",   desc:"Energetic and genuine — shows real excitement for this specific role" },
                   ]).map(t => (
                     <button key={t.id} onClick={()=>setTone(t.id)}
-                      style={{ padding:"14px 16px", borderRadius:12, border:`1.5px solid ${tone===t.id?"#4361EE":"rgba(255,255,255,0.1)"}`, background:tone===t.id?"rgba(67,97,238,0.15)":"rgba(255,255,255,0.03)", cursor:"pointer", textAlign:"left", transition:"all 0.15s", display:"flex", alignItems:"center", gap:12 }}>
-                      <div style={{ width:18, height:18, borderRadius:"50%", border:`2px solid ${tone===t.id?"#4361EE":"rgba(255,255,255,0.2)"}`, background:tone===t.id?"#4361EE":"transparent", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
-                        {tone===t.id && <div style={{ width:6, height:6, borderRadius:"50%", background:"rgba(255,255,255,0.06)" }}/>}
+                      style={{ padding:"14px 16px", borderRadius:12, border:`1.5px solid ${tone===t.id?"#10B981":"rgba(255,255,255,0.1)"}`, background:tone===t.id?"rgba(16,185,129,0.12)":"rgba(255,255,255,0.03)", cursor:"pointer", textAlign:"left", transition:"all 0.15s", display:"flex", alignItems:"center", gap:12 }}>
+                      <div style={{ width:18, height:18, borderRadius:"50%", border:`2px solid ${tone===t.id?"#10B981":"rgba(255,255,255,0.2)"}`, background:tone===t.id?"#10B981":"transparent", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                        {tone===t.id && <div style={{ width:6, height:6, borderRadius:"50%", background:"rgba(255,255,255,0.9)" }}/>}
                       </div>
                       <div>
                         <div style={{ fontSize:13.5, fontWeight:700, color:"white", marginBottom:2 }}>{t.label}</div>
@@ -11382,13 +11452,49 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
               <div style={{ display:"flex", gap:10 }}>
                 <button onClick={()=>setStep(2)} style={{ padding:"14px 20px", borderRadius:14, border:"1px solid rgba(255,255,255,0.1)", background:"transparent", color:"rgba(255,255,255,0.45)", fontSize:14, fontWeight:600, cursor:"pointer" }}>← Back</button>
                 <button onClick={()=>void generate()}
-                  style={{ flex:1, fontSize:14.5, fontWeight:700, padding:"14px", borderRadius:14, border:"none", background:"linear-gradient(135deg,#4361EE,#818CF8)", color:"white", cursor:"pointer", boxShadow:"0 8px 24px rgba(67,97,238,0.4)", transition:"all 0.2s" }}>
+                  style={{ flex:1, fontSize:14.5, fontWeight:700, padding:"14px", borderRadius:14, border:"none", background:"linear-gradient(135deg,#10B981,#34D399)", color:"white", cursor:"pointer", boxShadow:"0 8px 24px rgba(16,185,129,0.35)", transition:"all 0.2s" }}>
                   Write my cover letter →
                 </button>
               </div>
             </div>
           )}
         </div>
+
+        {/* RIGHT: sticky sidebar */}
+        <div style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
+          <div style={{ background:"#0D1625", border:"1px solid rgba(255,255,255,0.08)", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 2px 20px rgba(0,0,0,0.4)" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+              <span style={{ fontSize:20 }}>{clCtx.icon}</span>
+              <div style={{ fontSize:12, fontWeight:800, color:"#34D399", letterSpacing:"0.04em" }}>{clCtx.label.toUpperCase()}</div>
+            </div>
+            <p style={{ fontSize:13, color:"rgba(255,255,255,0.55)", lineHeight:1.72, margin:"0 0 16px" }}>{clCtx.desc}</p>
+            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+              {clCtx.tips.map((tip, i) => (
+                <div key={i} style={{ display:"flex", gap:9, alignItems:"flex-start" }}>
+                  <div style={{ width:4, height:4, borderRadius:"50%", background:"rgba(52,211,153,0.6)", flexShrink:0, marginTop:6 }}/>
+                  <span style={{ fontSize:12.5, color:"rgba(255,255,255,0.45)", lineHeight:1.6 }}>{tip}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Setup progress */}
+          <div style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.06)", borderRadius:16, padding:"16px 18px" }}>
+            <p style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", letterSpacing:"0.06em", textTransform:"uppercase", marginBottom:12 }}>Your answers so far</p>
+            {[
+              { label:"Background", done:!!(profileText.trim()||profileFile) },
+              { label:"Job description", done:!!jobDesc.trim() },
+              { label:"Customize", done:step===3 },
+            ].map((item, i) => (
+              <div key={i} style={{ display:"flex", alignItems:"center", gap:10, marginBottom:i<2?10:0 }}>
+                <div style={{ width:18, height:18, borderRadius:"50%", border:`1.5px solid ${item.done?"#4ADE80":"rgba(255,255,255,0.15)"}`, background:item.done?"rgba(74,222,128,0.15)":"transparent", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                  {item.done && <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2.5" style={{width:9,height:9}}><polyline points="2,6 5,9 10,3"/></svg>}
+                </div>
+                <span style={{ fontSize:12.5, color:item.done?"rgba(255,255,255,0.7)":"rgba(255,255,255,0.3)" }}>{item.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
       </div>
     </div>
   );
@@ -11753,7 +11859,19 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
 
   // ── Empty state: not enough context ──
   if (!isReady) return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"rgba(255,255,255,0.03)" }}>
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#070C18" }}>
+      {/* Page header */}
+      <div style={{ background:"#0D1625", borderBottom:"1px solid rgba(255,255,255,0.08)", padding:"20px 40px" }}>
+        <div style={{ maxWidth:1100, margin:"0 auto", display:"flex", alignItems:"center", gap:12 }}>
+          <div style={{ width:32, height:32, borderRadius:10, background:"rgba(67,97,238,0.2)", border:"1px solid rgba(67,97,238,0.35)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#818CF8" strokeWidth="1.8" style={{width:16,height:16}}><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+          </div>
+          <div>
+            <h1 style={{ fontSize:18, fontWeight:900, color:"white", letterSpacing:"-0.02em", margin:0 }}>Action Plan</h1>
+            <p style={{ fontSize:13, color:"rgba(255,255,255,0.4)", margin:0 }}>Your personalized step-by-step roadmap based on completed sections.</p>
+          </div>
+        </div>
+      </div>
       <div style={{ maxWidth:700, margin:"0 auto", padding:"48px 28px" }}>
         <div style={{ textAlign:"center", marginBottom:40 }}>
           <div style={{ width:64, height:64, borderRadius:18, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 18px", boxShadow:"0 8px 24px rgba(67,97,238,0.3)" }}>
@@ -11863,7 +11981,19 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
   ];
 
   return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#F8F9FF" }}>
+    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"#070C18" }}>
+      {/* Page header */}
+      <div style={{ background:"#0D1625", borderBottom:"1px solid rgba(255,255,255,0.08)", padding:"20px 40px" }}>
+        <div style={{ maxWidth:1100, margin:"0 auto", display:"flex", alignItems:"center", gap:12 }}>
+          <div style={{ width:32, height:32, borderRadius:10, background:"rgba(67,97,238,0.2)", border:"1px solid rgba(67,97,238,0.35)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#818CF8" strokeWidth="1.8" style={{width:16,height:16}}><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+          </div>
+          <div>
+            <h1 style={{ fontSize:18, fontWeight:900, color:"white", letterSpacing:"-0.02em", margin:0 }}>Action Plan</h1>
+            <p style={{ fontSize:13, color:"rgba(255,255,255,0.4)", margin:0 }}>Your personalized step-by-step roadmap based on completed sections.</p>
+          </div>
+        </div>
+      </div>
       <div style={{ maxWidth:860, margin:"0 auto", padding:"28px 28px 48px" }}>
 
         {/* ── Header ── */}
