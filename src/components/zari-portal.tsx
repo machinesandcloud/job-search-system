@@ -998,40 +998,30 @@ const STAGE_PROMPTS: Record<CareerStage, string[]> = {
     "Review my resume",
     "Practice a tough interview question",
     "Help me answer 'Tell me about yourself'",
-    "Write a cold outreach message",
-    "Help me negotiate this offer",
     "What should I focus on today?",
   ],
   "promotion": [
-    "Be straight with me — am I actually ready?",
-    "What's the one thing still blocking my case?",
-    "Help me figure out who I need on my side",
-    "Walk me through how to ask for the promotion",
-    "What's the one move that matters most this week?",
-    "My manager keeps moving the goalposts — what do I do?",
+    "Am I actually ready for this?",
+    "What's still blocking my case?",
+    "Walk me through how to ask",
+    "What's the one move this week?",
   ],
   "salary": [
     "What's market rate for my role?",
     "Help me counter a low offer",
-    "Run the negotiation conversation",
+    "Run the negotiation with me",
     "How do I ask for a raise?",
-    "Write my salary counter message",
-    "What if they push back hard?",
   ],
   "career-change": [
     "Review my resume for this pivot",
-    "How do I reframe my background?",
     "Help me answer 'Why are you switching?'",
     "What transferable skills do I have?",
-    "Which roles should I target first?",
     "Write my pivot narrative",
   ],
   "leadership": [
     "Review my executive bio",
     "Help me build my board narrative",
     "Practice a leadership story",
-    "How do I communicate strategic vision?",
-    "Help me lead a difficult conversation",
     "What does VP-level impact look like?",
   ],
 };
@@ -1631,15 +1621,17 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
             </div>
           )}
 
-          {/* Quick prompts row above input */}
-          <div style={{ flexShrink:0, padding:"0 26px 8px", overflowX:"auto", display:"flex", gap:6, scrollbarWidth:"none" }}>
+          {/* Quick prompts grid */}
+          <div style={{ flexShrink:0, padding:"0 26px 10px", display:"flex", gap:8, flexWrap:"wrap" }}>
             {STAGE_PROMPTS[stage].map(p => (
               <button key={p} onClick={() => void sendMessage(p)} disabled={isLoading} style={{
-                opacity: isLoading ? 0.4 : 1, whiteSpace:"nowrap",
-                fontSize:11.5, fontWeight:500, color:"var(--z-text2)",
-                padding:"5px 11px", borderRadius:99, flexShrink:0,
-                background:"var(--z-raise)", border:"1px solid var(--z-bd)",
-                cursor:"pointer", transition:"all 0.15s",
+                opacity: isLoading ? 0.4 : 1,
+                fontSize:13, fontWeight:500, color:"var(--z-text2)",
+                padding:"9px 18px", borderRadius:12,
+                background:"var(--z-card)", border:"1px solid var(--z-bd)",
+                cursor:"pointer", transition:"all 0.15s", lineHeight:1.4,
+                boxShadow:"0 1px 4px rgba(0,0,0,0.06)",
+                letterSpacing:"-0.01em",
               }}>
                 {p}
               </button>
