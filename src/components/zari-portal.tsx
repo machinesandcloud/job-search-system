@@ -2578,6 +2578,7 @@ type PromotionReadinessResult = {
   gaps: Array<{ area: string; why: string; nextStep: string }>;
   managerQuestions: string[];
   nextMoves: string[];
+  conversationPairs?: Array<{ theyMightSay: string; yourResponse: string }>;
   quickWins: Array<{ title: string; body: string; jumpTo: PromotionAuditTab }>;
   evidenceChecklist: string[];
   exampleEvidence: string[];
@@ -3796,6 +3797,12 @@ function ScreenPromotionReadiness() {
   if (result) {
     const verdictStyle = verdictMeta[result.verdict];
     const scoreColor = dimColor(result.readinessScore);
+    const letterGrade = (s: number) =>
+      s >= 95 ? "A+" : s >= 88 ? "A" : s >= 82 ? "A-" :
+      s >= 76 ? "B+" : s >= 70 ? "B" : s >= 63 ? "B-" :
+      s >= 57 ? "C+" : s >= 50 ? "C" : s >= 40 ? "D" : "F";
+    const gradeColor = (s: number) =>
+      s >= 76 ? "#22C55E" : s >= 63 ? "#0284C7" : s >= 50 ? "#D97706" : "#EF4444";
     const resultTabs: Array<{ id: PromotionAuditTab; label: string; badge?: string }> = [
       { id:"overview", label:"The Verdict" },
       { id:"gaps", label:"Blockers", badge:String(result.gaps.length) },
@@ -3841,13 +3848,18 @@ function ScreenPromotionReadiness() {
         <div style={{ maxWidth:1180, margin:"0 auto" }}>
 
           {/* Dark verdict banner */}
-          <div style={{ background:"linear-gradient(135deg, #0F1629 0%, #1A2240 55%, #0F1629 100%)", padding:"36px 40px 30px", position:"relative", overflow:"hidden" }}>
+          <div style={{ background:"linear-gradient(135deg, #0A1628 0%, #0F1F3D 55%, #0A1628 100%)", padding:"36px 40px 30px", position:"relative", overflow:"hidden" }}>
             <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 14% 55%, rgba(109,76,255,0.2), transparent 40%), radial-gradient(circle at 86% 18%, rgba(59,130,246,0.13), transparent 36%)", pointerEvents:"none" }}/>
             <div style={{ position:"relative", display:"flex", alignItems:"center", justifyContent:"space-between", gap:24, flexWrap:"wrap", marginBottom:24 }}>
               <div style={{ display:"flex", alignItems:"center", gap:28, flexWrap:"wrap" }}>
                 <div>
-                  <div style={{ fontSize:86, fontWeight:900, color:scoreColor, letterSpacing:"-0.06em", lineHeight:1 }}>{result.readinessScore}</div>
-                  <div style={{ fontSize:14, color:"rgba(255,255,255,0.32)", letterSpacing:"-0.01em", marginTop:2 }}>/100</div>
+                  <div style={{ display:"flex", alignItems:"flex-end", gap:8, marginBottom:4 }}>
+                    <div style={{ fontSize:86, fontWeight:900, color:scoreColor, letterSpacing:"-0.06em", lineHeight:1 }}>{result.readinessScore}</div>
+                    <div style={{ paddingBottom:10 }}>
+                      <div style={{ fontSize:22, fontWeight:900, color:gradeColor(result.readinessScore), letterSpacing:"-0.03em", lineHeight:1, marginBottom:2 }}>{letterGrade(result.readinessScore)}</div>
+                      <div style={{ fontSize:13, color:"rgba(255,255,255,0.32)" }}>/100</div>
+                    </div>
+                  </div>
                 </div>
                 <div style={{ maxWidth:580 }}>
                   <span style={{ fontSize:10.5, fontWeight:800, color:verdictStyle.color, background:verdictStyle.bg, border:`1px solid ${verdictStyle.border}`, padding:"5px 10px", borderRadius:999, display:"inline-block", marginBottom:10, textTransform:"uppercase", letterSpacing:"0.08em" }}>{result.verdict}</span>
@@ -3870,15 +3882,15 @@ function ScreenPromotionReadiness() {
             </div>
           </div>
 
-          {/* Pill tab nav */}
+          {/* Underline tab nav */}
           <div style={{ padding:"22px 40px 0" }}>
-            <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:22 }}>
+            <div style={{ display:"flex", gap:0, borderBottom:"1px solid #E4E8F5", marginBottom:24, overflowX:"auto" }}>
               {resultTabs.map(tab => {
                 const active = resultTab === tab.id;
                 return (
-                  <button key={tab.id} onClick={() => setResultTab(tab.id)} style={{ display:"flex", alignItems:"center", gap:7, padding:"9px 16px", borderRadius:999, border:active ? "none" : "1px solid #D1D5DB", background:active ? "linear-gradient(135deg,#6D4CFF,#7C3AED)" : "white", color:active ? "white" : "#475569", fontSize:13, fontWeight:800, cursor:"pointer", transition:"all 0.14s", boxShadow:active ? "0 2px 8px rgba(109,76,255,0.28)" : "none" }}>
+                  <button key={tab.id} onClick={() => setResultTab(tab.id)} style={{ display:"flex", alignItems:"center", gap:6, padding:"12px 16px", border:"none", borderBottom:active ? "2px solid #6D4CFF" : "2px solid transparent", background:"transparent", color:active ? "#6D4CFF" : "#64748B", fontSize:13, fontWeight:800, cursor:"pointer", whiteSpace:"nowrap", transition:"all 0.15s", marginBottom:"-1px" }}>
                     {tab.label}
-                    {tab.badge && <span style={{ fontSize:10.5, fontWeight:800, padding:"2px 7px", borderRadius:999, background:active ? "rgba(255,255,255,0.2)" : "#EEF2FF", color:active ? "white" : "#4361EE" }}>{tab.badge}</span>}
+                    {tab.badge && <span style={{ fontSize:10.5, fontWeight:800, padding:"2px 7px", borderRadius:999, background:active ? "#EEF2FF" : "#F1F5F9", color:active ? "#4361EE" : "#94A3B8" }}>{tab.badge}</span>}
                   </button>
                 );
               })}
@@ -3997,31 +4009,38 @@ function ScreenPromotionReadiness() {
             {resultTab === "conversation" && (
               <div style={{ display:"grid", gap:16, paddingBottom:40 }}>
                 <div style={{ borderRadius:18, background:"linear-gradient(135deg,#EEF2FF,#F4F0FF)", border:"1px solid #C7D2FE", padding:"22px 24px" }}>
-                  <div style={{ fontSize:10.5, fontWeight:800, color:"#4361EE", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Opening line</div>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:"#4361EE", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>How to open it</div>
                   <p style={{ fontSize:16, color:"#1E1B4B", lineHeight:1.85, margin:0, fontStyle:"italic" }}>&ldquo;{result.managerPitchExample}&rdquo;</p>
                 </div>
                 <div style={{ borderRadius:20, background:"white", border:"1px solid #E4E8F5", boxShadow:"0 1px 3px rgba(15,23,42,0.06), 0 6px 20px rgba(15,23,42,0.04)", overflow:"hidden" }}>
                   <div style={{ padding:"15px 20px 13px", borderBottom:"1px solid #EEF2F7", background:"#FAFBFF" }}>
-                    <div style={{ fontSize:10.5, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.08em" }}>The conversation</div>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.08em" }}>Prepare for pushback</div>
                   </div>
-                  {result.managerQuestions.map((question, index) => {
-                    const ans = result.nextMoves[index] ?? (result.riskFlags[index] ?? "");
-                    return (
-                      <div key={question} style={{ padding:"18px 20px", borderBottom:index === result.managerQuestions.length - 1 ? "none" : "1px solid #EEF2F7" }}>
-                        <div style={{ padding:"12px 14px", borderRadius:12, background:"#F8FAFC", border:"1px solid #E2E8F0", marginBottom:10 }}>
-                          <div style={{ fontSize:10, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>They might ask</div>
-                          <div style={{ fontSize:13.5, color:"#334155", lineHeight:1.7 }}>{question}</div>
-                        </div>
-                        {ans && (
-                          <div style={{ padding:"12px 14px", borderRadius:12, background:"#F5F3FF", border:"1px solid #DDD6FE", marginLeft:16 }}>
-                            <div style={{ fontSize:10, fontWeight:800, color:"#6D4CFF", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>How to answer</div>
-                            <div style={{ fontSize:13.5, color:"#4338CA", lineHeight:1.7 }}>{ans}</div>
-                          </div>
-                        )}
+                  {(result.conversationPairs ?? result.managerQuestions.map((q, idx) => ({ theyMightSay: q, yourResponse: result.nextMoves[idx] ?? "" }))).map((pair, index) => (
+                    <div key={index} style={{ padding:"18px 20px", borderBottom:index === (result.conversationPairs ?? result.managerQuestions).length - 1 ? "none" : "1px solid #EEF2F7" }}>
+                      <div style={{ padding:"12px 14px", borderRadius:12, background:"#F8FAFC", border:"1px solid #E2E8F0", marginBottom:10 }}>
+                        <div style={{ fontSize:10, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>They might say</div>
+                        <div style={{ fontSize:13.5, color:"#334155", lineHeight:1.7 }}>{pair.theyMightSay}</div>
                       </div>
-                    );
-                  })}
+                      {pair.yourResponse && (
+                        <div style={{ padding:"12px 14px", borderRadius:12, background:"#F5F3FF", border:"1px solid #DDD6FE", marginLeft:16 }}>
+                          <div style={{ fontSize:10, fontWeight:800, color:"#6D4CFF", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>Your response</div>
+                          <div style={{ fontSize:13.5, color:"#4338CA", lineHeight:1.7 }}>{pair.yourResponse}</div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
+                {result.managerQuestions.length > 0 && (
+                  <div style={{ borderRadius:18, background:"white", border:"1px solid #E4E8F5", boxShadow:"0 1px 3px rgba(15,23,42,0.06), 0 6px 20px rgba(15,23,42,0.04)", padding:"20px 22px" }}>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>Questions to bring to your manager</div>
+                    <div style={{ display:"grid", gap:8 }}>
+                      {result.managerQuestions.map(q => (
+                        <div key={q} style={{ fontSize:13.5, color:"#334155", lineHeight:1.75, padding:"11px 12px", borderRadius:12, background:"#FAFBFF", border:"1px solid #E4E8F5" }}>{q}</div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -7142,19 +7161,25 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
               </div>
             </div>
 
-            {feedback && (
+            {feedback && (() => {
+              const letterGradeFn = (s: number) =>
+                s >= 88 ? "A" : s >= 77 ? "B" : s >= 63 ? "C" : s >= 50 ? "D" : "F";
+              const gradeColorFn = (s: number) =>
+                s >= 77 ? "#22C55E" : s >= 63 ? "#0284C7" : s >= 50 ? "#D97706" : "#EF4444";
+              return (
               <div style={promotionPanelStyle(theme)}>
-                <div style={{ display:"flex", alignItems:"flex-start", gap:20, flexWrap:"wrap", marginBottom:20 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:16, marginBottom:18, padding:"18px 20px", borderRadius:16, background:"linear-gradient(135deg,#0A1628,#0F1F3D)", border:"1px solid rgba(255,255,255,0.08)" }}>
                   <div style={{ textAlign:"center", flexShrink:0 }}>
-                    <div style={{ fontSize:54, fontWeight:900, color:dimColor(feedback.overallScore), letterSpacing:"-0.05em", lineHeight:1 }}>{feedback.overallScore}</div>
-                    <div style={{ fontSize:10.5, fontWeight:700, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.08em", marginTop:3 }}>/100</div>
+                    <div style={{ fontSize:52, fontWeight:900, color:dimColor(feedback.overallScore), letterSpacing:"-0.05em", lineHeight:1 }}>{feedback.overallScore}</div>
+                    <div style={{ fontSize:14, fontWeight:900, color:gradeColorFn(feedback.overallScore), letterSpacing:"-0.02em" }}>{letterGradeFn(feedback.overallScore)}</div>
+                    <div style={{ fontSize:10, color:"rgba(255,255,255,0.32)", textTransform:"uppercase", letterSpacing:"0.06em" }}>/100</div>
                   </div>
                   <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontSize:10.5, fontWeight:800, color:"#64748B", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:5 }}>Zari says</div>
-                    <h3 style={{ fontSize:22, lineHeight:1.22, fontWeight:800, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"#0F172A", margin:"0 0 7px" }}>
-                      {feedback.headline || feedback.coachNote.split(/(?<=[.!?])\s+/)[0]?.trim() || "Zari's read on this answer."}
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"rgba(255,255,255,0.42)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:5 }}>Zari's read</div>
+                    <h3 style={{ fontSize:20, lineHeight:1.25, fontWeight:800, letterSpacing:"-0.03em", color:"white", margin:"0 0 6px" }}>
+                      {feedback.headline || feedback.coachNote.split(/(?<=[.!?])\s+/)[0]?.trim() || "Here's what Zari found."}
                     </h3>
-                    <p style={{ fontSize:13.5, color:"#475569", lineHeight:1.72, margin:0 }}>{feedback.coachNote}</p>
+                    <p style={{ fontSize:13.5, color:"rgba(255,255,255,0.6)", lineHeight:1.72, margin:0 }}>{feedback.coachNote}</p>
                   </div>
                 </div>
 
@@ -7173,7 +7198,8 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
                   <div style={{ fontSize:13.8, color:"#1E1B4B", lineHeight:1.78, whiteSpace:"pre-wrap", fontStyle:"italic" }}>{feedback.suggestedResult}</div>
                 </div>
               </div>
-            )}
+              );
+            })()}
           </div>
         </div>
       </div>
@@ -7569,9 +7595,9 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
               </div>
 
               <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))", gap:14, marginBottom:18 }}>
-                <div style={{ borderRadius:18, background:"white", border:"1px solid #E4E8F5", boxShadow:"0 1px 3px rgba(15,23,42,0.06), 0 6px 18px rgba(15,23,42,0.04)", padding:"18px 20px" }}>
-                  <div style={{ fontSize:10.5, fontWeight:800, color:"#334155", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>The strategy</div>
-                  <div style={{ fontSize:13.8, color:"#475569", lineHeight:1.8 }}>{result.strategy}</div>
+                <div style={{ borderRadius:18, background:"linear-gradient(135deg,#0A1628,#0F1F3D)", border:"1px solid rgba(255,255,255,0.08)", boxShadow:"0 2px 12px rgba(0,0,0,0.12)", padding:"18px 20px" }}>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:"rgba(255,255,255,0.48)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>The strategy</div>
+                  <div style={{ fontSize:14, color:"rgba(255,255,255,0.85)", lineHeight:1.8 }}>{result.strategy}</div>
                 </div>
                 <div style={{ borderRadius:18, background:"linear-gradient(180deg,#FFF6F6 0%,#FFFFFF 100%)", border:"1px solid rgba(239,68,68,0.22)", boxShadow:"0 1px 3px rgba(15,23,42,0.06), 0 6px 18px rgba(15,23,42,0.04)", padding:"18px 20px" }}>
                   <div style={{ fontSize:10.5, fontWeight:800, color:"#B91C1C", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>What would backfire</div>

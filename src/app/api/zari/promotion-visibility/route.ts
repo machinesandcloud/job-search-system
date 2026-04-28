@@ -118,7 +118,9 @@ Rules:
 - "missingSupport" should explain what belief, sponsorship, or decision-maker visibility is still absent.
 - The executive narrative should sound like a sentence a leader could repeat in calibration.
 - Make the sponsorMap especially practical: who matters, what they need to believe, and what to ask them for.
-- Generate 4-5 visibility moves, 3-4 sponsor map entries, 3-4 weekly cadence actions, and 3 watchouts.`;
+- Generate 4-5 visibility moves, 3-4 sponsor map entries, 3-4 weekly cadence actions, and 3 watchouts.
+- CRITICAL: Every visibility move, sponsor map entry, and weekly cadence item must be specific to this person's actual situation — their target level, the evidence they provided, and the stakeholders they named. Generic moves like "be more visible" or "build relationships" are not acceptable. Reference actual work, specific audiences, and concrete behaviors.
+- The executiveNarrative should sound like something a real leader could say in a calibration meeting about this specific person — not a template about "this candidate".`;
 
   const userPrompt = [
     evidenceText ? `PROMOTION EVIDENCE:\n${evidenceText.slice(0, 4500)}` : "",
@@ -133,7 +135,7 @@ Rules:
     ],
     {
       model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
-      temperature: 0.45,
+      temperature: 0.28,
       maxTokens: 1500,
       jsonMode: true,
     }

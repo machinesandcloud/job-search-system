@@ -229,7 +229,9 @@ Requirements:
 - If the case is still early or weak, do NOT lead with a polished promotion packet. Prioritize feedback-gathering, manager alignment, and evidence-gathering documents instead.
 - If the case is stronger and timing seems real, include more formal documents such as a promotion memo and a calibration brief.
 - Use only evidence that can be traced back to the provided material.
-- If evidence is thin, say so plainly and avoid inventing numbers.`;
+- If evidence is thin, say so plainly and avoid inventing numbers.
+- CRITICAL: Every single document must be anchored to specific evidence from the provided material. Do not write generic templates. If evidence mentions a specific project, outcome, or signal, reference it. If the evidence is thin, say so directly — do not pad with invented examples. The body of each document must feel like it was written for THIS person, not a sample user.
+- Never write placeholder brackets like [Manager Name] in the coachTake, strategy, or redFlags. Only the document body should have [fill in] markers.`;
 
   const userPrompt = [
     evidenceText ? `PROMOTION EVIDENCE:\n${evidenceText.slice(0, 5000)}` : "",
@@ -244,7 +246,7 @@ Requirements:
     ],
     {
       model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
-      temperature: 0.45,
+      temperature: 0.28,
       maxTokens: 1900,
       jsonMode: true,
     }

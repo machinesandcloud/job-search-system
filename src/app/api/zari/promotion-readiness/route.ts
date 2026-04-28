@@ -50,6 +50,11 @@ type DimensionReason = {
   reason: string;
 };
 
+type ConversationPair = {
+  theyMightSay: string;
+  yourResponse: string;
+};
+
 type LlmPayload = {
   readinessScore?: unknown;
   verdict?: unknown;
@@ -62,6 +67,7 @@ type LlmPayload = {
   gaps?: unknown;
   managerQuestions?: unknown;
   nextMoves?: unknown;
+  conversationPairs?: unknown;
   quickWins?: unknown;
   evidenceChecklist?: unknown;
   exampleEvidence?: unknown;
@@ -219,6 +225,19 @@ function normalizeQuickWins(value: unknown, fallback: QuickWin[]) {
   return items.length >= 3 ? items.slice(0, 3) : fallback;
 }
 
+function normalizeConversationPairs(value: unknown, fallback: ConversationPair[]) {
+  if (!Array.isArray(value)) return fallback;
+  const pairs = value
+    .map(item => {
+      if (!item || typeof item !== "object") return null;
+      const theyMightSay = cleanString((item as Record<string, unknown>).theyMightSay);
+      const yourResponse = cleanString((item as Record<string, unknown>).yourResponse);
+      return theyMightSay && yourResponse ? { theyMightSay, yourResponse } : null;
+    })
+    .filter(Boolean) as ConversationPair[];
+  return pairs.length >= 3 ? pairs.slice(0, 5) : fallback;
+}
+
 function normalizeDimensions(value: unknown, fallbackScore: number) {
   const defaults = REQUIRED_DIMENSIONS.map(label => ({
     label,
@@ -314,6 +333,7 @@ function hasStructuredReadinessPayload(parsed: LlmPayload | null) {
     && Array.isArray(parsed.gaps) && parsed.gaps.length >= 3
     && Array.isArray(parsed.managerQuestions) && parsed.managerQuestions.length >= 4
     && Array.isArray(parsed.nextMoves) && parsed.nextMoves.length >= 4
+    && Array.isArray(parsed.conversationPairs) && parsed.conversationPairs.length >= 3
     && Array.isArray(parsed.quickWins) && parsed.quickWins.length >= 3
     && Array.isArray(parsed.evidenceChecklist) && parsed.evidenceChecklist.length >= 4
     && Array.isArray(parsed.exampleEvidence) && parsed.exampleEvidence.length >= 3
@@ -436,11 +456,33 @@ function buildFallback(body: PromotionReadinessBody & {
       { area: "Promotion bar", why: "If you are fuzzy on the real bar, you are probably over-crediting parts of the case.", nextStep: "Get the clearest internal expectations you can and map your proof against them line by line." },
       { area: "Support", why: "A promotion case stalls fast when the right people cannot repeat it upward with confidence.", nextStep: "Pressure-test manager support and visibility before you push timing or ask for backing." },
     ],
+    conversationPairs: [
+      {
+        theyMightSay: `I'm not sure your work on ${body.recentProjects ? body.recentProjects.slice(0, 80).trim() : "recent projects"} really demonstrates ${target}-level scope yet.`,
+        yourResponse: `That's fair to push on. The strongest case I can make is around the ownership and outcomes — specifically ${body.impactLevel === "repeatable_measured" ? "the measurable, repeatable results I can point to" : "the business outcomes I drove even where the metrics are still thin"}. I want to close that gap specifically.`,
+      },
+      {
+        theyMightSay: "The timing feels a bit early — I'd want to see you sustain this for another cycle.",
+        yourResponse: `I understand. I'd rather know exactly what "sustained" looks like to you — is it scope, consistency, or specific proof I haven't shown yet? I want to work against the real bar, not my own assumptions.`,
+      },
+      {
+        theyMightSay: `Other ${target} candidates have had more cross-functional impact. I'm not sure the visibility is there yet.`,
+        yourResponse: `That's one of the areas I want to directly address. My visibility is currently ${body.visibilityLevel ? body.visibilityLevel.replace(/_/g, " ") : "mostly team-level"}, and I know that affects how the case lands. Can you help me understand which audiences need to see this work most?`,
+      },
+      {
+        theyMightSay: "I'm not fully convinced the promotion bar is clear to you yet.",
+        yourResponse: `That's a real concern. My clarity on the bar is ${body.rubricClarity ? body.rubricClarity.replace(/_/g, " ") : "limited"} right now. I'd rather get your direct read on where my case meets the bar and where it falls short than keep calibrating against my own guess.`,
+      },
+      {
+        theyMightSay: "I want to support you but I'm not sure I can defend the full case yet.",
+        yourResponse: `That's exactly what I want to understand. Which parts of the case still feel thin or hard to repeat upward? I want to close those gaps before I ask for backing, not after.`,
+      },
+    ],
     managerQuestions: [
-      `If you had to defend my case for ${target} tomorrow, what exact proof would still be missing?`,
-      "Which parts of my case already sound next-level to you, and which parts still sound like strong current-level work?",
-      "What would I need to show in the next cycle to make this feel like an easier yes instead of a stretch?",
-      "Who else would need stronger evidence before promotion timing becomes realistic?",
+      `If you had to defend my case for ${target} to the decision-makers today, what specific proof would still be missing?`,
+      `Which parts of my recent work already read as ${target}-level to you, and which parts still sound like strong current-level execution?`,
+      "What would change the timing from 'not yet' to 'this cycle' — is it a specific proof point, a visibility gap, or something else?",
+      "Who else besides you needs to see stronger evidence before my promotion becomes easy to support in calibration?",
     ],
     nextMoves: [
       "Rewrite your best wins into tight proof points with outcomes, stakes, and ownership.",
@@ -558,6 +600,7 @@ Important:
 - If the written evidence is vague, contradictory, or not promotion-grade, say that plainly. Do not reward someone just for filling the form.
 - Do not treat confidence, effort, or aspiration as evidence.
 - If the evidence is strong for a Staff/Principal/IC leadership track without direct reports, do not punish that just because there is no people management.
+- Each dimension score must reflect ONLY what the evidence shows for that specific dimension. Dimension scores should have meaningful variance — a 65 overall score might have Bar clarity at 40 if they're guessing the bar, but Evidence at 78 if they have strong measurable wins. Do NOT cluster all dimensions near the overall score.
 
 Return ONLY valid JSON:
 {
@@ -694,6 +737,7 @@ Rules:
       rationale: fallback.rationale,
       strengths: fallback.strengths,
       gaps: fallback.gaps,
+      conversationPairs: fallback.conversationPairs,
       managerQuestions: fallback.managerQuestions,
       nextMoves: fallback.nextMoves,
       quickWins: fallback.quickWins,
@@ -719,7 +763,14 @@ Return ONLY valid JSON:
     { "area": "<gap area>", "why": "<why it matters>", "nextStep": "<specific next step>" },
     { "area": "<gap area>", "why": "<why it matters>", "nextStep": "<specific next step>" }
   ],
-  "managerQuestions": ["<question for manager>", "<question for manager>", "<question for manager>", "<question for manager>"],
+  "conversationPairs": [
+    { "theyMightSay": "<specific objection or pushback the decision-maker would raise based on THIS person's actual evidence weaknesses>", "yourResponse": "<specific, evidence-anchored response using actual proof points from their case — not generic advice>" },
+    { "theyMightSay": "<specific objection or pushback>", "yourResponse": "<specific, evidence-anchored response>" },
+    { "theyMightSay": "<specific objection or pushback>", "yourResponse": "<specific, evidence-anchored response>" },
+    { "theyMightSay": "<specific objection or pushback>", "yourResponse": "<specific, evidence-anchored response>" },
+    { "theyMightSay": "<specific objection or pushback>", "yourResponse": "<specific, evidence-anchored response>" }
+  ],
+  "managerQuestions": ["<specific question to ask your manager to pressure-test support or clarify the promotion bar, grounded in this person's actual situation>", "<specific question>", "<specific question>", "<specific question>"],
   "nextMoves": ["<specific next move>", "<specific next move>", "<specific next move>", "<specific next move>"],
   "quickWins": [
     { "title": "<short title>", "body": "<one sentence>", "jumpTo": "<overview|gaps|plan|conversation|examples>" },
@@ -744,7 +795,10 @@ Rules:
 - If the input quality is weak, the strengths should stay modest and the gaps should be blunt.
 - Never soften obvious lack of proof.
 - Write every line like a coach who actually read the packet, not a template engine.
-- Never mention resumes, recruiting, or job search.`;
+- Never mention resumes, recruiting, or job search.
+- EVERY item must be specific to this person's actual case. Never write generic filler. If you write something that could apply to any promotion case, delete it and write something specific to THIS case.
+- conversationPairs must be grounded in the actual weaknesses and evidence in this person's questionnaire. Each "theyMightSay" should reflect a real objection someone would raise given what they shared, and each "yourResponse" should reference actual proof points from their case.
+- managerQuestions are questions the USER should ask their manager — not questions the manager asks the user. Frame them as questions to bring to a manager conversation to pressure-test support or clarify the bar.`;
 
   let detailParsed = safeParseLlmPayload(await openaiChat(
     [
@@ -814,6 +868,7 @@ Rules:
     rationale: normalizeStringArray(detailParsed?.rationale, fallback.rationale, 0, 4),
     strengths: normalizeStringArray(detailParsed?.strengths, fallback.strengths, 0, 5),
     gaps: normalizeGaps(detailParsed?.gaps, fallback.gaps),
+    conversationPairs: normalizeConversationPairs(detailParsed?.conversationPairs, fallback.conversationPairs),
     managerQuestions: normalizeStringArray(detailParsed?.managerQuestions, fallback.managerQuestions, 0, 6),
     nextMoves: normalizeStringArray(detailParsed?.nextMoves, fallback.nextMoves, 0, 6),
     quickWins: normalizeQuickWins(detailParsed?.quickWins, fallback.quickWins),
