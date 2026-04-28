@@ -278,20 +278,12 @@ Return ONLY a valid JSON object with exactly this structure:
   "rewrittenSections": [
     {
       "label": "Summary",
-      "originalText": "<copy the exact original summary text from the resume, verbatim — used to show a before/after comparison>",
       "text": "<Rewrite: [Role] + [top 2-3 skills tied to target] + [quantified achievement]. No generic adjectives. Targeted mode: lead with the top JD requirements. Sound like a real person.>",
       "score": <number 0-100>
     },
     {
       "label": "Experience highlights",
-      "originalText": "<copy the 3 original bullet lines from the resume's most recent role that you are rewriting, verbatim>",
       "text": "<Rewrite the 3 strongest bullets from their most recent/relevant role using XYZ formula. Number them 1, 2, 3. Targeted mode: embed the most important JD keywords alongside real achievements.>",
-      "score": <number 0-100>
-    },
-    {
-      "label": "Skills",
-      "originalText": "<copy the exact original skills section text from the resume, verbatim>",
-      "text": "<Optimized skills list as a comma-separated string. Targeted mode: include all required JD skills the person genuinely has. Remove vague soft skills. Order by relevance to target role.>",
       "score": <number 0-100>
     }
   ],
@@ -323,7 +315,7 @@ KEYWORDS INSTRUCTION: ${hasJobContext
   ? `Extract the 15-20 most critical keywords from the job description. Apply STRICT matching (see keyword rules above). For a highly mismatched resume (e.g., lab technician applying for CTO), you should have 12-18 keywords marked found=false — that is correct and honest. Required = explicitly stated as required/must-have in JD. Preferred = everything else.`
   : "Return an empty array [] — no job description provided."}
 
-BULLETS INSTRUCTION: Score every bullet using the individual bullet scoring rubric above. Include ALL bullets scoring below 72 — this is a complete audit, not a sample. If more than 8 score below 72, return the 8 with the LOWEST oldScore (worst bullets first). Maximum 8. Difficulty: easy = swap verb or add metric placeholder (under 5 min); medium = restructure the core thought; hard = person needs to recall specific numbers not present in the text. Every "before" must be the verbatim text from the resume — do not paraphrase or combine bullets.
+BULLETS INSTRUCTION: Score every bullet using the individual bullet scoring rubric above. Include ALL bullets scoring below 72 — this is a complete audit, not a sample. If more than 5 score below 72, return the 5 with the LOWEST oldScore (worst bullets first). Maximum 5. Difficulty: easy = swap verb or add metric placeholder (under 5 min); medium = restructure the core thought; hard = person needs to recall specific numbers not present in the text. Every "before" must be the verbatim text from the resume — do not paraphrase or combine bullets.
 
 QUICK WINS INSTRUCTION: Return exactly 3 quick wins. Rank by: highest improvement to score / least effort. Be ruthlessly specific — name the exact section or bullet. Include the right tab so we can link to it.
 
@@ -345,13 +337,14 @@ Voice rules:
   ];
 
   const model = process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o";
-  console.log("[resume] calling model:", model, "maxTokens: 3500");
-  const reply = await openaiChat(messages, {
-    model,
-    temperature: 0.2,
-    maxTokens: 3500,
-    jsonMode: true,
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 22000);
+  let reply: string | null = null;
+  try {
+    reply = await openaiChat(messages, { model, temperature: 0.2, maxTokens: 1800, jsonMode: true }, controller.signal);
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (!reply) {
     console.error("[resume] openaiChat returned null — model:", model);

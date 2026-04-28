@@ -14,6 +14,7 @@ interface ChatOptions {
 export async function openaiChat(
   messages: OAIMessage[],
   opts: ChatOptions = {},
+  signal?: AbortSignal,
 ): Promise<string | null> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return null;
@@ -29,6 +30,7 @@ export async function openaiChat(
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
+      signal,
       body: JSON.stringify({
         model,
         messages,
