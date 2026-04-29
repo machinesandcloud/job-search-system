@@ -3194,20 +3194,20 @@ function promotionPanelStyle(_theme: PromotionTheme, _featured = false) {
 }
 
 function promotionInputStyle(theme: PromotionTheme) {
+  void theme;
   return {
     width: "100%",
-    border: `1px solid #D4D8E8`,
+    border: `1px solid var(--z-bd)`,
     borderRadius: 12,
     padding: "12px 14px",
     fontSize: 13.5,
-    color: "#1A1A2E",
+    color: "var(--z-text)",
     outline: "none",
     boxSizing: "border-box" as const,
     fontFamily: "inherit",
-    background: "#F7F8FC",
+    background: "var(--z-raise)",
     transition: "border-color 0.15s",
   };
-  void theme;
 }
 
 function promotionTextareaStyle(theme: PromotionTheme, minHeight: number) {
@@ -3924,27 +3924,6 @@ function ScreenPromotionReadiness() {
       ? "Address the core gaps, gather proof, and establish clear manager sponsorship before making a formal ask."
       : "Significant evidence building, gap closure, and stakeholder alignment needed before a credible ask.";
 
-    const calibrationLines = (() => {
-      const cur = form.currentTitle || "This person";
-      const des = form.desiredTitle || "the next level";
-      if (sc >= 78) return [
-        `${cur} is showing real next-level indicators — the scope and impact signals are there.`,
-        `The open question is whether the evidence is strong enough to survive scrutiny from people who didn't see it directly.`,
-        result.gaps[0] ? `${result.gaps[0].area} is still the main thing I'd want to see addressed before I'd be comfortable advocating.` : `Get the case tighter before calibration.`,
-      ];
-      if (sc >= 58) return [
-        `${cur} is performing well but the ${des} case isn't fully assembled yet.`,
-        result.gaps[0] ? `${result.gaps[0].area} keeps this from feeling like a clear ready-now situation.` : `The evidence still needs to be sharpened.`,
-        `I'd want to see stronger proof and clearer manager support before this becomes a real conversation.`,
-      ];
-      return [
-        `The work is real, but the ${des} case is premature right now.`,
-        result.gaps.slice(0, 2).length > 1
-          ? `${result.gaps[0].area} and ${result.gaps[1].area} both need significant work.`
-          : result.gaps[0] ? `${result.gaps[0].area} is the biggest gap to close.` : `The gaps are significant and need to be addressed first.`,
-        `Come back when the case is tighter and the manager is aligned. There's real foundation here — it just needs more time.`,
-      ];
-    })();
     const panelCardStyle = {
       borderRadius:20,
       border:"1px solid var(--z-bd)",
@@ -4030,33 +4009,40 @@ function ScreenPromotionReadiness() {
 
             {resultTab === "overview" && (
               <div style={{ display:"grid", gap:16, paddingBottom:40 }}>
-                <div style={{ borderRadius:14, background:"rgba(220,38,38,0.04)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #DC2626", padding:"20px 24px" }}>
-                  <div style={{ fontSize:10.5, fontWeight:800, color:"#DC2626", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Reality check</div>
-                  <p style={{ fontSize:15.5, color:"var(--z-text)", lineHeight:1.85, margin:0, fontWeight:500 }}>{result.realityCheck}</p>
-                </div>
 
-                <div style={{ borderRadius:20, background:"var(--z-card)", border:"1px solid var(--z-bd)", boxShadow:"0 4px 28px rgba(0,0,0,0.09)", overflow:"hidden" }}>
-                  <div style={{ padding:"18px 24px 16px", borderBottom:"1px solid var(--z-bd)", background:"var(--z-raise)" }}>
-                    <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em" }}>Dimension breakdown</div>
+                {/* Hero verdict banner */}
+                <div style={{ borderRadius:18, background:"linear-gradient(135deg, rgba(37,99,235,0.07) 0%, rgba(124,58,237,0.05) 100%)", border:"1px solid var(--z-bd)", borderLeft:`4px solid ${scoreColor}`, padding:"22px 24px", display:"flex", gap:22, alignItems:"center", flexWrap:"wrap" }}>
+                  <div style={{ flexShrink:0, textAlign:"center" }}>
+                    <div style={{ fontSize:48, fontWeight:900, color:scoreColor, letterSpacing:"-0.05em", lineHeight:1 }}>{result.readinessScore}</div>
+                    <div style={{ fontSize:10, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginTop:4 }}>Readiness</div>
                   </div>
-                  {result.dimensions.map((item, index) => {
-                    const color = dimColor(item.score);
-                    return (
-                      <div key={item.label} style={{ padding:"18px 22px", borderBottom:index === result.dimensions.length - 1 ? "none" : "1px solid var(--z-bd)", borderLeft:`4px solid ${color}`, background:"transparent" }}>
-                        <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:10 }}>
-                          <div style={{ fontSize:13.5, fontWeight:800, color:"var(--z-text)", flex:1 }}>{item.label}</div>
-                          <div style={{ display:"flex", alignItems:"baseline", gap:4 }}>
-                            <div style={{ fontSize:28, fontWeight:900, color, letterSpacing:"-0.04em", lineHeight:1 }}>{item.score}</div>
-                            <div style={{ fontSize:11, color:"var(--z-text3)" }}>/100</div>
-                          </div>
-                        </div>
-                        <Bar pct={item.score} color={color} h={7} />
-                        <div style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.72, marginTop:10 }}>{item.reason}</div>
-                      </div>
-                    );
-                  })}
+                  <div style={{ flex:1, minWidth:200 }}>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:scoreColor, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>{result.verdict}</div>
+                    <p style={{ fontSize:15, color:"var(--z-text)", lineHeight:1.78, margin:0, fontWeight:500 }}>{result.realityCheck}</p>
+                  </div>
                 </div>
 
+                {/* Dimension breakdown — 2-column grid */}
+                <div>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>How each dimension scored</div>
+                  <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))", gap:10 }}>
+                    {result.dimensions.map((item) => {
+                      const color = dimColor(item.score);
+                      return (
+                        <div key={item.label} style={{ borderRadius:14, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderTop:`3px solid ${color}`, padding:"16px 18px" }}>
+                          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginBottom:8 }}>
+                            <div style={{ fontSize:12.5, fontWeight:800, color:"var(--z-text)", flex:1 }}>{item.label}</div>
+                            <div style={{ fontSize:22, fontWeight:900, color, letterSpacing:"-0.04em", lineHeight:1 }}>{item.score}</div>
+                          </div>
+                          <Bar pct={item.score} color={color} h={5} />
+                          <div style={{ fontSize:12, color:"var(--z-text2)", lineHeight:1.65, marginTop:9 }}>{item.reason}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* What's solid / What's risky */}
                 <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:14 }}>
                   <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #059669", padding:"18px 18px 16px" }}>
                     <div style={{ fontSize:10.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>What&apos;s solid</div>
@@ -4090,23 +4076,25 @@ function ScreenPromotionReadiness() {
                   </div>
                 </div>
 
-                {/* Calibration snapshot */}
-                <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"20px 24px" }}>
-                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:14, flexWrap:"wrap" }}>
-                    <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em" }}>What calibration might say about you</div>
-                    <span style={{ fontSize:10.5, fontWeight:800, padding:"4px 9px", borderRadius:999, background:"var(--z-raise)", color:"var(--z-text3)", border:"1px solid var(--z-bd)" }}>Unique to Zari</span>
-                  </div>
-                  <div style={{ display:"grid", gap:10 }}>
-                    {calibrationLines.map((line, i) => (
-                      <div key={i} style={{ display:"flex", gap:12, alignItems:"flex-start" }}>
-                        <div style={{ width:22, height:22, borderRadius:"50%", background:"var(--z-raise)", border:"1px solid var(--z-bd)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:2 }}>
-                          <span style={{ fontSize:10, fontWeight:900, color:"var(--z-text3)" }}>{i + 1}</span>
+                {/* Zari's read — AI rationale (replaces deterministic calibration section) */}
+                {result.rationale.length > 0 && (
+                  <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #7C3AED", padding:"20px 24px" }}>
+                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:16, flexWrap:"wrap" }}>
+                      <div style={{ fontSize:10.5, fontWeight:800, color:"#7C3AED", textTransform:"uppercase", letterSpacing:"0.1em" }}>Zari&apos;s read</div>
+                      <span style={{ fontSize:10.5, fontWeight:700, padding:"3px 9px", borderRadius:999, background:"rgba(124,58,237,0.08)", color:"#7C3AED", border:"1px solid rgba(124,58,237,0.2)" }}>AI analysis</span>
+                    </div>
+                    <div style={{ display:"grid", gap:12 }}>
+                      {result.rationale.map((line, i) => (
+                        <div key={i} style={{ display:"flex", gap:12, alignItems:"flex-start" }}>
+                          <div style={{ width:24, height:24, borderRadius:"50%", background:"rgba(124,58,237,0.1)", border:"1px solid rgba(124,58,237,0.2)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>
+                            <span style={{ fontSize:10, fontWeight:900, color:"#7C3AED" }}>{i + 1}</span>
+                          </div>
+                          <p style={{ fontSize:14, color:"var(--z-text)", lineHeight:1.78, margin:0 }}>{line}</p>
                         </div>
-                        <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.75, margin:0 }}>{line}</p>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Timeline estimate */}
                 <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"20px 24px", display:"flex", gap:24, alignItems:"center", flexWrap:"wrap" }}>
@@ -4116,7 +4104,7 @@ function ScreenPromotionReadiness() {
                     <div style={{ fontSize:11.5, color:"var(--z-text3)", marginTop:5 }}>{gapCount} gap{gapCount !== 1 ? "s" : ""} to close</div>
                   </div>
                   <div style={{ flex:1, minWidth:200, borderLeft:"2px solid var(--z-bd)", paddingLeft:24 }}>
-                    <div style={{ fontSize:14, color:"var(--z-text)", lineHeight:1.78, fontWeight:500 }}>{timelineCondition}</div>
+                    <div style={{ fontSize:14, color:"var(--z-text)", lineHeight:1.78, fontWeight:500 }}>{result.scoreReason}</div>
                   </div>
                 </div>
 
@@ -10177,7 +10165,7 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
                           style={{
                             textAlign:"left",
                             border:`1px solid ${active ? "#2563EB" : "var(--z-bd)"}`,
-                            background:active ? "#EFF6FF" : "var(--z-card)",
+                            background:active ? "rgba(37,99,235,0.12)" : "var(--z-card)",
                             borderRadius:12,
                             padding:"16px 16px 15px",
                             cursor:"pointer",
@@ -10185,7 +10173,7 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
                           }}
                         >
                           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginBottom:8 }}>
-                            <div style={{ fontSize:14.5, fontWeight:800, color:active ? "#2563EB" : "var(--z-text)" }}>{meta.label}</div>
+                            <div style={{ fontSize:14.5, fontWeight:800, color:active ? "#60A5FA" : "var(--z-text)" }}>{meta.label}</div>
                             <span style={{ fontSize:10.5, fontWeight:800, padding:"4px 8px", borderRadius:999, background:"var(--z-raise)", color:"var(--z-text3)", border:"1px solid var(--z-bd)" }}>{meta.badge}</span>
                           </div>
                           <p style={{ fontSize:12.5, lineHeight:1.6, color:"var(--z-text2)", margin:0 }}>{meta.desc}</p>
@@ -10264,7 +10252,7 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
                       style={{
                         textAlign:"left",
                         border:`1px solid ${active ? "#2563EB" : "var(--z-bd)"}`,
-                        background:active ? "#EFF6FF" : "var(--z-raise)",
+                        background:active ? "rgba(37,99,235,0.12)" : "var(--z-raise)",
                         borderRadius:10,
                         padding:"14px 15px",
                         cursor:"pointer",
@@ -10272,7 +10260,7 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
                       }}
                     >
                       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginBottom:6 }}>
-                        <div style={{ fontSize:14, fontWeight:800, color:active ? "#2563EB" : "var(--z-text)" }}>{section.name}</div>
+                        <div style={{ fontSize:14, fontWeight:800, color:active ? "#60A5FA" : "var(--z-text)" }}>{section.name}</div>
                         <span style={{ fontSize:11.5, color:"var(--z-text3)" }}>{section.questions.length} Qs</span>
                       </div>
                       <p style={{ fontSize:12.5, lineHeight:1.6, color:"var(--z-text2)", margin:0 }}>{section.description}</p>
@@ -10800,7 +10788,7 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
                 <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))", gap:12, marginTop:20, position:"relative" }}>
                   {[
                     { label:"Docs", value:String(result.documents.length).padStart(2, "0"), note:"Selected for this stage" },
-                    { label:"Watch out for", value:String(result.redFlags.length).padStart(2, "0"), note:"Ways to weaken the case" },
+                    ...(result.redFlags.length > 0 ? [{ label:"Watch out for", value:String(result.redFlags.length), note:"Ways to weaken the case" }] : []),
                     { label:"Start with", value:result.documents[0]?.channel ?? "Doc", note:result.documents[0]?.title ?? "No primary document" },
                   ].map(card => (
                     <div key={card.label} style={{ borderRadius:12, padding:"16px 16px 15px", background:"var(--z-card)", border:"1px solid var(--z-bd)" }}>
