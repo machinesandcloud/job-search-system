@@ -12713,16 +12713,16 @@ function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate
   }
 
   const TYPE_META: Record<DocType, { label:string; color:string; bg:string; icon: React.ReactNode; section: string }> = {
-    "resume":       { label:"Resume",       color:"var(--z-text2)", bg:"#F0FDFA", section:"resume",       icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><path d="M13 2H5a1.5 1.5 0 00-1.5 1.5v13A1.5 1.5 0 005 18h10a1.5 1.5 0 001.5-1.5V6L13 2z"/><path d="M13 2v4h4"/><path d="M7 9h6M7 12h4"/></svg> },
-    "linkedin":     { label:"LinkedIn",     color:"#0A66C2", bg:"#EFF6FF", section:"linkedin",     icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><rect x="2" y="2" width="16" height="16" rx="3"/><path d="M6 9v5M6 7v.01M10 14v-3a2 2 0 014 0v3M10 9v5"/></svg> },
-    "cover-letter": { label:"Cover Letter", color:"#059669", bg:"#ECFDF5", section:"cover-letter", icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><path d="M17 4H3a1 1 0 00-1 1v10a1 1 0 001 1h14a1 1 0 001-1V5a1 1 0 00-1-1z"/><path d="M1 5l9 7 9-7"/></svg> },
-    "upload":       { label:"Uploaded",     color:"var(--z-text2)", bg:"#F5F7FF", section:"documents",    icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><path d="M14 2H6a1.5 1.5 0 00-1.5 1.5v13A1.5 1.5 0 006 18h8a1.5 1.5 0 001.5-1.5V6L14 2z"/><path d="M14 2v4h4"/></svg> },
+    "resume":       { label:"Resume",       color:"#3B82F6", bg:"rgba(59,130,246,0.12)", section:"resume",       icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><path d="M13 2H5a1.5 1.5 0 00-1.5 1.5v13A1.5 1.5 0 005 18h10a1.5 1.5 0 001.5-1.5V6L13 2z"/><path d="M13 2v4h4"/><path d="M7 9h6M7 12h4"/></svg> },
+    "linkedin":     { label:"LinkedIn",     color:"#0A66C2", bg:"rgba(10,102,194,0.12)", section:"linkedin",     icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><rect x="2" y="2" width="16" height="16" rx="3"/><path d="M6 9v5M6 7v.01M10 14v-3a2 2 0 014 0v3M10 9v5"/></svg> },
+    "cover-letter": { label:"Cover Letter", color:"#059669", bg:"rgba(5,150,105,0.12)", section:"cover-letter", icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><path d="M17 4H3a1 1 0 00-1 1v10a1 1 0 001 1h14a1 1 0 001-1V5a1 1 0 00-1-1z"/><path d="M1 5l9 7 9-7"/></svg> },
+    "upload":       { label:"Uploaded",     color:"#64748B", bg:"rgba(100,116,139,0.12)", section:"documents",    icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><path d="M14 2H6a1.5 1.5 0 00-1.5 1.5v13A1.5 1.5 0 006 18h8a1.5 1.5 0 001.5-1.5V6L14 2z"/><path d="M14 2v4h4"/></svg> },
   };
 
   const SECTION_CARDS = [
-    { type:"resume"       as DocType, label:"Resume Review",   desc:"Upload and analyze your resume",    section:"resume",       color:"var(--z-text2)", bg:"#F0FDFA" },
-    { type:"linkedin"     as DocType, label:"LinkedIn Profile", desc:"Review and optimize your LinkedIn", section:"linkedin",     color:"#0A66C2", bg:"#EFF6FF" },
-    { type:"cover-letter" as DocType, label:"Cover Letter",     desc:"Generate a tailored cover letter",  section:"cover-letter", color:"#059669", bg:"#ECFDF5" },
+    { type:"resume"       as DocType, label:"Resume Review",   desc:"Upload and analyze your resume",    section:"resume",       color:"#3B82F6", bg:"rgba(59,130,246,0.12)" },
+    { type:"linkedin"     as DocType, label:"LinkedIn Profile", desc:"Review and optimize your LinkedIn", section:"linkedin",     color:"#0A66C2", bg:"rgba(10,102,194,0.12)" },
+    { type:"cover-letter" as DocType, label:"Cover Letter",     desc:"Generate a tailored cover letter",  section:"cover-letter", color:"#059669", bg:"rgba(5,150,105,0.12)" },
   ];
 
   const missing = SECTION_CARDS.filter(c => !docs.some(d => d.type === c.type));
@@ -12812,7 +12812,7 @@ function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate
           onDragLeave={()=>setDragging(false)}
           onDrop={e=>{ e.preventDefault(); setDragging(false); const f=e.dataTransfer.files?.[0]; if(f) void handleFile(f); }}
           onClick={()=>fileInputRef.current?.click()}
-          style={{ border:`2px dashed ${dragging?"#2563EB":"rgba(0,0,0,0.12)"}`, borderRadius:14, padding:"20px 32px", textAlign:"center", marginBottom:24, cursor:"pointer", background:dragging?"rgba(37,99,235,0.05)":"rgba(255,255,255,0.6)", transition:"all 0.2s", backdropFilter:"blur(2px)" }}>
+          style={{ border:`2px dashed ${dragging?"#2563EB":"var(--z-bd)"}`, borderRadius:14, padding:"20px 32px", textAlign:"center", marginBottom:24, cursor:"pointer", background:dragging?"rgba(37,99,235,0.07)":"var(--z-raise)", transition:"all 0.2s" }}>
           {uploading ? (
             <p style={{ fontSize:13, fontWeight:600, color:"#2563EB" }}>Uploading and indexing…</p>
           ) : (
