@@ -13782,56 +13782,89 @@ function ScreenPromotionRoadmap({ onNavigate, active = false }: { onNavigate: (s
   const TASKS = aiTasks ?? STAGE_TASKS.promotion;
   const pct = TASKS.length ? Math.round((done.size / TASKS.length) * 100) : 0;
 
-  const CAT_COLORS: Record<string, { color: string; bg: string; border: string }> = {
-    Case: { color:"var(--z-text2)", bg:"#F0FDFA", border:"#BFDBFE" },
-    Docs: { color:"#10B981", bg:"#ECFDF5", border:"#A7F3D0" },
-    Feedback: { color:"#DC2626", bg:"#FEF2F2", border:"#FECACA" },
-    Sponsorship: { color:"#3B82F6", bg:"#EFF6FF", border:"#BFDBFE" },
-    Visibility: { color:"#0284C7", bg:"#EFF6FF", border:"#BFDBFE" },
-    Session: { color:"var(--z-text2)", bg:"#F0FDFA", border:"#BFDBFE" },
-    Milestone: { color:"#D97706", bg:"#FFFBEB", border:"#FDE68A" },
+  const CAT_COLORS: Record<string, { color: string; accent: string }> = {
+    Case:        { color:"#0891B2", accent:"rgba(8,145,178,0.12)" },
+    Docs:        { color:"#10B981", accent:"rgba(16,185,129,0.12)" },
+    Feedback:    { color:"#DC2626", accent:"rgba(220,38,38,0.12)" },
+    Sponsorship: { color:"#3B82F6", accent:"rgba(59,130,246,0.12)" },
+    Visibility:  { color:"#7C3AED", accent:"rgba(124,58,237,0.12)" },
+    Session:     { color:"#64748B", accent:"rgba(100,116,139,0.1)" },
+    Milestone:   { color:"#D97706", accent:"rgba(217,119,6,0.12)" },
   };
 
   const TIMELINE_GROUPS = [
-    { id:"high", label:"Do this week", sublabel:"Highest leverage first", accent:"#FB7185", bg:"rgba(251,113,133,0.12)", border:"rgba(251,113,133,0.22)" },
-    { id:"med", label:"Do this month", sublabel:"Build support and fill gaps", accent:"#F59E0B", bg:"rgba(245,158,11,0.12)", border:"rgba(245,158,11,0.22)" },
-    { id:"low", label:"When it's time", sublabel:"Timing and asks once proof and support align", accent:"#3B82F6", bg:"rgba(139,92,246,0.12)", border:"rgba(139,92,246,0.22)" },
+    {
+      id:"high",
+      label:"Do this week",
+      sublabel:"Highest leverage first",
+      accent:"#F43F5E",
+      headerBg:"linear-gradient(135deg, #4C0519 0%, #881337 100%)",
+      ringColor:"#F43F5E",
+      barColor:"#F43F5E",
+      icon:<svg viewBox="0 0 20 20" fill="none" style={{width:16,height:16}}><path d="M10 2l1.5 4.5H16l-3.7 2.7 1.4 4.3L10 11l-3.7 2.5 1.4-4.3L4 6.5h4.5L10 2z" stroke="#F43F5E" strokeWidth="1.5" fill="rgba(244,63,94,0.2)" strokeLinejoin="round"/></svg>,
+    },
+    {
+      id:"med",
+      label:"Do this month",
+      sublabel:"Build support and fill gaps",
+      accent:"#F59E0B",
+      headerBg:"linear-gradient(135deg, #451A03 0%, #78350F 100%)",
+      ringColor:"#F59E0B",
+      barColor:"#F59E0B",
+      icon:<svg viewBox="0 0 20 20" fill="none" style={{width:16,height:16}}><rect x="3" y="4" width="14" height="13" rx="2" stroke="#F59E0B" strokeWidth="1.5" fill="rgba(245,158,11,0.15)"/><path d="M3 8h14M8 2v4M12 2v4" stroke="#F59E0B" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+    },
+    {
+      id:"low",
+      label:"When it's time",
+      sublabel:"Timing and asks once proof aligns",
+      accent:"#818CF8",
+      headerBg:"linear-gradient(135deg, #1E1B4B 0%, #312E81 100%)",
+      ringColor:"#818CF8",
+      barColor:"#818CF8",
+      icon:<svg viewBox="0 0 20 20" fill="none" style={{width:16,height:16}}><path d="M2 15c3-5 6-7 8-7s5 2 8 7" stroke="#818CF8" strokeWidth="1.5" strokeLinecap="round" fill="rgba(129,140,248,0.12)"/><path d="M10 8V5M4 12L2 11M16 12l2-1" stroke="#818CF8" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+    },
   ] as const;
 
   return (
     <div style={promotionPageStyle(theme)}>
       <div style={{ padding:"24px 32px 48px", position:"relative" }}>
-        <div style={promotionHeroStyle(theme)}>
-          <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 84% 18%, rgba(251,207,232,0.18), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
-          <div style={promotionHeroGridStyle()}>
-            <div style={{ position:"relative" }}>
-              <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>The Sequence</div>
-              <h1 style={promotionHeroTitleStyle(760)}>The sequence, based on where you actually are.</h1>
-              <p style={promotionHeroBodyStyle(720)}>
-                Ordered by impact — not a generic checklist.
-              </p>
-            </div>
-            <div style={{ display:"flex", alignItems:"center", gap:16, alignSelf:"center", flexWrap:"wrap" }}>
-              {/* Overall completion ring */}
-              <div style={{ position:"relative", width:110, height:110, flexShrink:0 }}>
-                <svg viewBox="0 0 110 110" style={{ position:"absolute", inset:0, width:"100%", height:"100%", transform:"rotate(-90deg)" }}>
-                  <circle cx="55" cy="55" r="46" fill="none" stroke="var(--z-raise)" strokeWidth="10"/>
-                  <circle cx="55" cy="55" r="46" fill="none" stroke="#2563EB" strokeWidth="10" strokeLinecap="round" strokeDasharray={`${(pct / 100) * 289} 289`} style={{ transition:"stroke-dasharray 0.5s ease" }}/>
-                </svg>
-                <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
-                  <div style={{ fontSize:26, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.04em", lineHeight:1 }}>{pct}%</div>
-                  <div style={{ fontSize:9.5, color:"var(--z-text3)", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", marginTop:3 }}>done</div>
-                </div>
+
+        {/* ── Hero: dark immersive banner ── */}
+        <div style={{ borderRadius:24, background:"linear-gradient(135deg, #0F1525 0%, #1A1040 60%, #0F1525 100%)", border:"1px solid rgba(255,255,255,0.08)", padding:"32px 36px", marginBottom:20, position:"relative", overflow:"hidden" }}>
+          {/* Ambient glows */}
+          <div style={{ position:"absolute", top:-40, right:-40, width:220, height:220, borderRadius:"50%", background:"radial-gradient(circle, rgba(251,113,133,0.18) 0%, transparent 70%)", pointerEvents:"none" }}/>
+          <div style={{ position:"absolute", bottom:-60, left:60, width:200, height:200, borderRadius:"50%", background:"radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 70%)", pointerEvents:"none" }}/>
+
+          <div style={{ display:"flex", alignItems:"center", gap:32, flexWrap:"wrap", position:"relative" }}>
+            {/* Ring */}
+            <div style={{ position:"relative", width:120, height:120, flexShrink:0 }}>
+              <svg viewBox="0 0 120 120" style={{ position:"absolute", inset:0, width:"100%", height:"100%", transform:"rotate(-90deg)" }}>
+                <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="10"/>
+                <circle cx="60" cy="60" r="50" fill="none" stroke="#FB7185" strokeWidth="10" strokeLinecap="round"
+                  strokeDasharray={`${(pct/100)*314} 314`}
+                  style={{ filter:"drop-shadow(0 0 8px rgba(251,113,133,0.5))", transition:"stroke-dasharray 0.6s ease" }}/>
+              </svg>
+              <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
+                <div style={{ fontSize:30, fontWeight:900, color:"white", letterSpacing:"-0.05em", lineHeight:1 }}>{pct}%</div>
+                <div style={{ fontSize:9.5, color:"rgba(255,255,255,0.45)", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", marginTop:4 }}>done</div>
               </div>
-              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(90px,1fr))", gap:10 }}>
+            </div>
+
+            {/* Title + stats */}
+            <div style={{ flex:1, minWidth:200 }}>
+              <div style={{ fontSize:10.5, fontWeight:800, color:"rgba(251,113,133,0.8)", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:8 }}>The Sequence</div>
+              <h1 style={{ fontSize:26, fontWeight:900, color:"white", letterSpacing:"-0.03em", lineHeight:1.15, margin:"0 0 16px", fontFamily:PROMOTION_DISPLAY_FONT }}>
+                The sequence, based on where you actually are.
+              </h1>
+              <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
                 {[
-                  { label:"Completed", value:String(done.size).padStart(2, "0") },
-                  { label:"Remaining", value:String(TASKS.length - done.size).padStart(2, "0") },
-                  { label:"Sections", value:`${readyCount}/3` },
-                ].map(card => (
-                  <div key={card.label} style={{ borderRadius:10, padding:"13px 14px 12px", background:"var(--z-card)", border:"1px solid var(--z-bd)" }}>
-                    <div style={{ fontSize:10, fontWeight:800, letterSpacing:"0.1em", textTransform:"uppercase", color:"var(--z-text3)", marginBottom:7 }}>{card.label}</div>
-                    <div style={{ fontSize:22, fontWeight:900, lineHeight:1, color:"var(--z-text)", letterSpacing:"-0.04em" }}>{card.value}</div>
+                  { label:"Completed", value:done.size, color:"#4ADE80" },
+                  { label:"Remaining", value:TASKS.length - done.size, color:"#FB7185" },
+                  { label:"Sections", value:`${readyCount}/3`, color:"#818CF8" },
+                ].map(s => (
+                  <div key={s.label} style={{ borderRadius:12, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", padding:"10px 16px", textAlign:"center", minWidth:80 }}>
+                    <div style={{ fontSize:22, fontWeight:900, color:s.color, letterSpacing:"-0.04em", lineHeight:1 }}>{s.value}</div>
+                    <div style={{ fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.4)", textTransform:"uppercase", letterSpacing:"0.08em", marginTop:4 }}>{s.label}</div>
                   </div>
                 ))}
               </div>
@@ -13840,71 +13873,89 @@ function ScreenPromotionRoadmap({ onNavigate, active = false }: { onNavigate: (s
         </div>
 
         {planLoading && (
-          <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", boxShadow:"0 1px 3px rgba(15,23,42,0.06)", marginBottom:18, display:"flex", alignItems:"center", gap:12, padding:"16px 18px" }}>
-            <span style={{ width:16, height:16, borderRadius:"50%", border:"2.5px solid var(--z-bd)", borderTopColor:"#2563EB", animation:"spin-slow 0.7s linear infinite", display:"block", flexShrink:0 }}/>
+          <div style={{ borderRadius:14, background:"var(--z-card)", border:"1px solid var(--z-bd)", marginBottom:18, display:"flex", alignItems:"center", gap:12, padding:"16px 18px" }}>
+            <span style={{ width:16, height:16, borderRadius:"50%", border:"2.5px solid var(--z-bd)", borderTopColor:"#FB7185", animation:"spin-slow 0.7s linear infinite", display:"block", flexShrink:0 }}/>
             <span style={{ fontSize:13.5, color:"var(--z-text2)", fontWeight:700 }}>Zari is putting the sequence together…</span>
           </div>
         )}
 
-        <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #2563EB", padding:"22px 24px", marginBottom:18 }}>
-          <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Zari's take</div>
-          <p style={{ fontSize:15.5, color:"var(--z-text)", lineHeight:1.78, margin:0 }}>
+        {/* Zari's take — premium gradient card */}
+        <div style={{ borderRadius:18, background:"linear-gradient(135deg, rgba(124,58,237,0.08) 0%, rgba(37,99,235,0.05) 100%)", border:"1px solid rgba(124,58,237,0.2)", borderLeft:"4px solid #7C3AED", padding:"22px 26px", marginBottom:18 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
+            <div style={{ width:28, height:28, borderRadius:8, background:"linear-gradient(135deg, #7C3AED, #3B82F6)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+              <span style={{ fontSize:12, fontWeight:900, color:"white" }}>Z</span>
+            </div>
+            <div style={{ fontSize:10.5, fontWeight:800, color:"#7C3AED", textTransform:"uppercase", letterSpacing:"0.12em" }}>Zari&apos;s take</div>
+          </div>
+          <p style={{ fontSize:15.5, color:"var(--z-text)", lineHeight:1.82, margin:0, fontWeight:500 }}>
             {aiCoachNote ?? "Start with the highest-leverage tasks. The goal is to tighten the case first, then build support, then time the ask so the decision feels inevitable rather than premature."}
           </p>
         </div>
 
-        <div style={{ display:"flex", gap:8, marginBottom:22, flexWrap:"wrap" }}>
+        {/* Section status pills */}
+        <div style={{ display:"flex", gap:8, marginBottom:24, flexWrap:"wrap" }}>
           {SECTION_CARDS.map(card => (
-            <button key={card.key} onClick={() => onNavigate(card.key)} style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 13px", borderRadius:999, border:`1px solid ${card.done ? "#2563EB" : "var(--z-bd)"}`, background:card.done ? "#EFF6FF" : "var(--z-card)", color:card.done ? "#2563EB" : "var(--z-text2)", cursor:"pointer", fontSize:12.5, fontWeight:700 }}>
+            <button key={card.key} onClick={() => onNavigate(card.key)}
+              style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 13px", borderRadius:999,
+                border:`1px solid ${card.done ? "#059669" : "var(--z-bd)"}`,
+                background:card.done ? "rgba(5,150,105,0.1)" : "var(--z-card)",
+                color:card.done ? "#059669" : "var(--z-text2)",
+                cursor:"pointer", fontSize:12.5, fontWeight:700, transition:"all 0.15s" }}>
               {card.done
-                ? <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.2" style={{width:10,height:10}}><path d="M1.5 6l3 3 6-6"/></svg>
+                ? <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.4" style={{width:10,height:10}}><path d="M1.5 6l3 3 6-6"/></svg>
                 : <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" style={{width:10,height:10}}><circle cx="6" cy="6" r="4.5"/></svg>}
               {card.label}
             </button>
           ))}
         </div>
 
-        <div style={{ display:"grid", gap:18 }}>
+        {/* Timeline groups */}
+        <div style={{ display:"grid", gap:20 }}>
           {TIMELINE_GROUPS.map(group => {
             const groupTasks = TASKS.map((t, i) => ({ ...t, idx: i })).filter(t => t.pri === group.id);
             if (!groupTasks.length) return null;
             const groupDone = groupTasks.filter(t => done.has(t.idx)).length;
             const groupPct = groupTasks.length ? Math.round((groupDone / groupTasks.length) * 100) : 0;
             return (
-              <div key={group.id} style={{ borderRadius:20, background:"var(--z-raise)", border:"1px solid var(--z-bd)", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", padding:"20px 22px" }}>
-                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:16, flexWrap:"wrap" }}>
-                  <div>
-                    <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:6 }}>
-                      <span style={{ fontSize:10.5, fontWeight:800, padding:"5px 10px", borderRadius:999, background:"var(--z-raise)", color:"var(--z-text3)", border:"1px solid var(--z-bd)", letterSpacing:"0.08em", textTransform:"uppercase" }}>{group.label}</span>
-                      <span style={{ fontSize:12, color:"#94A3B8" }}>{groupDone}/{groupTasks.length} done</span>
+              <div key={group.id} style={{ borderRadius:20, background:"var(--z-card)", border:"1px solid var(--z-bd)", overflow:"hidden", boxShadow:"0 4px 20px rgba(0,0,0,0.07)" }}>
+                {/* Group header */}
+                <div style={{ background:group.headerBg, padding:"18px 22px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                    <div style={{ width:32, height:32, borderRadius:9, background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.15)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      {group.icon}
                     </div>
-                    <h2 style={{ fontSize:22, lineHeight:1.15, fontWeight:800, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"var(--z-text)", margin:0 }}>{group.sublabel}</h2>
+                    <div>
+                      <div style={{ fontSize:10.5, fontWeight:800, color:"rgba(255,255,255,0.55)", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:2 }}>{group.label}</div>
+                      <div style={{ fontSize:17, fontWeight:800, color:"white", letterSpacing:"-0.02em", lineHeight:1.1 }}>{group.sublabel}</div>
+                    </div>
                   </div>
                   <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                    <div style={{ fontSize:14, fontWeight:900, color:"var(--z-text2)" }}>{groupPct}%</div>
-                    <div style={{ width:100, height:7, borderRadius:999, background:"var(--z-bd2)", overflow:"hidden" }}>
-                      <div style={{ width:`${groupPct}%`, height:"100%", borderRadius:999, background:"#2563EB", transition:"width 0.4s ease" }}/>
+                    <div style={{ fontSize:13, fontWeight:800, color:"rgba(255,255,255,0.6)" }}>{groupDone}/{groupTasks.length}</div>
+                    <div style={{ width:90, height:6, borderRadius:999, background:"rgba(255,255,255,0.15)", overflow:"hidden" }}>
+                      <div style={{ width:`${groupPct}%`, height:"100%", borderRadius:999, background:group.barColor, transition:"width 0.4s ease", filter:`drop-shadow(0 0 4px ${group.barColor}88)` }}/>
                     </div>
+                    <div style={{ fontSize:13, fontWeight:900, color:"white" }}>{groupPct}%</div>
                   </div>
                 </div>
 
-                <div style={{ display:"grid", gap:10 }}>
+                {/* Tasks */}
+                <div style={{ padding:"14px 16px", display:"grid", gap:8 }}>
                   {groupTasks.map(task => {
                     const isDone = done.has(task.idx);
-                    const cc = CAT_COLORS[task.cat] ?? { color:"var(--z-text2)", bg:"#F8FAFC", border:"#E2E8F0" };
+                    const cc = CAT_COLORS[task.cat] ?? { color:"#64748B", accent:"rgba(100,116,139,0.1)" };
                     return (
                       <button
                         key={task.idx}
                         onClick={() => setDone(d => { const next = new Set(d); next.has(task.idx) ? next.delete(task.idx) : next.add(task.idx); return next; })}
-                        style={{ display:"flex", alignItems:"flex-start", gap:12, border:`1px solid ${isDone ? "#2563EB" : "var(--z-bd)"}`, borderRadius:12, padding:"14px 16px", background:isDone ? "#EFF6FF" : "var(--z-card)", textAlign:"left", cursor:"pointer", transition:"all 0.18s" }}
+                        style={{ display:"flex", alignItems:"flex-start", gap:12, border:`1px solid ${isDone ? group.accent+"44" : "var(--z-bd)"}`, borderLeft:`3px solid ${isDone ? group.accent : "var(--z-bd)"}`, borderRadius:12, padding:"13px 15px", background:isDone ? `${group.accent}08` : "var(--z-raise)", textAlign:"left", cursor:"pointer", transition:"all 0.18s", opacity:isDone ? 0.65 : 1 }}
                       >
-                        <div style={{ width:24, height:24, borderRadius:8, border:`2px solid ${isDone ? "#2563EB" : "var(--z-bd)"}`, background:isDone ? "#2563EB" : "var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1, transition:"all 0.18s" }}>
-                          {isDone && <svg viewBox="0 0 12 12" fill="none" style={{width:10,height:10}}><path d="M1.5 6l3 3 6-6" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                        <div style={{ width:22, height:22, borderRadius:7, border:`2px solid ${isDone ? group.accent : "var(--z-bd)"}`, background:isDone ? group.accent : "transparent", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1, transition:"all 0.18s" }}>
+                          {isDone && <svg viewBox="0 0 12 12" fill="none" style={{width:9,height:9}}><path d="M1.5 6l3 3 6-6" stroke="white" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                         </div>
                         <div style={{ flex:1 }}>
-                          <p style={{ fontSize:13.5, color:isDone ? "var(--z-text3)" : "var(--z-text)", textDecoration:isDone ? "line-through" : "none", lineHeight:1.6, margin:0, transition:"all 0.18s" }}>{task.text}</p>
+                          <p style={{ fontSize:13.5, color:isDone ? "var(--z-text3)" : "var(--z-text)", textDecoration:isDone ? "line-through" : "none", lineHeight:1.65, margin:0, transition:"all 0.18s" }}>{task.text}</p>
                         </div>
-                        <span style={{ flexShrink:0, fontSize:10.5, fontWeight:800, padding:"4px 9px", borderRadius:999, background:"var(--z-raise)", color:isDone ? "#2563EB" : "var(--z-text3)", border:`1px solid ${isDone ? "#2563EB" : "var(--z-bd)"}`, whiteSpace:"nowrap" }}>{isDone ? "Done" : task.cat}</span>
+                        <span style={{ flexShrink:0, fontSize:10, fontWeight:800, padding:"3px 8px", borderRadius:999, background:isDone ? "transparent" : cc.accent, color:isDone ? "var(--z-text3)" : cc.color, border:`1px solid ${isDone ? "var(--z-bd)" : cc.color+"33"}`, whiteSpace:"nowrap", marginTop:2 }}>{isDone ? "Done" : task.cat}</span>
                       </button>
                     );
                   })}
