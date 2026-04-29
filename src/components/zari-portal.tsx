@@ -11215,241 +11215,320 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
   }
 
   if (result) {
+    const completedPct = result.visibilityMoves.length > 0
+      ? Math.round((checkedMoves.size / result.visibilityMoves.length) * 100)
+      : 0;
+    const tabs: Array<{ id: PromotionVisibilityTab; label: string; count?: number }> = [
+      { id:"overview",  label:"The Picture" },
+      { id:"moves",     label:"Moves",       count:result.visibilityMoves.length },
+      { id:"sponsors",  label:"Key People",  count:result.sponsorMap.length },
+      { id:"cadence",   label:"Cadence" },
+    ];
     return (
       <div style={{ height:"100%", display:"flex", overflow:"hidden", background:"var(--z-raise)" }}>
         {/* LEFT PANEL */}
         <div style={{ width:264, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
-          <div style={{ padding:"22px 16px 14px" }}>
-            <div style={{ fontSize:9, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Ally Map</div>
-            <p style={{ fontSize:12, color:"var(--z-text2)", lineHeight:1.6, margin:"0 0 12px" }}>{result.overallFocus}</p>
-            <div style={{ display:"flex", flexDirection:"column", gap:4, marginBottom:12 }}>
-              {([
-                { label:"Moves", value:String(result.visibilityMoves.length).padStart(2,"0") },
-                { label:"Key people", value:String(result.sponsorMap.length).padStart(2,"0") },
-                { label:"Completed", value:`${checkedMoves.size} / ${result.visibilityMoves.length}` },
-              ] as {label:string;value:string}[]).map(r => (
-                <div key={r.label} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"5px 9px", borderRadius:7, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
-                  <span style={{ fontSize:10, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em" }}>{r.label}</span>
-                  <span style={{ fontSize:11, fontWeight:800, color:"var(--z-text2)" }}>{r.value}</span>
+          <div style={{ padding:"20px 16px 16px" }}>
+            {/* Progress ring + headline */}
+            <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:14 }}>
+              <div style={{ position:"relative", width:56, height:56, flexShrink:0 }}>
+                <svg viewBox="0 0 60 60" style={{ position:"absolute", inset:0, width:"100%", height:"100%", transform:"rotate(-90deg)" }}>
+                  <circle cx="30" cy="30" r="24" fill="none" stroke="var(--z-raise)" strokeWidth="5"/>
+                  <circle cx="30" cy="30" r="24" fill="none" stroke="#3B82F6" strokeWidth="5" strokeLinecap="round"
+                    strokeDasharray={`${(completedPct/100)*150.8} 150.8`} style={{ transition:"stroke-dasharray 0.4s ease" }}/>
+                </svg>
+                <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
+                  <div style={{ fontSize:13, fontWeight:900, color:"var(--z-text)", lineHeight:1 }}>{completedPct}%</div>
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize:11, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:3 }}>Ally Map</div>
+                <div style={{ fontSize:12, color:"var(--z-text2)", lineHeight:1.5 }}>{checkedMoves.size} of {result.visibilityMoves.length} moves done</div>
+              </div>
+            </div>
+            {/* Stats row */}
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:6, marginBottom:14 }}>
+              {[
+                { label:"Moves", value:result.visibilityMoves.length },
+                { label:"Key people", value:result.sponsorMap.length },
+              ].map(s => (
+                <div key={s.label} style={{ borderRadius:10, background:"var(--z-raise)", border:"1px solid var(--z-bd)", padding:"10px 10px 8px", textAlign:"center" }}>
+                  <div style={{ fontSize:22, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.04em", lineHeight:1 }}>{s.value}</div>
+                  <div style={{ fontSize:10, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.07em", marginTop:3 }}>{s.label}</div>
                 </div>
               ))}
-            </div>
-            <div style={{ borderRadius:8, background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderLeft:"3px solid #EF4444", padding:"10px 12px" }}>
-              <div style={{ fontSize:9.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:4 }}>Hard truth</div>
-              <div style={{ fontSize:12, color:"var(--z-text)", lineHeight:1.65 }}>{result.hardTruth}</div>
             </div>
           </div>
           <div style={{ height:1, background:"var(--z-bd)" }}/>
           <div style={{ padding:"8px 8px", flex:1 }}>
-            {([
-              { id:"overview", label:"Overview" },
-              { id:"moves", label:`Moves (${result.visibilityMoves.length})` },
-              { id:"sponsors", label:`Key people (${result.sponsorMap.length})` },
-              { id:"cadence", label:"Cadence" },
-            ] as {id:string;label:string}[]).map(tab => {
+            {tabs.map(tab => {
               const active = resultTab === tab.id;
               return (
-                <button key={tab.id} onClick={() => setResultTab(tab.id as PromotionVisibilityTab)} style={{ width:"100%", display:"flex", alignItems:"center", padding:"9px 10px", borderRadius:8, border:"none", background:active ? "rgba(37,99,235,0.08)" : "transparent", color:active ? "#2563EB" : "var(--z-text2)", fontSize:13, fontWeight:active ? 700 : 500, cursor:"pointer", textAlign:"left", transition:"all 0.12s" }}>
-                  {tab.label}
+                <button key={tab.id} onClick={() => setResultTab(tab.id)} style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"9px 10px", borderRadius:8, border:"none", background:active ? "rgba(59,130,246,0.1)" : "transparent", color:active ? "#3B82F6" : "var(--z-text2)", fontSize:13, fontWeight:active ? 700 : 500, cursor:"pointer", textAlign:"left", transition:"all 0.12s" }}>
+                  <span>{tab.label}</span>
+                  {tab.count !== undefined && (
+                    <span style={{ fontSize:10, fontWeight:800, padding:"1px 6px", borderRadius:99, background:active ? "rgba(59,130,246,0.15)" : "var(--z-raise)", color:active ? "#3B82F6" : "var(--z-text3)", border:"1px solid var(--z-bd)" }}>{tab.count}</span>
+                  )}
                 </button>
               );
             })}
           </div>
           <div style={{ padding:"10px 12px 14px", borderTop:"1px solid var(--z-bd)" }}>
-            <button onClick={() => setResult(null)} style={{ width:"100%", fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Start over</button>
+            <button onClick={() => { setResult(null); setResultTab("overview"); }} style={{ width:"100%", fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Start over</button>
           </div>
         </div>
+
         {/* RIGHT PANEL */}
-        <div style={{ flex:1, overflowY:"auto", padding:"24px 28px 40px" }}>
-          <div style={{ display:"grid", gap:16 }}>
-              {resultTab === "overview" && (
-                <>
-                  <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"26px 28px" }}>
-                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:16, flexWrap:"wrap" }}>
-                      <div>
-                        <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:4 }}>What you want decision-makers to say</div>
-                        <div style={{ fontSize:11.5, color:"var(--z-text2)", fontWeight:500 }}>Your calibration narrative — copy and share with your manager or sponsor</div>
+        <div style={{ flex:1, overflowY:"auto", padding:"24px 28px 48px" }}>
+
+          {resultTab === "overview" && (
+            <div style={{ display:"grid", gap:16 }}>
+
+              {/* Hard truth — full-width hero */}
+              <div style={{ borderRadius:18, background:"linear-gradient(135deg, rgba(220,38,38,0.06) 0%, rgba(239,68,68,0.03) 100%)", border:"1px solid rgba(220,38,38,0.2)", borderLeft:"4px solid #EF4444", padding:"22px 26px" }}>
+                <div style={{ fontSize:10.5, fontWeight:800, color:"#EF4444", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:10 }}>Hard truth</div>
+                <p style={{ fontSize:16, color:"var(--z-text)", lineHeight:1.82, margin:0, fontWeight:500 }}>{result.hardTruth}</p>
+              </div>
+
+              {/* Executive narrative — calibration quote */}
+              <div style={{ borderRadius:18, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"22px 26px" }}>
+                <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12, marginBottom:18, flexWrap:"wrap" }}>
+                  <div>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"#3B82F6", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:5 }}>What decision-makers should say about you</div>
+                    <div style={{ fontSize:12, color:"var(--z-text2)", lineHeight:1.6 }}>Your calibration narrative — share with your manager or sponsor so they can repeat it verbatim</div>
+                  </div>
+                  <button
+                    onClick={() => { void navigator.clipboard.writeText(result.executiveNarrative); setNarrativeCopied(true); setTimeout(() => setNarrativeCopied(false), 2000); }}
+                    style={{ fontSize:11.5, fontWeight:700, padding:"7px 14px", borderRadius:10, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer", flexShrink:0 }}
+                  >
+                    {narrativeCopied ? "Copied!" : "Copy"}
+                  </button>
+                </div>
+                <div style={{ borderRadius:14, background:"var(--z-raise)", borderLeft:"4px solid #3B82F6", padding:"18px 20px" }}>
+                  <div style={{ fontSize:16.5, lineHeight:1.88, color:"var(--z-text)", fontStyle:"italic", fontWeight:500 }}>
+                    &ldquo;{result.executiveNarrative}&rdquo;
+                  </div>
+                </div>
+              </div>
+
+              {/* Strategy + support gaps side by side */}
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:14 }}>
+                {/* Strategy brief */}
+                <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #3B82F6", padding:"18px 20px" }}>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:"#3B82F6", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:12 }}>The strategy</div>
+                  <p style={{ fontSize:14, color:"var(--z-text)", lineHeight:1.82, margin:0 }}>{result.overallFocus}</p>
+                </div>
+
+                {/* Support gaps */}
+                <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #EF4444", padding:"18px 20px" }}>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:"#EF4444", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:12 }}>Support gaps</div>
+                  <div style={{ display:"grid", gap:10 }}>
+                    {result.missingSupport.map((rawS, si) => {
+                      const s: VisSupport = typeof rawS === "string"
+                        ? { gap: rawS, impact: "", fix: "" }
+                        : rawS as VisSupport;
+                      return (
+                        <div key={si} style={{ borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
+                          <div style={{ padding:"11px 13px 9px", display:"flex", gap:9, alignItems:"flex-start" }}>
+                            <div style={{ flexShrink:0, width:20, height:20, borderRadius:999, background:"rgba(239,68,68,0.1)", border:"1px solid rgba(239,68,68,0.25)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
+                              <svg viewBox="0 0 10 10" fill="none" style={{ width:9,height:9 }}><path d="M5 1L9.5 9H0.5L5 1z" fill="rgba(239,68,68,0.12)" stroke="#EF4444" strokeWidth="1.5" strokeLinejoin="round"/><path d="M5 4v2M5 7v.5" stroke="#EF4444" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                            </div>
+                            <div>
+                              <div style={{ fontSize:13, fontWeight:800, color:"var(--z-text)", marginBottom: s.impact ? 4 : 0 }}>{s.gap}</div>
+                              {s.impact && <p style={{ fontSize:12, color:"var(--z-text3)", lineHeight:1.65, margin:0 }}>{s.impact}</p>}
+                            </div>
+                          </div>
+                          {s.fix && (
+                            <div style={{ padding:"8px 13px 10px", borderTop:"1px solid var(--z-bd)", background:"rgba(5,150,105,0.04)", display:"flex", gap:8, alignItems:"flex-start" }}>
+                              <svg viewBox="0 0 12 12" fill="none" stroke="#059669" strokeWidth="2.2" style={{ width:10,height:10,flexShrink:0,marginTop:2 }}><path d="M1.5 6l3 3 6-6"/></svg>
+                              <p style={{ fontSize:12, color:"var(--z-text)", lineHeight:1.65, margin:0 }}>{s.fix}</p>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick preview: first 2 moves */}
+              {result.visibilityMoves.length > 0 && (
+                <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"18px 20px" }}>
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginBottom:14 }}>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em" }}>Where to start</div>
+                    <button onClick={() => setResultTab("moves")} style={{ fontSize:11.5, fontWeight:700, padding:"5px 12px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>See all moves →</button>
+                  </div>
+                  <div style={{ display:"grid", gap:10 }}>
+                    {result.visibilityMoves.slice(0,2).map((item, i) => (
+                      <div key={item.title} style={{ display:"flex", gap:12, alignItems:"flex-start", padding:"12px 14px", borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
+                        <span style={{ fontSize:10, fontWeight:900, color:"#3B82F6", background:"rgba(59,130,246,0.1)", border:"1px solid rgba(59,130,246,0.2)", borderRadius:99, width:22, height:22, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:2 }}>{i+1}</span>
+                        <div>
+                          <div style={{ fontSize:13.5, fontWeight:800, color:"var(--z-text)", marginBottom:4 }}>{item.title}</div>
+                          <div style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.65 }}>{item.move}</div>
+                        </div>
                       </div>
-                      <button
-                        onClick={() => { void navigator.clipboard.writeText(result.executiveNarrative); setNarrativeCopied(true); setTimeout(() => setNarrativeCopied(false), 2000); }}
-                        style={{ fontSize:11.5, fontWeight:700, padding:"7px 14px", borderRadius:10, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer", flexShrink:0 }}
-                      >
-                        {narrativeCopied ? "Copied!" : "Copy"}
-                      </button>
-                    </div>
-                    <div style={{ fontSize:17.5, lineHeight:1.85, color:"var(--z-text)", whiteSpace:"pre-wrap", fontStyle:"italic", borderLeft:"3px solid #2563EB", paddingLeft:20 }}>
-                      &ldquo;{result.executiveNarrative}&rdquo;
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {resultTab === "moves" && (
+            <div style={{ display:"grid", gap:14 }}>
+              {/* Progress bar */}
+              <div style={{ borderRadius:14, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"16px 20px" }}>
+                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
+                  <div style={{ fontSize:13, fontWeight:700, color:"var(--z-text)" }}>Progress — {checkedMoves.size} of {result.visibilityMoves.length} moves complete</div>
+                  <span style={{ fontSize:13, fontWeight:900, color:"#3B82F6" }}>{completedPct}%</span>
+                </div>
+                <div style={{ height:6, borderRadius:999, background:"var(--z-raise)", overflow:"hidden" }}>
+                  <div style={{ height:"100%", width:`${completedPct}%`, background:"linear-gradient(90deg, #3B82F6, #60A5FA)", borderRadius:999, transition:"width 0.4s ease" }}/>
+                </div>
+                <p style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.7, margin:"12px 0 0" }}>The order is deliberate — start from the top.</p>
+              </div>
+              {result.visibilityMoves.map((item, index) => {
+                const isChecked = checkedMoves.has(index);
+                return (
+                  <div key={item.title} style={{ borderRadius:14, background:"var(--z-card)", border:`1px solid ${isChecked ? "#3B82F6" : "var(--z-bd)"}`, overflow:"hidden", display:"flex", transition:"all 0.18s", opacity:isChecked ? 0.6 : 1 }}>
+                    <button
+                      onClick={() => setCheckedMoves(prev => { const n = new Set(prev); if (n.has(index)) n.delete(index); else n.add(index); return n; })}
+                      style={{ width:48, flexShrink:0, background:isChecked ? "#3B82F6" : "var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"center", border:"none", borderRight:"1px solid var(--z-bd)", cursor:"pointer", transition:"background 0.18s" }}
+                    >
+                      {isChecked
+                        ? <svg viewBox="0 0 20 20" fill="none" stroke="white" strokeWidth="2.5" style={{width:16,height:16}}><path d="M4 10l4 4 8-8"/></svg>
+                        : <span style={{ fontSize:13, fontWeight:900, color:"var(--z-text3)" }}>{index + 1}</span>}
+                    </button>
+                    <div style={{ padding:"16px 18px", flex:1 }}>
+                      <div style={{ fontSize:14.5, fontWeight:800, color:"var(--z-text)", marginBottom:7, textDecoration:isChecked ? "line-through" : "none" }}>{item.title}</div>
+                      <div style={{ fontSize:13.2, color:"var(--z-text)", lineHeight:1.72, marginBottom:8 }}>{item.move}</div>
+                      {item.why && (
+                        <div style={{ fontSize:12, color:"var(--z-text2)", lineHeight:1.6, padding:"8px 12px", borderRadius:8, background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderLeft:"2px solid #3B82F6" }}>
+                          {item.why}
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:14 }}>
-                    <div style={{ borderRadius:18, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #DC2626", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", padding:"18px 18px 16px" }}>
-                      <div style={{ fontSize:10.5, fontWeight:800, color:"#DC2626", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:12 }}>Support gaps</div>
-                      <div style={{ display:"grid", gap:10 }}>
-                        {result.missingSupport.map((rawS, si) => {
-                          const s: VisSupport = typeof rawS === "string"
-                            ? { gap: rawS, impact: "", fix: "" }
-                            : rawS as VisSupport;
-                          return (
-                            <div key={si} style={{ borderRadius:10, background:"var(--z-raise)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
-                              <div style={{ padding:"11px 12px 9px", display:"flex", gap:9, alignItems:"flex-start" }}>
-                                <div style={{ flexShrink:0, width:20, height:20, borderRadius:999, background:"rgba(220,38,38,0.1)", border:"1px solid rgba(220,38,38,0.25)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
-                                  <svg viewBox="0 0 10 10" fill="none" style={{ width:9,height:9 }}><path d="M5 1L9.5 9H0.5L5 1z" fill="rgba(220,38,38,0.15)" stroke="#DC2626" strokeWidth="1.5" strokeLinejoin="round"/><path d="M5 4v2M5 7v.5" stroke="#DC2626" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                                </div>
-                                <div>
-                                  <div style={{ fontSize:13, fontWeight:800, color:"var(--z-text)", marginBottom: s.impact ? 4 : 0 }}>{s.gap}</div>
-                                  {s.impact && <p style={{ fontSize:12, color:"var(--z-text3)", lineHeight:1.65, margin:0 }}>{s.impact}</p>}
-                                </div>
-                              </div>
-                              {s.fix && (
-                                <div style={{ padding:"8px 12px 10px", borderTop:"1px solid var(--z-bd)", background:"rgba(220,38,38,0.02)", display:"flex", gap:8, alignItems:"flex-start" }}>
-                                  <div style={{ flexShrink:0, width:15, height:15, borderRadius:4, background:"rgba(5,150,105,0.1)", border:"1px solid rgba(5,150,105,0.2)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
-                                    <svg viewBox="0 0 10 10" fill="none" stroke="#059669" strokeWidth="2" style={{ width:7,height:7 }}><path d="M1.5 5l2.5 2.5L8.5 2"/></svg>
-                                  </div>
-                                  <p style={{ fontSize:12, color:"var(--z-text)", lineHeight:1.65, margin:0 }}>{s.fix}</p>
+                );
+              })}
+            </div>
+          )}
+
+          {resultTab === "sponsors" && (
+            <div style={{ display:"grid", gap:14 }}>
+              <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.75, margin:"0 0 4px" }}>Have the ask ready before you walk into every conversation. Copy it, adapt it, use it.</p>
+              {result.sponsorMap.map((item, idx) => (
+                <div key={item.audience} style={{ borderRadius:18, background:"var(--z-card)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
+                  {/* Header */}
+                  <div style={{ padding:"16px 20px 14px", borderBottom:"1px solid var(--z-bd)", background:"var(--z-raise)", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                      <div style={{ width:40, height:40, borderRadius:12, background:"rgba(59,130,246,0.1)", border:"1px solid rgba(59,130,246,0.2)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                        <svg viewBox="0 0 20 20" fill="none" stroke="#3B82F6" strokeWidth="1.8" style={{width:18,height:18}}><circle cx="10" cy="7" r="3.5"/><path d="M3 18c0-3.87 3.13-7 7-7s7 3.13 7 7"/></svg>
+                      </div>
+                      <div>
+                        <div style={{ fontSize:15, fontWeight:800, color:"var(--z-text)", marginBottom:3 }}>{item.audience}</div>
+                        <div style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.55 }}>{item.goal}</div>
+                      </div>
+                    </div>
+                    <span style={{ fontSize:10.5, fontWeight:800, padding:"4px 10px", borderRadius:999, background:"rgba(59,130,246,0.1)", color:"#3B82F6", border:"1px solid rgba(59,130,246,0.2)", whiteSpace:"nowrap" }}>Key person</span>
+                  </div>
+                  {/* Ask */}
+                  <div style={{ padding:"16px 20px 18px" }}>
+                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginBottom:10 }}>
+                      <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em" }}>The ask</div>
+                      <button
+                        onClick={() => { void navigator.clipboard.writeText(item.ask); setCopiedAsk(idx); setTimeout(() => setCopiedAsk(null), 2000); }}
+                        style={{ fontSize:11.5, fontWeight:700, padding:"5px 12px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}
+                      >
+                        {copiedAsk === idx ? "Copied!" : "Copy ask"}
+                      </button>
+                    </div>
+                    <div style={{ fontSize:14, color:"var(--z-text)", lineHeight:1.82, padding:"15px 18px", borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #3B82F6", fontStyle:"italic" }}>
+                      &ldquo;{item.ask}&rdquo;
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {resultTab === "cadence" && (
+            <div style={{ display:"grid", gap:16 }}>
+              {/* Weekly rhythm */}
+              <div style={{ borderRadius:18, background:"var(--z-card)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
+                <div style={{ padding:"16px 20px 14px", borderBottom:"1px solid var(--z-bd)", background:"var(--z-raise)", display:"flex", alignItems:"center", gap:10 }}>
+                  <div style={{ width:32, height:32, borderRadius:9, background:"rgba(59,130,246,0.12)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    <svg viewBox="0 0 20 20" fill="none" stroke="#3B82F6" strokeWidth="1.8" style={{width:16,height:16}}><rect x="3" y="4" width="14" height="13" rx="2"/><path d="M7 2v4M13 2v4M3 9h14"/></svg>
+                  </div>
+                  <div style={{ fontSize:14, fontWeight:800, color:"var(--z-text)" }}>Weekly rhythm</div>
+                </div>
+                <div style={{ display:"grid", gap:0 }}>
+                  {result.weeklyCadence.map((rawC, ci) => {
+                    const c: VisCadence = typeof rawC === "string"
+                      ? { action: rawC, why: "", frequency: "" }
+                      : rawC as VisCadence;
+                    return (
+                      <div key={ci} style={{ borderBottom:ci < result.weeklyCadence.length - 1 ? "1px solid var(--z-bd)" : "none", padding:"14px 20px" }}>
+                        <div style={{ display:"flex", alignItems:"flex-start", gap:12 }}>
+                          <div style={{ flexShrink:0, width:24, height:24, borderRadius:999, background:"rgba(59,130,246,0.1)", border:"1px solid rgba(59,130,246,0.2)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
+                            <span style={{ fontSize:10, fontWeight:900, color:"#3B82F6" }}>{ci+1}</span>
+                          </div>
+                          <div style={{ flex:1 }}>
+                            <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", marginBottom: c.why ? 7 : 0 }}>
+                              <div style={{ fontSize:13.5, fontWeight:700, color:"var(--z-text)", lineHeight:1.6 }}>{c.action}</div>
+                              {c.frequency && (
+                                <div style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"2px 9px", borderRadius:99, background:"rgba(59,130,246,0.08)", border:"1px solid rgba(59,130,246,0.18)" }}>
+                                  <svg viewBox="0 0 10 10" fill="none" style={{ width:8,height:8 }}><circle cx="5" cy="5" r="3.5" stroke="#3B82F6" strokeWidth="1.5"/><path d="M5 3v2l1.5 1" stroke="#3B82F6" strokeWidth="1.2" strokeLinecap="round"/></svg>
+                                  <span style={{ fontSize:10, fontWeight:700, color:"#3B82F6" }}>{c.frequency}</span>
                                 </div>
                               )}
                             </div>
-                          );
-                        })}
+                            {c.why && <p style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.65, margin:0 }}>{c.why}</p>}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div style={{ borderRadius:18, background:"var(--z-card)", border:"1px solid var(--z-bd)", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", padding:"18px 18px 16px" }}>
-                      <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text2)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>The priority</div>
-                      <div style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.78 }}>{result.overallFocus}</div>
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {resultTab === "moves" && (
-                <div style={{ display:"grid", gap:12 }}>
-                  <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.75, margin:"0 0 4px" }}>Check off each move as you complete it. The order is deliberate — start from the top.</p>
-                  {result.visibilityMoves.map((item, index) => {
-                    const isChecked = checkedMoves.has(index);
-                    return (
-                    <div
-                      key={item.title}
-                      style={{ borderRadius:12, background:"var(--z-card)", border:`1px solid ${isChecked ? "#2563EB" : "var(--z-bd)"}`, overflow:"hidden", display:"flex", transition:"all 0.18s" }}
-                    >
-                      <button
-                        onClick={() => setCheckedMoves(prev => { const n = new Set(prev); if (n.has(index)) n.delete(index); else n.add(index); return n; })}
-                        style={{ width:44, flexShrink:0, background:isChecked ? "#2563EB" : "var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"center", border:"none", borderRight:"1px solid var(--z-bd)", cursor:"pointer" }}
-                      >
-                        {isChecked
-                          ? <svg viewBox="0 0 20 20" fill="none" stroke="white" strokeWidth="2.5" style={{width:16,height:16}}><path d="M4 10l4 4 8-8"/></svg>
-                          : <span style={{ fontSize:13, fontWeight:900, color:"var(--z-text3)" }}>{index + 1}</span>}
-                      </button>
-                      <div style={{ padding:"15px 17px", flex:1, opacity:isChecked ? 0.55 : 1, transition:"opacity 0.18s" }}>
-                        <div style={{ fontSize:14, fontWeight:800, color:"var(--z-text)", marginBottom:6, textDecoration:isChecked ? "line-through" : "none" }}>{item.title}</div>
-                        <div style={{ fontSize:13.2, color:"var(--z-text)", lineHeight:1.68, marginBottom:7 }}>{item.move}</div>
-                        <div style={{ fontSize:12, color:"var(--z-text2)", lineHeight:1.55, fontWeight:600 }}>{item.why}</div>
-                      </div>
-                    </div>
                     );
                   })}
                 </div>
-              )}
+              </div>
 
-              {resultTab === "sponsors" && (
-                <div style={{ display:"grid", gap:12 }}>
-                  <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.75, margin:"0 0 4px" }}>Copy the ask for each person and have it ready before your next conversation with them.</p>
-                  {result.sponsorMap.map((item, idx) => (
-                    <div key={item.audience} style={{ borderRadius:18, background:"var(--z-card)", border:"1px solid var(--z-bd)", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", padding:"16px 18px" }}>
-                      <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12, marginBottom:6, flexWrap:"wrap" }}>
-                        <div>
-                          <div style={{ fontSize:14, fontWeight:800, color:"var(--z-text)", marginBottom:4 }}>{item.audience}</div>
-                          <div style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.65 }}>{item.goal}</div>
-                        </div>
-                        <span style={{ fontSize:10.5, fontWeight:800, padding:"3px 9px", borderRadius:999, background:"var(--z-raise)", color:"var(--z-text3)", border:"1px solid var(--z-bd)", whiteSpace:"nowrap" }}>Sponsor</span>
-                      </div>
-                      <div style={{ marginTop:12 }}>
-                        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginBottom:8 }}>
-                          <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text2)", textTransform:"uppercase", letterSpacing:"0.08em" }}>What to say</div>
-                          <button
-                            onClick={() => { void navigator.clipboard.writeText(item.ask); setCopiedAsk(idx); setTimeout(() => setCopiedAsk(null), 2000); }}
-                            style={{ fontSize:11.5, fontWeight:700, padding:"5px 11px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}
-                          >
-                            {copiedAsk === idx ? "Copied!" : "Copy ask"}
-                          </button>
-                        </div>
-                        <div style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.75, padding:"14px 16px", borderRadius:10, background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderLeft:"3px solid #2563EB", fontStyle:"italic" }}>
-                          &ldquo;{item.ask}&rdquo;
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {resultTab === "cadence" && (
-                <div style={{ display:"grid", gap:20 }}>
-                  <div style={{ borderRadius:18, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #2563EB", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", padding:"18px 18px 16px" }}>
-                    <div style={{ fontSize:10.5, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:14 }}>Weekly rhythm</div>
-                    <div style={{ display:"grid", gap:10 }}>
-                      {result.weeklyCadence.map((rawC, ci) => {
-                        const c: VisCadence = typeof rawC === "string"
-                          ? { action: rawC, why: "", frequency: "" }
-                          : rawC as VisCadence;
-                        return (
-                          <div key={ci} style={{ borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
-                            <div style={{ padding:"12px 14px 10px", display:"flex", gap:10, alignItems:"flex-start" }}>
-                              <div style={{ flexShrink:0, width:22, height:22, borderRadius:999, background:"rgba(37,99,235,0.1)", border:"1px solid rgba(37,99,235,0.25)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
-                                <span style={{ fontSize:10, fontWeight:900, color:"#2563EB" }}>{ci+1}</span>
-                              </div>
-                              <div>
-                                <div style={{ fontSize:13.5, fontWeight:700, color:"var(--z-text)", lineHeight:1.65, marginBottom: c.frequency ? 5 : 0 }}>{c.action}</div>
-                                {c.frequency && (
-                                  <div style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"2px 8px", borderRadius:99, background:"rgba(37,99,235,0.06)", border:"1px solid rgba(37,99,235,0.15)" }}>
-                                    <svg viewBox="0 0 10 10" fill="none" style={{ width:8,height:8 }}><circle cx="5" cy="5" r="3.5" stroke="#2563EB" strokeWidth="1.5"/><path d="M5 3v2l1.5 1" stroke="#2563EB" strokeWidth="1.2" strokeLinecap="round"/></svg>
-                                    <span style={{ fontSize:10, fontWeight:700, color:"#2563EB" }}>{c.frequency}</span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                            {c.why && (
-                              <div style={{ padding:"8px 14px 11px", borderTop:"1px solid var(--z-bd)", background:"rgba(37,99,235,0.03)" }}>
-                                <p style={{ fontSize:12, color:"var(--z-text2)", lineHeight:1.65, margin:0 }}>{c.why}</p>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
+              {/* Watchouts */}
+              <div style={{ borderRadius:18, background:"var(--z-card)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
+                <div style={{ padding:"16px 20px 14px", borderBottom:"1px solid var(--z-bd)", background:"var(--z-raise)", display:"flex", alignItems:"center", gap:10 }}>
+                  <div style={{ width:32, height:32, borderRadius:9, background:"rgba(217,119,6,0.12)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    <svg viewBox="0 0 20 20" fill="none" style={{width:16,height:16}}><path d="M10 3L18.5 17H1.5L10 3z" stroke="#D97706" strokeWidth="1.8" strokeLinejoin="round" fill="rgba(217,119,6,0.08)"/><path d="M10 9v4M10 14.5v.5" stroke="#D97706" strokeWidth="1.8" strokeLinecap="round"/></svg>
                   </div>
-                  <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #D97706", padding:"18px 18px 16px" }}>
-                    <div style={{ fontSize:10.5, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:14 }}>Watchouts</div>
-                    <div style={{ display:"grid", gap:10 }}>
-                      {result.watchouts.map((rawW, wi) => {
-                        const w: VisWatchout = typeof rawW === "string"
-                          ? { risk: rawW, impact: "", instead: "" }
-                          : rawW as VisWatchout;
-                        return (
-                          <div key={wi} style={{ borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
-                            <div style={{ padding:"11px 13px 9px", display:"flex", gap:9, alignItems:"flex-start" }}>
-                              <div style={{ flexShrink:0, width:20, height:20, borderRadius:999, background:"rgba(217,119,6,0.1)", border:"1px solid rgba(217,119,6,0.25)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
-                                <svg viewBox="0 0 10 10" fill="none" style={{ width:9,height:9 }}><path d="M5 1L9.5 9H0.5L5 1z" fill="rgba(217,119,6,0.15)" stroke="#D97706" strokeWidth="1.5" strokeLinejoin="round"/><path d="M5 4v2M5 7v.5" stroke="#D97706" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                              </div>
-                              <div>
-                                <div style={{ fontSize:13, fontWeight:800, color:"var(--z-text)", marginBottom: w.impact ? 4 : 0 }}>{w.risk}</div>
-                                {w.impact && <p style={{ fontSize:12, color:"var(--z-text3)", lineHeight:1.65, margin:0 }}>{w.impact}</p>}
-                              </div>
-                            </div>
-                            {w.instead && (
-                              <div style={{ padding:"8px 13px 11px", borderTop:"1px solid var(--z-bd)", background:"rgba(217,119,6,0.03)", display:"flex", gap:8, alignItems:"flex-start" }}>
-                                <div style={{ flexShrink:0, width:15, height:15, borderRadius:4, background:"rgba(5,150,105,0.1)", border:"1px solid rgba(5,150,105,0.2)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
-                                  <svg viewBox="0 0 10 10" fill="none" stroke="#059669" strokeWidth="2" style={{ width:7,height:7 }}><path d="M1.5 5l2.5 2.5L8.5 2"/></svg>
-                                </div>
-                                <p style={{ fontSize:12, color:"var(--z-text)", lineHeight:1.65, margin:0 }}>{w.instead}</p>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
+                  <div style={{ fontSize:14, fontWeight:800, color:"var(--z-text)" }}>Watchouts</div>
                 </div>
-              )}
-          </div>
+                <div style={{ display:"grid", gap:0 }}>
+                  {result.watchouts.map((rawW, wi) => {
+                    const w: VisWatchout = typeof rawW === "string"
+                      ? { risk: rawW, impact: "", instead: "" }
+                      : rawW as VisWatchout;
+                    return (
+                      <div key={wi} style={{ borderBottom:wi < result.watchouts.length - 1 ? "1px solid var(--z-bd)" : "none", padding:"14px 20px" }}>
+                        <div style={{ display:"flex", alignItems:"flex-start", gap:10, marginBottom: w.instead ? 10 : 0 }}>
+                          <div style={{ flexShrink:0, width:20, height:20, borderRadius:999, background:"rgba(217,119,6,0.1)", border:"1px solid rgba(217,119,6,0.25)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:2 }}>
+                            <svg viewBox="0 0 10 10" fill="none" style={{ width:7,height:7 }}><path d="M5 1L9.5 9H0.5L5 1z" fill="rgba(217,119,6,0.15)" stroke="#D97706" strokeWidth="1.5" strokeLinejoin="round"/><path d="M5 4v1.5M5 7v.3" stroke="#D97706" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                          </div>
+                          <div>
+                            <div style={{ fontSize:13.5, fontWeight:800, color:"var(--z-text)", marginBottom: w.impact ? 4 : 0 }}>{w.risk}</div>
+                            {w.impact && <p style={{ fontSize:12.5, color:"var(--z-text3)", lineHeight:1.65, margin:0 }}>{w.impact}</p>}
+                          </div>
+                        </div>
+                        {w.instead && (
+                          <div style={{ marginLeft:30, padding:"9px 13px", borderRadius:10, background:"rgba(5,150,105,0.05)", border:"1px solid rgba(5,150,105,0.15)", display:"flex", gap:8, alignItems:"flex-start" }}>
+                            <svg viewBox="0 0 12 12" fill="none" stroke="#059669" strokeWidth="2.2" style={{ width:10,height:10,flexShrink:0,marginTop:2 }}><path d="M1.5 6l3 3 6-6"/></svg>
+                            <p style={{ fontSize:12.5, color:"var(--z-text)", lineHeight:1.65, margin:0 }}>{w.instead}</p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
