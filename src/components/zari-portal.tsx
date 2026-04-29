@@ -4999,8 +4999,8 @@ type PivotAnalysisResult = {
 };
 
 function ScreenPivotAnalysis() {
-  const ACCENT = "#38BDF8";
-  const BG_DARK = "var(--z-bg)";
+  const ACCENT  = "#0284C7";
+  const ACCENT2 = "#38BDF8";
   type PivotTab = "overview" | "assets" | "gaps" | "plan";
   const [step, setStep] = useState<1|2|3>(1);
   const [form, setForm] = useState({ fromRole:"", fromIndustry:"", toRole:"", toIndustry:"", accomplishments:"", skills:"", biggestConcern:"", timeline:"", resumeText:"" });
@@ -5025,209 +5025,302 @@ function ScreenPivotAnalysis() {
     setGenerating(false);
   }
 
-  const verdictMeta: Record<string, { color: string; bg: string; border: string }> = {
-    "Strong pivot":      { color:"#38BDF8", bg:"rgba(56,189,248,0.12)", border:"rgba(56,189,248,0.3)" },
-    "Viable with work":  { color:"#7DD3FC", bg:"rgba(125,211,252,0.12)", border:"rgba(125,211,252,0.3)" },
-    "Challenging":       { color:"#FBBF24", bg:"rgba(251,191,36,0.12)", border:"rgba(251,191,36,0.3)" },
-    "High risk":         { color:"#F87171", bg:"rgba(248,113,113,0.12)", border:"rgba(248,113,113,0.3)" },
+  const verdictMeta: Record<string, { color: string; bg: string; glow: string }> = {
+    "Strong pivot":     { color:"#34D399", bg:"rgba(52,211,153,0.15)",  glow:"rgba(52,211,153,0.3)"  },
+    "Viable with work": { color:ACCENT2,   bg:"rgba(56,189,248,0.15)",  glow:"rgba(56,189,248,0.3)"  },
+    "Challenging":      { color:"#FBBF24", bg:"rgba(251,191,36,0.15)",  glow:"rgba(251,191,36,0.3)"  },
+    "High risk":        { color:"#F87171", bg:"rgba(248,113,113,0.15)", glow:"rgba(248,113,113,0.3)" },
   };
 
-  const severityColor = { critical:"#EF4444", moderate:"#D97706", minor:"#10B981" };
+  const severityColor: Record<string,string> = { critical:"#EF4444", moderate:"#F59E0B", minor:"#34D399" };
 
   if (generating && !result) {
     return (
-      <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
-        <div style={{ padding:"72px 40px" }}>
-          <div style={{ borderRadius:24, border:"1px solid var(--z-bd)", background:"var(--z-card)", boxShadow:"0 4px 32px rgba(0,0,0,0.09)", padding:"72px 32px", textAlign:"center" }}>
-            <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
-              {[0,1,2].map(i => <div key={i} style={{ width:11,height:11,borderRadius:"50%",background:"#2563EB",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
-            </div>
-            <p style={{ fontSize:18, fontWeight:800, color:"var(--z-text)", marginBottom:8, letterSpacing:"-0.02em" }}>Analyzing your pivot…</p>
-            <p style={{ fontSize:13.5, color:"var(--z-text3)", lineHeight:1.65, }}>Mapping your transferable assets and identifying what it takes to make this move credible.</p>
+      <div style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--z-raise)", padding:"40px" }}>
+        <div style={{ borderRadius:24, border:"1px solid rgba(56,189,248,0.2)", background:"linear-gradient(135deg, rgba(2,132,199,0.08), rgba(56,189,248,0.04))", padding:"72px 52px", textAlign:"center", maxWidth:480, width:"100%" }}>
+          <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:24 }}>
+            {[0,1,2].map(i => <div key={i} style={{ width:10,height:10,borderRadius:"50%",background:ACCENT2,animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
           </div>
+          <div style={{ fontSize:11, fontWeight:800, color:ACCENT2, textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:12 }}>Career Change Analysis</div>
+          <p style={{ fontSize:20, fontWeight:900, color:"var(--z-text)", margin:"0 0 10px", letterSpacing:"-0.03em" }}>Mapping your pivot…</p>
+          {form.fromRole && form.toRole && (
+            <div style={{ display:"inline-flex", alignItems:"center", gap:10, background:"rgba(56,189,248,0.08)", border:"1px solid rgba(56,189,248,0.18)", borderRadius:99, padding:"8px 20px", margin:"0 0 14px" }}>
+              <span style={{ fontSize:13, fontWeight:700, color:"var(--z-text2)" }}>{form.fromRole}</span>
+              <svg viewBox="0 0 20 10" fill="none" style={{width:22,flexShrink:0}}><path d="M1 5h16M13 2l4 3-4 3" stroke={ACCENT2} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <span style={{ fontSize:13, fontWeight:700, color:ACCENT2 }}>{form.toRole}</span>
+            </div>
+          )}
+          <p style={{ fontSize:13.5, color:"var(--z-text3)", lineHeight:1.7, margin:0 }}>Translating your experience, mapping the gaps, building your credibility strategy.</p>
         </div>
       </div>
     );
   }
 
   if (result) {
-    const scoreColor = result.pivotScore >= 72 ? "#38BDF8" : result.pivotScore >= 52 ? "#D97706" : "#EF4444";
+    const scoreColor = result.pivotScore >= 72 ? "#34D399" : result.pivotScore >= 52 ? ACCENT2 : result.pivotScore >= 35 ? "#F59E0B" : "#EF4444";
     const vMeta = verdictMeta[result.pivotVerdict] ?? verdictMeta["Viable with work"];
-    const tabs: { id: PivotTab; label: string }[] = [
-      { id:"overview", label:"Overview" }, { id:"assets", label:"Transferable Assets" },
-      { id:"gaps", label:"Skill Gaps" }, { id:"plan", label:"Pivot Plan" },
+    const severityLabel: Record<string,string> = { critical:"Bridge before applying", moderate:"Worth addressing", minor:"Nice to have" };
+
+    type TabDef = { id: PivotTab; label: string; icon: string; count?: number };
+    const tabs: TabDef[] = [
+      { id:"overview",  label:"Overview",         icon:"compass" },
+      { id:"assets",    label:"What You Bring",   icon:"trending-up", count:result.transferableAssets.length },
+      { id:"gaps",      label:"What to Build",    icon:"bar-chart",   count:result.skillGaps.length },
+      { id:"plan",      label:"Pivot Blueprint",  icon:"map" },
     ];
+
     return (
-      <div style={{ height:"100%", display:"flex", overflow:"hidden", background:"var(--z-raise)" }}>
-        {/* LEFT PANEL */}
-        <div style={{ width:264, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
-          <div style={{ padding:"22px 16px 14px" }}>
-            <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:14 }}>
-              <div style={{ position:"relative", width:68, height:68, flexShrink:0 }}>
-                <svg viewBox="0 0 90 90" style={{ position:"absolute", inset:0, width:"100%", height:"100%", transform:"rotate(-90deg)" }}>
-                  <circle cx="45" cy="45" r="38" fill="none" stroke="var(--z-raise)" strokeWidth="7"/>
-                  <circle cx="45" cy="45" r="38" fill="none" stroke={scoreColor} strokeWidth="7" strokeLinecap="round" strokeDasharray={`${(result.pivotScore/100)*238.8} 238.8`}/>
-                </svg>
-                <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
-                  <div style={{ fontSize:20, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.05em", lineHeight:1 }}>{result.pivotScore}</div>
-                </div>
-              </div>
-              <div style={{ minWidth:0 }}>
-                <span style={{ fontSize:9.5, fontWeight:800, color:"var(--z-text2)", background:"var(--z-raise)", border:"1px solid var(--z-bd)", padding:"3px 8px", borderRadius:999, display:"inline-block", marginBottom:6, textTransform:"uppercase", letterSpacing:"0.08em" }}>{result.pivotVerdict}</span>
-                <div style={{ fontSize:12, fontWeight:800, color:"var(--z-text)", lineHeight:1.3 }}>Pivot Analysis</div>
+      <div style={{ height:"100%", display:"flex", flexDirection:"column", overflow:"hidden", background:"var(--z-raise)" }}>
+
+        {/* ── HERO HEADER ── */}
+        <div style={{ flexShrink:0, background:"linear-gradient(160deg,#071525 0%,#0b1e38 50%,#0f172a 100%)", borderBottom:"1px solid rgba(56,189,248,0.15)", padding:"26px 32px 22px", position:"relative", overflow:"hidden" }}>
+          <div style={{ position:"absolute", top:-70, right:-50, width:280, height:280, borderRadius:"50%", background:`radial-gradient(circle, ${vMeta.glow} 0%, transparent 65%)`, pointerEvents:"none" }}/>
+          <div style={{ position:"absolute", bottom:-50, left:80, width:200, height:200, borderRadius:"50%", background:"radial-gradient(circle, rgba(2,132,199,0.08) 0%, transparent 70%)", pointerEvents:"none" }}/>
+          <div style={{ display:"flex", alignItems:"flex-start", gap:22, position:"relative" }}>
+            {/* Score ring */}
+            <div style={{ position:"relative", width:76, height:76, flexShrink:0 }}>
+              <svg viewBox="0 0 90 90" style={{ position:"absolute", inset:0, width:"100%", height:"100%", transform:"rotate(-90deg)" }}>
+                <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="7"/>
+                <circle cx="45" cy="45" r="38" fill="none" stroke={scoreColor} strokeWidth="7" strokeLinecap="round" strokeDasharray={`${(result.pivotScore/100)*238.8} 238.8`} style={{ filter:`drop-shadow(0 0 5px ${scoreColor}80)` }}/>
+              </svg>
+              <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
+                <div style={{ fontSize:21, fontWeight:900, color:"white", letterSpacing:"-0.05em", lineHeight:1 }}>{result.pivotScore}</div>
+                <div style={{ fontSize:8, fontWeight:700, color:"rgba(255,255,255,0.4)", textTransform:"uppercase", letterSpacing:"0.06em" }}>score</div>
               </div>
             </div>
-            {form.fromRole && form.toRole && (
-              <div style={{ fontSize:12, fontWeight:700, color:"var(--z-text2)", marginBottom:10, padding:"6px 10px", borderRadius:8, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
-                {form.fromRole} → {form.toRole}
+            {/* Journey */}
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:11, flexWrap:"wrap" }}>
+                <span style={{ fontSize:10.5, fontWeight:800, color:vMeta.color, background:vMeta.bg, border:`1px solid ${vMeta.glow}`, padding:"3px 11px", borderRadius:99, textTransform:"uppercase", letterSpacing:"0.09em" }}>{result.pivotVerdict}</span>
+                <span style={{ fontSize:10.5, fontWeight:700, color:"rgba(255,255,255,0.3)", letterSpacing:"0.06em", textTransform:"uppercase" }}>Career Change</span>
               </div>
-            )}
-            <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
-              {([
-                { label:"From", value:form.fromIndustry },
-                { label:"To", value:form.toIndustry },
-                { label:"Timeline", value:form.timeline },
-              ] as {label:string;value:string}[]).filter(r => r.value).map(r => (
-                <div key={r.label} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"5px 9px", borderRadius:7, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
-                  <span style={{ fontSize:10, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em" }}>{r.label}</span>
-                  <span style={{ fontSize:11, fontWeight:800, color:"var(--z-text2)", maxWidth:120, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.value}</span>
-                </div>
-              ))}
+              <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
+                {form.fromRole && (
+                  <div style={{ background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:10, padding:"8px 14px" }}>
+                    <div style={{ fontSize:9, fontWeight:700, color:"rgba(255,255,255,0.35)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:2 }}>From</div>
+                    <div style={{ fontSize:14, fontWeight:800, color:"rgba(255,255,255,0.82)", letterSpacing:"-0.01em" }}>{form.fromRole}</div>
+                    {form.fromIndustry && <div style={{ fontSize:10.5, color:"rgba(255,255,255,0.35)", marginTop:1 }}>{form.fromIndustry}</div>}
+                  </div>
+                )}
+                {form.fromRole && form.toRole && (
+                  <svg viewBox="0 0 28 14" fill="none" style={{width:28,flexShrink:0}}><path d="M1 7h24M20 3l5 4-5 4" stroke={ACCENT2} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                )}
+                {form.toRole && (
+                  <div style={{ background:`rgba(2,132,199,0.15)`, border:`1px solid rgba(56,189,248,0.22)`, borderRadius:10, padding:"8px 14px" }}>
+                    <div style={{ fontSize:9, fontWeight:700, color:ACCENT2, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:2 }}>To</div>
+                    <div style={{ fontSize:14, fontWeight:800, color:"white", letterSpacing:"-0.01em" }}>{form.toRole}</div>
+                    {form.toIndustry && <div style={{ fontSize:10.5, color:"rgba(255,255,255,0.45)", marginTop:1 }}>{form.toIndustry}</div>}
+                  </div>
+                )}
+                {form.timeline && (
+                  <div style={{ display:"flex", alignItems:"center", gap:5, marginLeft:6 }}>
+                    <svg viewBox="0 0 12 12" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.6" style={{width:11,height:11}}><circle cx="6" cy="6" r="4.5"/><path d="M6 4v2.5l1.5 1.5"/></svg>
+                    <span style={{ fontSize:11, color:"rgba(255,255,255,0.4)" }}>{form.timeline}</span>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-          <div style={{ height:1, background:"var(--z-bd)" }}/>
-          <div style={{ padding:"8px 8px", flex:1 }}>
-            {tabs.map(t => {
-              const active = tab === t.id;
-              return (
-                <button key={t.id} onClick={() => setTab(t.id)} style={{ width:"100%", display:"flex", alignItems:"center", padding:"9px 10px", borderRadius:8, border:"none", background:active ? "rgba(37,99,235,0.08)" : "transparent", color:active ? "#2563EB" : "var(--z-text2)", fontSize:13, fontWeight:active ? 700 : 500, cursor:"pointer", textAlign:"left", transition:"all 0.12s" }}>
-                  {t.label}
-                </button>
-              );
-            })}
-          </div>
-          <div style={{ padding:"10px 12px 14px", borderTop:"1px solid var(--z-bd)", display:"flex", gap:6 }}>
-            <button onClick={() => setResult(null)} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>New</button>
-            <button onClick={() => { setResult(null); setStep(1); }} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Redo</button>
+            <button onClick={() => { setResult(null); setStep(1); }} style={{ flexShrink:0, fontSize:11, fontWeight:700, padding:"6px 13px", borderRadius:8, border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.05)", color:"rgba(255,255,255,0.45)", cursor:"pointer" }}>New analysis</button>
           </div>
         </div>
-        {/* RIGHT PANEL */}
-        <div style={{ flex:1, overflowY:"auto", padding:"24px 28px 40px" }}>
-            {tab === "overview" && (
-              <div style={{ display:"grid", gap:18 }}>
-                <div style={{ borderRadius:14, background:"rgba(220,38,38,0.04)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #DC2626", padding:"22px 26px" }}>
-                  <div style={{ fontSize:10.5, fontWeight:800, color:"#DC2626", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Hard truth</div>
-                  <p style={{ fontSize:15, color:"var(--z-text)", lineHeight:1.8, margin:0 }}>{result.hardTruth}</p>
-                </div>
-                <div style={{ borderRadius:14, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #38BDF8", padding:"22px 26px" }}>
-                  <div style={{ fontSize:10.5, fontWeight:800, color:"#38BDF8", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:14 }}>Target roles to consider</div>
-                  <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-                    {result.targetRoles.map((rawR, i) => {
-                      const r: TargetRole = typeof rawR === "string"
-                        ? { role: rawR, why: "", bridge: "" }
-                        : rawR as TargetRole;
-                      return (
-                        <div key={i} style={{ borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
-                          <div style={{ padding:"14px 16px 10px", borderBottom: r.why ? "1px solid var(--z-bd)" : "none" }}>
-                            <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                              <span style={{ fontSize:10, fontWeight:900, color:"#38BDF8", background:"rgba(56,189,248,0.1)", border:"1px solid rgba(56,189,248,0.25)", borderRadius:99, width:22, height:22, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{i+1}</span>
-                              <span style={{ fontSize:14, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.01em" }}>{r.role}</span>
-                            </div>
-                            {r.why && <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.7, margin:"8px 0 0 32px" }}>{r.why}</p>}
-                          </div>
-                          {r.bridge && (
-                            <div style={{ padding:"10px 16px 12px 16px", background:"rgba(56,189,248,0.04)", display:"flex", gap:9, alignItems:"flex-start" }}>
-                              <svg viewBox="0 0 12 12" fill="none" stroke="#38BDF8" strokeWidth="2" style={{ width:11,height:11,flexShrink:0,marginTop:2 }}><path d="M2 6h8M7 3l3 3-3 3"/></svg>
-                              <p style={{ fontSize:12.5, color:"#38BDF8", lineHeight:1.65, margin:0 }}>{r.bridge}</p>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+
+        {/* ── TAB BAR ── */}
+        <div style={{ flexShrink:0, borderBottom:"1px solid var(--z-bd)", background:"var(--z-card)", padding:"0 24px", display:"flex", gap:0, overflowX:"auto" }}>
+          {tabs.map(t => {
+            const active = tab === t.id;
+            return (
+              <button key={t.id} onClick={() => setTab(t.id)} style={{ display:"flex", alignItems:"center", gap:7, padding:"13px 16px", border:"none", borderBottom:active ? `2px solid ${ACCENT}` : "2px solid transparent", background:"transparent", color:active ? ACCENT : "var(--z-text2)", fontSize:13, fontWeight:active ? 700 : 500, cursor:"pointer", transition:"all 0.15s", whiteSpace:"nowrap", flexShrink:0 }}>
+                {zIcon(t.icon, active ? ACCENT : "currentColor")}
+                {t.label}
+                {t.count !== undefined && <span style={{ fontSize:10, fontWeight:800, padding:"1px 7px", borderRadius:99, background:active ? `rgba(2,132,199,0.12)` : "var(--z-raise)", color:active ? ACCENT : "var(--z-text3)", border:`1px solid ${active ? `rgba(2,132,199,0.25)` : "var(--z-bd)"}` }}>{t.count}</span>}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ── CONTENT ── */}
+        <div style={{ flex:1, overflowY:"auto", padding:"28px 32px 52px" }}>
+
+          {/* OVERVIEW */}
+          {tab === "overview" && (
+            <div style={{ display:"grid", gap:20 }}>
+              {/* Hard Truth */}
+              <div style={{ borderRadius:20, background:"linear-gradient(135deg,rgba(220,38,38,0.09) 0%,rgba(220,38,38,0.03) 100%)", border:"1px solid rgba(220,38,38,0.18)", padding:"26px 30px", position:"relative", overflow:"hidden" }}>
+                <div style={{ position:"absolute", top:-20, right:-20, width:110, height:110, borderRadius:"50%", background:"radial-gradient(circle,rgba(220,38,38,0.14) 0%,transparent 70%)", pointerEvents:"none" }}/>
+                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:13 }}>
+                  <div style={{ width:26, height:26, borderRadius:"50%", background:"rgba(220,38,38,0.15)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                    <svg viewBox="0 0 14 14" fill="none" stroke="#DC2626" strokeWidth="1.8" style={{width:12,height:12}}><path d="M7 2v5M7 9.5v.5"/><circle cx="7" cy="7" r="6"/></svg>
                   </div>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:"#DC2626", textTransform:"uppercase", letterSpacing:"0.12em" }}>The hard truth</div>
+                </div>
+                <p style={{ fontSize:15.5, color:"var(--z-text)", lineHeight:1.85, margin:0, fontWeight:500 }}>{result.hardTruth}</p>
+              </div>
+
+              {/* Target Roles */}
+              <div>
+                <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
+                  <div style={{ fontSize:13, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.01em" }}>Roles to target</div>
+                  <span style={{ fontSize:10.5, fontWeight:700, color:"var(--z-text3)", background:"var(--z-raise)", border:"1px solid var(--z-bd)", padding:"2px 8px", borderRadius:99 }}>{result.targetRoles.length} paths identified</span>
+                </div>
+                <div style={{ display:"grid", gap:12 }}>
+                  {result.targetRoles.map((rawR, i) => {
+                    const r: TargetRole = typeof rawR === "string" ? { role: rawR, why: "", bridge: "" } : rawR as TargetRole;
+                    const tierC = (["#34D399","#38BDF8","#A78BFA"] as string[])[i] ?? "#A78BFA";
+                    const tierLabel = (["Best fit","Bridge role","Stretch move"] as string[])[i] ?? "Option";
+                    return (
+                      <div key={i} style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
+                        <div style={{ padding:"18px 20px 14px", borderBottom: (r.why || r.bridge) ? "1px solid var(--z-bd)" : "none" }}>
+                          <div style={{ display:"flex", alignItems:"flex-start", gap:12 }}>
+                            <div style={{ width:28, height:28, borderRadius:8, background:`${tierC}18`, border:`1px solid ${tierC}35`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:12, fontWeight:900, color:tierC }}>{i+1}</div>
+                            <div style={{ flex:1, minWidth:0 }}>
+                              <div style={{ display:"flex", alignItems:"center", gap:9, flexWrap:"wrap", marginBottom: r.why ? 7 : 0 }}>
+                                <span style={{ fontSize:15, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.01em" }}>{r.role}</span>
+                                <span style={{ fontSize:9.5, fontWeight:800, color:tierC, background:`${tierC}14`, border:`1px solid ${tierC}28`, padding:"2px 9px", borderRadius:99, textTransform:"uppercase", letterSpacing:"0.08em" }}>{tierLabel}</span>
+                              </div>
+                              {r.why && <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.7, margin:0 }}>{r.why}</p>}
+                            </div>
+                          </div>
+                        </div>
+                        {r.bridge && (
+                          <div style={{ padding:"12px 20px 14px", background:`${tierC}06`, display:"flex", gap:10, alignItems:"flex-start" }}>
+                            <svg viewBox="0 0 14 10" fill="none" style={{width:14,height:10,flexShrink:0,marginTop:3}}><path d="M1 5h11M9 2l3 3-3 3" stroke={tierC} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                            <p style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.7, margin:0 }}><strong style={{ color:tierC, fontWeight:700 }}>How to position: </strong>{r.bridge}</p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-            )}
-            {tab === "assets" && (
-              <div style={{ display:"grid", gap:14 }}>
-                {result.transferableAssets.map((a, i) => {
-                  const sColor = a.strength === "Strong" ? "#059669" : a.strength === "Moderate" ? "#D97706" : "#6B7280";
-                  const sBg = a.strength === "Strong" ? "rgba(5,150,105,0.08)" : a.strength === "Moderate" ? "rgba(217,119,6,0.08)" : "rgba(107,114,128,0.08)";
-                  const sBorder = a.strength === "Strong" ? "rgba(5,150,105,0.3)" : a.strength === "Moderate" ? "rgba(217,119,6,0.3)" : "rgba(107,114,128,0.3)";
-                  return (
-                    <div key={i} style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:`4px solid ${sColor}`, padding:"22px 26px" }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:12 }}>
-                        <div style={{ fontSize:15, fontWeight:800, color:"var(--z-text)", flex:1 }}>{a.skill}</div>
-                        <span style={{ fontSize:11, fontWeight:800, color:sColor, background:sBg, border:`1px solid ${sBorder}`, padding:"4px 12px", borderRadius:999, textTransform:"uppercase", letterSpacing:"0.07em" }}>{a.strength}</span>
-                      </div>
-                      <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.8, margin:0 }}>{a.evidence}</p>
-                    </div>
-                  );
-                })}
+            </div>
+          )}
+
+          {/* WHAT YOU BRING */}
+          {tab === "assets" && (
+            <div style={{ display:"grid", gap:14 }}>
+              <div style={{ borderRadius:16, background:"linear-gradient(135deg,rgba(52,211,153,0.07),rgba(16,185,129,0.03))", border:"1px solid rgba(52,211,153,0.15)", padding:"18px 22px", marginBottom:4 }}>
+                <div style={{ fontSize:11, fontWeight:800, color:"#34D399", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Your transferable capital</div>
+                <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.7, margin:0 }}>These skills and experiences carry directly from your background into your target role. Lead with these in every interview and networking conversation.</p>
               </div>
-            )}
-            {tab === "gaps" && (
-              <div style={{ display:"grid", gap:14 }}>
-                {result.skillGaps.map((g, i) => {
+              {result.transferableAssets.map((a, i) => {
+                const sColor = a.strength === "Strong" ? "#34D399" : a.strength === "Moderate" ? "#FBBF24" : "#94A3B8";
+                const sBg    = a.strength === "Strong" ? "rgba(52,211,153,0.12)"  : a.strength === "Moderate" ? "rgba(251,191,36,0.12)"  : "rgba(148,163,184,0.12)";
+                const sWidth = a.strength === "Strong" ? "88%" : a.strength === "Moderate" ? "58%" : "32%";
+                return (
+                  <div key={i} style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:`4px solid ${sColor}`, padding:"20px 24px" }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:10 }}>
+                      <span style={{ fontSize:10, fontWeight:800, color:sColor, width:20, textAlign:"center", flexShrink:0 }}>{i+1}</span>
+                      <div style={{ fontSize:15, fontWeight:800, color:"var(--z-text)", flex:1, letterSpacing:"-0.01em" }}>{a.skill}</div>
+                      <span style={{ fontSize:10, fontWeight:800, color:sColor, background:sBg, padding:"3px 10px", borderRadius:99, textTransform:"uppercase", letterSpacing:"0.07em", flexShrink:0 }}>{a.strength}</span>
+                    </div>
+                    <div style={{ marginBottom:12 }}>
+                      <div style={{ height:3, borderRadius:99, background:"var(--z-raise)" }}>
+                        <div style={{ width:sWidth, height:"100%", background:`linear-gradient(90deg,${sColor}70,${sColor})`, borderRadius:99 }}/>
+                      </div>
+                    </div>
+                    <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.8, margin:0 }}>{a.evidence}</p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* WHAT TO BUILD */}
+          {tab === "gaps" && (
+            <div style={{ display:"grid", gap:14 }}>
+              <div style={{ borderRadius:16, background:"linear-gradient(135deg,rgba(245,158,11,0.07),rgba(245,158,11,0.02))", border:"1px solid rgba(245,158,11,0.15)", padding:"18px 22px", marginBottom:4 }}>
+                <div style={{ fontSize:11, fontWeight:800, color:"#F59E0B", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Gap analysis</div>
+                <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.7, margin:0 }}>Critical gaps need to be bridged before you start applying. The rest you can build in parallel while you search.</p>
+              </div>
+              {result.skillGaps
+                .slice()
+                .sort((a,b) => ({ critical:0, moderate:1, minor:2 }[a.severity] ?? 1) - ({ critical:0, moderate:1, minor:2 }[b.severity] ?? 1))
+                .map((g, i) => {
                   const gColor = severityColor[g.severity];
-                  const gBg = g.severity === "critical" ? "rgba(239,68,68,0.04)" : g.severity === "moderate" ? "rgba(217,119,6,0.04)" : "rgba(107,114,128,0.04)";
                   return (
-                    <div key={i} style={{ borderRadius:14, background:gBg, border:"1px solid var(--z-bd)", borderLeft:`4px solid ${gColor}`, padding:"20px 24px" }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
-                        <div style={{ fontSize:15, fontWeight:800, color:"var(--z-text)", flex:1 }}>{g.gap}</div>
-                        <span style={{ fontSize:11, fontWeight:800, color:gColor, background:`${gColor}15`, border:`1px solid ${gColor}40`, padding:"4px 12px", borderRadius:999, textTransform:"uppercase", letterSpacing:"0.07em" }}>{g.severity}</span>
+                    <div key={i} style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
+                      <div style={{ background: g.severity === "critical" ? "rgba(239,68,68,0.06)" : g.severity === "moderate" ? "rgba(245,158,11,0.05)" : "rgba(16,185,129,0.04)", borderBottom:"1px solid var(--z-bd)", padding:"14px 20px" }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                          <div style={{ width:6, height:6, borderRadius:"50%", background:gColor, flexShrink:0, boxShadow:`0 0 6px ${gColor}` }}/>
+                          <div style={{ fontSize:15, fontWeight:800, color:"var(--z-text)", flex:1, letterSpacing:"-0.01em" }}>{g.gap}</div>
+                          <span style={{ fontSize:10, fontWeight:800, color:gColor, background:`${gColor}14`, border:`1px solid ${gColor}30`, padding:"3px 10px", borderRadius:99, textTransform:"uppercase", letterSpacing:"0.07em", flexShrink:0 }}>{severityLabel[g.severity] ?? g.severity}</span>
+                        </div>
                       </div>
-                      <div style={{ display:"flex", gap:10, alignItems:"flex-start", padding:"12px 14px", borderRadius:10, background:"var(--z-card)", border:"1px solid var(--z-bd)" }}>
-                        <svg viewBox="0 0 12 12" fill="none" stroke={gColor} strokeWidth="2" style={{ width:12,height:12,flexShrink:0,marginTop:2 }}><path d="M6 1v6M6 9v.5"/></svg>
-                        <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.75, margin:0 }}>{g.path}</p>
+                      <div style={{ padding:"15px 20px", display:"flex", gap:12, alignItems:"flex-start" }}>
+                        <div style={{ width:26, height:26, borderRadius:7, background:"var(--z-raise)", border:"1px solid var(--z-bd)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                          <svg viewBox="0 0 12 12" fill="none" stroke={gColor} strokeWidth="1.8" style={{width:10,height:10}}><path d="M2 6h8M7 3l3 3-3 3"/></svg>
+                        </div>
+                        <div>
+                          <div style={{ fontSize:10.5, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>How to bridge it</div>
+                          <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.75, margin:0 }}>{g.path}</p>
+                        </div>
                       </div>
                     </div>
                   );
                 })}
+            </div>
+          )}
+
+          {/* PIVOT BLUEPRINT */}
+          {tab === "plan" && (
+            <div style={{ display:"grid", gap:20 }}>
+              {/* Narrative — hero moment */}
+              <div style={{ borderRadius:20, background:`linear-gradient(135deg,rgba(2,132,199,0.09),rgba(56,189,248,0.04))`, border:`1px solid rgba(56,189,248,0.18)`, padding:"28px 32px", position:"relative", overflow:"hidden" }}>
+                <div style={{ position:"absolute", top:-30, right:-30, width:140, height:140, borderRadius:"50%", background:`radial-gradient(circle,rgba(56,189,248,0.1) 0%,transparent 70%)`, pointerEvents:"none" }}/>
+                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:18 }}>
+                  {zIcon("chat", ACCENT2)}
+                  <div style={{ fontSize:10.5, fontWeight:800, color:ACCENT2, textTransform:"uppercase", letterSpacing:"0.12em" }}>Your pivot narrative</div>
+                  <span style={{ fontSize:10, fontWeight:700, color:"var(--z-text3)", background:"var(--z-raise)", border:"1px solid var(--z-bd)", padding:"2px 9px", borderRadius:99, marginLeft:"auto" }}>Say this out loud</span>
+                </div>
+                <p style={{ fontSize:16, color:"var(--z-text)", lineHeight:1.9, margin:0, fontStyle:"italic" }}>"{result.pivotNarrative}"</p>
               </div>
-            )}
-            {tab === "plan" && (
-              <div style={{ display:"grid", gap:18 }}>
-                <div style={{ borderRadius:16, background:"rgba(37,99,235,0.04)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #2563EB", padding:"24px 28px" }}>
-                  <div style={{ fontSize:10.5, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:14 }}>Your pivot narrative</div>
-                  <p style={{ fontSize:15, color:"var(--z-text)", lineHeight:1.9, margin:0, fontStyle:"italic" }}>{result.pivotNarrative}</p>
+
+              {/* Resume Reframe */}
+              <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"22px 26px" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+                  {zIcon("file", "#7C3AED")}
+                  <div style={{ fontSize:11, fontWeight:800, color:"#7C3AED", textTransform:"uppercase", letterSpacing:"0.1em" }}>How to reframe your resume</div>
                 </div>
-                <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"24px 28px" }}>
-                  <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:14 }}>How to reframe your resume</div>
-                  <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.85, margin:0 }}>{result.resumeReframe}</p>
-                </div>
-                <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #059669", padding:"24px 28px" }}>
-                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
-                    <div style={{ fontSize:10.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em" }}>Quick wins to do now</div>
-                    <span style={{ fontSize:11, fontWeight:700, color:"var(--z-text3)" }}>Do these in order</span>
+                <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.85, margin:0 }}>{result.resumeReframe}</p>
+              </div>
+
+              {/* Quick Wins */}
+              <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"22px 26px" }}>
+                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:18 }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                    {zIcon("trending-up", "#F59E0B")}
+                    <div style={{ fontSize:11, fontWeight:800, color:"#F59E0B", textTransform:"uppercase", letterSpacing:"0.1em" }}>Quick wins — do these first</div>
                   </div>
-                  <div style={{ display:"grid", gap:12 }}>
-                    {result.quickWins.map((rawW, i) => {
-                      const w: QuickWin = typeof rawW === "string"
-                        ? { action: rawW, impact: "High", timeframe: "This week" }
-                        : rawW as QuickWin;
-                      const impactColor = w.impact === "High" ? "#059669" : w.impact === "Medium" ? "#D97706" : "#6B7280";
-                      const impactBg = w.impact === "High" ? "rgba(5,150,105,0.1)" : w.impact === "Medium" ? "rgba(217,119,6,0.1)" : "rgba(107,114,128,0.1)";
-                      return (
-                        <div key={i} style={{ borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
-                          <div style={{ padding:"14px 16px", display:"flex", gap:12, alignItems:"flex-start" }}>
-                            <span style={{ fontSize:10, fontWeight:900, color:"#059669", background:"rgba(5,150,105,0.1)", border:"1px solid rgba(5,150,105,0.25)", borderRadius:999, width:22, height:22, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>{i+1}</span>
-                            <p style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.75, margin:0, flex:1 }}>{w.action}</p>
-                          </div>
-                          <div style={{ padding:"8px 16px 10px", borderTop:"1px solid var(--z-bd)", display:"flex", gap:10, alignItems:"center", background:"var(--z-card)" }}>
-                            <span style={{ fontSize:10.5, fontWeight:800, color:impactColor, background:impactBg, padding:"2px 9px", borderRadius:99 }}>{w.impact} impact</span>
-                            <span style={{ fontSize:10.5, color:"var(--z-text3)", display:"flex", alignItems:"center", gap:5 }}>
-                              <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:10,height:10 }}><circle cx="6" cy="6" r="4.5"/><path d="M6 4v2.5l1.5 1.5"/></svg>
-                              {w.timeframe}
-                            </span>
-                          </div>
+                  <span style={{ fontSize:11, fontWeight:700, color:"var(--z-text3)" }}>In priority order</span>
+                </div>
+                <div style={{ display:"grid", gap:10 }}>
+                  {result.quickWins.map((rawW, i) => {
+                    const w: QuickWin = typeof rawW === "string" ? { action: rawW, impact: "High", timeframe: "This week" } : rawW as QuickWin;
+                    const impC = w.impact === "High" ? "#34D399" : w.impact === "Medium" ? "#F59E0B" : "#94A3B8";
+                    return (
+                      <div key={i} style={{ borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
+                        <div style={{ padding:"14px 16px", display:"flex", gap:12, alignItems:"flex-start" }}>
+                          <span style={{ fontSize:10.5, fontWeight:900, color:impC, background:`${impC}16`, border:`1px solid ${impC}30`, borderRadius:8, width:26, height:26, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>{i+1}</span>
+                          <p style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.75, margin:0, flex:1 }}>{w.action}</p>
                         </div>
-                      );
-                    })}
-                  </div>
+                        <div style={{ padding:"8px 16px 10px", borderTop:"1px solid var(--z-bd)", display:"flex", gap:12, alignItems:"center", background:"var(--z-card)" }}>
+                          <span style={{ fontSize:10.5, fontWeight:800, color:impC, display:"flex", alignItems:"center", gap:4 }}>
+                            <svg viewBox="0 0 10 10" fill={impC} style={{width:7,height:7,flexShrink:0}}><polygon points="5,1 9,9 1,9"/></svg>
+                            {w.impact} impact
+                          </span>
+                          <span style={{ fontSize:10.5, color:"var(--z-text3)", display:"flex", alignItems:"center", gap:5 }}>
+                            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:10,height:10}}><circle cx="6" cy="6" r="4.5"/><path d="M6 4v2.5l1.5 1.5"/></svg>
+                            {w.timeframe}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-            )}
+            </div>
+          )}
+
         </div>
       </div>
     );
