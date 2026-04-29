@@ -14122,13 +14122,8 @@ export function ZariPortal() {
   const [isDark, setIsDark] = useState(() => {
     try { return localStorage.getItem("zari_dark") === "1"; } catch { return false; }
   });
-  const [aiEnabled, setAiEnabled] = useState<boolean | null>(null);
   const themeVars = (isDark ? DARK_THEME : LIGHT_THEME) as React.CSSProperties;
   const toggleDark = () => setIsDark(d => { const v = !d; try { localStorage.setItem("zari_dark", v?"1":"0"); } catch {} return v; });
-
-  useEffect(() => {
-    fetch("/api/zari/status").then(r => r.json()).then((d: { ok?: boolean }) => setAiEnabled(d.ok === true)).catch(() => setAiEnabled(false));
-  }, []);
 
   // Persist active screen so refresh lands back on the same section
   const navigate = (s: Screen) => { setScreen(s); try { localStorage.setItem("zari_screen", s); } catch { /* ignore */ } };
@@ -14321,19 +14316,6 @@ export function ZariPortal() {
             </form>
           </div>
         </div>
-
-        {/* Setup warning banner */}
-        {aiEnabled === false && (
-          <div style={{ flexShrink:0, background:"rgba(234,179,8,0.12)", borderBottom:"1px solid rgba(234,179,8,0.3)", padding:"8px 20px", display:"flex", alignItems:"center", gap:10 }}>
-            <svg viewBox="0 0 16 16" fill="none" stroke="#CA8A04" strokeWidth="1.7" style={{width:14,height:14,flexShrink:0}}><path d="M8 2L14 13H2L8 2z"/><path d="M8 6v3M8 10.5v.5"/></svg>
-            <span style={{ fontSize:12.5, color:"#92400E", fontWeight:600 }}>
-              AI is not configured.{" "}
-              Add <code style={{ background:"rgba(0,0,0,0.08)", padding:"1px 5px", borderRadius:4, fontFamily:"monospace", fontSize:11.5 }}>OPENAI_API_KEY</code>{" "}
-              to <code style={{ background:"rgba(0,0,0,0.08)", padding:"1px 5px", borderRadius:4, fontFamily:"monospace", fontSize:11.5 }}>.env.local</code>{" "}
-              and restart the dev server — all analysis features require it.
-            </span>
-          </div>
-        )}
 
         {/* Screen — all kept mounted, hidden when inactive to preserve state */}
         <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
