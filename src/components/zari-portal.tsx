@@ -7091,6 +7091,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
   // Blob URL for the originally uploaded file (PDF iframe preview)
   const [rawFileUrl, setRawFileUrl] = useState<string | null>(null);
   const rawFileUrlRef = useRef<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Restore PDF blob URL from localStorage when loading a saved session
   useEffect(() => {
@@ -7753,21 +7754,23 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
           )}
           <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"24px 24px 20px", boxShadow:"0 2px 24px rgba(0,0,0,0.08)" }}>
             {analyzeErr && <div style={{ background:"rgba(239,68,68,0.12)", border:"1px solid rgba(239,68,68,0.3)", borderRadius:10, padding:"9px 14px", marginBottom:14, fontSize:13, color:"#FCA5A5" }}>{analyzeErr}</div>}
+            {/* Hidden file input */}
+            <input ref={fileInputRef} type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleFile(f); e.target.value=""; }}/>
             {/* Drop zone */}
-            <label
+            <div
+              onClick={()=>{ setAnalyzeErr(""); fileInputRef.current?.click(); }}
               onDragOver={e=>{e.preventDefault();setDragging(true);}}
               onDragLeave={()=>setDragging(false)}
               onDrop={e=>{e.preventDefault();setDragging(false);const f=e.dataTransfer.files?.[0];if(f)void handleFile(f);}}
-              style={{ display:"block", border:`2px dashed ${dragging?"#2563EB":"var(--z-bd)"}`, borderRadius:16, padding:"36px 32px", textAlign:"center", cursor:"pointer", background:dragging?"rgba(37,99,235,0.04)":"var(--z-raise)", transition:"all 0.2s", boxShadow:dragging?"0 0 0 3px rgba(37,99,235,0.12)":"none", marginBottom:14 }}
+              style={{ border:`2px dashed ${dragging?"#2563EB":"var(--z-bd)"}`, borderRadius:16, padding:"36px 32px", textAlign:"center", cursor:"pointer", background:dragging?"rgba(37,99,235,0.04)":"var(--z-raise)", transition:"all 0.2s", boxShadow:dragging?"0 0 0 3px rgba(37,99,235,0.12)":"none", marginBottom:14 }}
             >
-              <input type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleFile(f); e.target.value=""; }}/>
               <div style={{ width:48,height:48,borderRadius:13,background:"var(--z-card)",border:"1px solid var(--z-bd)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px" }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="1.8" style={{ width:22,height:22 }}><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
               </div>
               <p style={{ fontSize:15, fontWeight:700, color:"var(--z-text)", marginBottom:4 }}>Drop your resume here</p>
               <p style={{ fontSize:13, color:"var(--z-text3)", marginBottom:16 }}>PDF, DOCX, or TXT — or click to browse</p>
-              <span style={{ fontSize:13, fontWeight:700, padding:"9px 22px", borderRadius:10, background:"#2563EB", color:"white" }}>Choose file</span>
-            </label>
+              <span style={{ fontSize:13, fontWeight:700, padding:"9px 22px", borderRadius:10, background:"#2563EB", color:"white", pointerEvents:"none" }}>Choose file</span>
+            </div>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
               <div style={{ display:"flex", alignItems:"center", gap:6, background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderRadius:9, padding:"5px 12px" }}>
                 <span style={{ fontSize:11.5, color:"var(--z-text3)" }}>Level:</span>
@@ -14119,8 +14122,13 @@ export function ZariPortal() {
   const [isDark, setIsDark] = useState(() => {
     try { return localStorage.getItem("zari_dark") === "1"; } catch { return false; }
   });
+  const [aiEnabled, setAiEnabled] = useState<boolean | null>(null);
   const themeVars = (isDark ? DARK_THEME : LIGHT_THEME) as React.CSSProperties;
   const toggleDark = () => setIsDark(d => { const v = !d; try { localStorage.setItem("zari_dark", v?"1":"0"); } catch {} return v; });
+
+  useEffect(() => {
+    fetch("/api/zari/status").then(r => r.json()).then((d: { ok?: boolean }) => setAiEnabled(d.ok === true)).catch(() => setAiEnabled(false));
+  }, []);
 
   // Persist active screen so refresh lands back on the same section
   const navigate = (s: Screen) => { setScreen(s); try { localStorage.setItem("zari_screen", s); } catch { /* ignore */ } };
@@ -14313,6 +14321,19 @@ export function ZariPortal() {
             </form>
           </div>
         </div>
+
+        {/* Setup warning banner */}
+        {aiEnabled === false && (
+          <div style={{ flexShrink:0, background:"rgba(234,179,8,0.12)", borderBottom:"1px solid rgba(234,179,8,0.3)", padding:"8px 20px", display:"flex", alignItems:"center", gap:10 }}>
+            <svg viewBox="0 0 16 16" fill="none" stroke="#CA8A04" strokeWidth="1.7" style={{width:14,height:14,flexShrink:0}}><path d="M8 2L14 13H2L8 2z"/><path d="M8 6v3M8 10.5v.5"/></svg>
+            <span style={{ fontSize:12.5, color:"#92400E", fontWeight:600 }}>
+              AI is not configured.{" "}
+              Add <code style={{ background:"rgba(0,0,0,0.08)", padding:"1px 5px", borderRadius:4, fontFamily:"monospace", fontSize:11.5 }}>OPENAI_API_KEY</code>{" "}
+              to <code style={{ background:"rgba(0,0,0,0.08)", padding:"1px 5px", borderRadius:4, fontFamily:"monospace", fontSize:11.5 }}>.env.local</code>{" "}
+              and restart the dev server — all analysis features require it.
+            </span>
+          </div>
+        )}
 
         {/* Screen — all kept mounted, hidden when inactive to preserve state */}
         <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
