@@ -43,9 +43,9 @@ function buildFallback() {
     ],
     counterScript: `Hi [Name],\n\nThank you for the offer — I'm genuinely excited about this opportunity. After reviewing the details carefully, I'd like to discuss the compensation package.\n\nBased on my research into market rates for this role at my experience level, and given [the specific value I bring — e.g., your domain expertise, existing relationships, or relevant track record], I'm targeting a base of [your target]. I believe this reflects fair market value for this scope and level.\n\nI'm committed to making this work and happy to discuss. When is a good time to connect?\n\n[Your Name]`,
     watchouts: [
-      "Revealing your current comp before you have an offer weakens your anchor.",
-      "Accepting or declining the first number without a counter signals you were expecting it.",
-      "Apologizing or hedging while negotiating undermines your position before it starts.",
+      { mistake: "Revealing your current comp too early", why: "Disclosing before you have an offer anchors the employer's range to your past — not your market value.", howToAvoid: "Deflect with: 'I'd rather focus on the right fit and market rate for this role — what's the budgeted range?'" },
+      { mistake: "Accepting the first number without a counter", why: "Instant acceptance signals you were expecting less, and leaves money on the table every year it compounds.", howToAvoid: "Always ask for 48 hours to review — then come back with your counter. Never accept on the spot." },
+      { mistake: "Apologizing or hedging while negotiating", why: "Phrases like 'I know this might be a lot…' signal weakness before you've even named the number.", howToAvoid: "State your number plainly and stop talking. Silence after the anchor is your strongest next move." },
     ],
   };
 }
@@ -89,7 +89,9 @@ Return ONLY valid JSON:
     { "title": "<short name>", "move": "<exactly what to do>", "when": "<when to use this>" }
   ],
   "counterScript": "<full email or message ready to send, with [bracket placeholders] for personalization only>",
-  "watchouts": ["<mistake to avoid>", "<mistake to avoid>", "<mistake to avoid>"]
+  "watchouts": [
+    { "mistake": "<what to avoid>", "why": "<why it costs you in the negotiation>", "howToAvoid": "<the alternative move — specific words or actions>" }
+  ]
 }
 
 Rules:
@@ -97,7 +99,7 @@ Rules:
 - compensationScore = their negotiating LEVERAGE and preparation level, not raw comp.
 - hardTruth must be plain and direct. No reassurance. Name the real risk.
 - Benchmarks: give honest estimates or ranges. If data is limited, say so directly.
-- Generate 4-5 leverage points (each with title, explanation, tactic), 3 benchmarks, 3-4 negotiation moves, 3 watchouts.
+- Generate 4-5 leverage points (each with title, explanation, tactic), 3 benchmarks, 3-4 negotiation moves, 3 watchouts (each with mistake, why, howToAvoid).
 - leveragePoints: title = short name (2-4 words), explanation = WHY this is leverage for them specifically, tactic = exactly what to say or do to deploy it.
 - The counterScript must be ready to send, professional, and specific to their situation.`;
 
@@ -155,7 +157,13 @@ Rules:
         return title && move ? { title, move, when } : null;
       }, 4) : fallback.negotiationMoves,
       counterScript: cleanStr(p.counterScript) || fallback.counterScript,
-      watchouts: cleanList(p.watchouts, 4).length ? cleanList(p.watchouts, 4) : fallback.watchouts,
+      watchouts: (() => {
+        const parsed = mapList(p.watchouts, i => {
+          const mistake = cleanStr(i.mistake), why = cleanStr(i.why), howToAvoid = cleanStr(i.howToAvoid);
+          return mistake ? { mistake, why, howToAvoid } : null;
+        }, 4);
+        return parsed.length ? parsed : fallback.watchouts;
+      })(),
     });
   } catch {
     return NextResponse.json(fallback);

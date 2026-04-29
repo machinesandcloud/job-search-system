@@ -11,9 +11,9 @@ function buildFallback(role: string, target: string) {
   return {
     subject: `Compensation Discussion — ${role}`,
     sendTips: [
-      "Replace [Name] with the actual recipient — this detail matters more than you think.",
-      `Send within 24-48 hours of receiving the offer on ${role}. The longer you wait, the weaker your position.`,
-      "If they ask why that number, be ready with market data: Levels.fyi, Glassdoor, and LinkedIn Salary for this exact role.",
+      { tip: "Replace [Name] with the actual recipient's name", timing: "Before sending", why: "First-name personalization signals you're deliberate, not copy-pasting a template — it sets the tone for the negotiation." },
+      { tip: `Send within 24-48 hours of receiving the offer on ${role}`, timing: "Immediately after receiving the offer", why: "Delay signals uncertainty or disengagement. A fast, confident response sets a professional tone and maintains momentum." },
+      { tip: "Have your market data ready before they reply", timing: "While you wait for their response", why: "If they ask why that number, cite Levels.fyi, Glassdoor, or LinkedIn Salary for this exact role — specifics neutralize pushback." },
     ],
     email: `Hi [Name],
 
@@ -65,7 +65,9 @@ Return ONLY valid JSON:
 {
   "subject": "<email subject line>",
   "email": "<the full email body, ready to send or lightly edit>",
-  "sendTips": ["<specific tip for this person before they hit send>", "<tip>", "<tip>"]
+  "sendTips": [
+    { "tip": "<the actionable advice>", "timing": "<when exactly to do this — before, during, or after sending>", "why": "<why this matters for their specific situation>" }
+  ]
 }
 
 Rules:
@@ -76,7 +78,7 @@ Rules:
 - Make it specific to their situation — no placeholders except [Name] for the recipient
 - The email should be professional enough to send as-is with minor edits
 - End with a clear, low-friction call to action
-- sendTips: 3 specific, actionable tips for THIS person before they send — not generic. Reference their actual situation (role, company, leverage, timing).`;
+- sendTips: 3 specific tips for THIS person — each with tip (what to do), timing (when), and why (why it matters for their situation). Reference their role, company, leverage, and timing specifically.`;
 
   const userPrompt = [
     `ROLE: ${role}`,
@@ -102,7 +104,17 @@ Rules:
     const p = JSON.parse(reply) as Record<string, unknown>;
     const subject = typeof p.subject === "string" ? p.subject.trim() : "";
     const email = typeof p.email === "string" ? p.email.trim() : "";
-    const sendTips = Array.isArray(p.sendTips) ? (p.sendTips as unknown[]).map(v => typeof v === "string" ? v.trim() : "").filter(Boolean).slice(0, 4) : [];
+    const sendTips = (() => {
+      if (!Array.isArray(p.sendTips)) return [];
+      return (p.sendTips as unknown[]).map(i => {
+        if (!i || typeof i !== "object") return null;
+        const r = i as Record<string, unknown>;
+        const tip = typeof r.tip === "string" ? r.tip.trim() : "";
+        const timing = typeof r.timing === "string" ? r.timing.trim() : "";
+        const why = typeof r.why === "string" ? r.why.trim() : "";
+        return tip ? { tip, timing, why } : null;
+      }).filter(Boolean).slice(0, 4);
+    })() as { tip: string; timing: string; why: string }[];
     return NextResponse.json({
       subject: subject || fallback.subject,
       email: email || fallback.email,

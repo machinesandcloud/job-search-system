@@ -4454,6 +4454,7 @@ function ScreenPromotionReadiness() {
    SALARY STAGE: COMPENSATION ANALYSIS
 ═══════════════════════════════════════════════════ */
 type LeveragePoint = { title: string; explanation: string; tactic: string };
+type SalaryWatchout = { mistake: string; why: string; howToAvoid: string };
 type SalaryAnalysisResult = {
   compensationScore: number;
   marketPosition: string;
@@ -4463,7 +4464,7 @@ type SalaryAnalysisResult = {
   benchmarks: { label: string; value: string; context: string }[];
   negotiationMoves: { title: string; move: string; when: string }[];
   counterScript: string;
-  watchouts: string[];
+  watchouts: (SalaryWatchout | string)[];
 };
 
 function ScreenSalaryCompensation() {
@@ -4600,12 +4601,35 @@ function ScreenSalaryCompensation() {
                 <div style={{ borderRadius:14, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #D97706", padding:"22px 26px" }}>
                   <div style={{ fontSize:10.5, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:16 }}>Watchouts</div>
                   <div style={{ display:"grid", gap:12 }}>
-                    {result.watchouts.map((w, i) => (
-                      <div key={i} style={{ display:"flex", gap:14, alignItems:"flex-start", padding:"14px 16px", borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
-                        <svg viewBox="0 0 16 16" fill="none" style={{ width:16, height:16, flexShrink:0, marginTop:1 }}><path d="M8 2L14.5 13H1.5L8 2z" fill="rgba(217,119,6,0.12)" stroke="#D97706" strokeWidth="1.5" strokeLinejoin="round"/><path d="M8 6.5V9M8 10.5v.5" stroke="#D97706" strokeWidth="1.8" strokeLinecap="round"/></svg>
-                        <span style={{ fontSize:14, color:"var(--z-text)", lineHeight:1.75 }}>{w}</span>
-                      </div>
-                    ))}
+                    {result.watchouts.map((rawW, i) => {
+                      const w: SalaryWatchout = typeof rawW === "string"
+                        ? { mistake: rawW, why: "", howToAvoid: "" }
+                        : rawW as SalaryWatchout;
+                      return (
+                        <div key={i} style={{ borderRadius:13, background:"var(--z-raise)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
+                          <div style={{ padding:"14px 16px 12px", display:"flex", gap:12, alignItems:"flex-start" }}>
+                            <div style={{ flexShrink:0, width:24, height:24, borderRadius:999, background:"rgba(217,119,6,0.12)", border:"1px solid rgba(217,119,6,0.25)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
+                              <svg viewBox="0 0 12 12" fill="none" style={{ width:10,height:10 }}><path d="M6 1L11.5 10H0.5L6 1z" fill="rgba(217,119,6,0.15)" stroke="#D97706" strokeWidth="1.5" strokeLinejoin="round"/><path d="M6 4v2.5M6 7.5v.5" stroke="#D97706" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                            </div>
+                            <div style={{ flex:1 }}>
+                              <div style={{ fontSize:13.5, fontWeight:800, color:"var(--z-text)", marginBottom: w.why ? 6 : 0 }}>{w.mistake}</div>
+                              {w.why && <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.7, margin:0 }}>{w.why}</p>}
+                            </div>
+                          </div>
+                          {w.howToAvoid && (
+                            <div style={{ padding:"10px 16px 13px", borderTop:"1px solid var(--z-bd)", background:"rgba(217,119,6,0.04)", display:"flex", gap:10, alignItems:"flex-start" }}>
+                              <div style={{ flexShrink:0, width:18, height:18, borderRadius:5, background:"rgba(217,119,6,0.1)", border:"1px solid rgba(217,119,6,0.2)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
+                                <svg viewBox="0 0 12 12" fill="none" stroke="#D97706" strokeWidth="2" style={{ width:8,height:8 }}><path d="M2 6l3 3 5-5"/></svg>
+                              </div>
+                              <div>
+                                <span style={{ fontSize:9, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.08em", display:"block", marginBottom:3 }}>Instead</span>
+                                <p style={{ fontSize:12.5, color:"var(--z-text)", lineHeight:1.65, margin:0 }}>{w.howToAvoid}</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -5568,45 +5592,80 @@ function ScreenSalaryNegotiationSim() {
       </div>
 
       {/* COACHING SIDEBAR */}
-      <div style={{ width:272, flexShrink:0, borderLeft:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
+      <div style={{ width:284, flexShrink:0, borderLeft:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
         <div style={{ padding:"18px 16px 14px", borderBottom:"1px solid var(--z-bd)" }}>
-          <div style={{ fontSize:10.5, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:4 }}>Live Coaching</div>
-          <div style={{ fontSize:12, color:"var(--z-text3)", lineHeight:1.5 }}>Zari gives feedback after each of your responses.</div>
+          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
+            <div style={{ width:8, height:8, borderRadius:999, background:"#D97706", boxShadow:"0 0 6px rgba(217,119,6,0.5)", animation:"pulse 2s ease-in-out infinite" }}/>
+            <div style={{ fontSize:10.5, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.1em" }}>Live Coaching</div>
+          </div>
+          <div style={{ fontSize:12, color:"var(--z-text3)", lineHeight:1.5 }}>Zari analyzes your responses and coaches you in real time.</div>
         </div>
 
-        <div style={{ padding:"14px 16px", flex:1 }}>
+        <div style={{ padding:"14px 16px", flex:1, display:"flex", flexDirection:"column", gap:12 }}>
           {latestCoaching ? (
-            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-              <div style={{ borderRadius:12, background:"rgba(217,119,6,0.07)", border:"1px solid rgba(217,119,6,0.2)", padding:"14px 16px" }}>
-                <div style={{ fontSize:10, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Latest feedback</div>
-                <p style={{ fontSize:13, color:"var(--z-text)", lineHeight:1.7, margin:0 }}>{latestCoaching.coaching}</p>
+            <>
+              <div style={{ borderRadius:12, background:"rgba(217,119,6,0.06)", border:"1px solid rgba(217,119,6,0.2)", padding:"14px 16px", borderLeft:"3px solid #D97706" }}>
+                <div style={{ fontSize:9.5, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Feedback</div>
+                <p style={{ fontSize:12.5, color:"var(--z-text)", lineHeight:1.75, margin:0 }}>{latestCoaching.coaching}</p>
               </div>
               {latestCoaching.betterPhrasing && (
-                <div style={{ borderRadius:12, background:"rgba(5,150,105,0.07)", border:"1px solid rgba(5,150,105,0.2)", padding:"14px 16px" }}>
-                  <div style={{ fontSize:10, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Try this instead</div>
-                  <p style={{ fontSize:12.5, color:"var(--z-text)", lineHeight:1.7, margin:0, fontStyle:"italic" }}>"{latestCoaching.betterPhrasing}"</p>
+                <div style={{ borderRadius:12, background:"rgba(5,150,105,0.06)", border:"1px solid rgba(5,150,105,0.2)", padding:"14px 16px", borderLeft:"3px solid #059669" }}>
+                  <div style={{ fontSize:9.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Stronger phrasing</div>
+                  <p style={{ fontSize:12.5, color:"var(--z-text)", lineHeight:1.75, margin:0, fontStyle:"italic" }}>"{latestCoaching.betterPhrasing}"</p>
                 </div>
               )}
-            </div>
+            </>
           ) : (
-            <div style={{ padding:"20px 0", textAlign:"center" }}>
-              <div style={{ fontSize:28, marginBottom:10 }}>💬</div>
-              <div style={{ fontSize:13, color:"var(--z-text3)", lineHeight:1.6 }}>Send your first response and Zari will coach you in real time.</div>
+            <div style={{ padding:"24px 8px", textAlign:"center" }}>
+              <div style={{ width:44, height:44, borderRadius:14, background:"linear-gradient(135deg,rgba(217,119,6,0.12),rgba(217,119,6,0.05))", border:"1px solid rgba(217,119,6,0.2)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 12px" }}>
+                <svg viewBox="0 0 20 20" fill="none" style={{ width:22,height:22 }}><path d="M10 2C6.134 2 3 4.91 3 8.5c0 1.8.76 3.43 2 4.62V17l3.5-2H10c3.866 0 7-2.91 7-6.5S13.866 2 10 2z" fill="rgba(217,119,6,0.15)" stroke="#D97706" strokeWidth="1.5" strokeLinejoin="round"/></svg>
+              </div>
+              <div style={{ fontSize:13, fontWeight:700, color:"var(--z-text2)", marginBottom:6 }}>Ready to coach</div>
+              <div style={{ fontSize:12, color:"var(--z-text3)", lineHeight:1.65 }}>Type your first response and Zari will break down what worked and what to sharpen.</div>
             </div>
           )}
 
+          {/* Quick tactics panel */}
+          <div style={{ borderRadius:12, background:"rgba(37,99,235,0.04)", border:"1px solid rgba(37,99,235,0.15)", padding:"12px 14px" }}>
+            <div style={{ fontSize:9.5, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Quick tactics</div>
+            <div style={{ display:"flex", flexDirection:"column", gap:7 }}>
+              {[
+                { tactic: "Anchor first", note: "Name your number before they do" },
+                { tactic: "Use silence", note: "After your ask, stop talking" },
+                { tactic: "Bundle the ask", note: "Base + equity + bonus at once" },
+              ].map((t, i) => (
+                <div key={i} style={{ display:"flex", gap:8, alignItems:"flex-start" }}>
+                  <div style={{ flexShrink:0, width:16, height:16, borderRadius:4, background:"rgba(37,99,235,0.1)", border:"1px solid rgba(37,99,235,0.2)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
+                    <svg viewBox="0 0 12 12" fill="none" stroke="#2563EB" strokeWidth="2" style={{ width:7,height:7 }}><path d="M2 6l3 3 5-5"/></svg>
+                  </div>
+                  <div>
+                    <div style={{ fontSize:11.5, fontWeight:800, color:"var(--z-text2)" }}>{t.tactic}</div>
+                    <div style={{ fontSize:10.5, color:"var(--z-text3)", lineHeight:1.5 }}>{t.note}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Session tracker */}
           {msgs.filter(m => m.role === "user").length > 0 && (
-            <div style={{ marginTop:16, display:"flex", flexDirection:"column", gap:8 }}>
-              <div style={{ fontSize:10, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em" }}>Session</div>
-              <div style={{ padding:"10px 12px", borderRadius:10, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
-                <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
-                  <span style={{ fontSize:11, color:"var(--z-text3)" }}>Turns</span>
-                  <span style={{ fontSize:11, fontWeight:800, color:"var(--z-text2)" }}>{msgs.filter(m => m.role === "user").length}</span>
+            <div style={{ borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)", padding:"12px 14px" }}>
+              <div style={{ fontSize:9.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Session</div>
+              <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                  <span style={{ fontSize:12, color:"var(--z-text3)" }}>Exchanges</span>
+                  <span style={{ fontSize:12, fontWeight:800, color:"var(--z-text)", background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:6, padding:"2px 8px" }}>{msgs.filter(m => m.role === "user").length}</span>
                 </div>
                 {form.targetComp && (
-                  <div style={{ display:"flex", justifyContent:"space-between" }}>
-                    <span style={{ fontSize:11, color:"var(--z-text3)" }}>Target</span>
-                    <span style={{ fontSize:11, fontWeight:800, color:"#2563EB" }}>{form.targetComp}</span>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                    <span style={{ fontSize:12, color:"var(--z-text3)" }}>Target</span>
+                    <span style={{ fontSize:12, fontWeight:800, color:"#2563EB" }}>{form.targetComp}</span>
+                  </div>
+                )}
+                {form.role && (
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                    <span style={{ fontSize:12, color:"var(--z-text3)" }}>Role</span>
+                    <span style={{ fontSize:11, fontWeight:700, color:"var(--z-text2)", maxWidth:120, textAlign:"right", lineHeight:1.3 }}>{form.role}</span>
                   </div>
                 )}
               </div>
@@ -5615,7 +5674,7 @@ function ScreenSalaryNegotiationSim() {
         </div>
 
         <div style={{ padding:"12px 16px 16px", borderTop:"1px solid var(--z-bd)" }}>
-          <button onClick={reset} style={{ width:"100%", fontSize:12, fontWeight:700, padding:"8px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>New scenario</button>
+          <button onClick={reset} style={{ width:"100%", fontSize:12, fontWeight:700, padding:"9px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>New scenario</button>
         </div>
       </div>
     </div>
@@ -5626,7 +5685,8 @@ function ScreenSalaryNegotiationSim() {
    SALARY STAGE: NEGOTIATION EMAIL (v2 — 3 versions)
 ═══════════════════════════════════════════════════ */
 function ScreenSalaryNegotiationEmail() {
-  type EmailVersion = { subject:string; email:string; sendTips:string[]; tone:string; label:string; color:string; bg:string };
+  type SendTip = { tip: string; timing: string; why: string };
+  type EmailVersion = { subject:string; email:string; sendTips:(SendTip|string)[]; tone:string; label:string; color:string; bg:string };
   const [form, setForm] = useState({ role:"", company:"", currentComp:"", targetComp:"", competingOffer:"", reason:"", emailType:"offer" });
   const [versions, setVersions] = useState<EmailVersion[] | null>(null);
   const [activeVersion, setActiveVersion] = useState(0);
@@ -5732,15 +5792,42 @@ function ScreenSalaryNegotiationEmail() {
             </div>
           </div>
           {v.sendTips.length > 0 && (
-            <div style={{ borderRadius:14, padding:"20px 24px", background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderLeft:`4px solid ${v.color}` }}>
-              <div style={{ fontSize:10.5, fontWeight:800, color:v.color, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>Before you send</div>
-              <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                {v.sendTips.map((tip, i) => (
-                  <div key={i} style={{ display:"flex", gap:10, alignItems:"flex-start", fontSize:14, color:"var(--z-text2)", lineHeight:1.7 }}>
-                    <span style={{ color:v.color, fontWeight:800, flexShrink:0, marginTop:1 }}>→</span>{tip}
+            <div style={{ display:"grid", gap:12 }}>
+              <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em" }}>Before you send</div>
+              {v.sendTips.map((rawTip, i) => {
+                const tip: SendTip = typeof rawTip === "string"
+                  ? { tip: rawTip, timing: "", why: "" }
+                  : rawTip as SendTip;
+                return (
+                  <div key={i} style={{ borderRadius:14, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:`4px solid ${v.color}`, overflow:"hidden" }}>
+                    <div style={{ padding:"14px 18px 12px", display:"flex", gap:12, alignItems:"flex-start" }}>
+                      <span style={{ fontSize:10, fontWeight:900, color:v.color, background:`${v.color}18`, border:`1px solid ${v.color}35`, borderRadius:999, width:22, height:22, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>{i+1}</span>
+                      <div style={{ flex:1 }}>
+                        <div style={{ fontSize:13.5, fontWeight:700, color:"var(--z-text)", lineHeight:1.6 }}>{tip.tip}</div>
+                        {tip.timing && (
+                          <div style={{ display:"inline-flex", alignItems:"center", gap:5, marginTop:6, padding:"3px 9px", borderRadius:99, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
+                            <svg viewBox="0 0 12 12" fill="none" style={{ width:9,height:9 }}><circle cx="6" cy="6" r="4.5" stroke="var(--z-text3)" strokeWidth="1.5"/><path d="M6 3.5V6l2 1" stroke="var(--z-text3)" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                            <span style={{ fontSize:10.5, fontWeight:700, color:"var(--z-text3)" }}>{tip.timing}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    {tip.why && (
+                      <div style={{ padding:"10px 18px 13px", borderTop:"1px solid var(--z-bd)", background:`${v.color}06` }}>
+                        <div style={{ display:"flex", gap:9, alignItems:"flex-start" }}>
+                          <div style={{ flexShrink:0, width:18, height:18, borderRadius:5, background:`${v.color}18`, border:`1px solid ${v.color}35`, display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
+                            <svg viewBox="0 0 12 12" fill="none" stroke={v.color} strokeWidth="2" style={{ width:8,height:8 }}><path d="M2 6l3 3 5-5"/></svg>
+                          </div>
+                          <div>
+                            <span style={{ fontSize:9, fontWeight:800, color:v.color, textTransform:"uppercase", letterSpacing:"0.08em", display:"block", marginBottom:3 }}>Why this matters</span>
+                            <p style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.65, margin:0 }}>{tip.why}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -5821,8 +5908,10 @@ function ScreenSalaryNegotiationEmail() {
 type MarketIntelResult = {
   marketVerdict: string; verdictNote: string;
   rangeFloor: string; rangeMedian: string; rangeCeiling: string;
-  keyFactors: string[]; talkingPoints: string[];
-  askStrategy: string; redFlags: string[];
+  keyFactors: { factor: string; impact: string; leverage: string }[];
+  talkingPoints: { title: string; point: string; deploy: string }[];
+  askStrategy: string;
+  redFlags: { flag: string; signal: string; watch: string }[];
 };
 
 function ScreenSalaryMarketIntel() {
@@ -5928,41 +6017,108 @@ function ScreenSalaryMarketIntel() {
           </div>
 
           {miTab === "talking" && (
-            <div style={{ display:"grid", gap:12 }}>
-              {result.talkingPoints.map((pt, i) => (
-                <div key={i} style={{ display:"flex", gap:16, alignItems:"flex-start", padding:"18px 20px", borderRadius:14, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:`4px solid #2563EB` }}>
-                  <span style={{ fontSize:11, fontWeight:900, color:"#2563EB", background:"rgba(37,99,235,0.1)", border:"1px solid rgba(37,99,235,0.2)", borderRadius:99, width:26, height:26, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{i+1}</span>
-                  <span style={{ fontSize:14, color:"var(--z-text)", lineHeight:1.75 }}>{pt}</span>
-                </div>
-              ))}
+            <div style={{ display:"grid", gap:14 }}>
+              {result.talkingPoints.map((rawPt, i) => {
+                const pt = typeof rawPt === "string"
+                  ? { title: `Point ${i+1}`, point: rawPt, deploy: "" }
+                  : rawPt;
+                return (
+                  <div key={i} style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #2563EB", overflow:"hidden", boxShadow:"0 2px 12px rgba(0,0,0,0.05)" }}>
+                    <div style={{ padding:"18px 22px 14px", background:"rgba(37,99,235,0.03)" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
+                        <span style={{ fontSize:10, fontWeight:900, color:"#2563EB", background:"rgba(37,99,235,0.12)", border:"1px solid rgba(37,99,235,0.25)", borderRadius:999, width:24, height:24, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{i+1}</span>
+                        <span style={{ fontSize:14, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.01em" }}>{pt.title}</span>
+                      </div>
+                      <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.75, margin:0 }}>{pt.point}</p>
+                    </div>
+                    {pt.deploy && (
+                      <div style={{ padding:"12px 22px 16px", borderTop:"1px solid var(--z-bd)", background:"var(--z-raise)" }}>
+                        <div style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
+                          <div style={{ flexShrink:0, width:20, height:20, borderRadius:6, background:"rgba(37,99,235,0.1)", border:"1px solid rgba(37,99,235,0.2)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
+                            <svg viewBox="0 0 12 12" fill="none" stroke="#2563EB" strokeWidth="2" style={{ width:9,height:9 }}><path d="M2 6l3 3 5-5"/></svg>
+                          </div>
+                          <div>
+                            <span style={{ fontSize:9.5, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.08em", display:"block", marginBottom:4 }}>How to deploy this</span>
+                            <p style={{ fontSize:12.5, color:"var(--z-text)", lineHeight:1.7, margin:0, fontStyle:"italic" }}>{pt.deploy}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
 
           {miTab === "factors" && (
-            <div style={{ display:"grid", gap:10 }}>
-              {result.keyFactors.map((f, i) => (
-                <div key={i} style={{ display:"flex", gap:14, alignItems:"flex-start", padding:"16px 18px", borderRadius:13, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:`4px solid #D97706` }}>
-                  <svg viewBox="0 0 16 16" fill="none" style={{ width:16,height:16,flexShrink:0,marginTop:2 }}>
-                    <circle cx="8" cy="8" r="6.5" fill="rgba(217,119,6,0.1)" stroke="#D97706" strokeWidth="1.5"/>
-                    <path d="M8 5.5V8.5M8 10v.5" stroke="#D97706" strokeWidth="1.8" strokeLinecap="round"/>
-                  </svg>
-                  <span style={{ fontSize:14, color:"var(--z-text)", lineHeight:1.75 }}>{f}</span>
-                </div>
-              ))}
+            <div style={{ display:"grid", gap:14 }}>
+              {result.keyFactors.map((rawF, i) => {
+                const f = typeof rawF === "string"
+                  ? { factor: rawF, impact: "", leverage: "" }
+                  : rawF;
+                return (
+                  <div key={i} style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #D97706", overflow:"hidden", boxShadow:"0 2px 12px rgba(0,0,0,0.05)" }}>
+                    <div style={{ padding:"18px 22px 14px", background:"rgba(217,119,6,0.03)" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
+                        <div style={{ flexShrink:0, width:24, height:24, borderRadius:999, background:"rgba(217,119,6,0.12)", border:"1px solid rgba(217,119,6,0.25)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                          <svg viewBox="0 0 12 12" fill="none" style={{ width:10,height:10 }}><circle cx="6" cy="6" r="4.5" fill="rgba(217,119,6,0.15)" stroke="#D97706" strokeWidth="1.5"/><path d="M6 4v2.5M6 7.5v.5" stroke="#D97706" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                        </div>
+                        <span style={{ fontSize:14, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.01em" }}>{f.factor}</span>
+                      </div>
+                      {f.impact && <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.75, margin:0 }}>{f.impact}</p>}
+                    </div>
+                    {f.leverage && (
+                      <div style={{ padding:"12px 22px 16px", borderTop:"1px solid var(--z-bd)", background:"var(--z-raise)" }}>
+                        <div style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
+                          <div style={{ flexShrink:0, width:20, height:20, borderRadius:6, background:"rgba(217,119,6,0.1)", border:"1px solid rgba(217,119,6,0.2)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
+                            <svg viewBox="0 0 12 12" fill="none" stroke="#D97706" strokeWidth="2" style={{ width:9,height:9 }}><path d="M2 6l3 3 5-5"/></svg>
+                          </div>
+                          <div>
+                            <span style={{ fontSize:9.5, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.08em", display:"block", marginBottom:4 }}>Your leverage</span>
+                            <p style={{ fontSize:12.5, color:"var(--z-text)", lineHeight:1.7, margin:0 }}>{f.leverage}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
 
           {miTab === "flags" && (
-            <div style={{ display:"grid", gap:10 }}>
-              {result.redFlags.map((r, i) => (
-                <div key={i} style={{ display:"flex", gap:14, alignItems:"flex-start", padding:"16px 18px", borderRadius:13, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:`4px solid #DC2626` }}>
-                  <svg viewBox="0 0 16 16" fill="none" style={{ width:16,height:16,flexShrink:0,marginTop:2 }}>
-                    <path d="M8 2L14.5 13H1.5L8 2z" fill="rgba(220,38,38,0.1)" stroke="#DC2626" strokeWidth="1.5" strokeLinejoin="round"/>
-                    <path d="M8 6.5V9.5M8 11v.5" stroke="#DC2626" strokeWidth="1.8" strokeLinecap="round"/>
-                  </svg>
-                  <span style={{ fontSize:14, color:"var(--z-text)", lineHeight:1.75 }}>{r}</span>
-                </div>
-              ))}
+            <div style={{ display:"grid", gap:14 }}>
+              {result.redFlags.map((rawR, i) => {
+                const r = typeof rawR === "string"
+                  ? { flag: rawR, signal: "", watch: "" }
+                  : rawR;
+                return (
+                  <div key={i} style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #DC2626", overflow:"hidden", boxShadow:"0 2px 12px rgba(0,0,0,0.05)" }}>
+                    <div style={{ padding:"18px 22px 14px", background:"rgba(220,38,38,0.03)" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
+                        <div style={{ flexShrink:0, width:24, height:24, borderRadius:999, background:"rgba(220,38,38,0.12)", border:"1px solid rgba(220,38,38,0.25)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                          <svg viewBox="0 0 12 12" fill="none" style={{ width:10,height:10 }}><path d="M6 1L11.5 10H0.5L6 1z" fill="rgba(220,38,38,0.15)" stroke="#DC2626" strokeWidth="1.5" strokeLinejoin="round"/><path d="M6 4v2.5M6 7.5v.5" stroke="#DC2626" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                        </div>
+                        <span style={{ fontSize:14, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.01em" }}>{r.flag}</span>
+                      </div>
+                      {r.signal && <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.75, margin:0 }}>{r.signal}</p>}
+                    </div>
+                    {r.watch && (
+                      <div style={{ padding:"12px 22px 16px", borderTop:"1px solid var(--z-bd)", background:"var(--z-raise)" }}>
+                        <div style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
+                          <div style={{ flexShrink:0, width:20, height:20, borderRadius:6, background:"rgba(220,38,38,0.1)", border:"1px solid rgba(220,38,38,0.2)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
+                            <svg viewBox="0 0 12 12" fill="none" stroke="#DC2626" strokeWidth="2" style={{ width:9,height:9 }}><path d="M2 6l3 3 5-5"/></svg>
+                          </div>
+                          <div>
+                            <span style={{ fontSize:9.5, fontWeight:800, color:"#DC2626", textTransform:"uppercase", letterSpacing:"0.08em", display:"block", marginBottom:4 }}>What to do</span>
+                            <p style={{ fontSize:12.5, color:"var(--z-text)", lineHeight:1.7, margin:0 }}>{r.watch}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -6366,16 +6522,18 @@ Rules:
 /* ═══════════════════════════════════════════════════
    LEADERSHIP STAGE: EXEC POSITIONING
 ═══════════════════════════════════════════════════ */
+type ExecStrength = { strength: string; evidence: string; howToLead: string };
+type ExecWatchout = { pattern: string; impact: string; fix: string };
 type ExecPositioningResult = {
   execScore: number;
   execVerdict: string;
   hardTruth: string;
   executiveNarrative: string;
   presenceGaps: { area: string; severity: "critical" | "moderate"; action: string }[];
-  strengths: string[];
+  strengths: (ExecStrength | string)[];
   positioningMoves: { title: string; move: string; why: string }[];
   boardBio: string;
-  watchouts: string[];
+  watchouts: (ExecWatchout | string)[];
 };
 
 function ScreenExecPositioning() {
@@ -6501,24 +6659,70 @@ function ScreenExecPositioning() {
                 <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))", gap:14 }}>
                   <div style={{ borderRadius:14, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #059669", padding:"20px 24px" }}>
                     <div style={{ fontSize:10.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:14 }}>Executive strengths</div>
-                    <div style={{ display:"grid", gap:10 }}>
-                      {result.strengths.map((s, i) => (
-                        <div key={i} style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
-                          <svg viewBox="0 0 12 12" fill="none" stroke="#059669" strokeWidth="2.5" style={{ width:13,height:13,flexShrink:0,marginTop:2 }}><path d="M2 6l3 3 5-5"/></svg>
-                          <span style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.75 }}>{s}</span>
-                        </div>
-                      ))}
+                    <div style={{ display:"grid", gap:12 }}>
+                      {result.strengths.map((rawS, i) => {
+                        const s: ExecStrength = typeof rawS === "string"
+                          ? { strength: rawS, evidence: "", howToLead: "" }
+                          : rawS as ExecStrength;
+                        return (
+                          <div key={i} style={{ borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
+                            <div style={{ padding:"12px 14px 10px", display:"flex", gap:10, alignItems:"flex-start" }}>
+                              <div style={{ flexShrink:0, width:22, height:22, borderRadius:999, background:"rgba(5,150,105,0.12)", border:"1px solid rgba(5,150,105,0.25)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
+                                <svg viewBox="0 0 12 12" fill="none" stroke="#059669" strokeWidth="2.5" style={{ width:9,height:9 }}><path d="M2 6l3 3 5-5"/></svg>
+                              </div>
+                              <div style={{ flex:1 }}>
+                                <div style={{ fontSize:13, fontWeight:800, color:"var(--z-text)", marginBottom: s.evidence ? 5 : 0 }}>{s.strength}</div>
+                                {s.evidence && <p style={{ fontSize:12, color:"var(--z-text3)", lineHeight:1.65, margin:0 }}>{s.evidence}</p>}
+                              </div>
+                            </div>
+                            {s.howToLead && (
+                              <div style={{ padding:"9px 14px 12px", borderTop:"1px solid var(--z-bd)", background:"rgba(5,150,105,0.04)", display:"flex", gap:9, alignItems:"flex-start" }}>
+                                <div style={{ flexShrink:0, width:16, height:16, borderRadius:4, background:"rgba(5,150,105,0.1)", border:"1px solid rgba(5,150,105,0.2)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
+                                  <svg viewBox="0 0 12 12" fill="none" stroke="#059669" strokeWidth="2" style={{ width:7,height:7 }}><path d="M2 6l3 3 5-5"/></svg>
+                                </div>
+                                <div>
+                                  <span style={{ fontSize:8.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.08em", display:"block", marginBottom:3 }}>How to lead with this</span>
+                                  <p style={{ fontSize:12, color:"var(--z-text)", lineHeight:1.65, margin:0 }}>{s.howToLead}</p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                   <div style={{ borderRadius:14, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #D97706", padding:"20px 24px" }}>
                     <div style={{ fontSize:10.5, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:14 }}>Watchouts</div>
-                    <div style={{ display:"grid", gap:10 }}>
-                      {result.watchouts.map((w, i) => (
-                        <div key={i} style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
-                          <svg viewBox="0 0 12 12" fill="none" style={{ width:13,height:13,flexShrink:0,marginTop:2 }}><path d="M6 1L11.5 10H0.5L6 1z" fill="rgba(217,119,6,0.15)" stroke="#D97706" strokeWidth="1.5" strokeLinejoin="round"/><path d="M6 5v2.5M6 8.5v.5" stroke="#D97706" strokeWidth="1.8" strokeLinecap="round"/></svg>
-                          <span style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.75 }}>{w}</span>
-                        </div>
-                      ))}
+                    <div style={{ display:"grid", gap:12 }}>
+                      {result.watchouts.map((rawW, i) => {
+                        const w: ExecWatchout = typeof rawW === "string"
+                          ? { pattern: rawW, impact: "", fix: "" }
+                          : rawW as ExecWatchout;
+                        return (
+                          <div key={i} style={{ borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
+                            <div style={{ padding:"12px 14px 10px", display:"flex", gap:10, alignItems:"flex-start" }}>
+                              <div style={{ flexShrink:0, width:22, height:22, borderRadius:999, background:"rgba(217,119,6,0.12)", border:"1px solid rgba(217,119,6,0.25)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
+                                <svg viewBox="0 0 12 12" fill="none" style={{ width:10,height:10 }}><path d="M6 1L11.5 10H0.5L6 1z" fill="rgba(217,119,6,0.15)" stroke="#D97706" strokeWidth="1.5" strokeLinejoin="round"/><path d="M6 4v2.5M6 7.5v.5" stroke="#D97706" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                              </div>
+                              <div style={{ flex:1 }}>
+                                <div style={{ fontSize:13, fontWeight:800, color:"var(--z-text)", marginBottom: w.impact ? 5 : 0 }}>{w.pattern}</div>
+                                {w.impact && <p style={{ fontSize:12, color:"var(--z-text3)", lineHeight:1.65, margin:0 }}>{w.impact}</p>}
+                              </div>
+                            </div>
+                            {w.fix && (
+                              <div style={{ padding:"9px 14px 12px", borderTop:"1px solid var(--z-bd)", background:"rgba(217,119,6,0.04)", display:"flex", gap:9, alignItems:"flex-start" }}>
+                                <div style={{ flexShrink:0, width:16, height:16, borderRadius:4, background:"rgba(217,119,6,0.1)", border:"1px solid rgba(217,119,6,0.2)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
+                                  <svg viewBox="0 0 12 12" fill="none" stroke="#D97706" strokeWidth="2" style={{ width:7,height:7 }}><path d="M2 6l3 3 5-5"/></svg>
+                                </div>
+                                <div>
+                                  <span style={{ fontSize:8.5, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.08em", display:"block", marginBottom:3 }}>The fix</span>
+                                  <p style={{ fontSize:12, color:"var(--z-text)", lineHeight:1.65, margin:0 }}>{w.fix}</p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>

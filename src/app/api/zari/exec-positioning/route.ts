@@ -31,9 +31,9 @@ function buildFallback(body: { currentTitle: string; targetRole: string }) {
       { area: "Sponsor depth", severity: "moderate" as const, action: "Identify who at the most senior levels can speak credibly about your judgment under pressure, not just your results." },
     ],
     strengths: [
-      "Track record of delivery at meaningful scale.",
-      "Ability to operate across functions and lead without formal authority.",
-      "Demonstrated judgment in high-stakes or ambiguous situations.",
+      { strength: "Track record of delivery at scale", evidence: "Pattern of shipping meaningful outcomes across multiple high-stakes situations.", howToLead: "Open executive conversations with the scope of what you've owned and what it produced — not the effort, the result." },
+      { strength: "Cross-functional leadership", evidence: "Ability to align and move people across org boundaries without formal authority.", howToLead: "Name a specific moment where you drove a cross-functional outcome without owning it on paper — that's rare signal." },
+      { strength: "Judgment under ambiguity", evidence: "Demonstrated pattern of making clear decisions when the path was genuinely unclear.", howToLead: "Lead with the decision and the reasoning, not just the outcome. Boards and C-suites buy judgment, not execution." },
     ],
     positioningMoves: [
       { title: "Clarify your strategic thesis", move: "Articulate in two sentences what problems you are uniquely equipped to solve and why — then use that framing consistently in every senior conversation.", why: "Executives get remembered for what they stand for, not what they have done." },
@@ -42,9 +42,9 @@ function buildFallback(body: { currentTitle: string; targetRole: string }) {
     ],
     boardBio: `[Name] is a [function] executive with [X] years of experience building and scaling [relevant scope] across [industry/company type]. [He/She/They] is known for [distinctive leadership trait] and has led [key outcome] that produced [measurable business result]. [Name] brings particular expertise in [domain strength] and has a track record of [strategic contribution]. Currently [current role/scope] at [company type], [he/she/they] is focused on [current strategic priority].`,
     watchouts: [
-      "Leading with achievements instead of judgment signals strong operator, not strategic executive.",
-      "Waiting to be discovered. Executive positioning is active, not passive.",
-      "Conflating busyness or impact volume with strategic value — they are not the same at the senior level.",
+      { pattern: "Leading with achievements instead of judgment", impact: "Signals strong operator, not strategic executive — managers track output, executives track decisions and their downstream effects.", fix: "Reframe every story: start with the ambiguity or the decision, not the delivery. What was uncertain, what did you decide, and why?" },
+      { pattern: "Waiting to be discovered", impact: "Executive positioning is almost entirely driven by sponsor relationships and active narrative — not results alone.", fix: "Identify two people at the level above your target who can speak about your judgment. Make yourself specifically useful to them this quarter." },
+      { pattern: "Conflating volume with value", impact: "At the senior level, busyness reads as a scope problem, not a strength signal — it suggests you haven't learned to leverage others.", fix: "Shift the story from 'I shipped a lot' to 'I built the system that shipped a lot.' Lead with leverage, not effort." },
     ],
   };
 }
@@ -80,12 +80,16 @@ Return ONLY valid JSON:
   "presenceGaps": [
     { "area": "<gap area>", "severity": "<critical | moderate>", "action": "<concrete action to close it>" }
   ],
-  "strengths": ["<genuine executive strength>", "<strength>", "<strength>"],
+  "strengths": [
+    { "strength": "<name of the strength>", "evidence": "<specific evidence from their background that demonstrates this>", "howToLead": "<how to lead with this in executive conversations — exact framing>" }
+  ],
   "positioningMoves": [
     { "title": "<short move name>", "move": "<exactly what to do>", "why": "<why it moves the needle at this level>" }
   ],
   "boardBio": "<a short, professional executive bio ready to use or adapt — third person, specific, strong opening>",
-  "watchouts": ["<risk>", "<risk>", "<risk>"]
+  "watchouts": [
+    { "pattern": "<the behavior or pattern to avoid>", "impact": "<how this pattern undermines executive credibility>", "fix": "<the specific shift needed to correct it>" }
+  ]
 }
 
 Rules:
@@ -94,7 +98,7 @@ Rules:
 - executiveNarrative should sound like something a real senior leader would say — not a template.
 - presenceGaps should be specific to this person's situation, not a generic list.
 - boardBio should be strong and specific — use their actual context, not placeholder sentences.
-- Generate 3 presence gaps, 3 strengths, 3 positioning moves, 3 watchouts.
+- Generate 3 presence gaps, 3 strengths (each with strength, evidence, howToLead), 3 positioning moves, 3 watchouts (each with pattern, impact, fix).
 - CRITICAL: Everything must be anchored to their specific context — role, scope, outcomes, and goal.`;
 
   const userPrompt = [
@@ -134,7 +138,13 @@ Rules:
         const area = cleanStr(i.area), severity = cleanStr(i.severity), action = cleanStr(i.action);
         return area ? { area, severity: (["critical","moderate"].includes(severity) ? severity : "moderate") as "critical"|"moderate", action } : null;
       }, 4) : fallback.presenceGaps,
-      strengths: cleanList(p.strengths, 4).length ? cleanList(p.strengths, 4) : fallback.strengths,
+      strengths: (() => {
+        const parsed = mapList(p.strengths, i => {
+          const strength = cleanStr(i.strength), evidence = cleanStr(i.evidence), howToLead = cleanStr(i.howToLead);
+          return strength ? { strength, evidence, howToLead } : null;
+        }, 4);
+        return parsed.length ? parsed : fallback.strengths;
+      })(),
       positioningMoves: mapList(p.positioningMoves, i => {
         const title = cleanStr(i.title), move = cleanStr(i.move), why = cleanStr(i.why);
         return title && move ? { title, move, why } : null;
@@ -143,7 +153,13 @@ Rules:
         return title && move ? { title, move, why } : null;
       }, 4) : fallback.positioningMoves,
       boardBio: cleanStr(p.boardBio) || fallback.boardBio,
-      watchouts: cleanList(p.watchouts, 4).length ? cleanList(p.watchouts, 4) : fallback.watchouts,
+      watchouts: (() => {
+        const parsed = mapList(p.watchouts, i => {
+          const pattern = cleanStr(i.pattern), impact = cleanStr(i.impact), fix = cleanStr(i.fix);
+          return pattern ? { pattern, impact, fix } : null;
+        }, 4);
+        return parsed.length ? parsed : fallback.watchouts;
+      })(),
     });
   } catch {
     return NextResponse.json(fallback);
