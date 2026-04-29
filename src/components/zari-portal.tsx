@@ -1578,7 +1578,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
         <div style={{ flex:1, display:"flex", flexDirection:"column", minWidth:0 }}>
           {/* Messages */}
           <div ref={chatRef} style={{ flex:1, overflowY:"auto", padding:"24px 26px 8px" }}>
-            {!sessionReady && msgs.length === 0 && (
+            {!sessionReady && msgs.length === 0 && !isLoading && (
               <div style={{ display:"flex", gap:10, marginBottom:14, animation:"bubble-appear 0.3s ease" }}>
                 <div style={{ width:32,height:32,borderRadius:"50%",flexShrink:0,background:"linear-gradient(135deg,#3730a3,#2563EB)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"white",boxShadow:"0 0 14px rgba(37,99,235,0.4)" }}>Z</div>
                 <div style={{ display:"flex", alignItems:"center", gap:5, padding:"11px 16px", borderRadius:"4px 16px 16px 16px", background:"var(--z-card)", border:"1px solid var(--z-bd)" }}>
