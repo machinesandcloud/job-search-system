@@ -58,6 +58,7 @@ Return ONLY valid JSON with this exact structure:
     "score": <1-10>,
     "verdict": <"Perfect"|"Good"|"Needs Review"|"Missing">,
     "rewrite": "<optimized headline, max 220 chars, | separators, keyword-rich>",
+    "rewriteRationale": ["<key change 1: what was weak + what was fixed>", "<key change 2>", "<key change 3>"],
     "checks": [
       { "name": "Headline length", "pass": <bool>, "detail": "<quote actual char count>" },
       { "name": "Hard skills present", "pass": <bool>, "detail": "<name skills found or missing>" },
@@ -70,6 +71,7 @@ Return ONLY valid JSON with this exact structure:
     "score": <1-10>,
     "verdict": <"Perfect"|"Good"|"Needs Review"|"Missing">,
     "rewrite": "<3-5 sentence About, first person, hook opener, 2 metrics, ends with CTA>",
+    "rewriteRationale": ["<key change 1: what was weak + what was fixed>", "<key change 2>", "<key change 3>"],
     "checks": [
       { "name": "Summary length", "pass": <bool>, "detail": "<word count; 40-300 words is ideal>" },
       { "name": "Opens with a hook", "pass": <bool>, "detail": "<does the first sentence grab in 5 seconds?>" },

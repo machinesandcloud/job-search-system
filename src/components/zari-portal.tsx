@@ -2284,7 +2284,7 @@ type CareerLevel = "entry"|"mid"|"senior"|"executive";
 
 type ResumeScores = { overall: number; ats: number; impact: number; clarity: number };
 type ResumeBullet = { before: string; after: string; reason: string; oldScore: number; newScore: number; difficulty?: "easy"|"medium"|"hard" };
-type ResumeSection = { label: string; text: string; score: number; originalText?: string };
+type ResumeSection = { label: string; text: string; score: number; originalText?: string; rationale?: string[] };
 type ResumeFinding = { type: "critical"|"warn"|"ok"; category?: string; text: string };
 type ResumeKeyword = { word: string; found: boolean; importance: "required"|"preferred"; skillType?: "technical"|"soft"|"tool"|"certification"|"domain"; context?: string };
 type ResumeSectionScore = { name: string; present: boolean; score: number; verdict: string };
@@ -8284,6 +8284,22 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                               <p style={{ fontSize:12.5, color:"var(--z-text)", lineHeight:1.75, margin:0, whiteSpace:"pre-wrap" }}>{displayed}</p>
                             </div>
                           )}
+                        {/* What changed — rationale panel */}
+                        {s.rationale && s.rationale.length > 0 && (
+                          <div style={{ marginTop:10, background:"rgba(37,99,235,0.05)", border:"1px solid rgba(37,99,235,0.18)", borderRadius:10, padding:"12px 14px", borderLeft:"3px solid #2563EB" }}>
+                            <p style={{ fontSize:10, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>What Zari changed</p>
+                            <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                              {s.rationale.map((note, ni) => (
+                                <div key={ni} style={{ display:"flex", gap:8, alignItems:"flex-start" }}>
+                                  <div style={{ flexShrink:0, width:16, height:16, borderRadius:99, background:"#2563EB", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
+                                    <span style={{ fontSize:8, fontWeight:900, color:"white" }}>{ni+1}</span>
+                                  </div>
+                                  <p style={{ fontSize:11.5, color:"var(--z-text2)", lineHeight:1.5, margin:0 }}>{note}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                         </div>
                       </div>
                     </div>
@@ -8342,6 +8358,43 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                       </div>
                     </div>
                   </div>
+
+                  {/* Skill category visual map */}
+                  {kws.length > 0 && (() => {
+                    const CATS = ["technical","tool","domain","certification","soft"] as const;
+                    const catMeta: Record<string,{label:string;color:string;bg:string}> = {
+                      technical:    { label:"Technical",    color:"#7B9EFF", bg:"rgba(123,158,255,0.12)" },
+                      tool:         { label:"Tools",        color:"#93C5FD", bg:"rgba(147,197,253,0.12)" },
+                      domain:       { label:"Domain",       color:"#38BDF8", bg:"rgba(56,189,248,0.10)" },
+                      certification:{ label:"Certifications",color:"#34D399", bg:"rgba(52,211,153,0.10)" },
+                      soft:         { label:"Soft Skills",  color:"#A78BFA", bg:"rgba(167,139,250,0.10)" },
+                    };
+                    return (
+                      <div style={{ background:"var(--z-card)", borderRadius:16, border:"1px solid var(--z-bd)", padding:"16px 18px", boxShadow:"0 2px 12px rgba(0,0,0,0.07)" }}>
+                        <p style={{ fontSize:11, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:14 }}>Keyword Map by Category</p>
+                        <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:8 }}>
+                          {CATS.map(cat => {
+                            const catKws = kws.filter(k=>(k.skillType ?? "technical")===cat);
+                            if (!catKws.length) return null;
+                            const found = catKws.filter(k=>k.found).length;
+                            const total = catKws.length;
+                            const pct = Math.round((found/total)*100);
+                            const m = catMeta[cat];
+                            return (
+                              <div key={cat} style={{ background:m.bg, borderRadius:12, padding:"12px 10px", textAlign:"center", border:`1px solid ${m.color}30` }}>
+                                <div style={{ fontSize:18, fontWeight:900, color:m.color, lineHeight:1, marginBottom:4 }}>{found}<span style={{ fontSize:10, fontWeight:600, color:"var(--z-text3)" }}>/{total}</span></div>
+                                <div style={{ fontSize:9.5, fontWeight:700, color:m.color, marginBottom:8 }}>{m.label}</div>
+                                <div style={{ height:4, borderRadius:99, background:"rgba(255,255,255,0.08)", overflow:"hidden" }}>
+                                  <div style={{ width:`${pct}%`, height:"100%", borderRadius:99, background:m.color, transition:"width 1s ease" }}/>
+                                </div>
+                                <div style={{ fontSize:9, color:"var(--z-text3)", marginTop:4 }}>{pct}%</div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {/* Missing required — "Add these" callout */}
                   {missingReq.length > 0 && (
@@ -8622,7 +8675,7 @@ const ROUND_META: Record<InterviewRound, { label:string; badge:string; desc:stri
   "panel":          { label:"Panel Interview",   badge:"~60–90 min", desc:"Mixed format — behavioral, technical, strategic, and cultural", color:"#D97706", bg:"rgba(217,119,6,0.12)",  sections:["Behavioral","Technical","Strategic Thinking","Culture & Values"] },
 };
 
-type InterviewQuestion = { cat: string; level: string; q: string };
+type InterviewQuestion = { cat: string; level: string; q: string; testing?: string; strongLooks?: string; commonMistake?: string };
 type InterviewSection  = { name: string; description: string; questions: InterviewQuestion[] };
 
 type InterviewFeedback = {
@@ -9037,19 +9090,62 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
 
         {/* Question card */}
         {q && (
-          <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #2563EB", borderRadius:12, padding:"22px 24px", marginBottom:20 }}>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:12 }}>
-              <div style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.12em", color:"var(--z-text3)" }}>
-                {q.cat} · {q.level}
+          <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #2563EB", borderRadius:12, overflow:"hidden", marginBottom:20 }}>
+            <div style={{ padding:"22px 24px 18px" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:12 }}>
+                <div style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.12em", color:"var(--z-text3)" }}>
+                  {q.cat} · {q.level}
+                </div>
+                <div style={{ display:"flex", gap:6 }}>
+                  {["Situation","Task","Action","Result"].map(s => <span key={s} style={{ fontSize:9.5, fontWeight:600, padding:"2px 8px", borderRadius:99, background:"var(--z-raise)", border:"1px solid var(--z-bd)", color:"var(--z-text3)" }}>{s}</span>)}
+                </div>
               </div>
-              <div style={{ display:"flex", gap:6 }}>
-                {["Situation","Task","Action","Result"].map(s => <span key={s} style={{ fontSize:9.5, fontWeight:600, padding:"2px 8px", borderRadius:99, background:"var(--z-raise)", border:"1px solid var(--z-bd)", color:"var(--z-text3)" }}>{s}</span>)}
+              <p style={{ fontSize:16, fontWeight:700, color:"var(--z-text)", lineHeight:1.65, margin:0 }}>{q.q}</p>
+            </div>
+            {/* Context panel — what they're testing, strong looks like, common mistake */}
+            {(q.testing || q.strongLooks || q.commonMistake) && (
+              <div style={{ borderTop:"1px solid var(--z-bd)", background:"var(--z-raise)", padding:"14px 24px", display:"flex", flexDirection:"column", gap:10 }}>
+                {q.testing && (
+                  <div style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
+                    <div style={{ flexShrink:0, width:20, height:20, borderRadius:6, background:"rgba(37,99,235,0.15)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
+                      <svg viewBox="0 0 12 12" fill="none" style={{width:10,height:10}}><circle cx="6" cy="6" r="5" stroke="#2563EB" strokeWidth="1.5"/><path d="M6 4v3M6 8.5v.5" stroke="#2563EB" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                    </div>
+                    <div>
+                      <span style={{ fontSize:9.5, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.08em" }}>What they&apos;re testing · </span>
+                      <span style={{ fontSize:12, color:"var(--z-text2)", lineHeight:1.5 }}>{q.testing}</span>
+                    </div>
+                  </div>
+                )}
+                {q.strongLooks && (
+                  <div style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
+                    <div style={{ flexShrink:0, width:20, height:20, borderRadius:6, background:"rgba(5,150,105,0.12)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
+                      <svg viewBox="0 0 12 12" fill="none" style={{width:10,height:10}}><path d="M2 6.5l3 3 5-5" stroke="#059669" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </div>
+                    <div>
+                      <span style={{ fontSize:9.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.08em" }}>Strong answer · </span>
+                      <span style={{ fontSize:12, color:"var(--z-text2)", lineHeight:1.5 }}>{q.strongLooks}</span>
+                    </div>
+                  </div>
+                )}
+                {q.commonMistake && (
+                  <div style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
+                    <div style={{ flexShrink:0, width:20, height:20, borderRadius:6, background:"rgba(217,119,6,0.12)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
+                      <svg viewBox="0 0 12 12" fill="none" style={{width:10,height:10}}><path d="M6 2v5M6 8.5v1" stroke="#D97706" strokeWidth="1.5" strokeLinecap="round"/><circle cx="6" cy="6" r="5" stroke="#D97706" strokeWidth="1.5"/></svg>
+                    </div>
+                    <div>
+                      <span style={{ fontSize:9.5, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.08em" }}>Common mistake · </span>
+                      <span style={{ fontSize:12, color:"var(--z-text2)", lineHeight:1.5 }}>{q.commonMistake}</span>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-            <p style={{ fontSize:16, fontWeight:700, color:"var(--z-text)", lineHeight:1.65, margin:"0 0 14px" }}>{q.q}</p>
-            <div style={{ fontSize:12, color:"var(--z-text3)" }}>
-              Tip: Aim for 2–3 minutes. Lead with the Situation, make the Result specific and measurable.
-            </div>
+            )}
+            {/* Fallback tip when no AI context available */}
+            {!q.testing && !q.strongLooks && !q.commonMistake && (
+              <div style={{ borderTop:"1px solid var(--z-bd)", background:"var(--z-raise)", padding:"10px 24px" }}>
+                <span style={{ fontSize:12, color:"var(--z-text3)" }}>Tip: Aim for 2–3 minutes. Lead with the Situation, make the Result specific and measurable.</span>
+              </div>
+            )}
           </div>
         )}
 
@@ -9175,7 +9271,7 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
 ═══════════════════════════════════════════════════ */
 type LICheck = { name: string; pass: boolean; detail: string };
 type LIJob   = { company: string; title: string; dateRange: string; description?: string; score: number; verdict: string; rewrite: string | null; checks: LICheck[] };
-type LISection = { score: number; verdict: string; rewrite: string | null; checks: LICheck[]; jobs?: LIJob[] };
+type LISection = { score: number; verdict: string; rewrite: string | null; rewriteRationale?: string[]; checks: LICheck[]; jobs?: LIJob[] };
 type ParsedJob = { company: string; title: string; dateRange: string; description: string };
 type LinkedInResult = {
   overall: number;
@@ -11432,6 +11528,22 @@ function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?
                     <p style={{ fontSize:13, color:"var(--z-text)", lineHeight:1.7, fontWeight:500, whiteSpace:"pre-wrap" }}>{activeSec.rewrite}</p>
                   </div>
                 </div>
+                {/* What Zari changed and why */}
+                {activeSec.rewriteRationale && activeSec.rewriteRationale.length > 0 && (
+                  <div style={{ marginTop:14, background:"rgba(37,99,235,0.06)", border:"1px solid rgba(37,99,235,0.2)", borderRadius:12, padding:"14px 16px", borderLeft:"4px solid #2563EB" }}>
+                    <p style={{ fontSize:10.5, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>What Zari changed &amp; why</p>
+                    <div style={{ display:"flex", flexDirection:"column", gap:7 }}>
+                      {activeSec.rewriteRationale.map((note, ni) => (
+                        <div key={ni} style={{ display:"flex", gap:9, alignItems:"flex-start" }}>
+                          <div style={{ flexShrink:0, width:18, height:18, borderRadius:99, background:"#2563EB", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
+                            <span style={{ fontSize:9, fontWeight:900, color:"white" }}>{ni+1}</span>
+                          </div>
+                          <p style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.55, margin:0 }}>{note}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div style={{ display:"flex", gap:10, marginTop:14 }}>
                   <button onClick={()=>{ try { void navigator.clipboard.writeText(activeSec.rewrite ?? ""); } catch { /**/ } }}
                     style={{ fontSize:13, fontWeight:700, padding:"10px 20px", borderRadius:10, border:"none", background:"#0077B5", color:"white", cursor:"pointer", boxShadow:"0 4px 14px rgba(0,119,181,0.3)", display:"flex", alignItems:"center", gap:7 }}>

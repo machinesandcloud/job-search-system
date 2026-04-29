@@ -279,12 +279,14 @@ Return ONLY a valid JSON object with exactly this structure:
     {
       "label": "Summary",
       "text": "<Rewrite: [Role] + [top 2-3 skills tied to target] + [quantified achievement]. No generic adjectives. Targeted mode: lead with the top JD requirements. Sound like a real person.>",
-      "score": <number 0-100>
+      "score": <number 0-100>,
+      "rationale": ["<key change 1: what was wrong in the original + specifically what was fixed>", "<key change 2>", "<key change 3>"]
     },
     {
       "label": "Experience highlights",
       "text": "<Rewrite the 3 strongest bullets from their most recent/relevant role using XYZ formula. Number them 1, 2, 3. Targeted mode: embed the most important JD keywords alongside real achievements.>",
-      "score": <number 0-100>
+      "score": <number 0-100>,
+      "rationale": ["<key change 1: what was wrong in the original + specifically what was fixed>", "<key change 2>", "<key change 3>"]
     }
   ],
   "keywords": [

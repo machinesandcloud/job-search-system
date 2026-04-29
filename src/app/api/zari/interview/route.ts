@@ -344,7 +344,14 @@ Return ONLY valid JSON:
       "name": "<section name>",
       "description": "<what this section tests — 1 sentence>",
       "questions": [
-        { "cat": "<specific topic>", "level": "<target level or next-level signal>", "q": "<the question>" }
+        {
+          "cat": "<specific topic>",
+          "level": "<target level or next-level signal>",
+          "q": "<the question>",
+          "testing": "<what next-level signal this question probes — 1 crisp sentence>",
+          "strongLooks": "<what a strong answer looks like in this promotion context — 1 sentence>",
+          "commonMistake": "<the most common mistake candidates make answering this — 1 sentence>"
+        }
       ]
     }
   ]
@@ -377,7 +384,7 @@ Rules:
       const parsePromotionSections = (raw: string | null) => {
         if (!raw) return null;
         try {
-          const parsed = JSON.parse(raw) as { sections?: Array<{ name?: unknown; description?: unknown; questions?: Array<{ cat?: unknown; level?: unknown; q?: unknown }> }> };
+          const parsed = JSON.parse(raw) as { sections?: Array<{ name?: unknown; description?: unknown; questions?: Array<{ cat?: unknown; level?: unknown; q?: unknown; testing?: unknown; strongLooks?: unknown; commonMistake?: unknown }> }> };
           const sections = Array.isArray(parsed.sections)
             ? parsed.sections
                 .map(section => {
@@ -389,6 +396,9 @@ Rules:
                           cat: typeof question.cat === "string" ? question.cat.trim() : "",
                           level: typeof question.level === "string" ? question.level.trim() : "",
                           q: typeof question.q === "string" ? question.q.trim() : "",
+                          testing: typeof question.testing === "string" ? question.testing.trim() : undefined,
+                          strongLooks: typeof question.strongLooks === "string" ? question.strongLooks.trim() : undefined,
+                          commonMistake: typeof question.commonMistake === "string" ? question.commonMistake.trim() : undefined,
                         }))
                         .filter(question => question.cat && question.level && question.q)
                     : [];
@@ -480,7 +490,14 @@ Return ONLY valid JSON:
       "name": "<section name>",
       "description": "<what this section tests — 1 sentence>",
       "questions": [
-        { "cat": "<specific topic>", "level": "<seniority or type>", "q": "<the question>" }
+        {
+          "cat": "<specific topic>",
+          "level": "<seniority or type>",
+          "q": "<the question>",
+          "testing": "<what this question specifically tests — 1 crisp sentence, e.g. 'Whether you can quantify impact beyond effort'>",
+          "strongLooks": "<what a strong answer looks like — 1 sentence on what signals excellence>",
+          "commonMistake": "<the most common mistake candidates make on this question — 1 sentence>"
+        }
       ]
     }
   ]
@@ -496,7 +513,8 @@ Rules:
 - For technical sections, ask about tools/technologies mentioned in BOTH the resume and job description
 - Include at least one tough or challenging question per section (gap, failure, conflict, or hard tradeoff)
 - Level field should match the actual role seniority (e.g. "Senior", "Manager", "IC", "Director")
-- Write questions as a real hiring manager would — direct, no preamble, no softening`;
+- Write questions as a real hiring manager would — direct, no preamble, no softening
+- testing, strongLooks, commonMistake must be specific to THIS question — never generic coaching platitudes`;
 
     const reply = await openaiChat(
       [
@@ -509,7 +527,9 @@ Rules:
     if (!reply) return NextResponse.json({ error: "Could not generate questions" }, { status: 503 });
 
     try {
-      return NextResponse.json(JSON.parse(reply));
+      const parsed = JSON.parse(reply) as { sections?: Array<{ name?: string; description?: string; questions?: Array<{ cat?: string; level?: string; q?: string; testing?: string; strongLooks?: string; commonMistake?: string }> }> };
+      // Pass through extra fields (testing, strongLooks, commonMistake) from each question
+      return NextResponse.json(parsed);
     } catch {
       return NextResponse.json({ error: "Could not parse questions" }, { status: 500 });
     }
