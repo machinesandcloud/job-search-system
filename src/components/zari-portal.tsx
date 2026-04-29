@@ -2332,9 +2332,22 @@ function escHtml(s: string) {
 }
 
 function generateResumeHtml(text: string, footerNote = ""): string {
+  // Strip browser print artifacts that get baked into PDFs printed from the browser
+  // e.g. "4/21/26, 11:08 PM Resume", "about:blank 1/3", standalone "Resume" title line
+  text = text.split("\n").filter(line => {
+    const t = line.trim();
+    if (/^\d{1,2}\/\d{1,2}\/\d{2,4},\s+\d+:\d+\s+(?:AM|PM)/i.test(t)) return false;
+    if (/^about:blank/i.test(t)) return false;
+    if (/^\d+\/\d+$/.test(t)) return false;
+    return true;
+  }).join("\n");
+
   // ── Regexes ──────────────────────────────────────────────────
   const BULLET_RE    = /^[•\-\*\u2022►▸→]\s/;
   const DATE_RE      = /\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?|\d{4})\b.{0,40}\b(20\d{2}|19\d{2}|Present|Current|Now)\b/i;
+  // Matches a trailing date range at the end of a long line, e.g.:
+  // "Foundation Finance Company Sr. DevOps Manager July 2025 - Present"
+  const TRAILING_DATE_RE = /^(.{8,}?)\s{2,}((?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{4}(?:\s*[-–—]\s*(?:(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+)?\d{0,4}(?:Present|Current|Now)?)?)\s*$/i;
   const CONTACT_RE   = /@|\(\d{3}\)|\d{3}[\-.\s]\d{3}[\-.\s]\d{4}|linkedin\.com|github\.com/i;
   const SKILL_CAT_RE = /^[A-Za-z][A-Za-z\s&]{2,35}:\s+\S/;
   const NAME_RE      = /^[A-Z][A-Z\s\.]{3,39}[A-Z]$/;
@@ -2476,6 +2489,17 @@ function generateResumeHtml(text: string, footerNote = ""): string {
         continue;
       }
 
+      // Long single-line entry: "Company Title  Month Year - Year/Present"
+      // Two or more spaces between title and date (common in PDF text extraction)
+      if (t.length >= 30 && TRAILING_DATE_RE.test(t) && !BULLET_RE.test(t)) {
+        const m = t.match(TRAILING_DATE_RE)!;
+        closeList();
+        flushPending();
+        html += `<div class="job-hdr"><span class="company">${escHtml(m[1].trim())}</span><span class="date-r">${escHtml(m[2].trim())}</span></div>\n`;
+        afterJobEntry = true;
+        continue;
+      }
+
       if (DATE_RE.test(t) && t.length < 90) {
         if (pending !== null && !pending.startsWith("__date__")) {
           // Company name is buffered → emit job-hdr (company left, date right)
@@ -2567,7 +2591,7 @@ function generateResumeHtml(text: string, footerNote = ""): string {
   p{margin-bottom:3px;line-height:1.5}
   br{display:block;margin:3px 0;content:""}
   .footer{margin-top:24pt;font-size:8.5pt;color:#aaa;text-align:center;border-top:1px solid #eee;padding-top:6pt}
-  @media print{@page{margin:.75in}body{padding:0}.footer{display:none}}
+  @media print{@page{margin:0;size:letter}body{padding:.75in 1in}.footer{display:none}}
 </style>
 </head>
 <body>
@@ -7120,12 +7144,15 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
   }
 
   function triggerPdfDownload(html: string) {
-    const win = window.open("", "_blank");
-    if (!win) return;
-    win.document.write(html);
-    win.document.close();
-    win.focus();
-    setTimeout(() => { win.print(); }, 400);
+    // Use a blob URL so the window URL is a blob: not "about:blank",
+    // which prevents Chrome from injecting its URL/date headers into the printout.
+    const blob = new Blob([html], { type: "text/html" });
+    const blobUrl = URL.createObjectURL(blob);
+    const win = window.open(blobUrl, "_blank");
+    if (!win) { URL.revokeObjectURL(blobUrl); return; }
+    win.addEventListener("load", () => {
+      setTimeout(() => { win.print(); URL.revokeObjectURL(blobUrl); }, 300);
+    }, { once: true });
   }
 
   async function buildRevisedHtml(): Promise<string> {
