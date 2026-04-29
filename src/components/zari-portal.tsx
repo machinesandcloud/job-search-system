@@ -5172,55 +5172,52 @@ function ScreenPivotAnalysis() {
 }
 
 /* ═══════════════════════════════════════════════════
-   SALARY STAGE: NEGOTIATION SIM
+   SALARY STAGE: NEGOTIATION SIM (v2 — with coaching)
 ═══════════════════════════════════════════════════ */
 function ScreenSalaryNegotiationSim() {
-  type SimMsg = { role: "zari" | "user"; text: string };
-  const [setup, setSetup] = useState(true);
-  const [form, setForm] = useState({ role:"", company:"", currentComp:"", targetComp:"", context:"" });
+  type SimMsg = { role: "zari" | "user"; text: string; coaching?: string | null; betterPhrasing?: string | null };
+  type DebriefResult = { score: number; verdict: string; summary: string; nailed: string[]; improve: string[]; phrases: { original: string; better: string }[] };
+  const [phase, setPhase] = useState<"setup" | "chat" | "debrief">("setup");
+  const [scenario, setScenario] = useState("new-offer");
+  const [difficulty, setDifficulty] = useState("realistic");
+  const [form, setForm] = useState({ role:"", company:"", currentComp:"", targetComp:"", leverage:"" });
   const [msgs, setMsgs] = useState<SimMsg[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [coachingLoading, setCoachingLoading] = useState(false);
+  const [debriefLoading, setDebriefLoading] = useState(false);
+  const [debrief, setDebrief] = useState<DebriefResult | null>(null);
   const [error, setError] = useState("");
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior:"smooth" }); }, [msgs]);
 
+  const scenarios = [
+    { value:"new-offer", label:"New Job Offer", desc:"You got the offer — now negotiate it up", color:"#2563EB", bg:"rgba(37,99,235,0.08)", border:"rgba(37,99,235,0.25)" },
+    { value:"raise",     label:"Annual Raise",  desc:"Ask your current employer for more", color:"#059669", bg:"rgba(5,150,105,0.08)", border:"rgba(5,150,105,0.25)" },
+    { value:"counter",   label:"Counter Offer", desc:"Push back on a low initial offer",   color:"#D97706", bg:"rgba(217,119,6,0.08)", border:"rgba(217,119,6,0.25)" },
+    { value:"lowball",   label:"Lowball Recovery", desc:"They came in way below market",   color:"#DC2626", bg:"rgba(220,38,38,0.08)", border:"rgba(220,38,38,0.25)" },
+  ];
+  const difficulties = [
+    { value:"friendly",  label:"Friendly",  desc:"Collaborative, open to discussion" },
+    { value:"realistic", label:"Realistic", desc:"Professional pushback, budget-aware" },
+    { value:"tough",     label:"Tough",     desc:"Full pressure — skeptical, hard to move" },
+  ];
+
+  const inp: React.CSSProperties = { width:"100%", border:"1px solid var(--z-bd)", borderRadius:10, padding:"11px 14px", fontSize:13.5, color:"var(--z-text)", outline:"none", background:"var(--z-raise)", boxSizing:"border-box", fontFamily:"inherit" };
+
   async function startSim() {
     if (!form.role.trim()) { setError("Add the role you're negotiating for."); return; }
     setError(""); setLoading(true);
-    const systemPrompt = `You are playing the role of a Hiring Manager or Recruiter in a salary negotiation roleplay. The user is practicing their negotiation.
-
-SCENARIO:
-- Role: ${form.role}
-${form.company ? `- Company: ${form.company}` : ""}
-${form.currentComp ? `- User's current comp: ${form.currentComp}` : ""}
-${form.targetComp ? `- User's target comp: ${form.targetComp}` : ""}
-${form.context ? `- Context: ${form.context}` : ""}
-
-Your job:
-- Act realistically as the hiring manager/HR — push back professionally, ask clarifying questions, negotiate
-- Don't immediately give in. Test their reasoning, ask "why that number?", bring up budget constraints
-- After 4-6 exchanges, you can reach an agreement or explain what would move the needle
-- Keep responses SHORT (2-4 sentences max) — this is a realistic back-and-forth
-- Stay in character throughout
-
-Open the negotiation naturally, as if this is a real call.`;
-
-    const res = await fetch("/api/zari/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message: "Start the salary negotiation roleplay. Open the conversation as the hiring manager.",
-        systemOverride: systemPrompt,
-        history: [],
-      }),
+    const res = await fetch("/api/zari/negotiation-sim", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ type:"open", scenario, difficulty, ...form }),
     }).catch(() => null);
     const data = await res?.json().catch(() => null) as { reply?: string } | null;
-    const reply = data?.reply ?? "Let's talk through this. We're excited to bring you on — what were your compensation expectations?";
+    const reply = data?.reply ?? "We're excited to bring you on. Let's talk through the compensation details — what were your expectations for this role?";
     setMsgs([{ role:"zari", text: reply }]);
-    setSetup(false);
+    setPhase("chat");
     setLoading(false);
   }
 
@@ -5228,40 +5225,86 @@ Open the negotiation naturally, as if this is a real call.`;
     const text = input.trim();
     if (!text || loading) return;
     setInput("");
-    const next: SimMsg[] = [...msgs, { role:"user", text }];
+    const userMsg: SimMsg = { role:"user", text };
+    const next = [...msgs, userMsg];
     setMsgs(next);
     setLoading(true);
 
-    const systemPrompt = `You are playing a Hiring Manager/Recruiter in a salary negotiation roleplay for: ${form.role}${form.company ? ` at ${form.company}` : ""}. Target comp: ${form.targetComp || "not specified"}. Push back realistically. Keep responses SHORT (2-4 sentences). Stay in character.`;
-    const history = next.map(m => ({ role: m.role === "zari" ? "assistant" : "user", text: m.text }));
+    const conv = next.map(m => ({ role: m.role === "zari" ? "assistant" : "user" as const, text: m.text }));
+    const [replyRes, coachingRes] = await Promise.allSettled([
+      fetch("/api/zari/negotiation-sim", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ type:"reply", scenario, difficulty, ...form, conversation: conv }),
+      }).then(r => r.json()).catch(() => null) as Promise<{ reply?: string } | null>,
+      fetch("/api/zari/negotiation-sim", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ type:"coaching", scenario, difficulty, ...form, lastUserMessage: text, lastAssistantMessage: msgs.filter(m => m.role === "zari").slice(-1)[0]?.text ?? "" }),
+      }).then(r => r.json()).catch(() => null) as Promise<{ coaching?: string; betterPhrasing?: string | null } | null>,
+    ]);
 
-    const res = await fetch("/api/zari/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text, systemOverride: systemPrompt, history }),
-    }).catch(() => null);
-    const data = await res?.json().catch(() => null) as { reply?: string } | null;
-    const reply = data?.reply ?? "That's a strong point. Let me take that back to the team.";
-    setMsgs(m => [...m, { role:"zari", text: reply }]);
+    const reply = replyRes.status === "fulfilled" ? (replyRes.value?.reply ?? "That's worth considering. Let me check what flexibility we have.") : "That's worth considering. Let me check what flexibility we have.";
+    const coaching = coachingRes.status === "fulfilled" ? coachingRes.value?.coaching ?? null : null;
+    const betterPhrasing = coachingRes.status === "fulfilled" ? (coachingRes.value?.betterPhrasing ?? null) : null;
+
+    setMsgs(m => [...m, { role:"zari", text: reply, coaching, betterPhrasing }]);
     setLoading(false);
     setTimeout(() => inputRef.current?.focus(), 50);
   }
 
-  const inp: React.CSSProperties = { width:"100%", border:"1px solid var(--z-bd)", borderRadius:10, padding:"11px 14px", fontSize:13.5, color:"var(--z-text)", outline:"none", background:"var(--z-raise)", boxSizing:"border-box", fontFamily:"inherit" };
+  async function endSession() {
+    setDebriefLoading(true);
+    const conv = msgs.map(m => ({ role: m.role === "zari" ? "assistant" : "user" as const, text: m.text }));
+    const res = await fetch("/api/zari/negotiation-sim", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ type:"debrief", scenario, difficulty, ...form, conversation: conv }),
+    }).catch(() => null);
+    const data = await res?.json().catch(() => null) as DebriefResult | null;
+    setDebrief(data);
+    setPhase("debrief");
+    setDebriefLoading(false);
+  }
 
-  if (setup) {
+  function reset() { setPhase("setup"); setMsgs([]); setInput(""); setDebrief(null); setError(""); }
+
+  if (phase === "setup") {
+    const sel = scenarios.find(s => s.value === scenario);
     return (
       <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
-        <div style={{ maxWidth:560, margin:"0 auto", padding:"32px 24px 56px" }}>
-          <div style={{ marginBottom:28 }}>
-            <div style={{ fontSize:10, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Negotiation Sim</div>
-            <h1 style={{ fontSize:24, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 10px" }}>Practice your ask</h1>
-            <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.7, margin:0 }}>Zari plays the hiring manager. You practice your negotiation until the number feels natural to say out loud.</p>
+        <div style={{ maxWidth:640, margin:"0 auto", padding:"32px 24px 64px" }}>
+          <div style={{ marginBottom:32 }}>
+            <div style={{ fontSize:10.5, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:10 }}>Negotiation Sim</div>
+            <h1 style={{ fontSize:28, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 10px" }}>Practice until the number feels natural</h1>
+            <p style={{ fontSize:14.5, color:"var(--z-text2)", lineHeight:1.75, margin:0 }}>Zari plays the hiring manager. You negotiate. Live coaching after every exchange. Debrief at the end.</p>
           </div>
 
-          <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:14, padding:"24px 24px 22px", display:"grid", gap:14 }}>
+          <div style={{ marginBottom:28 }}>
+            <p style={{ fontSize:11.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", margin:"0 0 12px" }}>What are you practicing?</p>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+              {scenarios.map(s => (
+                <button key={s.value} onClick={() => setScenario(s.value)} style={{ textAlign:"left", padding:"16px 18px", borderRadius:14, border:`2px solid ${scenario === s.value ? s.border : "var(--z-bd)"}`, background:scenario === s.value ? s.bg : "var(--z-card)", cursor:"pointer", transition:"all 0.15s" }}>
+                  <div style={{ fontSize:13.5, fontWeight:800, color:scenario === s.value ? s.color : "var(--z-text)", marginBottom:4 }}>{s.label}</div>
+                  <div style={{ fontSize:12, color:"var(--z-text3)", lineHeight:1.5 }}>{s.desc}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ marginBottom:28 }}>
+            <p style={{ fontSize:11.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", margin:"0 0 12px" }}>Difficulty</p>
+            <div style={{ display:"flex", gap:10 }}>
+              {difficulties.map(d => (
+                <button key={d.value} onClick={() => setDifficulty(d.value)} style={{ flex:1, padding:"13px 14px", borderRadius:12, border:`2px solid ${difficulty === d.value ? "#2563EB" : "var(--z-bd)"}`, background:difficulty === d.value ? "rgba(37,99,235,0.08)" : "var(--z-card)", cursor:"pointer", transition:"all 0.15s" }}>
+                  <div style={{ fontSize:13, fontWeight:800, color:difficulty === d.value ? "#2563EB" : "var(--z-text)", marginBottom:3 }}>{d.label}</div>
+                  <div style={{ fontSize:11, color:"var(--z-text3)", lineHeight:1.4 }}>{d.desc}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:16, padding:"24px", display:"grid", gap:14, marginBottom:24 }}>
+            <p style={{ fontSize:11.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", margin:0 }}>Your details</p>
             <div>
-              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Role you're negotiating for <span style={{ color:"#EF4444" }}>*</span></p>
+              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Role <span style={{ color:"#EF4444" }}>*</span></p>
               <input value={form.role} onChange={e => setForm(f => ({...f, role:e.target.value}))} placeholder="e.g. Senior Product Manager" style={inp} />
             </div>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
@@ -5270,113 +5313,67 @@ Open the negotiation naturally, as if this is a real call.`;
                 <input value={form.company} onChange={e => setForm(f => ({...f, company:e.target.value}))} placeholder="e.g. Stripe" style={inp} />
               </div>
               <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Your target comp</p>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Target comp</p>
                 <input value={form.targetComp} onChange={e => setForm(f => ({...f, targetComp:e.target.value}))} placeholder="e.g. $165K base" style={inp} />
               </div>
             </div>
             <div>
-              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Any context (competing offer, leverage, etc.)</p>
-              <input value={form.context} onChange={e => setForm(f => ({...f, context:e.target.value}))} placeholder="e.g. I have a competing offer at $155K" style={inp} />
+              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Competing offer or leverage (optional)</p>
+              <input value={form.leverage} onChange={e => setForm(f => ({...f, leverage:e.target.value}))} placeholder="e.g. Competing offer at $155K from Acme" style={inp} />
             </div>
           </div>
 
-          {error && <div style={{ marginTop:12, padding:"10px 14px", borderRadius:10, background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.3)", fontSize:13, color:"#EF4444" }}>{error}</div>}
+          {error && <div style={{ marginBottom:16, padding:"10px 14px", borderRadius:10, background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.3)", fontSize:13, color:"#EF4444" }}>{error}</div>}
 
-          <button onClick={() => void startSim()} disabled={loading} style={{ marginTop:20, width:"100%", padding:"14px", borderRadius:12, border:"none", background:"#2563EB", color:"white", fontSize:14.5, fontWeight:700, cursor:loading ? "default" : "pointer", opacity:loading ? 0.7 : 1 }}>
-            {loading ? "Setting up scenario…" : "Start the negotiation →"}
+          <button onClick={() => void startSim()} disabled={loading} style={{ width:"100%", padding:"15px", borderRadius:14, border:"none", background:sel?.color ?? "#2563EB", color:"white", fontSize:15, fontWeight:800, cursor:loading ? "default" : "pointer", opacity:loading ? 0.7 : 1, letterSpacing:"-0.01em" }}>
+            {loading ? "Setting up your scenario…" : `Start ${scenarios.find(s => s.value === scenario)?.label ?? "Negotiation"} →`}
           </button>
         </div>
       </div>
     );
   }
 
-  return (
-    <div style={{ height:"100%", display:"flex", flexDirection:"column", background:"var(--z-raise)", overflow:"hidden" }}>
-      <div style={{ flexShrink:0, background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"12px 20px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-        <div>
-          <div style={{ fontSize:11, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em" }}>Negotiation Roleplay</div>
-          <div style={{ fontSize:13.5, fontWeight:700, color:"var(--z-text)" }}>{form.role}{form.company ? ` · ${form.company}` : ""}{form.targetComp ? ` · ${form.targetComp}` : ""}</div>
-        </div>
-        <button onClick={() => { setSetup(true); setMsgs([]); setInput(""); }} style={{ fontSize:12, fontWeight:600, padding:"6px 14px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>New scenario</button>
-      </div>
-
-      <div style={{ flex:1, overflowY:"auto", padding:"20px 20px 8px" }}>
-        {msgs.map((m, i) => (
-          <div key={i} style={{ display:"flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start", marginBottom:12 }}>
-            {m.role === "zari" && (
-              <div style={{ width:28, height:28, borderRadius:8, background:"#2563EB", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginRight:10, marginTop:2 }}>
-                <ZariLogo size={13}/>
-              </div>
-            )}
-            <div style={{ maxWidth:"72%", padding:"11px 15px", borderRadius:12, background: m.role === "user" ? "#2563EB" : "var(--z-card)", color: m.role === "user" ? "white" : "var(--z-text)", border: m.role === "user" ? "none" : "1px solid var(--z-bd)", fontSize:14, lineHeight:1.65 }}>
-              {m.role === "zari" && <div style={{ fontSize:10, fontWeight:700, color: "rgba(37,99,235,0.7)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:4 }}>Hiring Manager</div>}
-              {m.text}
+  if (phase === "debrief") {
+    if (debriefLoading || !debrief) {
+      return (
+        <div style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--z-raise)" }}>
+          <div style={{ textAlign:"center" }}>
+            <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
+              {[0,1,2].map(i => <div key={i} style={{ width:11,height:11,borderRadius:"50%",background:"#2563EB",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
             </div>
+            <p style={{ fontSize:16, fontWeight:800, color:"var(--z-text)", margin:"0 0 6px" }}>Analyzing your negotiation…</p>
+            <p style={{ fontSize:13, color:"var(--z-text3)" }}>Zari is reviewing every exchange.</p>
           </div>
-        ))}
-        {loading && (
-          <div style={{ display:"flex", justifyContent:"flex-start", marginBottom:12 }}>
-            <div style={{ width:28, height:28, borderRadius:8, background:"#2563EB", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginRight:10, marginTop:2 }}><ZariLogo size={13}/></div>
-            <div style={{ padding:"11px 15px", borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)" }}>
-              <div style={{ display:"flex", gap:5 }}>{[0,1,2].map(i => <div key={i} style={{ width:7,height:7,borderRadius:"50%",background:"#2563EB",opacity:0.6,animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}</div>
-            </div>
-          </div>
-        )}
-        <div ref={bottomRef}/>
-      </div>
-
-      <div style={{ flexShrink:0, padding:"12px 20px 16px", borderTop:"1px solid var(--z-bd)", background:"var(--z-card)" }}>
-        <div style={{ display:"flex", gap:10, alignItems:"flex-end" }}>
-          <textarea ref={inputRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void send(); } }} placeholder="Your response…" rows={2} style={{ flex:1, border:"1px solid var(--z-bd)", borderRadius:10, padding:"10px 14px", fontSize:13.5, color:"var(--z-text)", outline:"none", background:"var(--z-raise)", resize:"none", fontFamily:"inherit", lineHeight:1.5, boxSizing:"border-box" }} />
-          <button onClick={() => void send()} disabled={loading || !input.trim()} style={{ padding:"10px 18px", borderRadius:10, border:"none", background:"#2563EB", color:"white", fontSize:13.5, fontWeight:700, cursor:loading || !input.trim() ? "default" : "pointer", opacity:loading || !input.trim() ? 0.5 : 1, flexShrink:0 }}>Send</button>
         </div>
-        <div style={{ fontSize:11, color:"var(--z-text3)", marginTop:6 }}>Press Enter to send · Shift+Enter for new line</div>
-      </div>
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════════════════════
-   SALARY STAGE: NEGOTIATION EMAIL
-═══════════════════════════════════════════════════ */
-function ScreenSalaryNegotiationEmail() {
-  const [form, setForm] = useState({ role:"", company:"", currentComp:"", targetComp:"", competingOffer:"", reason:"", tone:"professional", emailType:"offer" });
-  const [result, setResult] = useState<{ subject:string; email:string } | null>(null);
-  const [generating, setGenerating] = useState(false);
-  const [error, setError] = useState("");
-  const [copied, setCopied] = useState(false);
-
-  const inp: React.CSSProperties = { width:"100%", border:"1px solid var(--z-bd)", borderRadius:10, padding:"11px 14px", fontSize:13.5, color:"var(--z-text)", outline:"none", background:"var(--z-raise)", boxSizing:"border-box", fontFamily:"inherit" };
-  const sel: React.CSSProperties = { ...inp, cursor:"pointer" };
-
-  async function generate() {
-    if (!form.role.trim()) { setError("Add the role you're negotiating for."); return; }
-    setError(""); setGenerating(true);
-    const res = await fetch("/api/zari/negotiation-email", {
-      method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify(form),
-    }).catch(() => null);
-    const data = await res?.json().catch(() => null) as ({ subject:string; email:string } & { error?:string }) | null;
-    if (data && data.email && !data.error) { setResult(data); }
-    else setError(data?.error ?? "Something went wrong — try again.");
-    setGenerating(false);
-  }
-
-  if (result) {
+      );
+    }
+    const scoreColor = debrief.score >= 75 ? "#059669" : debrief.score >= 50 ? "#D97706" : "#DC2626";
+    const verdictBg = debrief.score >= 75 ? "rgba(5,150,105,0.08)" : debrief.score >= 50 ? "rgba(217,119,6,0.08)" : "rgba(220,38,38,0.08)";
     return (
       <div style={{ height:"100%", display:"flex", overflow:"hidden", background:"var(--z-raise)" }}>
-        <div style={{ width:264, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column" }}>
-          <div style={{ padding:"22px 16px 14px" }}>
-            <div style={{ fontSize:9, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Negotiation Email</div>
-            <div style={{ fontSize:13.5, fontWeight:800, color:"var(--z-text)", marginBottom:6 }}>{form.role}</div>
-            {form.targetComp && <div style={{ fontSize:12, color:"var(--z-text2)", marginBottom:12 }}>Target: {form.targetComp}</div>}
+        <div style={{ width:272, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
+          <div style={{ padding:"28px 20px 20px" }}>
+            <div style={{ display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", marginBottom:20 }}>
+              <div style={{ position:"relative", width:88, height:88, marginBottom:14 }}>
+                <svg viewBox="0 0 90 90" style={{ position:"absolute", inset:0, width:"100%", height:"100%", transform:"rotate(-90deg)" }}>
+                  <circle cx="45" cy="45" r="38" fill="none" stroke="var(--z-raise)" strokeWidth="8"/>
+                  <circle cx="45" cy="45" r="38" fill="none" stroke={scoreColor} strokeWidth="8" strokeLinecap="round" strokeDasharray={`${(debrief.score/100)*238.8} 238.8`} style={{ transition:"stroke-dasharray 1s ease" }}/>
+                </svg>
+                <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
+                  <div style={{ fontSize:26, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.05em", lineHeight:1 }}>{debrief.score}</div>
+                </div>
+              </div>
+              <div style={{ fontSize:10, fontWeight:800, color:scoreColor, background:verdictBg, border:`1px solid ${scoreColor}40`, padding:"4px 12px", borderRadius:99, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>{debrief.verdict}</div>
+              <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.65, margin:0 }}>{debrief.summary}</p>
+            </div>
             <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
-              {([
-                { label:"Type", value:form.emailType === "raise" ? "Salary raise" : form.emailType === "counter" ? "Counter offer" : "Job offer" },
-                { label:"Tone", value:form.tone.charAt(0).toUpperCase() + form.tone.slice(1) },
-                form.company ? { label:"Company", value:form.company } : null,
-              ] as ({label:string;value:string}|null)[]).filter(Boolean).map(r => (
-                <div key={r!.label} style={{ display:"flex", justifyContent:"space-between", padding:"5px 9px", borderRadius:7, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
+              {[
+                { label:"Scenario", value:scenarios.find(s => s.value === scenario)?.label ?? scenario },
+                { label:"Difficulty", value:difficulties.find(d => d.value === difficulty)?.label ?? difficulty },
+                { label:"Role", value:form.role },
+                form.targetComp ? { label:"Target", value:form.targetComp } : null,
+              ].filter(Boolean).map(r => (
+                <div key={r!.label} style={{ display:"flex", justifyContent:"space-between", padding:"6px 10px", borderRadius:8, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
                   <span style={{ fontSize:10, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em" }}>{r!.label}</span>
                   <span style={{ fontSize:11, fontWeight:800, color:"var(--z-text2)" }}>{r!.value}</span>
                 </div>
@@ -5384,30 +5381,286 @@ function ScreenSalaryNegotiationEmail() {
             </div>
           </div>
           <div style={{ flex:1 }}/>
-          <div style={{ padding:"10px 12px 14px", borderTop:"1px solid var(--z-bd)", display:"flex", gap:6 }}>
-            <button onClick={() => setResult(null)} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Edit</button>
-            <button onClick={() => { setResult(null); setForm({ role:"", company:"", currentComp:"", targetComp:"", competingOffer:"", reason:"", tone:"professional", emailType:"offer" }); }} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>New</button>
+          <div style={{ padding:"12px 16px 18px", borderTop:"1px solid var(--z-bd)", display:"flex", gap:8 }}>
+            <button onClick={() => { setMsgs([]); setPhase("chat"); void (async () => { setLoading(true); const res = await fetch("/api/zari/negotiation-sim", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ type:"open", scenario, difficulty, ...form }) }).catch(() => null); const data = await res?.json().catch(() => null) as { reply?: string } | null; setMsgs([{ role:"zari", text: data?.reply ?? "Let's go again. Same scenario, fresh start." }]); setLoading(false); })(); }} style={{ flex:1, fontSize:12, fontWeight:700, padding:"8px 10px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Retry</button>
+            <button onClick={reset} style={{ flex:1, fontSize:12, fontWeight:700, padding:"8px 10px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>New</button>
           </div>
         </div>
-        <div style={{ flex:1, overflowY:"auto", padding:"24px 28px 40px" }}>
-          <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:14, overflow:"hidden" }}>
-            <div style={{ padding:"16px 22px", borderBottom:"1px solid var(--z-bd)", background:"var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-              <div>
-                <div style={{ fontSize:10, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:3 }}>Subject</div>
-                <div style={{ fontSize:14, fontWeight:700, color:"var(--z-text)" }}>{result.subject}</div>
+        <div style={{ flex:1, overflowY:"auto", padding:"28px 32px 48px" }}>
+          <div style={{ display:"grid", gap:20 }}>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+              <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #059669", padding:"22px 24px" }}>
+                <div style={{ fontSize:10.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:14 }}>What you nailed</div>
+                <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                  {debrief.nailed.map((item, i) => (
+                    <div key={i} style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
+                      <div style={{ width:20, height:20, borderRadius:"50%", background:"rgba(5,150,105,0.12)", border:"1px solid rgba(5,150,105,0.3)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>
+                        <svg viewBox="0 0 10 10" fill="none" stroke="#059669" strokeWidth="2" style={{ width:9,height:9 }}><polyline points="2,5 4,7 8,3"/></svg>
+                      </div>
+                      <span style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.7 }}>{item}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <button onClick={() => { void navigator.clipboard.writeText(`Subject: ${result.subject}\n\n${result.email}`); setCopied(true); setTimeout(() => setCopied(false), 2500); }} style={{ fontSize:12.5, fontWeight:700, padding:"7px 16px", borderRadius:9, border:"1px solid var(--z-bd)", background:copied ? "#EFF6FF" : "var(--z-card)", color:copied ? "#2563EB" : "var(--z-text2)", cursor:"pointer", flexShrink:0 }}>{copied ? "Copied ✓" : "Copy email"}</button>
+              <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #DC2626", padding:"22px 24px" }}>
+                <div style={{ fontSize:10.5, fontWeight:800, color:"#DC2626", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:14 }}>What to improve</div>
+                <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                  {debrief.improve.map((item, i) => (
+                    <div key={i} style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
+                      <div style={{ width:20, height:20, borderRadius:"50%", background:"rgba(220,38,38,0.1)", border:"1px solid rgba(220,38,38,0.25)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>
+                        <svg viewBox="0 0 10 10" fill="none" stroke="#DC2626" strokeWidth="2" style={{ width:9,height:9 }}><line x1="2" y1="5" x2="8" y2="5"/></svg>
+                      </div>
+                      <span style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.7 }}>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-            <div style={{ padding:"22px 24px" }}>
-              <pre style={{ fontFamily:"inherit", fontSize:14, color:"var(--z-text)", lineHeight:1.85, whiteSpace:"pre-wrap", margin:0 }}>{result.email}</pre>
+            <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"24px 26px" }}>
+              <div style={{ fontSize:10.5, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:16 }}>Stronger phrasing — exact rewrites</div>
+              <div style={{ display:"grid", gap:14 }}>
+                {debrief.phrases.map((p, i) => (
+                  <div key={i} style={{ borderRadius:12, overflow:"hidden", border:"1px solid var(--z-bd)" }}>
+                    <div style={{ padding:"12px 16px", background:"rgba(220,38,38,0.04)", borderBottom:"1px solid var(--z-bd)" }}>
+                      <div style={{ fontSize:10, fontWeight:700, color:"#DC2626", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>You said</div>
+                      <div style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.65, fontStyle:"italic" }}>"{p.original}"</div>
+                    </div>
+                    <div style={{ padding:"12px 16px", background:"rgba(5,150,105,0.04)" }}>
+                      <div style={{ fontSize:10, fontWeight:700, color:"#059669", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>Stronger version</div>
+                      <div style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.65 }}>"{p.better}"</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-          <div style={{ marginTop:16, padding:"14px 18px", borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
-            <div style={{ fontSize:11, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:6 }}>Before you send</div>
-            <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
-              {["Replace [Name] with the actual recipient's name.", "Add any specific details about the role or offer that make it more personal.", "Send within 24-48 hours of the offer — don't let the window close."].map(tip => (
-                <div key={tip} style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.6, display:"flex", gap:8, alignItems:"flex-start" }}>
-                  <span style={{ color:"#2563EB", fontWeight:700, flexShrink:0 }}>→</span>{tip}
+        </div>
+      </div>
+    );
+  }
+
+  const latestCoaching = [...msgs].reverse().find(m => m.role === "zari" && m.coaching);
+  return (
+    <div style={{ height:"100%", display:"flex", overflow:"hidden", background:"var(--z-raise)" }}>
+      <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden" }}>
+        <div style={{ flexShrink:0, background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"12px 20px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+          <div>
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <span style={{ fontSize:10.5, fontWeight:800, color:scenarios.find(s => s.value === scenario)?.color ?? "#2563EB", background:scenarios.find(s => s.value === scenario)?.bg, border:`1px solid ${scenarios.find(s => s.value === scenario)?.border}`, padding:"3px 8px", borderRadius:99, textTransform:"uppercase", letterSpacing:"0.08em" }}>{scenarios.find(s => s.value === scenario)?.label}</span>
+              <span style={{ fontSize:10.5, fontWeight:700, color:"var(--z-text3)", background:"var(--z-raise)", border:"1px solid var(--z-bd)", padding:"3px 8px", borderRadius:99, textTransform:"uppercase", letterSpacing:"0.08em" }}>{difficulties.find(d => d.value === difficulty)?.label}</span>
+            </div>
+            <div style={{ fontSize:13.5, fontWeight:700, color:"var(--z-text)", marginTop:4 }}>{form.role}{form.company ? ` · ${form.company}` : ""}{form.targetComp ? ` · Target: ${form.targetComp}` : ""}</div>
+          </div>
+          <button onClick={() => void endSession()} disabled={msgs.length < 3 || debriefLoading} style={{ fontSize:12.5, fontWeight:700, padding:"8px 16px", borderRadius:10, border:"none", background: msgs.length >= 3 ? "#2563EB" : "var(--z-raise)", color: msgs.length >= 3 ? "white" : "var(--z-text3)", cursor: msgs.length >= 3 ? "pointer" : "default", transition:"all 0.2s" }}>
+            {debriefLoading ? "Analyzing…" : "End & Debrief →"}
+          </button>
+        </div>
+
+        <div style={{ flex:1, overflowY:"auto", padding:"20px 20px 8px" }}>
+          {msgs.map((m, i) => (
+            <div key={i} style={{ marginBottom:16 }}>
+              <div style={{ display:"flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
+                {m.role === "zari" && (
+                  <div style={{ width:30, height:30, borderRadius:9, background:"linear-gradient(135deg,#2563EB,#1d4ed8)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginRight:10, marginTop:2 }}>
+                    <ZariLogo size={13}/>
+                  </div>
+                )}
+                <div style={{ maxWidth:"72%", padding:"13px 16px", borderRadius:14, background: m.role === "user" ? "#2563EB" : "var(--z-card)", color: m.role === "user" ? "white" : "var(--z-text)", border: m.role === "user" ? "none" : "1px solid var(--z-bd)", fontSize:14, lineHeight:1.7 }}>
+                  {m.role === "zari" && <div style={{ fontSize:10, fontWeight:800, color:"#93C5FD", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>Hiring Manager</div>}
+                  {m.text}
+                </div>
+              </div>
+            </div>
+          ))}
+          {loading && (
+            <div style={{ display:"flex", justifyContent:"flex-start", marginBottom:16 }}>
+              <div style={{ width:30, height:30, borderRadius:9, background:"linear-gradient(135deg,#2563EB,#1d4ed8)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginRight:10, marginTop:2 }}><ZariLogo size={13}/></div>
+              <div style={{ padding:"13px 16px", borderRadius:14, background:"var(--z-card)", border:"1px solid var(--z-bd)" }}>
+                <div style={{ display:"flex", gap:5 }}>{[0,1,2].map(i => <div key={i} style={{ width:7,height:7,borderRadius:"50%",background:"#2563EB",opacity:0.6,animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}</div>
+              </div>
+            </div>
+          )}
+          <div ref={bottomRef}/>
+        </div>
+
+        <div style={{ flexShrink:0, padding:"12px 20px 16px", borderTop:"1px solid var(--z-bd)", background:"var(--z-card)" }}>
+          <div style={{ display:"flex", gap:10, alignItems:"flex-end" }}>
+            <textarea ref={inputRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void send(); } }} placeholder="Your response to the hiring manager…" rows={2} style={{ flex:1, border:"1px solid var(--z-bd)", borderRadius:10, padding:"10px 14px", fontSize:13.5, color:"var(--z-text)", outline:"none", background:"var(--z-raise)", resize:"none", fontFamily:"inherit", lineHeight:1.5, boxSizing:"border-box" }} />
+            <button onClick={() => void send()} disabled={loading || !input.trim()} style={{ padding:"10px 20px", borderRadius:10, border:"none", background:"#2563EB", color:"white", fontSize:13.5, fontWeight:700, cursor:loading || !input.trim() ? "default" : "pointer", opacity:loading || !input.trim() ? 0.5 : 1, flexShrink:0 }}>Send</button>
+          </div>
+          <div style={{ fontSize:11, color:"var(--z-text3)", marginTop:6 }}>Enter to send · Shift+Enter for new line · {msgs.filter(m => m.role === "user").length} turns</div>
+        </div>
+      </div>
+
+      {/* COACHING SIDEBAR */}
+      <div style={{ width:272, flexShrink:0, borderLeft:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
+        <div style={{ padding:"18px 16px 14px", borderBottom:"1px solid var(--z-bd)" }}>
+          <div style={{ fontSize:10.5, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:4 }}>Live Coaching</div>
+          <div style={{ fontSize:12, color:"var(--z-text3)", lineHeight:1.5 }}>Zari gives feedback after each of your responses.</div>
+        </div>
+
+        <div style={{ padding:"14px 16px", flex:1 }}>
+          {latestCoaching ? (
+            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+              <div style={{ borderRadius:12, background:"rgba(217,119,6,0.07)", border:"1px solid rgba(217,119,6,0.2)", padding:"14px 16px" }}>
+                <div style={{ fontSize:10, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Latest feedback</div>
+                <p style={{ fontSize:13, color:"var(--z-text)", lineHeight:1.7, margin:0 }}>{latestCoaching.coaching}</p>
+              </div>
+              {latestCoaching.betterPhrasing && (
+                <div style={{ borderRadius:12, background:"rgba(5,150,105,0.07)", border:"1px solid rgba(5,150,105,0.2)", padding:"14px 16px" }}>
+                  <div style={{ fontSize:10, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Try this instead</div>
+                  <p style={{ fontSize:12.5, color:"var(--z-text)", lineHeight:1.7, margin:0, fontStyle:"italic" }}>"{latestCoaching.betterPhrasing}"</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div style={{ padding:"20px 0", textAlign:"center" }}>
+              <div style={{ fontSize:28, marginBottom:10 }}>💬</div>
+              <div style={{ fontSize:13, color:"var(--z-text3)", lineHeight:1.6 }}>Send your first response and Zari will coach you in real time.</div>
+            </div>
+          )}
+
+          {msgs.filter(m => m.role === "user").length > 0 && (
+            <div style={{ marginTop:16, display:"flex", flexDirection:"column", gap:8 }}>
+              <div style={{ fontSize:10, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em" }}>Session</div>
+              <div style={{ padding:"10px 12px", borderRadius:10, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
+                <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
+                  <span style={{ fontSize:11, color:"var(--z-text3)" }}>Turns</span>
+                  <span style={{ fontSize:11, fontWeight:800, color:"var(--z-text2)" }}>{msgs.filter(m => m.role === "user").length}</span>
+                </div>
+                {form.targetComp && (
+                  <div style={{ display:"flex", justifyContent:"space-between" }}>
+                    <span style={{ fontSize:11, color:"var(--z-text3)" }}>Target</span>
+                    <span style={{ fontSize:11, fontWeight:800, color:"#2563EB" }}>{form.targetComp}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div style={{ padding:"12px 16px 16px", borderTop:"1px solid var(--z-bd)" }}>
+          <button onClick={reset} style={{ width:"100%", fontSize:12, fontWeight:700, padding:"8px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>New scenario</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   SALARY STAGE: NEGOTIATION EMAIL (v2 — 3 versions)
+═══════════════════════════════════════════════════ */
+function ScreenSalaryNegotiationEmail() {
+  type EmailVersion = { subject:string; email:string; tone:string; label:string; color:string; bg:string };
+  const [form, setForm] = useState({ role:"", company:"", currentComp:"", targetComp:"", competingOffer:"", reason:"", emailType:"offer" });
+  const [versions, setVersions] = useState<EmailVersion[] | null>(null);
+  const [activeVersion, setActiveVersion] = useState(0);
+  const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  const inp: React.CSSProperties = { width:"100%", border:"1px solid var(--z-bd)", borderRadius:10, padding:"11px 14px", fontSize:13.5, color:"var(--z-text)", outline:"none", background:"var(--z-raise)", boxSizing:"border-box", fontFamily:"inherit" };
+  const sel: React.CSSProperties = { ...inp, cursor:"pointer" };
+
+  const toneConfigs = [
+    { tone:"professional",  label:"Professional",  color:"#2563EB", bg:"rgba(37,99,235,0.07)",   desc:"Polished, respectful, clear ask" },
+    { tone:"confident",     label:"Confident",     color:"#059669", bg:"rgba(5,150,105,0.07)",   desc:"Direct, no hedging, strong anchor" },
+    { tone:"collaborative", label:"Collaborative", color:"#D97706", bg:"rgba(217,119,6,0.07)",   desc:"Warm framing, mutual-fit language" },
+  ];
+
+  async function generate() {
+    if (!form.role.trim()) { setError("Add the role you're negotiating for."); return; }
+    setError(""); setGenerating(true);
+    const results = await Promise.all(
+      toneConfigs.map(tc =>
+        fetch("/api/zari/negotiation-email", {
+          method:"POST", headers:{"Content-Type":"application/json"},
+          body: JSON.stringify({ ...form, tone: tc.tone }),
+        }).then(r => r.json()).catch(() => null) as Promise<{ subject?:string; email?:string; error?:string } | null>
+      )
+    );
+    const built: EmailVersion[] = results.map((r, i) => ({
+      subject: r?.subject ?? `Compensation Discussion — ${form.role}`,
+      email: r?.email ?? "",
+      ...toneConfigs[i],
+    })).filter(v => v.email);
+    if (!built.length) { setError("Something went wrong — try again."); setGenerating(false); return; }
+    setVersions(built);
+    setActiveVersion(0);
+    setGenerating(false);
+  }
+
+  if (generating) {
+    return (
+      <div style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--z-raise)" }}>
+        <div style={{ textAlign:"center" }}>
+          <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
+            {[0,1,2].map(i => <div key={i} style={{ width:11,height:11,borderRadius:"50%",background:"#2563EB",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
+          </div>
+          <p style={{ fontSize:16, fontWeight:800, color:"var(--z-text)", margin:"0 0 6px" }}>Writing 3 versions for you…</p>
+          <p style={{ fontSize:13, color:"var(--z-text3)" }}>Professional · Confident · Collaborative — all three at once.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (versions) {
+    const v = versions[activeVersion];
+    return (
+      <div style={{ height:"100%", display:"flex", overflow:"hidden", background:"var(--z-raise)" }}>
+        <div style={{ width:272, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column" }}>
+          <div style={{ padding:"22px 16px 16px" }}>
+            <div style={{ fontSize:9.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Negotiation Email</div>
+            <div style={{ fontSize:14, fontWeight:800, color:"var(--z-text)", marginBottom:4 }}>{form.role}</div>
+            {form.targetComp && <div style={{ fontSize:12.5, color:"var(--z-text3)", marginBottom:14 }}>Target: <strong style={{ color:"var(--z-text2)" }}>{form.targetComp}</strong></div>}
+            <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
+              {([
+                { label:"Type", value:form.emailType === "raise" ? "Salary raise" : form.emailType === "counter" ? "Counter offer" : "Job offer" },
+                form.company ? { label:"Company", value:form.company } : null,
+                form.competingOffer ? { label:"Leverage", value:"Competing offer ✓" } : null,
+              ] as ({label:string;value:string}|null)[]).filter(Boolean).map(r => (
+                <div key={r!.label} style={{ display:"flex", justifyContent:"space-between", padding:"6px 10px", borderRadius:8, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
+                  <span style={{ fontSize:10, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em" }}>{r!.label}</span>
+                  <span style={{ fontSize:11, fontWeight:800, color:"var(--z-text2)" }}>{r!.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{ height:1, background:"var(--z-bd)" }}/>
+          <div style={{ padding:"14px 16px" }}>
+            <div style={{ fontSize:10, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>3 Versions</div>
+            {toneConfigs.map((tc, i) => (
+              <button key={tc.tone} onClick={() => { setActiveVersion(i); setCopied(false); }} style={{ width:"100%", textAlign:"left", padding:"11px 12px", borderRadius:10, border:`1.5px solid ${i === activeVersion ? tc.color : "var(--z-bd)"}`, background:i === activeVersion ? tc.bg : "transparent", cursor:"pointer", marginBottom:6, transition:"all 0.15s" }}>
+                <div style={{ fontSize:13, fontWeight:800, color:i === activeVersion ? tc.color : "var(--z-text2)" }}>{tc.label}</div>
+                <div style={{ fontSize:11, color:"var(--z-text3)", marginTop:2 }}>{tc.desc}</div>
+              </button>
+            ))}
+          </div>
+          <div style={{ flex:1 }}/>
+          <div style={{ padding:"10px 14px 16px", borderTop:"1px solid var(--z-bd)", display:"flex", gap:6 }}>
+            <button onClick={() => setVersions(null)} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"8px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Edit</button>
+            <button onClick={() => { setVersions(null); setForm({ role:"", company:"", currentComp:"", targetComp:"", competingOffer:"", reason:"", emailType:"offer" }); }} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"8px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>New</button>
+          </div>
+        </div>
+        <div style={{ flex:1, overflowY:"auto", padding:"28px 32px 48px" }}>
+          <div style={{ borderRadius:16, background:"var(--z-card)", border:`1px solid var(--z-bd)`, borderTop:`3px solid ${v.color}`, overflow:"hidden", marginBottom:16 }}>
+            <div style={{ padding:"18px 24px", borderBottom:"1px solid var(--z-bd)", background:v.bg, display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16 }}>
+              <div style={{ flex:1 }}>
+                <div style={{ fontSize:10, fontWeight:800, color:v.color, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>{v.label} Version — Subject</div>
+                <div style={{ fontSize:15, fontWeight:700, color:"var(--z-text)", lineHeight:1.4 }}>{v.subject}</div>
+              </div>
+              <button onClick={() => { void navigator.clipboard.writeText(`Subject: ${v.subject}\n\n${v.email}`); setCopied(true); setTimeout(() => setCopied(false), 2500); }} style={{ fontSize:12.5, fontWeight:700, padding:"8px 18px", borderRadius:10, border:`1px solid ${copied ? v.color : "var(--z-bd)"}`, background:copied ? v.bg : "var(--z-card)", color:copied ? v.color : "var(--z-text2)", cursor:"pointer", flexShrink:0, transition:"all 0.2s" }}>{copied ? "Copied ✓" : "Copy"}</button>
+            </div>
+            <div style={{ padding:"26px 28px" }}>
+              <pre style={{ fontFamily:"inherit", fontSize:14.5, color:"var(--z-text)", lineHeight:1.9, whiteSpace:"pre-wrap", margin:0 }}>{v.email}</pre>
+            </div>
+          </div>
+          <div style={{ borderRadius:14, padding:"18px 22px", background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderLeft:`4px solid #D97706` }}>
+            <div style={{ fontSize:10.5, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Before you send</div>
+            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+              {["Replace [Name] with the actual recipient.", "Send within 24-48 hours of receiving the offer — don't let the window close.", "If they ask why that number, have your market data ready: Levels.fyi, Glassdoor, LinkedIn Salary.", "Lead with excitement, ask second — don't open with the number."].map((tip, i) => (
+                <div key={i} style={{ display:"flex", gap:10, alignItems:"flex-start", fontSize:13.5, color:"var(--z-text2)", lineHeight:1.65 }}>
+                  <span style={{ color:"#D97706", fontWeight:800, flexShrink:0, marginTop:1 }}>→</span>{tip}
                 </div>
               ))}
             </div>
@@ -5419,36 +5672,26 @@ function ScreenSalaryNegotiationEmail() {
 
   return (
     <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
-      <div style={{ maxWidth:580, margin:"0 auto", padding:"32px 24px 56px" }}>
-        <div style={{ marginBottom:24 }}>
-          <div style={{ fontSize:10, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Negotiation Email</div>
-          <h1 style={{ fontSize:24, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 10px" }}>Write your ask</h1>
-          <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.7, margin:0 }}>Zari writes a professional salary negotiation email you can send (or adapt) immediately.</p>
+      <div style={{ maxWidth:600, margin:"0 auto", padding:"32px 24px 64px" }}>
+        <div style={{ marginBottom:28 }}>
+          <div style={{ fontSize:10.5, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:10 }}>Negotiation Email</div>
+          <h1 style={{ fontSize:28, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 10px" }}>Write your ask</h1>
+          <p style={{ fontSize:14.5, color:"var(--z-text2)", lineHeight:1.75, margin:0 }}>Zari generates 3 versions — professional, confident, and collaborative — so you pick the one that fits the moment.</p>
         </div>
 
-        <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:14, padding:"24px", display:"grid", gap:14 }}>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-            <div>
-              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Email type</p>
-              <select value={form.emailType} onChange={e => setForm(f => ({...f, emailType:e.target.value}))} style={sel}>
-                <option value="offer">Responding to a job offer</option>
-                <option value="counter">Counter-offer</option>
-                <option value="raise">Requesting a raise</option>
-              </select>
-            </div>
-            <div>
-              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Tone</p>
-              <select value={form.tone} onChange={e => setForm(f => ({...f, tone:e.target.value}))} style={sel}>
-                <option value="professional">Professional</option>
-                <option value="confident">Confident & direct</option>
-                <option value="collaborative">Warm & collaborative</option>
-              </select>
+        <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:16, padding:"26px", display:"grid", gap:16 }}>
+          <div>
+            <p style={{ fontSize:11.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", margin:"0 0 12px" }}>Email type</p>
+            <div style={{ display:"flex", gap:10 }}>
+              {[{v:"offer",l:"Responding to offer"},{v:"counter",l:"Counter-offer"},{v:"raise",l:"Requesting a raise"}].map(opt => (
+                <button key={opt.v} onClick={() => setForm(f => ({...f, emailType:opt.v}))} style={{ flex:1, padding:"11px 10px", borderRadius:11, border:`1.5px solid ${form.emailType===opt.v ? "#2563EB" : "var(--z-bd)"}`, background:form.emailType===opt.v ? "rgba(37,99,235,0.08)" : "var(--z-raise)", color:form.emailType===opt.v ? "#2563EB" : "var(--z-text2)", fontSize:12.5, fontWeight:700, cursor:"pointer", transition:"all 0.15s", textAlign:"center" }}>{opt.l}</button>
+              ))}
             </div>
           </div>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
             <div>
               <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Role <span style={{ color:"#EF4444" }}>*</span></p>
-              <input value={form.role} onChange={e => setForm(f => ({...f, role:e.target.value}))} placeholder="e.g. Senior PM" style={inp} />
+              <input value={form.role} onChange={e => setForm(f => ({...f, role:e.target.value}))} placeholder="e.g. Senior Product Manager" style={inp} />
             </div>
             <div>
               <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Company (optional)</p>
@@ -5470,23 +5713,32 @@ function ScreenSalaryNegotiationEmail() {
             <input value={form.competingOffer} onChange={e => setForm(f => ({...f, competingOffer:e.target.value}))} placeholder="e.g. Competing offer at $148K from Acme Corp" style={inp} />
           </div>
           <div>
-            <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Why you deserve it (optional but makes the email stronger)</p>
-            <textarea value={form.reason} onChange={e => setForm(f => ({...f, reason:e.target.value}))} placeholder="e.g. 8 years experience, led 3 successful product launches, specific expertise in..." style={{ ...inp, minHeight:90, resize:"vertical" as const, lineHeight:1.65 }} />
+            <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Why you deserve it <span style={{ color:"var(--z-text3)", fontWeight:500, textTransform:"none", letterSpacing:"normal" }}>(makes the email sharper)</span></p>
+            <textarea value={form.reason} onChange={e => setForm(f => ({...f, reason:e.target.value}))} placeholder="Key wins, specialized skills, scope you've owned, why the timing is right…" style={{ ...inp, minHeight:90, resize:"vertical" as const, lineHeight:1.7 }} />
           </div>
         </div>
 
-        {error && <div style={{ marginTop:12, padding:"10px 14px", borderRadius:10, background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.3)", fontSize:13, color:"#EF4444" }}>{error}</div>}
+        {error && <div style={{ marginTop:14, padding:"11px 14px", borderRadius:10, background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.3)", fontSize:13, color:"#EF4444" }}>{error}</div>}
 
-        <button onClick={() => void generate()} disabled={generating} style={{ marginTop:20, width:"100%", padding:"14px", borderRadius:12, border:"none", background:"#2563EB", color:"white", fontSize:14.5, fontWeight:700, cursor:generating ? "default" : "pointer", opacity:generating ? 0.7 : 1 }}>
-          {generating ? "Writing your email…" : "Write negotiation email →"}
+        <button onClick={() => void generate()} disabled={generating} style={{ marginTop:22, width:"100%", padding:"15px", borderRadius:14, border:"none", background:"#2563EB", color:"white", fontSize:15, fontWeight:800, cursor:"pointer", letterSpacing:"-0.01em" }}>
+          Generate 3 versions →
         </button>
+
+        <div style={{ marginTop:16, display:"flex", gap:10 }}>
+          {toneConfigs.map(tc => (
+            <div key={tc.tone} style={{ flex:1, padding:"10px 12px", borderRadius:10, background:tc.bg, border:`1px solid ${tc.color}30`, textAlign:"center" }}>
+              <div style={{ fontSize:11.5, fontWeight:800, color:tc.color, marginBottom:2 }}>{tc.label}</div>
+              <div style={{ fontSize:11, color:"var(--z-text3)" }}>{tc.desc}</div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
 /* ═══════════════════════════════════════════════════
-   SALARY STAGE: MARKET INTEL
+   SALARY STAGE: MARKET INTEL (v2 — visual range bar)
 ═══════════════════════════════════════════════════ */
 type MarketIntelResult = {
   marketVerdict: string; verdictNote: string;
@@ -5500,6 +5752,7 @@ function ScreenSalaryMarketIntel() {
   const [result, setResult] = useState<MarketIntelResult | null>(null);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState("");
+  const [miTab, setMiTab] = useState<"talking"|"factors"|"flags">("talking");
 
   const inp: React.CSSProperties = { width:"100%", border:"1px solid var(--z-bd)", borderRadius:10, padding:"11px 14px", fontSize:13.5, color:"var(--z-text)", outline:"none", background:"var(--z-raise)", boxSizing:"border-box", fontFamily:"inherit" };
 
@@ -5511,90 +5764,129 @@ function ScreenSalaryMarketIntel() {
       body: JSON.stringify(form),
     }).catch(() => null);
     const data = await res?.json().catch(() => null) as (MarketIntelResult & { error?:string }) | null;
-    if (data && data.marketVerdict && !data.error) { setResult(data); }
+    if (data && data.marketVerdict && !data.error) { setResult(data); setMiTab("talking"); }
     else setError(data?.error ?? "Something went wrong — try again.");
     setGenerating(false);
   }
 
-  const verdictColor = (v: string) => v === "Above market" ? "#10B981" : v === "Below market" ? "#EF4444" : v === "At market" ? "#D97706" : "var(--z-text3)";
+  const verdictMeta = (v: string) => {
+    if (v === "Above market") return { color:"#059669", bg:"rgba(5,150,105,0.1)", border:"rgba(5,150,105,0.3)" };
+    if (v === "Below market") return { color:"#DC2626", bg:"rgba(220,38,38,0.1)", border:"rgba(220,38,38,0.3)" };
+    if (v === "At market")    return { color:"#D97706", bg:"rgba(217,119,6,0.1)",   border:"rgba(217,119,6,0.3)" };
+    return { color:"var(--z-text3)", bg:"var(--z-raise)", border:"var(--z-bd)" };
+  };
 
-  if (generating && !result) {
+  if (generating) {
     return (
-      <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
-        <div style={{ padding:"72px 40px" }}>
-          <div style={{ borderRadius:24, border:"1px solid var(--z-bd)", background:"var(--z-card)", padding:"72px 32px", textAlign:"center" }}>
-            <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
-              {[0,1,2].map(i => <div key={i} style={{ width:11,height:11,borderRadius:"50%",background:"#2563EB",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
-            </div>
-            <p style={{ fontSize:18, fontWeight:800, color:"var(--z-text)", marginBottom:8 }}>Pulling market data…</p>
-            <p style={{ fontSize:13.5, color:"var(--z-text3)", lineHeight:1.65 }}>Building your salary intelligence briefing.</p>
+      <div style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--z-raise)" }}>
+        <div style={{ textAlign:"center" }}>
+          <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
+            {[0,1,2].map(i => <div key={i} style={{ width:11,height:11,borderRadius:"50%",background:"#2563EB",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
           </div>
+          <p style={{ fontSize:16, fontWeight:800, color:"var(--z-text)", margin:"0 0 6px" }}>Pulling market data…</p>
+          <p style={{ fontSize:13, color:"var(--z-text3)" }}>Building your salary intelligence briefing.</p>
         </div>
       </div>
     );
   }
 
   if (result) {
+    const vm = verdictMeta(result.marketVerdict);
+    const miTabs: { id: "talking"|"factors"|"flags"; label: string; count: number }[] = [
+      { id:"talking", label:"Talking Points", count:result.talkingPoints.length },
+      { id:"factors", label:"What Drives Comp", count:result.keyFactors.length },
+      { id:"flags",   label:"Red Flags", count:result.redFlags.length },
+    ];
     return (
       <div style={{ height:"100%", display:"flex", overflow:"hidden", background:"var(--z-raise)" }}>
-        <div style={{ width:264, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
-          <div style={{ padding:"22px 16px 14px" }}>
-            <div style={{ fontSize:9, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Market Intel</div>
-            <span style={{ fontSize:11, fontWeight:800, color:verdictColor(result.marketVerdict), background:"var(--z-raise)", border:"1px solid var(--z-bd)", padding:"4px 10px", borderRadius:99, display:"inline-block", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>{result.marketVerdict}</span>
-            <div style={{ fontSize:13, fontWeight:800, color:"var(--z-text)", marginBottom:8 }}>{form.role}</div>
-            <p style={{ fontSize:12, color:"var(--z-text2)", lineHeight:1.6, margin:"0 0 14px" }}>{result.verdictNote}</p>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:6, marginBottom:14 }}>
-              {[{ label:"Floor", val:result.rangeFloor }, { label:"Median", val:result.rangeMedian }, { label:"Top", val:result.rangeCeiling }].map(r => (
-                <div key={r.label} style={{ textAlign:"center", padding:"8px 4px", borderRadius:8, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
-                  <div style={{ fontSize:9, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:3 }}>{r.label}</div>
-                  <div style={{ fontSize:13, fontWeight:900, color:"var(--z-text)" }}>{r.val}</div>
+        {/* LEFT PANEL */}
+        <div style={{ width:276, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
+          <div style={{ padding:"24px 18px 18px" }}>
+            <div style={{ fontSize:9.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:10 }}>Market Intel</div>
+            <div style={{ marginBottom:14 }}>
+              <span style={{ fontSize:11.5, fontWeight:800, color:vm.color, background:vm.bg, border:`1px solid ${vm.border}`, padding:"5px 12px", borderRadius:99, display:"inline-block", textTransform:"uppercase", letterSpacing:"0.08em" }}>{result.marketVerdict}</span>
+            </div>
+            <div style={{ fontSize:14, fontWeight:800, color:"var(--z-text)", marginBottom:6 }}>{form.role}</div>
+            <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.65, margin:"0 0 18px" }}>{result.verdictNote}</p>
+
+            {/* Visual comp range bar */}
+            <div style={{ marginBottom:18 }}>
+              <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Salary Range</div>
+              <div style={{ position:"relative", height:8, borderRadius:99, background:"var(--z-raise)", border:"1px solid var(--z-bd)", marginBottom:20 }}>
+                <div style={{ position:"absolute", left:"5%", right:"5%", top:0, bottom:0, borderRadius:99, background:`linear-gradient(90deg, ${vm.color}30, ${vm.color}80, ${vm.color}30)` }}/>
+                {/* Median marker */}
+                <div style={{ position:"absolute", left:"50%", top:-4, width:3, height:16, borderRadius:99, background:vm.color, transform:"translateX(-50%)" }}/>
+              </div>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:6 }}>
+                {[{ label:"Floor", val:result.rangeFloor, accent:"var(--z-text3)" }, { label:"Median", val:result.rangeMedian, accent:vm.color }, { label:"Ceiling", val:result.rangeCeiling, accent:"var(--z-text3)" }].map(r => (
+                  <div key={r.label} style={{ textAlign:"center", padding:"10px 6px", borderRadius:10, background:"var(--z-raise)", border:`1px solid ${r.label === "Median" ? vm.border : "var(--z-bd)"}` }}>
+                    <div style={{ fontSize:9, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:4 }}>{r.label}</div>
+                    <div style={{ fontSize:14, fontWeight:900, color:r.accent, letterSpacing:"-0.03em" }}>{r.val}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Ask strategy — hero card */}
+            <div style={{ borderRadius:12, background:`linear-gradient(135deg, ${vm.bg}, transparent)`, border:`1px solid ${vm.border}`, padding:"14px 15px" }}>
+              <div style={{ fontSize:10, fontWeight:800, color:vm.color, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:7 }}>Ask strategy</div>
+              <p style={{ fontSize:12.5, color:"var(--z-text)", lineHeight:1.7, margin:0 }}>{result.askStrategy}</p>
+            </div>
+          </div>
+          <div style={{ flex:1 }}/>
+          <div style={{ padding:"10px 14px 16px", borderTop:"1px solid var(--z-bd)" }}>
+            <button onClick={() => setResult(null)} style={{ width:"100%", fontSize:12, fontWeight:700, padding:"8px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>New research</button>
+          </div>
+        </div>
+        {/* RIGHT PANEL */}
+        <div style={{ flex:1, overflowY:"auto", padding:"24px 28px 40px" }}>
+          <div style={{ display:"flex", gap:6, marginBottom:20, borderBottom:"1px solid var(--z-bd)", paddingBottom:14 }}>
+            {miTabs.map(t => (
+              <button key={t.id} onClick={() => setMiTab(t.id)} style={{ padding:"8px 16px", borderRadius:9, border:`1px solid ${miTab === t.id ? "#2563EB" : "var(--z-bd)"}`, background:miTab === t.id ? "rgba(37,99,235,0.08)" : "transparent", color:miTab === t.id ? "#2563EB" : "var(--z-text2)", fontSize:13, fontWeight:miTab === t.id ? 800 : 500, cursor:"pointer", display:"flex", alignItems:"center", gap:6 }}>
+                {t.label}
+                <span style={{ fontSize:10.5, fontWeight:800, padding:"1px 6px", borderRadius:99, background:miTab === t.id ? "#2563EB" : "var(--z-raise)", color:miTab === t.id ? "white" : "var(--z-text3)", border:"1px solid var(--z-bd)" }}>{t.count}</span>
+              </button>
+            ))}
+          </div>
+
+          {miTab === "talking" && (
+            <div style={{ display:"grid", gap:12 }}>
+              {result.talkingPoints.map((pt, i) => (
+                <div key={i} style={{ display:"flex", gap:16, alignItems:"flex-start", padding:"18px 20px", borderRadius:14, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:`4px solid #2563EB` }}>
+                  <span style={{ fontSize:11, fontWeight:900, color:"#2563EB", background:"rgba(37,99,235,0.1)", border:"1px solid rgba(37,99,235,0.2)", borderRadius:99, width:26, height:26, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{i+1}</span>
+                  <span style={{ fontSize:14, color:"var(--z-text)", lineHeight:1.75 }}>{pt}</span>
                 </div>
               ))}
             </div>
-            <div style={{ fontSize:11.5, fontWeight:700, color:"var(--z-text)", marginBottom:8 }}>Ask strategy</div>
-            <p style={{ fontSize:12, color:"var(--z-text2)", lineHeight:1.65, margin:0 }}>{result.askStrategy}</p>
-          </div>
-          <div style={{ flex:1 }}/>
-          <div style={{ padding:"10px 12px 14px", borderTop:"1px solid var(--z-bd)" }}>
-            <button onClick={() => setResult(null)} style={{ width:"100%", fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>New research</button>
-          </div>
-        </div>
-        <div style={{ flex:1, overflowY:"auto", padding:"24px 28px 40px" }}>
-          <div style={{ display:"grid", gap:16 }}>
-            <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"20px 22px" }}>
-              <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:12 }}>Talking points for the conversation</div>
-              <div style={{ display:"grid", gap:8 }}>
-                {result.talkingPoints.map((pt, i) => (
-                  <div key={i} style={{ display:"flex", gap:12, alignItems:"flex-start", padding:"12px 14px", borderRadius:10, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
-                    <span style={{ fontSize:11, fontWeight:900, color:"var(--z-text3)", background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:99, width:22, height:22, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{i+1}</span>
-                    <span style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.75 }}>{pt}</span>
-                  </div>
-                ))}
-              </div>
+          )}
+
+          {miTab === "factors" && (
+            <div style={{ display:"grid", gap:10 }}>
+              {result.keyFactors.map((f, i) => (
+                <div key={i} style={{ display:"flex", gap:14, alignItems:"flex-start", padding:"16px 18px", borderRadius:13, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:`4px solid #D97706` }}>
+                  <svg viewBox="0 0 16 16" fill="none" style={{ width:16,height:16,flexShrink:0,marginTop:2 }}>
+                    <circle cx="8" cy="8" r="6.5" fill="rgba(217,119,6,0.1)" stroke="#D97706" strokeWidth="1.5"/>
+                    <path d="M8 5.5V8.5M8 10v.5" stroke="#D97706" strokeWidth="1.8" strokeLinecap="round"/>
+                  </svg>
+                  <span style={{ fontSize:14, color:"var(--z-text)", lineHeight:1.75 }}>{f}</span>
+                </div>
+              ))}
             </div>
-            <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"20px 22px" }}>
-              <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:12 }}>What drives comp for this role</div>
-              <div style={{ display:"grid", gap:8 }}>
-                {result.keyFactors.map((f, i) => (
-                  <div key={i} style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.75, padding:"10px 14px", borderRadius:10, background:"var(--z-raise)", border:"1px solid var(--z-bd)", display:"flex", gap:10, alignItems:"flex-start" }}>
-                    <svg viewBox="0 0 14 14" fill="none" stroke="var(--z-text3)" strokeWidth="1.8" style={{ width:12,height:12,flexShrink:0,marginTop:3 }}><circle cx="7" cy="7" r="5.5"/><path d="M7 5v2.5M7 8.5v.5"/></svg>
-                    {f}
-                  </div>
-                ))}
-              </div>
+          )}
+
+          {miTab === "flags" && (
+            <div style={{ display:"grid", gap:10 }}>
+              {result.redFlags.map((r, i) => (
+                <div key={i} style={{ display:"flex", gap:14, alignItems:"flex-start", padding:"16px 18px", borderRadius:13, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:`4px solid #DC2626` }}>
+                  <svg viewBox="0 0 16 16" fill="none" style={{ width:16,height:16,flexShrink:0,marginTop:2 }}>
+                    <path d="M8 2L14.5 13H1.5L8 2z" fill="rgba(220,38,38,0.1)" stroke="#DC2626" strokeWidth="1.5" strokeLinejoin="round"/>
+                    <path d="M8 6.5V9.5M8 11v.5" stroke="#DC2626" strokeWidth="1.8" strokeLinecap="round"/>
+                  </svg>
+                  <span style={{ fontSize:14, color:"var(--z-text)", lineHeight:1.75 }}>{r}</span>
+                </div>
+              ))}
             </div>
-            <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #EF4444", padding:"18px 22px" }}>
-              <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Red flags to watch for</div>
-              <div style={{ display:"grid", gap:8 }}>
-                {result.redFlags.map((r, i) => (
-                  <div key={i} style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.7, display:"flex", gap:10, alignItems:"flex-start" }}>
-                    <svg viewBox="0 0 14 14" fill="none" stroke="#EF4444" strokeWidth="2" style={{ width:12,height:12,flexShrink:0,marginTop:3 }}><path d="M7 2L13 11H1L7 2z"/><path d="M7 6v2M7 9.5v.5"/></svg>
-                    {r}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     );
@@ -5602,14 +5894,14 @@ function ScreenSalaryMarketIntel() {
 
   return (
     <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
-      <div style={{ maxWidth:560, margin:"0 auto", padding:"32px 24px 56px" }}>
-        <div style={{ marginBottom:24 }}>
-          <div style={{ fontSize:10, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Market Intel</div>
-          <h1 style={{ fontSize:24, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 10px" }}>Know your market position</h1>
-          <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.7, margin:0 }}>Get a sharp salary benchmarking briefing and talking points before you walk into the conversation.</p>
+      <div style={{ maxWidth:600, margin:"0 auto", padding:"32px 24px 64px" }}>
+        <div style={{ marginBottom:28 }}>
+          <div style={{ fontSize:10.5, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:10 }}>Market Intel</div>
+          <h1 style={{ fontSize:28, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 10px" }}>Know your market position</h1>
+          <p style={{ fontSize:14.5, color:"var(--z-text2)", lineHeight:1.75, margin:0 }}>Get a sharp benchmarking brief — salary range, talking points, and an ask strategy — before you walk into the conversation.</p>
         </div>
 
-        <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:14, padding:"24px", display:"grid", gap:14 }}>
+        <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:16, padding:"26px", display:"grid", gap:16 }}>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
             <div>
               <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Role <span style={{ color:"#EF4444" }}>*</span></p>
@@ -5642,9 +5934,9 @@ function ScreenSalaryMarketIntel() {
           </div>
         </div>
 
-        {error && <div style={{ marginTop:12, padding:"10px 14px", borderRadius:10, background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.3)", fontSize:13, color:"#EF4444" }}>{error}</div>}
+        {error && <div style={{ marginTop:14, padding:"11px 14px", borderRadius:10, background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.3)", fontSize:13, color:"#EF4444" }}>{error}</div>}
 
-        <button onClick={() => void generate()} disabled={generating} style={{ marginTop:20, width:"100%", padding:"14px", borderRadius:12, border:"none", background:"#2563EB", color:"white", fontSize:14.5, fontWeight:700, cursor:"pointer" }}>
+        <button onClick={() => void generate()} disabled={generating} style={{ marginTop:22, width:"100%", padding:"15px", borderRadius:14, border:"none", background:"#2563EB", color:"white", fontSize:15, fontWeight:800, cursor:"pointer", letterSpacing:"-0.01em" }}>
           Get market intel →
         </button>
       </div>
