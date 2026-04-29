@@ -1,22 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { ZariLogo } from "@/components/zari-logo";
-import { ZariAvatarDemo } from "@/components/zari-avatar";
 
 type AuthMode = "login" | "signup";
 
-/* ─── Floating achievement badges (left panel) ─── */
-const ACHIEVEMENTS = [
-  { icon: "🎯", text: "Marcus T. got hired",   sub: "Senior PM · 6 weeks",      anim: "achievement-float",   delay: "0s" },
-  { icon: "📈", text: "Resume 72 → 94",         sub: "After first session",       anim: "achievement-float-2", delay: "0.8s" },
-  { icon: "📬", text: "4 interview requests",  sub: "In one week",               anim: "achievement-float-3", delay: "1.4s" },
-  { icon: "🎙", text: "Voice interview prep",  sub: "Real-time feedback",         anim: "achievement-float",   delay: "0.5s" },
-];
-
-/* ─── OTP box sub-component ─── */
 function OtpInput({ value, onChange, onKeyDown, inputRef, filled }: {
   value: string;
   onChange: (v: string) => void;
@@ -33,44 +23,31 @@ function OtpInput({ value, onChange, onKeyDown, inputRef, filled }: {
       value={value}
       onChange={(e) => onChange(e.target.value.replace(/\D/, ""))}
       onKeyDown={onKeyDown}
-      className={`otp-box${filled ? " filled" : ""}`}
+      style={{
+        width: 48, height: 52, textAlign: "center", fontSize: 20, fontWeight: 700,
+        border: `2px solid ${filled ? "#2563EB" : "#E2E8F0"}`,
+        borderRadius: 10, outline: "none", background: filled ? "#EFF6FF" : "#fff",
+        color: "#1E293B", transition: "all 0.15s",
+      }}
     />
   );
 }
 
-/* ─── Step indicator ─── */
-function StepDots({ step, total }: { step: number; total: number }) {
-  return (
-    <div className="mb-7 flex items-center gap-2">
-      {Array.from({ length: total }).map((_, i) => (
-        <div
-          key={i}
-          className="h-1.5 rounded-full transition-all duration-300"
-          style={{
-            width: i === step ? 24 : 8,
-            background: i <= step ? "var(--brand)" : "var(--border)",
-          }}
-        />
-      ))}
-      <span className="ml-2 text-[11px] font-semibold text-[var(--muted)]">
-        Step {step + 1} of {total}
-      </span>
-    </div>
-  );
-}
-
-/* ════════════════════════════════════════════
-   MAIN COMPONENT
-════════════════════════════════════════════ */
 export function MvpAuthForm({ mode }: { mode: AuthMode }) {
   const router = useRouter();
-  const fieldCls = "w-full rounded-xl border border-[var(--border)] bg-white px-4 py-3.5 text-[14px] text-[var(--ink)] placeholder:text-[var(--muted)] outline-none transition-all focus:border-[var(--brand)] focus:ring-4 focus:ring-[var(--brand-glow)]";
 
-  // ── Login (single step) ──────────────────────────────────────────────────
-  const [email,    setEmail]    = useState(mode === "login" ? "steve@askiatech.com" : "");
-  const [password, setPassword] = useState(mode === "login" ? "demo12345" : "");
-  const [error,    setError]    = useState<string | null>(null);
-  const [loading,  setLoading]  = useState(false);
+  const inputStyle: React.CSSProperties = {
+    width: "100%", padding: "11px 14px", fontSize: 14, borderRadius: 10,
+    border: "1.5px solid #E2E8F0", background: "#fff", color: "#1E293B",
+    outline: "none", transition: "border 0.15s", boxSizing: "border-box",
+  };
+
+  // ── Login ────────────────────────────────────────────────────────────────
+  const [email,       setEmail]       = useState(mode === "login" ? "steve@askiatech.com" : "");
+  const [password,    setPassword]    = useState(mode === "login" ? "demo12345" : "");
+  const [showPwd,     setShowPwd]     = useState(false);
+  const [error,       setError]       = useState<string | null>(null);
+  const [loading,     setLoading]     = useState(false);
 
   async function submitLogin() {
     setLoading(true); setError(null);
@@ -85,16 +62,15 @@ export function MvpAuthForm({ mode }: { mode: AuthMode }) {
   }
 
   // ── Signup wizard ────────────────────────────────────────────────────────
-  const SIGNUP_STEPS = 3;
-  const [step,      setStep]      = useState(0); // 0=email, 1=otp, 2=profile
+  const [step,      setStep]      = useState(0);
   const [signEmail, setSignEmail] = useState("");
   const [otp,       setOtp]       = useState<string[]>(Array(6).fill(""));
   const [firstName, setFirstName] = useState("");
   const [lastName,  setLastName]  = useState("");
   const [signPwd,   setSignPwd]   = useState("");
+  const [showSignPwd, setShowSignPwd] = useState(false);
   const [signErr,   setSignErr]   = useState<string | null>(null);
   const [signLoad,  setSignLoad]  = useState(false);
-  const [otpSent,   setOtpSent]   = useState(false);
 
   const otp0 = useRef<HTMLInputElement>(null);
   const otp1 = useRef<HTMLInputElement>(null);
@@ -104,19 +80,15 @@ export function MvpAuthForm({ mode }: { mode: AuthMode }) {
   const otp5 = useRef<HTMLInputElement>(null);
   const otpRefs = [otp0, otp1, otp2, otp3, otp4, otp5];
 
-  /* ── Step 0: submit email → "send OTP" (mocked) ── */
   async function handleEmailStep() {
     if (!signEmail.includes("@")) { setSignErr("Enter a valid email address."); return; }
     setSignLoad(true); setSignErr(null);
-    // Simulate OTP send (in production: POST /api/auth/otp/send)
     await new Promise((r) => setTimeout(r, 800));
-    setOtpSent(true);
     setSignLoad(false);
     setStep(1);
     setTimeout(() => otpRefs[0].current?.focus(), 100);
   }
 
-  /* ── Step 1: verify OTP (mocked — any 6 digits pass) ── */
   async function handleOtpStep() {
     const code = otp.join("");
     if (code.length < 6) { setSignErr("Enter all 6 digits."); return; }
@@ -126,7 +98,6 @@ export function MvpAuthForm({ mode }: { mode: AuthMode }) {
     setStep(2);
   }
 
-  /* ── Step 2: create account ── */
   async function handleProfileStep() {
     if (!firstName.trim() || !lastName.trim()) { setSignErr("Enter your full name."); return; }
     if (signPwd.length < 8) { setSignErr("Password must be at least 8 characters."); return; }
@@ -142,319 +113,237 @@ export function MvpAuthForm({ mode }: { mode: AuthMode }) {
     router.refresh();
   }
 
-  /* ── OTP box keyboard handling ── */
   function handleOtpChange(idx: number, val: string) {
     const next = [...otp];
     next[idx] = val;
     setOtp(next);
     if (val && idx < 5) setTimeout(() => otpRefs[idx + 1].current?.focus(), 10);
-    if (next.every((d) => d !== "") && next.join("").length === 6) {
-      // auto-advance
-      setTimeout(() => void handleOtpStep(), 200);
-    }
+    if (next.every((d) => d !== "")) setTimeout(() => void handleOtpStep(), 200);
   }
   function handleOtpKey(idx: number, e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Backspace" && !otp[idx] && idx > 0) {
-      otpRefs[idx - 1].current?.focus();
-    }
+    if (e.key === "Backspace" && !otp[idx] && idx > 0) otpRefs[idx - 1].current?.focus();
   }
 
-  // ── Render ───────────────────────────────────────────────────────────────
+  const isLogin = mode === "login";
+
+  const title = isLogin ? "Welcome back" : step === 1 ? "Check your inbox" : step === 2 ? "Almost there" : "Create account";
+  const subtitle = isLogin
+    ? "Sign in to continue your job search"
+    : step === 1 ? `We sent a 6-digit code to ${signEmail}`
+    : step === 2 ? "Set your name and password to finish."
+    : "Start your AI-powered job search";
+
   return (
-    <div className="flex min-h-screen w-full overflow-hidden">
+    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #F0F4FF 0%, #F8F9FC 40%, #EEF2FF 100%)", display: "flex", flexDirection: "column", fontFamily: "Inter, system-ui, sans-serif" }}>
 
-      {/* ══════════════════════════════════════
-          LEFT — dark cinematic panel
-      ══════════════════════════════════════ */}
-      <div className="noise-overlay relative hidden w-[52%] flex-col justify-between overflow-hidden p-12 lg:flex zari-mesh">
-
-        {/* Animated orbs */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div style={{ position:"absolute", width:"600px", height:"600px", top:"-8%", left:"-10%", background:"var(--brand)", opacity:.12, filter:"blur(150px)", borderRadius:"50%", animation:"float-a 18s ease-in-out infinite" }} />
-          <div style={{ position:"absolute", width:"500px", height:"500px", top:"-5%", right:"-8%", background:"var(--cyan)", opacity:.07, filter:"blur(130px)", borderRadius:"50%", animation:"float-b 22s ease-in-out infinite" }} />
-          <div style={{ position:"absolute", width:"400px", height:"400px", bottom:0, left:"30%", background:"var(--purple)", opacity:.09, filter:"blur(110px)", borderRadius:"50%", animation:"float-c 16s ease-in-out infinite" }} />
-        </div>
-        <div className="pointer-events-none absolute inset-0 grid-pattern opacity-40" />
-        <div className="hero-glow-line absolute left-0 right-0 top-0" />
-
-        {/* Logo */}
-        <div className="relative z-10">
-          <Link href="/" className="group inline-flex items-center gap-2.5">
-            <ZariLogo size={38} />
-            <div className="leading-none">
-              <span
-                style={{
-                  fontSize: 16,
-                  fontWeight: 800,
-                  letterSpacing: "-0.03em",
-                  background: "linear-gradient(135deg, #A78BFA 0%, #22D3EE 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                Zari
-              </span>
-              <span className="ml-1 text-[16px] font-medium text-white/50">AI Coach</span>
-            </div>
-          </Link>
-        </div>
-
-        {/* Avatar + headline */}
-        <div className="relative z-10 flex flex-col items-center text-center">
-          <ZariAvatarDemo size={130} />
-          <h1 className="mt-8 text-[2.6rem] font-extrabold leading-[1.06] tracking-[-0.035em] text-white">
-            {mode === "login"
-              ? "Your coach is waiting for you."
-              : "Meet your AI career coach."}
-          </h1>
-          <p className="mt-4 max-w-md text-[15px] leading-relaxed text-white/45">
-            {mode === "login"
-              ? "Resume reviews, LinkedIn rewrites, mock interviews, and coaching memory that builds every session."
-              : "Voice coaching, live avatar, document uploads, and session memory that compounds every time you train."}
-          </p>
-
-          {/* Achievement badges */}
-          <div className="mt-8 grid w-full max-w-sm grid-cols-2 gap-3">
-            {ACHIEVEMENTS.map((a, i) => (
-              <div
-                key={i}
-                className="glass rounded-2xl px-4 py-3"
-                style={{ animation:`${a.anim} ${3.2 + i * 0.6}s ease-in-out ${a.delay} infinite` }}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-lg leading-none">{a.icon}</span>
-                  <div>
-                    <p className="text-[11.5px] font-semibold leading-tight text-white">{a.text}</p>
-                    <p className="mt-0.5 text-[10px] text-white/40">{a.sub}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Bottom testimonial */}
-        <div className="relative z-10">
-          <div className="glass rounded-2xl p-5">
-            <div className="mb-2 flex gap-0.5">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <svg key={i} className="h-3.5 w-3.5 fill-[var(--gold)]" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-              ))}
-            </div>
-            <p className="text-[13px] leading-6 italic text-white/65">
-              &ldquo;One session and I had a completely rewritten resume and a real action plan. The specificity was unlike anything I&apos;d seen from an AI tool.&rdquo;
-            </p>
-            <div className="mt-3 flex items-center gap-2.5">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-black text-white" style={{ background:"var(--brand)" }}>AR</div>
-              <div>
-                <p className="text-[12px] font-semibold text-white/75">Aisha R.</p>
-                <p className="text-[10px] text-white/35">Software Engineer · L5 offer in 6 weeks</p>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Ambient blobs */}
+      <div style={{ position: "fixed", inset: 0, pointerEvents: "none", overflow: "hidden" }}>
+        <div style={{ position: "absolute", width: 500, height: 500, top: -100, left: -100, background: "radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)", borderRadius: "50%" }} />
+        <div style={{ position: "absolute", width: 400, height: 400, bottom: -80, right: -80, background: "radial-gradient(circle, rgba(139,92,246,0.10) 0%, transparent 70%)", borderRadius: "50%" }} />
       </div>
 
-      {/* ══════════════════════════════════════
-          RIGHT — form panel
-      ══════════════════════════════════════ */}
-      <div className="flex flex-1 flex-col items-center justify-center bg-[var(--bg)] px-6 py-16 lg:px-14">
-
-        {/* Mobile logo */}
-        <div className="mb-8 flex items-center gap-2.5 lg:hidden">
-          <ZariLogo size={32} />
-          <span
-            style={{
-              fontSize: 15,
-              fontWeight: 800,
-              letterSpacing: "-0.03em",
-              background: "linear-gradient(135deg, #7C3AED, #22D3EE)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
-          >
-            Zari AI Coach
+      {/* Top nav */}
+      <div style={{ position: "relative", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 32px" }}>
+        <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
+          <ZariLogo size={30} />
+          <span style={{ fontSize: 17, fontWeight: 800, letterSpacing: "-0.02em", background: "linear-gradient(135deg, #4F46E5, #7C3AED)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+            Zari
           </span>
-        </div>
+        </Link>
+        <Link href="/" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13.5, color: "#64748B", textDecoration: "none", fontWeight: 500 }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
+          Back to Home
+        </Link>
+      </div>
 
-        <div className="w-full max-w-[400px]">
+      {/* Card */}
+      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px 16px 48px", position: "relative", zIndex: 10 }}>
+        <div style={{ width: "100%", maxWidth: 420, background: "#fff", borderRadius: 20, boxShadow: "0 4px 24px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04)", padding: "36px 36px 32px" }}>
 
-          {/* ── LOGIN FORM ── */}
-          {mode === "login" && (
+          {/* Heading */}
+          <div style={{ marginBottom: 24, textAlign: "center" }}>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: "#0F172A", letterSpacing: "-0.02em", margin: "0 0 6px" }}>{title}</h1>
+            <p style={{ fontSize: 13.5, color: "#64748B", margin: 0 }}>{subtitle}</p>
+          </div>
+
+          {/* Google button — login and signup step 0 only */}
+          {(isLogin || step === 0) && (
             <>
-              <div className="mb-8">
-                <h2 className="text-[2rem] font-extrabold tracking-[-0.03em] text-[var(--ink)]">
-                  Welcome back
-                </h2>
-                <p className="mt-2 text-[14px] text-[var(--muted)]">
-                  New here?{" "}
-                  <Link href="/signup" className="font-semibold text-[var(--brand)] hover:underline">
-                    Sign up free
-                  </Link>
-                </p>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="mb-1.5 block text-[12px] font-semibold text-[var(--ink-2)]">Email</label>
-                  <input className={fieldCls} type="email" placeholder="you@email.com" value={email} onChange={(e) => setEmail(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") void submitLogin(); }} />
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-[12px] font-semibold text-[var(--ink-2)]">Password</label>
-                  <input className={fieldCls} type="password" placeholder="Your password" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") void submitLogin(); }} />
-                </div>
-              </div>
-
-              <div className="mt-4 rounded-xl border border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow)]">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">Demo account · pre-filled</p>
-                <div className="mt-1.5 flex justify-between text-[12.5px]">
-                  <span className="text-[var(--muted)]">steve@askiatech.com</span>
-                  <span className="font-mono font-semibold text-[var(--ink-2)]">demo12345</span>
-                </div>
-              </div>
-
-              {error && <p className="mt-4 rounded-xl bg-[var(--danger-soft)] px-4 py-3 text-sm text-[var(--danger)]">{error}</p>}
-
               <button
-                onClick={() => void submitLogin()}
-                disabled={loading}
-                className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--brand)] py-4 text-[14.5px] font-semibold text-white shadow-[var(--shadow-brand)] transition-all hover:-translate-y-0.5 hover:bg-[var(--brand-hover)] disabled:opacity-60"
+                type="button"
+                style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "11px 16px", borderRadius: 10, border: "1.5px solid #E2E8F0", background: "#fff", fontSize: 14, fontWeight: 600, color: "#1E293B", cursor: "pointer", marginBottom: 18, transition: "background 0.15s" }}
+                onMouseOver={e => (e.currentTarget.style.background = "#F8FAFC")}
+                onMouseOut={e => (e.currentTarget.style.background = "#fff")}
               >
-                {loading ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />Signing in…</> : "Continue to dashboard →"}
+                <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                Continue with Google
               </button>
+
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
+                <div style={{ flex: 1, height: 1, background: "#E2E8F0" }} />
+                <span style={{ fontSize: 12, color: "#94A3B8", whiteSpace: "nowrap" }}>Or continue with email</span>
+                <div style={{ flex: 1, height: 1, background: "#E2E8F0" }} />
+              </div>
             </>
           )}
 
-          {/* ── SIGNUP WIZARD ── */}
-          {mode === "signup" && (
-            <>
-              <div className="mb-6">
-                <h2 className="text-[2rem] font-extrabold tracking-[-0.03em] text-[var(--ink)]">
-                  {step === 0 && "Create your account"}
-                  {step === 1 && "Check your inbox"}
-                  {step === 2 && "Almost there"}
-                </h2>
-                <p className="mt-2 text-[14px] text-[var(--muted)]">
-                  {step === 0 && (<>Already have one?{" "}<Link href="/login" className="font-semibold text-[var(--brand)] hover:underline">Sign in</Link></>)}
-                  {step === 1 && `We sent a 6-digit code to ${signEmail}`}
-                  {step === 2 && "Set your name and password to finish."}
-                </p>
+          {/* ── LOGIN FORM ── */}
+          {isLogin && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <div>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 6 }}>Email</label>
+                <input
+                  style={inputStyle} type="email" placeholder="you@example.com"
+                  value={email} onChange={e => setEmail(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter") void submitLogin(); }}
+                  onFocus={e => (e.target.style.border = "1.5px solid #2563EB")}
+                  onBlur={e => (e.target.style.border = "1.5px solid #E2E8F0")}
+                />
+              </div>
+              <div>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 6 }}>Password</label>
+                <div style={{ position: "relative" }}>
+                  <input
+                    style={{ ...inputStyle, paddingRight: 42 }}
+                    type={showPwd ? "text" : "password"} placeholder="Enter your password"
+                    value={password} onChange={e => setPassword(e.target.value)}
+                    onKeyDown={e => { if (e.key === "Enter") void submitLogin(); }}
+                    onFocus={e => (e.target.style.border = "1.5px solid #2563EB")}
+                    onBlur={e => (e.target.style.border = "1.5px solid #E2E8F0")}
+                  />
+                  <button type="button" onClick={() => setShowPwd(p => !p)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#94A3B8", padding: 0 }}>
+                    {showPwd
+                      ? <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                      : <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    }
+                  </button>
+                </div>
               </div>
 
-              <StepDots step={step} total={SIGNUP_STEPS} />
+              {error && <p style={{ fontSize: 13, color: "#DC2626", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 8, padding: "10px 14px", margin: 0 }}>{error}</p>}
 
-              {/* Step 0: Email */}
+              <button
+                onClick={() => void submitLogin()} disabled={loading}
+                style={{ width: "100%", padding: "12px", borderRadius: 10, border: "none", background: "#2563EB", color: "#fff", fontSize: 14.5, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1, marginTop: 4, transition: "background 0.15s" }}
+                onMouseOver={e => { if (!loading) e.currentTarget.style.background = "#1D4ED8"; }}
+                onMouseOut={e => { e.currentTarget.style.background = "#2563EB"; }}
+              >
+                {loading ? "Signing in…" : "Sign In"}
+              </button>
+
+              <div style={{ textAlign: "center" }}>
+                <Link href="#" style={{ fontSize: 13.5, color: "#2563EB", textDecoration: "none", fontWeight: 500 }}>Forgot your password?</Link>
+              </div>
+            </div>
+          )}
+
+          {/* ── SIGNUP WIZARD ── */}
+          {!isLogin && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+
+              {/* Step 0: email */}
               {step === 0 && (
-                <div className="space-y-4">
-                  <div>
-                    <label className="mb-1.5 block text-[12px] font-semibold text-[var(--ink-2)]">Email address</label>
-                    <input
-                      className={fieldCls}
-                      type="email"
-                      placeholder="you@email.com"
-                      value={signEmail}
-                      onChange={(e) => setSignEmail(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === "Enter") void handleEmailStep(); }}
-                      autoFocus
-                    />
-                  </div>
+                <div>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 6 }}>Email address</label>
+                  <input
+                    style={inputStyle} type="email" placeholder="you@example.com"
+                    value={signEmail} onChange={e => setSignEmail(e.target.value)}
+                    onKeyDown={e => { if (e.key === "Enter") void handleEmailStep(); }}
+                    onFocus={e => (e.target.style.border = "1.5px solid #2563EB")}
+                    onBlur={e => (e.target.style.border = "1.5px solid #E2E8F0")}
+                    autoFocus
+                  />
                 </div>
               )}
 
               {/* Step 1: OTP */}
               {step === 1 && (
                 <div>
-                  <div className="flex justify-between gap-2">
+                  <div style={{ display: "flex", gap: 8, justifyContent: "center", marginBottom: 12 }}>
                     {otp.map((digit, idx) => (
-                      <OtpInput
-                        key={idx}
-                        value={digit}
-                        onChange={(v) => handleOtpChange(idx, v)}
-                        onKeyDown={(e) => handleOtpKey(idx, e)}
-                        inputRef={otpRefs[idx]}
-                        filled={digit !== ""}
-                      />
+                      <OtpInput key={idx} value={digit} onChange={v => handleOtpChange(idx, v)} onKeyDown={e => handleOtpKey(idx, e)} inputRef={otpRefs[idx]} filled={digit !== ""} />
                     ))}
                   </div>
-                  <button
-                    type="button"
-                    className="mt-3 text-[12px] text-[var(--brand)] hover:underline"
-                    onClick={() => { setOtp(Array(6).fill("")); setStep(0); }}
-                  >
+                  <button type="button" onClick={() => { setOtp(Array(6).fill("")); setStep(0); }} style={{ fontSize: 12.5, color: "#2563EB", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
                     Wrong email? Go back
                   </button>
                 </div>
               )}
 
-              {/* Step 2: Profile */}
+              {/* Step 2: profile */}
               {step === 2 && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
+                <>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                     <div>
-                      <label className="mb-1.5 block text-[12px] font-semibold text-[var(--ink-2)]">First name</label>
-                      <input className={fieldCls} placeholder="First" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                      <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 6 }}>First name</label>
+                      <input style={inputStyle} placeholder="First" value={firstName} onChange={e => setFirstName(e.target.value)}
+                        onFocus={e => (e.target.style.border = "1.5px solid #2563EB")} onBlur={e => (e.target.style.border = "1.5px solid #E2E8F0")} />
                     </div>
                     <div>
-                      <label className="mb-1.5 block text-[12px] font-semibold text-[var(--ink-2)]">Last name</label>
-                      <input className={fieldCls} placeholder="Last" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                      <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 6 }}>Last name</label>
+                      <input style={inputStyle} placeholder="Last" value={lastName} onChange={e => setLastName(e.target.value)}
+                        onFocus={e => (e.target.style.border = "1.5px solid #2563EB")} onBlur={e => (e.target.style.border = "1.5px solid #E2E8F0")} />
                     </div>
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-[12px] font-semibold text-[var(--ink-2)]">Password</label>
-                    <input
-                      className={fieldCls}
-                      type="password"
-                      placeholder="At least 8 characters"
-                      value={signPwd}
-                      onChange={(e) => setSignPwd(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === "Enter") void handleProfileStep(); }}
-                    />
+                    <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 6 }}>Password</label>
+                    <div style={{ position: "relative" }}>
+                      <input
+                        style={{ ...inputStyle, paddingRight: 42 }}
+                        type={showSignPwd ? "text" : "password"} placeholder="At least 8 characters"
+                        value={signPwd} onChange={e => setSignPwd(e.target.value)}
+                        onKeyDown={e => { if (e.key === "Enter") void handleProfileStep(); }}
+                        onFocus={e => (e.target.style.border = "1.5px solid #2563EB")}
+                        onBlur={e => (e.target.style.border = "1.5px solid #E2E8F0")}
+                      />
+                      <button type="button" onClick={() => setShowSignPwd(p => !p)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#94A3B8", padding: 0 }}>
+                        {showSignPwd
+                          ? <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                          : <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        }
+                      </button>
+                    </div>
                   </div>
-                </div>
+                </>
               )}
 
-              {signErr && <p className="mt-4 rounded-xl bg-[var(--danger-soft)] px-4 py-3 text-sm text-[var(--danger)]">{signErr}</p>}
+              {signErr && <p style={{ fontSize: 13, color: "#DC2626", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 8, padding: "10px 14px", margin: 0 }}>{signErr}</p>}
 
               <button
-                onClick={() => {
-                  if (step === 0) void handleEmailStep();
-                  else if (step === 1) void handleOtpStep();
-                  else void handleProfileStep();
-                }}
+                onClick={() => { if (step === 0) void handleEmailStep(); else if (step === 1) void handleOtpStep(); else void handleProfileStep(); }}
                 disabled={signLoad}
-                className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--brand)] py-4 text-[14.5px] font-semibold text-white shadow-[var(--shadow-brand)] transition-all hover:-translate-y-0.5 hover:bg-[var(--brand-hover)] disabled:opacity-60"
+                style={{ width: "100%", padding: "12px", borderRadius: 10, border: "none", background: "#2563EB", color: "#fff", fontSize: 14.5, fontWeight: 700, cursor: signLoad ? "not-allowed" : "pointer", opacity: signLoad ? 0.7 : 1, marginTop: 4, transition: "background 0.15s" }}
+                onMouseOver={e => { if (!signLoad) e.currentTarget.style.background = "#1D4ED8"; }}
+                onMouseOut={e => { e.currentTarget.style.background = "#2563EB"; }}
               >
-                {signLoad ? (
-                  <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />Working…</>
-                ) : (
-                  <>
-                    {step === 0 && "Send verification code →"}
-                    {step === 1 && "Verify code →"}
-                    {step === 2 && "Create account →"}
-                  </>
-                )}
+                {signLoad ? "Working…" : step === 0 ? "Continue" : step === 1 ? "Verify code" : "Create account"}
               </button>
-            </>
+            </div>
           )}
 
-          <div className="mt-6 flex items-center justify-center gap-4 text-[11.5px] text-[var(--muted)]">
-            {["Free to start", "Secure & private", "No card required"].map((s) => (
-              <div key={s} className="flex items-center gap-1.5">
-                <svg className="h-3 w-3 text-[var(--brand)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><polyline points="20,6 9,17 4,12" /></svg>
-                {s}
-              </div>
-            ))}
+          {/* Footer links */}
+          <div style={{ marginTop: 20, textAlign: "center" }}>
+            {isLogin ? (
+              <>
+                <p style={{ fontSize: 12.5, color: "#94A3B8", margin: "0 0 8px" }}>
+                  By signing in, you agree to our{" "}
+                  <Link href="#" style={{ color: "#2563EB", textDecoration: "none" }}>Terms of Service</Link>
+                  {" "}and{" "}
+                  <Link href="#" style={{ color: "#2563EB", textDecoration: "none" }}>Privacy Policy</Link>
+                </p>
+                <p style={{ fontSize: 13.5, color: "#64748B", margin: 0 }}>
+                  Don&apos;t have an account?{" "}
+                  <Link href="/signup" style={{ color: "#2563EB", textDecoration: "none", fontWeight: 600 }}>Sign up</Link>
+                </p>
+              </>
+            ) : (
+              <p style={{ fontSize: 13.5, color: "#64748B", margin: 0 }}>
+                Already have an account?{" "}
+                <Link href="/login" style={{ color: "#2563EB", textDecoration: "none", fontWeight: 600 }}>Sign in</Link>
+              </p>
+            )}
           </div>
         </div>
-
-        <Link href="/" className="mt-10 flex items-center gap-1.5 text-[12.5px] text-[var(--muted)] transition-colors hover:text-[var(--ink)]">
-          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
-          Back to Zari AI Coach
-        </Link>
       </div>
     </div>
   );
