@@ -35,17 +35,17 @@ function buildFallback(body: { fromRole: string; toRole: string }) {
       { gap: "Proof points in target context", severity: "critical" as const, path: "Build 1-2 visible projects, certifications, or contributions that show domain engagement." },
     ],
     targetRoles: [
-      `Entry or mid-level ${to} roles at companies that value domain-diverse backgrounds`,
-      `${to} adjacent roles that let you build credibility before the full pivot`,
-      "Startups or growth-stage companies where versatility matters more than pedigree",
+      { role: `${to} (direct)`, why: `Companies that value domain-diverse backgrounds will see your ${from} foundation as an asset, not a liability.`, bridge: "Reframe every bullet around outcomes, not functions — results translate across domains." },
+      { role: `${to} (adjacent bridge)`, why: "An adjacent role lets you build credibility and vocabulary in the target field before making the full leap.", bridge: "Use this role to accumulate 2-3 visible proof points that speak the language of your ultimate target." },
+      { role: "Startup / growth-stage equivalent", why: "Early-stage companies hire for versatility and trajectory — pedigree matters less and demonstrated initiative matters more.", bridge: "Lead with impact and ownership, not title or tenure. Show what you shipped, not where you worked." },
     ],
     pivotNarrative: `The through-line from ${from} to ${to} is not a leap — it is a translation. The core skills and outcomes from your background map directly to what ${to} roles require, specifically around [problem solving, delivery, and influencing outcomes]. The reframe is moving from functional identity to outcome identity: not what you were called, but what you consistently produced.`,
     resumeReframe: `Lead with outcomes, not titles or functions. For each role, rewrite the impact in language the target industry would recognize as directly relevant. Deprioritize or remove function-specific jargon that creates distance. Lead the resume with a short positioning statement that names the pivot explicitly — recruiters who see it framed confidently are less likely to screen it out.`,
     quickWins: [
-      "Rewrite your LinkedIn headline to name the target role, not your current function.",
-      "Get one referral conversation with someone who has made a similar pivot.",
-      "Build or publish one artifact (case study, writeup, small project) in the target domain.",
-      "Find 3 job descriptions in the target role and map your existing bullets to their language.",
+      { action: "Rewrite your LinkedIn headline to name the target role, not your current function.", impact: "High", timeframe: "Today — 15 minutes" },
+      { action: "Get one referral conversation with someone who has made a similar pivot.", impact: "High", timeframe: "This week" },
+      { action: "Build or publish one artifact (case study, writeup, small project) in the target domain.", impact: "High", timeframe: "Within 2 weeks" },
+      { action: "Find 3 job descriptions in the target role and map your existing bullets to their language.", impact: "Medium", timeframe: "This weekend" },
     ],
   };
 }
@@ -84,10 +84,14 @@ Return ONLY valid JSON:
   "skillGaps": [
     { "gap": "<what is missing>", "severity": "<critical | moderate | minor>", "path": "<concrete way to close it>" }
   ],
-  "targetRoles": ["<specific role to consider>", "<specific role>", "<specific role>"],
+  "targetRoles": [
+    { "role": "<specific role title>", "why": "<1-2 sentences on why this role is a good fit for this pivot given their background>", "bridge": "<1-2 sentences on how to position themselves for this specific role>" }
+  ],
   "pivotNarrative": "<2-3 sentences that frame this pivot compellingly for a hiring conversation>",
   "resumeReframe": "<2-3 sentences of specific guidance on how to rewrite the resume for this pivot>",
-  "quickWins": ["<action>", "<action>", "<action>", "<action>"]
+  "quickWins": [
+    { "action": "<specific action to take>", "impact": "<High | Medium | Low>", "timeframe": "<when to do this, e.g. 'Today', 'This week', 'Within 2 weeks'>" }
+  ]
 }
 
 Rules:
@@ -142,10 +146,22 @@ Rules:
         const gap = cleanStr(i.gap), severity = cleanStr(i.severity), path = cleanStr(i.path);
         return gap ? { gap, severity: (["critical","moderate","minor"].includes(severity) ? severity : "moderate") as "critical"|"moderate"|"minor", path } : null;
       }, 4) : fallback.skillGaps,
-      targetRoles: cleanList(p.targetRoles, 3).length ? cleanList(p.targetRoles, 3) : fallback.targetRoles,
+      targetRoles: (() => {
+        const parsed = mapList(p.targetRoles, i => {
+          const role = cleanStr(i.role), why = cleanStr(i.why), bridge = cleanStr(i.bridge);
+          return role ? { role, why, bridge } : null;
+        }, 3);
+        return parsed.length ? parsed : fallback.targetRoles;
+      })(),
       pivotNarrative: cleanStr(p.pivotNarrative) || fallback.pivotNarrative,
       resumeReframe: cleanStr(p.resumeReframe) || fallback.resumeReframe,
-      quickWins: cleanList(p.quickWins, 4).length ? cleanList(p.quickWins, 4) : fallback.quickWins,
+      quickWins: (() => {
+        const parsed = mapList(p.quickWins, i => {
+          const action = cleanStr(i.action), impact = cleanStr(i.impact), timeframe = cleanStr(i.timeframe);
+          return action ? { action, impact: impact || "Medium", timeframe: timeframe || "This week" } : null;
+        }, 4);
+        return parsed.length ? parsed : fallback.quickWins;
+      })(),
     });
   } catch {
     return NextResponse.json(fallback);

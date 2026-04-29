@@ -3949,9 +3949,9 @@ function ScreenPromotionReadiness() {
 
             {resultTab === "overview" && (
               <div style={{ display:"grid", gap:16, paddingBottom:40 }}>
-                <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"18px 22px" }}>
-                  <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Reality check</div>
-                  <p style={{ fontSize:15.5, color:"var(--z-text)", lineHeight:1.8, margin:0, fontWeight:500 }}>{result.realityCheck}</p>
+                <div style={{ borderRadius:14, background:"rgba(220,38,38,0.04)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #DC2626", padding:"20px 24px" }}>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:"#DC2626", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Reality check</div>
+                  <p style={{ fontSize:15.5, color:"var(--z-text)", lineHeight:1.85, margin:0, fontWeight:500 }}>{result.realityCheck}</p>
                 </div>
 
                 <div style={{ borderRadius:20, background:"var(--z-card)", border:"1px solid var(--z-bd)", boxShadow:"0 4px 28px rgba(0,0,0,0.09)", overflow:"hidden" }}>
@@ -4026,13 +4026,17 @@ function ScreenPromotionReadiness() {
                 </div>
 
                 {result.quickWins.length > 0 && (
-                  <div style={{ borderRadius:20, background:"var(--z-raise)", border:"1px solid var(--z-bd)", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", padding:"20px 22px" }}>
-                    <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>Start here</div>
+                  <div style={{ borderRadius:20, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #2563EB", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", padding:"20px 22px" }}>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:14 }}>Start here — highest leverage moves</div>
                     <div style={{ display:"grid", gap:10 }}>
                       {result.quickWins.map((item, index) => (
-                        <div key={`${item.title}-${index}`} onClick={() => setResultTab(item.jumpTo)} style={{ padding:"14px 16px", borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)", cursor:"pointer" }}>
-                          <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:4 }}>{item.title}</div>
-                          <div style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.65 }}>{item.body}</div>
+                        <div key={`${item.title}-${index}`} onClick={() => setResultTab(item.jumpTo)} style={{ padding:"16px 18px", borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)", cursor:"pointer", display:"flex", gap:12, alignItems:"flex-start", transition:"border-color 0.15s" }}>
+                          <span style={{ fontSize:10, fontWeight:900, color:"#2563EB", background:"rgba(37,99,235,0.1)", border:"1px solid rgba(37,99,235,0.2)", borderRadius:99, width:22, height:22, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:2 }}>{index+1}</span>
+                          <div style={{ flex:1 }}>
+                            <div style={{ fontSize:10.5, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>{item.title}</div>
+                            <div style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.7 }}>{item.body}</div>
+                          </div>
+                          <svg viewBox="0 0 12 12" fill="none" stroke="#2563EB" strokeWidth="2" style={{ width:12,height:12,flexShrink:0,marginTop:4,opacity:0.5 }}><path d="M2 6h8M7 3l3 3-3 3"/></svg>
                         </div>
                       ))}
                     </div>
@@ -4061,11 +4065,14 @@ function ScreenPromotionReadiness() {
                     </div>
                   </div>
                 ))}
-                <div style={{ borderRadius:18, background:"var(--z-card)", border:"1px solid var(--z-bd)", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", padding:"20px 22px" }}>
-                  <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>The proof bar</div>
+                <div style={{ borderRadius:18, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #D97706", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", padding:"20px 22px" }}>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:14 }}>The proof bar — what they need to see</div>
                   <div style={{ display:"grid", gap:8 }}>
-                    {result.evidenceChecklist.map(item => (
-                      <div key={item} style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.75, padding:"11px 12px", borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>{item}</div>
+                    {result.evidenceChecklist.map((item, idx) => (
+                      <div key={item} style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.75, padding:"12px 14px", borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)", display:"flex", gap:12, alignItems:"flex-start" }}>
+                        <span style={{ fontSize:10, fontWeight:900, color:"#D97706", background:"rgba(217,119,6,0.1)", border:"1px solid rgba(217,119,6,0.25)", borderRadius:99, width:20, height:20, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>{idx+1}</span>
+                        <span>{item}</span>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -4093,17 +4100,17 @@ function ScreenPromotionReadiness() {
 
             {resultTab === "conversation" && (
               <div style={{ display:"grid", gap:16, paddingBottom:40 }}>
-                <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"22px 24px" }}>
-                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:10, flexWrap:"wrap" }}>
-                    <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em" }}>How to open it</div>
+                <div style={{ borderRadius:14, background:"rgba(37,99,235,0.04)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #2563EB", padding:"20px 24px" }}>
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:12, flexWrap:"wrap" }}>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.08em" }}>How to open the conversation</div>
                     <button
                       onClick={() => { void navigator.clipboard.writeText(result.managerPitchExample); setPitchCopied(true); setTimeout(() => setPitchCopied(false), 2000); }}
-                      style={{ fontSize:11.5, fontWeight:700, padding:"6px 12px", borderRadius:10, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}
+                      style={{ fontSize:11.5, fontWeight:700, padding:"6px 12px", borderRadius:10, border:"1px solid rgba(37,99,235,0.3)", background:"rgba(37,99,235,0.06)", color:"#2563EB", cursor:"pointer" }}
                     >
-                      {pitchCopied ? "Copied!" : "Copy"}
+                      {pitchCopied ? "Copied ✓" : "Copy"}
                     </button>
                   </div>
-                  <p style={{ fontSize:16, color:"var(--z-text)", lineHeight:1.85, margin:0, fontStyle:"italic" }}>&ldquo;{result.managerPitchExample}&rdquo;</p>
+                  <p style={{ fontSize:16, color:"var(--z-text)", lineHeight:1.9, margin:0, fontStyle:"italic" }}>&ldquo;{result.managerPitchExample}&rdquo;</p>
                 </div>
                 <div style={{ borderRadius:20, background:"var(--z-raise)", border:"1px solid var(--z-bd)", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", overflow:"hidden" }}>
                   <div style={{ padding:"15px 20px 13px", borderBottom:"1px solid var(--z-bd)", background:"var(--z-raise)" }}>
@@ -4111,25 +4118,28 @@ function ScreenPromotionReadiness() {
                   </div>
                   {(result.conversationPairs ?? result.managerQuestions.map((q, idx) => ({ theyMightSay: q, yourResponse: result.nextMoves[idx] ?? "" }))).map((pair, index) => (
                     <div key={index} style={{ padding:"18px 20px", borderBottom:index === (result.conversationPairs ?? result.managerQuestions).length - 1 ? "none" : "1px solid var(--z-bd)" }}>
-                      <div style={{ padding:"12px 14px", borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)", marginBottom:10 }}>
-                        <div style={{ fontSize:10, fontWeight:800, color:"var(--z-text2)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>They might say</div>
-                        <div style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.7 }}>{pair.theyMightSay}</div>
+                      <div style={{ padding:"12px 14px", borderRadius:12, background:"rgba(217,119,6,0.05)", border:"1px solid rgba(217,119,6,0.2)", borderLeft:"3px solid #D97706", marginBottom:10 }}>
+                        <div style={{ fontSize:9.5, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>They might say</div>
+                        <div style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.75 }}>{pair.theyMightSay}</div>
                       </div>
                       {pair.yourResponse && (
-                        <div style={{ padding:"12px 14px", borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)", marginLeft:16 }}>
-                          <div style={{ fontSize:10, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>Your response</div>
-                          <div style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.7 }}>{pair.yourResponse}</div>
+                        <div style={{ padding:"12px 14px", borderRadius:12, background:"rgba(37,99,235,0.05)", border:"1px solid rgba(37,99,235,0.2)", borderLeft:"3px solid #2563EB", marginLeft:20 }}>
+                          <div style={{ fontSize:9.5, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Your response</div>
+                          <div style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.75 }}>{pair.yourResponse}</div>
                         </div>
                       )}
                     </div>
                   ))}
                 </div>
                 {result.managerQuestions.length > 0 && (
-                  <div style={{ borderRadius:18, background:"var(--z-card)", border:"1px solid var(--z-bd)", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", padding:"20px 22px" }}>
-                    <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>Questions to bring to your manager</div>
+                  <div style={{ borderRadius:18, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #059669", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", padding:"20px 22px" }}>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:14 }}>Questions to bring to your manager</div>
                     <div style={{ display:"grid", gap:8 }}>
-                      {result.managerQuestions.map(q => (
-                        <div key={q} style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.75, padding:"11px 12px", borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>{q}</div>
+                      {result.managerQuestions.map((q, qi) => (
+                        <div key={q} style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.75, padding:"12px 14px", borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)", display:"flex", gap:10, alignItems:"flex-start" }}>
+                          <svg viewBox="0 0 12 12" fill="none" stroke="#059669" strokeWidth="2" style={{ width:11,height:11,flexShrink:0,marginTop:3 }}><circle cx="6" cy="6" r="5"/><path d="M6 4.5v.5M6 6.5v2"/></svg>
+                          <span>{q}</span>
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -4605,7 +4615,11 @@ function ScreenSalaryCompensation() {
                 <div style={{ padding:"4px 0 8px" }}>
                   <p style={{ fontSize:11, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", margin:0 }}>Your negotiation advantages — use each one deliberately</p>
                 </div>
-                {result.leveragePoints.map((pt, i) => (
+                {result.leveragePoints.map((rawPt, i) => {
+                  const pt: LeveragePoint = typeof rawPt === "string"
+                    ? { title: `Leverage Point ${i+1}`, explanation: rawPt as unknown as string, tactic: "Use this in your next negotiation conversation to anchor higher." }
+                    : rawPt as LeveragePoint;
+                  return (
                   <div key={i} style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #059669", overflow:"hidden", boxShadow:"0 2px 16px rgba(0,0,0,0.06)" }}>
                     <div style={{ padding:"20px 24px 16px", background:"rgba(5,150,105,0.03)" }}>
                       <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:10 }}>
@@ -4627,7 +4641,8 @@ function ScreenSalaryCompensation() {
                       </div>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
             {tab === "moves" && (
@@ -4834,16 +4849,18 @@ function ScreenSalaryCompensation() {
 /* ═══════════════════════════════════════════════════
    CAREER CHANGE STAGE: PIVOT ANALYSIS
 ═══════════════════════════════════════════════════ */
+type TargetRole = { role: string; why: string; bridge: string };
+type QuickWin = { action: string; impact: string; timeframe: string };
 type PivotAnalysisResult = {
   pivotScore: number;
   pivotVerdict: string;
   hardTruth: string;
   transferableAssets: { skill: string; strength: string; evidence: string }[];
   skillGaps: { gap: string; severity: "critical" | "moderate" | "minor"; path: string }[];
-  targetRoles: string[];
+  targetRoles: (TargetRole | string)[];
   pivotNarrative: string;
   resumeReframe: string;
-  quickWins: string[];
+  quickWins: (QuickWin | string)[];
 };
 
 function ScreenPivotAnalysis() {
@@ -4969,13 +4986,29 @@ function ScreenPivotAnalysis() {
                 </div>
                 <div style={{ borderRadius:14, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #38BDF8", padding:"22px 26px" }}>
                   <div style={{ fontSize:10.5, fontWeight:800, color:"#38BDF8", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:14 }}>Target roles to consider</div>
-                  <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                    {result.targetRoles.map((r, i) => (
-                      <div key={i} style={{ display:"flex", gap:12, alignItems:"flex-start", padding:"12px 16px", borderRadius:10, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
-                        <svg viewBox="0 0 12 12" fill="none" stroke="#38BDF8" strokeWidth="2" style={{ width:12,height:12,flexShrink:0,marginTop:2 }}><path d="M2 6h8M7 3l3 3-3 3"/></svg>
-                        <span style={{ fontSize:14, color:"var(--z-text)", lineHeight:1.7 }}>{r}</span>
-                      </div>
-                    ))}
+                  <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+                    {result.targetRoles.map((rawR, i) => {
+                      const r: TargetRole = typeof rawR === "string"
+                        ? { role: rawR, why: "", bridge: "" }
+                        : rawR as TargetRole;
+                      return (
+                        <div key={i} style={{ borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
+                          <div style={{ padding:"14px 16px 10px", borderBottom: r.why ? "1px solid var(--z-bd)" : "none" }}>
+                            <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                              <span style={{ fontSize:10, fontWeight:900, color:"#38BDF8", background:"rgba(56,189,248,0.1)", border:"1px solid rgba(56,189,248,0.25)", borderRadius:99, width:22, height:22, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{i+1}</span>
+                              <span style={{ fontSize:14, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.01em" }}>{r.role}</span>
+                            </div>
+                            {r.why && <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.7, margin:"8px 0 0 32px" }}>{r.why}</p>}
+                          </div>
+                          {r.bridge && (
+                            <div style={{ padding:"10px 16px 12px 16px", background:"rgba(56,189,248,0.04)", display:"flex", gap:9, alignItems:"flex-start" }}>
+                              <svg viewBox="0 0 12 12" fill="none" stroke="#38BDF8" strokeWidth="2" style={{ width:11,height:11,flexShrink:0,marginTop:2 }}><path d="M2 6h8M7 3l3 3-3 3"/></svg>
+                              <p style={{ fontSize:12.5, color:"#38BDF8", lineHeight:1.65, margin:0 }}>{r.bridge}</p>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -5029,14 +5062,33 @@ function ScreenPivotAnalysis() {
                   <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.85, margin:0 }}>{result.resumeReframe}</p>
                 </div>
                 <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #059669", padding:"24px 28px" }}>
-                  <div style={{ fontSize:10.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:16 }}>Quick wins to do now</div>
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em" }}>Quick wins to do now</div>
+                    <span style={{ fontSize:11, fontWeight:700, color:"var(--z-text3)" }}>Do these in order</span>
+                  </div>
                   <div style={{ display:"grid", gap:12 }}>
-                    {result.quickWins.map((w, i) => (
-                      <div key={i} style={{ display:"flex", gap:14, alignItems:"flex-start", padding:"14px 16px", borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
-                        <span style={{ fontSize:11, fontWeight:900, color:"#059669", background:"rgba(5,150,105,0.1)", border:"1px solid rgba(5,150,105,0.25)", borderRadius:999, width:24, height:24, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{i+1}</span>
-                        <span style={{ fontSize:14, color:"var(--z-text)", lineHeight:1.75 }}>{w}</span>
-                      </div>
-                    ))}
+                    {result.quickWins.map((rawW, i) => {
+                      const w: QuickWin = typeof rawW === "string"
+                        ? { action: rawW, impact: "High", timeframe: "This week" }
+                        : rawW as QuickWin;
+                      const impactColor = w.impact === "High" ? "#059669" : w.impact === "Medium" ? "#D97706" : "#6B7280";
+                      const impactBg = w.impact === "High" ? "rgba(5,150,105,0.1)" : w.impact === "Medium" ? "rgba(217,119,6,0.1)" : "rgba(107,114,128,0.1)";
+                      return (
+                        <div key={i} style={{ borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
+                          <div style={{ padding:"14px 16px", display:"flex", gap:12, alignItems:"flex-start" }}>
+                            <span style={{ fontSize:10, fontWeight:900, color:"#059669", background:"rgba(5,150,105,0.1)", border:"1px solid rgba(5,150,105,0.25)", borderRadius:999, width:22, height:22, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>{i+1}</span>
+                            <p style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.75, margin:0, flex:1 }}>{w.action}</p>
+                          </div>
+                          <div style={{ padding:"8px 16px 10px", borderTop:"1px solid var(--z-bd)", display:"flex", gap:10, alignItems:"center", background:"var(--z-card)" }}>
+                            <span style={{ fontSize:10.5, fontWeight:800, color:impactColor, background:impactBg, padding:"2px 9px", borderRadius:99 }}>{w.impact} impact</span>
+                            <span style={{ fontSize:10.5, color:"var(--z-text3)", display:"flex", alignItems:"center", gap:5 }}>
+                              <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:10,height:10 }}><circle cx="6" cy="6" r="4.5"/><path d="M6 4v2.5l1.5 1.5"/></svg>
+                              {w.timeframe}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
