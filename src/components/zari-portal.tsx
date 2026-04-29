@@ -4565,6 +4565,36 @@ type SalaryAnalysisResult = {
   watchouts: (SalaryWatchout | string)[];
 };
 
+function StageIntakeHeader({ eyebrow, title, subtitle, accent, totalSteps, currentStep, steps }: {
+  eyebrow: string; title: string; subtitle: string; accent: string;
+  totalSteps: number; currentStep: number; steps: { label: string }[];
+}) {
+  const stepNums = Array.from({ length: totalSteps }, (_, i) => i + 1);
+  return (
+    <div style={{ background:`linear-gradient(135deg, ${accent}0D 0%, transparent 60%)`, borderBottom:"1px solid var(--z-bd)", padding:"28px 32px 22px", position:"relative", overflow:"hidden" }}>
+      <div style={{ position:"absolute", top:-30, right:-30, width:160, height:160, borderRadius:"50%", background:`radial-gradient(circle, ${accent}18, transparent 70%)`, pointerEvents:"none" }}/>
+      <div style={{ fontSize:10.5, fontWeight:800, color:accent, textTransform:"uppercase" as const, letterSpacing:"0.12em", marginBottom:7 }}>{eyebrow}</div>
+      <h1 style={{ fontSize:22, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 6px" }}>{title}</h1>
+      <p style={{ fontSize:13, color:"var(--z-text2)", margin:"0 0 20px", lineHeight:1.6 }}>{subtitle}</p>
+      <div style={{ display:"flex", alignItems:"center", gap:0, position:"relative" }}>
+        {stepNums.map(s => (
+          <div key={s} style={{ display:"flex", alignItems:"center" }}>
+            <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:5 }}>
+              <div style={{ width:30, height:30, borderRadius:"50%", border:`1.5px solid ${s <= currentStep ? accent : "var(--z-bd)"}`, background:s < currentStep ? accent : s === currentStep ? `${accent}18` : "var(--z-card)", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
+                {s < currentStep
+                  ? <svg viewBox="0 0 12 12" fill="none" stroke="white" strokeWidth="2.5" style={{ width:10,height:10 }}><polyline points="2,6 5,9 10,3"/></svg>
+                  : <span style={{ fontSize:11, fontWeight:700, color:s === currentStep ? accent : "var(--z-text3)" }}>{s}</span>}
+              </div>
+              <span style={{ fontSize:10, fontWeight:700, color:s === currentStep ? accent : "var(--z-text3)", letterSpacing:"0.04em", whiteSpace:"nowrap" as const }}>{steps[s-1]?.label}</span>
+            </div>
+            {s < totalSteps && <div style={{ width:44, height:2, borderRadius:99, background:s < currentStep ? accent : "var(--z-bd2)", margin:"0 6px", marginBottom:18, transition:"all 0.3s" }}/>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ScreenSalaryCompensation() {
   const ACCENT = "#10B981";
   const BG_DARK = "var(--z-bg)";
@@ -4809,30 +4839,15 @@ function ScreenSalaryCompensation() {
 
   return (
     <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
-      {/* Page header */}
-      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
-          <div>
-            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4 }}>
-              <h1 style={{ fontSize:18, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:0 }}>Compensation Analysis</h1>
-            </div>
-            <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>Know your market position and build a negotiation strategy that actually works.</p>
-          </div>
-          <div style={{ display:"flex", alignItems:"center", gap:0 }}>
-            {([1,2,3] as const).map(s => (
-              <div key={s} style={{ display:"flex", alignItems:"center" }}>
-                <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:5 }}>
-                  <div style={{ width:32, height:32, borderRadius:"50%", border:`1.5px solid ${s <= step ? "#2563EB" : "var(--z-bd)"}`, background:s < step ? "#2563EB" : "var(--z-card)", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
-                    {s < step ? <svg viewBox="0 0 12 12" fill="none" stroke="white" strokeWidth="2.5" style={{ width:12,height:12 }}><polyline points="2,6 5,9 10,3"/></svg> : <span style={{ fontSize:12, fontWeight:700, color:s === step ? "#2563EB" : "var(--z-text3)" }}>{s}</span>}
-                  </div>
-                  <span style={{ fontSize:10, fontWeight:700, color:s === step ? "#2563EB" : "var(--z-text3)", letterSpacing:"0.04em", whiteSpace:"nowrap" }}>{SALARY_STEPS[s-1].label}</span>
-                </div>
-                {s < 3 && <div style={{ width:40, height:2, borderRadius:99, background:s < step ? "#2563EB" : "var(--z-bd2)", margin:"0 6px", marginBottom:18, transition:"all 0.3s" }}/>}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      <StageIntakeHeader
+        eyebrow="Salary & Negotiation"
+        title="Compensation Analysis"
+        subtitle="Know your market position and build a negotiation strategy that actually works."
+        accent="#10B981"
+        totalSteps={3}
+        currentStep={step}
+        steps={SALARY_STEPS}
+      />
 
       {/* Two-column body */}
       <div style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
@@ -5229,30 +5244,15 @@ function ScreenPivotAnalysis() {
 
   return (
     <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
-      {/* Page header */}
-      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
-          <div>
-            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4 }}>
-              <h1 style={{ fontSize:18, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:0 }}>Pivot Analysis</h1>
-            </div>
-            <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>Understand your readiness, map the gaps, and build a credible path to your target role.</p>
-          </div>
-          <div style={{ display:"flex", alignItems:"center", gap:0 }}>
-            {([1,2,3] as const).map(s => (
-              <div key={s} style={{ display:"flex", alignItems:"center" }}>
-                <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:5 }}>
-                  <div style={{ width:32, height:32, borderRadius:"50%", border:`1.5px solid ${s <= step ? "#2563EB" : "var(--z-bd)"}`, background:s < step ? "#2563EB" : "var(--z-card)", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
-                    {s < step ? <svg viewBox="0 0 12 12" fill="none" stroke="white" strokeWidth="2.5" style={{ width:12,height:12 }}><polyline points="2,6 5,9 10,3"/></svg> : <span style={{ fontSize:12, fontWeight:700, color:s === step ? "#2563EB" : "var(--z-text3)" }}>{s}</span>}
-                  </div>
-                  <span style={{ fontSize:10, fontWeight:700, color:s === step ? "#2563EB" : "var(--z-text3)", letterSpacing:"0.04em", whiteSpace:"nowrap" }}>{PIVOT_STEPS[s-1].label}</span>
-                </div>
-                {s < 3 && <div style={{ width:40, height:2, borderRadius:99, background:s < step ? "#2563EB" : "var(--z-bd2)", margin:"0 6px", marginBottom:18, transition:"all 0.3s" }}/>}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      <StageIntakeHeader
+        eyebrow="Career Change"
+        title="Pivot Analysis"
+        subtitle="Understand your readiness, map the gaps, and build a credible path to your target role."
+        accent="#0284C7"
+        totalSteps={3}
+        currentStep={step}
+        steps={PIVOT_STEPS}
+      />
 
       {/* Two-column body */}
       <div style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
@@ -5474,28 +5474,15 @@ function ScreenSalaryNegotiationSim() {
     const stepCtx = SIM_STEPS[simStep - 1];
     return (
       <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
-        {/* Page header */}
-        <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
-            <div>
-              <h1 style={{ fontSize:18, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:"0 0 3px" }}>Negotiation Sim</h1>
-              <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>Practice until the number feels natural. Live coaching after every exchange.</p>
-            </div>
-            <div style={{ display:"flex", alignItems:"center", gap:0 }}>
-              {([1,2] as const).map(s => (
-                <div key={s} style={{ display:"flex", alignItems:"center" }}>
-                  <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:5 }}>
-                    <div style={{ width:32, height:32, borderRadius:"50%", border:`1.5px solid ${s <= simStep ? "#2563EB" : "var(--z-bd)"}`, background:s < simStep ? "#2563EB" : "var(--z-card)", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
-                      {s < simStep ? <svg viewBox="0 0 12 12" fill="none" stroke="white" strokeWidth="2.5" style={{width:12,height:12}}><polyline points="2,6 5,9 10,3"/></svg> : <span style={{ fontSize:12, fontWeight:700, color:s===simStep?"#2563EB":"var(--z-text3)" }}>{s}</span>}
-                    </div>
-                    <span style={{ fontSize:10, fontWeight:700, color:s===simStep?"#2563EB":"var(--z-text3)", letterSpacing:"0.04em", whiteSpace:"nowrap" }}>{SIM_STEPS[s-1].label}</span>
-                  </div>
-                  {s < 2 && <div style={{ width:40, height:2, borderRadius:99, background:s < simStep ? "#2563EB" : "var(--z-bd2)", margin:"0 6px", marginBottom:18, transition:"all 0.3s" }}/>}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <StageIntakeHeader
+          eyebrow="Salary & Negotiation"
+          title="Negotiation Sim"
+          subtitle="Practice until the number feels natural. Live coaching after every exchange."
+          accent="#10B981"
+          totalSteps={2}
+          currentStep={simStep}
+          steps={SIM_STEPS}
+        />
 
         {/* Two-column body */}
         <div style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 300px", gap:28, alignItems:"start" }}>
@@ -6967,30 +6954,15 @@ function ScreenExecPositioning() {
 
   return (
     <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
-      {/* Page header */}
-      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
-          <div>
-            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4 }}>
-              <h1 style={{ fontSize:18, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:0 }}>Executive Positioning</h1>
-            </div>
-            <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>Assess your executive presence and build a concrete strategy to close the gap to the top.</p>
-          </div>
-          <div style={{ display:"flex", alignItems:"center", gap:0 }}>
-            {([1,2,3] as const).map(s => (
-              <div key={s} style={{ display:"flex", alignItems:"center" }}>
-                <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:5 }}>
-                  <div style={{ width:32, height:32, borderRadius:"50%", border:`1.5px solid ${s <= step ? "#2563EB" : "var(--z-bd)"}`, background:s < step ? "#2563EB" : "var(--z-card)", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
-                    {s < step ? <svg viewBox="0 0 12 12" fill="none" stroke="white" strokeWidth="2.5" style={{ width:12,height:12 }}><polyline points="2,6 5,9 10,3"/></svg> : <span style={{ fontSize:12, fontWeight:700, color:s === step ? "#2563EB" : "var(--z-text3)" }}>{s}</span>}
-                  </div>
-                  <span style={{ fontSize:10, fontWeight:700, color:s === step ? "#2563EB" : "var(--z-text3)", letterSpacing:"0.04em", whiteSpace:"nowrap" }}>{EXEC_STEPS[s-1].label}</span>
-                </div>
-                {s < 3 && <div style={{ width:40, height:2, borderRadius:99, background:s < step ? "#2563EB" : "var(--z-bd2)", margin:"0 6px", marginBottom:18, transition:"all 0.3s" }}/>}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      <StageIntakeHeader
+        eyebrow="Leadership & Executive"
+        title="Executive Positioning"
+        subtitle="Assess your executive presence and build a concrete strategy to close the gap to the top."
+        accent="#D97706"
+        totalSteps={3}
+        currentStep={step}
+        steps={EXEC_STEPS}
+      />
 
       {/* Two-column body */}
       <div style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
@@ -7772,7 +7744,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
         <div style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
           <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
-              <span style={{ fontSize:20 }}>📋</span>
+              {zIcon("clipboard", "#60A5FA")}
               <div style={{ fontSize:12, fontWeight:800, color:"var(--z-text3)", letterSpacing:"0.04em" }}>Your resume</div>
             </div>
             <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.72, margin:"0 0 16px" }}>Paste the full resume — headers, bullets, and all. Zari needs the complete text to score accurately.</p>
@@ -7874,7 +7846,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
         <div style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
           <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
-              <span style={{ fontSize:20 }}>📄</span>
+              {zIcon("file", "#60A5FA")}
               <div style={{ fontSize:12, fontWeight:800, color:"var(--z-text3)", letterSpacing:"0.04em" }}>What Zari scores</div>
             </div>
             <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.72, margin:"0 0 16px" }}>Zari runs four passes on your resume and gives you a job-ready rewrite — not just a score.</p>
@@ -9021,7 +8993,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                 {historyLoading && <div style={{ textAlign:"center", padding:"32px 0", color:"var(--z-text2)", fontSize:13 }}>Loading…</div>}
                 {!historyLoading && scoreHistory.length===0 && (
                   <div style={{ background:"var(--z-card)", boxShadow:"0 2px 20px rgba(0,0,0,0.07)", borderRadius:16, border:"1px solid var(--z-bd)", padding:"40px 20px", textAlign:"center" }}>
-                    <div style={{ fontSize:36, marginBottom:10 }}>📈</div>
+                    <div style={{ marginBottom:10, display:"flex", justifyContent:"center" }}>{zIcon("trending-up", "var(--z-text3)")}</div>
                     <p style={{ fontSize:14, fontWeight:700, color:"var(--z-text)" }}>No history yet</p>
                     <p style={{ fontSize:12.5, color:"var(--z-text2)", marginTop:4 }}>Your score is saved every time you submit a resume. Come back after a few revisions to see your progress.</p>
                   </div>
