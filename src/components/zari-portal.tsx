@@ -33,6 +33,37 @@ const DARK_THEME: Record<string,string> = {
 };
 
 /* ═══════════════════════════════════════════════════
+   ICON SYSTEM  (brand-aligned SVG icons, replaces emoji)
+═══════════════════════════════════════════════════ */
+function zIcon(name: string, color = "#8B5CF6") {
+  const p = { viewBox:"0 0 24 24", fill:"none", stroke:color, strokeWidth:"1.8", strokeLinecap:"round" as const, strokeLinejoin:"round" as const, width:18, height:18, style:{flexShrink:0,display:"block"} };
+  switch (name) {
+    case "target":      return <svg {...p}><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>;
+    case "clipboard":   return <svg {...p}><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>;
+    case "trending-up": return <svg {...p}><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>;
+    case "key":         return <svg {...p}><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>;
+    case "play":        return <svg {...p}><polygon points="5 3 19 12 5 21 5 3"/></svg>;
+    case "bar-chart":   return <svg {...p}><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>;
+    case "dollar":      return <svg {...p}><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>;
+    case "briefcase":   return <svg {...p}><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>;
+    case "pencil":      return <svg {...p}><path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>;
+    case "compass":     return <svg {...p}><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>;
+    case "chat":        return <svg {...p}><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>;
+    case "map":         return <svg {...p}><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>;
+    case "refresh":     return <svg {...p}><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>;
+    case "edit":        return <svg {...p}><path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>;
+    case "mic":         return <svg {...p}><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>;
+    case "book":        return <svg {...p}><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>;
+    case "download":    return <svg {...p}><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>;
+    case "file":        return <svg {...p}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>;
+    case "shuffle":     return <svg {...p}><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>;
+    case "globe":       return <svg {...p}><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>;
+    case "building":    return <svg {...p}><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 21V12h8v9"/><line x1="8" y1="7" x2="8.01" y2="7"/><line x1="12" y1="7" x2="12.01" y2="7"/><line x1="16" y1="7" x2="16.01" y2="7"/></svg>;
+    default:            return <svg {...p}><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>;
+  }
+}
+
+/* ═══════════════════════════════════════════════════
    DOC VAULT  (localStorage-backed shared document store)
 ═══════════════════════════════════════════════════ */
 type DocType = "resume" | "cover-letter" | "linkedin" | "upload";
@@ -4306,10 +4337,10 @@ function ScreenPromotionReadiness() {
   }
 
   const READINESS_STEP_CONTEXT = [
-    { icon:"🎯", label:"Setting the target", desc:"Zari maps the exact gap between your current role and the next level. Specificity matters — the more precise the title, the sharper the scoring.", tips:["Use the full job title, not just 'senior'.", "Time in role is a key signal — promotions before 12 months are rare at most companies.", "If you're unsure of the target title, use the one you'd put on a resume."] },
-    { icon:"📋", label:"The promotion bar", desc:"Zari scores your case against what the level actually requires, not just your sense of performance. The closer to the real rubric, the more accurate the result.", tips:["Paste the career ladder or job description if you have one.", "If no formal rubric exists, describe what you've heard in conversations with your manager.", "Unclear bars are a red flag — Zari will flag this in the scoring."] },
-    { icon:"📈", label:"Your evidence", desc:"Strong promotion cases are built on proof, not effort. Zari looks for scope, impact, and operating-above-level signals.", tips:["Include outcomes and numbers where you can.", "Describe the cross-functional or leadership scope, not just the output.", "The best evidence shows judgment, not just execution."] },
-    { icon:"🔑", label:"The decision context", desc:"Promotions are decisions made by humans. Zari models the political and organizational reality — manager support, visibility, and review signals all matter.", tips:["Be honest about manager support — low advocacy is a blocker regardless of performance.", "Visibility to decision-makers above your manager is often underrated.", "Review scores are a proxy, not the whole story. Add context if the signal is mixed."] },
+    { icon:"target",      label:"Setting the target", desc:"Zari maps the exact gap between your current role and the next level. Specificity matters — the more precise the title, the sharper the scoring.", tips:["Use the full job title, not just 'senior'.", "Time in role is a key signal — promotions before 12 months are rare at most companies.", "If you're unsure of the target title, use the one you'd put on a resume."] },
+    { icon:"clipboard",   label:"The promotion bar", desc:"Zari scores your case against what the level actually requires, not just your sense of performance. The closer to the real rubric, the more accurate the result.", tips:["Paste the career ladder or job description if you have one.", "If no formal rubric exists, describe what you've heard in conversations with your manager.", "Unclear bars are a red flag — Zari will flag this in the scoring."] },
+    { icon:"trending-up", label:"Your evidence", desc:"Strong promotion cases are built on proof, not effort. Zari looks for scope, impact, and operating-above-level signals.", tips:["Include outcomes and numbers where you can.", "Describe the cross-functional or leadership scope, not just the output.", "The best evidence shows judgment, not just execution."] },
+    { icon:"key",         label:"The decision context", desc:"Promotions are decisions made by humans. Zari models the political and organizational reality — manager support, visibility, and review signals all matter.", tips:["Be honest about manager support — low advocacy is a blocker regardless of performance.", "Visibility to decision-makers above your manager is often underrated.", "Review scores are a proxy, not the whole story. Add context if the signal is mixed."] },
   ];
   const stepCtx = READINESS_STEP_CONTEXT[step - 1];
 
@@ -4478,7 +4509,7 @@ function ScreenPromotionReadiness() {
         <div style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
           <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
-              <span style={{ fontSize:20 }}>{stepCtx.icon}</span>
+              {zIcon(stepCtx.icon, "#60A5FA")}
               <div style={{ fontSize:12, fontWeight:800, color:"#60A5FA", letterSpacing:"0.04em" }}>{stepCtx.label}</div>
             </div>
             <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.72, margin:"0 0 16px" }}>{stepCtx.desc}</p>
@@ -4770,9 +4801,9 @@ function ScreenSalaryCompensation() {
   }
 
   const SALARY_STEPS = [
-    { title:"Your Role", subtitle:"Tell Zari about your current position and what you're negotiating for.", icon:"💼", label:"Your role", desc:"Zari uses your title, level, and industry to benchmark accurately against the right market data.", tips:["Be specific with your title — 'Senior PM' and 'PM' can be a $30K difference.","Industry matters. Tech SaaS benchmarks are very different from nonprofit or government.","The negotiation type shapes the strategy — new offer vs. raise require different scripts."] },
-    { title:"Compensation Details", subtitle:"What are you currently earning, and what's your target?", icon:"💰", label:"Comp details", desc:"Without numbers, Zari can only give generic advice. The more specific your figures, the sharper the strategy.", tips:["Include total package if you can — equity and bonuses shift the real number significantly.","Your target should be what you actually want, not a hedge. Zari won't judge you.","Competing offers are your strongest leverage — mention them if you have them."] },
-    { title:"Your Context", subtitle:"Location, experience, and anything else that gives you leverage.", icon:"🌍", label:"Your context", desc:"Geographic market and tenure shape both what you can ask for and how you should frame the ask.", tips:["Remote roles at SF-based companies often pay SF rates — include that if relevant.","Highly specialized skills or rare domain expertise can shift your leverage significantly.","If you've had outsized wins recently, name them — it reinforces why now is the right time."] },
+    { title:"Your Role", subtitle:"Tell Zari about your current position and what you're negotiating for.", icon:"briefcase", label:"Your role", desc:"Zari uses your title, level, and industry to benchmark accurately against the right market data.", tips:["Be specific with your title — 'Senior PM' and 'PM' can be a $30K difference.","Industry matters. Tech SaaS benchmarks are very different from nonprofit or government.","The negotiation type shapes the strategy — new offer vs. raise require different scripts."] },
+    { title:"Compensation Details", subtitle:"What are you currently earning, and what's your target?", icon:"dollar", label:"Comp details", desc:"Without numbers, Zari can only give generic advice. The more specific your figures, the sharper the strategy.", tips:["Include total package if you can — equity and bonuses shift the real number significantly.","Your target should be what you actually want, not a hedge. Zari won't judge you.","Competing offers are your strongest leverage — mention them if you have them."] },
+    { title:"Your Context", subtitle:"Location, experience, and anything else that gives you leverage.", icon:"globe", label:"Your context", desc:"Geographic market and tenure shape both what you can ask for and how you should frame the ask.", tips:["Remote roles at SF-based companies often pay SF rates — include that if relevant.","Highly specialized skills or rare domain expertise can shift your leverage significantly.","If you've had outsized wins recently, name them — it reinforces why now is the right time."] },
   ];
   const salaryStepCtx = SALARY_STEPS[step - 1];
 
@@ -4901,7 +4932,7 @@ function ScreenSalaryCompensation() {
         <div style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
           <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
-              <span style={{ fontSize:20 }}>{salaryStepCtx.icon}</span>
+              {zIcon(salaryStepCtx.icon, "#60A5FA")}
               <div style={{ fontSize:12, fontWeight:800, color:"var(--z-text3)", letterSpacing:"0.04em" }}>{salaryStepCtx.label}</div>
             </div>
             <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.72, margin:"0 0 16px" }}>{salaryStepCtx.desc}</p>
@@ -5190,9 +5221,9 @@ function ScreenPivotAnalysis() {
   }
 
   const PIVOT_STEPS = [
-    { title:"Your Pivot", subtitle:"Where are you coming from, and where do you want to go?", icon:"🔀", label:"Your pivot", desc:"Zari needs to understand both ends of the move to accurately assess what transfers, what gaps need bridging, and what the hiring market will actually see.", tips:["Be specific about roles — 'Software Engineer to PM' gives very different advice than 'SWE to SWE at a startup'.","Industry context matters as much as title — B2B SaaS vs. healthcare are different hiring markets.","If you're not sure about the target, use the most specific version of what you want."] },
-    { title:"Your Case", subtitle:"What have you built, and what are you bringing to the table?", icon:"📊", label:"Your case", desc:"The pivot succeeds or fails based on how well you translate past work into the language of the new domain. Zari maps your proof points to the target role.", tips:["Write outcomes, not tasks — 'launched a product' is weak, 'launched a product that reached 10K users in 3 months' is strong.","Include any skills that might be underrated in your current role but relevant to the target.","Don't pre-filter. Include things you think are adjacent — let Zari decide what maps."] },
-    { title:"Context & Concerns", subtitle:"Timeline, background, and what worries you most about this move.", icon:"🗺️", label:"Context", desc:"Your timeline and biggest concern shape the strategy. A pivot in 3 months requires different moves than exploring over a year.", tips:["Be honest about your biggest concern — Zari will address it directly in the output.","Pasting your resume gives Zari more signal and produces a more specific analysis.","Your timeline affects the recommendation. If you're already interviewing, Zari will front-load quick wins."] },
+    { title:"Your Pivot", subtitle:"Where are you coming from, and where do you want to go?", icon:"shuffle", label:"Your pivot", desc:"Zari needs to understand both ends of the move to accurately assess what transfers, what gaps need bridging, and what the hiring market will actually see.", tips:["Be specific about roles — 'Software Engineer to PM' gives very different advice than 'SWE to SWE at a startup'.","Industry context matters as much as title — B2B SaaS vs. healthcare are different hiring markets.","If you're not sure about the target, use the most specific version of what you want."] },
+    { title:"Your Case", subtitle:"What have you built, and what are you bringing to the table?", icon:"bar-chart", label:"Your case", desc:"The pivot succeeds or fails based on how well you translate past work into the language of the new domain. Zari maps your proof points to the target role.", tips:["Write outcomes, not tasks — 'launched a product' is weak, 'launched a product that reached 10K users in 3 months' is strong.","Include any skills that might be underrated in your current role but relevant to the target.","Don't pre-filter. Include things you think are adjacent — let Zari decide what maps."] },
+    { title:"Context & Concerns", subtitle:"Timeline, background, and what worries you most about this move.", icon:"map", label:"Context", desc:"Your timeline and biggest concern shape the strategy. A pivot in 3 months requires different moves than exploring over a year.", tips:["Be honest about your biggest concern — Zari will address it directly in the output.","Pasting your resume gives Zari more signal and produces a more specific analysis.","Your timeline affects the recommendation. If you're already interviewing, Zari will front-load quick wins."] },
   ];
   const pivotStepCtx = PIVOT_STEPS[step - 1];
 
@@ -5301,7 +5332,7 @@ function ScreenPivotAnalysis() {
         <div style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
           <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
-              <span style={{ fontSize:20 }}>{pivotStepCtx.icon}</span>
+              {zIcon(pivotStepCtx.icon, "#60A5FA")}
               <div style={{ fontSize:12, fontWeight:800, color:"var(--z-text3)", letterSpacing:"0.04em" }}>{pivotStepCtx.label}</div>
             </div>
             <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.72, margin:"0 0 16px" }}>{pivotStepCtx.desc}</p>
@@ -5437,8 +5468,8 @@ function ScreenSalaryNegotiationSim() {
     const sel = scenarios.find(s => s.value === scenario);
     const card: React.CSSProperties = { background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"26px 28px", boxShadow:"0 2px 24px rgba(0,0,0,0.08)" };
     const SIM_STEPS = [
-      { label:"Scenario", title:"Choose your scenario", subtitle:"Pick what you're practicing — each scenario trains a different negotiation pattern.", icon:"🎭", desc:"Scenario & difficulty", tips:["New offer and counter offer need different openers — pick the one matching your actual situation.","Realistic difficulty is closest to what you'll actually face in a real negotiation.","You can restart with the same scenario after the debrief and improve your score."] },
-      { label:"Your details", title:"Your details", subtitle:"The more specific you are, the more realistic the simulation.", icon:"🎯", desc:"Your context", tips:["Use your actual role title — Zari calibrates the pushback to what's normal in your field.","If you have a competing offer, add it. It's your single strongest piece of leverage.","Skip fields you're unsure about — Zari will still run a useful sim."] },
+      { label:"Scenario", title:"Choose your scenario", subtitle:"Pick what you're practicing — each scenario trains a different negotiation pattern.", icon:"play", desc:"Scenario & difficulty", tips:["New offer and counter offer need different openers — pick the one matching your actual situation.","Realistic difficulty is closest to what you'll actually face in a real negotiation.","You can restart with the same scenario after the debrief and improve your score."] },
+      { label:"Your details", title:"Your details", subtitle:"The more specific you are, the more realistic the simulation.", icon:"target", desc:"Your context", tips:["Use your actual role title — Zari calibrates the pushback to what's normal in your field.","If you have a competing offer, add it. It's your single strongest piece of leverage.","Skip fields you're unsure about — Zari will still run a useful sim."] },
     ];
     const stepCtx = SIM_STEPS[simStep - 1];
     return (
@@ -5540,7 +5571,7 @@ function ScreenSalaryNegotiationSim() {
           <div style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
             <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
               <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
-                <span style={{ fontSize:20 }}>{stepCtx.icon}</span>
+                {zIcon(stepCtx.icon, "#60A5FA")}
                 <div style={{ fontSize:12, fontWeight:800, color:"var(--z-text3)", letterSpacing:"0.04em" }}>{stepCtx.desc}</div>
               </div>
               <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.72, margin:"0 0 16px" }}>
@@ -6928,9 +6959,9 @@ function ScreenExecPositioning() {
   }
 
   const EXEC_STEPS = [
-    { title:"Your Level", subtitle:"Where are you now, and where are you trying to go?", icon:"🏛️", label:"Your level", desc:"Executive positioning is about gap analysis at the top — Zari needs to know the current level, scope, and target to calibrate the scoring accurately.", tips:["Be specific about scope — 'org of 80, $20M P&L' is more useful than 'large team'.","The target matters — board director, C-suite, and SVP have very different positioning requirements.","If you're not sure of the target, use the most ambitious version of what you want."] },
-    { title:"Your Impact", subtitle:"What business outcomes have you driven? Who have you influenced?", icon:"📈", label:"Your impact", desc:"Executive presence is proven by outcomes at scale and influence across the organization. Zari looks for business-level proof, not functional task completion.", tips:["Quantify where possible — revenue, cost savings, org size, product outcomes.","Exec exposure matters — board presentations, C-suite relationships, and investor interactions all signal readiness.","External advisory or board roles are strong credibility signals even if informal."] },
-    { title:"Context & Goal", subtitle:"Paste your bio, name your specific target, and tell Zari what you're building toward.", icon:"🎯", label:"Goal & context", desc:"Your bio gives Zari real signal to work with. The specific goal sharpens the strategy — different targets require very different positioning moves.", tips:["Paste your LinkedIn summary or executive bio — the more specific, the better the output.","Your specific goal shapes everything. 'Join a board' and 'move to C-suite' have different playbooks.","If you don't have a bio, describe your career trajectory in a paragraph."] },
+    { title:"Your Level", subtitle:"Where are you now, and where are you trying to go?", icon:"building", label:"Your level", desc:"Executive positioning is about gap analysis at the top — Zari needs to know the current level, scope, and target to calibrate the scoring accurately.", tips:["Be specific about scope — 'org of 80, $20M P&L' is more useful than 'large team'.","The target matters — board director, C-suite, and SVP have very different positioning requirements.","If you're not sure of the target, use the most ambitious version of what you want."] },
+    { title:"Your Impact", subtitle:"What business outcomes have you driven? Who have you influenced?", icon:"trending-up", label:"Your impact", desc:"Executive presence is proven by outcomes at scale and influence across the organization. Zari looks for business-level proof, not functional task completion.", tips:["Quantify where possible — revenue, cost savings, org size, product outcomes.","Exec exposure matters — board presentations, C-suite relationships, and investor interactions all signal readiness.","External advisory or board roles are strong credibility signals even if informal."] },
+    { title:"Context & Goal", subtitle:"Paste your bio, name your specific target, and tell Zari what you're building toward.", icon:"target", label:"Goal & context", desc:"Your bio gives Zari real signal to work with. The specific goal sharpens the strategy — different targets require very different positioning moves.", tips:["Paste your LinkedIn summary or executive bio — the more specific, the better the output.","Your specific goal shapes everything. 'Join a board' and 'move to C-suite' have different playbooks.","If you don't have a bio, describe your career trajectory in a paragraph."] },
   ];
   const execStepCtx = EXEC_STEPS[step - 1];
 
@@ -7037,7 +7068,7 @@ function ScreenExecPositioning() {
         <div style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
           <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
-              <span style={{ fontSize:20 }}>{execStepCtx.icon}</span>
+              {zIcon(execStepCtx.icon, "#60A5FA")}
               <div style={{ fontSize:12, fontWeight:800, color:ACCENT, letterSpacing:"0.04em" }}>{execStepCtx.label}</div>
             </div>
             <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.72, margin:"0 0 16px" }}>{execStepCtx.desc}</p>
@@ -7860,7 +7891,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
             <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
               {SCREEN_RESUME_META[stage].features.map(f => (
                 <div key={f.title} style={{ display:"flex", gap:10, alignItems:"center" }}>
-                  <span style={{ fontSize:16 }}>{f.icon}</span>
+                  {zIcon(f.icon, "#8B5CF6")}
                   <span style={{ fontSize:12.5, fontWeight:600, color:"var(--z-text2)" }}>{f.title}</span>
                 </div>
               ))}
@@ -9056,50 +9087,50 @@ const SCREEN_RESUME_META: Record<CareerStage, {
     title:"Resume Review",
     desc:"Upload your resume and Zari will score it, rewrite every weak bullet with impact metrics, and give you a job-ready version to send tonight.",
     features:[
-      { icon:"🎯", title:"ATS keyword scan",      body:"Checks every bullet against your target job descriptions" },
-      { icon:"✏️", title:"Bullet rewrites",        body:"Injects metrics and impact into every weak bullet" },
-      { icon:"📊", title:"Before/after score",     body:"Shows your resume score from first draft to final version" },
-      { icon:"⬇️", title:"Downloadable version",   body:"Get a job-ready PDF optimized for your target role" },
+      { icon:"target",      title:"ATS keyword scan",      body:"Checks every bullet against your target job descriptions" },
+      { icon:"pencil",      title:"Bullet rewrites",        body:"Injects metrics and impact into every weak bullet" },
+      { icon:"bar-chart",   title:"Before/after score",     body:"Shows your resume score from first draft to final version" },
+      { icon:"download",    title:"Downloadable version",   body:"Get a job-ready PDF optimized for your target role" },
     ],
   },
   "promotion": {
     title:"Readiness Audit",
     desc:"Bring your wins, rubric, and blockers. Zari will tell you whether you have a real promotion case yet, what is still weak, and what to do next.",
     features:[
-      { icon:"🧭", title:"Readiness check",    body:"Separates strong signals from wishful thinking" },
-      { icon:"📈", title:"Proof gaps",         body:"Shows where your evidence is still too thin or too vague" },
-      { icon:"💬", title:"Manager questions",  body:"Gives you the exact questions to ask for useful feedback" },
-      { icon:"🗺️", title:"Next moves",         body:"Turns the audit into a concrete promotion plan" },
+      { icon:"compass",     title:"Readiness check",    body:"Separates strong signals from wishful thinking" },
+      { icon:"trending-up", title:"Proof gaps",         body:"Shows where your evidence is still too thin or too vague" },
+      { icon:"chat",        title:"Manager questions",  body:"Gives you the exact questions to ask for useful feedback" },
+      { icon:"map",         title:"Next moves",         body:"Turns the audit into a concrete promotion plan" },
     ],
   },
   "salary": {
     title:"Salary Research",
     desc:"Tell Zari your role, level, and location. Zari researches market comps, anchors your number, and preps you with the exact language to use in the conversation.",
     features:[
-      { icon:"📈", title:"Market benchmarks",     body:"Levels.fyi, Glassdoor, and Blind data for your exact role" },
-      { icon:"💰", title:"Total comp breakdown",  body:"Base, equity, bonus, and benefits comparison" },
-      { icon:"🎯", title:"Negotiation anchors",   body:"The number to lead with and the floor to hold" },
-      { icon:"📝", title:"Counter-offer scripts", body:"Exact language for every response they'll give you" },
+      { icon:"trending-up", title:"Market benchmarks",     body:"Levels.fyi, Glassdoor, and Blind data for your exact role" },
+      { icon:"dollar",      title:"Total comp breakdown",  body:"Base, equity, bonus, and benefits comparison" },
+      { icon:"target",      title:"Negotiation anchors",   body:"The number to lead with and the floor to hold" },
+      { icon:"edit",        title:"Counter-offer scripts", body:"Exact language for every response they'll give you" },
     ],
   },
   "career-change": {
     title:"Reframe Resume",
     desc:"Upload your current resume and tell Zari your target role. Zari rewrites it from scratch — repositioning your experience to speak the language of the industry you're entering.",
     features:[
-      { icon:"🔄", title:"Narrative reframe",        body:"Rewrites your story for a new audience" },
-      { icon:"🗺️", title:"Transferable skills map",  body:"Shows which of your skills translate directly" },
-      { icon:"🎯", title:"Target role alignment",    body:"Optimizes for the exact job descriptions you want" },
-      { icon:"📊", title:"Before/after view",        body:"Side-by-side of old positioning vs new" },
+      { icon:"refresh",     title:"Narrative reframe",        body:"Rewrites your story for a new audience" },
+      { icon:"map",         title:"Transferable skills map",  body:"Shows which of your skills translate directly" },
+      { icon:"target",      title:"Target role alignment",    body:"Optimizes for the exact job descriptions you want" },
+      { icon:"bar-chart",   title:"Before/after view",        body:"Side-by-side of old positioning vs new" },
     ],
   },
   "leadership": {
     title:"Executive Bio",
     desc:"Upload your current bio or resume. Zari will write a board-ready executive bio, speaker profile, and LinkedIn rewrite that positions you at the level you're actually operating at.",
     features:[
-      { icon:"✍️", title:"Board-ready bio",    body:"Written for governance conversations and director roles" },
-      { icon:"🎤", title:"Speaker profile",    body:"Optimized for conference and keynote positioning" },
-      { icon:"💼", title:"LinkedIn rewrite",   body:"Executive-level headline, about, and experience" },
-      { icon:"📖", title:"Narrative arc",      body:"Connects your career story with your leadership thesis" },
+      { icon:"edit",        title:"Board-ready bio",    body:"Written for governance conversations and director roles" },
+      { icon:"mic",         title:"Speaker profile",    body:"Optimized for conference and keynote positioning" },
+      { icon:"briefcase",   title:"LinkedIn rewrite",   body:"Executive-level headline, about, and experience" },
+      { icon:"book",        title:"Narrative arc",      body:"Connects your career story with your leadership thesis" },
     ],
   },
 };
@@ -9256,9 +9287,9 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
   ];
 
   const INTERVIEW_STEP_CTX = [
-    { icon:"📄", label:"Your resume", desc:"Zari reads your background to generate questions calibrated to your specific experience — not generic practice questions.", tips:["Upload PDF, DOCX, or TXT — Zari extracts the text automatically.","A strong resume upload produces much more targeted questions.","You can skip this step, but the questions will be less personalized."] },
-    { icon:"📋", label:"Job description", desc:"The job posting determines the role, seniority, and required skills. Every question Zari generates will be anchored to this specific opportunity.", tips:["Paste the full posting — the more context, the sharper the questions.","Use the URL fetch if you have a direct link to the job page.","If you don't have a JD, describe the role in a paragraph."] },
-    { icon:"🎯", label:"Interview round", desc:"Different rounds test different things. Recruiter screens focus on fit and logistics. Hiring manager rounds go deeper on judgment and leadership.", tips:["Pick the round you're actually preparing for right now.","If you have multiple rounds coming up, start with the earliest one.","Each round generates questions specific to that format and depth."] },
+    { icon:"file",      label:"Your resume", desc:"Zari reads your background to generate questions calibrated to your specific experience — not generic practice questions.", tips:["Upload PDF, DOCX, or TXT — Zari extracts the text automatically.","A strong resume upload produces much more targeted questions.","You can skip this step, but the questions will be less personalized."] },
+    { icon:"clipboard", label:"Job description", desc:"The job posting determines the role, seniority, and required skills. Every question Zari generates will be anchored to this specific opportunity.", tips:["Paste the full posting — the more context, the sharper the questions.","Use the URL fetch if you have a direct link to the job page.","If you don't have a JD, describe the role in a paragraph."] },
+    { icon:"target",    label:"Interview round", desc:"Different rounds test different things. Recruiter screens focus on fit and logistics. Hiring manager rounds go deeper on judgment and leadership.", tips:["Pick the round you're actually preparing for right now.","If you have multiple rounds coming up, start with the earliest one.","Each round generates questions specific to that format and depth."] },
   ];
   const interviewStepCtx = INTERVIEW_STEP_CTX[setupStep - 1];
 
@@ -9446,7 +9477,7 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
           <div style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
             <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
               <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
-                <span style={{ fontSize:20 }}>{interviewStepCtx.icon}</span>
+                {zIcon(interviewStepCtx.icon, "#60A5FA")}
                 <div style={{ fontSize:12, fontWeight:700, color:"var(--z-text3)", letterSpacing:"0.06em", textTransform:"uppercase" }}>{interviewStepCtx.label}</div>
               </div>
               <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.72, margin:"0 0 16px" }}>{interviewStepCtx.desc}</p>
@@ -13275,9 +13306,9 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
 
   // ── Setup wizard ──
   const CL_STEP_CTX = [
-    { icon:"📄", label:"Your background", desc:"Zari writes in your voice — the more context you give it about your background, the more personalized your letter.", tips:["Paste your resume or LinkedIn About section","A full background lets Zari match your tone and story","Upload a PDF if that's easier than pasting"] },
-    { icon:"🎯", label:"Job description", desc:"The job posting is the brief. Zari tailors every sentence to the specific role, not a generic version of the letter.", tips:["Paste the full posting for the best match","Use the URL fetcher if you have a link","Longer postings give Zari more to work with"] },
-    { icon:"✍️", label:"Customize", desc:"Role details and tone shape the letter's opening, sign-off, and overall register — small inputs, big impact.", tips:["Add the company name so Zari uses it naturally","Your name appears in the closing signature","Pick the tone that fits the company's culture"] },
+    { icon:"file",   label:"Your background", desc:"Zari writes in your voice — the more context you give it about your background, the more personalized your letter.", tips:["Paste your resume or LinkedIn About section","A full background lets Zari match your tone and story","Upload a PDF if that's easier than pasting"] },
+    { icon:"target", label:"Job description", desc:"The job posting is the brief. Zari tailors every sentence to the specific role, not a generic version of the letter.", tips:["Paste the full posting for the best match","Use the URL fetcher if you have a link","Longer postings give Zari more to work with"] },
+    { icon:"edit",   label:"Customize", desc:"Role details and tone shape the letter's opening, sign-off, and overall register — small inputs, big impact.", tips:["Add the company name so Zari uses it naturally","Your name appears in the closing signature","Pick the tone that fits the company's culture"] },
   ];
   const clCtx = CL_STEP_CTX[step - 1];
 
@@ -13477,7 +13508,7 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
         <div style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
           <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
-              <span style={{ fontSize:20 }}>{clCtx.icon}</span>
+              {zIcon(clCtx.icon, "#34D399")}
               <div style={{ fontSize:12, fontWeight:800, color:"#34D399", letterSpacing:"0.04em" }}>{clCtx.label.toUpperCase()}</div>
             </div>
             <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.72, margin:"0 0 16px" }}>{clCtx.desc}</p>
