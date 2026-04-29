@@ -10,6 +10,11 @@ export const maxDuration = 60;
 function buildFallback(role: string, target: string) {
   return {
     subject: `Compensation Discussion — ${role}`,
+    sendTips: [
+      "Replace [Name] with the actual recipient — this detail matters more than you think.",
+      `Send within 24-48 hours of receiving the offer on ${role}. The longer you wait, the weaker your position.`,
+      "If they ask why that number, be ready with market data: Levels.fyi, Glassdoor, and LinkedIn Salary for this exact role.",
+    ],
     email: `Hi [Name],
 
 Thank you for the offer — I'm genuinely excited about the role and the team.
@@ -59,7 +64,8 @@ ${userContext ? `Profile context:\n${userContext}\n` : ""}
 Return ONLY valid JSON:
 {
   "subject": "<email subject line>",
-  "email": "<the full email body, ready to send or lightly edit>"
+  "email": "<the full email body, ready to send or lightly edit>",
+  "sendTips": ["<specific tip for this person before they hit send>", "<tip>", "<tip>"]
 }
 
 Rules:
@@ -69,7 +75,8 @@ Rules:
 - Keep it under 200 words — brevity signals confidence
 - Make it specific to their situation — no placeholders except [Name] for the recipient
 - The email should be professional enough to send as-is with minor edits
-- End with a clear, low-friction call to action`;
+- End with a clear, low-friction call to action
+- sendTips: 3 specific, actionable tips for THIS person before they send — not generic. Reference their actual situation (role, company, leverage, timing).`;
 
   const userPrompt = [
     `ROLE: ${role}`,
@@ -95,9 +102,11 @@ Rules:
     const p = JSON.parse(reply) as Record<string, unknown>;
     const subject = typeof p.subject === "string" ? p.subject.trim() : "";
     const email = typeof p.email === "string" ? p.email.trim() : "";
+    const sendTips = Array.isArray(p.sendTips) ? (p.sendTips as unknown[]).map(v => typeof v === "string" ? v.trim() : "").filter(Boolean).slice(0, 4) : [];
     return NextResponse.json({
       subject: subject || fallback.subject,
       email: email || fallback.email,
+      sendTips: sendTips.length ? sendTips : fallback.sendTips,
     });
   } catch {
     return NextResponse.json(fallback);

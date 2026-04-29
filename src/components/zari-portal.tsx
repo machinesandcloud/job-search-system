@@ -4572,27 +4572,27 @@ function ScreenSalaryCompensation() {
         {/* RIGHT PANEL */}
         <div style={{ flex:1, overflowY:"auto", padding:"24px 28px 40px" }}>
             {tab === "overview" && (
-              <div style={{ display:"grid", gap:14 }}>
-                <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"18px 22px" }}>
-                  <div style={{ fontSize:10, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Hard truth</div>
-                  <p style={{ fontSize:14.5, color:"var(--z-text)", lineHeight:1.7, margin:0 }}>{result.hardTruth}</p>
+              <div style={{ display:"grid", gap:18 }}>
+                <div style={{ borderRadius:14, background:"rgba(220,38,38,0.04)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #DC2626", padding:"22px 26px" }}>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:"#DC2626", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Hard truth</div>
+                  <p style={{ fontSize:15, color:"var(--z-text)", lineHeight:1.8, margin:0 }}>{result.hardTruth}</p>
                 </div>
-                <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))", gap:12 }}>
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))", gap:14 }}>
                   {result.benchmarks.map((b, i) => (
-                    <div key={i} style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"18px 20px" }}>
-                      <div style={{ fontSize:10, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:8 }}>{b.label}</div>
-                      <div style={{ fontSize:20, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", marginBottom:4 }}>{b.value}</div>
-                      <div style={{ fontSize:12, color:"var(--z-text2)", lineHeight:1.6 }}>{b.context}</div>
+                    <div key={i} style={{ borderRadius:14, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderTop:`3px solid #2563EB`, padding:"20px 22px" }}>
+                      <div style={{ fontSize:10.5, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>{b.label}</div>
+                      <div style={{ fontSize:22, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", marginBottom:6 }}>{b.value}</div>
+                      <div style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.65 }}>{b.context}</div>
                     </div>
                   ))}
                 </div>
-                <div style={{ borderRadius:18, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"24px 26px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
-                  <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:14 }}>Watchouts</div>
-                  <div style={{ display:"grid", gap:10 }}>
+                <div style={{ borderRadius:14, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #D97706", padding:"22px 26px" }}>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:16 }}>Watchouts</div>
+                  <div style={{ display:"grid", gap:12 }}>
                     {result.watchouts.map((w, i) => (
-                      <div key={i} style={{ display:"flex", gap:12, alignItems:"flex-start", padding:"12px 14px", borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
-                        <svg viewBox="0 0 16 16" fill="none" stroke="var(--z-text3)" strokeWidth="2" style={{ width:14, height:14, flexShrink:0, marginTop:2 }}><path d="M8 2L14 13H2L8 2z"/><path d="M8 6v3M8 11v.5"/></svg>
-                        <span style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.7 }}>{w}</span>
+                      <div key={i} style={{ display:"flex", gap:14, alignItems:"flex-start", padding:"14px 16px", borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
+                        <svg viewBox="0 0 16 16" fill="none" style={{ width:16, height:16, flexShrink:0, marginTop:1 }}><path d="M8 2L14.5 13H1.5L8 2z" fill="rgba(217,119,6,0.12)" stroke="#D97706" strokeWidth="1.5" strokeLinejoin="round"/><path d="M8 6.5V9M8 10.5v.5" stroke="#D97706" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                        <span style={{ fontSize:14, color:"var(--z-text)", lineHeight:1.75 }}>{w}</span>
                       </div>
                     ))}
                   </div>
@@ -4600,42 +4600,41 @@ function ScreenSalaryCompensation() {
               </div>
             )}
             {tab === "leverage" && (
-              <div style={{ borderRadius:18, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"26px 28px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
-                <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:16 }}>Your negotiation leverage</div>
-                <div style={{ display:"grid", gap:10 }}>
-                  {result.leveragePoints.map((pt, i) => (
-                    <div key={i} style={{ display:"flex", gap:14, alignItems:"flex-start", padding:"14px 16px", borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderLeft:"3px solid var(--z-bd2)" }}>
-                      <span style={{ fontSize:11, fontWeight:900, color:"var(--z-text3)", background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:999, width:22, height:22, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>{i+1}</span>
-                      <span style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.78 }}>{pt}</span>
-                    </div>
-                  ))}
-                </div>
+              <div style={{ display:"grid", gap:12 }}>
+                {result.leveragePoints.map((pt, i) => (
+                  <div key={i} style={{ display:"flex", gap:16, alignItems:"flex-start", padding:"18px 20px", borderRadius:14, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #059669" }}>
+                    <span style={{ fontSize:11, fontWeight:900, color:"#059669", background:"rgba(5,150,105,0.1)", border:"1px solid rgba(5,150,105,0.25)", borderRadius:999, width:26, height:26, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>{i+1}</span>
+                    <span style={{ fontSize:14, color:"var(--z-text)", lineHeight:1.8 }}>{pt}</span>
+                  </div>
+                ))}
               </div>
             )}
             {tab === "moves" && (
-              <div style={{ display:"grid", gap:12 }}>
+              <div style={{ display:"grid", gap:14 }}>
                 {result.negotiationMoves.map((m, i) => (
-                  <div key={i} style={{ borderRadius:18, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"24px 26px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
-                      <span style={{ fontSize:11, fontWeight:900, color:"var(--z-text2)", background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderRadius:999, width:26, height:26, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{i+1}</span>
+                  <div key={i} style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #2563EB", padding:"22px 26px" }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:14 }}>
+                      <span style={{ fontSize:11, fontWeight:900, color:"#2563EB", background:"rgba(37,99,235,0.1)", border:"1px solid rgba(37,99,235,0.2)", borderRadius:999, width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{i+1}</span>
                       <div style={{ fontSize:15, fontWeight:800, color:"var(--z-text)" }}>{m.title}</div>
                     </div>
-                    <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.78, margin:"0 0 10px" }}>{m.move}</p>
-                    <div style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 10px", borderRadius:8, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
-                      <svg viewBox="0 0 12 12" fill="none" stroke="var(--z-text3)" strokeWidth="1.8" style={{ width:11, height:11 }}><circle cx="6" cy="6" r="4.5"/><path d="M6 4v2.5M6 7.5v.5"/></svg>
-                      <span style={{ fontSize:11, fontWeight:700, color:"var(--z-text2)" }}>{m.when}</span>
+                    <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.8, margin:"0 0 12px" }}>{m.move}</p>
+                    <div style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"7px 12px", borderRadius:9, background:"rgba(37,99,235,0.06)", border:"1px solid rgba(37,99,235,0.2)" }}>
+                      <svg viewBox="0 0 12 12" fill="none" stroke="#2563EB" strokeWidth="1.8" style={{ width:11, height:11 }}><circle cx="6" cy="6" r="4.5"/><path d="M6 4v2.5M6 7.5v.5"/></svg>
+                      <span style={{ fontSize:11.5, fontWeight:700, color:"#2563EB" }}>{m.when}</span>
                     </div>
                   </div>
                 ))}
               </div>
             )}
             {tab === "script" && (
-              <div style={{ borderRadius:18, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"26px 28px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
-                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
-                  <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em" }}>Counter script</div>
-                  <button onClick={() => { void navigator.clipboard.writeText(result.counterScript); setCopied(true); setTimeout(() => setCopied(false), 2000); }} style={{ fontSize:12, fontWeight:700, padding:"7px 14px", borderRadius:10, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:copied ? "#2563EB" : "var(--z-text2)", cursor:"pointer", transition:"all 0.2s" }}>{copied ? "Copied ✓" : "Copy"}</button>
+              <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
+                <div style={{ padding:"16px 26px", borderBottom:"1px solid var(--z-bd)", background:"var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em" }}>Counter script</div>
+                  <button onClick={() => { void navigator.clipboard.writeText(result.counterScript); setCopied(true); setTimeout(() => setCopied(false), 2000); }} style={{ fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:10, border:"1px solid var(--z-bd)", background:copied ? "rgba(37,99,235,0.08)" : "var(--z-card)", color:copied ? "#2563EB" : "var(--z-text2)", cursor:"pointer", transition:"all 0.2s" }}>{copied ? "Copied ✓" : "Copy"}</button>
                 </div>
-                <pre style={{ fontFamily:"inherit", fontSize:13.5, color:"var(--z-text)", lineHeight:1.85, whiteSpace:"pre-wrap", margin:0 }}>{result.counterScript}</pre>
+                <div style={{ padding:"26px 28px" }}>
+                  <pre style={{ fontFamily:"inherit", fontSize:14, color:"var(--z-text)", lineHeight:1.9, whiteSpace:"pre-wrap", margin:0 }}>{result.counterScript}</pre>
+                </div>
               </div>
             )}
         </div>
@@ -4942,18 +4941,18 @@ function ScreenPivotAnalysis() {
         {/* RIGHT PANEL */}
         <div style={{ flex:1, overflowY:"auto", padding:"24px 28px 40px" }}>
             {tab === "overview" && (
-              <div style={{ display:"grid", gap:14 }}>
-                <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"18px 22px" }}>
-                  <div style={{ fontSize:10, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Hard truth</div>
-                  <p style={{ fontSize:14.5, color:"var(--z-text)", lineHeight:1.7, margin:0 }}>{result.hardTruth}</p>
+              <div style={{ display:"grid", gap:18 }}>
+                <div style={{ borderRadius:14, background:"rgba(220,38,38,0.04)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #DC2626", padding:"22px 26px" }}>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:"#DC2626", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Hard truth</div>
+                  <p style={{ fontSize:15, color:"var(--z-text)", lineHeight:1.8, margin:0 }}>{result.hardTruth}</p>
                 </div>
-                <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"20px 22px" }}>
-                  <div style={{ fontSize:10, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:12 }}>Target roles to consider</div>
-                  <div style={{ display:"grid", gap:8 }}>
+                <div style={{ borderRadius:14, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #38BDF8", padding:"22px 26px" }}>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:"#38BDF8", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:14 }}>Target roles to consider</div>
+                  <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                     {result.targetRoles.map((r, i) => (
-                      <div key={i} style={{ display:"flex", gap:10, alignItems:"flex-start", padding:"10px 14px", borderRadius:10, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
-                        <svg viewBox="0 0 12 12" fill="none" stroke="var(--z-text3)" strokeWidth="2" style={{ width:11,height:11,flexShrink:0,marginTop:2 }}><path d="M2 6h8M7 3l3 3-3 3"/></svg>
-                        <span style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.7 }}>{r}</span>
+                      <div key={i} style={{ display:"flex", gap:12, alignItems:"flex-start", padding:"12px 16px", borderRadius:10, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
+                        <svg viewBox="0 0 12 12" fill="none" stroke="#38BDF8" strokeWidth="2" style={{ width:12,height:12,flexShrink:0,marginTop:2 }}><path d="M2 6h8M7 3l3 3-3 3"/></svg>
+                        <span style={{ fontSize:14, color:"var(--z-text)", lineHeight:1.7 }}>{r}</span>
                       </div>
                     ))}
                   </div>
@@ -4961,34 +4960,37 @@ function ScreenPivotAnalysis() {
               </div>
             )}
             {tab === "assets" && (
-              <div style={{ display:"grid", gap:12 }}>
+              <div style={{ display:"grid", gap:14 }}>
                 {result.transferableAssets.map((a, i) => {
-                  const sColor = a.strength === "Strong" ? "#10B981" : a.strength === "Moderate" ? "#D97706" : "#6B7280";
+                  const sColor = a.strength === "Strong" ? "#059669" : a.strength === "Moderate" ? "#D97706" : "#6B7280";
+                  const sBg = a.strength === "Strong" ? "rgba(5,150,105,0.08)" : a.strength === "Moderate" ? "rgba(217,119,6,0.08)" : "rgba(107,114,128,0.08)";
+                  const sBorder = a.strength === "Strong" ? "rgba(5,150,105,0.3)" : a.strength === "Moderate" ? "rgba(217,119,6,0.3)" : "rgba(107,114,128,0.3)";
                   return (
-                    <div key={i} style={{ borderRadius:18, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"24px 26px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
-                        <div style={{ fontSize:14, fontWeight:800, color:"var(--z-text)", flex:1 }}>{a.skill}</div>
-                        <span style={{ fontSize:11, fontWeight:800, color:"var(--z-text2)", background:"var(--z-raise)", border:"1px solid var(--z-bd)", padding:"3px 10px", borderRadius:999, textTransform:"uppercase", letterSpacing:"0.06em" }}>{a.strength}</span>
+                    <div key={i} style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:`4px solid ${sColor}`, padding:"22px 26px" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:12 }}>
+                        <div style={{ fontSize:15, fontWeight:800, color:"var(--z-text)", flex:1 }}>{a.skill}</div>
+                        <span style={{ fontSize:11, fontWeight:800, color:sColor, background:sBg, border:`1px solid ${sBorder}`, padding:"4px 12px", borderRadius:999, textTransform:"uppercase", letterSpacing:"0.07em" }}>{a.strength}</span>
                       </div>
-                      <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.75, margin:0 }}>{a.evidence}</p>
+                      <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.8, margin:0 }}>{a.evidence}</p>
                     </div>
                   );
                 })}
               </div>
             )}
             {tab === "gaps" && (
-              <div style={{ display:"grid", gap:12 }}>
+              <div style={{ display:"grid", gap:14 }}>
                 {result.skillGaps.map((g, i) => {
                   const gColor = severityColor[g.severity];
+                  const gBg = g.severity === "critical" ? "rgba(239,68,68,0.04)" : g.severity === "moderate" ? "rgba(217,119,6,0.04)" : "rgba(107,114,128,0.04)";
                   return (
-                    <div key={i} style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"18px 22px" }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
-                        <div style={{ fontSize:14, fontWeight:800, color:"var(--z-text)", flex:1 }}>{g.gap}</div>
-                        <span style={{ fontSize:11, fontWeight:800, color:"var(--z-text2)", background:"var(--z-raise)", border:"1px solid var(--z-bd)", padding:"3px 10px", borderRadius:999, textTransform:"uppercase", letterSpacing:"0.06em" }}>{g.severity}</span>
+                    <div key={i} style={{ borderRadius:14, background:gBg, border:"1px solid var(--z-bd)", borderLeft:`4px solid ${gColor}`, padding:"20px 24px" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
+                        <div style={{ fontSize:15, fontWeight:800, color:"var(--z-text)", flex:1 }}>{g.gap}</div>
+                        <span style={{ fontSize:11, fontWeight:800, color:gColor, background:`${gColor}15`, border:`1px solid ${gColor}40`, padding:"4px 12px", borderRadius:999, textTransform:"uppercase", letterSpacing:"0.07em" }}>{g.severity}</span>
                       </div>
-                      <div style={{ display:"flex", gap:8, alignItems:"flex-start" }}>
-                        <svg viewBox="0 0 12 12" fill="none" stroke="var(--z-text3)" strokeWidth="2" style={{ width:12,height:12,flexShrink:0,marginTop:2 }}><path d="M6 1v6M6 9v.5"/></svg>
-                        <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.75, margin:0 }}>{g.path}</p>
+                      <div style={{ display:"flex", gap:10, alignItems:"flex-start", padding:"12px 14px", borderRadius:10, background:"var(--z-card)", border:"1px solid var(--z-bd)" }}>
+                        <svg viewBox="0 0 12 12" fill="none" stroke={gColor} strokeWidth="2" style={{ width:12,height:12,flexShrink:0,marginTop:2 }}><path d="M6 1v6M6 9v.5"/></svg>
+                        <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.75, margin:0 }}>{g.path}</p>
                       </div>
                     </div>
                   );
@@ -4996,22 +4998,22 @@ function ScreenPivotAnalysis() {
               </div>
             )}
             {tab === "plan" && (
-              <div style={{ display:"grid", gap:14 }}>
-                <div style={{ borderRadius:18, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"26px 28px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
-                  <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>Your pivot narrative</div>
-                  <p style={{ fontSize:14.5, color:"var(--z-text)", lineHeight:1.85, margin:0, fontStyle:"italic", borderLeft:"3px solid var(--z-bd2)", paddingLeft:16 }}>{result.pivotNarrative}</p>
+              <div style={{ display:"grid", gap:18 }}>
+                <div style={{ borderRadius:16, background:"rgba(37,99,235,0.04)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #2563EB", padding:"24px 28px" }}>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:14 }}>Your pivot narrative</div>
+                  <p style={{ fontSize:15, color:"var(--z-text)", lineHeight:1.9, margin:0, fontStyle:"italic" }}>{result.pivotNarrative}</p>
                 </div>
-                <div style={{ borderRadius:18, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"26px 28px" }}>
-                  <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>How to reframe your resume</div>
-                  <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.85, margin:0 }}>{result.resumeReframe}</p>
+                <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"24px 28px" }}>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:14 }}>How to reframe your resume</div>
+                  <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.85, margin:0 }}>{result.resumeReframe}</p>
                 </div>
-                <div style={{ borderRadius:18, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"26px 28px" }}>
-                  <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:14 }}>Quick wins to do now</div>
-                  <div style={{ display:"grid", gap:10 }}>
+                <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #059669", padding:"24px 28px" }}>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:16 }}>Quick wins to do now</div>
+                  <div style={{ display:"grid", gap:12 }}>
                     {result.quickWins.map((w, i) => (
-                      <div key={i} style={{ display:"flex", gap:12, alignItems:"flex-start", padding:"12px 14px", borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
-                        <span style={{ fontSize:11, fontWeight:900, color:"var(--z-text3)", background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:999, width:20, height:20, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{i+1}</span>
-                        <span style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.7 }}>{w}</span>
+                      <div key={i} style={{ display:"flex", gap:14, alignItems:"flex-start", padding:"14px 16px", borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
+                        <span style={{ fontSize:11, fontWeight:900, color:"#059669", background:"rgba(5,150,105,0.1)", border:"1px solid rgba(5,150,105,0.25)", borderRadius:999, width:24, height:24, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{i+1}</span>
+                        <span style={{ fontSize:14, color:"var(--z-text)", lineHeight:1.75 }}>{w}</span>
                       </div>
                     ))}
                   </div>
@@ -5551,7 +5553,7 @@ function ScreenSalaryNegotiationSim() {
    SALARY STAGE: NEGOTIATION EMAIL (v2 — 3 versions)
 ═══════════════════════════════════════════════════ */
 function ScreenSalaryNegotiationEmail() {
-  type EmailVersion = { subject:string; email:string; tone:string; label:string; color:string; bg:string };
+  type EmailVersion = { subject:string; email:string; sendTips:string[]; tone:string; label:string; color:string; bg:string };
   const [form, setForm] = useState({ role:"", company:"", currentComp:"", targetComp:"", competingOffer:"", reason:"", emailType:"offer" });
   const [versions, setVersions] = useState<EmailVersion[] | null>(null);
   const [activeVersion, setActiveVersion] = useState(0);
@@ -5576,12 +5578,13 @@ function ScreenSalaryNegotiationEmail() {
         fetch("/api/zari/negotiation-email", {
           method:"POST", headers:{"Content-Type":"application/json"},
           body: JSON.stringify({ ...form, tone: tc.tone }),
-        }).then(r => r.json()).catch(() => null) as Promise<{ subject?:string; email?:string; error?:string } | null>
+        }).then(r => r.json()).catch(() => null) as Promise<{ subject?:string; email?:string; sendTips?:string[]; error?:string } | null>
       )
     );
     const built: EmailVersion[] = results.map((r, i) => ({
       subject: r?.subject ?? `Compensation Discussion — ${form.role}`,
       email: r?.email ?? "",
+      sendTips: Array.isArray(r?.sendTips) ? r.sendTips : [],
       ...toneConfigs[i],
     })).filter(v => v.email);
     if (!built.length) { setError("Something went wrong — try again."); setGenerating(false); return; }
@@ -5655,16 +5658,18 @@ function ScreenSalaryNegotiationEmail() {
               <pre style={{ fontFamily:"inherit", fontSize:14.5, color:"var(--z-text)", lineHeight:1.9, whiteSpace:"pre-wrap", margin:0 }}>{v.email}</pre>
             </div>
           </div>
-          <div style={{ borderRadius:14, padding:"18px 22px", background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderLeft:`4px solid #D97706` }}>
-            <div style={{ fontSize:10.5, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Before you send</div>
-            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-              {["Replace [Name] with the actual recipient.", "Send within 24-48 hours of receiving the offer — don't let the window close.", "If they ask why that number, have your market data ready: Levels.fyi, Glassdoor, LinkedIn Salary.", "Lead with excitement, ask second — don't open with the number."].map((tip, i) => (
-                <div key={i} style={{ display:"flex", gap:10, alignItems:"flex-start", fontSize:13.5, color:"var(--z-text2)", lineHeight:1.65 }}>
-                  <span style={{ color:"#D97706", fontWeight:800, flexShrink:0, marginTop:1 }}>→</span>{tip}
-                </div>
-              ))}
+          {v.sendTips.length > 0 && (
+            <div style={{ borderRadius:14, padding:"20px 24px", background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderLeft:`4px solid ${v.color}` }}>
+              <div style={{ fontSize:10.5, fontWeight:800, color:v.color, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>Before you send</div>
+              <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                {v.sendTips.map((tip, i) => (
+                  <div key={i} style={{ display:"flex", gap:10, alignItems:"flex-start", fontSize:14, color:"var(--z-text2)", lineHeight:1.7 }}>
+                    <span style={{ color:v.color, fontWeight:800, flexShrink:0, marginTop:1 }}>→</span>{tip}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     );
@@ -6173,42 +6178,47 @@ Rules:
   }
 
   if (result) {
+    const targetMeta = { board: { label:"Board Seat", color:"#7C3AED", bg:"rgba(124,58,237,0.08)", border:"rgba(124,58,237,0.25)" }, advisory: { label:"Advisory Role", color:"#0891B2", bg:"rgba(8,145,178,0.08)", border:"rgba(8,145,178,0.25)" }, fractional: { label:"Fractional Exec", color:"#059669", bg:"rgba(5,150,105,0.08)", border:"rgba(5,150,105,0.25)" }, exec: { label:"Exec Role", color:"#2563EB", bg:"rgba(37,99,235,0.08)", border:"rgba(37,99,235,0.25)" } };
+    const tm = targetMeta[form.targetType as keyof typeof targetMeta] ?? targetMeta.exec;
     return (
       <div style={{ height:"100%", display:"flex", overflow:"hidden", background:"var(--z-raise)" }}>
-        <div style={{ width:264, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column" }}>
-          <div style={{ padding:"22px 16px 14px" }}>
-            <div style={{ fontSize:9, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Exec Outreach</div>
-            <div style={{ fontSize:13.5, fontWeight:800, color:"var(--z-text)", marginBottom:4 }}>{form.currentRole}</div>
-            {form.orgName && <div style={{ fontSize:12, color:"var(--z-text2)", marginBottom:12 }}>→ {form.orgName}</div>}
-            <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
+        <div style={{ width:272, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column" }}>
+          <div style={{ padding:"24px 18px 18px" }}>
+            <div style={{ fontSize:9.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:10 }}>Exec Outreach</div>
+            <div style={{ marginBottom:12 }}>
+              <span style={{ fontSize:11.5, fontWeight:800, color:tm.color, background:tm.bg, border:`1px solid ${tm.border}`, padding:"5px 12px", borderRadius:99, display:"inline-block", textTransform:"uppercase", letterSpacing:"0.08em" }}>{tm.label}</span>
+            </div>
+            <div style={{ fontSize:14, fontWeight:800, color:"var(--z-text)", marginBottom:4 }}>{form.currentRole}</div>
+            {form.orgName && <div style={{ fontSize:13, color:"var(--z-text2)", marginBottom:14 }}>→ {form.orgName}</div>}
+            <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
               {([
-                { label:"Target", value:form.targetType === "board" ? "Board seat" : form.targetType === "advisory" ? "Advisory role" : form.targetType === "fractional" ? "Fractional exec" : "Exec role" },
-                { label:"Tone", value:form.tone === "formal" ? "Formal" : "Warm & direct" },
-              ] as {label:string;value:string}[]).map(r => (
-                <div key={r.label} style={{ display:"flex", justifyContent:"space-between", padding:"5px 9px", borderRadius:7, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
-                  <span style={{ fontSize:10, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em" }}>{r.label}</span>
-                  <span style={{ fontSize:11, fontWeight:800, color:"var(--z-text2)" }}>{r.value}</span>
+                { label:"Tone", value:form.tone === "formal" ? "Formal & polished" : "Warm & direct" },
+                form.name ? { label:"Name", value:form.name } : null,
+              ] as ({label:string;value:string}|null)[]).filter(Boolean).map(r => (
+                <div key={r!.label} style={{ display:"flex", justifyContent:"space-between", padding:"6px 10px", borderRadius:8, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
+                  <span style={{ fontSize:10, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em" }}>{r!.label}</span>
+                  <span style={{ fontSize:11, fontWeight:800, color:"var(--z-text2)" }}>{r!.value}</span>
                 </div>
               ))}
             </div>
           </div>
           <div style={{ flex:1 }}/>
-          <div style={{ padding:"10px 12px 14px", borderTop:"1px solid var(--z-bd)", display:"flex", gap:6 }}>
-            <button onClick={() => setResult(null)} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Edit</button>
-            <button onClick={() => { setResult(null); setForm({ name:"", currentRole:"", targetType:"board", orgName:"", orgContext:"", uniqueValue:"", tone:"formal" }); }} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>New</button>
+          <div style={{ padding:"10px 14px 16px", borderTop:"1px solid var(--z-bd)", display:"flex", gap:6 }}>
+            <button onClick={() => setResult(null)} style={{ flex:1, fontSize:12, fontWeight:700, padding:"8px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Edit</button>
+            <button onClick={() => { setResult(null); setForm({ name:"", currentRole:"", targetType:"board", orgName:"", orgContext:"", uniqueValue:"", tone:"formal" }); }} style={{ flex:1, fontSize:12, fontWeight:700, padding:"8px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>New</button>
           </div>
         </div>
-        <div style={{ flex:1, overflowY:"auto", padding:"24px 28px 40px" }}>
-          <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:14, overflow:"hidden" }}>
-            <div style={{ padding:"16px 22px", borderBottom:"1px solid var(--z-bd)", background:"var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-              <div>
-                <div style={{ fontSize:10, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:3 }}>Subject</div>
-                <div style={{ fontSize:14, fontWeight:700, color:"var(--z-text)" }}>{result.subject}</div>
+        <div style={{ flex:1, overflowY:"auto", padding:"28px 32px 48px" }}>
+          <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderTop:`3px solid ${tm.color}`, borderRadius:16, overflow:"hidden" }}>
+            <div style={{ padding:"18px 26px", borderBottom:"1px solid var(--z-bd)", background:tm.bg, display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16 }}>
+              <div style={{ flex:1 }}>
+                <div style={{ fontSize:10, fontWeight:800, color:tm.color, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>Subject</div>
+                <div style={{ fontSize:15, fontWeight:700, color:"var(--z-text)", lineHeight:1.4 }}>{result.subject}</div>
               </div>
-              <button onClick={() => { void navigator.clipboard.writeText(`Subject: ${result.subject}\n\n${result.letter}`); setCopied(true); setTimeout(() => setCopied(false), 2500); }} style={{ fontSize:12.5, fontWeight:700, padding:"7px 16px", borderRadius:9, border:"1px solid var(--z-bd)", background:copied ? "#EFF6FF" : "var(--z-card)", color:copied ? "#2563EB" : "var(--z-text2)", cursor:"pointer", flexShrink:0 }}>{copied ? "Copied ✓" : "Copy letter"}</button>
+              <button onClick={() => { void navigator.clipboard.writeText(`Subject: ${result.subject}\n\n${result.letter}`); setCopied(true); setTimeout(() => setCopied(false), 2500); }} style={{ fontSize:12.5, fontWeight:700, padding:"8px 18px", borderRadius:10, border:`1px solid ${copied ? tm.color : "var(--z-bd)"}`, background:copied ? tm.bg : "var(--z-card)", color:copied ? tm.color : "var(--z-text2)", cursor:"pointer", flexShrink:0, transition:"all 0.2s" }}>{copied ? "Copied ✓" : "Copy letter"}</button>
             </div>
-            <div style={{ padding:"22px 24px" }}>
-              <pre style={{ fontFamily:"inherit", fontSize:14, color:"var(--z-text)", lineHeight:1.85, whiteSpace:"pre-wrap", margin:0 }}>{result.letter}</pre>
+            <div style={{ padding:"28px 30px" }}>
+              <pre style={{ fontFamily:"inherit", fontSize:14.5, color:"var(--z-text)", lineHeight:1.9, whiteSpace:"pre-wrap", margin:0 }}>{result.letter}</pre>
             </div>
           </div>
         </div>
@@ -6406,34 +6416,34 @@ function ScreenExecPositioning() {
         {/* RIGHT PANEL */}
         <div style={{ flex:1, overflowY:"auto", padding:"24px 28px 40px" }}>
             {tab === "overview" && (
-              <div style={{ display:"grid", gap:14 }}>
-                <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"18px 22px" }}>
-                  <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Hard truth</div>
-                  <p style={{ fontSize:15, color:"var(--z-text)", lineHeight:1.8, margin:0, fontWeight:500 }}>{result.hardTruth}</p>
+              <div style={{ display:"grid", gap:18 }}>
+                <div style={{ borderRadius:14, background:"rgba(220,38,38,0.04)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #DC2626", padding:"22px 26px" }}>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:"#DC2626", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Hard truth</div>
+                  <p style={{ fontSize:15, color:"var(--z-text)", lineHeight:1.8, margin:0 }}>{result.hardTruth}</p>
                 </div>
-                <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"22px 24px" }}>
-                  <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:14 }}>The executive narrative</div>
-                  <p style={{ fontSize:15.5, color:"var(--z-text)", lineHeight:1.9, margin:0, fontStyle:"italic", borderLeft:"3px solid var(--z-bd2)", paddingLeft:16 }}>{result.executiveNarrative}</p>
+                <div style={{ borderRadius:14, background:"rgba(37,99,235,0.04)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #2563EB", padding:"22px 26px" }}>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:14 }}>The executive narrative</div>
+                  <p style={{ fontSize:15.5, color:"var(--z-text)", lineHeight:1.9, margin:0, fontStyle:"italic" }}>{result.executiveNarrative}</p>
                 </div>
-                <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))", gap:12 }}>
-                  <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"18px 20px" }}>
-                    <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>Executive strengths</div>
-                    <div style={{ display:"grid", gap:8 }}>
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))", gap:14 }}>
+                  <div style={{ borderRadius:14, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #059669", padding:"20px 24px" }}>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:14 }}>Executive strengths</div>
+                    <div style={{ display:"grid", gap:10 }}>
                       {result.strengths.map((s, i) => (
-                        <div key={i} style={{ display:"flex", gap:10, alignItems:"flex-start", fontSize:13, color:"var(--z-text2)", lineHeight:1.7 }}>
-                          <svg viewBox="0 0 12 12" fill="none" stroke="var(--z-text2)" strokeWidth="2" style={{ width:12,height:12,flexShrink:0,marginTop:2 }}><path d="M2 6l3 3 5-5"/></svg>
-                          {s}
+                        <div key={i} style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
+                          <svg viewBox="0 0 12 12" fill="none" stroke="#059669" strokeWidth="2.5" style={{ width:13,height:13,flexShrink:0,marginTop:2 }}><path d="M2 6l3 3 5-5"/></svg>
+                          <span style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.75 }}>{s}</span>
                         </div>
                       ))}
                     </div>
                   </div>
-                  <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"18px 20px" }}>
-                    <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>Watchouts</div>
-                    <div style={{ display:"grid", gap:8 }}>
+                  <div style={{ borderRadius:14, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #D97706", padding:"20px 24px" }}>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:14 }}>Watchouts</div>
+                    <div style={{ display:"grid", gap:10 }}>
                       {result.watchouts.map((w, i) => (
-                        <div key={i} style={{ display:"flex", gap:10, alignItems:"flex-start", fontSize:13, color:"var(--z-text2)", lineHeight:1.7 }}>
-                          <svg viewBox="0 0 12 12" fill="none" stroke="var(--z-text3)" strokeWidth="2" style={{ width:12,height:12,flexShrink:0,marginTop:2 }}><path d="M6 1v5M6 8v.5"/></svg>
-                          {w}
+                        <div key={i} style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
+                          <svg viewBox="0 0 12 12" fill="none" style={{ width:13,height:13,flexShrink:0,marginTop:2 }}><path d="M6 1L11.5 10H0.5L6 1z" fill="rgba(217,119,6,0.15)" stroke="#D97706" strokeWidth="1.5" strokeLinejoin="round"/><path d="M6 5v2.5M6 8.5v.5" stroke="#D97706" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                          <span style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.75 }}>{w}</span>
                         </div>
                       ))}
                     </div>
@@ -6442,45 +6452,50 @@ function ScreenExecPositioning() {
               </div>
             )}
             {tab === "gaps" && (
-              <div style={{ display:"grid", gap:12 }}>
+              <div style={{ display:"grid", gap:14 }}>
                 {result.presenceGaps.map((g, i) => {
-                  const gColor = g.severity === "critical" ? "#EF4444" : "#D97706";
+                  const gColor = g.severity === "critical" ? "#DC2626" : "#D97706";
+                  const gBg = g.severity === "critical" ? "rgba(220,38,38,0.04)" : "rgba(217,119,6,0.04)";
                   return (
-                    <div key={i} style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"18px 22px" }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
-                        <div style={{ fontSize:14, fontWeight:800, color:"var(--z-text)", flex:1 }}>{g.area}</div>
-                        <span style={{ fontSize:11, fontWeight:800, color:"var(--z-text2)", background:"var(--z-raise)", border:"1px solid var(--z-bd)", padding:"3px 10px", borderRadius:999, textTransform:"uppercase", letterSpacing:"0.06em" }}>{g.severity}</span>
+                    <div key={i} style={{ borderRadius:14, background:gBg, border:"1px solid var(--z-bd)", borderLeft:`4px solid ${gColor}`, padding:"20px 24px" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
+                        <div style={{ fontSize:15, fontWeight:800, color:"var(--z-text)", flex:1 }}>{g.area}</div>
+                        <span style={{ fontSize:11, fontWeight:800, color:gColor, background:`${gColor}15`, border:`1px solid ${gColor}40`, padding:"4px 12px", borderRadius:999, textTransform:"uppercase", letterSpacing:"0.07em" }}>{g.severity}</span>
                       </div>
-                      <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.75, margin:0 }}>{g.action}</p>
+                      <div style={{ padding:"12px 14px", borderRadius:10, background:"var(--z-card)", border:"1px solid var(--z-bd)" }}>
+                        <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.8, margin:0 }}>{g.action}</p>
+                      </div>
                     </div>
                   );
                 })}
               </div>
             )}
             {tab === "moves" && (
-              <div style={{ display:"grid", gap:12 }}>
+              <div style={{ display:"grid", gap:14 }}>
                 {result.positioningMoves.map((m, i) => (
-                  <div key={i} style={{ borderRadius:18, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"24px 26px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
-                      <span style={{ fontSize:11, fontWeight:900, color:"var(--z-text2)", background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderRadius:999, width:26, height:26, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{i+1}</span>
+                  <div key={i} style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #2563EB", padding:"22px 26px" }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:14 }}>
+                      <span style={{ fontSize:11, fontWeight:900, color:"#2563EB", background:"rgba(37,99,235,0.1)", border:"1px solid rgba(37,99,235,0.2)", borderRadius:999, width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{i+1}</span>
                       <div style={{ fontSize:15, fontWeight:800, color:"var(--z-text)" }}>{m.title}</div>
                     </div>
-                    <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.78, margin:"0 0 10px" }}>{m.move}</p>
-                    <div style={{ display:"flex", gap:8, alignItems:"flex-start", padding:"10px 12px", borderRadius:10, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
-                      <svg viewBox="0 0 12 12" fill="none" stroke="var(--z-text3)" strokeWidth="1.8" style={{ width:11,height:11,flexShrink:0,marginTop:2 }}><path d="M6 1l1.5 3 3.5.5-2.5 2.5.5 3.5L6 9l-3 1.5.5-3.5L1 4.5 4.5 4z"/></svg>
-                      <span style={{ fontSize:12, color:"var(--z-text2)", lineHeight:1.65 }}>{m.why}</span>
+                    <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.8, margin:"0 0 14px" }}>{m.move}</p>
+                    <div style={{ display:"flex", gap:10, alignItems:"flex-start", padding:"12px 14px", borderRadius:10, background:"rgba(37,99,235,0.05)", border:"1px solid rgba(37,99,235,0.15)" }}>
+                      <svg viewBox="0 0 12 12" fill="none" stroke="#2563EB" strokeWidth="1.8" style={{ width:12,height:12,flexShrink:0,marginTop:2 }}><path d="M6 1l1.5 3 3.5.5-2.5 2.5.5 3.5L6 9l-3 1.5.5-3.5L1 4.5 4.5 4z"/></svg>
+                      <span style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.7 }}>{m.why}</span>
                     </div>
                   </div>
                 ))}
               </div>
             )}
             {tab === "bio" && (
-              <div style={{ borderRadius:18, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"26px 28px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
-                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
-                  <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em" }}>Board bio draft</div>
-                  <button onClick={() => { void navigator.clipboard.writeText(result.boardBio); setBioCopied(true); setTimeout(() => setBioCopied(false), 2000); }} style={{ fontSize:12, fontWeight:700, padding:"7px 14px", borderRadius:10, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:bioCopied ? "#2563EB" : "var(--z-text2)", cursor:"pointer", transition:"all 0.2s" }}>{bioCopied ? "Copied ✓" : "Copy"}</button>
+              <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
+                <div style={{ padding:"16px 26px", borderBottom:"1px solid var(--z-bd)", background:"var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em" }}>Board bio draft</div>
+                  <button onClick={() => { void navigator.clipboard.writeText(result.boardBio); setBioCopied(true); setTimeout(() => setBioCopied(false), 2000); }} style={{ fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:10, border:"1px solid var(--z-bd)", background:bioCopied ? "rgba(37,99,235,0.08)" : "var(--z-card)", color:bioCopied ? "#2563EB" : "var(--z-text2)", cursor:"pointer", transition:"all 0.2s" }}>{bioCopied ? "Copied ✓" : "Copy"}</button>
                 </div>
-                <p style={{ fontSize:14.5, color:"var(--z-text)", lineHeight:1.9, margin:0 }}>{result.boardBio}</p>
+                <div style={{ padding:"28px 30px" }}>
+                  <p style={{ fontSize:15, color:"var(--z-text)", lineHeight:1.9, margin:0 }}>{result.boardBio}</p>
+                </div>
               </div>
             )}
         </div>
