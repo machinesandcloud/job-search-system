@@ -5320,6 +5320,7 @@ function ScreenSalaryNegotiationSim() {
   type SimMsg = { role: "zari" | "user"; text: string; coaching?: string | null; betterPhrasing?: string | null };
   type DebriefResult = { score: number; verdict: string; summary: string; nailed: string[]; improve: string[]; phrases: { original: string; better: string }[] };
   const [phase, setPhase] = useState<"setup" | "chat" | "debrief">("setup");
+  const [simStep, setSimStep] = useState<1|2>(1);
   const [scenario, setScenario] = useState("new-offer");
   const [difficulty, setDifficulty] = useState("realistic");
   const [form, setForm] = useState({ role:"", company:"", currentComp:"", targetComp:"", leverage:"" });
@@ -5406,70 +5407,149 @@ function ScreenSalaryNegotiationSim() {
     setDebriefLoading(false);
   }
 
-  function reset() { setPhase("setup"); setMsgs([]); setInput(""); setDebrief(null); setError(""); }
+  function reset() { setPhase("setup"); setSimStep(1); setMsgs([]); setInput(""); setDebrief(null); setError(""); }
 
   if (phase === "setup") {
     const sel = scenarios.find(s => s.value === scenario);
+    const card: React.CSSProperties = { background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"26px 28px", boxShadow:"0 2px 24px rgba(0,0,0,0.08)" };
+    const SIM_STEPS = [
+      { label:"Scenario", title:"Choose your scenario", subtitle:"Pick what you're practicing — each scenario trains a different negotiation pattern.", icon:"🎭", desc:"Scenario & difficulty", tips:["New offer and counter offer need different openers — pick the one matching your actual situation.","Realistic difficulty is closest to what you'll actually face in a real negotiation.","You can restart with the same scenario after the debrief and improve your score."] },
+      { label:"Your details", title:"Your details", subtitle:"The more specific you are, the more realistic the simulation.", icon:"🎯", desc:"Your context", tips:["Use your actual role title — Zari calibrates the pushback to what's normal in your field.","If you have a competing offer, add it. It's your single strongest piece of leverage.","Skip fields you're unsure about — Zari will still run a useful sim."] },
+    ];
+    const stepCtx = SIM_STEPS[simStep - 1];
     return (
       <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
-        <div style={{ maxWidth:640, margin:"0 auto", padding:"32px 24px 64px" }}>
-          <div style={{ marginBottom:32 }}>
-            <div style={{ fontSize:10.5, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:10 }}>Negotiation Sim</div>
-            <h1 style={{ fontSize:28, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 10px" }}>Practice until the number feels natural</h1>
-            <p style={{ fontSize:14.5, color:"var(--z-text2)", lineHeight:1.75, margin:0 }}>Zari plays the hiring manager. You negotiate. Live coaching after every exchange. Debrief at the end.</p>
-          </div>
-
-          <div style={{ marginBottom:28 }}>
-            <p style={{ fontSize:11.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", margin:"0 0 12px" }}>What are you practicing?</p>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-              {scenarios.map(s => (
-                <button key={s.value} onClick={() => setScenario(s.value)} style={{ textAlign:"left", padding:"16px 18px", borderRadius:14, border:`2px solid ${scenario === s.value ? s.border : "var(--z-bd)"}`, background:scenario === s.value ? s.bg : "var(--z-card)", cursor:"pointer", transition:"all 0.15s" }}>
-                  <div style={{ fontSize:13.5, fontWeight:800, color:scenario === s.value ? s.color : "var(--z-text)", marginBottom:4 }}>{s.label}</div>
-                  <div style={{ fontSize:12, color:"var(--z-text3)", lineHeight:1.5 }}>{s.desc}</div>
-                </button>
+        {/* Page header */}
+        <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
+            <div>
+              <h1 style={{ fontSize:18, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:"0 0 3px" }}>Negotiation Sim</h1>
+              <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>Practice until the number feels natural. Live coaching after every exchange.</p>
+            </div>
+            <div style={{ display:"flex", alignItems:"center", gap:0 }}>
+              {([1,2] as const).map(s => (
+                <div key={s} style={{ display:"flex", alignItems:"center" }}>
+                  <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:5 }}>
+                    <div style={{ width:32, height:32, borderRadius:"50%", border:`1.5px solid ${s <= simStep ? "#2563EB" : "var(--z-bd)"}`, background:s < simStep ? "#2563EB" : "var(--z-card)", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
+                      {s < simStep ? <svg viewBox="0 0 12 12" fill="none" stroke="white" strokeWidth="2.5" style={{width:12,height:12}}><polyline points="2,6 5,9 10,3"/></svg> : <span style={{ fontSize:12, fontWeight:700, color:s===simStep?"#2563EB":"var(--z-text3)" }}>{s}</span>}
+                    </div>
+                    <span style={{ fontSize:10, fontWeight:700, color:s===simStep?"#2563EB":"var(--z-text3)", letterSpacing:"0.04em", whiteSpace:"nowrap" }}>{SIM_STEPS[s-1].label}</span>
+                  </div>
+                  {s < 2 && <div style={{ width:40, height:2, borderRadius:99, background:s < simStep ? "#2563EB" : "var(--z-bd2)", margin:"0 6px", marginBottom:18, transition:"all 0.3s" }}/>}
+                </div>
               ))}
             </div>
           </div>
+        </div>
 
-          <div style={{ marginBottom:28 }}>
-            <p style={{ fontSize:11.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", margin:"0 0 12px" }}>Difficulty</p>
-            <div style={{ display:"flex", gap:10 }}>
-              {difficulties.map(d => (
-                <button key={d.value} onClick={() => setDifficulty(d.value)} style={{ flex:1, padding:"13px 14px", borderRadius:12, border:`2px solid ${difficulty === d.value ? "#2563EB" : "var(--z-bd)"}`, background:difficulty === d.value ? "rgba(37,99,235,0.08)" : "var(--z-card)", cursor:"pointer", transition:"all 0.15s" }}>
-                  <div style={{ fontSize:13, fontWeight:800, color:difficulty === d.value ? "#2563EB" : "var(--z-text)", marginBottom:3 }}>{d.label}</div>
-                  <div style={{ fontSize:11, color:"var(--z-text3)", lineHeight:1.4 }}>{d.desc}</div>
-                </button>
-              ))}
+        {/* Two-column body */}
+        <div style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 300px", gap:28, alignItems:"start" }}>
+          <div>
+            <div style={{ marginBottom:24 }}>
+              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"var(--z-text3)", marginBottom:6 }}>Step {simStep} of 2</p>
+              <h2 style={{ fontSize:24, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 8px" }}>{stepCtx.title}</h2>
+              <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.65, margin:0 }}>{stepCtx.subtitle}</p>
+            </div>
+
+            {simStep === 1 && (
+              <div style={{ ...card, display:"grid", gap:24 }}>
+                <div>
+                  <p style={{ fontSize:11, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", margin:"0 0 12px" }}>What are you practicing?</p>
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+                    {scenarios.map(s => (
+                      <button key={s.value} onClick={() => setScenario(s.value)} style={{ textAlign:"left", padding:"16px 18px", borderRadius:14, border:`2px solid ${scenario===s.value ? s.border : "var(--z-bd)"}`, background:scenario===s.value ? s.bg : "var(--z-raise)", cursor:"pointer", transition:"all 0.15s" }}>
+                        <div style={{ fontSize:13.5, fontWeight:800, color:scenario===s.value ? s.color : "var(--z-text)", marginBottom:4 }}>{s.label}</div>
+                        <div style={{ fontSize:12, color:"var(--z-text3)", lineHeight:1.5 }}>{s.desc}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <p style={{ fontSize:11, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", margin:"0 0 12px" }}>Difficulty</p>
+                  <div style={{ display:"flex", gap:10 }}>
+                    {difficulties.map(d => (
+                      <button key={d.value} onClick={() => setDifficulty(d.value)} style={{ flex:1, padding:"13px 14px", borderRadius:12, border:`2px solid ${difficulty===d.value ? "#2563EB" : "var(--z-bd)"}`, background:difficulty===d.value ? "rgba(37,99,235,0.08)" : "var(--z-raise)", cursor:"pointer", transition:"all 0.15s" }}>
+                        <div style={{ fontSize:13, fontWeight:800, color:difficulty===d.value ? "#2563EB" : "var(--z-text)", marginBottom:3 }}>{d.label}</div>
+                        <div style={{ fontSize:11, color:"var(--z-text3)", lineHeight:1.4 }}>{d.desc}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {simStep === 2 && (
+              <div style={{ ...card, display:"grid", gap:14 }}>
+                <div>
+                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Role <span style={{ color:"#F87171" }}>*</span></p>
+                  <input value={form.role} onChange={e => setForm(f => ({...f,role:e.target.value}))} placeholder="e.g. Senior Product Manager" style={inp} />
+                </div>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                  <div>
+                    <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Company (optional)</p>
+                    <input value={form.company} onChange={e => setForm(f => ({...f,company:e.target.value}))} placeholder="e.g. Stripe" style={inp} />
+                  </div>
+                  <div>
+                    <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Target comp</p>
+                    <input value={form.targetComp} onChange={e => setForm(f => ({...f,targetComp:e.target.value}))} placeholder="e.g. $165K base" style={inp} />
+                  </div>
+                </div>
+                <div>
+                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Competing offer or leverage (optional)</p>
+                  <input value={form.leverage} onChange={e => setForm(f => ({...f,leverage:e.target.value}))} placeholder="e.g. Competing offer at $155K from Acme" style={inp} />
+                </div>
+              </div>
+            )}
+
+            {error && <div style={{ marginTop:14, background:"rgba(127,29,29,0.2)", border:"1px solid rgba(248,113,113,0.28)", borderRadius:14, padding:"11px 14px", fontSize:13, color:"#FCA5A5" }}>{error}</div>}
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:10, marginTop:22 }}>
+              <button onClick={() => simStep===1 ? setForm({role:"",company:"",currentComp:"",targetComp:"",leverage:""}) : setSimStep(1)} style={{ padding:"13px 20px", borderRadius:14, border:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text3)", fontSize:13.5, fontWeight:600, cursor:"pointer" }}>
+                {simStep===1 ? "Clear" : "← Back"}
+              </button>
+              <button onClick={() => { if (simStep===1) setSimStep(2); else void startSim(); }} disabled={loading} style={{ minWidth:200, fontSize:14.5, fontWeight:700, padding:"13px 20px", borderRadius:14, border:"none", background:sel?.color ?? "#2563EB", color:"white", cursor:"pointer", opacity:loading?0.7:1 }}>
+                {simStep===1 ? "Continue →" : loading ? "Setting up…" : `Start ${sel?.label ?? "Sim"} →`}
+              </button>
             </div>
           </div>
 
-          <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:16, padding:"24px", display:"grid", gap:14, marginBottom:24 }}>
-            <p style={{ fontSize:11.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", margin:0 }}>Your details</p>
-            <div>
-              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Role <span style={{ color:"#EF4444" }}>*</span></p>
-              <input value={form.role} onChange={e => setForm(f => ({...f, role:e.target.value}))} placeholder="e.g. Senior Product Manager" style={inp} />
-            </div>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-              <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Company (optional)</p>
-                <input value={form.company} onChange={e => setForm(f => ({...f, company:e.target.value}))} placeholder="e.g. Stripe" style={inp} />
+          {/* Right sidebar */}
+          <div style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
+            <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
+              <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+                <span style={{ fontSize:20 }}>{stepCtx.icon}</span>
+                <div style={{ fontSize:12, fontWeight:800, color:"var(--z-text3)", letterSpacing:"0.04em" }}>{stepCtx.desc}</div>
               </div>
-              <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Target comp</p>
-                <input value={form.targetComp} onChange={e => setForm(f => ({...f, targetComp:e.target.value}))} placeholder="e.g. $165K base" style={inp} />
+              <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.72, margin:"0 0 16px" }}>
+                {simStep===1 ? "Each scenario trains a different negotiation pattern. Pick the one that matches your actual situation right now." : "Specific details make the sim more realistic. Zari calibrates the hiring manager's pushback to your role and market."}
+              </p>
+              <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                {stepCtx.tips.map((tip, i) => (
+                  <div key={i} style={{ display:"flex", gap:9, alignItems:"flex-start" }}>
+                    <div style={{ width:4, height:4, borderRadius:"50%", background:"var(--z-bd)", flexShrink:0, marginTop:6 }}/>
+                    <span style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.6 }}>{tip}</span>
+                  </div>
+                ))}
               </div>
             </div>
-            <div>
-              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Competing offer or leverage (optional)</p>
-              <input value={form.leverage} onChange={e => setForm(f => ({...f, leverage:e.target.value}))} placeholder="e.g. Competing offer at $155K from Acme" style={inp} />
-            </div>
+            {simStep===2 && (
+              <div style={{ background:"var(--z-raise)", border:"1px solid var(--z-bd2)", borderRadius:16, padding:"16px 18px" }}>
+                <div style={{ fontSize:10.5, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", marginBottom:10 }}>Your answers so far</div>
+                <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                  {[
+                    { label:"Scenario", value: sel?.label ?? scenario },
+                    { label:"Difficulty", value: difficulties.find(d => d.value === difficulty)?.label ?? difficulty },
+                    { label:"Role", value: form.role },
+                    { label:"Target", value: form.targetComp },
+                  ].filter(r => r.value).map(r => (
+                    <div key={r.label} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"5px 9px", borderRadius:7, background:"var(--z-card)", border:"1px solid var(--z-bd)" }}>
+                      <span style={{ fontSize:10, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em" }}>{r.label}</span>
+                      <span style={{ fontSize:11, fontWeight:700, color:"var(--z-text2)", maxWidth:130, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-
-          {error && <div style={{ marginBottom:16, padding:"10px 14px", borderRadius:10, background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.3)", fontSize:13, color:"#EF4444" }}>{error}</div>}
-
-          <button onClick={() => void startSim()} disabled={loading} style={{ width:"100%", padding:"15px", borderRadius:14, border:"none", background:sel?.color ?? "#2563EB", color:"white", fontSize:15, fontWeight:800, cursor:loading ? "default" : "pointer", opacity:loading ? 0.7 : 1, letterSpacing:"-0.01em" }}>
-            {loading ? "Setting up your scenario…" : `Start ${scenarios.find(s => s.value === scenario)?.label ?? "Negotiation"} →`}
-          </button>
         </div>
       </div>
     );
@@ -7559,27 +7639,72 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
 
   if (step === "paste") return (
     <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
-      <div style={{ minHeight:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"44px 24px 56px" }}>
-        <div style={{ width:"100%", maxWidth:560 }}>
-          <div style={{ textAlign:"center", marginBottom:24 }}>
-            <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"var(--z-text3)", marginBottom:10 }}>Resume Review</p>
-            <h1 style={{ fontSize:26, fontWeight:900, letterSpacing:"-0.04em", color:"var(--z-text)", marginBottom:8 }}>Paste your resume text</h1>
-            <p style={{ fontSize:14, color:"var(--z-text3)" }}>Copy and paste your full resume below — Zari will score and rewrite it.</p>
+      {/* Page header */}
+      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
+          <div>
+            <h1 style={{ fontSize:18, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:"0 0 3px" }}>Resume Review</h1>
+            <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>Score ATS compatibility, impact language, and clarity — then rewrite every weak line.</p>
           </div>
-          {analyzeErr && <div style={{ background:"rgba(239,68,68,0.12)", border:"1px solid rgba(239,68,68,0.3)", borderRadius:10, padding:"10px 14px", marginBottom:14, fontSize:13, color:"#FCA5A5" }}>{analyzeErr}</div>}
-          <textarea
-            style={{ width:"100%", minHeight:280, border:"1.5px solid var(--z-bd)", borderRadius:16, padding:"16px 18px", fontSize:13.5, lineHeight:1.7, color:"var(--z-text)", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"var(--z-card)", boxShadow:"none" }}
-            placeholder={"Paste your full resume here...\n\nName\nJob Title · Location · Email\n\nSummary\n...\n\nExperience\n..."}
-            value={resumeText}
-            onChange={e => setResumeText(e.target.value)}
-          />
-          <div style={{ display:"flex", gap:10, marginTop:14 }}>
-            <button onClick={() => setStep("upload")} style={{ fontSize:13, fontWeight:600, padding:"10px 20px", borderRadius:10, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>← Back</button>
+          {reviewMode==="targeted" && (
+            <div style={{ display:"flex", alignItems:"center", gap:0 }}>
+              {(["1. Job","2. Resume"] as const).map((label,i) => (
+                <div key={i} style={{ display:"flex", alignItems:"center" }}>
+                  <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:5 }}>
+                    <div style={{ width:32,height:32,borderRadius:"50%",border:`1.5px solid ${i===0?"#2563EB":"var(--z-bd)"}`,background:i===0?"#2563EB":"var(--z-card)",display:"flex",alignItems:"center",justifyContent:"center",transition:"all 0.3s" }}>
+                      {i===0 ? <svg viewBox="0 0 12 12" fill="none" stroke="white" strokeWidth="2.5" style={{width:12,height:12}}><polyline points="2,6 5,9 10,3"/></svg> : <span style={{ fontSize:12,fontWeight:700,color:"#2563EB" }}>2</span>}
+                    </div>
+                    <span style={{ fontSize:10,fontWeight:700,color:i===1?"#2563EB":"var(--z-text3)",letterSpacing:"0.04em",whiteSpace:"nowrap" }}>{label}</span>
+                  </div>
+                  {i===0 && <div style={{ width:36,height:2,borderRadius:99,background:"#2563EB",margin:"0 6px",marginBottom:18 }}/>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+      {/* Two-column body */}
+      <div style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 300px", gap:28, alignItems:"start" }}>
+        <div>
+          <div style={{ marginBottom:24 }}>
+            <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"var(--z-text3)", marginBottom:6 }}>{reviewMode==="targeted" ? "Step 2 of 2" : "Your resume"}</p>
+            <h2 style={{ fontSize:24, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 8px" }}>Paste your resume text</h2>
+            <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.65, margin:0 }}>Copy and paste your full resume — Zari will score and rewrite it.</p>
+          </div>
+          <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"24px 24px 20px", boxShadow:"0 2px 24px rgba(0,0,0,0.08)" }}>
+            {analyzeErr && <div style={{ background:"rgba(239,68,68,0.12)", border:"1px solid rgba(239,68,68,0.3)", borderRadius:10, padding:"10px 14px", marginBottom:14, fontSize:13, color:"#FCA5A5" }}>{analyzeErr}</div>}
+            <textarea
+              style={{ width:"100%", minHeight:280, border:"1.5px solid var(--z-bd)", borderRadius:14, padding:"16px 18px", fontSize:13.5, lineHeight:1.7, color:"var(--z-text)", outline:"none", resize:"vertical", fontFamily:"inherit", boxSizing:"border-box", background:"var(--z-raise)", transition:"border-color 0.15s" }}
+              placeholder={"Paste your full resume here...\n\nName\nJob Title · Location · Email\n\nSummary\n...\n\nExperience\n..."}
+              value={resumeText} onChange={e => setResumeText(e.target.value)}
+            />
+          </div>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:10, marginTop:22 }}>
+            <button onClick={() => setStep("upload")} style={{ padding:"13px 20px", borderRadius:14, border:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text3)", fontSize:13.5, fontWeight:600, cursor:"pointer" }}>← Back</button>
             <button onClick={() => void runAnalysis()} disabled={!resumeText.trim() || targetedInvalid}
-              style={{ flex:1, fontSize:14, fontWeight:700, padding:"11px", borderRadius:10, border:"none", background:resumeText.trim()&&!targetedInvalid?"#2563EB":"rgba(0,0,0,0.04)", color:resumeText.trim()&&!targetedInvalid?"white":"#B0BCCF", cursor:resumeText.trim()&&!targetedInvalid?"pointer":"default", boxShadow:"none", transition:"all 0.2s" }}>
+              style={{ minWidth:200, fontSize:14.5, fontWeight:700, padding:"13px 20px", borderRadius:14, border:"none", background:resumeText.trim()&&!targetedInvalid?"#2563EB":"var(--z-raise)", color:resumeText.trim()&&!targetedInvalid?"white":"var(--z-text3)", cursor:resumeText.trim()&&!targetedInvalid?"pointer":"default", transition:"all 0.2s" }}>
               Analyze with Zari →
             </button>
           </div>
+        </div>
+        {/* Sidebar */}
+        <div style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
+          <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+              <span style={{ fontSize:20 }}>📋</span>
+              <div style={{ fontSize:12, fontWeight:800, color:"var(--z-text3)", letterSpacing:"0.04em" }}>Your resume</div>
+            </div>
+            <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.72, margin:"0 0 16px" }}>Paste the full resume — headers, bullets, and all. Zari needs the complete text to score accurately.</p>
+            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+              {["Include all sections: summary, experience, skills, education.","The more complete your resume, the more accurate the score.","Zari rewrites every weak bullet — not just the obvious ones."].map((tip,i) => (
+                <div key={i} style={{ display:"flex", gap:9, alignItems:"flex-start" }}>
+                  <div style={{ width:4,height:4,borderRadius:"50%",background:"var(--z-bd)",flexShrink:0,marginTop:6 }}/>
+                  <span style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.6 }}>{tip}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <button onClick={() => setStep("upload")} style={{ fontSize:12.5, fontWeight:600, padding:"10px", borderRadius:12, border:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text3)", cursor:"pointer", textAlign:"center" }}>Upload a file instead</button>
         </div>
       </div>
     </div>
@@ -7587,85 +7712,108 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
 
   if (step === "upload") return (
     <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
-      <div style={{ minHeight:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"44px 24px 56px" }}>
-        <div style={{ width:"100%", maxWidth:520 }}>
-
-          {/* Step label */}
-          <div style={{ textAlign:"center", marginBottom:28 }}>
-            <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"var(--z-text3)", marginBottom:10 }}>
-              {reviewMode==="targeted" ? "Step 2 of 2" : "Resume Review"}
-            </p>
-            <h1 style={{ fontSize:28, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.04em", marginBottom:10, lineHeight:1.15 }}>
-              {reviewMode==="targeted" ? "Now upload your resume" : "Upload your resume"}
-            </h1>
-            <p style={{ fontSize:14, color:"var(--z-text3)", lineHeight:1.6, }}>
-              Zari scores ATS compatibility, rewrites every weak bullet, and gives you a job-ready version to send tonight.
-            </p>
-            {reviewMode==="targeted" && (jobDescription||targetRoleInput) && (
-              <div style={{ display:"inline-flex", alignItems:"center", gap:6, marginTop:14, background:"rgba(74,222,128,0.12)", border:"1px solid rgba(74,222,128,0.3)", borderRadius:99, padding:"5px 13px" }}>
-                <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2" style={{ width:10,height:10,flexShrink:0 }}><path d="M2 6l3 3 5-5"/></svg>
-                <span style={{ fontSize:11.5, color:"#16A34A", fontWeight:600 }}>
-                  {targetRoleInput ? `Targeting: ${targetRoleInput}` : "Job description loaded"}
-                </span>
-                <button onClick={()=>setStep("job")} style={{ background:"none", border:"none", color:"var(--z-text3)", fontWeight:600, cursor:"pointer", fontSize:11, padding:"0 0 0 4px" }}>Edit</button>
-              </div>
-            )}
+      {/* Page header */}
+      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
+          <div>
+            <h1 style={{ fontSize:18, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:"0 0 3px" }}>Resume Review</h1>
+            <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>Score ATS compatibility, impact language, and clarity — then rewrite every weak line.</p>
           </div>
-
-          {analyzeErr && <div style={{ background:"rgba(239,68,68,0.12)", border:"1px solid rgba(239,68,68,0.3)", borderRadius:10, padding:"9px 14px", marginBottom:14, fontSize:13, color:"#FCA5A5" }}>{analyzeErr}</div>}
-
-          {/* Drop zone */}
-          <label
-            onDragOver={e=>{e.preventDefault();setDragging(true);}}
-            onDragLeave={()=>setDragging(false)}
-            onDrop={e=>{e.preventDefault();setDragging(false);const f=e.dataTransfer.files?.[0];if(f)void handleFile(f);}}
-            style={{ display:"block", border:`2px dashed ${dragging?"#2563EB":"#D4D8E8"}`, borderRadius:20, padding:"44px 32px", textAlign:"center", cursor:"pointer", background:dragging?"rgba(37,99,235,0.05)":"#FFFFFF", transition:"all 0.2s", boxShadow:dragging?"0 0 0 4px rgba(37,99,235,0.15)":"none", marginBottom:14 }}
-          >
-            <input type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleFile(f); e.target.value=""; }}/>
-            <div style={{ width:54, height:54, borderRadius:15, background:"var(--z-raise)", border:"1px solid rgba(37,99,235,0.4)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px" }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="#60A5FA" strokeWidth="1.8" style={{ width:24, height:24 }}><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            </div>
-            <p style={{ fontSize:16, fontWeight:700, color:"var(--z-text)", marginBottom:5 }}>Drop your resume here</p>
-            <p style={{ fontSize:13, color:"var(--z-text3)", marginBottom:18 }}>PDF, DOCX, or TXT — or click to browse</p>
-            <span style={{ fontSize:12.5, fontWeight:700, padding:"8px 22px", borderRadius:99, background:"rgba(37,99,235,0.3)", color:"#A5B4FC", border:"1px solid rgba(37,99,235,0.4)" }}>Choose file</span>
-          </label>
-
-          {/* Level + controls */}
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:18 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:6, background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderRadius:9, padding:"5px 12px" }}>
-              <span style={{ fontSize:11.5, color:"var(--z-text3)" }}>Level:</span>
-              <select value={careerLevel} onChange={e=>setCareerLevel(e.target.value as CareerLevel)}
-                style={{ fontSize:12, fontWeight:700, color:"var(--z-text)", background:"transparent", border:"none", outline:"none", cursor:"pointer", fontFamily:"inherit" }}>
-                <option value="entry">Entry</option>
-                <option value="mid">Mid-Level</option>
-                <option value="senior">Senior</option>
-                <option value="executive">Executive</option>
-              </select>
-            </div>
-            <button onClick={()=>setStep("paste")} style={{ background:"none", border:"none", color:"#60A5FA", fontWeight:600, cursor:"pointer", fontSize:12.5, padding:0 }}>paste text instead</button>
-          </div>
-
-          {/* Feature list */}
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:20 }}>
-            {SCREEN_RESUME_META[stage].features.map(f => (
-              <div key={f.title} style={{ background:"var(--z-card)", boxShadow:"0 2px 20px rgba(0,0,0,0.07)", border:"1px solid var(--z-bd)", borderRadius:13, padding:"12px 14px", display:"flex", gap:10, alignItems:"flex-start" }}>
-                <span style={{ fontSize:18, lineHeight:1, flexShrink:0 }}>{f.icon}</span>
-                <div>
-                  <p style={{ fontSize:12, fontWeight:700, color:"var(--z-text)", marginBottom:2 }}>{f.title}</p>
-                  <p style={{ fontSize:11, color:"var(--z-text3)", lineHeight:1.5 }}>{f.body}</p>
+          {reviewMode==="targeted" && (
+            <div style={{ display:"flex", alignItems:"center", gap:0 }}>
+              {(["1. Job","2. Resume"] as const).map((label,i) => (
+                <div key={i} style={{ display:"flex", alignItems:"center" }}>
+                  <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:5 }}>
+                    <div style={{ width:32,height:32,borderRadius:"50%",border:`1.5px solid ${i===0?"#2563EB":"var(--z-bd)"}`,background:i===0?"#2563EB":"var(--z-card)",display:"flex",alignItems:"center",justifyContent:"center",transition:"all 0.3s" }}>
+                      {i===0 ? <svg viewBox="0 0 12 12" fill="none" stroke="white" strokeWidth="2.5" style={{width:12,height:12}}><polyline points="2,6 5,9 10,3"/></svg> : <span style={{ fontSize:12,fontWeight:700,color:"#2563EB" }}>2</span>}
+                    </div>
+                    <span style={{ fontSize:10,fontWeight:700,color:i===1?"#2563EB":"var(--z-text3)",letterSpacing:"0.04em",whiteSpace:"nowrap" }}>{label}</span>
+                  </div>
+                  {i===0 && <div style={{ width:36,height:2,borderRadius:99,background:"#2563EB",margin:"0 6px",marginBottom:18 }}/>}
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+      {/* Two-column body */}
+      <div style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 300px", gap:28, alignItems:"start" }}>
+        <div>
+          <div style={{ marginBottom:24 }}>
+            <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"var(--z-text3)", marginBottom:6 }}>{reviewMode==="targeted" ? "Step 2 of 2" : "Your resume"}</p>
+            <h2 style={{ fontSize:24, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 8px" }}>{reviewMode==="targeted" ? "Upload your resume" : "Upload your resume"}</h2>
+            <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.65, margin:0 }}>Zari scores ATS compatibility, rewrites every weak bullet, and gives you a job-ready version.</p>
           </div>
-
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-            <button onClick={()=>setStep(reviewMode==="targeted"?"job":"choose")} style={{ fontSize:12.5, fontWeight:600, padding:"9px 16px", borderRadius:10, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>← Back</button>
+          {reviewMode==="targeted" && (jobDescription||targetRoleInput) && (
+            <div style={{ display:"inline-flex", alignItems:"center", gap:6, marginBottom:16, background:"rgba(74,222,128,0.08)", border:"1px solid rgba(74,222,128,0.25)", borderRadius:99, padding:"5px 13px" }}>
+              <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2" style={{ width:10,height:10,flexShrink:0 }}><path d="M2 6l3 3 5-5"/></svg>
+              <span style={{ fontSize:11.5, color:"#16A34A", fontWeight:600 }}>{targetRoleInput ? `Targeting: ${targetRoleInput}` : "Job description loaded"}</span>
+              <button onClick={()=>setStep("job")} style={{ background:"none", border:"none", color:"var(--z-text3)", fontWeight:600, cursor:"pointer", fontSize:11, padding:"0 0 0 4px" }}>Edit</button>
+            </div>
+          )}
+          <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"24px 24px 20px", boxShadow:"0 2px 24px rgba(0,0,0,0.08)" }}>
+            {analyzeErr && <div style={{ background:"rgba(239,68,68,0.12)", border:"1px solid rgba(239,68,68,0.3)", borderRadius:10, padding:"9px 14px", marginBottom:14, fontSize:13, color:"#FCA5A5" }}>{analyzeErr}</div>}
+            {/* Drop zone */}
+            <label
+              onDragOver={e=>{e.preventDefault();setDragging(true);}}
+              onDragLeave={()=>setDragging(false)}
+              onDrop={e=>{e.preventDefault();setDragging(false);const f=e.dataTransfer.files?.[0];if(f)void handleFile(f);}}
+              style={{ display:"block", border:`2px dashed ${dragging?"#2563EB":"var(--z-bd)"}`, borderRadius:16, padding:"36px 32px", textAlign:"center", cursor:"pointer", background:dragging?"rgba(37,99,235,0.04)":"var(--z-raise)", transition:"all 0.2s", boxShadow:dragging?"0 0 0 3px rgba(37,99,235,0.12)":"none", marginBottom:14 }}
+            >
+              <input type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleFile(f); e.target.value=""; }}/>
+              <div style={{ width:48,height:48,borderRadius:13,background:"var(--z-card)",border:"1px solid var(--z-bd)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px" }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="1.8" style={{ width:22,height:22 }}><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              </div>
+              <p style={{ fontSize:15, fontWeight:700, color:"var(--z-text)", marginBottom:4 }}>Drop your resume here</p>
+              <p style={{ fontSize:13, color:"var(--z-text3)", marginBottom:16 }}>PDF, DOCX, or TXT — or click to browse</p>
+              <span style={{ fontSize:13, fontWeight:700, padding:"9px 22px", borderRadius:10, background:"#2563EB", color:"white" }}>Choose file</span>
+            </label>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+              <div style={{ display:"flex", alignItems:"center", gap:6, background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderRadius:9, padding:"5px 12px" }}>
+                <span style={{ fontSize:11.5, color:"var(--z-text3)" }}>Level:</span>
+                <select value={careerLevel} onChange={e=>setCareerLevel(e.target.value as CareerLevel)}
+                  style={{ fontSize:12, fontWeight:700, color:"var(--z-text)", background:"transparent", border:"none", outline:"none", cursor:"pointer", fontFamily:"inherit" }}>
+                  <option value="entry">Entry</option><option value="mid">Mid-Level</option><option value="senior">Senior</option><option value="executive">Executive</option>
+                </select>
+              </div>
+              <button onClick={()=>setStep("paste")} style={{ background:"none", border:"none", color:"var(--z-text2)", fontWeight:600, cursor:"pointer", fontSize:12.5, padding:0, textDecoration:"underline" }}>paste text instead</button>
+            </div>
+          </div>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:10, marginTop:22 }}>
+            <button onClick={()=>setStep(reviewMode==="targeted"?"job":"choose")} style={{ padding:"13px 20px", borderRadius:14, border:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text3)", fontSize:13.5, fontWeight:600, cursor:"pointer" }}>← Back</button>
             <p style={{ fontSize:11, color:"var(--z-text3)", display:"flex", alignItems:"center", gap:5 }}>
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" style={{ width:11,height:11 }}><rect x="3" y="7" width="10" height="8" rx="1.5"/><path d="M5 7V5a3 3 0 016 0v2"/></svg>
               Private &amp; secure
             </p>
           </div>
-
+        </div>
+        {/* Sidebar */}
+        <div style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
+          <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+              <span style={{ fontSize:20 }}>📄</span>
+              <div style={{ fontSize:12, fontWeight:800, color:"var(--z-text3)", letterSpacing:"0.04em" }}>What Zari scores</div>
+            </div>
+            <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.72, margin:"0 0 16px" }}>Zari runs four passes on your resume and gives you a job-ready rewrite — not just a score.</p>
+            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+              {["ATS compatibility — will it clear the first filter?","Impact language — do bullets quantify outcomes?","Clarity — does every line earn its place?","Keyword match — aligned to the JD if provided."].map((tip,i) => (
+                <div key={i} style={{ display:"flex", gap:9, alignItems:"flex-start" }}>
+                  <div style={{ width:4,height:4,borderRadius:"50%",background:"var(--z-bd)",flexShrink:0,marginTop:6 }}/>
+                  <span style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.6 }}>{tip}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{ background:"var(--z-raise)", border:"1px solid var(--z-bd2)", borderRadius:16, padding:"16px 18px" }}>
+            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+              {SCREEN_RESUME_META[stage].features.map(f => (
+                <div key={f.title} style={{ display:"flex", gap:10, alignItems:"center" }}>
+                  <span style={{ fontSize:16 }}>{f.icon}</span>
+                  <span style={{ fontSize:12.5, fontWeight:600, color:"var(--z-text2)" }}>{f.title}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>
