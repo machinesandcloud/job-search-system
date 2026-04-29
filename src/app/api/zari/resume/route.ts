@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUserId } from "@/lib/mvp/auth";
 import { buildUserContext } from "@/lib/mvp/context";
 import { saveResumeScore, getResumeScoreHistory } from "@/lib/mvp/store";
-import { openaiChat } from "@/lib/openai";
+import { openaiChat, getLastOpenAIError } from "@/lib/openai";
 import { ensureSameOrigin } from "@/lib/utils";
 
 export const runtime     = "nodejs";
@@ -349,7 +349,18 @@ Voice rules:
   }
 
   if (!reply) {
-    console.error("[resume] openaiChat returned null — model:", model);
+    const err = getLastOpenAIError();
+    console.error("[resume] openaiChat returned null — model:", model, "error:", err);
+    if (err?.code === "no_key") {
+      return NextResponse.json({ error: "AI not configured — OPENAI_API_KEY is missing from environment variables" }, { status: 503 });
+    }
+    if (err?.code === "api_error") {
+      const isQuota = err.status === 429 || err.body.includes("quota") || err.body.includes("billing");
+      const isInvalid = err.status === 401;
+      if (isInvalid) return NextResponse.json({ error: "OpenAI API key is invalid — update it in your Netlify environment variables" }, { status: 503 });
+      if (isQuota) return NextResponse.json({ error: "OpenAI quota exceeded — check your billing at platform.openai.com" }, { status: 503 });
+      return NextResponse.json({ error: `OpenAI request failed (HTTP ${err.status}) — try again` }, { status: 503 });
+    }
     return NextResponse.json({ error: "Analysis failed — try again" }, { status: 503 });
   }
 
