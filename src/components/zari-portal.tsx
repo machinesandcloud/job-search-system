@@ -923,8 +923,8 @@ const STAGE_NAV_LABELS: Record<CareerStage, Record<Screen, string>> = {
     session:        "Talk to Zari",
     resume:         "Salary Research",
     interview:      "Negotiation Sim",
-    "cover-letter": "Cover Letter",
-    linkedin:       "LinkedIn",
+    "cover-letter": "Negotiation Email",
+    linkedin:       "Market Intel",
     documents:      "My Documents",
     plan:           "Negotiation Plan",
   },
@@ -941,7 +941,7 @@ const STAGE_NAV_LABELS: Record<CareerStage, Record<Screen, string>> = {
     session:        "Talk to Zari",
     resume:         "Executive Bio",
     interview:      "Story Practice",
-    "cover-letter": "Cover Letter",
+    "cover-letter": "Exec Letter",
     linkedin:       "LinkedIn",
     documents:      "My Documents",
     plan:           "Leadership Plan",
@@ -5172,6 +5172,823 @@ function ScreenPivotAnalysis() {
 }
 
 /* ═══════════════════════════════════════════════════
+   SALARY STAGE: NEGOTIATION SIM
+═══════════════════════════════════════════════════ */
+function ScreenSalaryNegotiationSim() {
+  type SimMsg = { role: "zari" | "user"; text: string };
+  const [setup, setSetup] = useState(true);
+  const [form, setForm] = useState({ role:"", company:"", currentComp:"", targetComp:"", context:"" });
+  const [msgs, setMsgs] = useState<SimMsg[]>([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior:"smooth" }); }, [msgs]);
+
+  async function startSim() {
+    if (!form.role.trim()) { setError("Add the role you're negotiating for."); return; }
+    setError(""); setLoading(true);
+    const systemPrompt = `You are playing the role of a Hiring Manager or Recruiter in a salary negotiation roleplay. The user is practicing their negotiation.
+
+SCENARIO:
+- Role: ${form.role}
+${form.company ? `- Company: ${form.company}` : ""}
+${form.currentComp ? `- User's current comp: ${form.currentComp}` : ""}
+${form.targetComp ? `- User's target comp: ${form.targetComp}` : ""}
+${form.context ? `- Context: ${form.context}` : ""}
+
+Your job:
+- Act realistically as the hiring manager/HR — push back professionally, ask clarifying questions, negotiate
+- Don't immediately give in. Test their reasoning, ask "why that number?", bring up budget constraints
+- After 4-6 exchanges, you can reach an agreement or explain what would move the needle
+- Keep responses SHORT (2-4 sentences max) — this is a realistic back-and-forth
+- Stay in character throughout
+
+Open the negotiation naturally, as if this is a real call.`;
+
+    const res = await fetch("/api/zari/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: "Start the salary negotiation roleplay. Open the conversation as the hiring manager.",
+        systemOverride: systemPrompt,
+        history: [],
+      }),
+    }).catch(() => null);
+    const data = await res?.json().catch(() => null) as { reply?: string } | null;
+    const reply = data?.reply ?? "Let's talk through this. We're excited to bring you on — what were your compensation expectations?";
+    setMsgs([{ role:"zari", text: reply }]);
+    setSetup(false);
+    setLoading(false);
+  }
+
+  async function send() {
+    const text = input.trim();
+    if (!text || loading) return;
+    setInput("");
+    const next: SimMsg[] = [...msgs, { role:"user", text }];
+    setMsgs(next);
+    setLoading(true);
+
+    const systemPrompt = `You are playing a Hiring Manager/Recruiter in a salary negotiation roleplay for: ${form.role}${form.company ? ` at ${form.company}` : ""}. Target comp: ${form.targetComp || "not specified"}. Push back realistically. Keep responses SHORT (2-4 sentences). Stay in character.`;
+    const history = next.map(m => ({ role: m.role === "zari" ? "assistant" : "user", text: m.text }));
+
+    const res = await fetch("/api/zari/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text, systemOverride: systemPrompt, history }),
+    }).catch(() => null);
+    const data = await res?.json().catch(() => null) as { reply?: string } | null;
+    const reply = data?.reply ?? "That's a strong point. Let me take that back to the team.";
+    setMsgs(m => [...m, { role:"zari", text: reply }]);
+    setLoading(false);
+    setTimeout(() => inputRef.current?.focus(), 50);
+  }
+
+  const inp: React.CSSProperties = { width:"100%", border:"1px solid var(--z-bd)", borderRadius:10, padding:"11px 14px", fontSize:13.5, color:"var(--z-text)", outline:"none", background:"var(--z-raise)", boxSizing:"border-box", fontFamily:"inherit" };
+
+  if (setup) {
+    return (
+      <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
+        <div style={{ maxWidth:560, margin:"0 auto", padding:"32px 24px 56px" }}>
+          <div style={{ marginBottom:28 }}>
+            <div style={{ fontSize:10, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Negotiation Sim</div>
+            <h1 style={{ fontSize:24, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 10px" }}>Practice your ask</h1>
+            <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.7, margin:0 }}>Zari plays the hiring manager. You practice your negotiation until the number feels natural to say out loud.</p>
+          </div>
+
+          <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:14, padding:"24px 24px 22px", display:"grid", gap:14 }}>
+            <div>
+              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Role you're negotiating for <span style={{ color:"#EF4444" }}>*</span></p>
+              <input value={form.role} onChange={e => setForm(f => ({...f, role:e.target.value}))} placeholder="e.g. Senior Product Manager" style={inp} />
+            </div>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+              <div>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Company (optional)</p>
+                <input value={form.company} onChange={e => setForm(f => ({...f, company:e.target.value}))} placeholder="e.g. Stripe" style={inp} />
+              </div>
+              <div>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Your target comp</p>
+                <input value={form.targetComp} onChange={e => setForm(f => ({...f, targetComp:e.target.value}))} placeholder="e.g. $165K base" style={inp} />
+              </div>
+            </div>
+            <div>
+              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Any context (competing offer, leverage, etc.)</p>
+              <input value={form.context} onChange={e => setForm(f => ({...f, context:e.target.value}))} placeholder="e.g. I have a competing offer at $155K" style={inp} />
+            </div>
+          </div>
+
+          {error && <div style={{ marginTop:12, padding:"10px 14px", borderRadius:10, background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.3)", fontSize:13, color:"#EF4444" }}>{error}</div>}
+
+          <button onClick={() => void startSim()} disabled={loading} style={{ marginTop:20, width:"100%", padding:"14px", borderRadius:12, border:"none", background:"#2563EB", color:"white", fontSize:14.5, fontWeight:700, cursor:loading ? "default" : "pointer", opacity:loading ? 0.7 : 1 }}>
+            {loading ? "Setting up scenario…" : "Start the negotiation →"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ height:"100%", display:"flex", flexDirection:"column", background:"var(--z-raise)", overflow:"hidden" }}>
+      <div style={{ flexShrink:0, background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"12px 20px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <div>
+          <div style={{ fontSize:11, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em" }}>Negotiation Roleplay</div>
+          <div style={{ fontSize:13.5, fontWeight:700, color:"var(--z-text)" }}>{form.role}{form.company ? ` · ${form.company}` : ""}{form.targetComp ? ` · ${form.targetComp}` : ""}</div>
+        </div>
+        <button onClick={() => { setSetup(true); setMsgs([]); setInput(""); }} style={{ fontSize:12, fontWeight:600, padding:"6px 14px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>New scenario</button>
+      </div>
+
+      <div style={{ flex:1, overflowY:"auto", padding:"20px 20px 8px" }}>
+        {msgs.map((m, i) => (
+          <div key={i} style={{ display:"flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start", marginBottom:12 }}>
+            {m.role === "zari" && (
+              <div style={{ width:28, height:28, borderRadius:8, background:"#2563EB", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginRight:10, marginTop:2 }}>
+                <ZariLogo size={13}/>
+              </div>
+            )}
+            <div style={{ maxWidth:"72%", padding:"11px 15px", borderRadius:12, background: m.role === "user" ? "#2563EB" : "var(--z-card)", color: m.role === "user" ? "white" : "var(--z-text)", border: m.role === "user" ? "none" : "1px solid var(--z-bd)", fontSize:14, lineHeight:1.65 }}>
+              {m.role === "zari" && <div style={{ fontSize:10, fontWeight:700, color: "rgba(37,99,235,0.7)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:4 }}>Hiring Manager</div>}
+              {m.text}
+            </div>
+          </div>
+        ))}
+        {loading && (
+          <div style={{ display:"flex", justifyContent:"flex-start", marginBottom:12 }}>
+            <div style={{ width:28, height:28, borderRadius:8, background:"#2563EB", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginRight:10, marginTop:2 }}><ZariLogo size={13}/></div>
+            <div style={{ padding:"11px 15px", borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)" }}>
+              <div style={{ display:"flex", gap:5 }}>{[0,1,2].map(i => <div key={i} style={{ width:7,height:7,borderRadius:"50%",background:"#2563EB",opacity:0.6,animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}</div>
+            </div>
+          </div>
+        )}
+        <div ref={bottomRef}/>
+      </div>
+
+      <div style={{ flexShrink:0, padding:"12px 20px 16px", borderTop:"1px solid var(--z-bd)", background:"var(--z-card)" }}>
+        <div style={{ display:"flex", gap:10, alignItems:"flex-end" }}>
+          <textarea ref={inputRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void send(); } }} placeholder="Your response…" rows={2} style={{ flex:1, border:"1px solid var(--z-bd)", borderRadius:10, padding:"10px 14px", fontSize:13.5, color:"var(--z-text)", outline:"none", background:"var(--z-raise)", resize:"none", fontFamily:"inherit", lineHeight:1.5, boxSizing:"border-box" }} />
+          <button onClick={() => void send()} disabled={loading || !input.trim()} style={{ padding:"10px 18px", borderRadius:10, border:"none", background:"#2563EB", color:"white", fontSize:13.5, fontWeight:700, cursor:loading || !input.trim() ? "default" : "pointer", opacity:loading || !input.trim() ? 0.5 : 1, flexShrink:0 }}>Send</button>
+        </div>
+        <div style={{ fontSize:11, color:"var(--z-text3)", marginTop:6 }}>Press Enter to send · Shift+Enter for new line</div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   SALARY STAGE: NEGOTIATION EMAIL
+═══════════════════════════════════════════════════ */
+function ScreenSalaryNegotiationEmail() {
+  const [form, setForm] = useState({ role:"", company:"", currentComp:"", targetComp:"", competingOffer:"", reason:"", tone:"professional", emailType:"offer" });
+  const [result, setResult] = useState<{ subject:string; email:string } | null>(null);
+  const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  const inp: React.CSSProperties = { width:"100%", border:"1px solid var(--z-bd)", borderRadius:10, padding:"11px 14px", fontSize:13.5, color:"var(--z-text)", outline:"none", background:"var(--z-raise)", boxSizing:"border-box", fontFamily:"inherit" };
+  const sel: React.CSSProperties = { ...inp, cursor:"pointer" };
+
+  async function generate() {
+    if (!form.role.trim()) { setError("Add the role you're negotiating for."); return; }
+    setError(""); setGenerating(true);
+    const res = await fetch("/api/zari/negotiation-email", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify(form),
+    }).catch(() => null);
+    const data = await res?.json().catch(() => null) as ({ subject:string; email:string } & { error?:string }) | null;
+    if (data && data.email && !data.error) { setResult(data); }
+    else setError(data?.error ?? "Something went wrong — try again.");
+    setGenerating(false);
+  }
+
+  if (result) {
+    return (
+      <div style={{ height:"100%", display:"flex", overflow:"hidden", background:"var(--z-raise)" }}>
+        <div style={{ width:264, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column" }}>
+          <div style={{ padding:"22px 16px 14px" }}>
+            <div style={{ fontSize:9, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Negotiation Email</div>
+            <div style={{ fontSize:13.5, fontWeight:800, color:"var(--z-text)", marginBottom:6 }}>{form.role}</div>
+            {form.targetComp && <div style={{ fontSize:12, color:"var(--z-text2)", marginBottom:12 }}>Target: {form.targetComp}</div>}
+            <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
+              {([
+                { label:"Type", value:form.emailType === "raise" ? "Salary raise" : form.emailType === "counter" ? "Counter offer" : "Job offer" },
+                { label:"Tone", value:form.tone.charAt(0).toUpperCase() + form.tone.slice(1) },
+                form.company ? { label:"Company", value:form.company } : null,
+              ] as ({label:string;value:string}|null)[]).filter(Boolean).map(r => (
+                <div key={r!.label} style={{ display:"flex", justifyContent:"space-between", padding:"5px 9px", borderRadius:7, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
+                  <span style={{ fontSize:10, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em" }}>{r!.label}</span>
+                  <span style={{ fontSize:11, fontWeight:800, color:"var(--z-text2)" }}>{r!.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{ flex:1 }}/>
+          <div style={{ padding:"10px 12px 14px", borderTop:"1px solid var(--z-bd)", display:"flex", gap:6 }}>
+            <button onClick={() => setResult(null)} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Edit</button>
+            <button onClick={() => { setResult(null); setForm({ role:"", company:"", currentComp:"", targetComp:"", competingOffer:"", reason:"", tone:"professional", emailType:"offer" }); }} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>New</button>
+          </div>
+        </div>
+        <div style={{ flex:1, overflowY:"auto", padding:"24px 28px 40px" }}>
+          <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:14, overflow:"hidden" }}>
+            <div style={{ padding:"16px 22px", borderBottom:"1px solid var(--z-bd)", background:"var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+              <div>
+                <div style={{ fontSize:10, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:3 }}>Subject</div>
+                <div style={{ fontSize:14, fontWeight:700, color:"var(--z-text)" }}>{result.subject}</div>
+              </div>
+              <button onClick={() => { void navigator.clipboard.writeText(`Subject: ${result.subject}\n\n${result.email}`); setCopied(true); setTimeout(() => setCopied(false), 2500); }} style={{ fontSize:12.5, fontWeight:700, padding:"7px 16px", borderRadius:9, border:"1px solid var(--z-bd)", background:copied ? "#EFF6FF" : "var(--z-card)", color:copied ? "#2563EB" : "var(--z-text2)", cursor:"pointer", flexShrink:0 }}>{copied ? "Copied ✓" : "Copy email"}</button>
+            </div>
+            <div style={{ padding:"22px 24px" }}>
+              <pre style={{ fontFamily:"inherit", fontSize:14, color:"var(--z-text)", lineHeight:1.85, whiteSpace:"pre-wrap", margin:0 }}>{result.email}</pre>
+            </div>
+          </div>
+          <div style={{ marginTop:16, padding:"14px 18px", borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
+            <div style={{ fontSize:11, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:6 }}>Before you send</div>
+            <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+              {["Replace [Name] with the actual recipient's name.", "Add any specific details about the role or offer that make it more personal.", "Send within 24-48 hours of the offer — don't let the window close."].map(tip => (
+                <div key={tip} style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.6, display:"flex", gap:8, alignItems:"flex-start" }}>
+                  <span style={{ color:"#2563EB", fontWeight:700, flexShrink:0 }}>→</span>{tip}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
+      <div style={{ maxWidth:580, margin:"0 auto", padding:"32px 24px 56px" }}>
+        <div style={{ marginBottom:24 }}>
+          <div style={{ fontSize:10, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Negotiation Email</div>
+          <h1 style={{ fontSize:24, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 10px" }}>Write your ask</h1>
+          <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.7, margin:0 }}>Zari writes a professional salary negotiation email you can send (or adapt) immediately.</p>
+        </div>
+
+        <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:14, padding:"24px", display:"grid", gap:14 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+            <div>
+              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Email type</p>
+              <select value={form.emailType} onChange={e => setForm(f => ({...f, emailType:e.target.value}))} style={sel}>
+                <option value="offer">Responding to a job offer</option>
+                <option value="counter">Counter-offer</option>
+                <option value="raise">Requesting a raise</option>
+              </select>
+            </div>
+            <div>
+              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Tone</p>
+              <select value={form.tone} onChange={e => setForm(f => ({...f, tone:e.target.value}))} style={sel}>
+                <option value="professional">Professional</option>
+                <option value="confident">Confident & direct</option>
+                <option value="collaborative">Warm & collaborative</option>
+              </select>
+            </div>
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+            <div>
+              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Role <span style={{ color:"#EF4444" }}>*</span></p>
+              <input value={form.role} onChange={e => setForm(f => ({...f, role:e.target.value}))} placeholder="e.g. Senior PM" style={inp} />
+            </div>
+            <div>
+              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Company (optional)</p>
+              <input value={form.company} onChange={e => setForm(f => ({...f, company:e.target.value}))} placeholder="e.g. Stripe" style={inp} />
+            </div>
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+            <div>
+              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Current / offered comp</p>
+              <input value={form.currentComp} onChange={e => setForm(f => ({...f, currentComp:e.target.value}))} placeholder="e.g. $130K" style={inp} />
+            </div>
+            <div>
+              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Your target comp</p>
+              <input value={form.targetComp} onChange={e => setForm(f => ({...f, targetComp:e.target.value}))} placeholder="e.g. $155K" style={inp} />
+            </div>
+          </div>
+          <div>
+            <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Competing offer (if any)</p>
+            <input value={form.competingOffer} onChange={e => setForm(f => ({...f, competingOffer:e.target.value}))} placeholder="e.g. Competing offer at $148K from Acme Corp" style={inp} />
+          </div>
+          <div>
+            <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Why you deserve it (optional but makes the email stronger)</p>
+            <textarea value={form.reason} onChange={e => setForm(f => ({...f, reason:e.target.value}))} placeholder="e.g. 8 years experience, led 3 successful product launches, specific expertise in..." style={{ ...inp, minHeight:90, resize:"vertical" as const, lineHeight:1.65 }} />
+          </div>
+        </div>
+
+        {error && <div style={{ marginTop:12, padding:"10px 14px", borderRadius:10, background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.3)", fontSize:13, color:"#EF4444" }}>{error}</div>}
+
+        <button onClick={() => void generate()} disabled={generating} style={{ marginTop:20, width:"100%", padding:"14px", borderRadius:12, border:"none", background:"#2563EB", color:"white", fontSize:14.5, fontWeight:700, cursor:generating ? "default" : "pointer", opacity:generating ? 0.7 : 1 }}>
+          {generating ? "Writing your email…" : "Write negotiation email →"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   SALARY STAGE: MARKET INTEL
+═══════════════════════════════════════════════════ */
+type MarketIntelResult = {
+  marketVerdict: string; verdictNote: string;
+  rangeFloor: string; rangeMedian: string; rangeCeiling: string;
+  keyFactors: string[]; talkingPoints: string[];
+  askStrategy: string; redFlags: string[];
+};
+
+function ScreenSalaryMarketIntel() {
+  const [form, setForm] = useState({ role:"", industry:"", location:"", experience:"", currentComp:"", companySize:"" });
+  const [result, setResult] = useState<MarketIntelResult | null>(null);
+  const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState("");
+
+  const inp: React.CSSProperties = { width:"100%", border:"1px solid var(--z-bd)", borderRadius:10, padding:"11px 14px", fontSize:13.5, color:"var(--z-text)", outline:"none", background:"var(--z-raise)", boxSizing:"border-box", fontFamily:"inherit" };
+
+  async function generate() {
+    if (!form.role.trim()) { setError("Add the role to benchmark."); return; }
+    setError(""); setGenerating(true);
+    const res = await fetch("/api/zari/market-intel", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify(form),
+    }).catch(() => null);
+    const data = await res?.json().catch(() => null) as (MarketIntelResult & { error?:string }) | null;
+    if (data && data.marketVerdict && !data.error) { setResult(data); }
+    else setError(data?.error ?? "Something went wrong — try again.");
+    setGenerating(false);
+  }
+
+  const verdictColor = (v: string) => v === "Above market" ? "#10B981" : v === "Below market" ? "#EF4444" : v === "At market" ? "#D97706" : "var(--z-text3)";
+
+  if (generating && !result) {
+    return (
+      <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
+        <div style={{ padding:"72px 40px" }}>
+          <div style={{ borderRadius:24, border:"1px solid var(--z-bd)", background:"var(--z-card)", padding:"72px 32px", textAlign:"center" }}>
+            <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
+              {[0,1,2].map(i => <div key={i} style={{ width:11,height:11,borderRadius:"50%",background:"#2563EB",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
+            </div>
+            <p style={{ fontSize:18, fontWeight:800, color:"var(--z-text)", marginBottom:8 }}>Pulling market data…</p>
+            <p style={{ fontSize:13.5, color:"var(--z-text3)", lineHeight:1.65 }}>Building your salary intelligence briefing.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (result) {
+    return (
+      <div style={{ height:"100%", display:"flex", overflow:"hidden", background:"var(--z-raise)" }}>
+        <div style={{ width:264, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
+          <div style={{ padding:"22px 16px 14px" }}>
+            <div style={{ fontSize:9, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Market Intel</div>
+            <span style={{ fontSize:11, fontWeight:800, color:verdictColor(result.marketVerdict), background:"var(--z-raise)", border:"1px solid var(--z-bd)", padding:"4px 10px", borderRadius:99, display:"inline-block", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>{result.marketVerdict}</span>
+            <div style={{ fontSize:13, fontWeight:800, color:"var(--z-text)", marginBottom:8 }}>{form.role}</div>
+            <p style={{ fontSize:12, color:"var(--z-text2)", lineHeight:1.6, margin:"0 0 14px" }}>{result.verdictNote}</p>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:6, marginBottom:14 }}>
+              {[{ label:"Floor", val:result.rangeFloor }, { label:"Median", val:result.rangeMedian }, { label:"Top", val:result.rangeCeiling }].map(r => (
+                <div key={r.label} style={{ textAlign:"center", padding:"8px 4px", borderRadius:8, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
+                  <div style={{ fontSize:9, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:3 }}>{r.label}</div>
+                  <div style={{ fontSize:13, fontWeight:900, color:"var(--z-text)" }}>{r.val}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ fontSize:11.5, fontWeight:700, color:"var(--z-text)", marginBottom:8 }}>Ask strategy</div>
+            <p style={{ fontSize:12, color:"var(--z-text2)", lineHeight:1.65, margin:0 }}>{result.askStrategy}</p>
+          </div>
+          <div style={{ flex:1 }}/>
+          <div style={{ padding:"10px 12px 14px", borderTop:"1px solid var(--z-bd)" }}>
+            <button onClick={() => setResult(null)} style={{ width:"100%", fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>New research</button>
+          </div>
+        </div>
+        <div style={{ flex:1, overflowY:"auto", padding:"24px 28px 40px" }}>
+          <div style={{ display:"grid", gap:16 }}>
+            <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"20px 22px" }}>
+              <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:12 }}>Talking points for the conversation</div>
+              <div style={{ display:"grid", gap:8 }}>
+                {result.talkingPoints.map((pt, i) => (
+                  <div key={i} style={{ display:"flex", gap:12, alignItems:"flex-start", padding:"12px 14px", borderRadius:10, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
+                    <span style={{ fontSize:11, fontWeight:900, color:"var(--z-text3)", background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:99, width:22, height:22, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{i+1}</span>
+                    <span style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.75 }}>{pt}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"20px 22px" }}>
+              <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:12 }}>What drives comp for this role</div>
+              <div style={{ display:"grid", gap:8 }}>
+                {result.keyFactors.map((f, i) => (
+                  <div key={i} style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.75, padding:"10px 14px", borderRadius:10, background:"var(--z-raise)", border:"1px solid var(--z-bd)", display:"flex", gap:10, alignItems:"flex-start" }}>
+                    <svg viewBox="0 0 14 14" fill="none" stroke="var(--z-text3)" strokeWidth="1.8" style={{ width:12,height:12,flexShrink:0,marginTop:3 }}><circle cx="7" cy="7" r="5.5"/><path d="M7 5v2.5M7 8.5v.5"/></svg>
+                    {f}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #EF4444", padding:"18px 22px" }}>
+              <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Red flags to watch for</div>
+              <div style={{ display:"grid", gap:8 }}>
+                {result.redFlags.map((r, i) => (
+                  <div key={i} style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.7, display:"flex", gap:10, alignItems:"flex-start" }}>
+                    <svg viewBox="0 0 14 14" fill="none" stroke="#EF4444" strokeWidth="2" style={{ width:12,height:12,flexShrink:0,marginTop:3 }}><path d="M7 2L13 11H1L7 2z"/><path d="M7 6v2M7 9.5v.5"/></svg>
+                    {r}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
+      <div style={{ maxWidth:560, margin:"0 auto", padding:"32px 24px 56px" }}>
+        <div style={{ marginBottom:24 }}>
+          <div style={{ fontSize:10, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Market Intel</div>
+          <h1 style={{ fontSize:24, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 10px" }}>Know your market position</h1>
+          <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.7, margin:0 }}>Get a sharp salary benchmarking briefing and talking points before you walk into the conversation.</p>
+        </div>
+
+        <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:14, padding:"24px", display:"grid", gap:14 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+            <div>
+              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Role <span style={{ color:"#EF4444" }}>*</span></p>
+              <input value={form.role} onChange={e => setForm(f => ({...f, role:e.target.value}))} placeholder="e.g. Senior Product Manager" style={inp} />
+            </div>
+            <div>
+              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Industry</p>
+              <input value={form.industry} onChange={e => setForm(f => ({...f, industry:e.target.value}))} placeholder="e.g. B2B SaaS" style={inp} />
+            </div>
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+            <div>
+              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Location</p>
+              <input value={form.location} onChange={e => setForm(f => ({...f, location:e.target.value}))} placeholder="e.g. San Francisco / Remote" style={inp} />
+            </div>
+            <div>
+              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Years of experience</p>
+              <input value={form.experience} onChange={e => setForm(f => ({...f, experience:e.target.value}))} placeholder="e.g. 8 years" style={inp} />
+            </div>
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+            <div>
+              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Current comp (optional)</p>
+              <input value={form.currentComp} onChange={e => setForm(f => ({...f, currentComp:e.target.value}))} placeholder="e.g. $120K" style={inp} />
+            </div>
+            <div>
+              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Company size / stage</p>
+              <input value={form.companySize} onChange={e => setForm(f => ({...f, companySize:e.target.value}))} placeholder="e.g. Series B startup" style={inp} />
+            </div>
+          </div>
+        </div>
+
+        {error && <div style={{ marginTop:12, padding:"10px 14px", borderRadius:10, background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.3)", fontSize:13, color:"#EF4444" }}>{error}</div>}
+
+        <button onClick={() => void generate()} disabled={generating} style={{ marginTop:20, width:"100%", padding:"14px", borderRadius:12, border:"none", background:"#2563EB", color:"white", fontSize:14.5, fontWeight:700, cursor:"pointer" }}>
+          Get market intel →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   LEADERSHIP STAGE: STORY PRACTICE
+═══════════════════════════════════════════════════ */
+function ScreenLeadershipStoryPractice() {
+  type StoryMsg = { role: "zari" | "user"; text: string };
+  const [setup, setSetup] = useState(true);
+  const [form, setForm] = useState({ storyType:"influence", situation:"", targetAudience:"" });
+  const [msgs, setMsgs] = useState<StoryMsg[]>([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior:"smooth" }); }, [msgs]);
+
+  const storyTypes: { value:string; label:string; desc:string }[] = [
+    { value:"influence", label:"Influencing without authority", desc:"Leading cross-functional work, aligning stakeholders with competing priorities" },
+    { value:"ambiguity", label:"Navigating ambiguity", desc:"Making decisions under uncertainty, setting direction when the path wasn't clear" },
+    { value:"conflict", label:"Managing conflict or tension", desc:"Hard conversations, disagreements with leadership, team tensions" },
+    { value:"transformation", label:"Driving change", desc:"Leading a transformation, changing how a team or org operates" },
+    { value:"failure", label:"Learning from failure", desc:"A project that didn't work, a mistake you owned and course-corrected" },
+    { value:"custom", label:"Custom scenario", desc:"Tell Zari exactly what story you want to practice" },
+  ];
+
+  async function startPractice() {
+    if (form.storyType !== "custom" && !form.situation.trim()) {
+      setError("Add the situation or challenge you want to practice."); return;
+    }
+    if (form.storyType === "custom" && !form.situation.trim()) {
+      setError("Describe the story scenario you want to practice."); return;
+    }
+    setError(""); setLoading(true);
+
+    const storyMeta = storyTypes.find(s => s.value === form.storyType);
+    const systemPrompt = `You are Zari, an executive leadership coach specializing in helping leaders craft and deliver compelling leadership stories.
+
+Story type: ${storyMeta?.label ?? form.storyType}
+Situation: ${form.situation}
+${form.targetAudience ? `Target audience/context: ${form.targetAudience}` : ""}
+
+Your role in this practice session:
+1. First, ask them to tell you the story in their own words
+2. After they share it, give structured feedback: What's landing, what's missing, what to sharpen
+3. Focus on: executive presence, judgment visibility, outcome clarity, and narrative arc
+4. Help them move from "what happened" to "what it says about their leadership"
+5. Keep responses focused and actionable — max 4-5 sentences per turn
+6. If the story is strong, push them on "so what?" — the leadership insight or what it shows about them
+
+Start by asking them to tell you the story first.`;
+
+    const res = await fetch("/api/zari/chat", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ message: "Start the leadership story practice session.", systemOverride: systemPrompt, history: [] }),
+    }).catch(() => null);
+    const data = await res?.json().catch(() => null) as { reply?: string } | null;
+    const reply = data?.reply ?? `Let's work on this story. Tell me what happened — walk me through the situation in your own words. Don't worry about structure yet, just tell it to me like you'd tell a colleague.`;
+    setMsgs([{ role:"zari", text: reply }]);
+    setSetup(false);
+    setLoading(false);
+  }
+
+  async function send() {
+    const text = input.trim();
+    if (!text || loading) return;
+    setInput("");
+    const next: StoryMsg[] = [...msgs, { role:"user", text }];
+    setMsgs(next);
+    setLoading(true);
+
+    const storyMeta = storyTypes.find(s => s.value === form.storyType);
+    const systemPrompt = `You are Zari, an executive leadership coach. You're helping someone practice their ${storyMeta?.label ?? "leadership"} story. Situation: ${form.situation}. Give focused, actionable feedback. Push for clarity on judgment, outcomes, and leadership insight. Keep responses under 5 sentences.`;
+    const history = next.map(m => ({ role: m.role === "zari" ? "assistant" : "user", text: m.text }));
+
+    const res = await fetch("/api/zari/chat", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ message: text, systemOverride: systemPrompt, history }),
+    }).catch(() => null);
+    const data = await res?.json().catch(() => null) as { reply?: string } | null;
+    setMsgs(m => [...m, { role:"zari", text: data?.reply ?? "Good — keep going. What was the outcome?" }]);
+    setLoading(false);
+    setTimeout(() => inputRef.current?.focus(), 50);
+  }
+
+  if (setup) {
+    return (
+      <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
+        <div style={{ maxWidth:580, margin:"0 auto", padding:"32px 24px 56px" }}>
+          <div style={{ marginBottom:28 }}>
+            <div style={{ fontSize:10, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Story Practice</div>
+            <h1 style={{ fontSize:24, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 10px" }}>Tell the story that shows your leadership</h1>
+            <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.7, margin:0 }}>Zari acts as your executive coach — you tell the story, Zari pushes you to make it sharper, more specific, and unmistakably yours.</p>
+          </div>
+
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:18 }}>
+            {storyTypes.map(s => (
+              <button key={s.value} onClick={() => setForm(f => ({...f, storyType:s.value}))} style={{ textAlign:"left", padding:"14px 16px", borderRadius:12, border:`1px solid ${form.storyType === s.value ? "#2563EB" : "var(--z-bd)"}`, background:form.storyType === s.value ? "#EFF6FF" : "var(--z-card)", cursor:"pointer" }}>
+                <div style={{ fontSize:13, fontWeight:700, color:form.storyType === s.value ? "#2563EB" : "var(--z-text)", marginBottom:4 }}>{s.label}</div>
+                <div style={{ fontSize:11.5, color:"var(--z-text3)", lineHeight:1.5 }}>{s.desc}</div>
+              </button>
+            ))}
+          </div>
+
+          <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:14, padding:"20px 22px", display:"grid", gap:12 }}>
+            <div>
+              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>{form.storyType === "custom" ? "Describe the story scenario" : "The situation or challenge"} <span style={{ color:"#EF4444" }}>*</span></p>
+              <textarea value={form.situation} onChange={e => setForm(f => ({...f, situation:e.target.value}))} placeholder={form.storyType === "custom" ? "Describe what story you want to practice and any relevant context..." : "Briefly describe the situation — who was involved, what was at stake, what made it hard..."} style={{ width:"100%", border:"1px solid var(--z-bd)", borderRadius:10, padding:"11px 14px", fontSize:13.5, color:"var(--z-text)", outline:"none", background:"var(--z-raise)", boxSizing:"border-box", fontFamily:"inherit", minHeight:100, resize:"vertical" as const, lineHeight:1.65 }} />
+            </div>
+            <div>
+              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Where you'll use this story (optional)</p>
+              <input value={form.targetAudience} onChange={e => setForm(f => ({...f, targetAudience:e.target.value}))} placeholder="e.g. Board interview, exec panel, performance review, investor meeting" style={{ width:"100%", border:"1px solid var(--z-bd)", borderRadius:10, padding:"11px 14px", fontSize:13.5, color:"var(--z-text)", outline:"none", background:"var(--z-raise)", boxSizing:"border-box", fontFamily:"inherit" }} />
+            </div>
+          </div>
+
+          {error && <div style={{ marginTop:12, padding:"10px 14px", borderRadius:10, background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.3)", fontSize:13, color:"#EF4444" }}>{error}</div>}
+
+          <button onClick={() => void startPractice()} disabled={loading} style={{ marginTop:20, width:"100%", padding:"14px", borderRadius:12, border:"none", background:"#2563EB", color:"white", fontSize:14.5, fontWeight:700, cursor:loading ? "default" : "pointer", opacity:loading ? 0.7 : 1 }}>
+            {loading ? "Setting up…" : "Start story practice →"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ height:"100%", display:"flex", flexDirection:"column", background:"var(--z-raise)", overflow:"hidden" }}>
+      <div style={{ flexShrink:0, background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"12px 20px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <div>
+          <div style={{ fontSize:11, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em" }}>Story Practice</div>
+          <div style={{ fontSize:13.5, fontWeight:700, color:"var(--z-text)" }}>{storyTypes.find(s => s.value === form.storyType)?.label ?? "Leadership Story"}</div>
+        </div>
+        <button onClick={() => { setSetup(true); setMsgs([]); setInput(""); }} style={{ fontSize:12, fontWeight:600, padding:"6px 14px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>New story</button>
+      </div>
+      <div style={{ flex:1, overflowY:"auto", padding:"20px 20px 8px" }}>
+        {msgs.map((m, i) => (
+          <div key={i} style={{ display:"flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start", marginBottom:12 }}>
+            {m.role === "zari" && (
+              <div style={{ width:28, height:28, borderRadius:8, background:"#2563EB", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginRight:10, marginTop:2 }}><ZariLogo size={13}/></div>
+            )}
+            <div style={{ maxWidth:"72%", padding:"11px 15px", borderRadius:12, background: m.role === "user" ? "#2563EB" : "var(--z-card)", color: m.role === "user" ? "white" : "var(--z-text)", border: m.role === "user" ? "none" : "1px solid var(--z-bd)", fontSize:14, lineHeight:1.65 }}>
+              {m.role === "zari" && <div style={{ fontSize:10, fontWeight:700, color:"rgba(37,99,235,0.7)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:4 }}>Zari</div>}
+              {m.text}
+            </div>
+          </div>
+        ))}
+        {loading && (
+          <div style={{ display:"flex", marginBottom:12 }}>
+            <div style={{ width:28, height:28, borderRadius:8, background:"#2563EB", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginRight:10, marginTop:2 }}><ZariLogo size={13}/></div>
+            <div style={{ padding:"11px 15px", borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)" }}>
+              <div style={{ display:"flex", gap:5 }}>{[0,1,2].map(i => <div key={i} style={{ width:7,height:7,borderRadius:"50%",background:"#2563EB",opacity:0.6,animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}</div>
+            </div>
+          </div>
+        )}
+        <div ref={bottomRef}/>
+      </div>
+      <div style={{ flexShrink:0, padding:"12px 20px 16px", borderTop:"1px solid var(--z-bd)", background:"var(--z-card)" }}>
+        <div style={{ display:"flex", gap:10, alignItems:"flex-end" }}>
+          <textarea ref={inputRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void send(); } }} placeholder="Tell your story…" rows={2} style={{ flex:1, border:"1px solid var(--z-bd)", borderRadius:10, padding:"10px 14px", fontSize:13.5, color:"var(--z-text)", outline:"none", background:"var(--z-raise)", resize:"none", fontFamily:"inherit", lineHeight:1.5, boxSizing:"border-box" }} />
+          <button onClick={() => void send()} disabled={loading || !input.trim()} style={{ padding:"10px 18px", borderRadius:10, border:"none", background:"#2563EB", color:"white", fontSize:13.5, fontWeight:700, cursor:loading || !input.trim() ? "default" : "pointer", opacity:loading || !input.trim() ? 0.5 : 1, flexShrink:0 }}>Send</button>
+        </div>
+        <div style={{ fontSize:11, color:"var(--z-text3)", marginTop:6 }}>Press Enter to send · Shift+Enter for new line</div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   LEADERSHIP STAGE: EXEC OUTREACH LETTER
+═══════════════════════════════════════════════════ */
+function ScreenExecOutreach() {
+  const [form, setForm] = useState({ name:"", currentRole:"", targetType:"board", orgName:"", orgContext:"", uniqueValue:"", tone:"formal" });
+  const [result, setResult] = useState<{ subject:string; letter:string } | null>(null);
+  const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  const inp: React.CSSProperties = { width:"100%", border:"1px solid var(--z-bd)", borderRadius:10, padding:"11px 14px", fontSize:13.5, color:"var(--z-text)", outline:"none", background:"var(--z-raise)", boxSizing:"border-box", fontFamily:"inherit" };
+  const sel: React.CSSProperties = { ...inp, cursor:"pointer" };
+
+  async function generate() {
+    if (!form.currentRole.trim()) { setError("Add your current role."); return; }
+    setError(""); setGenerating(true);
+
+    const targetLabel = form.targetType === "board" ? "board director position" : form.targetType === "advisory" ? "advisory board role" : form.targetType === "fractional" ? "fractional executive role" : "executive position";
+    const systemPrompt = `You are Zari, an executive positioning expert. Write a concise, compelling outreach letter for someone pursuing a ${targetLabel}.
+
+Return ONLY valid JSON:
+{
+  "subject": "<email subject line>",
+  "letter": "<the full letter body>"
+}
+
+Rules:
+- Tone: ${form.tone === "formal" ? "formal and polished, like a senior executive would write" : "warm but authoritative — relationship-driven, not stiff"}
+- Open with the most compelling thing about them — not a pleasantry
+- Be SPECIFIC about what they bring and why this org/role in particular
+- Under 220 words — executives skim. Every sentence must earn its place
+- No clichés: no "I am writing to express my interest", no "I would be honored"
+- End with a clear, low-friction ask (15-min call, introductory conversation)
+- Make it feel like it was written by a person, not a template`;
+
+    const userPrompt = [
+      form.name ? `NAME: ${form.name}` : "",
+      `CURRENT ROLE: ${form.currentRole}`,
+      `TARGET: ${targetLabel}`,
+      form.orgName ? `ORGANIZATION: ${form.orgName}` : "",
+      form.orgContext ? `ORG CONTEXT: ${form.orgContext}` : "",
+      form.uniqueValue ? `UNIQUE VALUE / KEY BACKGROUND:\n${form.uniqueValue.slice(0, 1500)}` : "",
+    ].filter(Boolean).join("\n\n");
+
+    const res = await fetch("/api/zari/chat", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({
+        message: userPrompt || "Write the executive outreach letter.",
+        systemOverride: systemPrompt,
+        history: [],
+        jsonMode: true,
+      }),
+    }).catch(() => null);
+    const data = await res?.json().catch(() => null) as { reply?: string } | null;
+    try {
+      const parsed = JSON.parse(data?.reply ?? "{}") as { subject?:string; letter?:string };
+      if (parsed.letter) { setResult({ subject: parsed.subject ?? `Inquiry — ${targetLabel}`, letter: parsed.letter }); }
+      else setError("Could not generate letter — try again.");
+    } catch { setError("Could not generate letter — try again."); }
+    setGenerating(false);
+  }
+
+  if (result) {
+    return (
+      <div style={{ height:"100%", display:"flex", overflow:"hidden", background:"var(--z-raise)" }}>
+        <div style={{ width:264, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column" }}>
+          <div style={{ padding:"22px 16px 14px" }}>
+            <div style={{ fontSize:9, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Exec Outreach</div>
+            <div style={{ fontSize:13.5, fontWeight:800, color:"var(--z-text)", marginBottom:4 }}>{form.currentRole}</div>
+            {form.orgName && <div style={{ fontSize:12, color:"var(--z-text2)", marginBottom:12 }}>→ {form.orgName}</div>}
+            <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
+              {([
+                { label:"Target", value:form.targetType === "board" ? "Board seat" : form.targetType === "advisory" ? "Advisory role" : form.targetType === "fractional" ? "Fractional exec" : "Exec role" },
+                { label:"Tone", value:form.tone === "formal" ? "Formal" : "Warm & direct" },
+              ] as {label:string;value:string}[]).map(r => (
+                <div key={r.label} style={{ display:"flex", justifyContent:"space-between", padding:"5px 9px", borderRadius:7, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
+                  <span style={{ fontSize:10, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em" }}>{r.label}</span>
+                  <span style={{ fontSize:11, fontWeight:800, color:"var(--z-text2)" }}>{r.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{ flex:1 }}/>
+          <div style={{ padding:"10px 12px 14px", borderTop:"1px solid var(--z-bd)", display:"flex", gap:6 }}>
+            <button onClick={() => setResult(null)} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Edit</button>
+            <button onClick={() => { setResult(null); setForm({ name:"", currentRole:"", targetType:"board", orgName:"", orgContext:"", uniqueValue:"", tone:"formal" }); }} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>New</button>
+          </div>
+        </div>
+        <div style={{ flex:1, overflowY:"auto", padding:"24px 28px 40px" }}>
+          <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:14, overflow:"hidden" }}>
+            <div style={{ padding:"16px 22px", borderBottom:"1px solid var(--z-bd)", background:"var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+              <div>
+                <div style={{ fontSize:10, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:3 }}>Subject</div>
+                <div style={{ fontSize:14, fontWeight:700, color:"var(--z-text)" }}>{result.subject}</div>
+              </div>
+              <button onClick={() => { void navigator.clipboard.writeText(`Subject: ${result.subject}\n\n${result.letter}`); setCopied(true); setTimeout(() => setCopied(false), 2500); }} style={{ fontSize:12.5, fontWeight:700, padding:"7px 16px", borderRadius:9, border:"1px solid var(--z-bd)", background:copied ? "#EFF6FF" : "var(--z-card)", color:copied ? "#2563EB" : "var(--z-text2)", cursor:"pointer", flexShrink:0 }}>{copied ? "Copied ✓" : "Copy letter"}</button>
+            </div>
+            <div style={{ padding:"22px 24px" }}>
+              <pre style={{ fontFamily:"inherit", fontSize:14, color:"var(--z-text)", lineHeight:1.85, whiteSpace:"pre-wrap", margin:0 }}>{result.letter}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
+      <div style={{ maxWidth:580, margin:"0 auto", padding:"32px 24px 56px" }}>
+        <div style={{ marginBottom:24 }}>
+          <div style={{ fontSize:10, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Exec Outreach</div>
+          <h1 style={{ fontSize:24, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 10px" }}>Write your outreach letter</h1>
+          <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.7, margin:0 }}>Zari writes a tight, specific outreach letter for board, advisory, or fractional executive roles — no templates, no fluff.</p>
+        </div>
+
+        <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:14, padding:"24px", display:"grid", gap:14 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+            <div>
+              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Target type</p>
+              <select value={form.targetType} onChange={e => setForm(f => ({...f, targetType:e.target.value}))} style={sel}>
+                <option value="board">Board director seat</option>
+                <option value="advisory">Advisory board role</option>
+                <option value="fractional">Fractional executive</option>
+                <option value="exec">Executive role</option>
+              </select>
+            </div>
+            <div>
+              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Tone</p>
+              <select value={form.tone} onChange={e => setForm(f => ({...f, tone:e.target.value}))} style={sel}>
+                <option value="formal">Formal & polished</option>
+                <option value="warm">Warm & direct</option>
+              </select>
+            </div>
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+            <div>
+              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Your current role <span style={{ color:"#EF4444" }}>*</span></p>
+              <input value={form.currentRole} onChange={e => setForm(f => ({...f, currentRole:e.target.value}))} placeholder="e.g. Chief Product Officer, Series C" style={inp} />
+            </div>
+            <div>
+              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Your name (optional)</p>
+              <input value={form.name} onChange={e => setForm(f => ({...f, name:e.target.value}))} placeholder="e.g. Alex Chen" style={inp} />
+            </div>
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+            <div>
+              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Organization name (optional)</p>
+              <input value={form.orgName} onChange={e => setForm(f => ({...f, orgName:e.target.value}))} placeholder="e.g. HealthTech Ventures" style={inp} />
+            </div>
+            <div>
+              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>About the org / why this one</p>
+              <input value={form.orgContext} onChange={e => setForm(f => ({...f, orgContext:e.target.value}))} placeholder="e.g. Series B, expanding into EU" style={inp} />
+            </div>
+          </div>
+          <div>
+            <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>What you uniquely bring (the stronger this is, the better the letter)</p>
+            <textarea value={form.uniqueValue} onChange={e => setForm(f => ({...f, uniqueValue:e.target.value}))} placeholder="e.g. Built and exited two B2B SaaS companies, specific expertise in enterprise go-to-market, network in target market..." style={{ ...inp, minHeight:100, resize:"vertical" as const, lineHeight:1.65 }} />
+          </div>
+        </div>
+
+        {error && <div style={{ marginTop:12, padding:"10px 14px", borderRadius:10, background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.3)", fontSize:13, color:"#EF4444" }}>{error}</div>}
+
+        <button onClick={() => void generate()} disabled={generating} style={{ marginTop:20, width:"100%", padding:"14px", borderRadius:12, border:"none", background:"#2563EB", color:"white", fontSize:14.5, fontWeight:700, cursor:generating ? "default" : "pointer", opacity:generating ? 0.7 : 1 }}>
+          {generating ? "Writing your letter…" : "Write outreach letter →"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
    LEADERSHIP STAGE: EXEC POSITIONING
 ═══════════════════════════════════════════════════ */
 type ExecPositioningResult = {
@@ -7445,6 +8262,8 @@ function dimColor(score: number) {
 
 function ScreenInterview({ stage, active = false }: { stage: CareerStage; active?: boolean }) {
   if (stage === "promotion") return <ScreenPromotionPitch active={active} />;
+  if (stage === "salary") return <ScreenSalaryNegotiationSim />;
+  if (stage === "leadership") return <ScreenLeadershipStoryPractice />;
 
   const [setupDone,    setSetupDone]    = useState(false);
   const [resumeText,   setResumeText]   = useState("");
@@ -9668,6 +10487,7 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
 
 function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?: boolean }) {
   if (stage === "promotion") return <ScreenPromotionVisibility active={active} />;
+  if (stage === "salary") return <ScreenSalaryMarketIntel />;
 
   type LINav = "score"|"headline"|"summary"|"experience"|"education"|"other"|"networking"|"keywords";
   const [liSection,      setLISection]      = useState<LINav>("score");
@@ -11068,6 +11888,8 @@ const STAGE_TASKS: Record<CareerStage, { text:string; cat:string; pri:string }[]
 ═══════════════════════════════════════════════════ */
 function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; active?: boolean }) {
   if (stage === "promotion") return <ScreenPromotionDocument active={active} />;
+  if (stage === "salary") return <ScreenSalaryNegotiationEmail />;
+  if (stage === "leadership") return <ScreenExecOutreach />;
 
   const [step,          setStep]          = useState(1); // 1=background, 2=jd, 3=customize
   const [profileText,   setProfileText]   = useState("");
