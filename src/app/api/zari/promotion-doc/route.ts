@@ -18,6 +18,12 @@ function cleanList(value: unknown, max = 6) {
     : [];
 }
 
+function cleanObjectList<T>(value: unknown, mapper: (item: Record<string, unknown>) => T | null) {
+  return Array.isArray(value)
+    ? value.map(item => item && typeof item === "object" ? mapper(item as Record<string, unknown>) : null).filter(Boolean) as T[]
+    : [];
+}
+
 function pickEvidenceLines(source: string, max = 4) {
   return source
     .split(/\n+/)
@@ -153,14 +159,14 @@ function buildFallback(body: { evidenceText: string; criteriaText: string; conte
       : `Lead with a short promotion case memo, then make it easy for your manager and partners to support it. The order below is designed to move from “here is the case” to “here is the support and follow-through that make it real.”`,
     redFlags: earlyCase
       ? [
-          "Do not send a polished promotion memo if the real gap is still weak proof or unclear manager support.",
-          "Do not ask for endorsement before you have concrete examples people can honestly back.",
-          "Do not mistake activity or effort for a case that someone else can defend upward.",
+          { risk: "Sending a polished memo when the proof is still weak", why: "Polish signals you misread the stage — it can make the case look worse by showing a gap between packaging and substance.", instead: "Lead with a manager checkpoint and evidence-gathering docs first. The memo comes after the gaps are closed." },
+          { risk: "Asking for endorsement before you have concrete examples", why: "Asking people to back something they can't specifically describe puts their credibility at risk.", instead: "Give each sponsor 2-3 specific sentences they could repeat verbatim — then ask." },
+          { risk: "Treating activity or effort as a promotable case", why: "Your manager doesn't just relay what you tell them — they have to believe it independently under challenge.", instead: "Ask your manager to summarize the case in 2 minutes without your help. That's the real test." },
         ]
       : [
-          "A polished document will still fail if the underlying examples are vague or hard to verify.",
-          "If your manager cannot repeat the case in two minutes, the packet is still doing too much work.",
-          "Do not make the written case broader than the proof you can actually support in a live conversation.",
+          { risk: "Polished document with vague underlying examples", why: "Strong formatting amplifies weak evidence — it makes the gap more visible to anyone reading critically.", instead: "Every claim must trace to a specific project, decision, and outcome before you finalize the document." },
+          { risk: "Manager who can't repeat the case in two minutes", why: "If they struggle to summarize it, they'll struggle harder when someone challenges it in calibration.", instead: "Run a dry-run: ask your manager to pitch the case to you before the real room. Fill the gaps you hear." },
+          { risk: "Writing a broader case than the proof you can actually defend", why: "Overclaiming gets corrected in calibration, which actively damages credibility.", instead: "Three airtight proof points beat ten shaky ones. Narrow the case to what's genuinely defensible." },
         ],
     documents: buildArtifactFallbacks(body, readinessScore),
   };
@@ -202,7 +208,9 @@ Return ONLY valid JSON:
 {
   "coachTake": "<2-4 sentence direct coach guidance written as Zari speaking to the user>",
   "strategy": "<2-4 sentence direct guidance on which documents matter now and what order to use them in>",
-  "redFlags": ["<mistake to avoid>", "<mistake to avoid>", "<mistake to avoid>"],
+  "redFlags": [
+    { "risk": "<mistake to avoid>", "why": "<why it backfires>", "instead": "<what to do instead>" }
+  ],
   "documents": [
     {
       "title": "<artifact title>",
@@ -261,12 +269,19 @@ Requirements:
     const result = {
       coachTake: cleanString(parsed.coachTake ?? parsed.overview),
       strategy: cleanString(parsed.strategy),
-      redFlags: cleanList(parsed.redFlags ?? parsed.missingProof, 5),
+      redFlags: (() => {
+        const src = parsed.redFlags ?? parsed.missingProof;
+        const r = cleanObjectList(src, item => {
+          const risk = cleanString(item.risk), why = cleanString(item.why), instead = cleanString(item.instead);
+          return risk ? { risk, why, instead } : null;
+        }).slice(0, 5);
+        return r.length ? r : fallback.redFlags;
+      })(),
       documents: cleanArtifacts(parsed.documents ?? parsed.feedbackRequests, 6),
     };
     result.coachTake ||= fallback.coachTake;
     result.strategy ||= fallback.strategy;
-    result.redFlags = result.redFlags.length ? result.redFlags : fallback.redFlags;
+    result.redFlags = (result.redFlags as unknown[]).length ? result.redFlags : fallback.redFlags;
     result.documents = result.documents.length ? result.documents : fallback.documents;
     return NextResponse.json(result);
   } catch {

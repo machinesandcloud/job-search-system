@@ -44,19 +44,19 @@ function buildFallback(body: { evidenceText: string; targetLevel: string; stakeh
       { audience: "Cross-functional leader", goal: "Be able to speak credibly about your influence and operating range.", ask: "Would you be willing to reference the outcomes and collaboration impact you saw directly?" },
     ],
     missingSupport: [
-      "Any person who matters to promotion timing but still has only a fuzzy picture of your impact.",
-      "Any sponsor who likes your work but is not yet prepared to speak for your readiness under scrutiny.",
-      "Any gap between the story you tell yourself and the proof leadership is likely to recognize immediately.",
+      { gap: "Decision-maker visibility above your manager", impact: "Promotions are approved by people who need to have seen your work — not just your manager's summary of it.", fix: "Get your work in front of the people who influence the decision through real project exposure, not just status updates." },
+      { gap: "Sponsor prepared to defend under pressure", impact: "A manager who likes your work but deflects hard questions will lose the vote when it matters.", fix: "Test your sponsor: ask them to describe your strongest proof point in two sentences. If they struggle, they need more context before the room." },
+      { gap: "Written external proof from peers or partners", impact: "Without corroboration, your case rests entirely on one person's subjective assessment.", fix: "Ask 2-3 people who witnessed your scope and impact directly for a few specific written sentences you can reference." },
     ],
     weeklyCadence: [
-      "Ship one crisp update that ties current work to business outcomes or next-level scope.",
-      "Use one existing meeting or readout to make a strong result visible to the right audience.",
-      "Check in with your manager or sponsor on what still feels weak instead of assuming alignment.",
+      { action: "Ship one crisp update tying current work to business outcomes", why: "Decision-makers need a pattern, not a packet — consistent visibility compounds over the weeks before the decision.", frequency: "Every week" },
+      { action: "Use one existing meeting to make a strong result visible to the right audience", why: "Inserting into existing rhythms lands more credibly than creating new ones.", frequency: "Weekly or bi-weekly" },
+      { action: "Check in with your sponsor on what still feels weak", why: "Surprises in calibration happen because nobody said the quiet part out loud before the room.", frequency: "Every 2-3 weeks" },
     ],
     watchouts: [
-      "More visibility will backfire if the underlying proof is still weak.",
-      "Do not confuse being well-liked with being advocate-backed.",
-      "Do not wait until the decision room to discover what still feels unconvincing.",
+      { risk: "Increasing visibility before the proof is solid", impact: "More noise on weak evidence makes the case harder to defend, not easier.", instead: "Nail your two strongest examples first. Then make them visible — not before." },
+      { risk: "Mistaking being well-liked for being advocate-backed", impact: "Social capital and promotion capital are different — people vote with their professional reputation at stake.", instead: "Ask your sponsor directly: 'What would you say if someone challenged my case in the room?'" },
+      { risk: "Waiting until calibration to find out what's still unconvincing", impact: "By then there's no time to close gaps that could have been addressed weeks earlier.", instead: "Force a direct, blunt checkpoint conversation before the decision cycle opens." },
     ],
   };
 }
@@ -104,9 +104,15 @@ Return ONLY valid JSON:
   "sponsorMap": [
     { "audience": "<manager / skip-level / xfn leader / sponsor type>", "goal": "<what they need to believe>", "ask": "<what to say or ask them for>" }
   ],
-  "missingSupport": ["<what support is missing>", "<what support is missing>", "<what support is missing>"],
-  "weeklyCadence": ["<recurring action>", "<recurring action>", "<recurring action>"],
-  "watchouts": ["<risk to avoid>", "<risk to avoid>", "<risk to avoid>"]
+  "missingSupport": [
+    { "gap": "<what support or belief is missing>", "impact": "<why it matters for the promotion decision>", "fix": "<concrete action to close it>" }
+  ],
+  "weeklyCadence": [
+    { "action": "<what to do>", "why": "<why this builds the case>", "frequency": "<when/how often>" }
+  ],
+  "watchouts": [
+    { "risk": "<what to avoid>", "impact": "<how it backfires>", "instead": "<what to do instead>" }
+  ]
 }
 
 Rules:
@@ -163,18 +169,36 @@ Rules:
         const ask = cleanString(item.ask);
         return audience && goal && ask ? { audience, goal, ask } : null;
       }).slice(0, 4),
-      missingSupport: cleanList(parsed.missingSupport, 5),
-      weeklyCadence: cleanList(parsed.weeklyCadence, 4),
-      watchouts: cleanList(parsed.watchouts, 4),
+      missingSupport: (() => {
+        const r = cleanObjectList(parsed.missingSupport, item => {
+          const gap = cleanString(item.gap), impact = cleanString(item.impact), fix = cleanString(item.fix);
+          return gap ? { gap, impact, fix } : null;
+        }).slice(0, 5);
+        return r.length ? r : fallback.missingSupport;
+      })(),
+      weeklyCadence: (() => {
+        const r = cleanObjectList(parsed.weeklyCadence, item => {
+          const action = cleanString(item.action), why = cleanString(item.why), frequency = cleanString(item.frequency);
+          return action ? { action, why, frequency } : null;
+        }).slice(0, 4);
+        return r.length ? r : fallback.weeklyCadence;
+      })(),
+      watchouts: (() => {
+        const r = cleanObjectList(parsed.watchouts, item => {
+          const risk = cleanString(item.risk), impact = cleanString(item.impact), instead = cleanString(item.instead);
+          return risk ? { risk, impact, instead } : null;
+        }).slice(0, 4);
+        return r.length ? r : fallback.watchouts;
+      })(),
     };
     result.overallFocus ||= fallback.overallFocus;
     result.hardTruth ||= fallback.hardTruth;
     result.executiveNarrative ||= fallback.executiveNarrative;
     result.visibilityMoves = result.visibilityMoves.length ? result.visibilityMoves : fallback.visibilityMoves;
     result.sponsorMap = result.sponsorMap.length ? result.sponsorMap : fallback.sponsorMap;
-    result.missingSupport = result.missingSupport.length ? result.missingSupport : fallback.missingSupport;
-    result.weeklyCadence = result.weeklyCadence.length ? result.weeklyCadence : fallback.weeklyCadence;
-    result.watchouts = result.watchouts.length ? result.watchouts : fallback.watchouts;
+    result.missingSupport = (result.missingSupport as unknown[]).length ? result.missingSupport : fallback.missingSupport;
+    result.weeklyCadence = (result.weeklyCadence as unknown[]).length ? result.weeklyCadence : fallback.weeklyCadence;
+    result.watchouts = (result.watchouts as unknown[]).length ? result.watchouts : fallback.watchouts;
     return NextResponse.json(result);
   } catch {
     return NextResponse.json(fallback);

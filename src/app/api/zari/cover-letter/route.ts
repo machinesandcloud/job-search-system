@@ -46,8 +46,12 @@ Return ONLY valid JSON:
 {
   "subject": "<concise email subject line, ~60 chars>",
   "coverLetter": "<complete cover letter including salutation, 3-4 body paragraphs, and closing signature — see structure below>",
-  "tailoringNotes": ["<specific thing Zari did to personalize this letter to this role/company>", "<another specific tailoring decision>", "<another>"],
-  "keyStrengths": ["<specific strength from the candidate's profile that was highlighted>", "<another strength>", "<another>"],
+  "tailoringNotes": [
+    { "decision": "<what was changed or included>", "impact": "<why this makes the letter stronger for this specific role/company>" }
+  ],
+  "keyStrengths": [
+    { "strength": "<the specific strength highlighted>", "evidence": "<the proof from the profile that demonstrates it>" }
+  ],
   "openingHook": "<the first sentence of the letter — what makes it stand out>"
 }
 
@@ -92,12 +96,21 @@ Human voice rules — these are non-negotiable:
   try {
     const p = JSON.parse(reply) as Record<string, unknown>;
     const cleanStr = (v: unknown) => typeof v === "string" ? v.trim() : "";
-    const cleanList = (v: unknown, max = 4) => Array.isArray(v) ? (v as unknown[]).map(cleanStr).filter(Boolean).slice(0, max) : [];
+    const parseStructured = <T>(v: unknown, fn: (r: Record<string,unknown>) => T | null, max = 4): T[] => {
+      if (!Array.isArray(v)) return [];
+      return (v as unknown[]).map(i => i && typeof i === "object" ? fn(i as Record<string,unknown>) : null).filter(Boolean).slice(0, max) as T[];
+    };
     return NextResponse.json({
       subject: cleanStr(p.subject),
       coverLetter: cleanStr(p.coverLetter),
-      tailoringNotes: cleanList(p.tailoringNotes, 4),
-      keyStrengths: cleanList(p.keyStrengths, 4),
+      tailoringNotes: parseStructured(p.tailoringNotes, i => {
+        const decision = cleanStr(i.decision), impact = cleanStr(i.impact);
+        return decision ? { decision, impact } : null;
+      }, 4),
+      keyStrengths: parseStructured(p.keyStrengths, i => {
+        const strength = cleanStr(i.strength), evidence = cleanStr(i.evidence);
+        return strength ? { strength, evidence } : null;
+      }, 4),
       openingHook: cleanStr(p.openingHook),
     });
   } catch {
