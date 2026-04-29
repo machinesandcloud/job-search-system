@@ -175,9 +175,7 @@ function ScoreRing({ score, color="#2563EB", size=56, dark=false }: { score:numb
 function Bar({ pct, color="#2563EB", h=5 }: { pct:number; color?:string; h?:number }) {
   return (
     <div style={{ height:h, borderRadius:99, background:"var(--z-raise)", overflow:"hidden", position:"relative" }}>
-      <div style={{ width:`${pct}%`, height:"100%", background:`linear-gradient(90deg, ${color}99, ${color}EE, ${color})`, borderRadius:99, transition:"width 1s cubic-bezier(0.4,0,0.2,1)", boxShadow:`0 0 8px ${color}55`, position:"relative", overflow:"hidden" }}>
-        <div style={{ position:"absolute", inset:0, background:"linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.22) 50%, transparent 100%)", backgroundSize:"200% 100%", animation:"shimmer-sweep 2s ease infinite" }}/>
-      </div>
+      <div style={{ width:`${pct}%`, height:"100%", background:`linear-gradient(90deg, ${color}99, ${color}EE, ${color})`, borderRadius:99, transition:"width 1s cubic-bezier(0.4,0,0.2,1)", boxShadow:`0 0 8px ${color}55` }} />
     </div>
   );
 }
@@ -12497,29 +12495,29 @@ function ScreenPromotionToolkit({ onNavigate }: { onNavigate: (s: string) => voi
   const TYPE_META: Record<DocType, { label:string; color:string; bg:string; section:string; icon: React.ReactNode }> = {
     "resume": {
       label:"Reality Check",
-      color:"var(--z-text2)",
-      bg:"#F0FDFA",
+      color:"#7C3AED",
+      bg:"rgba(124,58,237,0.12)",
       section:"resume",
       icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><path d="M13 2H5a1.5 1.5 0 00-1.5 1.5v13A1.5 1.5 0 005 18h10a1.5 1.5 0 001.5-1.5V6L13 2z"/><path d="M13 2v4h4"/><path d="M7 9h6M7 12h4"/></svg>,
     },
     "cover-letter": {
       label:"Build the Case",
       color:"#10B981",
-      bg:"#ECFDF5",
+      bg:"rgba(16,185,129,0.12)",
       section:"cover-letter",
       icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><path d="M4 4h12a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V5a1 1 0 011-1z"/><path d="M5 8h10M5 12h7"/></svg>,
     },
     "linkedin": {
       label:"Get Allies",
       color:"#3B82F6",
-      bg:"#EFF6FF",
+      bg:"rgba(59,130,246,0.12)",
       section:"linkedin",
       icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><rect x="2" y="2" width="16" height="16" rx="3"/><path d="M6 9v5M6 7v.01M10 14v-3a2 2 0 014 0v3M10 9v5"/></svg>,
     },
     "upload": {
       label:"Uploaded Proof",
-      color:"var(--z-text2)",
-      bg:"#F8FAFC",
+      color:"#64748B",
+      bg:"rgba(100,116,139,0.12)",
       section:"documents",
       icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:18,height:18}}><path d="M14 2H6a1.5 1.5 0 00-1.5 1.5v13A1.5 1.5 0 006 18h8a1.5 1.5 0 001.5-1.5V6L14 2z"/><path d="M14 2v4h4"/></svg>,
     },

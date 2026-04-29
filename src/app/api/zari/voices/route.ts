@@ -4,7 +4,7 @@ import { OPENAI_VOICES } from "../speak/route";
 type Gender = "f" | "m";
 
 // Only these voices are shown — all work on ElevenLabs Free plan
-const ALLOWED = new Set(["charlie","chris","eric","jessica","laura","liam","matilda","roger","sarah","will"]);
+const ALLOWED = new Set(["jessica","charlie"]);
 
 function inferGender(labels?: { gender?: string }, name?: string): Gender {
   if (labels?.gender === "male")   return "m";
