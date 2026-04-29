@@ -21,15 +21,15 @@ const LIGHT_THEME: Record<string,string> = {
   "--z-sh":    "rgba(15,23,42,0.06)",
 };
 const DARK_THEME: Record<string,string> = {
-  "--z-bg":    "#07080F",
-  "--z-card":  "#0E1424",
-  "--z-raise": "#131D30",
-  "--z-text":  "rgba(255,255,255,0.92)",
-  "--z-text2": "rgba(255,255,255,0.55)",
-  "--z-text3": "rgba(255,255,255,0.50)",
-  "--z-bd":    "rgba(255,255,255,0.14)",
-  "--z-bd2":   "rgba(255,255,255,0.06)",
-  "--z-sh":    "rgba(0,0,0,0.40)",
+  "--z-bg":    "#04060D",
+  "--z-card":  "#080E1C",
+  "--z-raise": "#0E1828",
+  "--z-text":  "rgba(255,255,255,0.94)",
+  "--z-text2": "rgba(255,255,255,0.50)",
+  "--z-text3": "rgba(255,255,255,0.28)",
+  "--z-bd":    "rgba(255,255,255,0.09)",
+  "--z-bd2":   "rgba(255,255,255,0.04)",
+  "--z-sh":    "rgba(0,0,0,0.65)",
 };
 
 /* ═══════════════════════════════════════════════════
@@ -108,37 +108,45 @@ function vaultReadForStage(stage: CareerStage): DocEntry[] {
    HELPERS
 ═══════════════════════════════════════════════════ */
 function ScoreRing({ score, color="#2563EB", size=56, dark=false }: { score:number; color?:string; size?:number; dark?:boolean }) {
-  const sw = Math.max(5, size * 0.065);
+  const sw = Math.max(5, size * 0.068);
   const r = (size - sw * 2) / 2;
   const circ = 2 * Math.PI * r;
   const dash = circ * (1 - score / 100);
-  const trackColor = dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)";
-  const textColor = dark ? "white" : color;
+  const trackColor = dark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)";
+  const textColor = dark ? "rgba(255,255,255,0.95)" : color;
+  const gradId = `ring-grad-${size}-${color.replace(/[^a-z0-9]/gi,"")}`;
+  const glowId = `ring-glow-${size}`;
   return (
     <div style={{ position:"relative", width:size, height:size, flexShrink:0 }}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         <defs>
-          <filter id={`glow-${size}`} x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="2.5" result="blur"/>
+          <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor={color} stopOpacity="0.7"/>
+            <stop offset="100%" stopColor={color} stopOpacity="1"/>
+          </linearGradient>
+          <filter id={glowId} x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
             <feComposite in="SourceGraphic" in2="blur" operator="over"/>
           </filter>
         </defs>
         <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={trackColor} strokeWidth={sw}/>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={sw} strokeLinecap="round"
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={`url(#${gradId})`} strokeWidth={sw} strokeLinecap="round"
           strokeDasharray={circ} strokeDashoffset={dash}
           transform={`rotate(-90 ${size/2} ${size/2})`}
-          style={{ filter:`drop-shadow(0 0 ${sw*0.8}px ${color}88)`, transition:"stroke-dashoffset 1s cubic-bezier(0.4,0,0.2,1)" }}
+          style={{ filter:`drop-shadow(0 0 ${sw}px ${color}99)`, transition:"stroke-dashoffset 1.1s cubic-bezier(0.4,0,0.2,1)" }}
         />
       </svg>
-      <span style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:size*0.24, fontWeight:900, color:textColor, letterSpacing:"-0.03em" }}>{score}</span>
+      <span style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:size*0.24, fontWeight:900, color:textColor, letterSpacing:"-0.04em", textShadow: dark ? `0 0 ${size*0.3}px ${color}55` : "none" }}>{score}</span>
     </div>
   );
 }
 
 function Bar({ pct, color="#2563EB", h=5 }: { pct:number; color?:string; h?:number }) {
   return (
-    <div style={{ height:h, borderRadius:99, background:"var(--z-raise)", overflow:"hidden" }}>
-      <div style={{ width:`${pct}%`, height:"100%", background:`linear-gradient(90deg, ${color}CC, ${color})`, borderRadius:99, transition:"width 0.8s cubic-bezier(0.4,0,0.2,1)", boxShadow:`0 0 6px ${color}55` }}/>
+    <div style={{ height:h, borderRadius:99, background:"var(--z-raise)", overflow:"hidden", position:"relative" }}>
+      <div style={{ width:`${pct}%`, height:"100%", background:`linear-gradient(90deg, ${color}99, ${color}EE, ${color})`, borderRadius:99, transition:"width 1s cubic-bezier(0.4,0,0.2,1)", boxShadow:`0 0 8px ${color}55`, position:"relative", overflow:"hidden" }}>
+        <div style={{ position:"absolute", inset:0, background:"linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.22) 50%, transparent 100%)", backgroundSize:"200% 100%", animation:"shimmer-sweep 2s ease infinite" }}/>
+      </div>
     </div>
   );
 }
@@ -13982,7 +13990,7 @@ export function ZariPortal() {
   const accentInfo = SCREEN_ACCENTS[screen] ?? SCREEN_ACCENTS["session"];
 
   return (
-    <div className={isDark?"zari-dark":""} style={{ display:"flex", height:"100vh", overflow:"hidden", background:"var(--z-bg)", fontFamily:"var(--font-geist-sans,Inter,system-ui,sans-serif)", WebkitFontSmoothing:"antialiased", MozOsxFontSmoothing:"grayscale", ...themeVars }}>
+    <div className={isDark?"zari-dark":""} style={{ display:"flex", height:"100vh", overflow:"hidden", background:"var(--z-bg)", fontFamily:"var(--font-geist-sans,Inter,system-ui,sans-serif)", WebkitFontSmoothing:"antialiased", MozOsxFontSmoothing:"grayscale", ...themeVars, backgroundImage: isDark ? "radial-gradient(ellipse 80% 60% at 50% -20%, rgba(37,99,235,0.07) 0%, transparent 100%)" : "none" }}>
       <style>{`
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.15} }
         @keyframes bubble-appear { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
@@ -14006,26 +14014,46 @@ export function ZariPortal() {
         @keyframes sidebar-shimmer { 0%{opacity:0.4} 50%{opacity:0.7} 100%{opacity:0.4} }
         @keyframes live-ring-out { 0%{transform:translate(-50%,-50%) scale(1);opacity:0.6} 100%{transform:translate(-50%,-50%) scale(2.2);opacity:0} }
         @keyframes live-msg-in { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes screen-slide-in { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes fade-up { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes card-in { from{opacity:0;transform:translateY(8px) scale(0.99)} to{opacity:1;transform:translateY(0) scale(1)} }
+        @keyframes shimmer-sweep { 0%{background-position:-400px 0} 100%{background-position:400px 0} }
+        @keyframes upgrade-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(37,99,235,0)} 50%{box-shadow:0 0 0 3px rgba(37,99,235,0.15)} }
         * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
         textarea::placeholder, input::placeholder { color: var(--z-text3); opacity: 1; }
-        .zari-nav-btn:hover { background: rgba(37,99,235,0.05) !important; }
-        .zari-nav-btn.active { background: rgba(37,99,235,0.08) !important; }
-        .zari-dark .zari-nav-btn:hover { background: rgba(255,255,255,0.06) !important; }
-        .zari-dark .zari-nav-btn.active { background: rgba(37,99,235,0.18) !important; }
+        .zari-nav-btn { position: relative; overflow: hidden; }
+        .zari-nav-btn:hover { background: rgba(37,99,235,0.06) !important; color: var(--z-text) !important; }
+        .zari-nav-btn.active { color: #2563EB !important; }
+        .zari-dark .zari-nav-btn:hover { background: rgba(255,255,255,0.05) !important; color: rgba(255,255,255,0.85) !important; }
+        .zari-dark .zari-nav-btn.active { background: transparent !important; }
+        .zari-card-lift { transition: transform 0.18s cubic-bezier(0.4,0,0.2,1), box-shadow 0.18s cubic-bezier(0.4,0,0.2,1) !important; cursor: pointer; }
+        .zari-card-lift:hover { transform: translateY(-2px) !important; box-shadow: 0 10px 28px var(--z-sh) !important; }
+        .zari-btn-scale { transition: transform 0.15s ease, box-shadow 0.15s ease !important; }
+        .zari-btn-scale:hover { transform: scale(1.02) !important; }
+        .zari-btn-scale:active { transform: scale(0.98) !important; }
+        .zari-screen-active { animation: screen-slide-in 0.32s cubic-bezier(0.4,0,0.2,1); }
+        .zari-stage-opt:hover { background: rgba(37,99,235,0.07) !important; }
+        .zari-dark .zari-stage-opt:hover { background: rgba(255,255,255,0.06) !important; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--z-bd); border-radius: 99px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--z-text3); }
       `}</style>
 
       {/* ── SIDEBAR ── */}
-      <aside style={{ width:240, flexShrink:0, background:"var(--z-card)", display:"flex", flexDirection:"column", padding:"0 0 16px", position:"relative", borderRight:"1px solid var(--z-bd)" }}>
+      <aside style={{ width:244, flexShrink:0, background:"var(--z-card)", display:"flex", flexDirection:"column", padding:"0 0 16px", position:"relative", borderRight:"1px solid var(--z-bd)", overflow:"hidden" }}>
+        {/* Dark mode ambient glow */}
+        {isDark && <div style={{ position:"absolute", top:-40, left:-20, width:180, height:180, borderRadius:"50%", background:"radial-gradient(circle, rgba(37,99,235,0.12) 0%, transparent 70%)", pointerEvents:"none" }}/>}
 
         {/* Logo + user */}
-        <div style={{ padding:"16px 16px 12px", display:"flex", alignItems:"center", gap:10 }}>
+        <div style={{ padding:"18px 16px 14px", display:"flex", alignItems:"center", gap:10, position:"relative" }}>
           <Link href="/" style={{ display:"flex", alignItems:"center", gap:9, textDecoration:"none", flex:1 }}>
-            <div style={{ width:32, height:32, borderRadius:9, background:"#2563EB", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+            <div style={{ width:34, height:34, borderRadius:10, background:"linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow: isDark ? "0 0 18px rgba(37,99,235,0.5), 0 2px 8px rgba(0,0,0,0.4)" : "0 2px 10px rgba(37,99,235,0.35)" }}>
               <ZariLogo size={16}/>
             </div>
             <span style={{ fontSize:17, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.04em", lineHeight:1 }}>Zari</span>
           </Link>
-          <button onClick={toggleDark} title={isDark?"Light mode":"Dark mode"} style={{ width:30, height:30, borderRadius:8, border:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text3)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+          <button onClick={toggleDark} title={isDark?"Light mode":"Dark mode"} style={{ width:30, height:30, borderRadius:8, border:"1px solid var(--z-bd)", background: isDark ? "rgba(255,255,255,0.04)" : "var(--z-raise)", color:"var(--z-text3)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, transition:"all 0.18s" }}>
             {isDark ? (
               <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:14,height:14}}><circle cx="10" cy="10" r="4"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.93 4.93l1.41 1.41M13.66 13.66l1.41 1.41M4.93 15.07l1.41-1.41M13.66 6.34l1.41-1.41"/></svg>
             ) : (
@@ -14038,35 +14066,37 @@ export function ZariPortal() {
         <div style={{ margin:"0 10px 10px", position:"relative" }}>
           <button
             onClick={() => setStageOpen(o => !o)}
-            style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"8px 11px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", cursor:"pointer", fontSize:12.5, fontWeight:600, color:"var(--z-text2)", transition:"all 0.15s" }}
+            style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"9px 12px", borderRadius:10, border:"1px solid var(--z-bd)", background: isDark ? "rgba(255,255,255,0.03)" : "var(--z-raise)", cursor:"pointer", fontSize:12.5, fontWeight:600, color:"var(--z-text2)", transition:"all 0.18s", backdropFilter: isDark ? "blur(8px)" : "none" }}
           >
-            <span style={{ display:"flex", alignItems:"center" }}>{STAGE_ICONS[stage]}</span>
+            <span style={{ display:"flex", alignItems:"center", color: STAGE_META[stage].color }}>{STAGE_ICONS[stage]}</span>
             <span style={{ flex:1, textAlign:"left", color:"var(--z-text)", fontWeight:700 }}>{STAGE_META[stage].label}</span>
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:11,height:11, transition:"transform 0.2s", transform:stageOpen?"rotate(180deg)":"rotate(0)", opacity:0.4 }}><path d="M4 6l4 4 4-4"/></svg>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:11,height:11, transition:"transform 0.22s cubic-bezier(0.4,0,0.2,1)", transform:stageOpen?"rotate(180deg)":"rotate(0)", opacity:0.35 }}><path d="M4 6l4 4 4-4"/></svg>
           </button>
           {stageOpen && (
-            <div style={{ position:"absolute", top:"calc(100% + 4px)", left:0, right:0, zIndex:50, background:"var(--z-card)", borderRadius:11, border:"1px solid var(--z-bd)", boxShadow:"0 12px 36px rgba(0,0,0,0.12)", overflow:"hidden", animation:"bubble-appear 0.2s ease" }}>
+            <div style={{ position:"absolute", top:"calc(100% + 6px)", left:0, right:0, zIndex:50, background: isDark ? "rgba(8,14,28,0.96)" : "var(--z-card)", borderRadius:12, border:"1px solid var(--z-bd)", boxShadow: isDark ? "0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05)" : "0 16px 48px rgba(0,0,0,0.13)", overflow:"hidden", animation:"bubble-appear 0.2s ease", backdropFilter:"blur(16px)" }}>
               {(Object.entries(STAGE_META) as [CareerStage, typeof STAGE_META[CareerStage]][]).map(([key, meta]) => (
                 <button key={key} onClick={() => { setStage(key); setStageOpen(false); navigate("session"); }}
-                  style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"9px 13px", border:"none", cursor:"pointer", textAlign:"left", background:stage===key?"rgba(37,99,235,0.06)":"transparent", fontSize:13, fontWeight:stage===key?700:500, color:stage===key?"#2563EB":"var(--z-text2)", transition:"background 0.1s", borderBottom:"1px solid var(--z-bd2)" }}>
-                  <span style={{ display:"flex", alignItems:"center", opacity:0.8 }}>{STAGE_ICONS[key]}</span>
+                  className="zari-stage-opt"
+                  style={{ width:"100%", display:"flex", alignItems:"center", gap:9, padding:"10px 13px", border:"none", cursor:"pointer", textAlign:"left", background:stage===key ? (isDark ? "rgba(37,99,235,0.12)" : "rgba(37,99,235,0.06)") :"transparent", fontSize:13, fontWeight:stage===key?700:500, color:stage===key ? meta.color : "var(--z-text2)", transition:"background 0.12s", borderBottom:"1px solid var(--z-bd2)", borderLeft: stage===key ? `3px solid ${meta.color}` : "3px solid transparent" }}>
+                  <span style={{ display:"flex", alignItems:"center", color: meta.color, opacity: stage===key ? 1 : 0.7 }}>{STAGE_ICONS[key]}</span>
                   {meta.label}
-                  {stage===key && <svg viewBox="0 0 16 16" style={{ width:11,height:11,marginLeft:"auto" }}><path d="M3 8l4 4 6-6" stroke="#2563EB" strokeWidth="2.2" fill="none"/></svg>}
+                  {stage===key && <svg viewBox="0 0 16 16" style={{ width:11,height:11,marginLeft:"auto", flexShrink:0 }}><path d="M3 8l4 4 6-6" stroke={meta.color} strokeWidth="2.2" fill="none"/></svg>}
                 </button>
               ))}
             </div>
           )}
         </div>
 
-        {/* Chat CTA — like Kleo's "Chat" button */}
+        {/* Chat CTA */}
         <div style={{ padding:"0 10px 10px" }}>
-          <button onClick={()=>navigate("session")} style={{ width:"100%", display:"flex", alignItems:"center", gap:9, padding:"10px 13px", borderRadius:9, border:"none", background:screen==="session"?"#2563EB":"#EFF6FF", color:screen==="session"?"white":"#2563EB", fontWeight:700, fontSize:13.5, cursor:"pointer", transition:"all 0.15s", letterSpacing:"-0.01em" }}>
+          <button onClick={()=>navigate("session")} className="zari-btn-scale"
+            style={{ width:"100%", display:"flex", alignItems:"center", gap:9, padding:"10px 14px", borderRadius:10, border:"none", background: screen==="session" ? "linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)" : isDark ? "rgba(37,99,235,0.14)" : "#EFF6FF", color:screen==="session"?"white":"#2563EB", fontWeight:700, fontSize:13.5, cursor:"pointer", letterSpacing:"-0.01em", boxShadow: screen==="session" ? "0 4px 16px rgba(37,99,235,0.45)" : "none" }}>
             <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.9" style={{width:15,height:15,flexShrink:0}}><path d="M3 3h12a1 1 0 011 1v7a1 1 0 01-1 1H6l-4 3V4a1 1 0 011-1z"/></svg>
             Chat with Zari
           </button>
         </div>
 
-        <div style={{ height:1, margin:"0 10px 10px", background:"var(--z-bd)" }}/>
+        <div style={{ height:1, margin:"0 10px 10px", background: isDark ? "linear-gradient(90deg, transparent, var(--z-bd), transparent)" : "var(--z-bd)" }}/>
 
         {/* Nav — grouped like Kleo */}
         <nav style={{ flex:1, padding:"0 8px", display:"flex", flexDirection:"column", gap:1, overflowY:"auto" }}>
@@ -14084,10 +14114,14 @@ export function ZariPortal() {
                   <div style={{ padding:"8px 8px 4px", fontSize:10, fontWeight:700, color:"var(--z-text3)", letterSpacing:"0.1em", textTransform:"uppercase" }}>{g.label}</div>
                   {items.map(n => {
                     const isActive = screen === n.id;
+                    const itemColor = SCREEN_ACCENTS[n.id]?.color ?? "#2563EB";
+                    const activeBg = isDark
+                      ? `linear-gradient(90deg, ${itemColor}22 0%, transparent 100%)`
+                      : `linear-gradient(90deg, ${itemColor}12 0%, transparent 100%)`;
                     return (
                       <button key={n.id} onClick={()=>navigate(n.id as Screen)} className={`zari-nav-btn${isActive?" active":""}`}
-                        style={{ width:"100%", display:"flex", alignItems:"center", gap:9, padding:"8px 10px", borderRadius:8, border:"none", cursor:"pointer", textAlign:"left", background:isActive?"rgba(37,99,235,0.08)":"transparent", color:isActive?"#2563EB":"var(--z-text2)", fontWeight:isActive?600:400, fontSize:13.5, transition:"all 0.12s" }}>
-                        <span style={{ display:"flex", alignItems:"center", opacity:isActive?1:0.55 }}>{n.icon}</span>
+                        style={{ width:"100%", display:"flex", alignItems:"center", gap:9, padding:"8px 10px", borderRadius:8, border:"none", cursor:"pointer", textAlign:"left", background:isActive ? activeBg : "transparent", color:isActive ? itemColor : "var(--z-text2)", fontWeight:isActive?600:400, fontSize:13.5, transition:"all 0.14s", boxShadow: isActive ? `inset 3px 0 0 ${itemColor}` : "inset 3px 0 0 transparent" }}>
+                        <span style={{ display:"flex", alignItems:"center", color: isActive ? itemColor : "var(--z-text3)", transition:"color 0.14s" }}>{n.icon}</span>
                         {n.label}
                       </button>
                     );
@@ -14098,46 +14132,49 @@ export function ZariPortal() {
           })()}
         </nav>
 
-        {/* Bottom: upgrade — clean like Kleo */}
-        <div style={{ margin:"12px 10px 0", background:"var(--z-raise)", borderRadius:11, padding:"14px 14px", border:"1px solid var(--z-bd)" }}>
-          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
-            <div style={{ width:26, height:26, borderRadius:7, background:"#2563EB", display:"flex", alignItems:"center", justifyContent:"center" }}>
+        {/* Bottom: upgrade */}
+        <div style={{ margin:"12px 10px 0", background: isDark ? "linear-gradient(135deg, rgba(37,99,235,0.18) 0%, rgba(139,92,246,0.12) 100%)" : "linear-gradient(135deg, #EFF6FF 0%, #F5F3FF 100%)", borderRadius:12, padding:"14px", border: isDark ? "1px solid rgba(37,99,235,0.28)" : "1px solid rgba(37,99,235,0.14)", position:"relative", overflow:"hidden" }}>
+          {isDark && <div style={{ position:"absolute", top:-20, right:-20, width:80, height:80, borderRadius:"50%", background:"radial-gradient(circle, rgba(139,92,246,0.18) 0%, transparent 70%)", pointerEvents:"none" }}/>}
+          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:7 }}>
+            <div style={{ width:26, height:26, borderRadius:7, background:"linear-gradient(135deg, #3B82F6, #2563EB)", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 8px rgba(37,99,235,0.4)" }}>
               <svg viewBox="0 0 14 14" fill="none" stroke="white" strokeWidth="1.8" style={{width:11,height:11}}><path d="M7 1l1.7 3.4L12 5l-2.5 2.4.6 3.5L7 9.3l-3.1 1.6.6-3.5L2 5l3.3-.6z"/></svg>
             </div>
             <div style={{ fontSize:12.5, fontWeight:700, color:"var(--z-text)", letterSpacing:"-0.01em" }}>Upgrade to Pro</div>
           </div>
-          <div style={{ fontSize:11.5, color:"var(--z-text3)", marginBottom:10, lineHeight:1.5 }}>Unlimited sessions, downloads, and priority coaching</div>
-          <button style={{ width:"100%", fontSize:12.5, fontWeight:700, padding:"8px", borderRadius:8, border:"none", background:"#2563EB", color:"white", cursor:"pointer" }}>Upgrade →</button>
+          <div style={{ fontSize:11.5, color:"var(--z-text2)", marginBottom:10, lineHeight:1.55 }}>Unlimited sessions, downloads, and priority coaching</div>
+          <button className="zari-btn-scale" style={{ width:"100%", fontSize:12.5, fontWeight:700, padding:"8px", borderRadius:9, border:"none", background:"linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)", color:"white", cursor:"pointer", boxShadow:"0 3px 12px rgba(37,99,235,0.4)" }}>Upgrade →</button>
         </div>
       </aside>
 
       {/* ── MAIN CONTENT ── */}
       <main style={{ flex:1, overflow:"hidden", display:"flex", flexDirection:"column" }}>
-        {/* Top bar — clean like Kleo */}
-        <div style={{ flexShrink:0, height:52, background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", display:"flex", alignItems:"center", padding:"0 28px", gap:12 }}>
+        {/* Top bar */}
+        <div style={{ flexShrink:0, height:54, background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", display:"flex", alignItems:"center", padding:"0 26px", gap:12, position:"relative" }}>
+          {/* Accent line */}
+          <div style={{ position:"absolute", bottom:0, left:0, height:2, width:"100%", background:`linear-gradient(90deg, ${accentInfo.color}70 0%, ${accentInfo.color}20 40%, transparent 100%)`, pointerEvents:"none" }}/>
           <h2 style={{ fontSize:15, fontWeight:700, color:"var(--z-text)", letterSpacing:"-0.02em", margin:0 }}>
             {STAGE_NAV_LABELS[stage][screen]}
           </h2>
           <div style={{ marginLeft:"auto", display:"flex", gap:8, alignItems:"center" }}>
-            <div style={{ display:"flex", alignItems:"center", gap:5, padding:"4px 11px", borderRadius:99, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
-              <span style={{ display:"inline-flex", alignItems:"center", color:"var(--z-text3)" }}>{STAGE_ICONS[stage]}</span>
-              <span style={{ fontSize:11.5, fontWeight:600, color:"var(--z-text2)" }}>{STAGE_META[stage].label}</span>
+            <div style={{ display:"flex", alignItems:"center", gap:6, padding:"4px 11px 4px 9px", borderRadius:99, background: isDark ? `${accentInfo.color}18` : `${accentInfo.color}10`, border:`1px solid ${accentInfo.color}30` }}>
+              <span style={{ display:"inline-flex", alignItems:"center", color: accentInfo.color }}>{STAGE_ICONS[stage]}</span>
+              <span style={{ fontSize:11.5, fontWeight:600, color: accentInfo.color }}>{STAGE_META[stage].label}</span>
             </div>
             <form action="/api/auth/logout" method="POST">
-              <button type="submit" style={{ fontSize:12, fontWeight:600, padding:"5px 13px", borderRadius:8, border:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text3)", cursor:"pointer" }}>Sign out</button>
+              <button type="submit" style={{ fontSize:12, fontWeight:600, padding:"5px 13px", borderRadius:8, border:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text3)", cursor:"pointer", transition:"all 0.15s" }}>Sign out</button>
             </form>
           </div>
         </div>
 
         {/* Screen — all kept mounted, hidden when inactive to preserve state */}
         <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
-          <div style={{ display:screen==="session"      ? "block" : "none", height:"100%" }}><ScreenSession      stage={stage} onNavigate={navigate}/></div>
-          <div style={{ display:screen==="resume"       ? "block" : "none", height:"100%" }}><ScreenResume       stage={stage} onNavigate={s=>navigate(s as Screen)}/></div>
-          <div style={{ display:screen==="interview"    ? "block" : "none", height:"100%" }}><ScreenInterview    stage={stage} active={screen==="interview"}/></div>
-          <div style={{ display:screen==="cover-letter" ? "block" : "none", height:"100%" }}><ScreenCoverLetter stage={stage} active={screen==="cover-letter"}/></div>
-          <div style={{ display:screen==="linkedin"     ? "block" : "none", height:"100%" }}><ScreenLinkedIn     stage={stage} active={screen==="linkedin"}/></div>
-          <div style={{ display:screen==="documents"    ? "block" : "none", height:"100%" }}><ScreenDocuments stage={stage} onNavigate={s=>navigate(s as Screen)}/></div>
-          <div style={{ display:screen==="plan"         ? "block" : "none", height:"100%" }}><ScreenPlan stage={stage} onNavigate={s=>navigate(s as Screen)} active={screen==="plan"}/></div>
+          <div className={screen==="session"      ? "zari-screen-active" : ""} style={{ display:screen==="session"      ? "block" : "none", height:"100%" }}><ScreenSession      stage={stage} onNavigate={navigate}/></div>
+          <div className={screen==="resume"       ? "zari-screen-active" : ""} style={{ display:screen==="resume"       ? "block" : "none", height:"100%" }}><ScreenResume       stage={stage} onNavigate={s=>navigate(s as Screen)}/></div>
+          <div className={screen==="interview"    ? "zari-screen-active" : ""} style={{ display:screen==="interview"    ? "block" : "none", height:"100%" }}><ScreenInterview    stage={stage} active={screen==="interview"}/></div>
+          <div className={screen==="cover-letter" ? "zari-screen-active" : ""} style={{ display:screen==="cover-letter" ? "block" : "none", height:"100%" }}><ScreenCoverLetter stage={stage} active={screen==="cover-letter"}/></div>
+          <div className={screen==="linkedin"     ? "zari-screen-active" : ""} style={{ display:screen==="linkedin"     ? "block" : "none", height:"100%" }}><ScreenLinkedIn     stage={stage} active={screen==="linkedin"}/></div>
+          <div className={screen==="documents"    ? "zari-screen-active" : ""} style={{ display:screen==="documents"    ? "block" : "none", height:"100%" }}><ScreenDocuments stage={stage} onNavigate={s=>navigate(s as Screen)}/></div>
+          <div className={screen==="plan"         ? "zari-screen-active" : ""} style={{ display:screen==="plan"         ? "block" : "none", height:"100%" }}><ScreenPlan stage={stage} onNavigate={s=>navigate(s as Screen)} active={screen==="plan"}/></div>
         </div>
       </main>
     </div>
