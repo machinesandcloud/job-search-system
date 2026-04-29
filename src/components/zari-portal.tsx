@@ -12622,8 +12622,8 @@ function ScreenPromotionToolkit({ onNavigate }: { onNavigate: (s: string) => voi
               </button>
             </div>
             {readinessScore !== null && (
-              <div style={{ borderRadius:22, background:"rgba(8,14,28,0.6)", border:"1px solid var(--z-bd)", padding:"20px 24px", minWidth:220, backdropFilter:"blur(12px)", boxShadow:"0 4px 24px rgba(0,0,0,0.28)" }}>
-                <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:14 }}>Readiness score</div>
+              <div style={{ borderRadius:22, background:"#0F1525", border:"1px solid rgba(255,255,255,0.08)", padding:"20px 24px", minWidth:220, boxShadow:"0 8px 32px rgba(0,0,0,0.35)" }}>
+                <div style={{ fontSize:10.5, fontWeight:800, color:"rgba(255,255,255,0.45)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:14 }}>Readiness score</div>
                 <div style={{ display:"flex", alignItems:"center", gap:16 }}>
                   <div style={{ position:"relative", width:80, height:80, flexShrink:0 }}>
                     <svg viewBox="0 0 80 80" style={{ position:"absolute", inset:0, width:"100%", height:"100%", transform:"rotate(-90deg)" }}>
@@ -12635,9 +12635,9 @@ function ScreenPromotionToolkit({ onNavigate }: { onNavigate: (s: string) => voi
                     </div>
                   </div>
                   <div>
-                    <div style={{ fontSize:12, color:"var(--z-text3)", marginBottom:4 }}>/100</div>
+                    <div style={{ fontSize:12, color:"rgba(255,255,255,0.4)", marginBottom:4 }}>/100</div>
                     {readinessVerdict && <div style={{ fontSize:12, fontWeight:800, color:dimColor(readinessScore), marginBottom:4 }}>{readinessVerdict}</div>}
-                    {readinessTarget && <div style={{ fontSize:11.5, color:"var(--z-text3)" }}>→ {readinessTarget}</div>}
+                    {readinessTarget && <div style={{ fontSize:11.5, color:"rgba(255,255,255,0.4)" }}>→ {readinessTarget}</div>}
                   </div>
                 </div>
               </div>
