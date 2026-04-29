@@ -2576,7 +2576,7 @@ function generateResumeHtml(text: string, footerNote = ""): string {
 <title>Resume</title>
 <style>
   *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:'Times New Roman',Times,serif;font-size:11pt;line-height:1.5;color:#000;background:#fff;padding:0.8in 1in;max-width:8.5in;margin:0 auto}
+  body{font-family:'Times New Roman',Times,serif;font-size:11pt;line-height:1.5;color:#000;background:#fff;padding:0.85in 1.05in;max-width:8.5in;margin:0 auto}
   .name{font-size:18pt;font-weight:800;text-align:center;letter-spacing:4px;text-transform:uppercase;margin-bottom:3px}
   .contact{text-align:center;font-size:10pt;color:#444;margin-bottom:2px}
   .sec-hdr{font-weight:700;text-align:center;border-top:1.5px solid #000;border-bottom:1.5px solid #000;padding:4px 0;margin:14px 0 7px;letter-spacing:.8px;text-transform:uppercase;font-size:10.5pt}
@@ -2591,7 +2591,7 @@ function generateResumeHtml(text: string, footerNote = ""): string {
   p{margin-bottom:3px;line-height:1.5}
   br{display:block;margin:3px 0;content:""}
   .footer{margin-top:24pt;font-size:8.5pt;color:#aaa;text-align:center;border-top:1px solid #eee;padding-top:6pt}
-  @media print{@page{margin:0;size:letter}body{padding:.75in 1in}.footer{display:none}}
+  @media print{@page{margin:.75in .9in;size:letter}body{padding:0}.footer{display:none}}
 </style>
 </head>
 <body>
@@ -12283,7 +12283,7 @@ function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?
           <div style={{ display:"flex", gap:3, background:"var(--z-raise)", borderRadius:8, padding:3 }}>
             {(["current","rewritten"] as const).map(t => (
               <button key={t} onClick={()=>setPreviewTab(t)}
-                style={{ flex:1, fontSize:11.5, fontWeight:600, padding:"5px 6px", borderRadius:6, border:"none", background:previewTab===t?"rgba(255,255,255,0.12)":"transparent", color:previewTab===t?"white":"rgba(255,255,255,0.4)", cursor:"pointer", boxShadow:previewTab===t?"0 1px 4px rgba(0,0,0,0.3)":"none", textTransform:"capitalize" }}>
+                style={{ flex:1, fontSize:11.5, fontWeight:600, padding:"5px 6px", borderRadius:6, border:"none", background:previewTab===t?"var(--z-card)":"transparent", color:previewTab===t?"var(--z-text)":"var(--z-text3)", cursor:"pointer", boxShadow:previewTab===t?"0 1px 4px rgba(0,0,0,0.12)":"none", textTransform:"capitalize" }}>
                 {t}
               </button>
             ))}
