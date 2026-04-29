@@ -680,7 +680,7 @@ function SuggestionsResume({
     return "";
   }
 
-  const totalIssues = Object.keys(lineMatch).length + lines.filter((l,i)=>{const f=getFlag(l,i);return f&&f.kind!=="weak";}).length;
+  const totalIssues = bullets.length + lines.filter((l,i)=>{const f=getFlag(l,i);return f&&f.kind!=="weak";}).length;
 
   return (
     <div style={{ fontFamily: "inherit" }}>
@@ -8127,7 +8127,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
         })()}
 
         {/* ══ Tab navigation ══ */}
-        <div style={{ display:"flex", gap:0, borderBottom:"2px solid rgba(255,255,255,0.08)", marginBottom:22 }}>
+        <div style={{ display:"flex", gap:0, borderBottom:"2px solid var(--z-bd)", marginBottom:22 }}>
           {([
             ["overview","Overview", aiResult ? `${aiResult.findings.filter(f=>f.type!=="ok").length} issues` : ""],
             ["bullets","Line-by-Line", aiResult?.bullets?.length ? `${aiResult.bullets.length} bullets` : ""],
@@ -8137,9 +8137,9 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
               : []),
             ["history","History", scoreHistory.length > 0 ? `${scoreHistory.length}` : ""],
           ] as ["overview"|"bullets"|"rewrite"|"keywords"|"history", string, string][]).map(([t, label, badge]) => (
-            <button key={t} onClick={()=>setTab(t)} style={{ padding:"12px 22px", border:"none", borderBottom:`2.5px solid ${tab===t?"#2563EB":"transparent"}`, marginBottom:"-2px", background:"transparent", cursor:"pointer", fontSize:14, fontWeight:tab===t?700:500, color:tab===t?"#7B9EFF":"rgba(255,255,255,0.42)", display:"flex", alignItems:"center", gap:6, transition:"color 0.15s", whiteSpace:"nowrap" }}>
+            <button key={t} onClick={()=>setTab(t)} style={{ padding:"12px 22px", border:"none", borderBottom:`2.5px solid ${tab===t?"#2563EB":"transparent"}`, marginBottom:"-2px", background:"transparent", cursor:"pointer", fontSize:14, fontWeight:tab===t?700:500, color:tab===t?"var(--z-text)":"var(--z-text3)", display:"flex", alignItems:"center", gap:6, transition:"color 0.15s", whiteSpace:"nowrap" }}>
               {label}
-              {badge && <span style={{ fontSize:11, fontWeight:700, padding:"2px 8px", borderRadius:99, background:tab===t?"rgba(37,99,235,0.2)":"rgba(255,255,255,0.08)", color:tab===t?"#7B9EFF":"rgba(255,255,255,0.42)" }}>{badge}</span>}
+              {badge && <span style={{ fontSize:11, fontWeight:700, padding:"2px 8px", borderRadius:99, background:tab===t?"rgba(37,99,235,0.15)":"var(--z-raise)", color:tab===t?"#2563EB":"var(--z-text3)", border:`1px solid ${tab===t?"rgba(37,99,235,0.3)":"var(--z-bd)"}` }}>{badge}</span>}
             </button>
           ))}
         </div>
@@ -8151,7 +8151,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px", background:"var(--z-raise)", borderBottom:"1px solid var(--z-bd)", flexShrink:0 }}>
               <div style={{ display:"flex", background:"var(--z-raise)", borderRadius:9, padding:3 }}>
                 {(["preview","suggestions"] as const).map(m => (
-                  <button key={m} onClick={()=>{ setResumeViewMode(m); setActiveSuggestion(null); }} style={{ fontSize:12, fontWeight:600, padding:"5px 14px", borderRadius:7, border:"none", background:resumeViewMode===m?"rgba(255,255,255,0.15)":"transparent", color:resumeViewMode===m?"white":"rgba(255,255,255,0.55)", cursor:"pointer", boxShadow:resumeViewMode===m?"0 1px 6px rgba(0,0,0,0.3)":"none", transition:"all 0.12s" }}>
+                  <button key={m} onClick={()=>{ setResumeViewMode(m); setActiveSuggestion(null); }} style={{ fontSize:12, fontWeight:600, padding:"5px 14px", borderRadius:7, border:"none", background:resumeViewMode===m?"var(--z-card)":"transparent", color:resumeViewMode===m?"var(--z-text)":"var(--z-text3)", cursor:"pointer", boxShadow:resumeViewMode===m?"0 1px 6px rgba(0,0,0,0.12)":"none", transition:"all 0.12s" }}>
                     {m==="suggestions" ? `Suggestions${aiResult?.bullets?.length?` (${aiResult.bullets.length})`:""}`:"Preview"}
                   </button>
                 ))}
