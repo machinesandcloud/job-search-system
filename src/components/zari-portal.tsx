@@ -1433,7 +1433,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
   }
 
   return (
-    <div style={{ display:"flex", flexDirection:"column", height:"calc(100vh - 56px)", overflow:"hidden", background:"var(--z-raise)", position:"relative" }}>
+    <div style={{ display:"flex", flexDirection:"column", height:"100%", overflow:"hidden", background:"var(--z-raise)", position:"relative" }}>
 
       {/* ── TOP HEADER BAR ── */}
       <div style={{
@@ -3485,7 +3485,7 @@ function PromotionSharedIntakeFlow({
 
   if (submitting) {
     return (
-      <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
+      <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
         <div style={{ padding:"48px 48px 56px" }}>
           <div style={{ background:"var(--z-card)", borderRadius:20, padding:"72px 32px", textAlign:"center", boxShadow:"0 8px 40px rgba(0,0,0,0.09)", border:"1px solid var(--z-bd)" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
@@ -3504,7 +3504,7 @@ function PromotionSharedIntakeFlow({
   }
 
   return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
+    <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
       <div style={{ minHeight:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"48px 24px" }}>
         <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:40, flexWrap:"wrap", justifyContent:"center" }}>
           {[1,2,3,4].map(s => (
@@ -3797,7 +3797,7 @@ function ScreenPromotionReadiness() {
 
   if (generating && !result) {
     return (
-      <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
+      <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
         <div style={{ padding:"48px 48px 56px" }}>
           <div style={{ background:"var(--z-card)", borderRadius:20, padding:"72px 32px", textAlign:"center", boxShadow:"0 8px 40px rgba(0,0,0,0.09)", border:"1px solid var(--z-bd)" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
@@ -3898,55 +3898,54 @@ function ScreenPromotionReadiness() {
     ];
 
     return (
-      <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
-        <div style={{ }}>
-
-          {/* Score summary card */}
-          <div style={{ padding:"24px 40px 0" }}>
-            <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:14, padding:"24px 28px", display:"flex", alignItems:"center", gap:28, flexWrap:"wrap" }}>
-              <div style={{ position:"relative", width:90, height:90, flexShrink:0 }}>
+      <div style={{ height:"100%", display:"flex", overflow:"hidden", background:"var(--z-raise)" }}>
+        {/* LEFT PANEL */}
+        <div style={{ width:264, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
+          <div style={{ padding:"22px 16px 14px" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:14 }}>
+              <div style={{ position:"relative", width:68, height:68, flexShrink:0 }}>
                 <svg viewBox="0 0 90 90" style={{ position:"absolute", inset:0, width:"100%", height:"100%", transform:"rotate(-90deg)" }}>
                   <circle cx="45" cy="45" r="38" fill="none" stroke="var(--z-raise)" strokeWidth="7"/>
                   <circle cx="45" cy="45" r="38" fill="none" stroke={scoreColor} strokeWidth="7" strokeLinecap="round" strokeDasharray={`${(result.readinessScore/100)*238.8} 238.8`}/>
                 </svg>
                 <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
-                  <div style={{ fontSize:26, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.05em", lineHeight:1 }}>{result.readinessScore}</div>
-                  <div style={{ fontSize:9, color:"var(--z-text3)", marginTop:2, fontWeight:700, letterSpacing:"0.06em" }}>/100</div>
+                  <div style={{ fontSize:20, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.05em", lineHeight:1 }}>{result.readinessScore}</div>
                 </div>
               </div>
-              <div style={{ flex:1, minWidth:200 }}>
-                <span style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text2)", background:"var(--z-raise)", border:"1px solid var(--z-bd)", padding:"4px 11px", borderRadius:999, display:"inline-block", marginBottom:10, textTransform:"uppercase", letterSpacing:"0.08em" }}>{result.verdict}</span>
-                <h2 style={{ fontSize:20, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.03em", lineHeight:1.3, margin:"0 0 6px" }}>{result.summary}</h2>
-                <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.6, margin:0 }}>{result.scoreReason}</p>
-              </div>
-              <div style={{ display:"flex", gap:8, flexWrap:"wrap", alignSelf:"flex-start" }}>
-                <button onClick={() => { setResult(null); setResultTab("overview"); setStep(1); }} style={{ fontSize:12.5, fontWeight:700, padding:"8px 14px", borderRadius:10, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Edit answers</button>
-                <button onClick={() => { setResult(null); setResultTab("overview"); setStep(1); setForm(PROMOTION_READINESS_DEFAULT_FORM); setError(""); }} style={{ fontSize:12.5, fontWeight:700, padding:"8px 14px", borderRadius:10, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Start fresh</button>
+              <div style={{ minWidth:0 }}>
+                <span style={{ fontSize:9.5, fontWeight:800, color:"var(--z-text2)", background:"var(--z-raise)", border:"1px solid var(--z-bd)", padding:"3px 8px", borderRadius:999, display:"inline-block", marginBottom:6, textTransform:"uppercase", letterSpacing:"0.08em" }}>{result.verdict}</span>
+                <div style={{ fontSize:13, fontWeight:800, color:"var(--z-text)", lineHeight:1.3 }}>{result.summary}</div>
               </div>
             </div>
-            <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginTop:12 }}>
+            <p style={{ fontSize:12, color:"var(--z-text2)", lineHeight:1.6, margin:"0 0 12px" }}>{result.scoreReason}</p>
+            <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
               {snapshotCards.map(card => (
-                <div key={card.label} style={{ display:"flex", alignItems:"center", gap:7, padding:"6px 12px", borderRadius:999, background:"var(--z-card)", border:"1px solid var(--z-bd)" }}>
-                  <span style={{ fontSize:10, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.09em" }}>{card.label}</span>
-                  <span style={{ fontSize:12, fontWeight:800, color:"var(--z-text2)" }}>{card.value}</span>
+                <div key={card.label} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"5px 9px", borderRadius:7, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
+                  <span style={{ fontSize:10, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em" }}>{card.label}</span>
+                  <span style={{ fontSize:11, fontWeight:800, color:"var(--z-text2)" }}>{card.value}</span>
                 </div>
               ))}
             </div>
           </div>
-
-          {/* Underline tab nav */}
-          <div style={{ padding:"16px 40px 0" }}>
-            <div style={{ display:"flex", gap:0, borderBottom:"1px solid var(--z-bd)", marginBottom:24, overflowX:"auto" }}>
-              {resultTabs.map(tab => {
-                const active = resultTab === tab.id;
-                return (
-                  <button key={tab.id} onClick={() => setResultTab(tab.id)} style={{ display:"flex", alignItems:"center", gap:6, padding:"13px 18px", border:"none", borderBottom:active ? "2.5px solid #2563EB" : "2.5px solid transparent", background:"transparent", color:active ? "#2563EB" : "var(--z-text2)", fontSize:13, fontWeight:800, cursor:"pointer", whiteSpace:"nowrap", transition:"all 0.15s", marginBottom:"-1px" }}>
-                    {tab.label}
-                    {tab.badge && <span style={{ fontSize:10.5, fontWeight:800, padding:"2px 7px", borderRadius:999, background:active ? "rgba(37,99,235,0.12)" : "var(--z-raise)", color:active ? "#2563EB" : "var(--z-text3)", border:"1px solid var(--z-bd)" }}>{tab.badge}</span>}
-                  </button>
-                );
-              })}
-            </div>
+          <div style={{ height:1, background:"var(--z-bd)" }}/>
+          <div style={{ padding:"8px 8px", flex:1 }}>
+            {resultTabs.map(tab => {
+              const active = resultTab === tab.id;
+              return (
+                <button key={tab.id} onClick={() => setResultTab(tab.id)} style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"9px 10px", borderRadius:8, border:"none", background:active ? "rgba(37,99,235,0.08)" : "transparent", color:active ? "#2563EB" : "var(--z-text2)", fontSize:13, fontWeight:active ? 700 : 500, cursor:"pointer", textAlign:"left", transition:"all 0.12s" }}>
+                  {tab.label}
+                  {tab.badge && <span style={{ fontSize:10, fontWeight:800, padding:"1px 6px", borderRadius:99, background:active ? "rgba(37,99,235,0.12)" : "var(--z-raise)", color:active ? "#2563EB" : "var(--z-text3)", border:"1px solid var(--z-bd)" }}>{tab.badge}</span>}
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ padding:"10px 12px 14px", borderTop:"1px solid var(--z-bd)", display:"flex", gap:6 }}>
+            <button onClick={() => { setResult(null); setResultTab("overview"); setStep(1); }} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Edit</button>
+            <button onClick={() => { setResult(null); setResultTab("overview"); setStep(1); setForm(PROMOTION_READINESS_DEFAULT_FORM); setError(""); }} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Fresh</button>
+          </div>
+        </div>
+        {/* RIGHT PANEL */}
+        <div style={{ flex:1, overflowY:"auto", padding:"24px 28px 40px" }}>
 
             {resultTab === "overview" && (
               <div style={{ display:"grid", gap:16, paddingBottom:40 }}>
@@ -4224,7 +4223,6 @@ function ScreenPromotionReadiness() {
                 )}
               </div>
             )}
-          </div>
         </div>
       </div>
     );
@@ -4239,9 +4237,9 @@ function ScreenPromotionReadiness() {
   const stepCtx = READINESS_STEP_CONTEXT[step - 1];
 
   return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
+    <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
       {/* Page header */}
-      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"20px 40px" }}>
+      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
           <div>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4 }}>
@@ -4271,7 +4269,7 @@ function ScreenPromotionReadiness() {
       </div>
 
       {/* Two-column body */}
-      <div style={{ padding:"32px 48px 56px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
+      <div style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
         {/* LEFT: Form */}
         <div>
           <div style={{ marginBottom:28 }}>
@@ -4499,7 +4497,7 @@ function ScreenSalaryCompensation() {
 
   if (generating && !result) {
     return (
-      <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
+      <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
         <div style={{ padding:"72px 40px" }}>
           <div style={{ borderRadius:24, border:"1px solid var(--z-bd)", background:"var(--z-card)", padding:"72px 32px", textAlign:"center" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
@@ -4521,53 +4519,58 @@ function ScreenSalaryCompensation() {
       { id:"moves", label:"Negotiation Moves" }, { id:"script", label:"Counter Script" },
     ];
     return (
-      <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
-        {/* Page header */}
-        <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"20px 40px" }}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-              <div>
-                <h1 style={{ fontSize:22, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 4px" }}>Compensation Analysis</h1>
-                <p style={{ fontSize:13, color:"var(--z-text2)", margin:0 }}>Your market position and negotiation leverage.</p>
+      <div style={{ height:"100%", display:"flex", overflow:"hidden", background:"var(--z-raise)" }}>
+        {/* LEFT PANEL */}
+        <div style={{ width:264, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
+          <div style={{ padding:"22px 16px 14px" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:14 }}>
+              <div style={{ position:"relative", width:68, height:68, flexShrink:0 }}>
+                <svg viewBox="0 0 90 90" style={{ position:"absolute", inset:0, width:"100%", height:"100%", transform:"rotate(-90deg)" }}>
+                  <circle cx="45" cy="45" r="38" fill="none" stroke="var(--z-raise)" strokeWidth="7"/>
+                  <circle cx="45" cy="45" r="38" fill="none" stroke={scoreColor} strokeWidth="7" strokeLinecap="round" strokeDasharray={`${(result.compensationScore/100)*238.8} 238.8`}/>
+                </svg>
+                <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
+                  <div style={{ fontSize:20, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.05em", lineHeight:1 }}>{result.compensationScore}</div>
+                </div>
+              </div>
+              <div style={{ minWidth:0 }}>
+                <span style={{ fontSize:9.5, fontWeight:800, color:badge.color, background:"var(--z-raise)", border:"1px solid var(--z-bd)", padding:"3px 8px", borderRadius:999, display:"inline-block", marginBottom:6, textTransform:"uppercase", letterSpacing:"0.08em" }}>{badge.label}</span>
+                <div style={{ fontSize:12, fontWeight:800, color:"var(--z-text)", lineHeight:1.3 }}>Compensation Analysis</div>
               </div>
             </div>
-            <button onClick={()=>setResult(null)}
-              style={{ padding:"7px 16px", borderRadius:8, background:"var(--z-raise)", border:"1px solid var(--z-bd)", color:"var(--z-text2)", fontSize:12.5, fontWeight:600, cursor:"pointer" }}>
-              New analysis
-            </button>
+            <p style={{ fontSize:12, color:"var(--z-text2)", lineHeight:1.6, margin:"0 0 12px" }}>{result.marketPositionDetail}</p>
+            <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
+              {([
+                { label:"Title", value:form.title },
+                { label:"Comp", value:form.currentComp },
+                { label:"Target", value:form.targetComp },
+                { label:"Type", value:form.askType },
+              ] as {label:string;value:string}[]).filter(r => r.value).map(r => (
+                <div key={r.label} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"5px 9px", borderRadius:7, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
+                  <span style={{ fontSize:10, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em" }}>{r.label}</span>
+                  <span style={{ fontSize:11, fontWeight:800, color:"var(--z-text2)", maxWidth:120, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{ height:1, background:"var(--z-bd)" }}/>
+          <div style={{ padding:"8px 8px", flex:1 }}>
+            {tabs.map(t => {
+              const active = tab === t.id;
+              return (
+                <button key={t.id} onClick={() => setTab(t.id)} style={{ width:"100%", display:"flex", alignItems:"center", padding:"9px 10px", borderRadius:8, border:"none", background:active ? "rgba(37,99,235,0.08)" : "transparent", color:active ? "#2563EB" : "var(--z-text2)", fontSize:13, fontWeight:active ? 700 : 500, cursor:"pointer", textAlign:"left", transition:"all 0.12s" }}>
+                  {t.label}
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ padding:"10px 12px 14px", borderTop:"1px solid var(--z-bd)", display:"flex", gap:6 }}>
+            <button onClick={() => setResult(null)} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>New</button>
+            <button onClick={() => { setResult(null); setStep(1); }} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Redo</button>
           </div>
         </div>
-        <div style={{ padding:"28px 40px 0" }}>
-          {/* Score summary bar */}
-          <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:14, padding:"24px 28px", marginBottom:24, display:"flex", alignItems:"center", gap:28, flexWrap:"wrap" }}>
-            <div style={{ position:"relative", width:90, height:90, flexShrink:0 }}>
-              <svg viewBox="0 0 90 90" style={{ position:"absolute", inset:0, width:"100%", height:"100%", transform:"rotate(-90deg)" }}>
-                <circle cx="45" cy="45" r="38" fill="none" stroke="var(--z-raise)" strokeWidth="7"/>
-                <circle cx="45" cy="45" r="38" fill="none" stroke={scoreColor} strokeWidth="7" strokeLinecap="round" strokeDasharray={`${(result.compensationScore/100)*238.8} 238.8`}/>
-              </svg>
-              <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
-                <div style={{ fontSize:26, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.05em", lineHeight:1 }}>{result.compensationScore}</div>
-                <div style={{ fontSize:9, color:"var(--z-text3)", marginTop:1, fontWeight:600, letterSpacing:"0.06em" }}>LEVERAGE</div>
-              </div>
-            </div>
-            <div style={{ flex:1, minWidth:200 }}>
-              <span style={{ fontSize:10, fontWeight:700, color:"var(--z-text2)", background:"var(--z-raise)", border:"1px solid var(--z-bd)", padding:"4px 10px", borderRadius:999, display:"inline-block", marginBottom:10, textTransform:"uppercase", letterSpacing:"0.08em" }}>{badge.label}</span>
-              <h2 style={{ fontSize:18, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.02em", lineHeight:1.3, margin:"0 0 8px" }}>Compensation Positioning Analysis</h2>
-              <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.7, margin:0, maxWidth:500 }}>{result.marketPositionDetail}</p>
-            </div>
-            <button onClick={() => { setResult(null); setStep(1); }} style={{ fontSize:12.5, fontWeight:600, padding:"8px 14px", borderRadius:10, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer", alignSelf:"flex-start", flexShrink:0 }}>Redo analysis</button>
-          </div>
-        </div>
-        <div style={{ }}>
-          <div style={{ padding:"0 40px", background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", borderTop:"1px solid var(--z-bd)" }}>
-            <div style={{ display:"flex", gap:0, overflowX:"auto" }}>
-              {tabs.map(t => {
-                const active = tab === t.id;
-                return <button key={t.id} onClick={() => setTab(t.id)} style={{ padding:"12px 18px", border:"none", borderBottom:active ? "2px solid #2563EB" : "2px solid transparent", background:"transparent", color:active ? "#2563EB" : "var(--z-text2)", fontSize:13, fontWeight:active?700:500, cursor:"pointer", whiteSpace:"nowrap", transition:"all 0.15s", marginBottom:"-1px" }}>{t.label}</button>;
-              })}
-            </div>
-          </div>
-          <div style={{ padding:"32px 48px 64px" }}>
+        {/* RIGHT PANEL */}
+        <div style={{ flex:1, overflowY:"auto", padding:"24px 28px 40px" }}>
             {tab === "overview" && (
               <div style={{ display:"grid", gap:14 }}>
                 <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"18px 22px" }}>
@@ -4635,7 +4638,6 @@ function ScreenSalaryCompensation() {
                 <pre style={{ fontFamily:"inherit", fontSize:13.5, color:"var(--z-text)", lineHeight:1.85, whiteSpace:"pre-wrap", margin:0 }}>{result.counterScript}</pre>
               </div>
             )}
-          </div>
         </div>
       </div>
     );
@@ -4649,9 +4651,9 @@ function ScreenSalaryCompensation() {
   const salaryStepCtx = SALARY_STEPS[step - 1];
 
   return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
+    <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
       {/* Page header */}
-      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"20px 40px" }}>
+      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
           <div>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4 }}>
@@ -4676,7 +4678,7 @@ function ScreenSalaryCompensation() {
       </div>
 
       {/* Two-column body */}
-      <div style={{ padding:"32px 48px 56px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
+      <div style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
         <div>
           <div style={{ marginBottom:28 }}>
             <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"var(--z-text3)", marginBottom:6 }}>Step {step} of 3</p>
@@ -4862,7 +4864,7 @@ function ScreenPivotAnalysis() {
 
   if (generating && !result) {
     return (
-      <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
+      <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
         <div style={{ padding:"72px 40px" }}>
           <div style={{ borderRadius:24, border:"1px solid var(--z-bd)", background:"var(--z-card)", boxShadow:"0 4px 32px rgba(0,0,0,0.09)", padding:"72px 32px", textAlign:"center" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
@@ -4884,54 +4886,61 @@ function ScreenPivotAnalysis() {
       { id:"gaps", label:"Skill Gaps" }, { id:"plan", label:"Pivot Plan" },
     ];
     return (
-      <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
-        {/* Page header */}
-        <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"20px 40px" }}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-              <div>
-                <h1 style={{ fontSize:22, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 4px" }}>Pivot Analysis</h1>
-                <p style={{ fontSize:13, color:"var(--z-text2)", margin:0 }}>Your career change readiness and pivot strategy.</p>
+      <div style={{ height:"100%", display:"flex", overflow:"hidden", background:"var(--z-raise)" }}>
+        {/* LEFT PANEL */}
+        <div style={{ width:264, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
+          <div style={{ padding:"22px 16px 14px" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:14 }}>
+              <div style={{ position:"relative", width:68, height:68, flexShrink:0 }}>
+                <svg viewBox="0 0 90 90" style={{ position:"absolute", inset:0, width:"100%", height:"100%", transform:"rotate(-90deg)" }}>
+                  <circle cx="45" cy="45" r="38" fill="none" stroke="var(--z-raise)" strokeWidth="7"/>
+                  <circle cx="45" cy="45" r="38" fill="none" stroke={scoreColor} strokeWidth="7" strokeLinecap="round" strokeDasharray={`${(result.pivotScore/100)*238.8} 238.8`}/>
+                </svg>
+                <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
+                  <div style={{ fontSize:20, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.05em", lineHeight:1 }}>{result.pivotScore}</div>
+                </div>
+              </div>
+              <div style={{ minWidth:0 }}>
+                <span style={{ fontSize:9.5, fontWeight:800, color:"var(--z-text2)", background:"var(--z-raise)", border:"1px solid var(--z-bd)", padding:"3px 8px", borderRadius:999, display:"inline-block", marginBottom:6, textTransform:"uppercase", letterSpacing:"0.08em" }}>{result.pivotVerdict}</span>
+                <div style={{ fontSize:12, fontWeight:800, color:"var(--z-text)", lineHeight:1.3 }}>Pivot Analysis</div>
               </div>
             </div>
-            <button onClick={()=>setResult(null)}
-              style={{ padding:"7px 16px", borderRadius:8, background:"var(--z-raise)", border:"1px solid var(--z-bd)", color:"var(--z-text2)", fontSize:12.5, fontWeight:600, cursor:"pointer" }}>
-              New analysis
-            </button>
-          </div>
-        </div>
-        <div style={{ padding:"28px 40px 0" }}>
-          <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:14, padding:"24px 28px", marginBottom:24, display:"flex", alignItems:"center", gap:28, flexWrap:"wrap" }}>
-            <div style={{ position:"relative", width:90, height:90, flexShrink:0 }}>
-              <svg viewBox="0 0 90 90" style={{ position:"absolute", inset:0, width:"100%", height:"100%", transform:"rotate(-90deg)" }}>
-                <circle cx="45" cy="45" r="38" fill="none" stroke="var(--z-raise)" strokeWidth="7"/>
-                <circle cx="45" cy="45" r="38" fill="none" stroke={scoreColor} strokeWidth="7" strokeLinecap="round" strokeDasharray={`${(result.pivotScore/100)*238.8} 238.8`}/>
-              </svg>
-              <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
-                <div style={{ fontSize:26, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.05em", lineHeight:1 }}>{result.pivotScore}</div>
-                <div style={{ fontSize:9, color:"var(--z-text3)", marginTop:1, fontWeight:600, letterSpacing:"0.06em" }}>READINESS</div>
+            {form.fromRole && form.toRole && (
+              <div style={{ fontSize:12, fontWeight:700, color:"var(--z-text2)", marginBottom:10, padding:"6px 10px", borderRadius:8, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
+                {form.fromRole} → {form.toRole}
               </div>
+            )}
+            <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
+              {([
+                { label:"From", value:form.fromIndustry },
+                { label:"To", value:form.toIndustry },
+                { label:"Timeline", value:form.timeline },
+              ] as {label:string;value:string}[]).filter(r => r.value).map(r => (
+                <div key={r.label} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"5px 9px", borderRadius:7, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
+                  <span style={{ fontSize:10, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em" }}>{r.label}</span>
+                  <span style={{ fontSize:11, fontWeight:800, color:"var(--z-text2)", maxWidth:120, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.value}</span>
+                </div>
+              ))}
             </div>
-            <div style={{ flex:1, minWidth:200 }}>
-              <span style={{ fontSize:10, fontWeight:700, color:"var(--z-text2)", background:"var(--z-raise)", border:"1px solid var(--z-bd)", padding:"4px 10px", borderRadius:999, display:"inline-block", marginBottom:10, textTransform:"uppercase", letterSpacing:"0.08em" }}>{result.pivotVerdict}</span>
-              <h2 style={{ fontSize:18, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.02em", lineHeight:1.3, margin:"0 0 6px" }}>Career Pivot Analysis</h2>
-              <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.65, margin:0, maxWidth:500 }}>
-                {form.fromRole && form.toRole ? `${form.fromRole} → ${form.toRole}` : "Your pivot assessment is ready."}
-              </p>
-            </div>
-            <button onClick={() => { setResult(null); setStep(1); }} style={{ fontSize:12.5, fontWeight:600, padding:"8px 14px", borderRadius:10, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer", alignSelf:"flex-start", flexShrink:0 }}>Redo analysis</button>
+          </div>
+          <div style={{ height:1, background:"var(--z-bd)" }}/>
+          <div style={{ padding:"8px 8px", flex:1 }}>
+            {tabs.map(t => {
+              const active = tab === t.id;
+              return (
+                <button key={t.id} onClick={() => setTab(t.id)} style={{ width:"100%", display:"flex", alignItems:"center", padding:"9px 10px", borderRadius:8, border:"none", background:active ? "rgba(37,99,235,0.08)" : "transparent", color:active ? "#2563EB" : "var(--z-text2)", fontSize:13, fontWeight:active ? 700 : 500, cursor:"pointer", textAlign:"left", transition:"all 0.12s" }}>
+                  {t.label}
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ padding:"10px 12px 14px", borderTop:"1px solid var(--z-bd)", display:"flex", gap:6 }}>
+            <button onClick={() => setResult(null)} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>New</button>
+            <button onClick={() => { setResult(null); setStep(1); }} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Redo</button>
           </div>
         </div>
-        <div style={{ }}>
-          <div style={{ padding:"0 40px", background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", borderTop:"1px solid var(--z-bd)" }}>
-            <div style={{ display:"flex", gap:0, overflowX:"auto" }}>
-              {tabs.map(t => {
-                const active = tab === t.id;
-                return <button key={t.id} onClick={() => setTab(t.id)} style={{ padding:"12px 18px", border:"none", borderBottom:active ? "2px solid #2563EB" : "2px solid transparent", background:"transparent", color:active ? "#2563EB" : "var(--z-text2)", fontSize:13, fontWeight:active?700:500, cursor:"pointer", whiteSpace:"nowrap", transition:"all 0.15s", marginBottom:"-1px" }}>{t.label}</button>;
-              })}
-            </div>
-          </div>
-          <div style={{ padding:"32px 48px 64px" }}>
+        {/* RIGHT PANEL */}
+        <div style={{ flex:1, overflowY:"auto", padding:"24px 28px 40px" }}>
             {tab === "overview" && (
               <div style={{ display:"grid", gap:14 }}>
                 <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"18px 22px" }}>
@@ -5009,7 +5018,6 @@ function ScreenPivotAnalysis() {
                 </div>
               </div>
             )}
-          </div>
         </div>
       </div>
     );
@@ -5023,9 +5031,9 @@ function ScreenPivotAnalysis() {
   const pivotStepCtx = PIVOT_STEPS[step - 1];
 
   return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
+    <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
       {/* Page header */}
-      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"20px 40px" }}>
+      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
           <div>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4 }}>
@@ -5050,7 +5058,7 @@ function ScreenPivotAnalysis() {
       </div>
 
       {/* Two-column body */}
-      <div style={{ padding:"32px 48px 56px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
+      <div style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
         <div>
           <div style={{ marginBottom:28 }}>
             <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"var(--z-text3)", marginBottom:6 }}>Step {step} of 3</p>
@@ -5215,7 +5223,7 @@ function ScreenExecPositioning() {
 
   if (generating && !result) {
     return (
-      <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
+      <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
         <div style={{ padding:"72px 40px" }}>
           <div style={{ borderRadius:24, border:"1px solid var(--z-bd)", background:"var(--z-card)", boxShadow:"0 4px 32px rgba(0,0,0,0.09)", padding:"72px 32px", textAlign:"center" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
@@ -5237,51 +5245,57 @@ function ScreenExecPositioning() {
       { id:"moves", label:"Positioning Moves" }, { id:"bio", label:"Board Bio" },
     ];
     return (
-      <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
-        {/* Page header */}
-        <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"20px 40px" }}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-              <div>
-                <h1 style={{ fontSize:18, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:0 }}>Executive Positioning</h1>
-                <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>Your executive presence score and positioning strategy.</p>
+      <div style={{ height:"100%", display:"flex", overflow:"hidden", background:"var(--z-raise)" }}>
+        {/* LEFT PANEL */}
+        <div style={{ width:264, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
+          <div style={{ padding:"22px 16px 14px" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:14 }}>
+              <div style={{ position:"relative", width:68, height:68, flexShrink:0 }}>
+                <svg viewBox="0 0 90 90" style={{ position:"absolute", inset:0, width:"100%", height:"100%", transform:"rotate(-90deg)" }}>
+                  <circle cx="45" cy="45" r="38" fill="none" stroke="var(--z-raise)" strokeWidth="7"/>
+                  <circle cx="45" cy="45" r="38" fill="none" stroke={scoreColor} strokeWidth="7" strokeLinecap="round" strokeDasharray={`${(result.execScore/100)*238.8} 238.8`}/>
+                </svg>
+                <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
+                  <div style={{ fontSize:20, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.05em", lineHeight:1 }}>{result.execScore}</div>
+                </div>
+              </div>
+              <div style={{ minWidth:0 }}>
+                <span style={{ fontSize:9.5, fontWeight:800, color:"var(--z-text2)", background:"var(--z-raise)", border:"1px solid var(--z-bd)", padding:"3px 8px", borderRadius:999, display:"inline-block", marginBottom:6, textTransform:"uppercase", letterSpacing:"0.08em" }}>{result.execVerdict}</span>
+                <div style={{ fontSize:12, fontWeight:800, color:"var(--z-text)", lineHeight:1.3 }}>Exec Positioning</div>
               </div>
             </div>
-            <button onClick={()=>setResult(null)}
-              style={{ padding:"7px 16px", borderRadius:8, background:"var(--z-raise)", border:"1px solid var(--z-bd)", color:"var(--z-text2)", fontSize:12.5, fontWeight:600, cursor:"pointer" }}>
-              New analysis
-            </button>
-          </div>
-        </div>
-        <div style={{ padding:"24px 40px 0" }}>
-          <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:14, padding:"24px 28px", marginBottom:0, display:"flex", alignItems:"center", gap:28, flexWrap:"wrap" }}>
-            <div style={{ position:"relative", width:90, height:90, flexShrink:0 }}>
-              <svg viewBox="0 0 90 90" style={{ position:"absolute", inset:0, width:"100%", height:"100%", transform:"rotate(-90deg)" }}>
-                <circle cx="45" cy="45" r="38" fill="none" stroke="var(--z-raise)" strokeWidth="7"/>
-                <circle cx="45" cy="45" r="38" fill="none" stroke={scoreColor} strokeWidth="7" strokeLinecap="round" strokeDasharray={`${(result.execScore/100)*238.8} 238.8`}/>
-              </svg>
-              <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
-                <div style={{ fontSize:26, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.05em", lineHeight:1 }}>{result.execScore}</div>
-                <div style={{ fontSize:9, color:"var(--z-text3)", marginTop:2, fontWeight:700, letterSpacing:"0.06em" }}>EXEC SCORE</div>
-              </div>
+            <p style={{ fontSize:12, color:"var(--z-text2)", lineHeight:1.6, margin:"0 0 12px" }}>{result.hardTruth}</p>
+            <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
+              {([
+                { label:"Title", value:form.currentTitle },
+                { label:"Target", value:form.targetRole },
+                { label:"Scope", value:form.currentScope },
+              ] as {label:string;value:string}[]).filter(r => r.value).map(r => (
+                <div key={r.label} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"5px 9px", borderRadius:7, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
+                  <span style={{ fontSize:10, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em" }}>{r.label}</span>
+                  <span style={{ fontSize:11, fontWeight:800, color:"var(--z-text2)", maxWidth:120, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.value}</span>
+                </div>
+              ))}
             </div>
-            <div style={{ flex:1, minWidth:200 }}>
-              <span style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text2)", background:"var(--z-raise)", border:"1px solid var(--z-bd)", padding:"4px 11px", borderRadius:999, display:"inline-block", marginBottom:10, textTransform:"uppercase", letterSpacing:"0.08em" }}>{result.execVerdict}</span>
-              <h2 style={{ fontSize:20, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.03em", lineHeight:1.3, margin:"0 0 6px" }}>Executive Positioning Analysis</h2>
-              <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.6, margin:0 }}>{form.currentTitle}{form.targetRole ? ` → ${form.targetRole}` : ""}</p>
-            </div>
-            <button onClick={() => { setResult(null); setStep(1); }} style={{ fontSize:12.5, fontWeight:700, padding:"8px 14px", borderRadius:10, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer", alignSelf:"flex-start", flexShrink:0 }}>Redo analysis</button>
           </div>
-        </div>
-        <div style={{ padding:"0 40px", background:"var(--z-raise)", borderBottom:"1px solid var(--z-bd)", marginTop:0 }}>
-          <div style={{ display:"flex", gap:0, overflowX:"auto" }}>
+          <div style={{ height:1, background:"var(--z-bd)" }}/>
+          <div style={{ padding:"8px 8px", flex:1 }}>
             {tabs.map(t => {
               const active = tab === t.id;
-              return <button key={t.id} onClick={() => setTab(t.id)} style={{ padding:"13px 18px", border:"none", borderBottom:active ? `2.5px solid #2563EB` : "2.5px solid transparent", background:"transparent", color:active ? "#2563EB" : "var(--z-text2)", fontSize:13, fontWeight:800, cursor:"pointer", whiteSpace:"nowrap", transition:"all 0.15s", marginBottom:"-1px" }}>{t.label}</button>;
-              })}
-            </div>
+              return (
+                <button key={t.id} onClick={() => setTab(t.id)} style={{ width:"100%", display:"flex", alignItems:"center", padding:"9px 10px", borderRadius:8, border:"none", background:active ? "rgba(37,99,235,0.08)" : "transparent", color:active ? "#2563EB" : "var(--z-text2)", fontSize:13, fontWeight:active ? 700 : 500, cursor:"pointer", textAlign:"left", transition:"all 0.12s" }}>
+                  {t.label}
+                </button>
+              );
+            })}
           </div>
-          <div style={{ padding:"32px 48px 64px" }}>
+          <div style={{ padding:"10px 12px 14px", borderTop:"1px solid var(--z-bd)", display:"flex", gap:6 }}>
+            <button onClick={() => setResult(null)} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>New</button>
+            <button onClick={() => { setResult(null); setStep(1); }} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Redo</button>
+          </div>
+        </div>
+        {/* RIGHT PANEL */}
+        <div style={{ flex:1, overflowY:"auto", padding:"24px 28px 40px" }}>
             {tab === "overview" && (
               <div style={{ display:"grid", gap:14 }}>
                 <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"18px 22px" }}>
@@ -5360,8 +5374,8 @@ function ScreenExecPositioning() {
                 <p style={{ fontSize:14.5, color:"var(--z-text)", lineHeight:1.9, margin:0 }}>{result.boardBio}</p>
               </div>
             )}
-          </div>
         </div>
+      </div>
     );
   }
 
@@ -5373,9 +5387,9 @@ function ScreenExecPositioning() {
   const execStepCtx = EXEC_STEPS[step - 1];
 
   return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
+    <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
       {/* Page header */}
-      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"20px 40px" }}>
+      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
           <div>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4 }}>
@@ -5400,7 +5414,7 @@ function ScreenExecPositioning() {
       </div>
 
       {/* Two-column body */}
-      <div style={{ padding:"32px 48px 56px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
+      <div style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
         <div>
           <div style={{ marginBottom:28 }}>
             <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"var(--z-text3)", marginBottom:6 }}>Step {step} of 3</p>
@@ -5906,7 +5920,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
      STEP: CHOOSE — landing path picker
   ══════════════════════════════════ */
   if (step === "choose") return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
+    <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
       <div style={{ padding:"40px 48px 64px" }}>
 
         {/* Dark hero banner */}
@@ -5992,7 +6006,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
      STEP: JOB — Step 1 of targeted flow
   ══════════════════════════════════ */
   if (step === "job") return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
+    <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
       <div style={{ padding:"40px 40px 56px" }}>
 
         {/* Step progress */}
@@ -6100,7 +6114,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
   );
 
   if (step === "paste") return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
+    <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
       <div style={{ minHeight:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"44px 24px 56px" }}>
         <div style={{ width:"100%", maxWidth:560 }}>
           <div style={{ textAlign:"center", marginBottom:24 }}>
@@ -6128,7 +6142,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
   );
 
   if (step === "upload") return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
+    <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
       <div style={{ minHeight:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"44px 24px 56px" }}>
         <div style={{ width:"100%", maxWidth:520 }}>
 
@@ -6214,7 +6228,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
   );
 
   if (step === "analyzing") return (
-    <div style={{ height:"calc(100vh - 56px)", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--z-raise)" }}>
+    <div style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--z-raise)" }}>
       <div style={{ maxWidth:480, width:"100%", padding:32, textAlign:"center" }}>
         <div style={{ width:80, height:80, borderRadius:"50%", background:"linear-gradient(135deg,#2563EB,#60A5FA)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 24px", animation:"sphere-breathe 2s ease-in-out infinite", boxShadow:"0 0 40px rgba(37,99,235,0.4)" }}>
           <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" style={{ width:36, height:36 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -6258,7 +6272,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
     s >= 77 ? "#F0FFF4" : s >= 63 ? "#EFF6FF" : s >= 50 ? "#FFFBEB" : "#FEF2F2";
 
   return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
+    <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
 
       {/* ── Download Format Modal ── */}
       {downloadModal && (
@@ -7551,12 +7565,12 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
 
   /* ── Setup step ── */
   if (!setupDone) return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
+    <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
       <input ref={resumeInputRef} type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }}
         onChange={e=>{ const f=e.target.files?.[0]; if(f) { void handleInterviewFile(f); } e.target.value=""; }}/>
 
       {/* Page header */}
-      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"20px 40px" }}>
+      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
           <div>
             <h1 style={{ fontSize:22, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 4px" }}>Mock Interview</h1>
@@ -7587,7 +7601,7 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
           </div>
         </div>
       ) : (
-        <div style={{ padding:"32px 48px 56px", display:"grid", gridTemplateColumns:"1fr 300px", gap:28, alignItems:"start" }}>
+        <div style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 300px", gap:28, alignItems:"start" }}>
 
           {/* LEFT: Form */}
           <div>
@@ -7770,7 +7784,7 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
   );
 
   if (!sections) return (
-    <div style={{ height:"calc(100vh - 56px)", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--z-raise)" }}>
+    <div style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--z-raise)" }}>
       <p style={{ fontSize:13, color:"var(--z-text3)" }}>No questions generated — go back and try again.</p>
     </div>
   );
@@ -7779,8 +7793,8 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
   const q = SECTION_QUESTIONS[qIdx];
 
   return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
-      <div style={{ padding:"28px 40px" }}>
+    <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
+      <div style={{ padding:"20px 28px" }}>
 
         {/* Header */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20, flexWrap:"wrap", gap:10 }}>
@@ -8220,7 +8234,7 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
 
   if (loadingQs && !sections) {
     return (
-      <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
+      <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
         <div style={{ padding:"48px 48px 56px" }}>
           <div style={{ background:"var(--z-card)", borderRadius:24, padding:"74px 32px", textAlign:"center", boxShadow:"0 2px 12px rgba(0,0,0,0.06)", border:"1px solid var(--z-bd)" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
@@ -8269,7 +8283,7 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
           style={{ display:"none" }}
           onChange={e => { const f = e.target.files?.[0]; if (f) void handleUpload(f); e.target.value = ""; }}
         />
-        <div style={{ padding:"34px 48px 56px", position:"relative" }}>
+        <div style={{ padding:"24px 32px 48px", position:"relative" }}>
           <div style={promotionHeroStyle(theme)}>
             <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 82% 18%, rgba(251,207,232,0.18), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
             <div style={promotionHeroGridStyle()}>
@@ -8409,7 +8423,7 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
 
   return (
     <div style={promotionPageStyle(theme)}>
-      <div style={{ padding:"34px 48px 56px", position:"relative" }}>
+      <div style={{ padding:"24px 32px 48px", position:"relative" }}>
         <div style={promotionHeroStyle(theme)}>
           <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 84% 18%, rgba(251,207,232,0.16), transparent 26%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
           <div style={{ position:"relative", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, flexWrap:"wrap" }}>
@@ -8947,7 +8961,7 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
   if (result || generating) {
     return (
       <div style={promotionPageStyle(theme)}>
-        <div style={{ padding:"34px 48px 56px", position:"relative" }}>
+        <div style={{ padding:"24px 32px 48px", position:"relative" }}>
           {generating ? (
             <div style={{ ...promotionHeroStyle(theme), padding:"82px 32px", textAlign:"center" }}>
               <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 50% 12%, rgba(167,243,208,0.2), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
@@ -9073,7 +9087,7 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
   return (
     <div style={promotionPageStyle(theme)}>
       <input ref={fileInputRef} type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e => { const f = e.target.files?.[0]; if (f) void handleUpload(f); e.target.value = ""; }} />
-      <div style={{ padding:"34px 48px 56px", position:"relative" }}>
+      <div style={{ padding:"24px 32px 48px", position:"relative" }}>
         <div style={promotionHeroStyle(theme)}>
           <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 84% 18%, rgba(167,243,208,0.2), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
           <div style={promotionHeroGridStyle()}>
@@ -9361,7 +9375,7 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
 
   if (generating && !result) {
     return (
-      <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
+      <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
         <div style={{ padding:"48px 48px 56px" }}>
           <div style={{ background:"var(--z-card)", borderRadius:20, padding:"72px 32px", textAlign:"center", boxShadow:"0 8px 40px rgba(0,0,0,0.09)", border:"1px solid var(--z-bd)" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
@@ -9381,79 +9395,52 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
 
   if (result) {
     return (
-      <div style={promotionPageStyle(theme)}>
-        <div style={{ padding:"34px 48px 56px", position:"relative" }}>
-          <div style={promotionHeroStyle(theme)}>
-            <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 82% 18%, rgba(147,197,253,0.2), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
-            <div style={{ position:"relative", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, flexWrap:"wrap" }}>
-              <div>
-                <div style={{ ...promotionEyebrowStyle(theme), marginBottom:8 }}>Ally map</div>
-                <h1 style={promotionHeroTitleStyle(720)}>Here's who you need and what each one needs to believe.</h1>
-                <p style={promotionHeroBodyStyle(720)}>{result.overallFocus}</p>
-              </div>
-              <button onClick={() => setResult(null)} style={{ fontSize:12.5, fontWeight:700, padding:"10px 14px", borderRadius:12, border:"1px solid var(--z-bd)", background:"var(--z-card)", color:"var(--z-text2)", cursor:"pointer" }}>
-                ← Start over
-              </button>
-            </div>
-
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))", gap:12, marginTop:20, position:"relative" }}>
-              {[
-                { label:"Moves to make", value:String(result.visibilityMoves.length).padStart(2, "0"), note:"Things to do next" },
-                { label:"Key people", value:String(result.sponsorMap.length).padStart(2, "0"), note:"People who matter" },
-                { label:"Done", value:String(checkedMoves.size).padStart(2, "0"), note:`of ${result.visibilityMoves.length} moves completed` },
-              ].map(card => (
-                <div key={card.label} style={{ borderRadius:12, padding:"16px 16px 15px", background:"var(--z-card)", border:"1px solid var(--z-bd)" }}>
-                  <div style={{ fontSize:10.5, fontWeight:800, letterSpacing:"0.1em", textTransform:"uppercase", color:"var(--z-text3)", marginBottom:10 }}>{card.label}</div>
-                  <div style={{ fontSize:28, fontWeight:900, lineHeight:1, color:"var(--z-text)", letterSpacing:"-0.04em", marginBottom:6 }}>{card.value}</div>
-                  <div style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.5 }}>{card.note}</div>
+      <div style={{ height:"100%", display:"flex", overflow:"hidden", background:"var(--z-raise)" }}>
+        {/* LEFT PANEL */}
+        <div style={{ width:264, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
+          <div style={{ padding:"22px 16px 14px" }}>
+            <div style={{ fontSize:9, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Ally Map</div>
+            <p style={{ fontSize:12, color:"var(--z-text2)", lineHeight:1.6, margin:"0 0 12px" }}>{result.overallFocus}</p>
+            <div style={{ display:"flex", flexDirection:"column", gap:4, marginBottom:12 }}>
+              {([
+                { label:"Moves", value:String(result.visibilityMoves.length).padStart(2,"0") },
+                { label:"Key people", value:String(result.sponsorMap.length).padStart(2,"0") },
+                { label:"Completed", value:`${checkedMoves.size} / ${result.visibilityMoves.length}` },
+              ] as {label:string;value:string}[]).map(r => (
+                <div key={r.label} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"5px 9px", borderRadius:7, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
+                  <span style={{ fontSize:10, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em" }}>{r.label}</span>
+                  <span style={{ fontSize:11, fontWeight:800, color:"var(--z-text2)" }}>{r.value}</span>
                 </div>
               ))}
             </div>
-          </div>
-
-          <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #EF4444", padding:"22px 26px", marginBottom:20 }}>
-            <div style={{ display:"flex", alignItems:"flex-start", gap:14 }}>
-              <div>
-                <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:8 }}>Hard truth</div>
-                <div style={{ fontSize:16, color:"var(--z-text)", lineHeight:1.82, fontWeight:500 }}>{result.hardTruth}</div>
-              </div>
+            <div style={{ borderRadius:8, background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderLeft:"3px solid #EF4444", padding:"10px 12px" }}>
+              <div style={{ fontSize:9.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:4 }}>Hard truth</div>
+              <div style={{ fontSize:12, color:"var(--z-text)", lineHeight:1.65 }}>{result.hardTruth}</div>
             </div>
           </div>
-
-          <div style={{ background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderRadius:24, overflow:"hidden", boxShadow:"0 8px 30px rgba(0,0,0,0.3)" }}>
-            <div style={{ display:"flex", flexWrap:"wrap", borderBottom:"1px solid var(--z-bd)", background:"var(--z-raise)" }}>
-              {[
-                { id:"overview", label:"Overview" },
-                { id:"moves", label:`Moves (${result.visibilityMoves.length})` },
-                { id:"sponsors", label:`Key people (${result.sponsorMap.length})` },
-                { id:"cadence", label:"Cadence" },
-              ].map(tab => {
-                const isActive = resultTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setResultTab(tab.id as PromotionVisibilityTab)}
-                    style={{
-                      padding:"14px 18px",
-                      border:"none",
-                      borderBottom:`2px solid ${isActive ? "#3B82F6" : "transparent"}`,
-                      cursor:"pointer",
-                      background:"transparent",
-                      color:isActive ? "#3B82F6" : "#475569",
-                      fontSize:13,
-                      fontWeight:800,
-                      letterSpacing:"-0.01em",
-                      transition:"all 0.15s",
-                      marginBottom:"-1px",
-                    }}
-                  >
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div style={{ padding:"22px 22px 20px", display:"grid", gap:16 }}>
+          <div style={{ height:1, background:"var(--z-bd)" }}/>
+          <div style={{ padding:"8px 8px", flex:1 }}>
+            {([
+              { id:"overview", label:"Overview" },
+              { id:"moves", label:`Moves (${result.visibilityMoves.length})` },
+              { id:"sponsors", label:`Key people (${result.sponsorMap.length})` },
+              { id:"cadence", label:"Cadence" },
+            ] as {id:string;label:string}[]).map(tab => {
+              const active = resultTab === tab.id;
+              return (
+                <button key={tab.id} onClick={() => setResultTab(tab.id as PromotionVisibilityTab)} style={{ width:"100%", display:"flex", alignItems:"center", padding:"9px 10px", borderRadius:8, border:"none", background:active ? "rgba(37,99,235,0.08)" : "transparent", color:active ? "#2563EB" : "var(--z-text2)", fontSize:13, fontWeight:active ? 700 : 500, cursor:"pointer", textAlign:"left", transition:"all 0.12s" }}>
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ padding:"10px 12px 14px", borderTop:"1px solid var(--z-bd)" }}>
+            <button onClick={() => setResult(null)} style={{ width:"100%", fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Start over</button>
+          </div>
+        </div>
+        {/* RIGHT PANEL */}
+        <div style={{ flex:1, overflowY:"auto", padding:"24px 28px 40px" }}>
+          <div style={{ display:"grid", gap:16 }}>
               {resultTab === "overview" && (
                 <>
                   <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"26px 28px" }}>
@@ -9577,7 +9564,6 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
                   </div>
                 </div>
               )}
-            </div>
           </div>
         </div>
       </div>
@@ -9587,7 +9573,7 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
   return (
     <div style={promotionPageStyle(theme)}>
       <input ref={fileInputRef} type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e => { const f = e.target.files?.[0]; if (f) void handleUpload(f); e.target.value = ""; }} />
-      <div style={{ padding:"34px 48px 56px", position:"relative" }}>
+      <div style={{ padding:"24px 32px 48px", position:"relative" }}>
         <div style={promotionHeroStyle(theme)}>
           <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 84% 18%, rgba(147,197,253,0.2), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
           <div style={promotionHeroGridStyle()}>
@@ -9800,12 +9786,12 @@ function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?
 
   // ── INPUT STEP ──
   if (inputMode) return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
+    <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
       <input ref={fileInputRef} type="file" accept=".pdf" style={{ display:"none" }}
         onChange={e=>{ const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value=""; }}/>
 
       {/* Page header */}
-      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"20px 40px" }}>
+      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
         <div style={{ display:"flex", alignItems:"center", gap:12 }}>
           <div style={{ width:32, height:32, borderRadius:10, background:"rgba(0,119,181,0.2)", border:"1px solid rgba(0,119,181,0.4)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
             <svg viewBox="0 0 24 24" fill="#38BDF8" style={{ width:16,height:16 }}><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zM9 17H6.477v-7H9v7zM7.694 8.717c-.771 0-1.286-.514-1.286-1.2s.514-1.2 1.286-1.2c.771 0 1.286.514 1.286 1.2s-.514 1.2-1.286 1.2zM18 17h-2.442v-3.826c0-1.058-.651-1.302-1.044-1.302-.394 0-1.228.163-1.228 1.302V17h-2.557v-7h2.557v1.302c.325-.652 1.058-1.302 2.276-1.302C17.349 10 18 11.058 18 13.488V17z"/></svg>
@@ -9994,7 +9980,7 @@ function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?
   }
 
   return (
-    <div style={{ height:"calc(100vh - 56px)", display:"flex", flexDirection:"column", overflow:"hidden" }}>
+    <div style={{ height:"100%", display:"flex", flexDirection:"column", overflow:"hidden" }}>
 
       {/* Page header */}
       <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 24px", flexShrink:0 }}>
@@ -10640,7 +10626,7 @@ function ScreenPromotionToolkit({ onNavigate }: { onNavigate: (s: string) => voi
 
       <input ref={fileInputRef} type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e => { const f = e.target.files?.[0]; if (f) void handleFile(f); e.target.value = ""; }} />
 
-      <div style={{ padding:"34px 48px 56px", position:"relative" }}>
+      <div style={{ padding:"24px 32px 48px", position:"relative" }}>
         <div style={promotionHeroStyle(theme)}>
           <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 84% 18%, rgba(148,163,184,0.12), transparent 32%), radial-gradient(circle at 16% 72%, rgba(100,116,139,0.1), transparent 30%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
           <div style={{ position:"relative", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:20, flexWrap:"wrap", marginBottom:20 }}>
@@ -10872,7 +10858,7 @@ function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate
   const words = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
 
   return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
+    <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
       {/* Preview modal */}
       {preview && (
         <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", zIndex:200, display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}
@@ -10900,7 +10886,7 @@ function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate
         onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleFile(f); e.target.value=""; }}/>
 
       {/* Page header */}
-      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"20px 40px" }}>
+      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
         <div style={{ display:"flex", alignItems:"center", gap:12 }}>
           <div style={{ width:32, height:32, borderRadius:10, background:"rgba(100,116,139,0.2)", border:"1px solid rgba(100,116,139,0.35)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="1.8" style={{ width:16,height:16 }}><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
@@ -10912,7 +10898,7 @@ function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate
         </div>
       </div>
 
-      <div style={{ padding:"32px 48px 64px" }}>
+      <div style={{ padding:"24px 32px 48px" }}>
 
         {/* ── Hero header ── */}
         <div style={{ background:"var(--z-card)", borderRadius:14, padding:"24px 28px", marginBottom:24, border:"1px solid var(--z-bd)" }}>
@@ -11253,9 +11239,9 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
 
   // ── Show result page once generated ──
   if (result || generating) return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
+    <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
       {/* Page header */}
-      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"20px 40px" }}>
+      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
         <div style={{ display:"flex", alignItems:"center", gap:12 }}>
           <div style={{ width:32, height:32, borderRadius:10, background:"rgba(16,185,129,0.18)", border:"1px solid rgba(16,185,129,0.35)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="#34D399" strokeWidth="1.8" style={{ width:16,height:16 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
@@ -11270,7 +11256,7 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
           </button>
         </div>
       </div>
-      <div style={{ padding:"32px 48px 64px" }}>
+      <div style={{ padding:"24px 32px 48px" }}>
         {generating ? (
           <div style={{ background:"var(--z-card)", borderRadius:20, padding:"72px 32px", textAlign:"center", boxShadow:"0 8px 40px rgba(0,0,0,0.09)", border:"1px solid var(--z-bd)" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
@@ -11346,12 +11332,12 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
   const clCtx = CL_STEP_CTX[step - 1];
 
   return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
+    <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
       <input ref={profileInputRef} type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }}
         onChange={e=>{ const f=e.target.files?.[0]; if(f) { void handleUpload(f); } e.target.value=""; }}/>
 
       {/* Page header */}
-      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"20px 40px" }}>
+      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
           <div>
             <h1 style={{ fontSize:22, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 4px" }}>Cover Letter</h1>
@@ -11378,7 +11364,7 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
       </div>
 
       {/* Two-column body */}
-      <div style={{ padding:"32px 48px 56px", display:"grid", gridTemplateColumns:"1fr 300px", gap:28, alignItems:"start" }}>
+      <div style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 300px", gap:28, alignItems:"start" }}>
 
         {/* LEFT: form */}
         <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"28px 28px 24px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
@@ -11681,7 +11667,7 @@ function ScreenPromotionRoadmap({ onNavigate, active = false }: { onNavigate: (s
   if (!isReady) {
     return (
       <div style={promotionPageStyle(theme)}>
-        <div style={{ padding:"34px 48px 56px", position:"relative" }}>
+        <div style={{ padding:"24px 32px 48px", position:"relative" }}>
           <div style={promotionHeroStyle(theme)}>
             <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 84% 18%, rgba(251,207,232,0.18), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
             <div style={promotionHeroGridStyle()}>
@@ -11754,7 +11740,7 @@ function ScreenPromotionRoadmap({ onNavigate, active = false }: { onNavigate: (s
 
   return (
     <div style={promotionPageStyle(theme)}>
-      <div style={{ padding:"34px 48px 56px", position:"relative" }}>
+      <div style={{ padding:"24px 32px 48px", position:"relative" }}>
         <div style={promotionHeroStyle(theme)}>
           <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 84% 18%, rgba(251,207,232,0.18), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
           <div style={promotionHeroGridStyle()}>
@@ -11936,13 +11922,13 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
 
   // ── Empty state: not enough context ──
   if (!isReady) return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
+    <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
       {/* Page header */}
-      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"20px 40px" }}>
+      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
         <h1 style={{ fontSize:22, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 4px" }}>Action Plan</h1>
         <p style={{ fontSize:13, color:"var(--z-text2)", margin:0 }}>Your personalized step-by-step roadmap based on completed sections.</p>
       </div>
-      <div style={{ padding:"48px 40px" }}>
+      <div style={{ padding:"36px 28px" }}>
         <div style={{ textAlign:"center", marginBottom:40 }}>
           <div style={{ width:52, height:52, borderRadius:14, background:"var(--z-raise)", border:"1px solid var(--z-bd)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 18px" }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="var(--z-text2)" strokeWidth="1.8" style={{width:24,height:24}}><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
@@ -12055,15 +12041,15 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
   ];
 
   return (
-    <div style={{ height:"calc(100vh - 56px)", overflow:"auto", background:"var(--z-raise)" }}>
+    <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
       {/* Page header */}
-      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"20px 40px" }}>
+      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
         <div>
           <h1 style={{ fontSize:22, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 4px" }}>Action Plan</h1>
           <p style={{ fontSize:13, color:"var(--z-text2)", margin:0 }}>Your personalized step-by-step roadmap based on completed sections.</p>
         </div>
       </div>
-      <div style={{ padding:"28px 40px 48px" }}>
+      <div style={{ padding:"20px 28px 40px" }}>
 
         {/* ── Header ── */}
         <div style={{ marginBottom:28 }}>
