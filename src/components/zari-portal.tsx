@@ -7358,6 +7358,28 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
       return;
     }
     setAnalyzeErr("");
+
+    // Fast pre-check so the user gets immediate feedback instead of waiting 20s for a known failure
+    try {
+      const statusRes = await fetch("/api/zari/status");
+      const statusData = await statusRes.json().catch(() => null) as { ok?: boolean; error?: string; status?: number } | null;
+      if (!statusData?.ok) {
+        const msg = statusData?.error ?? "";
+        if (msg.includes("not set") || msg.includes("OPENAI_API_KEY")) {
+          setAnalyzeErr("AI not configured — add OPENAI_API_KEY to your Netlify environment variables and redeploy.");
+        } else if (statusData?.status === 401) {
+          setAnalyzeErr("OpenAI API key is invalid — regenerate it at platform.openai.com and update Netlify.");
+        } else if (statusData?.status === 429 || msg.includes("quota") || msg.includes("billing")) {
+          setAnalyzeErr("OpenAI quota exceeded — add credits at platform.openai.com/settings/billing.");
+        } else {
+          setAnalyzeErr("Could not reach OpenAI — check your API key at platform.openai.com, then try again.");
+        }
+        return;
+      }
+    } catch {
+      // If the status check itself fails (network), proceed anyway and let the main call fail gracefully
+    }
+
     if (step !== "analyzing") setStep("analyzing");
 
     let p = 5;
