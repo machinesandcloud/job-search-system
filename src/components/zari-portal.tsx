@@ -3421,6 +3421,14 @@ function PromotionChoiceGroup({
   );
 }
 
+/* Shared step context for all promotion wizards (intake + readiness audit) */
+const PROMO_STEP_CONTEXT = [
+  { icon:"target",      label:"Setting the target", desc:"Zari maps the exact gap between your current role and the next level. Specificity matters — the more precise the title, the sharper the scoring.", tips:["Use the full job title, not just 'senior'.", "Time in role is a key signal — promotions before 12 months are rare at most companies.", "If you're unsure of the target title, use the one you'd put on a resume."] },
+  { icon:"clipboard",   label:"The promotion bar", desc:"Zari scores your case against what the level actually requires, not just your sense of performance. The closer to the real rubric, the more accurate the result.", tips:["Paste the career ladder or job description if you have one.", "If no formal rubric exists, describe what you've heard in conversations with your manager.", "Unclear bars are a red flag — Zari will flag this in the scoring."] },
+  { icon:"trending-up", label:"Your evidence", desc:"Strong promotion cases are built on proof, not effort. Zari looks for scope, impact, and operating-above-level signals.", tips:["Include outcomes and numbers where you can.", "Describe the cross-functional or leadership scope, not just the output.", "The best evidence shows judgment, not just execution."] },
+  { icon:"key",         label:"The decision context", desc:"Promotions are decisions made by humans. Zari models the political and organizational reality — manager support, visibility, and review signals all matter.", tips:["Be honest about manager support — low advocacy is a blocker regardless of performance.", "Visibility to decision-makers above your manager is often underrated.", "Review scores are a proxy, not the whole story. Add context if the signal is mixed."] },
+];
+
 function PromotionSharedIntakeFlow({
   sectionLabel,
   sectionIntro,
@@ -3566,35 +3574,45 @@ function PromotionSharedIntakeFlow({
     );
   }
 
+  const stepCtx = PROMO_STEP_CONTEXT[step - 1];
+
   return (
     <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
-      <div style={{ minHeight:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"48px 24px" }}>
-        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:40, flexWrap:"wrap", justifyContent:"center" }}>
-          {[1,2,3,4].map(s => (
-            <div key={s} style={{ display:"flex", alignItems:"center", gap:10 }}>
-              <div style={{ width:28, height:28, borderRadius:"50%", border:`1.5px solid ${s <= step ? "#2563EB" : "var(--z-bd)"}`, background:s < step ? "#2563EB" : "var(--z-card)", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
-                {s < step ? (
-                  <svg viewBox="0 0 12 12" fill="none" stroke="white" strokeWidth="2" style={{ width:12,height:12 }}><polyline points="2,6 5,9 10,3"/></svg>
-                ) : (
-                  <span style={{ fontSize:11, fontWeight:700, color:s === step ? "#2563EB" : "var(--z-text3)" }}>{s}</span>
-                )}
+      {/* Page header */}
+      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
+          <div>
+            <h1 style={{ fontSize:18, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:"0 0 3px" }}>{sectionLabel}</h1>
+            <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>{sectionIntro}</p>
+          </div>
+          <div style={{ display:"flex", alignItems:"center", gap:0 }}>
+            {([1,2,3,4] as const).map(s => (
+              <div key={s} style={{ display:"flex", alignItems:"center" }}>
+                <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:5 }}>
+                  <div style={{ width:32, height:32, borderRadius:"50%", border:`1.5px solid ${s <= step ? "#2563EB" : "var(--z-bd)"}`, background:s < step ? "#2563EB" : "var(--z-card)", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.3s" }}>
+                    {s < step ? (
+                      <svg viewBox="0 0 12 12" fill="none" stroke="white" strokeWidth="2.5" style={{ width:12,height:12 }}><polyline points="2,6 5,9 10,3"/></svg>
+                    ) : (
+                      <span style={{ fontSize:12, fontWeight:700, color:s === step ? "#2563EB" : "var(--z-text3)" }}>{s}</span>
+                    )}
+                  </div>
+                  <span style={{ fontSize:10, fontWeight:700, color:s === step ? "#2563EB" : "var(--z-text3)", letterSpacing:"0.04em", whiteSpace:"nowrap" }}>{PROMO_STEP_CONTEXT[s-1].label}</span>
+                </div>
+                {s < 4 && <div style={{ width:40, height:2, borderRadius:99, background:s < step ? "#2563EB" : "var(--z-bd2)", margin:"0 6px", marginBottom:18, transition:"all 0.3s" }}/>}
               </div>
-              {s < 4 && <div style={{ width:28, height:2, borderRadius:99, background:s < step ? "#2563EB" : "var(--z-bd)", transition:"all 0.3s" }}/>}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
+      </div>
 
-        <div style={{ width:"100%", maxWidth:760 }}>
-          <div style={{ textAlign:"center", marginBottom:32 }}>
-            <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"var(--z-text3)", marginBottom:8 }}>
-              {sectionLabel}
-            </p>
-            <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"var(--z-text3)", marginBottom:8 }}>
-              Step {step} of 4
-            </p>
-            <h1 style={{ fontSize:28, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.04em", marginBottom:10 }}>{activeStep.title}</h1>
-            <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.6, maxWidth:500, margin:"0 auto 12px" }}>{activeStep.subtitle}</p>
-            <p style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.65, }}>{sectionIntro}</p>
+      {/* Two-column body */}
+      <div style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
+        {/* LEFT: Form */}
+        <div>
+          <div style={{ marginBottom:28 }}>
+            <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"var(--z-text3)", marginBottom:6 }}>Step {step} of 4</p>
+            <h2 style={{ fontSize:24, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 8px" }}>{activeStep.title}</h2>
+            <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.65, margin:0 }}>{activeStep.subtitle}</p>
           </div>
 
           {step === 1 && (
@@ -3610,18 +3628,14 @@ function PromotionSharedIntakeFlow({
                     <input value={form.desiredTitle} onChange={e => updateForm("desiredTitle", e.target.value)} placeholder="e.g. Senior Product Manager or Senior Engineering Manager" style={wizardInputStyle} />
                   </div>
                 </div>
-
                 <div>
                   <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 10px" }}>How long have you been in your current role?</p>
                   <PromotionChoiceGroup value={form.timeInRole} onChange={value => updateForm("timeInRole", value)} options={PROMOTION_READINESS_OPTIONS.timeInRole} />
                 </div>
               </div>
-
               <div style={{ ...wizardCardStyle, background:"var(--z-raise)" }}>
                 <div style={{ fontSize:11.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Shared promotion intake</div>
-                <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.7, margin:0 }}>
-                  These answers become the shared promotion context for readiness, manager conversation, evidence builder, sponsor strategy, and roadmap.
-                </p>
+                <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.7, margin:0 }}>These answers become the shared context for your readiness audit, conversation practice, evidence builder, and roadmap.</p>
               </div>
             </div>
           )}
@@ -3630,14 +3644,8 @@ function PromotionSharedIntakeFlow({
             <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
               <div style={wizardCardStyle}>
                 <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Next-level job description or rubric</p>
-                <textarea
-                  value={form.roleDescription}
-                  onChange={e => updateForm("roleDescription", e.target.value)}
-                  placeholder="Paste the job description, career ladder, or the clearest notes you have about what the next level requires."
-                  style={{ ...wizardTextareaStyle, minHeight:220 }}
-                />
+                <textarea value={form.roleDescription} onChange={e => updateForm("roleDescription", e.target.value)} placeholder="Paste the job description, career ladder, or the clearest notes you have about what the next level requires." style={{ ...wizardTextareaStyle, minHeight:220 }} />
               </div>
-
               <div style={wizardCardStyle}>
                 <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 10px" }}>How clear is the promotion bar today?</p>
                 <PromotionChoiceGroup value={form.rubricClarity} onChange={value => updateForm("rubricClarity", value)} options={PROMOTION_READINESS_OPTIONS.rubricClarity} />
@@ -3649,19 +3657,12 @@ function PromotionSharedIntakeFlow({
             <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
               <div style={wizardCardStyle}>
                 <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Key projects and wins</p>
-                <textarea
-                  value={form.recentProjects}
-                  onChange={e => updateForm("recentProjects", e.target.value)}
-                  placeholder="List the few projects or initiatives that best prove you are already operating above your current level. Include scope, outcomes, and any metrics you can."
-                  style={{ ...wizardTextareaStyle, minHeight:190 }}
-                />
+                <textarea value={form.recentProjects} onChange={e => updateForm("recentProjects", e.target.value)} placeholder="List the few projects or initiatives that best prove you are already operating above your current level. Include scope, outcomes, and any metrics you can." style={{ ...wizardTextareaStyle, minHeight:190 }} />
               </div>
-
               <div style={wizardCardStyle}>
                 <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 10px" }}>How far does your scope already extend?</p>
                 <PromotionChoiceGroup value={form.scopeLevel} onChange={value => updateForm("scopeLevel", value)} options={PROMOTION_READINESS_OPTIONS.scopeLevel} />
               </div>
-
               <div style={wizardCardStyle}>
                 <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 10px" }}>How strong is the measurable impact?</p>
                 <PromotionChoiceGroup value={form.impactLevel} onChange={value => updateForm("impactLevel", value)} options={PROMOTION_READINESS_OPTIONS.impactLevel} />
@@ -3673,37 +3674,23 @@ function PromotionSharedIntakeFlow({
             <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
               <div style={wizardCardStyle}>
                 <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Recent review summary</p>
-                <textarea
-                  value={form.reviewSummary}
-                  onChange={e => updateForm("reviewSummary", e.target.value)}
-                  placeholder="Optional: paste review comments or summarize the feedback that matters most. If you do not have formal reviews, leave this light and move on."
-                  style={{ ...wizardTextareaStyle, minHeight:130 }}
-                />
+                <textarea value={form.reviewSummary} onChange={e => updateForm("reviewSummary", e.target.value)} placeholder="Optional: paste review comments or summarize the feedback that matters most. If you do not have formal reviews, leave this light and move on." style={{ ...wizardTextareaStyle, minHeight:130 }} />
               </div>
-
               <div style={wizardCardStyle}>
                 <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 10px" }}>Overall review signal</p>
                 <PromotionChoiceGroup value={form.reviewSignal} onChange={value => updateForm("reviewSignal", value)} options={PROMOTION_READINESS_OPTIONS.reviewSignal} />
               </div>
-
               <div style={wizardCardStyle}>
                 <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 10px" }}>How supportive is your manager?</p>
                 <PromotionChoiceGroup value={form.managerSupport} onChange={value => updateForm("managerSupport", value)} options={PROMOTION_READINESS_OPTIONS.managerSupport} />
               </div>
-
               <div style={wizardCardStyle}>
                 <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 10px" }}>How visible is your work to the people who matter?</p>
                 <PromotionChoiceGroup value={form.visibilityLevel} onChange={value => updateForm("visibilityLevel", value)} options={PROMOTION_READINESS_OPTIONS.visibilityLevel} />
               </div>
-
               <div style={wizardCardStyle}>
                 <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>What is still getting in the way?</p>
-                <textarea
-                  value={form.blockers}
-                  onChange={e => updateForm("blockers", e.target.value)}
-                  placeholder="Optional: unclear rubric, low visibility, missing metrics, manager hesitation, or not enough next-level scope. If nothing stands out, leave this blank."
-                  style={{ ...wizardTextareaStyle, minHeight:135 }}
-                />
+                <textarea value={form.blockers} onChange={e => updateForm("blockers", e.target.value)} placeholder="Optional: unclear rubric, low visibility, missing metrics, manager hesitation, or not enough next-level scope. If nothing stands out, leave this blank." style={{ ...wizardTextareaStyle, minHeight:135 }} />
               </div>
             </div>
           )}
@@ -3714,20 +3701,51 @@ function PromotionSharedIntakeFlow({
             </div>
           )}
 
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:10, marginTop:18, flexWrap:"wrap" }}>
-            <button
-              onClick={() => step === 1 ? setForm(PROMOTION_READINESS_DEFAULT_FORM) : goBack()}
-              style={{ padding:"14px 20px", borderRadius:14, border:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text2)", fontSize:14, fontWeight:600, cursor:"pointer" }}
-            >
-              {step === 1 ? "Clear answers" : "← Back"}
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:10, marginTop:22 }}>
+            <button onClick={() => step === 1 ? setForm(PROMOTION_READINESS_DEFAULT_FORM) : goBack()} style={{ padding:"13px 20px", borderRadius:14, border:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text3)", fontSize:13.5, fontWeight:600, cursor:"pointer" }}>
+              {step === 1 ? "Clear" : "← Back"}
             </button>
-            <button
-              onClick={() => { if (step === 4) void submit(); else goNext(); }}
-              disabled={submitting}
-              style={{ minWidth:230, fontSize:14.5, fontWeight:700, padding:"14px 18px", borderRadius:14, border:"none", background:"#2563EB", color:"white", cursor:"pointer", transition:"all 0.2s", opacity:submitting ? 0.72 : 1 }}
-            >
+            <button onClick={() => { if (step === 4) void submit(); else goNext(); }} disabled={submitting} style={{ minWidth:200, fontSize:14.5, fontWeight:700, padding:"13px 20px", borderRadius:14, border:"none", background:"#2563EB", color:"white", cursor:"pointer", transition:"all 0.2s", opacity:submitting ? 0.72 : 1 }}>
               {step === 4 ? submitLabel : "Continue →"}
             </button>
+          </div>
+        </div>
+
+        {/* RIGHT: Sidebar */}
+        <div style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
+          <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+              {zIcon(stepCtx.icon, "#60A5FA")}
+              <div style={{ fontSize:12, fontWeight:800, color:"#60A5FA", letterSpacing:"0.04em" }}>{stepCtx.label}</div>
+            </div>
+            <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.72, margin:"0 0 16px" }}>{stepCtx.desc}</p>
+            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+              {stepCtx.tips.map((tip, i) => (
+                <div key={i} style={{ display:"flex", gap:9, alignItems:"flex-start" }}>
+                  <div style={{ width:4, height:4, borderRadius:"50%", background:"rgba(96,165,250,0.6)", flexShrink:0, marginTop:6 }}/>
+                  <span style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.6 }}>{tip}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ background:"var(--z-raise)", border:"1px solid var(--z-bd2)", borderRadius:16, padding:"16px 18px" }}>
+            <div style={{ fontSize:10.5, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", marginBottom:10 }}>Your answers so far</div>
+            <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+              {[
+                { label:"Current title", value:form.currentTitle },
+                { label:"Target title",  value:form.desiredTitle },
+                { label:"Time in role",  value:form.timeInRole ? promotionOptionLabel(PROMOTION_READINESS_OPTIONS.timeInRole, form.timeInRole) : null },
+              ].filter(r => r.value).map(r => (
+                <div key={r.label} style={{ display:"flex", justifyContent:"space-between", gap:8, flexWrap:"wrap" }}>
+                  <span style={{ fontSize:11.5, color:"var(--z-text3)" }}>{r.label}</span>
+                  <span style={{ fontSize:11.5, fontWeight:700, color:"var(--z-text2)", textAlign:"right", maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.value}</span>
+                </div>
+              ))}
+              {!form.currentTitle && !form.desiredTitle && (
+                <span style={{ fontSize:12, color:"var(--z-text3)", fontStyle:"italic" }}>Nothing filled in yet.</span>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -4336,13 +4354,7 @@ function ScreenPromotionReadiness() {
     );
   }
 
-  const READINESS_STEP_CONTEXT = [
-    { icon:"target",      label:"Setting the target", desc:"Zari maps the exact gap between your current role and the next level. Specificity matters — the more precise the title, the sharper the scoring.", tips:["Use the full job title, not just 'senior'.", "Time in role is a key signal — promotions before 12 months are rare at most companies.", "If you're unsure of the target title, use the one you'd put on a resume."] },
-    { icon:"clipboard",   label:"The promotion bar", desc:"Zari scores your case against what the level actually requires, not just your sense of performance. The closer to the real rubric, the more accurate the result.", tips:["Paste the career ladder or job description if you have one.", "If no formal rubric exists, describe what you've heard in conversations with your manager.", "Unclear bars are a red flag — Zari will flag this in the scoring."] },
-    { icon:"trending-up", label:"Your evidence", desc:"Strong promotion cases are built on proof, not effort. Zari looks for scope, impact, and operating-above-level signals.", tips:["Include outcomes and numbers where you can.", "Describe the cross-functional or leadership scope, not just the output.", "The best evidence shows judgment, not just execution."] },
-    { icon:"key",         label:"The decision context", desc:"Promotions are decisions made by humans. Zari models the political and organizational reality — manager support, visibility, and review signals all matter.", tips:["Be honest about manager support — low advocacy is a blocker regardless of performance.", "Visibility to decision-makers above your manager is often underrated.", "Review scores are a proxy, not the whole story. Add context if the signal is mixed."] },
-  ];
-  const stepCtx = READINESS_STEP_CONTEXT[step - 1];
+  const stepCtx = PROMO_STEP_CONTEXT[step - 1];
 
   return (
     <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
@@ -4367,7 +4379,7 @@ function ScreenPromotionReadiness() {
                       <span style={{ fontSize:12, fontWeight:700, color:s === step ? "#2563EB" : "var(--z-text3)" }}>{s}</span>
                     )}
                   </div>
-                  <span style={{ fontSize:10, fontWeight:700, color:s === step ? "#2563EB" : "var(--z-text3)", letterSpacing:"0.04em", whiteSpace:"nowrap" }}>{READINESS_STEP_CONTEXT[s-1].label}</span>
+                  <span style={{ fontSize:10, fontWeight:700, color:s === step ? "#2563EB" : "var(--z-text3)", letterSpacing:"0.04em", whiteSpace:"nowrap" }}>{PROMO_STEP_CONTEXT[s-1].label}</span>
                 </div>
                 {s < 4 && <div style={{ width:40, height:2, borderRadius:99, background:s < step ? "#2563EB" : "var(--z-bd2)", margin:"0 6px", marginBottom:18, transition:"all 0.3s" }}/>}
               </div>
