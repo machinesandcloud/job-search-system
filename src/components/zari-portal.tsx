@@ -563,9 +563,9 @@ function PdfHighlightViewer({
               </div>
             );
           })}
-          {pi === 0 && pg.highlights.length > 0 && (
+          {pi === 0 && bullets.length > 0 && (
             <div style={{ position:"absolute", top:8, right:8, background:"rgba(245,158,11,0.9)", color:"white", fontSize:11, fontWeight:700, padding:"4px 10px", borderRadius:99, pointerEvents:"none" }}>
-              {pg.highlights.length} issue{pg.highlights.length!==1?"s":""}
+              {bullets.length} issue{bullets.length!==1?"s":""}
             </div>
           )}
         </div>
@@ -7976,7 +7976,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
             { label:"Impact",    key:"impact" as const,  score:aiResult?.impact??0, color:"#2563EB",
               icon:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13}}><path d="M3 12l4-8 3 5 2-3 3 6"/></svg>,
               note: bs ? `${bs.withMetrics}/${bs.total} bullets have metrics` : "Metrics & outcomes" },
-            { label:"Clarity",   key:"clarity" as const, score:aiResult?.clarity??0,color:"var(--z-text2)",
+            { label:"Clarity",   key:"clarity" as const, score:aiResult?.clarity??0,color:"#8B5CF6",
               icon:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13}}><circle cx="8" cy="8" r="6"/><path d="M8 5v4M8 11v1"/></svg>,
               note: `${finds.filter(f=>f.type!=="ok").length} issue${finds.filter(f=>f.type!=="ok").length!==1?"s":""} found` },
           ];
