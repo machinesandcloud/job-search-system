@@ -45,7 +45,10 @@ ${candidateName ? `Candidate name: ${candidateName}` : ""}
 Return ONLY valid JSON:
 {
   "subject": "<concise email subject line, ~60 chars>",
-  "coverLetter": "<complete cover letter including salutation, 3-4 body paragraphs, and closing signature — see structure below>"
+  "coverLetter": "<complete cover letter including salutation, 3-4 body paragraphs, and closing signature — see structure below>",
+  "tailoringNotes": ["<specific thing Zari did to personalize this letter to this role/company>", "<another specific tailoring decision>", "<another>"],
+  "keyStrengths": ["<specific strength from the candidate's profile that was highlighted>", "<another strength>", "<another>"],
+  "openingHook": "<the first sentence of the letter — what makes it stand out>"
 }
 
 Letter structure (write the full text including all of these):
@@ -87,7 +90,16 @@ Human voice rules — these are non-negotiable:
   if (!reply) return NextResponse.json({ error: "Generation failed" }, { status: 503 });
 
   try {
-    return NextResponse.json(JSON.parse(reply));
+    const p = JSON.parse(reply) as Record<string, unknown>;
+    const cleanStr = (v: unknown) => typeof v === "string" ? v.trim() : "";
+    const cleanList = (v: unknown, max = 4) => Array.isArray(v) ? (v as unknown[]).map(cleanStr).filter(Boolean).slice(0, max) : [];
+    return NextResponse.json({
+      subject: cleanStr(p.subject),
+      coverLetter: cleanStr(p.coverLetter),
+      tailoringNotes: cleanList(p.tailoringNotes, 4),
+      keyStrengths: cleanList(p.keyStrengths, 4),
+      openingHook: cleanStr(p.openingHook),
+    });
   } catch {
     return NextResponse.json({ error: "Could not parse response" }, { status: 500 });
   }

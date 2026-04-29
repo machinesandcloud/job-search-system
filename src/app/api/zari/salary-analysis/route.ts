@@ -24,11 +24,11 @@ function buildFallback() {
     marketPositionDetail: "Based on the information provided, your compensation appears near market median. Precise benchmarks require specific role, level, and location data.",
     hardTruth: "Most professionals leave 10-25% on the table simply by not knowing the real range — or by accepting the first number before they've established their anchor.",
     leveragePoints: [
-      "Your experience trajectory and current scope carry more weight than your title.",
-      "Remote eligibility expands your negotiable market beyond local comp bands.",
-      "The cost of replacing you is typically 50-200% of annual comp — that is the leverage floor.",
-      "Competing offers or active interviews — even early-stage — are the single strongest signal in any negotiation.",
-      "Specialized depth commands premiums. Identify what you do that is genuinely rare in your market.",
+      { title: "Experience Trajectory", explanation: "Your experience trajectory and current scope carry more weight than your title. Hiring managers care about what you've shipped, not what your org calls you.", tactic: "Open with scope and outcomes, not years of experience. Say what you own and what would break without you." },
+      { title: "Remote Market Access", explanation: "Remote eligibility expands your negotiable market beyond local comp bands — effectively putting you in competition for SF or NYC salaries from anywhere.", tactic: "Reference the remote market explicitly. 'I'm benchmarking against the full remote market for this role, which runs higher than local rates.'" },
+      { title: "Replacement Cost", explanation: "The cost of replacing you is typically 50-200% of annual comp — recruiting fees, onboarding time, lost institutional knowledge. That's your leverage floor.", tactic: "Don't mention this directly, but use it as your internal anchor. You're not asking for a raise — you're asking them to not spend $200K replacing you." },
+      { title: "Competing Signals", explanation: "Competing offers or active interviews — even early-stage — are the single strongest signal in any negotiation. It forces urgency and sets a real market floor.", tactic: "If you have any competing interest, disclose it early and factually. 'I'm in late stages elsewhere at $X — I wanted to give you the first right of refusal.'" },
+      { title: "Specialized Depth", explanation: "Specialized depth commands premiums. Generalists get market rates; specialists get above-market rates because the supply is thin and the cost of a bad hire is high.", tactic: "Name the two or three things you do that are genuinely rare. Not 'I'm a strong communicator' — name the actual technical or domain expertise that's hard to find." },
     ],
     benchmarks: [
       { label: "Entry-band", value: "Market floor", context: "Minimum for qualified candidates in this function" },
@@ -79,7 +79,9 @@ Return ONLY valid JSON:
   "marketPosition": "<below | at | above>",
   "marketPositionDetail": "<1-2 sentences estimating their position vs market, honest about data limitations>",
   "hardTruth": "<1-2 blunt sentences about their biggest risk or mistake in this negotiation>",
-  "leveragePoints": ["<specific leverage>", "<specific leverage>", "<specific leverage>", "<specific leverage>"],
+  "leveragePoints": [
+    { "title": "<short name for this leverage point>", "explanation": "<1-2 sentences explaining WHY this is leverage in their specific situation>", "tactic": "<1-2 sentences on exactly how to deploy this in the negotiation — what to say or do>" }
+  ],
   "benchmarks": [
     { "label": "<band name>", "value": "<concrete comp figure or range>", "context": "<what this represents>" }
   ],
@@ -95,7 +97,8 @@ Rules:
 - compensationScore = their negotiating LEVERAGE and preparation level, not raw comp.
 - hardTruth must be plain and direct. No reassurance. Name the real risk.
 - Benchmarks: give honest estimates or ranges. If data is limited, say so directly.
-- Generate 4-5 leverage points, 3 benchmarks, 3-4 negotiation moves, 3 watchouts.
+- Generate 4-5 leverage points (each with title, explanation, tactic), 3 benchmarks, 3-4 negotiation moves, 3 watchouts.
+- leveragePoints: title = short name (2-4 words), explanation = WHY this is leverage for them specifically, tactic = exactly what to say or do to deploy it.
 - The counterScript must be ready to send, professional, and specific to their situation.`;
 
   const userPrompt = [
@@ -130,7 +133,13 @@ Rules:
       marketPosition: cleanStr(p.marketPosition) || fallback.marketPosition,
       marketPositionDetail: cleanStr(p.marketPositionDetail) || fallback.marketPositionDetail,
       hardTruth: cleanStr(p.hardTruth) || fallback.hardTruth,
-      leveragePoints: cleanList(p.leveragePoints, 5).length ? cleanList(p.leveragePoints, 5) : fallback.leveragePoints,
+      leveragePoints: (() => {
+        const parsed = mapList(p.leveragePoints, i => {
+          const title = cleanStr(i.title), explanation = cleanStr(i.explanation), tactic = cleanStr(i.tactic);
+          return title && explanation ? { title, explanation, tactic } : null;
+        }, 5);
+        return parsed.length ? parsed : fallback.leveragePoints;
+      })(),
       benchmarks: mapList(p.benchmarks, i => {
         const label = cleanStr(i.label), value = cleanStr(i.value), context = cleanStr(i.context);
         return label && value ? { label, value, context } : null;

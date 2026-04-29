@@ -4443,12 +4443,13 @@ function ScreenPromotionReadiness() {
 /* ═══════════════════════════════════════════════════
    SALARY STAGE: COMPENSATION ANALYSIS
 ═══════════════════════════════════════════════════ */
+type LeveragePoint = { title: string; explanation: string; tactic: string };
 type SalaryAnalysisResult = {
   compensationScore: number;
   marketPosition: string;
   marketPositionDetail: string;
   hardTruth: string;
-  leveragePoints: string[];
+  leveragePoints: LeveragePoint[];
   benchmarks: { label: string; value: string; context: string }[];
   negotiationMoves: { title: string; move: string; when: string }[];
   counterScript: string;
@@ -4600,11 +4601,31 @@ function ScreenSalaryCompensation() {
               </div>
             )}
             {tab === "leverage" && (
-              <div style={{ display:"grid", gap:12 }}>
+              <div style={{ display:"grid", gap:16 }}>
+                <div style={{ padding:"4px 0 8px" }}>
+                  <p style={{ fontSize:11, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", margin:0 }}>Your negotiation advantages — use each one deliberately</p>
+                </div>
                 {result.leveragePoints.map((pt, i) => (
-                  <div key={i} style={{ display:"flex", gap:16, alignItems:"flex-start", padding:"18px 20px", borderRadius:14, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #059669" }}>
-                    <span style={{ fontSize:11, fontWeight:900, color:"#059669", background:"rgba(5,150,105,0.1)", border:"1px solid rgba(5,150,105,0.25)", borderRadius:999, width:26, height:26, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>{i+1}</span>
-                    <span style={{ fontSize:14, color:"var(--z-text)", lineHeight:1.8 }}>{pt}</span>
+                  <div key={i} style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #059669", overflow:"hidden", boxShadow:"0 2px 16px rgba(0,0,0,0.06)" }}>
+                    <div style={{ padding:"20px 24px 16px", background:"rgba(5,150,105,0.03)" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:10 }}>
+                        <span style={{ fontSize:10, fontWeight:900, color:"#059669", background:"rgba(5,150,105,0.12)", border:"1px solid rgba(5,150,105,0.25)", borderRadius:999, width:24, height:24, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{i+1}</span>
+                        <span style={{ fontSize:15, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.02em" }}>{pt.title}</span>
+                        <span style={{ fontSize:9.5, fontWeight:700, color:"#059669", background:"rgba(5,150,105,0.1)", border:"1px solid rgba(5,150,105,0.2)", padding:"2px 8px", borderRadius:99, textTransform:"uppercase", letterSpacing:"0.06em", marginLeft:"auto", flexShrink:0 }}>Leverage</span>
+                      </div>
+                      <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.75, margin:0 }}>{pt.explanation}</p>
+                    </div>
+                    <div style={{ padding:"14px 24px 18px", borderTop:"1px solid var(--z-bd)", background:"var(--z-raise)" }}>
+                      <div style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
+                        <div style={{ flexShrink:0, width:20, height:20, borderRadius:6, background:"rgba(37,99,235,0.1)", border:"1px solid rgba(37,99,235,0.2)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
+                          <svg viewBox="0 0 12 12" fill="none" stroke="#2563EB" strokeWidth="2" style={{ width:9,height:9 }}><path d="M2 6l3 3 5-5"/></svg>
+                        </div>
+                        <div>
+                          <span style={{ fontSize:9.5, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.08em", display:"block", marginBottom:4 }}>How to use this</span>
+                          <p style={{ fontSize:13, color:"var(--z-text)", lineHeight:1.7, margin:0 }}>{pt.tactic}</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -9021,36 +9042,57 @@ function ScreenInterview({ stage, active = false }: { stage: CareerStage; active
               </div>
             )}
             {!isScoring && (
-              <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:18, padding:22, marginBottom:14, boxShadow:"0 2px 12px rgba(0,0,0,0.07)" }}>
-                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:18 }}>
-                  <p style={{ fontSize:14, fontWeight:700, color:"var(--z-text)" }}>Zari&apos;s feedback</p>
-                  <div style={{ display:"flex", alignItems:"center", gap:6, padding:"4px 12px", borderRadius:99, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
-                    <span style={{ fontSize:20, fontWeight:900, color:"var(--z-text)" }}>{feedback?.overallScore ?? 79}</span>
-                    <span style={{ fontSize:11, color:"var(--z-text3)", fontWeight:600 }}>/ 100</span>
-                  </div>
-                </div>
+              <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:18, padding:22, marginBottom:14, boxShadow:"0 4px 24px rgba(0,0,0,0.09)" }}>
+                {/* Score hero */}
+                {(() => {
+                  const score = feedback?.overallScore ?? 79;
+                  const sColor = score >= 80 ? "#059669" : score >= 65 ? "#2563EB" : score >= 50 ? "#D97706" : "#DC2626";
+                  const sBg = score >= 80 ? "rgba(5,150,105,0.08)" : score >= 65 ? "rgba(37,99,235,0.08)" : score >= 50 ? "rgba(217,119,6,0.08)" : "rgba(220,38,38,0.08)";
+                  const sLabel = score >= 80 ? "Strong answer" : score >= 65 ? "Good answer" : score >= 50 ? "Needs work" : "Weak answer";
+                  return (
+                    <div style={{ display:"flex", alignItems:"center", gap:18, marginBottom:20, padding:"18px 20px", borderRadius:14, background:sBg, borderLeft:`4px solid ${sColor}` }}>
+                      <div style={{ position:"relative", flexShrink:0 }}>
+                        <svg viewBox="0 0 64 64" style={{ width:64, height:64, transform:"rotate(-90deg)" }}>
+                          <circle cx="32" cy="32" r="26" fill="none" stroke="var(--z-bd2)" strokeWidth="5"/>
+                          <circle cx="32" cy="32" r="26" fill="none" stroke={sColor} strokeWidth="5" strokeLinecap="round" strokeDasharray={`${(score/100)*163.4} 163.4`}/>
+                        </svg>
+                        <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
+                          <span style={{ fontSize:18, fontWeight:900, color:sColor, lineHeight:1, letterSpacing:"-0.04em" }}>{score}</span>
+                        </div>
+                      </div>
+                      <div>
+                        <p style={{ fontSize:16, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.02em", marginBottom:4 }}>Zari&apos;s Feedback</p>
+                        <span style={{ fontSize:12, fontWeight:700, color:sColor, background:`${sColor}18`, border:`1px solid ${sColor}30`, padding:"3px 10px", borderRadius:99 }}>{sLabel}</span>
+                      </div>
+                    </div>
+                  );
+                })()}
+                {/* Dimension cards */}
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:18 }}>
                   {(feedback?.dimensions ?? []).map(s => {
                     const color = dimColor(s.score);
+                    const dimBg = s.score >= 75 ? "rgba(5,150,105,0.05)" : s.score >= 55 ? "rgba(37,99,235,0.05)" : "rgba(217,119,6,0.05)";
                     return (
-                      <div key={s.label} style={{ background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderRadius:10, padding:"10px 12px" }}>
-                        <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
-                          <span style={{ fontSize:11.5, color:"var(--z-text2)" }}>{s.label}</span>
-                          <span style={{ fontSize:13, fontWeight:800, color }}>{s.score}</span>
+                      <div key={s.label} style={{ background:dimBg, border:"1px solid var(--z-bd)", borderLeft:`3px solid ${color}`, borderRadius:10, padding:"12px 14px" }}>
+                        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
+                          <span style={{ fontSize:12, fontWeight:700, color:"var(--z-text)" }}>{s.label}</span>
+                          <span style={{ fontSize:15, fontWeight:900, color, letterSpacing:"-0.02em" }}>{s.score}</span>
                         </div>
                         <Bar pct={s.score} color={color}/>
                       </div>
                     );
                   })}
                 </div>
-                <div style={{ background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderRadius:12, padding:16, marginBottom:12 }}>
-                  <p style={{ fontSize:12, fontWeight:700, color:"var(--z-text3)", marginBottom:6 }}>Coaching note from Zari</p>
-                  <p style={{ fontSize:13, color:"var(--z-text)", lineHeight:1.65 }}>{feedback?.coachNote}</p>
+                {/* Coaching note */}
+                <div style={{ background:"rgba(37,99,235,0.04)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #2563EB", borderRadius:12, padding:"16px 18px", marginBottom:12 }}>
+                  <p style={{ fontSize:10.5, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Coaching note from Zari</p>
+                  <p style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.75, margin:0 }}>{feedback?.coachNote}</p>
                 </div>
+                {/* Suggested Result */}
                 {feedback?.suggestedResult && (
-                  <div style={{ background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderRadius:12, padding:"12px 16px" }}>
-                    <p style={{ fontSize:12, fontWeight:700, color:"var(--z-text3)", marginBottom:5 }}>Suggested Result statement</p>
-                    <p style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.6, fontStyle:"italic" }}>&ldquo;{feedback.suggestedResult}&rdquo;</p>
+                  <div style={{ background:"rgba(5,150,105,0.04)", border:"1px solid rgba(5,150,105,0.2)", borderLeft:"4px solid #059669", borderRadius:12, padding:"16px 18px" }}>
+                    <p style={{ fontSize:10.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Stronger Result Statement</p>
+                    <p style={{ fontSize:14, color:"var(--z-text)", lineHeight:1.8, fontStyle:"italic", margin:0 }}>&ldquo;{feedback.suggestedResult}&rdquo;</p>
                   </div>
                 )}
               </div>
@@ -11095,7 +11137,7 @@ function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?
                 )}
               </div>
               {isExpanded && (
-                <div style={{ padding:"10px 16px 14px 52px", fontSize:13, color:c.pass?"rgba(255,255,255,0.65)":"#FCA5A5", lineHeight:1.65, background:c.pass?"rgba(255,255,255,0.03)":"rgba(220,38,38,0.08)", borderTop:`1px solid ${c.pass?"rgba(255,255,255,0.06)":"rgba(220,38,38,0.2)"}` }}>
+                <div style={{ padding:"10px 16px 14px 52px", fontSize:13, color:c.pass?"var(--z-text2)":"#EF4444", lineHeight:1.65, background:c.pass?"rgba(22,163,74,0.03)":"rgba(220,38,38,0.06)", borderTop:`1px solid ${c.pass?"rgba(22,163,74,0.12)":"rgba(220,38,38,0.2)"}` }}>
                   {c.detail}
                 </div>
               )}
@@ -12213,7 +12255,7 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
   const [candidateName, setCandidateName] = useState("");
   const [tone,          setTone]          = useState<"professional"|"conversational"|"enthusiastic">("professional");
   const [generating,    setGenerating]    = useState(false);
-  const [result,        setResult]        = useState<{ subject: string; coverLetter: string } | null>(null);
+  const [result,        setResult]        = useState<{ subject: string; coverLetter: string; tailoringNotes?: string[]; keyStrengths?: string[]; openingHook?: string } | null>(null);
   const [editMode,      setEditMode]      = useState(false);
   const [editedLetter,  setEditedLetter]  = useState("");
   const [copied,        setCopied]        = useState(false);
@@ -12250,8 +12292,8 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
         method:"POST", headers:{"Content-Type":"application/json"},
         body: JSON.stringify({ profileText, jobDescription:jobDesc, company, targetRole, tone, candidateName }),
       });
-      const data = await res.json().catch(() => null) as { subject?: string; coverLetter?: string; error?: string } | null;
-      if (data?.coverLetter) { setResult({ subject:data.subject ?? "", coverLetter:data.coverLetter }); setEditedLetter(data.coverLetter);
+      const data = await res.json().catch(() => null) as { subject?: string; coverLetter?: string; tailoringNotes?: string[]; keyStrengths?: string[]; openingHook?: string; error?: string } | null;
+      if (data?.coverLetter) { setResult({ subject:data.subject ?? "", coverLetter:data.coverLetter, tailoringNotes:data.tailoringNotes, keyStrengths:data.keyStrengths, openingHook:data.openingHook }); setEditedLetter(data.coverLetter);
         // Save to doc vault
         vaultSave({ type:"cover-letter", name:data.subject||targetRole||"Cover Letter", content:data.coverLetter, meta:{ subject:data.subject??"", targetRole, company, tone, stage } }); }
       else setError(data?.error ?? "Generation failed — try again.");
@@ -12397,10 +12439,17 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
         ) : result && (
           <>
             {/* ── Hero header ── */}
-            <div style={{ background:"var(--z-card)", borderRadius:14, padding:"22px 28px", marginBottom:20, border:"1px solid var(--z-bd)" }}>
-              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:16, flexWrap:"wrap" }}>
+            <div style={{ background:"var(--z-card)", borderRadius:14, padding:"22px 28px", marginBottom:20, border:"1px solid var(--z-bd)", borderTop:"3px solid #059669", position:"relative", overflow:"hidden" }}>
+              <div style={{ position:"absolute", top:-40, right:-20, width:160, height:160, background:"radial-gradient(circle,rgba(5,150,105,0.08) 0%,transparent 70%)", pointerEvents:"none" }}/>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:16, flexWrap:"wrap", position:"relative" }}>
                 <div>
-                  <div style={{ fontSize:10.5, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:5 }}>Cover Letter Ready</div>
+                  <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
+                    <span style={{ fontSize:9.5, fontWeight:800, color:"#059669", background:"rgba(5,150,105,0.1)", border:"1px solid rgba(5,150,105,0.25)", padding:"2px 9px", borderRadius:99, textTransform:"uppercase", letterSpacing:"0.08em" }}>Letter Ready</span>
+                    <span style={{ fontSize:9.5, fontWeight:700, color:"var(--z-text3)", background:"var(--z-raise)", border:"1px solid var(--z-bd)", padding:"2px 9px", borderRadius:99, textTransform:"capitalize" }}>{tone} tone</span>
+                    {!editMode && result.coverLetter && (
+                      <span style={{ fontSize:9.5, fontWeight:700, color:"var(--z-text3)", background:"var(--z-raise)", border:"1px solid var(--z-bd)", padding:"2px 9px", borderRadius:99 }}>~{result.coverLetter.trim().split(/\s+/).length} words</span>
+                    )}
+                  </div>
                   <p style={{ fontSize:17, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.025em", margin:0 }}>{result.subject || "Cover Letter"}</p>
                   {(company||targetRole) && (
                     <p style={{ fontSize:12.5, color:"var(--z-text2)", marginTop:4 }}>
@@ -12433,6 +12482,54 @@ function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; acti
                 </div>
               </div>
             </div>
+
+            {/* ── AI Tailoring Insights ── */}
+            {(result.tailoringNotes?.length || result.keyStrengths?.length) && (
+              <div style={{ display:"grid", gridTemplateColumns: result.tailoringNotes?.length && result.keyStrengths?.length ? "1fr 1fr" : "1fr", gap:16, marginBottom:20 }}>
+                {result.tailoringNotes?.length ? (
+                  <div style={{ background:"var(--z-card)", borderRadius:14, border:"1px solid var(--z-bd)", borderLeft:"4px solid #2563EB", padding:"18px 20px" }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
+                      <svg viewBox="0 0 16 16" fill="none" stroke="#2563EB" strokeWidth="1.8" style={{ width:14,height:14 }}><path d="M13 3L6 11l-3-3"/></svg>
+                      <p style={{ fontSize:10.5, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.1em", margin:0 }}>What Zari tailored</p>
+                    </div>
+                    <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                      {result.tailoringNotes.map((note, i) => (
+                        <div key={i} style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
+                          <span style={{ fontSize:10, fontWeight:800, color:"#2563EB", background:"rgba(37,99,235,0.1)", borderRadius:99, width:18, height:18, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>{i+1}</span>
+                          <p style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.65, margin:0 }}>{note}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+                {result.keyStrengths?.length ? (
+                  <div style={{ background:"var(--z-card)", borderRadius:14, border:"1px solid var(--z-bd)", borderLeft:"4px solid #059669", padding:"18px 20px" }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
+                      <svg viewBox="0 0 16 16" fill="#059669" style={{ width:14,height:14 }}><path d="M8 1l1.9 3.8L14 5.8l-3 2.9.7 4.1L8 10.8l-3.7 1.95.7-4.1L2 5.8l4.1-.6z"/></svg>
+                      <p style={{ fontSize:10.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em", margin:0 }}>Strengths highlighted</p>
+                    </div>
+                    <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                      {result.keyStrengths.map((s, i) => (
+                        <div key={i} style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
+                          <svg viewBox="0 0 10 10" fill="#059669" style={{ width:10, height:10, flexShrink:0, marginTop:4 }}><circle cx="5" cy="5" r="4"/></svg>
+                          <p style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.65, margin:0 }}>{s}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            )}
+            {/* ── Opening hook highlight ── */}
+            {result.openingHook && (
+              <div style={{ background:"rgba(37,99,235,0.03)", borderRadius:12, border:"1px solid rgba(37,99,235,0.15)", padding:"14px 18px", marginBottom:20, display:"flex", gap:12, alignItems:"flex-start" }}>
+                <svg viewBox="0 0 16 16" fill="none" stroke="#2563EB" strokeWidth="1.8" style={{ width:14,height:14,flexShrink:0,marginTop:2 }}><path d="M2 3h12M2 7h8M2 11h10"/></svg>
+                <div>
+                  <span style={{ fontSize:10, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.08em", display:"block", marginBottom:5 }}>Opening hook</span>
+                  <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.65, fontStyle:"italic", margin:0 }}>&ldquo;{result.openingHook}&rdquo;</p>
+                </div>
+              </div>
+            )}
 
             {/* ── Letter paper document ── */}
             <div style={{ background:"var(--z-raise)", borderRadius:10, boxShadow:"0 8px 40px rgba(0,0,0,0.4)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
