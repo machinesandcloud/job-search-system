@@ -1,12 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { CoachAdminLogoutButton } from "@/components/coach-admin-forms";
 import { CoachAdminShellNav } from "@/components/coach-admin-shell-nav";
 import {
+  CoachAdminPill,
   coachAdminGhostButtonClass,
   coachAdminTextPrimaryClass,
   coachAdminTextSoftClass,
@@ -14,88 +13,78 @@ import {
 } from "@/components/coach-admin-ui";
 
 const LIGHT_THEME: CSSProperties = {
-  "--ca-page-bg": "#F8FAFC",
-  "--ca-shell-start": "#FFFFFF",
-  "--ca-shell-end": "#FFFFFF",
-  "--ca-panel-start": "#FFFFFF",
-  "--ca-panel-end": "#FFFFFF",
-  "--ca-panel-glow-1": "rgba(59,130,246,0.06)",
-  "--ca-panel-glow-2": "rgba(37,99,235,0.04)",
-  "--ca-surface-soft": "#FFFFFF",
-  "--ca-surface-hover": "#F8FAFC",
-  "--ca-surface-strong": "#F1F5F9",
-  "--ca-chip-bg": "#F1F5F9",
-  "--ca-chip-bg-hover": "#E2E8F0",
-  "--ca-input-bg": "#FFFFFF",
-  "--ca-input-focus-bg": "#FFFFFF",
-  "--ca-border": "#E2E8F0",
-  "--ca-border-strong": "rgba(37,99,235,0.24)",
+  "--ca-bg": "#F8FAFC",
+  "--ca-card": "#FFFFFF",
+  "--ca-raise": "#F1F5F9",
   "--ca-text": "#0F172A",
-  "--ca-text-muted": "#64748B",
-  "--ca-text-soft": "#94A3B8",
-  "--ca-track-bg": "#E2E8F0",
-  "--ca-grid-opacity": "0",
-  "--ca-ambient-1": "rgba(59,130,246,0.06)",
-  "--ca-ambient-2": "rgba(37,99,235,0.03)",
-  "--ca-ambient-3": "rgba(96,165,250,0.04)",
-  "--ca-panel-shadow": "0 10px 30px rgba(15,23,42,0.04)",
-  "--ca-shell-shadow": "0 14px 38px rgba(15,23,42,0.05)",
-  "--ca-glass-glow": "rgba(59,130,246,0.04)",
+  "--ca-text2": "#64748B",
+  "--ca-text3": "#94A3B8",
+  "--ca-bd": "#E2E8F0",
+  "--ca-bd2": "#F1F5F9",
+  "--ca-sh": "rgba(15,23,42,0.06)",
   "--ca-button-bg": "#F1F5F9",
   "--ca-button-bg-hover": "#E2E8F0",
   "--ca-button-border": "#E2E8F0",
   "--ca-button-border-strong": "rgba(37,99,235,0.22)",
   "--ca-button-text": "#0F172A",
   "--ca-button-text-hover": "#2563EB",
+  "--ca-surface-soft": "#FFFFFF",
+  "--ca-surface-hover": "#F8FAFC",
+  "--ca-surface-strong": "#F1F5F9",
+  "--ca-chip-bg": "#F1F5F9",
+  "--ca-input-bg": "#FFFFFF",
+  "--ca-input-focus-bg": "#FFFFFF",
+  "--ca-border": "#E2E8F0",
+  "--ca-border-strong": "rgba(37,99,235,0.22)",
+  "--ca-track-bg": "#E2E8F0",
+  "--ca-panel-start": "#FFFFFF",
+  "--ca-panel-glow-1": "rgba(37,99,235,0.06)",
+  "--ca-panel-glow-2": "rgba(37,99,235,0.04)",
+  "--ca-panel-shadow": "0 10px 30px rgba(15,23,42,0.04)",
   "--ca-button-shadow": "none",
 } as CSSProperties;
 
 const DARK_THEME: CSSProperties = {
-  "--ca-page-bg": "#04060D",
-  "--ca-shell-start": "#080E1C",
-  "--ca-shell-end": "#080E1C",
-  "--ca-panel-start": "#080E1C",
-  "--ca-panel-end": "#080E1C",
-  "--ca-panel-glow-1": "rgba(37,99,235,0.08)",
-  "--ca-panel-glow-2": "rgba(37,99,235,0.05)",
+  "--ca-bg": "#04060D",
+  "--ca-card": "#080E1C",
+  "--ca-raise": "#0E1828",
+  "--ca-text": "rgba(255,255,255,0.94)",
+  "--ca-text2": "rgba(255,255,255,0.50)",
+  "--ca-text3": "rgba(255,255,255,0.28)",
+  "--ca-bd": "rgba(255,255,255,0.09)",
+  "--ca-bd2": "rgba(255,255,255,0.04)",
+  "--ca-sh": "rgba(0,0,0,0.65)",
+  "--ca-button-bg": "#0E1828",
+  "--ca-button-bg-hover": "rgba(255,255,255,0.05)",
+  "--ca-button-border": "rgba(255,255,255,0.09)",
+  "--ca-button-border-strong": "rgba(37,99,235,0.3)",
+  "--ca-button-text": "rgba(255,255,255,0.94)",
+  "--ca-button-text-hover": "#FFFFFF",
   "--ca-surface-soft": "#080E1C",
-  "--ca-surface-hover": "rgba(37,99,235,0.14)",
+  "--ca-surface-hover": "rgba(255,255,255,0.05)",
   "--ca-surface-strong": "#0E1828",
   "--ca-chip-bg": "#0E1828",
-  "--ca-chip-bg-hover": "rgba(37,99,235,0.14)",
   "--ca-input-bg": "#0E1828",
   "--ca-input-focus-bg": "#0E1828",
   "--ca-border": "rgba(255,255,255,0.09)",
-  "--ca-border-strong": "rgba(37,99,235,0.30)",
-  "--ca-text": "rgba(255,255,255,0.94)",
-  "--ca-text-muted": "rgba(255,255,255,0.50)",
-  "--ca-text-soft": "rgba(255,255,255,0.28)",
+  "--ca-border-strong": "rgba(37,99,235,0.28)",
   "--ca-track-bg": "rgba(255,255,255,0.08)",
-  "--ca-grid-opacity": "0.14",
-  "--ca-ambient-1": "rgba(37,99,235,0.08)",
-  "--ca-ambient-2": "rgba(37,99,235,0.05)",
-  "--ca-ambient-3": "rgba(37,99,235,0.03)",
+  "--ca-panel-start": "#080E1C",
+  "--ca-panel-glow-1": "rgba(37,99,235,0.08)",
+  "--ca-panel-glow-2": "rgba(37,99,235,0.05)",
   "--ca-panel-shadow": "0 14px 38px rgba(0,0,0,0.24)",
-  "--ca-shell-shadow": "0 18px 46px rgba(0,0,0,0.26)",
-  "--ca-glass-glow": "rgba(37,99,235,0.04)",
-  "--ca-button-bg": "#0E1828",
-  "--ca-button-bg-hover": "rgba(37,99,235,0.14)",
-  "--ca-button-border": "rgba(255,255,255,0.10)",
-  "--ca-button-border-strong": "rgba(37,99,235,0.28)",
-  "--ca-button-text": "rgba(255,255,255,0.94)",
-  "--ca-button-text-hover": "#FFFFFF",
   "--ca-button-shadow": "none",
 } as CSSProperties;
 
 function ThemeIcon({ isDark }: { isDark: boolean }) {
   return isDark ? (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
-      <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 1 0 9.8 9.8Z" strokeLinecap="round" strokeLinejoin="round" />
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
+      <circle cx="10" cy="10" r="4" />
+      <path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.93 4.93l1.41 1.41M13.66 13.66l1.41 1.41M4.93 15.07l1.41-1.41M13.66 6.34l1.41-1.41" strokeLinecap="round" />
     </svg>
   ) : (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
-      <circle cx="12" cy="12" r="4" />
-      <path d="M12 2v2.2M12 19.8V22M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2 12h2.2M19.8 12H22M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6" strokeLinecap="round" />
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
+      <path d="M17.5 12.5A7.5 7.5 0 1 1 7.5 2.5a5.83 5.83 0 0 0 10 10z" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -105,14 +94,19 @@ type SessionShape = {
   role: string;
 } | null;
 
+type Props = {
+  session: SessionShape;
+  sectionTitle?: string;
+  sectionPill?: string;
+  children: ReactNode;
+};
+
 export function CoachAdminThemeShell({
   session,
+  sectionTitle = "Coach Admin",
+  sectionPill = "Billing & Support",
   children,
-}: {
-  session: SessionShape;
-  children: ReactNode;
-}) {
-  const pathname = usePathname();
+}: Props) {
   const [isDark, setIsDark] = useState(true);
 
   useEffect(() => {
@@ -136,58 +130,55 @@ export function CoachAdminThemeShell({
   }
 
   const themeVars = (isDark ? DARK_THEME : LIGHT_THEME) as CSSProperties;
-  const sectionLabel = pathname.startsWith("/coach-admin/tickets")
-    ? "Support Queue"
-    : pathname.startsWith("/coach-admin/accounts/")
-      ? "Account View"
-      : "Overview";
 
   return (
-    <main
-      style={themeVars}
-      className={cx(
-        "relative min-h-screen overflow-hidden bg-[var(--ca-page-bg)]",
-        isDark ? "coach-admin-dark" : "coach-admin-light"
-      )}
+    <div
+      style={{
+        display: "flex",
+        minHeight: "100vh",
+        overflow: "hidden",
+        background: "var(--ca-bg)",
+        fontFamily: "var(--font-geist-sans,Inter,system-ui,sans-serif)",
+        WebkitFontSmoothing: "antialiased",
+        MozOsxFontSmoothing: "grayscale",
+        backgroundImage: isDark ? "radial-gradient(ellipse 80% 60% at 50% -20%, rgba(37,99,235,0.07) 0%, transparent 100%)" : "none",
+        ...themeVars,
+      }}
+      className={isDark ? "coach-admin-dark" : "coach-admin-light"}
     >
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute inset-0 grid-pattern" style={{ opacity: "var(--ca-grid-opacity)" }} />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_72%_52%_at_50%_-12%,var(--ca-ambient-1),transparent_72%),radial-gradient(circle_at_bottom_right,var(--ca-ambient-2),transparent_28%)]" />
-      </div>
+      <style>{`
+        * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
+        .coach-admin-nav-btn { position: relative; overflow: hidden; }
+        .coach-admin-nav-btn:hover { background: rgba(37,99,235,0.06) !important; color: var(--ca-text) !important; }
+        .coach-admin-dark .coach-admin-nav-btn:hover { background: rgba(255,255,255,0.05) !important; color: rgba(255,255,255,0.85) !important; }
+        .coach-admin-dark .coach-admin-nav-btn.active { background: transparent !important; }
+        .coach-admin-btn-scale { transition: transform 0.15s ease, box-shadow 0.15s ease !important; }
+        .coach-admin-btn-scale:hover { transform: scale(1.02) !important; }
+        .coach-admin-btn-scale:active { transform: scale(0.98) !important; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--ca-bd); border-radius: 99px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--ca-text3); }
+      `}</style>
 
-      <div className="relative flex min-h-screen">
-        {session ? <CoachAdminShellNav email={session.email} role={session.role} /> : null}
+      {session ? <CoachAdminShellNav email={session.email} role={session.role} isDark={isDark} onToggleTheme={toggleTheme} /> : null}
 
-        <div className="min-w-0 flex-1">
-          <header className="flex min-h-[62px] items-center justify-between border-b border-[color:var(--ca-border)] bg-[var(--ca-surface-soft)] px-6 md:px-8">
-            <div className="min-w-0">
-              <h1 className={cx("text-[1.05rem] font-semibold tracking-[-0.03em]", coachAdminTextPrimaryClass)}>Coach Admin</h1>
-              <p className={cx("mt-0.5 text-xs uppercase tracking-[0.16em]", coachAdminTextSoftClass)}>{sectionLabel}</p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <Link href="/coach-admin" className={coachAdminGhostButtonClass}>
-                Overview
-              </Link>
-              <Link href="/coach-admin/tickets" className={coachAdminGhostButtonClass}>
-                Tickets
-              </Link>
-              <button
-                type="button"
-                onClick={toggleTheme}
-                className={cx(coachAdminGhostButtonClass, "inline-flex items-center gap-2")}
-                title={isDark ? "Switch to light mode" : "Switch to dark mode"}
-              >
-                <ThemeIcon isDark={isDark} />
-                <span>{isDark ? "Light" : "Dark"}</span>
-              </button>
-              <CoachAdminLogoutButton />
-            </div>
-          </header>
-
-          <div className="p-6 md:p-8">{children}</div>
+      <main style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+        <div style={{ flexShrink: 0, height: 54, background: "var(--ca-card)", borderBottom: "1px solid var(--ca-bd)", display: "flex", alignItems: "center", padding: "0 26px", gap: 12, position: "relative" }}>
+          <div style={{ position: "absolute", bottom: 0, left: 0, height: 2, width: "100%", background: "linear-gradient(90deg, rgba(37,99,235,0.7) 0%, rgba(37,99,235,0.18) 40%, transparent 100%)", pointerEvents: "none" }} />
+          <h2 style={{ fontSize: 15, fontWeight: 700, color: "var(--ca-text)", letterSpacing: "-0.02em", margin: 0 }}>
+            {sectionTitle}
+          </h2>
+          <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
+            <CoachAdminPill tone="brand">{sectionPill}</CoachAdminPill>
+            <CoachAdminLogoutButton className={cx(coachAdminGhostButtonClass, "rounded-[8px] border-[color:var(--ca-bd)] bg-transparent px-3 py-1.5 text-xs font-semibold")} />
+          </div>
         </div>
-      </div>
-    </main>
+
+        <div style={{ flex: 1, overflow: "auto", padding: "18px 22px 22px" }}>
+          {children}
+        </div>
+      </main>
+    </div>
   );
 }

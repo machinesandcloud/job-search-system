@@ -244,7 +244,7 @@ export default async function CoachAdminPage() {
         <CoachAdminMetricCard label="Tracked users" value={trackedUsers} note="Users with recorded tokenized AI activity." tone="slate" />
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+      <section id="accounts" className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <CoachAdminPanel
           eyebrow="Accounts"
           title="Customer accounts"
@@ -347,7 +347,7 @@ export default async function CoachAdminPage() {
         </div>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+      <section id="ai-usage" className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
         <CoachAdminPanel
           eyebrow="AI utilization"
           title="Who is consuming model spend"
