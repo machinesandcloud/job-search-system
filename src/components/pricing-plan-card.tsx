@@ -7,11 +7,9 @@ function planTone(planId: PricingPlan["id"]) {
   if (planId === "growth") {
     return {
       badge: "bg-cyan-50 text-cyan-700",
-      accent: "var(--cyan)",
       featuredBorder: "var(--brand)",
       panelSurface: "#F6FBFE",
       swooshPrimary: "rgba(6,182,212,0.28)",
-      swooshSecondary: "rgba(67,97,238,0.16)",
       bullet: "text-cyan-600",
       buttonClass: "shadow-[var(--shadow-brand)]",
       buttonStyle: {
@@ -24,11 +22,9 @@ function planTone(planId: PricingPlan["id"]) {
   if (planId === "executive") {
     return {
       badge: "bg-amber-50 text-amber-700",
-      accent: "var(--gold)",
       featuredBorder: "var(--gold)",
       panelSurface: "#FFFBF5",
       swooshPrimary: "rgba(245,158,11,0.26)",
-      swooshSecondary: "rgba(245,158,11,0.14)",
       bullet: "text-amber-500",
       buttonClass: "shadow-[var(--shadow)]",
       buttonStyle: {
@@ -40,11 +36,9 @@ function planTone(planId: PricingPlan["id"]) {
   }
   return {
     badge: "bg-[var(--brand-light)] text-[var(--brand)]",
-    accent: "var(--brand)",
     featuredBorder: "var(--brand)",
     panelSurface: "#F7F9FF",
     swooshPrimary: "rgba(67,97,238,0.26)",
-    swooshSecondary: "rgba(67,97,238,0.14)",
     bullet: "text-[var(--brand)]",
     buttonClass: "shadow-[var(--shadow)]",
     buttonStyle: {
@@ -143,29 +137,26 @@ export function PricingPlanCard({
             className="relative overflow-hidden rounded-2xl border border-[var(--border)] px-5 py-4"
             style={{ background: tone.panelSurface }}
           >
-            <svg
-              aria-hidden
-              viewBox="0 0 180 96"
-              className="pointer-events-none absolute -right-4 -top-2 h-[88px] w-[156px]"
-              fill="none"
-            >
-              <path
-                d="M10 54C34 20 88 14 130 30c14 6 25 15 40 13"
-                stroke={tone.swooshPrimary}
-                strokeWidth="2.4"
-                strokeLinecap="round"
-              />
-              <path
-                d="M32 80c20-18 52-27 93-24 16 1 30 7 44 1"
-                stroke={tone.swooshSecondary}
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              />
-            </svg>
             <p className="relative text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Included</p>
-            <p className="relative mt-2 max-w-[15rem] text-[15px] font-semibold leading-6 tracking-[-0.02em] text-[var(--ink-2)]">
-              {featureIntro(plan)}
-            </p>
+            <div className="relative mt-2 inline-block max-w-[15rem] pb-4">
+              <p className="relative text-[15px] font-semibold leading-6 tracking-[-0.02em] text-[var(--ink-2)]">
+                {featureIntro(plan)}
+              </p>
+              <svg
+                aria-hidden
+                viewBox="0 0 220 24"
+                className="pointer-events-none absolute -bottom-0.5 left-0 h-4 w-full"
+                fill="none"
+                preserveAspectRatio="none"
+              >
+                <path
+                  d="M6 13C34 20 58 18 84 11C108 4 138 5 166 11C184 15 198 16 214 10"
+                  stroke={tone.swooshPrimary}
+                  strokeWidth="5"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
           </div>
 
           <ul className="mt-5 space-y-3">
