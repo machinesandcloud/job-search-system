@@ -5,6 +5,15 @@ import {
   SupportTicketCreateForm,
 } from "@/components/coach-admin-forms";
 import {
+  CoachAdminEmptyState,
+  CoachAdminLinkButton,
+  CoachAdminMetaItem,
+  CoachAdminMetricCard,
+  CoachAdminPanel,
+  CoachAdminPill,
+  CoachAdminProgress,
+} from "@/components/coach-admin-ui";
+import {
   getCurrentPeriodTokenUsage,
   getPlanMonthlyAmountCents,
 } from "@/lib/billing";
@@ -21,27 +30,19 @@ function formatDate(value?: Date | null) {
   }).format(new Date(value));
 }
 
-function statusBadge(value: string, tone?: "payment" | "success") {
-  const isGood = tone === "success" || ["active", "trialing", "resolved"].includes(value);
-  return (
-    <span
-      className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${
-        isGood ? "bg-emerald-500/15 text-emerald-200" : "bg-amber-500/15 text-amber-200"
-      }`}
-    >
-      {value.replace(/_/g, " ")}
-    </span>
-  );
+function statusTone(value?: string | null) {
+  const normalized = `${value || ""}`.toLowerCase();
+  if (normalized === "active" || normalized === "trialing" || normalized === "resolved") return "emerald" as const;
+  if (normalized === "past_due" || normalized === "unpaid" || normalized === "in_progress") return "gold" as const;
+  if (normalized === "canceled" || normalized === "closed") return "rose" as const;
+  return "slate" as const;
 }
 
-function statCard(label: string, value: string | number, note: string) {
-  return (
-    <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-5 shadow-xl">
-      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{label}</p>
-      <p className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-white">{value}</p>
-      <p className="mt-2 text-sm text-slate-400">{note}</p>
-    </div>
-  );
+function priorityTone(priority?: string | null) {
+  const value = `${priority || ""}`.toLowerCase();
+  if (value === "urgent" || value === "high") return "rose" as const;
+  if (value === "medium") return "gold" as const;
+  return "cyan" as const;
 }
 
 type AccountPageProps = {
@@ -82,7 +83,7 @@ export default async function CoachAdminAccountPage({ params }: AccountPageProps
       where: { accountId },
       include: { user: true },
       orderBy: { createdAt: "desc" },
-      take: 20,
+      take: 12,
     }),
     prisma.adminNote.findMany({
       where: { accountId, supportTicketId: null },
@@ -107,15 +108,16 @@ export default async function CoachAdminAccountPage({ params }: AccountPageProps
     }),
   ]);
 
-  const featureUsage: Array<[string, number]> = (Array.from(
-    tokenEntries.reduce((map: Map<string, number>, entry: FeatureTokenEntry) => {
-      const key = entry.featureName || "unlabeled";
-      map.set(key, (map.get(key) || 0) + entry.totalTokens);
-      return map;
-    }, new Map<string, number>())
-  ) as Array<[string, number]>)
+  const featureUsageMap = tokenEntries.reduce((map: Map<string, number>, entry: FeatureTokenEntry) => {
+    const key = entry.featureName || "unlabeled";
+    map.set(key, (map.get(key) || 0) + entry.totalTokens);
+    return map;
+  }, new Map<string, number>());
+
+  const featureUsage = [...featureUsageMap.entries()] as Array<[string, number]>;
+  featureUsage
     .sort((a: [string, number], b: [string, number]) => b[1] - a[1])
-    .slice(0, 8);
+    .splice(8);
 
   const ticketCounts = tickets.reduce(
     (acc: Record<string, number>, ticket: (typeof tickets)[number]) => {
@@ -133,236 +135,181 @@ export default async function CoachAdminAccountPage({ params }: AccountPageProps
   const subscription = account.subscription;
   const planAmount = subscription ? getPlanMonthlyAmountCents(subscription.planName, subscription.stripePriceId) : 0;
   const usagePercent = tokenUsage?.limit ? Math.min(100, Math.round((tokenUsage.used / tokenUsage.limit) * 100)) : 0;
+  const dominantFeature = featureUsage[0]?.[0] || "No usage yet";
 
   return (
-    <div className="grid gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <Link href="/coach-admin" className="text-sm text-cyan-300 transition hover:text-cyan-200">
-            ← Back to overview
-          </Link>
-          <div className="mt-3 flex flex-wrap items-center gap-3">
-            <h1 className="text-3xl font-semibold tracking-[-0.04em] text-white">{account.name}</h1>
-            {statusBadge(subscription?.status || account.status, subscription?.paymentIssue ? "payment" : "success")}
+    <div className="space-y-6">
+      <CoachAdminPanel
+        eyebrow="Account cockpit"
+        title={account.name}
+        description={`Owner ${account.ownerUser.email} · Created ${formatDate(account.createdAt)} · Account ID ${account.id.slice(0, 8)}`}
+        action={<CoachAdminLinkButton href="/coach-admin" tone="slate">← Back to overview</CoachAdminLinkButton>}
+      >
+        <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="space-y-4 rounded-[28px] border border-white/10 bg-black/20 p-5">
+            <div className="flex flex-wrap items-center gap-3">
+              <CoachAdminPill tone={statusTone(subscription?.status || account.status)}>{subscription?.status || account.status}</CoachAdminPill>
+              {subscription?.cancelAtPeriodEnd ? <CoachAdminPill tone="gold">Cancels at period end</CoachAdminPill> : null}
+              <CoachAdminPill tone={account.paymentIssue ? "gold" : "emerald"}>
+                {account.paymentIssue ? "Payment issue flagged" : "Healthy payment state"}
+              </CoachAdminPill>
+            </div>
+            <div className="grid gap-3 md:grid-cols-3">
+              <CoachAdminMetaItem label="Plan" value={subscription?.planName || subscription?.stripePriceId || "No subscription"} />
+              <CoachAdminMetaItem label="Renewal" value={formatDate(subscription?.currentPeriodEnd)} />
+              <CoachAdminMetaItem label="Members" value={`${account.users.length} seat${account.users.length === 1 ? "" : "s"}`} />
+            </div>
           </div>
-          <p className="mt-2 text-sm text-slate-400">
-            Owner: {account.ownerUser.email} · Created {formatDate(account.createdAt)} · Account ID {account.id.slice(0, 8)}
-          </p>
-        </div>
-        <div className="text-right text-sm text-slate-400">
-          <p>Plan</p>
-          <p className="mt-1 text-base font-semibold text-slate-100">
-            {subscription?.planName || subscription?.stripePriceId || "No subscription"}
-          </p>
-        </div>
-      </div>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {statCard("Subscription", subscription?.status || account.status, subscription ? "Stripe is the billing source of truth" : "Checkout not completed yet")}
-        {statCard("Renewal", formatDate(subscription?.currentPeriodEnd), subscription?.cancelAtPeriodEnd ? "Will cancel at period end" : "Current renewal boundary")}
-        {statCard("MRR estimate", planAmount ? formatCurrency(planAmount / 100) : "$0", "Derived from stored plan / price mapping")}
-        {statCard(
-          "Token usage",
-          tokenUsage ? `${tokenUsage.used.toLocaleString()} / ${tokenUsage.limit.toLocaleString()}` : "No usage yet",
-          tokenUsage ? `${tokenUsage.remaining.toLocaleString()} tokens remaining this period` : "Usage starts tracking after paid feature calls"
-        )}
-      </section>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <CoachAdminMetricCard label="MRR estimate" value={planAmount ? formatCurrency(planAmount / 100) : "$0"} note="Mapped from stored plan and price ID." tone="brand" />
+            <CoachAdminMetricCard label="Token usage" value={tokenUsage ? `${usagePercent}%` : "0%"} note={tokenUsage ? `${tokenUsage.used.toLocaleString()} used this period` : "No tracked usage yet."} tone="cyan" />
+            <CoachAdminMetricCard label="Open tickets" value={(ticketCounts.open || 0) + (ticketCounts.in_progress || 0)} note="Support load currently attached to this account." tone="gold" />
+            <CoachAdminMetricCard label="Top feature" value={dominantFeature} note="Highest token-consuming feature this period." tone="slate" />
+          </div>
+        </div>
+      </CoachAdminPanel>
 
       <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         <div className="grid gap-6">
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6 shadow-xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-400/80">Members</p>
-            <div className="mt-4 grid gap-3">
+          <CoachAdminPanel eyebrow="People" title="Members and ownership" description="Who sits inside the account and how the seat map is organized.">
+            <div className="grid gap-3">
               {account.users.map((user: (typeof account.users)[number]) => (
-                <div key={user.id} className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4">
+                <div key={user.id} className="rounded-[24px] border border-white/10 bg-white/[0.04] px-4 py-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <p className="font-medium text-white">{user.email}</p>
-                      <p className="mt-1 text-xs uppercase tracking-[0.16em] text-slate-500">
-                        {user.role} · {user.planTier}
-                      </p>
+                      <p className="mt-1 text-xs uppercase tracking-[0.16em] text-white/38">{user.role} · {user.planTier}</p>
                     </div>
-                    {user.id === account.ownerUserId ? (
-                      <span className="rounded-full bg-cyan-500/15 px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-cyan-200">
-                        Owner
-                      </span>
-                    ) : null}
+                    {user.id === account.ownerUserId ? <CoachAdminPill tone="cyan">Owner</CoachAdminPill> : null}
                   </div>
                 </div>
               ))}
             </div>
-          </div>
+          </CoachAdminPanel>
 
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6 shadow-xl">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-400/80">Support tickets</p>
-                <h2 className="mt-1 text-xl font-semibold tracking-[-0.04em] text-white">Account support view</h2>
-              </div>
-              <div className="flex flex-wrap gap-2 text-xs uppercase tracking-[0.16em] text-slate-500">
-                <span>{ticketCounts.open || 0} open</span>
-                <span>{ticketCounts.in_progress || 0} in progress</span>
-                <span>{ticketCounts.resolved || 0} resolved</span>
-              </div>
-            </div>
-            <div className="mt-5 grid gap-3">
+          <CoachAdminPanel eyebrow="Support" title="Account support view" description="Every ticket tied to this account, with priority and current assignment.">
+            <div className="grid gap-3">
               {tickets.length ? (
                 tickets.map((ticket: (typeof tickets)[number]) => (
                   <Link
                     key={ticket.id}
                     href={`/coach-admin/tickets/${ticket.id}`}
-                    className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4 transition hover:border-slate-700 hover:bg-slate-950"
+                    className="rounded-[24px] border border-white/10 bg-white/[0.04] px-4 py-4 transition hover:border-white/16 hover:bg-white/[0.07]"
                   >
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <p className="font-medium text-white">{ticket.subject}</p>
-                      {statusBadge(ticket.status)}
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="font-medium text-white">{ticket.subject}</p>
+                          <CoachAdminPill tone={statusTone(ticket.status)}>{ticket.status.replace(/_/g, " ")}</CoachAdminPill>
+                        </div>
+                        <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-400">{ticket.description}</p>
+                      </div>
+                      <CoachAdminPill tone={priorityTone(ticket.priority)}>{ticket.priority}</CoachAdminPill>
                     </div>
-                    <p className="mt-2 text-sm text-slate-400">{ticket.description.slice(0, 180)}</p>
-                    <p className="mt-2 text-xs text-slate-500">
-                      Reporter: {ticket.reporter?.email || "—"} · Assigned: {ticket.assignedTo?.email || "unassigned"} · Updated {formatDate(ticket.updatedAt)}
-                    </p>
+                    <div className="mt-3 text-xs uppercase tracking-[0.16em] text-white/38">
+                      Reporter {ticket.reporter?.email || "—"} · Assigned {ticket.assignedTo?.email || "unassigned"} · Updated {formatDate(ticket.updatedAt)}
+                    </div>
                   </Link>
                 ))
               ) : (
-                <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-500">
-                  No support tickets yet for this account.
-                </div>
+                <CoachAdminEmptyState title="No support tickets yet" body="Once support work is created for this account, it will appear here." />
               )}
             </div>
-          </div>
+          </CoachAdminPanel>
         </div>
 
         <div className="grid gap-6">
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6 shadow-xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-400/80">Subscription health</p>
-            <div className="mt-5 space-y-4 text-sm text-slate-300">
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-slate-500">Payment issue</span>
-                <span className={account.paymentIssue ? "text-amber-200" : "text-emerald-200"}>
-                  {account.paymentIssue ? "Flagged" : "Healthy"}
-                </span>
+          <CoachAdminPanel eyebrow="Subscription pulse" title="Billing and usage" description="Commercial status, renewal edge, and AI consumption for the current billing period.">
+            <div className="grid gap-4">
+              <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-4">
+                <CoachAdminProgress
+                  label="Current-period token consumption"
+                  value={tokenUsage?.used || 0}
+                  max={tokenUsage?.limit || 1}
+                  tone="brand"
+                  valueLabel={tokenUsage ? `${tokenUsage.used.toLocaleString()} / ${tokenUsage.limit.toLocaleString()}` : "No usage yet"}
+                />
+                <p className="mt-3 text-sm text-slate-400">
+                  {tokenUsage
+                    ? `${tokenUsage.remaining.toLocaleString()} tokens remain in the current period.`
+                    : "Usage will start tracking as soon as paid AI routes are called."}
+                </p>
               </div>
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-slate-500">Current period start</span>
-                <span>{formatDate(subscription?.currentPeriodStart)}</span>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-slate-500">Current period end</span>
-                <span>{formatDate(subscription?.currentPeriodEnd)}</span>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-slate-500">Trial end</span>
-                <span>{formatDate(subscription?.trialEnd)}</span>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-slate-500">Cancel at period end</span>
-                <span>{subscription?.cancelAtPeriodEnd ? "Yes" : "No"}</span>
-              </div>
-            </div>
 
-            <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-950/80 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-medium text-white">Current-period token usage</p>
-                <p className="text-xs uppercase tracking-[0.16em] text-slate-500">{usagePercent}% used</p>
+              <div className="grid gap-3 md:grid-cols-2">
+                <CoachAdminMetaItem label="Payment issue" value={account.paymentIssue ? "Flagged" : "Healthy"} />
+                <CoachAdminMetaItem label="Trial end" value={formatDate(subscription?.trialEnd)} />
+                <CoachAdminMetaItem label="Current period start" value={formatDate(subscription?.currentPeriodStart)} />
+                <CoachAdminMetaItem label="Current period end" value={formatDate(subscription?.currentPeriodEnd)} />
               </div>
-              <div className="mt-3 h-3 overflow-hidden rounded-full bg-slate-800">
-                <div className="h-full rounded-full bg-cyan-400" style={{ width: `${usagePercent}%` }} />
-              </div>
-              <p className="mt-3 text-sm text-slate-400">
-                {tokenUsage
-                  ? `${tokenUsage.used.toLocaleString()} used · ${tokenUsage.remaining.toLocaleString()} remaining`
-                  : "No tracked token usage for the current billing period yet."}
-              </p>
+
               {featureUsage.length ? (
-                <div className="mt-4 grid gap-2">
-                  {featureUsage.map(([feature, total]: [string, number]) => (
-                    <div key={feature} className="flex items-center justify-between gap-3 text-sm">
-                      <span className="text-slate-300">{feature}</span>
-                      <span className="text-slate-500">{total.toLocaleString()}</span>
-                    </div>
-                  ))}
+                <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/40">Feature usage split</p>
+                  <div className="mt-4 grid gap-3">
+                    {featureUsage.map(([feature, total]: [string, number]) => (
+                      <CoachAdminProgress key={feature} label={feature} value={total} max={featureUsage[0][1] || 1} tone="cyan" valueLabel={total.toLocaleString()} />
+                    ))}
+                  </div>
                 </div>
               ) : null}
             </div>
-          </div>
+          </CoachAdminPanel>
 
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6 shadow-xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-400/80">Create support ticket</p>
-            <h2 className="mt-1 text-xl font-semibold tracking-[-0.04em] text-white">Open a case for this account</h2>
-            <div className="mt-5">
-              <SupportTicketCreateForm accountId={accountId} reporterOptions={reporterOptions} />
-            </div>
-          </div>
+          <CoachAdminPanel eyebrow="Create support ticket" title="Open a case for this account" description="Start internal support work without leaving the account surface.">
+            <SupportTicketCreateForm accountId={accountId} reporterOptions={reporterOptions} />
+          </CoachAdminPanel>
 
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6 shadow-xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-400/80">Admin notes</p>
-            <div className="mt-5">
-              <CoachAdminNoteForm endpoint={`/api/coach-admin/accounts/${accountId}/notes`} />
-            </div>
+          <CoachAdminPanel eyebrow="Admin notes" title="Internal working memory" description="Operator notes, callouts, and context that should stay inside the team.">
+            <CoachAdminNoteForm endpoint={`/api/coach-admin/accounts/${accountId}/notes`} />
             <div className="mt-5 grid gap-3">
               {adminNotes.length ? (
                 adminNotes.map((note: (typeof adminNotes)[number]) => (
-                  <div key={note.id} className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4">
+                  <div key={note.id} className="rounded-[22px] border border-white/10 bg-white/[0.04] px-4 py-4">
                     <p className="text-sm leading-6 text-slate-200">{note.note}</p>
-                    <p className="mt-2 text-xs text-slate-500">
-                      {note.author.email} · {formatDate(note.createdAt)}
-                    </p>
+                    <p className="mt-2 text-xs uppercase tracking-[0.14em] text-white/38">{note.author.email} · {formatDate(note.createdAt)}</p>
                   </div>
                 ))
               ) : (
-                <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-500">
-                  No internal notes yet.
-                </div>
+                <CoachAdminEmptyState title="No internal notes yet" body="Drop account context here for support, billing, or retention follow-up." />
               )}
             </div>
-          </div>
+          </CoachAdminPanel>
         </div>
       </section>
 
       <section className="grid gap-6 xl:grid-cols-2">
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6 shadow-xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-400/80">Recent events</p>
-          <div className="mt-5 grid gap-3">
+        <CoachAdminPanel eyebrow="Recent events" title="Product and billing activity" description="A tighter event stream for what this account is actually doing.">
+          <div className="grid gap-3">
             {events.length ? (
               events.map((event: (typeof events)[number]) => (
-                <div key={event.id} className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4">
+                <div key={event.id} className="rounded-[24px] border border-white/10 bg-white/[0.04] px-4 py-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <p className="font-medium text-white">{event.eventName}</p>
-                    <p className="text-xs text-slate-500">{formatDate(event.createdAt)}</p>
+                    <p className="text-xs uppercase tracking-[0.16em] text-white/38">{formatDate(event.createdAt)}</p>
                   </div>
-                  <p className="mt-2 text-xs text-slate-500">Actor: {event.user?.email || "system"}</p>
+                  <p className="mt-2 text-xs uppercase tracking-[0.14em] text-white/38">Actor {event.user?.email || "system"}</p>
                   {event.metadataJson ? (
-                    <pre className="mt-3 overflow-x-auto rounded-2xl bg-slate-950 p-3 text-xs text-slate-400">
+                    <pre className="mt-3 overflow-x-auto rounded-[20px] border border-white/8 bg-black/20 p-3 text-xs text-slate-400">
                       {JSON.stringify(event.metadataJson, null, 2)}
                     </pre>
                   ) : null}
                 </div>
               ))
             ) : (
-              <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-500">
-                No recent app events for this account yet.
-              </div>
+              <CoachAdminEmptyState title="No recent app events" body="Important product and billing events will stream in here for this account." />
             )}
           </div>
-        </div>
+        </CoachAdminPanel>
 
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6 shadow-xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-400/80">Billing references</p>
-          <div className="mt-5 space-y-4 text-sm text-slate-300">
-            <div>
-              <p className="text-slate-500">Stripe customer ID</p>
-              <p className="mt-1 break-all font-mono text-xs text-slate-300">{subscription?.stripeCustomerId || "—"}</p>
-            </div>
-            <div>
-              <p className="text-slate-500">Stripe subscription ID</p>
-              <p className="mt-1 break-all font-mono text-xs text-slate-300">{subscription?.stripeSubscriptionId || "—"}</p>
-            </div>
-            <div>
-              <p className="text-slate-500">Stripe price ID</p>
-              <p className="mt-1 break-all font-mono text-xs text-slate-300">{subscription?.stripePriceId || "—"}</p>
-            </div>
+        <CoachAdminPanel eyebrow="Billing references" title="Stripe identifiers" description="Raw references for support, finance, and webhook debugging.">
+          <div className="grid gap-3">
+            <CoachAdminMetaItem label="Stripe customer ID" value={<span className="break-all font-mono text-xs text-slate-300">{subscription?.stripeCustomerId || "—"}</span>} />
+            <CoachAdminMetaItem label="Stripe subscription ID" value={<span className="break-all font-mono text-xs text-slate-300">{subscription?.stripeSubscriptionId || "—"}</span>} />
+            <CoachAdminMetaItem label="Stripe price ID" value={<span className="break-all font-mono text-xs text-slate-300">{subscription?.stripePriceId || "—"}</span>} />
           </div>
-        </div>
+        </CoachAdminPanel>
       </section>
     </div>
   );

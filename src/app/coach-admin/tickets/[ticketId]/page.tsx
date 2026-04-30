@@ -4,6 +4,13 @@ import {
   CoachAdminNoteForm,
   SupportTicketUpdateForm,
 } from "@/components/coach-admin-forms";
+import {
+  CoachAdminEmptyState,
+  CoachAdminLinkButton,
+  CoachAdminMetaItem,
+  CoachAdminPanel,
+  CoachAdminPill,
+} from "@/components/coach-admin-ui";
 import { requireCoachAdminSession } from "@/lib/coach-admin-auth";
 import { prisma } from "@/lib/db";
 
@@ -16,6 +23,21 @@ function formatDateTime(value?: Date | null) {
     hour: "numeric",
     minute: "2-digit",
   }).format(new Date(value));
+}
+
+function statusTone(status?: string | null) {
+  const value = `${status || ""}`.toLowerCase();
+  if (value === "resolved") return "emerald" as const;
+  if (value === "in_progress") return "gold" as const;
+  if (value === "closed") return "slate" as const;
+  return "brand" as const;
+}
+
+function priorityTone(priority?: string | null) {
+  const value = `${priority || ""}`.toLowerCase();
+  if (value === "urgent" || value === "high") return "rose" as const;
+  if (value === "medium") return "gold" as const;
+  return "cyan" as const;
 }
 
 type TicketPageProps = {
@@ -52,105 +74,80 @@ export default async function CoachAdminTicketPage({ params }: TicketPageProps) 
   }));
 
   return (
-    <div className="grid gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <Link href="/coach-admin/tickets" className="text-sm text-cyan-300 transition hover:text-cyan-200">
-            ← Back to tickets
-          </Link>
-          <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-white">{ticket.subject}</h1>
-          <p className="mt-2 text-sm text-slate-400">
-            Account:{" "}
-            <Link href={`/coach-admin/accounts/${ticket.accountId}`} className="text-cyan-300 hover:text-cyan-200">
+    <div className="space-y-6">
+      <CoachAdminPanel
+        eyebrow="Ticket detail"
+        title={ticket.subject}
+        description={
+          <>
+            Account{" "}
+            <Link href={`/coach-admin/accounts/${ticket.accountId}`} className="text-cyan-300 transition hover:text-cyan-200">
               {ticket.account?.name || ticket.accountId.slice(0, 8)}
             </Link>
             {" · "}Created {formatDateTime(ticket.createdAt)}
-          </p>
+          </>
+        }
+        action={<CoachAdminLinkButton href="/coach-admin/tickets" tone="slate">← Back to tickets</CoachAdminLinkButton>}
+      >
+        <div className="flex flex-wrap gap-3">
+          <CoachAdminPill tone={statusTone(ticket.status)}>{ticket.status.replace(/_/g, " ")}</CoachAdminPill>
+          <CoachAdminPill tone={priorityTone(ticket.priority)}>{ticket.priority}</CoachAdminPill>
+          <CoachAdminPill tone="slate">{ticket.category}</CoachAdminPill>
+          <CoachAdminPill tone="cyan">{ticket.assignedTo?.email || "Unassigned"}</CoachAdminPill>
         </div>
-        <div className="rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-slate-200">
-          {ticket.status.replace(/_/g, " ")}
-        </div>
-      </div>
+      </CoachAdminPanel>
 
       <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         <div className="grid gap-6">
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6 shadow-xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-400/80">Ticket details</p>
-            <div className="mt-5 space-y-5">
-              <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-5">
-                <p className="text-sm leading-7 text-slate-200">{ticket.description}</p>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4">
-                  <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Priority</p>
-                  <p className="mt-2 text-lg font-semibold capitalize text-white">{ticket.priority}</p>
-                </div>
-                <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4">
-                  <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Category</p>
-                  <p className="mt-2 text-lg font-semibold capitalize text-white">{ticket.category}</p>
-                </div>
-                <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4">
-                  <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Reporter</p>
-                  <p className="mt-2 text-sm text-slate-300">{ticket.reporter?.email || "—"}</p>
-                </div>
-                <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4">
-                  <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Assigned to</p>
-                  <p className="mt-2 text-sm text-slate-300">{ticket.assignedTo?.email || "unassigned"}</p>
-                </div>
-              </div>
+          <CoachAdminPanel eyebrow="Ticket body" title="What happened" description="The original issue statement and the surrounding support context.">
+            <div className="rounded-[26px] border border-white/10 bg-black/20 p-5">
+              <p className="text-sm leading-8 text-slate-200">{ticket.description}</p>
             </div>
-          </div>
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <CoachAdminMetaItem label="Reporter" value={ticket.reporter?.email || "—"} />
+              <CoachAdminMetaItem label="Assigned to" value={ticket.assignedTo?.email || "unassigned"} />
+              <CoachAdminMetaItem label="Priority" value={ticket.priority} />
+              <CoachAdminMetaItem label="Category" value={ticket.category} />
+            </div>
+          </CoachAdminPanel>
 
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6 shadow-xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-400/80">Internal thread</p>
-            <div className="mt-5">
-              <CoachAdminNoteForm endpoint={`/api/coach-admin/tickets/${ticket.id}/notes`} placeholder="Add an internal note or next-step update..." />
-            </div>
+          <CoachAdminPanel eyebrow="Internal thread" title="Operator notes" description="Use this thread for internal coordination, next steps, and support memory.">
+            <CoachAdminNoteForm endpoint={`/api/coach-admin/tickets/${ticket.id}/notes`} placeholder="Add an internal note or next-step update..." />
             <div className="mt-5 grid gap-3">
-              {ticket.adminNotes.map((note: (typeof ticket.adminNotes)[number]) => (
-                <div key={note.id} className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4">
-                  <p className="text-sm leading-6 text-slate-200">{note.note}</p>
-                  <p className="mt-2 text-xs text-slate-500">
-                    {note.author.email} · {formatDateTime(note.createdAt)}
-                  </p>
-                </div>
-              ))}
+              {ticket.adminNotes.length ? (
+                ticket.adminNotes.map((note: (typeof ticket.adminNotes)[number]) => (
+                  <div key={note.id} className="rounded-[24px] border border-white/10 bg-white/[0.04] px-4 py-4">
+                    <p className="text-sm leading-7 text-slate-200">{note.note}</p>
+                    <p className="mt-2 text-xs uppercase tracking-[0.14em] text-white/38">{note.author.email} · {formatDateTime(note.createdAt)}</p>
+                  </div>
+                ))
+              ) : (
+                <CoachAdminEmptyState title="No internal notes yet" body="Drop internal troubleshooting context here instead of scattering it across chat." />
+              )}
             </div>
-          </div>
+          </CoachAdminPanel>
         </div>
 
         <div className="grid gap-6">
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6 shadow-xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-400/80">Update ticket</p>
-            <div className="mt-5">
-              <SupportTicketUpdateForm
-                ticketId={ticket.id}
-                currentStatus={ticket.status}
-                assigneeOptions={assigneeOptions}
-                currentAssigneeId={ticket.assignedToId}
-              />
-            </div>
-          </div>
+          <CoachAdminPanel eyebrow="Update ticket" title="Assignment and state" description="Adjust the owner and move the ticket through the queue.">
+            <SupportTicketUpdateForm
+              ticketId={ticket.id}
+              currentStatus={ticket.status}
+              assigneeOptions={assigneeOptions}
+              currentAssigneeId={ticket.assignedToId}
+            />
+          </CoachAdminPanel>
 
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6 shadow-xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-400/80">Timing</p>
-            <div className="mt-5 space-y-4 text-sm text-slate-300">
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-slate-500">Created</span>
-                <span>{formatDateTime(ticket.createdAt)}</span>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-slate-500">Updated</span>
-                <span>{formatDateTime(ticket.updatedAt)}</span>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-slate-500">Resolved</span>
-                <span>{formatDateTime(ticket.resolvedAt)}</span>
-              </div>
+          <CoachAdminPanel eyebrow="Timing" title="Lifecycle markers" description="Creation, update, and resolution timestamps for operator traceability.">
+            <div className="grid gap-3">
+              <CoachAdminMetaItem label="Created" value={formatDateTime(ticket.createdAt)} />
+              <CoachAdminMetaItem label="Updated" value={formatDateTime(ticket.updatedAt)} />
+              <CoachAdminMetaItem label="Resolved" value={formatDateTime(ticket.resolvedAt)} />
             </div>
-          </div>
+          </CoachAdminPanel>
         </div>
       </section>
     </div>
   );
 }
+

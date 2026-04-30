@@ -31,29 +31,33 @@ export function CoachAdminLoginForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="mx-auto flex w-full max-w-md flex-col gap-4 rounded-3xl border border-slate-800 bg-slate-950 p-8 text-slate-100 shadow-2xl">
+    <form
+      onSubmit={onSubmit}
+      className="relative mx-auto flex w-full max-w-lg flex-col gap-5 overflow-hidden rounded-[32px] border border-white/12 bg-[linear-gradient(180deg,rgba(14,19,36,0.96),rgba(7,10,20,0.94))] p-8 text-slate-100 shadow-[0_30px_90px_rgba(2,6,23,0.6)] backdrop-blur-2xl"
+    >
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(67,97,238,0.24),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(6,182,212,0.12),transparent_30%)]" />
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-400/80">Coach Admin</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-[-0.04em]">Internal access</h1>
-        <p className="mt-2 text-sm text-slate-400">Allowlisted email plus internal admin password.</p>
+        <p className="relative text-[11px] font-semibold uppercase tracking-[0.24em] text-cyan-300/80">Coach Admin</p>
+        <h1 className="relative mt-3 text-4xl font-semibold tracking-[-0.06em] text-white">Internal access</h1>
+        <p className="relative mt-3 text-sm leading-7 text-slate-400">Allowlisted email plus internal admin password. This session opens the billing and support control layer.</p>
       </div>
-      <label className="flex flex-col gap-2 text-sm">
+      <label className="relative flex flex-col gap-2 text-sm">
         <span className="text-slate-300">Email</span>
-        <input value={email} onChange={(e) => setEmail(e.target.value)} className="rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3 outline-none ring-0 transition focus:border-cyan-500" />
+        <input value={email} onChange={(e) => setEmail(e.target.value)} className="rounded-[20px] border border-white/10 bg-white/[0.05] px-4 py-3.5 text-white outline-none ring-0 transition placeholder:text-slate-500 focus:border-cyan-400/50 focus:bg-white/[0.08]" />
       </label>
-      <label className="flex flex-col gap-2 text-sm">
+      <label className="relative flex flex-col gap-2 text-sm">
         <span className="text-slate-300">Password</span>
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3 outline-none ring-0 transition focus:border-cyan-500" />
+        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="rounded-[20px] border border-white/10 bg-white/[0.05] px-4 py-3.5 text-white outline-none ring-0 transition placeholder:text-slate-500 focus:border-cyan-400/50 focus:bg-white/[0.08]" />
       </label>
-      {error ? <p className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{error}</p> : null}
-      <button type="submit" disabled={loading} className="rounded-2xl bg-cyan-500 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-70">
+      {error ? <p className="relative rounded-[20px] border border-rose-400/25 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">{error}</p> : null}
+      <button type="submit" disabled={loading} className="relative rounded-[20px] bg-[linear-gradient(135deg,#4361EE,#06B6D4)] px-4 py-3.5 text-sm font-semibold text-white shadow-[0_18px_40px_rgba(67,97,238,0.34)] transition hover:-translate-y-0.5 hover:shadow-[0_22px_44px_rgba(67,97,238,0.42)] disabled:cursor-not-allowed disabled:opacity-70">
         {loading ? "Signing in..." : "Open coach admin"}
       </button>
     </form>
   );
 }
 
-export function CoachAdminLogoutButton() {
+export function CoachAdminLogoutButton({ className = "" }: { className?: string }) {
   const [loading, setLoading] = useState(false);
 
   async function onClick() {
@@ -66,7 +70,11 @@ export function CoachAdminLogoutButton() {
   }
 
   return (
-    <button onClick={onClick} disabled={loading} className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2 text-sm font-medium text-slate-200 transition hover:border-slate-600 hover:bg-slate-800 disabled:opacity-70">
+    <button
+      onClick={onClick}
+      disabled={loading}
+      className={`rounded-full border border-white/10 bg-white/[0.06] px-4 py-2.5 text-sm font-medium text-white/82 transition hover:border-white/18 hover:bg-white/[0.1] disabled:opacity-70 ${className}`}
+    >
       {loading ? "Signing out..." : "Sign out"}
     </button>
   );
@@ -111,10 +119,10 @@ export function CoachAdminNoteForm({
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-3">
-      <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder={placeholder} className="min-h-28 rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-500" />
+      <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder={placeholder} className="min-h-28 rounded-[22px] border border-white/10 bg-white/[0.05] px-4 py-3 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-cyan-400/50 focus:bg-white/[0.08]" />
       {error ? <p className="text-sm text-rose-300">{error}</p> : null}
       <div className="flex justify-end">
-        <button type="submit" disabled={loading || !note.trim()} className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-70">
+        <button type="submit" disabled={loading || !note.trim()} className="rounded-full bg-[linear-gradient(135deg,#4361EE,#06B6D4)] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(67,97,238,0.28)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70">
           {loading ? "Saving..." : buttonLabel}
         </button>
       </div>
@@ -161,23 +169,23 @@ export function SupportTicketCreateForm({
 
   return (
     <form onSubmit={onSubmit} className="grid gap-3">
-      <input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Ticket subject" className="rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-500" />
-      <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe the issue or request..." className="min-h-32 rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-500" />
+      <input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Ticket subject" className="rounded-[22px] border border-white/10 bg-white/[0.05] px-4 py-3 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-cyan-400/50 focus:bg-white/[0.08]" />
+      <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe the issue or request..." className="min-h-32 rounded-[22px] border border-white/10 bg-white/[0.05] px-4 py-3 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-cyan-400/50 focus:bg-white/[0.08]" />
       <div className="grid gap-3 md:grid-cols-3">
-        <select value={category} onChange={(e) => setCategory(e.target.value)} className="rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-500">
+        <select value={category} onChange={(e) => setCategory(e.target.value)} className="rounded-[22px] border border-white/10 bg-white/[0.05] px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400/50 focus:bg-white/[0.08]">
           {["billing", "technical", "product", "account", "other"].map((item) => <option key={item} value={item}>{item}</option>)}
         </select>
-        <select value={priority} onChange={(e) => setPriority(e.target.value)} className="rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-500">
+        <select value={priority} onChange={(e) => setPriority(e.target.value)} className="rounded-[22px] border border-white/10 bg-white/[0.05] px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400/50 focus:bg-white/[0.08]">
           {["low", "medium", "high", "urgent"].map((item) => <option key={item} value={item}>{item}</option>)}
         </select>
-        <select value={userId} onChange={(e) => setUserId(e.target.value)} className="rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-500">
+        <select value={userId} onChange={(e) => setUserId(e.target.value)} className="rounded-[22px] border border-white/10 bg-white/[0.05] px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400/50 focus:bg-white/[0.08]">
           <option value="">No reporter</option>
           {reporterOptions.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
         </select>
       </div>
       {error ? <p className="text-sm text-rose-300">{error}</p> : null}
       <div className="flex justify-end">
-        <button type="submit" disabled={loading || !subject.trim() || !description.trim()} className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-70">
+        <button type="submit" disabled={loading || !subject.trim() || !description.trim()} className="rounded-full bg-[linear-gradient(135deg,#4361EE,#06B6D4)] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(67,97,238,0.28)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70">
           {loading ? "Creating..." : "Create ticket"}
         </button>
       </div>
@@ -226,17 +234,17 @@ export function SupportTicketUpdateForm({
   return (
     <form onSubmit={onSubmit} className="grid gap-3">
       <div className="grid gap-3 md:grid-cols-2">
-        <select value={status} onChange={(e) => setStatus(e.target.value)} className="rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-500">
+        <select value={status} onChange={(e) => setStatus(e.target.value)} className="rounded-[22px] border border-white/10 bg-white/[0.05] px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400/50 focus:bg-white/[0.08]">
           {["open", "in_progress", "resolved", "closed"].map((item) => <option key={item} value={item}>{item}</option>)}
         </select>
-        <select value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)} className="rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-500">
+        <select value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)} className="rounded-[22px] border border-white/10 bg-white/[0.05] px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400/50 focus:bg-white/[0.08]">
           <option value="">Unassigned</option>
           {assigneeOptions.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
         </select>
       </div>
       {error ? <p className="text-sm text-rose-300">{error}</p> : null}
       <div className="flex justify-end">
-        <button type="submit" disabled={loading} className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-70">
+        <button type="submit" disabled={loading} className="rounded-full bg-[linear-gradient(135deg,#4361EE,#06B6D4)] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(67,97,238,0.28)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70">
           {loading ? "Saving..." : "Update ticket"}
         </button>
       </div>
