@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { sessionCookieName } from "@/lib/mvp/auth";
-import { validateUser } from "@/lib/mvp/store";
+import { setCurrentUserSessionOnResponse } from "@/lib/mvp/auth";
+import { authenticatePlatformUser } from "@/lib/platform-users";
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
@@ -11,12 +11,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Email and password are required." }, { status: 400 });
   }
 
-  const user = await validateUser(email, password);
+  const user = await authenticatePlatformUser(email, password);
   if (!user) {
     return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
   }
 
   const response = NextResponse.json({ ok: true, user: user.profile });
-  response.cookies.set(sessionCookieName, user.id, { httpOnly: true, sameSite: "lax", path: "/" });
-  return response;
+  return setCurrentUserSessionOnResponse(response, user.userId);
 }

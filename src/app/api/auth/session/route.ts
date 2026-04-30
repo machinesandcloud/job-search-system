@@ -1,26 +1,27 @@
 import { NextResponse } from "next/server";
-import { getCurrentUserId, sessionCookieName } from "@/lib/mvp/auth";
-import { createUser, getUserById } from "@/lib/mvp/store";
+import { getCurrentUserId, setCurrentUserSessionOnResponse } from "@/lib/mvp/auth";
+import { createPlatformUser } from "@/lib/platform-users";
+import { getUserById } from "@/lib/mvp/store";
 
 export async function POST() {
   let userId = await getCurrentUserId();
+  let user = userId ? await getUserById(userId) : null;
 
-  if (!userId) {
-    const user = await createUser({
+  if (!userId || !user) {
+    const created = await createPlatformUser({
       firstName: "Demo",
       lastName: "User",
       email: `demo+${Date.now()}@askiatech.local`,
       password: "demo12345",
     });
-    userId = user.id;
+    userId = created.userId;
+    user = await getUserById(userId);
   }
 
-  const user = await getUserById(userId);
   const response = NextResponse.json({
     token: `app_${crypto.randomUUID()}`,
     user: user?.profile || null,
     expiresInSeconds: 60 * 60 * 24,
   });
-  response.cookies.set(sessionCookieName, userId, { httpOnly: true, sameSite: "lax", path: "/" });
-  return response;
+  return setCurrentUserSessionOnResponse(response, userId);
 }

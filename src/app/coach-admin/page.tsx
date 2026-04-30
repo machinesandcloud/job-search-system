@@ -56,6 +56,15 @@ function getHealthLabel(account: any) {
   return account.subscription.status.replace(/_/g, " ");
 }
 
+function isInternalOperatorAccount(account: any) {
+  return Array.isArray(account?.users) && account.users.some((user: any) => user.role === "admin" || user.role === "support");
+}
+
+function getAccountPlanLabel(account: any) {
+  if (isInternalOperatorAccount(account)) return "Internal operator account";
+  return account.subscription?.planName || account.subscription?.stripePriceId || "No plan yet";
+}
+
 function SetupWarning({ title, body }: { title: string; body: string }) {
   return (
     <CoachAdminPanel eyebrow="Billing setup needed" title={title} description={body}>
@@ -256,7 +265,7 @@ export default async function CoachAdminPage() {
               accounts.slice(0, 8).map((account: any) => {
                 const owner = account.users.find((user: any) => user.id === account.ownerUserId) || account.users[0];
                 const status = account.subscription?.status || account.status;
-                const plan = account.subscription?.planName || account.subscription?.stripePriceId || "No plan yet";
+                const plan = getAccountPlanLabel(account);
                 return (
                   <Link
                     key={account.id}

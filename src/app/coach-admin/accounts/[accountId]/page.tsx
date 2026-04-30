@@ -54,6 +54,22 @@ function priorityTone(priority?: string | null) {
   return "cyan" as const;
 }
 
+function isOperatorRole(role?: string | null) {
+  const normalized = `${role || ""}`.toLowerCase();
+  return normalized === "admin" || normalized === "support";
+}
+
+function getUserMembershipLabel(user: { role?: string | null; planTier?: string | null }) {
+  if (isOperatorRole(user.role)) {
+    return `${user.role} operator`;
+  }
+  return `${user.role} · ${user.planTier}`;
+}
+
+function isInternalOperatorAccount(account: { users?: Array<{ role?: string | null }> }) {
+  return Array.isArray(account.users) && account.users.some((user) => isOperatorRole(user.role));
+}
+
 type AccountPageProps = {
   params: Promise<{ accountId: string }>;
 };
@@ -174,7 +190,7 @@ export default async function CoachAdminAccountPage({ params }: AccountPageProps
               </CoachAdminPill>
             </div>
             <div className="grid gap-3 md:grid-cols-3">
-              <CoachAdminMetaItem label="Plan" value={subscription?.planName || subscription?.stripePriceId || "No subscription"} />
+              <CoachAdminMetaItem label="Plan" value={isInternalOperatorAccount(account) ? "Internal operator account" : (subscription?.planName || subscription?.stripePriceId || "No subscription")} />
               <CoachAdminMetaItem label="Renewal" value={formatDate(subscription?.currentPeriodEnd)} />
               <CoachAdminMetaItem label="Members" value={`${account.users.length} seat${account.users.length === 1 ? "" : "s"}`} />
             </div>
@@ -203,7 +219,7 @@ export default async function CoachAdminAccountPage({ params }: AccountPageProps
                           <p className={cx("font-medium", coachAdminTextPrimaryClass)}>{user.email}</p>
                           {user.id === account.ownerUserId ? <CoachAdminPill tone="cyan">Owner</CoachAdminPill> : null}
                         </div>
-                        <p className={cx("mt-1 text-xs uppercase tracking-[0.16em]", coachAdminTextSoftClass)}>{user.role} · {user.planTier}</p>
+                        <p className={cx("mt-1 text-xs uppercase tracking-[0.16em]", coachAdminTextSoftClass)}>{getUserMembershipLabel(user)}</p>
                       </div>
                       <div className="text-right">
                         <p className={cx("text-sm font-semibold", coachAdminTextPrimaryClass)}>{formatUsdEstimate(usage?.estimatedCostUsd || 0)}</p>

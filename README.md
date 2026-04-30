@@ -46,6 +46,9 @@ STRIPE_SECRET_KEY=sk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 STRIPE_PRICE_ID_MONTHLY=price_...
 STRIPE_TRIAL_DAYS=7
+GOOGLE_CLIENT_ID=replace_me
+GOOGLE_CLIENT_SECRET=replace_me
+GOOGLE_REDIRECT_URI=http://localhost:3000/api/auth/google/callback
 COACH_ADMIN_PASSWORD=replace_me
 COACH_ADMIN_EMAIL_ALLOWLIST=ops@example.com,founder@example.com
 COACH_SUPPORT_EMAIL_ALLOWLIST=support@example.com
@@ -83,6 +86,7 @@ npm run dev
 - AI token usage is tracked per account and per user in `AiTokenUsage`, then compared against the current plan allowance.
 - Internal support/admin tooling lives at `/coach-admin`.
 - Beta shortcut: set `COACH_ADMIN_BETA_AUTO_LOGIN=you@example.com` and `/coach-admin` will auto-create and auto-sign-in that admin account.
+- Google OAuth uses `/api/auth/google/callback`; add that exact URL for each environment in the Google Cloud OAuth client settings.
 
 ## Important Notes
 

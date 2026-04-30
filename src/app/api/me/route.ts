@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUserId } from "@/lib/mvp/auth";
 import { getDashboardForUser, updateProfile } from "@/lib/mvp/store";
+import { syncPlatformProfile } from "@/lib/platform-users";
 
 export async function GET() {
   const userId = await getCurrentUserId();
@@ -36,6 +37,12 @@ export async function POST(request: Request) {
     goals: Array.isArray(body.goals) ? body.goals.map(String) : [],
     painPoints: Array.isArray(body.painPoints) ? body.painPoints.map(String) : [],
   });
+
+  if (profile) {
+    await syncPlatformProfile(userId, profile).catch((error) => {
+      console.error("[api/me] failed to sync profile to database", error);
+    });
+  }
 
   return NextResponse.json({ user: profile });
 }

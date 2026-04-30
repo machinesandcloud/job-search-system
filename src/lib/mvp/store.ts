@@ -206,6 +206,7 @@ export async function getUserByEmail(email: string) {
 }
 
 export async function createUser(input: {
+  id?: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -219,7 +220,7 @@ export async function createUser(input: {
   }
 
   const user: StoredUser = {
-    id: `user_${crypto.randomUUID()}`,
+    id: input.id || `user_${crypto.randomUUID()}`,
     email,
     passwordHash: hashPassword(input.password),
     profile: cloneProfile({
@@ -238,6 +239,82 @@ export async function createUser(input: {
   };
 
   store.users.unshift(user);
+  await writeStore(store);
+  return user;
+}
+
+export async function upsertUserMirror(input: {
+  id: string;
+  email: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  passwordHash?: string | null;
+  profile?: Partial<UserProfile>;
+}) {
+  const store = await readStore();
+  const email = input.email.trim().toLowerCase();
+  const fullName = `${input.firstName || ""} ${input.lastName || ""}`.trim();
+
+  let user = store.users.find((entry) => entry.id === input.id) || null;
+
+  if (!user) {
+    user = store.users.find((entry) => entry.email === email) || null;
+    if (user && user.id !== input.id) {
+      const previousId = user.id;
+      user.id = input.id;
+
+      for (const document of store.documents) {
+        if (document.userId === previousId) document.userId = input.id;
+      }
+      for (const review of store.reviews) {
+        if (review.userId === previousId) review.userId = input.id;
+      }
+      for (const session of store.sessions) {
+        if (session.userId === previousId) session.userId = input.id;
+      }
+      for (const record of store.resumeScores) {
+        if (record.userId === previousId) record.userId = input.id;
+      }
+    }
+  }
+
+  const profilePatch = input.profile || {};
+
+  if (!user) {
+    user = {
+      id: input.id,
+      email,
+      passwordHash: input.passwordHash || "",
+      profile: cloneProfile({
+        name: fullName || email.split("@")[0] || "User",
+        email,
+        currentRole: profilePatch.currentRole || "",
+        targetRole: profilePatch.targetRole || "",
+        experienceLevel: profilePatch.experienceLevel || "",
+        geography: profilePatch.geography || "",
+        goals: profilePatch.goals || [],
+        painPoints: profilePatch.painPoints || [],
+        onboardingComplete: profilePatch.onboardingComplete ?? false,
+      }),
+      usage: cloneUsage(),
+      actionPlan: cloneActionPlan(),
+    };
+    store.users.unshift(user);
+  } else {
+    user.email = email;
+    if (typeof input.passwordHash === "string") {
+      user.passwordHash = input.passwordHash;
+    }
+    user.profile = {
+      ...user.profile,
+      ...profilePatch,
+      name: fullName || profilePatch.name || user.profile.name,
+      email,
+      goals: profilePatch.goals ?? user.profile.goals,
+      painPoints: profilePatch.painPoints ?? user.profile.painPoints,
+    };
+  }
+
   await writeStore(store);
   return user;
 }

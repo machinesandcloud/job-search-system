@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { sessionCookieName } from "@/lib/mvp/auth";
-import { createUser } from "@/lib/mvp/store";
+import { setCurrentUserSessionOnResponse } from "@/lib/mvp/auth";
+import { createPlatformUser } from "@/lib/platform-users";
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
@@ -18,10 +18,9 @@ export async function POST(request: Request) {
   }
 
   try {
-    const user = await createUser({ firstName, lastName, email, password });
+    const user = await createPlatformUser({ firstName, lastName, email, password });
     const response = NextResponse.json({ ok: true, user: user.profile }, { status: 201 });
-    response.cookies.set(sessionCookieName, user.id, { httpOnly: true, sameSite: "lax", path: "/" });
-    return response;
+    return setCurrentUserSessionOnResponse(response, user.userId);
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Unable to create account." }, { status: 409 });
   }

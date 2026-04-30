@@ -1,0 +1,136 @@
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+import {
+  clearGoogleOauthCookie,
+  decodeGoogleOauthCookie,
+  getDefaultGoogleNext,
+  getGoogleAuthConfig,
+  getGoogleOauthCookieName,
+  sanitizeInternalNext,
+} from "@/lib/google-auth";
+import { setCurrentUserSessionOnResponse } from "@/lib/mvp/auth";
+import { authenticateGooglePlatformUser } from "@/lib/platform-users";
+
+export const runtime = "nodejs";
+
+type GoogleTokenResponse = {
+  access_token?: string;
+  error?: string;
+  error_description?: string;
+};
+
+type GoogleUserInfo = {
+  sub?: string;
+  email?: string;
+  email_verified?: boolean;
+  given_name?: string;
+  family_name?: string;
+  name?: string;
+};
+
+function buildAuthErrorRedirect(request: Request, mode: "login" | "signup", message: string) {
+  const destination = new URL(mode === "signup" ? "/signup" : "/login", request.url);
+  destination.searchParams.set("authError", message);
+  return NextResponse.redirect(destination);
+}
+
+export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const cookieStore = await cookies();
+  const flow = decodeGoogleOauthCookie(cookieStore.get(getGoogleOauthCookieName())?.value);
+  const mode = flow?.mode || "login";
+  const errorParam = url.searchParams.get("error");
+  const code = url.searchParams.get("code");
+  const state = url.searchParams.get("state");
+
+  if (!flow || !state || state !== flow.state) {
+    return clearGoogleOauthCookie(
+      buildAuthErrorRedirect(request, mode, "Google sign-in expired. Please try again.")
+    );
+  }
+
+  if (errorParam) {
+    return clearGoogleOauthCookie(
+      buildAuthErrorRedirect(request, mode, errorParam === "access_denied" ? "Google sign-in was cancelled." : "Google sign-in failed.")
+    );
+  }
+
+  if (!code) {
+    return clearGoogleOauthCookie(
+      buildAuthErrorRedirect(request, mode, "Google did not return a login code.")
+    );
+  }
+
+  const config = getGoogleAuthConfig();
+  if (!config) {
+    return clearGoogleOauthCookie(
+      buildAuthErrorRedirect(request, mode, "Google sign-in is not configured.")
+    );
+  }
+
+  let tokenPayload: GoogleTokenResponse;
+  try {
+    const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        code,
+        client_id: config.clientId,
+        client_secret: config.clientSecret,
+        redirect_uri: config.redirectUri,
+        grant_type: "authorization_code",
+      }),
+      cache: "no-store",
+    });
+
+    tokenPayload = await tokenRes.json().catch(() => ({}));
+    if (!tokenRes.ok || !tokenPayload.access_token) {
+      throw new Error(tokenPayload.error_description || tokenPayload.error || "Google token exchange failed.");
+    }
+  } catch (error) {
+    console.error("[google-auth] token exchange failed", error);
+    return clearGoogleOauthCookie(
+      buildAuthErrorRedirect(request, mode, "Google sign-in could not be completed right now.")
+    );
+  }
+
+  let profile: GoogleUserInfo;
+  try {
+    const profileRes = await fetch("https://openidconnect.googleapis.com/v1/userinfo", {
+      headers: { Authorization: `Bearer ${tokenPayload.access_token}` },
+      cache: "no-store",
+    });
+    profile = await profileRes.json().catch(() => ({}));
+    if (!profileRes.ok || !profile.email || !profile.email_verified) {
+      throw new Error("Verified Google email is required.");
+    }
+  } catch (error) {
+    console.error("[google-auth] userinfo fetch failed", error);
+    return clearGoogleOauthCookie(
+      buildAuthErrorRedirect(request, mode, "Your Google account must provide a verified email.")
+    );
+  }
+
+  try {
+    const auth = await authenticateGooglePlatformUser({
+      email: profile.email!,
+      firstName: profile.given_name || null,
+      lastName: profile.family_name || null,
+      name: profile.name || null,
+    });
+
+    const next =
+      auth.isNewUser || !auth.profile.onboardingComplete
+        ? "/onboarding/plan"
+        : sanitizeInternalNext(flow.next, getDefaultGoogleNext(mode));
+
+    const response = NextResponse.redirect(new URL(next, request.url));
+    clearGoogleOauthCookie(response);
+    return setCurrentUserSessionOnResponse(response, auth.userId);
+  } catch (error) {
+    console.error("[google-auth] platform user sync failed", error);
+    return clearGoogleOauthCookie(
+      buildAuthErrorRedirect(request, mode, "We could not finish signing you in with Google.")
+    );
+  }
+}
