@@ -147,7 +147,31 @@ export async function createPlatformUser(input: {
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
-    throw new Error("Account already exists.");
+    let user = existing;
+
+    if (!user.passwordHash) {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          passwordHash: hashPlatformPassword(input.password),
+          firstName: input.firstName.trim() || user.firstName || null,
+          lastName: input.lastName.trim() || user.lastName || null,
+          role: resolvePlatformRole(email, user.role),
+          planTier: user.planTier || "free",
+        },
+      });
+
+      user = await ensureDatabaseUserShape(user);
+      const mirrored = await mirrorDatabaseUser(user);
+      return { userId: user.id, profile: mirrored.profile, source: "db" as const };
+    }
+
+    if (!user.accountId) {
+      user = await ensureDatabaseUserShape(user);
+      await mirrorDatabaseUser(user);
+    }
+
+    throw new Error("Account already exists. Sign in instead.");
   }
 
   let user = await prisma.user.create({
