@@ -34,8 +34,10 @@ const NAV_ITEMS = [
 function getEmailDisplay(email: string) {
   const [localPart, domain] = email.split("@");
   if (!localPart || !domain) return email;
-  if (`${localPart}@${domain}`.length <= 18) return `${localPart}@${domain}`;
-  return `${localPart.slice(0, 8)}…@${domain}`;
+  const compact = `${localPart}@${domain}`;
+  if (compact.length <= 18) return compact;
+  if (localPart.length <= 10) return `${localPart}@…`;
+  return `${localPart.slice(0, 10)}…`;
 }
 
 function getInitials(email: string) {
@@ -95,23 +97,23 @@ export function CoachAdminShellNav({
           </nav>
 
           <div className="relative mt-6 grid gap-3">
-            <div className="rounded-[24px] border border-[color:var(--ca-border)] bg-[var(--ca-surface-soft)] px-3.5 py-3">
-              <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-cyan-300/80">Live operator</p>
-              <div className="mt-2.5 flex items-center gap-3">
-                <div className="flex h-10 w-10 flex-none items-center justify-center rounded-2xl border border-[color:var(--ca-border)] bg-[var(--ca-chip-bg)] text-xs font-semibold tracking-[0.12em] text-cyan-300">
+            <div className="rounded-[24px] border border-[color:var(--ca-border)] bg-[var(--ca-surface-soft)] px-3 py-3.5">
+              <p className="text-center text-[9px] font-semibold uppercase tracking-[0.22em] text-cyan-300/85">Live operator</p>
+              <div className="mt-3 flex flex-col items-center gap-2.5">
+                <div className="flex h-11 w-11 flex-none items-center justify-center rounded-2xl border border-[color:var(--ca-border)] bg-[var(--ca-chip-bg)] text-sm font-semibold tracking-[0.12em] text-cyan-300">
                   {initials}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p title={email} className={cx("truncate text-sm font-medium", coachAdminTextPrimaryClass)}>
+                <div className="w-full min-w-0 text-center">
+                  <p title={email} className={cx("mx-auto max-w-full truncate text-[13px] font-semibold", coachAdminTextPrimaryClass)}>
                     {emailDisplay}
                   </p>
-                  <p className={cx("mt-1 text-[10px] uppercase tracking-[0.16em]", coachAdminTextSoftClass)}>
+                  <p className={cx("mt-1 text-[10px] uppercase tracking-[0.2em]", coachAdminTextSoftClass)}>
                     {role}
                   </p>
                 </div>
               </div>
             </div>
-            <CoachAdminLogoutButton className={cx(coachAdminGhostButtonClass, "w-full justify-center")} />
+            <CoachAdminLogoutButton className={cx(coachAdminGhostButtonClass, "w-full justify-center px-3")} />
           </div>
         </div>
       </div>

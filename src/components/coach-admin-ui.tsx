@@ -9,7 +9,7 @@ export type Tone = "brand" | "cyan" | "gold" | "rose" | "emerald" | "slate";
 
 const toneMap: Record<Tone, { pill: string; ring: string; glow: string; bar: string }> = {
   brand: {
-    pill: "border-[#6A7CFF]/30 bg-[#4F62F8]/14 text-[#CBD5FF]",
+    pill: "border-[#4F62F8]/38 bg-[linear-gradient(135deg,#3730A3,#2563EB)] text-white shadow-[0_14px_28px_rgba(37,99,235,0.22)]",
     ring: "border-[#6378FF]/22",
     glow: "from-[#4361EE]/18 via-[#818CF8]/10 to-transparent",
     bar: "from-[#4361EE] via-[#818CF8] to-[#06B6D4]",
@@ -39,7 +39,7 @@ const toneMap: Record<Tone, { pill: string; ring: string; glow: string; bar: str
     bar: "from-emerald-300 via-teal-400 to-cyan-400",
   },
   slate: {
-    pill: "border-[color:var(--ca-border)] bg-[var(--ca-chip-bg)] text-[color:var(--ca-text-muted)]",
+    pill: "border-[color:var(--ca-button-border)] bg-[var(--ca-button-bg)] text-[color:var(--ca-button-text)]",
     ring: "border-[color:var(--ca-border)]",
     glow: "from-[var(--ca-glass-glow)] via-transparent to-transparent",
     bar: "from-[var(--ca-text-muted)] via-[var(--ca-border-strong)] to-[var(--ca-border)]",

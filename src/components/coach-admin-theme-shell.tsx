@@ -59,18 +59,18 @@ const DARK_THEME: CSSProperties = {
   "--ca-panel-end": "rgba(8,12,24,0.92)",
   "--ca-panel-glow-1": "rgba(67,97,238,0.1)",
   "--ca-panel-glow-2": "rgba(6,182,212,0.08)",
-  "--ca-surface-soft": "rgba(255,255,255,0.04)",
-  "--ca-surface-hover": "rgba(255,255,255,0.08)",
-  "--ca-surface-strong": "rgba(0,0,0,0.2)",
-  "--ca-chip-bg": "rgba(255,255,255,0.05)",
-  "--ca-chip-bg-hover": "rgba(255,255,255,0.1)",
+  "--ca-surface-soft": "rgba(14,24,40,0.72)",
+  "--ca-surface-hover": "rgba(37,99,235,0.12)",
+  "--ca-surface-strong": "rgba(14,24,40,0.92)",
+  "--ca-chip-bg": "rgba(14,24,40,0.9)",
+  "--ca-chip-bg-hover": "rgba(23,37,61,0.98)",
   "--ca-input-bg": "rgba(255,255,255,0.05)",
   "--ca-input-focus-bg": "rgba(255,255,255,0.08)",
   "--ca-border": "rgba(255,255,255,0.1)",
-  "--ca-border-strong": "rgba(255,255,255,0.18)",
+  "--ca-border-strong": "rgba(96,165,250,0.34)",
   "--ca-text": "#f8fafc",
-  "--ca-text-muted": "rgba(226,232,240,0.72)",
-  "--ca-text-soft": "rgba(226,232,240,0.42)",
+  "--ca-text-muted": "rgba(255,255,255,0.78)",
+  "--ca-text-soft": "rgba(255,255,255,0.48)",
   "--ca-track-bg": "rgba(255,255,255,0.06)",
   "--ca-grid-opacity": "0.2",
   "--ca-ambient-1": "rgba(67,97,238,0.18)",
@@ -79,11 +79,11 @@ const DARK_THEME: CSSProperties = {
   "--ca-panel-shadow": "0 20px 80px rgba(2,6,23,0.55)",
   "--ca-shell-shadow": "0 24px 90px rgba(2,6,23,0.58)",
   "--ca-glass-glow": "rgba(255,255,255,0.08)",
-  "--ca-button-bg": "rgba(255,255,255,0.08)",
+  "--ca-button-bg": "rgba(14,24,40,0.96)",
   "--ca-button-bg-hover": "rgba(67,97,238,0.16)",
-  "--ca-button-border": "rgba(148,163,184,0.18)",
-  "--ca-button-border-strong": "rgba(99,120,255,0.42)",
-  "--ca-button-text": "rgba(248,250,252,0.92)",
+  "--ca-button-border": "rgba(255,255,255,0.1)",
+  "--ca-button-border-strong": "rgba(96,165,250,0.4)",
+  "--ca-button-text": "rgba(255,255,255,0.96)",
   "--ca-button-text-hover": "#ffffff",
   "--ca-button-shadow": "0 10px 28px rgba(2,6,23,0.22)",
 } as CSSProperties;
@@ -153,7 +153,7 @@ export function CoachAdminThemeShell({
       </div>
 
       <div className="relative mx-auto max-w-[1680px] px-4 py-4 md:px-6 lg:px-8">
-        <div className="grid gap-6 xl:grid-cols-[148px_minmax(0,1fr)]">
+        <div className="grid gap-6 xl:grid-cols-[176px_minmax(0,1fr)]">
           {session ? <CoachAdminShellNav email={session.email} role={session.role} /> : <div className="hidden xl:block" />}
 
           <div className="space-y-6">
