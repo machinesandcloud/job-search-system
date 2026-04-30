@@ -343,8 +343,9 @@ export async function hasActiveSubscription(accountId: string) {
 }
 
 export async function getCurrentSubscriptionAccess() {
+  // If billing DB is not configured, allow access (fail-open for unset environments).
   if (!isDatabaseReady()) {
-    return { ok: false as const, status: 503, error: "Billing database is not configured." };
+    return { ok: true as const, user: null, account: null, subscription: null };
   }
 
   let identity;
@@ -352,7 +353,8 @@ export async function getCurrentSubscriptionAccess() {
     identity = await syncCurrentUserToBillingIdentity();
   } catch (err) {
     console.error("[billing] syncCurrentUserToBillingIdentity threw:", err);
-    return { ok: false as const, status: 503, error: "Service temporarily unavailable. Please try again." };
+    // DB is configured but unreachable — fail-open so users aren't locked out by infrastructure issues.
+    return { ok: true as const, user: null, account: null, subscription: null };
   }
 
   if (!identity) {
@@ -364,7 +366,8 @@ export async function getCurrentSubscriptionAccess() {
     subscription = identity.subscription || (await prisma.subscription.findUnique({ where: { accountId: identity.account.id } }));
   } catch (err) {
     console.error("[billing] subscription lookup threw:", err);
-    return { ok: false as const, status: 503, error: "Service temporarily unavailable. Please try again." };
+    // DB flaky mid-request — fail-open.
+    return { ok: true as const, user: identity.user, account: identity.account, subscription: null };
   }
 
   if (!subscription || !canAccessSubscriptionStatus(subscription.status)) {
@@ -422,17 +425,19 @@ export async function requirePaidRouteAccess(
   }
 
   let usage = null;
-  try {
-    usage = await getCurrentPeriodTokenUsage(access.account.id);
-  } catch {
-    // non-fatal — continue without token enforcement if DB is flaky
+  if (access.account) {
+    try {
+      usage = await getCurrentPeriodTokenUsage(access.account.id);
+    } catch {
+      // non-fatal — skip token enforcement if DB is flaky
+    }
   }
 
   if (enforceTokenLimit && usage && usage.used >= usage.limit) {
     try {
       await logAppEvent("subscription_token_limit_reached", {
-        accountId: access.account.id,
-        userId: access.user.id,
+        accountId: access.account?.id,
+        userId: access.user?.id,
         metadataJson: { featureName, used: usage.used, limit: usage.limit, ...metadataJson },
       });
     } catch { /* non-fatal */ }
@@ -451,11 +456,13 @@ export async function requirePaidRouteAccess(
   }
 
   try {
-    await logAppEvent("feature_used", {
-      accountId: access.account.id,
-      userId: access.user.id,
-      metadataJson: { featureName, ...metadataJson },
-    });
+    if (access.account) {
+      await logAppEvent("feature_used", {
+        accountId: access.account.id,
+        userId: access.user?.id,
+        metadataJson: { featureName, ...metadataJson },
+      });
+    }
   } catch { /* non-fatal */ }
 
   return {
