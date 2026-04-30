@@ -1,331 +1,199 @@
 import Link from "next/link";
-import { getCurrentUserId } from "@/lib/mvp/auth";
 import { redirect } from "next/navigation";
-import { ZariLogo } from "@/components/zari-logo";
-import { StarField } from "@/components/mvp-hero-extras";
+import { CursorGlow, StarField } from "@/components/mvp-hero-extras";
+import { PricingPlanCard } from "@/components/pricing-plan-card";
+import { PricingSocialProof } from "@/components/pricing-social-proof";
 import { Reveal } from "@/components/reveal";
-
-const PLANS = [
-  {
-    name: "Starter",
-    price: "$0",
-    period: "forever",
-    tagline: "Try every coaching surface before you commit.",
-    features: [
-      "1 resume review session",
-      "1 LinkedIn optimization session",
-      "1 mock interview session",
-      "Session memory",
-      "Dashboard recap",
-      "Action plan output",
-    ],
-    cta: "Start for free",
-    href: "/dashboard",
-    featured: false,
-    dark: false,
-    muted: false,
-    accent: "#A78BFA",
-  },
-  {
-    name: "Pro",
-    price: "$19",
-    period: "per month",
-    tagline: "For candidates actively in the search.",
-    features: [
-      "Unlimited resume reviews",
-      "Unlimited LinkedIn sessions",
-      "Unlimited mock interviews",
-      "Voice coaching mode",
-      "Live avatar coach",
-      "Full session history",
-      "Multi-role target tracking",
-      "Richer recaps & action plans",
-    ],
-    cta: "Start Pro — 7 days free",
-    href: "/dashboard",
-    featured: true,
-    dark: true,
-    muted: false,
-    accent: "#7C3AED",
-  },
-  {
-    name: "Premium",
-    price: "Soon",
-    period: "coming later",
-    tagline: "Human + AI hybrid coaching.",
-    features: [
-      "Everything in Pro",
-      "Weekly 1:1 human coach sessions",
-      "Structured 6-week accountability plan",
-      "Offer negotiation strategy",
-      "Dedicated success manager",
-    ],
-    cta: "Join waitlist",
-    href: "/dashboard",
-    featured: false,
-    dark: false,
-    muted: true,
-    accent: "#22D3EE",
-  },
-];
-
-const REVIEWS = [
-  {
-    quote: "The Pro plan paid for itself after the first session. My resume score went from 52 to 89 and I got 4 callbacks the same week.",
-    name: "Priya M.",
-    role: "PM → Director",
-    company: "Accepted at Notion",
-    initials: "PM",
-    color: "#7C3AED",
-    bg: "linear-gradient(135deg, #2D0B6B, #0A0A1C)",
-  },
-  {
-    quote: "I used the free tier to test it. Within 20 minutes I upgraded to Pro because the quality of feedback was unlike anything I'd used before.",
-    name: "Kai T.",
-    role: "Engineer → Staff",
-    company: "Joined Stripe",
-    initials: "KT",
-    color: "#22D3EE",
-    bg: "linear-gradient(135deg, #0C4A6E, #0A0A1C)",
-  },
-  {
-    quote: "The voice mock interview feature alone is worth Pro. I practiced 8 times before my Google loop and my answers were completely transformed.",
-    name: "Aaliyah R.",
-    role: "DS → ML Engineer",
-    company: "Offer from Google",
-    initials: "AR",
-    color: "#F59E0B",
-    bg: "linear-gradient(135deg, #451A03, #0A0A1C)",
-  },
-  {
-    quote: "Being a career returner, I was terrified. Zari walked me through every scenario, remembered my story, and helped me present my gap as an asset.",
-    name: "Sofia K.",
-    role: "Career Returner",
-    company: "Accepted at Salesforce",
-    initials: "SK",
-    color: "#A78BFA",
-    bg: "linear-gradient(135deg, #1E1B4B, #0A0A1C)",
-  },
-  {
-    quote: "The LinkedIn overhaul was surreal. My recruiter DMs tripled in the first week. The headline Zari wrote for me was genuinely better than anything I'd tried.",
-    name: "Marcus J.",
-    role: "Backend → Principal",
-    company: "Accepted at Databricks",
-    initials: "MJ",
-    color: "#7C3AED",
-    bg: "linear-gradient(135deg, #2D0B6B, #0A0A1C)",
-  },
-  {
-    quote: "I was skeptical about the free tier but Zari spotted 3 issues in my resume in the first minute that I'd never noticed. Upgraded immediately.",
-    name: "David L.",
-    role: "PM at series-A → FAANG",
-    company: "Offer from Amazon",
-    initials: "DL",
-    color: "#22D3EE",
-    bg: "linear-gradient(135deg, #0C4A6E, #0A0A1C)",
-  },
-];
-
-const TRUST_ITEMS = [
-  "No credit card to start",
-  "Cancel Pro anytime",
-  "Your data is always yours",
-  "HTTPS + encrypted storage",
-];
+import { ZariLogo } from "@/components/zari-logo";
+import {
+  FREE_PREVIEW_FEATURES,
+  PRICING_PLANS,
+  PRICING_TRUST_ITEMS,
+  TOP_UP_PACKS,
+} from "@/lib/pricing-catalog";
+import { getStripeSubscriptionPriceId } from "@/lib/stripe";
+import { getCurrentUserId } from "@/lib/mvp/auth";
 
 export default async function OnboardingPlanPage() {
   const userId = await getCurrentUserId();
   if (!userId) redirect("/signup");
 
-  return (
-    <div className="flex min-h-screen flex-col bg-[var(--dark)] text-white">
+  const checkoutAvailability = Object.fromEntries(
+    PRICING_PLANS.map((plan) => [plan.id, Boolean(getStripeSubscriptionPriceId(plan.id))])
+  ) as Record<(typeof PRICING_PLANS)[number]["id"], boolean>;
 
-      {/* Header */}
-      <header className="border-b border-white/06 bg-[var(--dark)]/95 backdrop-blur-2xl">
+  return (
+    <div className="min-h-screen bg-[var(--bg)] text-[var(--ink)]">
+      <header className="sticky top-0 z-30 border-b border-[var(--border)] bg-white/85 backdrop-blur-2xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <Link href="/" className="flex items-center gap-2.5">
-            <ZariLogo size={34} />
-            <span
-              style={{
-                fontSize: 15,
-                fontWeight: 800,
-                letterSpacing: "-0.03em",
-                background: "linear-gradient(135deg, #A78BFA 0%, #22D3EE 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-              }}
+          <Link href="/" className="flex items-center gap-3">
+            <ZariLogo size={36} />
+            <div>
+              <p className="text-[15px] font-extrabold tracking-[-0.03em] text-[var(--ink)]">Zari</p>
+              <p className="text-[12px] text-[var(--muted)]">Plan selection</p>
+            </div>
+          </Link>
+
+          <div className="flex items-center gap-3">
+            <Link
+              href="/dashboard"
+              className="hidden rounded-full border border-[var(--border)] px-4 py-2 text-[13px] font-semibold text-[var(--muted)] transition-colors hover:border-[var(--brand)] hover:text-[var(--brand)] sm:inline-flex"
             >
-              Zari AI Coach
-            </span>
-          </Link>
-          <Link href="/dashboard" className="text-[13px] text-white/40 hover:text-white/70 transition-colors">
-            Skip for now →
-          </Link>
+              Continue with free preview
+            </Link>
+            <form action="/api/auth/logout" method="POST">
+              <button
+                type="submit"
+                className="rounded-full border border-[var(--border)] px-4 py-2 text-[13px] font-semibold text-[var(--ink-2)] transition-colors hover:border-[var(--ink)] hover:text-[var(--ink)]"
+              >
+                Sign out
+              </button>
+            </form>
+          </div>
         </div>
       </header>
 
-      <main className="flex-1">
-
-        {/* ══════ PLAN HERO ══════ */}
-        <section className="noise-overlay relative overflow-hidden pb-16 pt-16">
-          <StarField count={70} />
+      <main>
+        <section className="noise-overlay relative overflow-hidden pb-16 pt-16 md:pb-20 md:pt-20">
+          <StarField count={55} />
+          <CursorGlow color="rgba(67,97,238,0.10)" size={520} />
           <div className="pointer-events-none absolute inset-0 overflow-hidden">
-            <div style={{ position:"absolute", width:"600px", height:"600px", top:"-15%", left:"50%", transform:"translateX(-50%)", background:"var(--brand)", opacity:.10, filter:"blur(160px)", borderRadius:"50%", animation:"float-a 20s ease-in-out infinite" }} />
+            <div
+              style={{
+                position: "absolute",
+                width: "620px",
+                height: "620px",
+                top: "-20%",
+                left: "-10%",
+                background: "var(--brand)",
+                opacity: 0.12,
+                filter: "blur(150px)",
+                borderRadius: "50%",
+                animation: "float-a 18s ease-in-out infinite",
+              }}
+            />
+            <div
+              style={{
+                position: "absolute",
+                width: "560px",
+                height: "560px",
+                top: "-8%",
+                right: "-8%",
+                background: "var(--cyan)",
+                opacity: 0.1,
+                filter: "blur(145px)",
+                borderRadius: "50%",
+                animation: "float-b 22s ease-in-out infinite",
+              }}
+            />
           </div>
-          <div className="pointer-events-none absolute inset-0 grid-pattern opacity-25" />
-          <div className="hero-glow-line absolute left-0 right-0 top-0" />
 
-          <div className="relative mx-auto max-w-3xl px-6 text-center">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/50 backdrop-blur-sm">
-              <span className="flex h-1.5 w-1.5 rounded-full bg-[var(--cyan)]" style={{ boxShadow:"0 0 6px var(--cyan)" }} />
-              One last step
-            </div>
-            <h1 className="text-[3rem] font-extrabold leading-[1.05] tracking-[-0.04em] md:text-[3.8rem]">
-              Choose your coaching plan.
-            </h1>
-            <p className="mx-auto mt-5 max-w-lg text-[17px] leading-relaxed text-white/45">
-              Start free and upgrade when you&apos;re ready. Most candidates see results on the free tier within their first session.
-            </p>
-          </div>
-        </section>
-
-        {/* ══════ PLANS ══════ */}
-        <section className="bg-[var(--bg)] pb-20 pt-16">
-          <div className="mx-auto max-w-5xl px-6">
-            <div className="grid gap-5 md:grid-cols-3 md:items-stretch">
-              {PLANS.map((plan) => (
-                <Reveal key={plan.name}>
-                  <div className="relative flex h-full flex-col">
-                    {plan.featured && (
-                      <div className="absolute -inset-[1.5px] rounded-[22px]" style={{ background:`conic-gradient(from var(--border-angle), #7C3AED, #22D3EE, #A78BFA, #22D3EE, #7C3AED)`, animation:"spin-border 3s linear infinite", zIndex:0 }} />
-                    )}
-                    <div
-                      className={`relative flex flex-1 flex-col overflow-hidden rounded-2xl p-7 ${plan.dark ? "bg-[var(--dark)] text-white" : "border border-[var(--border)] bg-white shadow-[var(--shadow)]"} ${plan.muted ? "opacity-70" : ""}`}
-                      style={{ zIndex:1 }}
-                    >
-                      {plan.featured && (
-                        <div className="absolute left-0 right-0 top-0 flex items-center justify-center py-1.5" style={{ background:`linear-gradient(90deg, var(--brand), var(--cyan))` }}>
-                          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white">Most popular</span>
-                        </div>
-                      )}
-                      <div className={plan.featured ? "mt-6" : ""}>
-                        <p className={`text-[11px] font-bold uppercase tracking-[0.22em] ${plan.dark ? "text-white/40" : "text-[var(--muted)]"}`}>{plan.name}</p>
-                        <div className="mt-4 flex items-end gap-2">
-                          <span className={`text-[3.2rem] font-extrabold leading-none tracking-[-0.05em] ${plan.dark ? "text-white" : plan.muted ? "text-[var(--muted)]" : "text-[var(--ink)]"}`}>{plan.price}</span>
-                          <span className={`mb-1.5 text-[13px] ${plan.dark ? "text-white/35" : "text-[var(--muted)]"}`}>{plan.period}</span>
-                        </div>
-                        <p className={`mt-3 text-[14px] leading-6 ${plan.dark ? "text-white/50" : "text-[var(--muted)]"}`}>{plan.tagline}</p>
-                        <div className={`my-5 h-px ${plan.dark ? "bg-white/[0.07]" : "bg-[var(--border)]"}`} />
-                        <ul className="flex-1 space-y-2.5">
-                          {plan.features.map((f) => (
-                            <li key={f} className="flex items-start gap-2.5">
-                              <svg className="mt-0.5 h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} style={{ color: plan.accent }}><polyline points="20,6 9,17 4,12" /></svg>
-                              <span className={`text-[13.5px] leading-5 ${plan.dark ? "text-white/70" : "text-[var(--ink-2)]"}`}>{f}</span>
-                            </li>
-                          ))}
-                        </ul>
-                        <Link
-                          href={plan.href}
-                          className={`mt-7 flex w-full items-center justify-center rounded-xl py-3.5 text-[14px] font-semibold transition-all hover:-translate-y-0.5 ${
-                            plan.featured
-                              ? "bg-[var(--brand)] text-white shadow-[var(--shadow-brand)] hover:bg-[var(--brand-hover)]"
-                              : plan.muted
-                                ? "border border-[var(--border)] bg-[var(--surface-muted)] text-[var(--muted)] hover:border-[var(--brand)] hover:text-[var(--brand)]"
-                                : "border border-[var(--border)] bg-[var(--surface-muted)] text-[var(--ink)] hover:border-[var(--brand)] hover:text-[var(--brand)]"
-                          }`}
-                        >
-                          {plan.cta} →
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                </Reveal>
-              ))}
-            </div>
-
-            {/* Trust notes */}
+          <div className="relative mx-auto max-w-6xl px-6">
             <Reveal>
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-5 text-[12.5px] text-[var(--muted)]">
-                {TRUST_ITEMS.map((s) => (
-                  <div key={s} className="flex items-center gap-2">
-                    <svg className="h-3.5 w-3.5 text-[var(--brand)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
-                    {s}
-                  </div>
-                ))}
-              </div>
-            </Reveal>
-          </div>
-        </section>
-
-        {/* ══════ REVIEWS ══════ */}
-        <section className="noise-overlay relative overflow-hidden bg-[var(--dark)] py-20 md:py-28">
-          <div className="pointer-events-none absolute inset-0 grid-pattern opacity-20" />
-          <div className="pointer-events-none absolute inset-0 overflow-hidden">
-            <div style={{ position:"absolute", width:"500px", height:"500px", bottom:"-10%", right:"-5%", background:"var(--brand)", opacity:.08, filter:"blur(130px)", borderRadius:"50%", animation:"float-b 22s ease-in-out infinite" }} />
-          </div>
-
-          <div className="relative mx-auto max-w-7xl px-6">
-            <Reveal>
-              <div className="mb-14 text-center">
-                <h2 className="text-[2.2rem] font-extrabold tracking-[-0.03em] md:text-[2.8rem]">
-                  What candidates are saying.
-                </h2>
-                <p className="mx-auto mt-3 max-w-md text-[15px] text-white/40">
-                  Real sessions. Real results. Real careers changed.
+              <div className="mx-auto max-w-3xl text-center">
+                <span className="inline-flex rounded-full border border-[var(--border)] bg-white/90 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--muted)] shadow-[var(--shadow)]">
+                  One last step
+                </span>
+                <h1 className="mt-6 text-[3rem] font-extrabold leading-[1.02] tracking-[-0.05em] text-[var(--ink)] md:text-[4.5rem]">
+                  Pick the Zari plan that matches the move you&apos;re making.
+                </h1>
+                <p className="mx-auto mt-5 max-w-2xl text-[17px] leading-8 text-[var(--muted)]">
+                  Start with the free preview if you want to test the quality first, or choose the paid tier that unlocks the workflows you actually need.
                 </p>
               </div>
             </Reveal>
 
-            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-              {REVIEWS.map((r, ri) => (
-                <Reveal key={r.name} data-delay={String((ri % 3) + 1) as "1"|"2"|"3"}>
-                  <div
-                    className="testimonial-card flex flex-col rounded-2xl p-6 text-white"
-                    style={{ background: r.bg, "--accent-color": r.color } as React.CSSProperties}
-                  >
-                    <div className="mb-3 flex gap-0.5">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <svg key={i} className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" style={{ color: r.color }}>
-                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                        </svg>
-                      ))}
-                    </div>
-                    <blockquote className="mb-5 flex-1 text-[14px] leading-7 text-white/70">
-                      &ldquo;{r.quote}&rdquo;
-                    </blockquote>
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white"
-                        style={{ background:`${r.color}40` }}
-                      >
-                        {r.initials}
-                      </div>
-                      <div>
-                        <p className="text-[13px] font-bold text-white">{r.name}</p>
-                        <p className="text-[11px] text-white/45">{r.role}</p>
-                        <p className="text-[11px] font-semibold" style={{ color: r.color }}>{r.company}</p>
-                      </div>
-                    </div>
+            <Reveal>
+              <div className="glass-white mx-auto mt-10 max-w-5xl rounded-[28px] p-6 shadow-[var(--shadow-lg)] md:p-7">
+                <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                  <div className="max-w-2xl">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--brand)]">
+                      Free preview already included
+                    </p>
+                    <h2 className="mt-3 text-[2rem] font-extrabold tracking-[-0.04em] text-[var(--ink)]">
+                      Try the product before you spend a dollar.
+                    </h2>
+                    <p className="mt-3 text-[15px] leading-7 text-[var(--muted)]">
+                      Every account starts with real output: one resume review, one LinkedIn review, and one mock interview. No card required.
+                    </p>
                   </div>
-                </Reveal>
-              ))}
-            </div>
+
+                  <Link
+                    href="/dashboard"
+                    className="inline-flex h-[52px] items-center justify-center rounded-2xl bg-[var(--ink)] px-7 text-[14px] font-semibold text-white shadow-[var(--shadow)] transition-all hover:-translate-y-0.5 hover:bg-[var(--dark)]"
+                  >
+                    Use free preview →
+                  </Link>
+                </div>
+
+                <div className="mt-5 flex flex-wrap gap-2.5">
+                  {FREE_PREVIEW_FEATURES.map((feature) => (
+                    <div
+                      key={feature}
+                      className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-white px-3.5 py-2 text-[13px] font-medium text-[var(--ink-2)]"
+                    >
+                      <span className="h-2 w-2 rounded-full bg-[var(--brand)]" />
+                      {feature}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Reveal>
           </div>
         </section>
 
-        {/* ══════ BOTTOM CTA ══════ */}
-        <section className="bg-[var(--bg)] py-16 text-center">
-          <Reveal>
-            <p className="mb-3 text-[15px] text-[var(--muted)]">Not sure yet? Start with the free tier — no card needed.</p>
-            <Link
-              href="/dashboard"
-              className="inline-flex h-12 items-center gap-2 rounded-xl bg-[var(--brand)] px-8 text-[14px] font-bold text-white shadow-[var(--shadow-brand)] transition-all hover:-translate-y-0.5 hover:bg-[var(--brand-hover)]"
-            >
-              Go to dashboard →
-            </Link>
-          </Reveal>
+        <section className="pb-8">
+          <div className="mx-auto max-w-6xl px-6">
+            <div className="grid gap-5 xl:grid-cols-3">
+              {PRICING_PLANS.map((plan) => (
+                <Reveal key={plan.id}>
+                  <PricingPlanCard
+                    plan={plan}
+                    authenticated
+                    checkoutEnabled={checkoutAvailability[plan.id]}
+                  />
+                </Reveal>
+              ))}
+            </div>
+
+            <Reveal>
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-4 text-[13px] text-[var(--muted)]">
+                {PRICING_TRUST_ITEMS.map((item) => (
+                  <div key={item} className="flex items-center gap-2">
+                    <svg className="h-4 w-4 text-[var(--brand)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg>
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </Reveal>
+
+            <Reveal>
+              <div className="mx-auto mt-10 max-w-4xl rounded-[24px] border border-[var(--border)] bg-white p-6 text-center shadow-[var(--shadow)]">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--muted)]">Need more later?</p>
+                <h3 className="mt-3 text-[1.65rem] font-extrabold tracking-[-0.04em] text-[var(--ink)]">
+                  Add tokens without changing plans.
+                </h3>
+                <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+                  {TOP_UP_PACKS.map((pack) => (
+                    <div
+                      key={pack.tokens}
+                      className="rounded-full border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-2 text-[14px] font-medium text-[var(--ink-2)]"
+                    >
+                      {pack.tokens} · {pack.price}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Reveal>
+          </div>
         </section>
+
+        <PricingSocialProof
+          heading="Candidates stay when the coaching actually changes the outcome."
+          subheading="The point of the pricing page is not to sell 'AI.' It is to make it obvious which level of help you need next."
+        />
       </main>
     </div>
   );

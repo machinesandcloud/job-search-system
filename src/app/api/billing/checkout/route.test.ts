@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { NextRequest } from "next/server";
 
 const mocks = vi.hoisted(() => ({
   getStripeClient: vi.fn(),
@@ -65,8 +66,8 @@ describe("billing checkout route", () => {
           host: "localhost:3000",
           "content-type": "application/json",
         },
-        body: "{}",
-      }) as any
+        body: JSON.stringify({ planId: "growth" }),
+      }) as unknown as NextRequest
     );
 
     expect(response.status).toBe(200);
@@ -83,9 +84,12 @@ describe("billing checkout route", () => {
           accountId: "account_1",
           userId: "user_1",
           externalAuthId: "mvp_user_1",
+          requestedPlanId: "growth",
         }),
       })
     );
+
+    expect(mocks.getStripeSubscriptionPriceId).toHaveBeenCalledWith("growth");
 
     expect(mocks.logAppEvent).toHaveBeenCalledWith(
       "checkout_started",

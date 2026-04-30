@@ -15,6 +15,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
   }
 
+  const body = (await request.json().catch(() => ({}))) as { planId?: string };
+  const requestedPlanId = typeof body.planId === "string" ? body.planId.trim().toLowerCase() : null;
+
   const identity = await syncCurrentUserToBillingIdentity();
   if (!identity) {
     return NextResponse.json({ error: "Sign in required." }, { status: 401 });
@@ -25,16 +28,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "An active subscription already exists for this account." }, { status: 409 });
   }
 
-  const priceId = getStripeSubscriptionPriceId();
+  const priceId = getStripeSubscriptionPriceId(requestedPlanId);
   if (!priceId) {
-    return NextResponse.json({ error: "Monthly Stripe price is not configured." }, { status: 501 });
+    return NextResponse.json(
+      { error: requestedPlanId ? `Stripe price for plan "${requestedPlanId}" is not configured.` : "Monthly Stripe price is not configured." },
+      { status: 501 }
+    );
   }
 
   let stripe;
   try {
     stripe = getStripeClient();
-  } catch (error: any) {
-    return NextResponse.json({ error: error?.message || "Stripe is not configured." }, { status: 501 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Stripe is not configured.";
+    return NextResponse.json({ error: message }, { status: 501 });
   }
 
   const trialDays = Number.parseInt(process.env.STRIPE_TRIAL_DAYS || "", 10);
@@ -49,6 +56,7 @@ export async function POST(request: NextRequest) {
       accountId: identity.account.id,
       userId: identity.user.id,
       externalAuthId: identity.mvpUser.id,
+      requestedPlanId: requestedPlanId || "default",
     },
     ...(existingSubscription?.stripeCustomerId
       ? { customer: existingSubscription.stripeCustomerId }
@@ -58,6 +66,7 @@ export async function POST(request: NextRequest) {
         accountId: identity.account.id,
         userId: identity.user.id,
         externalAuthId: identity.mvpUser.id,
+        requestedPlanId: requestedPlanId || "default",
       },
       ...(Number.isFinite(trialDays) && trialDays > 0 ? { trial_period_days: trialDays } : {}),
     },
@@ -69,6 +78,7 @@ export async function POST(request: NextRequest) {
     metadataJson: {
       sessionId: session.id,
       priceId,
+      requestedPlanId,
       mode: "subscription",
     },
   });

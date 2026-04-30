@@ -5,9 +5,11 @@ import { useState } from "react";
 export function SubscriptionCheckoutButton({
   label,
   className,
+  planId,
 }: {
   label: string;
   className: string;
+  planId?: string;
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,6 +22,7 @@ export function SubscriptionCheckoutButton({
       const res = await fetch("/api/billing/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(planId ? { planId } : {}),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.url) {
