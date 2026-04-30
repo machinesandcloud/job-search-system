@@ -136,6 +136,23 @@ function vaultReadForStage(stage: CareerStage): DocEntry[] {
 }
 
 /* ═══════════════════════════════════════════════════
+   LOCALSTORAGE SESSION UTILITIES
+═══════════════════════════════════════════════════ */
+function lsGet<T>(key: string): T | null {
+  try {
+    if (typeof localStorage === "undefined") return null;
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : null;
+  } catch { return null; }
+}
+function lsSet(key: string, value: unknown) {
+  try { if (typeof localStorage !== "undefined") localStorage.setItem(key, JSON.stringify(value)); } catch { /* noop */ }
+}
+function lsClear(key: string) {
+  try { if (typeof localStorage !== "undefined") localStorage.removeItem(key); } catch { /* noop */ }
+}
+
+/* ═══════════════════════════════════════════════════
    HELPERS
 ═══════════════════════════════════════════════════ */
 function ScoreRing({ score, color="#2563EB", size=56, dark=false }: { score:number; color?:string; size?:number; dark?:boolean }) {
@@ -3777,13 +3794,20 @@ function PromotionSharedIntakeFlow({
 }
 
 function ScreenPromotionReadiness() {
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
-  const [form, setForm] = useState<PromotionReadinessForm>(PROMOTION_READINESS_DEFAULT_FORM);
+  const PR_KEY = "zari_promo_readiness_v1";
+  type PRSaved = { step: number; form: PromotionReadinessForm; result: PromotionReadinessResult | null };
+  const _prSaved = lsGet<PRSaved>(PR_KEY);
+  const [step, setStep] = useState<1 | 2 | 3 | 4>((_prSaved?.step as 1|2|3|4) ?? 1);
+  const [form, setForm] = useState<PromotionReadinessForm>(_prSaved?.form ?? PROMOTION_READINESS_DEFAULT_FORM);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState("");
-  const [result, setResult] = useState<PromotionReadinessResult | null>(null);
+  const [result, setResult] = useState<PromotionReadinessResult | null>(_prSaved?.result ?? null);
   const [resultTab, setResultTab] = useState<PromotionAuditTab>("overview");
   const [pitchCopied, setPitchCopied] = useState(false);
+  // Persist form + result whenever they change
+  useEffect(() => {
+    if (form.currentTitle || result) lsSet(PR_KEY, { step, form, result });
+  }, [step, form, result]); // eslint-disable-line react-hooks/exhaustive-deps
   const theme = PROMOTION_THEMES.readiness;
   const activeStep = PROMOTION_READINESS_STEPS[step - 1];
 
@@ -3882,6 +3906,7 @@ function ScreenPromotionReadiness() {
       if (data?.summary && typeof data.readinessScore === "number") {
         setResult(data);
         setResultTab("overview");
+        lsSet(PR_KEY, { step, form, result: data });
         savePromotionReadinessAudit(form, data);
       } else {
         setError(data?.error ?? "Could not generate the readiness audit.");
@@ -4622,13 +4647,20 @@ function ScreenSalaryCompensation() {
   const ACCENT = "#10B981";
   const BG_DARK = "var(--z-bg)";
   type SalaryTab = "overview" | "leverage" | "moves" | "script";
-  const [step, setStep] = useState<1|2|3>(1);
-  const [form, setForm] = useState({ title:"", level:"", industry:"", companySize:"", askType:"raise", currentComp:"", targetComp:"", packageContext:"", location:"", yearsExperience:"", additionalContext:"" });
+  const SAL_KEY = "zari_salary_session_v1";
+  type SalSaved = { step: number; form: typeof _salForm; result: SalaryAnalysisResult | null; tab: SalaryTab };
+  const _salForm = { title:"", level:"", industry:"", companySize:"", askType:"raise", currentComp:"", targetComp:"", packageContext:"", location:"", yearsExperience:"", additionalContext:"" };
+  const _salSaved = lsGet<SalSaved>(SAL_KEY);
+  const [step, setStep] = useState<1|2|3>((_salSaved?.step as 1|2|3) ?? 1);
+  const [form, setForm] = useState(_salSaved?.form ?? _salForm);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState("");
-  const [result, setResult] = useState<SalaryAnalysisResult | null>(null);
-  const [tab, setTab] = useState<SalaryTab>("overview");
+  const [result, setResult] = useState<SalaryAnalysisResult | null>(_salSaved?.result ?? null);
+  const [tab, setTab] = useState<SalaryTab>(_salSaved?.tab ?? "overview");
   const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    if (form.title || result) lsSet(SAL_KEY, { step, form, result, tab });
+  }, [step, form, result, tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const inp: React.CSSProperties = { width:"100%", border:"1px solid var(--z-bd)", borderRadius:12, padding:"13px 16px", fontSize:14, color:"var(--z-text)", outline:"none", fontFamily:"inherit", background:"var(--z-raise)", boxShadow:"0 2px 20px var(--z-sh)", boxSizing:"border-box", transition:"border-color 0.15s" };
   const textarea: React.CSSProperties = { ...inp, minHeight:120, resize:"vertical" as const, lineHeight:1.7 };
@@ -5027,15 +5059,27 @@ function ScreenPivotAnalysis() {
   const ACCENT  = "#0284C7";
   const ACCENT2 = "#38BDF8";
   type PivotTab = "overview" | "assets" | "gaps" | "plan";
-  const [step, setStep] = useState<1|2|3>(1);
-  const [form, setForm] = useState({ fromRole:"", fromIndustry:"", toRole:"", toIndustry:"", jobDescription:"", accomplishments:"", skills:"", biggestConcern:"", timeline:"", resumeText:"", currentStatus:"" });
+  const PA_KEY = "zari_pivot_session_v1";
+  type PASaved = { step: number; form: typeof _paForm; result: PivotAnalysisResult | null; tab: PivotTab };
+  const _paForm = { fromRole:"", fromIndustry:"", toRole:"", toIndustry:"", jobDescription:"", accomplishments:"", skills:"", biggestConcern:"", timeline:"", resumeText:"", currentStatus:"" };
+  const _paSaved = lsGet<PASaved>(PA_KEY);
+  // Pre-populate form from _ccStore (persisted) if localStorage session is empty
+  const _paInitForm = _paSaved?.form ?? { ..._paForm, fromRole:_ccStore.form.fromRole, fromIndustry:_ccStore.form.fromIndustry, toRole:_ccStore.form.toRole, toIndustry:_ccStore.form.toIndustry, accomplishments:_ccStore.form.accomplishments, skills:_ccStore.form.skills, biggestConcern:_ccStore.form.biggestConcern, timeline:_ccStore.form.timeline, resumeText:_ccStore.form.resumeText, currentStatus:_ccStore.form.currentStatus };
+  const [step, setStep] = useState<1|2|3>((_paSaved?.step as 1|2|3) ?? 1);
+  const [form, setForm] = useState(_paInitForm);
   const [generating, setGenerating] = useState(false);
   const [resumeUploading, setResumeUploading] = useState(false);
   const [resumeDragging, setResumeDragging] = useState(false);
   const [error, setError] = useState("");
   const resumeFileRef = useRef<HTMLInputElement>(null);
-  const [result, setResult] = useState<PivotAnalysisResult | null>(null);
-  const [tab, setTab] = useState<PivotTab>("overview");
+  const [result, setResult] = useState<PivotAnalysisResult | null>(_paSaved?.result ?? null);
+  const [tab, setTab] = useState<PivotTab>(_paSaved?.tab ?? "overview");
+  // Persist session whenever form, step, or result changes
+  useEffect(() => {
+    if (form.fromRole || form.toRole || form.resumeText || result) {
+      lsSet(PA_KEY, { step, form, result, tab });
+    }
+  }, [step, form, result, tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const inp: React.CSSProperties = { width:"100%", border:"1px solid var(--z-bd)", borderRadius:12, padding:"13px 16px", fontSize:14, color:"var(--z-text)", outline:"none", fontFamily:"inherit", background:"var(--z-raise)", boxShadow:"0 2px 20px var(--z-sh)", boxSizing:"border-box", transition:"border-color 0.15s" };
   const textarea: React.CSSProperties = { ...inp, minHeight:130, resize:"vertical" as const, lineHeight:1.7 };
@@ -5051,7 +5095,7 @@ function ScreenPivotAnalysis() {
       type PivotApiData = PivotAnalysisResult & { error?: string; message?: string };
       let data: PivotApiData | null = null;
       try { data = raw ? JSON.parse(raw) as PivotApiData : null; } catch { data = null; }
-      if (data && typeof data.pivotScore === "number") { setResult(data); setTab("overview"); }
+      if (data && typeof data.pivotScore === "number") { setResult(data); setTab("overview"); lsSet(PA_KEY, { step, form, result: data, tab: "overview" }); }
       else if (data?.error === "not_enough_context") {
         setStep(2);
         setError("Add your accomplishments or skills first — without your actual background, the analysis can only guess. That's not useful.");
@@ -5601,7 +5645,13 @@ const _ccStore = (() => {
     resumeText: saved?.resumeText ?? "", timeline: saved?.timeline ?? "",
     biggestConcern: saved?.biggestConcern ?? "", currentStatus: saved?.currentStatus ?? "",
   };
-  const cache: { story:CCStoryResult|null; sprint:CCSprintResult|null; network:CCNetResult|null } = { story:null, sprint:null, network:null };
+  const CC_CACHE_KEY = "zari_cc_cache_v1";
+  const savedCache = lsGet<{ story: CCStoryResult|null; sprint: CCSprintResult|null; network: CCNetResult|null }>(CC_CACHE_KEY);
+  const cache: { story:CCStoryResult|null; sprint:CCSprintResult|null; network:CCNetResult|null } = {
+    story: savedCache?.story ?? null,
+    sprint: savedCache?.sprint ?? null,
+    network: savedCache?.network ?? null,
+  };
   let ready = Boolean(saved?._ready);
   const subs = new Set<() => void>();
   const notify = () => subs.forEach(f => f());
@@ -5609,9 +5659,9 @@ const _ccStore = (() => {
     get form() { return form; },
     get cache() { return cache; },
     get ready() { return ready; },
-    commit(f: CCSharedForm) { Object.assign(form, f); cache.story=null; cache.sprint=null; cache.network=null; ready=true; lsWrite(f); notify(); },
-    setCache<K extends keyof typeof cache>(k:K, v:(typeof cache)[K]) { cache[k]=v; notify(); },
-    clearCache(k:keyof typeof cache) { cache[k]=null; notify(); },
+    commit(f: CCSharedForm) { Object.assign(form, f); cache.story=null; cache.sprint=null; cache.network=null; ready=true; lsWrite(f); lsClear(CC_CACHE_KEY); notify(); },
+    setCache<K extends keyof typeof cache>(k:K, v:(typeof cache)[K]) { cache[k]=v; lsSet(CC_CACHE_KEY, cache); notify(); },
+    clearCache(k:keyof typeof cache) { cache[k]=null; lsSet(CC_CACHE_KEY, cache); notify(); },
     sub(fn:()=>void) { subs.add(fn); return ()=>{ subs.delete(fn); }; },
   };
 })();
@@ -9798,18 +9848,21 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
   if (stage === "salary") return <ScreenSalaryNegotiationSim />;
   if (stage === "leadership") return <ScreenLeadershipStoryPractice />;
 
-  const [setupDone,    setSetupDone]    = useState(false);
-  const [resumeText,   setResumeText]   = useState("");
-  const [resumeFileName, setResumeFileName] = useState("");
-  const [linkedinText,     setLinkedinText]     = useState("");
-  const [jobDesc,          setJobDesc]          = useState("");
+  type IVSaved = { resumeText: string; resumeFileName: string; linkedinText: string; jobDesc: string; round: InterviewRound | null; sections: InterviewSection[] | null; setupDone: boolean };
+  const IV_KEY = `zari_interview_session_v1_${stage}`;
+  const _ivSaved = lsGet<IVSaved>(IV_KEY);
+  const [setupDone,    setSetupDone]    = useState(_ivSaved?.setupDone ?? false);
+  const [resumeText,   setResumeText]   = useState(_ivSaved?.resumeText ?? "");
+  const [resumeFileName, setResumeFileName] = useState(_ivSaved?.resumeFileName ?? "");
+  const [linkedinText,     setLinkedinText]     = useState(_ivSaved?.linkedinText ?? "");
+  const [jobDesc,          setJobDesc]          = useState(_ivSaved?.jobDesc ?? "");
   const [jdMode,           setJdMode]           = useState<"paste"|"url">("paste");
   const [jobUrl,           setJobUrl]           = useState("");
   const [fetchingUrl,      setFetchingUrl]      = useState(false);
   const [urlFetchErr,      setUrlFetchErr]      = useState("");
-  const [round,            setRound]            = useState<InterviewRound | null>(null);
+  const [round,            setRound]            = useState<InterviewRound | null>(_ivSaved?.round ?? null);
   const [loadingQs,        setLoadingQs]        = useState(false);
-  const [sections,         setSections]         = useState<InterviewSection[] | null>(null);
+  const [sections,         setSections]         = useState<InterviewSection[] | null>(_ivSaved?.sections ?? null);
   const [activeSectionIdx, setActiveSectionIdx] = useState(0);
   const [qIdx,             setQIdx]             = useState(0);
   const [answer,           setAnswer]           = useState("");
@@ -9825,11 +9878,20 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
     return () => clearInterval(t);
   }, [isRecording]);
 
+  // On stage change: restore session for new stage or reset
   useEffect(() => {
-    setSetupDone(false); setSetupStep(1); setQIdx(0); setActiveSectionIdx(0); setAnswer(""); setSubmitted(false);
-    setFeedback(null); setSections(null); setRound(null); setResumeText(""); setResumeFileName("");
-    setLinkedinText(""); setJobDesc(""); setJobUrl(""); setUrlFetchErr("");
-  }, [stage]);
+    const saved = lsGet<IVSaved>(`zari_interview_session_v1_${stage}`);
+    if (saved?.sections) {
+      setSetupDone(saved.setupDone); setResumeText(saved.resumeText ?? "");
+      setResumeFileName(saved.resumeFileName ?? ""); setLinkedinText(saved.linkedinText ?? "");
+      setJobDesc(saved.jobDesc ?? ""); setRound(saved.round ?? null); setSections(saved.sections);
+      setQIdx(0); setActiveSectionIdx(0); setAnswer(""); setSubmitted(false); setFeedback(null);
+    } else {
+      setSetupDone(false); setSetupStep(1); setQIdx(0); setActiveSectionIdx(0); setAnswer(""); setSubmitted(false);
+      setFeedback(null); setSections(null); setRound(null); setResumeText(""); setResumeFileName("");
+      setLinkedinText(""); setJobDesc(""); setJobUrl(""); setUrlFetchErr("");
+    }
+  }, [stage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleInterviewFile(file: File) {
     setResumeFileName(file.name);
@@ -9866,7 +9928,10 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
         body: JSON.stringify({ action: "generate-questions", stage, resumeText: combinedProfile, jobDescription: jobDesc, round }),
       });
       const data = await res.json().catch(() => ({})) as { sections?: InterviewSection[] };
-      if (data.sections?.length) setSections(data.sections);
+      if (data.sections?.length) {
+        setSections(data.sections);
+        lsSet(`zari_interview_session_v1_${stage}`, { resumeText, resumeFileName, linkedinText, jobDesc, round, sections: data.sections, setupDone: true });
+      }
     } catch { /* sections stays null, handled below */ }
     setLoadingQs(false);
     setSetupDone(true);
@@ -9914,6 +9979,13 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
     { icon:"target",    label:"Interview round", desc:"Different rounds test different things. Recruiter screens focus on fit and logistics. Hiring manager rounds go deeper on judgment and leadership.", tips:["Pick the round you're actually preparing for right now.","If you have multiple rounds coming up, start with the earliest one.","Each round generates questions specific to that format and depth."] },
   ];
   const interviewStepCtx = INTERVIEW_STEP_CTX[setupStep - 1];
+
+  // Persist setup form when inputs change (so refreshing mid-setup restores them)
+  useEffect(() => {
+    if (resumeText || jobDesc) {
+      lsSet(`zari_interview_session_v1_${stage}`, { resumeText, resumeFileName, linkedinText, jobDesc, round, sections, setupDone });
+    }
+  }, [resumeText, jobDesc, round]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── Setup step ── */
   if (!setupDone) return (
@@ -12224,20 +12296,23 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
   if (stage === "salary") return <ScreenSalaryMarketIntel />;
 
   type LINav = "score"|"headline"|"summary"|"experience"|"education"|"other"|"networking"|"keywords";
+  type LISaved = { headline: string; summary: string; experienceJobs: ParsedJob[]; education: string; skills: string; linkedinUrl: string; hasPhoto: boolean; targetRole: string; result: LinkedInResult | null };
+  const LI_KEY = `zari_li_session_v1_${stage}`;
+  const _liSaved = lsGet<LISaved>(LI_KEY);
   const [liSection,      setLISection]      = useState<LINav>("score");
-  const [inputMode,      setInputMode]      = useState(true);
-  const [targetRole,     setTargetRole]     = useState("");
+  const [inputMode,      setInputMode]      = useState(!_liSaved?.result);
+  const [targetRole,     setTargetRole]     = useState(_liSaved?.targetRole ?? "");
   const [dragOver,       setDragOver]       = useState(false);
   const [parseLoading,   setParseLoading]   = useState(false);
   const [loadingMsg,     setLoadingMsg]     = useState("");
-  const [headline,       setHeadline]       = useState("");
-  const [summary,        setSummary]        = useState("");
-  const [experienceJobs, setExperienceJobs] = useState<ParsedJob[]>([]);
-  const [education,      setEducation]      = useState("");
-  const [skills,         setSkills]         = useState("");
-  const [linkedinUrl,    setLinkedinUrl]    = useState("");
-  const [hasPhoto,     setHasPhoto]     = useState(false);
-  const [result,       setResult]       = useState<LinkedInResult | null>(null);
+  const [headline,       setHeadline]       = useState(_liSaved?.headline ?? "");
+  const [summary,        setSummary]        = useState(_liSaved?.summary ?? "");
+  const [experienceJobs, setExperienceJobs] = useState<ParsedJob[]>(_liSaved?.experienceJobs ?? []);
+  const [education,      setEducation]      = useState(_liSaved?.education ?? "");
+  const [skills,         setSkills]         = useState(_liSaved?.skills ?? "");
+  const [linkedinUrl,    setLinkedinUrl]    = useState(_liSaved?.linkedinUrl ?? "");
+  const [hasPhoto,     setHasPhoto]     = useState(_liSaved?.hasPhoto ?? false);
+  const [result,       setResult]       = useState<LinkedInResult | null>(_liSaved?.result ?? null);
   const [err,          setErr]          = useState("");
   const [previewTab,   setPreviewTab]   = useState<"current"|"rewritten">("current");
   const [expandedCheck,setExpandedCheck]= useState<number | null>(null);
@@ -12245,11 +12320,21 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
   const [jobsExpanded, setJobsExpanded] = useState<Record<number,boolean>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // On stage change: restore session for new stage or reset
   useEffect(() => {
-    setInputMode(true); setResult(null); setTargetRole(""); setDragOver(false);
-    setHeadline(""); setSummary(""); setExperienceJobs([]); setEducation("");
-    setSkills(""); setLinkedinUrl(""); setHasPhoto(false); setErr("");
-  }, [stage]);
+    const saved = lsGet<LISaved>(`zari_li_session_v1_${stage}`);
+    if (saved?.result) {
+      setHeadline(saved.headline ?? ""); setSummary(saved.summary ?? "");
+      setExperienceJobs(saved.experienceJobs ?? []); setEducation(saved.education ?? "");
+      setSkills(saved.skills ?? ""); setLinkedinUrl(saved.linkedinUrl ?? "");
+      setHasPhoto(saved.hasPhoto ?? false); setTargetRole(saved.targetRole ?? "");
+      setResult(saved.result); setInputMode(false); setLISection("score");
+    } else {
+      setInputMode(true); setResult(null); setTargetRole(""); setDragOver(false);
+      setHeadline(""); setSummary(""); setExperienceJobs([]); setEducation("");
+      setSkills(""); setLinkedinUrl(""); setHasPhoto(false); setErr("");
+    }
+  }, [stage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function parseAndAnalyze(file: File) {
     if (parseLoading) return;
@@ -12288,6 +12373,7 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
         setSkills(parsed.skills); setLinkedinUrl(parsed.linkedinUrl);
         setHasPhoto(parsed.hasPhoto);
         setResult(reviewData); setInputMode(false); setLISection("score");
+        lsSet(`zari_li_session_v1_${stage}`, { headline: parsed.headline, summary: parsed.summary, experienceJobs: parsed.experienceJobs ?? [], education: parsed.education, skills: parsed.skills, linkedinUrl: parsed.linkedinUrl, hasPhoto: parsed.hasPhoto, targetRole, result: reviewData });
         // Save to doc vault
         vaultSave({ type:"linkedin", name:parsed.headline||"LinkedIn Profile", content:[parsed.headline,parsed.summary].join("\n\n"), meta:{ score:String(reviewData.overall??0), headline:parsed.headline||"", targetRole, stage } });
       } else {
@@ -13919,29 +14005,41 @@ function ScreenCoverLetter({ stage, active = false, onNavigate }: { stage: Caree
   if (stage === "salary") return <ScreenSalaryNegotiationEmail />;
   if (stage === "leadership") return <ScreenExecOutreach />;
 
-  const [step,          setStep]          = useState(1); // 1=background, 2=jd, 3=customize
-  const [profileText,   setProfileText]   = useState("");
-  const [profileFile,   setProfileFile]   = useState("");
+  const CL_KEY = "zari_cl_session_v1";
+  type TailoringNote = { decision: string; impact: string };
+  type KeyStrength   = { strength: string; evidence: string };
+  type CLResult = { subject: string; coverLetter: string; tailoringNotes?: (TailoringNote|string)[]; keyStrengths?: (KeyStrength|string)[]; openingHook?: string };
+  type CLSaved = { step: number; profileText: string; profileFile: string; jobDesc: string; company: string; targetRole: string; candidateName: string; tone: string; result: CLResult | null; editedLetter: string; stage: CareerStage };
+  const _clSaved = lsGet<CLSaved>(CL_KEY);
+  // Only restore if the saved session is for the same stage
+  const _cl = _clSaved?.stage === stage ? _clSaved : null;
+  const [step,          setStep]          = useState<1|2|3>((_cl?.step as 1|2|3) ?? 1);
+  const [profileText,   setProfileText]   = useState(_cl?.profileText ?? "");
+  const [profileFile,   setProfileFile]   = useState(_cl?.profileFile ?? "");
   const [profileDrag,   setProfileDrag]   = useState(false);
   const profileInputRef = useRef<HTMLInputElement>(null);
-  const [jobDesc,       setJobDesc]       = useState("");
+  const [jobDesc,       setJobDesc]       = useState(_cl?.jobDesc ?? "");
   const [jdMode,        setJdMode]        = useState<"paste"|"url">("paste");
   const [jobUrl,        setJobUrl]        = useState("");
   const [fetchingUrl,   setFetchingUrl]   = useState(false);
   const [urlFetchErr,   setUrlFetchErr]   = useState("");
-  const [company,       setCompany]       = useState("");
-  const [targetRole,    setTargetRole]    = useState("");
-  const [candidateName, setCandidateName] = useState("");
-  const [tone,          setTone]          = useState<"professional"|"conversational"|"enthusiastic">("professional");
+  const [company,       setCompany]       = useState(_cl?.company ?? "");
+  const [targetRole,    setTargetRole]    = useState(_cl?.targetRole ?? "");
+  const [candidateName, setCandidateName] = useState(_cl?.candidateName ?? "");
+  const [tone,          setTone]          = useState<"professional"|"conversational"|"enthusiastic">((_cl?.tone as "professional"|"conversational"|"enthusiastic") ?? "professional");
   const [generating,    setGenerating]    = useState(false);
-  type TailoringNote = { decision: string; impact: string };
-  type KeyStrength   = { strength: string; evidence: string };
-  const [result,        setResult]        = useState<{ subject: string; coverLetter: string; tailoringNotes?: (TailoringNote|string)[]; keyStrengths?: (KeyStrength|string)[]; openingHook?: string } | null>(null);
+  const [result,        setResult]        = useState<CLResult | null>(_cl?.result ?? null);
   const [editMode,      setEditMode]      = useState(false);
-  const [editedLetter,  setEditedLetter]  = useState("");
+  const [editedLetter,  setEditedLetter]  = useState(_cl?.editedLetter ?? "");
   const [copied,        setCopied]        = useState(false);
   const [error,         setError]         = useState("");
   const [showDlMenu,    setShowDlMenu]    = useState(false);
+  // Persist session whenever meaningful state changes
+  useEffect(() => {
+    if (profileText || jobDesc || result) {
+      lsSet(CL_KEY, { step, profileText, profileFile, jobDesc, company, targetRole, candidateName, tone, result, editedLetter, stage });
+    }
+  }, [step, profileText, jobDesc, company, targetRole, candidateName, tone, result, editedLetter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleUpload(file: File) {
     setProfileFile(file.name);
@@ -13974,7 +14072,10 @@ function ScreenCoverLetter({ stage, active = false, onNavigate }: { stage: Caree
         body: JSON.stringify({ profileText, jobDescription:jobDesc, company, targetRole, tone, candidateName }),
       });
       const data = await res.json().catch(() => null) as { subject?: string; coverLetter?: string; tailoringNotes?: (TailoringNote|string)[]; keyStrengths?: (KeyStrength|string)[]; openingHook?: string; error?: string } | null;
-      if (data?.coverLetter) { setResult({ subject:data.subject ?? "", coverLetter:data.coverLetter, tailoringNotes:data.tailoringNotes, keyStrengths:data.keyStrengths, openingHook:data.openingHook }); setEditedLetter(data.coverLetter);
+      if (data?.coverLetter) {
+        const newResult = { subject:data.subject ?? "", coverLetter:data.coverLetter, tailoringNotes:data.tailoringNotes, keyStrengths:data.keyStrengths, openingHook:data.openingHook };
+        setResult(newResult); setEditedLetter(data.coverLetter);
+        lsSet(CL_KEY, { step, profileText, profileFile, jobDesc, company, targetRole, candidateName, tone, result: newResult, editedLetter: data.coverLetter, stage });
         // Save to doc vault
         vaultSave({ type:"cover-letter", name:data.subject||targetRole||"Cover Letter", content:data.coverLetter, meta:{ subject:data.subject??"", targetRole, company, tone, stage } }); }
       else setError(data?.error ?? "Generation failed — try again.");
