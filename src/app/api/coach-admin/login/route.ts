@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ensureSameOrigin } from "@/lib/utils";
 import { ensureCoachAdminUser, getCoachAdminRole } from "@/lib/billing";
-import { setCoachAdminSession, verifyCoachAdminPassword } from "@/lib/coach-admin-auth";
+import {
+  setCoachAdminSessionOnResponse,
+  verifyCoachAdminPassword,
+} from "@/lib/coach-admin-auth";
 
 export async function POST(request: NextRequest) {
   if (!ensureSameOrigin(request)) {
@@ -25,7 +28,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid password." }, { status: 401 });
   }
 
-  await ensureCoachAdminUser(email, role);
-  await setCoachAdminSession(email, role);
-  return NextResponse.json({ ok: true, role });
+  try {
+    await ensureCoachAdminUser(email, role);
+  } catch (error) {
+    console.error("[coach-admin-login] failed to sync admin user", error);
+  }
+
+  const response = NextResponse.json({ ok: true, role });
+  return setCoachAdminSessionOnResponse(response, email, role);
 }

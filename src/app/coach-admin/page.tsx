@@ -5,7 +5,7 @@ import {
   getCoachAdminBetaAutoLoginConfig,
   getCoachAdminSession,
 } from "@/lib/coach-admin-auth";
-import { prisma } from "@/lib/db";
+import { isDatabaseReady, prisma } from "@/lib/db";
 import { formatCurrency } from "@/lib/utils";
 import { getPlanMonthlyAmountCents } from "@/lib/billing";
 
@@ -32,34 +32,66 @@ export default async function CoachAdminPage() {
     );
   }
 
-  const [subscriptions, accounts, recentTickets, tokenAggregate] = await Promise.all([
-    prisma.subscription.findMany({
-      include: {
-        account: { include: { users: true } },
-      },
-      orderBy: { updatedAt: "desc" },
-    }),
-    prisma.account.findMany({
-      include: {
-        users: true,
-        subscription: true,
-      },
-      orderBy: { createdAt: "desc" },
-      take: 20,
-    }),
-    prisma.supportTicket.findMany({
-      include: {
-        account: true,
-        reporter: true,
-        assignedTo: true,
-      },
-      orderBy: { updatedAt: "desc" },
-      take: 12,
-    }),
-    prisma.aiTokenUsage.aggregate({
-      _sum: { totalTokens: true },
-    }),
-  ]);
+  if (!isDatabaseReady()) {
+    return (
+      <div className="rounded-3xl border border-amber-500/20 bg-amber-500/10 p-6 text-amber-100 shadow-xl">
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-200/80">Billing setup needed</p>
+        <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">Coach admin signed in, billing database unavailable</h2>
+        <p className="mt-3 max-w-2xl text-sm leading-7 text-amber-100/80">
+          The admin session works, but this deployment does not currently have a valid runtime database connection for the billing tables.
+          Add the production `DATABASE_URL` / `NETLIFY_DATABASE_URL` and deploy the Prisma migration so subscriptions, accounts, tickets, and token usage can load here.
+        </p>
+      </div>
+    );
+  }
+
+  let subscriptions: any[] = [];
+  let accounts: any[] = [];
+  let recentTickets: any[] = [];
+  let tokenAggregate: { _sum: { totalTokens: number | null } } = { _sum: { totalTokens: 0 } };
+
+  try {
+    [subscriptions, accounts, recentTickets, tokenAggregate] = await Promise.all([
+      prisma.subscription.findMany({
+        include: {
+          account: { include: { users: true } },
+        },
+        orderBy: { updatedAt: "desc" },
+      }),
+      prisma.account.findMany({
+        include: {
+          users: true,
+          subscription: true,
+        },
+        orderBy: { createdAt: "desc" },
+        take: 20,
+      }),
+      prisma.supportTicket.findMany({
+        include: {
+          account: true,
+          reporter: true,
+          assignedTo: true,
+        },
+        orderBy: { updatedAt: "desc" },
+        take: 12,
+      }),
+      prisma.aiTokenUsage.aggregate({
+        _sum: { totalTokens: true },
+      }),
+    ]);
+  } catch (error) {
+    console.error("[coach-admin-page] failed to load billing data", error);
+    return (
+      <div className="rounded-3xl border border-amber-500/20 bg-amber-500/10 p-6 text-amber-100 shadow-xl">
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-200/80">Billing data unavailable</p>
+        <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">Admin session is live, but the billing tables are not ready</h2>
+        <p className="mt-3 max-w-2xl text-sm leading-7 text-amber-100/80">
+          This usually means the production database is unreachable or the latest Prisma migration has not been applied yet.
+          The sign-in path is working; the billing data layer needs to catch up.
+        </p>
+      </div>
+    );
+  }
 
   const activeCount = subscriptions.filter((item: any) => item.status === "active").length;
   const trialingCount = subscriptions.filter((item: any) => item.status === "trialing").length;

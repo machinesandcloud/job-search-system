@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { clearCoachAdminSession } from "@/lib/coach-admin-auth";
+import { clearCoachAdminSessionOnResponse } from "@/lib/coach-admin-auth";
 
 export async function POST() {
-  await clearCoachAdminSession();
-  return NextResponse.json({ ok: true });
+  const response = NextResponse.json({ ok: true });
+  return clearCoachAdminSessionOnResponse(response);
 }

@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { NextResponse } from "next/server";
 import { ensureCoachAdminUser, type CoachAdminRole, getCoachAdminRole } from "@/lib/billing";
 
 const COOKIE_NAME = "coach_admin_session";
@@ -48,16 +49,40 @@ function signSession(payload: Record<string, unknown>) {
   return `${data}.${signature}`;
 }
 
+function applyCoachAdminCookie(response: NextResponse, token: string) {
+  response.cookies.set(COOKIE_NAME, token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 60 * 12,
+  });
+  return response;
+}
+
 function verifySession(token: string) {
   const [data, signature] = token.split(".");
   if (!data || !signature) return null;
   const expected = crypto.createHmac("sha256", getSecret()).update(data).digest("base64url");
-  if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) return null;
-  const payload = JSON.parse(Buffer.from(data, "base64url").toString("utf8")) as {
+  const provided = Buffer.from(signature);
+  const expectedBuffer = Buffer.from(expected);
+  if (provided.length !== expectedBuffer.length) return null;
+  if (!crypto.timingSafeEqual(provided, expectedBuffer)) return null;
+
+  let payload: {
     email?: string;
     role?: CoachAdminRole;
     exp?: number;
   };
+  try {
+    payload = JSON.parse(Buffer.from(data, "base64url").toString("utf8")) as {
+      email?: string;
+      role?: CoachAdminRole;
+      exp?: number;
+    };
+  } catch {
+    return null;
+  }
   if (!payload.email || !payload.role) return null;
   if (payload.exp && Date.now() > payload.exp) return null;
   return payload;
@@ -76,9 +101,20 @@ export async function setCoachAdminSession(email: string, role: CoachAdminRole) 
   });
 }
 
+export function setCoachAdminSessionOnResponse(response: NextResponse, email: string, role: CoachAdminRole) {
+  const exp = Date.now() + 1000 * 60 * 60 * 12;
+  const token = signSession({ email, role, exp });
+  return applyCoachAdminCookie(response, token);
+}
+
 export async function clearCoachAdminSession() {
   const store = await cookies();
   store.set(COOKIE_NAME, "", { path: "/", maxAge: 0 });
+}
+
+export function clearCoachAdminSessionOnResponse(response: NextResponse) {
+  response.cookies.set(COOKIE_NAME, "", { path: "/", maxAge: 0 });
+  return response;
 }
 
 export async function getCoachAdminSession() {

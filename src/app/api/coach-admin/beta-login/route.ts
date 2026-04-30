@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ensureCoachAdminUser } from "@/lib/billing";
 import {
   getCoachAdminBetaAutoLoginConfig,
-  setCoachAdminSession,
+  setCoachAdminSessionOnResponse,
 } from "@/lib/coach-admin-auth";
 
 function getSafeNext(value: string | null) {
@@ -17,9 +17,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/coach-admin", request.url));
   }
 
-  await ensureCoachAdminUser(beta.email, beta.role);
-  await setCoachAdminSession(beta.email, beta.role);
+  try {
+    await ensureCoachAdminUser(beta.email, beta.role);
+  } catch (error) {
+    console.error("[coach-admin-beta-login] failed to sync admin user", error);
+  }
 
   const next = getSafeNext(request.nextUrl.searchParams.get("next"));
-  return NextResponse.redirect(new URL(next, request.url));
+  const response = NextResponse.redirect(new URL(next, request.url));
+  return setCoachAdminSessionOnResponse(response, beta.email, beta.role);
 }
