@@ -14,6 +14,62 @@ enum PlanTier {
   team
 }
 
+enum UserRole {
+  member
+  admin
+  support
+}
+
+enum AccountStatus {
+  incomplete
+  active
+  trialing
+  past_due
+  unpaid
+  canceled
+  incomplete_expired
+}
+
+enum SubscriptionStatus {
+  incomplete
+  incomplete_expired
+  trialing
+  active
+  past_due
+  unpaid
+  canceled
+  paused
+}
+
+enum SupportTicketCategory {
+  billing
+  technical
+  product
+  account
+  other
+}
+
+enum SupportTicketPriority {
+  low
+  medium
+  high
+  urgent
+}
+
+enum SupportTicketStatus {
+  open
+  in_progress
+  resolved
+  closed
+}
+
+enum StripeEventProcessingStatus {
+  pending
+  processed
+  failed
+  skipped
+}
+
 enum SessionMode {
   resume
   linkedin
@@ -68,16 +124,21 @@ enum FeedbackType {
 model User {
   id                  String         @id @default(uuid()) @db.Uuid
   email               String         @unique
+  externalAuthId      String?        @unique
   passwordHash        String?
   firstName           String?
   lastName            String?
   locale              String?
   planTier            PlanTier       @default(free)
+  role                UserRole       @default(member)
+  accountId           String?        @db.Uuid
   consentPersonalize  Boolean        @default(true)
   consentAnalytics    Boolean        @default(true)
   marketingOptIn      Boolean        @default(false)
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
+  account             Account?       @relation("AccountMembers", fields: [accountId], references: [id], onDelete: SetNull)
+  ownedAccounts       Account[]      @relation("AccountOwner")
   coachProfile        CoachProfile?
   appSessions         AppSession[]
   sessions            CoachingSession[]
@@ -86,6 +147,54 @@ model User {
   memories            Memory[]
   usageEvents         UsageEvent[]
   feedbackEntries     Feedback[]
+  supportTickets      SupportTicket[] @relation("SupportTicketReporter")
+  assignedTickets     SupportTicket[] @relation("SupportTicketAssignee")
+  appEvents           AppEvent[]
+  adminNotes          AdminNote[]    @relation("AdminNoteAuthor")
+  tokenUsageEntries   AiTokenUsage[]
+}
+
+model Account {
+  id             String        @id @default(uuid()) @db.Uuid
+  name           String
+  ownerUserId    String        @db.Uuid
+  status         AccountStatus @default(incomplete)
+  paymentIssue   Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  ownerUser      User          @relation("AccountOwner", fields: [ownerUserId], references: [id], onDelete: Restrict)
+  users          User[]        @relation("AccountMembers")
+  subscription   Subscription?
+  supportTickets SupportTicket[]
+  appEvents      AppEvent[]
+  adminNotes     AdminNote[]
+  stripeEvents   StripeEvent[]
+  tokenUsageEntries AiTokenUsage[]
+
+  @@index([ownerUserId])
+  @@index([status])
+}
+
+model Subscription {
+  id                  String             @id @default(uuid()) @db.Uuid
+  accountId           String             @unique @db.Uuid
+  stripeCustomerId    String             @unique
+  stripeSubscriptionId String            @unique
+  stripePriceId       String?
+  planName            String?
+  status              SubscriptionStatus @default(incomplete)
+  currentPeriodStart  DateTime?
+  currentPeriodEnd    DateTime?
+  cancelAtPeriodEnd   Boolean            @default(false)
+  canceledAt          DateTime?
+  trialEnd            DateTime?
+  paymentIssue        Boolean            @default(false)
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  account             Account            @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([currentPeriodEnd])
 }
 
 model AppSession {
@@ -241,6 +350,95 @@ model UsageEvent {
 
   @@index([userId, createdAt])
   @@index([eventType])
+}
+
+model SupportTicket {
+  id            String                @id @default(uuid()) @db.Uuid
+  accountId     String                @db.Uuid
+  userId        String?               @db.Uuid
+  subject       String
+  description   String                @db.Text
+  category      SupportTicketCategory @default(other)
+  priority      SupportTicketPriority @default(medium)
+  status        SupportTicketStatus   @default(open)
+  assignedToId  String?               @db.Uuid
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  resolvedAt    DateTime?
+  account       Account               @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  reporter      User?                 @relation("SupportTicketReporter", fields: [userId], references: [id], onDelete: SetNull)
+  assignedTo    User?                 @relation("SupportTicketAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  adminNotes    AdminNote[]
+
+  @@index([accountId, createdAt])
+  @@index([status, priority])
+  @@index([assignedToId])
+}
+
+model AppEvent {
+  id           String    @id @default(uuid()) @db.Uuid
+  accountId    String?   @db.Uuid
+  userId       String?   @db.Uuid
+  eventName    String
+  metadataJson Json?
+  createdAt    DateTime  @default(now())
+  account      Account?  @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  user         User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([accountId, createdAt])
+  @@index([eventName, createdAt])
+}
+
+model AdminNote {
+  id              String         @id @default(uuid()) @db.Uuid
+  accountId       String         @db.Uuid
+  userId          String         @db.Uuid
+  supportTicketId String?        @db.Uuid
+  note            String         @db.Text
+  createdAt       DateTime       @default(now())
+  account         Account        @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  author          User           @relation("AdminNoteAuthor", fields: [userId], references: [id], onDelete: Cascade)
+  supportTicket   SupportTicket? @relation(fields: [supportTicketId], references: [id], onDelete: Cascade)
+
+  @@index([accountId, createdAt])
+  @@index([supportTicketId, createdAt])
+}
+
+model StripeEvent {
+  id          String                      @id @default(uuid()) @db.Uuid
+  stripeEventId String                    @unique
+  eventType   String
+  status      StripeEventProcessingStatus @default(pending)
+  accountId   String?                     @db.Uuid
+  payload     Json
+  errorMessage String?
+  processedAt DateTime?
+  createdAt   DateTime                    @default(now())
+  updatedAt   DateTime                    @updatedAt
+  account     Account?                    @relation(fields: [accountId], references: [id], onDelete: SetNull)
+
+  @@index([eventType, createdAt])
+  @@index([status, createdAt])
+}
+
+model AiTokenUsage {
+  id           String    @id @default(uuid()) @db.Uuid
+  accountId    String?   @db.Uuid
+  userId       String?   @db.Uuid
+  provider     String    @default("openai")
+  model        String
+  featureName  String?
+  inputTokens  Int       @default(0)
+  outputTokens Int       @default(0)
+  totalTokens  Int       @default(0)
+  metadataJson Json?
+  createdAt    DateTime  @default(now())
+  account      Account?  @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  user         User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([accountId, createdAt])
+  @@index([userId, createdAt])
+  @@index([model, createdAt])
 }
 
 model Feedback {

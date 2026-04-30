@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requirePaidRouteAccess } from "@/lib/billing";
 import { openaiChat } from "@/lib/openai";
 import { ensureSameOrigin } from "@/lib/utils";
 
@@ -6,6 +7,8 @@ export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) {
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
   }
+  const access = await requirePaidRouteAccess("zari_resume_rewrite_section");
+  if (!access.ok) return access.response;
 
   const body = await request.json().catch(() => ({})) as {
     section?: string;

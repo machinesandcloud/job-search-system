@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
+import { requirePaidRouteAccess } from "@/lib/billing";
 import { ensureSameOrigin } from "@/lib/utils";
 
 export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) {
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
   }
+  const access = await requirePaidRouteAccess("zari_transcribe");
+  if (!access.ok) return access.response;
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {

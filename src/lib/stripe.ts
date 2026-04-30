@@ -5,7 +5,9 @@ export function getStripeClient() {
   if (!key) {
     throw new Error("Stripe secret key missing");
   }
-  return new Stripe(key);
+  return new Stripe(key, {
+    maxNetworkRetries: 2,
+  });
 }
 
 export function getStripePriceId() {
@@ -14,4 +16,8 @@ export function getStripePriceId() {
     return null;
   }
   return price;
+}
+
+export function getStripeSubscriptionPriceId() {
+  return process.env.STRIPE_PRICE_ID_MONTHLY || process.env.STRIPE_SUBSCRIPTION_PRICE_ID || getStripePriceId();
 }

@@ -1,3 +1,5 @@
+import { recordAiTokenUsage, syncCurrentUserToBillingIdentity } from "@/lib/billing";
+
 export type OAIMessage = { role: "system" | "user" | "assistant"; content: string };
 
 interface ChatOptions {
@@ -5,6 +7,8 @@ interface ChatOptions {
   temperature?: number;
   maxTokens?: number;
   jsonMode?: boolean;
+  usageFeature?: string;
+  usageMetadata?: Record<string, unknown>;
 }
 
 export type OpenAIError =
@@ -61,7 +65,31 @@ export async function openaiChat(
     _lastError = null;
     const data = await res.json() as {
       choices?: Array<{ message?: { content?: string } }>;
+      usage?: {
+        prompt_tokens?: number;
+        completion_tokens?: number;
+        total_tokens?: number;
+      };
     };
+
+    try {
+      const identity = await syncCurrentUserToBillingIdentity();
+      if (identity && data.usage) {
+        await recordAiTokenUsage({
+          accountId: identity.account.id,
+          userId: identity.user.id,
+          model,
+          featureName: opts.usageFeature || "llm_request",
+          inputTokens: data.usage.prompt_tokens || 0,
+          outputTokens: data.usage.completion_tokens || 0,
+          totalTokens: data.usage.total_tokens || 0,
+          metadataJson: opts.usageMetadata,
+        });
+      }
+    } catch (usageError) {
+      console.error("[openai] failed to record token usage", usageError);
+    }
+
     return data.choices?.[0]?.message?.content?.trim() ?? null;
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

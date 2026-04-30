@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requirePaidRouteAccess } from "@/lib/billing";
 import { openaiChat } from "@/lib/openai";
 import { ensureSameOrigin } from "@/lib/utils";
 
@@ -71,6 +72,8 @@ export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) {
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
   }
+  const access = await requirePaidRouteAccess("zari_linkedin_parse_profile");
+  if (!access.ok) return access.response;
 
   const contentType = request.headers.get("content-type") ?? "";
   if (!contentType.includes("multipart/form-data")) {

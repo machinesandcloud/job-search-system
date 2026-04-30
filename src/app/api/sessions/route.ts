@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
+import { requirePaidRouteAccess } from "@/lib/billing";
 import { getCurrentUserId } from "@/lib/mvp/auth";
 import { createSessionForUser, listSessionsForUser } from "@/lib/mvp/store";
 
 export async function GET() {
+  const access = await requirePaidRouteAccess("sessions_list", {}, { enforceTokenLimit: false });
+  if (!access.ok) return access.response;
   const userId = await getCurrentUserId();
   if (!userId) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
@@ -12,6 +15,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const access = await requirePaidRouteAccess("sessions_create", {}, { enforceTokenLimit: false });
+  if (!access.ok) return access.response;
   const userId = await getCurrentUserId();
   if (!userId) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });

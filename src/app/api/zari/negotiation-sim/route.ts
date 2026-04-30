@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requirePaidRouteAccess } from "@/lib/billing";
 import { getCurrentUserId } from "@/lib/mvp/auth";
 import { buildUserContext } from "@/lib/mvp/context";
 import { openaiChat } from "@/lib/openai";
@@ -11,6 +12,8 @@ export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) {
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
   }
+  const access = await requirePaidRouteAccess("zari_negotiation_sim");
+  if (!access.ok) return access.response;
 
   const body = await request.json().catch(() => ({})) as {
     type?: "open" | "reply" | "coaching" | "debrief";

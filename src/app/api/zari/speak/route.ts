@@ -1,3 +1,4 @@
+import { requirePaidRouteAccess } from "@/lib/billing";
 import { ensureSameOrigin } from "@/lib/utils";
 
 export const OPENAI_VOICES = ["shimmer", "nova", "alloy", "echo", "onyx", "fable"] as const;
@@ -6,6 +7,8 @@ export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) {
     return new Response("Forbidden", { status: 403 });
   }
+  const access = await requirePaidRouteAccess("zari_speak");
+  if (!access.ok) return access.response;
 
   const body = await request.json().catch(() => ({})) as { text?: string; voice?: string };
   const text  = (body.text ?? "").trim();

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { PageFrame } from "@/components/mvp";
 import { getCurrentUserId } from "@/lib/mvp/auth";
 import { Reveal } from "@/components/reveal";
+import { SubscriptionCheckoutButton } from "@/components/subscription-checkout-button";
 import { StarField, CursorGlow } from "@/components/mvp-hero-extras";
 
 const tiers = [
@@ -148,18 +149,25 @@ export default async function PricingPage() {
                           </li>
                         ))}
                       </ul>
-                      <Link
-                        href={tier.href}
-                        className={`mt-8 flex w-full items-center justify-center rounded-xl py-3.5 text-[14px] font-semibold transition-all hover:-translate-y-0.5 ${
-                          tier.featured
-                            ? "bg-[var(--brand)] text-white shadow-[var(--shadow-brand)] hover:bg-[var(--brand-hover)]"
-                            : tier.muted
-                              ? "border border-[var(--border)] bg-[var(--surface-muted)] text-[var(--muted)] hover:border-[var(--brand)] hover:text-[var(--brand)]"
-                              : "border border-[var(--border)] bg-[var(--surface-muted)] text-[var(--ink)] hover:border-[var(--brand)] hover:text-[var(--brand)]"
-                        }`}
-                      >
-                        {tier.cta} →
-                      </Link>
+                      {tier.featured && userId ? (
+                        <SubscriptionCheckoutButton
+                          label={tier.cta}
+                          className="flex w-full items-center justify-center rounded-xl bg-[var(--brand)] py-3.5 text-[14px] font-semibold text-white shadow-[var(--shadow-brand)] transition-all hover:-translate-y-0.5 hover:bg-[var(--brand-hover)] disabled:cursor-not-allowed disabled:opacity-70"
+                        />
+                      ) : (
+                        <Link
+                          href={tier.href}
+                          className={`mt-8 flex w-full items-center justify-center rounded-xl py-3.5 text-[14px] font-semibold transition-all hover:-translate-y-0.5 ${
+                            tier.featured
+                              ? "bg-[var(--brand)] text-white shadow-[var(--shadow-brand)] hover:bg-[var(--brand-hover)]"
+                              : tier.muted
+                                ? "border border-[var(--border)] bg-[var(--surface-muted)] text-[var(--muted)] hover:border-[var(--brand)] hover:text-[var(--brand)]"
+                                : "border border-[var(--border)] bg-[var(--surface-muted)] text-[var(--ink)] hover:border-[var(--brand)] hover:text-[var(--brand)]"
+                          }`}
+                        >
+                          {tier.cta} →
+                        </Link>
+                      )}
                     </div>
                   </div>
                 </div>

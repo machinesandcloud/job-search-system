@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
+import { requirePaidRouteAccess } from "@/lib/billing";
 import { getCurrentUserId } from "@/lib/mvp/auth";
 import { createDocumentForUser } from "@/lib/mvp/store";
 
 export async function POST(request: Request) {
+  const access = await requirePaidRouteAccess("documents_upload", {}, { enforceTokenLimit: false });
+  if (!access.ok) return access.response;
   const userId = await getCurrentUserId();
   if (!userId) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
