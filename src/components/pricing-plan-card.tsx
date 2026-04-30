@@ -8,8 +8,9 @@ function planTone(planId: PricingPlan["id"]) {
     return {
       badge: "bg-cyan-50 text-cyan-700",
       featuredBorder: "var(--brand)",
-      panelSurface: "#F6FBFE",
-      swooshPrimary: "rgba(6,182,212,0.28)",
+      brushStrong: "rgba(245,158,11,0.42)",
+      brushSoft: "rgba(245,158,11,0.24)",
+      brushFade: "rgba(245,158,11,0.08)",
       bullet: "text-cyan-600",
       buttonClass: "shadow-[var(--shadow-brand)]",
       buttonStyle: {
@@ -23,8 +24,9 @@ function planTone(planId: PricingPlan["id"]) {
     return {
       badge: "bg-amber-50 text-amber-700",
       featuredBorder: "var(--gold)",
-      panelSurface: "#FFFBF5",
-      swooshPrimary: "rgba(245,158,11,0.26)",
+      brushStrong: "rgba(245,158,11,0.42)",
+      brushSoft: "rgba(245,158,11,0.24)",
+      brushFade: "rgba(245,158,11,0.08)",
       bullet: "text-amber-500",
       buttonClass: "shadow-[var(--shadow)]",
       buttonStyle: {
@@ -37,8 +39,9 @@ function planTone(planId: PricingPlan["id"]) {
   return {
     badge: "bg-[var(--brand-light)] text-[var(--brand)]",
     featuredBorder: "var(--brand)",
-    panelSurface: "#F7F9FF",
-    swooshPrimary: "rgba(67,97,238,0.26)",
+    brushStrong: "rgba(245,158,11,0.42)",
+    brushSoft: "rgba(245,158,11,0.24)",
+    brushFade: "rgba(245,158,11,0.08)",
     bullet: "text-[var(--brand)]",
     buttonClass: "shadow-[var(--shadow)]",
     buttonStyle: {
@@ -68,6 +71,7 @@ export function PricingPlanCard({
 }) {
   const tone = planTone(plan.id);
   const signupTarget = `${signupHref}${signupHref.includes("?") ? "&" : "?"}plan=${plan.id}`;
+  const brushGradientId = `pricing-brush-${plan.id}`;
 
   return (
     <div className="relative flex h-full flex-col">
@@ -133,29 +137,37 @@ export function PricingPlanCard({
 
           <div className="my-7 h-px bg-[var(--border)]" />
 
-          <div
-            className="relative overflow-hidden rounded-2xl border border-[var(--border)] px-5 py-4"
-            style={{ background: tone.panelSurface }}
-          >
-            <p className="relative text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Included</p>
-            <div className="relative mt-2 inline-block max-w-[15rem] pb-4">
-              <p className="relative text-[15px] font-semibold leading-6 tracking-[-0.02em] text-[var(--ink-2)]">
-                {featureIntro(plan)}
-              </p>
+          <div className="relative">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Included</p>
+            <div className="relative mt-2 inline-block max-w-[15rem] py-1">
               <svg
                 aria-hidden
-                viewBox="0 0 220 24"
-                className="pointer-events-none absolute -bottom-0.5 left-0 h-4 w-full"
+                viewBox="0 0 244 40"
+                className="pointer-events-none absolute -left-1 top-[0.38rem] h-[24px] w-[calc(100%+8px)]"
                 fill="none"
                 preserveAspectRatio="none"
               >
+                <defs>
+                  <linearGradient id={brushGradientId} x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor={tone.brushStrong} />
+                    <stop offset="62%" stopColor={tone.brushSoft} />
+                    <stop offset="100%" stopColor={tone.brushFade} />
+                  </linearGradient>
+                </defs>
                 <path
-                  d="M6 13C34 20 58 18 84 11C108 4 138 5 166 11C184 15 198 16 214 10"
-                  stroke={tone.swooshPrimary}
-                  strokeWidth="5"
+                  d="M10 20C38 19 65 18 98 18C131 18 166 19 201 17C216 16 228 15 236 14L233 31C222 33 207 34 184 34H52C30 34 17 33 10 31V20Z"
+                  fill={`url(#${brushGradientId})`}
+                />
+                <path
+                  d="M14 22C46 21 79 21 113 21C146 21 181 22 217 20C224 20 230 19 234 18"
+                  stroke={`url(#${brushGradientId})`}
+                  strokeWidth="18"
                   strokeLinecap="round"
                 />
               </svg>
+              <p className="relative z-10 text-[15px] font-semibold leading-6 tracking-[-0.02em] text-[var(--ink-2)]">
+                {featureIntro(plan)}
+              </p>
             </div>
           </div>
 

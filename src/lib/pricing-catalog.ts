@@ -25,7 +25,7 @@ export const PRICING_PLANS: PricingPlan[] = [
     accessLabel: "Resume, LinkedIn, cover letter, interview prep, and action plans",
     summary: "For candidates actively applying right now.",
     description: "All of the core job-search workflows, without promotion, salary, career-change, or executive surfaces.",
-    tokenLine: "120 Zari tokens every month",
+    tokenLine: "120 tokens every month",
     cta: "Choose Search",
     features: [
       "Job-search workspace only",
@@ -45,7 +45,7 @@ export const PRICING_PLANS: PricingPlan[] = [
     accessLabel: "Everything except executive leadership tools",
     summary: "For people navigating job search plus the next move after it.",
     description: "Unlock promotion, salary, and career-change workflows, plus Zari Live Coach.",
-    tokenLine: "400 Zari tokens every month",
+    tokenLine: "400 tokens every month",
     cta: "Choose Growth",
     featured: true,
     features: [
@@ -66,7 +66,7 @@ export const PRICING_PLANS: PricingPlan[] = [
     accessLabel: "Everything, including leadership and executive positioning",
     summary: "For senior operators, directors, VPs, and exec-track candidates.",
     description: "Adds the leadership and executive surfaces that stay locked in Growth.",
-    tokenLine: "1,000 Zari tokens every month",
+    tokenLine: "1,000 tokens every month",
     cta: "Choose Executive",
     features: [
       "Everything in Growth",
@@ -105,8 +105,8 @@ export const PRICING_FAQS = [
     a: "Yes. Every account includes 1 resume review, 1 LinkedIn review, and 1 mock interview before you subscribe. The paid plans are for continued access and deeper workflows.",
   },
   {
-    q: "What exactly is a Zari token?",
-    a: "Zari tokens are product credits. Text, deeper analyses, and live-coach minutes all burn from the same balance so pricing stays simple even though the AI stack behind the scenes is not.",
+    q: "What exactly is a token?",
+    a: "Tokens are product credits. Text, deeper analyses, and live-coach minutes all burn from the same balance so pricing stays simple even though the AI stack behind the scenes is not.",
   },
   {
     q: "What happens when I run out of included monthly tokens?",
