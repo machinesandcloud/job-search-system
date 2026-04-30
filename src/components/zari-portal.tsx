@@ -5018,9 +5018,13 @@ function ScreenPivotAnalysis() {
     setGenerating(true); setError("");
     try {
       const res = await fetch("/api/zari/pivot-analysis", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(form) });
-      const data = await res.json().catch(() => null) as (PivotAnalysisResult & { error?: string }) | null;
+      const data = await res.json().catch(() => null) as (PivotAnalysisResult & { error?: string; message?: string }) | null;
       if (data && typeof data.pivotScore === "number") { setResult(data); setTab("overview"); }
-      else setError(data?.error ?? "Could not analyze your pivot. Please try again.");
+      else if (data?.error === "not_enough_context") {
+        setStep(2);
+        setError("Add your accomplishments or skills first — without your actual background, the analysis can only guess. That's not useful.");
+      }
+      else setError(data?.message ?? data?.error ?? "Could not analyze your pivot. Please try again.");
     } catch { setError("Something went wrong. Please try again."); }
     setGenerating(false);
   }
@@ -5379,14 +5383,19 @@ function ScreenPivotAnalysis() {
           )}
           {step === 2 && (
             <div style={{ ...card, display:"grid", gap:14 }}>
-              <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Key accomplishments</p>
-                <textarea value={form.accomplishments} onChange={e => setForm(f => ({...f,accomplishments:e.target.value}))} placeholder="Your strongest results — projects you shipped, outcomes you drove, problems you solved. Be specific." style={textarea} />
+              <div style={{ background:"rgba(2,132,199,0.06)", border:"1px solid rgba(56,189,248,0.18)", borderRadius:12, padding:"12px 16px", display:"flex", gap:10, alignItems:"flex-start" }}>
+                <svg viewBox="0 0 14 14" fill="none" stroke="#38BDF8" strokeWidth="1.8" style={{width:14,height:14,flexShrink:0,marginTop:1}}><circle cx="7" cy="7" r="6"/><path d="M7 5v3M7 9.5v.5"/></svg>
+                <p style={{ fontSize:12.5, color:"var(--z-text2)", margin:0, lineHeight:1.6 }}>Zari only uses what you actually tell it. Fill in at least one of these so the analysis is based on your real background — not a guess from job titles.</p>
               </div>
               <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Skills you want to leverage</p>
-                <textarea value={form.skills} onChange={e => setForm(f => ({...f,skills:e.target.value}))} placeholder="Which of your skills are most relevant to where you're going? What do you do especially well?" style={{ ...textarea, minHeight:100 }} />
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Key accomplishments <span style={{ color:"#F87171" }}>*</span></p>
+                <textarea value={form.accomplishments} onChange={e => setForm(f => ({...f,accomplishments:e.target.value}))} placeholder="Your strongest results — projects you shipped, outcomes you drove, problems you solved. Be specific with numbers where you can." style={textarea} />
               </div>
+              <div>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Skills you want to leverage <span style={{ color:"#F87171" }}>*</span></p>
+                <textarea value={form.skills} onChange={e => setForm(f => ({...f,skills:e.target.value}))} placeholder="Which of your skills are most relevant to where you're going? What do you consistently do well?" style={{ ...textarea, minHeight:100 }} />
+              </div>
+              <p style={{ fontSize:11.5, color:"var(--z-text3)", margin:0 }}>Fill in at least one field to continue. The more you share, the more specific the analysis.</p>
             </div>
           )}
           {step === 3 && (
@@ -5413,7 +5422,12 @@ function ScreenPivotAnalysis() {
           {error && <div style={{ marginTop:14, background:"rgba(127,29,29,0.2)", border:"1px solid rgba(248,113,113,0.28)", borderRadius:14, padding:"11px 14px", fontSize:13, color:"#FCA5A5" }}>{error}</div>}
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:10, marginTop:22 }}>
             <button onClick={() => step === 1 ? setForm(f => ({...f,fromRole:"",toRole:""})) : setStep(s => (s-1) as 1|2|3)} style={{ padding:"13px 20px", borderRadius:14, border:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text3)", fontSize:13.5, fontWeight:600, cursor:"pointer" }}>{step === 1 ? "Clear" : "← Back"}</button>
-            <button onClick={() => { if (step === 1 && !form.fromRole.trim() && !form.toRole.trim()) { setError("Add your current and target roles to continue."); return; } setError(""); if (step === 3) void generate(); else setStep(s => (s+1) as 1|2|3); }} disabled={generating} style={{ minWidth:200, fontSize:14.5, fontWeight:700, padding:"13px 20px", borderRadius:14, border:"none", background:"#2563EB", color:"white", cursor:"pointer", opacity:generating ? 0.7 : 1 }}>
+            <button onClick={() => {
+              if (step === 1 && !form.fromRole.trim() && !form.toRole.trim()) { setError("Add your current and target roles to continue."); return; }
+              if (step === 2 && !form.accomplishments.trim() && !form.skills.trim()) { setError("Fill in at least your key accomplishments or skills. Without your actual background, the analysis would just be guessing from job titles."); return; }
+              setError("");
+              if (step === 3) void generate(); else setStep(s => (s+1) as 1|2|3);
+            }} disabled={generating} style={{ minWidth:200, fontSize:14.5, fontWeight:700, padding:"13px 20px", borderRadius:14, border:"none", background:"#2563EB", color:"white", cursor:"pointer", opacity:generating ? 0.7 : 1 }}>
               {step === 3 ? "Analyze my pivot →" : "Continue →"}
             </button>
           </div>

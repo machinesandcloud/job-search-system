@@ -65,11 +65,24 @@ export async function POST(request: Request) {
   const toRole = (body.toRole ?? "").trim();
   if (!fromRole && !toRole) return NextResponse.json({ error: "Provide your current and target roles" }, { status: 400 });
 
+  const hasBackground = !!(
+    (body.accomplishments ?? "").trim() ||
+    (body.skills ?? "").trim() ||
+    (body.resumeText ?? "").trim()
+  );
+
+  if (!hasBackground) {
+    return NextResponse.json({
+      error: "not_enough_context",
+      message: "Share your accomplishments, skills, or resume so Zari can assess your actual readiness — not guess based on job titles.",
+    }, { status: 422 });
+  }
+
   const userId = await getCurrentUserId();
   let userContext = "";
   if (userId) { try { userContext = await buildUserContext(userId); } catch { /* non-fatal */ } }
 
-  const systemPrompt = `You are Zari, a sharp career pivot coach. Assess this person's career change readiness and give them a concrete, honest pivot strategy.
+  const systemPrompt = `You are Zari, a sharp career pivot coach. Assess this person's career change readiness based ONLY on what they have explicitly told you.
 
 ${userContext ? `Profile context:\n${userContext}\n` : ""}
 
@@ -79,29 +92,30 @@ Return ONLY valid JSON:
   "pivotVerdict": "<Strong pivot | Viable with work | Challenging | High risk>",
   "hardTruth": "<1-2 blunt sentences about the single biggest challenge in this pivot>",
   "transferableAssets": [
-    { "skill": "<skill or capability>", "strength": "<Strong | Moderate | Weak>", "evidence": "<how it applies to target>" }
+    { "skill": "<skill or capability>", "strength": "<Strong | Moderate | Weak>", "evidence": "<how it applies to target — must reference something the person actually stated>" }
   ],
   "skillGaps": [
     { "gap": "<what is missing>", "severity": "<critical | moderate | minor>", "path": "<concrete way to close it>" }
   ],
   "targetRoles": [
-    { "role": "<specific role title>", "why": "<1-2 sentences on why this role is a good fit for this pivot given their background>", "bridge": "<1-2 sentences on how to position themselves for this specific role>" }
+    { "role": "<specific role title>", "why": "<why this role fits given their stated background>", "bridge": "<how to position for this role based on what they shared>" }
   ],
-  "pivotNarrative": "<2-3 sentences that frame this pivot compellingly for a hiring conversation>",
-  "resumeReframe": "<2-3 sentences of specific guidance on how to rewrite the resume for this pivot>",
+  "pivotNarrative": "<2-3 sentences that frame this pivot compellingly — use only facts they provided>",
+  "resumeReframe": "<2-3 sentences of specific guidance based on their actual background>",
   "quickWins": [
-    { "action": "<specific action to take>", "impact": "<High | Medium | Low>", "timeframe": "<when to do this, e.g. 'Today', 'This week', 'Within 2 weeks'>" }
+    { "action": "<specific action>", "impact": "<High | Medium | Low>", "timeframe": "<e.g. Today, This week, Within 2 weeks>" }
   ]
 }
 
-Rules:
-- Be specific to their actual from/to. Generic pivot advice is not acceptable.
-- pivotVerdict must be honest. Do not default to "Strong pivot" unless the evidence clearly supports it.
-- hardTruth must name the real challenge plainly. No hedging.
-- transferableAssets should reference their actual background, not generic skills.
-- skillGaps should be specific to THIS pivot, not a general list.
-- Generate 3-4 transferable assets, 3-4 skill gaps, 3 target roles, 4 quick wins.
-- pivotNarrative should sound like something they can say out loud in an interview.`;
+STRICT RULES — NO EXCEPTIONS:
+- Only reference skills, accomplishments, or experience the person EXPLICITLY stated. If you cannot ground a claim in their actual words, do not make it.
+- transferableAssets.evidence must directly reference something from their stated accomplishments or skills. Start with phrases like "You mentioned...", "From your background in...", "Your stated experience with..." — not invented specifics.
+- If their background is thin, reflect that honestly in the score (lower) and the hardTruth (acknowledge the gap). Do not compensate with generic-sounding assets.
+- pivotVerdict must be honest. Only return "Strong pivot" if their stated background clearly supports it.
+- hardTruth must name the real challenge plainly. No hedging, no invented positives.
+- skillGaps should be specific to THIS pivot based on what they told you is — and is not — in their background.
+- pivotNarrative must use facts from what they provided. No placeholder brackets. No invented achievements.
+- Generate 3-4 transferable assets (only from stated background), 3-4 skill gaps, 3 target roles, 4 quick wins.`;
 
   const userPrompt = [
     fromRole ? `FROM ROLE: ${fromRole}` : "",
