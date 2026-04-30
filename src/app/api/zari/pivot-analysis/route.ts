@@ -61,7 +61,7 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => ({})) as {
     fromRole?: string; fromIndustry?: string; toRole?: string; toIndustry?: string;
     accomplishments?: string; skills?: string; timeline?: string;
-    resumeText?: string; biggestConcern?: string;
+    resumeText?: string; biggestConcern?: string; jobDescription?: string; currentStatus?: string;
   };
 
   const fromRole = (body.fromRole ?? "").trim();
@@ -129,7 +129,9 @@ STRICT RULES — NO EXCEPTIONS:
     body.accomplishments ? `KEY ACCOMPLISHMENTS:\n${body.accomplishments.slice(0, 2000)}` : "",
     body.skills ? `SKILLS TO LEVERAGE:\n${body.skills.slice(0, 1500)}` : "",
     body.biggestConcern ? `BIGGEST CONCERN: ${body.biggestConcern}` : "",
-    body.resumeText ? `BACKGROUND:\n${body.resumeText.slice(0, 2500)}` : "",
+    body.currentStatus ? `STEPS ALREADY TAKEN:\n${body.currentStatus.slice(0, 600)}` : "",
+    body.resumeText ? `RESUME/BACKGROUND:\n${body.resumeText.slice(0, 2500)}` : "",
+    body.jobDescription ? `TARGET JOB DESCRIPTION:\n${body.jobDescription.slice(0, 2000)}` : "",
   ].filter(Boolean).join("\n\n");
 
   const reply = await openaiChat(

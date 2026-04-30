@@ -3427,6 +3427,31 @@ const PROMO_STEP_CONTEXT = [
   { icon:"key",         label:"The decision context", desc:"Promotions are decisions made by humans. Zari models the political and organizational reality — manager support, visibility, and review signals all matter.", tips:["Be honest about manager support — low advocacy is a blocker regardless of performance.", "Visibility to decision-makers above your manager is often underrated.", "Review scores are a proxy, not the whole story. Add context if the signal is mixed."] },
 ];
 
+function PromotionGateScreen({ title, message, onNavigate }: { title: string; message: string; onNavigate?: (s: string) => void }) {
+  const theme = PROMOTION_THEMES.readiness;
+  return (
+    <div style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--z-raise)", padding:"40px 32px" }}>
+      <div style={{ maxWidth:480, width:"100%", textAlign:"center" }}>
+        <div style={{ width:56, height:56, borderRadius:16, background:`rgba(${theme.accent === "#EC4899" ? "236,72,153" : "37,99,235"},0.12)`, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 20px" }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke={theme.accent} strokeWidth="1.8" style={{ width:26, height:26 }}>
+            <path d="M9 12l2 2 4-4"/>
+            <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <div style={{ fontSize:10.5, fontWeight:800, color:theme.accent, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>{title}</div>
+        <h2 style={{ fontSize:22, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 12px", lineHeight:1.3 }}>Complete Reality Check first</h2>
+        <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.7, margin:"0 0 28px" }}>{message}</p>
+        <button
+          onClick={() => onNavigate?.("resume")}
+          style={{ fontSize:14, fontWeight:700, padding:"13px 28px", borderRadius:14, border:"none", background:theme.accent, color:"white", cursor:"pointer", boxShadow:`0 4px 16px ${theme.accent}40` }}
+        >
+          Go to Reality Check →
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function PromotionSharedIntakeFlow({
   sectionLabel,
   sectionIntro,
@@ -5003,9 +5028,11 @@ function ScreenPivotAnalysis() {
   const ACCENT2 = "#38BDF8";
   type PivotTab = "overview" | "assets" | "gaps" | "plan";
   const [step, setStep] = useState<1|2|3>(1);
-  const [form, setForm] = useState({ fromRole:"", fromIndustry:"", toRole:"", toIndustry:"", accomplishments:"", skills:"", biggestConcern:"", timeline:"", resumeText:"", currentStatus:"" });
+  const [form, setForm] = useState({ fromRole:"", fromIndustry:"", toRole:"", toIndustry:"", jobDescription:"", accomplishments:"", skills:"", biggestConcern:"", timeline:"", resumeText:"", currentStatus:"" });
   const [generating, setGenerating] = useState(false);
+  const [resumeUploading, setResumeUploading] = useState(false);
   const [error, setError] = useState("");
+  const resumeFileRef = useRef<HTMLInputElement>(null);
   const [result, setResult] = useState<PivotAnalysisResult | null>(null);
   const [tab, setTab] = useState<PivotTab>("overview");
 
@@ -5019,15 +5046,40 @@ function ScreenPivotAnalysis() {
     _ccStore.commit({ fromRole:form.fromRole, fromIndustry:form.fromIndustry, toRole:form.toRole, toIndustry:form.toIndustry, accomplishments:form.accomplishments, skills:form.skills, biggestConcern:form.biggestConcern, timeline:form.timeline, resumeText:form.resumeText, currentStatus:form.currentStatus });
     try {
       const res = await fetch("/api/zari/pivot-analysis", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(form) });
-      const data = await res.json().catch(() => null) as (PivotAnalysisResult & { error?: string; message?: string }) | null;
+      const raw = await res.text().catch(() => "");
+      type PivotApiData = PivotAnalysisResult & { error?: string; message?: string };
+      let data: PivotApiData | null = null;
+      try { data = raw ? JSON.parse(raw) as PivotApiData : null; } catch { data = null; }
       if (data && typeof data.pivotScore === "number") { setResult(data); setTab("overview"); }
       else if (data?.error === "not_enough_context") {
         setStep(2);
         setError("Add your accomplishments or skills first — without your actual background, the analysis can only guess. That's not useful.");
       }
-      else setError(data?.message ?? data?.error ?? "Could not analyze your pivot. Please try again.");
-    } catch { setError("Something went wrong. Please try again."); }
+      else {
+        const msg = data?.message ?? data?.error ?? "";
+        setError(msg || (res.status === 402 ? "Subscription required to use this feature." : res.status === 401 ? "Sign in required." : `Analysis failed (${res.status}). Please try again.`));
+      }
+    } catch { setError("Something went wrong. Check your connection and try again."); }
     setGenerating(false);
+  }
+
+  async function handleResumeUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setResumeUploading(true);
+    try {
+      if (file.type === "text/plain" || file.name.endsWith(".txt") || file.name.endsWith(".md")) {
+        const text = await file.text();
+        setForm(f => ({...f, resumeText: text.slice(0, 8000)}));
+      } else {
+        const fd = new FormData(); fd.append("file", file);
+        const res = await fetch("/api/zari/extract", { method:"POST", body: fd });
+        const d = await res.json().catch(() => null) as { text?: string; error?: string } | null;
+        if (d?.text) setForm(f => ({...f, resumeText: d.text!.slice(0, 8000)}));
+      }
+    } catch { /* silent fail — user can paste manually */ }
+    setResumeUploading(false);
+    if (resumeFileRef.current) resumeFileRef.current.value = "";
   }
 
   const verdictMeta: Record<string, { color: string; bg: string; glow: string }> = {
@@ -5380,6 +5432,10 @@ function ScreenPivotAnalysis() {
                   <input value={form.toIndustry} onChange={e => setForm(f => ({...f,toIndustry:e.target.value}))} placeholder="e.g. HealthTech" style={inp} />
                 </div>
               </div>
+              <div>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Job description <span style={{ fontSize:10, fontWeight:500, color:"var(--z-text3)", textTransform:"none" }}>(optional — paste the JD of the role you want)</span></p>
+                <textarea value={form.jobDescription} onChange={e => setForm(f => ({...f,jobDescription:e.target.value}))} placeholder="Paste the full job description here — Zari will map your background to the exact requirements they're looking for." style={{ ...textarea, minHeight:110 }} />
+              </div>
             </div>
           )}
           {step === 2 && (
@@ -5419,12 +5475,20 @@ function ScreenPivotAnalysis() {
                 </div>
               </div>
               <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Paste your resume or background (optional)</p>
-                <textarea value={form.resumeText} onChange={e => setForm(f => ({...f,resumeText:e.target.value}))} placeholder="Paste your resume text here for a more tailored analysis…" style={textarea} />
+                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
+                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:0 }}>Resume <span style={{ fontSize:10, fontWeight:500, color:"var(--z-text3)", textTransform:"none" }}>(optional)</span></p>
+                  <button onClick={() => resumeFileRef.current?.click()} disabled={resumeUploading} style={{ fontSize:11.5, fontWeight:700, padding:"5px 12px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-card)", color:"var(--z-text2)", cursor:"pointer", display:"flex", alignItems:"center", gap:6, opacity:resumeUploading?0.6:1 }}>
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:12,height:12}}><path d="M8 1v9M4 5l4-4 4 4"/><rect x="2" y="11" width="12" height="3" rx="1.5"/></svg>
+                    {resumeUploading ? "Uploading…" : "Upload PDF / DOCX"}
+                  </button>
+                </div>
+                <input ref={resumeFileRef} type="file" accept=".pdf,.docx,.doc,.txt,.md" style={{ display:"none" }} onChange={handleResumeUpload} />
+                <textarea value={form.resumeText} onChange={e => setForm(f => ({...f,resumeText:e.target.value}))} placeholder="Paste your resume here, or upload a PDF/DOCX above. Gives Zari more signal for a more specific analysis." style={textarea} />
+                {form.resumeText && <p style={{ fontSize:11.5, color:"#34D399", margin:"6px 0 0", fontWeight:600 }}>✓ Resume loaded — {form.resumeText.length.toLocaleString()} characters</p>}
               </div>
             </div>
           )}
-          {error && <div style={{ marginTop:14, background:"rgba(127,29,29,0.2)", border:"1px solid rgba(248,113,113,0.28)", borderRadius:14, padding:"11px 14px", fontSize:13, color:"#FCA5A5" }}>{error}</div>}
+          {error && <div style={{ marginTop:14, background:"rgba(220,38,38,0.08)", border:"1px solid rgba(220,38,38,0.25)", borderRadius:14, padding:"11px 14px", fontSize:13, color:"#DC2626" }}>{error}</div>}
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:10, marginTop:22 }}>
             <button onClick={() => step === 1 ? setForm(f => ({...f,fromRole:"",toRole:""})) : setStep(s => (s-1) as 1|2|3)} style={{ padding:"13px 20px", borderRadius:14, border:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text3)", fontSize:13.5, fontWeight:600, cursor:"pointer" }}>{step === 1 ? "Clear" : "← Back"}</button>
             <button onClick={() => {
@@ -9683,8 +9747,8 @@ function dimColor(score: number) {
   return "#F87171";
 }
 
-function ScreenInterview({ stage, active = false }: { stage: CareerStage; active?: boolean }) {
-  if (stage === "promotion") return <ScreenPromotionPitch active={active} />;
+function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerStage; active?: boolean; onNavigate?: (s: string) => void }) {
+  if (stage === "promotion") return <ScreenPromotionPitch active={active} onNavigate={onNavigate} />;
   if (stage === "salary") return <ScreenSalaryNegotiationSim />;
   if (stage === "leadership") return <ScreenLeadershipStoryPractice />;
 
@@ -10314,13 +10378,13 @@ const PROMOTION_PRACTICE_META: Record<PromotionPracticeMode, {
   },
 };
 
-function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
+function ScreenPromotionPitch({ active = false, onNavigate }: { active?: boolean; onNavigate?: (s: string) => void }) {
   const [evidenceText, setEvidenceText] = useState("");
   const [evidenceFile, setEvidenceFile] = useState("");
   const [criteriaText, setCriteriaText] = useState("");
   const [contextText, setContextText] = useState("");
   const [targetLevel, setTargetLevel] = useState("");
-  const [sharedContext, setSharedContext] = useState<PromotionSharedContext | null>(null);
+  const [sharedContext, setSharedContext] = useState<PromotionSharedContext | null>(() => readPromotionSharedContext());
   const [mode, setMode] = useState<PromotionPracticeMode>("manager");
   const [loadingQs, setLoadingQs] = useState(false);
   const [setupError, setSetupError] = useState("");
@@ -10560,21 +10624,10 @@ function ScreenPromotionPitch({ active = false }: { active?: boolean }) {
 
   if (!sharedContext && !sections) {
     return (
-      <PromotionSharedIntakeFlow
-        sectionLabel="Practice the Ask"
-        sectionIntro="So Zari generates questions from your specific situation — not someone else's."
-        submitLabel="Build my practice →"
-        loadingTitle="Building your practice…"
-        loadingBody="Turning your answers into questions that match what they'll actually ask in the real conversation."
-        onComplete={(context) => {
-          setSharedContext(context);
-          setTargetLevel(context.desiredTitle);
-          setCriteriaText(buildPromotionCriteriaSeed(context));
-          setContextText(buildPromotionContextNote(context));
-          setEvidenceText(buildPromotionEvidenceSeed(context));
-          setSetupError("");
-          setAutoContext("");
-        }}
+      <PromotionGateScreen
+        title="Practice the Ask"
+        message="Zari generates questions from your actual situation — your rubric, wins, manager stance, and blockers. Complete Reality Check first so the practice matches your real case."
+        onNavigate={onNavigate}
       />
     );
   }
@@ -10949,13 +11002,13 @@ type PromotionDocResult = {
 
 type PromotionDocTab = "overview" | "documents";
 
-function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
+function ScreenPromotionDocument({ active = false, onNavigate }: { active?: boolean; onNavigate?: (s: string) => void }) {
   const [evidenceText, setEvidenceText] = useState("");
   const [evidenceFile, setEvidenceFile] = useState("");
   const [criteriaText, setCriteriaText] = useState("");
   const [contextText, setContextText] = useState("");
   const [targetLevel, setTargetLevel] = useState("");
-  const [sharedContext, setSharedContext] = useState<PromotionSharedContext | null>(null);
+  const [sharedContext, setSharedContext] = useState<PromotionSharedContext | null>(() => readPromotionSharedContext());
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<PromotionDocResult | null>(null);
   const [resultTab, setResultTab] = useState<PromotionDocTab>("overview");
@@ -11246,21 +11299,10 @@ function ScreenPromotionDocument({ active = false }: { active?: boolean }) {
 
   if (!sharedContext && !result && !generating) {
     return (
-      <PromotionSharedIntakeFlow
-        sectionLabel="Build the Case"
-        sectionIntro="So Zari builds documents for your actual situation — not off-the-shelf templates."
-        submitLabel="Build my docs →"
-        loadingTitle="Building your docs…"
-        loadingBody="Turning your answers into the emails, briefs, and follow-ups that actually fit where you are."
-        onComplete={(context) => {
-          setSharedContext(context);
-          setTargetLevel(context.desiredTitle);
-          setCriteriaText(buildPromotionCriteriaSeed(context));
-          setContextText(buildPromotionContextNote(context));
-          setEvidenceText(buildPromotionEvidenceSeed(context));
-          setError("");
-          setAutoContext("");
-        }}
+      <PromotionGateScreen
+        title="Build the Case"
+        message="Zari selects documents based on your actual situation — your wins, your manager's stance, where the blockers are. Complete Reality Check first so the documents fit your real case."
+        onNavigate={onNavigate}
       />
     );
   }
@@ -11527,13 +11569,13 @@ type PromotionVisibilityResult = {
 
 type PromotionVisibilityTab = "overview" | "moves" | "sponsors" | "cadence";
 
-function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
+function ScreenPromotionVisibility({ active = false, onNavigate }: { active?: boolean; onNavigate?: (s: string) => void }) {
   const [evidenceText, setEvidenceText] = useState("");
   const [evidenceFile, setEvidenceFile] = useState("");
   const [targetLevel, setTargetLevel] = useState("");
   const [stakeholders, setStakeholders] = useState("");
   const [blockers, setBlockers] = useState("");
-  const [sharedContext, setSharedContext] = useState<PromotionSharedContext | null>(null);
+  const [sharedContext, setSharedContext] = useState<PromotionSharedContext | null>(() => readPromotionSharedContext());
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<PromotionVisibilityResult | null>(null);
@@ -11687,21 +11729,10 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
 
   if (!sharedContext && !result && !generating) {
     return (
-      <PromotionSharedIntakeFlow
-        sectionLabel="Get Allies"
-        sectionIntro="So the ally map is built around your actual blind spots — not generic advice."
-        submitLabel="Build my ally map →"
-        loadingTitle="Mapping the room…"
-        loadingBody="Turning your answers into a stakeholder map with specific asks and a weekly rhythm."
-        onComplete={(context) => {
-          setSharedContext(context);
-          setTargetLevel(context.desiredTitle);
-          setEvidenceText(buildPromotionEvidenceSeed(context));
-          setStakeholders(buildPromotionStakeholderSeed(context));
-          setBlockers(buildPromotionBlockerNote(context));
-          setError("");
-          setAutoContext("");
-        }}
+      <PromotionGateScreen
+        title="Get Allies"
+        message="Zari maps who controls this decision and what each person needs to believe — based on your specific situation. Complete Reality Check first so the ally strategy fits your real room."
+        onNavigate={onNavigate}
       />
     );
   }
@@ -12142,8 +12173,8 @@ function ScreenPromotionVisibility({ active = false }: { active?: boolean }) {
   );
 }
 
-function ScreenLinkedIn({ stage, active = false }: { stage: CareerStage; active?: boolean }) {
-  if (stage === "promotion") return <ScreenPromotionVisibility active={active} />;
+function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerStage; active?: boolean; onNavigate?: (s: string) => void }) {
+  if (stage === "promotion") return <ScreenPromotionVisibility active={active} onNavigate={onNavigate} />;
   if (stage === "salary") return <ScreenSalaryMarketIntel />;
 
   type LINav = "score"|"headline"|"summary"|"experience"|"education"|"other"|"networking"|"keywords";
@@ -13559,8 +13590,8 @@ const STAGE_TASKS: Record<CareerStage, { text:string; cat:string; pri:string }[]
 /* ═══════════════════════════════════════════════════
    SCREEN: COVER LETTER
 ═══════════════════════════════════════════════════ */
-function ScreenCoverLetter({ stage, active = false }: { stage: CareerStage; active?: boolean }) {
-  if (stage === "promotion") return <ScreenPromotionDocument active={active} />;
+function ScreenCoverLetter({ stage, active = false, onNavigate }: { stage: CareerStage; active?: boolean; onNavigate?: (s: string) => void }) {
+  if (stage === "promotion") return <ScreenPromotionDocument active={active} onNavigate={onNavigate} />;
   if (stage === "salary") return <ScreenSalaryNegotiationEmail />;
   if (stage === "leadership") return <ScreenExecOutreach />;
 
@@ -15043,9 +15074,9 @@ export function ZariPortal() {
         <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
           <div className={screen==="session"      ? "zari-screen-active" : ""} style={{ display:screen==="session"      ? "block" : "none", height:"100%" }}><ScreenSession      stage={stage} onNavigate={navigate}/></div>
           <div className={screen==="resume"       ? "zari-screen-active" : ""} style={{ display:screen==="resume"       ? "block" : "none", height:"100%" }}><ScreenResume       stage={stage} onNavigate={s=>navigate(s as Screen)}/></div>
-          <div className={screen==="interview"    ? "zari-screen-active" : ""} style={{ display:screen==="interview"    ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <ScreenPivotStoryBuilder active={screen==="interview"}/> : <ScreenInterview    stage={stage} active={screen==="interview"}/>}</div>
-          <div className={screen==="cover-letter" ? "zari-screen-active" : ""} style={{ display:screen==="cover-letter" ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <ScreenCredibilitySprint active={screen==="cover-letter"}/> : <ScreenCoverLetter stage={stage} active={screen==="cover-letter"}/>}</div>
-          <div className={screen==="linkedin"     ? "zari-screen-active" : ""} style={{ display:screen==="linkedin"     ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <ScreenBridgeNetwork active={screen==="linkedin"}/> : <ScreenLinkedIn     stage={stage} active={screen==="linkedin"}/>}</div>
+          <div className={screen==="interview"    ? "zari-screen-active" : ""} style={{ display:screen==="interview"    ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <ScreenPivotStoryBuilder active={screen==="interview"}/> : <ScreenInterview    stage={stage} active={screen==="interview"} onNavigate={s=>navigate(s as Screen)}/>}</div>
+          <div className={screen==="cover-letter" ? "zari-screen-active" : ""} style={{ display:screen==="cover-letter" ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <ScreenCredibilitySprint active={screen==="cover-letter"}/> : <ScreenCoverLetter stage={stage} active={screen==="cover-letter"} onNavigate={s=>navigate(s as Screen)}/>}</div>
+          <div className={screen==="linkedin"     ? "zari-screen-active" : ""} style={{ display:screen==="linkedin"     ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <ScreenBridgeNetwork active={screen==="linkedin"}/> : <ScreenLinkedIn     stage={stage} active={screen==="linkedin"} onNavigate={s=>navigate(s as Screen)}/>}</div>
           <div className={screen==="documents"    ? "zari-screen-active" : ""} style={{ display:screen==="documents"    ? "block" : "none", height:"100%" }}><ScreenDocuments stage={stage} onNavigate={s=>navigate(s as Screen)}/></div>
           <div className={screen==="plan"         ? "zari-screen-active" : ""} style={{ display:screen==="plan"         ? "block" : "none", height:"100%" }}><ScreenPlan stage={stage} onNavigate={s=>navigate(s as Screen)} active={screen==="plan"}/></div>
         </div>
