@@ -5031,6 +5031,7 @@ function ScreenPivotAnalysis() {
   const [form, setForm] = useState({ fromRole:"", fromIndustry:"", toRole:"", toIndustry:"", jobDescription:"", accomplishments:"", skills:"", biggestConcern:"", timeline:"", resumeText:"", currentStatus:"" });
   const [generating, setGenerating] = useState(false);
   const [resumeUploading, setResumeUploading] = useState(false);
+  const [resumeDragging, setResumeDragging] = useState(false);
   const [error, setError] = useState("");
   const resumeFileRef = useRef<HTMLInputElement>(null);
   const [result, setResult] = useState<PivotAnalysisResult | null>(null);
@@ -5385,8 +5386,8 @@ function ScreenPivotAnalysis() {
 
   const PIVOT_STEPS = [
     { title:"Your Pivot", subtitle:"Where are you coming from, and where do you want to go?", icon:"shuffle", label:"Your pivot", desc:"Zari needs to understand both ends of the move to accurately assess what transfers, what gaps need bridging, and what the hiring market will actually see.", tips:["Be specific about roles — 'Software Engineer to PM' gives very different advice than 'SWE to SWE at a startup'.","Industry context matters as much as title — B2B SaaS vs. healthcare are different hiring markets.","If you're not sure about the target, use the most specific version of what you want."] },
-    { title:"Your Case", subtitle:"What have you built, and what are you bringing to the table?", icon:"bar-chart", label:"Your case", desc:"The pivot succeeds or fails based on how well you translate past work into the language of the new domain. Zari maps your proof points to the target role.", tips:["Write outcomes, not tasks — 'launched a product' is weak, 'launched a product that reached 10K users in 3 months' is strong.","Include any skills that might be underrated in your current role but relevant to the target.","Don't pre-filter. Include things you think are adjacent — let Zari decide what maps."] },
-    { title:"Context & Concerns", subtitle:"Timeline, background, and what worries you most about this move.", icon:"map", label:"Context", desc:"Your timeline and biggest concern shape the strategy. A pivot in 3 months requires different moves than exploring over a year.", tips:["Be honest about your biggest concern — Zari will address it directly in the output.","Pasting your resume gives Zari more signal and produces a more specific analysis.","Your timeline affects the recommendation. If you're already interviewing, Zari will front-load quick wins."] },
+    { title:"Your Resume", subtitle:"Upload your most recent resume so Zari can map your actual background.", icon:"bar-chart", label:"Your resume", desc:"Your resume is the primary input. Zari uses it to identify what transfers, name the gaps precisely, and build a credible strategy — not guess from job titles.", tips:["Upload a PDF or DOCX for the best results — Zari extracts the full text automatically.","Your resume feeds every other career change tool automatically. You only upload once.","If you don't have a file handy, paste the text directly into the box below."] },
+    { title:"Context & Concerns", subtitle:"Timeline, biggest concern, and anything else Zari should know.", icon:"map", label:"Context", desc:"Your timeline and biggest concern shape the strategy. A pivot in 3 months requires different moves than exploring over a year.", tips:["Be honest about your biggest concern — Zari will address it directly.","Add accomplishments or skills if there's important context your resume doesn't capture.","Your timeline affects the recommendation. If you're already interviewing, Zari will front-load quick wins."] },
   ];
   const pivotStepCtx = PIVOT_STEPS[step - 1];
 
@@ -5439,28 +5440,59 @@ function ScreenPivotAnalysis() {
             </div>
           )}
           {step === 2 && (
-            <div style={{ ...card, display:"grid", gap:14 }}>
-              <div style={{ background:"rgba(2,132,199,0.06)", border:"1px solid rgba(56,189,248,0.18)", borderRadius:12, padding:"12px 16px", display:"flex", gap:10, alignItems:"flex-start" }}>
-                <svg viewBox="0 0 14 14" fill="none" stroke="#38BDF8" strokeWidth="1.8" style={{width:14,height:14,flexShrink:0,marginTop:1}}><circle cx="7" cy="7" r="6"/><path d="M7 5v3M7 9.5v.5"/></svg>
-                <p style={{ fontSize:12.5, color:"var(--z-text2)", margin:0, lineHeight:1.6 }}>Zari only uses what you actually tell it. Fill in at least one of these so the analysis is based on your real background — not a guess from job titles.</p>
+            <div style={{ display:"grid", gap:14 }}>
+              <input ref={resumeFileRef} type="file" accept=".pdf,.docx,.doc,.txt,.md" style={{ display:"none" }} onChange={handleResumeUpload} />
+              {/* Drag-and-drop zone */}
+              <div
+                onDragOver={e => { e.preventDefault(); setResumeDragging(true); }}
+                onDragLeave={() => setResumeDragging(false)}
+                onDrop={async e => {
+                  e.preventDefault(); setResumeDragging(false);
+                  const file = e.dataTransfer.files?.[0];
+                  if (file) await handleResumeUpload({ target: { files: e.dataTransfer.files } } as React.ChangeEvent<HTMLInputElement>);
+                }}
+                onClick={() => !form.resumeText && resumeFileRef.current?.click()}
+                style={{ ...card, border: resumeDragging ? `2px dashed ${ACCENT}` : form.resumeText ? "2px solid #34D399" : "2px dashed var(--z-bd)", background: resumeDragging ? `rgba(2,132,199,0.06)` : form.resumeText ? "rgba(52,211,153,0.05)" : "var(--z-card)", borderRadius:20, padding:"36px 28px", textAlign:"center", cursor: form.resumeText ? "default" : "pointer", transition:"all 0.2s" }}
+              >
+                {resumeUploading ? (
+                  <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:12 }}>
+                    <div style={{ display:"flex", gap:6 }}>{[0,1,2].map(i => <div key={i} style={{ width:8,height:8,borderRadius:"50%",background:ACCENT,animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}</div>
+                    <p style={{ fontSize:13.5, color:"var(--z-text2)", margin:0 }}>Extracting text…</p>
+                  </div>
+                ) : form.resumeText ? (
+                  <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:10 }}>
+                    <div style={{ width:44, height:44, borderRadius:12, background:"rgba(52,211,153,0.15)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      <svg viewBox="0 0 20 20" fill="none" stroke="#34D399" strokeWidth="2" style={{width:22,height:22}}><path d="M4 10l4 4 8-8"/></svg>
+                    </div>
+                    <div>
+                      <p style={{ fontSize:14, fontWeight:700, color:"#34D399", margin:"0 0 4px" }}>Resume loaded</p>
+                      <p style={{ fontSize:12.5, color:"var(--z-text3)", margin:0 }}>{form.resumeText.length.toLocaleString()} characters extracted</p>
+                    </div>
+                    <button onClick={e => { e.stopPropagation(); setForm(f => ({...f,resumeText:""})); }} style={{ fontSize:12, fontWeight:600, padding:"5px 14px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text3)", cursor:"pointer", marginTop:4 }}>Replace</button>
+                  </div>
+                ) : (
+                  <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:10 }}>
+                    <div style={{ width:52, height:52, borderRadius:14, background: resumeDragging ? `rgba(2,132,199,0.12)` : "var(--z-raise)", border:`1px solid ${resumeDragging ? ACCENT : "var(--z-bd)"}`, display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.2s" }}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke={resumeDragging ? ACCENT : "var(--z-text3)"} strokeWidth="1.8" style={{width:26,height:26}}><path d="M12 3v12M7 8l5-5 5 5"/><rect x="3" y="17" width="18" height="4" rx="2"/></svg>
+                    </div>
+                    <div>
+                      <p style={{ fontSize:15, fontWeight:800, color:"var(--z-text)", margin:"0 0 5px", letterSpacing:"-0.02em" }}>{resumeDragging ? "Drop it here" : "Drag & drop your resume"}</p>
+                      <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>PDF, DOCX, or TXT · or <span style={{ color:ACCENT, fontWeight:600 }}>click to browse</span></p>
+                    </div>
+                  </div>
+                )}
               </div>
-              <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Key accomplishments <span style={{ color:"#F87171" }}>*</span></p>
-                <textarea value={form.accomplishments} onChange={e => setForm(f => ({...f,accomplishments:e.target.value}))} placeholder="Your strongest results — projects you shipped, outcomes you drove, problems you solved. Be specific with numbers where you can." style={textarea} />
-              </div>
-              <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Skills you want to leverage <span style={{ color:"#F87171" }}>*</span></p>
-                <textarea value={form.skills} onChange={e => setForm(f => ({...f,skills:e.target.value}))} placeholder="Which of your skills are most relevant to where you're going? What do you consistently do well?" style={{ ...textarea, minHeight:100 }} />
-              </div>
-              <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>What have you done toward this pivot so far? <span style={{ fontSize:10, fontWeight:500, color:"var(--z-text3)", textTransform:"none" }}>(optional)</span></p>
-                <textarea value={form.currentStatus} onChange={e => setForm(f => ({...f,currentStatus:e.target.value}))} placeholder="Courses taken, projects started, networking done, certifications in progress — anything that shows you've already started the move." style={{ ...textarea, minHeight:90 }} />
-              </div>
-              <p style={{ fontSize:11.5, color:"var(--z-text3)", margin:0 }}>Fill in at least accomplishments or skills. The more context you share, the more specific all career change tools will be — you only fill this in once.</p>
+              {/* Paste fallback */}
+              {!form.resumeText && (
+                <div style={{ ...card }}>
+                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Or paste resume text</p>
+                  <textarea value={form.resumeText} onChange={e => setForm(f => ({...f,resumeText:e.target.value}))} placeholder="Copy and paste your resume content here instead…" style={{ ...textarea, minHeight:140 }} />
+                </div>
+              )}
             </div>
           )}
           {step === 3 && (
-            <div style={{ ...card, display:"grid", gap:14 }}>
+            <div style={{ ...card, display:"grid", gap:16 }}>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                 <div>
                   <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Timeline</p>
@@ -5475,16 +5507,12 @@ function ScreenPivotAnalysis() {
                 </div>
               </div>
               <div>
-                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
-                  <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:0 }}>Resume <span style={{ fontSize:10, fontWeight:500, color:"var(--z-text3)", textTransform:"none" }}>(optional)</span></p>
-                  <button onClick={() => resumeFileRef.current?.click()} disabled={resumeUploading} style={{ fontSize:11.5, fontWeight:700, padding:"5px 12px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-card)", color:"var(--z-text2)", cursor:"pointer", display:"flex", alignItems:"center", gap:6, opacity:resumeUploading?0.6:1 }}>
-                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:12,height:12}}><path d="M8 1v9M4 5l4-4 4 4"/><rect x="2" y="11" width="12" height="3" rx="1.5"/></svg>
-                    {resumeUploading ? "Uploading…" : "Upload PDF / DOCX"}
-                  </button>
-                </div>
-                <input ref={resumeFileRef} type="file" accept=".pdf,.docx,.doc,.txt,.md" style={{ display:"none" }} onChange={handleResumeUpload} />
-                <textarea value={form.resumeText} onChange={e => setForm(f => ({...f,resumeText:e.target.value}))} placeholder="Paste your resume here, or upload a PDF/DOCX above. Gives Zari more signal for a more specific analysis." style={textarea} />
-                {form.resumeText && <p style={{ fontSize:11.5, color:"#34D399", margin:"6px 0 0", fontWeight:600 }}>✓ Resume loaded — {form.resumeText.length.toLocaleString()} characters</p>}
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Key accomplishments <span style={{ fontSize:10, fontWeight:500, textTransform:"none", color:"var(--z-text3)" }}>(optional — adds context your resume may not show)</span></p>
+                <textarea value={form.accomplishments} onChange={e => setForm(f => ({...f,accomplishments:e.target.value}))} placeholder="Results, projects, outcomes — especially things that show transferable skills toward your target role." style={{ ...textarea, minHeight:110 }} />
+              </div>
+              <div>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Progress toward the pivot <span style={{ fontSize:10, fontWeight:500, textTransform:"none", color:"var(--z-text3)" }}>(optional)</span></p>
+                <textarea value={form.currentStatus} onChange={e => setForm(f => ({...f,currentStatus:e.target.value}))} placeholder="Courses, projects, networking, certifications — anything you've already started." style={{ ...textarea, minHeight:90 }} />
               </div>
             </div>
           )}
@@ -5493,7 +5521,7 @@ function ScreenPivotAnalysis() {
             <button onClick={() => step === 1 ? setForm(f => ({...f,fromRole:"",toRole:""})) : setStep(s => (s-1) as 1|2|3)} style={{ padding:"13px 20px", borderRadius:14, border:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text3)", fontSize:13.5, fontWeight:600, cursor:"pointer" }}>{step === 1 ? "Clear" : "← Back"}</button>
             <button onClick={() => {
               if (step === 1 && !form.fromRole.trim() && !form.toRole.trim()) { setError("Add your current and target roles to continue."); return; }
-              if (step === 2 && !form.accomplishments.trim() && !form.skills.trim()) { setError("Fill in at least your key accomplishments or skills. Without your actual background, the analysis would just be guessing from job titles."); return; }
+              if (step === 2 && !form.resumeText.trim()) { setError("Upload or paste your resume to continue — Zari needs your actual background to give you a real analysis."); return; }
               setError("");
               if (step === 3) void generate(); else setStep(s => (s+1) as 1|2|3);
             }} disabled={generating} style={{ minWidth:200, fontSize:14.5, fontWeight:700, padding:"13px 20px", borderRadius:14, border:"none", background:"#2563EB", color:"white", cursor:"pointer", opacity:generating ? 0.7 : 1 }}>

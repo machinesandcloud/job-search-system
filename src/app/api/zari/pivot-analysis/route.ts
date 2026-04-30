@@ -55,7 +55,13 @@ export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) {
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
   }
-  const access = await requirePaidRouteAccess("zari_pivot_analysis");
+  let access;
+  try {
+    access = await requirePaidRouteAccess("zari_pivot_analysis");
+  } catch (err) {
+    console.error("[pivot-analysis] billing check failed:", err);
+    return NextResponse.json({ error: "Service temporarily unavailable. Please try again." }, { status: 503 });
+  }
   if (!access.ok) return access.response;
 
   const body = await request.json().catch(() => ({})) as {
@@ -69,15 +75,15 @@ export async function POST(request: Request) {
   if (!fromRole && !toRole) return NextResponse.json({ error: "Provide your current and target roles" }, { status: 400 });
 
   const hasBackground = !!(
+    (body.resumeText ?? "").trim() ||
     (body.accomplishments ?? "").trim() ||
-    (body.skills ?? "").trim() ||
-    (body.resumeText ?? "").trim()
+    (body.skills ?? "").trim()
   );
 
   if (!hasBackground) {
     return NextResponse.json({
       error: "not_enough_context",
-      message: "Share your accomplishments, skills, or resume so Zari can assess your actual readiness — not guess based on job titles.",
+      message: "Upload your resume or share your background so Zari can assess your actual readiness — not guess from job titles.",
     }, { status: 422 });
   }
 
