@@ -5,9 +5,11 @@ import { ZariLogo } from "@/components/zari-logo";
 export function MarketingSiteShell({
   authenticated,
   children,
+  minimal = false,
 }: {
   authenticated: boolean;
   children: ReactNode;
+  minimal?: boolean;
 }) {
   return (
     <div className="min-h-screen bg-white text-[var(--ink)]">
@@ -19,12 +21,16 @@ export function MarketingSiteShell({
           </Link>
 
           <div className="flex items-center gap-4 md:gap-7">
-            <Link href="/#features" className="hidden text-[14px] font-medium text-[#68738A] transition-colors hover:text-[#0A0A0F] md:inline-flex">
-              Features
-            </Link>
-            <Link href="/#reviews" className="hidden text-[14px] font-medium text-[#68738A] transition-colors hover:text-[#0A0A0F] md:inline-flex">
-              Reviews
-            </Link>
+            {minimal ? null : (
+              <>
+                <Link href="/#features" className="hidden text-[14px] font-medium text-[#68738A] transition-colors hover:text-[#0A0A0F] md:inline-flex">
+                  Features
+                </Link>
+                <Link href="/#reviews" className="hidden text-[14px] font-medium text-[#68738A] transition-colors hover:text-[#0A0A0F] md:inline-flex">
+                  Reviews
+                </Link>
+              </>
+            )}
             <Link href="/login" className="text-[14px] font-medium text-[#68738A] transition-colors hover:text-[#0A0A0F]">
               Sign in
             </Link>
@@ -58,12 +64,16 @@ export function MarketingSiteShell({
             <Link href="/signup" className="transition-colors hover:text-[#0A0A0F]">
               Sign up
             </Link>
-            <Link href="/#features" className="transition-colors hover:text-[#0A0A0F]">
-              Features
-            </Link>
-            <Link href="/#reviews" className="transition-colors hover:text-[#0A0A0F]">
-              Reviews
-            </Link>
+            {minimal ? null : (
+              <>
+                <Link href="/#features" className="transition-colors hover:text-[#0A0A0F]">
+                  Features
+                </Link>
+                <Link href="/#reviews" className="transition-colors hover:text-[#0A0A0F]">
+                  Reviews
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </footer>

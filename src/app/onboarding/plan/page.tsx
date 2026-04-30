@@ -53,6 +53,7 @@ export default async function OnboardingPlanPage() {
           subtitle="Choose a plan to continue, or keep the free preview if you want to test the product first."
           previewHref="/dashboard"
           previewLabel="Continue with preview"
+          showProof={false}
         />
       </main>
     </div>

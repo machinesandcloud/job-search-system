@@ -12,14 +12,15 @@ export default async function PricingPage() {
   ) as Record<(typeof PRICING_PLANS)[number]["id"], boolean>;
 
   return (
-    <MarketingSiteShell authenticated={authenticated}>
+    <MarketingSiteShell authenticated={authenticated} minimal>
       <PricingSelectionContent
         authenticated={authenticated}
         checkoutAvailability={checkoutAvailability}
         eyebrow="Pricing"
-        subtitle="Simple plans, clear boundaries, and the option to buy more tokens only when you need them."
+        subtitle="Pick the level of coaching that fits what you are working on right now, then add more tokens only if you need more usage."
         previewHref={authenticated ? "/dashboard" : "/signup"}
         previewLabel={authenticated ? "Open it now" : "Start it now"}
+        showProof
       />
     </MarketingSiteShell>
   );
