@@ -9,16 +9,16 @@ export type Tone = "brand" | "cyan" | "gold" | "rose" | "emerald" | "slate";
 
 const toneMap: Record<Tone, { pill: string; ring: string; glow: string; bar: string }> = {
   brand: {
-    pill: "border-[#4F62F8]/38 bg-[linear-gradient(135deg,#3730A3,#2563EB)] text-white shadow-[0_14px_28px_rgba(37,99,235,0.22)]",
-    ring: "border-[#6378FF]/22",
-    glow: "from-[#4361EE]/18 via-[#818CF8]/10 to-transparent",
-    bar: "from-[#4361EE] via-[#818CF8] to-[#06B6D4]",
+    pill: "border-[#3B82F6]/30 bg-[linear-gradient(135deg,#3B82F6,#2563EB)] text-white shadow-[0_14px_30px_rgba(37,99,235,0.28)]",
+    ring: "border-[#3B82F6]/24",
+    glow: "from-[#2563EB]/18 via-[#60A5FA]/10 to-transparent",
+    bar: "from-[#3B82F6] via-[#2563EB] to-[#0EA5E9]",
   },
   cyan: {
-    pill: "border-cyan-400/20 bg-cyan-400/10 text-cyan-200",
-    ring: "border-cyan-400/20",
-    glow: "from-cyan-400/16 via-sky-400/10 to-transparent",
-    bar: "from-cyan-300 via-sky-400 to-indigo-400",
+    pill: "border-sky-400/24 bg-sky-400/12 text-sky-100",
+    ring: "border-sky-400/20",
+    glow: "from-sky-400/16 via-blue-400/10 to-transparent",
+    bar: "from-sky-300 via-blue-400 to-indigo-400",
   },
   gold: {
     pill: "border-amber-400/25 bg-amber-400/10 text-amber-100",
@@ -39,7 +39,7 @@ const toneMap: Record<Tone, { pill: string; ring: string; glow: string; bar: str
     bar: "from-emerald-300 via-teal-400 to-cyan-400",
   },
   slate: {
-    pill: "border-[color:var(--ca-button-border)] bg-[var(--ca-button-bg)] text-[color:var(--ca-button-text)]",
+    pill: "border-[color:var(--ca-button-border)] bg-[var(--ca-button-bg)] text-[color:var(--ca-text-muted)] shadow-[var(--ca-button-shadow)]",
     ring: "border-[color:var(--ca-border)]",
     glow: "from-[var(--ca-glass-glow)] via-transparent to-transparent",
     bar: "from-[var(--ca-text-muted)] via-[var(--ca-border-strong)] to-[var(--ca-border)]",
@@ -54,8 +54,8 @@ export const coachAdminSubtleCardClass = "rounded-[24px] border border-[color:va
 export const coachAdminInsetCardClass = "rounded-[28px] border border-[color:var(--ca-border)] bg-[var(--ca-surface-strong)]";
 export const coachAdminListCardClass = "rounded-[24px] border border-[color:var(--ca-border)] bg-[var(--ca-surface-soft)] transition hover:border-[color:var(--ca-border-strong)] hover:bg-[var(--ca-surface-hover)]";
 export const coachAdminInputClass = "rounded-[22px] border border-[color:var(--ca-border)] bg-[var(--ca-input-bg)] px-4 py-3 text-sm text-[color:var(--ca-text)] outline-none transition placeholder:text-[color:var(--ca-text-soft)] focus:border-cyan-400/45 focus:bg-[var(--ca-input-focus-bg)]";
-export const coachAdminPrimaryButtonClass = "rounded-full bg-[linear-gradient(135deg,#4361EE,#06B6D4)] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(67,97,238,0.28)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70";
-export const coachAdminGhostButtonClass = "inline-flex items-center justify-center rounded-full border border-[color:var(--ca-button-border)] bg-[var(--ca-button-bg)] px-4 py-2.5 text-sm font-medium text-[color:var(--ca-button-text)] shadow-[var(--ca-button-shadow)] transition hover:border-[color:var(--ca-button-border-strong)] hover:bg-[var(--ca-button-bg-hover)] hover:text-[color:var(--ca-button-text-hover)] disabled:opacity-70";
+export const coachAdminPrimaryButtonClass = "rounded-full bg-[linear-gradient(135deg,#3B82F6,#2563EB)] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(37,99,235,0.28)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70";
+export const coachAdminGhostButtonClass = "inline-flex items-center justify-center rounded-full border border-[color:var(--ca-button-border)] bg-[var(--ca-button-bg)] px-4 py-2.5 text-sm font-medium text-[color:var(--ca-button-text)] shadow-[var(--ca-button-shadow)] backdrop-blur-xl transition hover:border-[color:var(--ca-button-border-strong)] hover:bg-[var(--ca-button-bg-hover)] hover:text-[color:var(--ca-button-text-hover)] disabled:opacity-70";
 export const coachAdminFilterButtonBaseClass = "rounded-full border px-4 py-2 text-sm font-medium transition";
 
 export function CoachAdminPill({

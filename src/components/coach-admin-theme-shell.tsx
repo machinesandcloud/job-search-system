@@ -52,40 +52,40 @@ const LIGHT_THEME: CSSProperties = {
 } as CSSProperties;
 
 const DARK_THEME: CSSProperties = {
-  "--ca-page-bg": "#050816",
-  "--ca-shell-start": "rgba(13,18,34,0.96)",
-  "--ca-shell-end": "rgba(10,16,30,0.88)",
-  "--ca-panel-start": "rgba(17,24,39,0.92)",
-  "--ca-panel-end": "rgba(8,12,24,0.92)",
-  "--ca-panel-glow-1": "rgba(67,97,238,0.1)",
-  "--ca-panel-glow-2": "rgba(6,182,212,0.08)",
-  "--ca-surface-soft": "rgba(14,24,40,0.72)",
-  "--ca-surface-hover": "rgba(37,99,235,0.12)",
-  "--ca-surface-strong": "rgba(14,24,40,0.92)",
-  "--ca-chip-bg": "rgba(14,24,40,0.9)",
-  "--ca-chip-bg-hover": "rgba(23,37,61,0.98)",
-  "--ca-input-bg": "rgba(255,255,255,0.05)",
-  "--ca-input-focus-bg": "rgba(255,255,255,0.08)",
-  "--ca-border": "rgba(255,255,255,0.1)",
-  "--ca-border-strong": "rgba(96,165,250,0.34)",
+  "--ca-page-bg": "#04060D",
+  "--ca-shell-start": "rgba(8,14,28,0.97)",
+  "--ca-shell-end": "rgba(4,6,13,0.94)",
+  "--ca-panel-start": "rgba(8,14,28,0.96)",
+  "--ca-panel-end": "rgba(4,6,13,0.94)",
+  "--ca-panel-glow-1": "rgba(59,130,246,0.12)",
+  "--ca-panel-glow-2": "rgba(37,99,235,0.08)",
+  "--ca-surface-soft": "rgba(14,24,40,0.88)",
+  "--ca-surface-hover": "rgba(37,99,235,0.16)",
+  "--ca-surface-strong": "rgba(8,14,28,0.98)",
+  "--ca-chip-bg": "rgba(14,24,40,0.94)",
+  "--ca-chip-bg-hover": "rgba(37,99,235,0.18)",
+  "--ca-input-bg": "rgba(14,24,40,0.92)",
+  "--ca-input-focus-bg": "rgba(14,24,40,1)",
+  "--ca-border": "rgba(255,255,255,0.09)",
+  "--ca-border-strong": "rgba(59,130,246,0.35)",
   "--ca-text": "#f8fafc",
-  "--ca-text-muted": "rgba(255,255,255,0.78)",
-  "--ca-text-soft": "rgba(255,255,255,0.48)",
-  "--ca-track-bg": "rgba(255,255,255,0.06)",
-  "--ca-grid-opacity": "0.2",
-  "--ca-ambient-1": "rgba(67,97,238,0.18)",
-  "--ca-ambient-2": "rgba(6,182,212,0.12)",
-  "--ca-ambient-3": "rgba(129,140,248,0.1)",
-  "--ca-panel-shadow": "0 20px 80px rgba(2,6,23,0.55)",
-  "--ca-shell-shadow": "0 24px 90px rgba(2,6,23,0.58)",
-  "--ca-glass-glow": "rgba(255,255,255,0.08)",
-  "--ca-button-bg": "rgba(14,24,40,0.96)",
-  "--ca-button-bg-hover": "rgba(67,97,238,0.16)",
+  "--ca-text-muted": "rgba(255,255,255,0.84)",
+  "--ca-text-soft": "rgba(255,255,255,0.62)",
+  "--ca-track-bg": "rgba(255,255,255,0.08)",
+  "--ca-grid-opacity": "0.18",
+  "--ca-ambient-1": "rgba(59,130,246,0.16)",
+  "--ca-ambient-2": "rgba(37,99,235,0.1)",
+  "--ca-ambient-3": "rgba(96,165,250,0.08)",
+  "--ca-panel-shadow": "0 24px 80px rgba(2,6,23,0.58)",
+  "--ca-shell-shadow": "0 28px 92px rgba(2,6,23,0.62)",
+  "--ca-glass-glow": "rgba(59,130,246,0.08)",
+  "--ca-button-bg": "rgba(14,24,40,0.98)",
+  "--ca-button-bg-hover": "rgba(37,99,235,0.18)",
   "--ca-button-border": "rgba(255,255,255,0.1)",
-  "--ca-button-border-strong": "rgba(96,165,250,0.4)",
-  "--ca-button-text": "rgba(255,255,255,0.96)",
+  "--ca-button-border-strong": "rgba(59,130,246,0.42)",
+  "--ca-button-text": "rgba(255,255,255,0.94)",
   "--ca-button-text-hover": "#ffffff",
-  "--ca-button-shadow": "0 10px 28px rgba(2,6,23,0.22)",
+  "--ca-button-shadow": "0 12px 32px rgba(2,6,23,0.28)",
 } as CSSProperties;
 
 function ThemeIcon({ isDark }: { isDark: boolean }) {
@@ -153,7 +153,7 @@ export function CoachAdminThemeShell({
       </div>
 
       <div className="relative mx-auto max-w-[1680px] px-4 py-4 md:px-6 lg:px-8">
-        <div className="grid gap-6 xl:grid-cols-[176px_minmax(0,1fr)]">
+        <div className="grid gap-6 xl:grid-cols-[214px_minmax(0,1fr)]">
           {session ? <CoachAdminShellNav email={session.email} role={session.role} /> : <div className="hidden xl:block" />}
 
           <div className="space-y-6">

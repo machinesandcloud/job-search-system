@@ -35,9 +35,9 @@ function getEmailDisplay(email: string) {
   const [localPart, domain] = email.split("@");
   if (!localPart || !domain) return email;
   const compact = `${localPart}@${domain}`;
-  if (compact.length <= 18) return compact;
-  if (localPart.length <= 10) return `${localPart}@…`;
-  return `${localPart.slice(0, 10)}…`;
+  if (compact.length <= 24) return compact;
+  if (localPart.length <= 12) return `${localPart}@…`;
+  return `${localPart.slice(0, 12)}…`;
 }
 
 function getInitials(email: string) {
@@ -63,11 +63,11 @@ export function CoachAdminShellNav({
 
   return (
     <div className="hidden h-[calc(100vh-2rem)] min-h-[760px] xl:flex xl:flex-col">
-      <div className="relative flex h-full flex-col overflow-hidden rounded-[32px] border border-[color:var(--ca-border)] bg-[linear-gradient(180deg,var(--ca-shell-start),var(--ca-panel-end))] p-4 shadow-[var(--ca-panel-shadow)] backdrop-blur-2xl">
+      <div className="relative flex h-full flex-col overflow-hidden rounded-[34px] border border-[color:var(--ca-border)] bg-[linear-gradient(180deg,var(--ca-shell-start),var(--ca-panel-end))] p-5 shadow-[var(--ca-panel-shadow)] backdrop-blur-2xl">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,var(--ca-ambient-1),transparent_35%),radial-gradient(circle_at_bottom,var(--ca-ambient-2),transparent_28%)]" />
 
-        <div className="relative mb-6 flex h-16 items-center justify-center rounded-[22px] border border-[color:var(--ca-border)] bg-[var(--ca-chip-bg)]">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#4361EE,#06B6D4)] shadow-[0_12px_30px_rgba(67,97,238,0.32)]">
+        <div className="relative mb-7 flex h-[74px] items-center justify-center rounded-[24px] border border-[color:var(--ca-border)] bg-[var(--ca-chip-bg)]">
+          <div className="flex h-12 w-12 items-center justify-center rounded-[18px] bg-[linear-gradient(135deg,#3B82F6,#2563EB)] shadow-[0_12px_30px_rgba(37,99,235,0.32)]">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" className="h-5 w-5 text-white">
               <path d="M8 12h8M12 8v8" strokeLinecap="round" />
             </svg>
@@ -83,9 +83,9 @@ export function CoachAdminShellNav({
                   key={item.href}
                   href={item.href}
                   className={cx(
-                    "group flex h-14 items-center justify-center rounded-2xl border transition",
+                    "group flex h-[60px] items-center justify-center rounded-[22px] border transition",
                     active
-                      ? "border-[#6378FF]/28 bg-[linear-gradient(135deg,rgba(67,97,238,0.3),rgba(6,182,212,0.12))] text-white shadow-[0_12px_30px_rgba(67,97,238,0.22)]"
+                      ? "border-[#3B82F6]/30 bg-[linear-gradient(135deg,#3B82F6,#2563EB)] text-white shadow-[0_12px_30px_rgba(37,99,235,0.26)]"
                       : "border-[color:var(--ca-border)] bg-[var(--ca-surface-soft)] text-[color:var(--ca-text-muted)] hover:border-[color:var(--ca-border-strong)] hover:bg-[var(--ca-surface-hover)] hover:text-[color:var(--ca-text)]"
                   )}
                   title={item.label}
@@ -96,24 +96,24 @@ export function CoachAdminShellNav({
             })}
           </nav>
 
-          <div className="relative mt-6 grid gap-3">
-            <div className="rounded-[24px] border border-[color:var(--ca-border)] bg-[var(--ca-surface-soft)] px-3 py-3.5">
-              <p className="text-center text-[9px] font-semibold uppercase tracking-[0.22em] text-cyan-300/85">Live operator</p>
-              <div className="mt-3 flex flex-col items-center gap-2.5">
-                <div className="flex h-11 w-11 flex-none items-center justify-center rounded-2xl border border-[color:var(--ca-border)] bg-[var(--ca-chip-bg)] text-sm font-semibold tracking-[0.12em] text-cyan-300">
+          <div className="relative mt-8 grid gap-3">
+            <div className="rounded-[28px] border border-[color:var(--ca-border)] bg-[linear-gradient(180deg,var(--ca-surface-soft),rgba(14,24,40,0.98))] px-4 py-4">
+              <p className="text-center text-[10px] font-semibold uppercase tracking-[0.24em] text-cyan-300/90">Live operator</p>
+              <div className="mt-3.5 flex flex-col items-center gap-3">
+                <div className="flex h-12 w-12 flex-none items-center justify-center rounded-[18px] border border-[color:var(--ca-border)] bg-[var(--ca-chip-bg)] text-base font-semibold tracking-[0.12em] text-cyan-300">
                   {initials}
                 </div>
                 <div className="w-full min-w-0 text-center">
-                  <p title={email} className={cx("mx-auto max-w-full truncate text-[13px] font-semibold", coachAdminTextPrimaryClass)}>
+                  <p title={email} className={cx("mx-auto max-w-full truncate text-[13px] font-semibold leading-5", coachAdminTextPrimaryClass)}>
                     {emailDisplay}
                   </p>
-                  <p className={cx("mt-1 text-[10px] uppercase tracking-[0.2em]", coachAdminTextSoftClass)}>
+                  <p className={cx("mt-1.5 text-[10px] uppercase tracking-[0.22em]", coachAdminTextSoftClass)}>
                     {role}
                   </p>
                 </div>
               </div>
             </div>
-            <CoachAdminLogoutButton className={cx(coachAdminGhostButtonClass, "w-full justify-center px-3")} />
+            <CoachAdminLogoutButton className={cx(coachAdminGhostButtonClass, "h-[50px] w-full justify-center px-4")} />
           </div>
         </div>
       </div>
