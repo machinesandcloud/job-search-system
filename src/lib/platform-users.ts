@@ -10,6 +10,59 @@ import {
 } from "@/lib/mvp/store";
 
 const PASSWORD_PREFIX = "scrypt";
+let coachProfileTableAvailable: boolean | null = null;
+
+function isMissingCoachProfileTableError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  return (
+    message.includes("CoachProfile") &&
+    (message.includes("does not exist in the current database") ||
+      message.includes('relation "CoachProfile" does not exist') ||
+      message.includes('table `public.CoachProfile` does not exist') ||
+      message.includes('table "public.CoachProfile" does not exist'))
+  );
+}
+
+async function runCoachProfileQuery<T>(operation: () => Promise<T>, fallback: T): Promise<T> {
+  if (coachProfileTableAvailable === false) return fallback;
+
+  try {
+    const result = await operation();
+    coachProfileTableAvailable = true;
+    return result;
+  } catch (error) {
+    if (!isMissingCoachProfileTableError(error)) throw error;
+    coachProfileTableAvailable = false;
+    console.error("[platform-users] CoachProfile table unavailable; continuing without DB profile sync");
+    return fallback;
+  }
+}
+
+async function ensureCoachProfileRecord(userId: string): Promise<any | null> {
+  return runCoachProfileQuery(
+    () =>
+      prisma.coachProfile.upsert({
+        where: { userId },
+        update: {},
+        create: {
+          userId,
+          goals: [],
+          painPoints: [],
+        },
+      }),
+    null,
+  );
+}
+
+async function getCoachProfileRecord(userId: string): Promise<any | null> {
+  return runCoachProfileQuery(
+    () =>
+      prisma.coachProfile.findUnique({
+        where: { userId },
+      }),
+    null,
+  );
+}
 
 function splitFullName(name?: string | null) {
   const trimmed = (name || "").trim();
@@ -87,24 +140,14 @@ async function ensureDatabaseUserShape(user: any) {
     });
   }
 
-  await prisma.coachProfile.upsert({
-    where: { userId: ensuredUser.id },
-    update: {},
-    create: {
-      userId: ensuredUser.id,
-      goals: [],
-      painPoints: [],
-    },
-  });
+  await ensureCoachProfileRecord(ensuredUser.id);
 
   return ensuredUser;
 }
 
 async function mirrorDatabaseUser(user: any) {
   const fullName = buildFullName(user.firstName, user.lastName) || user.email.split("@")[0] || "User";
-  const coachProfile = await prisma.coachProfile.findUnique({
-    where: { userId: user.id },
-  });
+  const coachProfile = await getCoachProfileRecord(user.id);
 
   const mirrored = await upsertUserMirror({
     id: user.id,
@@ -252,15 +295,7 @@ export async function authenticateGooglePlatformUser(input: {
 
   user = await ensureDatabaseUserShape(user);
 
-  await prisma.coachProfile.upsert({
-    where: { userId: user.id },
-    update: {},
-    create: {
-      userId: user.id,
-      goals: [],
-      painPoints: [],
-    },
-  });
+  await ensureCoachProfileRecord(user.id);
 
   const mirrored = await upsertUserMirror({
     id: user.id,
@@ -367,32 +402,36 @@ export async function syncPlatformProfile(userId: string, profile: UserProfile) 
     },
   });
 
-  await prisma.coachProfile.upsert({
-    where: { userId },
-    update: {
-      currentRole: profile.currentRole || null,
-      targetRole: profile.targetRole || null,
-      experienceLevel: profile.experienceLevel || null,
-      geography: profile.geography || null,
-      goals: profile.goals,
-      painPoints: profile.painPoints,
-      onboardingAnswers: {
-        onboardingComplete: profile.onboardingComplete,
-      },
-    },
-    create: {
-      userId,
-      currentRole: profile.currentRole || null,
-      targetRole: profile.targetRole || null,
-      experienceLevel: profile.experienceLevel || null,
-      geography: profile.geography || null,
-      goals: profile.goals,
-      painPoints: profile.painPoints,
-      onboardingAnswers: {
-        onboardingComplete: profile.onboardingComplete,
-      },
-    },
-  });
+  await runCoachProfileQuery(
+    () =>
+      prisma.coachProfile.upsert({
+        where: { userId },
+        update: {
+          currentRole: profile.currentRole || null,
+          targetRole: profile.targetRole || null,
+          experienceLevel: profile.experienceLevel || null,
+          geography: profile.geography || null,
+          goals: profile.goals,
+          painPoints: profile.painPoints,
+          onboardingAnswers: {
+            onboardingComplete: profile.onboardingComplete,
+          },
+        },
+        create: {
+          userId,
+          currentRole: profile.currentRole || null,
+          targetRole: profile.targetRole || null,
+          experienceLevel: profile.experienceLevel || null,
+          geography: profile.geography || null,
+          goals: profile.goals,
+          painPoints: profile.painPoints,
+          onboardingAnswers: {
+            onboardingComplete: profile.onboardingComplete,
+          },
+        },
+      }),
+    null,
+  );
 
   return true;
 }
