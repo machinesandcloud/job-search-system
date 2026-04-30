@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requirePaidRouteAccess } from "@/lib/billing";
 import { openaiChat } from "@/lib/openai";
 import { ensureSameOrigin } from "@/lib/utils";
 
@@ -20,9 +21,12 @@ function mapPersonas(v: unknown, max = 4): Persona[] {
 
 export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const access = await requirePaidRouteAccess("zari_bridge_network");
+  if (!access.ok) return access.response;
 
   const body = await request.json().catch(() => ({})) as {
     fromRole?: string; toRole?: string; fromIndustry?: string; toIndustry?: string;
+    accomplishments?: string; skills?: string; resumeText?: string;
   };
 
   const fromRole = (body.fromRole ?? "").trim();
@@ -33,35 +37,43 @@ export async function POST(request: Request) {
 
 Return ONLY valid JSON:
 {
-  "strategy": "<2-3 sentences: the networking meta-strategy for THIS specific pivot — how to approach being an outsider trying to break in>",
+  "strategy": "<2-3 sentences: the networking meta-strategy for THIS specific pivot — how to approach being an outsider trying to break in, referencing their specific background if provided>",
   "personas": [
     {
       "type": "<type of person — e.g. 'Recently-pivoted engineers now in PM roles'>",
-      "why": "<1-2 sentences: why THIS specific type of person is uniquely valuable for this pivot>",
+      "why": "<1-2 sentences: why THIS specific type of person is uniquely valuable for this exact pivot>",
       "where": "<where to find them — be specific: e.g. 'Search LinkedIn for people with both [X] and [Y] in their history', 'Community slack channels for [field]', etc.>",
-      "template": "<a ready-to-send DM or email — personalized to a career changer reaching out, honest about the pivot, with a specific and easy ask. DO NOT use [Name] — write it as if sending to someone whose name you know. Keep it under 120 words.>"
+      "template": "<a ready-to-send DM or email — if background is provided, reference specific skills or accomplishments from it. Honest about the pivot. Specific, easy ask. DO NOT use [Name] — write as if you know their name. Under 120 words.>"
     }
   ]
 }
 
 Rules:
 - Generate exactly 4 personas, ordered by accessibility and impact
-- Each persona should be a DIFFERENT type of person (not variations of the same)
+- Each persona must be a genuinely DIFFERENT type of person
 - Persona 1: someone who HAS made this exact or similar pivot (biggest credibility source)
-- Persona 2: someone currently in the target role at a company where the person's background is valued
+- Persona 2: someone currently in the target role at a company that values non-traditional backgrounds
 - Persona 3: a connector/community figure in the target field (multiplier effect)
 - Persona 4: someone at the intersection of both fields (bridge person)
-- Templates must be honest about the career change — do not hide it. Pivots that lead with the transition land better than ones that bury it.
-- WHERE to find them must be specific — not "use LinkedIn" but HOW to use LinkedIn to find this exact type.`;
+- Templates must be honest about the career change — name it, don't bury it
+- If background/accomplishments are provided, weave relevant specifics into the templates — make them feel personal, not generic
+- WHERE to find them must be specific — HOW to use LinkedIn, not just "use LinkedIn"`;
+
+  const bgParts = [
+    body.accomplishments?.trim() ? `THEIR BACKGROUND/ACCOMPLISHMENTS:\n${body.accomplishments.slice(0, 1000)}` : "",
+    body.skills?.trim() ? `SKILLS TO LEVERAGE:\n${body.skills.slice(0, 600)}` : "",
+    body.resumeText?.trim() ? `RESUME:\n${body.resumeText.slice(0, 1200)}` : "",
+  ].filter(Boolean).join("\n\n");
 
   const userPrompt = [
     `FROM: ${fromRole}${body.fromIndustry ? ` (${body.fromIndustry})` : ""}`,
     `TO: ${toRole}${body.toIndustry ? ` (${body.toIndustry})` : ""}`,
-  ].join("\n");
+    bgParts || "",
+  ].filter(Boolean).join("\n\n");
 
   const reply = await openaiChat(
     [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
-    { model: process.env.OPENAI_MODEL ?? "gpt-4o-mini", temperature: 0.4, maxTokens: 1200, jsonMode: true }
+    { model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o", temperature: 0.55, maxTokens: 1400, jsonMode: true }
   );
 
   const fallback = {

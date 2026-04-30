@@ -5003,7 +5003,7 @@ function ScreenPivotAnalysis() {
   const ACCENT2 = "#38BDF8";
   type PivotTab = "overview" | "assets" | "gaps" | "plan";
   const [step, setStep] = useState<1|2|3>(1);
-  const [form, setForm] = useState({ fromRole:"", fromIndustry:"", toRole:"", toIndustry:"", accomplishments:"", skills:"", biggestConcern:"", timeline:"", resumeText:"" });
+  const [form, setForm] = useState({ fromRole:"", fromIndustry:"", toRole:"", toIndustry:"", accomplishments:"", skills:"", biggestConcern:"", timeline:"", resumeText:"", currentStatus:"" });
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<PivotAnalysisResult | null>(null);
@@ -5016,6 +5016,7 @@ function ScreenPivotAnalysis() {
 
   async function generate() {
     setGenerating(true); setError("");
+    _ccStore.commit({ fromRole:form.fromRole, fromIndustry:form.fromIndustry, toRole:form.toRole, toIndustry:form.toIndustry, accomplishments:form.accomplishments, skills:form.skills, biggestConcern:form.biggestConcern, timeline:form.timeline, resumeText:form.resumeText, currentStatus:form.currentStatus });
     try {
       const res = await fetch("/api/zari/pivot-analysis", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(form) });
       const data = await res.json().catch(() => null) as (PivotAnalysisResult & { error?: string; message?: string }) | null;
@@ -5395,7 +5396,11 @@ function ScreenPivotAnalysis() {
                 <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Skills you want to leverage <span style={{ color:"#F87171" }}>*</span></p>
                 <textarea value={form.skills} onChange={e => setForm(f => ({...f,skills:e.target.value}))} placeholder="Which of your skills are most relevant to where you're going? What do you consistently do well?" style={{ ...textarea, minHeight:100 }} />
               </div>
-              <p style={{ fontSize:11.5, color:"var(--z-text3)", margin:0 }}>Fill in at least one field to continue. The more you share, the more specific the analysis.</p>
+              <div>
+                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>What have you done toward this pivot so far? <span style={{ fontSize:10, fontWeight:500, color:"var(--z-text3)", textTransform:"none" }}>(optional)</span></p>
+                <textarea value={form.currentStatus} onChange={e => setForm(f => ({...f,currentStatus:e.target.value}))} placeholder="Courses taken, projects started, networking done, certifications in progress — anything that shows you've already started the move." style={{ ...textarea, minHeight:90 }} />
+              </div>
+              <p style={{ fontSize:11.5, color:"var(--z-text3)", margin:0 }}>Fill in at least accomplishments or skills. The more context you share, the more specific all career change tools will be — you only fill this in once.</p>
             </div>
           )}
           {step === 3 && (
@@ -5474,213 +5479,161 @@ function ScreenPivotAnalysis() {
 }
 
 /* ═══════════════════════════════════════════════════
+   CAREER CHANGE: SHARED CONTEXT STORE
+   Fills once in Pivot Analysis, auto-feeds all tools
+═══════════════════════════════════════════════════ */
+type CCSharedForm = { fromRole:string; toRole:string; fromIndustry:string; toIndustry:string; accomplishments:string; skills:string; resumeText:string; timeline:string; biggestConcern:string; currentStatus:string };
+type CCSprintActionItem = { action:string; why:string; time:string };
+type CCStoryResult = { thirtySecond:string; twoMinute:string; written:string; tips:string[] };
+type CCSprintResult = { keyInsight:string; week1:CCSprintActionItem[]; month1:CCSprintActionItem[]; month3:CCSprintActionItem[] };
+type CCNetPersona = { type:string; why:string; where:string; template:string };
+type CCNetResult = { strategy:string; personas:CCNetPersona[] };
+
+const _ccStore = (() => {
+  const form: CCSharedForm = { fromRole:"", toRole:"", fromIndustry:"", toIndustry:"", accomplishments:"", skills:"", resumeText:"", timeline:"", biggestConcern:"", currentStatus:"" };
+  const cache: { story:CCStoryResult|null; sprint:CCSprintResult|null; network:CCNetResult|null } = { story:null, sprint:null, network:null };
+  let ready = false;
+  const subs = new Set<() => void>();
+  const notify = () => subs.forEach(f => f());
+  return {
+    get form() { return form; },
+    get cache() { return cache; },
+    get ready() { return ready; },
+    commit(f: CCSharedForm) { Object.assign(form, f); cache.story=null; cache.sprint=null; cache.network=null; ready=true; notify(); },
+    setCache<K extends keyof typeof cache>(k:K, v:(typeof cache)[K]) { cache[k]=v; notify(); },
+    clearCache(k:keyof typeof cache) { cache[k]=null; notify(); },
+    sub(fn:()=>void) { subs.add(fn); return ()=>{ subs.delete(fn); }; },
+  };
+})();
+
+function useCCStore() {
+  const [, tick] = useState(0);
+  useEffect(() => { return _ccStore.sub(() => tick(n=>n+1)); }, []);
+  return { form:_ccStore.form, cache:_ccStore.cache, ready:_ccStore.ready };
+}
+
+/* ═══════════════════════════════════════════════════
    CAREER CHANGE: STORY BUILDER
 ═══════════════════════════════════════════════════ */
-function ScreenPivotStoryBuilder() {
-  const ACCENT  = "#0284C7";
-  const ACCENT2 = "#38BDF8";
-  type Format = "thirtySecond" | "twoMinute" | "written";
-  type StoryResult = { thirtySecond: string; twoMinute: string; written: string; tips: string[] };
+function ScreenPivotStoryBuilder({ active }:{ active:boolean }) {
+  const ACCENT = "#7C3AED", ACCENT2 = "#A78BFA";
+  const { form, cache, ready } = useCCStore();
+  const [generating, setGen] = useState(false);
+  const [error, setError] = useState("");
+  const [copied, setCopied] = useState<string|null>(null);
+  const activated = useRef(false);
 
-  const [form, setForm]       = useState({ fromRole:"", toRole:"", fromIndustry:"", toIndustry:"", context:"", timeline:"", biggestConcern:"" });
-  const [generating, setGen]  = useState(false);
-  const [result, setResult]   = useState<StoryResult | null>(null);
-  const [fmt, setFmt]         = useState<Format>("thirtySecond");
-  const [copied, setCopied]   = useState(false);
-  const [error, setError]     = useState("");
+  useEffect(() => {
+    if (active && ready && !cache.story && !generating && !activated.current) {
+      activated.current = true; void run();
+    }
+    if (!active) activated.current = false;
+  }, [active, ready, cache.story]);
 
-  const inp: React.CSSProperties = { width:"100%", border:"1px solid var(--z-bd)", borderRadius:12, padding:"12px 14px", fontSize:13.5, color:"var(--z-text)", outline:"none", fontFamily:"inherit", background:"var(--z-raise)", boxSizing:"border-box", transition:"border-color 0.15s" };
-
-  async function generate() {
-    if (!form.fromRole.trim() || !form.toRole.trim()) { setError("Add your current and target roles to continue."); return; }
+  async function run() {
     setGen(true); setError("");
     try {
-      const res  = await fetch("/api/zari/pivot-story", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(form) });
-      const data = await res.json().catch(() => null) as (StoryResult & { error?: string }) | null;
-      if (data?.thirtySecond) { setResult(data); setFmt("thirtySecond"); }
-      else setError(data?.error ?? "Could not generate your story. Please try again.");
-    } catch { setError("Something went wrong. Please try again."); }
+      const res = await fetch("/api/zari/pivot-story", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ fromRole:form.fromRole, toRole:form.toRole, fromIndustry:form.fromIndustry, toIndustry:form.toIndustry, resumeText:form.resumeText, accomplishments:form.accomplishments, skills:form.skills, currentStatus:form.currentStatus, timeline:form.timeline, biggestConcern:form.biggestConcern }) });
+      const data = await res.json().catch(()=>null) as (CCStoryResult & { error?:string })|null;
+      if (data?.thirtySecond) _ccStore.setCache("story", data);
+      else setError(data?.error ?? "Could not generate your story. Try again.");
+    } catch { setError("Something went wrong. Try again."); }
     setGen(false);
   }
 
-  function copyText() {
-    if (!result) return;
-    const text = fmt === "thirtySecond" ? result.thirtySecond : fmt === "twoMinute" ? result.twoMinute : result.written;
-    navigator.clipboard.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
-  }
+  function copy(key:string, text:string) { navigator.clipboard.writeText(text).then(()=>{ setCopied(key); setTimeout(()=>setCopied(null),2000); }); }
 
-  const formats: { id: Format; label: string; desc: string }[] = [
-    { id:"thirtySecond", label:"30-second intro",    desc:"Networking events, chance encounters, quick intros" },
-    { id:"twoMinute",    label:"2-minute interview", desc:"\"Tell me about yourself\" / \"Why are you switching?\"" },
-    { id:"written",      label:"Outreach message",   desc:"Cold DM or email to someone in the target field" },
-  ];
+  if (!ready) return (
+    <div style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--z-raise)", padding:"48px" }}>
+      <div style={{ maxWidth:460, textAlign:"center" }}>
+        <div style={{ width:64, height:64, borderRadius:20, background:`rgba(124,58,237,0.1)`, border:`1px solid rgba(167,139,250,0.25)`, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 20px" }}>{zIcon("mic", ACCENT)}</div>
+        <h2 style={{ fontSize:22, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 10px" }}>Fill in Pivot Analysis first</h2>
+        <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.75, margin:"0 0 8px" }}>Story Builder needs your actual background to write a real, specific pivot story — not a generic template.</p>
+        <p style={{ fontSize:13, color:"var(--z-text3)", lineHeight:1.65, margin:0 }}>Go to <strong style={{color:"var(--z-text2)"}}>Pivot Analysis</strong> (the first tab), complete the form, and all three tools will auto-run when you click them — no re-entering your info.</p>
+      </div>
+    </div>
+  );
 
   if (generating) return (
     <div style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--z-raise)", padding:"40px" }}>
-      <div style={{ borderRadius:24, border:`1px solid rgba(56,189,248,0.2)`, background:"linear-gradient(135deg,rgba(2,132,199,0.08),rgba(56,189,248,0.04))", padding:"64px 52px", textAlign:"center", maxWidth:440, width:"100%" }}>
+      <div style={{ borderRadius:24, border:`1px solid rgba(167,139,250,0.2)`, background:`linear-gradient(135deg,rgba(124,58,237,0.08),rgba(167,139,250,0.04))`, padding:"64px 52px", textAlign:"center", maxWidth:440, width:"100%" }}>
         <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:22 }}>
-          {[0,1,2].map(i => <div key={i} style={{ width:10,height:10,borderRadius:"50%",background:ACCENT2,animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
+          {[0,1,2].map(i=><div key={i} style={{ width:10,height:10,borderRadius:"50%",background:ACCENT2,animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
         </div>
         <div style={{ fontSize:11, fontWeight:800, color:ACCENT2, textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:10 }}>Story Builder</div>
         <p style={{ fontSize:19, fontWeight:900, color:"var(--z-text)", margin:"0 0 8px", letterSpacing:"-0.03em" }}>Writing your pivot story…</p>
-        <p style={{ fontSize:13, color:"var(--z-text3)", lineHeight:1.7, margin:0 }}>Crafting your 30-second intro, 2-minute interview answer, and outreach message.</p>
+        <p style={{ fontSize:13, color:"var(--z-text3)", lineHeight:1.7, margin:0 }}>Crafting your 30-second intro, 2-minute interview answer, and outreach message based on your real background.</p>
       </div>
     </div>
   );
 
-  if (result) return (
-    <div style={{ height:"100%", display:"flex", flexDirection:"column", overflow:"hidden", background:"var(--z-raise)" }}>
-      {/* Header */}
-      <div style={{ flexShrink:0, background:"linear-gradient(160deg,#071525 0%,#0b1e38 50%,#0f172a 100%)", borderBottom:"1px solid rgba(56,189,248,0.15)", padding:"22px 32px", display:"flex", alignItems:"center", gap:16 }}>
-        <div style={{ flex:1 }}>
-          <div style={{ fontSize:10.5, fontWeight:800, color:ACCENT2, textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:6 }}>Story Builder</div>
-          {form.fromRole && form.toRole && (
-            <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-              <span style={{ fontSize:14, fontWeight:700, color:"rgba(255,255,255,0.7)" }}>{form.fromRole}</span>
-              <svg viewBox="0 0 20 10" fill="none" style={{width:22,flexShrink:0}}><path d="M1 5h16M13 2l4 3-4 3" stroke={ACCENT2} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              <span style={{ fontSize:14, fontWeight:700, color:"white" }}>{form.toRole}</span>
-            </div>
-          )}
-        </div>
-        <button onClick={() => setResult(null)} style={{ fontSize:11, fontWeight:700, padding:"6px 13px", borderRadius:8, border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.05)", color:"rgba(255,255,255,0.5)", cursor:"pointer" }}>Redo</button>
-      </div>
-
-      <div style={{ flex:1, overflowY:"auto", padding:"28px 32px 52px", display:"grid", gridTemplateColumns:"1fr 300px", gap:24, alignItems:"start" }}>
-        {/* Main: format selector + text */}
-        <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
-          {/* Format tabs */}
-          <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-            {formats.map(f => {
-              const active = fmt === f.id;
-              return (
-                <button key={f.id} onClick={() => setFmt(f.id)} style={{ padding:"10px 16px", borderRadius:12, border:`1.5px solid ${active ? ACCENT : "var(--z-bd)"}`, background:active ? `rgba(2,132,199,0.1)` : "var(--z-card)", color:active ? ACCENT : "var(--z-text2)", fontSize:12.5, fontWeight:active ? 700 : 500, cursor:"pointer", transition:"all 0.15s", textAlign:"left" }}>
-                  <div style={{ fontWeight:active ? 800 : 600, marginBottom:2 }}>{f.label}</div>
-                  <div style={{ fontSize:11, color:active ? `rgba(2,132,199,0.7)` : "var(--z-text3)", fontWeight:400 }}>{f.desc}</div>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* The story text */}
-          <div style={{ borderRadius:18, background:"var(--z-card)", border:`1px solid var(--z-bd)`, borderTop:`3px solid ${ACCENT}`, overflow:"hidden" }}>
-            <div style={{ padding:"20px 24px 0", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-              <div style={{ fontSize:10.5, fontWeight:800, color:ACCENT, textTransform:"uppercase", letterSpacing:"0.1em" }}>
-                {formats.find(f => f.id === fmt)?.label}
-              </div>
-              <button onClick={copyText} style={{ fontSize:11.5, fontWeight:700, padding:"6px 14px", borderRadius:8, border:`1px solid ${ACCENT}30`, background:`rgba(2,132,199,0.08)`, color:ACCENT, cursor:"pointer", transition:"all 0.15s" }}>
-                {copied ? "Copied ✓" : "Copy"}
-              </button>
-            </div>
-            <div style={{ padding:"18px 24px 24px" }}>
-              <p style={{ fontSize:15, color:"var(--z-text)", lineHeight:1.9, margin:0, whiteSpace:"pre-wrap", fontStyle: fmt === "thirtySecond" ? "italic" : "normal" }}>
-                {fmt === "thirtySecond" ? `"${result.thirtySecond}"` : fmt === "twoMinute" ? result.twoMinute : result.written}
-              </p>
-            </div>
-          </div>
-
-          {fmt === "twoMinute" && (
-            <div style={{ borderRadius:12, background:"rgba(245,158,11,0.06)", border:"1px solid rgba(245,158,11,0.18)", padding:"12px 16px", display:"flex", gap:10 }}>
-              <svg viewBox="0 0 14 14" fill="none" stroke="#F59E0B" strokeWidth="1.7" style={{width:13,height:13,flexShrink:0,marginTop:2}}><circle cx="7" cy="7" r="6"/><path d="M7 5v3M7 9.5v.5"/></svg>
-              <p style={{ fontSize:12.5, color:"var(--z-text2)", margin:0, lineHeight:1.6 }}>Internalize this, then say it out loud — don't read it verbatim. The phrasing should feel natural, not scripted.</p>
-            </div>
-          )}
-          {fmt === "written" && (
-            <div style={{ borderRadius:12, background:"rgba(2,132,199,0.05)", border:"1px solid rgba(56,189,248,0.15)", padding:"12px 16px", display:"flex", gap:10 }}>
-              <svg viewBox="0 0 14 14" fill="none" stroke={ACCENT2} strokeWidth="1.7" style={{width:13,height:13,flexShrink:0,marginTop:2}}><circle cx="7" cy="7" r="6"/><path d="M7 5v3M7 9.5v.5"/></svg>
-              <p style={{ fontSize:12.5, color:"var(--z-text2)", margin:0, lineHeight:1.6 }}>Personalize before sending — reference something specific about their work or company. Generic outreach gets ignored.</p>
-            </div>
-          )}
-        </div>
-
-        {/* Sidebar: tips */}
-        <div style={{ position:"sticky", top:0, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:18, padding:"20px 22px" }}>
-          <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:14 }}>Tips for this pivot</div>
-          <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-            {result.tips.map((tip, i) => (
-              <div key={i} style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
-                <div style={{ width:20, height:20, borderRadius:"50%", background:`rgba(2,132,199,0.1)`, border:`1px solid rgba(2,132,199,0.2)`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:10, fontWeight:800, color:ACCENT }}>{i+1}</div>
-                <p style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.65, margin:0 }}>{tip}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+  const result = cache.story;
+  if (!result) return (
+    <div style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--z-raise)", padding:"48px" }}>
+      <div style={{ maxWidth:420, textAlign:"center" }}>
+        {error && <p style={{ fontSize:13, color:"#FCA5A5", marginBottom:16 }}>{error}</p>}
+        <button onClick={run} style={{ fontSize:14, fontWeight:700, padding:"12px 24px", borderRadius:12, border:"none", background:ACCENT, color:"white", cursor:"pointer" }}>Generate my story →</button>
       </div>
     </div>
   );
+
+  const sections = [
+    { key:"thirtySecond", label:"30-second intro", context:"Networking events, chance encounters, quick intros", note:"Say it out loud a few times until it sounds natural — don't read it verbatim.", text:`"${result.thirtySecond}"`, italic:true },
+    { key:"twoMinute",    label:"2-minute interview answer", context:"\"Tell me about yourself\" / \"Why are you switching?\"", note:"Internalize the structure, then deliver it conversationally. Pause naturally between the three beats: context, pivot reasoning, proof.", text:result.twoMinute, italic:false },
+    { key:"written",      label:"Outreach message", context:"Cold DM or email to someone in the target field", note:"Before sending: find one specific detail about their work to reference. Generic outreach gets ignored — one personal sentence triples response rates.", text:result.written, italic:false },
+  ];
 
   return (
-    <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
-      <StageIntakeHeader
-        eyebrow="Career Change"
-        title="Story Builder"
-        subtitle="Get three ready-to-use versions of your pivot story — 30-second intro, 2-minute interview answer, and a cold outreach message."
-        accent={ACCENT}
-        totalSteps={1}
-        currentStep={1}
-        steps={[{ label:"Your pivot" }]}
-      />
-      <div style={{ padding:"28px 32px 52px", display:"grid", gridTemplateColumns:"1fr 300px", gap:28, alignItems:"start" }}>
-        <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
-          <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"26px 28px", display:"grid", gap:14 }}>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-              <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Current role <span style={{ color:"#F87171" }}>*</span></p>
-                <input value={form.fromRole} onChange={e => setForm(f => ({...f,fromRole:e.target.value}))} placeholder="e.g. Software Engineer" style={inp} />
-              </div>
-              <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Target role <span style={{ color:"#F87171" }}>*</span></p>
-                <input value={form.toRole} onChange={e => setForm(f => ({...f,toRole:e.target.value}))} placeholder="e.g. Product Manager" style={inp} />
-              </div>
-            </div>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-              <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Current industry</p>
-                <input value={form.fromIndustry} onChange={e => setForm(f => ({...f,fromIndustry:e.target.value}))} placeholder="e.g. Fintech" style={inp} />
-              </div>
-              <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Target industry</p>
-                <input value={form.toIndustry} onChange={e => setForm(f => ({...f,toIndustry:e.target.value}))} placeholder="e.g. HealthTech" style={inp} />
-              </div>
-            </div>
-            <div>
-              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Why you're making this change + your strongest proof points</p>
-              <textarea value={form.context} onChange={e => setForm(f => ({...f,context:e.target.value}))} placeholder="The more context you give, the more specific and usable the story will be. What drew you to this? What have you done that's relevant?" style={{ ...inp, minHeight:110, resize:"vertical" as const, lineHeight:1.7 }} />
-            </div>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-              <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Timeline</p>
-                <select value={form.timeline} onChange={e => setForm(f => ({...f,timeline:e.target.value}))} style={{ ...inp, cursor:"pointer" }}>
-                  <option value="">Select…</option>
-                  {["ASAP / Already interviewing","Within 3 months","3–6 months","Exploring"].map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
-              </div>
-              <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Biggest concern</p>
-                <input value={form.biggestConcern} onChange={e => setForm(f => ({...f,biggestConcern:e.target.value}))} placeholder="e.g. No direct experience" style={inp} />
-              </div>
-            </div>
+    <div style={{ height:"100%", display:"flex", flexDirection:"column", overflow:"hidden", background:"var(--z-raise)" }}>
+      <div style={{ flexShrink:0, background:"linear-gradient(160deg,#1a0533 0%,#2d0b5c 50%,#1a0533 100%)", borderBottom:"1px solid rgba(167,139,250,0.18)", padding:"22px 32px", display:"flex", alignItems:"center", gap:16 }}>
+        <div style={{ flex:1 }}>
+          <div style={{ fontSize:10.5, fontWeight:800, color:ACCENT2, textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:6 }}>Story Builder</div>
+          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+            <span style={{ fontSize:14, fontWeight:700, color:"rgba(255,255,255,0.65)" }}>{form.fromRole}</span>
+            <svg viewBox="0 0 20 10" fill="none" style={{width:22,flexShrink:0}}><path d="M1 5h16M13 2l4 3-4 3" stroke={ACCENT2} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            <span style={{ fontSize:14, fontWeight:700, color:"white" }}>{form.toRole}</span>
           </div>
-          {error && <div style={{ background:"rgba(127,29,29,0.2)", border:"1px solid rgba(248,113,113,0.28)", borderRadius:12, padding:"11px 14px", fontSize:13, color:"#FCA5A5" }}>{error}</div>}
-          <button onClick={generate} disabled={generating} style={{ alignSelf:"flex-start", minWidth:220, fontSize:14.5, fontWeight:700, padding:"13px 24px", borderRadius:14, border:"none", background:ACCENT, color:"white", cursor:"pointer", opacity:generating ? 0.7 : 1 }}>Build my story →</button>
         </div>
+        <button onClick={()=>{ _ccStore.clearCache("story"); activated.current=false; }} style={{ fontSize:11, fontWeight:700, padding:"6px 13px", borderRadius:8, border:"1px solid rgba(255,255,255,0.12)", background:"rgba(255,255,255,0.05)", color:"rgba(255,255,255,0.5)", cursor:"pointer" }}>Regenerate</button>
+      </div>
 
-        <div style={{ position:"sticky", top:24, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"22px 22px 20px" }}>
-          <div style={{ fontSize:10.5, fontWeight:800, color:ACCENT2, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>What you get</div>
-          {[
-            { label:"30-second intro", desc:"For networking events, chance encounters — say it without thinking." },
-            { label:"2-minute interview answer", desc:"For \"Tell me about yourself\" and \"Why are you switching?\"" },
-            { label:"Outreach message", desc:"Ready-to-send DM or email for cold outreach to people in your target field." },
-          ].map((item, i) => (
-            <div key={i} style={{ display:"flex", gap:10, alignItems:"flex-start", marginBottom:14 }}>
-              <div style={{ width:6, height:6, borderRadius:"50%", background:ACCENT2, flexShrink:0, marginTop:6 }}/>
-              <div>
-                <div style={{ fontSize:12.5, fontWeight:700, color:"var(--z-text)", marginBottom:2 }}>{item.label}</div>
-                <div style={{ fontSize:11.5, color:"var(--z-text3)", lineHeight:1.55 }}>{item.desc}</div>
+      <div style={{ flex:1, overflowY:"auto", padding:"24px 32px 52px", display:"grid", gridTemplateColumns:"1fr 280px", gap:22, alignItems:"start" }}>
+        <div style={{ display:"flex", flexDirection:"column", gap:18 }}>
+          {sections.map(s => (
+            <div key={s.key} style={{ borderRadius:18, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderTop:`3px solid ${ACCENT}`, overflow:"hidden" }}>
+              <div style={{ padding:"18px 22px 0", display:"flex", alignItems:"center", gap:10 }}>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:12, fontWeight:800, color:ACCENT, letterSpacing:"-0.01em", marginBottom:2 }}>{s.label}</div>
+                  <div style={{ fontSize:11, color:"var(--z-text3)" }}>{s.context}</div>
+                </div>
+                <button onClick={()=>copy(s.key, s.text.replace(/^"|"$/g,""))} style={{ fontSize:11, fontWeight:700, padding:"5px 13px", borderRadius:8, border:`1px solid ${ACCENT}30`, background:`rgba(124,58,237,0.07)`, color:ACCENT, cursor:"pointer", flexShrink:0 }}>{copied===s.key ? "Copied ✓" : "Copy"}</button>
+              </div>
+              <div style={{ padding:"14px 22px 18px" }}>
+                <p style={{ fontSize:14.5, color:"var(--z-text)", lineHeight:1.9, margin:0, whiteSpace:"pre-wrap", fontStyle:s.italic?"italic":"normal" }}>{s.text}</p>
+              </div>
+              <div style={{ padding:"10px 22px 14px", borderTop:"1px solid var(--z-bd)", background:`rgba(124,58,237,0.03)`, display:"flex", gap:8, alignItems:"flex-start" }}>
+                <svg viewBox="0 0 12 12" fill="none" stroke={ACCENT2} strokeWidth="1.7" style={{width:11,height:11,flexShrink:0,marginTop:2}}><circle cx="6" cy="6" r="5"/><path d="M6 4v2.5M6 9v.4"/></svg>
+                <p style={{ fontSize:12, color:"var(--z-text3)", margin:0, lineHeight:1.6 }}>{s.note}</p>
               </div>
             </div>
           ))}
-          <div style={{ borderTop:"1px solid var(--z-bd)", paddingTop:14, marginTop:4 }}>
-            <p style={{ fontSize:11.5, color:"var(--z-text3)", lineHeight:1.65, margin:0 }}>The more context you give, the more specific and usable the output. Generic inputs produce generic stories.</p>
+        </div>
+
+        <div style={{ position:"sticky", top:0, display:"flex", flexDirection:"column", gap:14 }}>
+          <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:18, padding:"18px 20px" }}>
+            <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:14 }}>Tips for this pivot</div>
+            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+              {result.tips.map((tip,i)=>(
+                <div key={i} style={{ display:"flex", gap:9, alignItems:"flex-start" }}>
+                  <div style={{ width:18, height:18, borderRadius:"50%", background:`rgba(124,58,237,0.1)`, border:`1px solid rgba(167,139,250,0.25)`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:9, fontWeight:900, color:ACCENT }}>{i+1}</div>
+                  <p style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.65, margin:0 }}>{tip}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{ background:`rgba(124,58,237,0.06)`, border:`1px solid rgba(167,139,250,0.18)`, borderRadius:14, padding:"14px 16px" }}>
+            <div style={{ fontSize:10.5, fontWeight:800, color:ACCENT2, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>What interviewers actually want</div>
+            <p style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.7, margin:0 }}>They aren't asking "why are you leaving" — they're asking "why <em>this</em>?" Lead with what you're moving toward and why it's a logical extension, not an escape.</p>
           </div>
         </div>
       </div>
@@ -5691,79 +5644,96 @@ function ScreenPivotStoryBuilder() {
 /* ═══════════════════════════════════════════════════
    CAREER CHANGE: CREDIBILITY SPRINT
 ═══════════════════════════════════════════════════ */
-function ScreenCredibilitySprint() {
-  const ACCENT  = "#0284C7";
-  const ACCENT2 = "#38BDF8";
-  type SprintAction = { action: string; why: string; time: string };
-  type SprintResult  = { keyInsight: string; week1: SprintAction[]; month1: SprintAction[]; month3: SprintAction[] };
+function ScreenCredibilitySprint({ active }:{ active:boolean }) {
+  const ACCENT  = "#059669";
+  const ACCENT2 = "#34D399";
 
-  const [form, setForm]      = useState({ fromRole:"", toRole:"", toIndustry:"", timeline:"", currentStatus:"" });
+  const { form, cache, ready } = useCCStore();
   const [generating, setGen] = useState(false);
-  const [result, setResult]  = useState<SprintResult | null>(null);
-  const [error, setError]    = useState("");
+  const [error, setError] = useState("");
+  const activated = useRef(false);
 
-  const inp: React.CSSProperties = { width:"100%", border:"1px solid var(--z-bd)", borderRadius:12, padding:"12px 14px", fontSize:13.5, color:"var(--z-text)", outline:"none", fontFamily:"inherit", background:"var(--z-raise)", boxSizing:"border-box", transition:"border-color 0.15s" };
+  useEffect(() => {
+    if (active && ready && !cache.sprint && !generating && !activated.current) {
+      activated.current = true; void run();
+    }
+    if (!active) activated.current = false;
+  }, [active, ready, cache.sprint]);
 
-  async function generate() {
-    if (!form.fromRole.trim() || !form.toRole.trim()) { setError("Add your current and target roles to continue."); return; }
+  async function run() {
     setGen(true); setError("");
     try {
-      const res  = await fetch("/api/zari/credibility-sprint", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(form) });
-      const data = await res.json().catch(() => null) as (SprintResult & { error?: string }) | null;
-      if (data?.week1) { setResult(data); }
-      else setError(data?.error ?? "Could not generate your sprint. Please try again.");
-    } catch { setError("Something went wrong. Please try again."); }
+      const res = await fetch("/api/zari/credibility-sprint", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ fromRole:form.fromRole, toRole:form.toRole, fromIndustry:form.fromIndustry, toIndustry:form.toIndustry, timeline:form.timeline, currentStatus:form.currentStatus, accomplishments:form.accomplishments, skills:form.skills, resumeText:form.resumeText }) });
+      const data = await res.json().catch(()=>null) as (CCSprintResult & { error?:string })|null;
+      if (data?.week1) _ccStore.setCache("sprint", data);
+      else setError(data?.error ?? "Could not generate your sprint. Try again.");
+    } catch { setError("Something went wrong. Try again."); }
     setGen(false);
   }
 
-  if (generating) return (
-    <div style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--z-raise)", padding:"40px" }}>
-      <div style={{ borderRadius:24, border:`1px solid rgba(56,189,248,0.2)`, background:"linear-gradient(135deg,rgba(2,132,199,0.08),rgba(56,189,248,0.04))", padding:"64px 52px", textAlign:"center", maxWidth:440, width:"100%" }}>
-        <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:22 }}>
-          {[0,1,2].map(i => <div key={i} style={{ width:10,height:10,borderRadius:"50%",background:ACCENT2,animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
-        </div>
-        <div style={{ fontSize:11, fontWeight:800, color:ACCENT2, textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:10 }}>Credibility Sprint</div>
-        <p style={{ fontSize:19, fontWeight:900, color:"var(--z-text)", margin:"0 0 8px", letterSpacing:"-0.03em" }}>Building your sprint plan…</p>
-        <p style={{ fontSize:13, color:"var(--z-text3)", lineHeight:1.7, margin:0 }}>Mapping the fastest path to visible credibility in your target field.</p>
+  if (!ready) return (
+    <div style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--z-raise)", padding:"48px" }}>
+      <div style={{ maxWidth:460, textAlign:"center" }}>
+        <div style={{ width:64, height:64, borderRadius:20, background:`rgba(5,150,105,0.1)`, border:`1px solid rgba(52,211,153,0.25)`, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 20px" }}>{zIcon("trending-up", ACCENT)}</div>
+        <h2 style={{ fontSize:22, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 10px" }}>Fill in Pivot Analysis first</h2>
+        <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.75, margin:"0 0 8px" }}>Credibility Sprint builds your action plan from your real background — not a generic checklist.</p>
+        <p style={{ fontSize:13, color:"var(--z-text3)", lineHeight:1.65, margin:0 }}>Go to <strong style={{color:"var(--z-text2)"}}>Pivot Analysis</strong> (the first tab), complete the form once, and this tool runs automatically when you click it.</p>
       </div>
     </div>
   );
 
-  const phases = result ? [
-    { key:"week1" as const, label:"This week", color:"#34D399", bg:"rgba(52,211,153,0.06)", border:"rgba(52,211,153,0.18)", tag:"Quick wins", actions:result.week1 },
-    { key:"month1" as const, label:"First 30 days", color:ACCENT2, bg:"rgba(56,189,248,0.06)", border:"rgba(56,189,248,0.18)", tag:"Build proof", actions:result.month1 },
-    { key:"month3" as const, label:"60–90 days", color:"#A78BFA", bg:"rgba(167,139,250,0.06)", border:"rgba(167,139,250,0.18)", tag:"Deepen credibility", actions:result.month3 },
-  ] : [];
+  if (generating) return (
+    <div style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--z-raise)", padding:"40px" }}>
+      <div style={{ borderRadius:24, border:`1px solid rgba(52,211,153,0.2)`, background:`linear-gradient(135deg,rgba(5,150,105,0.08),rgba(52,211,153,0.04))`, padding:"64px 52px", textAlign:"center", maxWidth:440, width:"100%" }}>
+        <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:22 }}>
+          {[0,1,2].map(i=><div key={i} style={{ width:10,height:10,borderRadius:"50%",background:ACCENT2,animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
+        </div>
+        <div style={{ fontSize:11, fontWeight:800, color:ACCENT2, textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:10 }}>Credibility Sprint</div>
+        <p style={{ fontSize:19, fontWeight:900, color:"var(--z-text)", margin:"0 0 8px", letterSpacing:"-0.03em" }}>Building your sprint plan…</p>
+        <p style={{ fontSize:13, color:"var(--z-text3)", lineHeight:1.7, margin:0 }}>Mapping the fastest path to visible credibility in <strong style={{color:"var(--z-text2)"}}>{form.toRole}</strong> based on your actual background.</p>
+      </div>
+    </div>
+  );
 
-  if (result) return (
+  const result = cache.sprint;
+  if (!result) return (
+    <div style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--z-raise)", padding:"48px" }}>
+      <div style={{ maxWidth:420, textAlign:"center" }}>
+        {error && <p style={{ fontSize:13, color:"#FCA5A5", marginBottom:16 }}>{error}</p>}
+        <button onClick={run} style={{ fontSize:14, fontWeight:700, padding:"12px 24px", borderRadius:12, border:"none", background:ACCENT, color:"white", cursor:"pointer" }}>Build my sprint →</button>
+      </div>
+    </div>
+  );
+
+  const phases = [
+    { key:"week1" as const, label:"This week", color:"#34D399", bg:"rgba(52,211,153,0.06)", border:"rgba(52,211,153,0.18)", tag:"Quick wins", actions:result.week1 },
+    { key:"month1" as const, label:"First 30 days", color:"#38BDF8", bg:"rgba(56,189,248,0.06)", border:"rgba(56,189,248,0.18)", tag:"Build proof", actions:result.month1 },
+    { key:"month3" as const, label:"60–90 days", color:"#A78BFA", bg:"rgba(167,139,250,0.06)", border:"rgba(167,139,250,0.18)", tag:"Deepen credibility", actions:result.month3 },
+  ];
+
+  return (
     <div style={{ height:"100%", display:"flex", flexDirection:"column", overflow:"hidden", background:"var(--z-raise)" }}>
-      {/* Header */}
-      <div style={{ flexShrink:0, background:"linear-gradient(160deg,#071525 0%,#0b1e38 50%,#0f172a 100%)", borderBottom:"1px solid rgba(56,189,248,0.15)", padding:"22px 32px", display:"flex", alignItems:"center", gap:16 }}>
+      <div style={{ flexShrink:0, background:"linear-gradient(160deg,#012a1a 0%,#064e3b 50%,#012a1a 100%)", borderBottom:"1px solid rgba(52,211,153,0.18)", padding:"22px 32px", display:"flex", alignItems:"center", gap:16 }}>
         <div style={{ flex:1 }}>
           <div style={{ fontSize:10.5, fontWeight:800, color:ACCENT2, textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:6 }}>Credibility Sprint</div>
-          {form.fromRole && form.toRole && (
-            <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-              <span style={{ fontSize:14, fontWeight:700, color:"rgba(255,255,255,0.7)" }}>{form.fromRole}</span>
-              <svg viewBox="0 0 20 10" fill="none" style={{width:22,flexShrink:0}}><path d="M1 5h16M13 2l4 3-4 3" stroke={ACCENT2} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              <span style={{ fontSize:14, fontWeight:700, color:"white" }}>{form.toRole}</span>
-              {form.timeline && <span style={{ fontSize:11, color:"rgba(255,255,255,0.4)", marginLeft:4 }}>· {form.timeline}</span>}
-            </div>
-          )}
+          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+            <span style={{ fontSize:14, fontWeight:700, color:"rgba(255,255,255,0.65)" }}>{form.fromRole}</span>
+            <svg viewBox="0 0 20 10" fill="none" style={{width:22,flexShrink:0}}><path d="M1 5h16M13 2l4 3-4 3" stroke={ACCENT2} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            <span style={{ fontSize:14, fontWeight:700, color:"white" }}>{form.toRole}</span>
+            {form.timeline && <span style={{ fontSize:11, color:"rgba(255,255,255,0.38)", marginLeft:4 }}>· {form.timeline}</span>}
+          </div>
         </div>
-        <button onClick={() => setResult(null)} style={{ fontSize:11, fontWeight:700, padding:"6px 13px", borderRadius:8, border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.05)", color:"rgba(255,255,255,0.5)", cursor:"pointer" }}>Redo</button>
+        <button onClick={()=>{ _ccStore.clearCache("sprint"); activated.current=false; }} style={{ fontSize:11, fontWeight:700, padding:"6px 13px", borderRadius:8, border:"1px solid rgba(255,255,255,0.12)", background:"rgba(255,255,255,0.05)", color:"rgba(255,255,255,0.5)", cursor:"pointer" }}>Regenerate</button>
       </div>
 
       <div style={{ flex:1, overflowY:"auto", padding:"24px 32px 52px" }}>
-        {/* Key insight */}
-        <div style={{ borderRadius:16, background:"linear-gradient(135deg,rgba(2,132,199,0.09),rgba(56,189,248,0.04))", border:"1px solid rgba(56,189,248,0.18)", padding:"20px 24px", marginBottom:24, display:"flex", gap:14, alignItems:"flex-start" }}>
+        <div style={{ borderRadius:16, background:`linear-gradient(135deg,rgba(5,150,105,0.09),rgba(52,211,153,0.04))`, border:`1px solid rgba(52,211,153,0.18)`, padding:"20px 24px", marginBottom:24, display:"flex", gap:14, alignItems:"flex-start" }}>
           {zIcon("trending-up", ACCENT2)}
           <div>
             <div style={{ fontSize:10.5, fontWeight:800, color:ACCENT2, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Key insight</div>
             <p style={{ fontSize:14.5, color:"var(--z-text)", lineHeight:1.8, margin:0, fontWeight:500 }}>{result.keyInsight}</p>
           </div>
         </div>
-
-        {/* 3 phases */}
         <div style={{ display:"grid", gap:20 }}>
           {phases.map(phase => (
             <div key={phase.key} style={{ borderRadius:18, overflow:"hidden", border:`1px solid ${phase.border}`, background:"var(--z-card)" }}>
@@ -5776,7 +5746,7 @@ function ScreenCredibilitySprint() {
                 <span style={{ fontSize:11, color:"var(--z-text3)" }}>{phase.actions.length} actions</span>
               </div>
               <div style={{ padding:"14px 22px", display:"flex", flexDirection:"column", gap:12 }}>
-                {phase.actions.map((a, i) => (
+                {phase.actions.map((a,i)=>(
                   <div key={i} style={{ borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)", padding:"14px 16px" }}>
                     <div style={{ display:"flex", alignItems:"flex-start", gap:10, marginBottom:8 }}>
                       <div style={{ width:22, height:22, borderRadius:6, background:`${phase.color}14`, border:`1px solid ${phase.color}25`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:10, fontWeight:800, color:phase.color }}>{i+1}</div>
@@ -5801,254 +5771,138 @@ function ScreenCredibilitySprint() {
       </div>
     </div>
   );
-
-  return (
-    <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
-      <StageIntakeHeader
-        eyebrow="Career Change"
-        title="Credibility Sprint"
-        subtitle="A phased action plan to build visible credibility in your target field — before you apply, and while you search."
-        accent={ACCENT}
-        totalSteps={1}
-        currentStep={1}
-        steps={[{ label:"Your pivot" }]}
-      />
-      <div style={{ padding:"28px 32px 52px", display:"grid", gridTemplateColumns:"1fr 300px", gap:28, alignItems:"start" }}>
-        <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
-          <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"26px 28px", display:"grid", gap:14 }}>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-              <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Current role <span style={{ color:"#F87171" }}>*</span></p>
-                <input value={form.fromRole} onChange={e => setForm(f => ({...f,fromRole:e.target.value}))} placeholder="e.g. Data Analyst" style={inp} />
-              </div>
-              <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Target role <span style={{ color:"#F87171" }}>*</span></p>
-                <input value={form.toRole} onChange={e => setForm(f => ({...f,toRole:e.target.value}))} placeholder="e.g. Product Manager" style={inp} />
-              </div>
-            </div>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-              <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Target industry</p>
-                <input value={form.toIndustry} onChange={e => setForm(f => ({...f,toIndustry:e.target.value}))} placeholder="e.g. HealthTech" style={inp} />
-              </div>
-              <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Timeline</p>
-                <select value={form.timeline} onChange={e => setForm(f => ({...f,timeline:e.target.value}))} style={{ ...inp, cursor:"pointer" }}>
-                  <option value="">Select…</option>
-                  {["ASAP / Already interviewing","Within 3 months","3–6 months","6–12 months","Exploring"].map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
-              </div>
-            </div>
-            <div>
-              <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>What have you done so far toward this pivot? (optional)</p>
-              <textarea value={form.currentStatus} onChange={e => setForm(f => ({...f,currentStatus:e.target.value}))} placeholder="Any courses, projects, networking, or steps you've already taken. Helps Zari build on what you've started." style={{ ...inp, minHeight:90, resize:"vertical" as const, lineHeight:1.7 }} />
-            </div>
-          </div>
-          {error && <div style={{ background:"rgba(127,29,29,0.2)", border:"1px solid rgba(248,113,113,0.28)", borderRadius:12, padding:"11px 14px", fontSize:13, color:"#FCA5A5" }}>{error}</div>}
-          <button onClick={generate} disabled={generating} style={{ alignSelf:"flex-start", minWidth:220, fontSize:14.5, fontWeight:700, padding:"13px 24px", borderRadius:14, border:"none", background:ACCENT, color:"white", cursor:"pointer", opacity:generating ? 0.7 : 1 }}>Build my sprint →</button>
-        </div>
-
-        <div style={{ position:"sticky", top:24, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"22px 22px 20px" }}>
-          <div style={{ fontSize:10.5, fontWeight:800, color:ACCENT2, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:14 }}>Why this matters</div>
-          <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.7, margin:"0 0 16px" }}>Credibility in a new field isn't built by applying — it's built by being visible before you apply. This sprint tells you exactly what to do, in what order, to be taken seriously as an outsider.</p>
-          {[
-            { phase:"Week 1", desc:"Quick visible wins — signals you've already started" },
-            { phase:"Month 1", desc:"First real proof points — learning and small projects" },
-            { phase:"Month 3", desc:"Deeper credibility — artifacts, community, relationships" },
-          ].map((p, i) => (
-            <div key={i} style={{ display:"flex", gap:10, alignItems:"flex-start", marginBottom:10 }}>
-              <div style={{ width:6, height:6, borderRadius:"50%", background:ACCENT2, flexShrink:0, marginTop:6 }}/>
-              <div>
-                <span style={{ fontSize:12.5, fontWeight:700, color:"var(--z-text)" }}>{p.phase} </span>
-                <span style={{ fontSize:12, color:"var(--z-text3)" }}>{p.desc}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
 }
 
 /* ═══════════════════════════════════════════════════
    CAREER CHANGE: BRIDGE NETWORK
 ═══════════════════════════════════════════════════ */
-function ScreenBridgeNetwork() {
-  const ACCENT  = "#0284C7";
-  const ACCENT2 = "#38BDF8";
-  type Persona = { type: string; why: string; where: string; template: string };
-  type NetResult = { strategy: string; personas: Persona[] };
+function ScreenBridgeNetwork({ active }:{ active:boolean }) {
+  const ACCENT  = "#EA580C";
+  const ACCENT2 = "#FB923C";
 
-  const [form, setForm]       = useState({ fromRole:"", toRole:"", fromIndustry:"", toIndustry:"" });
-  const [generating, setGen]  = useState(false);
-  const [result, setResult]   = useState<NetResult | null>(null);
-  const [active, setActive]   = useState(0);
-  const [copied, setCopied]   = useState<number | null>(null);
-  const [error, setError]     = useState("");
+  const personaColors = ["#34D399","#38BDF8","#A78BFA","#FB923C"];
+  const { form, cache, ready } = useCCStore();
+  const [generating, setGen] = useState(false);
+  const [error, setError] = useState("");
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [copied, setCopied] = useState<number|null>(null);
+  const activated = useRef(false);
 
-  const inp: React.CSSProperties = { width:"100%", border:"1px solid var(--z-bd)", borderRadius:12, padding:"12px 14px", fontSize:13.5, color:"var(--z-text)", outline:"none", fontFamily:"inherit", background:"var(--z-raise)", boxSizing:"border-box", transition:"border-color 0.15s" };
+  useEffect(() => {
+    if (active && ready && !cache.network && !generating && !activated.current) {
+      activated.current = true; void run();
+    }
+    if (!active) activated.current = false;
+  }, [active, ready, cache.network]);
 
-  async function generate() {
-    if (!form.fromRole.trim() || !form.toRole.trim()) { setError("Add your current and target roles to continue."); return; }
+  async function run() {
     setGen(true); setError("");
     try {
-      const res  = await fetch("/api/zari/bridge-network", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(form) });
-      const data = await res.json().catch(() => null) as (NetResult & { error?: string }) | null;
-      if (data?.personas?.length) { setResult(data); setActive(0); }
-      else setError(data?.error ?? "Could not generate your network map. Please try again.");
-    } catch { setError("Something went wrong. Please try again."); }
+      const res = await fetch("/api/zari/bridge-network", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ fromRole:form.fromRole, toRole:form.toRole, fromIndustry:form.fromIndustry, toIndustry:form.toIndustry, accomplishments:form.accomplishments, skills:form.skills, resumeText:form.resumeText }) });
+      const data = await res.json().catch(()=>null) as (CCNetResult & { error?:string })|null;
+      if (data?.personas?.length) { _ccStore.setCache("network", data); setActiveIdx(0); }
+      else setError(data?.error ?? "Could not generate your network map. Try again.");
+    } catch { setError("Something went wrong. Try again."); }
     setGen(false);
   }
 
-  function copy(idx: number) {
-    if (!result) return;
-    navigator.clipboard.writeText(result.personas[idx]?.template ?? "").then(() => {
-      setCopied(idx); setTimeout(() => setCopied(null), 2000);
-    });
-  }
+  function copy(idx:number) { navigator.clipboard.writeText(cache.network?.personas[idx]?.template ?? "").then(()=>{ setCopied(idx); setTimeout(()=>setCopied(null),2000); }); }
 
-  const personaColors = ["#34D399", "#38BDF8", "#A78BFA", "#FB923C"];
-
-  if (generating) return (
-    <div style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--z-raise)", padding:"40px" }}>
-      <div style={{ borderRadius:24, border:`1px solid rgba(56,189,248,0.2)`, background:"linear-gradient(135deg,rgba(2,132,199,0.08),rgba(56,189,248,0.04))", padding:"64px 52px", textAlign:"center", maxWidth:440, width:"100%" }}>
-        <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:22 }}>
-          {[0,1,2].map(i => <div key={i} style={{ width:10,height:10,borderRadius:"50%",background:ACCENT2,animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
-        </div>
-        <div style={{ fontSize:11, fontWeight:800, color:ACCENT2, textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:10 }}>Bridge Network</div>
-        <p style={{ fontSize:19, fontWeight:900, color:"var(--z-text)", margin:"0 0 8px", letterSpacing:"-0.03em" }}>Mapping your bridge network…</p>
-        <p style={{ fontSize:13, color:"var(--z-text3)", lineHeight:1.7, margin:0 }}>Identifying who you need to know and what to say to each of them.</p>
+  if (!ready) return (
+    <div style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--z-raise)", padding:"48px" }}>
+      <div style={{ maxWidth:460, textAlign:"center" }}>
+        <div style={{ width:64, height:64, borderRadius:20, background:`rgba(234,88,12,0.1)`, border:`1px solid rgba(251,146,60,0.25)`, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 20px" }}>{zIcon("globe", ACCENT)}</div>
+        <h2 style={{ fontSize:22, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 10px" }}>Fill in Pivot Analysis first</h2>
+        <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.75, margin:"0 0 8px" }}>Bridge Network maps who you need to know and what to say — but it needs your background to write targeted outreach templates.</p>
+        <p style={{ fontSize:13, color:"var(--z-text3)", lineHeight:1.65, margin:0 }}>Go to <strong style={{color:"var(--z-text2)"}}>Pivot Analysis</strong> (the first tab), complete the form once, and all three tools run automatically when you click them.</p>
       </div>
     </div>
   );
 
-  if (result) {
-    const p = result.personas[active];
-    const pc = personaColors[active] ?? ACCENT2;
-    return (
-      <div style={{ height:"100%", display:"flex", flexDirection:"column", overflow:"hidden", background:"var(--z-raise)" }}>
-        {/* Header */}
-        <div style={{ flexShrink:0, background:"linear-gradient(160deg,#071525 0%,#0b1e38 50%,#0f172a 100%)", borderBottom:"1px solid rgba(56,189,248,0.15)", padding:"22px 32px", display:"flex", alignItems:"center", gap:16 }}>
-          <div style={{ flex:1 }}>
-            <div style={{ fontSize:10.5, fontWeight:800, color:ACCENT2, textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:6 }}>Bridge Network</div>
-            {form.fromRole && form.toRole && (
-              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                <span style={{ fontSize:14, fontWeight:700, color:"rgba(255,255,255,0.7)" }}>{form.fromRole}</span>
-                <svg viewBox="0 0 20 10" fill="none" style={{width:22,flexShrink:0}}><path d="M1 5h16M13 2l4 3-4 3" stroke={ACCENT2} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                <span style={{ fontSize:14, fontWeight:700, color:"white" }}>{form.toRole}</span>
-              </div>
-            )}
-          </div>
-          <button onClick={() => setResult(null)} style={{ fontSize:11, fontWeight:700, padding:"6px 13px", borderRadius:8, border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.05)", color:"rgba(255,255,255,0.5)", cursor:"pointer" }}>Redo</button>
+  if (generating) return (
+    <div style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--z-raise)", padding:"40px" }}>
+      <div style={{ borderRadius:24, border:`1px solid rgba(251,146,60,0.2)`, background:`linear-gradient(135deg,rgba(234,88,12,0.08),rgba(251,146,60,0.04))`, padding:"64px 52px", textAlign:"center", maxWidth:440, width:"100%" }}>
+        <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:22 }}>
+          {[0,1,2].map(i=><div key={i} style={{ width:10,height:10,borderRadius:"50%",background:ACCENT2,animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
         </div>
-
-        <div style={{ flex:1, overflowY:"auto", padding:"24px 32px 52px", display:"grid", gridTemplateColumns:"220px 1fr", gap:20, alignItems:"start" }}>
-          {/* Left: persona list */}
-          <div style={{ display:"flex", flexDirection:"column", gap:8, position:"sticky", top:0 }}>
-            <div style={{ borderRadius:14, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"14px 16px", marginBottom:6 }}>
-              <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Strategy</div>
-              <p style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.65, margin:0 }}>{result.strategy}</p>
-            </div>
-            {result.personas.map((persona, i) => {
-              const c = personaColors[i] ?? ACCENT2;
-              return (
-                <button key={i} onClick={() => setActive(i)} style={{ padding:"12px 14px", borderRadius:12, border:`1.5px solid ${active === i ? c : "var(--z-bd)"}`, background:active === i ? `${c}10` : "var(--z-card)", cursor:"pointer", textAlign:"left", transition:"all 0.15s" }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
-                    <div style={{ width:8, height:8, borderRadius:"50%", background:c, flexShrink:0 }}/>
-                    <span style={{ fontSize:10, fontWeight:800, color:c, textTransform:"uppercase", letterSpacing:"0.08em" }}>Contact {i+1}</span>
-                  </div>
-                  <div style={{ fontSize:12.5, fontWeight:600, color:"var(--z-text)", lineHeight:1.4 }}>{persona.type}</div>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Right: active persona detail */}
-          {p && (
-            <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-              {/* Why */}
-              <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:`4px solid ${pc}`, padding:"18px 22px" }}>
-                <div style={{ fontSize:10, fontWeight:800, color:pc, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Why this person matters</div>
-                <p style={{ fontSize:14, color:"var(--z-text)", lineHeight:1.8, margin:0 }}>{p.why}</p>
-              </div>
-              {/* Where */}
-              <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"18px 22px" }}>
-                <div style={{ fontSize:10, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>How to find them</div>
-                <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.8, margin:0 }}>{p.where}</p>
-              </div>
-              {/* Template */}
-              <div style={{ borderRadius:16, background:"var(--z-card)", border:`1px solid var(--z-bd)`, borderTop:`3px solid ${pc}`, overflow:"hidden" }}>
-                <div style={{ padding:"18px 22px 0", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-                  <div style={{ fontSize:10, fontWeight:800, color:pc, textTransform:"uppercase", letterSpacing:"0.1em" }}>Outreach template</div>
-                  <button onClick={() => copy(active)} style={{ fontSize:11.5, fontWeight:700, padding:"5px 14px", borderRadius:8, border:`1px solid ${pc}30`, background:`${pc}08`, color:pc, cursor:"pointer" }}>
-                    {copied === active ? "Copied ✓" : "Copy"}
-                  </button>
-                </div>
-                <div style={{ padding:"14px 22px 22px" }}>
-                  <p style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.9, margin:0, whiteSpace:"pre-wrap" }}>{p.template}</p>
-                </div>
-                <div style={{ padding:"12px 22px 16px", borderTop:"1px solid var(--z-bd)", background:"rgba(245,158,11,0.04)" }}>
-                  <p style={{ fontSize:12, color:"var(--z-text3)", margin:0, lineHeight:1.55 }}>Personalize before sending — reference something specific about them or their work. Templates that feel generic get ignored.</p>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
+        <div style={{ fontSize:11, fontWeight:800, color:ACCENT2, textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:10 }}>Bridge Network</div>
+        <p style={{ fontSize:19, fontWeight:900, color:"var(--z-text)", margin:"0 0 8px", letterSpacing:"-0.03em" }}>Mapping your bridge network…</p>
+        <p style={{ fontSize:13, color:"var(--z-text3)", lineHeight:1.7, margin:0 }}>Identifying the 4 specific people you need to know — and writing outreach templates grounded in your real background.</p>
       </div>
-    );
-  }
+    </div>
+  );
 
+  const result = cache.network;
+  if (!result) return (
+    <div style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--z-raise)", padding:"48px" }}>
+      <div style={{ maxWidth:420, textAlign:"center" }}>
+        {error && <p style={{ fontSize:13, color:"#FCA5A5", marginBottom:16 }}>{error}</p>}
+        <button onClick={run} style={{ fontSize:14, fontWeight:700, padding:"12px 24px", borderRadius:12, border:"none", background:ACCENT, color:"white", cursor:"pointer" }}>Map my network →</button>
+      </div>
+    </div>
+  );
+
+  const p = result.personas[activeIdx];
+  const pc = personaColors[activeIdx] ?? ACCENT2;
   return (
-    <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
-      <StageIntakeHeader
-        eyebrow="Career Change"
-        title="Bridge Network"
-        subtitle="Identify the 4 types of people who can open the door to your target field, and get ready-to-send outreach templates for each."
-        accent={ACCENT}
-        totalSteps={1}
-        currentStep={1}
-        steps={[{ label:"Your pivot" }]}
-      />
-      <div style={{ padding:"28px 32px 52px", display:"grid", gridTemplateColumns:"1fr 300px", gap:28, alignItems:"start" }}>
-        <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
-          <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"26px 28px", display:"grid", gap:14 }}>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-              <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Current role <span style={{ color:"#F87171" }}>*</span></p>
-                <input value={form.fromRole} onChange={e => setForm(f => ({...f,fromRole:e.target.value}))} placeholder="e.g. Marketing Manager" style={inp} />
-              </div>
-              <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Target role <span style={{ color:"#F87171" }}>*</span></p>
-                <input value={form.toRole} onChange={e => setForm(f => ({...f,toRole:e.target.value}))} placeholder="e.g. UX Designer" style={inp} />
-              </div>
+    <div style={{ height:"100%", display:"flex", flexDirection:"column", overflow:"hidden", background:"var(--z-raise)" }}>
+      <div style={{ flexShrink:0, background:"linear-gradient(160deg,#1c0a00 0%,#431407 50%,#1c0a00 100%)", borderBottom:"1px solid rgba(251,146,60,0.18)", padding:"22px 32px", display:"flex", alignItems:"center", gap:16 }}>
+        <div style={{ flex:1 }}>
+          <div style={{ fontSize:10.5, fontWeight:800, color:ACCENT2, textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:6 }}>Bridge Network</div>
+          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+            <span style={{ fontSize:14, fontWeight:700, color:"rgba(255,255,255,0.65)" }}>{form.fromRole}</span>
+            <svg viewBox="0 0 20 10" fill="none" style={{width:22,flexShrink:0}}><path d="M1 5h16M13 2l4 3-4 3" stroke={ACCENT2} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            <span style={{ fontSize:14, fontWeight:700, color:"white" }}>{form.toRole}</span>
+          </div>
+        </div>
+        <button onClick={()=>{ _ccStore.clearCache("network"); activated.current=false; }} style={{ fontSize:11, fontWeight:700, padding:"6px 13px", borderRadius:8, border:"1px solid rgba(255,255,255,0.12)", background:"rgba(255,255,255,0.05)", color:"rgba(255,255,255,0.5)", cursor:"pointer" }}>Regenerate</button>
+      </div>
+
+      <div style={{ flex:1, overflowY:"auto", padding:"24px 32px 52px", display:"grid", gridTemplateColumns:"220px 1fr", gap:20, alignItems:"start" }}>
+        <div style={{ display:"flex", flexDirection:"column", gap:8, position:"sticky", top:0 }}>
+          <div style={{ borderRadius:14, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"14px 16px", marginBottom:4 }}>
+            <div style={{ fontSize:10, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Strategy</div>
+            <p style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.65, margin:0 }}>{result.strategy}</p>
+          </div>
+          {result.personas.map((persona,i)=>{
+            const c = personaColors[i] ?? ACCENT2;
+            return (
+              <button key={i} onClick={()=>setActiveIdx(i)} style={{ padding:"12px 14px", borderRadius:12, border:`1.5px solid ${activeIdx===i ? c : "var(--z-bd)"}`, background:activeIdx===i ? `${c}10` : "var(--z-card)", cursor:"pointer", textAlign:"left", transition:"all 0.15s" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
+                  <div style={{ width:8, height:8, borderRadius:"50%", background:c, flexShrink:0 }}/>
+                  <span style={{ fontSize:10, fontWeight:800, color:c, textTransform:"uppercase", letterSpacing:"0.08em" }}>Contact {i+1}</span>
+                </div>
+                <div style={{ fontSize:12.5, fontWeight:600, color:"var(--z-text)", lineHeight:1.4 }}>{persona.type}</div>
+              </button>
+            );
+          })}
+        </div>
+
+        {p && (
+          <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+            <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:`4px solid ${pc}`, padding:"18px 22px" }}>
+              <div style={{ fontSize:10, fontWeight:800, color:pc, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Why this person matters</div>
+              <p style={{ fontSize:14, color:"var(--z-text)", lineHeight:1.8, margin:0 }}>{p.why}</p>
             </div>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-              <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Current industry</p>
-                <input value={form.fromIndustry} onChange={e => setForm(f => ({...f,fromIndustry:e.target.value}))} placeholder="e.g. E-commerce" style={inp} />
+            <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"18px 22px" }}>
+              <div style={{ fontSize:10, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>How to find them</div>
+              <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.8, margin:0 }}>{p.where}</p>
+            </div>
+            <div style={{ borderRadius:16, background:"var(--z-card)", border:`1px solid var(--z-bd)`, borderTop:`3px solid ${pc}`, overflow:"hidden" }}>
+              <div style={{ padding:"18px 22px 0", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                <div style={{ fontSize:10, fontWeight:800, color:pc, textTransform:"uppercase", letterSpacing:"0.1em" }}>Outreach template</div>
+                <button onClick={()=>copy(activeIdx)} style={{ fontSize:11.5, fontWeight:700, padding:"5px 14px", borderRadius:8, border:`1px solid ${pc}30`, background:`${pc}08`, color:pc, cursor:"pointer" }}>{copied===activeIdx ? "Copied ✓" : "Copy"}</button>
               </div>
-              <div>
-                <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Target industry</p>
-                <input value={form.toIndustry} onChange={e => setForm(f => ({...f,toIndustry:e.target.value}))} placeholder="e.g. SaaS" style={inp} />
+              <div style={{ padding:"14px 22px 22px" }}>
+                <p style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.9, margin:0, whiteSpace:"pre-wrap" }}>{p.template}</p>
+              </div>
+              <div style={{ padding:"12px 22px 16px", borderTop:"1px solid var(--z-bd)", background:"rgba(245,158,11,0.04)", display:"flex", gap:8, alignItems:"flex-start" }}>
+                <svg viewBox="0 0 12 12" fill="none" stroke="#F59E0B" strokeWidth="1.7" style={{width:10,height:10,flexShrink:0,marginTop:2}}><circle cx="6" cy="6" r="5"/><path d="M6 4v2.5M6 9v.4"/></svg>
+                <p style={{ fontSize:12, color:"var(--z-text3)", margin:0, lineHeight:1.55 }}>Personalize before sending — reference something specific about their work or background. Generic outreach gets ignored.</p>
               </div>
             </div>
           </div>
-          {error && <div style={{ background:"rgba(127,29,29,0.2)", border:"1px solid rgba(248,113,113,0.28)", borderRadius:12, padding:"11px 14px", fontSize:13, color:"#FCA5A5" }}>{error}</div>}
-          <button onClick={generate} disabled={generating} style={{ alignSelf:"flex-start", minWidth:220, fontSize:14.5, fontWeight:700, padding:"13px 24px", borderRadius:14, border:"none", background:ACCENT, color:"white", cursor:"pointer", opacity:generating ? 0.7 : 1 }}>Map my network →</button>
-        </div>
-
-        <div style={{ position:"sticky", top:24, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"22px 22px 20px" }}>
-          <div style={{ fontSize:10.5, fontWeight:800, color:ACCENT2, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:14 }}>What you get</div>
-          <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.7, margin:"0 0 14px" }}>4 specific types of people to connect with for this exact pivot — not generic networking advice, but targeted contacts mapped to your transition.</p>
-          {["The pivot mirror: someone who made this exact move", "The insider: a practitioner at companies open to career changers", "The connector: community figures with outsized networks", "The bridge: people who span both fields"].map((item, i) => (
-            <div key={i} style={{ display:"flex", gap:10, alignItems:"flex-start", marginBottom:10 }}>
-              <div style={{ width:14, height:14, borderRadius:"50%", background:`${personaColors[i]}20`, border:`1px solid ${personaColors[i]}40`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>
-                <div style={{ width:5, height:5, borderRadius:"50%", background:personaColors[i] }}/>
-              </div>
-              <p style={{ fontSize:12, color:"var(--z-text3)", lineHeight:1.55, margin:0 }}>{item}</p>
-            </div>
-          ))}
-        </div>
+        )}
       </div>
     </div>
   );
@@ -15189,9 +15043,9 @@ export function ZariPortal() {
         <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
           <div className={screen==="session"      ? "zari-screen-active" : ""} style={{ display:screen==="session"      ? "block" : "none", height:"100%" }}><ScreenSession      stage={stage} onNavigate={navigate}/></div>
           <div className={screen==="resume"       ? "zari-screen-active" : ""} style={{ display:screen==="resume"       ? "block" : "none", height:"100%" }}><ScreenResume       stage={stage} onNavigate={s=>navigate(s as Screen)}/></div>
-          <div className={screen==="interview"    ? "zari-screen-active" : ""} style={{ display:screen==="interview"    ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <ScreenPivotStoryBuilder/> : <ScreenInterview    stage={stage} active={screen==="interview"}/>}</div>
-          <div className={screen==="cover-letter" ? "zari-screen-active" : ""} style={{ display:screen==="cover-letter" ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <ScreenCredibilitySprint/> : <ScreenCoverLetter stage={stage} active={screen==="cover-letter"}/>}</div>
-          <div className={screen==="linkedin"     ? "zari-screen-active" : ""} style={{ display:screen==="linkedin"     ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <ScreenBridgeNetwork/>      : <ScreenLinkedIn     stage={stage} active={screen==="linkedin"}/>}</div>
+          <div className={screen==="interview"    ? "zari-screen-active" : ""} style={{ display:screen==="interview"    ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <ScreenPivotStoryBuilder active={screen==="interview"}/> : <ScreenInterview    stage={stage} active={screen==="interview"}/>}</div>
+          <div className={screen==="cover-letter" ? "zari-screen-active" : ""} style={{ display:screen==="cover-letter" ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <ScreenCredibilitySprint active={screen==="cover-letter"}/> : <ScreenCoverLetter stage={stage} active={screen==="cover-letter"}/>}</div>
+          <div className={screen==="linkedin"     ? "zari-screen-active" : ""} style={{ display:screen==="linkedin"     ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <ScreenBridgeNetwork active={screen==="linkedin"}/> : <ScreenLinkedIn     stage={stage} active={screen==="linkedin"}/>}</div>
           <div className={screen==="documents"    ? "zari-screen-active" : ""} style={{ display:screen==="documents"    ? "block" : "none", height:"100%" }}><ScreenDocuments stage={stage} onNavigate={s=>navigate(s as Screen)}/></div>
           <div className={screen==="plan"         ? "zari-screen-active" : ""} style={{ display:screen==="plan"         ? "block" : "none", height:"100%" }}><ScreenPlan stage={stage} onNavigate={s=>navigate(s as Screen)} active={screen==="plan"}/></div>
         </div>

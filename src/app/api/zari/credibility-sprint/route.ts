@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requirePaidRouteAccess } from "@/lib/billing";
 import { openaiChat } from "@/lib/openai";
 import { ensureSameOrigin } from "@/lib/utils";
 
@@ -20,10 +21,13 @@ function mapActions(v: unknown, max = 5): SprintAction[] {
 
 export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const access = await requirePaidRouteAccess("zari_credibility_sprint");
+  if (!access.ok) return access.response;
 
   const body = await request.json().catch(() => ({})) as {
-    fromRole?: string; toRole?: string; toIndustry?: string; timeline?: string;
-    currentStatus?: string;
+    fromRole?: string; toRole?: string; fromIndustry?: string; toIndustry?: string;
+    timeline?: string; currentStatus?: string;
+    accomplishments?: string; skills?: string; resumeText?: string;
   };
 
   const fromRole = (body.fromRole ?? "").trim();
@@ -34,7 +38,7 @@ export async function POST(request: Request) {
 
 Return ONLY valid JSON:
 {
-  "keyInsight": "<1-2 sentences: the single most important thing to understand about credibility-building for THIS specific pivot>",
+  "keyInsight": "<1-2 sentences: the single most important thing to understand about credibility-building for THIS specific pivot — reference their actual background if provided>",
   "week1": [
     { "action": "<specific action to take>", "why": "<why this matters for this specific pivot>", "time": "<realistic time estimate, e.g. '30 minutes' or '2-3 hours'>" }
   ],
@@ -43,23 +47,30 @@ Return ONLY valid JSON:
 }
 
 Rules:
-- week1: quick, low-effort, visible wins — things that signal commitment immediately (LinkedIn headline, following key people, first post, etc.)
-- month1: learning + first proof points — a course, a relevant project, first networking conversation
-- month3: deeper credibility — portfolio piece, published content, community contribution, or referral relationship
-- All actions must be SPECIFIC to ${fromRole} → ${toRole}, not generic advice
-- Prioritize visibility over private learning — credibility is about what others can see
-- Each "why" should explain the specific mechanism — how does this action build credibility for THIS pivot?`;
+- week1: quick, low-effort, visible wins — signal commitment immediately (LinkedIn headline, engaging with target field content, first post, etc.)
+- month1: learning + first proof points — a course or cert relevant to the gap, a small project, first networking conversation
+- month3: deeper credibility — a real portfolio artifact, published content, community contribution, or referral relationship
+- All actions must be SPECIFIC to this ${fromRole} → ${toRole} pivot — if background is provided, build on what they've already done, don't repeat it
+- Prioritize visibility over private learning — credibility is what others can see
+- If the person has already taken some steps, acknowledge and build on them rather than starting from scratch`;
+
+  const bgParts = [
+    body.accomplishments?.trim() ? `BACKGROUND/ACCOMPLISHMENTS:\n${body.accomplishments.slice(0, 1000)}` : "",
+    body.skills?.trim() ? `SKILLS:\n${body.skills.slice(0, 600)}` : "",
+    body.currentStatus?.trim() ? `STEPS ALREADY TAKEN:\n${body.currentStatus.slice(0, 600)}` : "",
+    body.resumeText?.trim() ? `RESUME:\n${body.resumeText.slice(0, 1200)}` : "",
+  ].filter(Boolean).join("\n\n");
 
   const userPrompt = [
-    `FROM: ${fromRole}`,
+    `FROM: ${fromRole}${body.fromIndustry ? ` (${body.fromIndustry})` : ""}`,
     `TO: ${toRole}${body.toIndustry ? ` (${body.toIndustry})` : ""}`,
     body.timeline ? `TIMELINE: ${body.timeline}` : "",
-    body.currentStatus ? `CURRENT STATUS: ${body.currentStatus}` : "",
-  ].filter(Boolean).join("\n");
+    bgParts || "",
+  ].filter(Boolean).join("\n\n");
 
   const reply = await openaiChat(
     [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
-    { model: process.env.OPENAI_MODEL ?? "gpt-4o-mini", temperature: 0.3, maxTokens: 1100, jsonMode: true }
+    { model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o", temperature: 0.5, maxTokens: 1300, jsonMode: true }
   );
 
   const fallback = {

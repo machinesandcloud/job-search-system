@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requirePaidRouteAccess } from "@/lib/billing";
 import { openaiChat } from "@/lib/openai";
 import { ensureSameOrigin } from "@/lib/utils";
 
@@ -26,10 +27,13 @@ function buildFallback(fromRole: string, toRole: string) {
 
 export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const access = await requirePaidRouteAccess("zari_pivot_story");
+  if (!access.ok) return access.response;
 
   const body = await request.json().catch(() => ({})) as {
     fromRole?: string; toRole?: string; fromIndustry?: string; toIndustry?: string;
-    context?: string; timeline?: string; biggestConcern?: string;
+    context?: string; resumeText?: string; accomplishments?: string; skills?: string;
+    currentStatus?: string; timeline?: string; biggestConcern?: string;
   };
 
   const fromRole = (body.fromRole ?? "").trim();
@@ -43,31 +47,40 @@ Generate three versions of this person's pivot narrative for different contexts.
 
 Return ONLY valid JSON:
 {
-  "thirtySecond": "<30-second verbal intro — 2-3 sentences, natural spoken language, first person. Bridges old and new clearly.>",
-  "twoMinute": "<Full 2-minute interview answer to 'Tell me about yourself / Why are you making this change?' — 4-5 paragraphs, conversational, specific. Ends with forward momentum.>",
-  "written": "<Email or LinkedIn message version — for cold outreach to people in the target field. Professional, concise, honest about the pivot. Includes a clear ask.>",
-  "tips": ["<tip specific to this exact pivot>", "<tip>", "<tip>", "<tip>"]
+  "thirtySecond": "<30-second verbal intro — 2-3 natural spoken sentences, first person. Name the pivot honestly, lead with what you're moving toward. Grounded in their stated background.>",
+  "twoMinute": "<Full 2-minute interview answer to 'Tell me about yourself / Why are you making this change?' — 4-5 paragraphs, conversational, specific. Use actual details from their background. Ends with forward momentum.>",
+  "written": "<Email or LinkedIn message for cold outreach to someone in the target field. Concise, honest about the pivot, references something from their background as context. Clear, easy ask at the end. Under 120 words.>",
+  "tips": ["<tactical tip specific to this exact pivot>", "<tip>", "<tip>", "<tip>"]
 }
 
 Rules:
-- All three formats must speak to the SAME person — same background, same target, same reasoning
-- Be specific to ${fromRole} → ${toRole}, not generic
-- The 30-second version should be something they can actually say out loud naturally
-- The 2-minute version should acknowledge the pivot directly, not dance around it
-- The written version should be for networking outreach, not a formal cover letter
-- Tips should be tactical and specific to this particular transition`;
+- All three formats must use the SAME person's stated background — ground every claim in what they actually told you
+- Never invent accomplishments or proof points not mentioned in the background
+- The 30-second version must feel natural said out loud — avoid jargon and corporate language
+- The 2-minute version must name the transition directly in the first paragraph, not bury it
+- The written version is for networking outreach, not a cover letter — be human, not formal
+- Tips must be specific to this exact ${fromRole} → ${toRole} transition, not generic career advice
+- If background context is provided, the stories must reflect those specific experiences`;
+
+  const bgParts = [
+    body.accomplishments?.trim() ? `KEY ACCOMPLISHMENTS:\n${body.accomplishments.slice(0, 1200)}` : "",
+    body.skills?.trim() ? `SKILLS TO LEVERAGE:\n${body.skills.slice(0, 800)}` : "",
+    body.currentStatus?.trim() ? `PROGRESS MADE SO FAR:\n${body.currentStatus.slice(0, 600)}` : "",
+    body.resumeText?.trim() ? `RESUME/BACKGROUND:\n${body.resumeText.slice(0, 1800)}` : "",
+    body.context?.trim() ? `ADDITIONAL CONTEXT:\n${body.context.slice(0, 800)}` : "",
+  ].filter(Boolean).join("\n\n");
 
   const userPrompt = [
     `FROM: ${fromRole}${body.fromIndustry ? ` (${body.fromIndustry})` : ""}`,
     `TO: ${toRole}${body.toIndustry ? ` (${body.toIndustry})` : ""}`,
     body.timeline ? `TIMELINE: ${body.timeline}` : "",
     body.biggestConcern ? `BIGGEST CONCERN: ${body.biggestConcern}` : "",
-    body.context ? `BACKGROUND CONTEXT:\n${body.context.slice(0, 1500)}` : "",
-  ].filter(Boolean).join("\n");
+    bgParts || "",
+  ].filter(Boolean).join("\n\n");
 
   const reply = await openaiChat(
     [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
-    { model: process.env.OPENAI_MODEL ?? "gpt-4o-mini", temperature: 0.45, maxTokens: 1200, jsonMode: true }
+    { model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o", temperature: 0.65, maxTokens: 1400, jsonMode: true }
   );
 
   if (!reply) return NextResponse.json(fallback);
