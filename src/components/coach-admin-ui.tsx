@@ -1,11 +1,11 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-function cx(...parts: Array<string | false | null | undefined>) {
+export function cx(...parts: Array<string | false | null | undefined>) {
   return parts.filter(Boolean).join(" ");
 }
 
-type Tone = "brand" | "cyan" | "gold" | "rose" | "emerald" | "slate";
+export type Tone = "brand" | "cyan" | "gold" | "rose" | "emerald" | "slate";
 
 const toneMap: Record<Tone, { pill: string; ring: string; glow: string; bar: string }> = {
   brand: {
@@ -39,12 +39,24 @@ const toneMap: Record<Tone, { pill: string; ring: string; glow: string; bar: str
     bar: "from-emerald-300 via-teal-400 to-cyan-400",
   },
   slate: {
-    pill: "border-white/10 bg-white/[0.06] text-white/80",
-    ring: "border-white/10",
-    glow: "from-white/10 via-white/5 to-transparent",
-    bar: "from-white/40 via-white/20 to-white/10",
+    pill: "border-[color:var(--ca-border)] bg-[var(--ca-chip-bg)] text-[color:var(--ca-text-muted)]",
+    ring: "border-[color:var(--ca-border)]",
+    glow: "from-[var(--ca-glass-glow)] via-transparent to-transparent",
+    bar: "from-[var(--ca-text-muted)] via-[var(--ca-border-strong)] to-[var(--ca-border)]",
   },
 };
+
+export const coachAdminTextPrimaryClass = "text-[color:var(--ca-text)]";
+export const coachAdminTextMutedClass = "text-[color:var(--ca-text-muted)]";
+export const coachAdminTextSoftClass = "text-[color:var(--ca-text-soft)]";
+export const coachAdminTextInverseClass = "text-white";
+export const coachAdminSubtleCardClass = "rounded-[24px] border border-[color:var(--ca-border)] bg-[var(--ca-surface-soft)]";
+export const coachAdminInsetCardClass = "rounded-[28px] border border-[color:var(--ca-border)] bg-[var(--ca-surface-strong)]";
+export const coachAdminListCardClass = "rounded-[24px] border border-[color:var(--ca-border)] bg-[var(--ca-surface-soft)] transition hover:border-[color:var(--ca-border-strong)] hover:bg-[var(--ca-surface-hover)]";
+export const coachAdminInputClass = "rounded-[22px] border border-[color:var(--ca-border)] bg-[var(--ca-input-bg)] px-4 py-3 text-sm text-[color:var(--ca-text)] outline-none transition placeholder:text-[color:var(--ca-text-soft)] focus:border-cyan-400/45 focus:bg-[var(--ca-input-focus-bg)]";
+export const coachAdminPrimaryButtonClass = "rounded-full bg-[linear-gradient(135deg,#4361EE,#06B6D4)] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(67,97,238,0.28)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70";
+export const coachAdminGhostButtonClass = "rounded-full border border-[color:var(--ca-border)] bg-[var(--ca-chip-bg)] px-4 py-2.5 text-sm font-medium text-[color:var(--ca-text-muted)] transition hover:border-[color:var(--ca-border-strong)] hover:bg-[var(--ca-chip-bg-hover)] hover:text-[color:var(--ca-text)] disabled:opacity-70";
+export const coachAdminFilterButtonBaseClass = "rounded-full border px-4 py-2 text-sm font-medium transition";
 
 export function CoachAdminPill({
   children,
@@ -86,17 +98,17 @@ export function CoachAdminPanel({
   return (
     <section
       className={cx(
-        "relative overflow-hidden rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(17,24,39,0.92),rgba(8,12,24,0.92))] p-6 shadow-[0_20px_80px_rgba(2,6,23,0.55)] backdrop-blur-2xl",
+        "relative overflow-hidden rounded-[30px] border border-[color:var(--ca-border)] bg-[linear-gradient(180deg,var(--ca-panel-start),var(--ca-panel-end))] p-6 shadow-[var(--ca-panel-shadow)] backdrop-blur-2xl",
         className
       )}
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(67,97,238,0.10),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(6,182,212,0.08),transparent_28%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,var(--ca-panel-glow-1),transparent_34%),radial-gradient(circle_at_bottom_right,var(--ca-panel-glow-2),transparent_28%)]" />
       {(eyebrow || title || description || action) ? (
         <div className="relative mb-6 flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-2xl">
             {eyebrow ? <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-cyan-300/80">{eyebrow}</p> : null}
-            {title ? <h2 className="mt-2 text-[1.65rem] font-semibold tracking-[-0.05em] text-white">{title}</h2> : null}
-            {description ? <p className="mt-2 text-sm leading-7 text-slate-400">{description}</p> : null}
+            {title ? <h2 className={cx("mt-2 text-[1.65rem] font-semibold tracking-[-0.05em]", coachAdminTextPrimaryClass)}>{title}</h2> : null}
+            {description ? <p className={cx("mt-2 text-sm leading-7", coachAdminTextMutedClass)}>{description}</p> : null}
           </div>
           {action ? <div className="relative">{action}</div> : null}
         </div>
@@ -120,15 +132,20 @@ export function CoachAdminMetricCard({
   accent?: ReactNode;
 }) {
   return (
-    <div className={cx("group relative overflow-hidden rounded-[28px] border bg-white/[0.03] p-5 backdrop-blur-xl transition-transform duration-200 hover:-translate-y-0.5", toneMap[tone].ring)}>
+    <div
+      className={cx(
+        "group relative overflow-hidden rounded-[28px] border bg-[var(--ca-surface-soft)] p-5 backdrop-blur-xl transition-transform duration-200 hover:-translate-y-0.5",
+        toneMap[tone].ring
+      )}
+    >
       <div className={cx("pointer-events-none absolute inset-0 bg-gradient-to-br opacity-90", toneMap[tone].glow)} />
       <div className="relative flex items-start justify-between gap-3">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-white/42">{label}</p>
-          <div className="mt-4 text-4xl font-semibold tracking-[-0.06em] text-white">{value}</div>
-          <p className="mt-3 max-w-[20rem] text-sm leading-6 text-slate-400">{note}</p>
+          <p className={cx("text-[11px] font-semibold uppercase tracking-[0.24em]", coachAdminTextSoftClass)}>{label}</p>
+          <div className={cx("mt-4 text-4xl font-semibold tracking-[-0.06em]", coachAdminTextPrimaryClass)}>{value}</div>
+          <p className={cx("mt-3 max-w-[20rem] text-sm leading-6", coachAdminTextMutedClass)}>{note}</p>
         </div>
-        {accent ? <div className="mt-1 text-white/65">{accent}</div> : null}
+        {accent ? <div className={cx("mt-1", coachAdminTextMutedClass)}>{accent}</div> : null}
       </div>
     </div>
   );
@@ -151,10 +168,10 @@ export function CoachAdminProgress({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-3 text-sm">
-        <span className="text-slate-300">{label}</span>
-        <span className="text-white/80">{valueLabel || value.toLocaleString()}</span>
+        <span className={coachAdminTextMutedClass}>{label}</span>
+        <span className={coachAdminTextPrimaryClass}>{valueLabel || value.toLocaleString()}</span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
+      <div className="h-2 overflow-hidden rounded-full bg-[var(--ca-track-bg)]">
         <div className={cx("h-full rounded-full bg-gradient-to-r", toneMap[tone].bar)} style={{ width: `${width}%` }} />
       </div>
     </div>
@@ -169,9 +186,9 @@ export function CoachAdminEmptyState({
   body: string;
 }) {
   return (
-    <div className="rounded-[24px] border border-dashed border-white/10 bg-white/[0.03] px-5 py-6">
-      <p className="text-sm font-medium text-white/80">{title}</p>
-      <p className="mt-2 text-sm leading-6 text-slate-400">{body}</p>
+    <div className="rounded-[24px] border border-dashed border-[color:var(--ca-border)] bg-[var(--ca-surface-soft)] px-5 py-6">
+      <p className={cx("text-sm font-medium", coachAdminTextPrimaryClass)}>{title}</p>
+      <p className={cx("mt-2 text-sm leading-6", coachAdminTextMutedClass)}>{body}</p>
     </div>
   );
 }
@@ -206,10 +223,9 @@ export function CoachAdminMetaItem({
   value: ReactNode;
 }) {
   return (
-    <div className="rounded-[22px] border border-white/10 bg-white/[0.03] px-4 py-3">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/38">{label}</p>
-      <div className="mt-2 text-sm leading-6 text-slate-200">{value}</div>
+    <div className="rounded-[22px] border border-[color:var(--ca-border)] bg-[var(--ca-surface-soft)] px-4 py-3">
+      <p className={cx("text-[11px] font-semibold uppercase tracking-[0.2em]", coachAdminTextSoftClass)}>{label}</p>
+      <div className={cx("mt-2 text-sm leading-6", coachAdminTextPrimaryClass)}>{value}</div>
     </div>
   );
 }
-

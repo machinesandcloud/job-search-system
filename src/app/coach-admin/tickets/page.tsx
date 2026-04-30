@@ -5,6 +5,13 @@ import {
   CoachAdminPanel,
   CoachAdminPill,
   CoachAdminProgress,
+  coachAdminInsetCardClass,
+  coachAdminListCardClass,
+  coachAdminTextMutedClass,
+  coachAdminTextPrimaryClass,
+  coachAdminTextSoftClass,
+  coachAdminFilterButtonBaseClass,
+  cx,
 } from "@/components/coach-admin-ui";
 import { requireCoachAdminSession } from "@/lib/coach-admin-auth";
 import { prisma } from "@/lib/db";
@@ -37,10 +44,10 @@ function filterLink(status: string, active: boolean) {
   return (
     <Link
       href={status === "all" ? "/coach-admin/tickets" : `/coach-admin/tickets?status=${status}`}
-      className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
+      className={`${coachAdminFilterButtonBaseClass} ${
         active
           ? "border-[#6378FF]/28 bg-[linear-gradient(135deg,rgba(67,97,238,0.3),rgba(6,182,212,0.12))] text-white shadow-[0_12px_30px_rgba(67,97,238,0.22)]"
-          : "border-white/10 bg-white/[0.04] text-white/72 hover:border-white/18 hover:bg-white/[0.09] hover:text-white"
+          : "border-[color:var(--ca-border)] bg-[var(--ca-chip-bg)] text-[color:var(--ca-text-muted)] hover:border-[color:var(--ca-border-strong)] hover:bg-[var(--ca-chip-bg-hover)] hover:text-[color:var(--ca-text)]"
       }`}
     >
       {status.replace(/_/g, " ")}
@@ -106,8 +113,8 @@ export default async function CoachAdminTicketsPage({
             <CoachAdminMetricCard label="High urgency" value={urgentCount} note="Urgent or high-priority issues in the filtered set." tone="rose" />
           </div>
 
-          <div className="rounded-[28px] border border-white/10 bg-black/20 p-5">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/38">Queue balance</p>
+          <div className={cx(coachAdminInsetCardClass, "p-5")}>
+            <p className={cx("text-[11px] font-semibold uppercase tracking-[0.22em]", coachAdminTextSoftClass)}>Queue balance</p>
             <div className="mt-5 space-y-4">
               <CoachAdminProgress label="Open" value={countMap.open || 0} max={maxCount} tone="brand" />
               <CoachAdminProgress label="In progress" value={countMap.in_progress || 0} max={maxCount} tone="gold" />
@@ -129,15 +136,15 @@ export default async function CoachAdminTicketsPage({
               <Link
                 key={ticket.id}
                 href={`/coach-admin/tickets/${ticket.id}`}
-                className="rounded-[24px] border border-white/10 bg-white/[0.04] px-5 py-4 transition hover:border-white/16 hover:bg-white/[0.08]"
+                className={cx("rounded-[24px] px-5 py-4", coachAdminListCardClass)}
               >
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-lg font-semibold tracking-[-0.04em] text-white">{ticket.subject}</p>
+                      <p className={cx("text-lg font-semibold tracking-[-0.04em]", coachAdminTextPrimaryClass)}>{ticket.subject}</p>
                       <CoachAdminPill tone={statusTone(ticket.status)}>{ticket.status.replace(/_/g, " ")}</CoachAdminPill>
                     </div>
-                    <p className="mt-2 text-sm leading-6 text-slate-400">
+                    <p className={cx("mt-2 text-sm leading-6", coachAdminTextMutedClass)}>
                       {ticket.account?.name || ticket.accountId.slice(0, 8)} · Reporter {ticket.reporter?.email || "—"} · Assigned {ticket.assignedTo?.email || "unassigned"}
                     </p>
                   </div>
@@ -145,8 +152,8 @@ export default async function CoachAdminTicketsPage({
                 </div>
 
                 <div className="mt-4 grid gap-3 md:grid-cols-[1fr_auto] md:items-center">
-                  <p className="line-clamp-2 text-sm leading-6 text-slate-300">{ticket.description}</p>
-                  <p className="text-xs uppercase tracking-[0.16em] text-white/38">Updated {formatDate(ticket.updatedAt)}</p>
+                  <p className={cx("line-clamp-2 text-sm leading-6", coachAdminTextMutedClass)}>{ticket.description}</p>
+                  <p className={cx("text-xs uppercase tracking-[0.16em]", coachAdminTextSoftClass)}>Updated {formatDate(ticket.updatedAt)}</p>
                 </div>
               </Link>
             ))
@@ -158,4 +165,3 @@ export default async function CoachAdminTicketsPage({
     </div>
   );
 }
-

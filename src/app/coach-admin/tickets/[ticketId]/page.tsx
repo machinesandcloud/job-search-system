@@ -10,6 +10,11 @@ import {
   CoachAdminMetaItem,
   CoachAdminPanel,
   CoachAdminPill,
+  coachAdminInsetCardClass,
+  coachAdminListCardClass,
+  coachAdminTextPrimaryClass,
+  coachAdminTextSoftClass,
+  cx,
 } from "@/components/coach-admin-ui";
 import { requireCoachAdminSession } from "@/lib/coach-admin-auth";
 import { prisma } from "@/lib/db";
@@ -100,8 +105,8 @@ export default async function CoachAdminTicketPage({ params }: TicketPageProps) 
       <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         <div className="grid gap-6">
           <CoachAdminPanel eyebrow="Ticket body" title="What happened" description="The original issue statement and the surrounding support context.">
-            <div className="rounded-[26px] border border-white/10 bg-black/20 p-5">
-              <p className="text-sm leading-8 text-slate-200">{ticket.description}</p>
+            <div className={cx(coachAdminInsetCardClass, "rounded-[26px] p-5")}>
+              <p className={cx("text-sm leading-8", coachAdminTextPrimaryClass)}>{ticket.description}</p>
             </div>
             <div className="mt-4 grid gap-3 md:grid-cols-2">
               <CoachAdminMetaItem label="Reporter" value={ticket.reporter?.email || "—"} />
@@ -116,9 +121,9 @@ export default async function CoachAdminTicketPage({ params }: TicketPageProps) 
             <div className="mt-5 grid gap-3">
               {ticket.adminNotes.length ? (
                 ticket.adminNotes.map((note: (typeof ticket.adminNotes)[number]) => (
-                  <div key={note.id} className="rounded-[24px] border border-white/10 bg-white/[0.04] px-4 py-4">
-                    <p className="text-sm leading-7 text-slate-200">{note.note}</p>
-                    <p className="mt-2 text-xs uppercase tracking-[0.14em] text-white/38">{note.author.email} · {formatDateTime(note.createdAt)}</p>
+                  <div key={note.id} className={cx("rounded-[24px] px-4 py-4", coachAdminListCardClass)}>
+                    <p className={cx("text-sm leading-7", coachAdminTextPrimaryClass)}>{note.note}</p>
+                    <p className={cx("mt-2 text-xs uppercase tracking-[0.14em]", coachAdminTextSoftClass)}>{note.author.email} · {formatDateTime(note.createdAt)}</p>
                   </div>
                 ))
               ) : (
@@ -150,4 +155,3 @@ export default async function CoachAdminTicketPage({ params }: TicketPageProps) 
     </div>
   );
 }
-

@@ -9,6 +9,13 @@ import {
   CoachAdminPanel,
   CoachAdminPill,
   CoachAdminProgress,
+  coachAdminInsetCardClass,
+  coachAdminListCardClass,
+  coachAdminSubtleCardClass,
+  coachAdminTextMutedClass,
+  coachAdminTextPrimaryClass,
+  coachAdminTextSoftClass,
+  cx,
 } from "@/components/coach-admin-ui";
 import {
   getCoachAdminBetaAutoLoginConfig,
@@ -16,7 +23,7 @@ import {
 } from "@/lib/coach-admin-auth";
 import { isDatabaseReady, prisma } from "@/lib/db";
 import { formatCurrency } from "@/lib/utils";
-import { getPlanMonthlyAmountCents } from "@/lib/billing";
+import { formatUsdEstimate, getAiUsageSummary, getPlanMonthlyAmountCents } from "@/lib/billing";
 
 function formatDate(value?: Date | null) {
   if (!value) return "—";
@@ -86,10 +93,10 @@ export default async function CoachAdminPage() {
   let subscriptions: any[] = [];
   let accounts: any[] = [];
   let recentTickets: any[] = [];
-  let tokenAggregate: { _sum: { totalTokens: number | null } } = { _sum: { totalTokens: 0 } };
+  let aiUsageSummary = null as Awaited<ReturnType<typeof getAiUsageSummary>>;
 
   try {
-    [subscriptions, accounts, recentTickets, tokenAggregate] = await Promise.all([
+    [subscriptions, accounts, recentTickets, aiUsageSummary] = await Promise.all([
       prisma.subscription.findMany({
         include: {
           account: { include: { users: true } },
@@ -113,9 +120,7 @@ export default async function CoachAdminPage() {
         orderBy: { updatedAt: "desc" },
         take: 12,
       }),
-      prisma.aiTokenUsage.aggregate({
-        _sum: { totalTokens: true },
-      }),
+      getAiUsageSummary({ limit: 8 }),
     ]);
   } catch (error) {
     console.error("[coach-admin-page] failed to load billing data", error);
@@ -152,7 +157,10 @@ export default async function CoachAdminPage() {
     return (order[b.priority] || 0) - (order[a.priority] || 0);
   });
   const recentHotTickets = prioritySortedTickets.slice(0, 4);
-  const totalTokens = tokenAggregate._sum.totalTokens || 0;
+  const totalTokens = aiUsageSummary?.total.totalTokens || 0;
+  const estimatedAiSpend = aiUsageSummary?.total.estimatedCostUsd || 0;
+  const trackedUsers = aiUsageSummary?.total.trackedUsers || 0;
+  const topAiUsers = aiUsageSummary?.byUser || [];
   const subscriptionMax = Math.max(activeCount, trialingCount, pastDueCount, canceledCount, 1);
 
   return (
@@ -171,12 +179,12 @@ export default async function CoachAdminPage() {
           className="min-h-[320px]"
         >
           <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
-            <div className="rounded-[28px] border border-white/10 bg-black/20 p-5">
+            <div className={cx(coachAdminInsetCardClass, "p-5")}>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/38">Monthly recurring revenue</p>
-                  <div className="mt-3 text-5xl font-semibold tracking-[-0.08em] text-white">{formatCurrency(mrrCents / 100)}</div>
-                  <p className="mt-3 text-sm leading-6 text-slate-400">Annualized run-rate {formatCurrency(arrCents / 100)} based on current active and trialing accounts.</p>
+                  <p className={cx("text-[11px] font-semibold uppercase tracking-[0.22em]", coachAdminTextSoftClass)}>Monthly recurring revenue</p>
+                  <div className={cx("mt-3 text-5xl font-semibold tracking-[-0.08em]", coachAdminTextPrimaryClass)}>{formatCurrency(mrrCents / 100)}</div>
+                  <p className={cx("mt-3 text-sm leading-6", coachAdminTextMutedClass)}>Annualized run-rate {formatCurrency(arrCents / 100)} based on current active and trialing accounts.</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <CoachAdminPill tone="emerald">{activeCount} active</CoachAdminPill>
@@ -199,9 +207,9 @@ export default async function CoachAdminPage() {
                 accent={<div className="h-14 w-14 rounded-full border border-emerald-300/20 bg-emerald-400/10" />}
               />
               <CoachAdminMetricCard
-                label="Tracked AI tokens"
-                value={totalTokens.toLocaleString()}
-                note="Lifetime usage recorded from paid AI features across all accounts."
+                label="Estimated AI spend"
+                value={formatUsdEstimate(estimatedAiSpend)}
+                note={`Tracked text-model spend across ${trackedUsers || 0} user${trackedUsers === 1 ? "" : "s"}.`}
                 tone="cyan"
                 accent={<div className="h-14 w-14 rounded-full border border-cyan-300/20 bg-cyan-400/10" />}
               />
@@ -218,25 +226,27 @@ export default async function CoachAdminPage() {
           </div>
 
           <div className="mt-6 grid gap-3">
-            <div className="rounded-[22px] border border-white/10 bg-white/[0.03] px-4 py-4">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/40">Failed payments</p>
-              <p className="mt-2 text-2xl font-semibold tracking-[-0.05em] text-white">{failedPaymentsCount}</p>
-              <p className="mt-2 text-sm leading-6 text-slate-400">Accounts that should already be on your recovery radar.</p>
+            <div className={cx(coachAdminSubtleCardClass, "px-4 py-4")}>
+              <p className={cx("text-[11px] font-semibold uppercase tracking-[0.2em]", coachAdminTextSoftClass)}>Failed payments</p>
+              <p className={cx("mt-2 text-2xl font-semibold tracking-[-0.05em]", coachAdminTextPrimaryClass)}>{failedPaymentsCount}</p>
+              <p className={cx("mt-2 text-sm leading-6", coachAdminTextMutedClass)}>Accounts that should already be on your recovery radar.</p>
             </div>
-            <div className="rounded-[22px] border border-white/10 bg-white/[0.03] px-4 py-4">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/40">Upcoming renewals</p>
-              <p className="mt-2 text-2xl font-semibold tracking-[-0.05em] text-white">{upcomingRenewals}</p>
-              <p className="mt-2 text-sm leading-6 text-slate-400">Useful for pre-renewal outreach and monitoring churn signals.</p>
+            <div className={cx(coachAdminSubtleCardClass, "px-4 py-4")}>
+              <p className={cx("text-[11px] font-semibold uppercase tracking-[0.2em]", coachAdminTextSoftClass)}>Upcoming renewals</p>
+              <p className={cx("mt-2 text-2xl font-semibold tracking-[-0.05em]", coachAdminTextPrimaryClass)}>{upcomingRenewals}</p>
+              <p className={cx("mt-2 text-sm leading-6", coachAdminTextMutedClass)}>Useful for pre-renewal outreach and monitoring churn signals.</p>
             </div>
           </div>
         </CoachAdminPanel>
       </section>
 
-      <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-6">
         <CoachAdminMetricCard label="Active subscriptions" value={activeCount} note="Accounts with paid access right now." tone="emerald" />
         <CoachAdminMetricCard label="Trial users" value={trialingCount} note="Current Stripe trials that can convert or churn." tone="cyan" />
         <CoachAdminMetricCard label="Past due / unpaid" value={pastDueCount} note="Accounts currently blocked or trending toward support." tone="gold" />
         <CoachAdminMetricCard label="Canceled" value={canceledCount} note="Accounts no longer carrying paid access." tone="rose" />
+        <CoachAdminMetricCard label="Tracked AI tokens" value={totalTokens.toLocaleString()} note="Lifetime tracked text-model tokens." tone="brand" />
+        <CoachAdminMetricCard label="Tracked users" value={trackedUsers} note="Users with recorded tokenized AI activity." tone="slate" />
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
@@ -256,25 +266,25 @@ export default async function CoachAdminPage() {
                   <Link
                     key={account.id}
                     href={`/coach-admin/accounts/${account.id}`}
-                    className="group rounded-[24px] border border-white/10 bg-white/[0.04] px-5 py-4 transition hover:border-white/16 hover:bg-white/[0.07]"
-                  >
+                className={cx("group px-5 py-4", coachAdminListCardClass)}
+              >
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-3">
-                          <p className="text-lg font-semibold tracking-[-0.04em] text-white">{account.name}</p>
+                          <p className={cx("text-lg font-semibold tracking-[-0.04em]", coachAdminTextPrimaryClass)}>{account.name}</p>
                           <CoachAdminPill tone={statusTone(status)}>{getHealthLabel(account)}</CoachAdminPill>
                         </div>
-                        <p className="mt-2 text-sm text-slate-400">{owner?.email || "Unknown owner"} · {account.users.length} user(s)</p>
+                        <p className={cx("mt-2 text-sm", coachAdminTextMutedClass)}>{owner?.email || "Unknown owner"} · {account.users.length} user(s)</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/38">Renewal</p>
-                        <p className="mt-2 text-sm text-slate-200">{formatDate(account.subscription?.currentPeriodEnd)}</p>
+                        <p className={cx("text-[11px] font-semibold uppercase tracking-[0.18em]", coachAdminTextSoftClass)}>Renewal</p>
+                        <p className={cx("mt-2 text-sm", coachAdminTextPrimaryClass)}>{formatDate(account.subscription?.currentPeriodEnd)}</p>
                       </div>
                     </div>
 
                     <div className="mt-4 grid gap-3 md:grid-cols-[1fr_auto] md:items-center">
-                      <div className="rounded-[18px] border border-white/8 bg-black/20 px-4 py-3 text-sm text-slate-300">{plan}</div>
-                      <div className="text-sm text-white/52 group-hover:text-white/72">
+                      <div className={cx("rounded-[18px] border border-[color:var(--ca-border)] bg-[var(--ca-surface-strong)] px-4 py-3 text-sm", coachAdminTextMutedClass)}>{plan}</div>
+                      <div className={cx("text-sm transition", coachAdminTextSoftClass, "group-hover:text-[color:var(--ca-text-muted)]")}>
                         Open account →
                       </div>
                     </div>
@@ -292,11 +302,11 @@ export default async function CoachAdminPage() {
             <div className="grid gap-3">
               {topRiskAccounts.length ? (
                 topRiskAccounts.map((account: any) => (
-                  <Link key={account.id} href={`/coach-admin/accounts/${account.id}`} className="rounded-[22px] border border-white/10 bg-white/[0.04] px-4 py-4 transition hover:border-white/16 hover:bg-white/[0.07]">
+                  <Link key={account.id} href={`/coach-admin/accounts/${account.id}`} className={cx("px-4 py-4", coachAdminListCardClass, "rounded-[22px]")}>
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <p className="font-medium text-white">{account.name}</p>
-                        <p className="mt-1 text-sm text-slate-400">{getHealthLabel(account)}</p>
+                        <p className={cx("font-medium", coachAdminTextPrimaryClass)}>{account.name}</p>
+                        <p className={cx("mt-1 text-sm", coachAdminTextMutedClass)}>{getHealthLabel(account)}</p>
                       </div>
                       <CoachAdminPill tone={statusTone(account.subscription?.status || account.status)}>
                         {account.subscription?.status || account.status}
@@ -319,15 +329,15 @@ export default async function CoachAdminPage() {
             <div className="grid gap-3">
               {recentHotTickets.length ? (
                 recentHotTickets.map((ticket: any) => (
-                  <Link key={ticket.id} href={`/coach-admin/tickets/${ticket.id}`} className="rounded-[22px] border border-white/10 bg-white/[0.04] px-4 py-4 transition hover:border-white/16 hover:bg-white/[0.07]">
+                  <Link key={ticket.id} href={`/coach-admin/tickets/${ticket.id}`} className={cx("px-4 py-4", coachAdminListCardClass, "rounded-[22px]")}>
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
-                        <p className="font-medium text-white">{ticket.subject}</p>
-                        <p className="mt-1 line-clamp-2 text-sm leading-6 text-slate-400">{ticket.account?.name || "Unknown account"} · {ticket.reporter?.email || "No reporter"}</p>
+                        <p className={cx("font-medium", coachAdminTextPrimaryClass)}>{ticket.subject}</p>
+                        <p className={cx("mt-1 line-clamp-2 text-sm leading-6", coachAdminTextMutedClass)}>{ticket.account?.name || "Unknown account"} · {ticket.reporter?.email || "No reporter"}</p>
                       </div>
                       <CoachAdminPill tone={priorityTone(ticket.priority)}>{ticket.priority}</CoachAdminPill>
                     </div>
-                    <div className="mt-3 flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.16em] text-white/38">
+                    <div className={cx("mt-3 flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.16em]", coachAdminTextSoftClass)}>
                       <span>{ticket.status.replace(/_/g, " ")}</span>
                       <span>•</span>
                       <span>Updated {formatDate(ticket.updatedAt)}</span>
@@ -341,7 +351,87 @@ export default async function CoachAdminPage() {
           </CoachAdminPanel>
         </div>
       </section>
+
+      <section className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+        <CoachAdminPanel
+          eyebrow="AI utilization"
+          title="Who is consuming model spend"
+          description="Per-user view of tracked text-token activity, estimated from the current GPT-4o and GPT-4o mini pricing bands."
+          action={<CoachAdminPill tone="slate">{formatUsdEstimate(estimatedAiSpend)} total</CoachAdminPill>}
+        >
+          <div className="grid gap-3">
+            {topAiUsers.length ? (
+              topAiUsers.map((user) => (
+                <div key={user.userId || user.email} className={cx("rounded-[24px] px-4 py-4", coachAdminListCardClass)}>
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className={cx("font-medium", coachAdminTextPrimaryClass)}>{user.email}</p>
+                      <p className={cx("mt-1 text-xs uppercase tracking-[0.16em]", coachAdminTextSoftClass)}>
+                        {user.role} · {user.requestCount} request{user.requestCount === 1 ? "" : "s"}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className={cx("text-sm font-semibold", coachAdminTextPrimaryClass)}>{formatUsdEstimate(user.estimatedCostUsd)}</p>
+                      <p className={cx("mt-1 text-xs uppercase tracking-[0.16em]", coachAdminTextSoftClass)}>{user.totalTokens.toLocaleString()} tokens</p>
+                    </div>
+                  </div>
+                  <div className="mt-4 grid gap-3 md:grid-cols-3">
+                    <div className={cx("rounded-[18px] border border-[color:var(--ca-border)] bg-[var(--ca-surface-strong)] px-3 py-3")}>
+                      <p className={cx("text-[10px] font-semibold uppercase tracking-[0.18em]", coachAdminTextSoftClass)}>Input</p>
+                      <p className={cx("mt-2 text-sm font-medium", coachAdminTextPrimaryClass)}>{user.inputTokens.toLocaleString()}</p>
+                    </div>
+                    <div className={cx("rounded-[18px] border border-[color:var(--ca-border)] bg-[var(--ca-surface-strong)] px-3 py-3")}>
+                      <p className={cx("text-[10px] font-semibold uppercase tracking-[0.18em]", coachAdminTextSoftClass)}>Top model</p>
+                      <p className={cx("mt-2 text-sm font-medium", coachAdminTextPrimaryClass)}>{user.topModel || "Unknown"}</p>
+                    </div>
+                    <div className={cx("rounded-[18px] border border-[color:var(--ca-border)] bg-[var(--ca-surface-strong)] px-3 py-3")}>
+                      <p className={cx("text-[10px] font-semibold uppercase tracking-[0.18em]", coachAdminTextSoftClass)}>Top feature</p>
+                      <p className={cx("mt-2 text-sm font-medium", coachAdminTextPrimaryClass)}>{user.topFeature || "Unlabeled"}</p>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <CoachAdminEmptyState title="No tracked user activity yet" body="As users call paid AI routes, token usage and estimated spend will show up here." />
+            )}
+          </div>
+        </CoachAdminPanel>
+
+        <CoachAdminPanel
+          eyebrow="AI mix"
+          title="Global usage snapshot"
+          description="Fast read on the current tracked AI footprint across the whole app."
+        >
+          <div className="grid gap-4 md:grid-cols-2">
+            <CoachAdminMetricCard
+              label="Estimated spend"
+              value={formatUsdEstimate(estimatedAiSpend)}
+              note="Current estimate from tracked GPT-4o family token usage."
+              tone="brand"
+            />
+            <CoachAdminMetricCard
+              label="Top model"
+              value={aiUsageSummary?.total.topModel || "—"}
+              note="Model generating the most tracked tokens right now."
+              tone="slate"
+            />
+          </div>
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
+            <div className={cx(coachAdminSubtleCardClass, "px-4 py-4")}>
+              <p className={cx("text-[11px] font-semibold uppercase tracking-[0.2em]", coachAdminTextSoftClass)}>Requests</p>
+              <p className={cx("mt-2 text-2xl font-semibold tracking-[-0.05em]", coachAdminTextPrimaryClass)}>{aiUsageSummary?.total.requestCount.toLocaleString() || "0"}</p>
+            </div>
+            <div className={cx(coachAdminSubtleCardClass, "px-4 py-4")}>
+              <p className={cx("text-[11px] font-semibold uppercase tracking-[0.2em]", coachAdminTextSoftClass)}>Input tokens</p>
+              <p className={cx("mt-2 text-2xl font-semibold tracking-[-0.05em]", coachAdminTextPrimaryClass)}>{aiUsageSummary?.total.inputTokens.toLocaleString() || "0"}</p>
+            </div>
+            <div className={cx(coachAdminSubtleCardClass, "px-4 py-4")}>
+              <p className={cx("text-[11px] font-semibold uppercase tracking-[0.2em]", coachAdminTextSoftClass)}>Output tokens</p>
+              <p className={cx("mt-2 text-2xl font-semibold tracking-[-0.05em]", coachAdminTextPrimaryClass)}>{aiUsageSummary?.total.outputTokens.toLocaleString() || "0"}</p>
+            </div>
+          </div>
+        </CoachAdminPanel>
+      </section>
     </div>
   );
 }
-

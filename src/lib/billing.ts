@@ -119,6 +119,86 @@ export function getPlanMonthlyAmountCents(planName?: string | null, priceId?: st
   return 0;
 }
 
+type OpenAiTextRate = {
+  match: RegExp;
+  label: string;
+  inputUsdPer1M: number;
+  outputUsdPer1M: number;
+};
+
+const OPENAI_TEXT_MODEL_RATES: OpenAiTextRate[] = [
+  {
+    match: /^gpt-4o-mini(?:$|-)/i,
+    label: "GPT-4o mini",
+    inputUsdPer1M: 0.15,
+    outputUsdPer1M: 0.6,
+  },
+  {
+    match: /^gpt-4o(?:$|-)/i,
+    label: "GPT-4o",
+    inputUsdPer1M: 2.5,
+    outputUsdPer1M: 10,
+  },
+];
+
+export type AiUsageCostEstimate = {
+  label: string | null;
+  inputUsdPer1M: number;
+  outputUsdPer1M: number;
+  estimatedCostUsd: number;
+};
+
+export function getOpenAiTextRate(model?: string | null) {
+  const normalized = `${model || ""}`.trim().toLowerCase();
+  if (!normalized) return null;
+  return OPENAI_TEXT_MODEL_RATES.find((entry) => entry.match.test(normalized)) || null;
+}
+
+export function estimateTrackedTokenCostUsd(input: {
+  model?: string | null;
+  inputTokens?: number | null;
+  outputTokens?: number | null;
+  totalTokens?: number | null;
+}): AiUsageCostEstimate {
+  const rate = getOpenAiTextRate(input.model);
+  if (!rate) {
+    return {
+      label: null,
+      inputUsdPer1M: 0,
+      outputUsdPer1M: 0,
+      estimatedCostUsd: 0,
+    };
+  }
+
+  const inputTokens = Math.max(0, Math.round(input.inputTokens || 0));
+  const outputTokens = Math.max(
+    0,
+    Math.round(
+      input.outputTokens ??
+      Math.max(0, Math.round(input.totalTokens || 0) - inputTokens)
+    )
+  );
+
+  return {
+    label: rate.label,
+    inputUsdPer1M: rate.inputUsdPer1M,
+    outputUsdPer1M: rate.outputUsdPer1M,
+    estimatedCostUsd:
+      (inputTokens / 1_000_000) * rate.inputUsdPer1M +
+      (outputTokens / 1_000_000) * rate.outputUsdPer1M,
+  };
+}
+
+export function formatUsdEstimate(amount: number) {
+  const abs = Math.abs(amount);
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: abs < 100 ? 2 : 0,
+    maximumFractionDigits: abs < 100 ? 2 : 0,
+  }).format(amount);
+}
+
 function getSubscriptionPeriodBounds(subscription: Stripe.Subscription) {
   const starts = subscription.items.data
     .map((item) => stripeTimestampToDate(item.current_period_start))
@@ -333,6 +413,202 @@ export async function getCurrentPeriodTokenUsage(accountId: string) {
     inputTokens: aggregate._sum.inputTokens || 0,
     outputTokens: aggregate._sum.outputTokens || 0,
     subscription,
+  };
+}
+
+function buildCreatedAtFilter(input: { from?: Date | null; to?: Date | null }) {
+  if (!input.from && !input.to) return undefined;
+  return {
+    ...(input.from ? { gte: input.from } : {}),
+    ...(input.to ? { lte: input.to } : {}),
+  };
+}
+
+export type AiUsageUserSummary = {
+  userId: string | null;
+  email: string;
+  role: string;
+  requestCount: number;
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+  estimatedCostUsd: number;
+  topModel: string | null;
+  topFeature: string | null;
+  lastSeenAt: Date | null;
+};
+
+export type AiUsageRollup = {
+  requestCount: number;
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+  estimatedCostUsd: number;
+  trackedUsers: number;
+  topModel: string | null;
+};
+
+export type AiUsageSummary = {
+  total: AiUsageRollup;
+  byUser: AiUsageUserSummary[];
+};
+
+export async function getAiUsageSummary(input: {
+  accountId?: string;
+  from?: Date | null;
+  to?: Date | null;
+  limit?: number;
+} = {}): Promise<AiUsageSummary | null> {
+  if (!isDatabaseReady()) return null;
+
+  const where = {
+    ...(input.accountId ? { accountId: input.accountId } : {}),
+    ...(buildCreatedAtFilter(input) ? { createdAt: buildCreatedAtFilter(input) } : {}),
+  };
+
+  const [userGroups, modelGroups, featureGroups]: [
+    Array<{
+      userId: string | null;
+      _sum: {
+        inputTokens: number | null;
+        outputTokens: number | null;
+        totalTokens: number | null;
+      };
+      _count: { _all: number };
+      _max: { createdAt: Date | null };
+    }>,
+    Array<{
+      userId: string | null;
+      model: string;
+      _sum: {
+        inputTokens: number | null;
+        outputTokens: number | null;
+        totalTokens: number | null;
+      };
+    }>,
+    Array<{
+      userId: string | null;
+      featureName: string | null;
+      _sum: { totalTokens: number | null };
+    }>
+  ] = await Promise.all([
+    prisma.aiTokenUsage.groupBy({
+      by: ["userId"],
+      where,
+      _sum: {
+        inputTokens: true,
+        outputTokens: true,
+        totalTokens: true,
+      },
+      _count: { _all: true },
+      _max: { createdAt: true },
+    }),
+    prisma.aiTokenUsage.groupBy({
+      by: ["userId", "model"],
+      where,
+      _sum: {
+        inputTokens: true,
+        outputTokens: true,
+        totalTokens: true,
+      },
+    }),
+    prisma.aiTokenUsage.groupBy({
+      by: ["userId", "featureName"],
+      where,
+      _sum: { totalTokens: true },
+    }),
+  ]);
+
+  const userIds = userGroups
+    .map((entry: { userId: string | null }) => entry.userId)
+    .filter((value: string | null): value is string => Boolean(value));
+
+  const users = userIds.length
+    ? await prisma.user.findMany({
+        where: { id: { in: userIds } },
+        select: { id: true, email: true, role: true },
+      })
+    : [];
+
+  const userMap = new Map<string, { id: string; email: string; role: string }>(
+    users.map((user: { id: string; email: string; role: string }) => [user.id, user])
+  );
+  const costByUser = new Map<string | null, number>();
+  const topModelByUser = new Map<string | null, { model: string; totalTokens: number }>();
+  let globalTopModel: { model: string; totalTokens: number } | null = null;
+
+  for (const group of modelGroups) {
+    const estimate = estimateTrackedTokenCostUsd({
+      model: group.model,
+      inputTokens: group._sum.inputTokens || 0,
+      outputTokens: group._sum.outputTokens || 0,
+      totalTokens: group._sum.totalTokens || 0,
+    });
+
+    costByUser.set(group.userId, (costByUser.get(group.userId) || 0) + estimate.estimatedCostUsd);
+
+    const totalTokens = group._sum.totalTokens || 0;
+    const existingTop = topModelByUser.get(group.userId);
+    if (!existingTop || totalTokens > existingTop.totalTokens) {
+      topModelByUser.set(group.userId, { model: group.model, totalTokens });
+    }
+
+    if (!globalTopModel || totalTokens > globalTopModel.totalTokens) {
+      globalTopModel = { model: group.model, totalTokens };
+    }
+  }
+
+  const topFeatureByUser = new Map<string | null, { featureName: string | null; totalTokens: number }>();
+  for (const group of featureGroups) {
+    const totalTokens = group._sum.totalTokens || 0;
+    const existingTop = topFeatureByUser.get(group.userId);
+    if (!existingTop || totalTokens > existingTop.totalTokens) {
+      topFeatureByUser.set(group.userId, {
+        featureName: group.featureName,
+        totalTokens,
+      });
+    }
+  }
+
+  const byUser = userGroups
+    .map((group): AiUsageUserSummary => {
+      const user = group.userId ? userMap.get(group.userId) : null;
+      return {
+        userId: group.userId,
+        email: user?.email || "Unknown user",
+        role: user?.role || "member",
+        requestCount: group._count._all || 0,
+        inputTokens: group._sum.inputTokens || 0,
+        outputTokens: group._sum.outputTokens || 0,
+        totalTokens: group._sum.totalTokens || 0,
+        estimatedCostUsd: costByUser.get(group.userId) || 0,
+        topModel: topModelByUser.get(group.userId)?.model || null,
+        topFeature: topFeatureByUser.get(group.userId)?.featureName || null,
+        lastSeenAt: group._max.createdAt || null,
+      };
+    })
+    .sort((a: AiUsageUserSummary, b: AiUsageUserSummary) => {
+      if (b.estimatedCostUsd !== a.estimatedCostUsd) {
+        return b.estimatedCostUsd - a.estimatedCostUsd;
+      }
+      return b.totalTokens - a.totalTokens;
+    });
+
+  const limitedUsers = typeof input.limit === "number" && input.limit > 0
+    ? byUser.slice(0, input.limit)
+    : byUser;
+
+  return {
+    total: {
+      requestCount: byUser.reduce((sum: number, entry: AiUsageUserSummary) => sum + entry.requestCount, 0),
+      inputTokens: byUser.reduce((sum: number, entry: AiUsageUserSummary) => sum + entry.inputTokens, 0),
+      outputTokens: byUser.reduce((sum: number, entry: AiUsageUserSummary) => sum + entry.outputTokens, 0),
+      totalTokens: byUser.reduce((sum: number, entry: AiUsageUserSummary) => sum + entry.totalTokens, 0),
+      estimatedCostUsd: byUser.reduce((sum: number, entry: AiUsageUserSummary) => sum + entry.estimatedCostUsd, 0),
+      trackedUsers: byUser.length,
+      topModel: globalTopModel?.model || null,
+    },
+    byUser: limitedUsers,
   };
 }
 
