@@ -139,7 +139,7 @@ export function HeroChatPreview() {
           ))}
         </div>
         <div className="flex-1 rounded-md bg-white/[0.05] px-3 py-1 text-center text-[10.5px] text-white/25">
-          askia.coach · Resume Review
+          app.zari.coach · Resume Review
         </div>
         {/* Live indicator */}
         <div className="flex items-center gap-1.5">
@@ -161,7 +161,7 @@ export function HeroChatPreview() {
             {b.kind === "coach" && (
               <div className="flex items-start gap-2">
                 <div className="h-5 w-5 flex-shrink-0 overflow-hidden rounded-full bg-[var(--brand)]">
-                  <div className="flex h-full w-full items-center justify-center text-[8px] font-bold text-white">A</div>
+                  <div className="flex h-full w-full items-center justify-center text-[8px] font-bold text-white">Z</div>
                 </div>
                 <div className="max-w-[84%] rounded-2xl rounded-tl-sm bg-white/[0.07] px-3 py-2 text-[12px] leading-[1.55] text-white/80">
                   {b.text}
