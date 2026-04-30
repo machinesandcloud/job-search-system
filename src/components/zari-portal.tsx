@@ -6074,18 +6074,27 @@ function ScreenBridgeNetwork({ active }:{ active:boolean }) {
 function ScreenSalaryNegotiationSim() {
   type SimMsg = { role: "zari" | "user"; text: string; coaching?: string | null; betterPhrasing?: string | null };
   type DebriefResult = { score: number; verdict: string; summary: string; nailed: string[]; improve: string[]; phrases: { original: string; better: string }[] };
-  const [phase, setPhase] = useState<"setup" | "chat" | "debrief">("setup");
+  const SIM_KEY = "zari_salary_sim_v1";
+  type SimSaved = { phase: "setup"|"chat"|"debrief"; scenario: string; difficulty: string; form: typeof _simForm; msgs: SimMsg[]; debrief: DebriefResult | null };
+  const _simForm = { role:"", company:"", currentComp:"", targetComp:"", leverage:"" };
+  const _simSaved = lsGet<SimSaved>(SIM_KEY);
+  const [phase, setPhase] = useState<"setup" | "chat" | "debrief">(_simSaved?.phase ?? "setup");
   const [simStep, setSimStep] = useState<1|2>(1);
-  const [scenario, setScenario] = useState("new-offer");
-  const [difficulty, setDifficulty] = useState("realistic");
-  const [form, setForm] = useState({ role:"", company:"", currentComp:"", targetComp:"", leverage:"" });
-  const [msgs, setMsgs] = useState<SimMsg[]>([]);
+  const [scenario, setScenario] = useState(_simSaved?.scenario ?? "new-offer");
+  const [difficulty, setDifficulty] = useState(_simSaved?.difficulty ?? "realistic");
+  const [form, setForm] = useState(_simSaved?.form ?? _simForm);
+  const [msgs, setMsgs] = useState<SimMsg[]>(_simSaved?.msgs ?? []);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [coachingLoading, setCoachingLoading] = useState(false);
   const [debriefLoading, setDebriefLoading] = useState(false);
-  const [debrief, setDebrief] = useState<DebriefResult | null>(null);
+  const [debrief, setDebrief] = useState<DebriefResult | null>(_simSaved?.debrief ?? null);
   const [error, setError] = useState("");
+  useEffect(() => {
+    if (phase !== "setup" || msgs.length || debrief) {
+      lsSet(SIM_KEY, { phase, scenario, difficulty, form, msgs, debrief });
+    }
+  }, [phase, msgs, debrief]); // eslint-disable-line react-hooks/exhaustive-deps
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -6162,7 +6171,7 @@ function ScreenSalaryNegotiationSim() {
     setDebriefLoading(false);
   }
 
-  function reset() { setPhase("setup"); setSimStep(1); setMsgs([]); setInput(""); setDebrief(null); setError(""); }
+  function reset() { setPhase("setup"); setSimStep(1); setMsgs([]); setInput(""); setDebrief(null); setError(""); lsClear(SIM_KEY); }
 
   if (phase === "setup") {
     const sel = scenarios.find(s => s.value === scenario);
@@ -6552,12 +6561,19 @@ function ScreenSalaryNegotiationSim() {
 function ScreenSalaryNegotiationEmail() {
   type SendTip = { tip: string; timing: string; why: string };
   type EmailVersion = { subject:string; email:string; sendTips:(SendTip|string)[]; tone:string; label:string; color:string; bg:string };
-  const [form, setForm] = useState({ role:"", company:"", currentComp:"", targetComp:"", competingOffer:"", reason:"", emailType:"offer" });
-  const [versions, setVersions] = useState<EmailVersion[] | null>(null);
-  const [activeVersion, setActiveVersion] = useState(0);
+  const SNE_KEY = "zari_salary_email_v1";
+  type SNESaved = { form: typeof _sneForm; versions: EmailVersion[] | null; activeVersion: number };
+  const _sneForm = { role:"", company:"", currentComp:"", targetComp:"", competingOffer:"", reason:"", emailType:"offer" };
+  const _sneSaved = lsGet<SNESaved>(SNE_KEY);
+  const [form, setForm] = useState(_sneSaved?.form ?? _sneForm);
+  const [versions, setVersions] = useState<EmailVersion[] | null>(_sneSaved?.versions ?? null);
+  const [activeVersion, setActiveVersion] = useState(_sneSaved?.activeVersion ?? 0);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    if (form.role || versions) lsSet(SNE_KEY, { form, versions, activeVersion });
+  }, [form, versions, activeVersion]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const inp: React.CSSProperties = { width:"100%", border:"1px solid var(--z-bd)", borderRadius:10, padding:"11px 14px", fontSize:13.5, color:"var(--z-text)", outline:"none", background:"var(--z-raise)", boxSizing:"border-box", fontFamily:"inherit" };
   const sel: React.CSSProperties = { ...inp, cursor:"pointer" };
@@ -6640,7 +6656,7 @@ function ScreenSalaryNegotiationEmail() {
           <div style={{ flex:1 }}/>
           <div style={{ padding:"10px 14px 16px", borderTop:"1px solid var(--z-bd)", display:"flex", gap:6 }}>
             <button onClick={() => setVersions(null)} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"8px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Edit</button>
-            <button onClick={() => { setVersions(null); setForm({ role:"", company:"", currentComp:"", targetComp:"", competingOffer:"", reason:"", emailType:"offer" }); }} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"8px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>New</button>
+            <button onClick={() => { setVersions(null); setForm({ role:"", company:"", currentComp:"", targetComp:"", competingOffer:"", reason:"", emailType:"offer" }); lsClear(SNE_KEY); }} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"8px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>New</button>
           </div>
         </div>
         <div style={{ flex:1, overflowY:"auto", padding:"28px 32px 48px" }}>
@@ -6780,11 +6796,18 @@ type MarketIntelResult = {
 };
 
 function ScreenSalaryMarketIntel() {
-  const [form, setForm] = useState({ role:"", industry:"", location:"", experience:"", currentComp:"", companySize:"" });
-  const [result, setResult] = useState<MarketIntelResult | null>(null);
+  const SMI_KEY = "zari_salary_intel_v1";
+  type SMISaved = { form: typeof _smiForm; result: MarketIntelResult | null; miTab: "talking"|"factors"|"flags" };
+  const _smiForm = { role:"", industry:"", location:"", experience:"", currentComp:"", companySize:"" };
+  const _smiSaved = lsGet<SMISaved>(SMI_KEY);
+  const [form, setForm] = useState(_smiSaved?.form ?? _smiForm);
+  const [result, setResult] = useState<MarketIntelResult | null>(_smiSaved?.result ?? null);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState("");
-  const [miTab, setMiTab] = useState<"talking"|"factors"|"flags">("talking");
+  const [miTab, setMiTab] = useState<"talking"|"factors"|"flags">(_smiSaved?.miTab ?? "talking");
+  useEffect(() => {
+    if (form.role || result) lsSet(SMI_KEY, { form, result, miTab });
+  }, [form, result, miTab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const inp: React.CSSProperties = { width:"100%", border:"1px solid var(--z-bd)", borderRadius:10, padding:"11px 14px", fontSize:13.5, color:"var(--z-text)", outline:"none", background:"var(--z-raise)", boxSizing:"border-box", fontFamily:"inherit" };
 
@@ -7048,12 +7071,19 @@ function ScreenSalaryMarketIntel() {
 ═══════════════════════════════════════════════════ */
 function ScreenLeadershipStoryPractice() {
   type StoryMsg = { role: "zari" | "user"; text: string };
-  const [setup, setSetup] = useState(true);
-  const [form, setForm] = useState({ storyType:"influence", situation:"", targetAudience:"" });
-  const [msgs, setMsgs] = useState<StoryMsg[]>([]);
+  const LSP_KEY = "zari_leadership_story_v1";
+  type LSPSaved = { setup: boolean; form: typeof _lspForm; msgs: StoryMsg[] };
+  const _lspForm = { storyType:"influence", situation:"", targetAudience:"" };
+  const _lspSaved = lsGet<LSPSaved>(LSP_KEY);
+  const [setup, setSetup] = useState(_lspSaved ? _lspSaved.setup : true);
+  const [form, setForm] = useState(_lspSaved?.form ?? _lspForm);
+  const [msgs, setMsgs] = useState<StoryMsg[]>(_lspSaved?.msgs ?? []);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  useEffect(() => {
+    if (!setup || msgs.length) lsSet(LSP_KEY, { setup, form, msgs });
+  }, [setup, msgs]); // eslint-disable-line react-hooks/exhaustive-deps
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -7174,7 +7204,7 @@ Start by asking them to tell you the story first.`;
           <div style={{ fontSize:11, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em" }}>Story Practice</div>
           <div style={{ fontSize:13.5, fontWeight:700, color:"var(--z-text)" }}>{storyTypes.find(s => s.value === form.storyType)?.label ?? "Leadership Story"}</div>
         </div>
-        <button onClick={() => { setSetup(true); setMsgs([]); setInput(""); }} style={{ fontSize:12, fontWeight:600, padding:"6px 14px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>New story</button>
+        <button onClick={() => { setSetup(true); setMsgs([]); setInput(""); lsClear(LSP_KEY); }} style={{ fontSize:12, fontWeight:600, padding:"6px 14px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>New story</button>
       </div>
       <div style={{ flex:1, overflowY:"auto", padding:"20px 20px 8px" }}>
         {msgs.map((m, i) => (
@@ -7213,11 +7243,18 @@ Start by asking them to tell you the story first.`;
    LEADERSHIP STAGE: EXEC OUTREACH LETTER
 ═══════════════════════════════════════════════════ */
 function ScreenExecOutreach() {
-  const [form, setForm] = useState({ name:"", currentRole:"", targetType:"board", orgName:"", orgContext:"", uniqueValue:"", tone:"formal" });
-  const [result, setResult] = useState<{ subject:string; letter:string } | null>(null);
+  const EO_KEY = "zari_exec_outreach_v1";
+  type EOSaved = { form: typeof _eoForm; result: { subject:string; letter:string } | null };
+  const _eoForm = { name:"", currentRole:"", targetType:"board", orgName:"", orgContext:"", uniqueValue:"", tone:"formal" };
+  const _eoSaved = lsGet<EOSaved>(EO_KEY);
+  const [form, setForm] = useState(_eoSaved?.form ?? _eoForm);
+  const [result, setResult] = useState<{ subject:string; letter:string } | null>(_eoSaved?.result ?? null);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    if (form.currentRole || result) lsSet(EO_KEY, { form, result });
+  }, [form, result]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const inp: React.CSSProperties = { width:"100%", border:"1px solid var(--z-bd)", borderRadius:10, padding:"11px 14px", fontSize:13.5, color:"var(--z-text)", outline:"none", background:"var(--z-raise)", boxSizing:"border-box", fontFamily:"inherit" };
   const sel: React.CSSProperties = { ...inp, cursor:"pointer" };
@@ -7405,13 +7442,20 @@ function ScreenExecPositioning() {
   const ACCENT = "#F59E0B";
   const BG_DARK = "var(--z-bg)";
   type ExecTab = "overview" | "gaps" | "moves" | "bio";
-  const [step, setStep] = useState<1|2|3>(1);
-  const [form, setForm] = useState({ currentTitle:"", targetRole:"", currentScope:"", teamSize:"", businessOutcomes:"", execExposure:"", boardExperience:"", specificGoal:"", bioText:"" });
+  const EP_KEY = "zari_exec_positioning_v1";
+  type EPSaved = { step: number; form: typeof _epForm; result: ExecPositioningResult | null; tab: ExecTab };
+  const _epForm = { currentTitle:"", targetRole:"", currentScope:"", teamSize:"", businessOutcomes:"", execExposure:"", boardExperience:"", specificGoal:"", bioText:"" };
+  const _epSaved = lsGet<EPSaved>(EP_KEY);
+  const [step, setStep] = useState<1|2|3>((_epSaved?.step as 1|2|3) ?? 1);
+  const [form, setForm] = useState(_epSaved?.form ?? _epForm);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState("");
-  const [result, setResult] = useState<ExecPositioningResult | null>(null);
-  const [tab, setTab] = useState<ExecTab>("overview");
+  const [result, setResult] = useState<ExecPositioningResult | null>(_epSaved?.result ?? null);
+  const [tab, setTab] = useState<ExecTab>(_epSaved?.tab ?? "overview");
   const [bioCopied, setBioCopied] = useState(false);
+  useEffect(() => {
+    if (form.currentTitle || result) lsSet(EP_KEY, { step, form, result, tab });
+  }, [step, form, result, tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const inp: React.CSSProperties = { width:"100%", border:"1px solid var(--z-bd)", borderRadius:12, padding:"13px 16px", fontSize:14, color:"var(--z-text)", outline:"none", fontFamily:"inherit", background:"var(--z-raise)", boxShadow:"0 2px 20px var(--z-sh)", boxSizing:"border-box", transition:"border-color 0.15s" };
   const textarea: React.CSSProperties = { ...inp, minHeight:130, resize:"vertical" as const, lineHeight:1.7 };
