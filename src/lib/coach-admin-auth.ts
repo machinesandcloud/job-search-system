@@ -13,6 +13,30 @@ function roleWeight(role: CoachAdminRole) {
   return role === "admin" ? 2 : 1;
 }
 
+function isTruthy(value: string | undefined) {
+  const normalized = `${value || ""}`.trim().toLowerCase();
+  return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
+}
+
+export function getCoachAdminBetaAutoLoginConfig() {
+  const raw = (process.env.COACH_ADMIN_BETA_AUTO_LOGIN || "").trim();
+  if (!raw) return null;
+
+  const configuredEmail = raw.includes("@") ? raw.toLowerCase() : "";
+  const fallbackEmail = (process.env.COACH_ADMIN_EMAIL_ALLOWLIST || "")
+    .split(",")
+    .map((item) => item.trim().toLowerCase())
+    .find(Boolean) || "";
+
+  const email = configuredEmail || (isTruthy(raw) ? fallbackEmail : "");
+  if (!email) return null;
+
+  const role = configuredEmail ? "admin" : getCoachAdminRole(email);
+  if (!role) return null;
+
+  return { email, role };
+}
+
 export function verifyCoachAdminPassword(password: string) {
   const expected = process.env.COACH_ADMIN_PASSWORD || "";
   return Boolean(expected) && password === expected;
@@ -63,7 +87,11 @@ export async function getCoachAdminSession() {
   if (!token) return null;
   const session = verifySession(token);
   if (!session) return null;
-  const configuredRole = getCoachAdminRole(session.email || "");
+  const betaSession = getCoachAdminBetaAutoLoginConfig();
+  const configuredRole =
+    betaSession?.email === (session.email || "").toLowerCase()
+      ? betaSession.role
+      : getCoachAdminRole(session.email || "");
   if (!configuredRole) return null;
   return { email: session.email!, role: configuredRole };
 }
@@ -71,6 +99,10 @@ export async function getCoachAdminSession() {
 export async function requireCoachAdminSession(minRole: CoachAdminRole = "support") {
   const session = await getCoachAdminSession();
   if (!session || roleWeight(session.role) < roleWeight(minRole)) {
+    const beta = getCoachAdminBetaAutoLoginConfig();
+    if (beta) {
+      redirect("/api/coach-admin/beta-login?next=/coach-admin");
+    }
     redirect("/coach-admin");
   }
   return session;

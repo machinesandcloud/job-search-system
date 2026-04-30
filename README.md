@@ -49,6 +49,7 @@ STRIPE_TRIAL_DAYS=7
 COACH_ADMIN_PASSWORD=replace_me
 COACH_ADMIN_EMAIL_ALLOWLIST=ops@example.com,founder@example.com
 COACH_SUPPORT_EMAIL_ALLOWLIST=support@example.com
+COACH_ADMIN_BETA_AUTO_LOGIN=ops@example.com
 PLAN_TOKEN_LIMIT_FREE=150000
 PLAN_TOKEN_LIMIT_PRO=3000000
 PLAN_TOKEN_LIMIT_PREMIUM=10000000
@@ -81,6 +82,7 @@ npm run dev
 - Paid app access is blocked for `past_due`, `unpaid`, `canceled`, and `incomplete_expired`.
 - AI token usage is tracked per account and per user in `AiTokenUsage`, then compared against the current plan allowance.
 - Internal support/admin tooling lives at `/coach-admin`.
+- Beta shortcut: set `COACH_ADMIN_BETA_AUTO_LOGIN=you@example.com` and `/coach-admin` will auto-create and auto-sign-in that admin account.
 
 ## Important Notes
 

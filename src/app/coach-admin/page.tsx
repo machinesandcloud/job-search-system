@@ -1,6 +1,10 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { CoachAdminLoginForm } from "@/components/coach-admin-forms";
-import { getCoachAdminSession } from "@/lib/coach-admin-auth";
+import {
+  getCoachAdminBetaAutoLoginConfig,
+  getCoachAdminSession,
+} from "@/lib/coach-admin-auth";
 import { prisma } from "@/lib/db";
 import { formatCurrency } from "@/lib/utils";
 import { getPlanMonthlyAmountCents } from "@/lib/billing";
@@ -18,6 +22,9 @@ function statCard(label: string, value: string | number, note: string) {
 export default async function CoachAdminPage() {
   const session = await getCoachAdminSession();
   if (!session) {
+    if (getCoachAdminBetaAutoLoginConfig()) {
+      redirect("/api/coach-admin/beta-login?next=/coach-admin");
+    }
     return (
       <div className="flex min-h-[70vh] items-center justify-center">
         <CoachAdminLoginForm />
