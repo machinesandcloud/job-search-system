@@ -5582,16 +5582,34 @@ type CCNetPersona = { type:string; why:string; where:string; template:string };
 type CCNetResult = { strategy:string; personas:CCNetPersona[] };
 
 const _ccStore = (() => {
-  const form: CCSharedForm = { fromRole:"", toRole:"", fromIndustry:"", toIndustry:"", accomplishments:"", skills:"", resumeText:"", timeline:"", biggestConcern:"", currentStatus:"" };
+  const LS_KEY = "zari_cc_form";
+  function lsRead(): (CCSharedForm & { _ready?: boolean }) | null {
+    try {
+      if (typeof localStorage === "undefined") return null;
+      const raw = localStorage.getItem(LS_KEY);
+      return raw ? JSON.parse(raw) as CCSharedForm & { _ready?: boolean } : null;
+    } catch { return null; }
+  }
+  function lsWrite(f: CCSharedForm) {
+    try { if (typeof localStorage !== "undefined") localStorage.setItem(LS_KEY, JSON.stringify({ ...f, _ready: true })); } catch { /* noop */ }
+  }
+  const saved = lsRead();
+  const form: CCSharedForm = {
+    fromRole: saved?.fromRole ?? "", toRole: saved?.toRole ?? "",
+    fromIndustry: saved?.fromIndustry ?? "", toIndustry: saved?.toIndustry ?? "",
+    accomplishments: saved?.accomplishments ?? "", skills: saved?.skills ?? "",
+    resumeText: saved?.resumeText ?? "", timeline: saved?.timeline ?? "",
+    biggestConcern: saved?.biggestConcern ?? "", currentStatus: saved?.currentStatus ?? "",
+  };
   const cache: { story:CCStoryResult|null; sprint:CCSprintResult|null; network:CCNetResult|null } = { story:null, sprint:null, network:null };
-  let ready = false;
+  let ready = Boolean(saved?._ready);
   const subs = new Set<() => void>();
   const notify = () => subs.forEach(f => f());
   return {
     get form() { return form; },
     get cache() { return cache; },
     get ready() { return ready; },
-    commit(f: CCSharedForm) { Object.assign(form, f); cache.story=null; cache.sprint=null; cache.network=null; ready=true; notify(); },
+    commit(f: CCSharedForm) { Object.assign(form, f); cache.story=null; cache.sprint=null; cache.network=null; ready=true; lsWrite(f); notify(); },
     setCache<K extends keyof typeof cache>(k:K, v:(typeof cache)[K]) { cache[k]=v; notify(); },
     clearCache(k:keyof typeof cache) { cache[k]=null; notify(); },
     sub(fn:()=>void) { subs.add(fn); return ()=>{ subs.delete(fn); }; },
@@ -13354,10 +13372,288 @@ function ScreenPromotionToolkit({ onNavigate }: { onNavigate: (s: string) => voi
 }
 
 /* ═══════════════════════════════════════════════════
+   SCREEN: CAREER CHANGE — My Documents hub
+═══════════════════════════════════════════════════ */
+function ScreenCareerChangeDocuments({ onNavigate }: { onNavigate: (s: string) => void }) {
+  const ACCENT = "#0284C7";
+  const { form, ready } = useCCStore();
+  const [uploads, setUploads] = useState<DocEntry[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  function reload() { setUploads(vaultReadForStage("career-change").filter(d => d.type === "upload")); }
+  useEffect(() => {
+    reload();
+    window.addEventListener("vault-updated", reload);
+    return () => window.removeEventListener("vault-updated", reload);
+  }, []);
+
+  async function handleFile(file: File) {
+    setUploading(true);
+    try {
+      const fd = new FormData(); fd.append("file", file);
+      const res = await fetch("/api/zari/extract", { method: "POST", body: fd });
+      const data = await res.json().catch(() => ({})) as { text?: string };
+      const text = data.text ?? await file.text();
+      vaultSave({ type: "upload", name: file.name, content: text, meta: { size: String(Math.round(file.size / 1024)) + "KB", stage: "career-change" } });
+      reload();
+    } catch { /* silent */ }
+    setUploading(false);
+  }
+
+  const TOOLS = [
+    { key: "resume",       label: "Pivot Analysis",     desc: "Readiness score, transferable assets, skill gaps, and target roles", accent: "#0284C7", done: ready },
+    { key: "interview",    label: "Story Builder",       desc: "Your 30-second pitch, LinkedIn narrative, and recruiter script",      accent: "#7C3AED", done: ready },
+    { key: "cover-letter", label: "Credibility Sprint",  desc: "A 5-day action plan to build real proof points in your target field", accent: "#059669", done: ready },
+    { key: "linkedin",     label: "Bridge Network",      desc: "Outreach personas and tailored messages for your pivot",              accent: "#D97706", done: ready },
+  ];
+
+  return (
+    <div style={{ height: "100%", overflow: "auto", background: "var(--z-raise)" }}>
+      <input ref={fileInputRef} type="file" accept=".pdf,.docx,.txt" style={{ display: "none" }}
+        onChange={e => { const f = e.target.files?.[0]; if (f) void handleFile(f); e.target.value = ""; }} />
+
+      <div style={{ background: "var(--z-card)", borderBottom: "1px solid var(--z-bd)", padding: "16px 28px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <div>
+            <h1 style={{ fontSize: 18, fontWeight: 900, color: "var(--z-text)", letterSpacing: "-0.02em", margin: "0 0 2px" }}>Career Change Hub</h1>
+            <p style={{ fontSize: 13, color: "var(--z-text3)", margin: 0 }}>Your pivot tools, progress, and documents — all in one place.</p>
+          </div>
+          <button onClick={() => fileInputRef.current?.click()} style={{ fontSize: 12, fontWeight: 700, padding: "8px 16px", borderRadius: 10, border: "1px solid var(--z-bd)", background: "var(--z-raise)", color: "var(--z-text2)", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width: 13, height: 13 }}><path d="M10 3v12M4 9l6-6 6 6" /></svg>
+            Upload file
+          </button>
+        </div>
+      </div>
+
+      <div style={{ padding: "24px 28px 48px" }}>
+        {/* Pivot status banner */}
+        {ready ? (
+          <div style={{ background: "linear-gradient(135deg, #EFF6FF, #ECFDF5)", border: "1px solid #BFDBFE", borderRadius: 14, padding: "16px 20px", marginBottom: 24, display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: ACCENT, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <svg viewBox="0 0 20 20" fill="none" stroke="white" strokeWidth="2.5" style={{ width: 18, height: 18 }}><path d="M4 10l5 5 7-7" /></svg>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: ACCENT, marginBottom: 2 }}>Pivot Analysis complete</div>
+              <div style={{ fontSize: 12.5, color: "var(--z-text2)" }}>
+                {form.fromRole && form.toRole ? `${form.fromRole} → ${form.toRole}` : "Your pivot direction is locked in — all tools are now active."}
+              </div>
+            </div>
+            <button onClick={() => onNavigate("resume")} style={{ fontSize: 12, fontWeight: 700, padding: "7px 14px", borderRadius: 9, border: `1px solid ${ACCENT}40`, background: "rgba(2,132,199,0.08)", color: ACCENT, cursor: "pointer", flexShrink: 0 }}>View results →</button>
+          </div>
+        ) : (
+          <div style={{ background: "var(--z-card)", border: "1px solid var(--z-bd)", borderRadius: 14, padding: "20px 22px", marginBottom: 24, display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: "var(--z-raise)", border: "1px solid var(--z-bd)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <svg viewBox="0 0 20 20" fill="none" stroke="var(--z-text3)" strokeWidth="1.8" style={{ width: 18, height: 18 }}><circle cx="10" cy="10" r="8" /><path d="M10 6v5M10 14v.5" /></svg>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "var(--z-text)", marginBottom: 2 }}>Start with Pivot Analysis</div>
+              <div style={{ fontSize: 12.5, color: "var(--z-text2)" }}>Upload your resume and tell Zari where you want to go — it unlocks all the tools below.</div>
+            </div>
+            <button onClick={() => onNavigate("resume")} style={{ fontSize: 12, fontWeight: 700, padding: "7px 14px", borderRadius: 9, border: "none", background: ACCENT, color: "white", cursor: "pointer", flexShrink: 0 }}>Start →</button>
+          </div>
+        )}
+
+        {/* Tool cards */}
+        <p style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.09em", color: "var(--z-text3)", marginBottom: 10 }}>Career Change Tools</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 28 }}>
+          {TOOLS.map(t => (
+            <button key={t.key} onClick={() => onNavigate(t.key)}
+              style={{ background: "var(--z-card)", border: `1px solid ${t.done ? t.accent + "40" : "var(--z-bd)"}`, borderLeft: `3px solid ${t.done ? t.accent : "var(--z-bd)"}`, borderRadius: "0 12px 12px 0", padding: "14px 18px", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: 14, transition: "all 0.15s" }}>
+              <div style={{ width: 38, height: 38, borderRadius: 10, background: t.done ? `${t.accent}18` : "var(--z-raise)", border: "1px solid var(--z-bd)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                {t.done
+                  ? <svg viewBox="0 0 20 20" fill="none" stroke={t.accent} strokeWidth="2.4" style={{ width: 16, height: 16 }}><path d="M4 10l5 5 7-7" /></svg>
+                  : <svg viewBox="0 0 20 20" fill="none" stroke="var(--z-text3)" strokeWidth="1.8" style={{ width: 16, height: 16 }}><path d="M10 4l6 6-6 6M4 10h12" /></svg>
+                }
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
+                  <span style={{ fontSize: 14, fontWeight: 800, color: "var(--z-text)", letterSpacing: "-0.02em" }}>{t.label}</span>
+                  {t.done && <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: `${t.accent}18`, color: t.accent, border: `1px solid ${t.accent}30` }}>Ready</span>}
+                </div>
+                <div style={{ fontSize: 12, color: "var(--z-text2)", lineHeight: 1.5 }}>{t.desc}</div>
+              </div>
+              <svg viewBox="0 0 16 16" fill="none" stroke={t.done ? t.accent : "var(--z-text3)"} strokeWidth="2" style={{ width: 13, height: 13, flexShrink: 0 }}><path d="M4 8h8M9 4l4 4-4 4" /></svg>
+            </button>
+          ))}
+        </div>
+
+        {/* Upload zone */}
+        <p style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.09em", color: "var(--z-text3)", marginBottom: 10 }}>Uploaded Files</p>
+        <div
+          onDragOver={e => { e.preventDefault(); setDragging(true); }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={e => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files?.[0]; if (f) void handleFile(f); }}
+          onClick={() => fileInputRef.current?.click()}
+          style={{ border: `2px dashed ${dragging ? ACCENT : "var(--z-bd)"}`, borderRadius: 12, padding: "16px 24px", textAlign: "center", marginBottom: 16, cursor: "pointer", background: dragging ? "rgba(2,132,199,0.06)" : "var(--z-raise)", transition: "all 0.2s" }}>
+          {uploading
+            ? <p style={{ fontSize: 13, fontWeight: 600, color: ACCENT, margin: 0 }}>Uploading…</p>
+            : <p style={{ fontSize: 13, color: "var(--z-text2)", margin: 0 }}>Drop a file or click to upload · PDF, DOCX, TXT</p>}
+        </div>
+        {uploads.length > 0 && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+            {uploads.map(doc => {
+              const date = new Date(doc.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+              return (
+                <div key={doc.id} style={{ background: "var(--z-card)", border: "1px solid var(--z-bd)", borderRadius: 11, padding: "11px 16px", display: "flex", alignItems: "center", gap: 12 }}>
+                  <svg viewBox="0 0 20 20" fill="none" stroke="#64748B" strokeWidth="1.8" style={{ width: 16, height: 16, flexShrink: 0 }}><path d="M14 2H6a1.5 1.5 0 00-1.5 1.5v13A1.5 1.5 0 006 18h8a1.5 1.5 0 001.5-1.5V6L14 2z" /><path d="M14 2v4h4" /></svg>
+                  <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: "var(--z-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{doc.name}</span>
+                  <span style={{ fontSize: 11, color: "var(--z-text3)", flexShrink: 0 }}>{date}</span>
+                  <button onClick={() => vaultRemove(doc.id)} style={{ fontSize: 13, fontWeight: 800, padding: "4px 8px", borderRadius: 7, border: "1px solid var(--z-bd)", background: "var(--z-raise)", color: "var(--z-text2)", cursor: "pointer", lineHeight: 1 }}>×</button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   SCREEN: CAREER CHANGE — Transition Plan
+═══════════════════════════════════════════════════ */
+function ScreenCareerChangePlan({ onNavigate, active }: { onNavigate: (s: string) => void; active: boolean }) {
+  const ACCENT = "#0284C7";
+  const { form, ready } = useCCStore();
+
+  const STEPS = [
+    {
+      key: "resume",
+      num: 1,
+      label: "Pivot Analysis",
+      desc: "Get your readiness score, identify transferable assets, and map your skill gaps.",
+      accent: "#0284C7",
+      done: ready,
+      cta: ready ? "Review results" : "Start here",
+    },
+    {
+      key: "interview",
+      num: 2,
+      label: "Story Builder",
+      desc: "Build your 30-second pitch, LinkedIn narrative, and recruiter-ready story.",
+      accent: "#7C3AED",
+      done: ready,
+      cta: "Open Story Builder",
+    },
+    {
+      key: "cover-letter",
+      num: 3,
+      label: "Credibility Sprint",
+      desc: "A 5-day plan to build visible proof points in your target field before you apply.",
+      accent: "#059669",
+      done: ready,
+      cta: "Open Sprint",
+    },
+    {
+      key: "linkedin",
+      num: 4,
+      label: "Bridge Network",
+      desc: "Reach the right people in your target industry with tailored outreach personas.",
+      accent: "#D97706",
+      done: ready,
+      cta: "Build your network",
+    },
+    {
+      key: "session",
+      num: 5,
+      label: "Practice with Zari",
+      desc: "Run live interview prep and answer 'Why are you switching?' with confidence.",
+      accent: "#3B82F6",
+      done: false,
+      cta: "Start session",
+    },
+  ];
+
+  const completedCount = STEPS.filter(s => s.done).length;
+  const pct = Math.round((completedCount / STEPS.length) * 100);
+
+  return (
+    <div style={{ height: "100%", overflow: "auto", background: "var(--z-raise)" }}>
+      <div style={{ background: "var(--z-card)", borderBottom: "1px solid var(--z-bd)", padding: "16px 28px" }}>
+        <h1 style={{ fontSize: 18, fontWeight: 900, color: "var(--z-text)", letterSpacing: "-0.02em", margin: "0 0 2px" }}>Transition Plan</h1>
+        <p style={{ fontSize: 13, color: "var(--z-text3)", margin: 0 }}>Your step-by-step career change roadmap.</p>
+      </div>
+
+      <div style={{ padding: "24px 28px 48px" }}>
+        {/* Progress header */}
+        <div style={{ background: "var(--z-card)", borderRadius: 14, padding: "20px 22px", marginBottom: 24, border: "1px solid var(--z-bd)" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: ready ? 14 : 0 }}>
+            <div>
+              <div style={{ fontSize: 10.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.09em", color: "var(--z-text3)", marginBottom: 4 }}>Overall progress</div>
+              <div style={{ fontSize: 22, fontWeight: 900, letterSpacing: "-0.03em", color: "var(--z-text)" }}>
+                {ready
+                  ? (form.fromRole && form.toRole ? `${form.fromRole} → ${form.toRole}` : "Pivot in progress")
+                  : "Start your pivot"}
+              </div>
+            </div>
+            {ready && (
+              <div style={{ width: 56, height: 56, flexShrink: 0, position: "relative" }}>
+                <svg viewBox="0 0 56 56" style={{ width: 56, height: 56, transform: "rotate(-90deg)" }}>
+                  <circle cx="28" cy="28" r="23" fill="none" stroke="var(--z-bd)" strokeWidth="5" />
+                  <circle cx="28" cy="28" r="23" fill="none" stroke={ACCENT} strokeWidth="5"
+                    strokeDasharray={`${2 * Math.PI * 23}`}
+                    strokeDashoffset={`${2 * Math.PI * 23 * (1 - pct / 100)}`}
+                    strokeLinecap="round" style={{ transition: "stroke-dashoffset 0.6s ease" }} />
+                </svg>
+                <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 900, color: ACCENT }}>{pct}%</div>
+              </div>
+            )}
+          </div>
+          {!ready && (
+            <p style={{ fontSize: 13, color: "var(--z-text2)", margin: 0, lineHeight: 1.6 }}>
+              Complete Pivot Analysis first — Zari needs your background to build a real, personalized roadmap.
+            </p>
+          )}
+        </div>
+
+        {/* Step list */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {STEPS.map((step, i) => {
+            const isNext = !step.done && (i === 0 || STEPS[i - 1].done);
+            const locked = !step.done && !isNext && !ready;
+            return (
+              <button key={step.key} onClick={() => onNavigate(step.key)}
+                style={{ background: "var(--z-card)", border: `1px solid ${step.done ? step.accent + "40" : isNext ? step.accent + "60" : "var(--z-bd)"}`, borderLeft: `3.5px solid ${step.done ? step.accent : isNext ? step.accent : "var(--z-bd)"}`, borderRadius: "0 14px 14px 0", padding: "16px 20px", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: 14, transition: "all 0.15s", opacity: locked ? 0.55 : 1 }}>
+                <div style={{ width: 42, height: 42, borderRadius: 12, background: step.done ? `${step.accent}18` : isNext ? `${step.accent}10` : "var(--z-raise)", border: `1.5px solid ${step.done ? step.accent + "40" : "var(--z-bd)"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  {step.done
+                    ? <svg viewBox="0 0 20 20" fill="none" stroke={step.accent} strokeWidth="2.4" style={{ width: 16, height: 16 }}><path d="M4 10l5 5 7-7" /></svg>
+                    : <span style={{ fontSize: 14, fontWeight: 900, color: isNext ? step.accent : "var(--z-text3)" }}>{step.num}</span>}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
+                    <span style={{ fontSize: 14, fontWeight: 800, color: "var(--z-text)", letterSpacing: "-0.02em" }}>{step.label}</span>
+                    {step.done && <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: `${step.accent}18`, color: step.accent, border: `1px solid ${step.accent}30` }}>Complete</span>}
+                    {isNext && !step.done && <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: `${step.accent}15`, color: step.accent, border: `1px solid ${step.accent}30` }}>Up next</span>}
+                  </div>
+                  <div style={{ fontSize: 12.5, color: "var(--z-text2)", lineHeight: 1.5 }}>{step.desc}</div>
+                </div>
+                <div style={{ fontSize: 11.5, fontWeight: 700, padding: "6px 13px", borderRadius: 9, border: step.done ? `1px solid ${step.accent}30` : isNext ? "none" : "1px solid var(--z-bd)", background: isNext && !step.done ? step.accent : step.done ? `${step.accent}12` : "var(--z-raise)", color: isNext && !step.done ? "white" : step.done ? step.accent : "var(--z-text2)", cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" }}>{step.cta}</div>
+              </button>
+            );
+          })}
+        </div>
+
+        {ready && (
+          <div style={{ marginTop: 24, background: "var(--z-card)", border: "1px solid var(--z-bd)", borderRadius: 14, padding: "16px 20px", display: "flex", gap: 12, alignItems: "flex-start" }}>
+            <div style={{ width: 32, height: 32, borderRadius: 9, background: ACCENT, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 13, fontWeight: 800, color: "white" }}>Z</div>
+            <p style={{ fontSize: 13, color: "var(--z-text2)", lineHeight: 1.65, margin: 0 }}>
+              The tools work best in sequence — Pivot Analysis gives Story Builder the raw material, which feeds what you say in Bridge Network outreach. Do them in order once, then come back to refine.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
    SCREEN: DOCUMENTS — drag-drop vault
 ═══════════════════════════════════════════════════ */
 function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate: (s: string) => void }) {
   if (stage === "promotion") return <ScreenPromotionToolkit onNavigate={onNavigate} />;
+  if (stage === "career-change") return <ScreenCareerChangeDocuments onNavigate={onNavigate} />;
 
   const [docs,        setDocs]        = useState<DocEntry[]>([]);
   const [preview,     setPreview]     = useState<DocEntry | null>(null);
@@ -14542,6 +14838,7 @@ function ScreenPromotionRoadmap({ onNavigate, active = false }: { onNavigate: (s
 
 function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage; onNavigate: (s: string) => void; active?: boolean }) {
   if (stage === "promotion") return <ScreenPromotionRoadmap onNavigate={onNavigate} active={active} />;
+  if (stage === "career-change") return <ScreenCareerChangePlan onNavigate={onNavigate} active={active} />;
 
   const [done,        setDone]        = useState<Set<number>>(new Set());
   const [aiTasks,     setAiTasks]     = useState<PlanTask[] | null>(null);
