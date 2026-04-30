@@ -19,6 +19,8 @@ const LIGHT_THEME: CSSProperties = {
   "--ca-text": "#0F172A",
   "--ca-text2": "#64748B",
   "--ca-text3": "#94A3B8",
+  "--ca-text-muted": "#64748B",
+  "--ca-text-soft": "#94A3B8",
   "--ca-bd": "#E2E8F0",
   "--ca-bd2": "#F1F5F9",
   "--ca-sh": "rgba(15,23,42,0.06)",
@@ -38,9 +40,12 @@ const LIGHT_THEME: CSSProperties = {
   "--ca-border-strong": "rgba(37,99,235,0.22)",
   "--ca-track-bg": "#E2E8F0",
   "--ca-panel-start": "#FFFFFF",
+  "--ca-panel-end": "#FFFFFF",
   "--ca-panel-glow-1": "rgba(37,99,235,0.06)",
   "--ca-panel-glow-2": "rgba(37,99,235,0.04)",
   "--ca-panel-shadow": "0 10px 30px rgba(15,23,42,0.04)",
+  "--ca-shell-shadow": "0 14px 38px rgba(15,23,42,0.05)",
+  "--ca-glass-glow": "rgba(37,99,235,0.04)",
   "--ca-button-shadow": "none",
 } as CSSProperties;
 
@@ -51,6 +56,8 @@ const DARK_THEME: CSSProperties = {
   "--ca-text": "rgba(255,255,255,0.94)",
   "--ca-text2": "rgba(255,255,255,0.50)",
   "--ca-text3": "rgba(255,255,255,0.28)",
+  "--ca-text-muted": "rgba(255,255,255,0.50)",
+  "--ca-text-soft": "rgba(255,255,255,0.28)",
   "--ca-bd": "rgba(255,255,255,0.09)",
   "--ca-bd2": "rgba(255,255,255,0.04)",
   "--ca-sh": "rgba(0,0,0,0.65)",
@@ -70,9 +77,12 @@ const DARK_THEME: CSSProperties = {
   "--ca-border-strong": "rgba(37,99,235,0.28)",
   "--ca-track-bg": "rgba(255,255,255,0.08)",
   "--ca-panel-start": "#080E1C",
+  "--ca-panel-end": "#080E1C",
   "--ca-panel-glow-1": "rgba(37,99,235,0.08)",
   "--ca-panel-glow-2": "rgba(37,99,235,0.05)",
   "--ca-panel-shadow": "0 14px 38px rgba(0,0,0,0.24)",
+  "--ca-shell-shadow": "0 18px 46px rgba(0,0,0,0.26)",
+  "--ca-glass-glow": "rgba(37,99,235,0.04)",
   "--ca-button-shadow": "none",
 } as CSSProperties;
 
