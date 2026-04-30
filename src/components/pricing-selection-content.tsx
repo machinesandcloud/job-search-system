@@ -1,10 +1,10 @@
 import Link from "next/link";
+import { HomeReviewWall } from "@/components/home-review-wall";
 import { PricingPlanCard } from "@/components/pricing-plan-card";
 import { Reveal } from "@/components/reveal";
 import {
   FREE_PREVIEW_FEATURES,
   PRICING_PLANS,
-  PRICING_TESTIMONIALS,
   PRICING_TRUST_ITEMS,
   TOP_UP_PACKS,
   type PricingPlanId,
@@ -44,16 +44,42 @@ export function PricingSelectionContent({
           </Reveal>
 
           <Reveal>
-            <h1 className="mx-auto mt-6 max-w-4xl text-[3rem] font-extrabold leading-[1.02] tracking-[-0.05em] text-[#0A0A0F] md:text-[4.15rem]">
-              Choose the Zari plan for
-              <span className="gradient-text-animated"> your next move.</span>
-            </h1>
+            <div style={{ maxWidth:920, margin:"0 auto", padding:"0 24px" }}>
+              <h1
+                style={{
+                  fontSize:"clamp(2.6rem,4.8vw,3.4rem)",
+                  fontWeight:800,
+                  lineHeight:1.12,
+                  letterSpacing:"-0.04em",
+                  color:"#0A0A0F",
+                  marginBottom:24,
+                  textAlign:"center",
+                }}
+              >
+                Career coaching for every goal
+                <br />
+                comes with
+                {" "}
+                <span
+                  style={{
+                    background:"linear-gradient(135deg,#4361EE 0%,#6B86FF 100%)",
+                    WebkitBackgroundClip:"text",
+                    WebkitTextFillColor:"transparent",
+                    backgroundClip:"text",
+                  }}
+                >
+                  plans for your next move.
+                </span>
+              </h1>
+            </div>
           </Reveal>
 
           <Reveal>
-            <p className="mx-auto mt-5 max-w-2xl text-[17px] leading-8 text-[#68738A]">
-              {subtitle}
-            </p>
+            <div style={{ maxWidth:760, margin:"0 auto", padding:"0 24px" }}>
+              <p style={{ fontSize:16.5, lineHeight:1.7, color:"#5A6180", maxWidth:620, margin:"0 auto 20px" }}>
+                Zari helps you <strong style={{ color:"#1E2235", fontWeight:600 }}>land jobs faster</strong>, <strong style={{ color:"#1E2235", fontWeight:600 }}>get promoted sooner</strong>, and <strong style={{ color:"#1E2235", fontWeight:600 }}>negotiate with confidence</strong>. {subtitle}
+              </p>
+            </div>
           </Reveal>
 
           <Reveal>
@@ -104,61 +130,7 @@ export function PricingSelectionContent({
       </section>
 
       {showProof ? (
-        <section className="relative overflow-hidden bg-white px-6 pb-24 pt-8 md:px-8">
-          <div className="pointer-events-none absolute inset-0 overflow-hidden">
-            <div className="absolute left-1/2 top-0 h-[20rem] w-[52rem] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(67,97,238,0.06),transparent_66%)] blur-[40px]" />
-          </div>
-
-          <div className="relative mx-auto max-w-[1280px]">
-            <Reveal>
-              <div className="mx-auto max-w-3xl text-center">
-                <h2 className="text-[2.4rem] font-extrabold tracking-[-0.04em] text-[#0A0A0F] md:text-[3.2rem]">
-                  Loved by 1,200+ candidates
-                </h2>
-                <p className="mx-auto mt-4 max-w-2xl text-[16px] leading-7 text-[#68738A]">
-                  Real outcomes from candidates using Zari for job search, promotion prep, negotiation, and career-change coaching.
-                </p>
-              </div>
-            </Reveal>
-
-            <div className="mt-12 columns-1 gap-5 md:columns-2 xl:columns-3">
-              {PRICING_TESTIMONIALS.slice(0, 6).map((item, index) => (
-                <Reveal
-                  key={`${item.name}-${item.tag}`}
-                  className="mb-5 break-inside-avoid"
-                >
-                  <article className="kleo-testimonial">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-[12px] font-bold text-white"
-                          style={{ background: item.accent }}
-                        >
-                          {item.initials}
-                        </div>
-                        <div>
-                          <p className="text-[15px] font-bold text-[#0A0A0F]">{item.name}</p>
-                          <p className="text-[13px] leading-5 text-[#68738A]">{item.role}</p>
-                        </div>
-                      </div>
-
-                      <span
-                        className="inline-flex rounded-full px-3 py-1 text-[11px] font-semibold"
-                        style={{ color: item.accent, background: `${item.accent}12` }}
-                      >
-                        {item.tag}
-                      </span>
-                    </div>
-
-                    <p className="mt-5 text-[15px] leading-7 text-[#334155]">
-                      &ldquo;{item.quote}&rdquo;
-                    </p>
-                  </article>
-                </Reveal>
-              ))}
-            </div>
-          </div>
-        </section>
+        <HomeReviewWall />
       ) : null}
     </main>
   );
