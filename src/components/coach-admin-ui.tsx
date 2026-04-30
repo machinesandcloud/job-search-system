@@ -11,7 +11,7 @@ const toneMap: Record<Tone, { pill: string; ring: string; glow: string; bar: str
   brand: {
     pill: "border-[#3B82F6]/30 bg-[linear-gradient(135deg,#3B82F6,#2563EB)] text-white shadow-[0_14px_30px_rgba(37,99,235,0.28)]",
     ring: "border-[#3B82F6]/24",
-    glow: "from-[#2563EB]/18 via-[#60A5FA]/10 to-transparent",
+    glow: "from-[#2563EB]/10 via-[#60A5FA]/6 to-transparent",
     bar: "from-[#3B82F6] via-[#2563EB] to-[#0EA5E9]",
   },
   cyan: {
@@ -39,7 +39,7 @@ const toneMap: Record<Tone, { pill: string; ring: string; glow: string; bar: str
     bar: "from-emerald-300 via-teal-400 to-cyan-400",
   },
   slate: {
-    pill: "border-[color:var(--ca-button-border)] bg-[var(--ca-button-bg)] text-[color:var(--ca-text-muted)] shadow-[var(--ca-button-shadow)]",
+    pill: "border-[color:var(--ca-button-border)] bg-[var(--ca-button-bg)] text-[color:var(--ca-button-text)] shadow-[var(--ca-button-shadow)]",
     ring: "border-[color:var(--ca-border)]",
     glow: "from-[var(--ca-glass-glow)] via-transparent to-transparent",
     bar: "from-[var(--ca-text-muted)] via-[var(--ca-border-strong)] to-[var(--ca-border)]",
@@ -50,12 +50,12 @@ export const coachAdminTextPrimaryClass = "text-[color:var(--ca-text)]";
 export const coachAdminTextMutedClass = "text-[color:var(--ca-text-muted)]";
 export const coachAdminTextSoftClass = "text-[color:var(--ca-text-soft)]";
 export const coachAdminTextInverseClass = "text-white";
-export const coachAdminSubtleCardClass = "rounded-[24px] border border-[color:var(--ca-border)] bg-[var(--ca-surface-soft)]";
-export const coachAdminInsetCardClass = "rounded-[28px] border border-[color:var(--ca-border)] bg-[var(--ca-surface-strong)]";
-export const coachAdminListCardClass = "rounded-[24px] border border-[color:var(--ca-border)] bg-[var(--ca-surface-soft)] transition hover:border-[color:var(--ca-border-strong)] hover:bg-[var(--ca-surface-hover)]";
+export const coachAdminSubtleCardClass = "rounded-[20px] border border-[color:var(--ca-border)] bg-[var(--ca-surface-soft)]";
+export const coachAdminInsetCardClass = "rounded-[22px] border border-[color:var(--ca-border)] bg-[var(--ca-surface-strong)]";
+export const coachAdminListCardClass = "rounded-[20px] border border-[color:var(--ca-border)] bg-[var(--ca-surface-soft)] transition hover:border-[color:var(--ca-border-strong)] hover:bg-[var(--ca-surface-hover)]";
 export const coachAdminInputClass = "rounded-[22px] border border-[color:var(--ca-border)] bg-[var(--ca-input-bg)] px-4 py-3 text-sm text-[color:var(--ca-text)] outline-none transition placeholder:text-[color:var(--ca-text-soft)] focus:border-cyan-400/45 focus:bg-[var(--ca-input-focus-bg)]";
 export const coachAdminPrimaryButtonClass = "rounded-full bg-[linear-gradient(135deg,#3B82F6,#2563EB)] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(37,99,235,0.28)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70";
-export const coachAdminGhostButtonClass = "inline-flex items-center justify-center rounded-full border border-[color:var(--ca-button-border)] bg-[var(--ca-button-bg)] px-4 py-2.5 text-sm font-medium text-[color:var(--ca-button-text)] shadow-[var(--ca-button-shadow)] backdrop-blur-xl transition hover:border-[color:var(--ca-button-border-strong)] hover:bg-[var(--ca-button-bg-hover)] hover:text-[color:var(--ca-button-text-hover)] disabled:opacity-70";
+export const coachAdminGhostButtonClass = "inline-flex items-center justify-center rounded-[14px] border border-[color:var(--ca-button-border)] bg-[var(--ca-button-bg)] px-4 py-2.5 text-sm font-medium text-[color:var(--ca-button-text)] shadow-[var(--ca-button-shadow)] transition hover:border-[color:var(--ca-button-border-strong)] hover:bg-[var(--ca-button-bg-hover)] hover:text-[color:var(--ca-button-text-hover)] disabled:opacity-70";
 export const coachAdminFilterButtonBaseClass = "rounded-full border px-4 py-2 text-sm font-medium transition";
 
 export function CoachAdminPill({
@@ -98,15 +98,15 @@ export function CoachAdminPanel({
   return (
     <section
       className={cx(
-        "relative overflow-hidden rounded-[30px] border border-[color:var(--ca-border)] bg-[linear-gradient(180deg,var(--ca-panel-start),var(--ca-panel-end))] p-6 shadow-[var(--ca-panel-shadow)] backdrop-blur-2xl",
+        "relative overflow-hidden rounded-[24px] border border-[color:var(--ca-border)] bg-[var(--ca-panel-start)] p-6 shadow-[var(--ca-panel-shadow)]",
         className
       )}
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,var(--ca-panel-glow-1),transparent_34%),radial-gradient(circle_at_bottom_right,var(--ca-panel-glow-2),transparent_28%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,var(--ca-panel-glow-1),transparent_34%),radial-gradient(circle_at_bottom_right,var(--ca-panel-glow-2),transparent_28%)] opacity-70" />
       {(eyebrow || title || description || action) ? (
         <div className="relative mb-6 flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-2xl">
-            {eyebrow ? <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-cyan-300/80">{eyebrow}</p> : null}
+            {eyebrow ? <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#2563EB] dark:text-cyan-300/80">{eyebrow}</p> : null}
             {title ? <h2 className={cx("mt-2 text-[1.65rem] font-semibold tracking-[-0.05em]", coachAdminTextPrimaryClass)}>{title}</h2> : null}
             {description ? <p className={cx("mt-2 text-sm leading-7", coachAdminTextMutedClass)}>{description}</p> : null}
           </div>
@@ -134,7 +134,7 @@ export function CoachAdminMetricCard({
   return (
     <div
       className={cx(
-        "group relative overflow-hidden rounded-[28px] border bg-[var(--ca-surface-soft)] p-5 backdrop-blur-xl transition-transform duration-200 hover:-translate-y-0.5",
+        "group relative overflow-hidden rounded-[22px] border bg-[var(--ca-surface-soft)] p-5 transition-transform duration-200 hover:-translate-y-0.5",
         toneMap[tone].ring
       )}
     >

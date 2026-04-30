@@ -167,14 +167,9 @@ export default async function CoachAdminPage() {
     <div className="space-y-6">
       <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <CoachAdminPanel
-          eyebrow="Revenue pulse"
-          title={
-            <>
-              Premium operator view for
-              <span className="gradient-text-zari"> billing and account health.</span>
-            </>
-          }
-          description="Monitor paid access, payment risk, support pressure, and AI usage from one high-signal surface. The numbers are the same as before. The framing is no longer dead."
+          eyebrow="Overview"
+          title="Billing and account health"
+          description="Monitor subscription state, payment risk, renewals, and AI spend from the same control surface."
           action={<CoachAdminLinkButton href="/coach-admin/tickets" tone="brand">Open ticket queue</CoachAdminLinkButton>}
           className="min-h-[320px]"
         >
@@ -217,7 +212,7 @@ export default async function CoachAdminPage() {
           </div>
         </CoachAdminPanel>
 
-        <CoachAdminPanel eyebrow="Live distribution" title="Subscription mix" description="Watch the state balance before it becomes a support problem.">
+        <CoachAdminPanel eyebrow="Subscription state" title="Access mix" description="See where paid access is healthy, where it is at risk, and what needs intervention.">
           <div className="space-y-5">
             <CoachAdminProgress label="Active" value={activeCount} max={subscriptionMax} tone="emerald" />
             <CoachAdminProgress label="Trialing" value={trialingCount} max={subscriptionMax} tone="cyan" />
@@ -252,8 +247,8 @@ export default async function CoachAdminPage() {
       <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <CoachAdminPanel
           eyebrow="Accounts"
-          title="Customer command board"
-          description="A sharper view of who is healthy, who is at risk, and which accounts are worth opening next."
+          title="Customer accounts"
+          description="Open any account to inspect billing state, user-level usage, support history, and internal notes."
           action={<CoachAdminPill tone="slate">{accounts.length} visible accounts</CoachAdminPill>}
         >
           <div className="grid gap-3">
@@ -323,7 +318,7 @@ export default async function CoachAdminPage() {
           <CoachAdminPanel
             eyebrow="Support"
             title="Recent tickets"
-            description="The most urgent queue items, surfaced without making you read a table first."
+            description="The current support queue, prioritized for fast operator triage."
             action={<CoachAdminLinkButton href="/coach-admin/tickets" tone="cyan">View all tickets</CoachAdminLinkButton>}
           >
             <div className="grid gap-3">
@@ -356,7 +351,7 @@ export default async function CoachAdminPage() {
         <CoachAdminPanel
           eyebrow="AI utilization"
           title="Who is consuming model spend"
-          description="Per-user view of tracked text-token activity, estimated from the current GPT-4o and GPT-4o mini pricing bands."
+          description="Per-user view of tracked text-token usage and estimated spend."
           action={<CoachAdminPill tone="slate">{formatUsdEstimate(estimatedAiSpend)} total</CoachAdminPill>}
         >
           <div className="grid gap-3">
@@ -400,7 +395,7 @@ export default async function CoachAdminPage() {
         <CoachAdminPanel
           eyebrow="AI mix"
           title="Global usage snapshot"
-          description="Fast read on the current tracked AI footprint across the whole app."
+          description="Global text-model usage across the app."
         >
           <div className="grid gap-4 md:grid-cols-2">
             <CoachAdminMetricCard
