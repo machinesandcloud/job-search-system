@@ -55,13 +55,7 @@ export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) {
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
   }
-  let access;
-  try {
-    access = await requirePaidRouteAccess("zari_pivot_analysis");
-  } catch (err) {
-    console.error("[pivot-analysis] billing check failed:", err);
-    return NextResponse.json({ error: "Service temporarily unavailable. Please try again." }, { status: 503 });
-  }
+  const access = await requirePaidRouteAccess("zari_pivot_analysis");
   if (!access.ok) return access.response;
 
   const body = await request.json().catch(() => ({})) as {

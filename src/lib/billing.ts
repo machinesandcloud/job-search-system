@@ -347,12 +347,26 @@ export async function getCurrentSubscriptionAccess() {
     return { ok: false as const, status: 503, error: "Billing database is not configured." };
   }
 
-  const identity = await syncCurrentUserToBillingIdentity();
+  let identity;
+  try {
+    identity = await syncCurrentUserToBillingIdentity();
+  } catch (err) {
+    console.error("[billing] syncCurrentUserToBillingIdentity threw:", err);
+    return { ok: false as const, status: 503, error: "Service temporarily unavailable. Please try again." };
+  }
+
   if (!identity) {
     return { ok: false as const, status: 401, error: "Sign in required." };
   }
 
-  const subscription = identity.subscription || (await prisma.subscription.findUnique({ where: { accountId: identity.account.id } }));
+  let subscription;
+  try {
+    subscription = identity.subscription || (await prisma.subscription.findUnique({ where: { accountId: identity.account.id } }));
+  } catch (err) {
+    console.error("[billing] subscription lookup threw:", err);
+    return { ok: false as const, status: 503, error: "Service temporarily unavailable. Please try again." };
+  }
+
   if (!subscription || !canAccessSubscriptionStatus(subscription.status)) {
     return {
       ok: false as const,
@@ -378,7 +392,21 @@ export async function requirePaidRouteAccess(
   options: { enforceTokenLimit?: boolean } = {}
 ) {
   const enforceTokenLimit = options.enforceTokenLimit ?? true;
-  const access = await getCurrentSubscriptionAccess();
+
+  let access;
+  try {
+    access = await getCurrentSubscriptionAccess();
+  } catch (err) {
+    console.error("[billing] getCurrentSubscriptionAccess threw:", err);
+    return {
+      ok: false as const,
+      response: NextResponse.json(
+        { ok: false, error: "Service temporarily unavailable. Please try again." },
+        { status: 503 }
+      ),
+    };
+  }
+
   if (!access.ok) {
     return {
       ok: false as const,
@@ -393,18 +421,21 @@ export async function requirePaidRouteAccess(
     };
   }
 
-  const usage = await getCurrentPeriodTokenUsage(access.account.id);
+  let usage = null;
+  try {
+    usage = await getCurrentPeriodTokenUsage(access.account.id);
+  } catch {
+    // non-fatal — continue without token enforcement if DB is flaky
+  }
+
   if (enforceTokenLimit && usage && usage.used >= usage.limit) {
-    await logAppEvent("subscription_token_limit_reached", {
-      accountId: access.account.id,
-      userId: access.user.id,
-      metadataJson: {
-        featureName,
-        used: usage.used,
-        limit: usage.limit,
-        ...metadataJson,
-      },
-    });
+    try {
+      await logAppEvent("subscription_token_limit_reached", {
+        accountId: access.account.id,
+        userId: access.user.id,
+        metadataJson: { featureName, used: usage.used, limit: usage.limit, ...metadataJson },
+      });
+    } catch { /* non-fatal */ }
 
     return {
       ok: false as const,
@@ -419,14 +450,13 @@ export async function requirePaidRouteAccess(
     };
   }
 
-  await logAppEvent("feature_used", {
-    accountId: access.account.id,
-    userId: access.user.id,
-    metadataJson: {
-      featureName,
-      ...metadataJson,
-    },
-  });
+  try {
+    await logAppEvent("feature_used", {
+      accountId: access.account.id,
+      userId: access.user.id,
+      metadataJson: { featureName, ...metadataJson },
+    });
+  } catch { /* non-fatal */ }
 
   return {
     ok: true as const,
