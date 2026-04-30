@@ -34,8 +34,8 @@ const NAV_ITEMS = [
 function getEmailDisplay(email: string) {
   const [localPart, domain] = email.split("@");
   if (!localPart || !domain) return email;
-  if (localPart.length <= 10) return `${localPart}@${domain}`;
-  return `${localPart.slice(0, 9)}…@${domain}`;
+  if (`${localPart}@${domain}`.length <= 18) return `${localPart}@${domain}`;
+  return `${localPart.slice(0, 8)}…@${domain}`;
 }
 
 function getInitials(email: string) {
@@ -94,10 +94,10 @@ export function CoachAdminShellNav({
             })}
           </nav>
 
-          <div className="relative mt-6 grid gap-4">
-            <div className="rounded-[24px] border border-[color:var(--ca-border)] bg-[var(--ca-surface-soft)] p-3.5">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-cyan-300/80">Live operator</p>
-              <div className="mt-3 flex items-center gap-3">
+          <div className="relative mt-6 grid gap-3">
+            <div className="rounded-[24px] border border-[color:var(--ca-border)] bg-[var(--ca-surface-soft)] px-3.5 py-3">
+              <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-cyan-300/80">Live operator</p>
+              <div className="mt-2.5 flex items-center gap-3">
                 <div className="flex h-10 w-10 flex-none items-center justify-center rounded-2xl border border-[color:var(--ca-border)] bg-[var(--ca-chip-bg)] text-xs font-semibold tracking-[0.12em] text-cyan-300">
                   {initials}
                 </div>
@@ -105,13 +105,13 @@ export function CoachAdminShellNav({
                   <p title={email} className={cx("truncate text-sm font-medium", coachAdminTextPrimaryClass)}>
                     {emailDisplay}
                   </p>
-                  <p className={cx("mt-1 text-[11px] uppercase tracking-[0.18em]", coachAdminTextSoftClass)}>
+                  <p className={cx("mt-1 text-[10px] uppercase tracking-[0.16em]", coachAdminTextSoftClass)}>
                     {role}
                   </p>
                 </div>
               </div>
             </div>
-            <CoachAdminLogoutButton className={coachAdminGhostButtonClass} />
+            <CoachAdminLogoutButton className={cx(coachAdminGhostButtonClass, "w-full justify-center")} />
           </div>
         </div>
       </div>

@@ -42,6 +42,13 @@ const LIGHT_THEME: CSSProperties = {
   "--ca-panel-shadow": "0 20px 80px rgba(129,140,248,0.18)",
   "--ca-shell-shadow": "0 24px 90px rgba(129,140,248,0.22)",
   "--ca-glass-glow": "rgba(99,102,241,0.1)",
+  "--ca-button-bg": "rgba(255,255,255,0.84)",
+  "--ca-button-bg-hover": "rgba(255,255,255,0.98)",
+  "--ca-button-border": "rgba(99,102,241,0.18)",
+  "--ca-button-border-strong": "rgba(99,102,241,0.32)",
+  "--ca-button-text": "#0f172a",
+  "--ca-button-text-hover": "#050816",
+  "--ca-button-shadow": "0 10px 28px rgba(129,140,248,0.14)",
 } as CSSProperties;
 
 const DARK_THEME: CSSProperties = {
@@ -72,6 +79,13 @@ const DARK_THEME: CSSProperties = {
   "--ca-panel-shadow": "0 20px 80px rgba(2,6,23,0.55)",
   "--ca-shell-shadow": "0 24px 90px rgba(2,6,23,0.58)",
   "--ca-glass-glow": "rgba(255,255,255,0.08)",
+  "--ca-button-bg": "rgba(255,255,255,0.08)",
+  "--ca-button-bg-hover": "rgba(67,97,238,0.16)",
+  "--ca-button-border": "rgba(148,163,184,0.18)",
+  "--ca-button-border-strong": "rgba(99,120,255,0.42)",
+  "--ca-button-text": "rgba(248,250,252,0.92)",
+  "--ca-button-text-hover": "#ffffff",
+  "--ca-button-shadow": "0 10px 28px rgba(2,6,23,0.22)",
 } as CSSProperties;
 
 function ThemeIcon({ isDark }: { isDark: boolean }) {
@@ -139,7 +153,7 @@ export function CoachAdminThemeShell({
       </div>
 
       <div className="relative mx-auto max-w-[1680px] px-4 py-4 md:px-6 lg:px-8">
-        <div className="grid gap-6 xl:grid-cols-[108px_minmax(0,1fr)]">
+        <div className="grid gap-6 xl:grid-cols-[148px_minmax(0,1fr)]">
           {session ? <CoachAdminShellNav email={session.email} role={session.role} /> : <div className="hidden xl:block" />}
 
           <div className="space-y-6">
