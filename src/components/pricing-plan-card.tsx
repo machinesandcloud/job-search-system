@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import { SubscriptionCheckoutButton } from "@/components/subscription-checkout-button";
 import type { PricingPlan } from "@/lib/pricing-catalog";
 
@@ -7,30 +8,57 @@ function planTone(planId: PricingPlan["id"]) {
     return {
       badge: "bg-cyan-50 text-cyan-700",
       accent: "var(--cyan)",
-      tokenPanel: "from-cyan-50 via-white to-blue-50",
+      featuredBorder: "var(--brand)",
+      panelSurface: "#F6FBFE",
+      swooshPrimary: "rgba(6,182,212,0.28)",
+      swooshSecondary: "rgba(67,97,238,0.16)",
       bullet: "text-cyan-600",
-      button: "bg-[var(--brand)] text-white shadow-[var(--shadow-brand)] hover:bg-[var(--brand-hover)]",
-      outline: "conic-gradient(from var(--border-angle), #4361EE, #06B6D4, #8B5CF6, #06B6D4, #4361EE)",
+      buttonClass: "shadow-[var(--shadow-brand)]",
+      buttonStyle: {
+        background: "var(--brand)",
+        color: "#FFFFFF",
+        boxShadow: "var(--shadow-brand)",
+      } satisfies CSSProperties,
     };
   }
   if (planId === "executive") {
     return {
       badge: "bg-amber-50 text-amber-700",
       accent: "var(--gold)",
-      tokenPanel: "from-amber-50 via-white to-orange-50",
+      featuredBorder: "var(--gold)",
+      panelSurface: "#FFFBF5",
+      swooshPrimary: "rgba(245,158,11,0.26)",
+      swooshSecondary: "rgba(245,158,11,0.14)",
       bullet: "text-amber-500",
-      button: "bg-[var(--ink)] text-white shadow-[var(--shadow)] hover:bg-[var(--dark)]",
-      outline: "linear-gradient(135deg, rgba(245,158,11,0.36), rgba(245,158,11,0.12))",
+      buttonClass: "shadow-[var(--shadow)]",
+      buttonStyle: {
+        background: "#0A0A0F",
+        color: "#FFFFFF",
+        boxShadow: "var(--shadow)",
+      } satisfies CSSProperties,
     };
   }
   return {
     badge: "bg-[var(--brand-light)] text-[var(--brand)]",
     accent: "var(--brand)",
-    tokenPanel: "from-blue-50 via-white to-indigo-50",
+    featuredBorder: "var(--brand)",
+    panelSurface: "#F7F9FF",
+    swooshPrimary: "rgba(67,97,238,0.26)",
+    swooshSecondary: "rgba(67,97,238,0.14)",
     bullet: "text-[var(--brand)]",
-    button: "bg-[var(--ink)] text-white shadow-[var(--shadow)] hover:bg-[var(--dark)]",
-    outline: "linear-gradient(135deg, rgba(67,97,238,0.18), rgba(6,182,212,0.08))",
+    buttonClass: "shadow-[var(--shadow)]",
+    buttonStyle: {
+      background: "#0A0A0F",
+      color: "#FFFFFF",
+      boxShadow: "var(--shadow)",
+    } satisfies CSSProperties,
   };
+}
+
+function featureIntro(plan: PricingPlan) {
+  if (plan.id === "growth") return "Everything in Search, plus:";
+  if (plan.id === "executive") return "Everything in Growth, plus:";
+  return "Everything in Search includes:";
 }
 
 export function PricingPlanCard({
@@ -49,60 +77,35 @@ export function PricingPlanCard({
 
   return (
     <div className="relative flex h-full flex-col">
-      {plan.featured ? (
-        <div
-          className="absolute -inset-[1.5px] rounded-[28px]"
-          style={{ background: tone.outline, animation: "spin-border 3s linear infinite" }}
-        />
-      ) : null}
-
       <div
         className={`relative flex h-full flex-col overflow-hidden rounded-[26px] border border-[var(--border)] bg-white p-7 shadow-[var(--shadow-md)] transition-transform duration-300 hover:-translate-y-1 ${
           plan.featured ? "md:-translate-y-3" : ""
         }`}
+        style={plan.featured ? { borderColor: tone.featuredBorder, borderWidth: "2px" } : undefined}
       >
         {plan.featured ? (
-          <div className="absolute left-0 right-0 top-0 flex items-center justify-center bg-[var(--brand)] py-2 text-[10px] font-bold uppercase tracking-[0.24em] text-white">
+          <div className="absolute right-0 top-0 flex items-center justify-center rounded-bl-[14px] rounded-tr-[24px] bg-[var(--brand)] px-5 py-2 text-[10px] font-bold uppercase tracking-[0.24em] text-white">
             Best Value
           </div>
         ) : null}
 
-        <div className={plan.featured ? "mt-6" : ""}>
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <span className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ${tone.badge}`}>
-                {plan.tag}
-              </span>
-              <h3 className="mt-4 text-[2rem] font-extrabold tracking-[-0.04em] text-[var(--ink)]">{plan.name}</h3>
-              <p className="mt-2 text-[14px] font-medium text-[var(--ink-2)]">{plan.summary}</p>
-            </div>
-            <div
-              className="hidden h-12 w-12 rounded-2xl md:block"
-              style={{
-                background: `radial-gradient(circle at 30% 30%, ${tone.accent}, rgba(255,255,255,0.96))`,
-                boxShadow: `0 12px 30px color-mix(in srgb, ${tone.accent} 18%, transparent)`,
-              }}
-            />
-          </div>
-
-          <div className="mt-6 flex items-end gap-2">
-            <span className="text-[3.7rem] font-extrabold leading-none tracking-[-0.06em] text-[var(--ink)]">
-              {plan.price}
+        <div className={`flex h-full flex-col ${plan.featured ? "pt-3" : ""}`}>
+          <div className="text-center">
+            <span className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ${tone.badge}`}>
+              {plan.tag}
             </span>
-            <span className="mb-1.5 text-[14px] font-medium text-[var(--muted)]">{plan.period}</span>
-          </div>
+            <h3 className="mt-5 text-[2rem] font-extrabold tracking-[-0.04em] text-[var(--ink)]">{plan.name}</h3>
+            <p className="mx-auto mt-3 max-w-[18rem] text-[14px] leading-6 text-[var(--ink-2)]">{plan.summary}</p>
 
-          <p className="mt-3 text-[14px] leading-6 text-[var(--muted)]">{plan.description}</p>
+            <div className="mt-6 flex items-end justify-center gap-2">
+              <span className="text-[3.8rem] font-extrabold leading-none tracking-[-0.06em] text-[var(--ink)]">
+                {plan.price}
+              </span>
+              <span className="mb-1.5 text-[14px] font-medium text-[var(--muted)]">{plan.period}</span>
+            </div>
 
-          <div className="mt-5 rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Access</p>
-            <p className="mt-2 text-[14px] leading-6 text-[var(--ink-2)]">{plan.accessLabel}</p>
-          </div>
-
-          <div className={`mt-4 rounded-2xl border border-[var(--border)] bg-gradient-to-r ${tone.tokenPanel} p-4`}>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Included</p>
-            <p className="mt-2 text-[15px] font-semibold text-[var(--ink)]">{plan.tokenLine}</p>
-            <p className="mt-1 text-[13px] text-[var(--muted)]">Top up more anytime if you burn through your monthly balance.</p>
+            <p className="mt-3 text-[15px] font-medium text-[var(--ink-2)]">{plan.tokenLine}</p>
+            <p className="mt-2 text-[14px] leading-6 text-[var(--muted)]">{plan.description}</p>
           </div>
 
           {authenticated ? (
@@ -110,7 +113,8 @@ export function PricingPlanCard({
               <SubscriptionCheckoutButton
                 planId={plan.id}
                 label={plan.cta}
-                className={`flex w-full items-center justify-center rounded-2xl py-3.5 text-[14px] font-semibold transition-all hover:-translate-y-0.5 ${tone.button}`}
+                className={`flex w-full items-center justify-center rounded-2xl py-3.5 text-[14px] font-semibold transition-all hover:-translate-y-0.5 ${tone.buttonClass}`}
+                buttonStyle={tone.buttonStyle}
               />
             ) : (
               <div className="mt-8">
@@ -126,15 +130,45 @@ export function PricingPlanCard({
           ) : (
             <Link
               href={signupTarget}
-              className={`mt-8 flex w-full items-center justify-center rounded-2xl py-3.5 text-[14px] font-semibold transition-all hover:-translate-y-0.5 ${tone.button}`}
+              className={`mt-8 flex w-full items-center justify-center rounded-2xl py-3.5 text-[14px] font-semibold transition-all hover:-translate-y-0.5 ${tone.buttonClass}`}
+              style={tone.buttonStyle}
             >
               {plan.cta} →
             </Link>
           )}
 
-          <div className="my-6 h-px bg-[var(--border)]" />
+          <div className="my-7 h-px bg-[var(--border)]" />
 
-          <ul className="space-y-3">
+          <div
+            className="relative overflow-hidden rounded-2xl border border-[var(--border)] px-5 py-4"
+            style={{ background: tone.panelSurface }}
+          >
+            <svg
+              aria-hidden
+              viewBox="0 0 180 96"
+              className="pointer-events-none absolute -right-4 -top-2 h-[88px] w-[156px]"
+              fill="none"
+            >
+              <path
+                d="M10 54C34 20 88 14 130 30c14 6 25 15 40 13"
+                stroke={tone.swooshPrimary}
+                strokeWidth="2.4"
+                strokeLinecap="round"
+              />
+              <path
+                d="M32 80c20-18 52-27 93-24 16 1 30 7 44 1"
+                stroke={tone.swooshSecondary}
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              />
+            </svg>
+            <p className="relative text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Included</p>
+            <p className="relative mt-2 max-w-[15rem] text-[15px] font-semibold leading-6 tracking-[-0.02em] text-[var(--ink-2)]">
+              {featureIntro(plan)}
+            </p>
+          </div>
+
+          <ul className="mt-5 space-y-3">
             {plan.features.map((feature) => (
               <li key={feature} className="flex items-start gap-3">
                 <svg

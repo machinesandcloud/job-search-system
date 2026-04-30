@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { ZariLogo } from "@/components/zari-logo";
 
 export function MarketingSiteShell({
@@ -11,13 +11,19 @@ export function MarketingSiteShell({
   children: ReactNode;
   minimal?: boolean;
 }) {
+  const primaryCtaStyle: CSSProperties = {
+    background: "#0A0A0F",
+    color: "#FFFFFF",
+    boxShadow: "0 4px 20px rgba(10,10,20,0.12)",
+  };
+
   return (
     <div className="min-h-screen bg-white text-[var(--ink)]">
       <header className="sticky top-0 z-40 border-b border-slate-100 bg-white/95 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-[1380px] items-center justify-between px-6 py-4 md:px-8">
-          <Link href="/" className="flex items-center gap-2.5 no-underline">
-            <ZariLogo size={26} />
-            <span className="text-[17px] font-black tracking-[-0.04em] text-[#0A0A0F]">Zari</span>
+        <div className={`mx-auto flex max-w-[1380px] items-center justify-between px-6 md:px-8 ${minimal ? "py-5" : "py-4"}`}>
+          <Link href="/" className={`no-underline ${minimal ? "flex items-center gap-3" : "flex items-center gap-2.5"}`}>
+            <ZariLogo size={minimal ? 34 : 26} />
+            <span className={`${minimal ? "text-[22px]" : "text-[17px]"} font-black tracking-[-0.045em] text-[#0A0A0F]`}>Zari</span>
           </Link>
 
           <div className="flex items-center gap-4 md:gap-7">
@@ -34,15 +40,18 @@ export function MarketingSiteShell({
             <Link href="/login" className="text-[14px] font-medium text-[#68738A] transition-colors hover:text-[#0A0A0F]">
               Sign in
             </Link>
-            <Link
-              href={authenticated ? "/dashboard" : "/signup"}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#0A0A0F] px-4 py-2.5 text-[13.5px] font-bold text-white transition-all hover:-translate-y-0.5 hover:opacity-95 md:px-5"
-            >
-              {authenticated ? "Dashboard" : "Get started free"}
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.4" className="h-3.5 w-3.5">
-                <path d="M3 8h10M9 5l3 3-3 3" />
-              </svg>
-            </Link>
+            {minimal ? null : (
+              <Link
+                href={authenticated ? "/dashboard" : "/signup"}
+                className="inline-flex items-center gap-2 rounded-xl bg-[#0A0A0F] px-4 py-2.5 text-[13.5px] font-bold text-white transition-all hover:-translate-y-0.5 hover:opacity-95 md:px-5"
+                style={primaryCtaStyle}
+              >
+                {authenticated ? "Dashboard" : "Get started free"}
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.4" className="h-3.5 w-3.5">
+                  <path d="M3 8h10M9 5l3 3-3 3" />
+                </svg>
+              </Link>
+            )}
           </div>
         </div>
       </header>

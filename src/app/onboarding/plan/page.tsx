@@ -50,9 +50,9 @@ export default async function OnboardingPlanPage() {
           authenticated
           checkoutAvailability={checkoutAvailability}
           eyebrow="One last step"
-          subtitle="Choose a plan to continue, or keep the free preview if you want to test the product first."
-          previewHref="/dashboard"
-          previewLabel="Continue with preview"
+          titlePrimary="Choose the plan for your"
+          titleAccent="next move."
+          subtitle="Choose the plan that gives you the right level of coaching for what you are working on now."
           showProof={false}
         />
       </main>

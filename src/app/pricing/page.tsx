@@ -16,10 +16,7 @@ export default async function PricingPage() {
       <PricingSelectionContent
         authenticated={authenticated}
         checkoutAvailability={checkoutAvailability}
-        eyebrow="Pricing"
-        subtitle="Pick the level of coaching that fits what you are working on right now, then add more tokens only if you need more usage."
-        previewHref={authenticated ? "/dashboard" : "/signup"}
-        previewLabel={authenticated ? "Open it now" : "Start it now"}
+        subtitle="Land jobs faster, get promoted sooner, and negotiate with confidence with the level of support that fits where you are now."
         showProof
       />
     </MarketingSiteShell>

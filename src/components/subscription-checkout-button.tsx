@@ -1,15 +1,18 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { useState } from "react";
 
 export function SubscriptionCheckoutButton({
   label,
   className,
   planId,
+  buttonStyle,
 }: {
   label: string;
   className: string;
   planId?: string;
+  buttonStyle?: CSSProperties;
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +42,7 @@ export function SubscriptionCheckoutButton({
 
   return (
     <div className="mt-8">
-      <button type="button" onClick={handleClick} disabled={loading} className={className}>
+      <button type="button" onClick={handleClick} disabled={loading} className={className} style={buttonStyle}>
         {loading ? "Redirecting..." : `${label} →`}
       </button>
       {error ? <p className="mt-3 text-center text-xs text-amber-300">{error}</p> : null}
