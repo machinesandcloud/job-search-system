@@ -24,6 +24,7 @@ import {
 import { isDatabaseReady, prisma } from "@/lib/db";
 import { formatCurrency } from "@/lib/utils";
 import { formatUsdEstimate, getAiUsageSummary, getPlanMonthlyAmountCents } from "@/lib/billing";
+import { repairPlatformUsersWithoutAccounts } from "@/lib/platform-users";
 
 function formatDate(value?: Date | null) {
   if (!value) return "—";
@@ -103,8 +104,12 @@ export default async function CoachAdminPage() {
   let accounts: any[] = [];
   let recentTickets: any[] = [];
   let aiUsageSummary = null as Awaited<ReturnType<typeof getAiUsageSummary>>;
+  let repairedUsersCount = 0;
 
   try {
+    const repairResult = await repairPlatformUsersWithoutAccounts();
+    repairedUsersCount = repairResult.repaired;
+
     [subscriptions, accounts, recentTickets, aiUsageSummary] = await Promise.all([
       prisma.subscription.findMany({
         include: {
@@ -252,6 +257,20 @@ export default async function CoachAdminPage() {
         <CoachAdminMetricCard label="Tracked AI tokens" value={totalTokens.toLocaleString()} note="Lifetime tracked text-model tokens." tone="brand" />
         <CoachAdminMetricCard label="Tracked users" value={trackedUsers} note="Users with recorded tokenized AI activity." tone="slate" />
       </section>
+
+      {repairedUsersCount > 0 ? (
+        <CoachAdminPanel
+          eyebrow="Recovered records"
+          title="Operator repair pass completed"
+          description={`Re-linked ${repairedUsersCount} user${repairedUsersCount === 1 ? "" : "s"} that existed in the platform but were missing a visible account record.`}
+        >
+          <div className="grid gap-4 md:grid-cols-3">
+            <CoachAdminMetaItem label="What happened" value="Some earlier auth attempts created real users before the account link was fully established." />
+            <CoachAdminMetaItem label="What changed" value="This admin load repaired those users into normal account records automatically." />
+            <CoachAdminMetaItem label="What to do" value="Refresh this page once if you want to see the repaired records in the account list below." />
+          </div>
+        </CoachAdminPanel>
+      ) : null}
 
       <section id="accounts" className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <CoachAdminPanel

@@ -124,8 +124,21 @@ export function verifyPlatformPassword(password: string, stored?: string | null)
 async function ensureDatabaseUserShape(user: any) {
   let ensuredUser = user;
 
-  if (!ensuredUser.accountId) {
-    const account = await prisma.account.create({
+  let account = ensuredUser.accountId
+    ? await prisma.account.findUnique({
+        where: { id: ensuredUser.accountId },
+      })
+    : null;
+
+  if (!account) {
+    account = await prisma.account.findFirst({
+      where: { ownerUserId: ensuredUser.id },
+      orderBy: { createdAt: "asc" },
+    });
+  }
+
+  if (!account) {
+    account = await prisma.account.create({
       data: {
         name: `${buildFullName(ensuredUser.firstName, ensuredUser.lastName) || ensuredUser.email.split("@")[0] || "Customer"} Account`,
         ownerUserId: ensuredUser.id,
@@ -133,7 +146,9 @@ async function ensureDatabaseUserShape(user: any) {
         paymentIssue: false,
       },
     });
+  }
 
+  if (ensuredUser.accountId !== account.id) {
     ensuredUser = await prisma.user.update({
       where: { id: ensuredUser.id },
       data: { accountId: account.id },
@@ -191,6 +206,22 @@ export async function createPlatformUser(input: {
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
     let user = existing;
+
+    if (user.passwordHash && verifyPlatformPassword(input.password, user.passwordHash)) {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          firstName: user.firstName || input.firstName.trim() || null,
+          lastName: user.lastName || input.lastName.trim() || null,
+          role: resolvePlatformRole(email, user.role),
+          planTier: user.planTier || "free",
+        },
+      });
+
+      user = await ensureDatabaseUserShape(user);
+      const mirrored = await mirrorDatabaseUser(user);
+      return { userId: user.id, profile: mirrored.profile, source: "db" as const };
+    }
 
     if (!user.passwordHash) {
       user = await prisma.user.update({
@@ -434,4 +465,26 @@ export async function syncPlatformProfile(userId: string, profile: UserProfile) 
   );
 
   return true;
+}
+
+export async function repairPlatformUsersWithoutAccounts(limit = 50) {
+  if (!isDatabaseReady()) return { repaired: 0 };
+
+  const candidates = await prisma.user.findMany({
+    where: {
+      OR: [
+        { accountId: null },
+        { account: { is: null } },
+      ],
+    },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+  });
+
+  for (const user of candidates) {
+    const ensuredUser = await ensureDatabaseUserShape(user);
+    await mirrorDatabaseUser(ensuredUser);
+  }
+
+  return { repaired: candidates.length };
 }
