@@ -3,12 +3,12 @@ import { NextResponse } from "next/server";
 import { prisma, isDatabaseReady } from "@/lib/db";
 import { getStripeClient } from "@/lib/stripe";
 import {
-  buildSubscriptionSnapshot,
   canAccessSubscriptionStatus,
   logAppEvent,
   mapStripeStatusToAccountStatus,
   syncMvpUserToBillingIdentity,
 } from "@/lib/billing";
+import { mapStripePlanTier, syncStripeSubscriptionToAccount, syncUsersForAccountPlan } from "@/lib/subscription-sync";
 
 export const runtime = "nodejs";
 
@@ -17,21 +17,6 @@ function getInvoiceSubscriptionId(invoice: Stripe.Invoice) {
   if (typeof fromParent === "string") return fromParent;
   if (fromParent && typeof fromParent === "object" && "id" in fromParent) return fromParent.id;
   return null;
-}
-
-function mapPlanTier(planName?: string | null, priceId?: string | null) {
-  const normalized = `${planName || ""} ${priceId || ""}`.toLowerCase();
-  if (normalized.includes("premium")) return "premium";
-  if (normalized.includes("team")) return "team";
-  if (normalized.includes("pro") || normalized.includes("monthly")) return "pro";
-  return "free";
-}
-
-async function syncUsersForAccount(accountId: string, planTier: "free" | "pro" | "premium" | "team") {
-  await prisma.user.updateMany({
-    where: { accountId },
-    data: { planTier },
-  });
 }
 
 async function resolveAccountId(input: {
@@ -74,41 +59,6 @@ async function resolveAccountId(input: {
   return null;
 }
 
-async function upsertSubscription(accountId: string, subscription: Stripe.Subscription, overrides?: Partial<{
-  status: string;
-  paymentIssue: boolean;
-}>) {
-  const snapshot = buildSubscriptionSnapshot(subscription);
-  const status = overrides?.status || snapshot.status;
-  const paymentIssue = typeof overrides?.paymentIssue === "boolean" ? overrides.paymentIssue : snapshot.paymentIssue;
-
-  const record = await prisma.subscription.upsert({
-    where: { accountId },
-    update: {
-      ...snapshot,
-      status,
-      paymentIssue,
-    },
-    create: {
-      accountId,
-      ...snapshot,
-      status,
-      paymentIssue,
-    },
-  });
-
-  await prisma.account.update({
-    where: { id: accountId },
-    data: {
-      status: mapStripeStatusToAccountStatus(status),
-      paymentIssue,
-    },
-  });
-
-  await syncUsersForAccount(accountId, mapPlanTier(record.planName, record.stripePriceId));
-  return record;
-}
-
 async function upsertInvoiceStatus(input: {
   accountId: string;
   stripeCustomerId?: string | null;
@@ -147,7 +97,7 @@ async function upsertInvoiceStatus(input: {
     },
   });
 
-  await syncUsersForAccount(input.accountId, mapPlanTier(record.planName, record.stripePriceId));
+  await syncUsersForAccountPlan(input.accountId, mapStripePlanTier(record.planName, record.stripePriceId));
   return record;
 }
 
@@ -222,7 +172,7 @@ export async function POST(request: Request) {
 
         if (typeof session.subscription === "string") {
           const subscription = await stripe.subscriptions.retrieve(session.subscription);
-          await upsertSubscription(accountId, subscription);
+        await syncStripeSubscriptionToAccount(accountId, subscription);
         }
 
         await logAppEvent("checkout_completed", {
@@ -250,7 +200,7 @@ export async function POST(request: Request) {
         if (!accountId) throw new Error(`Unable to resolve account for ${event.type}.`);
 
         const finalStatus = event.type === "customer.subscription.deleted" ? "canceled" : undefined;
-        await upsertSubscription(accountId, subscription, {
+        await syncStripeSubscriptionToAccount(accountId, subscription, {
           status: finalStatus,
           paymentIssue: finalStatus ? !canAccessSubscriptionStatus(finalStatus) : undefined,
         });
@@ -288,7 +238,7 @@ export async function POST(request: Request) {
 
         if (stripeSubscriptionId) {
           const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
-          await upsertSubscription(accountId, subscription, {
+          await syncStripeSubscriptionToAccount(accountId, subscription, {
             status: event.type === "invoice.payment_failed" ? "past_due" : "active",
             paymentIssue: event.type === "invoice.payment_failed",
           });

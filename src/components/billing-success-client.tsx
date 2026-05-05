@@ -36,7 +36,7 @@ export function BillingSuccessClient() {
                 router.replace("/dashboard?billing=success");
                 return;
               }
-            } else if (finalizeResponse.status >= 400 && finalizeResponse.status !== 202) {
+            } else if (finalizeResponse.status === 401 || finalizeResponse.status === 403) {
               const payload = await finalizeResponse.json().catch(() => ({}));
               throw new Error(payload?.error || "We could not confirm your plan yet.");
             }
@@ -60,12 +60,17 @@ export function BillingSuccessClient() {
             if (cancelled) return;
             setState(attempt >= 9 ? "delayed" : "waiting");
             setMessage(attempt >= 9 ? "Your payment is still processing. This can take a few more moments." : "Processing your payment and unlocking your workspace.");
+          } else if (response.status === 401 || response.status === 403) {
+            throw new Error(payload?.error || "We could not confirm your plan yet.");
           } else {
-            throw new Error(payload?.error || "Unable to verify subscription access yet.");
+            if (!cancelled) {
+              setState(attempt >= 9 ? "delayed" : "waiting");
+              setMessage(attempt >= 9 ? "Your payment is still processing. This can take a few more moments." : "Processing your payment and unlocking your workspace.");
+            }
           }
         } catch (error) {
           if (cancelled) return;
-          if (attempt >= 5) {
+          if (attempt >= 20) {
             setState("error");
             setMessage(error instanceof Error ? error.message : "We could not finish activating your plan.");
             return;

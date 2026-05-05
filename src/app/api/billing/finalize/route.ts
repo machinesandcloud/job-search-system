@@ -2,37 +2,15 @@ import type Stripe from "stripe";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma, isDatabaseReady } from "@/lib/db";
 import {
-  buildSubscriptionSnapshot,
   canAccessSubscriptionStatus,
-  getPricingCatalogPlanId,
-  mapStripeStatusToAccountStatus,
   syncCurrentUserToBillingIdentity,
   syncMvpUserToBillingIdentity,
 } from "@/lib/billing";
 import { getStripeClient } from "@/lib/stripe";
+import { syncStripeSubscriptionToAccount } from "@/lib/subscription-sync";
 import { ensureSameOrigin } from "@/lib/utils";
 
 export const runtime = "nodejs";
-
-function mapPlanTier(planName?: string | null, priceId?: string | null) {
-  const planId = getPricingCatalogPlanId(planName, priceId);
-  if (planId === "growth") return "pro" as const;
-  if (planId === "executive") return "premium" as const;
-  if (planId === "search") return "free" as const;
-
-  const normalized = `${planName || ""} ${priceId || ""}`.toLowerCase();
-  if (normalized.includes("premium")) return "premium" as const;
-  if (normalized.includes("team")) return "team" as const;
-  if (normalized.includes("pro") || normalized.includes("monthly")) return "pro" as const;
-  return "free" as const;
-}
-
-async function syncUsersForAccount(accountId: string, planTier: "free" | "pro" | "premium" | "team") {
-  await prisma.user.updateMany({
-    where: { accountId },
-    data: { planTier },
-  });
-}
 
 async function resolveAccountId(input: {
   metadataAccountId?: string | null;
@@ -76,29 +54,6 @@ async function resolveAccountId(input: {
   }
 
   return null;
-}
-
-async function upsertSubscription(accountId: string, subscription: Stripe.Subscription) {
-  const snapshot = buildSubscriptionSnapshot(subscription);
-  const record = await prisma.subscription.upsert({
-    where: { accountId },
-    update: snapshot,
-    create: {
-      accountId,
-      ...snapshot,
-    },
-  });
-
-  await prisma.account.update({
-    where: { id: accountId },
-    data: {
-      status: mapStripeStatusToAccountStatus(snapshot.status),
-      paymentIssue: snapshot.paymentIssue,
-    },
-  });
-
-  await syncUsersForAccount(accountId, mapPlanTier(record.planName, record.stripePriceId));
-  return record;
 }
 
 export async function POST(request: NextRequest) {
@@ -164,7 +119,18 @@ export async function POST(request: NextRequest) {
       ? await stripe.subscriptions.retrieve(subscriptionCandidate)
       : subscriptionCandidate;
 
-  await upsertSubscription(accountId, subscription);
+  try {
+    await syncStripeSubscriptionToAccount(accountId, subscription);
+  } catch (error) {
+    console.error("[billing/finalize] failed to sync subscription", {
+      accountId,
+      sessionId,
+      stripeSubscriptionId: subscription.id,
+      stripeCustomerId: typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id || null,
+      error,
+    });
+    throw error;
+  }
 
   return NextResponse.json({
     ok: true,

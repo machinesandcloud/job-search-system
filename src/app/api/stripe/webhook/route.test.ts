@@ -26,6 +26,9 @@ const mocks = vi.hoisted(() => ({
   logAppEvent: vi.fn(),
   mapStripeStatusToAccountStatus: vi.fn(),
   syncMvpUserToBillingIdentity: vi.fn(),
+  syncStripeSubscriptionToAccount: vi.fn(),
+  syncUsersForAccountPlan: vi.fn(),
+  mapStripePlanTier: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
@@ -38,11 +41,16 @@ vi.mock("@/lib/stripe", () => ({
 }));
 
 vi.mock("@/lib/billing", () => ({
-  buildSubscriptionSnapshot: mocks.buildSubscriptionSnapshot,
   canAccessSubscriptionStatus: mocks.canAccessSubscriptionStatus,
   logAppEvent: mocks.logAppEvent,
   mapStripeStatusToAccountStatus: mocks.mapStripeStatusToAccountStatus,
   syncMvpUserToBillingIdentity: mocks.syncMvpUserToBillingIdentity,
+}));
+
+vi.mock("@/lib/subscription-sync", () => ({
+  syncStripeSubscriptionToAccount: mocks.syncStripeSubscriptionToAccount,
+  syncUsersForAccountPlan: mocks.syncUsersForAccountPlan,
+  mapStripePlanTier: mocks.mapStripePlanTier,
 }));
 
 import { POST } from "./route";
@@ -55,19 +63,6 @@ describe("stripe webhook route", () => {
       ["active", "trialing"].includes(String(status || "").toLowerCase())
     );
     mocks.mapStripeStatusToAccountStatus.mockImplementation((status?: string | null) => status || "incomplete");
-    mocks.buildSubscriptionSnapshot.mockImplementation((subscription: any) => ({
-      stripeCustomerId: subscription.customer,
-      stripeSubscriptionId: subscription.id,
-      stripePriceId: "price_pro_monthly",
-      planName: "Pro Monthly",
-      status: subscription.status,
-      currentPeriodStart: new Date("2026-04-01T00:00:00.000Z"),
-      currentPeriodEnd: new Date("2026-05-01T00:00:00.000Z"),
-      cancelAtPeriodEnd: false,
-      canceledAt: null,
-      trialEnd: null,
-      paymentIssue: subscription.status !== "active" && subscription.status !== "trialing",
-    }));
     mocks.prisma.stripeEvent.create.mockResolvedValue({ stripeEventId: "evt_test" });
     mocks.prisma.stripeEvent.update.mockResolvedValue({});
     mocks.prisma.subscription.upsert.mockResolvedValue({
@@ -76,6 +71,11 @@ describe("stripe webhook route", () => {
     });
     mocks.prisma.account.update.mockResolvedValue({});
     mocks.prisma.user.updateMany.mockResolvedValue({});
+    mocks.syncStripeSubscriptionToAccount.mockResolvedValue({
+      record: { planName: "Pro Monthly", stripePriceId: "price_pro_monthly" },
+      ready: true,
+    });
+    mocks.mapStripePlanTier.mockReturnValue("pro");
   });
 
   it("is idempotent for already processed events", async () => {
@@ -159,21 +159,12 @@ describe("stripe webhook route", () => {
     );
 
     expect(response.status).toBe(200);
-    expect(mocks.prisma.subscription.upsert).toHaveBeenCalledWith(
+    expect(mocks.syncStripeSubscriptionToAccount).toHaveBeenCalledWith(
+      "account_1",
+      expect.objectContaining({ id: "sub_123" }),
       expect.objectContaining({
-        update: expect.objectContaining({
-          status: "past_due",
-          paymentIssue: true,
-        }),
-      })
-    );
-    expect(mocks.prisma.account.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { id: "account_1" },
-        data: expect.objectContaining({
-          status: "past_due",
-          paymentIssue: true,
-        }),
+        status: "past_due",
+        paymentIssue: true,
       })
     );
   });
@@ -220,12 +211,12 @@ describe("stripe webhook route", () => {
     );
 
     expect(response.status).toBe(200);
-    expect(mocks.prisma.subscription.upsert).toHaveBeenCalledWith(
+    expect(mocks.syncStripeSubscriptionToAccount).toHaveBeenCalledWith(
+      "account_1",
+      expect.objectContaining({ id: "sub_123" }),
       expect.objectContaining({
-        update: expect.objectContaining({
-          status: "canceled",
-          paymentIssue: true,
-        }),
+        status: "canceled",
+        paymentIssue: true,
       })
     );
   });
