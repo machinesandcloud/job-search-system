@@ -31,8 +31,8 @@ import { POST } from "./route";
 describe("billing checkout route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.getBillingSuccessUrl.mockReturnValue("http://localhost:3000/dashboard?billing=success");
-    mocks.getBillingCancelUrl.mockReturnValue("http://localhost:3000/pricing?billing=cancelled");
+    mocks.getBillingSuccessUrl.mockReturnValue("http://localhost:3000/billing/success");
+    mocks.getBillingCancelUrl.mockReturnValue("http://localhost:3000/onboarding/plan?billing=cancelled");
     mocks.getStripeSubscriptionPriceId.mockReturnValue("price_pro_monthly");
     delete process.env.STRIPE_TRIAL_DAYS;
   });
@@ -58,7 +58,7 @@ describe("billing checkout route", () => {
       },
     });
 
-    const response = await POST(
+    const request = Object.assign(
       new Request("http://localhost:3000/api/billing/checkout", {
         method: "POST",
         headers: {
@@ -67,8 +67,13 @@ describe("billing checkout route", () => {
           "content-type": "application/json",
         },
         body: JSON.stringify({ planId: "growth" }),
-      }) as unknown as NextRequest
-    );
+      }),
+      {
+        nextUrl: new URL("http://localhost:3000/api/billing/checkout"),
+      },
+    ) as unknown as NextRequest;
+
+    const response = await POST(request);
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({
@@ -90,6 +95,8 @@ describe("billing checkout route", () => {
     );
 
     expect(mocks.getStripeSubscriptionPriceId).toHaveBeenCalledWith("growth");
+    expect(mocks.getBillingSuccessUrl).toHaveBeenCalledWith("http://localhost:3000");
+    expect(mocks.getBillingCancelUrl).toHaveBeenCalledWith("http://localhost:3000");
 
     expect(mocks.logAppEvent).toHaveBeenCalledWith(
       "checkout_started",

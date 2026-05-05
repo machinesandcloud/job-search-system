@@ -6,6 +6,7 @@ import { getUserById as getMvpUserById } from "@/lib/mvp/store";
 import { getBaseUrl } from "@/lib/utils";
 
 export type CoachAdminRole = "admin" | "support";
+export const DEFAULT_COACH_ADMIN_EMAIL = "steve@askiatech.com";
 
 export const ACTIVE_SUBSCRIPTION_STATUSES = new Set(["active", "trialing"]);
 export const RESTRICTED_SUBSCRIPTION_STATUSES = new Set([
@@ -32,11 +33,30 @@ function uniqueStrings(value: string | undefined) {
     .filter(Boolean);
 }
 
+export function isPlaceholderCoachAdminEmail(email?: string | null) {
+  const normalized = `${email || ""}`.trim().toLowerCase();
+  if (!normalized) return false;
+  return (
+    normalized === "you@example.com" ||
+    normalized.endsWith("@example.com") ||
+    normalized.endsWith("@askiatech.local")
+  );
+}
+
+export function normalizeCoachAdminIdentityEmail(email?: string | null) {
+  const normalized = `${email || ""}`.trim().toLowerCase();
+  if (!normalized) return "";
+  return isPlaceholderCoachAdminEmail(normalized) ? DEFAULT_COACH_ADMIN_EMAIL : normalized;
+}
+
 export function getCoachAdminRole(email: string): CoachAdminRole | null {
   const normalized = email.trim().toLowerCase();
   if (!normalized) return null;
-  if (uniqueStrings(process.env.COACH_ADMIN_EMAIL_ALLOWLIST).includes(normalized)) return "admin";
-  if (uniqueStrings(process.env.COACH_SUPPORT_EMAIL_ALLOWLIST).includes(normalized)) return "support";
+  const adminEmails = uniqueStrings(process.env.COACH_ADMIN_EMAIL_ALLOWLIST);
+  const supportEmails = uniqueStrings(process.env.COACH_SUPPORT_EMAIL_ALLOWLIST);
+  if (adminEmails.includes(normalized)) return "admin";
+  if (supportEmails.includes(normalized)) return "support";
+  if (normalized === DEFAULT_COACH_ADMIN_EMAIL) return "admin";
   return null;
 }
 
@@ -68,18 +88,80 @@ export function stripeTimestampToDate(value?: number | null) {
   return typeof value === "number" && Number.isFinite(value) ? new Date(value * 1000) : null;
 }
 
-export function getBillingSuccessUrl() {
-  return `${getBaseUrl()}/dashboard?billing=success`;
+function getBillingBaseUrl(origin?: string | null) {
+  const candidate = `${origin || ""}`.trim();
+  if (candidate) {
+    try {
+      return new URL(candidate).origin;
+    } catch {
+      // fall through to configured base URL
+    }
+  }
+  return getBaseUrl();
 }
 
-export function getBillingCancelUrl() {
-  return `${getBaseUrl()}/pricing?billing=cancelled`;
+export function getBillingSuccessUrl(origin?: string | null) {
+  return `${getBillingBaseUrl(origin)}/billing/success`;
+}
+
+export function getBillingCancelUrl(origin?: string | null) {
+  return `${getBillingBaseUrl(origin)}/onboarding/plan?billing=cancelled`;
+}
+
+function matchesConfiguredPriceId(priceId: string | null | undefined, envKeys: string[]) {
+  const normalizedPriceId = `${priceId || ""}`.trim().toLowerCase();
+  if (!normalizedPriceId) return false;
+  return envKeys.some((key) => `${process.env[key] || ""}`.trim().toLowerCase() === normalizedPriceId);
+}
+
+export function getPricingCatalogPlanId(planName?: string | null, priceId?: string | null) {
+  const normalizedPlan = `${planName || ""}`.trim().toLowerCase();
+  const normalizedPriceId = `${priceId || ""}`.trim().toLowerCase();
+
+  if (
+    normalizedPlan.includes("search") ||
+    matchesConfiguredPriceId(normalizedPriceId, ["STRIPE_PRICE_ID_SEARCH_MONTHLY", "STRIPE_PRICE_ID_SEARCH"])
+  ) {
+    return "search" as const;
+  }
+
+  if (
+    normalizedPlan.includes("growth") ||
+    normalizedPlan.includes("pro") ||
+    matchesConfiguredPriceId(normalizedPriceId, [
+      "STRIPE_PRICE_ID_GROWTH_MONTHLY",
+      "STRIPE_PRICE_ID_GROWTH",
+      "STRIPE_PRICE_ID_MONTHLY",
+    ])
+  ) {
+    return "growth" as const;
+  }
+
+  if (
+    normalizedPlan.includes("executive") ||
+    normalizedPlan.includes("premium") ||
+    normalizedPlan.includes("team") ||
+    matchesConfiguredPriceId(normalizedPriceId, ["STRIPE_PRICE_ID_EXECUTIVE_MONTHLY", "STRIPE_PRICE_ID_EXECUTIVE"])
+  ) {
+    return "executive" as const;
+  }
+
+  return null;
+}
+
+export function getReadablePlanName(planName?: string | null, priceId?: string | null) {
+  const planId = getPricingCatalogPlanId(planName, priceId);
+  if (planId === "search") return "Search";
+  if (planId === "growth") return "Growth";
+  if (planId === "executive") return "Executive";
+  return planName || priceId || "Monthly plan";
 }
 
 export function getPlanNameFromStripe(subscription: Stripe.Subscription) {
   const firstItem = subscription.items.data[0];
   const price = firstItem?.price;
-  return price?.nickname || price?.lookup_key || (typeof price?.product === "string" ? price.product : null) || "Pro Monthly";
+  const fallbackName = price?.nickname || price?.lookup_key || (typeof price?.product === "string" ? price.product : null) || "Monthly plan";
+  return getReadablePlanName(fallbackName, price?.id || null);
 }
 
 function parseTokenLimit(value: string | undefined, fallback: number) {
@@ -88,6 +170,18 @@ function parseTokenLimit(value: string | undefined, fallback: number) {
 }
 
 export function getPlanTokenLimit(planName?: string | null, priceId?: string | null) {
+  const planId = getPricingCatalogPlanId(planName, priceId);
+
+  if (planId === "search") {
+    return parseTokenLimit(process.env.PLAN_TOKEN_LIMIT_SEARCH, parseTokenLimit(process.env.PLAN_TOKEN_LIMIT_FREE, 150_000));
+  }
+  if (planId === "growth") {
+    return parseTokenLimit(process.env.PLAN_TOKEN_LIMIT_GROWTH, parseTokenLimit(process.env.PLAN_TOKEN_LIMIT_PRO, 3_000_000));
+  }
+  if (planId === "executive") {
+    return parseTokenLimit(process.env.PLAN_TOKEN_LIMIT_EXECUTIVE, parseTokenLimit(process.env.PLAN_TOKEN_LIMIT_PREMIUM, 10_000_000));
+  }
+
   const normalizedPlan = `${planName || ""}`.toLowerCase();
   const normalizedPrice = `${priceId || ""}`.toLowerCase();
 
@@ -104,6 +198,18 @@ export function getPlanTokenLimit(planName?: string | null, priceId?: string | n
 }
 
 export function getPlanMonthlyAmountCents(planName?: string | null, priceId?: string | null) {
+  const planId = getPricingCatalogPlanId(planName, priceId);
+
+  if (planId === "search") {
+    return parseTokenLimit(process.env.PLAN_AMOUNT_SEARCH_CENTS, 3900);
+  }
+  if (planId === "growth") {
+    return parseTokenLimit(process.env.PLAN_AMOUNT_GROWTH_CENTS, parseTokenLimit(process.env.PLAN_AMOUNT_PRO_CENTS, 8900));
+  }
+  if (planId === "executive") {
+    return parseTokenLimit(process.env.PLAN_AMOUNT_EXECUTIVE_CENTS, parseTokenLimit(process.env.PLAN_AMOUNT_PREMIUM_CENTS, 17900));
+  }
+
   const normalizedPlan = `${planName || ""}`.toLowerCase();
   const normalizedPrice = `${priceId || ""}`.toLowerCase();
 
@@ -324,21 +430,73 @@ export async function syncMvpUserToBillingIdentity(mvpUserId: string) {
 
 export async function ensureCoachAdminUser(email: string, role: CoachAdminRole) {
   if (!isDatabaseReady()) return null;
-  const normalized = email.trim().toLowerCase();
-  const existing = await prisma.user.findUnique({ where: { email: normalized } });
-  if (existing) {
-    return prisma.user.update({
-      where: { id: existing.id },
-      data: { role },
+  const normalized = normalizeCoachAdminIdentityEmail(email);
+
+  let existing = await prisma.user.findUnique({ where: { email: normalized } });
+  if (!existing && normalized === DEFAULT_COACH_ADMIN_EMAIL) {
+    const placeholder = await prisma.user.findFirst({
+      where: {
+        role: { in: ["admin", "support"] },
+        OR: [
+          { email: "you@example.com" },
+          { email: { endsWith: "@example.com" } },
+          { email: { endsWith: "@askiatech.local" } },
+        ],
+      },
+      orderBy: { createdAt: "asc" },
+    });
+
+    if (placeholder) {
+      existing = await prisma.user.update({
+        where: { id: placeholder.id },
+        data: {
+          email: normalized,
+          role,
+          planTier: "free",
+        },
+      });
+    }
+  }
+
+  const [firstNameRaw, ...lastParts] = normalized.split("@")[0].split(/[._+-]+/).filter(Boolean);
+  const firstName = firstNameRaw ? firstNameRaw.charAt(0).toUpperCase() + firstNameRaw.slice(1) : "Steve";
+  const lastName = lastParts.length ? lastParts.map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ") : "Admin";
+
+  let user = existing;
+  if (user) {
+    user = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        email: normalized,
+        role,
+        firstName: user.firstName || firstName,
+        lastName: user.lastName || lastName,
+        planTier: user.planTier || "free",
+      },
+    });
+  } else {
+    user = await prisma.user.create({
+      data: {
+        email: normalized,
+        role,
+        firstName,
+        lastName,
+        planTier: "free",
+      },
     });
   }
-  return prisma.user.create({
-    data: {
-      email: normalized,
-      role,
-      planTier: "free",
-    },
-  });
+
+  const account = await ensureAccountForUser(user, role === "admin" ? "Steve Admin Account" : `${firstName} Operator Account`);
+  if (account.name === "you Account" || account.name === "you@example.com Account") {
+    await prisma.account.update({
+      where: { id: account.id },
+      data: {
+        name: role === "admin" ? "Steve Admin Account" : `${firstName} Operator Account`,
+      },
+    });
+  }
+
+  return user;
 }
 
 export async function syncCurrentUserToBillingIdentity() {

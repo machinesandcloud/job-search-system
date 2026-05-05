@@ -183,7 +183,9 @@ export default async function CoachAdminAccountPage({ params }: AccountPageProps
         <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
           <div className={cx(coachAdminInsetCardClass, "space-y-4 p-5")}>
             <div className="flex flex-wrap items-center gap-3">
-              <CoachAdminPill tone={statusTone(subscription?.status || account.status)}>{subscription?.status || account.status}</CoachAdminPill>
+              <CoachAdminPill tone={isInternalOperatorAccount(account) ? "brand" : statusTone(subscription?.status || account.status)}>
+                {isInternalOperatorAccount(account) ? "internal operator" : (subscription?.status || account.status)}
+              </CoachAdminPill>
               {subscription?.cancelAtPeriodEnd ? <CoachAdminPill tone="gold">Cancels at period end</CoachAdminPill> : null}
               <CoachAdminPill tone={account.paymentIssue ? "gold" : "emerald"}>
                 {account.paymentIssue ? "Payment issue flagged" : "Healthy payment state"}

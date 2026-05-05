@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { PricingSelectionContent } from "@/components/pricing-selection-content";
 import { ZariLogo } from "@/components/zari-logo";
+import { canAccessSubscriptionStatus, syncCurrentUserToBillingIdentity } from "@/lib/billing";
 import { PRICING_PLANS } from "@/lib/pricing-catalog";
 import { getStripeSubscriptionPriceId } from "@/lib/stripe";
 import { getCurrentUserId } from "@/lib/mvp/auth";
@@ -9,6 +10,14 @@ import { getCurrentUserId } from "@/lib/mvp/auth";
 export default async function OnboardingPlanPage() {
   const userId = await getCurrentUserId();
   if (!userId) redirect("/signup");
+
+  const identity = await syncCurrentUserToBillingIdentity().catch(() => null);
+  if (identity?.user?.role === "admin" || identity?.user?.role === "support") {
+    redirect("/dashboard");
+  }
+  if (identity?.subscription && canAccessSubscriptionStatus(identity.subscription.status)) {
+    redirect("/dashboard");
+  }
 
   const checkoutAvailability = Object.fromEntries(
     PRICING_PLANS.map((plan) => [plan.id, Boolean(getStripeSubscriptionPriceId(plan.id))])
@@ -28,7 +37,7 @@ export default async function OnboardingPlanPage() {
 
           <div className="flex items-center gap-3">
             <Link
-              href="/dashboard"
+              href="/api/onboarding/free-preview"
               className="hidden rounded-full border border-[var(--border)] px-4 py-2 text-[13px] font-semibold text-[var(--muted)] transition-colors hover:border-[var(--brand)] hover:text-[var(--brand)] sm:inline-flex"
             >
               Continue with free preview

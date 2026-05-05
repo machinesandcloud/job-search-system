@@ -23,7 +23,13 @@ import {
 } from "@/lib/coach-admin-auth";
 import { isDatabaseReady, prisma } from "@/lib/db";
 import { formatCurrency } from "@/lib/utils";
-import { formatUsdEstimate, getAiUsageSummary, getPlanMonthlyAmountCents } from "@/lib/billing";
+import {
+  ensureCoachAdminUser,
+  formatUsdEstimate,
+  getAiUsageSummary,
+  getPlanMonthlyAmountCents,
+  isPlaceholderCoachAdminEmail,
+} from "@/lib/billing";
 import { repairPlatformUsersWithoutAccounts } from "@/lib/platform-users";
 
 function formatDate(value?: Date | null) {
@@ -50,6 +56,7 @@ function priorityTone(priority?: string | null) {
 }
 
 function getHealthLabel(account: any) {
+  if (isInternalOperatorAccount(account)) return "Internal operator";
   if (account.paymentIssue) return "Payment issue";
   if (!account.subscription) return "Needs checkout";
   if (account.subscription.status === "trialing") return "Trialing";
@@ -64,6 +71,11 @@ function isInternalOperatorAccount(account: any) {
 function getAccountPlanLabel(account: any) {
   if (isInternalOperatorAccount(account)) return "Internal operator account";
   return account.subscription?.planName || account.subscription?.stripePriceId || "No plan yet";
+}
+
+function isPlaceholderInternalOperatorAccount(account: any) {
+  if (!isInternalOperatorAccount(account)) return false;
+  return Array.isArray(account?.users) && account.users.some((user: any) => isPlaceholderCoachAdminEmail(user?.email));
 }
 
 function SetupWarning({ title, body }: { title: string; body: string }) {
@@ -107,6 +119,7 @@ export default async function CoachAdminPage() {
   let repairedUsersCount = 0;
 
   try {
+    await ensureCoachAdminUser(session.email, session.role);
     const repairResult = await repairPlatformUsersWithoutAccounts();
     repairedUsersCount = repairResult.repaired;
 
@@ -176,6 +189,7 @@ export default async function CoachAdminPage() {
   const trackedUsers = aiUsageSummary?.total.trackedUsers || 0;
   const topAiUsers = aiUsageSummary?.byUser || [];
   const subscriptionMax = Math.max(activeCount, trialingCount, pastDueCount, canceledCount, 1);
+  const visibleAccounts = accounts.filter((account: any) => !isPlaceholderInternalOperatorAccount(account));
 
   return (
     <div className="space-y-6">
@@ -277,14 +291,15 @@ export default async function CoachAdminPage() {
           eyebrow="Accounts"
           title="Customer accounts"
           description="Open any account to inspect billing state, user-level usage, support history, and internal notes."
-          action={<CoachAdminPill tone="slate">{accounts.length} visible accounts</CoachAdminPill>}
+          action={<CoachAdminPill tone="slate">{visibleAccounts.length} visible accounts</CoachAdminPill>}
         >
           <div className="grid gap-3">
-            {accounts.length ? (
-              accounts.slice(0, 8).map((account: any) => {
+            {visibleAccounts.length ? (
+              visibleAccounts.slice(0, 8).map((account: any) => {
                 const owner = account.users.find((user: any) => user.id === account.ownerUserId) || account.users[0];
                 const status = account.subscription?.status || account.status;
                 const plan = getAccountPlanLabel(account);
+                const statusPillTone = isInternalOperatorAccount(account) ? "brand" : statusTone(status);
                 return (
                   <Link
                     key={account.id}
@@ -295,7 +310,7 @@ export default async function CoachAdminPage() {
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-3">
                           <p className={cx("text-lg font-semibold tracking-[-0.04em]", coachAdminTextPrimaryClass)}>{account.name}</p>
-                          <CoachAdminPill tone={statusTone(status)}>{getHealthLabel(account)}</CoachAdminPill>
+                          <CoachAdminPill tone={statusPillTone}>{getHealthLabel(account)}</CoachAdminPill>
                         </div>
                         <p className={cx("mt-2 text-sm", coachAdminTextMutedClass)}>{owner?.email || "Unknown owner"} · {account.users.length} user(s)</p>
                       </div>

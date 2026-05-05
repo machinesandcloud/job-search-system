@@ -2,7 +2,13 @@ import crypto from "node:crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
-import { ensureCoachAdminUser, type CoachAdminRole, getCoachAdminRole } from "@/lib/billing";
+import {
+  DEFAULT_COACH_ADMIN_EMAIL,
+  ensureCoachAdminUser,
+  type CoachAdminRole,
+  getCoachAdminRole,
+  normalizeCoachAdminIdentityEmail,
+} from "@/lib/billing";
 
 const COOKIE_NAME = "coach_admin_session";
 
@@ -23,13 +29,13 @@ export function getCoachAdminBetaAutoLoginConfig() {
   const raw = (process.env.COACH_ADMIN_BETA_AUTO_LOGIN || "").trim();
   if (!raw) return null;
 
-  const configuredEmail = raw.includes("@") ? raw.toLowerCase() : "";
+  const configuredEmail = raw.includes("@") ? normalizeCoachAdminIdentityEmail(raw) : "";
   const fallbackEmail = (process.env.COACH_ADMIN_EMAIL_ALLOWLIST || "")
     .split(",")
-    .map((item) => item.trim().toLowerCase())
+    .map((item) => normalizeCoachAdminIdentityEmail(item))
     .find(Boolean) || "";
 
-  const email = configuredEmail || (isTruthy(raw) ? fallbackEmail : "");
+  const email = configuredEmail || (isTruthy(raw) ? fallbackEmail || DEFAULT_COACH_ADMIN_EMAIL : "");
   if (!email) return null;
 
   const role = configuredEmail ? "admin" : getCoachAdminRole(email);
@@ -123,13 +129,14 @@ export async function getCoachAdminSession() {
   if (!token) return null;
   const session = verifySession(token);
   if (!session) return null;
+  const normalizedEmail = normalizeCoachAdminIdentityEmail(session.email || "");
   const betaSession = getCoachAdminBetaAutoLoginConfig();
   const configuredRole =
-    betaSession?.email === (session.email || "").toLowerCase()
+    betaSession?.email === normalizedEmail
       ? betaSession.role
-      : getCoachAdminRole(session.email || "");
+      : getCoachAdminRole(normalizedEmail);
   if (!configuredRole) return null;
-  return { email: session.email!, role: configuredRole };
+  return { email: normalizedEmail, role: configuredRole };
 }
 
 export async function requireCoachAdminSession(minRole: CoachAdminRole = "support") {

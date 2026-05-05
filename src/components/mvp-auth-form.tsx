@@ -2,13 +2,16 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ZariLogo } from "@/components/zari-logo";
 
 type AuthMode = "login" | "signup";
 
 export function MvpAuthForm({ mode, authError = null }: { mode: AuthMode; authError?: string | null }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const selectedPlan = `${searchParams.get("plan") || ""}`.trim().toLowerCase();
+  const onboardingPlanHref = selectedPlan ? `/onboarding/plan?plan=${encodeURIComponent(selectedPlan)}` : "/onboarding/plan";
 
   const inputStyle: React.CSSProperties = {
     width: "100%", padding: "11px 14px", fontSize: 14, borderRadius: 10,
@@ -40,7 +43,7 @@ export function MvpAuthForm({ mode, authError = null }: { mode: AuthMode; authEr
     setError(null);
     setSignErr(null);
     setGoogleLoading(true);
-    const next = targetMode === "signup" ? "/onboarding/plan" : "/dashboard";
+    const next = targetMode === "signup" ? onboardingPlanHref : "/dashboard";
     window.location.href = `/api/auth/google/start?mode=${targetMode}&next=${encodeURIComponent(next)}`;
   }
 
@@ -71,7 +74,7 @@ export function MvpAuthForm({ mode, authError = null }: { mode: AuthMode; authEr
     });
     const payload = await res.json().catch(() => ({}));
     if (!res.ok) { setSignErr(payload.error || "Unable to create account."); setSignLoad(false); return; }
-    router.push("/onboarding/plan");
+    router.push(onboardingPlanHref);
     router.refresh();
   }
 
