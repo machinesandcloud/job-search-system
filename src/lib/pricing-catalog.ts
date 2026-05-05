@@ -3,12 +3,14 @@ export type PricingPlanId = "search" | "growth" | "executive";
 export type PricingPlan = {
   id: PricingPlanId;
   name: string;
+  priceCents: number;
   price: string;
   period: string;
   tag: string;
   accessLabel: string;
   summary: string;
   description: string;
+  includedCredits: number;
   tokenLine: string;
   cta: string;
   featured?: boolean;
@@ -19,13 +21,15 @@ export const PRICING_PLANS: PricingPlan[] = [
   {
     id: "search",
     name: "Search",
+    priceCents: 3900,
     price: "$39",
     period: "/month",
     tag: "Job search only",
     accessLabel: "Resume, LinkedIn, cover letter, interview prep, and action plans",
     summary: "For candidates actively applying right now.",
     description: "All of the core job-search workflows, without promotion, salary, career-change, or executive surfaces.",
-    tokenLine: "120 tokens every month",
+    includedCredits: 120,
+    tokenLine: "120 credits every month",
     cta: "Choose Search",
     features: [
       "Job-search workspace only",
@@ -39,13 +43,15 @@ export const PRICING_PLANS: PricingPlan[] = [
   {
     id: "growth",
     name: "Growth",
+    priceCents: 8900,
     price: "$89",
     period: "/month",
     tag: "Most popular",
     accessLabel: "Everything except executive leadership tools",
     summary: "For people navigating job search plus the next move after it.",
     description: "Unlock promotion, salary, and career-change workflows, plus Zari Live Coach.",
-    tokenLine: "400 tokens every month",
+    includedCredits: 400,
+    tokenLine: "400 credits every month",
     cta: "Choose Growth",
     featured: true,
     features: [
@@ -60,13 +66,15 @@ export const PRICING_PLANS: PricingPlan[] = [
   {
     id: "executive",
     name: "Executive",
+    priceCents: 17900,
     price: "$179",
     period: "/month",
     tag: "Leadership included",
     accessLabel: "Everything, including leadership and executive positioning",
     summary: "For senior operators, directors, VPs, and exec-track candidates.",
     description: "Adds the leadership and executive surfaces that stay locked in Growth.",
-    tokenLine: "1,000 tokens every month",
+    includedCredits: 1000,
+    tokenLine: "1,000 credits every month",
     cta: "Choose Executive",
     features: [
       "Everything in Growth",
@@ -79,6 +87,15 @@ export const PRICING_PLANS: PricingPlan[] = [
   },
 ];
 
+const PRICING_PLAN_MAP = new Map<PricingPlanId, PricingPlan>(
+  PRICING_PLANS.map((plan) => [plan.id, plan]),
+);
+
+export function getPricingPlanById(planId?: PricingPlanId | null) {
+  if (!planId) return null;
+  return PRICING_PLAN_MAP.get(planId) || null;
+}
+
 export const FREE_PREVIEW_FEATURES = [
   "1 resume review",
   "1 LinkedIn review",
@@ -87,14 +104,14 @@ export const FREE_PREVIEW_FEATURES = [
 ];
 
 export const TOP_UP_PACKS = [
-  { tokens: "40 tokens", price: "$19" },
-  { tokens: "120 tokens", price: "$49" },
-  { tokens: "300 tokens", price: "$99" },
+  { tokens: "40 credits", price: "$19" },
+  { tokens: "120 credits", price: "$49" },
+  { tokens: "300 credits", price: "$99" },
 ];
 
 export const PRICING_TRUST_ITEMS = [
   "Monthly plans, cancel anytime",
-  "Included tokens reset each billing cycle",
+  "Included credits reset each billing cycle",
   "Top-ups last for 90 days",
   "Secure Stripe checkout",
 ];
@@ -106,11 +123,11 @@ export const PRICING_FAQS = [
   },
   {
     q: "What exactly is a token?",
-    a: "Tokens are product credits. Text, deeper analyses, and live-coach minutes all burn from the same balance so pricing stays simple even though the AI stack behind the scenes is not.",
+    a: "In the product, we call them credits. Behind the scenes, every request also burns real model tokens, which we track separately for operations and billing analytics.",
   },
   {
-    q: "What happens when I run out of included monthly tokens?",
-    a: "Your included monthly balance resets on your renewal date. If you need more before then, you can buy top-up packs without changing plans.",
+    q: "What happens when I run out of included monthly credits?",
+    a: "Your included monthly credit balance resets on your renewal date. If you need more before then, you can buy top-up packs without changing plans.",
   },
   {
     q: "Which plan includes live coach access?",

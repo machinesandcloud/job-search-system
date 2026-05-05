@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import { PlatformLogoutButton } from "@/components/platform-logout-button";
 import { ZariLogo } from "@/components/zari-logo";
 import { ZariAvatar, type AvatarState } from "@/components/zari-avatar";
 
@@ -107,6 +108,17 @@ function vaultHas(type: DocType): boolean {
 ═══════════════════════════════════════════════════ */
 type Screen = "session" | "resume" | "interview" | "cover-letter" | "linkedin" | "documents" | "plan";
 type CareerStage = "job-search" | "promotion" | "salary" | "career-change" | "leadership";
+export type PortalViewer = {
+  name: string;
+  email: string;
+  role: "member" | "admin" | "support";
+  planId: string | null;
+  planName: string;
+  isPaid: boolean;
+  subscriptionStatus: string | null;
+  includedMonthlyCredits: number | null;
+  monthlyPriceCents: number | null;
+};
 
 const STAGE_ICONS: Record<CareerStage, React.ReactNode> = {
   "job-search":    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13,flexShrink:0}}><circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l3 3"/></svg>,
@@ -15336,7 +15348,7 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
 /* ═══════════════════════════════════════════════════
    MAIN PORTAL SHELL
 ═══════════════════════════════════════════════════ */
-export function ZariPortal() {
+export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
   const [screen, setScreen] = useState<Screen>(() => {
     try { return (localStorage.getItem("zari_screen") as Screen) || "session"; } catch { return "session"; }
   });
@@ -15347,6 +15359,16 @@ export function ZariPortal() {
   });
   const themeVars = (isDark ? DARK_THEME : LIGHT_THEME) as React.CSSProperties;
   const toggleDark = () => setIsDark(d => { const v = !d; try { localStorage.setItem("zari_dark", v?"1":"0"); } catch {} return v; });
+  const isOperatorViewer = viewer.role === "admin" || viewer.role === "support";
+  const userDisplayName = viewer.name?.trim() || viewer.email.split("@")[0] || "Your account";
+  const userEmail = viewer.email?.trim() || "—";
+  const sidebarPlanTitle = isOperatorViewer ? "Internal operator" : viewer.planName;
+  const sidebarPlanCopy = isOperatorViewer
+    ? "Operator workspace with full internal access."
+    : viewer.isPaid
+      ? `${viewer.includedMonthlyCredits?.toLocaleString() || "Included"} monthly credits · ${viewer.subscriptionStatus || "active"}`
+      : "Upgrade for unlimited sessions, downloads, and priority coaching.";
+  const showUpgradeCta = !isOperatorViewer && !viewer.isPaid;
 
   // Persist active screen so refresh lands back on the same section
   const navigate = (s: Screen) => { setScreen(s); try { localStorage.setItem("zari_screen", s); } catch { /* ignore */ } };
@@ -15506,17 +15528,23 @@ export function ZariPortal() {
           })()}
         </nav>
 
-        {/* Bottom: upgrade */}
+        {/* Bottom: account / plan */}
         <div style={{ margin:"12px 10px 0", background: isDark ? "linear-gradient(135deg, rgba(37,99,235,0.18) 0%, rgba(139,92,246,0.12) 100%)" : "linear-gradient(135deg, #EFF6FF 0%, #F5F3FF 100%)", borderRadius:12, padding:"14px", border: isDark ? "1px solid rgba(37,99,235,0.28)" : "1px solid rgba(37,99,235,0.14)", position:"relative", overflow:"hidden" }}>
           {isDark && <div style={{ position:"absolute", top:-20, right:-20, width:80, height:80, borderRadius:"50%", background:"radial-gradient(circle, rgba(139,92,246,0.18) 0%, transparent 70%)", pointerEvents:"none" }}/>}
           <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:7 }}>
             <div style={{ width:26, height:26, borderRadius:7, background:"linear-gradient(135deg, #3B82F6, #2563EB)", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 8px rgba(37,99,235,0.4)" }}>
               <svg viewBox="0 0 14 14" fill="none" stroke="white" strokeWidth="1.8" style={{width:11,height:11}}><path d="M7 1l1.7 3.4L12 5l-2.5 2.4.6 3.5L7 9.3l-3.1 1.6.6-3.5L2 5l3.3-.6z"/></svg>
             </div>
-            <div style={{ fontSize:12.5, fontWeight:700, color:"var(--z-text)", letterSpacing:"-0.01em" }}>Upgrade to Pro</div>
+            <div style={{ fontSize:12.5, fontWeight:700, color:"var(--z-text)", letterSpacing:"-0.01em" }}>{sidebarPlanTitle}</div>
           </div>
-          <div style={{ fontSize:11.5, color:"var(--z-text2)", marginBottom:10, lineHeight:1.55 }}>Unlimited sessions, downloads, and priority coaching</div>
-          <button className="zari-btn-scale" style={{ width:"100%", fontSize:12.5, fontWeight:700, padding:"8px", borderRadius:9, border:"none", background:"linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)", color:"white", cursor:"pointer", boxShadow:"0 3px 12px rgba(37,99,235,0.4)" }}>Upgrade →</button>
+          <div style={{ fontSize:12.5, fontWeight:700, color:"var(--z-text)", lineHeight:1.35 }}>{userDisplayName}</div>
+          <div style={{ fontSize:11.5, color:"var(--z-text2)", marginTop:4, lineHeight:1.45, wordBreak:"break-word" }}>{userEmail}</div>
+          <div style={{ fontSize:11.5, color:"var(--z-text2)", marginTop:10, marginBottom:10, lineHeight:1.55 }}>{sidebarPlanCopy}</div>
+          {showUpgradeCta ? (
+            <Link href="/onboarding/plan" className="zari-btn-scale" style={{ width:"100%", display:"inline-flex", alignItems:"center", justifyContent:"center", textDecoration:"none", fontSize:12.5, fontWeight:700, padding:"8px", borderRadius:9, border:"none", background:"linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)", color:"white", cursor:"pointer", boxShadow:"0 3px 12px rgba(37,99,235,0.4)" }}>
+              Upgrade →
+            </Link>
+          ) : null}
         </div>
       </aside>
 
@@ -15534,9 +15562,18 @@ export function ZariPortal() {
               <span style={{ display:"inline-flex", alignItems:"center", color: accentInfo.color }}>{STAGE_ICONS[stage]}</span>
               <span style={{ fontSize:11.5, fontWeight:600, color: accentInfo.color }}>{STAGE_META[stage].label}</span>
             </div>
-            <form action="/api/auth/logout" method="POST">
-              <button type="submit" style={{ fontSize:12, fontWeight:600, padding:"5px 13px", borderRadius:8, border:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text3)", cursor:"pointer", transition:"all 0.15s" }}>Sign out</button>
-            </form>
+            <div style={{ minWidth:0, maxWidth:240, display:"flex", flexDirection:"column", alignItems:"flex-end", padding:"6px 10px", borderRadius:10, border:"1px solid var(--z-bd)", background:isDark ? "rgba(255,255,255,0.03)" : "var(--z-raise)" }}>
+              <div style={{ fontSize:12.5, fontWeight:700, color:"var(--z-text)", lineHeight:1.2, maxWidth:"100%", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{userDisplayName}</div>
+              <div style={{ fontSize:11, color:"var(--z-text2)", lineHeight:1.2, maxWidth:"100%", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{userEmail}</div>
+            </div>
+            <PlatformLogoutButton
+              className=""
+              redirectTo="/login"
+            >
+              <span style={{ fontSize:12, fontWeight:600, padding:"5px 13px", borderRadius:8, border:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text3)", cursor:"pointer", transition:"all 0.15s", display:"inline-flex", alignItems:"center", justifyContent:"center" }}>
+                Sign out
+              </span>
+            </PlatformLogoutButton>
           </div>
         </div>
 

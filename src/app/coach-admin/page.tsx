@@ -24,6 +24,7 @@ import {
 import { isDatabaseReady, prisma } from "@/lib/db";
 import { formatCurrency } from "@/lib/utils";
 import {
+  estimateTrackedTokenCostUsd,
   ensureCoachAdminUser,
   formatUsdEstimate,
   getAiUsageSummary,
@@ -37,6 +38,16 @@ function formatDate(value?: Date | null) {
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
     day: "numeric",
+  }).format(new Date(value));
+}
+
+function formatDateTime(value?: Date | null) {
+  if (!value) return "—";
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
   }).format(new Date(value));
 }
 
@@ -78,6 +89,19 @@ function isPlaceholderInternalOperatorAccount(account: any) {
   return Array.isArray(account?.users) && account.users.some((user: any) => isPlaceholderCoachAdminEmail(user?.email));
 }
 
+function getMetadataRecord(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return value as Record<string, unknown>;
+}
+
+function getRequestPreview(metadata: unknown) {
+  const record = getMetadataRecord(metadata);
+  const preview = typeof record.requestPreview === "string" ? record.requestPreview.trim() : "";
+  if (preview) return preview;
+  const fallback = typeof record.featureName === "string" ? record.featureName.trim() : "";
+  return fallback || "No request preview captured";
+}
+
 function SetupWarning({ title, body }: { title: string; body: string }) {
   return (
     <CoachAdminPanel eyebrow="Billing setup needed" title={title} description={body}>
@@ -116,6 +140,7 @@ export default async function CoachAdminPage() {
   let accounts: any[] = [];
   let recentTickets: any[] = [];
   let aiUsageSummary = null as Awaited<ReturnType<typeof getAiUsageSummary>>;
+  let recentAiRequests: any[] = [];
   let repairedUsersCount = 0;
 
   try {
@@ -123,7 +148,7 @@ export default async function CoachAdminPage() {
     const repairResult = await repairPlatformUsersWithoutAccounts();
     repairedUsersCount = repairResult.repaired;
 
-    [subscriptions, accounts, recentTickets, aiUsageSummary] = await Promise.all([
+    [subscriptions, accounts, recentTickets, aiUsageSummary, recentAiRequests] = await Promise.all([
       prisma.subscription.findMany({
         include: {
           account: { include: { users: true } },
@@ -148,6 +173,31 @@ export default async function CoachAdminPage() {
         take: 12,
       }),
       getAiUsageSummary({ limit: 8 }),
+      prisma.aiTokenUsage.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 12,
+        select: {
+          id: true,
+          createdAt: true,
+          model: true,
+          featureName: true,
+          inputTokens: true,
+          outputTokens: true,
+          totalTokens: true,
+          metadataJson: true,
+          user: {
+            select: {
+              email: true,
+            },
+          },
+          account: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      }),
     ]);
   } catch (error) {
     console.error("[coach-admin-page] failed to load billing data", error);
@@ -268,7 +318,7 @@ export default async function CoachAdminPage() {
         <CoachAdminMetricCard label="Trial users" value={trialingCount} note="Current Stripe trials that can convert or churn." tone="cyan" />
         <CoachAdminMetricCard label="Past due / unpaid" value={pastDueCount} note="Accounts currently blocked or trending toward support." tone="gold" />
         <CoachAdminMetricCard label="Canceled" value={canceledCount} note="Accounts no longer carrying paid access." tone="rose" />
-        <CoachAdminMetricCard label="Tracked AI tokens" value={totalTokens.toLocaleString()} note="Lifetime tracked text-model tokens." tone="brand" />
+        <CoachAdminMetricCard label="Tracked model tokens" value={totalTokens.toLocaleString()} note="Lifetime tracked OpenAI prompt and completion tokens." tone="brand" />
         <CoachAdminMetricCard label="Tracked users" value={trackedUsers} note="Users with recorded tokenized AI activity." tone="slate" />
       </section>
 
@@ -394,7 +444,7 @@ export default async function CoachAdminPage() {
         <CoachAdminPanel
           eyebrow="AI utilization"
           title="Who is consuming model spend"
-          description="Per-user view of tracked text-token usage and estimated spend."
+          description="Per-user view of tracked OpenAI token usage and estimated spend."
           action={<CoachAdminPill tone="slate">{formatUsdEstimate(estimatedAiSpend)} total</CoachAdminPill>}
         >
           <div className="grid gap-3">
@@ -438,7 +488,7 @@ export default async function CoachAdminPage() {
         <CoachAdminPanel
           eyebrow="AI mix"
           title="Global usage snapshot"
-          description="Global text-model usage across the app."
+          description="Global OpenAI usage across the app."
         >
           <div className="grid gap-4 md:grid-cols-2">
             <CoachAdminMetricCard
@@ -466,6 +516,57 @@ export default async function CoachAdminPage() {
             <div className={cx(coachAdminSubtleCardClass, "px-4 py-4")}>
               <p className={cx("text-[11px] font-semibold uppercase tracking-[0.2em]", coachAdminTextSoftClass)}>Output tokens</p>
               <p className={cx("mt-2 text-2xl font-semibold tracking-[-0.05em]", coachAdminTextPrimaryClass)}>{aiUsageSummary?.total.outputTokens.toLocaleString() || "0"}</p>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <p className={cx("text-[11px] font-semibold uppercase tracking-[0.2em]", coachAdminTextSoftClass)}>Recent model calls</p>
+            <div className="mt-3 grid gap-3">
+              {recentAiRequests.length ? (
+                recentAiRequests.map((entry: any) => {
+                  const estimate = estimateTrackedTokenCostUsd({
+                    model: entry.model,
+                    inputTokens: entry.inputTokens,
+                    outputTokens: entry.outputTokens,
+                    totalTokens: entry.totalTokens,
+                  });
+
+                  return (
+                    <div key={entry.id} className={cx("rounded-[22px] px-4 py-4", coachAdminListCardClass)}>
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <p className={cx("font-medium", coachAdminTextPrimaryClass)}>
+                            {entry.featureName || "llm_request"} · {entry.model}
+                          </p>
+                          <p className={cx("mt-2 text-sm leading-6", coachAdminTextMutedClass)}>
+                            {getRequestPreview(entry.metadataJson)}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className={cx("text-sm font-semibold", coachAdminTextPrimaryClass)}>{formatUsdEstimate(estimate.estimatedCostUsd)}</p>
+                          <p className={cx("mt-1 text-xs uppercase tracking-[0.16em]", coachAdminTextSoftClass)}>
+                            {entry.totalTokens.toLocaleString()} tokens
+                          </p>
+                        </div>
+                      </div>
+                      <div className={cx("mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs uppercase tracking-[0.16em]", coachAdminTextSoftClass)}>
+                        <span>{formatDateTime(entry.createdAt)}</span>
+                        <span>•</span>
+                        <span>{entry.user?.email || "Unknown user"}</span>
+                        <span>•</span>
+                        <span>{entry.account?.name || "Unknown account"}</span>
+                      </div>
+                      <div className="mt-3 grid gap-2 md:grid-cols-3">
+                        <CoachAdminMetaItem label="Input" value={entry.inputTokens.toLocaleString()} />
+                        <CoachAdminMetaItem label="Output" value={entry.outputTokens.toLocaleString()} />
+                        <CoachAdminMetaItem label="Total" value={entry.totalTokens.toLocaleString()} />
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <CoachAdminEmptyState title="No tracked model calls yet" body="As users call AI routes, exact request previews and token counts will populate here." />
+              )}
             </div>
           </div>
         </CoachAdminPanel>

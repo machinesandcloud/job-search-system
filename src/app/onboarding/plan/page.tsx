@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { PlatformLogoutButton } from "@/components/platform-logout-button";
 import { PricingSelectionContent } from "@/components/pricing-selection-content";
 import { ZariLogo } from "@/components/zari-logo";
 import { canAccessSubscriptionStatus, syncCurrentUserToBillingIdentity } from "@/lib/billing";
@@ -42,14 +43,9 @@ export default async function OnboardingPlanPage() {
             >
               Continue with free preview
             </Link>
-            <form action="/api/auth/logout" method="POST">
-              <button
-                type="submit"
-                className="rounded-full border border-[var(--border)] px-4 py-2 text-[13px] font-semibold text-[var(--ink-2)] transition-colors hover:border-[var(--ink)] hover:text-[var(--ink)]"
-              >
-                Sign out
-              </button>
-            </form>
+            <PlatformLogoutButton
+              className="rounded-full border border-[var(--border)] px-4 py-2 text-[13px] font-semibold text-[var(--ink-2)] transition-colors hover:border-[var(--ink)] hover:text-[var(--ink)]"
+            />
           </div>
         </div>
       </header>

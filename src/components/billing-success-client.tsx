@@ -28,13 +28,17 @@ export function BillingSuccessClient() {
             });
 
             if (finalizeResponse.ok) {
-              const finalized = await finalizeResponse.json().catch(() => ({}));
-              if (finalized?.ready) {
+              const finalizePayload = await finalizeResponse.json().catch(() => ({})) as { ready?: boolean };
+              if (finalizePayload.ready) {
                 if (cancelled) return;
                 setState("ready");
                 setMessage("Your plan is active. Opening Zari now.");
                 router.replace("/dashboard?billing=success");
                 return;
+              }
+              if (!cancelled) {
+                setState(attempt >= 6 ? "waiting" : "checking");
+                setMessage("We are processing your plan and opening your workspace.");
               }
             } else if (finalizeResponse.status === 401 || finalizeResponse.status === 403) {
               const payload = await finalizeResponse.json().catch(() => ({}));
@@ -42,7 +46,7 @@ export function BillingSuccessClient() {
             }
           }
 
-          const response = await fetch("/api/billing/status", {
+          const response = await fetch(`/api/billing/status${sessionId ? `?session_id=${encodeURIComponent(sessionId)}` : ""}`, {
             method: "GET",
             cache: "no-store",
           });
@@ -59,18 +63,26 @@ export function BillingSuccessClient() {
           if (response.status === 402) {
             if (cancelled) return;
             setState(attempt >= 9 ? "delayed" : "waiting");
-            setMessage(attempt >= 9 ? "Your payment is still processing. This can take a few more moments." : "Processing your payment and unlocking your workspace.");
+            setMessage(
+              attempt >= 9
+                ? "Still processing. This can take another few moments."
+                : "Processing your payment and unlocking your workspace.",
+            );
           } else if (response.status === 401 || response.status === 403) {
             throw new Error(payload?.error || "We could not confirm your plan yet.");
           } else {
             if (!cancelled) {
               setState(attempt >= 9 ? "delayed" : "waiting");
-              setMessage(attempt >= 9 ? "Your payment is still processing. This can take a few more moments." : "Processing your payment and unlocking your workspace.");
+              setMessage(
+                attempt >= 9
+                  ? "Still processing. This can take another few moments."
+                  : "Processing your payment and unlocking your workspace.",
+              );
             }
           }
         } catch (error) {
           if (cancelled) return;
-          if (attempt >= 20) {
+          if (attempt >= 30) {
             setState("error");
             setMessage(error instanceof Error ? error.message : "We could not finish activating your plan.");
             return;
@@ -82,7 +94,7 @@ export function BillingSuccessClient() {
 
       if (!cancelled) {
         setState("delayed");
-        setMessage("Your payment is still processing. We will keep trying automatically.");
+        setMessage("Still processing. We will keep trying automatically.");
       }
     }
 
@@ -97,22 +109,22 @@ export function BillingSuccessClient() {
       <div className="mt-8 rounded-[24px] border border-slate-200 bg-slate-50 px-5 py-5">
         <div className="flex items-center gap-3">
           <div className="h-3 w-3 rounded-full bg-[#4361EE]" />
-          <p className="text-sm font-semibold text-slate-900">
-            {state === "ready"
-              ? "Opening the workspace now"
-              : state === "error"
-                ? "Activation needs attention"
-                : state === "delayed"
-                  ? "Still processing"
-                  : "Activating your plan"}
-          </p>
-        </div>
-        <p className="mt-3 text-sm leading-6 text-slate-600">
-          {state === "error"
-            ? "We hit a problem while activating your plan. You can go back to plan selection and try again."
-            : message}
+        <p className="text-sm font-semibold text-slate-900">
+          {state === "ready"
+            ? "Opening the workspace now"
+            : state === "error"
+              ? "We need a little more time"
+              : state === "delayed"
+                ? "Still processing"
+                : "Activating your plan"}
         </p>
       </div>
+      <p className="mt-3 text-sm leading-6 text-slate-600">
+        {state === "error"
+          ? "We are still not done activating your plan. You can return to plan selection and try again in a moment."
+          : message}
+      </p>
+    </div>
 
       {state === "error" ? (
         <div className="mt-8">

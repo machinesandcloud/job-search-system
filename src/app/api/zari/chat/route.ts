@@ -26,6 +26,13 @@ type SectionContext = {
   uploads?:     UploadCtx[];
 };
 
+function getFirstNameFromUserContext(userContext: string) {
+  const match = userContext.match(/^Name:\s*(.+)$/m);
+  if (!match?.[1]) return null;
+  const firstName = match[1].trim().split(/\s+/)[0];
+  return firstName || null;
+}
+
 /* ─── Build document context block ──────────────────────────────────────── */
 function buildDocumentBlock(
   ctx: SectionContext | null,
@@ -158,6 +165,7 @@ export async function POST(request: Request) {
   const profileBlock = userContext
     ? `User profile:\n${userContext}`
     : "";
+  const firstName = userContext ? getFirstNameFromUserContext(userContext) : null;
 
   const documentBlock = buildDocumentBlock(sectionContext, uploadedContent, uploadedFileName);
   const hasDocuments  = documentBlock.trim().length > 0;
@@ -184,6 +192,9 @@ No filler. No qualifiers. No disclaimer soup. You talk like you've been in this 
 Humor: dry and earned. "Congrats, you've successfully sabotaged yourself" lands better than any lecture. Use it sparingly enough that when it comes, it lands.
 
 MIRROR THEIR STYLE: Short messages get tight responses. Casual language gets casual back. Don't be stiff when they're not. Don't be loose when they're clearly stressed and just want the answer.
+
+PERSONAL CONTEXT:
+${firstName ? `You are talking to ${firstName}. Use their first name naturally once early when it sounds human, not every turn.` : "If you know the user's name from profile context, use it naturally once in the conversation when it helps make the coaching feel personal."}
 
 SCOPE: Career is the anchor. Personal stuff is the door you walk through to get there. Two beats max on the personal thing, then: "Okay — so given all of that, what's the actual thing we're fixing today?" Never lecture. Never refuse. Just redirect once.
 
@@ -259,6 +270,16 @@ You're on a live voice call. Speak accordingly.
     model:       process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o-mini",
     temperature: 0.75,
     maxTokens:   700,
+    usageFeature: "zari_chat",
+    usageMetadata: {
+      stage,
+      isOpening,
+      requestPreview: isOpening ? `Opening prompt for ${stage}` : message,
+      hasDocuments,
+      hasProfile: Boolean(userContext),
+      channel: "chat",
+      sessionId,
+    },
   });
 
   if (!reply) {

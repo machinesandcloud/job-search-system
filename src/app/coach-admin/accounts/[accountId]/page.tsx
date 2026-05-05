@@ -21,10 +21,13 @@ import {
   cx,
 } from "@/components/coach-admin-ui";
 import {
+  estimateTrackedTokenCostUsd,
   formatUsdEstimate,
   getAiUsageSummary,
   getCurrentPeriodTokenUsage,
+  getPlanIncludedMonthlyCredits,
   getPlanMonthlyAmountCents,
+  getReadablePlanName,
 } from "@/lib/billing";
 import { requireCoachAdminSession } from "@/lib/coach-admin-auth";
 import { prisma } from "@/lib/db";
@@ -36,6 +39,17 @@ function formatDate(value?: Date | null) {
     year: "numeric",
     month: "short",
     day: "numeric",
+  }).format(new Date(value));
+}
+
+function formatDateTime(value?: Date | null) {
+  if (!value) return "—";
+  return new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
   }).format(new Date(value));
 }
 
@@ -63,7 +77,31 @@ function getUserMembershipLabel(user: { role?: string | null; planTier?: string 
   if (isOperatorRole(user.role)) {
     return `${user.role} operator`;
   }
-  return `${user.role} · ${user.planTier}`;
+  return user.role || "member";
+}
+
+function getMetadataRecord(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return value as Record<string, unknown>;
+}
+
+function getRequestPreview(metadata: unknown) {
+  const record = getMetadataRecord(metadata);
+  const preview = typeof record.requestPreview === "string" ? record.requestPreview.trim() : "";
+  if (preview) return preview;
+  const fallback = typeof record.featureName === "string" ? record.featureName.trim() : "";
+  return fallback || "No request preview captured";
+}
+
+function getRequestContext(metadata: unknown) {
+  const record = getMetadataRecord(metadata);
+  const contextParts = [
+    typeof record.channel === "string" ? record.channel : null,
+    typeof record.stage === "string" ? record.stage : null,
+    typeof record.documentType === "string" ? record.documentType : null,
+    typeof record.planId === "string" ? record.planId : null,
+  ].filter(Boolean) as string[];
+  return contextParts.length ? contextParts.join(" · ") : "General request";
 }
 
 function isInternalOperatorAccount(account: { users?: Array<{ role?: string | null }> }) {
@@ -75,8 +113,17 @@ type AccountPageProps = {
 };
 
 type FeatureTokenEntry = {
+  id: string;
+  createdAt: Date;
+  model: string;
   featureName: string | null;
+  inputTokens: number;
+  outputTokens: number;
   totalTokens: number;
+  metadataJson: unknown;
+  user: {
+    email: string;
+  } | null;
 };
 
 export default async function CoachAdminAccountPage({ params }: AccountPageProps) {
@@ -130,8 +177,19 @@ export default async function CoachAdminAccountPage({ params }: AccountPageProps
       orderBy: { createdAt: "desc" },
       take: 200,
       select: {
+        id: true,
+        createdAt: true,
+        model: true,
         featureName: true,
+        inputTokens: true,
+        outputTokens: true,
         totalTokens: true,
+        metadataJson: true,
+        user: {
+          select: {
+            email: true,
+          },
+        },
       },
     }),
     getAiUsageSummary({
@@ -168,7 +226,8 @@ export default async function CoachAdminAccountPage({ params }: AccountPageProps
 
   const subscription = account.subscription;
   const planAmount = subscription ? getPlanMonthlyAmountCents(subscription.planName, subscription.stripePriceId) : 0;
-  const usagePercent = tokenUsage?.limit ? Math.min(100, Math.round((tokenUsage.used / tokenUsage.limit) * 100)) : 0;
+  const planCredits = subscription ? getPlanIncludedMonthlyCredits(subscription.planName, subscription.stripePriceId) : null;
+  const planLabel = subscription ? getReadablePlanName(subscription.planName, subscription.stripePriceId) : "No subscription";
   const estimatedSpend = aiUsageSummary?.total.estimatedCostUsd || 0;
   const userUsage = aiUsageSummary?.byUser || [];
 
@@ -192,7 +251,7 @@ export default async function CoachAdminAccountPage({ params }: AccountPageProps
               </CoachAdminPill>
             </div>
             <div className="grid gap-3 md:grid-cols-3">
-              <CoachAdminMetaItem label="Plan" value={isInternalOperatorAccount(account) ? "Internal operator account" : (subscription?.planName || subscription?.stripePriceId || "No subscription")} />
+              <CoachAdminMetaItem label="Plan" value={isInternalOperatorAccount(account) ? "Internal operator account" : planLabel} />
               <CoachAdminMetaItem label="Renewal" value={formatDate(subscription?.currentPeriodEnd)} />
               <CoachAdminMetaItem label="Members" value={`${account.users.length} seat${account.users.length === 1 ? "" : "s"}`} />
             </div>
@@ -200,7 +259,12 @@ export default async function CoachAdminAccountPage({ params }: AccountPageProps
 
           <div className="grid gap-4 sm:grid-cols-2">
             <CoachAdminMetricCard label="MRR estimate" value={planAmount ? formatCurrency(planAmount / 100) : "$0"} note="Mapped from stored plan and price ID." tone="brand" />
-            <CoachAdminMetricCard label="Token usage" value={tokenUsage ? `${usagePercent}%` : "0%"} note={tokenUsage ? `${tokenUsage.used.toLocaleString()} used this period` : "No tracked usage yet."} tone="cyan" />
+            <CoachAdminMetricCard
+              label="Tracked model tokens"
+              value={tokenUsage ? tokenUsage.used.toLocaleString() : "0"}
+              note={tokenUsage ? `${tokenUsage.inputTokens.toLocaleString()} input · ${tokenUsage.outputTokens.toLocaleString()} output this period.` : "No tracked model usage yet."}
+              tone="cyan"
+            />
             <CoachAdminMetricCard label="Open tickets" value={(ticketCounts.open || 0) + (ticketCounts.in_progress || 0)} note="Support load currently attached to this account." tone="gold" />
             <CoachAdminMetricCard label="Estimated spend" value={formatUsdEstimate(estimatedSpend)} note="Current-period tracked text-model cost estimate." tone="slate" />
           </div>
@@ -221,7 +285,9 @@ export default async function CoachAdminAccountPage({ params }: AccountPageProps
                           <p className={cx("font-medium", coachAdminTextPrimaryClass)}>{user.email}</p>
                           {user.id === account.ownerUserId ? <CoachAdminPill tone="cyan">Owner</CoachAdminPill> : null}
                         </div>
-                        <p className={cx("mt-1 text-xs uppercase tracking-[0.16em]", coachAdminTextSoftClass)}>{getUserMembershipLabel(user)}</p>
+                        <p className={cx("mt-1 text-xs uppercase tracking-[0.16em]", coachAdminTextSoftClass)}>
+                          {isInternalOperatorAccount(account) ? getUserMembershipLabel(user) : `${getUserMembershipLabel(user)} · ${planLabel}`}
+                        </p>
                       </div>
                       <div className="text-right">
                         <p className={cx("text-sm font-semibold", coachAdminTextPrimaryClass)}>{formatUsdEstimate(usage?.estimatedCostUsd || 0)}</p>
@@ -283,17 +349,14 @@ export default async function CoachAdminAccountPage({ params }: AccountPageProps
           <CoachAdminPanel eyebrow="Subscription pulse" title="Billing and usage" description="Commercial status, renewal edge, and AI consumption for the current billing period.">
             <div className="grid gap-4">
               <div className={cx(coachAdminSubtleCardClass, "p-4")}>
-                <CoachAdminProgress
-                  label="Current-period token consumption"
-                  value={tokenUsage?.used || 0}
-                  max={tokenUsage?.limit || 1}
-                  tone="brand"
-                  valueLabel={tokenUsage ? `${tokenUsage.used.toLocaleString()} / ${tokenUsage.limit.toLocaleString()}` : "No usage yet"}
-                />
-                <p className={cx("mt-3 text-sm", coachAdminTextMutedClass)}>
-                  {tokenUsage
-                    ? `${tokenUsage.remaining.toLocaleString()} tokens remain in the current period.`
-                    : "Usage will start tracking as soon as paid AI routes are called."}
+                <div className="grid gap-3 md:grid-cols-2">
+                  <CoachAdminMetaItem label="Subscription" value={isInternalOperatorAccount(account) ? "Internal operator account" : planLabel} />
+                  <CoachAdminMetaItem label="Monthly price" value={planAmount ? formatCurrency(planAmount / 100) : "No paid plan"} />
+                  <CoachAdminMetaItem label="Included monthly credits" value={planCredits ? `${planCredits.toLocaleString()} credits` : "Not credit-metered"} />
+                  <CoachAdminMetaItem label="Tracked model tokens" value={tokenUsage ? tokenUsage.used.toLocaleString() : "0"} />
+                </div>
+                <p className={cx("mt-3 text-sm leading-6", coachAdminTextMutedClass)}>
+                  Credits in the product catalog are not the same thing as raw model tokens. The numbers below reflect actual OpenAI prompt/output token usage and estimated spend for this account.
                 </p>
               </div>
 
@@ -314,6 +377,62 @@ export default async function CoachAdminAccountPage({ params }: AccountPageProps
                   </div>
                 </div>
               ) : null}
+
+              <div className={cx(coachAdminSubtleCardClass, "p-4")}>
+                <div className="flex items-center justify-between gap-3">
+                  <p className={cx("text-[11px] font-semibold uppercase tracking-[0.2em]", coachAdminTextSoftClass)}>Recent model calls</p>
+                  <CoachAdminPill tone="slate">{tokenEntries.length} tracked</CoachAdminPill>
+                </div>
+                <div className="mt-4 grid gap-3">
+                  {tokenEntries.length ? (
+                    tokenEntries.slice(0, 12).map((entry: FeatureTokenEntry) => {
+                      const estimate = estimateTrackedTokenCostUsd({
+                        model: entry.model,
+                        inputTokens: entry.inputTokens,
+                        outputTokens: entry.outputTokens,
+                        totalTokens: entry.totalTokens,
+                      });
+
+                      return (
+                        <div key={entry.id} className={cx("rounded-[18px] border border-[color:var(--ca-border)] bg-[var(--ca-surface-strong)] px-4 py-4")}>
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div className="min-w-0 flex-1">
+                              <p className={cx("text-sm font-semibold", coachAdminTextPrimaryClass)}>
+                                {entry.featureName || "llm_request"} · {entry.model}
+                              </p>
+                              <p className={cx("mt-2 text-sm leading-6", coachAdminTextMutedClass)}>
+                                {getRequestPreview(entry.metadataJson)}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className={cx("text-sm font-semibold", coachAdminTextPrimaryClass)}>{formatUsdEstimate(estimate.estimatedCostUsd)}</p>
+                              <p className={cx("mt-1 text-xs uppercase tracking-[0.16em]", coachAdminTextSoftClass)}>
+                                {entry.totalTokens.toLocaleString()} total
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className={cx("mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs uppercase tracking-[0.16em]", coachAdminTextSoftClass)}>
+                            <span>{formatDateTime(entry.createdAt)}</span>
+                            <span>•</span>
+                            <span>{entry.user?.email || "Unknown user"}</span>
+                            <span>•</span>
+                            <span>{getRequestContext(entry.metadataJson)}</span>
+                          </div>
+
+                          <div className="mt-3 grid gap-2 md:grid-cols-3">
+                            <CoachAdminMetaItem label="Input tokens" value={entry.inputTokens.toLocaleString()} />
+                            <CoachAdminMetaItem label="Output tokens" value={entry.outputTokens.toLocaleString()} />
+                            <CoachAdminMetaItem label="Estimated cost" value={formatUsdEstimate(estimate.estimatedCostUsd)} />
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <CoachAdminEmptyState title="No tracked model calls yet" body="As this account uses AI features, exact request previews, token counts, and estimated spend will appear here." />
+                  )}
+                </div>
+              </div>
             </div>
           </CoachAdminPanel>
 

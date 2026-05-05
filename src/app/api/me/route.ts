@@ -2,6 +2,15 @@ import { NextResponse } from "next/server";
 import { getCurrentUserId } from "@/lib/mvp/auth";
 import { getDashboardForUser, updateProfile } from "@/lib/mvp/store";
 import { syncPlatformProfile } from "@/lib/platform-users";
+import {
+  canAccessSubscriptionStatus,
+  getCurrentSubscriptionAccess,
+  getPlanIncludedMonthlyCredits,
+  getPricingCatalogPlanId,
+  getReadablePlanName,
+  getPlanMonthlyAmountCents,
+  syncCurrentUserToBillingIdentity,
+} from "@/lib/billing";
 
 export async function GET() {
   const userId = await getCurrentUserId();
@@ -14,9 +23,32 @@ export async function GET() {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
+  const identity = await syncCurrentUserToBillingIdentity().catch(() => null);
+  const access = await getCurrentSubscriptionAccess().catch(() => null);
+  const effectiveSubscription =
+    access && "ok" in access && access.ok && access.subscription
+      ? access.subscription
+      : identity?.subscription || null;
+  const role = identity?.user?.role || "member";
+  const planId = getPricingCatalogPlanId(effectiveSubscription?.planName, effectiveSubscription?.stripePriceId);
+  const subscriptionStatus = effectiveSubscription?.status || null;
+  const isOperator = role === "admin" || role === "support";
+  const isPaid = isOperator || canAccessSubscriptionStatus(subscriptionStatus);
+
   return NextResponse.json({
     user: dashboard.user,
-    plan: "free",
+    membership: {
+      role,
+      accountId: identity?.account?.id || null,
+      planId,
+      planName: isOperator
+        ? "Internal operator"
+        : getReadablePlanName(effectiveSubscription?.planName, effectiveSubscription?.stripePriceId),
+      subscriptionStatus,
+      isPaid,
+      includedMonthlyCredits: isOperator ? null : getPlanIncludedMonthlyCredits(effectiveSubscription?.planName, effectiveSubscription?.stripePriceId),
+      monthlyPriceCents: isOperator ? null : getPlanMonthlyAmountCents(effectiveSubscription?.planName, effectiveSubscription?.stripePriceId),
+    },
     usage: dashboard.usage,
     onboardingStatus: dashboard.user.onboardingComplete ? "complete" : "pending",
   });

@@ -124,11 +124,40 @@ export function verifyPlatformPassword(password: string, stored?: string | null)
 async function ensureDatabaseUserShape(user: any) {
   let ensuredUser = user;
 
-  let account = ensuredUser.accountId
+  const currentAccount = ensuredUser.accountId
     ? await prisma.account.findUnique({
         where: { id: ensuredUser.accountId },
+        include: { subscription: true },
       })
     : null;
+
+  const ownedAccounts = await prisma.account.findMany({
+    where: { ownerUserId: ensuredUser.id },
+    include: { subscription: true },
+    orderBy: { createdAt: "asc" },
+  });
+
+  const preferredOwnedAccount =
+    ownedAccounts.find((account: any) => ["active", "trialing"].includes(account.subscription?.status || "")) ||
+    ownedAccounts.find((account: any) => account.subscription) ||
+    ownedAccounts[0] ||
+    null;
+
+  let account = currentAccount;
+
+  if (!account && preferredOwnedAccount) {
+    account = preferredOwnedAccount;
+  }
+
+  if (
+    account &&
+    preferredOwnedAccount &&
+    account.id !== preferredOwnedAccount.id &&
+    !account.subscription &&
+    preferredOwnedAccount.subscription
+  ) {
+    account = preferredOwnedAccount;
+  }
 
   if (!account) {
     account = await prisma.account.findFirst({

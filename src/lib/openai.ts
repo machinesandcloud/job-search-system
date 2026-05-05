@@ -23,6 +23,29 @@ export function getLastOpenAIError(): OpenAIError | null {
   return _lastError;
 }
 
+function collapseRequestPreview(value?: string | null, maxLength = 260) {
+  const collapsed = `${value || ""}`.replace(/\s+/g, " ").trim();
+  if (!collapsed) return null;
+  if (collapsed.length <= maxLength) return collapsed;
+  return `${collapsed.slice(0, maxLength - 1)}…`;
+}
+
+function buildUsageMetadata(messages: OAIMessage[], opts: ChatOptions, input: { maxTokens: number }) {
+  const lastUserMessage = [...messages].reverse().find((message) => message.role === "user")?.content || "";
+  const requestPreview =
+    typeof opts.usageMetadata?.requestPreview === "string"
+      ? collapseRequestPreview(opts.usageMetadata.requestPreview)
+      : collapseRequestPreview(lastUserMessage);
+
+  return {
+    ...opts.usageMetadata,
+    requestPreview,
+    messageCount: messages.length,
+    maxTokens: input.maxTokens,
+    jsonMode: Boolean(opts.jsonMode),
+  };
+}
+
 export async function openaiChat(
   messages: OAIMessage[],
   opts: ChatOptions = {},
@@ -37,6 +60,7 @@ export async function openaiChat(
   const model = opts.model ?? process.env.OPENAI_MODEL ?? "gpt-4o-mini";
   const temperature = opts.temperature ?? 0.7;
   const maxTokens = opts.maxTokens ?? 800;
+  const usageMetadata = buildUsageMetadata(messages, opts, { maxTokens });
 
   try {
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -83,7 +107,7 @@ export async function openaiChat(
           inputTokens: data.usage.prompt_tokens || 0,
           outputTokens: data.usage.completion_tokens || 0,
           totalTokens: data.usage.total_tokens || 0,
-          metadataJson: opts.usageMetadata,
+          metadataJson: usageMetadata,
         });
       }
     } catch (usageError) {

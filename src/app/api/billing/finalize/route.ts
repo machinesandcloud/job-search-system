@@ -2,12 +2,14 @@ import type Stripe from "stripe";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma, isDatabaseReady } from "@/lib/db";
 import {
+  buildSubscriptionSnapshot,
   canAccessSubscriptionStatus,
+  mapStripeStatusToAccountStatus,
   syncCurrentUserToBillingIdentity,
   syncMvpUserToBillingIdentity,
 } from "@/lib/billing";
 import { getStripeClient } from "@/lib/stripe";
-import { syncStripeSubscriptionToAccount } from "@/lib/subscription-sync";
+import { mapStripePlanTier, syncStripeSubscriptionToAccount, syncUsersForAccountPlan } from "@/lib/subscription-sync";
 import { ensureSameOrigin } from "@/lib/utils";
 
 export const runtime = "nodejs";
@@ -54,6 +56,101 @@ async function resolveAccountId(input: {
   }
 
   return null;
+}
+
+async function reconcileSignedInUserToAccount(input: {
+  userId: string;
+  currentAccountId: string;
+  targetAccountId: string;
+  expectedEmail?: string | null;
+}) {
+  if (input.currentAccountId === input.targetAccountId) return true;
+
+  const [user, targetAccount] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: input.userId },
+      select: { id: true, email: true, role: true, accountId: true },
+    }),
+    prisma.account.findUnique({
+      where: { id: input.targetAccountId },
+      select: { id: true, ownerUserId: true },
+    }),
+  ]);
+
+  if (!user || !targetAccount) return false;
+  if (user.role === "admin" || user.role === "support") return true;
+
+  const normalizedExpectedEmail = `${input.expectedEmail || ""}`.trim().toLowerCase();
+  const emailMatches = !normalizedExpectedEmail || user.email.toLowerCase() === normalizedExpectedEmail;
+  const ownershipMatches = targetAccount.ownerUserId === user.id;
+
+  if (!emailMatches && !ownershipMatches) return false;
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { accountId: targetAccount.id },
+  });
+
+  return true;
+}
+
+async function getCurrentReadyState(input: {
+  expectedAccountId: string;
+}) {
+  const refreshedIdentity = await syncCurrentUserToBillingIdentity().catch(() => null);
+  const fallbackSubscription = await prisma.subscription.findUnique({
+    where: { accountId: input.expectedAccountId },
+  }).catch(() => null);
+  const activeSubscription =
+    refreshedIdentity?.account?.id === input.expectedAccountId
+      ? refreshedIdentity?.subscription || fallbackSubscription
+      : fallbackSubscription;
+
+  return {
+    identity: refreshedIdentity,
+    subscription: activeSubscription,
+    ready:
+      refreshedIdentity?.account?.id === input.expectedAccountId &&
+      canAccessSubscriptionStatus(activeSubscription?.status),
+  };
+}
+
+async function forceSyncSubscriptionSnapshot(
+  accountId: string,
+  subscription: Stripe.Subscription,
+) {
+  const snapshot = buildSubscriptionSnapshot(subscription);
+
+  await prisma.$transaction(async (tx: any) => {
+    await tx.subscription.deleteMany({
+      where: {
+        OR: [
+          { stripeCustomerId: snapshot.stripeCustomerId },
+          { stripeSubscriptionId: snapshot.stripeSubscriptionId },
+        ],
+        NOT: { accountId },
+      },
+    });
+
+    await tx.subscription.upsert({
+      where: { accountId },
+      update: snapshot,
+      create: {
+        accountId,
+        ...snapshot,
+      },
+    });
+
+    await tx.account.update({
+      where: { id: accountId },
+      data: {
+        status: mapStripeStatusToAccountStatus(snapshot.status),
+        paymentIssue: snapshot.paymentIssue,
+      },
+    });
+  });
+
+  await syncUsersForAccountPlan(accountId, mapStripePlanTier(snapshot.planName, snapshot.stripePriceId));
 }
 
 export async function POST(request: NextRequest) {
@@ -105,8 +202,24 @@ export async function POST(request: NextRequest) {
       customerEmail: session.customer_details?.email || session.customer_email || null,
     })) || identity.account.id;
 
-  if (accountId !== identity.account.id && identity.user.role !== "admin" && identity.user.role !== "support") {
-    return NextResponse.json({ error: "Checkout session does not belong to the signed-in account." }, { status: 403 });
+  if (accountId !== identity.account.id) {
+    const reconciled = await reconcileSignedInUserToAccount({
+      userId: identity.user.id,
+      currentAccountId: identity.account.id,
+      targetAccountId: accountId,
+      expectedEmail: session.customer_details?.email || session.customer_email || identity.user.email,
+    });
+
+    if (!reconciled) {
+      return NextResponse.json({ error: "Checkout session does not belong to the signed-in account." }, { status: 403 });
+    }
+  }
+
+  if (identity.user.role !== "admin" && identity.user.role !== "support") {
+    await prisma.user.update({
+      where: { id: identity.user.id },
+      data: { accountId },
+    }).catch(() => null);
   }
 
   const subscriptionCandidate = session.subscription;
@@ -119,9 +232,11 @@ export async function POST(request: NextRequest) {
       ? await stripe.subscriptions.retrieve(subscriptionCandidate)
       : subscriptionCandidate;
 
+  let syncFailed = false;
   try {
     await syncStripeSubscriptionToAccount(accountId, subscription);
   } catch (error) {
+    syncFailed = true;
     console.error("[billing/finalize] failed to sync subscription", {
       accountId,
       sessionId,
@@ -129,12 +244,37 @@ export async function POST(request: NextRequest) {
       stripeCustomerId: typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id || null,
       error,
     });
-    throw error;
+    try {
+      await forceSyncSubscriptionSnapshot(accountId, subscription);
+      syncFailed = false;
+    } catch (fallbackError) {
+      console.error("[billing/finalize] fallback sync failed", {
+        accountId,
+        sessionId,
+        stripeSubscriptionId: subscription.id,
+        fallbackError,
+      });
+    }
+  }
+
+  const currentState = await getCurrentReadyState({ expectedAccountId: accountId });
+  const effectiveStatus = currentState.subscription?.status || subscription.status;
+  const effectiveReady = canAccessSubscriptionStatus(effectiveStatus);
+
+  if (currentState.ready || effectiveReady) {
+    return NextResponse.json({
+      ok: true,
+      ready: true,
+      status: effectiveStatus,
+      accountId,
+    });
   }
 
   return NextResponse.json({
-    ok: true,
-    ready: canAccessSubscriptionStatus(subscription.status),
-    status: subscription.status,
-  });
+    ok: !syncFailed,
+    ready: false,
+    status: currentState.subscription?.status || subscription.status,
+    accountId,
+    processing: true,
+  }, { status: 202 });
 }

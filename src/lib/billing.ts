@@ -4,6 +4,7 @@ import { prisma, isDatabaseReady } from "@/lib/db";
 import { getCurrentUserId } from "@/lib/mvp/auth";
 import { getUserById as getMvpUserById } from "@/lib/mvp/store";
 import { getPlatformIdentityByUserId } from "@/lib/platform-users";
+import { getPricingPlanById } from "@/lib/pricing-catalog";
 import { getBaseUrl } from "@/lib/utils";
 
 export type CoachAdminRole = "admin" | "support";
@@ -158,6 +159,12 @@ export function getReadablePlanName(planName?: string | null, priceId?: string |
   return planName || priceId || "Monthly plan";
 }
 
+export function getPlanIncludedMonthlyCredits(planName?: string | null, priceId?: string | null) {
+  const planId = getPricingCatalogPlanId(planName, priceId);
+  if (!planId) return null;
+  return getPricingPlanById(planId)?.includedCredits ?? null;
+}
+
 export function getPlanNameFromStripe(subscription: Stripe.Subscription) {
   const firstItem = subscription.items.data[0];
   const price = firstItem?.price;
@@ -200,15 +207,16 @@ export function getPlanTokenLimit(planName?: string | null, priceId?: string | n
 
 export function getPlanMonthlyAmountCents(planName?: string | null, priceId?: string | null) {
   const planId = getPricingCatalogPlanId(planName, priceId);
+  const pricingPlan = getPricingPlanById(planId);
 
   if (planId === "search") {
-    return parseTokenLimit(process.env.PLAN_AMOUNT_SEARCH_CENTS, 3900);
+    return pricingPlan?.priceCents ?? 3900;
   }
   if (planId === "growth") {
-    return parseTokenLimit(process.env.PLAN_AMOUNT_GROWTH_CENTS, parseTokenLimit(process.env.PLAN_AMOUNT_PRO_CENTS, 8900));
+    return pricingPlan?.priceCents ?? 8900;
   }
   if (planId === "executive") {
-    return parseTokenLimit(process.env.PLAN_AMOUNT_EXECUTIVE_CENTS, parseTokenLimit(process.env.PLAN_AMOUNT_PREMIUM_CENTS, 17900));
+    return pricingPlan?.priceCents ?? 17900;
   }
 
   const normalizedPlan = `${planName || ""}`.toLowerCase();

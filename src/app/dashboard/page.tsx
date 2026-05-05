@@ -1,9 +1,60 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { getCurrentUserId } from "@/lib/mvp/auth";
-import { ZariPortal } from "@/components/zari-portal";
-import { getCurrentSubscriptionAccess, syncCurrentUserToBillingIdentity } from "@/lib/billing";
+import { ZariPortal, type PortalViewer } from "@/components/zari-portal";
+import {
+  canAccessSubscriptionStatus,
+  getCurrentSubscriptionAccess,
+  getPlanIncludedMonthlyCredits,
+  getPlanMonthlyAmountCents,
+  getReadablePlanName,
+  getPricingCatalogPlanId,
+  syncCurrentUserToBillingIdentity,
+} from "@/lib/billing";
 import { FREE_PREVIEW_COOKIE_NAME, hasFreePreviewAccess } from "@/lib/free-preview";
+import { getDashboardForUser } from "@/lib/mvp/store";
+
+function buildPortalViewer(input: {
+  dashboardName?: string | null;
+  dashboardEmail?: string | null;
+  identity?: Awaited<ReturnType<typeof syncCurrentUserToBillingIdentity>> | null;
+  subscription?: {
+    planName?: string | null;
+    stripePriceId?: string | null;
+    status?: string | null;
+  } | null;
+}): PortalViewer {
+  const identity = input.identity;
+  const role = (identity?.user?.role || "member") as PortalViewer["role"];
+  const fullName = `${identity?.user?.firstName || ""} ${identity?.user?.lastName || ""}`.trim();
+  const email = input.dashboardEmail?.trim() || identity?.user?.email || "";
+  const name = input.dashboardName?.trim() || fullName || email.split("@")[0] || "Your account";
+  const subscriptionSource = input.subscription || identity?.subscription || null;
+  const planId = getPricingCatalogPlanId(subscriptionSource?.planName, subscriptionSource?.stripePriceId);
+  const subscriptionStatus = subscriptionSource?.status || null;
+  const isPaid = role === "admin" || role === "support" || canAccessSubscriptionStatus(subscriptionStatus);
+
+  return {
+    name,
+    email,
+    role,
+    planId,
+    planName:
+      role === "admin" || role === "support"
+        ? "Internal operator"
+        : getReadablePlanName(subscriptionSource?.planName, subscriptionSource?.stripePriceId),
+    isPaid,
+    subscriptionStatus,
+    includedMonthlyCredits:
+      role === "admin" || role === "support"
+        ? null
+        : getPlanIncludedMonthlyCredits(subscriptionSource?.planName, subscriptionSource?.stripePriceId),
+    monthlyPriceCents:
+      role === "admin" || role === "support"
+        ? null
+        : getPlanMonthlyAmountCents(subscriptionSource?.planName, subscriptionSource?.stripePriceId),
+  };
+}
 
 export default async function DashboardPage() {
   const userId = await getCurrentUserId();
@@ -15,22 +66,62 @@ export default async function DashboardPage() {
     userId,
   );
 
+  const dashboard = await getDashboardForUser(userId);
   const identity = await syncCurrentUserToBillingIdentity().catch(() => null);
   if (identity?.user?.role === "admin" || identity?.user?.role === "support") {
-    return <ZariPortal />;
+    const viewer = buildPortalViewer({
+      dashboardName: dashboard?.user.name,
+      dashboardEmail: dashboard?.user.email,
+      identity,
+    });
+    return <ZariPortal viewer={viewer} />;
   }
 
-  const access = await getCurrentSubscriptionAccess().catch(() => ({ ok: true as const }));
+  const access = await getCurrentSubscriptionAccess().catch(() => {
+    if (identity?.subscription && canAccessSubscriptionStatus(identity.subscription.status)) {
+      return {
+        ok: true as const,
+        user: identity.user,
+        account: identity.account,
+        subscription: identity.subscription,
+      };
+    }
+
+    return {
+      ok: false as const,
+      status: 503,
+      error: "We could not verify your subscription right now.",
+      user: identity?.user || null,
+      account: identity?.account || null,
+      subscription: identity?.subscription || null,
+    };
+  });
   if ("ok" in access && access.ok) {
-    return <ZariPortal />;
+    const viewer = buildPortalViewer({
+      dashboardName: dashboard?.user.name,
+      dashboardEmail: dashboard?.user.email,
+      identity,
+      subscription: access.subscription || identity?.subscription || null,
+    });
+    return <ZariPortal viewer={viewer} />;
   }
 
   if (freePreviewEnabled) {
-    return <ZariPortal />;
+    const viewer = buildPortalViewer({
+      dashboardName: dashboard?.user.name,
+      dashboardEmail: dashboard?.user.email,
+      identity,
+    });
+    return <ZariPortal viewer={viewer} />;
   }
 
   if ("status" in access && access.status === 401) redirect("/login");
   redirect("/onboarding/plan");
 
-  return <ZariPortal />;
+  const viewer = buildPortalViewer({
+    dashboardName: dashboard?.user.name,
+    dashboardEmail: dashboard?.user.email,
+    identity,
+  });
+  return <ZariPortal viewer={viewer} />;
 }
