@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     metadata: {
       accountId: identity.account.id,
       userId: identity.user.id,
-      externalAuthId: identity.mvpUser.id,
+      externalAuthId: identity.mvpUser?.id || identity.user.id,
       requestedPlanId: requestedPlanId || "default",
     },
     ...(existingSubscription?.stripeCustomerId
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
       metadata: {
         accountId: identity.account.id,
         userId: identity.user.id,
-        externalAuthId: identity.mvpUser.id,
+        externalAuthId: identity.mvpUser?.id || identity.user.id,
         requestedPlanId: requestedPlanId || "default",
       },
       ...(Number.isFinite(trialDays) && trialDays > 0 ? { trial_period_days: trialDays } : {}),

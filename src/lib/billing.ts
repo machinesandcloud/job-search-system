@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma, isDatabaseReady } from "@/lib/db";
 import { getCurrentUserId } from "@/lib/mvp/auth";
 import { getUserById as getMvpUserById } from "@/lib/mvp/store";
+import { getPlatformIdentityByUserId } from "@/lib/platform-users";
 import { getBaseUrl } from "@/lib/utils";
 
 export type CoachAdminRole = "admin" | "support";
@@ -502,6 +503,14 @@ export async function ensureCoachAdminUser(email: string, role: CoachAdminRole) 
 export async function syncCurrentUserToBillingIdentity() {
   const currentUserId = await getCurrentUserId();
   if (!currentUserId) return null;
+
+  if (isDatabaseReady()) {
+    const platformIdentity = await getPlatformIdentityByUserId(currentUserId);
+    if (platformIdentity) {
+      return platformIdentity;
+    }
+  }
+
   return syncMvpUserToBillingIdentity(currentUserId);
 }
 

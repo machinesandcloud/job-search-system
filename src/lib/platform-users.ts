@@ -488,3 +488,28 @@ export async function repairPlatformUsersWithoutAccounts(limit = 50) {
 
   return { repaired: candidates.length };
 }
+
+export async function getPlatformIdentityByUserId(userId: string) {
+  if (!isDatabaseReady()) return null;
+
+  const existing = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+  if (!existing) return null;
+
+  const user = await ensureDatabaseUserShape(existing);
+  const mirrored = await mirrorDatabaseUser(user);
+  const account = await prisma.account.findUnique({
+    where: { id: user.accountId! },
+    include: { subscription: true },
+  });
+
+  if (!account) return null;
+
+  return {
+    mvpUser: mirrored,
+    user,
+    account,
+    subscription: account.subscription || null,
+  };
+}
