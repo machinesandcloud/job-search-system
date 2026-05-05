@@ -85,6 +85,58 @@ export function CoachAdminLogoutButton({ className = "" }: { className?: string 
   );
 }
 
+export function CoachAdminCancelSubscriptionButton({
+  accountId,
+  disabled = false,
+}: {
+  accountId: string;
+  disabled?: boolean;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function onClick() {
+    if (disabled || loading) return;
+    const confirmed = window.confirm(
+      "Cancel this customer's subscription immediately? This will cancel the Stripe subscription and remove paid access right away."
+    );
+    if (!confirmed) return;
+
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/coach-admin/accounts/${accountId}/subscription`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || "Unable to cancel subscription.");
+      } else {
+        window.location.reload();
+      }
+    } catch {
+      setError("Unable to cancel subscription.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-col items-end gap-2">
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled || loading}
+        className="inline-flex items-center justify-center rounded-full border border-rose-400/35 bg-rose-400/10 px-4 py-2.5 text-sm font-semibold text-rose-100 transition hover:-translate-y-0.5 hover:bg-rose-400/16 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {loading ? "Canceling..." : "Cancel subscription now"}
+      </button>
+      {error ? <p className="max-w-sm text-right text-sm text-rose-300">{error}</p> : null}
+    </div>
+  );
+}
+
 export function CoachAdminNoteForm({
   endpoint,
   placeholder = "Add an internal note...",

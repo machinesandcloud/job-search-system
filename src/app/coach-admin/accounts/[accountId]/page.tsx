@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
+  CoachAdminCancelSubscriptionButton,
   CoachAdminNoteForm,
   SupportTicketCreateForm,
 } from "@/components/coach-admin-forms";
@@ -127,7 +128,7 @@ type FeatureTokenEntry = {
 };
 
 export default async function CoachAdminAccountPage({ params }: AccountPageProps) {
-  await requireCoachAdminSession("support");
+  const session = await requireCoachAdminSession("support");
   const { accountId } = await params;
 
   const account = await prisma.account.findUnique({
@@ -230,6 +231,7 @@ export default async function CoachAdminAccountPage({ params }: AccountPageProps
   const planLabel = subscription ? getReadablePlanName(subscription.planName, subscription.stripePriceId) : "No subscription";
   const estimatedSpend = aiUsageSummary?.total.estimatedCostUsd || 0;
   const userUsage = aiUsageSummary?.byUser || [];
+  const canCancelSubscription = session.role === "admin" && !isInternalOperatorAccount(account) && Boolean(subscription?.stripeSubscriptionId) && subscription?.status !== "canceled";
 
   return (
     <div className="space-y-6">
@@ -237,7 +239,14 @@ export default async function CoachAdminAccountPage({ params }: AccountPageProps
         eyebrow="Account cockpit"
         title={account.name}
         description={`Owner ${account.ownerUser.email} · Created ${formatDate(account.createdAt)} · Account ID ${account.id.slice(0, 8)}`}
-        action={<CoachAdminLinkButton href="/coach-admin" tone="slate">← Back to overview</CoachAdminLinkButton>}
+        action={
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            {canCancelSubscription ? (
+              <CoachAdminCancelSubscriptionButton accountId={accountId} />
+            ) : null}
+            <CoachAdminLinkButton href="/coach-admin" tone="slate">← Back to overview</CoachAdminLinkButton>
+          </div>
+        }
       >
         <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
           <div className={cx(coachAdminInsetCardClass, "space-y-4 p-5")}>
