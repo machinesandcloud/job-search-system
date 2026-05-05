@@ -80,6 +80,37 @@ export function getBillingBlockReason(status?: string | null) {
   return "Active subscription required.";
 }
 
+export function getCheckoutCompletionAccessStatus(input: {
+  subscriptionStatus?: string | null;
+  sessionStatus?: string | null;
+  sessionPaymentStatus?: string | null;
+  trialEnd?: Date | number | null;
+}) {
+  const normalizedSubscriptionStatus = `${input.subscriptionStatus || ""}`.toLowerCase();
+  if (canAccessSubscriptionStatus(normalizedSubscriptionStatus)) {
+    return normalizedSubscriptionStatus;
+  }
+
+  const normalizedSessionStatus = `${input.sessionStatus || ""}`.toLowerCase();
+  const normalizedPaymentStatus = `${input.sessionPaymentStatus || ""}`.toLowerCase();
+  const hasTrial =
+    input.trialEnd instanceof Date
+      ? Number.isFinite(input.trialEnd.getTime())
+      : typeof input.trialEnd === "number";
+
+  if (normalizedSessionStatus === "complete") {
+    if (normalizedPaymentStatus === "paid") {
+      return "active";
+    }
+
+    if (normalizedPaymentStatus === "no_payment_required" || hasTrial) {
+      return "trialing";
+    }
+  }
+
+  return normalizedSubscriptionStatus || null;
+}
+
 export function mapStripeStatusToAccountStatus(status?: string | null) {
   const normalized = `${status || ""}`.toLowerCase();
   if (normalized === "active") return "active";

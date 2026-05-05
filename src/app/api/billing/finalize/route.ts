@@ -4,6 +4,7 @@ import { prisma, isDatabaseReady } from "@/lib/db";
 import {
   buildSubscriptionSnapshot,
   canAccessSubscriptionStatus,
+  getCheckoutCompletionAccessStatus,
   mapStripeStatusToAccountStatus,
   syncCurrentUserToBillingIdentity,
   syncMvpUserToBillingIdentity,
@@ -232,9 +233,19 @@ export async function POST(request: NextRequest) {
       ? await stripe.subscriptions.retrieve(subscriptionCandidate)
       : subscriptionCandidate;
 
+  const effectiveStripeStatus =
+    getCheckoutCompletionAccessStatus({
+      subscriptionStatus: subscription.status,
+      sessionStatus: session.status,
+      sessionPaymentStatus: session.payment_status,
+      trialEnd: subscription.trial_end,
+    }) || subscription.status;
+
   let syncFailed = false;
   try {
-    await syncStripeSubscriptionToAccount(accountId, subscription);
+    await syncStripeSubscriptionToAccount(accountId, subscription, {
+      status: effectiveStripeStatus,
+    });
   } catch (error) {
     syncFailed = true;
     console.error("[billing/finalize] failed to sync subscription", {
@@ -245,7 +256,11 @@ export async function POST(request: NextRequest) {
       error,
     });
     try {
-      await forceSyncSubscriptionSnapshot(accountId, subscription);
+      const snapshotForFallback = {
+        ...subscription,
+        status: effectiveStripeStatus,
+      } as Stripe.Subscription;
+      await forceSyncSubscriptionSnapshot(accountId, snapshotForFallback);
       syncFailed = false;
     } catch (fallbackError) {
       console.error("[billing/finalize] fallback sync failed", {
@@ -258,7 +273,7 @@ export async function POST(request: NextRequest) {
   }
 
   const currentState = await getCurrentReadyState({ expectedAccountId: accountId });
-  const effectiveStatus = currentState.subscription?.status || subscription.status;
+  const effectiveStatus = currentState.subscription?.status || effectiveStripeStatus;
   const effectiveReady = canAccessSubscriptionStatus(effectiveStatus);
 
   if (currentState.ready || effectiveReady) {

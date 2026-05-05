@@ -94,7 +94,7 @@ async function upsertInvoiceStatus(input: {
     where: { id: input.accountId },
     data: {
       status: mapStripeStatusToAccountStatus(input.status),
-      paymentIssue: !canAccessSubscriptionStatus(input.status),
+      paymentIssue: isPaymentIssueSubscriptionStatus(input.status),
     },
   });
 

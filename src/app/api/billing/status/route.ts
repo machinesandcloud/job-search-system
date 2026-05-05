@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentPeriodTokenUsage, getCurrentSubscriptionAccess } from "@/lib/billing";
+import {
+  getCheckoutCompletionAccessStatus,
+  getCurrentPeriodTokenUsage,
+  getCurrentSubscriptionAccess,
+} from "@/lib/billing";
 import { getStripeClient } from "@/lib/stripe";
 import { syncStripeSubscriptionToAccount } from "@/lib/subscription-sync";
 
@@ -26,7 +30,17 @@ export async function GET(request: NextRequest) {
           : subscriptionCandidate;
 
       if (subscription) {
-        await syncStripeSubscriptionToAccount(access.account.id, subscription);
+        const effectiveStatus =
+          getCheckoutCompletionAccessStatus({
+            subscriptionStatus: subscription.status,
+            sessionStatus: session.status,
+            sessionPaymentStatus: session.payment_status,
+            trialEnd: subscription.trial_end,
+          }) || subscription.status;
+
+        await syncStripeSubscriptionToAccount(access.account.id, subscription, {
+          status: effectiveStatus,
+        });
         access = await getCurrentSubscriptionAccess();
       }
     } catch (error) {
