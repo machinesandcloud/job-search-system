@@ -17,7 +17,7 @@ export function BillingSuccessClient() {
     let cancelled = false;
 
     async function confirmAccess() {
-      for (let attempt = 0; attempt < 45; attempt += 1) {
+      for (let attempt = 0; attempt < 120; attempt += 1) {
         try {
           if (sessionId) {
             const finalizeResponse = await fetch("/api/billing/finalize", {
@@ -65,7 +65,7 @@ export function BillingSuccessClient() {
             setState(attempt >= 9 ? "delayed" : "waiting");
             setMessage(
               attempt >= 9
-                ? "Still processing. This can take another few moments."
+                ? "Still processing. We are continuing to activate your plan in the background."
                 : "Processing your payment and unlocking your workspace.",
             );
           } else if (response.status === 401 || response.status === 403) {
@@ -75,7 +75,7 @@ export function BillingSuccessClient() {
               setState(attempt >= 9 ? "delayed" : "waiting");
               setMessage(
                 attempt >= 9
-                  ? "Still processing. This can take another few moments."
+                  ? "Still processing. We are continuing to activate your plan in the background."
                   : "Processing your payment and unlocking your workspace.",
               );
             }
@@ -83,9 +83,8 @@ export function BillingSuccessClient() {
         } catch (error) {
           if (cancelled) return;
           if (attempt >= 30) {
-            setState("error");
-            setMessage(error instanceof Error ? error.message : "We could not finish activating your plan.");
-            return;
+            setState("delayed");
+            setMessage("We are still processing your activation. Hold tight while we keep working in the background.");
           }
         }
 
@@ -94,7 +93,7 @@ export function BillingSuccessClient() {
 
       if (!cancelled) {
         setState("delayed");
-        setMessage("Still processing. We will keep trying automatically.");
+        setMessage("We still need a little more time. Your plan activation is still being processed.");
       }
     }
 
@@ -120,9 +119,7 @@ export function BillingSuccessClient() {
         </p>
       </div>
       <p className="mt-3 text-sm leading-6 text-slate-600">
-        {state === "error"
-          ? "We are still not done activating your plan. You can return to plan selection and try again in a moment."
-          : message}
+        {state === "error" ? "We are still working on your plan activation." : message}
       </p>
     </div>
 
@@ -132,7 +129,7 @@ export function BillingSuccessClient() {
             href="/onboarding/plan"
             className="inline-flex items-center justify-center rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
           >
-            Return to plans
+            Back to plans
           </Link>
         </div>
       ) : null}

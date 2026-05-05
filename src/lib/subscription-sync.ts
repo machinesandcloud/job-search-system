@@ -9,9 +9,9 @@ import {
 
 export function mapStripePlanTier(planName?: string | null, priceId?: string | null) {
   const planId = getPricingCatalogPlanId(planName, priceId);
+  if (planId === "search") return "pro" as const;
   if (planId === "growth") return "pro" as const;
   if (planId === "executive") return "premium" as const;
-  if (planId === "search") return "free" as const;
 
   const normalized = `${planName || ""} ${priceId || ""}`.toLowerCase();
   if (normalized.includes("premium")) return "premium" as const;

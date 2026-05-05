@@ -66,6 +66,11 @@ export function canAccessSubscriptionStatus(status?: string | null) {
   return ACTIVE_SUBSCRIPTION_STATUSES.has(`${status || ""}`.toLowerCase());
 }
 
+export function isPaymentIssueSubscriptionStatus(status?: string | null) {
+  const normalized = `${status || ""}`.toLowerCase();
+  return normalized === "past_due" || normalized === "unpaid";
+}
+
 export function getBillingBlockReason(status?: string | null) {
   const normalized = `${status || ""}`.toLowerCase();
   if (normalized === "past_due") return "Subscription payment is past due.";
@@ -166,6 +171,15 @@ export function getPlanIncludedMonthlyCredits(planName?: string | null, priceId?
 }
 
 export function getPlanNameFromStripe(subscription: Stripe.Subscription) {
+  const requestedPlanId = `${subscription.metadata?.requestedPlanId || ""}`.trim().toLowerCase();
+  const requestedPlan =
+    requestedPlanId === "search" || requestedPlanId === "growth" || requestedPlanId === "executive"
+      ? getPricingPlanById(requestedPlanId)
+      : null;
+  if (requestedPlan) {
+    return requestedPlan.name;
+  }
+
   const firstItem = subscription.items.data[0];
   const price = firstItem?.price;
   const fallbackName = price?.nickname || price?.lookup_key || (typeof price?.product === "string" ? price.product : null) || "Monthly plan";
@@ -345,7 +359,7 @@ export function buildSubscriptionSnapshot(subscription: Stripe.Subscription) {
     cancelAtPeriodEnd: Boolean(subscription.cancel_at_period_end),
     canceledAt: stripeTimestampToDate(subscription.canceled_at),
     trialEnd: stripeTimestampToDate(subscription.trial_end),
-    paymentIssue: !canAccessSubscriptionStatus(subscription.status),
+    paymentIssue: isPaymentIssueSubscriptionStatus(subscription.status),
   };
 }
 
@@ -822,6 +836,47 @@ export async function getCurrentSubscriptionAccess() {
   }
 
   if (!subscription || !canAccessSubscriptionStatus(subscription.status)) {
+    const repairedAccount = await prisma.account.findFirst({
+      where: {
+        ownerUserId: identity.user.id,
+        subscription: {
+          is: {
+            status: {
+              in: Array.from(ACTIVE_SUBSCRIPTION_STATUSES),
+            },
+          },
+        },
+      },
+      include: { subscription: true },
+      orderBy: { updatedAt: "desc" },
+    }).catch(() => null);
+
+    if (repairedAccount?.subscription && canAccessSubscriptionStatus(repairedAccount.subscription.status)) {
+      if (identity.user.accountId !== repairedAccount.id) {
+        await prisma.user.update({
+          where: { id: identity.user.id },
+          data: { accountId: repairedAccount.id },
+        }).catch((error: unknown) => {
+          console.error("[billing] failed to relink user to active account", {
+            userId: identity.user.id,
+            currentAccountId: identity.user.accountId,
+            repairedAccountId: repairedAccount.id,
+            error,
+          });
+        });
+      }
+
+      return {
+        ok: true as const,
+        user: {
+          ...identity.user,
+          accountId: repairedAccount.id,
+        },
+        account: repairedAccount,
+        subscription: repairedAccount.subscription,
+      };
+    }
+
     return {
       ok: false as const,
       status: 402,

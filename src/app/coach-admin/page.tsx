@@ -29,6 +29,7 @@ import {
   formatUsdEstimate,
   getAiUsageSummary,
   getPlanMonthlyAmountCents,
+  isPaymentIssueSubscriptionStatus,
   isPlaceholderCoachAdminEmail,
 } from "@/lib/billing";
 import { repairPlatformUsersWithoutAccounts } from "@/lib/platform-users";
@@ -68,11 +69,14 @@ function priorityTone(priority?: string | null) {
 
 function getHealthLabel(account: any) {
   if (isInternalOperatorAccount(account)) return "Internal operator";
-  if (account.paymentIssue) return "Payment issue";
   if (!account.subscription) return "Needs checkout";
-  if (account.subscription.status === "trialing") return "Trialing";
-  if (account.subscription.status === "active") return "Healthy";
-  return account.subscription.status.replace(/_/g, " ");
+  const status = `${account.subscription.status || account.status || ""}`.toLowerCase();
+  if (status === "trialing") return "Trialing";
+  if (status === "active") return "Healthy";
+  if (status === "canceled") return "Canceled";
+  if (status === "incomplete" || status === "incomplete_expired") return "Needs checkout";
+  if (isPaymentIssueSubscriptionStatus(status)) return "Payment issue";
+  return status ? status.replace(/_/g, " ") : "Needs checkout";
 }
 
 function isInternalOperatorAccount(account: any) {
@@ -213,7 +217,7 @@ export default async function CoachAdminPage() {
   const trialingCount = subscriptions.filter((item: any) => item.status === "trialing").length;
   const pastDueCount = subscriptions.filter((item: any) => item.status === "past_due" || item.status === "unpaid").length;
   const canceledCount = subscriptions.filter((item: any) => item.status === "canceled").length;
-  const failedPaymentsCount = subscriptions.filter((item: any) => item.paymentIssue || item.status === "past_due" || item.status === "unpaid").length;
+  const failedPaymentsCount = subscriptions.filter((item: any) => isPaymentIssueSubscriptionStatus(item.status)).length;
   const mrrCents = subscriptions
     .filter((item: any) => item.status === "active" || item.status === "trialing")
     .reduce((sum: number, item: any) => sum + getPlanMonthlyAmountCents(item.planName, item.stripePriceId), 0);
@@ -224,10 +228,13 @@ export default async function CoachAdminPage() {
     return days >= 0 && days <= 14 && (item.status === "active" || item.status === "trialing");
   }).length;
 
-  const accountsHealthy = accounts.filter((item: any) => !item.paymentIssue && ["active", "trialing"].includes(item.subscription?.status || item.status)).length;
+  const accountsHealthy = accounts.filter((item: any) => ["active", "trialing"].includes(item.subscription?.status || item.status)).length;
   const healthPercent = accounts.length ? Math.round((accountsHealthy / accounts.length) * 100) : 0;
   const topRiskAccounts = accounts
-    .filter((item: any) => item.paymentIssue || ["past_due", "unpaid", "canceled"].includes(item.subscription?.status || item.status))
+    .filter((item: any) => {
+      const status = item.subscription?.status || item.status;
+      return isPaymentIssueSubscriptionStatus(status) || status === "canceled" || status === "incomplete_expired";
+    })
     .slice(0, 4);
   const prioritySortedTickets = [...recentTickets].sort((a: any, b: any) => {
     const order = { urgent: 4, high: 3, medium: 2, low: 1 } as Record<string, number>;

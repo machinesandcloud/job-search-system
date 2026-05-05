@@ -12,6 +12,11 @@ import {
 const PASSWORD_PREFIX = "scrypt";
 let coachProfileTableAvailable: boolean | null = null;
 
+function hasPaidSubscriptionStatus(status?: string | null) {
+  const normalized = `${status || ""}`.trim().toLowerCase();
+  return normalized === "active" || normalized === "trialing";
+}
+
 function isMissingCoachProfileTableError(error: unknown) {
   const message = error instanceof Error ? error.message : String(error);
   return (
@@ -153,8 +158,11 @@ async function ensureDatabaseUserShape(user: any) {
     account &&
     preferredOwnedAccount &&
     account.id !== preferredOwnedAccount.id &&
-    !account.subscription &&
-    preferredOwnedAccount.subscription
+    (
+      (!account.subscription && preferredOwnedAccount.subscription) ||
+      (!hasPaidSubscriptionStatus(account.subscription?.status) &&
+        hasPaidSubscriptionStatus(preferredOwnedAccount.subscription?.status))
+    )
   ) {
     account = preferredOwnedAccount;
   }

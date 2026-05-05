@@ -23,6 +23,7 @@ const mocks = vi.hoisted(() => ({
   getStripeClient: vi.fn(),
   buildSubscriptionSnapshot: vi.fn(),
   canAccessSubscriptionStatus: vi.fn(),
+  isPaymentIssueSubscriptionStatus: vi.fn(),
   logAppEvent: vi.fn(),
   mapStripeStatusToAccountStatus: vi.fn(),
   syncMvpUserToBillingIdentity: vi.fn(),
@@ -42,6 +43,7 @@ vi.mock("@/lib/stripe", () => ({
 
 vi.mock("@/lib/billing", () => ({
   canAccessSubscriptionStatus: mocks.canAccessSubscriptionStatus,
+  isPaymentIssueSubscriptionStatus: mocks.isPaymentIssueSubscriptionStatus,
   logAppEvent: mocks.logAppEvent,
   mapStripeStatusToAccountStatus: mocks.mapStripeStatusToAccountStatus,
   syncMvpUserToBillingIdentity: mocks.syncMvpUserToBillingIdentity,
@@ -61,6 +63,9 @@ describe("stripe webhook route", () => {
     process.env.STRIPE_WEBHOOK_SECRET = "whsec_test";
     mocks.canAccessSubscriptionStatus.mockImplementation((status?: string | null) =>
       ["active", "trialing"].includes(String(status || "").toLowerCase())
+    );
+    mocks.isPaymentIssueSubscriptionStatus.mockImplementation((status?: string | null) =>
+      ["past_due", "unpaid"].includes(String(status || "").toLowerCase())
     );
     mocks.mapStripeStatusToAccountStatus.mockImplementation((status?: string | null) => status || "incomplete");
     mocks.prisma.stripeEvent.create.mockResolvedValue({ stripeEventId: "evt_test" });
@@ -216,7 +221,7 @@ describe("stripe webhook route", () => {
       expect.objectContaining({ id: "sub_123" }),
       expect.objectContaining({
         status: "canceled",
-        paymentIssue: true,
+        paymentIssue: false,
       })
     );
   });

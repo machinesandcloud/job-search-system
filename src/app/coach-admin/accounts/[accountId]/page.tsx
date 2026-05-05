@@ -29,6 +29,7 @@ import {
   getPlanIncludedMonthlyCredits,
   getPlanMonthlyAmountCents,
   getReadablePlanName,
+  isPaymentIssueSubscriptionStatus,
 } from "@/lib/billing";
 import { requireCoachAdminSession } from "@/lib/coach-admin-auth";
 import { prisma } from "@/lib/db";
@@ -232,6 +233,7 @@ export default async function CoachAdminAccountPage({ params }: AccountPageProps
   const estimatedSpend = aiUsageSummary?.total.estimatedCostUsd || 0;
   const userUsage = aiUsageSummary?.byUser || [];
   const canCancelSubscription = session.role === "admin" && !isInternalOperatorAccount(account) && Boolean(subscription?.stripeSubscriptionId) && subscription?.status !== "canceled";
+  const displayPaymentIssue = subscription ? isPaymentIssueSubscriptionStatus(subscription.status) : account.paymentIssue;
 
   return (
     <div className="space-y-6">
@@ -255,8 +257,8 @@ export default async function CoachAdminAccountPage({ params }: AccountPageProps
                 {isInternalOperatorAccount(account) ? "internal operator" : (subscription?.status || account.status)}
               </CoachAdminPill>
               {subscription?.cancelAtPeriodEnd ? <CoachAdminPill tone="gold">Cancels at period end</CoachAdminPill> : null}
-              <CoachAdminPill tone={account.paymentIssue ? "gold" : "emerald"}>
-                {account.paymentIssue ? "Payment issue flagged" : "Healthy payment state"}
+              <CoachAdminPill tone={displayPaymentIssue ? "gold" : "emerald"}>
+                {displayPaymentIssue ? "Payment issue flagged" : "Healthy payment state"}
               </CoachAdminPill>
             </div>
             <div className="grid gap-3 md:grid-cols-3">
@@ -370,7 +372,7 @@ export default async function CoachAdminAccountPage({ params }: AccountPageProps
               </div>
 
               <div className="grid gap-3 md:grid-cols-2">
-                <CoachAdminMetaItem label="Payment issue" value={account.paymentIssue ? "Flagged" : "Healthy"} />
+                <CoachAdminMetaItem label="Payment issue" value={displayPaymentIssue ? "Flagged" : "Healthy"} />
                 <CoachAdminMetaItem label="Trial end" value={formatDate(subscription?.trialEnd)} />
                 <CoachAdminMetaItem label="Current period start" value={formatDate(subscription?.currentPeriodStart)} />
                 <CoachAdminMetaItem label="Current period end" value={formatDate(subscription?.currentPeriodEnd)} />

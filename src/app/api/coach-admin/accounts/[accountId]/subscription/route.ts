@@ -58,7 +58,7 @@ export async function POST(
     const canceled = await stripe.subscriptions.cancel(subscription.stripeSubscriptionId);
     await syncStripeSubscriptionToAccount(accountId, canceled, {
       status: "canceled",
-      paymentIssue: true,
+      paymentIssue: false,
     });
 
     await Promise.all([

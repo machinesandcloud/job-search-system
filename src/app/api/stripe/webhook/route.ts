@@ -4,6 +4,7 @@ import { prisma, isDatabaseReady } from "@/lib/db";
 import { getStripeClient } from "@/lib/stripe";
 import {
   canAccessSubscriptionStatus,
+  isPaymentIssueSubscriptionStatus,
   logAppEvent,
   mapStripeStatusToAccountStatus,
   syncMvpUserToBillingIdentity,
@@ -72,7 +73,7 @@ async function upsertInvoiceStatus(input: {
     where: { accountId: input.accountId },
     update: {
       status: input.status,
-      paymentIssue: !canAccessSubscriptionStatus(input.status),
+      paymentIssue: isPaymentIssueSubscriptionStatus(input.status),
       stripeCustomerId: existing?.stripeCustomerId || input.stripeCustomerId || "",
       stripeSubscriptionId: existing?.stripeSubscriptionId || input.stripeSubscriptionId || "",
       currentPeriodEnd: input.currentPeriodEnd || existing?.currentPeriodEnd || null,
@@ -83,7 +84,7 @@ async function upsertInvoiceStatus(input: {
       stripeCustomerId: input.stripeCustomerId || `pending_${input.accountId}`,
       stripeSubscriptionId: input.stripeSubscriptionId || `pending_${input.accountId}`,
       status: input.status,
-      paymentIssue: !canAccessSubscriptionStatus(input.status),
+      paymentIssue: isPaymentIssueSubscriptionStatus(input.status),
       currentPeriodEnd: input.currentPeriodEnd || null,
       currentPeriodStart: input.currentPeriodStart || null,
     },
@@ -202,7 +203,7 @@ export async function POST(request: Request) {
         const finalStatus = event.type === "customer.subscription.deleted" ? "canceled" : undefined;
         await syncStripeSubscriptionToAccount(accountId, subscription, {
           status: finalStatus,
-          paymentIssue: finalStatus ? !canAccessSubscriptionStatus(finalStatus) : undefined,
+          paymentIssue: finalStatus ? isPaymentIssueSubscriptionStatus(finalStatus) : undefined,
         });
 
         const eventName =
@@ -240,7 +241,7 @@ export async function POST(request: Request) {
           const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
           await syncStripeSubscriptionToAccount(accountId, subscription, {
             status: event.type === "invoice.payment_failed" ? "past_due" : "active",
-            paymentIssue: event.type === "invoice.payment_failed",
+            paymentIssue: isPaymentIssueSubscriptionStatus(event.type === "invoice.payment_failed" ? "past_due" : "active"),
           });
         } else {
           const linePeriod = invoice.lines.data[0]?.period;
