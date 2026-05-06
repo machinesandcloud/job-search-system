@@ -5,6 +5,7 @@ import { ZariPortal, type PortalViewer } from "@/components/zari-portal";
 import {
   canAccessSubscriptionStatus,
   getCurrentSubscriptionAccess,
+  getCurrentPeriodTokenUsage,
   getPlanIncludedMonthlyCredits,
   getPlanMonthlyAmountCents,
   getReadablePlanName,
@@ -49,6 +50,9 @@ function buildPortalViewer(input: {
       role === "admin" || role === "support"
         ? null
         : getPlanIncludedMonthlyCredits(subscriptionSource?.planName, subscriptionSource?.stripePriceId),
+    usedMonthlyCredits: null,
+    remainingMonthlyCredits: null,
+    creditLimit: null,
     monthlyPriceCents:
       role === "admin" || role === "support"
         ? null
@@ -68,6 +72,7 @@ export default async function DashboardPage() {
 
   const dashboard = await getDashboardForUser(userId);
   const identity = await syncCurrentUserToBillingIdentity().catch(() => null);
+  const tokenUsage = identity?.account?.id ? await getCurrentPeriodTokenUsage(identity.account.id).catch(() => null) : null;
   if (identity?.user?.role === "admin" || identity?.user?.role === "support") {
     const viewer = buildPortalViewer({
       dashboardName: dashboard?.user.name,
@@ -103,6 +108,9 @@ export default async function DashboardPage() {
       identity,
       subscription: access.subscription || identity?.subscription || null,
     });
+    viewer.usedMonthlyCredits = tokenUsage?.usedCredits ?? null;
+    viewer.remainingMonthlyCredits = tokenUsage?.remainingCredits ?? null;
+    viewer.creditLimit = tokenUsage?.limitCredits ?? null;
     return <ZariPortal viewer={viewer} />;
   }
 
@@ -112,6 +120,9 @@ export default async function DashboardPage() {
       dashboardEmail: dashboard?.user.email,
       identity,
     });
+    viewer.usedMonthlyCredits = tokenUsage?.usedCredits ?? null;
+    viewer.remainingMonthlyCredits = tokenUsage?.remainingCredits ?? null;
+    viewer.creditLimit = tokenUsage?.limitCredits ?? null;
     return <ZariPortal viewer={viewer} />;
   }
 

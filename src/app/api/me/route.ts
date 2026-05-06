@@ -4,6 +4,7 @@ import { getDashboardForUser, updateProfile } from "@/lib/mvp/store";
 import { syncPlatformProfile } from "@/lib/platform-users";
 import {
   canAccessSubscriptionStatus,
+  getCurrentPeriodTokenUsage,
   getCurrentSubscriptionAccess,
   getPlanIncludedMonthlyCredits,
   getPricingCatalogPlanId,
@@ -34,6 +35,7 @@ export async function GET() {
   const subscriptionStatus = effectiveSubscription?.status || null;
   const isOperator = role === "admin" || role === "support";
   const isPaid = isOperator || canAccessSubscriptionStatus(subscriptionStatus);
+  const tokenUsage = identity?.account?.id ? await getCurrentPeriodTokenUsage(identity.account.id).catch(() => null) : null;
 
   return NextResponse.json({
     user: dashboard.user,
@@ -48,6 +50,10 @@ export async function GET() {
       isPaid,
       includedMonthlyCredits: isOperator ? null : getPlanIncludedMonthlyCredits(effectiveSubscription?.planName, effectiveSubscription?.stripePriceId),
       monthlyPriceCents: isOperator ? null : getPlanMonthlyAmountCents(effectiveSubscription?.planName, effectiveSubscription?.stripePriceId),
+      usedMonthlyCredits: isOperator ? null : tokenUsage?.usedCredits ?? null,
+      remainingMonthlyCredits: isOperator ? null : tokenUsage?.remainingCredits ?? null,
+      creditLimit: isOperator ? null : tokenUsage?.limitCredits ?? null,
+      tokensPerCredit: isOperator ? null : tokenUsage?.tokensPerCredit ?? null,
     },
     usage: dashboard.usage,
     onboardingStatus: dashboard.user.onboardingComplete ? "complete" : "pending",

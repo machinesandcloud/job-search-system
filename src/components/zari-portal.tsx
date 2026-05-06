@@ -1,10 +1,50 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, createContext, useContext } from "react";
 import Link from "next/link";
 import { PlatformLogoutButton } from "@/components/platform-logout-button";
 import { ZariLogo } from "@/components/zari-logo";
 import { ZariAvatar, type AvatarState } from "@/components/zari-avatar";
+import {
+  canAccessStage,
+  getPlanDisplayName,
+  getRequiredPlanForStage,
+} from "@/lib/plan-entitlements";
+
+/* ═══════════════════════════════════════════════════
+   BILLING CONTEXT — lets any sub-component surface a
+   plan-upgrade or credit-limit notice in the sidebar
+═══════════════════════════════════════════════════ */
+type BillingCtx = {
+  onPlanBlock: (requiredPlanId: string, message: string) => void;
+  onCreditLimit: (used: number, limit: number) => void;
+};
+const BillingContext = createContext<BillingCtx>({ onPlanBlock: () => {}, onCreditLimit: () => {} });
+function useBillingCtx() { return useContext(BillingContext); }
+
+type BillingApiErrorData = {
+  code?: string;
+  error?: string;
+  requiredPlanId?: string;
+  creditUsage?: { used?: number; limit?: number };
+} | null;
+
+/** Returns true if it handled the error via billing context, false if caller should set its own error. */
+function handleBillingApiError(
+  status: number | undefined,
+  data: BillingApiErrorData,
+  billing: BillingCtx,
+): boolean {
+  if (data?.code === "plan_upgrade_required") {
+    billing.onPlanBlock(data.requiredPlanId ?? "growth", data.error ?? "Upgrade required to use this feature.");
+    return true;
+  }
+  if (data?.code === "credit_limit_reached" || status === 429) {
+    billing.onCreditLimit(data?.creditUsage?.used ?? 0, data?.creditUsage?.limit ?? 0);
+    return true;
+  }
+  return false;
+}
 
 
 /* ═══════════════════════════════════════════════════
@@ -117,6 +157,9 @@ export type PortalViewer = {
   isPaid: boolean;
   subscriptionStatus: string | null;
   includedMonthlyCredits: number | null;
+  usedMonthlyCredits: number | null;
+  remainingMonthlyCredits: number | null;
+  creditLimit: number | null;
   monthlyPriceCents: number | null;
 };
 
@@ -1093,6 +1136,7 @@ const STAGE_PROMPTS: Record<CareerStage, string[]> = {
 };
 
 function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?: (s: Screen) => void }) {
+  const billing = useBillingCtx();
   const [avatarState, setAvatarState] = useState<AvatarState>("speaking");
   const [input, setInput] = useState("");
   const [isVoice, setIsVoice] = useState(false);
@@ -1428,7 +1472,12 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
           uploadedFileName: opts?.uploadedFileName,
         }),
       });
-      const data = await res.json().catch(() => ({})) as { message?: string; aiEnabled?: boolean };
+      const data = await res.json().catch(() => ({})) as { message?: string; aiEnabled?: boolean; code?: string; error?: string; requiredPlanId?: string; creditUsage?: { used?: number; limit?: number } };
+      if (!res.ok && handleBillingApiError(res.status, data as BillingApiErrorData, billing)) {
+        setIsLoading(false);
+        setAvatarState("idle");
+        return;
+      }
       const reply = data.message?.trim() ?? "";
       const isFailed = !reply || ERROR_PATTERNS.some(p => reply.toLowerCase().includes(p));
       if (isFailed) {
@@ -3806,6 +3855,7 @@ function PromotionSharedIntakeFlow({
 }
 
 function ScreenPromotionReadiness() {
+  const billing = useBillingCtx();
   const PR_KEY = "zari_promo_readiness_v1";
   type PRSaved = { step: number; form: PromotionReadinessForm; result: PromotionReadinessResult | null };
   const _prSaved = lsGet<PRSaved>(PR_KEY);
@@ -3921,7 +3971,7 @@ function ScreenPromotionReadiness() {
         lsSet(PR_KEY, { step, form, result: data });
         savePromotionReadinessAudit(form, data);
       } else {
-        setError(data?.error ?? "Could not generate the readiness audit.");
+        if (!handleBillingApiError(res.status, data as BillingApiErrorData, billing)) setError(data?.error ?? "Could not generate the readiness audit.");
       }
     } catch {
       setError("Could not generate the readiness audit.");
@@ -4656,6 +4706,7 @@ function StageIntakeHeader({ eyebrow, title, subtitle, accent, totalSteps, curre
 }
 
 function ScreenSalaryCompensation() {
+  const billing = useBillingCtx();
   const ACCENT = "#10B981";
   const BG_DARK = "var(--z-bg)";
   type SalaryTab = "overview" | "leverage" | "moves" | "script";
@@ -4691,7 +4742,7 @@ function ScreenSalaryCompensation() {
       const res = await fetch("/api/zari/salary-analysis", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(form) });
       const data = await res.json().catch(() => null) as (SalaryAnalysisResult & { error?: string }) | null;
       if (data && typeof data.compensationScore === "number") { setResult(data); setTab("overview"); }
-      else setError(data?.error ?? "Could not analyze compensation. Please try again.");
+      else if (!handleBillingApiError(res.status, data as BillingApiErrorData, billing)) setError(data?.error ?? "Could not analyze compensation. Please try again.");
     } catch { setError("Something went wrong. Please try again."); }
     setGenerating(false);
   }
@@ -5068,6 +5119,7 @@ type PivotAnalysisResult = {
 };
 
 function ScreenPivotAnalysis() {
+  const billing = useBillingCtx();
   const ACCENT  = "#0284C7";
   const ACCENT2 = "#38BDF8";
   type PivotTab = "overview" | "assets" | "gaps" | "plan";
@@ -5114,7 +5166,9 @@ function ScreenPivotAnalysis() {
       }
       else {
         const msg = data?.message ?? data?.error ?? "";
-        setError(msg || (res.status === 402 ? "Subscription required to use this feature." : res.status === 401 ? "Sign in required." : `Analysis failed (${res.status}). Please try again.`));
+        if (!handleBillingApiError(res.status, data as BillingApiErrorData, billing)) {
+          setError(msg || (res.status === 401 ? "Sign in required." : `Analysis failed (${res.status}). Please try again.`));
+        }
       }
     } catch { setError("Something went wrong. Check your connection and try again."); }
     setGenerating(false);
@@ -5688,6 +5742,7 @@ function useCCStore() {
    CAREER CHANGE: STORY BUILDER
 ═══════════════════════════════════════════════════ */
 function ScreenPivotStoryBuilder({ active }:{ active:boolean }) {
+  const billing = useBillingCtx();
   const ACCENT = "#7C3AED", ACCENT2 = "#A78BFA";
   const { form, cache, ready } = useCCStore();
   const [generating, setGen] = useState(false);
@@ -5708,7 +5763,7 @@ function ScreenPivotStoryBuilder({ active }:{ active:boolean }) {
       const res = await fetch("/api/zari/pivot-story", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ fromRole:form.fromRole, toRole:form.toRole, fromIndustry:form.fromIndustry, toIndustry:form.toIndustry, resumeText:form.resumeText, accomplishments:form.accomplishments, skills:form.skills, currentStatus:form.currentStatus, timeline:form.timeline, biggestConcern:form.biggestConcern }) });
       const data = await res.json().catch(()=>null) as (CCStoryResult & { error?:string })|null;
       if (data?.thirtySecond) _ccStore.setCache("story", data);
-      else setError(data?.error ?? "Could not generate your story. Try again.");
+      else if (!handleBillingApiError(res.status, data as BillingApiErrorData, billing)) setError(data?.error ?? "Could not generate your story. Try again.");
     } catch { setError("Something went wrong. Try again."); }
     setGen(false);
   }
@@ -5817,6 +5872,7 @@ function ScreenPivotStoryBuilder({ active }:{ active:boolean }) {
    CAREER CHANGE: CREDIBILITY SPRINT
 ═══════════════════════════════════════════════════ */
 function ScreenCredibilitySprint({ active }:{ active:boolean }) {
+  const billing = useBillingCtx();
   const ACCENT  = "#059669";
   const ACCENT2 = "#34D399";
 
@@ -5838,7 +5894,7 @@ function ScreenCredibilitySprint({ active }:{ active:boolean }) {
       const res = await fetch("/api/zari/credibility-sprint", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ fromRole:form.fromRole, toRole:form.toRole, fromIndustry:form.fromIndustry, toIndustry:form.toIndustry, timeline:form.timeline, currentStatus:form.currentStatus, accomplishments:form.accomplishments, skills:form.skills, resumeText:form.resumeText }) });
       const data = await res.json().catch(()=>null) as (CCSprintResult & { error?:string })|null;
       if (data?.week1) _ccStore.setCache("sprint", data);
-      else setError(data?.error ?? "Could not generate your sprint. Try again.");
+      else if (!handleBillingApiError(res.status, data as BillingApiErrorData, billing)) setError(data?.error ?? "Could not generate your sprint. Try again.");
     } catch { setError("Something went wrong. Try again."); }
     setGen(false);
   }
@@ -5949,6 +6005,7 @@ function ScreenCredibilitySprint({ active }:{ active:boolean }) {
    CAREER CHANGE: BRIDGE NETWORK
 ═══════════════════════════════════════════════════ */
 function ScreenBridgeNetwork({ active }:{ active:boolean }) {
+  const billing = useBillingCtx();
   const ACCENT  = "#EA580C";
   const ACCENT2 = "#FB923C";
 
@@ -5973,7 +6030,7 @@ function ScreenBridgeNetwork({ active }:{ active:boolean }) {
       const res = await fetch("/api/zari/bridge-network", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ fromRole:form.fromRole, toRole:form.toRole, fromIndustry:form.fromIndustry, toIndustry:form.toIndustry, accomplishments:form.accomplishments, skills:form.skills, resumeText:form.resumeText }) });
       const data = await res.json().catch(()=>null) as (CCNetResult & { error?:string })|null;
       if (data?.personas?.length) { _ccStore.setCache("network", data); setActiveIdx(0); }
-      else setError(data?.error ?? "Could not generate your network map. Try again.");
+      else if (!handleBillingApiError(res.status, data as BillingApiErrorData, billing)) setError(data?.error ?? "Could not generate your network map. Try again.");
     } catch { setError("Something went wrong. Try again."); }
     setGen(false);
   }
@@ -6084,6 +6141,7 @@ function ScreenBridgeNetwork({ active }:{ active:boolean }) {
    SALARY STAGE: NEGOTIATION SIM (v2 — with coaching)
 ═══════════════════════════════════════════════════ */
 function ScreenSalaryNegotiationSim() {
+  const billing = useBillingCtx();
   type SimMsg = { role: "zari" | "user"; text: string; coaching?: string | null; betterPhrasing?: string | null };
   type DebriefResult = { score: number; verdict: string; summary: string; nailed: string[]; improve: string[]; phrases: { original: string; better: string }[] };
   const SIM_KEY = "zari_salary_sim_v1";
@@ -6571,6 +6629,7 @@ function ScreenSalaryNegotiationSim() {
    SALARY STAGE: NEGOTIATION EMAIL (v2 — 3 versions)
 ═══════════════════════════════════════════════════ */
 function ScreenSalaryNegotiationEmail() {
+  const billing = useBillingCtx();
   type SendTip = { tip: string; timing: string; why: string };
   type EmailVersion = { subject:string; email:string; sendTips:(SendTip|string)[]; tone:string; label:string; color:string; bg:string };
   const SNE_KEY = "zari_salary_email_v1";
@@ -6599,14 +6658,21 @@ function ScreenSalaryNegotiationEmail() {
   async function generate() {
     if (!form.role.trim()) { setError("Add the role you're negotiating for."); return; }
     setError(""); setGenerating(true);
-    const results = await Promise.all(
+    const responses = await Promise.all(
       toneConfigs.map(tc =>
         fetch("/api/zari/negotiation-email", {
           method:"POST", headers:{"Content-Type":"application/json"},
           body: JSON.stringify({ ...form, tone: tc.tone }),
-        }).then(r => r.json()).catch(() => null) as Promise<{ subject?:string; email?:string; sendTips?:string[]; error?:string } | null>
+        }).catch(() => null)
       )
     );
+    // Check first non-null response for billing errors before parsing all
+    const firstResponse = responses.find(r => r !== null);
+    if (firstResponse && !firstResponse.ok) {
+      const errData = await firstResponse.clone().json().catch(() => null) as BillingApiErrorData;
+      if (handleBillingApiError(firstResponse.status, errData, billing)) { setGenerating(false); return; }
+    }
+    const results = await Promise.all(responses.map(r => r?.json().catch(() => null) as Promise<{ subject?:string; email?:string; sendTips?:string[]; error?:string } | null>));
     const built: EmailVersion[] = results.map((r, i) => ({
       subject: r?.subject ?? `Compensation Discussion — ${form.role}`,
       email: r?.email ?? "",
@@ -6808,6 +6874,7 @@ type MarketIntelResult = {
 };
 
 function ScreenSalaryMarketIntel() {
+  const billing = useBillingCtx();
   const SMI_KEY = "zari_salary_intel_v1";
   type SMISaved = { form: typeof _smiForm; result: MarketIntelResult | null; miTab: "talking"|"factors"|"flags" };
   const _smiForm = { role:"", industry:"", location:"", experience:"", currentComp:"", companySize:"" };
@@ -6832,7 +6899,7 @@ function ScreenSalaryMarketIntel() {
     }).catch(() => null);
     const data = await res?.json().catch(() => null) as (MarketIntelResult & { error?:string }) | null;
     if (data && data.marketVerdict && !data.error) { setResult(data); setMiTab("talking"); }
-    else setError(data?.error ?? "Something went wrong — try again.");
+    else if (!handleBillingApiError(res?.status, data as BillingApiErrorData, billing)) setError(data?.error ?? "Something went wrong — try again.");
     setGenerating(false);
   }
 
@@ -7082,6 +7149,7 @@ function ScreenSalaryMarketIntel() {
    LEADERSHIP STAGE: STORY PRACTICE
 ═══════════════════════════════════════════════════ */
 function ScreenLeadershipStoryPractice() {
+  const billing = useBillingCtx();
   type StoryMsg = { role: "zari" | "user"; text: string };
   const LSP_KEY = "zari_leadership_story_v1";
   type LSPSaved = { setup: boolean; form: typeof _lspForm; msgs: StoryMsg[] };
@@ -7255,6 +7323,7 @@ Start by asking them to tell you the story first.`;
    LEADERSHIP STAGE: EXEC OUTREACH LETTER
 ═══════════════════════════════════════════════════ */
 function ScreenExecOutreach() {
+  const billing = useBillingCtx();
   const EO_KEY = "zari_exec_outreach_v1";
   type EOSaved = { form: typeof _eoForm; result: { subject:string; letter:string } | null };
   const _eoForm = { name:"", currentRole:"", targetType:"board", orgName:"", orgContext:"", uniqueValue:"", tone:"formal" };
@@ -7311,7 +7380,8 @@ Rules:
         jsonMode: true,
       }),
     }).catch(() => null);
-    const data = await res?.json().catch(() => null) as { reply?: string } | null;
+    const data = await res?.json().catch(() => null) as { reply?: string; code?: string; error?: string; requiredPlanId?: string; creditUsage?: { used?: number; limit?: number } } | null;
+    if (res && !res.ok && handleBillingApiError(res.status, data as BillingApiErrorData, billing)) { setGenerating(false); return; }
     try {
       const parsed = JSON.parse(data?.reply ?? "{}") as { subject?:string; letter?:string };
       if (parsed.letter) { setResult({ subject: parsed.subject ?? `Inquiry — ${targetLabel}`, letter: parsed.letter }); }
@@ -7451,6 +7521,7 @@ type ExecPositioningResult = {
 };
 
 function ScreenExecPositioning() {
+  const billing = useBillingCtx();
   const ACCENT = "#F59E0B";
   const BG_DARK = "var(--z-bg)";
   type ExecTab = "overview" | "gaps" | "moves" | "bio";
@@ -7480,7 +7551,7 @@ function ScreenExecPositioning() {
       const res = await fetch("/api/zari/exec-positioning", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(form) });
       const data = await res.json().catch(() => null) as (ExecPositioningResult & { error?: string }) | null;
       if (data && typeof data.execScore === "number") { setResult(data); setTab("overview"); }
-      else setError(data?.error ?? "Could not analyze executive positioning. Please try again.");
+      else if (!handleBillingApiError(res.status, data as BillingApiErrorData, billing)) setError(data?.error ?? "Could not analyze executive positioning. Please try again.");
     } catch { setError("Something went wrong. Please try again."); }
     setGenerating(false);
   }
@@ -7832,6 +7903,7 @@ function ScreenExecPositioning() {
 }
 
 function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: (screen: string) => void }) {
+  const billing = useBillingCtx();
   if (stage === "promotion") return <ScreenPromotionReadiness />;
   if (stage === "salary") return <ScreenSalaryCompensation />;
   if (stage === "career-change") return <ScreenPivotAnalysis />;
@@ -8202,7 +8274,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
         setTimeout(() => { setStep("results"); setResumeViewMode("suggestions"); }, 400);
       } else {
         setStep("paste");
-        setAnalyzeErr((data as {error?:string}|null)?.error ?? "Analysis failed — try again.");
+        if (!handleBillingApiError(res.status, data as BillingApiErrorData, billing)) setAnalyzeErr((data as {error?:string}|null)?.error ?? "Analysis failed — try again.");
       }
     } catch (e) {
       clearInterval(interval);
@@ -14057,6 +14129,7 @@ const STAGE_TASKS: Record<CareerStage, { text:string; cat:string; pri:string }[]
    SCREEN: COVER LETTER
 ═══════════════════════════════════════════════════ */
 function ScreenCoverLetter({ stage, active = false, onNavigate }: { stage: CareerStage; active?: boolean; onNavigate?: (s: string) => void }) {
+  const billing = useBillingCtx();
   if (stage === "promotion") return <ScreenPromotionDocument active={active} onNavigate={onNavigate} />;
   if (stage === "salary") return <ScreenSalaryNegotiationEmail />;
   if (stage === "leadership") return <ScreenExecOutreach />;
@@ -14134,7 +14207,7 @@ function ScreenCoverLetter({ stage, active = false, onNavigate }: { stage: Caree
         lsSet(CL_KEY, { step, profileText, profileFile, jobDesc, company, targetRole, candidateName, tone, result: newResult, editedLetter: data.coverLetter, stage });
         // Save to doc vault
         vaultSave({ type:"cover-letter", name:data.subject||targetRole||"Cover Letter", content:data.coverLetter, meta:{ subject:data.subject??"", targetRole, company, tone, stage } }); }
-      else setError(data?.error ?? "Generation failed — try again.");
+      else if (!handleBillingApiError(res.status, data as BillingApiErrorData, billing)) setError(data?.error ?? "Generation failed — try again.");
     } catch { setError("Something went wrong — try again."); }
     setGenerating(false);
   }
@@ -14994,6 +15067,7 @@ function ScreenPromotionRoadmap({ onNavigate, active = false }: { onNavigate: (s
 }
 
 function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage; onNavigate: (s: string) => void; active?: boolean }) {
+  const billing = useBillingCtx();
   if (stage === "promotion") return <ScreenPromotionRoadmap onNavigate={onNavigate} active={active} />;
   if (stage === "career-change") return <ScreenCareerChangePlan onNavigate={onNavigate} active={active} />;
 
@@ -15048,9 +15122,10 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
         ].filter(Boolean),
       }),
     })
-      .then(r => r.json())
-      .then((data: { tasks?: PlanTask[]; coachNote?: string }) => {
-        if (data.tasks?.length) { setAiTasks(data.tasks); setAiCoachNote(data.coachNote ?? null); }
+      .then(async r => {
+        const data = await r.json().catch(() => null) as ({ tasks?: PlanTask[]; coachNote?: string } & BillingApiErrorData) | null;
+        if (!r.ok) { handleBillingApiError(r.status, data as BillingApiErrorData, billing); return; }
+        if (data?.tasks?.length) { setAiTasks(data.tasks); setAiCoachNote((data as {coachNote?:string}).coachNote ?? null); }
       })
       .catch(() => {})
       .finally(() => setPlanLoading(false));
@@ -15362,16 +15437,80 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
   const isOperatorViewer = viewer.role === "admin" || viewer.role === "support";
   const userDisplayName = viewer.name?.trim() || viewer.email.split("@")[0] || "Your account";
   const userEmail = viewer.email?.trim() || "—";
+  const [upgradeNotice, setUpgradeNotice] = useState<null | {
+    requiredPlanId: string;
+    title: string;
+    body: string;
+  }>(null);
+  const [creditLimitNotice, setCreditLimitNotice] = useState<null | {
+    used: number;
+    limit: number;
+  }>(null);
+  const formatCredits = (value?: number | null) =>
+    new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: value && value % 1 !== 0 ? 2 : 0,
+      maximumFractionDigits: 2,
+    }).format(Number(value || 0));
   const sidebarPlanTitle = isOperatorViewer ? "Internal operator" : viewer.planName;
   const sidebarPlanCopy = isOperatorViewer
     ? "Operator workspace with full internal access."
     : viewer.isPaid
-      ? `${viewer.includedMonthlyCredits?.toLocaleString() || "Included"} monthly credits · ${viewer.subscriptionStatus || "active"}`
+      ? `${formatCredits(viewer.remainingMonthlyCredits ?? viewer.creditLimit ?? viewer.includedMonthlyCredits)} of ${formatCredits(viewer.creditLimit ?? viewer.includedMonthlyCredits)} credits left this cycle · ${viewer.subscriptionStatus || "active"}`
       : "Upgrade for unlimited sessions, downloads, and priority coaching.";
-  const showUpgradeCta = !isOperatorViewer && !viewer.isPaid;
+  const showUpgradeCta = !isOperatorViewer && (!viewer.isPaid || Boolean(upgradeNotice));
+
+  const promptUpgrade = useCallback((requiredPlanId: string, reason: string) => {
+    const requiredPlanName = getPlanDisplayName(requiredPlanId);
+    setCreditLimitNotice(null);
+    setUpgradeNotice({
+      requiredPlanId,
+      title: `Upgrade to ${requiredPlanName}`,
+      body: reason,
+    });
+  }, []);
+
+  const promptCreditLimit = useCallback((used: number, limit: number) => {
+    setUpgradeNotice(null);
+    setCreditLimitNotice({ used, limit });
+  }, []);
+
+  const billingCtx: BillingCtx = { onPlanBlock: promptUpgrade, onCreditLimit: promptCreditLimit };
+
+  useEffect(() => {
+    const decision = canAccessStage({ planId: viewer.planId, role: viewer.role, stage });
+    if (!decision.ok) {
+      setStage("job-search");
+      setScreen("session");
+      setUpgradeNotice({
+        requiredPlanId: decision.requiredPlanId || "growth",
+        title: `Upgrade to ${getPlanDisplayName(decision.requiredPlanId)}`,
+        body: `Your current plan does not include the ${STAGE_META[stage].label} stage.`,
+      });
+    }
+  }, [stage, viewer.planId, viewer.role]);
 
   // Persist active screen so refresh lands back on the same section
-  const navigate = (s: Screen) => { setScreen(s); try { localStorage.setItem("zari_screen", s); } catch { /* ignore */ } };
+  const navigate = (s: Screen) => {
+    setScreen(s);
+    setUpgradeNotice(null);
+    setCreditLimitNotice(null);
+    try { localStorage.setItem("zari_screen", s); } catch { /* ignore */ }
+  };
+
+  const selectStage = (nextStage: CareerStage) => {
+    const decision = canAccessStage({ planId: viewer.planId, role: viewer.role, stage: nextStage });
+    if (!decision.ok) {
+      const requiredPlanId = decision.requiredPlanId || getRequiredPlanForStage(nextStage) || "growth";
+      promptUpgrade(requiredPlanId, `${STAGE_META[nextStage].label} is available on ${getPlanDisplayName(requiredPlanId)} and above.`);
+      setStageOpen(false);
+      return;
+    }
+
+    setUpgradeNotice(null);
+    setStage(nextStage);
+    setStageOpen(false);
+    navigate("session");
+  };
 
   // Section accent colors for topbar context
   const SCREEN_ACCENTS: Record<string, { color: string; gradient: string }> = {
@@ -15386,6 +15525,7 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
   const accentInfo = SCREEN_ACCENTS[screen] ?? SCREEN_ACCENTS["session"];
 
   return (
+    <BillingContext.Provider value={billingCtx}>
     <div className={isDark?"zari-dark":""} style={{ display:"flex", height:"100vh", overflow:"hidden", background:"var(--z-bg)", fontFamily:"var(--font-geist-sans,Inter,system-ui,sans-serif)", WebkitFontSmoothing:"antialiased", MozOsxFontSmoothing:"grayscale", ...themeVars, backgroundImage: isDark ? "radial-gradient(ellipse 80% 60% at 50% -20%, rgba(37,99,235,0.07) 0%, transparent 100%)" : "none" }}>
       <style>{`
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.15} }
@@ -15471,7 +15611,7 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
           {stageOpen && (
             <div style={{ position:"absolute", top:"calc(100% + 6px)", left:0, right:0, zIndex:50, background: isDark ? "rgba(8,14,28,0.96)" : "var(--z-card)", borderRadius:12, border:"1px solid var(--z-bd)", boxShadow: isDark ? "0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05)" : "0 16px 48px rgba(0,0,0,0.13)", overflow:"hidden", animation:"bubble-appear 0.2s ease", backdropFilter:"blur(16px)" }}>
               {(Object.entries(STAGE_META) as [CareerStage, typeof STAGE_META[CareerStage]][]).map(([key, meta]) => (
-                <button key={key} onClick={() => { setStage(key); setStageOpen(false); navigate("session"); }}
+                <button key={key} onClick={() => selectStage(key)}
                   className="zari-stage-opt"
                   style={{ width:"100%", display:"flex", alignItems:"center", gap:9, padding:"10px 13px", border:"none", cursor:"pointer", textAlign:"left", background:stage===key ? (isDark ? "rgba(37,99,235,0.12)" : "rgba(37,99,235,0.06)") :"transparent", fontSize:13, fontWeight:stage===key?700:500, color:stage===key ? meta.color : "var(--z-text2)", transition:"background 0.12s", borderBottom:"1px solid var(--z-bd2)", borderLeft: stage===key ? `3px solid ${meta.color}` : "3px solid transparent" }}>
                   <span style={{ display:"flex", alignItems:"center", color: meta.color, opacity: stage===key ? 1 : 0.7 }}>{STAGE_ICONS[key]}</span>
@@ -15540,9 +15680,26 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
           <div style={{ fontSize:12.5, fontWeight:700, color:"var(--z-text)", lineHeight:1.35 }}>{userDisplayName}</div>
           <div style={{ fontSize:11.5, color:"var(--z-text2)", marginTop:4, lineHeight:1.45, wordBreak:"break-word" }}>{userEmail}</div>
           <div style={{ fontSize:11.5, color:"var(--z-text2)", marginTop:10, marginBottom:10, lineHeight:1.55 }}>{sidebarPlanCopy}</div>
+          {upgradeNotice ? (
+            <div style={{ marginBottom:10, borderRadius:10, border:"1px solid rgba(37,99,235,0.18)", background:isDark ? "rgba(37,99,235,0.10)" : "rgba(37,99,235,0.08)", padding:"10px 11px" }}>
+              <div style={{ fontSize:11.5, fontWeight:800, color:"#2563EB", letterSpacing:"-0.01em" }}>{upgradeNotice.title}</div>
+              <div style={{ fontSize:11.5, color:"var(--z-text2)", marginTop:4, lineHeight:1.45 }}>{upgradeNotice.body}</div>
+            </div>
+          ) : null}
+          {creditLimitNotice ? (
+            <div style={{ marginBottom:10, borderRadius:10, border:"1px solid rgba(239,68,68,0.22)", background:isDark ? "rgba(239,68,68,0.10)" : "rgba(239,68,68,0.07)", padding:"10px 11px" }}>
+              <div style={{ fontSize:11.5, fontWeight:800, color:"#DC2626", letterSpacing:"-0.01em" }}>Monthly credits used</div>
+              <div style={{ fontSize:11.5, color:"var(--z-text2)", marginTop:4, lineHeight:1.45 }}>
+                You&apos;ve used all {formatCredits(creditLimitNotice.limit)} credits this cycle. Upgrade your plan or purchase more to continue.
+              </div>
+              <Link href="/onboarding/plan" className="zari-btn-scale" style={{ marginTop:8, width:"100%", display:"inline-flex", alignItems:"center", justifyContent:"center", textDecoration:"none", fontSize:12, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"none", background:"linear-gradient(135deg, #EF4444 0%, #DC2626 100%)", color:"white", cursor:"pointer" }}>
+                Buy more credits →
+              </Link>
+            </div>
+          ) : null}
           {showUpgradeCta ? (
-            <Link href="/onboarding/plan" className="zari-btn-scale" style={{ width:"100%", display:"inline-flex", alignItems:"center", justifyContent:"center", textDecoration:"none", fontSize:12.5, fontWeight:700, padding:"8px", borderRadius:9, border:"none", background:"linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)", color:"white", cursor:"pointer", boxShadow:"0 3px 12px rgba(37,99,235,0.4)" }}>
-              Upgrade →
+            <Link href={upgradeNotice ? `/onboarding/plan?upgrade=${encodeURIComponent(upgradeNotice.requiredPlanId)}` : "/onboarding/plan"} className="zari-btn-scale" style={{ width:"100%", display:"inline-flex", alignItems:"center", justifyContent:"center", textDecoration:"none", fontSize:12.5, fontWeight:700, padding:"8px", borderRadius:9, border:"none", background:"linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)", color:"white", cursor:"pointer", boxShadow:"0 3px 12px rgba(37,99,235,0.4)" }}>
+              {upgradeNotice ? `Upgrade to ${getPlanDisplayName(upgradeNotice.requiredPlanId)} →` : "Upgrade →"}
             </Link>
           ) : null}
         </div>
@@ -15589,5 +15746,6 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
         </div>
       </main>
     </div>
+    </BillingContext.Provider>
   );
 }

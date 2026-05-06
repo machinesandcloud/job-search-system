@@ -5,6 +5,13 @@ import { getCurrentUserId } from "@/lib/mvp/auth";
 import { getUserById as getMvpUserById } from "@/lib/mvp/store";
 import { getPlatformIdentityByUserId } from "@/lib/platform-users";
 import { getPricingPlanById } from "@/lib/pricing-catalog";
+import {
+  canAccessFeature,
+  getPlanDisplayName,
+  getRequiredPlanForFeature,
+  getUpgradePrompt,
+  normalizeProductPlanId,
+} from "@/lib/plan-entitlements";
 import { getBaseUrl } from "@/lib/utils";
 
 export type CoachAdminRole = "admin" | "support";
@@ -222,8 +229,39 @@ function parseTokenLimit(value: string | undefined, fallback: number) {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
+export function getBillingTokensPerCredit() {
+  return parseTokenLimit(process.env.BILLING_TOKENS_PER_CREDIT, 1_000);
+}
+
+export function creditsToRawTokens(credits?: number | null) {
+  const normalizedCredits = Number(credits || 0);
+  if (!Number.isFinite(normalizedCredits) || normalizedCredits <= 0) return 0;
+  return Math.round(normalizedCredits * getBillingTokensPerCredit());
+}
+
+export function rawTokensToCredits(rawTokens?: number | null, precision = 2) {
+  const normalizedTokens = Math.max(0, Number(rawTokens || 0));
+  if (!Number.isFinite(normalizedTokens) || normalizedTokens <= 0) return 0;
+  const credits = normalizedTokens / getBillingTokensPerCredit();
+  const factor = Math.pow(10, precision);
+  return Math.round(credits * factor) / factor;
+}
+
+export function formatCreditAmount(value?: number | null) {
+  const normalized = Number(value || 0);
+  if (!Number.isFinite(normalized)) return "0";
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: normalized % 1 === 0 ? 0 : 2,
+    maximumFractionDigits: 2,
+  }).format(normalized);
+}
+
 export function getPlanTokenLimit(planName?: string | null, priceId?: string | null) {
   const planId = getPricingCatalogPlanId(planName, priceId);
+  const pricingPlan = getPricingPlanById(planId);
+  if (pricingPlan?.includedCredits) {
+    return creditsToRawTokens(pricingPlan.includedCredits);
+  }
 
   if (planId === "search") {
     return parseTokenLimit(process.env.PLAN_TOKEN_LIMIT_SEARCH, parseTokenLimit(process.env.PLAN_TOKEN_LIMIT_FREE, 150_000));
@@ -626,12 +664,18 @@ export async function getCurrentPeriodTokenUsage(accountId: string) {
 
   const limit = getPlanTokenLimit(subscription.planName, subscription.stripePriceId);
   const used = aggregate._sum.totalTokens || 0;
+  const limitCredits = rawTokensToCredits(limit);
+  const usedCredits = rawTokensToCredits(used);
   return {
     limit,
     used,
     remaining: Math.max(0, limit - used),
     inputTokens: aggregate._sum.inputTokens || 0,
     outputTokens: aggregate._sum.outputTokens || 0,
+    tokensPerCredit: getBillingTokensPerCredit(),
+    limitCredits,
+    usedCredits,
+    remainingCredits: Math.max(0, limitCredits - usedCredits),
     subscription,
   };
 }
@@ -652,6 +696,7 @@ export type AiUsageUserSummary = {
   inputTokens: number;
   outputTokens: number;
   totalTokens: number;
+  creditsUsed: number;
   estimatedCostUsd: number;
   topModel: string | null;
   topFeature: string | null;
@@ -663,6 +708,7 @@ export type AiUsageRollup = {
   inputTokens: number;
   outputTokens: number;
   totalTokens: number;
+  creditsUsed: number;
   estimatedCostUsd: number;
   trackedUsers: number;
   topModel: string | null;
@@ -801,6 +847,7 @@ export async function getAiUsageSummary(input: {
         inputTokens: group._sum.inputTokens || 0,
         outputTokens: group._sum.outputTokens || 0,
         totalTokens: group._sum.totalTokens || 0,
+        creditsUsed: rawTokensToCredits(group._sum.totalTokens || 0),
         estimatedCostUsd: costByUser.get(group.userId) || 0,
         topModel: topModelByUser.get(group.userId)?.model || null,
         topFeature: topFeatureByUser.get(group.userId)?.featureName || null,
@@ -824,6 +871,7 @@ export async function getAiUsageSummary(input: {
       inputTokens: byUser.reduce((sum: number, entry: AiUsageUserSummary) => sum + entry.inputTokens, 0),
       outputTokens: byUser.reduce((sum: number, entry: AiUsageUserSummary) => sum + entry.outputTokens, 0),
       totalTokens: byUser.reduce((sum: number, entry: AiUsageUserSummary) => sum + entry.totalTokens, 0),
+      creditsUsed: rawTokensToCredits(byUser.reduce((sum: number, entry: AiUsageUserSummary) => sum + entry.totalTokens, 0)),
       estimatedCostUsd: byUser.reduce((sum: number, entry: AiUsageUserSummary) => sum + entry.estimatedCostUsd, 0),
       trackedUsers: byUser.length,
       topModel: globalTopModel?.model || null,
@@ -855,6 +903,15 @@ export async function getCurrentSubscriptionAccess() {
 
   if (!identity) {
     return { ok: false as const, status: 401, error: "Sign in required." };
+  }
+
+  if (identity.user.role === "admin" || identity.user.role === "support") {
+    return {
+      ok: true as const,
+      user: identity.user,
+      account: identity.account,
+      subscription: identity.subscription || null,
+    };
   }
 
   let subscription;
@@ -929,9 +986,10 @@ export async function getCurrentSubscriptionAccess() {
 export async function requirePaidRouteAccess(
   featureName: string,
   metadataJson: Record<string, unknown> = {},
-  options: { enforceTokenLimit?: boolean } = {}
+  options: { enforceTokenLimit?: boolean; stage?: string | null } = {}
 ) {
   const enforceTokenLimit = options.enforceTokenLimit ?? true;
+  const stage = options.stage || (typeof metadataJson.stage === "string" ? metadataJson.stage : null);
 
   let access;
   try {
@@ -953,6 +1011,7 @@ export async function requirePaidRouteAccess(
       response: NextResponse.json(
         {
           ok: false,
+          code: "subscription_required",
           error: access.error,
           subscriptionStatus: access.subscription?.status || null,
         },
@@ -970,6 +1029,51 @@ export async function requirePaidRouteAccess(
     }
   }
 
+  const planDecision = canAccessFeature({
+    planId: getPricingCatalogPlanId(access.subscription?.planName, access.subscription?.stripePriceId),
+    role: access.user?.role,
+    featureName,
+    stage,
+  });
+
+  if (!planDecision.ok) {
+    const requiredPlanId = planDecision.requiredPlanId || getRequiredPlanForFeature(featureName, stage);
+    const currentPlanId = planDecision.currentPlanId || normalizeProductPlanId(getPricingCatalogPlanId(access.subscription?.planName, access.subscription?.stripePriceId));
+
+    try {
+      await logAppEvent("subscription_upgrade_required", {
+        accountId: access.account?.id,
+        userId: access.user?.id,
+        metadataJson: {
+          featureName,
+          stage,
+          currentPlanId,
+          requiredPlanId,
+          ...metadataJson,
+        },
+      });
+    } catch { /* non-fatal */ }
+
+    return {
+      ok: false as const,
+      response: NextResponse.json(
+        {
+          ok: false,
+          code: "plan_upgrade_required",
+          error: getUpgradePrompt({ featureName, stage, requiredPlanId }),
+          featureName,
+          stage,
+          currentPlanId,
+          currentPlanName: getPlanDisplayName(currentPlanId),
+          requiredPlanId,
+          requiredPlanName: getPlanDisplayName(requiredPlanId),
+          subscriptionStatus: access.subscription?.status || null,
+        },
+        { status: 402 }
+      ),
+    };
+  }
+
   if (enforceTokenLimit && usage && usage.used >= usage.limit) {
     try {
       await logAppEvent("subscription_token_limit_reached", {
@@ -984,8 +1088,15 @@ export async function requirePaidRouteAccess(
       response: NextResponse.json(
         {
           ok: false,
-          error: "Monthly token limit reached for the current subscription plan.",
+          code: "credit_limit_reached",
+          error: "You have used all included monthly credits for this plan. Upgrade or buy more credits to continue.",
           tokenUsage: usage,
+          creditUsage: {
+            used: usage.usedCredits,
+            limit: usage.limitCredits,
+            remaining: usage.remainingCredits,
+            tokensPerCredit: usage.tokensPerCredit,
+          },
         },
         { status: 429 }
       ),

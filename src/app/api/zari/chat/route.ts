@@ -117,19 +117,6 @@ export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) {
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
   }
-  const access = await requirePaidRouteAccess("zari_chat");
-  if (!access.ok) return access.response;
-
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json({
-      message: "I'm not fully set up yet — add OPENAI_API_KEY to get started.",
-      aiEnabled: false,
-    });
-  }
-
-  const userId = await getCurrentUserId();
-
   const body = await request.json().catch(() => ({})) as {
     message?:          string;
     stage?:            string;
@@ -151,6 +138,19 @@ export async function POST(request: Request) {
   const uploadedFileName = body.uploadedFileName;
   const isOpening        = body.isOpening ?? false;
   const isVoice          = body.isVoice   ?? false;
+
+  const access = await requirePaidRouteAccess("zari_chat", { stage }, { stage });
+  if (!access.ok) return access.response;
+
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    return NextResponse.json({
+      message: "I'm not fully set up yet — add OPENAI_API_KEY to get started.",
+      aiEnabled: false,
+    });
+  }
+
+  const userId = await getCurrentUserId();
 
   if (!message && !isOpening) {
     return NextResponse.json({ error: "Message required" }, { status: 400 });

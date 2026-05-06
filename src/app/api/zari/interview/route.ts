@@ -264,9 +264,6 @@ export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) {
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
   }
-  const access = await requirePaidRouteAccess("zari_interview");
-  if (!access.ok) return access.response;
-
   const body = await request.json().catch(() => ({})) as {
     action?: "generate-questions" | "score-answer";
     question?: string;
@@ -283,6 +280,8 @@ export async function POST(request: Request) {
   const action = body.action ?? "score-answer";
   const stage  = body.stage ?? "job-search";
   const round  = body.round ?? "hiring-manager";
+  const access = await requirePaidRouteAccess("zari_interview", { stage, action }, { stage });
+  if (!access.ok) return access.response;
 
   const userId = await getCurrentUserId();
   let userContext = "";

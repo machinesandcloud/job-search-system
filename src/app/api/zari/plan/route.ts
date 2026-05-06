@@ -13,9 +13,6 @@ export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) {
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
   }
-  const access = await requirePaidRouteAccess("zari_plan");
-  if (!access.ok) return access.response;
-
   const body = await request.json().catch(() => ({})) as {
     stage?: string;
     resumeSnippet?: string;
@@ -35,6 +32,8 @@ export async function POST(request: Request) {
   const readinessVerdict  = (body.readinessVerdict  ?? "").trim();
   const targetRole        = (body.targetRole        ?? "").trim();
   const completedSections = body.completedSections  ?? [];
+  const access = await requirePaidRouteAccess("zari_plan", { stage }, { stage });
+  if (!access.ok) return access.response;
   const scoreLabel = stage === "promotion" ? "Readiness score" : "Resume score";
   const targetLabel = stage === "promotion" ? "Target level" : "Target role";
 
