@@ -4309,16 +4309,16 @@ function ScreenPromotionReadiness() {
 
                 {/* Zari's read — AI rationale (replaces deterministic calibration section) */}
                 {result.rationale.length > 0 && (
-                  <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #7C3AED", padding:"20px 24px" }}>
+                  <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #1459CC", padding:"20px 24px" }}>
                     <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:16, flexWrap:"wrap" }}>
-                      <div style={{ fontSize:10.5, fontWeight:800, color:"#7C3AED", textTransform:"uppercase", letterSpacing:"0.1em" }}>Zari&apos;s read</div>
-                      <span style={{ fontSize:10.5, fontWeight:700, padding:"3px 9px", borderRadius:999, background:"rgba(124,58,237,0.08)", color:"#7C3AED", border:"1px solid rgba(124,58,237,0.2)" }}>AI analysis</span>
+                      <div style={{ fontSize:10.5, fontWeight:800, color:"#1459CC", textTransform:"uppercase", letterSpacing:"0.1em" }}>Zari&apos;s read</div>
+                      <span style={{ fontSize:10.5, fontWeight:700, padding:"3px 9px", borderRadius:999, background:"rgba(20,89,204,0.08)", color:"#1459CC", border:"1px solid rgba(20,89,204,0.2)" }}>AI analysis</span>
                     </div>
                     <div style={{ display:"grid", gap:12 }}>
                       {result.rationale.map((line, i) => (
                         <div key={i} style={{ display:"flex", gap:12, alignItems:"flex-start" }}>
                           <div style={{ width:24, height:24, borderRadius:"50%", background:"rgba(124,58,237,0.1)", border:"1px solid rgba(124,58,237,0.2)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>
-                            <span style={{ fontSize:10, fontWeight:900, color:"#7C3AED" }}>{i + 1}</span>
+                            <span style={{ fontSize:10, fontWeight:900, color:"#1459CC" }}>{i + 1}</span>
                           </div>
                           <p style={{ fontSize:14, color:"var(--z-text)", lineHeight:1.78, margin:0 }}>{line}</p>
                         </div>
@@ -5567,8 +5567,8 @@ function ScreenPivotAnalysis() {
               {/* Resume Reframe */}
               <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"22px 26px" }}>
                 <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
-                  {zIcon("file", "#7C3AED")}
-                  <div style={{ fontSize:11, fontWeight:800, color:"#7C3AED", textTransform:"uppercase", letterSpacing:"0.1em" }}>How to reframe your resume</div>
+                  {zIcon("file", "#1459CC")}
+                  <div style={{ fontSize:11, fontWeight:800, color:"#1459CC", textTransform:"uppercase", letterSpacing:"0.1em" }}>How to reframe your resume</div>
                 </div>
                 <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.85, margin:0 }}>{result.resumeReframe}</p>
               </div>
@@ -5864,7 +5864,7 @@ function useCCStore() {
 ═══════════════════════════════════════════════════ */
 function ScreenPivotStoryBuilder({ active }:{ active:boolean }) {
   const billing = useBillingCtx();
-  const ACCENT = "#7C3AED", ACCENT2 = "#A78BFA";
+  const ACCENT = "#1459CC", ACCENT2 = "#4B8DE8";
   const { form, cache, ready } = useCCStore();
   const [generating, setGen] = useState(false);
   const [error, setError] = useState("");
@@ -15098,12 +15098,12 @@ function ScreenPromotionRoadmap({ onNavigate, active = false }: { onNavigate: (s
         )}
 
         {/* Zari's take — premium gradient card */}
-        <div style={{ borderRadius:18, background:"linear-gradient(135deg, rgba(124,58,237,0.08) 0%, rgba(37,99,235,0.05) 100%)", border:"1px solid rgba(124,58,237,0.2)", borderLeft:"4px solid #7C3AED", padding:"22px 26px", marginBottom:18 }}>
+        <div style={{ borderRadius:18, background:"linear-gradient(135deg, rgba(124,58,237,0.08) 0%, rgba(37,99,235,0.05) 100%)", border:"1px solid rgba(124,58,237,0.2)", borderLeft:"4px solid #1459CC", padding:"22px 26px", marginBottom:18 }}>
           <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
             <div style={{ width:28, height:28, borderRadius:8, background:"linear-gradient(135deg, #7C3AED, #3B82F6)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
               <span style={{ fontSize:12, fontWeight:900, color:"white" }}>Z</span>
             </div>
-            <div style={{ fontSize:10.5, fontWeight:800, color:"#7C3AED", textTransform:"uppercase", letterSpacing:"0.12em" }}>Zari&apos;s take</div>
+            <div style={{ fontSize:10.5, fontWeight:800, color:"#1459CC", textTransform:"uppercase", letterSpacing:"0.12em" }}>Zari&apos;s take</div>
           </div>
           <p style={{ fontSize:15.5, color:"var(--z-text)", lineHeight:1.82, margin:0, fontWeight:500 }}>
             {aiCoachNote ?? "Start with the highest-leverage tasks. The goal is to tighten the case first, then build support, then time the ask so the decision feels inevitable rather than premature."}

@@ -12,7 +12,7 @@ export default function NotFound() {
       <div style={{ position: "relative", zIndex: 10, width: "100%", maxWidth: 480, background: "#fff", borderRadius: 24, boxShadow: "0 4px 40px rgba(0,0,0,0.08)", padding: "48px 40px", textAlign: "center" }}>
         <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none", marginBottom: 32 }}>
           <ZariLogo size={28} />
-          <span style={{ fontSize: 16, fontWeight: 800, letterSpacing: "-0.02em", background: "linear-gradient(135deg, #4F46E5, #7C3AED)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Zari</span>
+          <span style={{ fontSize: 16, fontWeight: 800, letterSpacing: "-0.02em", background: "linear-gradient(135deg, #1459CC, #1868E8)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Zari</span>
         </Link>
 
         <div style={{ fontSize: 72, fontWeight: 900, letterSpacing: "-0.05em", color: "#E2E8F0", lineHeight: 1, marginBottom: 16 }}>404</div>

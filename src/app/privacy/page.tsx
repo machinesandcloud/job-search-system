@@ -10,7 +10,7 @@ export default function PrivacyPage() {
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 40 }}>
           <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
             <ZariLogo size={28} />
-            <span style={{ fontSize: 16, fontWeight: 800, background: "linear-gradient(135deg, #4F46E5, #7C3AED)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Zari</span>
+            <span style={{ fontSize: 16, fontWeight: 800, background: "linear-gradient(135deg, #1459CC, #1868E8)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Zari</span>
           </Link>
         </div>
 
@@ -70,7 +70,7 @@ export default function PrivacyPage() {
         ))}
 
         <div style={{ borderTop: "1px solid #E2E8F0", paddingTop: 24, marginTop: 16 }}>
-          <Link href="/terms" style={{ fontSize: 14, color: "#4F46E5", marginRight: 24 }}>Terms of Service</Link>
+          <Link href="/terms" style={{ fontSize: 14, color: "#1459CC", marginRight: 24 }}>Terms of Service</Link>
           <Link href="/" style={{ fontSize: 14, color: "#64748B" }}>Back to Zari</Link>
         </div>
       </div>

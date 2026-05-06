@@ -52,7 +52,7 @@ export default async function SettingsPage() {
             },
             {
               href: "/settings/subscription/cancel",
-              color: "#7C3AED",
+              color: "#1459CC",
               icon: <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" style={{ width: 20, height: 20 }}><rect x="2" y="4" width="16" height="13" rx="2"/><path d="M2 8h16M6 2v4M14 2v4"/></svg>,
               title: "Subscription & Billing",
               description: isPaid
