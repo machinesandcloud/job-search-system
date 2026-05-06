@@ -141,6 +141,7 @@ model User {
   ownedAccounts       Account[]      @relation("AccountOwner")
   coachProfile        CoachProfile?
   appSessions         AppSession[]
+  passwordResetTokens PasswordResetToken[]
   sessions            CoachingSession[]
   documents           Document[]
   actionPlans         ActionPlan[]
@@ -486,4 +487,17 @@ model Company {
 
   @@index([isPopular])
   @@index([category])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

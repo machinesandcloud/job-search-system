@@ -15745,6 +15745,7 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
   });
   const [stage, setStage] = useState<CareerStage>("job-search");
   const [stageOpen, setStageOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isDark, setIsDark] = useState(() => {
     try { return localStorage.getItem("zari_dark") === "1"; } catch { return false; }
   });
@@ -15810,6 +15811,7 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
     setScreen(s);
     setUpgradeNotice(null);
     setCreditLimitNotice(null);
+    setSidebarOpen(false);
     try { localStorage.setItem("zari_screen", s); } catch { /* ignore */ }
   };
 
@@ -15839,10 +15841,24 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
     plan:          { color:"#2563EB", gradient:"linear-gradient(135deg,#2563EB,#60A5FA)" },
   };
   const accentInfo = SCREEN_ACCENTS[screen] ?? SCREEN_ACCENTS["session"];
+  const paymentIssueStatuses = ["past_due", "unpaid", "incomplete", "incomplete_expired"];
+  const hasPaymentIssue = !isOperatorViewer && viewer.subscriptionStatus != null && paymentIssueStatuses.includes(viewer.subscriptionStatus);
 
   return (
     <BillingContext.Provider value={billingCtx}>
-    <div className={isDark?"zari-dark":""} style={{ display:"flex", height:"100vh", overflow:"hidden", background:"var(--z-bg)", fontFamily:"var(--font-geist-sans,Inter,system-ui,sans-serif)", WebkitFontSmoothing:"antialiased", MozOsxFontSmoothing:"grayscale", ...themeVars, backgroundImage: isDark ? "radial-gradient(ellipse 80% 60% at 50% -20%, rgba(37,99,235,0.07) 0%, transparent 100%)" : "none" }}>
+    <div className={isDark?"zari-dark":""} style={{ display:"flex", flexDirection:"column", height:"100vh", overflow:"hidden", background:"var(--z-bg)", fontFamily:"var(--font-geist-sans,Inter,system-ui,sans-serif)", WebkitFontSmoothing:"antialiased", MozOsxFontSmoothing:"grayscale", ...themeVars, backgroundImage: isDark ? "radial-gradient(ellipse 80% 60% at 50% -20%, rgba(37,99,235,0.07) 0%, transparent 100%)" : "none" }}>
+      {hasPaymentIssue && (
+        <div style={{ flexShrink:0, background:"linear-gradient(90deg, #DC2626 0%, #B91C1C 100%)", color:"white", padding:"8px 20px", display:"flex", alignItems:"center", gap:10, fontSize:13, fontWeight:500, zIndex:100 }}>
+          <svg viewBox="0 0 16 16" fill="none" stroke="white" strokeWidth="1.8" style={{width:14,height:14,flexShrink:0}}><circle cx="8" cy="8" r="7"/><path d="M8 5v3M8 10.5v.5"/></svg>
+          <span>
+            <strong>Payment issue — </strong>
+            {viewer.subscriptionStatus === "past_due" ? "Your last payment failed." : viewer.subscriptionStatus === "unpaid" ? "Your subscription is unpaid." : "Your payment is being processed."}
+            {" "}
+            <a href="/settings/subscription" style={{color:"white", fontWeight:700, textDecoration:"underline"}}>Update payment method →</a>
+          </span>
+        </div>
+      )}
+    <div style={{ display:"flex", flex:1, overflow:"hidden" }}>
       <style>{`
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.15} }
         @keyframes bubble-appear { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
@@ -15890,10 +15906,26 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--z-bd); border-radius: 99px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--z-text3); }
+        @media (max-width: 767px) {
+          .zari-sidebar { position:fixed !important; left:0; top:0; bottom:0; z-index:200; transform:translateX(-100%); transition:transform 0.28s cubic-bezier(0.4,0,0.2,1); box-shadow:4px 0 32px rgba(0,0,0,0.18) !important; }
+          .zari-sidebar.open { transform:translateX(0) !important; }
+          .zari-mobile-overlay { display:flex !important; }
+          .zari-bottom-nav { display:flex !important; }
+          .zari-topbar-hamburger { display:flex !important; }
+          .zari-main { padding-bottom:60px !important; }
+        }
+        .zari-mobile-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:199; backdrop-filter:blur(2px); }
+        .zari-bottom-nav { display:none; position:fixed; bottom:0; left:0; right:0; height:58px; background:var(--z-card); border-top:1px solid var(--z-bd); z-index:100; align-items:stretch; }
+        .zari-bottom-nav-btn { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; background:none; border:none; cursor:pointer; font-size:10px; font-weight:600; color:var(--z-text3); transition:color 0.14s; padding:0; }
+        .zari-bottom-nav-btn.active { color:#2563EB; }
+        .zari-topbar-hamburger { display:none; align-items:center; justify-content:center; width:34px; height:34px; border-radius:9px; border:1px solid var(--z-bd); background:transparent; cursor:pointer; color:var(--z-text2); margin-right:4px; }
       `}</style>
 
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && <div className="zari-mobile-overlay" onClick={() => setSidebarOpen(false)} />}
+
       {/* ── SIDEBAR ── */}
-      <aside style={{ width:244, flexShrink:0, background:"var(--z-card)", display:"flex", flexDirection:"column", padding:"0 0 16px", position:"relative", borderRight:"1px solid var(--z-bd)", overflow:"hidden" }}>
+      <aside className={`zari-sidebar${sidebarOpen ? " open" : ""}`} style={{ width:244, flexShrink:0, background:"var(--z-card)", display:"flex", flexDirection:"column", padding:"0 0 16px", position:"relative", borderRight:"1px solid var(--z-bd)", overflow:"hidden" }}>
         {/* Dark mode ambient glow */}
         {isDark && <div style={{ position:"absolute", top:-40, left:-20, width:180, height:180, borderRadius:"50%", background:"radial-gradient(circle, rgba(37,99,235,0.12) 0%, transparent 70%)", pointerEvents:"none" }}/>}
 
@@ -15916,6 +15948,9 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
 
         {/* Career Stage Selector */}
         <div style={{ margin:"0 10px 10px", position:"relative" }}>
+          <div style={{ padding:"0 2px 5px", fontSize:10.5, color:"var(--z-text3)", fontWeight:500, letterSpacing:"0.01em" }}>
+            Your stage customizes every Zari tool for your specific goal.
+          </div>
           <button
             onClick={() => setStageOpen(o => !o)}
             style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"9px 12px", borderRadius:10, border:"1px solid var(--z-bd)", background: isDark ? "rgba(255,255,255,0.03)" : "var(--z-raise)", cursor:"pointer", fontSize:12.5, fontWeight:600, color:"var(--z-text2)", transition:"all 0.18s", backdropFilter: isDark ? "blur(8px)" : "none" }}
@@ -16021,12 +16056,16 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
       </aside>
 
       {/* ── MAIN CONTENT ── */}
-      <main style={{ flex:1, overflow:"hidden", display:"flex", flexDirection:"column" }}>
+      <main className="zari-main" style={{ flex:1, overflow:"hidden", display:"flex", flexDirection:"column" }}>
         {/* Top bar */}
-        <div style={{ flexShrink:0, height:54, background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", display:"flex", alignItems:"center", padding:"0 26px", gap:12, position:"relative" }}>
+        <div style={{ flexShrink:0, height:54, background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", display:"flex", alignItems:"center", padding:"0 16px 0 12px", gap:8, position:"relative" }}>
           {/* Accent line */}
           <div style={{ position:"absolute", bottom:0, left:0, height:2, width:"100%", background:`linear-gradient(90deg, ${accentInfo.color}70 0%, ${accentInfo.color}20 40%, transparent 100%)`, pointerEvents:"none" }}/>
-          <h2 style={{ fontSize:15, fontWeight:700, color:"var(--z-text)", letterSpacing:"-0.02em", margin:0 }}>
+          {/* Hamburger — mobile only */}
+          <button className="zari-topbar-hamburger" onClick={() => setSidebarOpen(o => !o)}>
+            <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:16,height:16}}><path d="M2 4h14M2 9h14M2 14h14"/></svg>
+          </button>
+          <h2 style={{ fontSize:15, fontWeight:700, color:"var(--z-text)", letterSpacing:"-0.02em", margin:0, flex:1 }}>
             {STAGE_NAV_LABELS[stage][screen]}
           </h2>
           <div style={{ marginLeft:"auto", display:"flex", gap:8, alignItems:"center" }}>
@@ -16034,18 +16073,10 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
               <span style={{ display:"inline-flex", alignItems:"center", color: accentInfo.color }}>{STAGE_ICONS[stage]}</span>
               <span style={{ fontSize:11.5, fontWeight:600, color: accentInfo.color }}>{STAGE_META[stage].label}</span>
             </div>
-            <div style={{ minWidth:0, maxWidth:240, display:"flex", flexDirection:"column", alignItems:"flex-end", padding:"6px 10px", borderRadius:10, border:"1px solid var(--z-bd)", background:isDark ? "rgba(255,255,255,0.03)" : "var(--z-raise)" }}>
-              <div style={{ fontSize:12.5, fontWeight:700, color:"var(--z-text)", lineHeight:1.2, maxWidth:"100%", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{userDisplayName}</div>
+            <button onClick={()=>navigate("account")} style={{ minWidth:0, maxWidth:240, display:"flex", flexDirection:"column", alignItems:"flex-end", padding:"6px 10px", borderRadius:10, border: screen==="account" ? "1px solid rgba(37,99,235,0.3)" : "1px solid var(--z-bd)", background:isDark ? "rgba(255,255,255,0.03)" : "var(--z-raise)", cursor:"pointer", transition:"all 0.15s" }}>
+              <div style={{ fontSize:12.5, fontWeight:700, color: screen==="account" ? "#2563EB" : "var(--z-text)", lineHeight:1.2, maxWidth:"100%", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{userDisplayName}</div>
               <div style={{ fontSize:11, color:"var(--z-text2)", lineHeight:1.2, maxWidth:"100%", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{userEmail}</div>
-            </div>
-            <PlatformLogoutButton
-              className=""
-              redirectTo="/login"
-            >
-              <span style={{ fontSize:12, fontWeight:600, padding:"5px 13px", borderRadius:8, border:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text3)", cursor:"pointer", transition:"all 0.15s", display:"inline-flex", alignItems:"center", justifyContent:"center" }}>
-                Sign out
-              </span>
-            </PlatformLogoutButton>
+            </button>
           </div>
         </div>
 
@@ -16060,7 +16091,24 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
           <div className={screen==="plan"         ? "zari-screen-active" : ""} style={{ display:screen==="plan"         ? "block" : "none", height:"100%" }}><ScreenPlan stage={stage} onNavigate={s=>navigate(s as Screen)} active={screen==="plan"}/></div>
           <div className={screen==="account"      ? "zari-screen-active" : ""} style={{ display:screen==="account"      ? "block" : "none", height:"100%" }}><ScreenAccount viewer={viewer} onNavigate={navigate}/></div>
         </div>
+
+        {/* Mobile bottom nav */}
+        <nav className="zari-bottom-nav">
+          {([
+            { id:"session",      icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" style={{width:20,height:20}}><path d="M10 2a3 3 0 00-3 3v4a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M4 9v1a6 6 0 0012 0V9"/><line x1="10" y1="15" x2="10" y2="18"/></svg>, label:"Chat" },
+            { id:"resume",       icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" style={{width:20,height:20}}><rect x="3" y="2" width="14" height="16" rx="2"/><path d="M7 7h6M7 10h6M7 13h4"/></svg>, label:"Resume" },
+            { id:"interview",    icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" style={{width:20,height:20}}><circle cx="10" cy="6" r="3"/><path d="M3 17c0-3.866 3.134-6 7-6s7 2.134 7 6"/></svg>, label:"Interview" },
+            { id:"documents",    icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" style={{width:20,height:20}}><path d="M5 2h7l4 4v12a1 1 0 01-1 1H5a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M12 2v4h4"/></svg>, label:"Docs" },
+            { id:"account",      icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" style={{width:20,height:20}}><circle cx="10" cy="7" r="3.5"/><path d="M3 17c0-3.314 3.134-5.5 7-5.5s7 2.186 7 5.5"/></svg>, label:"Account" },
+          ] as { id: Screen; icon: React.ReactNode; label: string }[]).map(item => (
+            <button key={item.id} className={`zari-bottom-nav-btn${screen===item.id?" active":""}`} onClick={()=>navigate(item.id)}>
+              {item.icon}
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </nav>
       </main>
+    </div>
     </div>
     </BillingContext.Provider>
   );

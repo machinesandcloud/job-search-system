@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getCurrentUserId } from "@/lib/mvp/auth";
 import { getDashboardForUser, updateProfile } from "@/lib/mvp/store";
-import { syncPlatformProfile } from "@/lib/platform-users";
+import { hashPlatformPassword, verifyPlatformPassword, syncPlatformProfile } from "@/lib/platform-users";
+import { prisma } from "@/lib/db";
 import {
   canAccessSubscriptionStatus,
   getCurrentPeriodTokenUsage,
@@ -83,4 +84,47 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ user: profile });
+}
+
+export async function PATCH(request: Request) {
+  const userId = await getCurrentUserId();
+  if (!userId) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+
+  const body = await request.json().catch(() => ({})) as {
+    firstName?: string;
+    lastName?: string;
+    currentPassword?: string;
+    newPassword?: string;
+  };
+
+  const updates: Record<string, unknown> = {};
+
+  if (body.firstName !== undefined || body.lastName !== undefined) {
+    if (body.firstName !== undefined) updates.firstName = `${body.firstName}`.trim();
+    if (body.lastName !== undefined) updates.lastName = `${body.lastName}`.trim();
+  }
+
+  if (body.newPassword !== undefined) {
+    if (body.newPassword.length < 8) {
+      return NextResponse.json({ error: "Password must be at least 8 characters." }, { status: 400 });
+    }
+    const dbUser = await prisma.user.findUnique({ where: { id: userId }, select: { passwordHash: true } }).catch(() => null);
+    if (dbUser?.passwordHash) {
+      if (!body.currentPassword) {
+        return NextResponse.json({ error: "Current password is required." }, { status: 400 });
+      }
+      const valid = await verifyPlatformPassword(body.currentPassword, dbUser.passwordHash);
+      if (!valid) {
+        return NextResponse.json({ error: "Current password is incorrect." }, { status: 400 });
+      }
+    }
+    updates.passwordHash = await hashPlatformPassword(body.newPassword);
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return NextResponse.json({ error: "No valid fields to update." }, { status: 400 });
+  }
+
+  await prisma.user.update({ where: { id: userId }, data: updates });
+  return NextResponse.json({ ok: true });
 }

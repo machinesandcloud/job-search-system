@@ -187,7 +187,7 @@ export function MvpAuthForm({ mode, authError = null }: { mode: AuthMode; authEr
               </button>
 
               <div style={{ textAlign: "center" }}>
-                <Link href="#" style={{ fontSize: 13.5, color: "#2563EB", textDecoration: "none", fontWeight: 500 }}>Forgot your password?</Link>
+                <Link href="/forgot-password" style={{ fontSize: 13.5, color: "#2563EB", textDecoration: "none", fontWeight: 500 }}>Forgot your password?</Link>
               </div>
             </div>
           )}
@@ -281,10 +281,18 @@ export function MvpAuthForm({ mode, authError = null }: { mode: AuthMode; authEr
                 </p>
               </>
             ) : (
-              <p style={{ fontSize: 13.5, color: "#64748B", margin: 0 }}>
-                Already have an account?{" "}
-                <Link href="/login" style={{ color: "#2563EB", textDecoration: "none", fontWeight: 600 }}>Sign in</Link>
-              </p>
+              <>
+                <p style={{ fontSize: 12.5, color: "#94A3B8", margin: "0 0 8px" }}>
+                  By creating an account, you agree to our{" "}
+                  <Link href="/terms" style={{ color: "#2563EB", textDecoration: "none" }}>Terms of Service</Link>
+                  {" "}and{" "}
+                  <Link href="/privacy" style={{ color: "#2563EB", textDecoration: "none" }}>Privacy Policy</Link>
+                </p>
+                <p style={{ fontSize: 13.5, color: "#64748B", margin: 0 }}>
+                  Already have an account?{" "}
+                  <Link href="/login" style={{ color: "#2563EB", textDecoration: "none", fontWeight: 600 }}>Sign in</Link>
+                </p>
+              </>
             )}
           </div>
         </div>
