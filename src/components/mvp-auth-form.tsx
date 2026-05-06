@@ -20,8 +20,8 @@ export function MvpAuthForm({ mode, authError = null }: { mode: AuthMode; authEr
   };
 
   // ── Login ────────────────────────────────────────────────────────────────
-  const [email,       setEmail]       = useState(mode === "login" ? "steve@askiatech.com" : "");
-  const [password,    setPassword]    = useState(mode === "login" ? "demo12345" : "");
+  const [email,       setEmail]       = useState("");
+  const [password,    setPassword]    = useState("");
   const [showPwd,     setShowPwd]     = useState(false);
   const [error,       setError]       = useState<string | null>(null);
   const [loading,     setLoading]     = useState(false);

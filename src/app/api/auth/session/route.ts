@@ -1,27 +1,16 @@
 import { NextResponse } from "next/server";
-import { getCurrentUserId, setCurrentUserSessionOnResponse } from "@/lib/mvp/auth";
-import { createPlatformUser } from "@/lib/platform-users";
+import { getCurrentUserId } from "@/lib/mvp/auth";
 import { getUserById } from "@/lib/mvp/store";
 
 export async function POST() {
-  let userId = await getCurrentUserId();
-  let user = userId ? await getUserById(userId) : null;
+  const userId = await getCurrentUserId();
+  const user = userId ? await getUserById(userId) : null;
 
   if (!userId || !user) {
-    const created = await createPlatformUser({
-      firstName: "Demo",
-      lastName: "User",
-      email: `demo+${Date.now()}@askiatech.local`,
-      password: "demo12345",
-    });
-    userId = created.userId;
-    user = await getUserById(userId);
+    return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
   }
 
-  const response = NextResponse.json({
-    token: `app_${crypto.randomUUID()}`,
-    user: user?.profile || null,
-    expiresInSeconds: 60 * 60 * 24,
+  return NextResponse.json({
+    user: user.profile,
   });
-  return setCurrentUserSessionOnResponse(response, userId);
 }

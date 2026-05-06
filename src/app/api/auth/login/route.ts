@@ -1,8 +1,18 @@
 import { NextResponse } from "next/server";
 import { setCurrentUserSessionOnResponse } from "@/lib/mvp/auth";
 import { authenticatePlatformUser } from "@/lib/platform-users";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
+  const ip = getClientIp(request);
+  const rl = rateLimit(`login:${ip}`, 10, 15 * 60 * 1000); // 10 attempts per 15 min per IP
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: "Too many login attempts. Please try again later." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil((rl.retryAt - Date.now()) / 1000)) } }
+    );
+  }
+
   const body = await request.json().catch(() => ({}));
   const email = String(body.email || "").trim().toLowerCase();
   const password = String(body.password || "");
