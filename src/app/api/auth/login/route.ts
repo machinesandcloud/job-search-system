@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { setCurrentUserSessionOnResponse } from "@/lib/mvp/auth";
 import { authenticatePlatformUser } from "@/lib/platform-users";
-import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import { rateLimit } from "@/lib/rate-limit";
+import { getClientIp } from "@/lib/utils";
 
 export async function POST(request: Request) {
   const ip = getClientIp(request);

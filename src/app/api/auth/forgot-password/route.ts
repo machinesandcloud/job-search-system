@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { createHash, randomBytes } from "crypto";
 import { prisma } from "@/lib/db";
 import { sendPasswordResetEmail } from "@/lib/email";
-import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import { rateLimit } from "@/lib/rate-limit";
+import { getClientIp } from "@/lib/utils";
 
 export async function POST(request: Request) {
   const ip = getClientIp(request);

@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
+import { getCurrentUserId } from "@/lib/mvp/auth";
 
 export async function GET() {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
+  }
 
+  const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ ok: false, error: "OPENAI_API_KEY is not set" });
   }
@@ -21,22 +26,12 @@ export async function GET() {
       }),
     });
 
-    const text = await res.text();
-
     if (!res.ok) {
-      return NextResponse.json({
-        ok: false,
-        status: res.status,
-        error: text.slice(0, 400),
-      });
+      const text = await res.text();
+      return NextResponse.json({ ok: false, status: res.status, error: text.slice(0, 200) });
     }
 
-    return NextResponse.json({
-      ok: true,
-      status: res.status,
-      model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
-      keyPrefix: apiKey.slice(0, 12) + "…",
-    });
+    return NextResponse.json({ ok: true, model: process.env.OPENAI_MODEL ?? "gpt-4o-mini" });
   } catch (err) {
     return NextResponse.json({ ok: false, error: String(err) });
   }

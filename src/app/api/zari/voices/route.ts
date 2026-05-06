@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { OPENAI_VOICES } from "../speak/route";
+import { getCurrentUserId } from "@/lib/mvp/auth";
 
 type Gender = "f" | "m";
 
@@ -15,6 +16,11 @@ function inferGender(labels?: { gender?: string }, name?: string): Gender {
 }
 
 export async function GET() {
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
+  }
+
   const elKey  = process.env.ELEVENLABS_API_KEY;
   const hasGroq = !!process.env.GROQ_API_KEY;
 

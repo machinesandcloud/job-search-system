@@ -15,9 +15,3 @@ export function rateLimit(key: string, limit = 10, windowMs = 60 * 60 * 1000) {
   entry.count += 1;
   return { ok: true, remaining: limit - entry.count, retryAt: 0 };
 }
-
-export function getClientIp(request: Request): string {
-  const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0].trim();
-  return "unknown";
-}
