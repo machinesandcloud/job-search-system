@@ -271,9 +271,15 @@ export default async function CoachAdminAccountPage({ params }: AccountPageProps
           <div className="grid gap-4 sm:grid-cols-2">
             <CoachAdminMetricCard label="MRR estimate" value={planAmount ? formatCurrency(planAmount / 100) : "$0"} note="Mapped from stored plan and price ID." tone="brand" />
             <CoachAdminMetricCard
-              label="Tracked model tokens"
-              value={tokenUsage ? tokenUsage.used.toLocaleString() : "0"}
-              note={tokenUsage ? `${tokenUsage.inputTokens.toLocaleString()} input · ${tokenUsage.outputTokens.toLocaleString()} output this period.` : "No tracked model usage yet."}
+              label="Credits used"
+              value={tokenUsage ? `${(tokenUsage.usedCredits ?? 0).toLocaleString()} / ${planCredits ? planCredits.toLocaleString() : "∞"}` : "0"}
+              note={
+                tokenUsage && planCredits
+                  ? `${Math.min(100, Math.round(((tokenUsage.usedCredits ?? 0) / planCredits) * 100))}% used · ${(tokenUsage.remainingCredits ?? planCredits).toLocaleString()} remaining this period.`
+                  : tokenUsage
+                    ? `${(tokenUsage.usedCredits ?? 0).toLocaleString()} credits used · no plan limit set.`
+                    : "No credit usage tracked yet."
+              }
               tone="cyan"
             />
             <CoachAdminMetricCard label="Open tickets" value={(ticketCounts.open || 0) + (ticketCounts.in_progress || 0)} note="Support load currently attached to this account." tone="gold" />
@@ -364,7 +370,24 @@ export default async function CoachAdminAccountPage({ params }: AccountPageProps
                   <CoachAdminMetaItem label="Subscription" value={isInternalOperatorAccount(account) ? "Internal operator account" : planLabel} />
                   <CoachAdminMetaItem label="Monthly price" value={planAmount ? formatCurrency(planAmount / 100) : "No paid plan"} />
                   <CoachAdminMetaItem label="Included monthly credits" value={planCredits ? `${planCredits.toLocaleString()} credits` : "Not credit-metered"} />
-                  <CoachAdminMetaItem label="Tracked model tokens" value={tokenUsage ? tokenUsage.used.toLocaleString() : "0"} />
+                  <CoachAdminMetaItem
+                    label="Credits used / remaining"
+                    value={
+                      tokenUsage
+                        ? `${(tokenUsage.usedCredits ?? 0).toLocaleString()} used · ${(tokenUsage.remainingCredits ?? 0).toLocaleString()} left`
+                        : "0 used"
+                    }
+                  />
+                  {tokenUsage && planCredits && planCredits > 0 && (
+                    <div className="md:col-span-2">
+                      <CoachAdminProgress
+                        value={tokenUsage.usedCredits ?? 0}
+                        max={planCredits}
+                        label={`${Math.min(100, Math.round(((tokenUsage.usedCredits ?? 0) / planCredits) * 100))}% of ${planCredits.toLocaleString()} credits used this period`}
+                      />
+                    </div>
+                  )}
+                  <CoachAdminMetaItem label="Raw model tokens" value={tokenUsage ? tokenUsage.used.toLocaleString() : "0"} />
                 </div>
                 <p className={cx("mt-3 text-sm leading-6", coachAdminTextMutedClass)}>
                   Credits in the product catalog are not the same thing as raw model tokens. The numbers below reflect actual OpenAI prompt/output token usage and estimated spend for this account.
