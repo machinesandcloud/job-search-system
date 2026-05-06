@@ -6,8 +6,10 @@ import { PlatformLogoutButton } from "@/components/platform-logout-button";
 import { ZariLogo } from "@/components/zari-logo";
 import { ZariAvatar, type AvatarState } from "@/components/zari-avatar";
 import {
+  canAccessFeature,
   canAccessStage,
   getPlanDisplayName,
+  getPlanRank,
   getRequiredPlanForStage,
 } from "@/lib/plan-entitlements";
 
@@ -16,10 +18,12 @@ import {
    plan-upgrade or credit-limit notice in the sidebar
 ═══════════════════════════════════════════════════ */
 type BillingCtx = {
+  planId: string | null;
+  role: string | null;
   onPlanBlock: (requiredPlanId: string, message: string) => void;
   onCreditLimit: (used: number, limit: number) => void;
 };
-const BillingContext = createContext<BillingCtx>({ onPlanBlock: () => {}, onCreditLimit: () => {} });
+const BillingContext = createContext<BillingCtx>({ planId: null, role: null, onPlanBlock: () => {}, onCreditLimit: () => {} });
 function useBillingCtx() { return useContext(BillingContext); }
 
 type BillingApiErrorData = {
@@ -46,6 +50,117 @@ function handleBillingApiError(
   return false;
 }
 
+/* ═══════════════════════════════════════════════════
+   FEATURE GATE — full-screen upgrade wall for locked features
+═══════════════════════════════════════════════════ */
+const FEATURE_GATE_LABELS: Record<string, string> = {
+  zari_promotion_readiness:  "Promotion Readiness Audit",
+  zari_promotion_doc:        "Promotion Document Builder",
+  zari_promotion_visibility: "Visibility Strategy",
+  zari_promotion_pitch:      "Promotion Pitch Practice",
+  zari_salary_analysis:      "Compensation Analysis",
+  zari_negotiation_sim:      "Negotiation Simulation",
+  zari_negotiation_email:    "Negotiation Email Builder",
+  zari_pivot_analysis:       "Pivot Analysis",
+  zari_pivot_story:          "Pivot Story Builder",
+  zari_bridge_network:       "Bridge Network Strategy",
+  zari_credibility_sprint:   "Credibility Sprint",
+  zari_exec_positioning:     "Executive Positioning",
+  zari_market_intel:         "Market Intelligence",
+};
+
+function FeatureGate({ featureName, stage, children }: { featureName?: string; stage?: string; children: React.ReactNode }) {
+  const { planId, role } = useBillingCtx();
+  const access = canAccessFeature({ planId, role, featureName, stage });
+  if (access.ok) return <>{children}</>;
+
+  const requiredPlanId = access.requiredPlanId ?? "growth";
+  const planName = getPlanDisplayName(requiredPlanId);
+  const planColor = requiredPlanId === "executive" ? "#F59E0B" : "#2563EB";
+  const planColorDark = requiredPlanId === "executive" ? "#D97706" : "#1D4ED8";
+  const featureLabel =
+    (featureName ? FEATURE_GATE_LABELS[featureName] : null) ??
+    (stage === "leadership" ? "Leadership & Executive Tools"
+      : stage === "promotion" ? "Promotion Tools"
+      : stage === "salary" ? "Salary & Negotiation Tools"
+      : stage === "career-change" ? "Career Transition Tools"
+      : "This Feature");
+
+  return (
+    <div style={{ position:"relative", height:"100%", overflow:"hidden" }}>
+      {/* Blurred fake-content background */}
+      <div aria-hidden style={{ position:"absolute", inset:0, pointerEvents:"none", filter:"blur(7px) brightness(0.85)", opacity:0.5, overflow:"hidden", userSelect:"none" }}>
+        <div style={{ height:56, background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", display:"flex", alignItems:"center", gap:12, padding:"0 24px" }}>
+          <div style={{ width:140, height:18, borderRadius:6, background:"var(--z-raise)" }}/>
+          <div style={{ width:90, height:18, borderRadius:6, background:"var(--z-raise)" }}/>
+          <div style={{ marginLeft:"auto", width:80, height:28, borderRadius:9, background:planColor, opacity:0.35 }}/>
+        </div>
+        <div style={{ padding:"24px 28px", display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+          {[180,220,150,190,165,205].map((h, i) => (
+            <div key={i} style={{ height:h, borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"20px 22px", display:"flex", flexDirection:"column", gap:10 }}>
+              <div style={{ width:"55%", height:14, borderRadius:4, background:"var(--z-raise)" }}/>
+              <div style={{ width:"80%", height:10, borderRadius:4, background:"var(--z-raise)", opacity:0.6 }}/>
+              <div style={{ width:"40%", height:10, borderRadius:4, background:"var(--z-raise)", opacity:0.35 }}/>
+              <div style={{ marginTop:"auto", width:"65%", height:30, borderRadius:8, background:"var(--z-raise)" }}/>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Semi-transparent overlay */}
+      <div style={{ position:"absolute", inset:0, background:"var(--z-bg)", opacity:0.6 }}/>
+
+      {/* Upgrade card */}
+      <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", padding:"24px" }}>
+        <div style={{ background:"var(--z-card)", border:`1px solid ${planColor}25`, borderTop:`3px solid ${planColor}`, borderRadius:20, padding:"36px 40px", maxWidth:440, width:"100%", textAlign:"center", boxShadow:`0 24px 80px rgba(0,0,0,0.18), 0 0 0 1px ${planColor}10` }}>
+          {/* Lock icon */}
+          <div style={{ width:52, height:52, borderRadius:14, background:`${planColor}15`, border:`1px solid ${planColor}25`, display:"inline-flex", alignItems:"center", justifyContent:"center", marginBottom:18, fontSize:22 }}>
+            🔒
+          </div>
+          {/* Plan badge */}
+          <div style={{ fontSize:11, fontWeight:800, color:planColor, textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:10 }}>
+            {planName} Plan Feature
+          </div>
+          {/* Feature label */}
+          <h2 style={{ fontSize:22, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 12px", lineHeight:1.25 }}>
+            {featureLabel}
+          </h2>
+          {/* Description */}
+          <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.7, margin:"0 0 24px" }}>
+            This feature is available on the{" "}
+            <strong style={{ color:"var(--z-text)", fontWeight:700 }}>{planName}</strong> plan and above.
+            Upgrade to unlock it along with all other {planName} tools.
+          </p>
+          {/* Plan tier ladder */}
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:4, marginBottom:28 }}>
+            {(["search","growth","executive"] as const).map((pId, i) => {
+              const isTarget = pId === requiredPlanId;
+              const isLocked = getPlanRank(pId) < getPlanRank(requiredPlanId);
+              return (
+                <span key={pId} style={{ display:"inline-flex", alignItems:"center", gap:4 }}>
+                  {i > 0 && <span style={{ color:"var(--z-text3)", fontSize:11, opacity:0.5 }}>›</span>}
+                  <span style={{ fontSize:12.5, fontWeight:isTarget ? 800 : 500, padding:"4px 12px", borderRadius:99, background:isTarget ? `${planColor}15` : "transparent", color:isTarget ? planColor : isLocked ? "var(--z-text3)" : "var(--z-text2)", border:`1px solid ${isTarget ? planColor+"35" : "transparent"}` }}>
+                    {getPlanDisplayName(pId)}{isTarget ? " ✓" : ""}
+                  </span>
+                </span>
+              );
+            })}
+          </div>
+          {/* CTA */}
+          <Link href={`/onboarding/plan?upgrade=${encodeURIComponent(requiredPlanId)}`}
+            style={{ display:"inline-flex", alignItems:"center", gap:8, fontSize:15, fontWeight:800, padding:"14px 32px", borderRadius:13, background:`linear-gradient(135deg, ${planColor} 0%, ${planColorDark} 100%)`, color:"white", textDecoration:"none", cursor:"pointer", boxShadow:`0 4px 20px ${planColor}40`, letterSpacing:"-0.01em" }}>
+            Upgrade to {planName} →
+          </Link>
+          <div style={{ marginTop:14 }}>
+            <Link href="/onboarding/plan" style={{ fontSize:12.5, color:"var(--z-text3)", textDecoration:"none", fontWeight:500 }}>
+              Compare all plans
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /* ═══════════════════════════════════════════════════
    THEME SYSTEM  (CSS custom properties via inline style)
@@ -7904,10 +8019,10 @@ function ScreenExecPositioning() {
 
 function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: (screen: string) => void }) {
   const billing = useBillingCtx();
-  if (stage === "promotion") return <ScreenPromotionReadiness />;
-  if (stage === "salary") return <ScreenSalaryCompensation />;
-  if (stage === "career-change") return <ScreenPivotAnalysis />;
-  if (stage === "leadership") return <ScreenExecPositioning />;
+  if (stage === "promotion")    return <FeatureGate featureName="zari_promotion_readiness"><ScreenPromotionReadiness /></FeatureGate>;
+  if (stage === "salary")       return <FeatureGate featureName="zari_salary_analysis"><ScreenSalaryCompensation /></FeatureGate>;
+  if (stage === "career-change") return <FeatureGate featureName="zari_pivot_analysis"><ScreenPivotAnalysis /></FeatureGate>;
+  if (stage === "leadership")   return <FeatureGate featureName="zari_exec_positioning"><ScreenExecPositioning /></FeatureGate>;
 
   const _saved = loadResumeSession();
   const [step, setStep]         = useState<ResumeStep>(_saved ? "results" : "choose");
@@ -9972,9 +10087,9 @@ function dimColor(score: number) {
 }
 
 function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerStage; active?: boolean; onNavigate?: (s: string) => void }) {
-  if (stage === "promotion") return <ScreenPromotionPitch active={active} onNavigate={onNavigate} />;
-  if (stage === "salary") return <ScreenSalaryNegotiationSim />;
-  if (stage === "leadership") return <ScreenLeadershipStoryPractice />;
+  if (stage === "promotion")  return <FeatureGate featureName="zari_promotion_pitch"><ScreenPromotionPitch active={active} onNavigate={onNavigate} /></FeatureGate>;
+  if (stage === "salary")     return <FeatureGate featureName="zari_negotiation_sim"><ScreenSalaryNegotiationSim /></FeatureGate>;
+  if (stage === "leadership") return <FeatureGate stage="leadership"><ScreenLeadershipStoryPractice /></FeatureGate>;
 
   type IVSaved = { resumeText: string; resumeFileName: string; linkedinText: string; jobDesc: string; round: InterviewRound | null; sections: InterviewSection[] | null; setupDone: boolean };
   const IV_KEY = `zari_interview_session_v1_${stage}`;
@@ -12420,8 +12535,8 @@ function ScreenPromotionVisibility({ active = false, onNavigate }: { active?: bo
 }
 
 function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerStage; active?: boolean; onNavigate?: (s: string) => void }) {
-  if (stage === "promotion") return <ScreenPromotionVisibility active={active} onNavigate={onNavigate} />;
-  if (stage === "salary") return <ScreenSalaryMarketIntel />;
+  if (stage === "promotion") return <FeatureGate featureName="zari_promotion_visibility"><ScreenPromotionVisibility active={active} onNavigate={onNavigate} /></FeatureGate>;
+  if (stage === "salary")    return <FeatureGate featureName="zari_market_intel"><ScreenSalaryMarketIntel /></FeatureGate>;
 
   type LINav = "score"|"headline"|"summary"|"experience"|"education"|"other"|"networking"|"keywords";
   type LISaved = { headline: string; summary: string; experienceJobs: ParsedJob[]; education: string; skills: string; linkedinUrl: string; hasPhoto: boolean; targetRole: string; result: LinkedInResult | null };
@@ -13866,8 +13981,8 @@ function ScreenCareerChangePlan({ onNavigate, active }: { onNavigate: (s: string
    SCREEN: DOCUMENTS — drag-drop vault
 ═══════════════════════════════════════════════════ */
 function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate: (s: string) => void }) {
-  if (stage === "promotion") return <ScreenPromotionToolkit onNavigate={onNavigate} />;
-  if (stage === "career-change") return <ScreenCareerChangeDocuments onNavigate={onNavigate} />;
+  if (stage === "promotion")    return <FeatureGate featureName="zari_promotion_toolkit"><ScreenPromotionToolkit onNavigate={onNavigate} /></FeatureGate>;
+  if (stage === "career-change") return <FeatureGate featureName="zari_career_change_docs"><ScreenCareerChangeDocuments onNavigate={onNavigate} /></FeatureGate>;
 
   const [docs,        setDocs]        = useState<DocEntry[]>([]);
   const [preview,     setPreview]     = useState<DocEntry | null>(null);
@@ -14130,9 +14245,9 @@ const STAGE_TASKS: Record<CareerStage, { text:string; cat:string; pri:string }[]
 ═══════════════════════════════════════════════════ */
 function ScreenCoverLetter({ stage, active = false, onNavigate }: { stage: CareerStage; active?: boolean; onNavigate?: (s: string) => void }) {
   const billing = useBillingCtx();
-  if (stage === "promotion") return <ScreenPromotionDocument active={active} onNavigate={onNavigate} />;
-  if (stage === "salary") return <ScreenSalaryNegotiationEmail />;
-  if (stage === "leadership") return <ScreenExecOutreach />;
+  if (stage === "promotion")  return <FeatureGate featureName="zari_promotion_doc"><ScreenPromotionDocument active={active} onNavigate={onNavigate} /></FeatureGate>;
+  if (stage === "salary")     return <FeatureGate featureName="zari_negotiation_email"><ScreenSalaryNegotiationEmail /></FeatureGate>;
+  if (stage === "leadership") return <FeatureGate stage="leadership"><ScreenExecOutreach /></FeatureGate>;
 
   const CL_KEY = "zari_cl_session_v1";
   type TailoringNote = { decision: string; impact: string };
@@ -15068,8 +15183,8 @@ function ScreenPromotionRoadmap({ onNavigate, active = false }: { onNavigate: (s
 
 function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage; onNavigate: (s: string) => void; active?: boolean }) {
   const billing = useBillingCtx();
-  if (stage === "promotion") return <ScreenPromotionRoadmap onNavigate={onNavigate} active={active} />;
-  if (stage === "career-change") return <ScreenCareerChangePlan onNavigate={onNavigate} active={active} />;
+  if (stage === "promotion")    return <FeatureGate featureName="zari_promotion_readiness"><ScreenPromotionRoadmap onNavigate={onNavigate} active={active} /></FeatureGate>;
+  if (stage === "career-change") return <FeatureGate featureName="zari_pivot_analysis"><ScreenCareerChangePlan onNavigate={onNavigate} active={active} /></FeatureGate>;
 
   const [done,        setDone]        = useState<Set<number>>(new Set());
   const [aiTasks,     setAiTasks]     = useState<PlanTask[] | null>(null);
@@ -15474,7 +15589,7 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
     setCreditLimitNotice({ used, limit });
   }, []);
 
-  const billingCtx: BillingCtx = { onPlanBlock: promptUpgrade, onCreditLimit: promptCreditLimit };
+  const billingCtx: BillingCtx = { planId: viewer.planId, role: viewer.role ?? null, onPlanBlock: promptUpgrade, onCreditLimit: promptCreditLimit };
 
   useEffect(() => {
     const decision = canAccessStage({ planId: viewer.planId, role: viewer.role, stage });
@@ -15738,9 +15853,9 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
         <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
           <div className={screen==="session"      ? "zari-screen-active" : ""} style={{ display:screen==="session"      ? "block" : "none", height:"100%" }}><ScreenSession      stage={stage} onNavigate={navigate}/></div>
           <div className={screen==="resume"       ? "zari-screen-active" : ""} style={{ display:screen==="resume"       ? "block" : "none", height:"100%" }}><ScreenResume       stage={stage} onNavigate={s=>navigate(s as Screen)}/></div>
-          <div className={screen==="interview"    ? "zari-screen-active" : ""} style={{ display:screen==="interview"    ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <ScreenPivotStoryBuilder active={screen==="interview"}/> : <ScreenInterview    stage={stage} active={screen==="interview"} onNavigate={s=>navigate(s as Screen)}/>}</div>
-          <div className={screen==="cover-letter" ? "zari-screen-active" : ""} style={{ display:screen==="cover-letter" ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <ScreenCredibilitySprint active={screen==="cover-letter"}/> : <ScreenCoverLetter stage={stage} active={screen==="cover-letter"} onNavigate={s=>navigate(s as Screen)}/>}</div>
-          <div className={screen==="linkedin"     ? "zari-screen-active" : ""} style={{ display:screen==="linkedin"     ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <ScreenBridgeNetwork active={screen==="linkedin"}/> : <ScreenLinkedIn     stage={stage} active={screen==="linkedin"} onNavigate={s=>navigate(s as Screen)}/>}</div>
+          <div className={screen==="interview"    ? "zari-screen-active" : ""} style={{ display:screen==="interview"    ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <FeatureGate featureName="zari_pivot_story"><ScreenPivotStoryBuilder active={screen==="interview"}/></FeatureGate> : <ScreenInterview    stage={stage} active={screen==="interview"} onNavigate={s=>navigate(s as Screen)}/>}</div>
+          <div className={screen==="cover-letter" ? "zari-screen-active" : ""} style={{ display:screen==="cover-letter" ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <FeatureGate featureName="zari_credibility_sprint"><ScreenCredibilitySprint active={screen==="cover-letter"}/></FeatureGate> : <ScreenCoverLetter stage={stage} active={screen==="cover-letter"} onNavigate={s=>navigate(s as Screen)}/>}</div>
+          <div className={screen==="linkedin"     ? "zari-screen-active" : ""} style={{ display:screen==="linkedin"     ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <FeatureGate featureName="zari_bridge_network"><ScreenBridgeNetwork active={screen==="linkedin"}/></FeatureGate> : <ScreenLinkedIn     stage={stage} active={screen==="linkedin"} onNavigate={s=>navigate(s as Screen)}/>}</div>
           <div className={screen==="documents"    ? "zari-screen-active" : ""} style={{ display:screen==="documents"    ? "block" : "none", height:"100%" }}><ScreenDocuments stage={stage} onNavigate={s=>navigate(s as Screen)}/></div>
           <div className={screen==="plan"         ? "zari-screen-active" : ""} style={{ display:screen==="plan"         ? "block" : "none", height:"100%" }}><ScreenPlan stage={stage} onNavigate={s=>navigate(s as Screen)} active={screen==="plan"}/></div>
         </div>
