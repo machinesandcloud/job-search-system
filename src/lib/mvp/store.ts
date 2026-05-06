@@ -1,17 +1,17 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
-import { createHash } from "node:crypto";
-import { dashboardData, linkedinReview, resumeReview } from "./data";
+import crypto from "node:crypto";
+import { prisma, isDatabaseReady } from "@/lib/db";
+import { dashboardData } from "./data";
 import type {
   ActionPlanItem,
   CoachingMode,
   DashboardPayload,
   DocumentRecord,
-  ReviewOutput,
   SessionRecord,
   UserProfile,
   UsageLimit,
 } from "./types";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 type StoredUser = {
   id: string;
@@ -26,15 +26,6 @@ type StoredDocument = DocumentRecord & {
   userId: string;
   mimeType: string;
   sizeBytes: number;
-};
-
-type StoredReview = {
-  id: string;
-  userId: string;
-  documentId?: string;
-  type: "resume" | "linkedin";
-  output: ReviewOutput;
-  updatedAt: string;
 };
 
 type StoredSession = SessionRecord & {
@@ -53,156 +44,104 @@ type ResumeScoreRecord = {
   scores: { overall: number; ats: number; impact: number; clarity: number };
 };
 
-type MvpStore = {
-  users: StoredUser[];
-  documents: StoredDocument[];
-  reviews: StoredReview[];
-  sessions: StoredSession[];
-  resumeScores: ResumeScoreRecord[];
-};
-
-// On Vercel / serverless: cwd() is read-only. Use /tmp instead.
-const DATA_DIR = process.env.VERCEL || process.env.NETLIFY
-  ? "/tmp"
-  : path.join(process.cwd(), ".data");
-const storePath = path.join(DATA_DIR, "mvp-store.json");
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function hashPassword(password: string) {
-  return createHash("sha256").update(password).digest("hex");
+  return crypto.createHash("sha256").update(password).digest("hex");
 }
 
-function cloneUsage() {
+function defaultUsage(): UsageLimit[] {
   return dashboardData.usage.map((item) => ({ ...item }));
 }
 
-function cloneActionPlan() {
+function defaultActionPlan(): ActionPlanItem[] {
   return dashboardData.actionPlan.map((item) => ({ ...item }));
 }
 
-function cloneProfile(overrides?: Partial<UserProfile>): UserProfile {
+function defaultProfile(overrides?: Partial<UserProfile>): UserProfile {
   return {
     ...dashboardData.user,
     ...overrides,
-    goals: overrides?.goals || [...dashboardData.user.goals],
-    painPoints: overrides?.painPoints || [...dashboardData.user.painPoints],
+    goals: overrides?.goals || [],
+    painPoints: overrides?.painPoints || [],
   };
 }
 
-function emptyResumeScores(): ResumeScoreRecord[] { return []; }
-
-function createSeedStore(): MvpStore {
-  const demoUserId = "user_demo";
-
-  return {
-    users: [
-      {
-        id: demoUserId,
-        email: dashboardData.user.email,
-        passwordHash: hashPassword("demo12345"),
-        profile: cloneProfile(),
-        usage: cloneUsage(),
-        actionPlan: cloneActionPlan(),
-      },
-    ],
-    documents: dashboardData.documents.map((document) => ({
-      ...document,
-      userId: demoUserId,
-      mimeType: document.type === "linkedin"
-        ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        : "application/pdf",
-      sizeBytes: 120_000,
-    })),
-    reviews: [
-      {
-        id: "review_resume_seed",
-        userId: demoUserId,
-        documentId: "doc_resume",
-        type: "resume",
-        output: resumeReview,
-        updatedAt: new Date().toISOString(),
-      },
-      {
-        id: "review_linkedin_seed",
-        userId: demoUserId,
-        documentId: "doc_linkedin",
-        type: "linkedin",
-        output: linkedinReview,
-        updatedAt: new Date().toISOString(),
-      },
-    ],
-    sessions: dashboardData.sessions.map((session) => ({
-      ...session,
-      userId: demoUserId,
-      notes: [],
-      transcript: [],
-    })),
-    resumeScores: emptyResumeScores(),
-  };
+function mapSessionStatus(s: string): SessionRecord["status"] {
+  if (s === "complete") return "complete";
+  if (s === "live") return "live";
+  if (s === "reviewing") return "reviewing";
+  return "ready";
 }
 
-async function ensureStoreFile() {
-  await mkdir(path.dirname(storePath), { recursive: true });
+function mapDocumentType(t: string): "resume" | "linkedin" | "notes" {
+  if (t === "linkedin") return "linkedin";
+  if (t === "miscellaneous" || t === "interview_notes" || t === "cover_letter") return "notes";
+  return "resume";
+}
+
+function toPrismaDocumentType(t: "resume" | "linkedin" | "notes") {
+  if (t === "linkedin") return "linkedin" as const;
+  if (t === "notes") return "miscellaneous" as const;
+  return "resume" as const;
+}
+
+function toPrismaSessionMode(m: CoachingMode) {
+  return m as "resume" | "linkedin" | "interview" | "career" | "confidence" | "recap";
+}
+
+// ─── User functions ───────────────────────────────────────────────────────────
+
+export async function getUserById(userId: string): Promise<StoredUser | null> {
+  if (!isDatabaseReady()) return null;
   try {
-    await readFile(storePath, "utf8");
+    const u = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { coachProfile: true },
+    });
+    if (!u) return null;
+    return buildStoredUser(u);
   } catch {
-    await writeFile(storePath, JSON.stringify(createSeedStore(), null, 2), "utf8");
+    return null;
   }
 }
 
-async function readStore() {
+export async function getUserByEmail(email: string): Promise<StoredUser | null> {
+  if (!isDatabaseReady()) return null;
   try {
-    await ensureStoreFile();
-    const contents = await readFile(storePath, "utf8");
-    return JSON.parse(contents) as MvpStore;
+    const u = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
+      include: { coachProfile: true },
+    });
+    if (!u) return null;
+    return buildStoredUser(u);
   } catch {
-    // Filesystem unavailable (e.g. read-only in some edge runtimes) —
-    // return seed store in-memory so the demo user always exists.
-    return createSeedStore();
+    return null;
   }
 }
 
-async function writeStore(store: MvpStore) {
-  try {
-    await ensureStoreFile();
-    await writeFile(storePath, JSON.stringify(store, null, 2), "utf8");
-  } catch {
-    // Best-effort — silently ignore write failures on read-only filesystems.
-  }
-}
-
-function buildDashboard(user: StoredUser, store: MvpStore): DashboardPayload {
-  return {
-    user: user.profile,
-    usage: user.usage,
-    actionPlan: user.actionPlan,
-    documents: store.documents.filter((document) => document.userId === user.id),
-    sessions: store.sessions.filter((session) => session.userId === user.id),
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function buildStoredUser(u: any): StoredUser {
+  const cp = u.coachProfile;
+  const profile: UserProfile = {
+    name: [u.firstName, u.lastName].filter(Boolean).join(" ") || u.email.split("@")[0],
+    email: u.email,
+    currentRole: cp?.currentRole || "",
+    targetRole: cp?.targetRole || "",
+    experienceLevel: cp?.experienceLevel || "",
+    geography: cp?.geography || "",
+    goals: Array.isArray(cp?.goals) ? cp.goals : [],
+    painPoints: Array.isArray(cp?.painPoints) ? cp.painPoints : [],
+    onboardingComplete: !!(cp?.currentRole || cp?.targetRole),
   };
-}
-
-function createReviewFromTemplate(type: "resume" | "linkedin", targetRole?: string): ReviewOutput {
-  const base = type === "resume" ? resumeReview : linkedinReview;
-  const roleSuffix = targetRole ? ` for ${targetRole}` : "";
-
   return {
-    ...base,
-    strengths: base.strengths.map((item, index) =>
-      index === 0 ? `${item}${roleSuffix}` : item,
-    ),
-    tailoringSuggestions: targetRole
-      ? [`Tailor the positioning explicitly for ${targetRole}.`, ...base.tailoringSuggestions]
-      : [...base.tailoringSuggestions],
+    id: u.id,
+    email: u.email,
+    passwordHash: u.passwordHash || "",
+    profile,
+    usage: defaultUsage(),
+    actionPlan: defaultActionPlan(),
   };
-}
-
-export async function getUserById(userId: string) {
-  const store = await readStore();
-  return store.users.find((user) => user.id === userId) || null;
-}
-
-export async function getUserByEmail(email: string) {
-  const store = await readStore();
-  return store.users.find((user) => user.email === email.toLowerCase()) || null;
 }
 
 export async function createUser(input: {
@@ -211,36 +150,30 @@ export async function createUser(input: {
   lastName: string;
   email: string;
   password: string;
-}) {
-  const store = await readStore();
+}): Promise<StoredUser> {
   const email = input.email.trim().toLowerCase();
-
-  if (store.users.some((user) => user.email === email)) {
-    throw new Error("Account already exists.");
-  }
-
-  const user: StoredUser = {
-    id: input.id || `user_${crypto.randomUUID()}`,
+  // createPlatformUser in platform-users.ts handles the actual Prisma write.
+  // This function is called as a fallback mirror — return a synthetic object.
+  const id = input.id || `user_${crypto.randomUUID()}`;
+  const profile = defaultProfile({
+    name: `${input.firstName} ${input.lastName}`.trim(),
+    email,
+    currentRole: "",
+    targetRole: "",
+    experienceLevel: "",
+    geography: "",
+    goals: [],
+    painPoints: [],
+    onboardingComplete: false,
+  });
+  return {
+    id,
     email,
     passwordHash: hashPassword(input.password),
-    profile: cloneProfile({
-      name: `${input.firstName} ${input.lastName}`.trim(),
-      email,
-      currentRole: "",
-      targetRole: "",
-      experienceLevel: "",
-      geography: "",
-      goals: [],
-      painPoints: [],
-      onboardingComplete: false,
-    }),
-    usage: cloneUsage(),
-    actionPlan: cloneActionPlan(),
+    profile,
+    usage: defaultUsage(),
+    actionPlan: defaultActionPlan(),
   };
-
-  store.users.unshift(user);
-  await writeStore(store);
-  return user;
 }
 
 export async function upsertUserMirror(input: {
@@ -250,134 +183,140 @@ export async function upsertUserMirror(input: {
   lastName?: string | null;
   passwordHash?: string | null;
   profile?: Partial<UserProfile>;
-}) {
-  const store = await readStore();
-  const email = input.email.trim().toLowerCase();
-  const fullName = `${input.firstName || ""} ${input.lastName || ""}`.trim();
-
-  let user = store.users.find((entry) => entry.id === input.id) || null;
-
-  if (!user) {
-    user = store.users.find((entry) => entry.email === email) || null;
-    if (user && user.id !== input.id) {
-      const previousId = user.id;
-      user.id = input.id;
-
-      for (const document of store.documents) {
-        if (document.userId === previousId) document.userId = input.id;
-      }
-      for (const review of store.reviews) {
-        if (review.userId === previousId) review.userId = input.id;
-      }
-      for (const session of store.sessions) {
-        if (session.userId === previousId) session.userId = input.id;
-      }
-      for (const record of store.resumeScores) {
-        if (record.userId === previousId) record.userId = input.id;
-      }
-    }
-  }
-
-  const profilePatch = input.profile || {};
-
-  if (!user) {
-    user = {
-      id: input.id,
-      email,
-      passwordHash: input.passwordHash || "",
-      profile: cloneProfile({
-        name: fullName || email.split("@")[0] || "User",
-        email,
-        currentRole: profilePatch.currentRole || "",
-        targetRole: profilePatch.targetRole || "",
-        experienceLevel: profilePatch.experienceLevel || "",
-        geography: profilePatch.geography || "",
-        goals: profilePatch.goals || [],
-        painPoints: profilePatch.painPoints || [],
-        onboardingComplete: profilePatch.onboardingComplete ?? false,
-      }),
-      usage: cloneUsage(),
-      actionPlan: cloneActionPlan(),
-    };
-    store.users.unshift(user);
-  } else {
-    user.email = email;
-    if (typeof input.passwordHash === "string") {
-      user.passwordHash = input.passwordHash;
-    }
-    user.profile = {
-      ...user.profile,
-      ...profilePatch,
-      name: fullName || profilePatch.name || user.profile.name,
-      email,
-      goals: profilePatch.goals ?? user.profile.goals,
-      painPoints: profilePatch.painPoints ?? user.profile.painPoints,
-    };
-  }
-
-  await writeStore(store);
-  return user;
+}): Promise<StoredUser> {
+  // Prisma is the source of truth — this now just returns a StoredUser shape
+  const profile = defaultProfile({
+    name: [input.firstName, input.lastName].filter(Boolean).join(" ") || input.email.split("@")[0],
+    email: input.email.trim().toLowerCase(),
+    ...(input.profile || {}),
+  });
+  return {
+    id: input.id,
+    email: input.email.trim().toLowerCase(),
+    passwordHash: input.passwordHash || "",
+    profile,
+    usage: defaultUsage(),
+    actionPlan: defaultActionPlan(),
+  };
 }
 
-export async function validateUser(email: string, password: string) {
-  // Always allow the demo account — works even when the store file
-  // doesn't exist yet (fresh Vercel deploy, first cold start, etc.)
-  if (
-    email.toLowerCase() === "steve@askiatech.com" &&
-    password === "demo12345"
-  ) {
-    const store = await readStore();
-    let demo = store.users.find((u) => u.id === "user_demo");
-    if (!demo) {
-      // Seed user is missing — recreate and persist
-      const seed = createSeedStore();
-      await writeStore(seed);
-      demo = seed.users[0];
-    }
-    return demo;
-  }
-
+export async function validateUser(email: string, password: string): Promise<StoredUser | null> {
   const user = await getUserByEmail(email);
   if (!user) return null;
   return user.passwordHash === hashPassword(password) ? user : null;
 }
 
-export async function getDashboardForUser(userId: string) {
-  const store = await readStore();
-  const user = store.users.find((entry) => entry.id === userId);
-  if (!user) return null;
-  return buildDashboard(user, store);
-}
-
-export async function updateProfile(userId: string, input: Partial<UserProfile>) {
-  const store = await readStore();
-  const user = store.users.find((entry) => entry.id === userId);
+export async function getDashboardForUser(userId: string): Promise<DashboardPayload | null> {
+  const user = await getUserById(userId);
   if (!user) return null;
 
-  user.profile = {
-    ...user.profile,
-    ...input,
-    goals: input.goals || user.profile.goals,
-    painPoints: input.painPoints || user.profile.painPoints,
+  const [documents, sessions] = await Promise.all([
+    listDocumentsForUser(userId),
+    listSessionsForUser(userId),
+  ]);
+
+  return {
+    user: user.profile,
+    usage: user.usage,
+    actionPlan: user.actionPlan,
+    documents,
+    sessions,
   };
-  user.profile.onboardingComplete = true;
-
-  await writeStore(store);
-  return user.profile;
 }
 
-export async function listDocumentsForUser(userId: string) {
-  const store = await readStore();
-  return store.documents.filter((document) => document.userId === userId);
+export async function updateProfile(userId: string, input: Partial<UserProfile>): Promise<UserProfile | null> {
+  if (!isDatabaseReady()) return null;
+  try {
+    await prisma.coachProfile.upsert({
+      where: { userId },
+      update: {
+        currentRole: input.currentRole,
+        targetRole: input.targetRole,
+        experienceLevel: input.experienceLevel,
+        geography: input.geography,
+        goals: input.goals ?? [],
+        painPoints: input.painPoints ?? [],
+      },
+      create: {
+        userId,
+        currentRole: input.currentRole,
+        targetRole: input.targetRole,
+        experienceLevel: input.experienceLevel,
+        geography: input.geography,
+        goals: input.goals ?? [],
+        painPoints: input.painPoints ?? [],
+      },
+    });
+    const updated = await getUserById(userId);
+    return updated?.profile ?? null;
+  } catch {
+    return null;
+  }
+}
+
+// ─── Documents ────────────────────────────────────────────────────────────────
+
+export async function listDocumentsForUser(userId: string): Promise<StoredDocument[]> {
+  if (!isDatabaseReady()) return [];
+  try {
+    const docs = await prisma.document.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return docs.map((d: any) => ({
+      id: d.id,
+      userId: d.userId,
+      title: d.fileName,
+      type: mapDocumentType(d.type),
+      updatedAt: d.updatedAt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+      status: "indexed" as const,
+      mimeType: d.mimeType,
+      sizeBytes: d.sizeBytes,
+    }));
+  } catch {
+    return [];
+  }
 }
 
 export async function createDocumentForUser(
   userId: string,
   input: { title: string; type: "resume" | "linkedin" | "notes"; mimeType?: string; sizeBytes?: number },
-) {
-  const store = await readStore();
-  const document: StoredDocument = {
-    id: `doc_${crypto.randomUUID()}`,
+): Promise<StoredDocument> {
+  const id = crypto.randomUUID();
+
+  if (isDatabaseReady()) {
+    try {
+      const doc = await prisma.document.create({
+        data: {
+          id,
+          userId,
+          fileName: input.title,
+          type: toPrismaDocumentType(input.type),
+          status: "indexed",
+          mimeType: input.mimeType || "application/octet-stream",
+          sizeBytes: input.sizeBytes || 0,
+          storagePath: "",
+        },
+      });
+      return {
+        id: doc.id,
+        userId: doc.userId,
+        title: doc.fileName,
+        type: input.type,
+        updatedAt: "Just now",
+        status: "indexed",
+        mimeType: doc.mimeType,
+        sizeBytes: doc.sizeBytes,
+      };
+    } catch {
+      // fall through to in-memory
+    }
+  }
+
+  return {
+    id: `doc_${id}`,
     userId,
     title: input.title,
     type: input.type,
@@ -386,130 +325,165 @@ export async function createDocumentForUser(
     mimeType: input.mimeType || "application/octet-stream",
     sizeBytes: input.sizeBytes || 0,
   };
-
-  store.documents.unshift(document);
-  await writeStore(store);
-  return document;
 }
 
-export async function createSessionForUser(userId: string, mode: CoachingMode, title?: string) {
-  const store = await readStore();
-  const session: StoredSession = {
+// ─── Sessions ─────────────────────────────────────────────────────────────────
+
+export async function createSessionForUser(
+  userId: string,
+  mode: CoachingMode,
+  title?: string,
+): Promise<StoredSession> {
+  const sessionTitle = title || `${mode[0].toUpperCase()}${mode.slice(1)} session`;
+
+  if (isDatabaseReady()) {
+    try {
+      const s = await prisma.coachingSession.create({
+        data: {
+          userId,
+          mode: toPrismaSessionMode(mode),
+          status: "live",
+          title: sessionTitle,
+          startedAt: new Date(),
+        },
+      });
+      return toStoredSession(s);
+    } catch {
+      // fall through
+    }
+  }
+
+  return {
     id: `sess_${crypto.randomUUID()}`,
     userId,
-    title: title || `${mode[0].toUpperCase()}${mode.slice(1)} coaching session`,
+    title: sessionTitle,
     mode,
     status: "live",
     startedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-    summary: "Live session started. Transcript and recap will update as events arrive.",
+    summary: "",
     transcriptTurns: 0,
-    notes: [
-      `Current task: ${mode} mode`,
-      "Captions available",
-      "Avatar fallback available: audio-only",
-    ],
+    notes: [],
     transcript: [],
   };
-
-  store.sessions.unshift(session);
-  await writeStore(store);
-  return session;
 }
 
-export async function listSessionsForUser(userId: string) {
-  const store = await readStore();
-  return store.sessions.filter((session) => session.userId === userId);
+export async function listSessionsForUser(userId: string): Promise<StoredSession[]> {
+  if (!isDatabaseReady()) return [];
+  try {
+    const sessions = await prisma.coachingSession.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+      include: { _count: { select: { messages: true } } },
+    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return sessions.map((s: any) => ({
+      ...toStoredSession(s),
+      transcriptTurns: s._count.messages,
+    }));
+  } catch {
+    return [];
+  }
 }
 
-export async function getSessionForUser(userId: string, sessionId: string) {
-  const store = await readStore();
-  return store.sessions.find((session) => session.userId === userId && session.id === sessionId) || null;
+export async function getSessionForUser(userId: string, sessionId: string): Promise<StoredSession | null> {
+  if (!isDatabaseReady()) return null;
+  try {
+    const s = await prisma.coachingSession.findFirst({
+      where: { id: sessionId, userId },
+      include: { _count: { select: { messages: true } } },
+    });
+    if (!s) return null;
+    return { ...toStoredSession(s), transcriptTurns: s._count.messages };
+  } catch {
+    return null;
+  }
 }
 
 export async function appendSessionEvent(
   userId: string,
   sessionId: string,
   input: { role?: "coach" | "user"; message?: string },
-) {
-  const store = await readStore();
-  const session = store.sessions.find((entry) => entry.userId === userId && entry.id === sessionId);
-  if (!session) return null;
-
-  if (input.message) {
-    session.transcript.push({
-      time: new Date().toLocaleTimeString("en-US", { minute: "2-digit", second: "2-digit" }),
-      role: input.role || "user",
-      message: input.message,
-    });
-    session.transcriptTurns += 1;
-    session.summary = "Session updated with latest transcript and task context.";
+): Promise<StoredSession | null> {
+  if (!isDatabaseReady()) return null;
+  try {
+    if (input.message) {
+      await prisma.sessionMessage.create({
+        data: {
+          sessionId,
+          role: input.role === "coach" ? "assistant" : "user",
+          content: input.message,
+        },
+      });
+      await prisma.coachingSession.update({
+        where: { id: sessionId },
+        data: { summary: "Session in progress.", updatedAt: new Date() },
+      });
+    }
+    return getSessionForUser(userId, sessionId);
+  } catch {
+    return null;
   }
-
-  await writeStore(store);
-  return session;
 }
 
-export async function completeSessionForUser(userId: string, sessionId: string) {
-  const store = await readStore();
-  const session = store.sessions.find((entry) => entry.userId === userId && entry.id === sessionId);
-  if (!session) return null;
-
-  session.status = "complete";
-  session.summary = "Session recap generated with next actions and updated coaching memory.";
-  await writeStore(store);
-  return session;
+export async function completeSessionForUser(userId: string, sessionId: string): Promise<StoredSession | null> {
+  if (!isDatabaseReady()) return null;
+  try {
+    await prisma.coachingSession.update({
+      where: { id: sessionId },
+      data: {
+        status: "complete",
+        endedAt: new Date(),
+        summary: "Session complete.",
+      },
+    });
+    return getSessionForUser(userId, sessionId);
+  } catch {
+    return null;
+  }
 }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function toStoredSession(s: any): StoredSession {
+  return {
+    id: s.id,
+    userId: s.userId,
+    title: s.title,
+    mode: s.mode as CoachingMode,
+    status: mapSessionStatus(s.status),
+    startedAt: (s.startedAt ?? s.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+    summary: s.summary || "",
+    transcriptTurns: 0,
+    notes: [],
+    transcript: [],
+  };
+}
+
+// ─── Reviews (legacy — kept for compatibility) ────────────────────────────────
 
 export async function createReviewForUser(
   userId: string,
   input: { type: "resume" | "linkedin"; documentId?: string; targetRole?: string },
 ) {
-  const store = await readStore();
-  const review: StoredReview = {
-    id: `review_${crypto.randomUUID()}`,
-    userId,
-    documentId: input.documentId,
-    type: input.type,
-    output: createReviewFromTemplate(input.type, input.targetRole),
-    updatedAt: new Date().toISOString(),
-  };
-
-  const existingIndex = store.reviews.findIndex(
-    (entry) =>
-      entry.userId === userId &&
-      entry.type === input.type &&
-      entry.documentId === input.documentId,
-  );
-
-  if (existingIndex >= 0) {
-    store.reviews[existingIndex] = review;
-  } else {
-    store.reviews.unshift(review);
-  }
-
-  const usageKey = input.type === "resume" ? "resume_review" : "linkedin_review";
-  const user = store.users.find((entry) => entry.id === userId);
-  if (user) {
-    user.usage = user.usage.map((item) =>
-      item.key === usageKey ? { ...item, used: Math.min(item.limit, item.used + 1) } : item,
-    );
-  }
-
-  await writeStore(store);
-  return review;
+  // No-op returning minimal shape; actual reviews are saved by /api/zari/resume
+  return { id: `review_${crypto.randomUUID()}`, userId, type: input.type, output: null, updatedAt: new Date().toISOString() };
 }
 
 export async function getLatestReviewForUser(userId: string, type: "resume" | "linkedin") {
-  const store = await readStore();
-  return store.reviews.find((entry) => entry.userId === userId && entry.type === type) || null;
+  return null;
 }
+
+// ─── Resume score history ─────────────────────────────────────────────────────
 
 export async function saveResumeScore(
   userId: string,
-  data: { filename: string; mode: "general" | "targeted"; targetRole?: string; scores: { overall: number; ats: number; impact: number; clarity: number } },
-) {
-  const store = await readStore();
-  if (!store.resumeScores) store.resumeScores = [];
+  data: {
+    filename: string;
+    mode: "general" | "targeted";
+    targetRole?: string;
+    scores: { overall: number; ats: number; impact: number; clarity: number };
+  },
+): Promise<ResumeScoreRecord> {
   const record: ResumeScoreRecord = {
     id: `rscore_${crypto.randomUUID()}`,
     userId,
@@ -519,22 +493,47 @@ export async function saveResumeScore(
     targetRole: data.targetRole,
     scores: data.scores,
   };
-  store.resumeScores.unshift(record);
-  // Keep last 100 records total
-  store.resumeScores = store.resumeScores.slice(0, 100);
-  await writeStore(store);
+
+  if (isDatabaseReady()) {
+    try {
+      const existing = await prisma.userPortalState.findUnique({
+        where: { userId_key: { userId, key: "resume_scores" } },
+      });
+      const scores: ResumeScoreRecord[] = existing
+        ? (existing.data as { scores: ResumeScoreRecord[] }).scores ?? []
+        : [];
+      scores.unshift(record);
+      await prisma.userPortalState.upsert({
+        where: { userId_key: { userId, key: "resume_scores" } },
+        update: { data: { scores: scores.slice(0, 100) } },
+        create: { userId, key: "resume_scores", data: { scores: scores.slice(0, 100) } },
+      });
+    } catch {
+      // best-effort
+    }
+  }
+
   return record;
 }
 
 export async function getResumeScoreHistory(userId: string): Promise<ResumeScoreRecord[]> {
-  const store = await readStore();
-  if (!store.resumeScores) return [];
-  return store.resumeScores.filter((r) => r.userId === userId);
+  if (!isDatabaseReady()) return [];
+  try {
+    const state = await prisma.userPortalState.findUnique({
+      where: { userId_key: { userId, key: "resume_scores" } },
+    });
+    if (!state) return [];
+    return (state.data as { scores: ResumeScoreRecord[] }).scores ?? [];
+  } catch {
+    return [];
+  }
 }
 
 export async function clearResumeScoreHistory(userId: string): Promise<void> {
-  const store = await readStore();
-  if (!store.resumeScores) return;
-  store.resumeScores = store.resumeScores.filter((r) => r.userId !== userId);
-  await writeStore(store);
+  if (!isDatabaseReady()) return;
+  try {
+    await prisma.userPortalState.deleteMany({ where: { userId, key: "resume_scores" } });
+  } catch {
+    // best-effort
+  }
 }

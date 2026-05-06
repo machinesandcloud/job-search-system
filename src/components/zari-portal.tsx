@@ -245,12 +245,14 @@ function vaultSave(entry: Omit<DocEntry, "id" | "createdAt">): void {
   const record: DocEntry = { ...entry, id: entry.type + "_" + Date.now(), createdAt: Date.now() };
   if (idx > -1) docs[idx] = record; else docs.unshift(record);
   localStorage.setItem(VAULT_KEY, JSON.stringify(docs));
+  syncKeyToServer(VAULT_KEY, docs);
   window.dispatchEvent(new CustomEvent("vault-updated"));
 }
 
 function vaultRemove(id: string): void {
   const docs = vaultRead().filter(d => d.id !== id);
   localStorage.setItem(VAULT_KEY, JSON.stringify(docs));
+  syncKeyToServer(VAULT_KEY, docs);
   window.dispatchEvent(new CustomEvent("vault-updated"));
 }
 
@@ -315,8 +317,20 @@ function lsGet<T>(key: string): T | null {
     return raw ? (JSON.parse(raw) as T) : null;
   } catch { return null; }
 }
+const SKIP_SYNC_KEYS = new Set(["zari_resume_pdf_v2"]);
+
+function syncKeyToServer(key: string, data: unknown): void {
+  if (SKIP_SYNC_KEYS.has(key)) return;
+  fetch("/api/portal/state", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key, data }),
+  }).catch(() => { /* best-effort */ });
+}
+
 function lsSet(key: string, value: unknown) {
   try { if (typeof localStorage !== "undefined") localStorage.setItem(key, JSON.stringify(value)); } catch { /* noop */ }
+  syncKeyToServer(key, value);
 }
 function lsClear(key: string) {
   try { if (typeof localStorage !== "undefined") localStorage.removeItem(key); } catch { /* noop */ }
@@ -3355,6 +3369,7 @@ function writePromotionCache<T>(key: string, record: PromotionCacheRecord<T>) {
     const raw = JSON.parse(localStorage.getItem(PROMOTION_CACHE_KEY) ?? "{}") as Record<string, PromotionCacheRecord<T>>;
     raw[key] = record;
     localStorage.setItem(PROMOTION_CACHE_KEY, JSON.stringify(raw));
+    syncKeyToServer(PROMOTION_CACHE_KEY, raw);
   } catch {
     /* ignore */
   }
@@ -8194,7 +8209,9 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
   }
 
   function writeLocalHistory(entries: ResumeHistoryEntry[]) {
-    try { localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(entries.slice(0, 30))); } catch { /* ignore */ }
+    const trimmed = entries.slice(0, 30);
+    try { localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(trimmed)); } catch { /* ignore */ }
+    syncKeyToServer(LOCAL_HISTORY_KEY, trimmed);
   }
 
   function pushLocalHistory(entry: ResumeHistoryEntry) {
@@ -8380,7 +8397,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
       if (data && data.overall) {
         setAiResult(data);
         // Persist session so page refresh lands back on results
-        try { localStorage.setItem(RESUME_SESSION_KEY, JSON.stringify({ resumeText:textToAnalyze, fileName:fileName||"resume", aiResult:data, reviewMode, targetRoleInput, careerLevel, savedAt:new Date().toISOString() })); } catch { /* non-fatal */ }
+        try { const _rsess = { resumeText:textToAnalyze, fileName:fileName||"resume", aiResult:data, reviewMode, targetRoleInput, careerLevel, savedAt:new Date().toISOString() }; localStorage.setItem(RESUME_SESSION_KEY, JSON.stringify(_rsess)); syncKeyToServer(RESUME_SESSION_KEY, _rsess); } catch { /* non-fatal */ }
         // Save to doc vault
         try { vaultSave({ type:"resume", name:fileName||"Resume", content:textToAnalyze, meta:{ score:String(data.overall), targetRole:targetRoleInput||"", stage } }); } catch { /* non-fatal */ }
         // Always persist to localStorage so history works regardless of auth state
@@ -15792,6 +15809,21 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
   }, []);
 
   const billingCtx: BillingCtx = { planId: viewer.planId, role: viewer.role ?? null, onPlanBlock: promptUpgrade, onCreditLimit: promptCreditLimit };
+
+  // Hydrate localStorage from server on first load — restores data on new devices / cleared browsers
+  useEffect(() => {
+    fetch("/api/portal/state")
+      .then(r => r.ok ? r.json() : null)
+      .then((serverState: Record<string, unknown> | null) => {
+        if (!serverState || typeof localStorage === "undefined") return;
+        for (const [key, data] of Object.entries(serverState)) {
+          if (!localStorage.getItem(key)) {
+            try { localStorage.setItem(key, JSON.stringify(data)); } catch { /* noop */ }
+          }
+        }
+      })
+      .catch(() => { /* best-effort */ });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const decision = canAccessStage({ planId: viewer.planId, role: viewer.role, stage });
