@@ -88,27 +88,13 @@ function FeatureGate({ featureName, stage, children }: { featureName?: string; s
 
   return (
     <div style={{ position:"relative", height:"100%", overflow:"hidden" }}>
-      {/* Blurred fake-content background */}
-      <div aria-hidden style={{ position:"absolute", inset:0, pointerEvents:"none", filter:"blur(7px) brightness(0.85)", opacity:0.5, overflow:"hidden", userSelect:"none" }}>
-        <div style={{ height:56, background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", display:"flex", alignItems:"center", gap:12, padding:"0 24px" }}>
-          <div style={{ width:140, height:18, borderRadius:6, background:"var(--z-raise)" }}/>
-          <div style={{ width:90, height:18, borderRadius:6, background:"var(--z-raise)" }}/>
-          <div style={{ marginLeft:"auto", width:80, height:28, borderRadius:9, background:planColor, opacity:0.35 }}/>
-        </div>
-        <div style={{ padding:"24px 28px", display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
-          {[180,220,150,190,165,205].map((h, i) => (
-            <div key={i} style={{ height:h, borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"20px 22px", display:"flex", flexDirection:"column", gap:10 }}>
-              <div style={{ width:"55%", height:14, borderRadius:4, background:"var(--z-raise)" }}/>
-              <div style={{ width:"80%", height:10, borderRadius:4, background:"var(--z-raise)", opacity:0.6 }}/>
-              <div style={{ width:"40%", height:10, borderRadius:4, background:"var(--z-raise)", opacity:0.35 }}/>
-              <div style={{ marginTop:"auto", width:"65%", height:30, borderRadius:8, background:"var(--z-raise)" }}/>
-            </div>
-          ))}
-        </div>
+      {/* Real feature content — blurred as teaser preview */}
+      <div aria-hidden style={{ position:"absolute", inset:0, pointerEvents:"none", filter:"blur(6px) brightness(0.88) saturate(0.85)", overflow:"hidden", userSelect:"none" }}>
+        {children}
       </div>
 
-      {/* Semi-transparent overlay */}
-      <div style={{ position:"absolute", inset:0, background:"var(--z-bg)", opacity:0.6 }}/>
+      {/* Frost overlay */}
+      <div style={{ position:"absolute", inset:0, background:"var(--z-bg)", opacity:0.52 }}/>
 
       {/* Upgrade card */}
       <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", padding:"24px" }}>
