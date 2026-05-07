@@ -1603,6 +1603,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
       });
       const data = await res.json().catch(() => ({})) as { message?: string; aiEnabled?: boolean; code?: string; error?: string; requiredPlanId?: string; creditUsage?: { used?: number; limit?: number } };
       if (!res.ok && handleBillingApiError(res.status, data as BillingApiErrorData, billing)) {
+        if (!opts?.skipUserMsg) setMsgs(m => m.slice(0, -1));
         setIsLoading(false);
         setAvatarState("idle");
         return;

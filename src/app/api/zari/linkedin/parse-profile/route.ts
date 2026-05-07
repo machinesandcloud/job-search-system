@@ -6,6 +6,8 @@ import { ensureSameOrigin } from "@/lib/utils";
 export const runtime     = "nodejs";
 export const maxDuration = 60;
 
+const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
+
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const pdfParse = require("pdf-parse/lib/pdf-parse") as (buf: Buffer) => Promise<{ text: string }>;
 
@@ -87,6 +89,10 @@ export async function POST(request: Request) {
 
     if (!file || typeof file === "string") {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
+    }
+
+    if ((file as File).size > MAX_BYTES) {
+      return NextResponse.json({ error: "File too large — max 10 MB." }, { status: 413 });
     }
 
     const buffer = Buffer.from(await (file as File).arrayBuffer());

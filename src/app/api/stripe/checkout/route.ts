@@ -40,7 +40,6 @@ export async function POST(request: Request) {
       assessmentId,
       token,
     },
-    customer_email: assessment.userId ? undefined : undefined,
   });
 
   await prisma.assessment.update({

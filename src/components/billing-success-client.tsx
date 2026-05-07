@@ -198,14 +198,23 @@ export function BillingSuccessClient() {
         </p>
       </div>
 
-      {state === "error" ? (
-        <div className="mt-8">
+      {(state === "delayed" || state === "error") ? (
+        <div className="mt-8 flex flex-col gap-3">
           <Link
-            href="/onboarding/plan"
-            className="inline-flex items-center justify-center rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+            href="/dashboard"
+            className="inline-flex w-full items-center justify-center rounded-2xl px-5 py-3 text-sm font-bold text-white transition"
+            style={{ background: "#4361EE" }}
           >
-            Back to plans
+            Go to dashboard →
           </Link>
+          {state === "error" && (
+            <Link
+              href="/onboarding/plan"
+              className="inline-flex items-center justify-center rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+            >
+              Back to plans
+            </Link>
+          )}
         </div>
       ) : null}
     </>

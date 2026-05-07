@@ -4,8 +4,17 @@ import { NextResponse } from "next/server";
 const pdfParse = require("pdf-parse") as (buf: Buffer) => Promise<{ text: string }>;
 import mammoth from "mammoth";
 import { getCurrentUserId } from "@/lib/mvp/auth";
+import { ensureSameOrigin } from "@/lib/utils";
+
+export const runtime     = "nodejs";
+export const maxDuration = 30;
+
+const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
 
 export async function POST(request: Request) {
+  if (!ensureSameOrigin(request)) {
+    return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
+  }
   const userId = await getCurrentUserId();
   if (!userId) {
     return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
@@ -17,6 +26,10 @@ export async function POST(request: Request) {
 
     if (!file || typeof file === "string") {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
+    }
+
+    if ((file as File).size > MAX_BYTES) {
+      return NextResponse.json({ error: "File too large — max 10 MB." }, { status: 413 });
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
