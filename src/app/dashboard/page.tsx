@@ -75,8 +75,8 @@ export default async function DashboardPage() {
   const tokenUsage = identity?.account?.id ? await getCurrentPeriodTokenUsage(identity.account.id).catch(() => null) : null;
   if (identity?.user?.role === "admin" || identity?.user?.role === "support") {
     const viewer = buildPortalViewer({
-      dashboardName: dashboard?.user.name,
-      dashboardEmail: dashboard?.user.email,
+      dashboardName: dashboard?.user?.name,
+      dashboardEmail: dashboard?.user?.email,
       identity,
     });
     return <ZariPortal viewer={viewer} />;
@@ -103,8 +103,8 @@ export default async function DashboardPage() {
   });
   if ("ok" in access && access.ok) {
     const viewer = buildPortalViewer({
-      dashboardName: dashboard?.user.name,
-      dashboardEmail: dashboard?.user.email,
+      dashboardName: dashboard?.user?.name,
+      dashboardEmail: dashboard?.user?.email,
       identity,
       subscription: access.subscription || identity?.subscription || null,
     });
@@ -116,8 +116,8 @@ export default async function DashboardPage() {
 
   if (freePreviewEnabled) {
     const viewer = buildPortalViewer({
-      dashboardName: dashboard?.user.name,
-      dashboardEmail: dashboard?.user.email,
+      dashboardName: dashboard?.user?.name,
+      dashboardEmail: dashboard?.user?.email,
       identity,
     });
     viewer.usedMonthlyCredits = tokenUsage?.usedCredits ?? null;
@@ -130,8 +130,8 @@ export default async function DashboardPage() {
   redirect("/onboarding/plan");
 
   const viewer = buildPortalViewer({
-    dashboardName: dashboard?.user.name,
-    dashboardEmail: dashboard?.user.email,
+    dashboardName: dashboard?.user?.name,
+    dashboardEmail: dashboard?.user?.email,
     identity,
   });
   return <ZariPortal viewer={viewer} />;

@@ -13,7 +13,8 @@ import { getStripeClient } from "@/lib/stripe";
 import { mapStripePlanTier, syncStripeSubscriptionToAccount, syncUsersForAccountPlan } from "@/lib/subscription-sync";
 import { ensureSameOrigin } from "@/lib/utils";
 
-export const runtime = "nodejs";
+export const runtime     = "nodejs";
+export const maxDuration = 30;
 
 async function resolveAccountId(input: {
   metadataAccountId?: string | null;

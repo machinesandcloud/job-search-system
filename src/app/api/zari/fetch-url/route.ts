@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { ensureSameOrigin } from "@/lib/utils";
+import { getCurrentUserId } from "@/lib/mvp/auth";
+
+export const maxDuration = 15;
 
 // Specific enough to not appear in JS/CSS code — require at least 2 to match
 const JOB_KEYWORDS = [
@@ -14,6 +17,9 @@ export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) {
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
   }
+
+  const userId = await getCurrentUserId();
+  if (!userId) return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
 
   const body = await request.json().catch(() => ({})) as { url?: string };
   const url = (body.url ?? "").trim();

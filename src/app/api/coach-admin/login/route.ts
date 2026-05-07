@@ -1,14 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ensureSameOrigin } from "@/lib/utils";
+import { ensureSameOrigin, getClientIp } from "@/lib/utils";
 import { ensureCoachAdminUser, getCoachAdminRole } from "@/lib/billing";
 import {
   setCoachAdminSessionOnResponse,
   verifyCoachAdminPassword,
 } from "@/lib/coach-admin-auth";
+import { rateLimit } from "@/lib/rate-limit";
+
+export const maxDuration = 15;
 
 export async function POST(request: NextRequest) {
   if (!ensureSameOrigin(request)) {
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
+  }
+
+  const ip = getClientIp(request);
+  const rl = await rateLimit(`coach-admin-login:${ip}`, 5, 15 * 60 * 1000);
+  if (!rl.ok) {
+    return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 });
   }
 
   const body = await request.json().catch(() => ({}));

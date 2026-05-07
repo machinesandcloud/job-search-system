@@ -4,6 +4,9 @@ import { syncCurrentUserToBillingIdentity } from "@/lib/billing";
 import { getStripeClient } from "@/lib/stripe";
 import { prisma } from "@/lib/db";
 
+export const runtime = "nodejs";
+export const maxDuration = 30;
+
 export async function POST(request: Request) {
   const userId = await getCurrentUserId();
   if (!userId) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });

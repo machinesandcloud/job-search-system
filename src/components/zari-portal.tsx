@@ -1555,7 +1555,6 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
   useEffect(() => { void loadHistory(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { const t = setInterval(() => setElapsed(e => e+1), 1000); return () => clearInterval(t); }, []);
   useEffect(() => { if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight; }, [msgs, isLoading]);
-  useEffect(() => { if (sessionReady) setSessionReady(true); }, [sessionReady]);
 
   const fmt = (s:number) => `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
 
@@ -1655,6 +1654,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
       if (!extractedText) {
         setMsgs(m => [...m, { role: "coach", text: "I couldn't read that file — try uploading it again, or paste the content directly." }]);
         setAvatarState("idle");
+        setIsLoading(false);
         return;
       }
 
@@ -10181,6 +10181,7 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
   async function startInterview() {
     if (!round) return;
     setLoadingQs(true);
+    let gotSections = false;
     try {
       const combinedProfile = [resumeText, linkedinText].filter(Boolean).join("\n\n---\n\n");
       const res = await fetch("/api/zari/interview", {
@@ -10192,12 +10193,15 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
       if (data.sections?.length) {
         setSections(data.sections);
         lsSet(`zari_interview_session_v1_${stage}`, { resumeText, resumeFileName, linkedinText, jobDesc, round, sections: data.sections, setupDone: true });
+        gotSections = true;
       }
-    } catch { /* sections stays null, handled below */ }
+    } catch { /* gotSections stays false */ }
     setLoadingQs(false);
-    setSetupDone(true);
-    setActiveSectionIdx(0);
-    setQIdx(0);
+    if (gotSections) {
+      setSetupDone(true);
+      setActiveSectionIdx(0);
+      setQIdx(0);
+    }
   }
 
   const ACTIVE_SECTION: InterviewSection | undefined = sections?.[activeSectionIdx];

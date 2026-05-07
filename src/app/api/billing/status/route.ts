@@ -7,7 +7,8 @@ import {
 import { getStripeClient } from "@/lib/stripe";
 import { syncStripeSubscriptionToAccount } from "@/lib/subscription-sync";
 
-export const runtime = "nodejs";
+export const runtime     = "nodejs";
+export const maxDuration = 15;
 
 export async function GET(request: NextRequest) {
   let access = await getCurrentSubscriptionAccess();

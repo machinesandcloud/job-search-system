@@ -3,13 +3,13 @@ import { prisma, isDatabaseReady } from "@/lib/db";
 
 // Called by a scheduled job (e.g. Netlify scheduled function, cron-job.org)
 // Protect with CRON_SECRET env var so it can't be triggered by anyone
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
   const secret = process.env.CRON_SECRET;
-  if (secret) {
-    const auth = request.headers.get("authorization");
-    if (auth !== `Bearer ${secret}`) {
-      return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
-    }
+  const auth = request.headers.get("authorization");
+  if (!secret || auth !== `Bearer ${secret}`) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
 
   if (!isDatabaseReady()) {
