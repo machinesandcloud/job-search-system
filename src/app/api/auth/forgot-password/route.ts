@@ -9,7 +9,7 @@ export const maxDuration = 15;
 
 export async function POST(request: Request) {
   const ip = getClientIp(request);
-  const rl = rateLimit(`forgot:${ip}`, 5, 60 * 60 * 1000); // 5 requests per hour per IP
+  const rl = await rateLimit(`forgot:${ip}`, 5, 60 * 60 * 1000); // 5 requests per hour per IP
   if (!rl.ok) {
     return NextResponse.json({ ok: true }); // silent rate limit — don't reveal
   }

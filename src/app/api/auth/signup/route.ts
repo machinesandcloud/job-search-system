@@ -8,7 +8,7 @@ export const maxDuration = 15;
 
 export async function POST(request: Request) {
   const ip = getClientIp(request);
-  const rl = rateLimit(`signup:${ip}`, 5, 60 * 60 * 1000); // 5 signups per hour per IP
+  const rl = await rateLimit(`signup:${ip}`, 5, 60 * 60 * 1000); // 5 signups per hour per IP
   if (!rl.ok) {
     return NextResponse.json(
       { error: "Too many sign-up attempts. Please try again later." },

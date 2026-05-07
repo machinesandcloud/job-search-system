@@ -8,7 +8,7 @@ export const maxDuration = 15;
 
 export async function POST(request: Request) {
   const ip = getClientIp(request);
-  const rl = rateLimit(`login:${ip}`, 10, 15 * 60 * 1000); // 10 attempts per 15 min per IP
+  const rl = await rateLimit(`login:${ip}`, 10, 15 * 60 * 1000); // 10 attempts per 15 min per IP
   if (!rl.ok) {
     return NextResponse.json(
       { error: "Too many login attempts. Please try again later." },

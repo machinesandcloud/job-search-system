@@ -32,7 +32,7 @@ export async function POST(request: Request) {
   }
   const ip = getClientIp(request);
   const session = await getUserSession();
-  const limit = rateLimit(ip, 10);
+  const limit = await rateLimit(ip, 10);
   if (!limit.ok) {
     return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
   }

@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const securityHeaders = [
   { key: "X-DNS-Prefetch-Control", value: "on" },
@@ -38,4 +39,12 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+const hasSentry = Boolean(process.env.SENTRY_DSN ?? process.env.NEXT_PUBLIC_SENTRY_DSN);
+
+export default hasSentry
+  ? withSentryConfig(nextConfig, {
+      silent: true,
+      disableLogger: true,
+      widenClientFileUpload: true,
+    })
+  : nextConfig;
