@@ -54,6 +54,7 @@ function handleBillingApiError(
    FEATURE GATE — full-screen upgrade wall for locked features
 ═══════════════════════════════════════════════════ */
 const FEATURE_GATE_LABELS: Record<string, string> = {
+  zari_chat:                 "AI Coaching Chat",
   zari_promotion_readiness:  "Promotion Readiness Audit",
   zari_promotion_doc:        "Promotion Document Builder",
   zari_promotion_visibility: "Visibility Strategy",
@@ -16107,7 +16108,7 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
 
         {/* Screen — all kept mounted, hidden when inactive to preserve state */}
         <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
-          <div className={screen==="session"      ? "zari-screen-active" : ""} style={{ display:screen==="session"      ? "block" : "none", height:"100%" }}><ScreenSession      stage={stage} onNavigate={navigate}/></div>
+          <div className={screen==="session"      ? "zari-screen-active" : ""} style={{ display:screen==="session"      ? "block" : "none", height:"100%" }}><FeatureGate featureName="zari_chat"><ScreenSession stage={stage} onNavigate={navigate}/></FeatureGate></div>
           <div className={screen==="resume"       ? "zari-screen-active" : ""} style={{ display:screen==="resume"       ? "block" : "none", height:"100%" }}><ScreenResume       stage={stage} onNavigate={s=>navigate(s as Screen)}/></div>
           <div className={screen==="interview"    ? "zari-screen-active" : ""} style={{ display:screen==="interview"    ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <FeatureGate featureName="zari_pivot_story"><ScreenPivotStoryBuilder active={screen==="interview"}/></FeatureGate> : <ScreenInterview    stage={stage} active={screen==="interview"} onNavigate={s=>navigate(s as Screen)}/>}</div>
           <div className={screen==="cover-letter" ? "zari-screen-active" : ""} style={{ display:screen==="cover-letter" ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <FeatureGate featureName="zari_credibility_sprint"><ScreenCredibilitySprint active={screen==="cover-letter"}/></FeatureGate> : <ScreenCoverLetter stage={stage} active={screen==="cover-letter"} onNavigate={s=>navigate(s as Screen)}/>}</div>

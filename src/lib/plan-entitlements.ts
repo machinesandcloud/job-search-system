@@ -57,6 +57,8 @@ const FEATURE_REQUIRED_PLAN: Record<string, ProductPlanId> = {
   zari_credibility_sprint: "growth",
   zari_exec_positioning: "executive",
   zari_market_intel: "executive",
+  // Chat with Zari (coaching session) requires Growth regardless of stage
+  zari_chat: "growth",
 };
 
 function normalizeString(value?: string | null) {
@@ -86,7 +88,9 @@ export function getRequiredPlanForFeature(featureName?: string | null, stage?: s
   const normalizedFeature = normalizeString(featureName);
   if (!normalizedFeature) return null;
 
-  if (normalizedFeature === "zari_chat" || normalizedFeature === "zari_plan" || normalizedFeature === "zari_interview") {
+  // zari_plan and zari_interview are stage-gated (job-search = search tier)
+  // zari_chat is explicitly set to "growth" in FEATURE_REQUIRED_PLAN above
+  if (normalizedFeature === "zari_plan" || normalizedFeature === "zari_interview") {
     return getRequiredPlanForStage(stage) || "search";
   }
 
