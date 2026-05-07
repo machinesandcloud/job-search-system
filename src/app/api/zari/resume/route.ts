@@ -343,10 +343,10 @@ Voice rules:
 
   const model = process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o";
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 22000);
+  const timeout = setTimeout(() => controller.abort(), 45000);
   let reply: string | null = null;
   try {
-    reply = await openaiChat(messages, { model, temperature: 0.2, maxTokens: 1800, jsonMode: true }, controller.signal);
+    reply = await openaiChat(messages, { model, temperature: 0.2, maxTokens: 3500, jsonMode: true }, controller.signal);
   } finally {
     clearTimeout(timeout);
   }

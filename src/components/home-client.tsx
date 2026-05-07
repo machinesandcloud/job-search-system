@@ -297,7 +297,7 @@ function Nav({ userId }: { userId: boolean }) {
   return (
     <nav style={{
       position:"fixed", top:0, left:0, right:0, zIndex:100,
-      height:60,
+      height:68,
       background: scrolled ? "rgba(255,255,255,0.96)" : "transparent",
       backdropFilter: scrolled ? "blur(14px)" : "none",
       borderBottom: scrolled ? "1px solid rgba(0,0,0,0.06)" : "1px solid transparent",
@@ -1611,7 +1611,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
       {/* ══════ HERO ══════ */}
       <section style={{
         background:"linear-gradient(180deg,#EEF2FF 0%,#F5F7FF 40%,#FAFBFF 70%,#FFFFFF 100%)",
-        paddingTop:140,
+        paddingTop:160,
         minHeight:"100vh",
         textAlign:"center",
       }}>

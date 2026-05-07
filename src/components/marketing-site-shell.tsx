@@ -20,7 +20,7 @@ export function MarketingSiteShell({
   return (
     <div className="min-h-screen bg-white text-[var(--ink)]">
       <header className="sticky top-0 z-40 border-b border-slate-100 bg-white/95 backdrop-blur-xl">
-        <div className={`mx-auto flex max-w-[1380px] items-center justify-between px-6 md:px-8 ${minimal ? "py-5" : "py-4"}`}>
+        <div className={`mx-auto flex max-w-[1380px] items-center justify-between px-6 md:px-8 ${minimal ? "py-6" : "py-5"}`}>
           <Link href="/" className={`no-underline ${minimal ? "flex items-center gap-3" : "flex items-center gap-3"}`}>
             <ZariLogo size={minimal ? 48 : 42} />
             <span className={`${minimal ? "text-[34px]" : "text-[30px]"} font-black tracking-[-0.045em] text-[#0A0A0F] leading-none`}>Zari</span>

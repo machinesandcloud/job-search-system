@@ -18,18 +18,24 @@ export function ZariLogo({ size = 32, className = "" }: ZariLogoProps) {
     >
       {/* Background */}
       <rect width="40" height="40" rx="9" fill="url(#zariBg)" />
+      {/* Soft inner glow ring */}
+      <ellipse cx="20" cy="20" rx="19" ry="14" fill="#2278FF" opacity="0.35" />
 
-      {/* Top bar of Z — wide leaf fills upper portion */}
-      <path d="M6,7.5 Q20,3.5 34,8 Q20,12.5 6,7.5 Z" fill="white" />
-      {/* Bottom bar of Z — wide leaf fills lower portion */}
-      <path d="M6,32 Q20,27.5 34,32 Q20,36.5 6,32 Z" fill="white" />
-      {/* Diagonal stroke — thick for visibility at all sizes */}
-      <line x1="32" y1="8" x2="8" y2="32" stroke="white" strokeWidth="5" strokeLinecap="round" />
+      {/* Top leaf — top bar of Z */}
+      <path d="M7,8 Q20,5 31,9 Q20,13 7,8 Z" fill="white" opacity="0.92" />
+      {/* Bottom leaf — bottom bar of Z */}
+      <path d="M7,30 Q20,27 31,32 Q20,35 7,30 Z" fill="white" opacity="0.92" />
+      {/* Diagonal stem */}
+      <line x1="30" y1="9" x2="8" y2="31" stroke="white" strokeWidth="3.5" strokeLinecap="round" />
+      {/* Sprout dot at top-right */}
+      <circle cx="30" cy="9" r="2.2" fill="white" />
+      {/* Ground bar */}
+      <rect x="10" y="36" width="20" height="1.5" rx="0.75" fill="white" opacity="0.3" />
 
       <defs>
         <linearGradient id="zariBg" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#1E72F0" />
-          <stop offset="100%" stopColor="#1252C8" />
+          <stop offset="0%" stopColor="#1A6AE8" />
+          <stop offset="100%" stopColor="#1459CC" />
         </linearGradient>
       </defs>
     </svg>

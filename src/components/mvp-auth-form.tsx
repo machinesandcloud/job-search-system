@@ -96,10 +96,10 @@ export function MvpAuthForm({ mode, authError = null }: { mode: AuthMode; authEr
       </div>
 
       {/* Top nav */}
-      <div style={{ position: "relative", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "22px 32px" }}>
-        <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-          <ZariLogo size={38} />
-          <span style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 1, color: "#0A0A0F" }}>
+      <div style={{ position: "relative", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 32px" }}>
+        <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
+          <ZariLogo size={28} />
+          <span style={{ fontSize: 19, fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 1, color: "#0A0A0F" }}>
             Zari
           </span>
         </Link>

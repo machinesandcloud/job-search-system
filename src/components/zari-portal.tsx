@@ -15567,7 +15567,7 @@ function ScreenAccount({ viewer, onNavigate }: { viewer: PortalViewer; onNavigat
     .map(p => p[0]?.toUpperCase() ?? "")
     .join("") || "?";
 
-  const planColor = viewer.planId === "executive" ? "#F59E0B" : viewer.planId === "growth" ? "#2563EB" : "#2563EB";
+  const planColor = viewer.planId === "executive" ? "#F59E0B" : "#2563EB";
   const barColor = pct >= 90 ? "#EF4444" : pct >= 70 ? "#F59E0B" : "#22C55E";
 
   const fmtNum = (v?: number | null) =>
@@ -15584,6 +15584,9 @@ function ScreenAccount({ viewer, onNavigate }: { viewer: PortalViewer; onNavigat
   const statusColor = (viewer.subscriptionStatus === "active" || !viewer.subscriptionStatus)
     ? "#22C55E" : viewer.subscriptionStatus === "canceled" ? "#EF4444" : "#F59E0B";
 
+  const [showDangerZone, setShowDangerZone] = useState(false);
+  const [cancelConfirm, setCancelConfirm] = useState(false);
+
   const sectionStyle: React.CSSProperties = {
     background: "var(--z-card)",
     borderRadius: 14,
@@ -15596,18 +15599,27 @@ function ScreenAccount({ viewer, onNavigate }: { viewer: PortalViewer; onNavigat
   const keyStyle: React.CSSProperties = { fontSize: 13, color: "var(--z-text2)" };
   const valStyle: React.CSSProperties = { fontSize: 13, fontWeight: 600, color: "var(--z-text)" };
 
+  const nextPlanName = viewer.planId === "search" ? "Growth" : viewer.planId === "growth" ? "Executive" : null;
+  const nextPlanHref = viewer.planId === "search" ? "/onboarding/plan?upgrade=growth" : "/onboarding/plan?upgrade=executive";
+
   return (
-    <div style={{ height: "100%", overflowY: "auto", padding: "28px 32px", maxWidth: 680, margin: "0 auto" }}>
+    <div style={{ height: "100%", overflowY: "auto", padding: "28px 32px", maxWidth: 700, margin: "0 auto" }}>
 
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 28 }}>
-        <div style={{ width: 54, height: 54, borderRadius: 16, background: `linear-gradient(135deg, ${planColor} 0%, ${planColor}cc 100%)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 800, color: "white", letterSpacing: "-0.02em", flexShrink: 0, boxShadow: `0 4px 16px ${planColor}50` }}>
+        <div style={{ width: 58, height: 58, borderRadius: 18, background: `linear-gradient(135deg, ${planColor} 0%, ${planColor}cc 100%)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, fontWeight: 800, color: "white", letterSpacing: "-0.02em", flexShrink: 0, boxShadow: `0 6px 20px ${planColor}40` }}>
           {initials}
         </div>
-        <div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: "var(--z-text)", letterSpacing: "-0.03em", lineHeight: 1.2 }}>{viewer.name?.trim() || viewer.email.split("@")[0]}</div>
-          <div style={{ fontSize: 13, color: "var(--z-text2)", marginTop: 2 }}>{viewer.email}</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 19, fontWeight: 800, color: "var(--z-text)", letterSpacing: "-0.03em", lineHeight: 1.2 }}>{viewer.name?.trim() || viewer.email.split("@")[0]}</div>
+          <div style={{ fontSize: 13, color: "var(--z-text2)", marginTop: 3 }}>{viewer.email}</div>
         </div>
+        {!isOperator && nextPlanName && (
+          <Link href={nextPlanHref} style={{ fontSize: 12.5, fontWeight: 700, padding: "8px 16px", borderRadius: 9, background: "linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)", color: "white", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6, boxShadow: "0 3px 12px rgba(37,99,235,0.35)", flexShrink: 0 }}>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 12, height: 12 }}><path d="M8 2l1.6 3.2L13 5.9l-2.5 2.4.6 3.3L8 9.8l-3.1 1.8.6-3.3L3 5.9l3.4-.7z" fill="currentColor" stroke="none"/></svg>
+            Upgrade to {nextPlanName}
+          </Link>
+        )}
       </div>
 
       {/* Profile */}
@@ -15652,26 +15664,24 @@ function ScreenAccount({ viewer, onNavigate }: { viewer: PortalViewer; onNavigat
           </div>
         )}
         <div style={{ ...rowStyle, marginBottom: 0 }}>
-          <span style={keyStyle}>Credits included</span>
-          <span style={valStyle}>{limit > 0 ? `${fmtNum(limit)} / month` : isOperator ? "Unlimited" : "—"}</span>
+          <span style={keyStyle}>Renewal</span>
+          <span style={valStyle}>Monthly · auto-renews</span>
         </div>
         {!isOperator && (
           <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid var(--z-bd)", display: "flex", gap: 10, flexWrap: "wrap" }}>
             {!viewer.isPaid ? (
               <Link href="/onboarding/plan" style={{ fontSize: 12.5, fontWeight: 700, padding: "8px 16px", borderRadius: 9, background: "linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)", color: "white", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6, boxShadow: "0 3px 12px rgba(37,99,235,0.35)" }}>
-                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 13, height: 13 }}><path d="M8 2l1.6 3.2L13 5.9l-2.5 2.4.6 3.3L8 9.8l-3.1 1.8.6-3.3L3 5.9l3.4-.7z"/></svg>
-                Upgrade plan
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 13, height: 13 }}><path d="M8 2l1.6 3.2L13 5.9l-2.5 2.4.6 3.3L8 9.8l-3.1 1.8.6-3.3L3 5.9l3.4-.7z" fill="currentColor" stroke="none"/></svg>
+                Choose a plan
               </Link>
-            ) : viewer.planId !== "executive" ? (
-              <Link href="/onboarding/plan?upgrade=executive" style={{ fontSize: 12.5, fontWeight: 700, padding: "8px 16px", borderRadius: 9, background: "linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)", color: "white", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6, boxShadow: "0 3px 12px rgba(37,99,235,0.35)" }}>
-                Upgrade to Executive
+            ) : nextPlanName ? (
+              <Link href={nextPlanHref} style={{ fontSize: 12.5, fontWeight: 700, padding: "8px 16px", borderRadius: 9, background: "linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)", color: "white", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6, boxShadow: "0 3px 12px rgba(37,99,235,0.35)" }}>
+                Upgrade to {nextPlanName}
               </Link>
             ) : null}
-            {viewer.isPaid && (
-              <Link href="/settings/subscription/cancel" style={{ fontSize: 12.5, fontWeight: 500, padding: "8px 14px", borderRadius: 9, border: "1px solid var(--z-bd)", background: "transparent", color: "var(--z-text3)", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
-                Cancel plan
-              </Link>
-            )}
+            <Link href="/onboarding/plan" style={{ fontSize: 12.5, fontWeight: 500, padding: "8px 14px", borderRadius: 9, border: "1px solid var(--z-bd)", background: "transparent", color: "var(--z-text2)", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+              Compare plans
+            </Link>
           </div>
         )}
       </div>
@@ -15711,7 +15721,7 @@ function ScreenAccount({ viewer, onNavigate }: { viewer: PortalViewer; onNavigat
                 </div>
                 <div style={{ fontSize: 12, color: "var(--z-text2)", lineHeight: 1.5 }}>
                   {pct >= 100
-                    ? "You've used all credits this cycle. Upgrade your plan or purchase more to continue using Zari."
+                    ? "You've used all credits this cycle. Upgrade your plan or purchase more to continue."
                     : `You've used ${pct}% of your monthly credits. Consider upgrading to avoid interruptions.`}
                 </div>
               </div>
@@ -15733,16 +15743,117 @@ function ScreenAccount({ viewer, onNavigate }: { viewer: PortalViewer; onNavigat
         )}
       </div>
 
-      {/* Actions */}
-      <div style={{ ...sectionStyle, marginBottom: 0 }}>
-        <div style={labelStyle}>Actions</div>
-        <PlatformLogoutButton className="" redirectTo="/login">
-          <button style={{ fontSize: 13, fontWeight: 600, padding: "9px 18px", borderRadius: 9, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.06)", color: "#DC2626", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8 }}>
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 13, height: 13 }}><path d="M10 11l4-3-4-3M14 8H6M6 3H3a1 1 0 00-1 1v8a1 1 0 001 1h3"/></svg>
-            Sign out
-          </button>
-        </PlatformLogoutButton>
+      {/* Security */}
+      <div style={sectionStyle}>
+        <div style={labelStyle}>Security</div>
+        <div style={rowStyle}>
+          <div>
+            <div style={keyStyle}>Password</div>
+            <div style={{ fontSize: 11.5, color: "var(--z-text3)", marginTop: 2 }}>Last changed: never</div>
+          </div>
+          <Link href="/settings/password" style={{ fontSize: 12.5, fontWeight: 600, padding: "6px 12px", borderRadius: 8, border: "1px solid var(--z-bd)", background: "transparent", color: "var(--z-text2)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 5 }}>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 12, height: 12 }}><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5 7V5a3 3 0 016 0v2"/></svg>
+            Change
+          </Link>
+        </div>
+        <div style={{ ...rowStyle, marginBottom: 0 }}>
+          <div>
+            <div style={keyStyle}>Active sessions</div>
+            <div style={{ fontSize: 11.5, color: "var(--z-text3)", marginTop: 2 }}>Signed in on this device</div>
+          </div>
+          <PlatformLogoutButton className="" redirectTo="/login">
+            <button style={{ fontSize: 12.5, fontWeight: 600, padding: "6px 12px", borderRadius: 8, border: "1px solid var(--z-bd)", background: "transparent", color: "var(--z-text2)", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5 }}>
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 12, height: 12 }}><path d="M10 11l4-3-4-3M14 8H6M6 3H3a1 1 0 00-1 1v8a1 1 0 001 1h3"/></svg>
+              Sign out
+            </button>
+          </PlatformLogoutButton>
+        </div>
       </div>
+
+      {/* Preferences */}
+      <div style={sectionStyle}>
+        <div style={labelStyle}>Preferences</div>
+        <div style={{ ...rowStyle, marginBottom: 0 }}>
+          <div>
+            <div style={keyStyle}>Email notifications</div>
+            <div style={{ fontSize: 11.5, color: "var(--z-text3)", marginTop: 2 }}>Coaching tips, session reminders, product updates</div>
+          </div>
+          <div style={{ fontSize: 12, fontWeight: 600, padding: "5px 12px", borderRadius: 8, background: "rgba(34,197,94,0.1)", color: "#16A34A", border: "1px solid rgba(34,197,94,0.2)" }}>On</div>
+        </div>
+      </div>
+
+      {/* Referrals */}
+      <div style={sectionStyle}>
+        <div style={labelStyle}>Refer &amp; Earn</div>
+        <div style={{ fontSize: 13, color: "var(--z-text2)", lineHeight: 1.6, marginBottom: 14 }}>
+          Share Zari with a friend and get <strong style={{ color: "var(--z-text)" }}>1 free month</strong> when they subscribe. No limits.
+        </div>
+        <button
+          onClick={() => { try { navigator.clipboard.writeText("https://zari.app?ref=" + encodeURIComponent(viewer.email)); } catch {} }}
+          style={{ fontSize: 12.5, fontWeight: 600, padding: "8px 16px", borderRadius: 9, border: "1px solid var(--z-bd)", background: "var(--z-raise)", color: "var(--z-text)", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}
+        >
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 12, height: 12 }}><path d="M10 2H6a1 1 0 00-1 1v9a1 1 0 001 1h6a1 1 0 001-1V5l-3-3z"/><path d="M10 2v3h3"/><path d="M4 9H2a1 1 0 01-1-1V3a1 1 0 011-1h4"/></svg>
+          Copy referral link
+        </button>
+      </div>
+
+      {/* Help & Support */}
+      <div style={sectionStyle}>
+        <div style={labelStyle}>Help &amp; Support</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <a href="mailto:support@zari.app" style={{ fontSize: 13, color: "#2563EB", textDecoration: "none", fontWeight: 500, display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 13, height: 13 }}><rect x="1" y="3" width="14" height="10" rx="1.5"/><path d="M1 4l7 5 7-5"/></svg>
+            Contact support
+          </a>
+          <a href="/terms" style={{ fontSize: 13, color: "var(--z-text2)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 13, height: 13 }}><path d="M10 2H4a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V5l-3-3z"/><path d="M10 2v3h3"/></svg>
+            Terms of Service
+          </a>
+          <a href="/privacy" style={{ fontSize: 13, color: "var(--z-text2)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 13, height: 13 }}><path d="M8 2L3 4v4c0 3 2.5 5.5 5 6.5C11 13.5 13 11 13 8V4L8 2z"/></svg>
+            Privacy Policy
+          </a>
+        </div>
+      </div>
+
+      {/* Advanced / Danger zone — buried */}
+      {viewer.isPaid && !isOperator && (
+        <div style={{ marginBottom: 14 }}>
+          <button
+            onClick={() => setShowDangerZone(d => !d)}
+            style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderRadius: 10, border: "1px solid var(--z-bd)", background: "transparent", cursor: "pointer", color: "var(--z-text3)", fontSize: 12.5, fontWeight: 600 }}
+          >
+            <span>Advanced settings</span>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 12, height: 12, transform: showDangerZone ? "rotate(90deg)" : "none", transition: "transform 0.2s" }}><path d="M6 4l4 4-4 4"/></svg>
+          </button>
+          {showDangerZone && (
+            <div style={{ marginTop: 8, padding: "16px 20px", borderRadius: 10, border: "1px solid rgba(239,68,68,0.2)", background: "rgba(239,68,68,0.03)" }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#DC2626", marginBottom: 8, textTransform: "uppercase" as const, letterSpacing: "0.06em" }}>Danger zone</div>
+              <div style={{ fontSize: 13, color: "var(--z-text2)", lineHeight: 1.6, marginBottom: 14 }}>
+                Canceling will immediately end your access to Growth features. Your data is preserved and you can resubscribe at any time.
+              </div>
+              {!cancelConfirm ? (
+                <button
+                  onClick={() => setCancelConfirm(true)}
+                  style={{ fontSize: 12.5, fontWeight: 600, padding: "8px 14px", borderRadius: 8, border: "1px solid rgba(239,68,68,0.3)", background: "transparent", color: "#DC2626", cursor: "pointer" }}
+                >
+                  Cancel subscription
+                </button>
+              ) : (
+                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <span style={{ fontSize: 12.5, color: "var(--z-text2)" }}>Are you sure?</span>
+                  <Link href="/settings/subscription/cancel" style={{ fontSize: 12.5, fontWeight: 700, padding: "7px 14px", borderRadius: 8, background: "#DC2626", color: "white", textDecoration: "none" }}>
+                    Yes, cancel
+                  </Link>
+                  <button onClick={() => setCancelConfirm(false)} style={{ fontSize: 12.5, fontWeight: 600, padding: "7px 12px", borderRadius: 8, border: "1px solid var(--z-bd)", background: "transparent", color: "var(--z-text2)", cursor: "pointer" }}>
+                    Never mind
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -16049,11 +16160,6 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
         <div style={{ margin:"8px 10px 0" }}>
           {(() => {
             const isAcct = screen === "account";
-            const acctUsed = viewer.usedMonthlyCredits ?? 0;
-            const acctLimit = viewer.creditLimit ?? viewer.includedMonthlyCredits ?? 0;
-            const acctRemaining = viewer.remainingMonthlyCredits ?? Math.max(0, acctLimit - acctUsed);
-            const acctPct = acctLimit > 0 ? Math.min(100, Math.round((acctUsed / acctLimit) * 100)) : -1;
-            const acctBarColor = acctPct >= 90 ? "#EF4444" : acctPct >= 70 ? "#F59E0B" : "#22C55E";
             const acctInitials = (viewer.name?.trim() || viewer.email).split(/\s+/).slice(0,2).map(p=>p[0]?.toUpperCase()??"").join("") || "?";
             return (
               <button
@@ -16065,14 +16171,9 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
                 </div>
                 <div style={{ flex:1, minWidth:0 }}>
                   <div style={{ fontSize:12.5, fontWeight:700, color: isAcct ? "#2563EB" : "var(--z-text)", lineHeight:1.2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{userDisplayName}</div>
-                  <div style={{ fontSize:11, color:"var(--z-text3)", lineHeight:1.3, marginTop:1 }}>
-                    {isOperatorViewer ? "Operator · full access" : acctLimit > 0 ? `${acctRemaining.toLocaleString()} cr left · ${sidebarPlanTitle}` : sidebarPlanTitle}
+                  <div style={{ fontSize:11, color:"var(--z-text3)", lineHeight:1.3, marginTop:1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                    {isOperatorViewer ? "Operator · full access" : sidebarPlanTitle}
                   </div>
-                  {!isOperatorViewer && acctLimit > 0 && (
-                    <div style={{ height:3, borderRadius:99, background:"var(--z-bd)", marginTop:5, overflow:"hidden" }}>
-                      <div style={{ height:"100%", width:`${acctPct >= 0 ? acctPct : 0}%`, borderRadius:99, background:acctBarColor, transition:"width 0.5s" }}/>
-                    </div>
-                  )}
                 </div>
                 <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:10, height:10, flexShrink:0, opacity:0.3 }}><path d="M6 4l4 4-4 4"/></svg>
               </button>
