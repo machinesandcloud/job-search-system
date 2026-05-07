@@ -58,32 +58,30 @@ export function MarketingSiteShell({
 
       {children}
 
-      <footer className="border-t border-slate-100 bg-white px-6 py-10 md:px-8">
-        <div className="mx-auto flex max-w-[1380px] flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <ZariLogo size={32} />
-            <span className="text-[22px] font-black tracking-[-0.04em] leading-none text-[#0A0A0F]">Zari</span>
-            <span className="ml-1 text-[12px] text-[#A0AABF]">© 2026 Askia Technologies</span>
+      <footer style={{ background: "linear-gradient(180deg, #060810 0%, #0C1022 100%)" }}>
+        {/* Main footer body */}
+        <div style={{ maxWidth: 1380, margin: "0 auto", padding: "64px 40px 48px", display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 40 }}>
+          <div style={{ maxWidth: 480 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
+              <ZariLogo size={52} />
+              <span style={{ fontSize: 40, fontWeight: 900, color: "white", letterSpacing: "-0.045em", lineHeight: 1 }}>Zari</span>
+            </div>
+            <p style={{ fontSize: 15.5, color: "rgba(255,255,255,0.48)", lineHeight: 1.65, margin: 0, fontWeight: 400 }}>
+              AI career coaching that gets you hired — resume reviews, LinkedIn optimization, interview prep, and salary negotiation, all in one place.
+            </p>
           </div>
-
-          <div className="flex flex-wrap items-center gap-5 text-[13.5px] text-[#68738A]">
-            <Link href="/login" className="transition-colors hover:text-[#0A0A0F]">
-              Sign in
-            </Link>
-            <Link href="/signup" className="transition-colors hover:text-[#0A0A0F]">
-              Sign up
-            </Link>
-            {minimal ? null : (
-              <>
-                <Link href="/#features" className="transition-colors hover:text-[#0A0A0F]">
-                  Features
-                </Link>
-                <Link href="/#reviews" className="transition-colors hover:text-[#0A0A0F]">
-                  Reviews
-                </Link>
-              </>
-            )}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 14 }}>
+            <Link href="/login"  style={{ fontSize: 15, fontWeight: 500, color: "rgba(255,255,255,0.65)", textDecoration: "none" }}>Sign in</Link>
+            <Link href="/signup" style={{ fontSize: 15, fontWeight: 500, color: "rgba(255,255,255,0.65)", textDecoration: "none" }}>Get started</Link>
           </div>
+        </div>
+        {/* Bottom bar */}
+        <div style={{ maxWidth: 1380, margin: "0 auto", padding: "20px 40px 28px", borderTop: "1px solid rgba(255,255,255,0.07)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+          <div style={{ display: "flex", gap: 28, fontSize: 13, color: "rgba(255,255,255,0.35)" }}>
+            <Link href="/terms"   style={{ color: "rgba(255,255,255,0.35)", textDecoration: "none" }}>Terms of Service</Link>
+            <Link href="/privacy" style={{ color: "rgba(255,255,255,0.35)", textDecoration: "none" }}>Privacy</Link>
+          </div>
+          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.3)" }}>© 2026 Askia Technologies. All rights reserved.</span>
         </div>
       </footer>
     </div>

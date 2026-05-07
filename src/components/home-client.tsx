@@ -2005,19 +2005,32 @@ export function HomeClient({ userId }: { userId: boolean }) {
       </section>
 
       {/* Footer */}
-      <footer style={{ borderTop:"1px solid #F1F5F9", padding:"40px 28px", background:"white" }}>
-        <div style={{ maxWidth:1380, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:16 }}>
-          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <ZariLogo size={32} />
-            <span style={{ fontSize:22, fontWeight:900, color:"#0A0A0F", letterSpacing:"-0.04em", lineHeight:1 }}>Zari</span>
-            <span style={{ fontSize:12, color:"#A0AABF", marginLeft:6 }}>© 2026 Askia Technologies</span>
+      <footer style={{ background:"linear-gradient(180deg, #060810 0%, #0C1022 100%)" }}>
+        {/* Main footer body */}
+        <div style={{ maxWidth:1380, margin:"0 auto", padding:"64px 40px 48px", display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap", gap:40 }}>
+          {/* Left: brand + tagline */}
+          <div style={{ maxWidth:480 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:20 }}>
+              <ZariLogo size={52} />
+              <span style={{ fontSize:40, fontWeight:900, color:"white", letterSpacing:"-0.045em", lineHeight:1 }}>Zari</span>
+            </div>
+            <p style={{ fontSize:15.5, color:"rgba(255,255,255,0.48)", lineHeight:1.65, margin:0, fontWeight:400 }}>
+              AI career coaching that gets you hired — resume reviews, LinkedIn optimization, interview prep, and salary negotiation, all in one place.
+            </p>
           </div>
-          <div style={{ display:"flex", gap:24, fontSize:13.5, color:"#68738A" }}>
-            <Link href="/login"  style={{ color:"#68738A", textDecoration:"none" }}>Sign in</Link>
-            <Link href="/signup" style={{ color:"#68738A", textDecoration:"none" }}>Sign up</Link>
-            <a href="#features"  style={{ color:"#68738A", textDecoration:"none" }}>Features</a>
-            <a href="#reviews"   style={{ color:"#68738A", textDecoration:"none" }}>Reviews</a>
+          {/* Right: nav */}
+          <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:14 }}>
+            <Link href="/login"  style={{ fontSize:15, fontWeight:500, color:"rgba(255,255,255,0.65)", textDecoration:"none", transition:"color 0.15s" }}>Sign in</Link>
+            <Link href="/signup" style={{ fontSize:15, fontWeight:500, color:"rgba(255,255,255,0.65)", textDecoration:"none", transition:"color 0.15s" }}>Get started</Link>
           </div>
+        </div>
+        {/* Bottom bar */}
+        <div style={{ maxWidth:1380, margin:"0 auto", padding:"20px 40px 28px", borderTop:"1px solid rgba(255,255,255,0.07)", display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12 }}>
+          <div style={{ display:"flex", gap:28, fontSize:13, color:"rgba(255,255,255,0.35)" }}>
+            <Link href="/terms"   style={{ color:"rgba(255,255,255,0.35)", textDecoration:"none" }}>Terms of Service</Link>
+            <Link href="/privacy" style={{ color:"rgba(255,255,255,0.35)", textDecoration:"none" }}>Privacy</Link>
+          </div>
+          <span style={{ fontSize:13, color:"rgba(255,255,255,0.3)" }}>© 2026 Askia Technologies. All rights reserved.</span>
         </div>
       </footer>
     </div>
