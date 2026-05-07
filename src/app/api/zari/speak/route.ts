@@ -1,6 +1,9 @@
 import { requirePaidRouteAccess } from "@/lib/billing";
 import { ensureSameOrigin } from "@/lib/utils";
 
+export const runtime     = "nodejs";
+export const maxDuration = 60;
+
 export const OPENAI_VOICES = ["shimmer", "nova", "alloy", "echo", "onyx", "fable"] as const;
 
 export async function POST(request: Request) {

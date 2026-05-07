@@ -3,7 +3,8 @@ import { requirePaidRouteAccess } from "@/lib/billing";
 import { openaiChat } from "@/lib/openai";
 import { ensureSameOrigin } from "@/lib/utils";
 
-export const runtime = "nodejs";
+export const runtime     = "nodejs";
+export const maxDuration = 60;
 
 export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) {
@@ -89,7 +90,7 @@ Human voice rules — these are non-negotiable:
     {
       model:     process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
       temperature: 0.55,
-      maxTokens: 1400,
+      maxTokens: 2200,
       jsonMode:  true,
     }
   );

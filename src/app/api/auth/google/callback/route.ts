@@ -11,6 +11,8 @@ import {
 import { setCurrentUserSessionOnResponse } from "@/lib/mvp/auth";
 import { authenticateGooglePlatformUser } from "@/lib/platform-users";
 
+export const maxDuration = 15;
+
 export const runtime = "nodejs";
 
 type GoogleTokenResponse = {

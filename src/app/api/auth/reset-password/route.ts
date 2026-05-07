@@ -3,6 +3,8 @@ import { createHash } from "crypto";
 import { prisma } from "@/lib/db";
 import { hashPlatformPassword } from "@/lib/platform-users";
 
+export const maxDuration = 15;
+
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({})) as { token?: string; password?: string };
   const rawToken = `${body.token ?? ""}`.trim();

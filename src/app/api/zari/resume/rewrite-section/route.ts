@@ -3,6 +3,9 @@ import { requirePaidRouteAccess } from "@/lib/billing";
 import { openaiChat } from "@/lib/openai";
 import { ensureSameOrigin } from "@/lib/utils";
 
+export const runtime     = "nodejs";
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) {
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
@@ -71,7 +74,7 @@ Return ONLY valid JSON: { "text": "<the rewritten content>" }`;
   const reply = await openaiChat(messages, {
     model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
     temperature: 0.7 + (attempt * 0.05), // slightly more creative on each retry
-    maxTokens: 600,
+    maxTokens: 1000,
     jsonMode: true,
   });
 

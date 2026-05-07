@@ -3,6 +3,8 @@ import { requirePaidRouteAccess } from "@/lib/billing";
 import { getCurrentUserId } from "@/lib/mvp/auth";
 import { createSessionForUser, listSessionsForUser } from "@/lib/mvp/store";
 
+export const maxDuration = 15;
+
 export async function GET() {
   const access = await requirePaidRouteAccess("sessions_list", {}, { enforceTokenLimit: false });
   if (!access.ok) return access.response;
@@ -11,7 +13,9 @@ export async function GET() {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  return NextResponse.json({ sessions: await listSessionsForUser(userId) });
+  const res = NextResponse.json({ sessions: await listSessionsForUser(userId) });
+  res.headers.set("Cache-Control", "private, no-store");
+  return res;
 }
 
 export async function POST(request: Request) {

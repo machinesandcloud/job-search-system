@@ -2,6 +2,8 @@ import { type NextRequest, NextResponse } from "next/server";
 import { getCurrentUserId } from "@/lib/mvp/auth";
 import { prisma, isDatabaseReady } from "@/lib/db";
 
+export const maxDuration = 15;
+
 export async function GET() {
   const userId = await getCurrentUserId();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -13,7 +15,9 @@ export async function GET() {
     for (const s of states) {
       result[s.key] = s.data;
     }
-    return NextResponse.json(result);
+    const res = NextResponse.json(result);
+    res.headers.set("Cache-Control", "private, no-store");
+    return res;
   } catch {
     return NextResponse.json({});
   }

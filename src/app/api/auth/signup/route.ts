@@ -4,6 +4,8 @@ import { createPlatformUser } from "@/lib/platform-users";
 import { rateLimit } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/utils";
 
+export const maxDuration = 15;
+
 export async function POST(request: Request) {
   const ip = getClientIp(request);
   const rl = rateLimit(`signup:${ip}`, 5, 60 * 60 * 1000); // 5 signups per hour per IP

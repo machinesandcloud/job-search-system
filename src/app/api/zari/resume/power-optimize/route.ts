@@ -3,6 +3,9 @@ import { requirePaidRouteAccess } from "@/lib/billing";
 import { openaiChat } from "@/lib/openai";
 import { ensureSameOrigin } from "@/lib/utils";
 
+export const runtime     = "nodejs";
+export const maxDuration = 60;
+
 /** Strip any meta-commentary the model might have snuck in */
 function cleanResumeOutput(text: string): string {
   const lines = text.split("\n");

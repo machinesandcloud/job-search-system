@@ -6,6 +6,9 @@ import { openaiChat, type OAIMessage } from "@/lib/openai";
 import { appendSessionEvent } from "@/lib/mvp/store";
 import { ensureSameOrigin } from "@/lib/utils";
 
+export const runtime     = "nodejs";
+export const maxDuration = 60;
+
 type HistoryTurn = { role: string; text: string };
 type ResumeCtx = {
   fileName?: string; score?: number; ats?: number; impact?: number; clarity?: number;
@@ -269,7 +272,7 @@ You're on a live voice call. Speak accordingly.
   let reply = await openaiChat(messages, {
     model:       process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o-mini",
     temperature: 0.75,
-    maxTokens:   700,
+    maxTokens:   1200,
     usageFeature: "zari_chat",
     usageMetadata: {
       stage,
@@ -293,7 +296,7 @@ You're on a live voice call. Speak accordingly.
             model: process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile",
             messages,
             temperature: 0.75,
-            max_tokens: 700,
+            max_tokens: 1200,
           }),
         });
         if (groqRes.ok) {

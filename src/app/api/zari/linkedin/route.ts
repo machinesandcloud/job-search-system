@@ -5,6 +5,9 @@ import { buildUserContext } from "@/lib/mvp/context";
 import { openaiChat } from "@/lib/openai";
 import { ensureSameOrigin } from "@/lib/utils";
 
+export const runtime     = "nodejs";
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) {
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
@@ -89,7 +92,7 @@ Skills: ${currentSkills || "(not provided)"}` },
   const reply = await openaiChat(messages, {
     model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
     temperature: 0.4,
-    maxTokens: 1200,
+    maxTokens: 2200,
     jsonMode: true,
   });
 

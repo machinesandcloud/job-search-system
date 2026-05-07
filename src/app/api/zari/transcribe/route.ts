@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { requirePaidRouteAccess } from "@/lib/billing";
 import { ensureSameOrigin } from "@/lib/utils";
 
+export const runtime     = "nodejs";
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) {
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 });

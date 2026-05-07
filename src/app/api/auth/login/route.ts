@@ -4,6 +4,8 @@ import { authenticatePlatformUser } from "@/lib/platform-users";
 import { rateLimit } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/utils";
 
+export const maxDuration = 15;
+
 export async function POST(request: Request) {
   const ip = getClientIp(request);
   const rl = rateLimit(`login:${ip}`, 10, 15 * 60 * 1000); // 10 attempts per 15 min per IP
