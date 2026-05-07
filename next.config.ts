@@ -14,8 +14,13 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
-      "frame-src https://js.stripe.com https://hooks.stripe.com",
-      "connect-src 'self' https://api.stripe.com https://checkout.stripe.com",
+      // blob: required for PDF iframe preview and PDF.js worker blobs
+      "frame-src 'self' blob: https://js.stripe.com https://hooks.stripe.com",
+      // blob: required for fetch(blobUrl) in PDF highlight viewer
+      "connect-src 'self' blob: https://api.stripe.com https://checkout.stripe.com",
+      // PDF.js creates workers from blob: URLs internally
+      "worker-src 'self' blob:",
+      "media-src 'self' blob:",
     ].join("; "),
   },
 ];

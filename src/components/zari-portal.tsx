@@ -626,10 +626,11 @@ type PdfHl = { x: number; y: number; w: number; h: number; bulletIdx: number };
 type PdfPageData = { dataUrl: string; width: number; height: number; highlights: PdfHl[] };
 
 function PdfHighlightViewer({
-  pdfUrl, bullets, activeIdx, onClickLine,
+  pdfUrl, bullets, activeIdx, onClickLine, onFallback,
 }: {
   pdfUrl: string; bullets: ResumeBullet[];
   activeIdx: number | null; onClickLine: (idx: number | null) => void;
+  onFallback?: () => void;
 }) {
   const [pages, setPages] = useState<PdfPageData[]>([]);
   const [status, setStatus] = useState<"loading"|"done"|"error">("loading");
@@ -732,9 +733,15 @@ function PdfHighlightViewer({
     </div>
   );
   if (status === "error") return (
-    <div style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", background:"#2A2A2A", flexDirection:"column" as const, gap:6, padding:"0 24px", textAlign:"center" as const }}>
-      <span style={{ color:"#F87171", fontSize:13 }}>Could not render PDF — try the Preview tab</span>
-      {errMsg && <span style={{ color:"rgba(248,113,113,0.55)", fontSize:10.5, maxWidth:340 }}>{errMsg}</span>}
+    <div style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", background:"var(--z-raise)", flexDirection:"column" as const, gap:10, padding:"0 24px", textAlign:"center" as const }}>
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <span style={{ color:"var(--z-text2)", fontSize:13, fontWeight:500 }}>Could not render the annotated view</span>
+      {errMsg && <span style={{ color:"var(--z-text3)", fontSize:11, maxWidth:340 }}>{errMsg}</span>}
+      {onFallback && (
+        <button onClick={onFallback} style={{ marginTop:4, fontSize:12.5, fontWeight:600, color:"#2563EB", background:"rgba(37,99,235,0.08)", border:"1.5px solid rgba(37,99,235,0.25)", borderRadius:8, padding:"7px 18px", cursor:"pointer" }}>
+          Switch to Preview tab
+        </button>
+      )}
     </div>
   );
 
@@ -9185,7 +9192,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
             {/* Resume view */}
             {resumeViewMode==="suggestions"
               ? rawFileUrl
-                ? <PdfHighlightViewer pdfUrl={rawFileUrl} bullets={aiResult?.bullets ?? []} activeIdx={activeSuggestion} onClickLine={setActiveSuggestion}/>
+                ? <PdfHighlightViewer pdfUrl={rawFileUrl} bullets={aiResult?.bullets ?? []} activeIdx={activeSuggestion} onClickLine={setActiveSuggestion} onFallback={() => setResumeViewMode("preview")}/>
                 : <div style={{ padding:"16px 14px", overflowY:"auto", flex:1 }}>
                     <SuggestionsResume text={resumeText} bullets={aiResult?.bullets ?? []} wordIssues={aiResult?.wordIssues} activeIdx={activeSuggestion} onClickLine={setActiveSuggestion}/>
                   </div>
