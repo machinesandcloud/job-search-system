@@ -304,9 +304,9 @@ function Nav({ userId }: { userId: boolean }) {
       transition:"all 0.3s ease",
     }}>
       <div style={{ maxWidth:1380, margin:"0 auto", padding:"0 32px", height:"100%", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-        <Link href="/" style={{ display:"flex", alignItems:"center", gap:9, textDecoration:"none" }}>
-          <ZariLogo size={26} />
-          <span style={{ fontSize:17, fontWeight:900, color:"#0A0A0F", letterSpacing:"-0.04em" }}>Zari</span>
+        <Link href="/" style={{ display:"flex", alignItems:"center", gap:11, textDecoration:"none" }}>
+          <ZariLogo size={42} />
+          <span style={{ fontSize:30, fontWeight:900, color:"#0A0A0F", letterSpacing:"-0.04em", lineHeight:1 }}>Zari</span>
         </Link>
         <div style={{ display:"flex", alignItems:"center", gap:28 }}>
           <a href="#features" style={{ fontSize:14, fontWeight:500, color:"#68738A", textDecoration:"none" }}>Features</a>
@@ -2007,9 +2007,9 @@ export function HomeClient({ userId }: { userId: boolean }) {
       {/* Footer */}
       <footer style={{ borderTop:"1px solid #F1F5F9", padding:"40px 28px", background:"white" }}>
         <div style={{ maxWidth:1380, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:16 }}>
-          <div style={{ display:"flex", alignItems:"center", gap:9 }}>
-            <ZariLogo size={22} />
-            <span style={{ fontSize:15, fontWeight:800, color:"#0A0A0F" }}>Zari</span>
+          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+            <ZariLogo size={32} />
+            <span style={{ fontSize:22, fontWeight:900, color:"#0A0A0F", letterSpacing:"-0.04em", lineHeight:1 }}>Zari</span>
             <span style={{ fontSize:12, color:"#A0AABF", marginLeft:6 }}>© 2026 Askia Technologies</span>
           </div>
           <div style={{ display:"flex", gap:24, fontSize:13.5, color:"#68738A" }}>

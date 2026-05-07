@@ -21,9 +21,9 @@ export function MarketingSiteShell({
     <div className="min-h-screen bg-white text-[var(--ink)]">
       <header className="sticky top-0 z-40 border-b border-slate-100 bg-white/95 backdrop-blur-xl">
         <div className={`mx-auto flex max-w-[1380px] items-center justify-between px-6 md:px-8 ${minimal ? "py-5" : "py-4"}`}>
-          <Link href="/" className={`no-underline ${minimal ? "flex items-center gap-3" : "flex items-center gap-2.5"}`}>
-            <ZariLogo size={minimal ? 34 : 26} />
-            <span className={`${minimal ? "text-[22px]" : "text-[17px]"} font-black tracking-[-0.045em] text-[#0A0A0F]`}>Zari</span>
+          <Link href="/" className={`no-underline ${minimal ? "flex items-center gap-3" : "flex items-center gap-3"}`}>
+            <ZariLogo size={minimal ? 48 : 42} />
+            <span className={`${minimal ? "text-[34px]" : "text-[30px]"} font-black tracking-[-0.045em] text-[#0A0A0F] leading-none`}>Zari</span>
           </Link>
 
           <div className="flex items-center gap-4 md:gap-7">
@@ -61,8 +61,8 @@ export function MarketingSiteShell({
       <footer className="border-t border-slate-100 bg-white px-6 py-10 md:px-8">
         <div className="mx-auto flex max-w-[1380px] flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
-            <ZariLogo size={22} />
-            <span className="text-[15px] font-extrabold text-[#0A0A0F]">Zari</span>
+            <ZariLogo size={32} />
+            <span className="text-[22px] font-black tracking-[-0.04em] leading-none text-[#0A0A0F]">Zari</span>
             <span className="ml-1 text-[12px] text-[#A0AABF]">© 2026 Askia Technologies</span>
           </div>
 
