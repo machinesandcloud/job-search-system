@@ -8103,6 +8103,39 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
     } catch { /* PDF not stored or corrupted — re-upload fallback shown */ }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // After server sync populates localStorage, re-initialize if we're still on the empty "choose" step
+  useEffect(() => {
+    const onSynced = () => {
+      if (step !== "choose") return;
+      const synced = loadResumeSession();
+      if (!synced) return;
+      setStep("results");
+      setResumeText(synced.resumeText);
+      setFileName(synced.fileName);
+      setAiResult(synced.aiResult);
+      setReviewMode(synced.reviewMode);
+      setTargetRoleInput(synced.targetRoleInput);
+      setCareerLevel(synced.careerLevel);
+      setResumeViewMode("suggestions");
+      // Restore PDF blob
+      try {
+        const b64 = localStorage.getItem(RESUME_PDF_KEY);
+        if (b64) {
+          const base64Data = b64.includes(",") ? b64.split(",")[1] : b64;
+          const byteStr = atob(base64Data);
+          const bytes = new Uint8Array(byteStr.length);
+          for (let i = 0; i < byteStr.length; i++) bytes[i] = byteStr.charCodeAt(i);
+          const blob = new Blob([bytes], { type: "application/pdf" });
+          const url = URL.createObjectURL(blob);
+          rawFileUrlRef.current = url;
+          setRawFileUrl(url);
+        }
+      } catch { /* non-fatal */ }
+    };
+    window.addEventListener("zari-state-synced", onSynced);
+    return () => window.removeEventListener("zari-state-synced", onSynced);
+  }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
+
   function triggerWordDownload(html: string, name: string) {
     const wordHtml = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">${html.replace(/<html[^>]*>/, "").replace(/<\/html>/, "")}</html>`;
     const blob = new Blob([wordHtml], { type: "application/vnd.ms-word" });
@@ -15317,7 +15350,7 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
       })
       .catch(() => {})
       .finally(() => setPlanLoading(false));
-  }, [stage, isReady, docs.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [stage, isReady, docs.map(d=>d.id).join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Empty state: not enough context ──
   if (!isReady) return (
@@ -16107,6 +16140,9 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
             try { localStorage.setItem(key, JSON.stringify(data)); } catch { /* noop */ }
           }
         }
+        // Signal screens to re-read their data now that localStorage is populated
+        window.dispatchEvent(new CustomEvent("vault-updated"));
+        window.dispatchEvent(new CustomEvent("zari-state-synced"));
       })
       .catch(() => { /* best-effort */ });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
