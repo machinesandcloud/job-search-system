@@ -24,14 +24,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Email and password are required." }, { status: 400 });
   }
 
-  let user;
-  try {
-    user = await authenticatePlatformUser(email, password);
-  } catch (err) {
-    console.error("[login] authenticatePlatformUser threw:", err);
-    return NextResponse.json({ error: "Service temporarily unavailable. Please try again in a moment." }, { status: 503 });
-  }
-
+  const user = await authenticatePlatformUser(email, password);
   if (!user) {
     return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
   }
