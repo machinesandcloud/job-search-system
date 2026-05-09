@@ -87,20 +87,7 @@ function FeatureGate({ featureName, stage, children }: { featureName?: string; s
       : stage === "career-change" ? "Career Transition Tools"
       : "This Feature");
 
-  // Existing subscribers upgrade via Stripe Customer Portal; new users go to plan selection
-  const hasExistingPlan = planId !== null;
-  const [portalLoading, setPortalLoading] = React.useState(false);
-
   async function openUpgradeFlow() {
-    if (hasExistingPlan) {
-      setPortalLoading(true);
-      try {
-        const res = await fetch("/api/billing/portal", { method: "POST", headers: { "Content-Type": "application/json" } });
-        const data = await res.json().catch(() => ({})) as { url?: string };
-        if (data.url) { window.location.href = data.url; return; }
-      } catch { /* fall through to plan page */ }
-      setPortalLoading(false);
-    }
     window.location.href = `/onboarding/plan?upgrade=${encodeURIComponent(requiredPlanId)}`;
   }
 
@@ -153,9 +140,8 @@ function FeatureGate({ featureName, stage, children }: { featureName?: string; s
           {/* CTA */}
           <button
             onClick={() => void openUpgradeFlow()}
-            disabled={portalLoading}
-            style={{ display:"inline-flex", alignItems:"center", gap:8, fontSize:15, fontWeight:800, padding:"14px 32px", borderRadius:13, background:`linear-gradient(135deg, ${planColor} 0%, ${planColorDark} 100%)`, color:"white", border:"none", cursor:portalLoading ? "default" : "pointer", opacity:portalLoading ? 0.75 : 1, boxShadow:`0 4px 20px ${planColor}40`, letterSpacing:"-0.01em" }}>
-            {portalLoading ? "Opening…" : `Upgrade to ${planName} →`}
+            style={{ display:"inline-flex", alignItems:"center", gap:8, fontSize:15, fontWeight:800, padding:"14px 32px", borderRadius:13, background:`linear-gradient(135deg, ${planColor} 0%, ${planColorDark} 100%)`, color:"white", border:"none", cursor:"pointer", boxShadow:`0 4px 20px ${planColor}40`, letterSpacing:"-0.01em" }}>
+            {`Upgrade to ${planName} →`}
           </button>
           <div style={{ marginTop:14 }}>
             <button
@@ -8088,7 +8074,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
   // Magic Write: keyed by bullet index
   const [magicWrite,      setMagicWrite]      = useState<Record<number, MagicWriteState>>({});
   // Suggestions mode on resume preview
-  const [resumeViewMode,  setResumeViewMode]  = useState<"preview"|"suggestions">("preview");
+  const [resumeViewMode,  setResumeViewMode]  = useState<"preview"|"suggestions">(_saved ? "suggestions" : "preview");
   const [activeSuggestion,setActiveSuggestion]= useState<number | null>(null);
   // Quick Wins deep-link scroll target (bullet `before` text prefix)
   const [pendingBulletScroll, setPendingBulletScroll] = useState<string | null>(null);
@@ -9112,7 +9098,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                   })}
                 </svg>
               </div>
-              <div style={{ width:1, height:44, background:"rgba(255,255,255,0.1)", flexShrink:0 }}/>
+              <div style={{ width:1, height:44, background:"var(--z-bd)", flexShrink:0 }}/>
               <div>
                 <p style={{ fontSize:11, color:"var(--z-text3)", marginBottom:4 }}>{fmtDate(first.submittedAt)} → {fmtDate(latest.submittedAt)}</p>
                 <div style={{ display:"flex", alignItems:"center", gap:10 }}>
@@ -9123,7 +9109,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
               <div style={{ display:"flex", gap:10, marginLeft:"auto" }}>
                 {last5.map((s,i) => (
                   <div key={i} style={{ textAlign:"center" }}>
-                    <div style={{ fontSize:12, fontWeight:800, color:i===last5.length-1?"#7B9EFF":"rgba(255,255,255,0.42)" }}>{s.scores.overall}</div>
+                    <div style={{ fontSize:12, fontWeight:800, color:i===last5.length-1?"#2563EB":"var(--z-text2)" }}>{s.scores.overall}</div>
                     <div style={{ fontSize:9.5, color:"var(--z-text3)", whiteSpace:"nowrap" }}>{fmtDate(s.submittedAt).split(",")[0]}</div>
                   </div>
                 ))}
@@ -16180,39 +16166,68 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
     <BillingContext.Provider value={billingCtx}>
     <div className={isDark?"zari-dark":""} style={{ display:"flex", flexDirection:"column", height:"100vh", overflow:"hidden", background:"var(--z-bg)", fontFamily:"var(--font-geist-sans,Inter,system-ui,sans-serif)", WebkitFontSmoothing:"antialiased", MozOsxFontSmoothing:"grayscale", ...themeVars, backgroundImage: isDark ? "radial-gradient(ellipse 80% 60% at 50% -20%, rgba(37,99,235,0.07) 0%, transparent 100%)" : "none" }}>
       {/* Upgrade notice modal — shown when user clicks a stage/feature they can't access */}
-      {upgradeNotice && (
-        <div style={{ position:"fixed", inset:0, zIndex:9999, display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
-          <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.6)" }} onClick={() => setUpgradeNotice(null)} />
-          <div style={{ position:"relative", background:"var(--z-card)", borderRadius:20, padding:"36px 36px 28px", maxWidth:420, width:"100%", textAlign:"center", boxShadow:"0 24px 80px rgba(0,0,0,0.35)", animation:"bubble-appear 0.2s ease" }}>
-            <button onClick={() => setUpgradeNotice(null)} style={{ position:"absolute", top:14, right:14, width:28, height:28, borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", color:"var(--z-text2)" }}>
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:11, height:11 }}><path d="M3 3l10 10M13 3L3 13" strokeLinecap="round"/></svg>
-            </button>
-            <div style={{ width:48, height:48, borderRadius:14, background:"rgba(37,99,235,0.1)", border:"1px solid rgba(37,99,235,0.2)", display:"inline-flex", alignItems:"center", justifyContent:"center", marginBottom:16, fontSize:20 }}>🔒</div>
-            <h3 style={{ fontSize:19, fontWeight:900, color:"var(--z-text)", margin:"0 0 8px", letterSpacing:"-0.02em" }}>{upgradeNotice.title}</h3>
-            <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.7, margin:"0 0 24px" }}>{upgradeNotice.body}</p>
-            <button
-              onClick={() => {
-                setUpgradeNotice(null);
-                const hasExistingPlan = viewer.planId !== null;
-                if (hasExistingPlan) {
-                  fetch("/api/billing/portal", { method:"POST", headers:{"Content-Type":"application/json"} })
-                    .then(r => r.json())
-                    .then((d: { url?: string }) => { if (d.url) window.location.href = d.url; else window.location.href = `/onboarding/plan?upgrade=${encodeURIComponent(upgradeNotice?.requiredPlanId ?? "growth")}`; })
-                    .catch(() => { window.location.href = `/onboarding/plan?upgrade=${encodeURIComponent(upgradeNotice?.requiredPlanId ?? "growth")}`; });
-                } else {
-                  window.location.href = `/onboarding/plan?upgrade=${encodeURIComponent(upgradeNotice?.requiredPlanId ?? "growth")}`;
-                }
-              }}
-              style={{ display:"inline-flex", alignItems:"center", gap:8, fontSize:14.5, fontWeight:800, padding:"13px 28px", borderRadius:12, border:"none", background:"linear-gradient(135deg,#2563EB,#1D4ED8)", color:"white", cursor:"pointer", boxShadow:"0 4px 20px rgba(37,99,235,0.4)", letterSpacing:"-0.01em" }}
-            >
-              {upgradeNotice.title} →
-            </button>
-            <div style={{ marginTop:12 }}>
-              <button onClick={() => setUpgradeNotice(null)} style={{ fontSize:12.5, color:"var(--z-text3)", background:"none", border:"none", cursor:"pointer", fontWeight:500 }}>Not now</button>
+      {upgradeNotice && (() => {
+        const reqPlan = upgradeNotice.requiredPlanId ?? "growth";
+        const planColor = reqPlan === "executive" ? "#F59E0B" : "#2563EB";
+        const planColorDark = reqPlan === "executive" ? "#D97706" : "#1D4ED8";
+        const planFeatures: Record<string, string[]> = {
+          growth: ["Mock interviews & coaching", "Promotion & salary tools", "Unlimited AI rewrites"],
+          executive: ["Executive positioning tools", "Career pivot coaching", "Priority AI queue"],
+        };
+        const bullets = planFeatures[reqPlan] ?? planFeatures.growth;
+        return (
+          <div style={{ position:"fixed", inset:0, zIndex:9999, display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
+            <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.65)", backdropFilter:"blur(4px)" }} onClick={() => setUpgradeNotice(null)} />
+            <div style={{ position:"relative", background:"var(--z-card)", borderRadius:24, maxWidth:420, width:"100%", textAlign:"center", boxShadow:`0 32px 80px rgba(0,0,0,0.4), 0 0 0 1px ${planColor}20`, animation:"bubble-appear 0.2s ease", overflow:"hidden" }}>
+              {/* Top gradient accent bar */}
+              <div style={{ height:4, background:`linear-gradient(90deg, ${planColor}, ${planColorDark})`, width:"100%" }}/>
+              {/* Dismiss button */}
+              <button onClick={() => setUpgradeNotice(null)} style={{ position:"absolute", top:16, right:16, width:28, height:28, borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", color:"var(--z-text2)" }}>
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:11, height:11 }}><path d="M3 3l10 10M13 3L3 13" strokeLinecap="round"/></svg>
+              </button>
+              <div style={{ padding:"32px 36px 28px" }}>
+                {/* Icon */}
+                <div style={{ width:56, height:56, borderRadius:16, background:`linear-gradient(135deg, ${planColor}20, ${planColor}10)`, border:`1px solid ${planColor}30`, display:"inline-flex", alignItems:"center", justifyContent:"center", marginBottom:18, boxShadow:`0 8px 24px ${planColor}20` }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke={planColor} strokeWidth="2" style={{ width:26, height:26 }}>
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                </div>
+                {/* Plan badge */}
+                <div style={{ fontSize:10.5, fontWeight:800, color:planColor, textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:8 }}>
+                  {upgradeNotice.requiredPlanId === "executive" ? "Executive" : "Growth"} Plan
+                </div>
+                <h3 style={{ fontSize:20, fontWeight:900, color:"var(--z-text)", margin:"0 0 8px", letterSpacing:"-0.03em", lineHeight:1.2 }}>{upgradeNotice.title}</h3>
+                <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.65, margin:"0 0 20px" }}>{upgradeNotice.body}</p>
+                {/* Feature bullets */}
+                <div style={{ background:"var(--z-raise)", borderRadius:12, padding:"14px 16px", marginBottom:22, textAlign:"left" }}>
+                  {bullets.map((b, i) => (
+                    <div key={i} style={{ display:"flex", alignItems:"center", gap:10, marginBottom:i < bullets.length-1 ? 10 : 0 }}>
+                      <div style={{ width:18, height:18, borderRadius:99, background:`${planColor}18`, border:`1px solid ${planColor}30`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                        <svg viewBox="0 0 12 12" fill="none" stroke={planColor} strokeWidth="2" style={{ width:8, height:8 }}><path d="M2 6l3 3 5-5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </div>
+                      <span style={{ fontSize:13, color:"var(--z-text)", fontWeight:500 }}>{b}</span>
+                    </div>
+                  ))}
+                </div>
+                {/* CTA */}
+                <button
+                  onClick={() => { setUpgradeNotice(null); window.location.href = `/onboarding/plan?upgrade=${encodeURIComponent(reqPlan)}`; }}
+                  style={{ display:"inline-flex", alignItems:"center", gap:8, fontSize:14.5, fontWeight:800, padding:"14px 32px", borderRadius:13, border:"none", background:`linear-gradient(135deg, ${planColor} 0%, ${planColorDark} 100%)`, color:"white", cursor:"pointer", boxShadow:`0 6px 24px ${planColor}45`, letterSpacing:"-0.01em", width:"100%" }}
+                >
+                  <svg viewBox="0 0 20 20" fill="none" stroke="white" strokeWidth="2" style={{ width:15, height:15 }}>
+                    <path d="M10 2l2.4 6.6H19l-5.7 4.1 2.2 6.7L10 15.4 4.5 19.4l2.2-6.7L1 8.6h6.6L10 2z" fill="white" stroke="none"/>
+                  </svg>
+                  {upgradeNotice.title} →
+                </button>
+                <div style={{ marginTop:12 }}>
+                  <button onClick={() => setUpgradeNotice(null)} style={{ fontSize:12.5, color:"var(--z-text3)", background:"none", border:"none", cursor:"pointer", fontWeight:500 }}>Not now</button>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {hasPaymentIssue && (
         <div style={{ flexShrink:0, background:"linear-gradient(90deg, #DC2626 0%, #B91C1C 100%)", color:"white", padding:"8px 20px", display:"flex", alignItems:"center", gap:10, fontSize:13, fontWeight:500, zIndex:100 }}>
