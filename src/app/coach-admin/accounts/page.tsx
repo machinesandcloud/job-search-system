@@ -13,6 +13,7 @@ import { requireCoachAdminSession } from "@/lib/coach-admin-auth";
 import { prisma } from "@/lib/db";
 import {
   getReadablePlanName,
+  getPlanIncludedMonthlyCredits,
   isPaymentIssueSubscriptionStatus,
 } from "@/lib/billing";
 
@@ -137,6 +138,9 @@ export default async function AccountsPage({
               const plan = account.subscription
                 ? getReadablePlanName(account.subscription.planName, account.subscription.stripePriceId)
                 : "No plan";
+              const credits = account.subscription
+                ? getPlanIncludedMonthlyCredits(account.subscription.planName, account.subscription.stripePriceId)
+                : null;
               const renewal = account.subscription?.currentPeriodEnd
                 ? new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(account.subscription.currentPeriodEnd))
                 : null;
@@ -162,7 +166,7 @@ export default async function AccountsPage({
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1.5">
                     <StatusBadge status={account.subscription?.status} />
-                    <span className={cx("text-xs", coachAdminTextMutedClass)}>{plan}{renewal ? ` · renews ${renewal}` : ""}</span>
+                    <span className={cx("text-xs", coachAdminTextMutedClass)}>{plan}{credits ? ` · ${credits.toLocaleString()} cr/mo` : ""}{renewal ? ` · renews ${renewal}` : ""}</span>
                   </div>
                 </Link>
               );

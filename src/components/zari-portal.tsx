@@ -9060,8 +9060,8 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
 
         {/* ══ Score Trend sparkline ══ */}
         {scoreHistory.length > 1 && (() => {
-          // scoreHistory is sorted newest-first; take 5 most recent, reverse to chronological order
-          const last5 = scoreHistory.slice(0, 5).reverse();
+          // scoreHistory is sorted newest-first; take 7 most recent, reverse to chronological order
+          const last5 = scoreHistory.slice(0, 7).reverse();
           const minS = Math.max(0, Math.min(...last5.map(s=>s.scores.overall)) - 8);
           const maxS = Math.min(100, Math.max(...last5.map(s=>s.scores.overall)) + 8);
           const W = 200, H = 44;
@@ -9928,7 +9928,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
 
                 {/* Trend chart */}
                 {!historyLoading && scoreHistory.length >= 2 && (() => {
-                  const rev = [...scoreHistory].reverse();
+                  const rev = [...scoreHistory].slice(0, 7).reverse();
                   const vals = rev.map(e=>e.scores.overall);
                   const first = vals[0], last = vals[vals.length-1], trend = last-first;
                   const tc = trend>0?"#16A34A":trend<0?"#DC2626":"#A0AABF";
@@ -9976,7 +9976,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                     <p style={{ fontSize:12.5, color:"var(--z-text2)", marginTop:4 }}>Your score is saved every time you submit a resume. Come back after a few revisions to see your progress.</p>
                   </div>
                 )}
-                {scoreHistory.map((entry, i) => {
+                {scoreHistory.slice(0, 7).map((entry, i) => {
                   const prev = scoreHistory[i+1];
                   const d = (k:keyof ResumeScores) => prev ? entry.scores[k]-prev.scores[k] : null;
                   const g = scoreGrade(entry.scores.overall);

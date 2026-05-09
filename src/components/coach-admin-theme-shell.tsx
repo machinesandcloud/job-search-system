@@ -47,6 +47,18 @@ const LIGHT_THEME: CSSProperties = {
   "--ca-shell-shadow": "0 14px 38px rgba(15,23,42,0.05)",
   "--ca-glass-glow": "rgba(37,99,235,0.04)",
   "--ca-button-shadow": "none",
+  "--ca-pill-gold-text": "#92400E",
+  "--ca-pill-gold-bg": "rgba(245,158,11,0.10)",
+  "--ca-pill-gold-bd": "rgba(245,158,11,0.30)",
+  "--ca-pill-cyan-text": "#0369A1",
+  "--ca-pill-cyan-bg": "rgba(56,189,248,0.10)",
+  "--ca-pill-cyan-bd": "rgba(56,189,248,0.28)",
+  "--ca-pill-rose-text": "#9F1239",
+  "--ca-pill-rose-bg": "rgba(244,63,94,0.10)",
+  "--ca-pill-rose-bd": "rgba(244,63,94,0.28)",
+  "--ca-pill-em-text": "#065F46",
+  "--ca-pill-em-bg": "rgba(52,211,153,0.12)",
+  "--ca-pill-em-bd": "rgba(52,211,153,0.28)",
 } as CSSProperties;
 
 const DARK_THEME: CSSProperties = {
@@ -84,6 +96,18 @@ const DARK_THEME: CSSProperties = {
   "--ca-shell-shadow": "0 18px 46px rgba(0,0,0,0.26)",
   "--ca-glass-glow": "rgba(37,99,235,0.04)",
   "--ca-button-shadow": "none",
+  "--ca-pill-gold-text": "#FDE68A",
+  "--ca-pill-gold-bg": "rgba(245,158,11,0.10)",
+  "--ca-pill-gold-bd": "rgba(245,158,11,0.25)",
+  "--ca-pill-cyan-text": "#BAE6FD",
+  "--ca-pill-cyan-bg": "rgba(56,189,248,0.12)",
+  "--ca-pill-cyan-bd": "rgba(56,189,248,0.24)",
+  "--ca-pill-rose-text": "#FECDD3",
+  "--ca-pill-rose-bg": "rgba(244,63,94,0.10)",
+  "--ca-pill-rose-bd": "rgba(244,63,94,0.25)",
+  "--ca-pill-em-text": "#A7F3D0",
+  "--ca-pill-em-bg": "rgba(52,211,153,0.10)",
+  "--ca-pill-em-bd": "rgba(52,211,153,0.20)",
 } as CSSProperties;
 
 function ThemeIcon({ isDark }: { isDark: boolean }) {
