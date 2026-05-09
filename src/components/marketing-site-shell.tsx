@@ -78,8 +78,9 @@ export function MarketingSiteShell({
         {/* Bottom bar */}
         <div style={{ maxWidth: 1380, margin: "0 auto", padding: "20px 40px 28px", borderTop: "1px solid rgba(255,255,255,0.07)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
           <div style={{ display: "flex", gap: 28, fontSize: 13, color: "rgba(255,255,255,0.35)" }}>
-            <Link href="/terms"   style={{ color: "rgba(255,255,255,0.35)", textDecoration: "none" }}>Terms of Service</Link>
-            <Link href="/privacy" style={{ color: "rgba(255,255,255,0.35)", textDecoration: "none" }}>Privacy</Link>
+            <Link href="/terms"    style={{ color: "rgba(255,255,255,0.35)", textDecoration: "none" }}>Terms of Service</Link>
+            <Link href="/privacy"  style={{ color: "rgba(255,255,255,0.35)", textDecoration: "none" }}>Privacy</Link>
+            <Link href="/security" style={{ color: "rgba(255,255,255,0.35)", textDecoration: "none" }}>Security</Link>
           </div>
           <span style={{ fontSize: 13, color: "rgba(255,255,255,0.3)" }}>© 2026 Askia Technologies. All rights reserved.</span>
         </div>

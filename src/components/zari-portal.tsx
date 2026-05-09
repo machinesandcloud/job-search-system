@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, createContext, useContext } from "react";
+import React, { useState, useEffect, useRef, useCallback, createContext, useContext } from "react";
 import Link from "next/link";
 import { PlatformLogoutButton } from "@/components/platform-logout-button";
 import { ZariLogo } from "@/components/zari-logo";
@@ -87,6 +87,23 @@ function FeatureGate({ featureName, stage, children }: { featureName?: string; s
       : stage === "career-change" ? "Career Transition Tools"
       : "This Feature");
 
+  // Existing subscribers upgrade via Stripe Customer Portal; new users go to plan selection
+  const hasExistingPlan = planId !== null;
+  const [portalLoading, setPortalLoading] = React.useState(false);
+
+  async function openUpgradeFlow() {
+    if (hasExistingPlan) {
+      setPortalLoading(true);
+      try {
+        const res = await fetch("/api/billing/portal", { method: "POST", headers: { "Content-Type": "application/json" } });
+        const data = await res.json().catch(() => ({})) as { url?: string };
+        if (data.url) { window.location.href = data.url; return; }
+      } catch { /* fall through to plan page */ }
+      setPortalLoading(false);
+    }
+    window.location.href = `/onboarding/plan?upgrade=${encodeURIComponent(requiredPlanId)}`;
+  }
+
   return (
     <div style={{ position:"relative", height:"100%", overflow:"hidden" }}>
       {/* Real feature content — blurred as teaser preview */}
@@ -134,14 +151,18 @@ function FeatureGate({ featureName, stage, children }: { featureName?: string; s
             })}
           </div>
           {/* CTA */}
-          <Link href={`/onboarding/plan?upgrade=${encodeURIComponent(requiredPlanId)}`}
-            style={{ display:"inline-flex", alignItems:"center", gap:8, fontSize:15, fontWeight:800, padding:"14px 32px", borderRadius:13, background:`linear-gradient(135deg, ${planColor} 0%, ${planColorDark} 100%)`, color:"white", textDecoration:"none", cursor:"pointer", boxShadow:`0 4px 20px ${planColor}40`, letterSpacing:"-0.01em" }}>
-            Upgrade to {planName} →
-          </Link>
+          <button
+            onClick={() => void openUpgradeFlow()}
+            disabled={portalLoading}
+            style={{ display:"inline-flex", alignItems:"center", gap:8, fontSize:15, fontWeight:800, padding:"14px 32px", borderRadius:13, background:`linear-gradient(135deg, ${planColor} 0%, ${planColorDark} 100%)`, color:"white", border:"none", cursor:portalLoading ? "default" : "pointer", opacity:portalLoading ? 0.75 : 1, boxShadow:`0 4px 20px ${planColor}40`, letterSpacing:"-0.01em" }}>
+            {portalLoading ? "Opening…" : `Upgrade to ${planName} →`}
+          </button>
           <div style={{ marginTop:14 }}>
-            <Link href="/onboarding/plan" style={{ fontSize:12.5, color:"var(--z-text3)", textDecoration:"none", fontWeight:500 }}>
+            <button
+              onClick={() => void openUpgradeFlow()}
+              style={{ fontSize:12.5, color:"var(--z-text3)", background:"none", border:"none", cursor:"pointer", fontWeight:500 }}>
               Compare all plans
-            </Link>
+            </button>
           </div>
         </div>
       </div>
@@ -4433,7 +4454,7 @@ function ScreenPromotionReadiness() {
                   <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:12, flexWrap:"wrap" }}>
                     <div style={{ fontSize:10.5, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.08em" }}>How to open the conversation</div>
                     <button
-                      onClick={() => { void navigator.clipboard.writeText(result.managerPitchExample); setPitchCopied(true); setTimeout(() => setPitchCopied(false), 2000); }}
+                      onClick={() => { navigator.clipboard.writeText(result.managerPitchExample).then(() => { setPitchCopied(true); setTimeout(() => setPitchCopied(false), 2000); }).catch(() => {}); }}
                       style={{ fontSize:11.5, fontWeight:700, padding:"6px 12px", borderRadius:10, border:"1px solid rgba(37,99,235,0.3)", background:"rgba(37,99,235,0.06)", color:"#2563EB", cursor:"pointer" }}
                     >
                       {pitchCopied ? "Copied ✓" : "Copy"}
@@ -4955,7 +4976,7 @@ function ScreenSalaryCompensation() {
           </div>
           <div style={{ padding:"10px 12px 14px", borderTop:"1px solid var(--z-bd)", display:"flex", gap:6 }}>
             <button onClick={() => setResult(null)} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>New</button>
-            <button onClick={() => { setResult(null); setStep(1); }} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Redo</button>
+            <button onClick={() => { setResult(null); setStep(1); setForm(_salForm); }} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Redo</button>
           </div>
         </div>
         {/* RIGHT PANEL */}
@@ -5067,7 +5088,7 @@ function ScreenSalaryCompensation() {
               <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
                 <div style={{ padding:"16px 26px", borderBottom:"1px solid var(--z-bd)", background:"var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
                   <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em" }}>Counter script</div>
-                  <button onClick={() => { void navigator.clipboard.writeText(result.counterScript); setCopied(true); setTimeout(() => setCopied(false), 2000); }} style={{ fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:10, border:"1px solid var(--z-bd)", background:copied ? "rgba(37,99,235,0.08)" : "var(--z-card)", color:copied ? "#2563EB" : "var(--z-text2)", cursor:"pointer", transition:"all 0.2s" }}>{copied ? "Copied ✓" : "Copy"}</button>
+                  <button onClick={() => { navigator.clipboard.writeText(result.counterScript).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }).catch(() => {}); }} style={{ fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:10, border:"1px solid var(--z-bd)", background:copied ? "rgba(37,99,235,0.08)" : "var(--z-card)", color:copied ? "#2563EB" : "var(--z-text2)", cursor:"pointer", transition:"all 0.2s" }}>{copied ? "Copied ✓" : "Copy"}</button>
                 </div>
                 <div style={{ padding:"26px 28px" }}>
                   <pre style={{ fontFamily:"inherit", fontSize:14, color:"var(--z-text)", lineHeight:1.9, whiteSpace:"pre-wrap", margin:0 }}>{result.counterScript}</pre>
@@ -6276,11 +6297,11 @@ function ScreenSalaryNegotiationSim() {
   type SimMsg = { role: "zari" | "user"; text: string; coaching?: string | null; betterPhrasing?: string | null };
   type DebriefResult = { score: number; verdict: string; summary: string; nailed: string[]; improve: string[]; phrases: { original: string; better: string }[] };
   const SIM_KEY = "zari_salary_sim_v1";
-  type SimSaved = { phase: "setup"|"chat"|"debrief"; scenario: string; difficulty: string; form: typeof _simForm; msgs: SimMsg[]; debrief: DebriefResult | null };
+  type SimSaved = { phase: "setup"|"chat"|"debrief"; scenario: string; difficulty: string; simStep: number; form: typeof _simForm; msgs: SimMsg[]; debrief: DebriefResult | null };
   const _simForm = { role:"", company:"", currentComp:"", targetComp:"", leverage:"" };
   const _simSaved = lsGet<SimSaved>(SIM_KEY);
   const [phase, setPhase] = useState<"setup" | "chat" | "debrief">(_simSaved?.phase ?? "setup");
-  const [simStep, setSimStep] = useState<1|2>(1);
+  const [simStep, setSimStep] = useState<1|2>((_simSaved?.simStep as 1|2) ?? 1);
   const [scenario, setScenario] = useState(_simSaved?.scenario ?? "new-offer");
   const [difficulty, setDifficulty] = useState(_simSaved?.difficulty ?? "realistic");
   const [form, setForm] = useState(_simSaved?.form ?? _simForm);
@@ -6292,10 +6313,10 @@ function ScreenSalaryNegotiationSim() {
   const [debrief, setDebrief] = useState<DebriefResult | null>(_simSaved?.debrief ?? null);
   const [error, setError] = useState("");
   useEffect(() => {
-    if (phase !== "setup" || msgs.length || debrief) {
-      lsSet(SIM_KEY, { phase, scenario, difficulty, form, msgs, debrief });
+    if (scenario || form.role || msgs.length || debrief) {
+      lsSet(SIM_KEY, { phase, scenario, difficulty, simStep, form, msgs, debrief });
     }
-  }, [phase, msgs, debrief]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [phase, scenario, difficulty, simStep, form, msgs, debrief]); // eslint-disable-line react-hooks/exhaustive-deps
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -6875,7 +6896,7 @@ function ScreenSalaryNegotiationEmail() {
                 <div style={{ fontSize:10, fontWeight:800, color:v.color, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>{v.label} Version — Subject</div>
                 <div style={{ fontSize:15, fontWeight:700, color:"var(--z-text)", lineHeight:1.4 }}>{v.subject}</div>
               </div>
-              <button onClick={() => { void navigator.clipboard.writeText(`Subject: ${v.subject}\n\n${v.email}`); setCopied(true); setTimeout(() => setCopied(false), 2500); }} style={{ fontSize:12.5, fontWeight:700, padding:"8px 18px", borderRadius:10, border:`1px solid ${copied ? v.color : "var(--z-bd)"}`, background:copied ? v.bg : "var(--z-card)", color:copied ? v.color : "var(--z-text2)", cursor:"pointer", flexShrink:0, transition:"all 0.2s" }}>{copied ? "Copied ✓" : "Copy"}</button>
+              <button onClick={() => { navigator.clipboard.writeText(`Subject: ${v.subject}\n\n${v.email}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2500); }).catch(() => {}); }} style={{ fontSize:12.5, fontWeight:700, padding:"8px 18px", borderRadius:10, border:`1px solid ${copied ? v.color : "var(--z-bd)"}`, background:copied ? v.bg : "var(--z-card)", color:copied ? v.color : "var(--z-text2)", cursor:"pointer", flexShrink:0, transition:"all 0.2s" }}>{copied ? "Copied ✓" : "Copy"}</button>
             </div>
             <div style={{ padding:"26px 28px" }}>
               <pre style={{ fontFamily:"inherit", fontSize:14.5, color:"var(--z-text)", lineHeight:1.9, whiteSpace:"pre-wrap", margin:0 }}>{v.email}</pre>
@@ -7293,8 +7314,8 @@ function ScreenLeadershipStoryPractice() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   useEffect(() => {
-    if (!setup || msgs.length) lsSet(LSP_KEY, { setup, form, msgs });
-  }, [setup, msgs]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (form.situation || form.targetAudience || !setup || msgs.length) lsSet(LSP_KEY, { setup, form, msgs });
+  }, [setup, form, msgs]); // eslint-disable-line react-hooks/exhaustive-deps
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -7559,7 +7580,7 @@ Rules:
                 <div style={{ fontSize:10, fontWeight:800, color:tm.color, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>Subject</div>
                 <div style={{ fontSize:15, fontWeight:700, color:"var(--z-text)", lineHeight:1.4 }}>{result.subject}</div>
               </div>
-              <button onClick={() => { void navigator.clipboard.writeText(`Subject: ${result.subject}\n\n${result.letter}`); setCopied(true); setTimeout(() => setCopied(false), 2500); }} style={{ fontSize:12.5, fontWeight:700, padding:"8px 18px", borderRadius:10, border:`1px solid ${copied ? tm.color : "var(--z-bd)"}`, background:copied ? tm.bg : "var(--z-card)", color:copied ? tm.color : "var(--z-text2)", cursor:"pointer", flexShrink:0, transition:"all 0.2s" }}>{copied ? "Copied ✓" : "Copy letter"}</button>
+              <button onClick={() => { navigator.clipboard.writeText(`Subject: ${result.subject}\n\n${result.letter}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2500); }).catch(() => {}); }} style={{ fontSize:12.5, fontWeight:700, padding:"8px 18px", borderRadius:10, border:`1px solid ${copied ? tm.color : "var(--z-bd)"}`, background:copied ? tm.bg : "var(--z-card)", color:copied ? tm.color : "var(--z-text2)", cursor:"pointer", flexShrink:0, transition:"all 0.2s" }}>{copied ? "Copied ✓" : "Copy letter"}</button>
             </div>
             <div style={{ padding:"28px 30px" }}>
               <pre style={{ fontFamily:"inherit", fontSize:14.5, color:"var(--z-text)", lineHeight:1.9, whiteSpace:"pre-wrap", margin:0 }}>{result.letter}</pre>
@@ -7764,7 +7785,7 @@ function ScreenExecPositioning() {
           </div>
           <div style={{ padding:"10px 12px 14px", borderTop:"1px solid var(--z-bd)", display:"flex", gap:6 }}>
             <button onClick={() => setResult(null)} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>New</button>
-            <button onClick={() => { setResult(null); setStep(1); }} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Redo</button>
+            <button onClick={() => { setResult(null); setStep(1); setForm(_epForm); }} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Redo</button>
           </div>
         </div>
         {/* RIGHT PANEL */}
@@ -7891,7 +7912,7 @@ function ScreenExecPositioning() {
               <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
                 <div style={{ padding:"16px 26px", borderBottom:"1px solid var(--z-bd)", background:"var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
                   <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em" }}>Board bio draft</div>
-                  <button onClick={() => { void navigator.clipboard.writeText(result.boardBio); setBioCopied(true); setTimeout(() => setBioCopied(false), 2000); }} style={{ fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:10, border:"1px solid var(--z-bd)", background:bioCopied ? "rgba(37,99,235,0.08)" : "var(--z-card)", color:bioCopied ? "#2563EB" : "var(--z-text2)", cursor:"pointer", transition:"all 0.2s" }}>{bioCopied ? "Copied ✓" : "Copy"}</button>
+                  <button onClick={() => { navigator.clipboard.writeText(result.boardBio).then(() => { setBioCopied(true); setTimeout(() => setBioCopied(false), 2000); }).catch(() => {}); }} style={{ fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:10, border:"1px solid var(--z-bd)", background:bioCopied ? "rgba(37,99,235,0.08)" : "var(--z-card)", color:bioCopied ? "#2563EB" : "var(--z-text2)", cursor:"pointer", transition:"all 0.2s" }}>{bioCopied ? "Copied ✓" : "Copy"}</button>
                 </div>
                 <div style={{ padding:"28px 30px" }}>
                   <p style={{ fontSize:15, color:"var(--z-text)", lineHeight:1.9, margin:0 }}>{result.boardBio}</p>
@@ -8169,11 +8190,11 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
         body: JSON.stringify({ resumeText, targetRole: targetRoleInput, jobDescription }),
       });
       const data = await res.json().catch(() => ({})) as { resumeText?: string; error?: string };
-      if (!data.resumeText) { setPowerOptimizing(false); return; }
+      if (!data.resumeText) { setAnalyzeErr(data.error ?? "Download failed — try again."); setPowerOptimizing(false); return; }
       const html = generateResumeHtml(data.resumeText);
       if (format === "word") triggerWordDownload(html, `${baseName}-power-optimized.html`);
       else triggerPdfDownload(html);
-    } catch { /* non-fatal */ }
+    } catch { setAnalyzeErr("Download failed — try again."); }
     setPowerOptimizing(false);
   }
 
@@ -8221,9 +8242,18 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
       const data = await res.json().catch(() => ({})) as { history?: ResumeHistoryEntry[] };
       const server = data.history ?? [];
       const local  = readLocalHistory();
-      // Merge: prefer server entries, fill with local ones not already in server (by submittedAt proximity)
-      const serverTs = new Set(server.map(e => e.submittedAt));
-      const merged = [...server, ...local.filter(e => !serverTs.has(e.submittedAt))];
+      // Merge: prefer server entries, fill with local ones not already in server.
+      // Deduplicate by score + 5-min proximity to avoid double-entries from localStorage/server sync.
+      const FIVE_MIN = 5 * 60 * 1000;
+      const merged = [...server];
+      for (const le of local) {
+        const leTs = new Date(le.submittedAt).getTime();
+        const alreadyCovered = merged.some(s =>
+          Math.abs(new Date(s.submittedAt).getTime() - leTs) < FIVE_MIN &&
+          s.scores.overall === le.scores.overall
+        );
+        if (!alreadyCovered) merged.push(le);
+      }
       merged.sort((a,b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
       setScoreHistory(merged.slice(0, 30));
     } catch {
@@ -8637,7 +8667,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
           {analyzeErr && <div style={{ background:"rgba(239,68,68,0.12)", border:"1px solid rgba(239,68,68,0.3)", borderRadius:10, padding:"9px 14px", marginBottom:14, fontSize:13, color:"#FCA5A5" }}>{analyzeErr}</div>}
 
           <div style={{ display:"flex", gap:10 }}>
-            <button onClick={()=>setStep("choose")} style={{ fontSize:13, fontWeight:600, padding:"11px 20px", borderRadius:11, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>← Back</button>
+            <button onClick={()=>{ setStep("choose"); setAnalyzeErr(""); }} style={{ fontSize:13, fontWeight:600, padding:"11px 20px", borderRadius:11, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>← Back</button>
             <button
               onClick={()=>setStep("upload")}
               disabled={!jobDescription.trim() && !targetRoleInput.trim()}
@@ -8694,7 +8724,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
             />
           </div>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:10, marginTop:22 }}>
-            <button onClick={() => setStep("upload")} style={{ padding:"13px 20px", borderRadius:14, border:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text3)", fontSize:13.5, fontWeight:600, cursor:"pointer" }}>← Back</button>
+            <button onClick={() => { setStep("upload"); setAnalyzeErr(""); }} style={{ padding:"13px 20px", borderRadius:14, border:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text3)", fontSize:13.5, fontWeight:600, cursor:"pointer" }}>← Back</button>
             <button onClick={() => void runAnalysis()} disabled={!resumeText.trim() || targetedInvalid}
               style={{ minWidth:200, fontSize:14.5, fontWeight:700, padding:"13px 20px", borderRadius:14, border:"none", background:resumeText.trim()&&!targetedInvalid?"#2563EB":"var(--z-raise)", color:resumeText.trim()&&!targetedInvalid?"white":"var(--z-text3)", cursor:resumeText.trim()&&!targetedInvalid?"pointer":"default", transition:"all 0.2s" }}>
               Analyze with Zari →
@@ -8796,7 +8826,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
             </div>
           </div>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:10, marginTop:22 }}>
-            <button onClick={()=>setStep(reviewMode==="targeted"?"job":"choose")} style={{ padding:"13px 20px", borderRadius:14, border:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text3)", fontSize:13.5, fontWeight:600, cursor:"pointer" }}>← Back</button>
+            <button onClick={()=>{ setStep(reviewMode==="targeted"?"job":"choose"); setAnalyzeErr(""); }} style={{ padding:"13px 20px", borderRadius:14, border:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text3)", fontSize:13.5, fontWeight:600, cursor:"pointer" }}>← Back</button>
             <p style={{ fontSize:11, color:"var(--z-text3)", display:"flex", alignItems:"center", gap:5 }}>
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" style={{ width:11,height:11 }}><rect x="3" y="7" width="10" height="8" rx="1.5"/><path d="M5 7V5a3 3 0 016 0v2"/></svg>
               Private &amp; secure
@@ -9044,7 +9074,8 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
 
         {/* ══ Score Trend sparkline ══ */}
         {scoreHistory.length > 1 && (() => {
-          const last5 = scoreHistory.slice(-5);
+          // scoreHistory is sorted newest-first; take 5 most recent, reverse to chronological order
+          const last5 = scoreHistory.slice(0, 5).reverse();
           const minS = Math.max(0, Math.min(...last5.map(s=>s.scores.overall)) - 8);
           const maxS = Math.min(100, Math.max(...last5.map(s=>s.scores.overall)) + 8);
           const W = 200, H = 44;
@@ -10109,7 +10140,7 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
   if (stage === "salary")     return <FeatureGate featureName="zari_negotiation_sim"><ScreenSalaryNegotiationSim /></FeatureGate>;
   if (stage === "leadership") return <FeatureGate stage="leadership"><ScreenLeadershipStoryPractice /></FeatureGate>;
 
-  type IVSaved = { resumeText: string; resumeFileName: string; linkedinText: string; jobDesc: string; round: InterviewRound | null; sections: InterviewSection[] | null; setupDone: boolean };
+  type IVSaved = { resumeText: string; resumeFileName: string; linkedinText: string; jobDesc: string; round: InterviewRound | null; sections: InterviewSection[] | null; setupDone: boolean; setupStep?: number };
   const IV_KEY = `zari_interview_session_v1_${stage}`;
   const _ivSaved = lsGet<IVSaved>(IV_KEY);
   const [setupDone,    setSetupDone]    = useState(_ivSaved?.setupDone ?? false);
@@ -10132,6 +10163,7 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
   const [recTime,          setRecTime]          = useState(0);
   const [isScoring,        setIsScoring]        = useState(false);
   const [feedback,         setFeedback]         = useState<InterviewFeedback | null>(null);
+  const [scoreErr,         setScoreErr]         = useState("");
 
   useEffect(() => {
     if (!isRecording) return;
@@ -10146,7 +10178,13 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
       setSetupDone(saved.setupDone); setResumeText(saved.resumeText ?? "");
       setResumeFileName(saved.resumeFileName ?? ""); setLinkedinText(saved.linkedinText ?? "");
       setJobDesc(saved.jobDesc ?? ""); setRound(saved.round ?? null); setSections(saved.sections);
+      setSetupStep(saved.setupStep ?? 1);
       setQIdx(0); setActiveSectionIdx(0); setAnswer(""); setSubmitted(false); setFeedback(null);
+    } else if (saved) {
+      setSetupDone(false); setResumeText(saved.resumeText ?? ""); setResumeFileName(saved.resumeFileName ?? "");
+      setLinkedinText(saved.linkedinText ?? ""); setJobDesc(saved.jobDesc ?? ""); setRound(saved.round ?? null);
+      setSetupStep(saved.setupStep ?? 1);
+      setSections(null); setQIdx(0); setActiveSectionIdx(0); setAnswer(""); setSubmitted(false); setFeedback(null);
     } else {
       setSetupDone(false); setSetupStep(1); setQIdx(0); setActiveSectionIdx(0); setAnswer(""); setSubmitted(false);
       setFeedback(null); setSections(null); setRound(null); setResumeText(""); setResumeFileName("");
@@ -10211,6 +10249,7 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
     if (!answer.trim() || isScoring || !SECTION_QUESTIONS.length) return;
     setIsScoring(true);
     setSubmitted(true);
+    setScoreErr("");
     const q = SECTION_QUESTIONS[qIdx];
     try {
       const res = await fetch("/api/zari/interview", {
@@ -10220,13 +10259,14 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
       });
       const data = await res.json().catch(() => null) as InterviewFeedback | null;
       if (data && data.overallScore) setFeedback(data);
-    } catch { /* use fallback */ }
+      else setScoreErr("Couldn't score your answer — try again.");
+    } catch { setScoreErr("Couldn't score your answer — try again."); }
     setIsScoring(false);
   }
 
   const fmt = (s:number) => `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
 
-  const [setupStep,      setSetupStep]      = useState(1); // 1=resume, 2=jd, 3=round
+  const [setupStep,      setSetupStep]      = useState(_ivSaved?.setupStep ?? 1); // 1=resume, 2=jd, 3=round
   const [resumeDragOver, setResumeDragOver] = useState(false);
   const resumeInputRef = useRef<HTMLInputElement>(null);
 
@@ -10247,10 +10287,10 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
 
   // Persist setup form when inputs change (so refreshing mid-setup restores them)
   useEffect(() => {
-    if (resumeText || jobDesc) {
-      lsSet(`zari_interview_session_v1_${stage}`, { resumeText, resumeFileName, linkedinText, jobDesc, round, sections, setupDone });
+    if (resumeText || linkedinText || jobDesc || round) {
+      lsSet(`zari_interview_session_v1_${stage}`, { resumeText, resumeFileName, linkedinText, jobDesc, round, sections, setupDone, setupStep });
     }
-  }, [resumeText, jobDesc, round]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [resumeText, linkedinText, jobDesc, round, setupStep]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── Setup step ── */
   if (!setupDone) return (
@@ -10626,11 +10666,16 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
                 <p style={{ fontSize:12, color:"var(--z-text3)", marginTop:5 }}>Analyzing STAR structure, impact clarity, and coaching opportunities</p>
               </div>
             )}
-            {!isScoring && (
+            {!isScoring && !feedback && scoreErr && (
+              <div style={{ borderRadius:14, background:"rgba(239,68,68,0.08)", border:"1px solid rgba(239,68,68,0.2)", padding:"16px 20px", marginBottom:14, fontSize:14, color:"#EF4444", fontWeight:500 }}>
+                {scoreErr}
+              </div>
+            )}
+            {!isScoring && feedback && (
               <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:18, padding:22, marginBottom:14, boxShadow:"0 4px 24px rgba(0,0,0,0.09)" }}>
                 {/* Score hero */}
                 {(() => {
-                  const score = feedback?.overallScore ?? 79;
+                  const score = feedback.overallScore;
                   const sColor = score >= 80 ? "#059669" : score >= 65 ? "#2563EB" : score >= 50 ? "#D97706" : "#DC2626";
                   const sBg = score >= 80 ? "rgba(5,150,105,0.08)" : score >= 65 ? "rgba(37,99,235,0.08)" : score >= 50 ? "rgba(217,119,6,0.08)" : "rgba(220,38,38,0.08)";
                   const sLabel = score >= 80 ? "Strong answer" : score >= 65 ? "Good answer" : score >= 50 ? "Needs work" : "Weak answer";
@@ -10762,13 +10807,16 @@ const PROMOTION_PRACTICE_META: Record<PromotionPracticeMode, {
 };
 
 function ScreenPromotionPitch({ active = false, onNavigate }: { active?: boolean; onNavigate?: (s: string) => void }) {
-  const [evidenceText, setEvidenceText] = useState("");
-  const [evidenceFile, setEvidenceFile] = useState("");
-  const [criteriaText, setCriteriaText] = useState("");
-  const [contextText, setContextText] = useState("");
-  const [targetLevel, setTargetLevel] = useState("");
+  const PP_SETUP_KEY = "zari_promo_pitch_setup_v1";
+  type PPSetupSaved = { evidenceText: string; evidenceFile: string; criteriaText: string; contextText: string; targetLevel: string; mode: PromotionPracticeMode };
+  const _ppSaved = lsGet<PPSetupSaved>(PP_SETUP_KEY);
+  const [evidenceText, setEvidenceText] = useState(_ppSaved?.evidenceText ?? "");
+  const [evidenceFile, setEvidenceFile] = useState(_ppSaved?.evidenceFile ?? "");
+  const [criteriaText, setCriteriaText] = useState(_ppSaved?.criteriaText ?? "");
+  const [contextText, setContextText] = useState(_ppSaved?.contextText ?? "");
+  const [targetLevel, setTargetLevel] = useState(_ppSaved?.targetLevel ?? "");
   const [sharedContext, setSharedContext] = useState<PromotionSharedContext | null>(() => readPromotionSharedContext());
-  const [mode, setMode] = useState<PromotionPracticeMode>("manager");
+  const [mode, setMode] = useState<PromotionPracticeMode>(_ppSaved?.mode ?? "manager");
   const [loadingQs, setLoadingQs] = useState(false);
   const [setupError, setSetupError] = useState("");
   const [sections, setSections] = useState<InterviewSection[] | null>(null);
@@ -10777,6 +10825,7 @@ function ScreenPromotionPitch({ active = false, onNavigate }: { active?: boolean
   const [answer, setAnswer] = useState("");
   const [feedback, setFeedback] = useState<InterviewFeedback | null>(null);
   const [isScoring, setIsScoring] = useState(false);
+  const [scoreErr, setScoreErr] = useState("");
   const [autoContext, setAutoContext] = useState("");
   const [sessionScores, setSessionScores] = useState<number[]>([]);
   const [displayScore, setDisplayScore] = useState<number | null>(null);
@@ -10798,6 +10847,13 @@ function ScreenPromotionPitch({ active = false, onNavigate }: { active?: boolean
     if (!contextText.trim()) setContextText(buildPromotionContextNote(sharedContext));
     if (!evidenceText.trim()) setEvidenceText(buildPromotionEvidenceSeed(sharedContext));
   }, [sharedContext, sections, targetLevel, criteriaText, contextText, evidenceText]);
+
+  // Persist setup fields so refresh mid-setup restores them
+  useEffect(() => {
+    if (evidenceText || criteriaText || contextText || targetLevel) {
+      lsSet(PP_SETUP_KEY, { evidenceText, evidenceFile, criteriaText, contextText, targetLevel, mode });
+    }
+  }, [evidenceText, evidenceFile, criteriaText, contextText, targetLevel, mode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleUpload(file: File) {
     setEvidenceFile(file.name);
@@ -10920,6 +10976,7 @@ function ScreenPromotionPitch({ active = false, onNavigate }: { active?: boolean
     const currentQuestion = sections?.[activeSectionIdx]?.questions?.[qIdx];
     if (!currentQuestion || !answer.trim() || isScoring) return;
     setIsScoring(true);
+    setScoreErr("");
     try {
       const seededEvidence = evidenceText.trim() || buildPromotionEvidenceSeed(sharedContext);
       const seededCriteria = criteriaText.trim() || buildPromotionCriteriaSeed(sharedContext);
@@ -10948,9 +11005,11 @@ function ScreenPromotionPitch({ active = false, onNavigate }: { active?: boolean
       if (data?.overallScore) {
         setFeedback(data);
         setSessionScores(prev => [...prev, data.overallScore]);
+      } else {
+        setScoreErr("Couldn't score your answer — try again.");
       }
     } catch {
-      /* feedback stays null */
+      setScoreErr("Couldn't score your answer — try again.");
     }
     setIsScoring(false);
   }
@@ -11304,6 +11363,12 @@ function ScreenPromotionPitch({ active = false, onNavigate }: { active?: boolean
               </div>
               </div>
             </div>
+
+            {scoreErr && !feedback && (
+              <div style={{ borderRadius:12, background:"rgba(239,68,68,0.08)", border:"1px solid rgba(239,68,68,0.2)", padding:"14px 18px", fontSize:14, color:"#EF4444", fontWeight:500 }}>
+                {scoreErr}
+              </div>
+            )}
 
             {feedback && (() => {
               const letterGradeFn = (s: number) =>
@@ -12224,7 +12289,7 @@ function ScreenPromotionVisibility({ active = false, onNavigate }: { active?: bo
                     <div style={{ fontSize:12, color:"var(--z-text2)", lineHeight:1.6 }}>Your calibration narrative — share with your manager or sponsor so they can repeat it verbatim</div>
                   </div>
                   <button
-                    onClick={() => { void navigator.clipboard.writeText(result.executiveNarrative); setNarrativeCopied(true); setTimeout(() => setNarrativeCopied(false), 2000); }}
+                    onClick={() => { navigator.clipboard.writeText(result.executiveNarrative).then(() => { setNarrativeCopied(true); setTimeout(() => setNarrativeCopied(false), 2000); }).catch(() => {}); }}
                     style={{ fontSize:11.5, fontWeight:700, padding:"7px 14px", borderRadius:10, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer", flexShrink:0 }}
                   >
                     {narrativeCopied ? "Copied!" : "Copy"}
@@ -12363,7 +12428,7 @@ function ScreenPromotionVisibility({ active = false, onNavigate }: { active?: bo
                     <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginBottom:10 }}>
                       <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em" }}>The ask</div>
                       <button
-                        onClick={() => { void navigator.clipboard.writeText(item.ask); setCopiedAsk(idx); setTimeout(() => setCopiedAsk(null), 2000); }}
+                        onClick={() => { navigator.clipboard.writeText(item.ask).then(() => { setCopiedAsk(idx); setTimeout(() => setCopiedAsk(null), 2000); }).catch(() => {}); }}
                         style={{ fontSize:11.5, fontWeight:700, padding:"5px 12px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}
                       >
                         {copiedAsk === idx ? "Copied!" : "Copy ask"}
@@ -13539,7 +13604,7 @@ function ScreenPromotionToolkit({ onNavigate }: { onNavigate: (s: string) => voi
               </div>
             </div>
             <div style={{ padding:"22px 24px", overflowY:"auto", flex:1 }}>
-              <pre style={{ fontFamily:"Georgia,'Times New Roman',serif", fontSize:13, lineHeight:1.8, color:"#1E293B", whiteSpace:"pre-wrap", margin:0 }}>{preview.content}</pre>
+              <pre style={{ fontFamily:"Georgia,'Times New Roman',serif", fontSize:13, lineHeight:1.8, color:"var(--z-text)", whiteSpace:"pre-wrap", margin:0 }}>{preview.content}</pre>
             </div>
           </div>
         </div>
@@ -14995,7 +15060,7 @@ function ScreenPromotionRoadmap({ onNavigate, active = false }: { onNavigate: (s
                     : <span style={{ fontSize:13, fontWeight:900 }}>{i + 1}</span>}
                 </div>
                 <div style={{ flex:1 }}>
-                  <div style={{ fontSize:14, fontWeight:800, color:"#0F172A", marginBottom:4 }}>{card.label}</div>
+                  <div style={{ fontSize:14, fontWeight:800, color:"var(--z-text)", marginBottom:4 }}>{card.label}</div>
                   <div style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.6 }}>{card.desc}</div>
                 </div>
                 {card.done && <span style={{ fontSize:10.5, fontWeight:800, color:"#059669", letterSpacing:"0.08em", textTransform:"uppercase" }}>Ready</span>}
@@ -15329,21 +15394,21 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
   const pct   = TASKS.length ? Math.round((done.size / TASKS.length) * 100) : 0;
 
   const CAT_COLORS: Record<string, { color: string; bg: string; border: string }> = {
-    Resume:          { color:"var(--z-text2)", bg:"#F0FDFA", border:"#BFDBFE" },
-    LinkedIn:        { color:"#0A66C2", bg:"#EFF6FF", border:"#BFDBFE" },
-    Interview:       { color:"#D97706", bg:"#FFF7ED", border:"#FDE68A" },
-    "Job Search":    { color:"#2563EB", bg:"#EFF6FF", border:"#BFDBFE" },
-    "Cover Letter":  { color:"#059669", bg:"#ECFDF5", border:"#6EE7B7" },
-    Session:         { color:"#3B82F6", bg:"#EFF6FF", border:"#BFDBFE" },
-    Network:         { color:"#0891B2", bg:"#ECFEFF", border:"#A5F3FC" },
-    Research:        { color:"#BE185D", bg:"#FDF2F8", border:"#F9A8D4" },
-    Case:            { color:"var(--z-text2)", bg:"#F0FDFA", border:"#BFDBFE" },
-    Docs:            { color:"#059669", bg:"#ECFDF5", border:"#A7F3D0" },
-    Feedback:        { color:"#DC2626", bg:"#FEF2F2", border:"#FECACA" },
-    Sponsorship:     { color:"#0284C7", bg:"#EFF6FF", border:"#BFDBFE" },
-    Visibility:      { color:"#0A66C2", bg:"#EFF6FF", border:"#BFDBFE" },
-    Planning:        { color:"#3B82F6", bg:"#EFF6FF", border:"#BFDBFE" },
-    Milestone:       { color:"#D97706", bg:"#FFF7ED", border:"#FDE68A" },
+    Resume:          { color:"#64748B",  bg:"rgba(100,116,139,0.12)", border:"rgba(100,116,139,0.3)" },
+    LinkedIn:        { color:"#0A66C2",  bg:"rgba(10,102,194,0.12)",  border:"rgba(10,102,194,0.3)"  },
+    Interview:       { color:"#D97706",  bg:"rgba(217,119,6,0.12)",   border:"rgba(217,119,6,0.3)"   },
+    "Job Search":    { color:"#2563EB",  bg:"rgba(37,99,235,0.12)",   border:"rgba(37,99,235,0.3)"   },
+    "Cover Letter":  { color:"#059669",  bg:"rgba(5,150,105,0.12)",   border:"rgba(5,150,105,0.3)"   },
+    Session:         { color:"#3B82F6",  bg:"rgba(59,130,246,0.12)",  border:"rgba(59,130,246,0.3)"  },
+    Network:         { color:"#0891B2",  bg:"rgba(8,145,178,0.12)",   border:"rgba(8,145,178,0.3)"   },
+    Research:        { color:"#BE185D",  bg:"rgba(190,24,93,0.12)",   border:"rgba(190,24,93,0.3)"   },
+    Case:            { color:"#64748B",  bg:"rgba(100,116,139,0.12)", border:"rgba(100,116,139,0.3)" },
+    Docs:            { color:"#059669",  bg:"rgba(5,150,105,0.12)",   border:"rgba(5,150,105,0.3)"   },
+    Feedback:        { color:"#DC2626",  bg:"rgba(220,38,38,0.12)",   border:"rgba(220,38,38,0.3)"   },
+    Sponsorship:     { color:"#0284C7",  bg:"rgba(2,132,199,0.12)",   border:"rgba(2,132,199,0.3)"   },
+    Visibility:      { color:"#0A66C2",  bg:"rgba(10,102,194,0.12)",  border:"rgba(10,102,194,0.3)"  },
+    Planning:        { color:"#3B82F6",  bg:"rgba(59,130,246,0.12)",  border:"rgba(59,130,246,0.3)"  },
+    Milestone:       { color:"#D97706",  bg:"rgba(217,119,6,0.12)",   border:"rgba(217,119,6,0.3)"   },
   };
 
   const TIMELINE_GROUPS = [
@@ -15535,12 +15600,12 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
                     return (
                       <button key={task.idx}
                         onClick={()=>setDone(d=>{const n=new Set(d);n.has(task.idx)?n.delete(task.idx):n.add(task.idx);return n;})}
-                        style={{ display:"flex", alignItems:"flex-start", gap:12, background:"var(--z-raise)", border:`1px solid ${isDone?"#BBF7D0":"#E4E8F5"}`, borderLeft:`3.5px solid ${isDone?"#16A34A":group.accent}`, borderRadius:"0 14px 14px 0", padding:"13px 16px", cursor:"pointer", textAlign:"left", transition:"all 0.15s", boxShadow:`0 1px 6px rgba(0,0,0,0.04)` }}>
-                        <div style={{ width:22, height:22, borderRadius:6, border:`2px solid ${isDone?"#16A34A":"#CBD5E1"}`, background:isDone?"#DCFCE7":"white", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>
+                        style={{ display:"flex", alignItems:"flex-start", gap:12, background:"var(--z-raise)", border:`1px solid ${isDone?"rgba(74,222,128,0.25)":"var(--z-bd)"}`, borderLeft:`3.5px solid ${isDone?"#16A34A":group.accent}`, borderRadius:"0 14px 14px 0", padding:"13px 16px", cursor:"pointer", textAlign:"left", transition:"all 0.15s", boxShadow:`0 1px 6px rgba(0,0,0,0.04)` }}>
+                        <div style={{ width:22, height:22, borderRadius:6, border:`2px solid ${isDone?"#16A34A":"var(--z-bd)"}`, background:isDone?"rgba(22,163,74,0.15)":"var(--z-card)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>
                           {isDone && <svg viewBox="0 0 12 12" fill="none" style={{width:10,height:10}}><path d="M1.5 6l3 3 6-6" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                         </div>
                         <div style={{ flex:1 }}>
-                          <p style={{ fontSize:13.5, color:isDone?"#A0AABF":"#0A0A0F", textDecoration:isDone?"line-through":"none", lineHeight:1.5, margin:0 }}>{task.text}</p>
+                          <p style={{ fontSize:13.5, color:isDone?"var(--z-text3)":"var(--z-text)", textDecoration:isDone?"line-through":"none", lineHeight:1.5, margin:0 }}>{task.text}</p>
                         </div>
                         <span style={{ flexShrink:0, fontSize:11, fontWeight:700, padding:"3px 9px", borderRadius:99, background:cc.bg, color:cc.color, border:`1px solid ${cc.border}`, whiteSpace:"nowrap", alignSelf:"center" }}>{task.cat}</span>
                       </button>
@@ -15592,6 +15657,46 @@ function ScreenAccount({ viewer, onNavigate }: { viewer: PortalViewer; onNavigat
   const [showDangerZone, setShowDangerZone] = useState(false);
   const [cancelConfirm, setCancelConfirm] = useState(false);
 
+  // Support ticket modal
+  const [showSupportModal, setShowSupportModal] = useState(false);
+  const [supportForm, setSupportForm] = useState({ subject: "", description: "", category: "other" });
+  const [supportSubmitting, setSupportSubmitting] = useState(false);
+  const [supportError, setSupportError] = useState("");
+  const [supportSuccess, setSupportSuccess] = useState(false);
+
+  async function submitSupportTicket() {
+    if (!supportForm.subject.trim() || !supportForm.description.trim()) {
+      setSupportError("Subject and description are required.");
+      return;
+    }
+    setSupportSubmitting(true);
+    setSupportError("");
+    try {
+      const res = await fetch("/api/support/ticket", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(supportForm),
+      });
+      const data = await res.json().catch(() => ({})) as { ok?: boolean; error?: string };
+      if (!res.ok || !data.ok) {
+        setSupportError(data.error ?? "Failed to submit — please try again.");
+      } else {
+        setSupportSuccess(true);
+        setSupportForm({ subject: "", description: "", category: "other" });
+      }
+    } catch {
+      setSupportError("Connection error — please try again.");
+    }
+    setSupportSubmitting(false);
+  }
+
+  function closeSupportModal() {
+    setShowSupportModal(false);
+    setSupportError("");
+    setSupportSuccess(false);
+    setSupportForm({ subject: "", description: "", category: "other" });
+  }
+
   const sectionStyle: React.CSSProperties = {
     background: "var(--z-card)",
     borderRadius: 14,
@@ -15609,6 +15714,91 @@ function ScreenAccount({ viewer, onNavigate }: { viewer: PortalViewer; onNavigat
 
   return (
     <div style={{ height: "100%", overflowY: "auto", padding: "28px 32px", maxWidth: 700, margin: "0 auto" }}>
+
+      {/* Support ticket modal */}
+      {showSupportModal && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.55)" }} onClick={closeSupportModal} />
+          <div style={{ position: "relative", background: "var(--z-card)", borderRadius: 20, padding: "32px 32px 28px", maxWidth: 500, width: "100%", boxShadow: "0 24px 80px rgba(0,0,0,0.3)" }}>
+            {/* Close */}
+            <button onClick={closeSupportModal} style={{ position: "absolute", top: 16, right: 16, width: 30, height: 30, borderRadius: 8, border: "1px solid var(--z-bd)", background: "var(--z-raise)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--z-text2)" }}>
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 12, height: 12 }}><path d="M3 3l10 10M13 3L3 13" strokeLinecap="round"/></svg>
+            </button>
+
+            {supportSuccess ? (
+              <div style={{ textAlign: "center", padding: "8px 0 4px" }}>
+                <div style={{ width: 52, height: 52, borderRadius: 14, background: "rgba(5,150,105,0.1)", border: "1px solid rgba(5,150,105,0.25)", display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+                  <svg viewBox="0 0 20 20" fill="none" stroke="#059669" strokeWidth="1.8" style={{ width: 22, height: 22 }}><path d="M4 10l4 4 8-8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </div>
+                <h3 style={{ fontSize: 18, fontWeight: 800, color: "var(--z-text)", margin: "0 0 8px" }}>Ticket submitted</h3>
+                <p style={{ fontSize: 14, color: "var(--z-text2)", lineHeight: 1.65, margin: "0 0 24px" }}>Your support request has been received. Our team will respond to <strong>{viewer.email}</strong> shortly.</p>
+                <button onClick={closeSupportModal} style={{ fontSize: 14, fontWeight: 700, padding: "10px 28px", borderRadius: 11, border: "none", background: "#2563EB", color: "white", cursor: "pointer" }}>Done</button>
+              </div>
+            ) : (
+              <>
+                <h3 style={{ fontSize: 18, fontWeight: 800, color: "var(--z-text)", margin: "0 0 4px" }}>Contact support</h3>
+                <p style={{ fontSize: 13, color: "var(--z-text2)", margin: "0 0 22px", lineHeight: 1.5 }}>Describe your issue and we'll get back to you at <strong>{viewer.email}</strong>.</p>
+
+                <div style={{ display: "grid", gap: 14 }}>
+                  <div>
+                    <label style={{ fontSize: 11.5, fontWeight: 700, color: "var(--z-text2)", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 6 }}>Category</label>
+                    <select
+                      value={supportForm.category}
+                      onChange={e => setSupportForm(f => ({ ...f, category: e.target.value }))}
+                      style={{ width: "100%", fontSize: 13.5, padding: "9px 12px", borderRadius: 10, border: "1.5px solid var(--z-bd)", background: "var(--z-raise)", color: "var(--z-text)", outline: "none", fontFamily: "inherit" }}
+                    >
+                      <option value="billing">Billing</option>
+                      <option value="technical">Technical issue</option>
+                      <option value="product">Product feedback</option>
+                      <option value="account">Account</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: 11.5, fontWeight: 700, color: "var(--z-text2)", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 6 }}>Subject</label>
+                    <input
+                      type="text"
+                      placeholder="Brief summary of the issue"
+                      value={supportForm.subject}
+                      onChange={e => setSupportForm(f => ({ ...f, subject: e.target.value }))}
+                      style={{ width: "100%", fontSize: 13.5, padding: "9px 12px", borderRadius: 10, border: "1.5px solid var(--z-bd)", background: "var(--z-raise)", color: "var(--z-text)", outline: "none", fontFamily: "inherit", boxSizing: "border-box" }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: 11.5, fontWeight: 700, color: "var(--z-text2)", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 6 }}>Description</label>
+                    <textarea
+                      placeholder="What happened? What were you trying to do? Any error messages?"
+                      value={supportForm.description}
+                      onChange={e => setSupportForm(f => ({ ...f, description: e.target.value }))}
+                      rows={5}
+                      style={{ width: "100%", fontSize: 13.5, padding: "9px 12px", borderRadius: 10, border: "1.5px solid var(--z-bd)", background: "var(--z-raise)", color: "var(--z-text)", outline: "none", fontFamily: "inherit", resize: "vertical", boxSizing: "border-box", lineHeight: 1.65 }}
+                    />
+                  </div>
+
+                  {supportError && (
+                    <div style={{ fontSize: 13, color: "#EF4444", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 9, padding: "9px 12px" }}>
+                      {supportError}
+                    </div>
+                  )}
+
+                  <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 4 }}>
+                    <button onClick={closeSupportModal} style={{ fontSize: 13.5, fontWeight: 600, padding: "10px 20px", borderRadius: 10, border: "1px solid var(--z-bd)", background: "transparent", color: "var(--z-text2)", cursor: "pointer" }}>Cancel</button>
+                    <button
+                      onClick={() => void submitSupportTicket()}
+                      disabled={supportSubmitting || !supportForm.subject.trim() || !supportForm.description.trim()}
+                      style={{ fontSize: 13.5, fontWeight: 700, padding: "10px 24px", borderRadius: 10, border: "none", background: "#2563EB", color: "white", cursor: supportSubmitting ? "default" : "pointer", opacity: (supportSubmitting || !supportForm.subject.trim() || !supportForm.description.trim()) ? 0.65 : 1 }}
+                    >
+                      {supportSubmitting ? "Submitting…" : "Submit ticket"}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 28 }}>
@@ -15756,7 +15946,7 @@ function ScreenAccount({ viewer, onNavigate }: { viewer: PortalViewer; onNavigat
             <div style={keyStyle}>Password</div>
             <div style={{ fontSize: 11.5, color: "var(--z-text3)", marginTop: 2 }}>Last changed: never</div>
           </div>
-          <Link href="/settings/password" style={{ fontSize: 12.5, fontWeight: 600, padding: "6px 12px", borderRadius: 8, border: "1px solid var(--z-bd)", background: "transparent", color: "var(--z-text2)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 5 }}>
+          <Link href="/settings/profile" style={{ fontSize: 12.5, fontWeight: 600, padding: "6px 12px", borderRadius: 8, border: "1px solid var(--z-bd)", background: "transparent", color: "var(--z-text2)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 5 }}>
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 12, height: 12 }}><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5 7V5a3 3 0 016 0v2"/></svg>
             Change
           </Link>
@@ -15806,10 +15996,10 @@ function ScreenAccount({ viewer, onNavigate }: { viewer: PortalViewer; onNavigat
       <div style={sectionStyle}>
         <div style={labelStyle}>Help &amp; Support</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <a href="mailto:support@zari.app" style={{ fontSize: 13, color: "#2563EB", textDecoration: "none", fontWeight: 500, display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <button onClick={() => setShowSupportModal(true)} style={{ fontSize: 13, color: "#2563EB", background: "none", border: "none", fontWeight: 500, display: "inline-flex", alignItems: "center", gap: 6, cursor: "pointer", padding: 0 }}>
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 13, height: 13 }}><rect x="1" y="3" width="14" height="10" rx="1.5"/><path d="M1 4l7 5 7-5"/></svg>
             Contact support
-          </a>
+          </button>
           <a href="/terms" style={{ fontSize: 13, color: "var(--z-text2)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 13, height: 13 }}><path d="M10 2H4a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V5l-3-3z"/><path d="M10 2v3h3"/></svg>
             Terms of Service
@@ -15920,14 +16110,14 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
 
   const billingCtx: BillingCtx = { planId: viewer.planId, role: viewer.role ?? null, onPlanBlock: promptUpgrade, onCreditLimit: promptCreditLimit };
 
-  // Hydrate localStorage from server on first load — restores data on new devices / cleared browsers
+  // Hydrate localStorage from server on first load — server is source of truth
   useEffect(() => {
     fetch("/api/portal/state")
       .then(r => r.ok ? r.json() : null)
       .then((serverState: Record<string, unknown> | null) => {
         if (!serverState || typeof localStorage === "undefined") return;
         for (const [key, data] of Object.entries(serverState)) {
-          if (!localStorage.getItem(key)) {
+          if (data !== null && data !== undefined) {
             try { localStorage.setItem(key, JSON.stringify(data)); } catch { /* noop */ }
           }
         }
@@ -15989,6 +16179,41 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
   return (
     <BillingContext.Provider value={billingCtx}>
     <div className={isDark?"zari-dark":""} style={{ display:"flex", flexDirection:"column", height:"100vh", overflow:"hidden", background:"var(--z-bg)", fontFamily:"var(--font-geist-sans,Inter,system-ui,sans-serif)", WebkitFontSmoothing:"antialiased", MozOsxFontSmoothing:"grayscale", ...themeVars, backgroundImage: isDark ? "radial-gradient(ellipse 80% 60% at 50% -20%, rgba(37,99,235,0.07) 0%, transparent 100%)" : "none" }}>
+      {/* Upgrade notice modal — shown when user clicks a stage/feature they can't access */}
+      {upgradeNotice && (
+        <div style={{ position:"fixed", inset:0, zIndex:9999, display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
+          <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.6)" }} onClick={() => setUpgradeNotice(null)} />
+          <div style={{ position:"relative", background:"var(--z-card)", borderRadius:20, padding:"36px 36px 28px", maxWidth:420, width:"100%", textAlign:"center", boxShadow:"0 24px 80px rgba(0,0,0,0.35)", animation:"bubble-appear 0.2s ease" }}>
+            <button onClick={() => setUpgradeNotice(null)} style={{ position:"absolute", top:14, right:14, width:28, height:28, borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", color:"var(--z-text2)" }}>
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:11, height:11 }}><path d="M3 3l10 10M13 3L3 13" strokeLinecap="round"/></svg>
+            </button>
+            <div style={{ width:48, height:48, borderRadius:14, background:"rgba(37,99,235,0.1)", border:"1px solid rgba(37,99,235,0.2)", display:"inline-flex", alignItems:"center", justifyContent:"center", marginBottom:16, fontSize:20 }}>🔒</div>
+            <h3 style={{ fontSize:19, fontWeight:900, color:"var(--z-text)", margin:"0 0 8px", letterSpacing:"-0.02em" }}>{upgradeNotice.title}</h3>
+            <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.7, margin:"0 0 24px" }}>{upgradeNotice.body}</p>
+            <button
+              onClick={() => {
+                setUpgradeNotice(null);
+                const hasExistingPlan = viewer.planId !== null;
+                if (hasExistingPlan) {
+                  fetch("/api/billing/portal", { method:"POST", headers:{"Content-Type":"application/json"} })
+                    .then(r => r.json())
+                    .then((d: { url?: string }) => { if (d.url) window.location.href = d.url; else window.location.href = `/onboarding/plan?upgrade=${encodeURIComponent(upgradeNotice?.requiredPlanId ?? "growth")}`; })
+                    .catch(() => { window.location.href = `/onboarding/plan?upgrade=${encodeURIComponent(upgradeNotice?.requiredPlanId ?? "growth")}`; });
+                } else {
+                  window.location.href = `/onboarding/plan?upgrade=${encodeURIComponent(upgradeNotice?.requiredPlanId ?? "growth")}`;
+                }
+              }}
+              style={{ display:"inline-flex", alignItems:"center", gap:8, fontSize:14.5, fontWeight:800, padding:"13px 28px", borderRadius:12, border:"none", background:"linear-gradient(135deg,#2563EB,#1D4ED8)", color:"white", cursor:"pointer", boxShadow:"0 4px 20px rgba(37,99,235,0.4)", letterSpacing:"-0.01em" }}
+            >
+              {upgradeNotice.title} →
+            </button>
+            <div style={{ marginTop:12 }}>
+              <button onClick={() => setUpgradeNotice(null)} style={{ fontSize:12.5, color:"var(--z-text3)", background:"none", border:"none", cursor:"pointer", fontWeight:500 }}>Not now</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {hasPaymentIssue && (
         <div style={{ flexShrink:0, background:"linear-gradient(90deg, #DC2626 0%, #B91C1C 100%)", color:"white", padding:"8px 20px", display:"flex", alignItems:"center", gap:10, fontSize:13, fontWeight:500, zIndex:100 }}>
           <svg viewBox="0 0 16 16" fill="none" stroke="white" strokeWidth="1.8" style={{width:14,height:14,flexShrink:0}}><circle cx="8" cy="8" r="7"/><path d="M8 5v3M8 10.5v.5"/></svg>

@@ -2,8 +2,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUserId } from "@/lib/mvp/auth";
 import { syncCurrentUserToBillingIdentity } from "@/lib/billing";
+import { CancelledBanner } from "./cancelled-banner";
 
-export default async function SettingsPage() {
+export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ cancelled?: string }> }) {
   const userId = await getCurrentUserId();
   if (!userId) redirect("/login");
 
@@ -12,6 +13,8 @@ export default async function SettingsPage() {
   const subscription = identity?.subscription;
   const fullName = `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || user?.email?.split("@")[0] || "Your account";
   const isPaid = subscription?.status === "active" || subscription?.status === "trialing";
+  const params = await searchParams;
+  const cancelled = params.cancelled === "1";
 
   return (
     <div style={{ minHeight: "100vh", background: "#F8FAFC", fontFamily: "Inter, system-ui, sans-serif" }}>
@@ -29,6 +32,7 @@ export default async function SettingsPage() {
       </div>
 
       <div style={{ maxWidth: 720, margin: "0 auto", padding: "40px 32px" }}>
+        <CancelledBanner show={cancelled} />
         {/* User identity header */}
         <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 36 }}>
           <div style={{ width: 48, height: 48, borderRadius: 14, background: "linear-gradient(135deg, #3B82F6, #2563EB)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 800, color: "white", flexShrink: 0 }}>

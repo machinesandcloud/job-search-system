@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ZariLogo } from "@/components/zari-logo";
+import { LegalBackButton } from "@/components/legal-back-button";
 
 export const metadata = { title: "Terms of Service – Zari" };
 
@@ -12,6 +13,7 @@ export default function TermsPage() {
             <ZariLogo size={28} />
             <span style={{ fontSize: 16, fontWeight: 800, background: "linear-gradient(135deg, #1459CC, #1868E8)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Zari</span>
           </Link>
+          <LegalBackButton />
         </div>
 
         <h1 style={{ fontSize: 28, fontWeight: 800, color: "#0F172A", marginBottom: 8 }}>Terms of Service</h1>

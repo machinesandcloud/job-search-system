@@ -1,11 +1,19 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "crypto";
 import { prisma } from "@/lib/db";
 import { hashPlatformPassword } from "@/lib/platform-users";
+import { rateLimit } from "@/lib/rate-limit";
+import { getClientIp } from "@/lib/utils";
 
 export const maxDuration = 15;
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const ip = getClientIp(request);
+  const rl = await rateLimit(`reset-password:${ip}`, 5, 15 * 60 * 1000);
+  if (!rl.ok) {
+    return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 });
+  }
+
   const body = await request.json().catch(() => ({})) as { token?: string; password?: string };
   const rawToken = `${body.token ?? ""}`.trim();
   const password = `${body.password ?? ""}`;

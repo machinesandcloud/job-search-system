@@ -8,7 +8,7 @@ import { PRICING_PLANS } from "@/lib/pricing-catalog";
 import { getStripeSubscriptionPriceId } from "@/lib/stripe";
 import { getCurrentUserId } from "@/lib/mvp/auth";
 
-export default async function OnboardingPlanPage() {
+export default async function OnboardingPlanPage({ searchParams }: { searchParams: Promise<{ upgrade?: string }> }) {
   const userId = await getCurrentUserId();
   if (!userId) redirect("/signup");
 
@@ -16,7 +16,9 @@ export default async function OnboardingPlanPage() {
   if (identity?.user?.role === "admin" || identity?.user?.role === "support") {
     redirect("/dashboard");
   }
-  if (identity?.subscription && canAccessSubscriptionStatus(identity.subscription.status)) {
+  const params = await searchParams;
+  const isUpgrading = Boolean(params.upgrade);
+  if (!isUpgrading && identity?.subscription && canAccessSubscriptionStatus(identity.subscription.status)) {
     redirect("/dashboard");
   }
 
