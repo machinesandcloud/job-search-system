@@ -11,7 +11,22 @@ const databaseUrl = process.env.DATABASE_URL;
 const hasValidProtocol =
   typeof databaseUrl === "string" &&
   (databaseUrl.startsWith("postgresql://") || databaseUrl.startsWith("postgres://"));
-const safeDatabaseUrl = hasValidProtocol ? databaseUrl : undefined;
+
+// Neon free-tier computes sleep after inactivity and can take 3-5s to wake.
+// Inject connect_timeout=30 and pool_timeout=30 so Prisma waits long enough
+// instead of failing immediately with a connection error.
+function withTimeouts(url: string): string {
+  try {
+    const u = new URL(url);
+    if (!u.searchParams.has("connect_timeout")) u.searchParams.set("connect_timeout", "30");
+    if (!u.searchParams.has("pool_timeout")) u.searchParams.set("pool_timeout", "30");
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
+const safeDatabaseUrl = hasValidProtocol ? withTimeouts(databaseUrl as string) : undefined;
 
 const prismaClient =
   globalForPrisma.prisma ??
