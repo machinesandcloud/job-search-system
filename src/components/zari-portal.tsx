@@ -16221,7 +16221,7 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
             <strong>Payment issue — </strong>
             {viewer.subscriptionStatus === "past_due" ? "Your last payment failed." : viewer.subscriptionStatus === "unpaid" ? "Your subscription is unpaid." : "Your payment is being processed."}
             {" "}
-            <a href="/settings/subscription" style={{color:"white", fontWeight:700, textDecoration:"underline"}}>Update payment method →</a>
+            <a href="/settings/subscription" style={{color:"white", fontWeight:700, textDecoration:"underline"}}>Manage billing →</a>
           </span>
         </div>
       )}

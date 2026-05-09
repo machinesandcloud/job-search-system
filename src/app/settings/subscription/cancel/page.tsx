@@ -21,40 +21,40 @@ export default async function CancelSubscriptionPage() {
     : null;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F8FAFC", fontFamily: "Inter, system-ui, sans-serif" }}>
-      <div style={{ background: "#fff", borderBottom: "1px solid #E2E8F0", padding: "0 32px" }}>
+    <div style={{ minHeight: "100vh", background: "var(--s-bg, #F8FAFC)", fontFamily: "Inter, system-ui, sans-serif" }}>
+      <div style={{ background: "var(--s-card, #fff)", borderBottom: "1px solid var(--s-bd, #E2E8F0)", padding: "0 32px" }}>
         <div style={{ maxWidth: 620, margin: "0 auto", padding: "20px 0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <a href="/settings" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
+          <a href="/settings/subscription" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
             <svg viewBox="0 0 16 16" fill="none" stroke="#64748B" strokeWidth="2" style={{ width: 14, height: 14 }}>
               <path d="M10 3L5 8l5 5"/>
             </svg>
-            <span style={{ fontSize: 13.5, color: "#64748B", fontWeight: 500 }}>Settings</span>
+            <span style={{ fontSize: 13.5, color: "#64748B", fontWeight: 500 }}>Billing</span>
           </a>
-          <span style={{ fontSize: 13, color: "#94A3B8" }}>Cancel subscription</span>
+          <span style={{ fontSize: 13, color: "var(--s-text3, #94A3B8)" }}>Cancel subscription</span>
         </div>
       </div>
 
       <div style={{ maxWidth: 620, margin: "0 auto", padding: "40px 32px" }}>
-        <h1 style={{ fontSize: 22, fontWeight: 800, color: "#0F172A", letterSpacing: "-0.03em", margin: "0 0 6px" }}>Cancel your subscription</h1>
+        <h1 style={{ fontSize: 22, fontWeight: 800, color: "var(--s-text, #0F172A)", letterSpacing: "-0.03em", margin: "0 0 6px" }}>Cancel your subscription</h1>
         <p style={{ fontSize: 14, color: "#64748B", margin: "0 0 32px", lineHeight: 1.6 }}>
           We&apos;re sorry to see you go. Your access will continue until the end of your current billing period.
         </p>
 
         {/* Current plan summary */}
-        <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E2E8F0", padding: "20px 22px", marginBottom: 20 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" as const, color: "#94A3B8", marginBottom: 14 }}>Current plan</div>
+        <div style={{ background: "var(--s-card, #fff)", borderRadius: 16, border: "1px solid var(--s-bd, #E2E8F0)", padding: "20px 22px", marginBottom: 20 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" as const, color: "var(--s-text3, #94A3B8)", marginBottom: 14 }}>Current plan</div>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-            <span style={{ fontSize: 13, color: "#64748B" }}>Plan</span>
-            <span style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>{planName}</span>
+            <span style={{ fontSize: 13, color: "var(--s-text2, #64748B)" }}>Plan</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: "var(--s-text, #0F172A)" }}>{planName}</span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-            <span style={{ fontSize: 13, color: "#64748B" }}>Monthly credits</span>
-            <span style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>{credits?.toLocaleString() ?? "—"}</span>
+            <span style={{ fontSize: 13, color: "var(--s-text2, #64748B)" }}>Monthly credits</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: "var(--s-text, #0F172A)" }}>{credits?.toLocaleString() ?? "—"}</span>
           </div>
           {renewalDate && (
             <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <span style={{ fontSize: 13, color: "#64748B" }}>Access ends</span>
-              <span style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>{renewalDate}</span>
+              <span style={{ fontSize: 13, color: "var(--s-text2, #64748B)" }}>Access ends</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "var(--s-text, #0F172A)" }}>{renewalDate}</span>
             </div>
           )}
         </div>

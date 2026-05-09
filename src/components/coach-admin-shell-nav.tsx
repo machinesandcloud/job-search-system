@@ -20,7 +20,7 @@ function navIcon(name: "home" | "tickets" | "users" | "sparkles", color = "curre
 
 const NAV_ITEMS = [
   { href: "/coach-admin", label: "Overview", icon: "home" as const, group: "Console" },
-  { href: "/coach-admin#accounts", label: "Accounts", icon: "users" as const, group: "Console" },
+  { href: "/coach-admin/accounts", label: "Accounts", icon: "users" as const, group: "Console" },
   { href: "/coach-admin/tickets", label: "Support Queue", icon: "tickets" as const, group: "Operations" },
   { href: "/coach-admin#ai-usage", label: "AI Usage", icon: "sparkles" as const, group: "Operations" },
 ];

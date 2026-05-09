@@ -4,14 +4,14 @@ import { useState } from "react";
 
 const inputStyle: React.CSSProperties = {
   width: "100%", padding: "11px 14px", fontSize: 14, borderRadius: 10,
-  border: "1.5px solid #E2E8F0", background: "#fff", color: "#1E293B",
+  border: "1.5px solid var(--s-input-bd, #E2E8F0)", background: "var(--s-input, #fff)", color: "var(--s-text, #1E293B)",
   outline: "none", transition: "border 0.15s", boxSizing: "border-box",
 };
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E2E8F0", padding: "22px 24px", marginBottom: 16 }}>
-      <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" as const, color: "#94A3B8", marginBottom: 16 }}>{title}</div>
+    <div style={{ background: "var(--s-card, #fff)", borderRadius: 16, border: "1px solid var(--s-bd, #E2E8F0)", padding: "22px 24px", marginBottom: 16 }}>
+      <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" as const, color: "var(--s-text3, #94A3B8)", marginBottom: 16 }}>{title}</div>
       {children}
     </div>
   );
@@ -87,39 +87,35 @@ export function ProfileSettingsForm({
     );
   }
 
+  const labelStyle: React.CSSProperties = { display: "block", fontSize: 13, fontWeight: 600, color: "var(--s-text2, #374151)", marginBottom: 6 };
+
   return (
     <>
       {/* Name section */}
       <Section title="Name">
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
           <div>
-            <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 6 }}>First name</label>
-            <input
-              style={inputStyle} value={firstName} onChange={e => setFirstName(e.target.value)}
+            <label style={labelStyle}>First name</label>
+            <input style={inputStyle} value={firstName} onChange={e => setFirstName(e.target.value)}
               onFocus={e => (e.target.style.border = "1.5px solid #2563EB")}
-              onBlur={e => (e.target.style.border = "1.5px solid #E2E8F0")}
-            />
+              onBlur={e => (e.target.style.border = "1.5px solid var(--s-input-bd, #E2E8F0)")} />
           </div>
           <div>
-            <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 6 }}>Last name</label>
-            <input
-              style={inputStyle} value={lastName} onChange={e => setLastName(e.target.value)}
+            <label style={labelStyle}>Last name</label>
+            <input style={inputStyle} value={lastName} onChange={e => setLastName(e.target.value)}
               onFocus={e => (e.target.style.border = "1.5px solid #2563EB")}
-              onBlur={e => (e.target.style.border = "1.5px solid #E2E8F0")}
-            />
+              onBlur={e => (e.target.style.border = "1.5px solid var(--s-input-bd, #E2E8F0)")} />
           </div>
         </div>
         <div style={{ marginBottom: 16 }}>
-          <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 6 }}>Email address</label>
-          <input style={{ ...inputStyle, background: "#F8FAFC", color: "#94A3B8", cursor: "not-allowed" }} value={email} readOnly />
-          <p style={{ fontSize: 12, color: "#94A3B8", marginTop: 6 }}>Email changes are not supported yet. Contact support if needed.</p>
+          <label style={labelStyle}>Email address</label>
+          <input style={{ ...inputStyle, opacity: 0.5, cursor: "not-allowed" }} value={email} readOnly />
+          <p style={{ fontSize: 12, color: "var(--s-text3, #94A3B8)", marginTop: 6 }}>Email changes are not supported yet. Contact support if needed.</p>
         </div>
-        {nameError && <p style={{ fontSize: 13, color: "#DC2626", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 8, padding: "10px 14px", marginBottom: 12 }}>{nameError}</p>}
-        {nameSuccess && <p style={{ fontSize: 13, color: "#059669", background: "#ECFDF5", border: "1px solid #A7F3D0", borderRadius: 8, padding: "10px 14px", marginBottom: 12 }}>Name updated successfully.</p>}
-        <button
-          onClick={() => void saveName()} disabled={nameLoading}
-          style={{ padding: "10px 20px", borderRadius: 10, border: "none", background: "#2563EB", color: "#fff", fontSize: 13.5, fontWeight: 700, cursor: nameLoading ? "not-allowed" : "pointer", opacity: nameLoading ? 0.7 : 1 }}
-        >
+        {nameError && <p style={{ fontSize: 13, color: "#DC2626", background: "rgba(220,38,38,0.08)", border: "1px solid rgba(220,38,38,0.2)", borderRadius: 8, padding: "10px 14px", marginBottom: 12 }}>{nameError}</p>}
+        {nameSuccess && <p style={{ fontSize: 13, color: "#059669", background: "rgba(5,150,105,0.08)", border: "1px solid rgba(5,150,105,0.2)", borderRadius: 8, padding: "10px 14px", marginBottom: 12 }}>Name updated successfully.</p>}
+        <button onClick={() => void saveName()} disabled={nameLoading}
+          style={{ padding: "10px 20px", borderRadius: 10, border: "none", background: "#2563EB", color: "#fff", fontSize: 13.5, fontWeight: 700, cursor: nameLoading ? "not-allowed" : "pointer", opacity: nameLoading ? 0.7 : 1 }}>
           {nameLoading ? "Saving…" : "Save name"}
         </button>
       </Section>
@@ -129,49 +125,40 @@ export function ProfileSettingsForm({
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           {hasPassword && (
             <div>
-              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 6 }}>Current password</label>
+              <label style={labelStyle}>Current password</label>
               <div style={{ position: "relative" }}>
-                <input
-                  type={showCurrent ? "text" : "password"} style={{ ...inputStyle, paddingRight: 42 }}
+                <input type={showCurrent ? "text" : "password"} style={{ ...inputStyle, paddingRight: 42 }}
                   value={currentPassword} onChange={e => setCurrentPassword(e.target.value)}
                   onFocus={e => (e.target.style.border = "1.5px solid #2563EB")}
-                  onBlur={e => (e.target.style.border = "1.5px solid #E2E8F0")}
-                  placeholder="Enter current password"
-                />
+                  onBlur={e => (e.target.style.border = "1.5px solid var(--s-input-bd, #E2E8F0)")}
+                  placeholder="Enter current password" />
                 <EyeToggle show={showCurrent} onToggle={() => setShowCurrent(p => !p)} />
               </div>
             </div>
           )}
           <div>
-            <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 6 }}>New password</label>
+            <label style={labelStyle}>New password</label>
             <div style={{ position: "relative" }}>
-              <input
-                type={showNew ? "text" : "password"} style={{ ...inputStyle, paddingRight: 42 }}
+              <input type={showNew ? "text" : "password"} style={{ ...inputStyle, paddingRight: 42 }}
                 value={newPassword} onChange={e => setNewPassword(e.target.value)}
                 onFocus={e => (e.target.style.border = "1.5px solid #2563EB")}
-                onBlur={e => (e.target.style.border = "1.5px solid #E2E8F0")}
-                placeholder="At least 8 characters"
-              />
+                onBlur={e => (e.target.style.border = "1.5px solid var(--s-input-bd, #E2E8F0)")}
+                placeholder="At least 8 characters" />
               <EyeToggle show={showNew} onToggle={() => setShowNew(p => !p)} />
             </div>
           </div>
           <div>
-            <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 6 }}>Confirm new password</label>
-            <input
-              type="password" style={inputStyle}
-              value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
+            <label style={labelStyle}>Confirm new password</label>
+            <input type="password" style={inputStyle} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
               onFocus={e => (e.target.style.border = "1.5px solid #2563EB")}
-              onBlur={e => (e.target.style.border = "1.5px solid #E2E8F0")}
-              placeholder="Repeat new password"
-            />
+              onBlur={e => (e.target.style.border = "1.5px solid var(--s-input-bd, #E2E8F0)")}
+              placeholder="Repeat new password" />
           </div>
         </div>
-        {pwdError && <p style={{ fontSize: 13, color: "#DC2626", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 8, padding: "10px 14px", marginTop: 14 }}>{pwdError}</p>}
-        {pwdSuccess && <p style={{ fontSize: 13, color: "#059669", background: "#ECFDF5", border: "1px solid #A7F3D0", borderRadius: 8, padding: "10px 14px", marginTop: 14 }}>Password updated successfully.</p>}
-        <button
-          onClick={() => void savePassword()} disabled={pwdLoading}
-          style={{ marginTop: 16, padding: "10px 20px", borderRadius: 10, border: "none", background: "#2563EB", color: "#fff", fontSize: 13.5, fontWeight: 700, cursor: pwdLoading ? "not-allowed" : "pointer", opacity: pwdLoading ? 0.7 : 1 }}
-        >
+        {pwdError && <p style={{ fontSize: 13, color: "#DC2626", background: "rgba(220,38,38,0.08)", border: "1px solid rgba(220,38,38,0.2)", borderRadius: 8, padding: "10px 14px", marginTop: 14 }}>{pwdError}</p>}
+        {pwdSuccess && <p style={{ fontSize: 13, color: "#059669", background: "rgba(5,150,105,0.08)", border: "1px solid rgba(5,150,105,0.2)", borderRadius: 8, padding: "10px 14px", marginTop: 14 }}>Password updated successfully.</p>}
+        <button onClick={() => void savePassword()} disabled={pwdLoading}
+          style={{ marginTop: 16, padding: "10px 20px", borderRadius: 10, border: "none", background: "#2563EB", color: "#fff", fontSize: 13.5, fontWeight: 700, cursor: pwdLoading ? "not-allowed" : "pointer", opacity: pwdLoading ? 0.7 : 1 }}>
           {pwdLoading ? "Saving…" : "Update password"}
         </button>
       </Section>
