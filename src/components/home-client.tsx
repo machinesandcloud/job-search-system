@@ -1131,7 +1131,6 @@ function PlatformWalkthrough() {
       { id: "interview",   label: "Mock Interview", icon: <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:13,height:13}}><circle cx="10" cy="6" r="3"/><path d="M3 17c0-3.866 3.134-6 7-6s7 2.134 7 6"/></svg> },
       { id: "cover-letter",label: "Cover Letter",   icon: <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:13,height:13}}><path d="M3 5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5z"/><path d="M3 7l7 5 7-5"/></svg> },
       { id: "linkedin",    label: "LinkedIn",       icon: <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:13,height:13}}><rect x="2" y="2" width="16" height="16" rx="3"/><path d="M6 9v5M6 6.5v.5M9 14V11a2.5 2.5 0 015 0v3M9 11v3"/></svg> },
-      { id: "voice",       label: "Chat with Zari", icon: <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:13,height:13}}><rect x="7" y="2" width="6" height="10" rx="3"/><path d="M3 9a7 7 0 0014 0M10 16v3M8 19h4"/></svg> },
     ]},
     { group: "WORKSPACE", items: [
       { id: "docs", label: "My Documents", icon: <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:13,height:13}}><path d="M5 2h7l4 4v12a1 1 0 01-1 1H5a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M12 2v4h4"/></svg> },
@@ -1192,9 +1191,9 @@ function PlatformWalkthrough() {
                   <span style={{ flex:1,fontSize:10.5,fontWeight:600,color:"rgba(255,255,255,0.68)" }}>Job Search</span>
                   <svg viewBox="0 0 16 16" fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth="2" style={{ width:8,height:8 }}><path d="M4 6l4 4 4-4"/></svg>
                 </div>
-                <div style={{ display:"flex",alignItems:"center",gap:6,padding:"6px 9px",borderRadius:7,background:"rgba(59,130,246,0.12)",border:"1px solid rgba(59,130,246,0.22)" }}>
-                  <svg viewBox="0 0 20 20" fill="none" stroke="#60A5FA" strokeWidth="1.7" style={{ width:11,height:11,flexShrink:0 }}><path d="M2 4a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H6l-4 4V4z"/></svg>
-                  <span style={{ fontSize:10.5,fontWeight:700,color:"#60A5FA" }}>Chat with Zari</span>
+                <div onClick={() => { setActiveTab(5); setSubStep(0); }} style={{ display:"flex",alignItems:"center",gap:6,padding:"6px 9px",borderRadius:7,background:activeTab===5?"rgba(99,102,241,0.18)":"rgba(59,130,246,0.12)",border:activeTab===5?"1px solid rgba(129,140,248,0.4)":"1px solid rgba(59,130,246,0.22)",cursor:"pointer",transition:"all 0.15s" }}>
+                  <svg viewBox="0 0 20 20" fill="none" stroke={activeTab===5?"#A5B4FC":"#60A5FA"} strokeWidth="1.7" style={{ width:11,height:11,flexShrink:0 }}><path d="M2 4a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H6l-4 4V4z"/></svg>
+                  <span style={{ fontSize:10.5,fontWeight:700,color:activeTab===5?"#A5B4FC":"#60A5FA" }}>Chat with Zari</span>
                 </div>
               </div>
               <div style={{ height:1,margin:"2px 10px 3px",background:"rgba(255,255,255,0.05)" }}/>
