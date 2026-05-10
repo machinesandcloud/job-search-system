@@ -655,11 +655,12 @@ function FeatureMockup({ type }: { type: string }) {
     );
   }
 
+
   if (type === "session") {
     const MSGS = [
-      { role:"coach", text:"Your resume is in good shape. Ready to work on interview stories?" },
+      { role:"coach", text:"Ready to drill your toughest interview question? I'll coach you the way a real panel would." },
       { role:"user",  text:"Yes — the cross-functional leadership question." },
-      { role:"coach", text:"Perfect. I'll ask it exactly the way a real panel would. Take your time." },
+      { role:"coach", text:"Strong structure overall. Your Result dimension needs a specific number — vague outcomes get screened out at this level." },
     ];
     const visibleMsgs = step >= SESSION_MSGS ? MSGS : MSGS.slice(0, step + 1);
     const isListening = step < 2;
@@ -673,59 +674,73 @@ function FeatureMockup({ type }: { type: string }) {
           <span style={{ width:6,height:6,borderRadius:"50%",background:"#22C55E",animation:"blink 1.1s ease-in-out infinite",display:"inline-block" }}/>
           Live Voice Session · 06:42
         </span>
-        <span style={{ marginLeft:"auto", fontSize:10, color:"rgba(255,255,255,0.22)" }}>Job Search</span>
+        <div style={{ marginLeft:"auto", display:"flex", gap:4 }}>
+          <div style={{ fontSize:8.5, fontWeight:700, color:"#A5B4FC", background:"rgba(129,140,248,0.12)", border:"1px solid rgba(129,140,248,0.22)", borderRadius:5, padding:"2px 8px" }}>Voice</div>
+          <div style={{ fontSize:8.5, color:"rgba(255,255,255,0.3)", background:"transparent", border:"1px solid rgba(255,255,255,0.08)", borderRadius:5, padding:"2px 8px" }}>Chat</div>
+        </div>
       </div>
 
-      {/* Voice session body */}
-      <div style={{ padding:"20px 22px 22px", display:"flex", flexDirection:"column", alignItems:"center", minHeight:320, position:"relative", overflow:"hidden" }}>
-        {/* Ambient aurora blobs */}
-        <div style={{ position:"absolute", top:"-30%", left:"15%", width:220, height:220, borderRadius:"50%", background:"radial-gradient(circle, rgba(79,70,229,0.18) 0%, transparent 65%)", animation:"aurora-slow 8s ease-in-out infinite", pointerEvents:"none" }}/>
-        <div style={{ position:"absolute", bottom:"5%", right:"5%", width:160, height:160, borderRadius:"50%", background:"radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 65%)", animation:"aurora-slow 11s 2s ease-in-out infinite", pointerEvents:"none" }}/>
+      <div style={{ padding:"16px 18px 20px", display:"flex", gap:14, position:"relative", overflow:"hidden" }}>
+        {/* Ambient aurora */}
+        <div style={{ position:"absolute", top:"-30%", left:"10%", width:200, height:200, borderRadius:"50%", background:"radial-gradient(circle, rgba(79,70,229,0.15) 0%, transparent 65%)", animation:"aurora-slow 8s ease-in-out infinite", pointerEvents:"none" }}/>
 
-        {/* Orb with ripple rings */}
-        <div style={{ position:"relative", width:100, height:100, marginBottom:10, flexShrink:0 }}>
-          {isListening && (
-            <>
-              <div style={{ position:"absolute", inset:-12, borderRadius:"50%", border:"1.5px solid rgba(99,102,241,0.3)", animation:"ring-pulse 2.2s ease-out infinite", pointerEvents:"none" }}/>
-              <div style={{ position:"absolute", inset:-24, borderRadius:"50%", border:"1px solid rgba(99,102,241,0.13)", animation:"ring-pulse 3.1s 0.8s ease-out infinite", pointerEvents:"none" }}/>
-            </>
-          )}
+        {/* Orb column */}
+        <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:8, flexShrink:0, position:"relative", zIndex:1 }}>
+          <div style={{ position:"relative", width:80, height:80 }}>
+            {isListening && (
+              <>
+                <div style={{ position:"absolute", inset:-10, borderRadius:"50%", border:"1.5px solid rgba(99,102,241,0.3)", animation:"ring-pulse 2.2s ease-out infinite", pointerEvents:"none" }}/>
+                <div style={{ position:"absolute", inset:-20, borderRadius:"50%", border:"1px solid rgba(99,102,241,0.13)", animation:"ring-pulse 3.1s 0.8s ease-out infinite", pointerEvents:"none" }}/>
+              </>
+            )}
+            <div style={{
+              width:80, height:80, borderRadius:"50%",
+              background: isListening
+                ? "radial-gradient(circle at 32% 32%, #9a8ff5, #4f46e5 50%, #1a1756 100%)"
+                : "radial-gradient(circle at 32% 32%, #c7d2fe, #6366f1 42%, #1e1b4b 100%)",
+              boxShadow: isListening
+                ? "0 0 35px 12px rgba(79,70,229,0.42), 0 0 70px 25px rgba(67,56,202,0.15)"
+                : "0 0 50px 18px rgba(59,130,246,0.5), 0 0 100px 40px rgba(67,56,202,0.2)",
+              animation:"sphere-breathe 4s ease-in-out infinite",
+              display:"flex", alignItems:"center", justifyContent:"center",
+            }}>
+              <span style={{ fontSize:18, fontWeight:900, color:"rgba(255,255,255,0.65)" }}>Z</span>
+            </div>
+          </div>
+
+          <span style={{ fontSize:9, color:"rgba(200,208,224,0.55)", letterSpacing:"0.05em", textAlign:"center" }}>
+            {isListening ? "listening…" : "coaching…"}
+          </span>
+
+          <div style={{ display:"flex", gap:2.5, alignItems:"flex-end", height:16 }}>
+            {[3,7,13,18,13,7,3].map((h,i)=>(
+              <div key={i} style={{ width:2.5, borderRadius:99, background:"rgba(165,180,252,0.65)", height:h, animation:`voice-wave ${0.48+i*0.07}s ease-in-out infinite alternate` }}/>
+            ))}
+          </div>
+
           <div style={{
-            width:100, height:100, borderRadius:"50%",
-            background: isListening
-              ? "radial-gradient(circle at 32% 32%, #9a8ff5, #4f46e5 50%, #1a1756 100%)"
-              : "radial-gradient(circle at 32% 32%, #c7d2fe, #6366f1 42%, #1e1b4b 100%)",
+            width:44, height:44, borderRadius:"50%", cursor:"pointer",
+            background: isListening ? "rgba(239,68,68,0.9)" : "rgba(59,130,246,0.85)",
             boxShadow: isListening
-              ? "0 0 40px 15px rgba(79,70,229,0.42), 0 0 80px 30px rgba(67,56,202,0.15)"
-              : "0 0 55px 20px rgba(59,130,246,0.55), 0 0 110px 45px rgba(67,56,202,0.22)",
-            animation:"sphere-breathe 4s ease-in-out infinite",
+              ? "0 0 0 7px rgba(239,68,68,0.12), 0 0 20px rgba(239,68,68,0.4)"
+              : "0 0 0 7px rgba(59,130,246,0.1), 0 0 20px rgba(59,130,246,0.3)",
             display:"flex", alignItems:"center", justifyContent:"center",
+            animation: isListening ? "sphere-breathe 1.2s ease-in-out infinite" : "none",
           }}>
-            <span style={{ fontSize:22, fontWeight:900, color:"rgba(255,255,255,0.65)" }}>Z</span>
+            {isListening
+              ? <div style={{ width:11, height:11, borderRadius:2.5, background:"white" }}/>
+              : <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" style={{ width:16,height:16 }}><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0014 0M12 19v3M9 22h6"/></svg>
+            }
           </div>
         </div>
 
-        {/* Status + waveform */}
-        <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:5, marginBottom:14 }}>
-          <span style={{ fontSize:10, color:"rgba(200,208,224,0.6)", letterSpacing:"0.05em" }}>
-            {isListening ? "listening · tap to interrupt" : "speaking…"}
-          </span>
-          {!isListening && (
-            <div style={{ display:"flex", gap:2.5, alignItems:"flex-end", height:16 }}>
-              {[3,8,14,20,14,8,3].map((h,i)=>(
-                <div key={i} style={{ width:3, borderRadius:99, background:"rgba(165,180,252,0.65)", height:h, animation:`voice-wave ${0.48+i*0.07}s ease-in-out infinite alternate` }}/>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Transcript */}
-        <div style={{ width:"100%", display:"flex", flexDirection:"column", gap:7 }}>
+        {/* Chat column */}
+        <div style={{ flex:1, display:"flex", flexDirection:"column", gap:7, position:"relative", zIndex:1, overflow:"hidden" }}>
           {visibleMsgs.map((m,i) => (
             <div key={i} style={{ display:"flex", justifyContent:m.role==="user"?"flex-end":"flex-start", animation:"bubble-appear 0.35s ease" }}>
               <div style={{
-                maxWidth:"84%", padding:"8px 12px", fontSize:10.5, lineHeight:1.55,
-                borderRadius: m.role==="coach" ? "4px 14px 14px 14px" : "14px 4px 14px 14px",
+                maxWidth:"90%", padding:"8px 11px", fontSize:10, lineHeight:1.55,
+                borderRadius: m.role==="coach" ? "4px 13px 13px 13px" : "13px 4px 13px 13px",
                 background: m.role==="coach" ? "rgba(79,70,229,0.28)" : "rgba(255,255,255,0.07)",
                 border: m.role==="coach" ? "1px solid rgba(59,130,246,0.35)" : "1px solid rgba(255,255,255,0.09)",
                 color:"rgba(255,255,255,0.82)",
@@ -735,28 +750,28 @@ function FeatureMockup({ type }: { type: string }) {
             </div>
           ))}
           {step < SESSION_MSGS && step % 2 === 0 && (
-            <div style={{ alignSelf:"flex-start", padding:"8px 12px", borderRadius:"4px 14px 14px 14px", background:"rgba(79,70,229,0.18)", border:"1px solid rgba(59,130,246,0.2)", display:"flex", gap:3, alignItems:"center", animation:"bubble-appear 0.3s ease" }}>
+            <div style={{ alignSelf:"flex-start", padding:"7px 11px", borderRadius:"4px 13px 13px 13px", background:"rgba(79,70,229,0.18)", border:"1px solid rgba(59,130,246,0.2)", display:"flex", gap:3, alignItems:"center", animation:"bubble-appear 0.3s ease" }}>
               {[0,1,2].map(i=><span key={i} style={{ width:4,height:4,borderRadius:"50%",background:"rgba(165,180,252,0.5)",animation:`dot-bounce 1.2s ${i*0.15}s infinite`,display:"inline-block" }}/>)}
             </div>
           )}
-        </div>
 
-        {/* Mic button */}
-        <div style={{ marginTop:16, position:"relative", zIndex:2 }}>
-          <div style={{
-            width:54, height:54, borderRadius:"50%", cursor:"pointer",
-            background: isListening ? "rgba(239,68,68,0.9)" : "rgba(59,130,246,0.85)",
-            boxShadow: isListening
-              ? "0 0 0 8px rgba(239,68,68,0.12), 0 0 24px rgba(239,68,68,0.45)"
-              : "0 0 0 8px rgba(59,130,246,0.1), 0 0 24px rgba(59,130,246,0.35)",
-            display:"flex", alignItems:"center", justifyContent:"center",
-            animation: isListening ? "sphere-breathe 1.2s ease-in-out infinite" : "none",
-          }}>
-            {isListening
-              ? <div style={{ width:14, height:14, borderRadius:3, background:"white" }}/>
-              : <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" style={{ width:18,height:18 }}><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0014 0M12 19v3M9 22h6"/></svg>
-            }
-          </div>
+          {/* STAR score card */}
+          {step >= SESSION_MSGS && (
+            <div style={{ background:"rgba(59,130,246,0.08)", border:"1px solid rgba(59,130,246,0.22)", borderRadius:9, padding:"9px 11px", animation:"bubble-appear 0.3s ease", marginTop:"auto" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:7 }}>
+                <span style={{ fontSize:8.5, fontWeight:700, color:"#60A5FA", textTransform:"uppercase", letterSpacing:"0.1em" }}>STAR Score</span>
+                <span style={{ fontSize:16, fontWeight:900, color:"#60A5FA" }}>8.2 / 10</span>
+              </div>
+              <div style={{ display:"flex", gap:4 }}>
+                {[{l:"S",v:9,c:"#4ADE80"},{l:"T",v:8,c:"#60A5FA"},{l:"A",v:9,c:"#4ADE80"},{l:"R",v:7,c:"#FBBF24"}].map((s,i)=>(
+                  <div key={i} style={{ flex:1, background:"rgba(255,255,255,0.04)", borderRadius:6, padding:"5px 0", textAlign:"center", animation:`bubble-appear 0.3s ${i*0.08}s both ease` }}>
+                    <div style={{ fontSize:12, fontWeight:900, color:s.c, lineHeight:1 }}>{s.v}</div>
+                    <div style={{ fontSize:8, color:"rgba(255,255,255,0.3)", marginTop:2 }}>{s.l}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -1094,6 +1109,7 @@ function PlatformWalkthrough() {
     { label: "Cover Letter",   id: "cover-letter" },
     { label: "LinkedIn",       id: "linkedin"     },
     { label: "Action Plan",    id: "plan"         },
+    { label: "Chat with Zari", id: "voice"        },
   ];
 
   useEffect(() => {
@@ -1115,6 +1131,7 @@ function PlatformWalkthrough() {
       { id: "interview",   label: "Mock Interview", icon: <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:13,height:13}}><circle cx="10" cy="6" r="3"/><path d="M3 17c0-3.866 3.134-6 7-6s7 2.134 7 6"/></svg> },
       { id: "cover-letter",label: "Cover Letter",   icon: <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:13,height:13}}><path d="M3 5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5z"/><path d="M3 7l7 5 7-5"/></svg> },
       { id: "linkedin",    label: "LinkedIn",       icon: <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:13,height:13}}><rect x="2" y="2" width="16" height="16" rx="3"/><path d="M6 9v5M6 6.5v.5M9 14V11a2.5 2.5 0 015 0v3M9 11v3"/></svg> },
+      { id: "voice",       label: "Chat with Zari", icon: <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:13,height:13}}><rect x="7" y="2" width="6" height="10" rx="3"/><path d="M3 9a7 7 0 0014 0M10 16v3M8 19h4"/></svg> },
     ]},
     { group: "WORKSPACE", items: [
       { id: "docs", label: "My Documents", icon: <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:13,height:13}}><path d="M5 2h7l4 4v12a1 1 0 01-1 1H5a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M12 2v4h4"/></svg> },
@@ -1136,7 +1153,7 @@ function PlatformWalkthrough() {
             See Zari work in real time
           </h2>
           <p style={{ fontSize:16, color:"rgba(255,255,255,0.38)", maxWidth:460, margin:"0 auto", lineHeight:1.65 }}>
-            Five AI tools, one platform — watch each one in action.
+            Six AI tools, one platform — watch each one in action.
           </p>
         </div>
 
@@ -2007,6 +2024,159 @@ function PlatformWalkthrough() {
                           </div>
                         </div>
                       )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ══ CHAT WITH ZARI ══ */}
+              {activeTab === 5 && (
+                <div style={{ height:"100%",display:"flex",flexDirection:"column" }}>
+                  <div style={{ padding:"9px 16px",borderBottom:"1px solid rgba(255,255,255,0.06)",background:"rgba(8,12,26,0.95)",display:"flex",alignItems:"center",gap:8,flexShrink:0 }}>
+                    <span style={{ fontSize:13,fontWeight:700,color:"white" }}>Chat with Zari</span>
+                    <span style={{ fontSize:8.5,fontWeight:700,color:"#22C55E",background:"rgba(34,197,94,0.1)",border:"1px solid rgba(34,197,94,0.2)",padding:"2px 8px",borderRadius:5,display:"flex",alignItems:"center",gap:4 }}>
+                      <span style={{ width:5,height:5,borderRadius:"50%",background:"#22C55E",animation:"blink 1.1s ease-in-out infinite",display:"inline-block" }}/>
+                      Live Session
+                    </span>
+                    <div style={{ marginLeft:"auto",display:"flex",alignItems:"center",gap:8 }}>
+                      <span style={{ fontSize:9,color:"rgba(255,255,255,0.28)" }}>12:34 elapsed</span>
+                      <div style={{ display:"flex",gap:4 }}>
+                        <button style={{ fontSize:8.5,fontWeight:700,color:"#A5B4FC",background:"rgba(129,140,248,0.14)",border:"1px solid rgba(129,140,248,0.28)",borderRadius:5,padding:"3px 9px",cursor:"pointer" }}>Voice</button>
+                        <button style={{ fontSize:8.5,color:"rgba(255,255,255,0.32)",background:"transparent",border:"1px solid rgba(255,255,255,0.08)",borderRadius:5,padding:"3px 9px",cursor:"pointer" }}>Text</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ flex:1,padding:"10px 14px",overflow:"hidden",display:"flex",gap:10 }}>
+
+                    {/* Left col — orb + context */}
+                    <div style={{ width:178,flexShrink:0,display:"flex",flexDirection:"column",gap:7 }}>
+
+                      {/* Orb card */}
+                      <div style={{ background:"radial-gradient(ellipse at 50% 20%,#0e0b2e,#060514)",border:"1px solid rgba(129,140,248,0.18)",borderRadius:13,padding:"14px 12px",display:"flex",flexDirection:"column",alignItems:"center",gap:7,flexShrink:0 }}>
+                        <div style={{ position:"relative",width:70,height:70 }}>
+                          <div style={{ position:"absolute",inset:-10,borderRadius:"50%",border:"1.5px solid rgba(99,102,241,0.3)",animation:"ring-pulse 2.2s ease-out infinite",pointerEvents:"none" }}/>
+                          <div style={{ position:"absolute",inset:-20,borderRadius:"50%",border:"1px solid rgba(99,102,241,0.12)",animation:"ring-pulse 3.1s 0.8s ease-out infinite",pointerEvents:"none" }}/>
+                          <div style={{ width:70,height:70,borderRadius:"50%",background:"radial-gradient(circle at 32% 32%, #9a8ff5, #4f46e5 50%, #1a1756 100%)",boxShadow:"0 0 35px 12px rgba(79,70,229,0.42), 0 0 70px 25px rgba(67,56,202,0.15)",animation:"sphere-breathe 4s ease-in-out infinite",display:"flex",alignItems:"center",justifyContent:"center" }}>
+                            <span style={{ fontSize:18,fontWeight:900,color:"rgba(255,255,255,0.7)" }}>Z</span>
+                          </div>
+                        </div>
+                        <div style={{ display:"flex",gap:2,alignItems:"flex-end",height:16 }}>
+                          {[3,7,13,18,13,7,3].map((h,i)=>(
+                            <div key={i} style={{ width:2.5,borderRadius:99,background:"rgba(165,180,252,0.65)",height:h,animation:`voice-wave ${0.48+i*0.07}s ease-in-out infinite alternate` }}/>
+                          ))}
+                        </div>
+                        <span style={{ fontSize:9,color:"rgba(200,208,224,0.5)",letterSpacing:"0.05em" }}>listening…</span>
+                      </div>
+
+                      {/* Session context */}
+                      <div style={{ background:"linear-gradient(145deg,#0B1820,#101C2A)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:11,padding:"9px 11px" }}>
+                        <div style={{ fontSize:7.5,fontWeight:700,color:"rgba(255,255,255,0.22)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:7 }}>Session</div>
+                        {[
+                          {l:"Topic",   v:"FAANG PM Interview prep"},
+                          {l:"Stage",   v:"Job search · Active"},
+                          {l:"Focus",   v:"Product Sense · Q2 of 5"},
+                        ].map((item,i) => (
+                          <div key={i} style={{ marginBottom:i<2?6:0 }}>
+                            <div style={{ fontSize:8,color:"rgba(255,255,255,0.25)",marginBottom:1 }}>{item.l}</div>
+                            <div style={{ fontSize:9.5,color:"rgba(255,255,255,0.72)",fontWeight:600,lineHeight:1.4 }}>{item.v}</div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Session stats */}
+                      {subStep >= 2 && (
+                        <div style={{ background:"#0E1420",border:"1px solid rgba(255,255,255,0.06)",borderRadius:11,padding:"9px 11px",animation:"bubble-appear 0.35s ease" }}>
+                          <div style={{ fontSize:7.5,fontWeight:700,color:"rgba(255,255,255,0.22)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:7 }}>This Session</div>
+                          {[
+                            {l:"Questions",  v:"2 / 5",       c:"#60A5FA"},
+                            {l:"Avg Score",  v:"8.4 / 10",    c:"#22C55E"},
+                            {l:"Insights",   v:"4 tips given",c:"#818CF8"},
+                          ].map((s,i) => (
+                            <div key={i} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:i<2?5:0 }}>
+                              <span style={{ fontSize:8.5,color:"rgba(255,255,255,0.35)" }}>{s.l}</span>
+                              <span style={{ fontSize:9,fontWeight:700,color:s.c }}>{s.v}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Right col — chat + suggested replies */}
+                    <div style={{ flex:1,display:"flex",flexDirection:"column",gap:6,overflow:"hidden" }}>
+
+                      {/* Chat thread */}
+                      <div style={{ flex:1,display:"flex",flexDirection:"column",gap:7,overflow:"hidden" }}>
+                        <div style={{ display:"flex",justifyContent:"flex-start",animation:"bubble-appear 0.35s ease" }}>
+                          <div style={{ maxWidth:"88%",padding:"9px 13px",fontSize:10.5,lineHeight:1.6,borderRadius:"4px 14px 14px 14px",background:"rgba(79,70,229,0.22)",border:"1px solid rgba(59,130,246,0.3)",color:"rgba(255,255,255,0.82)" }}>
+                            Let&apos;s work on Product Sense. FAANG panels love ambiguity — they want to see how you structure thinking under pressure. Ready for Q1?
+                          </div>
+                        </div>
+
+                        {subStep >= 1 && (
+                          <div style={{ display:"flex",justifyContent:"flex-end",animation:"bubble-appear 0.35s ease" }}>
+                            <div style={{ maxWidth:"78%",padding:"9px 13px",fontSize:10.5,lineHeight:1.6,borderRadius:"14px 4px 14px 14px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.09)",color:"rgba(255,255,255,0.75)" }}>
+                              Yes — I always over-engineer the &ldquo;design a product for X&rdquo; prompts.
+                            </div>
+                          </div>
+                        )}
+
+                        {subStep === 1 && (
+                          <div style={{ alignSelf:"flex-start",padding:"8px 12px",borderRadius:"4px 14px 14px 14px",background:"rgba(79,70,229,0.18)",border:"1px solid rgba(59,130,246,0.2)",display:"flex",gap:3,alignItems:"center",animation:"bubble-appear 0.3s ease" }}>
+                            {[0,1,2].map(i=><span key={i} style={{ width:4,height:4,borderRadius:"50%",background:"rgba(165,180,252,0.5)",animation:`dot-bounce 1.2s ${i*0.15}s infinite`,display:"inline-block" }}/>)}
+                          </div>
+                        )}
+
+                        {subStep >= 2 && (
+                          <div style={{ display:"flex",justifyContent:"flex-start",animation:"bubble-appear 0.35s ease" }}>
+                            <div style={{ maxWidth:"90%",padding:"9px 13px",fontSize:10.5,lineHeight:1.6,borderRadius:"4px 14px 14px 14px",background:"rgba(79,70,229,0.22)",border:"1px solid rgba(59,130,246,0.3)",color:"rgba(255,255,255,0.82)" }}>
+                              That&apos;s the most common PM pitfall. Lock in your framework first: <span style={{ color:"#A5B4FC",fontWeight:700 }}>User → Problem → Constraints → 3 Solutions → Pick 1 → Metrics</span>. Spend 90 seconds on clarity before you say a word. Practice: &ldquo;Design a product for elderly users in emerging markets.&rdquo;
+                            </div>
+                          </div>
+                        )}
+
+                        {subStep >= 3 && (
+                          <div style={{ display:"flex",justifyContent:"flex-end",animation:"bubble-appear 0.35s ease" }}>
+                            <div style={{ maxWidth:"78%",padding:"9px 13px",fontSize:10.5,lineHeight:1.6,borderRadius:"14px 4px 14px 14px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.09)",color:"rgba(255,255,255,0.75)" }}>
+                              I&apos;d define elderly as 60+, low digital literacy, feature phone or entry Android in rural India or Indonesia…
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Key insight card */}
+                      {subStep >= 4 && (
+                        <div style={{ background:"rgba(129,140,248,0.07)",border:"1px solid rgba(129,140,248,0.2)",borderRadius:10,padding:"9px 12px",animation:"bubble-appear 0.35s ease",flexShrink:0 }}>
+                          <div style={{ fontSize:8.5,fontWeight:700,color:"#A5B4FC",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:5 }}>Key Insight</div>
+                          <p style={{ fontSize:10.5,color:"rgba(165,180,252,0.85)",lineHeight:1.55,margin:0 }}>Strong user definition. FAANG interviewers score on how you surface the right problem — spend 30% of your time on the user alone before jumping to solutions.</p>
+                        </div>
+                      )}
+
+                      {/* Suggested responses */}
+                      {subStep >= 2 && (
+                        <div style={{ flexShrink:0,animation:"bubble-appear 0.3s ease" }}>
+                          <div style={{ fontSize:7.5,fontWeight:700,color:"rgba(255,255,255,0.2)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:5 }}>Suggested responses</div>
+                          <div style={{ display:"flex",flexDirection:"column",gap:4 }}>
+                            {[
+                              "I'd define elderly as 60+, low digital literacy, feature phone or entry Android.",
+                              "My framework: user → job-to-be-done → constraints → three concepts → success metric.",
+                            ].map((s,i) => (
+                              <div key={i} style={{ padding:"7px 10px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:8,fontSize:9.5,color:"rgba(255,255,255,0.5)",cursor:"pointer",lineHeight:1.5 }}>
+                                {s}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Input bar */}
+                      <div style={{ display:"flex",gap:6,alignItems:"center",flexShrink:0 }}>
+                        <div style={{ flex:1,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:10,padding:"8px 12px",fontSize:10.5,color:"rgba(255,255,255,0.22)" }}>
+                          Speak or type your response…
+                        </div>
+                        <div style={{ width:33,height:33,borderRadius:"50%",background:"rgba(239,68,68,0.85)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,boxShadow:"0 0 0 6px rgba(239,68,68,0.12), 0 0 18px rgba(239,68,68,0.4)",animation:"sphere-breathe 1.3s ease-in-out infinite" }}>
+                          <div style={{ width:9,height:9,borderRadius:2,background:"white" }}/>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
