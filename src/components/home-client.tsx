@@ -1005,12 +1005,12 @@ function PlatformWalkthrough() {
   const [subStep, setSubStep] = useState(0);
 
   const TABS = [
+    { label: "Chat with Zari", id: "voice"        },
     { label: "Resume Review",  id: "resume"       },
     { label: "Mock Interview", id: "interview"    },
     { label: "Cover Letter",   id: "cover-letter" },
     { label: "LinkedIn",       id: "linkedin"     },
     { label: "Action Plan",    id: "plan"         },
-    { label: "Chat with Zari", id: "voice"        },
   ];
 
   useEffect(() => {
@@ -1092,9 +1092,9 @@ function PlatformWalkthrough() {
                   <span style={{ flex:1,fontSize:10.5,fontWeight:600,color:"rgba(255,255,255,0.68)" }}>Job Search</span>
                   <svg viewBox="0 0 16 16" fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth="2" style={{ width:8,height:8 }}><path d="M4 6l4 4 4-4"/></svg>
                 </div>
-                <div onClick={() => { setActiveTab(5); setSubStep(0); }} style={{ display:"flex",alignItems:"center",gap:6,padding:"6px 9px",borderRadius:7,background:activeTab===5?"rgba(99,102,241,0.18)":"rgba(59,130,246,0.12)",border:activeTab===5?"1px solid rgba(129,140,248,0.4)":"1px solid rgba(59,130,246,0.22)",cursor:"pointer",transition:"all 0.15s" }}>
-                  <svg viewBox="0 0 20 20" fill="none" stroke={activeTab===5?"#A5B4FC":"#60A5FA"} strokeWidth="1.7" style={{ width:11,height:11,flexShrink:0 }}><path d="M2 4a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H6l-4 4V4z"/></svg>
-                  <span style={{ fontSize:10.5,fontWeight:700,color:activeTab===5?"#A5B4FC":"#60A5FA" }}>Chat with Zari</span>
+                <div onClick={() => { setActiveTab(0); setSubStep(0); }} style={{ display:"flex",alignItems:"center",gap:6,padding:"6px 9px",borderRadius:7,background:activeTab===0?"rgba(99,102,241,0.18)":"rgba(59,130,246,0.12)",border:activeTab===0?"1px solid rgba(129,140,248,0.4)":"1px solid rgba(59,130,246,0.22)",cursor:"pointer",transition:"all 0.15s" }}>
+                  <svg viewBox="0 0 20 20" fill="none" stroke={activeTab===0?"#A5B4FC":"#60A5FA"} strokeWidth="1.7" style={{ width:11,height:11,flexShrink:0 }}><path d="M2 4a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H6l-4 4V4z"/></svg>
+                  <span style={{ fontSize:10.5,fontWeight:700,color:activeTab===0?"#A5B4FC":"#60A5FA" }}>Chat with Zari</span>
                 </div>
               </div>
               <div style={{ height:1,margin:"2px 10px 3px",background:"rgba(255,255,255,0.05)" }}/>
@@ -1127,7 +1127,7 @@ function PlatformWalkthrough() {
             <div style={{ flex:1,overflow:"hidden",position:"relative",background:"linear-gradient(160deg,#08101E 0%,#0A0D14 100%)" }}>
 
               {/* ══ RESUME REVIEW ══ */}
-              {activeTab === 0 && (
+              {activeTab === 1 && (
                 <div style={{ height:"100%",display:"flex",flexDirection:"column" }}>
                   {/* Page header */}
                   <div style={{ padding:"9px 16px",borderBottom:"1px solid rgba(255,255,255,0.06)",background:"rgba(8,12,26,0.95)",display:"flex",alignItems:"center",gap:10,flexShrink:0 }}>
@@ -1339,7 +1339,7 @@ function PlatformWalkthrough() {
               )}
 
               {/* ══ MOCK INTERVIEW ══ */}
-              {activeTab === 1 && (
+              {activeTab === 2 && (
                 <div style={{ height:"100%",display:"flex",flexDirection:"column" }}>
                   <div style={{ padding:"9px 16px",borderBottom:"1px solid rgba(255,255,255,0.06)",background:"rgba(8,12,26,0.95)",display:"flex",alignItems:"center",gap:8,flexShrink:0 }}>
                     <span style={{ fontSize:13,fontWeight:700,color:"white" }}>Mock Interview</span>
@@ -1443,7 +1443,7 @@ function PlatformWalkthrough() {
               )}
 
               {/* ══ COVER LETTER ══ */}
-              {activeTab === 2 && (
+              {activeTab === 3 && (
                 <div style={{ height:"100%",display:"flex",flexDirection:"column" }}>
                   <div style={{ padding:"9px 16px",borderBottom:"1px solid rgba(255,255,255,0.06)",background:"rgba(8,12,26,0.95)",display:"flex",alignItems:"center",gap:8,flexShrink:0 }}>
                     <span style={{ fontSize:13,fontWeight:700,color:"white" }}>Cover Letter</span>
@@ -1650,7 +1650,7 @@ function PlatformWalkthrough() {
               )}
 
               {/* ══ LINKEDIN ══ */}
-              {activeTab === 3 && (
+              {activeTab === 4 && (
                 <div style={{ height:"100%",display:"flex",flexDirection:"column" }}>
                   <div style={{ padding:"9px 16px",borderBottom:"1px solid rgba(255,255,255,0.06)",background:"rgba(8,12,26,0.95)",display:"flex",alignItems:"center",gap:8,flexShrink:0 }}>
                     <span style={{ fontSize:13,fontWeight:700,color:"white" }}>LinkedIn Optimizer</span>
@@ -1802,7 +1802,7 @@ function PlatformWalkthrough() {
               )}
 
               {/* ══ ACTION PLAN ══ */}
-              {activeTab === 4 && (
+              {activeTab === 5 && (
                 <div style={{ height:"100%",display:"flex",flexDirection:"column" }}>
                   <div style={{ padding:"9px 16px",borderBottom:"1px solid rgba(255,255,255,0.06)",background:"rgba(8,12,26,0.95)",display:"flex",alignItems:"center",gap:8,flexShrink:0 }}>
                     <span style={{ fontSize:13,fontWeight:700,color:"white" }}>Action Plan</span>
@@ -1930,7 +1930,7 @@ function PlatformWalkthrough() {
               )}
 
               {/* ══ CHAT WITH ZARI ══ */}
-              {activeTab === 5 && (
+              {activeTab === 0 && (
                 <div style={{ height:"100%",display:"flex",flexDirection:"column" }}>
                   <div style={{ padding:"9px 16px",borderBottom:"1px solid rgba(255,255,255,0.06)",background:"rgba(8,12,26,0.95)",display:"flex",alignItems:"center",gap:8,flexShrink:0 }}>
                     <span style={{ fontSize:13,fontWeight:700,color:"white" }}>Chat with Zari</span>
