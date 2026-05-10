@@ -1532,23 +1532,27 @@ function PlatformWalkthrough() {
                     <span style={{ fontSize:13,fontWeight:700,color:"white" }}>Cover Letter</span>
                     <span style={{ fontSize:8.5,color:"rgba(255,255,255,0.28)" }}>Stripe &mdash; Senior PM</span>
                     {subStep >= 2 && <span style={{ fontSize:8.5,fontWeight:700,color:"#22C55E",background:"rgba(34,197,94,0.1)",border:"1px solid rgba(34,197,94,0.22)",padding:"2px 8px",borderRadius:5,animation:"bubble-appear 0.4s ease" }}>&#10003; Tailored &amp; Ready</span>}
-                    <div style={{ marginLeft:"auto",display:"flex",gap:5 }}>
-                      {subStep >= 2 && <span style={{ fontSize:8,fontWeight:700,color:"#818CF8",background:"rgba(129,140,248,0.1)",border:"1px solid rgba(129,140,248,0.2)",padding:"3px 10px",borderRadius:5,cursor:"pointer" }}>&#8595; Download</span>}
+                    <div style={{ marginLeft:"auto",display:"flex",gap:5,alignItems:"center" }}>
+                      {subStep >= 2 && (
+                        <>
+                          <span style={{ fontSize:8,color:"rgba(255,255,255,0.28)" }}>ATS pass rate:</span>
+                          <span style={{ fontSize:8.5,fontWeight:700,color:"#22C55E" }}>94%</span>
+                          <span style={{ fontSize:8,fontWeight:700,color:"#818CF8",background:"rgba(129,140,248,0.1)",border:"1px solid rgba(129,140,248,0.2)",padding:"3px 10px",borderRadius:5,cursor:"pointer" }}>&#8595; Download</span>
+                        </>
+                      )}
                     </div>
                   </div>
-                  <div style={{ flex:1,padding:"10px 14px",overflow:"hidden",display:"flex",flexDirection:"column",gap:8 }}>
-                    {/* subStep 0: setup */}
+                  <div style={{ flex:1,padding:"10px 14px",overflow:"hidden",display:"flex",flexDirection:"column",gap:7 }}>
+
+                    {/* subStep 0 */}
                     {subStep === 0 && (
-                      <div style={{ display:"flex",flexDirection:"column",gap:8,animation:"bubble-appear 0.4s ease" }}>
+                      <div style={{ display:"flex",flexDirection:"column",gap:7,animation:"bubble-appear 0.4s ease" }}>
                         <div style={{ display:"flex",alignItems:"center" }}>
                           {["Background","Job Description","Customize"].map((step,i) => (
                             <div key={step} style={{ display:"flex",alignItems:"center",flex:i<2?1:"auto" }}>
                               <div style={{ display:"flex",alignItems:"center",gap:5 }}>
                                 <div style={{ width:18,height:18,borderRadius:"50%",background:i<2?"rgba(34,197,94,0.12)":"rgba(59,130,246,0.12)",border:`1.5px solid ${i<2?"#22C55E":"#3B82F6"}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
-                                  {i<2
-                                    ? <svg viewBox="0 0 10 10" fill="none" stroke="#22C55E" strokeWidth="2" style={{ width:7,height:7 }}><path d="M2 5l2 2 4-4"/></svg>
-                                    : <span style={{ fontSize:7,fontWeight:700,color:"#60A5FA" }}>3</span>
-                                  }
+                                  {i<2 ? <svg viewBox="0 0 10 10" fill="none" stroke="#22C55E" strokeWidth="2" style={{ width:7,height:7 }}><path d="M2 5l2 2 4-4"/></svg> : <span style={{ fontSize:7,fontWeight:700,color:"#60A5FA" }}>3</span>}
                                 </div>
                                 <span style={{ fontSize:9,fontWeight:i===2?700:500,color:i===2?"rgba(255,255,255,0.78)":"rgba(255,255,255,0.38)" }}>{step}</span>
                               </div>
@@ -1556,44 +1560,74 @@ function PlatformWalkthrough() {
                             </div>
                           ))}
                         </div>
-                        <div style={{ display:"flex",gap:9 }}>
-                          <div style={{ flex:1,background:"linear-gradient(145deg,#0B1A12,#0F1E1A)",border:"1px solid rgba(34,197,94,0.2)",borderRadius:11,padding:"10px 13px" }}>
-                            <div style={{ fontSize:7.5,fontWeight:700,color:"rgba(255,255,255,0.22)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8 }}>Resume on File</div>
-                            <div style={{ display:"flex",alignItems:"center",gap:9 }}>
-                              <div style={{ width:30,height:38,borderRadius:5,background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.25)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
-                                <span style={{ fontSize:8,fontWeight:800,color:"#EF4444" }}>PDF</span>
+                        <div style={{ display:"flex",gap:8 }}>
+                          <div style={{ flex:1,background:"linear-gradient(145deg,#0B1A12,#0E1C18)",border:"1px solid rgba(34,197,94,0.2)",borderRadius:10,padding:"10px 12px" }}>
+                            <div style={{ fontSize:7.5,fontWeight:700,color:"rgba(255,255,255,0.22)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:7 }}>Resume on File</div>
+                            <div style={{ display:"flex",alignItems:"center",gap:8 }}>
+                              <div style={{ width:28,height:36,borderRadius:5,background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.25)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
+                                <span style={{ fontSize:7.5,fontWeight:800,color:"#EF4444" }}>PDF</span>
                               </div>
                               <div style={{ flex:1,minWidth:0 }}>
-                                <div style={{ fontSize:9.5,fontWeight:600,color:"rgba(255,255,255,0.85)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>Steve_J_Ngoumnai_Resume.pdf</div>
-                                <div style={{ fontSize:8,color:"rgba(255,255,255,0.3)",marginTop:2 }}>142 KB &middot; Score: 82 A&#8722;</div>
-                                <div style={{ marginTop:5,display:"flex",alignItems:"center",gap:5 }}>
-                                  <div style={{ height:3,flex:1,borderRadius:99,background:"rgba(255,255,255,0.06)" }}><div style={{ width:"82%",height:"100%",borderRadius:99,background:"#22C55E" }}/></div>
+                                <div style={{ fontSize:9,fontWeight:600,color:"rgba(255,255,255,0.82)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>Steve_J_Ngoumnai_Resume.pdf</div>
+                                <div style={{ fontSize:7.5,color:"rgba(255,255,255,0.28)",marginTop:2 }}>142 KB &middot; Score 82 A&#8722; &middot; 11/11 bullets</div>
+                                <div style={{ marginTop:5,display:"flex",alignItems:"center",gap:4 }}>
+                                  <div style={{ height:3,flex:1,borderRadius:99,background:"rgba(255,255,255,0.06)" }}><div style={{ width:"82%",height:"100%",borderRadius:99,background:"linear-gradient(90deg,#22C55E88,#22C55E)" }}/></div>
                                   <span style={{ fontSize:7.5,color:"#22C55E",fontWeight:700 }}>82%</span>
                                 </div>
                               </div>
-                              <svg viewBox="0 0 20 20" fill="none" stroke="#22C55E" strokeWidth="2.2" style={{ width:15,height:15,flexShrink:0 }}><circle cx="10" cy="10" r="8"/><path d="M7 10l2 2 4-4"/></svg>
                             </div>
                           </div>
-                          <div style={{ flex:1,background:"#0E1420",border:"1px solid rgba(255,255,255,0.07)",borderRadius:11,padding:"10px 13px" }}>
+                          <div style={{ flex:1,background:"#0E1420",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,padding:"10px 12px" }}>
                             <div style={{ fontSize:7.5,fontWeight:700,color:"rgba(255,255,255,0.22)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:6 }}>Job Posting &middot; Stripe</div>
-                            <p style={{ fontSize:9,color:"rgba(255,255,255,0.48)",lineHeight:1.65,margin:"0 0 7px" }}>Senior PM to drive our payments infrastructure roadmap. Work cross-functionally with Engineering, Design, and Data to ship 0&#8594;1 products at scale.</p>
+                            <p style={{ fontSize:8.5,color:"rgba(255,255,255,0.48)",lineHeight:1.65,margin:"0 0 6px" }}>Senior PM to drive our payments infrastructure roadmap. Work cross-functionally with Engineering, Design, and Data to ship 0&#8594;1 products at scale.</p>
                             <div style={{ display:"flex",gap:4,flexWrap:"wrap" }}>
-                              {["payments","roadmap","cross-functional","0→1","infrastructure"].map(tag => (
+                              {["payments","roadmap","cross-functional","0→1","infrastructure","API","fintech"].map(tag => (
                                 <span key={tag} style={{ fontSize:7.5,color:"#60A5FA",background:"rgba(96,165,250,0.08)",border:"1px solid rgba(96,165,250,0.15)",padding:"2px 6px",borderRadius:4 }}>{tag}</span>
                               ))}
                             </div>
                           </div>
                         </div>
-                        <div style={{ background:"rgba(129,140,248,0.06)",border:"1px solid rgba(129,140,248,0.14)",borderRadius:10,padding:"10px 13px" }}>
-                          <div style={{ fontSize:8,fontWeight:700,color:"#818CF8",marginBottom:6 }}>&#10022; Customize your tone</div>
-                          <div style={{ display:"flex",gap:5 }}>
-                            {[["Professional","1"],["Confident",""],["Story-driven",""],["Concise",""]].map(([tone,a]) => (
-                              <div key={tone} style={{ padding:"4px 10px",borderRadius:6,border:`1px solid ${a?"rgba(129,140,248,0.4)":"rgba(255,255,255,0.08)"}`,background:a?"rgba(129,140,248,0.12)":"rgba(255,255,255,0.02)",fontSize:8.5,fontWeight:a?700:400,color:a?"#A5B4FC":"rgba(255,255,255,0.35)",cursor:"pointer" }}>{tone}</div>
-                            ))}
+                        {/* AI match preview — fills the space */}
+                        <div style={{ background:"linear-gradient(145deg,#0D1428,#101A2E)",border:"1px solid rgba(129,140,248,0.18)",borderRadius:11,padding:"10px 13px" }}>
+                          <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8 }}>
+                            <div style={{ fontSize:8,fontWeight:700,color:"#818CF8",textTransform:"uppercase",letterSpacing:"0.1em" }}>&#10022; AI Pre-Match Analysis</div>
+                            <span style={{ fontSize:8,color:"rgba(255,255,255,0.28)" }}>before generating</span>
                           </div>
+                          <div style={{ display:"flex",gap:10 }}>
+                            <div style={{ flex:1 }}>
+                              <div style={{ fontSize:7.5,fontWeight:700,color:"rgba(255,255,255,0.28)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:5 }}>Keyword Coverage</div>
+                              {[{k:"payments / fintech",v:60,c:"#FBBF24"},{k:"0→1 / roadmap",v:40,c:"#EF4444"},{k:"cross-functional",v:80,c:"#22C55E"},{k:"infrastructure / API",v:30,c:"#EF4444"}].map((kw,i)=>(
+                                <div key={i} style={{ marginBottom:4 }}>
+                                  <div style={{ display:"flex",justifyContent:"space-between",marginBottom:2 }}>
+                                    <span style={{ fontSize:8,color:"rgba(255,255,255,0.42)" }}>{kw.k}</span>
+                                    <span style={{ fontSize:8,fontWeight:700,color:kw.c }}>{kw.v}%</span>
+                                  </div>
+                                  <div style={{ height:3,borderRadius:99,background:"rgba(255,255,255,0.06)" }}><div style={{ width:`${kw.v}%`,height:"100%",borderRadius:99,background:kw.c,opacity:0.7 }}/></div>
+                                </div>
+                              ))}
+                            </div>
+                            <div style={{ width:1,background:"rgba(255,255,255,0.06)" }}/>
+                            <div style={{ flex:1 }}>
+                              <div style={{ fontSize:7.5,fontWeight:700,color:"rgba(255,255,255,0.28)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:5 }}>What Zari Will Do</div>
+                              {["Inject 7 missing Stripe keywords","Rewrite opening to mirror their mission","Lead with $4.2M metric in paragraph 1","Add payments domain proof points","Match their 0→1 language throughout"].map((a,i)=>(
+                                <div key={i} style={{ display:"flex",gap:5,alignItems:"flex-start",marginBottom:3 }}>
+                                  <span style={{ fontSize:9,color:"#818CF8",flexShrink:0 }}>&#10022;</span>
+                                  <span style={{ fontSize:8,color:"rgba(255,255,255,0.48)",lineHeight:1.45 }}>{a}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                        <div style={{ background:"rgba(129,140,248,0.06)",border:"1px solid rgba(129,140,248,0.14)",borderRadius:9,padding:"9px 12px",display:"flex",alignItems:"center",gap:8 }}>
+                          <div style={{ fontSize:8,fontWeight:700,color:"#818CF8",marginRight:2 }}>Tone:</div>
+                          {[["Professional","1"],["Confident",""],["Story-driven",""],["Concise",""]].map(([tone,a])=>(
+                            <div key={tone} style={{ padding:"4px 10px",borderRadius:6,border:`1px solid ${a?"rgba(129,140,248,0.4)":"rgba(255,255,255,0.08)"}`,background:a?"rgba(129,140,248,0.12)":"rgba(255,255,255,0.02)",fontSize:8.5,fontWeight:a?700:400,color:a?"#A5B4FC":"rgba(255,255,255,0.35)",cursor:"pointer" }}>{tone}</div>
+                          ))}
+                          <div style={{ marginLeft:"auto",background:"linear-gradient(135deg,#818CF8,#60A5FA)",borderRadius:7,padding:"5px 14px",fontSize:9,fontWeight:700,color:"white",cursor:"pointer" }}>Generate Letter &#8594;</div>
                         </div>
                       </div>
                     )}
+
                     {/* subStep 1: generating */}
                     {subStep === 1 && (
                       <div style={{ flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:18,animation:"bubble-appear 0.35s ease" }}>
@@ -1603,7 +1637,7 @@ function PlatformWalkthrough() {
                         </svg>
                         <div style={{ textAlign:"center" }}>
                           <p style={{ fontSize:13.5,fontWeight:600,color:"rgba(255,255,255,0.82)",marginBottom:5 }}>Generating your cover letter</p>
-                          <p style={{ fontSize:9.5,color:"rgba(255,255,255,0.3)",marginBottom:8 }}>Matching your experience to Stripe&apos;s requirements&hellip;</p>
+                          <p style={{ fontSize:9.5,color:"rgba(255,255,255,0.3)",marginBottom:8 }}>Injecting 7 Stripe keywords &amp; matching your $4.2M metric&hellip;</p>
                           <div style={{ display:"flex",justifyContent:"center",gap:4 }}>
                             {[0,1,2].map(i => <span key={i} style={{ width:5,height:5,borderRadius:"50%",background:"#818CF8",animation:`dot-bounce 1.2s ${i*0.15}s infinite`,display:"inline-block" }}/>)}
                           </div>
@@ -1611,60 +1645,86 @@ function PlatformWalkthrough() {
                         <div style={{ width:210,height:2.5,borderRadius:99,background:"rgba(255,255,255,0.06)",overflow:"hidden" }}>
                           <div style={{ height:"100%",borderRadius:99,background:"linear-gradient(90deg,#818CF8,#60A5FA)",animation:"upload-bar 1.8s ease forwards" }}/>
                         </div>
+                        <div style={{ display:"flex",gap:14 }}>
+                          {["Keywords","Tone","Metrics","ATS"].map((l,i) => (
+                            <div key={l} style={{ display:"flex",flexDirection:"column",alignItems:"center",gap:3,animation:`bubble-appear 0.3s ${i*0.08+0.2}s both ease` }}>
+                              <div style={{ width:6,height:6,borderRadius:"50%",background:"#818CF8",animation:"blink 0.8s ease-in-out infinite",animationDelay:`${i*0.15}s` }}/>
+                              <span style={{ fontSize:8,color:"rgba(255,255,255,0.25)" }}>{l}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
+
                     {/* subStep 2+: results */}
                     {subStep >= 2 && (
                       <div style={{ flex:1,display:"flex",gap:9,overflow:"hidden",animation:"bubble-appear 0.4s ease",minHeight:0 }}>
-                        <div style={{ flex:1,display:"flex",flexDirection:"column",gap:7,overflow:"hidden" }}>
+                        {/* Left analysis col */}
+                        <div style={{ flex:1,display:"flex",flexDirection:"column",gap:6,overflow:"hidden" }}>
+                          {/* Zari tailored */}
                           <div style={{ background:"rgba(59,130,246,0.07)",border:"1px solid rgba(59,130,246,0.18)",borderLeft:"3px solid #3B82F6",borderRadius:"0 10px 10px 0",padding:"9px 12px",flexShrink:0 }}>
-                            <div style={{ fontSize:7.5,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.12em",color:"#60A5FA",marginBottom:7 }}>What Zari Tailored</div>
+                            <div style={{ fontSize:7.5,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.12em",color:"#60A5FA",marginBottom:6 }}>What Zari Changed</div>
                             {[
-                              '"Increasing the GDP of the internet" — woven into your opening hook',
-                              'Led with $4.2M cost impact — your strongest quantified win',
-                              'Named payments infra & cross-functional work to match their domain',
-                            ].map((text,i) => (
-                              <div key={i} style={{ display:"flex",alignItems:"flex-start",gap:5,marginBottom:i<2?5:0,animation:`bubble-appear 0.3s ${i*0.1}s both ease` }}>
-                                <span style={{ fontSize:9,fontWeight:800,color:"#60A5FA",flexShrink:0 }}>{i+1}.</span>
-                                <span style={{ fontSize:9.5,color:"rgba(255,255,255,0.65)",lineHeight:1.55 }}>{text}</span>
+                              {icon:"&#10022;",text:'"Increasing the GDP of the internet" — mirrored in your opening',c:"#818CF8"},
+                              {icon:"&#8599;",text:"Led with $4.2M cost impact as the first data point recruiters see",c:"#22C55E"},
+                              {icon:"&#9670;",text:"Named payments infrastructure & 0→1 shipping to match their domain",c:"#60A5FA"},
+                              {icon:"&#9670;",text:"Added fintech proof: 3 payments products shipped, API integrations led",c:"#60A5FA"},
+                            ].map((item,i) => (
+                              <div key={i} style={{ display:"flex",alignItems:"flex-start",gap:6,marginBottom:i<3?4:0 }}>
+                                <span style={{ fontSize:9,color:item.c,flexShrink:0 }} dangerouslySetInnerHTML={{__html:item.icon}}/>
+                                <span style={{ fontSize:9,color:"rgba(255,255,255,0.62)",lineHeight:1.5 }}>{item.text}</span>
                               </div>
                             ))}
                           </div>
+                          {/* Opening hook */}
                           {subStep >= 3 && (
                             <div style={{ background:"rgba(34,197,94,0.06)",border:"1px solid rgba(34,197,94,0.14)",borderLeft:"3px solid #22C55E",borderRadius:"0 10px 10px 0",padding:"9px 12px",flexShrink:0,animation:"bubble-appear 0.4s ease" }}>
                               <div style={{ fontSize:7.5,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.12em",color:"#22C55E",marginBottom:5 }}>Opening Hook</div>
-                              <p style={{ fontSize:9.5,color:"rgba(255,255,255,0.65)",lineHeight:1.7,margin:0,fontStyle:"italic" }}>&ldquo;Stripe&rsquo;s mission is increasing the GDP of the internet. I&rsquo;ve spent six years increasing the efficiency of supply chains — I want to bring that same instinct for operational leverage to Stripe.&rdquo;</p>
+                              <p style={{ fontSize:9,color:"rgba(255,255,255,0.62)",lineHeight:1.7,margin:0,fontStyle:"italic" }}>&ldquo;Stripe&rsquo;s mission is increasing the GDP of the internet. I&rsquo;ve spent six years increasing the efficiency of supply chains — I want to bring that same instinct for operational leverage to Stripe.&rdquo;</p>
                             </div>
                           )}
+                          {/* Stats row */}
                           {subStep >= 3 && (
+                            <div style={{ display:"flex",gap:6,flexShrink:0,animation:"bubble-appear 0.5s ease" }}>
+                              {[{l:"ATS Pass Rate",v:"94%",c:"#22C55E"},{l:"Keywords Injected",v:"7",c:"#818CF8"},{l:"Read Time",v:"1.8 min",c:"#60A5FA"},{l:"Match Score",v:"91/100",c:"#FBBF24"}].map((s,i)=>(
+                                <div key={i} style={{ flex:1,background:"#0E1420",border:"1px solid rgba(255,255,255,0.06)",borderRadius:8,padding:"7px 9px",textAlign:"center" }}>
+                                  <div style={{ fontSize:12,fontWeight:900,color:s.c,lineHeight:1 }}>{s.v}</div>
+                                  <div style={{ fontSize:7,color:"rgba(255,255,255,0.28)",marginTop:3,lineHeight:1.3 }}>{s.l}</div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {/* Keyword match */}
+                          {subStep >= 4 && (
                             <div style={{ background:"rgba(251,191,36,0.05)",border:"1px solid rgba(251,191,36,0.12)",borderRadius:9,padding:"8px 12px",animation:"bubble-appear 0.5s ease",flexShrink:0 }}>
-                              <div style={{ fontSize:7.5,fontWeight:700,color:"#FBBF24",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:5 }}>Keyword Match &#10003;</div>
+                              <div style={{ fontSize:7.5,fontWeight:700,color:"#FBBF24",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:5 }}>Stripe Keywords Matched</div>
                               <div style={{ display:"flex",gap:4,flexWrap:"wrap" }}>
-                                {["payments","roadmap","0→1","cross-functional","infrastructure"].map(kw => (
+                                {["payments","roadmap","0→1","cross-functional","infrastructure","API","fintech","GDP"].map(kw => (
                                   <span key={kw} style={{ fontSize:8,color:"#22C55E",background:"rgba(34,197,94,0.08)",border:"1px solid rgba(34,197,94,0.2)",padding:"2px 6px",borderRadius:4 }}>{kw} &#10003;</span>
                                 ))}
                               </div>
                             </div>
                           )}
                         </div>
-                        <div style={{ width:198,flexShrink:0,background:"linear-gradient(160deg,#0D1320,#101828)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:10,padding:"11px 13px",overflow:"hidden",display:"flex",flexDirection:"column" }}>
-                          <div style={{ fontSize:7.5,fontWeight:700,color:"rgba(255,255,255,0.22)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8 }}>Letter Preview</div>
-                          <div style={{ fontSize:8.5,fontWeight:700,color:"rgba(255,255,255,0.78)",marginBottom:2,lineHeight:1.3 }}>Dear Stripe Hiring Team,</div>
-                          <div style={{ fontSize:8.5,color:"rgba(255,255,255,0.42)",lineHeight:1.8,fontFamily:"Georgia,serif",flex:1,overflow:"hidden" }}>
-                            Stripe&apos;s mission is increasing the GDP of the internet. I&apos;ve spent six years increasing the efficiency of supply chains&hellip;<br/><br/>
-                            My most relevant experience: a cross-functional initiative that drove $4.2M in savings by redesigning vendor SLAs across 12 teams, shipping 3 payments products&hellip;<br/><br/>
-                            {subStep >= 3 ? "I believe Stripe's payments infrastructure challenges are exactly where my background compounds — and I'd love to bring that to your team." : ""}
+                        {/* Right: letter preview */}
+                        <div style={{ width:205,flexShrink:0,background:"linear-gradient(160deg,#0D1320,#101828)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:10,padding:"11px 13px",overflow:"hidden",display:"flex",flexDirection:"column",gap:5 }}>
+                          <div style={{ fontSize:7.5,fontWeight:700,color:"rgba(255,255,255,0.22)",textTransform:"uppercase",letterSpacing:"0.1em" }}>Letter Preview</div>
+                          <div style={{ fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.55)" }}>Steve J. Ngoumnai</div>
+                          <div style={{ fontSize:7.5,color:"rgba(255,255,255,0.22)",marginBottom:3 }}>steve@machinesandcloud.com &middot; LinkedIn</div>
+                          <div style={{ fontSize:8,fontWeight:600,color:"rgba(255,255,255,0.65)",marginBottom:2 }}>Dear Stripe Hiring Team,</div>
+                          <div style={{ fontSize:8,color:"rgba(255,255,255,0.4)",lineHeight:1.75,fontFamily:"Georgia,serif",flex:1,overflow:"hidden" }}>
+                            <span style={{ background:"rgba(129,140,248,0.15)",borderRadius:2,padding:"0 2px",color:"rgba(255,255,255,0.65)" }}>Stripe&apos;s mission is increasing the GDP of the internet.</span> I&apos;ve spent six years increasing the efficiency of supply chains — I want to bring that same instinct for operational leverage to Stripe.<br/><br/>
+                            In my most recent role, I drove <span style={{ background:"rgba(34,197,94,0.15)",borderRadius:2,padding:"0 2px",color:"rgba(255,255,255,0.65)" }}>$4.2M in cost savings</span> by redesigning vendor SLAs across 12 teams and shipping 3 <span style={{ background:"rgba(96,165,250,0.15)",borderRadius:2,padding:"0 2px",color:"rgba(255,255,255,0.65)" }}>0→1 payments products</span> end-to-end.<br/><br/>
+                            {subStep >= 3 ? <span>Your <span style={{ background:"rgba(129,140,248,0.15)",borderRadius:2,padding:"0 2px",color:"rgba(255,255,255,0.65)" }}>payments infrastructure</span> challenges are exactly where my background compounds. I&apos;d love to bring that to Stripe.</span> : "Your payments infrastructure challenges…"}
                           </div>
-                          {subStep >= 3 && (
-                            <div style={{ marginTop:8,paddingTop:7,borderTop:"1px solid rgba(255,255,255,0.06)" }}>
-                              <div style={{ fontSize:7.5,color:"rgba(255,255,255,0.2)",marginBottom:4 }}>Keywords matched:</div>
-                              <div style={{ display:"flex",gap:3,flexWrap:"wrap" }}>
-                                {["Payments","0→1","Infrastructure","Cross-functional"].map(kw => (
-                                  <span key={kw} style={{ fontSize:7,color:"#22C55E",background:"rgba(34,197,94,0.08)",border:"1px solid rgba(34,197,94,0.15)",padding:"1.5px 5px",borderRadius:3 }}>{kw}</span>
-                                ))}
-                              </div>
+                          <div style={{ paddingTop:6,borderTop:"1px solid rgba(255,255,255,0.06)" }}>
+                            <div style={{ fontSize:7.5,color:"rgba(255,255,255,0.2)",marginBottom:4 }}>Injected keywords:</div>
+                            <div style={{ display:"flex",gap:3,flexWrap:"wrap" }}>
+                              {["payments","0→1","infrastructure","cross-functional","API","fintech"].map(kw => (
+                                <span key={kw} style={{ fontSize:7,color:"#22C55E",background:"rgba(34,197,94,0.08)",border:"1px solid rgba(34,197,94,0.15)",padding:"1.5px 5px",borderRadius:3 }}>{kw}</span>
+                              ))}
                             </div>
-                          )}
+                          </div>
                         </div>
                       </div>
                     )}
@@ -1685,17 +1745,18 @@ function PlatformWalkthrough() {
                     </div>
                   </div>
                   <div style={{ flex:1,padding:"10px 14px",overflow:"hidden",display:"flex",gap:10 }}>
-                    {/* Score ring + section list */}
-                    <div style={{ width:168,flexShrink:0,display:"flex",flexDirection:"column",gap:7 }}>
+
+                    {/* Left: score ring always visible */}
+                    <div style={{ width:162,flexShrink:0,display:"flex",flexDirection:"column",gap:7 }}>
                       <div style={{ background:"linear-gradient(145deg,#0B1825,#101C2A)",border:"1px solid rgba(34,197,94,0.2)",borderRadius:12,padding:"11px 12px",display:"flex",flexDirection:"column",alignItems:"center" }}>
-                        <svg width="74" height="74" viewBox="0 0 74 74">
-                          <circle cx="37" cy="37" r="29" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="5"/>
-                          <circle cx="37" cy="37" r="29" fill="none" stroke="#22C55E" strokeWidth="5"
-                            strokeDasharray={String(2*Math.PI*29)} strokeDashoffset={String(2*Math.PI*29*(1-0.82))}
-                            strokeLinecap="round" transform="rotate(-90 37 37)"
+                        <svg width="70" height="70" viewBox="0 0 70 70">
+                          <circle cx="35" cy="35" r="27" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="5"/>
+                          <circle cx="35" cy="35" r="27" fill="none" stroke="#22C55E" strokeWidth="5"
+                            strokeDasharray={String(2*Math.PI*27)} strokeDashoffset={String(2*Math.PI*27*(1-0.82))}
+                            strokeLinecap="round" transform="rotate(-90 35 35)"
                             style={{ transition:"stroke-dashoffset 1.4s cubic-bezier(0.4,0,0.2,1)", filter:"drop-shadow(0 0 9px rgba(34,197,94,0.5))" }}/>
-                          <text x="37" y="34" textAnchor="middle" fill="white" fontSize="16" fontWeight="900">82</text>
-                          <text x="37" y="45" textAnchor="middle" fill="#22C55E" fontSize="8" fontWeight="700">Good</text>
+                          <text x="35" y="32" textAnchor="middle" fill="white" fontSize="16" fontWeight="900">82</text>
+                          <text x="35" y="43" textAnchor="middle" fill="#22C55E" fontSize="7.5" fontWeight="700">Good</text>
                         </svg>
                         <div style={{ width:"100%",marginTop:9 }}>
                           {[
@@ -1708,27 +1769,55 @@ function PlatformWalkthrough() {
                             {s:"Keywords",   v:4, c:"#EF4444"},
                           ].map((sec,i) => (
                             <div key={sec.s} style={{ display:"flex",alignItems:"center",gap:5,marginBottom:i<6?4:0 }}>
-                              <span style={{ fontSize:7.5,color:"rgba(255,255,255,0.35)",width:58,flexShrink:0 }}>{sec.s}</span>
+                              <span style={{ fontSize:7.5,color:"rgba(255,255,255,0.35)",width:56,flexShrink:0 }}>{sec.s}</span>
                               <div style={{ flex:1,height:3,borderRadius:99,background:"rgba(255,255,255,0.06)" }}>
                                 <div style={{ width:`${sec.v*10}%`,height:"100%",borderRadius:99,background:sec.c,transition:"width 1.2s ease" }}/>
                               </div>
-                              <span style={{ fontSize:7.5,fontWeight:700,color:sec.c,width:12,textAlign:"right" }}>{sec.v}</span>
+                              <span style={{ fontSize:7.5,fontWeight:700,color:sec.c,width:10,textAlign:"right" }}>{sec.v}</span>
                             </div>
                           ))}
                         </div>
                       </div>
                     </div>
-                    {/* Right col */}
+
+                    {/* Right col — content from subStep 0 */}
                     <div style={{ flex:1,display:"flex",flexDirection:"column",gap:7,overflow:"hidden" }}>
-                      {/* Priority fixes */}
+
+                      {/* AI headline optimizer — visible immediately at subStep 0 */}
+                      <div style={{ background:"linear-gradient(145deg,#0F1928,#131D2C)",border:"1px solid rgba(96,165,250,0.2)",borderRadius:11,padding:"10px 13px",flexShrink:0 }}>
+                        <div style={{ fontSize:7.5,fontWeight:700,color:"#60A5FA",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8 }}>AI Headline Optimizer</div>
+                        <div style={{ display:"flex",flexDirection:"column",gap:5 }}>
+                          <div style={{ background:"rgba(239,68,68,0.06)",border:"1px solid rgba(239,68,68,0.15)",borderRadius:7,padding:"7px 10px" }}>
+                            <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:3 }}>
+                              <span style={{ fontSize:7,fontWeight:700,color:"#F87171",textTransform:"uppercase",letterSpacing:"0.1em" }}>Current &mdash; Score 6/10</span>
+                              <div style={{ display:"flex",gap:2 }}>{[1,2,3,4,5,6,7,8,9,10].map(n=><div key={n} style={{ width:6,height:6,borderRadius:1,background:n<=6?"#EF4444":"rgba(255,255,255,0.08)" }}/>)}</div>
+                            </div>
+                            <p style={{ fontSize:9,color:"rgba(255,255,255,0.42)",lineHeight:1.4,margin:0 }}>Tech leader | AI/ML | Product Manager | Building things</p>
+                          </div>
+                          <div style={{ background:"rgba(34,197,94,0.06)",border:"1px solid rgba(34,197,94,0.2)",borderRadius:7,padding:"7px 10px" }}>
+                            <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:3 }}>
+                              <span style={{ fontSize:7,fontWeight:700,color:"#22C55E",textTransform:"uppercase",letterSpacing:"0.1em" }}>Optimized &mdash; Score 9/10</span>
+                              <div style={{ display:"flex",gap:2 }}>{[1,2,3,4,5,6,7,8,9,10].map(n=><div key={n} style={{ width:6,height:6,borderRadius:1,background:n<=9?"#22C55E":"rgba(255,255,255,0.08)" }}/>)}</div>
+                            </div>
+                            <p style={{ fontSize:9,color:"rgba(255,255,255,0.72)",lineHeight:1.4,margin:0,fontWeight:500 }}>Senior PM · I Help Job Seekers Land $150K&#8211;$350K Roles Using AI | $4.2M Impact | Payments &amp; Ops</p>
+                          </div>
+                        </div>
+                        <div style={{ display:"flex",gap:5,marginTop:7 }}>
+                          {["More keywords","Shorter","Add metric","Try again"].map((a,i)=>(
+                            <div key={i} style={{ fontSize:7.5,color:"rgba(255,255,255,0.4)",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:4,padding:"3px 7px",cursor:"pointer" }}>{a}</div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Priority fixes — subStep 1+ */}
                       {subStep >= 1 && (
                         <div style={{ background:"#0E1420",border:"1px solid rgba(255,255,255,0.06)",borderRadius:11,padding:"9px 12px",flexShrink:0,animation:"bubble-appear 0.4s ease" }}>
                           <div style={{ fontSize:7.5,fontWeight:700,color:"rgba(255,255,255,0.22)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:7 }}>Priority Fixes</div>
                           <div style={{ display:"flex",gap:9 }}>
                             {[
-                              { section:"Networking", count:4, c:"#EF4444", items:["Connect with 5+ in target companies","Join 2 relevant industry groups","Request 2 recommendations from managers"] },
-                              { section:"Keywords",   count:3, c:"#FBBF24", items:["Add: Product Strategy, Payments Infrastructure","Include: 0→1, roadmap, cross-functional"] },
-                            ].map((fix,fi) => (
+                              { section:"Networking", count:4, c:"#EF4444", items:["Connect with 5+ in target companies","Join 2 relevant industry groups","Request 2 manager recommendations","Comment on 3 posts this week"] },
+                              { section:"Keywords",   count:3, c:"#FBBF24", items:["Add: Product Strategy, Payments Infrastructure","Include: 0→1, roadmap, cross-functional","Missing: fintech, API, SaaS"] },
+                            ].map((fix) => (
                               <div key={fix.section} style={{ flex:1 }}>
                                 <div style={{ display:"flex",alignItems:"center",gap:5,marginBottom:5 }}>
                                   <span style={{ fontSize:9.5,fontWeight:700,color:"rgba(255,255,255,0.7)" }}>{fix.section}</span>
@@ -1737,7 +1826,7 @@ function PlatformWalkthrough() {
                                 {fix.items.map((item,j) => (
                                   <div key={j} style={{ display:"flex",alignItems:"flex-start",gap:5,marginBottom:j<fix.items.length-1?3:0 }}>
                                     <div style={{ width:3.5,height:3.5,borderRadius:"50%",background:fix.c,flexShrink:0,marginTop:4.5 }}/>
-                                    <span style={{ fontSize:8.5,color:"rgba(255,255,255,0.48)",lineHeight:1.5 }}>{item}</span>
+                                    <span style={{ fontSize:8,color:"rgba(255,255,255,0.45)",lineHeight:1.5 }}>{item}</span>
                                   </div>
                                 ))}
                               </div>
@@ -1745,41 +1834,46 @@ function PlatformWalkthrough() {
                           </div>
                         </div>
                       )}
-                      {/* Section scores */}
+
+                      {/* Section scores — subStep 2+ */}
                       {subStep >= 2 && (
                         <div style={{ background:"#0E1420",border:"1px solid rgba(255,255,255,0.06)",borderRadius:11,padding:"9px 12px",flexShrink:0,animation:"bubble-appear 0.4s ease" }}>
-                          <div style={{ fontSize:7.5,fontWeight:700,color:"rgba(255,255,255,0.22)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:7 }}>Section Scores</div>
-                          <div style={{ display:"flex",gap:8 }}>
-                            {[{s:"Headline",v:8,t:"Good"},{s:"Summary",v:9,t:"Perfect"},{s:"Experience",v:8,t:"Good"},{s:"Networking",v:4,t:"Needs Work"}].map((sec) => (
+                          <div style={{ fontSize:7.5,fontWeight:700,color:"rgba(255,255,255,0.22)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:7 }}>Detailed Section Scores</div>
+                          <div style={{ display:"flex",gap:6 }}>
+                            {[{s:"Headline",v:8,t:"Good",c:"#22C55E"},{s:"Summary",v:9,t:"Perfect",c:"#22C55E"},{s:"Experience",v:8,t:"Good",c:"#22C55E"},{s:"Networking",v:4,t:"Needs Work",c:"#EF4444"}].map((sec) => (
                               <div key={sec.s} style={{ flex:1 }}>
                                 <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:3 }}>
-                                  <span style={{ fontSize:8,color:"rgba(255,255,255,0.42)" }}>{sec.s}</span>
-                                  <span style={{ fontSize:8,fontWeight:700,color:sec.v>=8?"#22C55E":sec.v>=6?"#60A5FA":"#EF4444" }}>{sec.t}</span>
+                                  <span style={{ fontSize:7.5,color:"rgba(255,255,255,0.4)" }}>{sec.s}</span>
+                                  <span style={{ fontSize:8,fontWeight:700,color:sec.c }}>{sec.v}/10</span>
                                 </div>
                                 <div style={{ height:4,borderRadius:99,background:"rgba(255,255,255,0.06)" }}>
-                                  <div style={{ width:`${sec.v*10}%`,height:"100%",borderRadius:99,background:sec.v>=8?"#22C55E":sec.v>=6?"#60A5FA":"#EF4444",transition:"width 1.2s ease" }}/>
+                                  <div style={{ width:`${sec.v*10}%`,height:"100%",borderRadius:99,background:sec.c,transition:"width 1.2s ease" }}/>
                                 </div>
+                                <div style={{ fontSize:7,color:sec.c,marginTop:2,fontWeight:600 }}>{sec.t}</div>
                               </div>
                             ))}
                           </div>
                         </div>
                       )}
-                      {/* LinkedIn profile preview */}
+
+                      {/* LinkedIn profile preview — subStep 3+ */}
                       {subStep >= 3 && (
-                        <div style={{ background:"#0E1420",border:"1px solid rgba(255,255,255,0.07)",borderRadius:11,overflow:"hidden",flex:1,animation:"bubble-appear 0.4s ease" }}>
-                          <div style={{ height:46,background:"linear-gradient(135deg,#1e3a8a,#1d4ed8,#0284c7)",position:"relative",flexShrink:0 }}>
-                            <div style={{ position:"absolute",bottom:-17,left:14,width:34,height:34,borderRadius:"50%",background:"linear-gradient(135deg,#3B82F6,#7C3AED)",border:"2.5px solid #0E1420",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"white" }}>SJ</div>
+                        <div style={{ background:"#0E1420",border:"1px solid rgba(255,255,255,0.07)",borderRadius:11,overflow:"hidden",flex:1,animation:"bubble-appear 0.4s ease",minHeight:0 }}>
+                          <div style={{ height:44,background:"linear-gradient(135deg,#1e3a8a,#1d4ed8,#0284c7)",position:"relative",flexShrink:0 }}>
+                            <div style={{ position:"absolute",bottom:-17,left:13,width:34,height:34,borderRadius:"50%",background:"linear-gradient(135deg,#3B82F6,#7C3AED)",border:"2.5px solid #0E1420",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"white" }}>SJ</div>
+                            <div style={{ position:"absolute",top:8,right:10,fontSize:7.5,fontWeight:700,color:"rgba(255,255,255,0.6)",background:"rgba(0,0,0,0.3)",borderRadius:4,padding:"2px 8px" }}>&#10022; AI Optimized</div>
                           </div>
-                          <div style={{ padding:"21px 14px 10px" }}>
-                            <div style={{ fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.9)" }}>Steve J. Ngoumnai</div>
-                            <div style={{ fontSize:8.5,color:"rgba(255,255,255,0.38)",lineHeight:1.5,marginTop:2 }}>Tech leader | I Help Job Seekers Leverage AI to Land $150K&ndash;$350K | Operations &amp; Payments PM | $4.2M impact</div>
-                            <div style={{ marginTop:6,display:"flex",gap:10 }}>
-                              <div style={{ fontSize:8,color:"rgba(255,255,255,0.28)" }}>Profile viewers <span style={{ color:"#60A5FA",fontWeight:700 }}>1,315</span></div>
-                              <div style={{ fontSize:8,color:"rgba(255,255,255,0.28)" }}>Impressions <span style={{ color:"#60A5FA",fontWeight:700 }}>379,316</span></div>
+                          <div style={{ padding:"20px 13px 10px" }}>
+                            <div style={{ fontSize:10.5,fontWeight:700,color:"rgba(255,255,255,0.9)" }}>Steve J. Ngoumnai</div>
+                            <div style={{ fontSize:8,color:"rgba(255,255,255,0.38)",lineHeight:1.5,marginTop:2 }}>Senior PM &middot; I Help Job Seekers Land $150K&ndash;$350K Roles Using AI | $4.2M Impact | Payments &amp; Ops</div>
+                            <div style={{ marginTop:5,display:"flex",gap:10,flexWrap:"wrap" }}>
+                              <div style={{ fontSize:7.5,color:"rgba(255,255,255,0.25)" }}>Profile views <span style={{ color:"#60A5FA",fontWeight:700 }}>1,315</span></div>
+                              <div style={{ fontSize:7.5,color:"rgba(255,255,255,0.25)" }}>Impressions <span style={{ color:"#60A5FA",fontWeight:700 }}>379K</span></div>
+                              <div style={{ fontSize:7.5,color:"rgba(255,255,255,0.25)" }}>Connections <span style={{ color:"#22C55E",fontWeight:700 }}>500+</span></div>
                             </div>
-                            <div style={{ marginTop:7,paddingTop:7,borderTop:"1px solid rgba(255,255,255,0.06)" }}>
-                              {["PM &middot; Stripe  (2021–present)","Supply Chain Lead &middot; Hyland  (2019–21)"].map((exp,i) => (
-                                <div key={i} style={{ fontSize:8.5,color:"rgba(255,255,255,0.28)",marginBottom:i<1?3:0 }} dangerouslySetInnerHTML={{ __html:exp }}/>
+                            <div style={{ marginTop:6,paddingTop:6,borderTop:"1px solid rgba(255,255,255,0.06)",display:"flex",flexDirection:"column",gap:3 }}>
+                              {["PM &middot; Stripe  (2021–present)","Supply Chain Lead &middot; Hyland  (2019–21)","Sr. Analyst &middot; iSeatz  (2017–19)"].map((exp,i) => (
+                                <div key={i} style={{ fontSize:8,color:"rgba(255,255,255,0.28)" }} dangerouslySetInnerHTML={{ __html:exp }}/>
                               ))}
                             </div>
                           </div>
@@ -1804,80 +1898,112 @@ function PlatformWalkthrough() {
                     </div>
                   </div>
                   <div style={{ flex:1,padding:"10px 14px",overflow:"hidden",display:"flex",gap:10 }}>
-                    {/* Left */}
-                    <div style={{ width:205,flexShrink:0,display:"flex",flexDirection:"column",gap:7 }}>
+
+                    {/* Left col */}
+                    <div style={{ width:198,flexShrink:0,display:"flex",flexDirection:"column",gap:7 }}>
+                      {/* Completed milestones */}
                       <div style={{ background:"linear-gradient(145deg,#0B1820,#101C2A)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:11,padding:"9px 12px" }}>
-                        <div style={{ fontSize:7.5,fontWeight:700,color:"rgba(255,255,255,0.22)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:7 }}>Completed</div>
+                        <div style={{ fontSize:7.5,fontWeight:700,color:"rgba(255,255,255,0.22)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:7 }}>Milestones Completed</div>
                         {[
-                          {label:"Resume Review",   score:"82 A−",   c:"#22C55E"},
-                          {label:"LinkedIn Profile",score:"82 Good",  c:"#22C55E"},
-                          {label:"Cover Letter",    score:"Tailored", c:"#22C55E"},
+                          {label:"Resume Review",   score:"82 A&#8722;", c:"#22C55E"},
+                          {label:"LinkedIn Profile", score:"82 Good",    c:"#22C55E"},
+                          {label:"Cover Letter",     score:"94% ATS",    c:"#22C55E"},
                         ].map((item,i) => (
-                          <div key={item.label} style={{ display:"flex",alignItems:"center",gap:7,marginBottom:i<2?5:0 }}>
+                          <div key={i} style={{ display:"flex",alignItems:"center",gap:7,marginBottom:i<2?5:0 }}>
                             <div style={{ width:16,height:16,borderRadius:"50%",background:"rgba(34,197,94,0.12)",border:"1.5px solid #22C55E",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
                               <svg viewBox="0 0 10 10" fill="none" stroke="#22C55E" strokeWidth="2.2" style={{ width:6,height:6 }}><path d="M2 5l2 2 4-4"/></svg>
                             </div>
-                            <span style={{ fontSize:9.5,color:"rgba(255,255,255,0.35)",textDecoration:"line-through",flex:1 }}>{item.label}</span>
-                            <span style={{ fontSize:8,fontWeight:700,color:item.c,whiteSpace:"nowrap" }}>{item.score}</span>
+                            <span style={{ fontSize:9,color:"rgba(255,255,255,0.32)",textDecoration:"line-through",flex:1 }}>{item.label}</span>
+                            <span style={{ fontSize:8,fontWeight:700,color:item.c,whiteSpace:"nowrap" }} dangerouslySetInnerHTML={{__html:item.score}}/>
                           </div>
                         ))}
                       </div>
+
+                      {/* Zari coaching */}
                       <div style={{ background:"rgba(59,130,246,0.07)",borderLeft:"3px solid #3B82F6",borderRadius:"0 10px 10px 0",padding:"9px 12px" }}>
                         <div style={{ display:"flex",alignItems:"center",gap:6,marginBottom:4 }}>
                           <div style={{ width:18,height:18,borderRadius:5,background:"linear-gradient(135deg,#3B82F6,#2563EB)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:900,color:"white",flexShrink:0 }}>Z</div>
-                          <span style={{ fontSize:7.5,fontWeight:700,color:"#60A5FA",textTransform:"uppercase",letterSpacing:"0.1em" }}>Zari&apos;s Coaching</span>
+                          <span style={{ fontSize:7.5,fontWeight:700,color:"#60A5FA",textTransform:"uppercase",letterSpacing:"0.1em" }}>Zari&apos;s Take</span>
                         </div>
-                        <p style={{ fontSize:9.5,color:"rgba(255,255,255,0.62)",lineHeight:1.65,margin:0 }}>You&apos;re ahead of 78% of job seekers at this stage. Your next highest-leverage move is networking — 70% of jobs are filled before they&apos;re posted.</p>
+                        <p style={{ fontSize:9,color:"rgba(255,255,255,0.6)",lineHeight:1.65,margin:0 }}>You&apos;re ahead of 78% of job seekers. Next highest-leverage move: networking — 70% of PM roles are filled before posting. You need 5 warm intros this week.</p>
                       </div>
-                      {subStep >= 2 && (
-                        <div style={{ background:"#0E1420",border:"1px solid rgba(255,255,255,0.06)",borderRadius:10,padding:"9px 12px",animation:"bubble-appear 0.4s ease" }}>
-                          <div style={{ fontSize:7.5,fontWeight:700,color:"rgba(255,255,255,0.22)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:7 }}>Your Progress</div>
-                          {[{l:"Applications sent",v:12,max:20},{l:"Interviews booked",v:3,max:5},{l:"Network connections",v:8,max:20}].map((stat,i) => (
-                            <div key={stat.l} style={{ marginBottom:i<2?6:0 }}>
-                              <div style={{ display:"flex",justifyContent:"space-between",marginBottom:2 }}>
-                                <span style={{ fontSize:8,color:"rgba(255,255,255,0.4)" }}>{stat.l}</span>
-                                <span style={{ fontSize:8,fontWeight:700,color:"rgba(255,255,255,0.62)" }}>{stat.v}/{stat.max}</span>
-                              </div>
-                              <div style={{ height:3,borderRadius:99,background:"rgba(255,255,255,0.06)" }}>
-                                <div style={{ width:`${(stat.v/stat.max)*100}%`,height:"100%",borderRadius:99,background:"#3B82F6",transition:"width 1.2s ease" }}/>
-                              </div>
+
+                      {/* Job search stats */}
+                      <div style={{ background:"#0E1420",border:"1px solid rgba(255,255,255,0.06)",borderRadius:10,padding:"9px 12px" }}>
+                        <div style={{ fontSize:7.5,fontWeight:700,color:"rgba(255,255,255,0.22)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:7 }}>Search Activity</div>
+                        {[
+                          {l:"Applications",  v:12,max:20,c:"#3B82F6"},
+                          {l:"Interviews",     v:3, max:5, c:"#22C55E"},
+                          {l:"Connections",    v:8, max:25,c:"#818CF8"},
+                          {l:"Referrals",      v:2, max:5, c:"#FBBF24"},
+                        ].map((stat,i) => (
+                          <div key={stat.l} style={{ marginBottom:i<3?5:0 }}>
+                            <div style={{ display:"flex",justifyContent:"space-between",marginBottom:2 }}>
+                              <span style={{ fontSize:8,color:"rgba(255,255,255,0.38)" }}>{stat.l}</span>
+                              <span style={{ fontSize:8,fontWeight:700,color:stat.c }}>{stat.v}/{stat.max}</span>
+                            </div>
+                            <div style={{ height:3,borderRadius:99,background:"rgba(255,255,255,0.06)" }}>
+                              <div style={{ width:`${(stat.v/stat.max)*100}%`,height:"100%",borderRadius:99,background:stat.c,transition:"width 1.2s ease" }}/>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Right col */}
+                    <div style={{ flex:1,display:"flex",flexDirection:"column",gap:6,overflow:"hidden" }}>
+
+                      {/* Job funnel — visible from subStep 0 */}
+                      <div style={{ background:"linear-gradient(145deg,#0F1928,#101C2A)",border:"1px solid rgba(129,140,248,0.15)",borderRadius:11,padding:"9px 12px",flexShrink:0 }}>
+                        <div style={{ fontSize:7.5,fontWeight:700,color:"rgba(255,255,255,0.22)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8 }}>Job Search Funnel</div>
+                        <div style={{ display:"flex",gap:0,alignItems:"flex-end" }}>
+                          {[
+                            {l:"Applied",  v:24, h:52, c:"#3B82F6"},
+                            {l:"Reviewed", v:14, h:38, c:"#60A5FA"},
+                            {l:"Screen",   v:6,  h:26, c:"#818CF8"},
+                            {l:"Interview",v:3,  h:18, c:"#FBBF24"},
+                            {l:"Offer",    v:1,  h:12, c:"#22C55E"},
+                          ].map((stage,i) => (
+                            <div key={stage.l} style={{ flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4 }}>
+                              <span style={{ fontSize:11,fontWeight:900,color:"white" }}>{stage.v}</span>
+                              <div style={{ width:"70%",borderRadius:"4px 4px 0 0",background:stage.c,height:stage.h,transition:"height 1s ease",opacity:0.85 }}/>
+                              <span style={{ fontSize:7,color:"rgba(255,255,255,0.32)",textAlign:"center",lineHeight:1.3 }}>{stage.l}</span>
+                              {i<4 && <div style={{ position:"absolute",fontSize:8,color:"rgba(255,255,255,0.15)" }}></div>}
                             </div>
                           ))}
                         </div>
-                      )}
-                    </div>
-                    {/* Right: tasks */}
-                    <div style={{ flex:1,display:"flex",flexDirection:"column",gap:6 }}>
-                      <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:1 }}>
+                      </div>
+
+                      {/* This week tasks */}
+                      <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between" }}>
                         <div style={{ fontSize:8.5,fontWeight:700,color:"rgba(255,255,255,0.25)",textTransform:"uppercase",letterSpacing:"0.1em" }}>This Week</div>
                         <span style={{ fontSize:9,color:"rgba(255,255,255,0.28)" }}>0 / {subStep>=3?4:2} tasks</span>
                       </div>
                       {[
-                        {text:"Optimize LinkedIn networking section to increase recruiter visibility",  tag:"LinkedIn",     tagC:"#60A5FA", show:true},
-                        {text:"Apply to 3 target companies — prioritize Series B/C startups in PM",   tag:"Job Search",   tagC:"#818CF8", show:true},
-                        {text:"Write personalized cover letter for each PM role application",           tag:"Cover Letter", tagC:"#22C55E", show:subStep>=3},
-                        {text:"Connect with 5 people currently in your target roles this week",        tag:"Network",      tagC:"#FBBF24", show:subStep>=3},
+                        {text:"Optimize LinkedIn networking section — add 5 connections in target companies",  tag:"LinkedIn",     tagC:"#60A5FA", due:"Today",    show:true},
+                        {text:"Apply to 3 target companies — prioritize Series B/C PM roles in fintech",      tag:"Job Search",   tagC:"#818CF8", due:"Wed",     show:true},
+                        {text:"Write personalized cover letter for each PM application using Zari template",    tag:"Cover Letter", tagC:"#22C55E", due:"Thu",     show:subStep>=3},
+                        {text:"Connect with 5 people in your target roles — ask for 15-min coffee chat",       tag:"Network",      tagC:"#FBBF24", due:"Fri",     show:subStep>=3},
                       ].filter(t => t.show).map((task,i) => (
-                        <div key={i} style={{ display:"flex",gap:8,alignItems:"flex-start",padding:"10px 12px",background:"#0E1420",border:"1px solid rgba(255,255,255,0.06)",borderRadius:9,animation:`bubble-appear 0.3s ${i*0.08}s both ease` }}>
-                          <div style={{ width:16,height:16,borderRadius:"50%",flexShrink:0,marginTop:1,background:"rgba(255,255,255,0.04)",border:"1.5px solid rgba(255,255,255,0.12)" }}/>
-                          <p style={{ fontSize:10,color:"rgba(255,255,255,0.78)",lineHeight:1.5,margin:0,flex:1 }}>{task.text}</p>
-                          <span style={{ fontSize:7.5,fontWeight:700,color:task.tagC,background:`${task.tagC}18`,padding:"2px 7px",borderRadius:4,flexShrink:0,whiteSpace:"nowrap" }}>{task.tag}</span>
+                        <div key={i} style={{ display:"flex",gap:8,alignItems:"flex-start",padding:"9px 12px",background:"#0E1420",border:"1px solid rgba(255,255,255,0.06)",borderRadius:9,animation:`bubble-appear 0.3s ${i*0.08}s both ease`,flexShrink:0 }}>
+                          <div style={{ width:15,height:15,borderRadius:"50%",flexShrink:0,marginTop:1,background:"rgba(255,255,255,0.04)",border:"1.5px solid rgba(255,255,255,0.12)" }}/>
+                          <p style={{ fontSize:9.5,color:"rgba(255,255,255,0.75)",lineHeight:1.5,margin:0,flex:1 }}>{task.text}</p>
+                          <div style={{ display:"flex",flexDirection:"column",alignItems:"flex-end",gap:3,flexShrink:0 }}>
+                            <span style={{ fontSize:7,fontWeight:700,color:task.tagC,background:`${task.tagC}18`,padding:"2px 6px",borderRadius:4,whiteSpace:"nowrap" }}>{task.tag}</span>
+                            <span style={{ fontSize:7,color:"rgba(255,255,255,0.22)" }}>{task.due}</span>
+                          </div>
                         </div>
                       ))}
+
+                      {/* Weekly goal bar */}
                       {subStep >= 2 && (
-                        <div style={{ background:"rgba(34,197,94,0.05)",border:"1px solid rgba(34,197,94,0.12)",borderRadius:9,padding:"9px 12px",animation:"bubble-appear 0.4s ease",marginTop:"auto" }}>
-                          <div style={{ fontSize:7.5,fontWeight:700,color:"#22C55E",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:5 }}>Weekly Goal</div>
-                          <div style={{ display:"flex",alignItems:"center",gap:10 }}>
-                            <div style={{ flex:1 }}>
-                              <div style={{ display:"flex",justifyContent:"space-between",marginBottom:3 }}>
-                                <span style={{ fontSize:9,color:"rgba(255,255,255,0.45)" }}>Tasks completed</span>
-                                <span style={{ fontSize:9,fontWeight:700,color:"#22C55E" }}>50%</span>
-                              </div>
-                              <div style={{ height:5,borderRadius:99,background:"rgba(255,255,255,0.06)",overflow:"hidden" }}>
-                                <div style={{ width:"50%",height:"100%",borderRadius:99,background:"linear-gradient(90deg,#22C55E,#4ADE80)",transition:"width 1.2s cubic-bezier(0.4,0,0.2,1)" }}/>
-                              </div>
-                            </div>
-                            <span style={{ fontSize:18,fontWeight:900,color:"#22C55E",flexShrink:0 }}>2/4</span>
+                        <div style={{ background:"rgba(34,197,94,0.05)",border:"1px solid rgba(34,197,94,0.12)",borderRadius:9,padding:"9px 12px",animation:"bubble-appear 0.4s ease",marginTop:"auto",flexShrink:0 }}>
+                          <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:5 }}>
+                            <div style={{ fontSize:7.5,fontWeight:700,color:"#22C55E",textTransform:"uppercase",letterSpacing:"0.1em" }}>Weekly Goal</div>
+                            <span style={{ fontSize:18,fontWeight:900,color:"#22C55E" }}>2/4</span>
+                          </div>
+                          <div style={{ height:5,borderRadius:99,background:"rgba(255,255,255,0.06)",overflow:"hidden" }}>
+                            <div style={{ width:"50%",height:"100%",borderRadius:99,background:"linear-gradient(90deg,#22C55E,#4ADE80)",transition:"width 1.2s cubic-bezier(0.4,0,0.2,1)" }}/>
                           </div>
                         </div>
                       )}
