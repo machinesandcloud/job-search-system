@@ -2586,6 +2586,14 @@ function generateResumeHtml(text: string, footerNote = ""): string {
     return true;
   }).join("\n");
 
+  // Strip raw Markdown and broken Unicode that can leak through AI output
+  text = text
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/__([^_]+)__/g, "$1")
+    .replace(/\*([^*\n]+)\*/g, "$1")
+    .replace(/[­﻿​‌‍⁠]/g, "")
+    .replace(/[‐-―−]/g, "-");
+
   // ── Regexes ──────────────────────────────────────────────────
   const BULLET_RE    = /^[•\-\*\u2022►▸→]\s/;
   const DATE_RE      = /\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?|\d{4})\b.{0,40}\b(20\d{2}|19\d{2}|Present|Current|Now)\b/i;
@@ -9288,9 +9296,16 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                   </div>
               : rawFileUrl
               ? <iframe src={`${rawFileUrl}#toolbar=0&navpanes=0`} style={{ flex:1, width:"100%", border:"none", display:"block", minHeight:0 }} title="Resume"/>
+              : resumeText
+              ? <>
+                  <div style={{ fontSize:11, color:"var(--z-text3)", padding:"5px 14px", background:"var(--z-raise)", borderBottom:"1px solid var(--z-bd)", display:"flex", alignItems:"center", justifyContent:"space-between", flexShrink:0 }}>
+                    <span>Text preview · <label style={{ color:"#2563EB", fontWeight:600, cursor:"pointer" }}>re-upload PDF<input type="file" accept=".pdf" style={{ display:"none" }} onChange={e=>{ const f=e.target.files?.[0]; if(!f) return; if(rawFileUrlRef.current) URL.revokeObjectURL(rawFileUrlRef.current); const url=URL.createObjectURL(f); rawFileUrlRef.current=url; setRawFileUrl(url); }}/></label> for annotated view</span>
+                  </div>
+                  <iframe srcDoc={generateResumeHtml(resumeText)} style={{ flex:1, width:"100%", border:"none", display:"block", minHeight:0, background:"#fff" }} title="Resume Preview"/>
+                </>
               : <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:12, background:"var(--z-raise)" }}>
                   <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                  <p style={{ fontSize:13, color:"var(--z-text2)", margin:0, textAlign:"center", maxWidth:220 }}>Re-upload your PDF to restore the preview</p>
+                  <p style={{ fontSize:13, color:"var(--z-text2)", margin:0, textAlign:"center", maxWidth:220 }}>Upload your PDF to see the preview</p>
                   <label style={{ fontSize:12.5, fontWeight:600, color:"#2563EB", cursor:"pointer", padding:"7px 16px", borderRadius:8, border:"1.5px solid #2563EB", background:"rgba(37,99,235,0.05)" }}>
                     Upload PDF
                     <input type="file" accept=".pdf" style={{ display:"none" }} onChange={e => {

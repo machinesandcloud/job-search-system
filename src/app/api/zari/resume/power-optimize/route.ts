@@ -8,15 +8,27 @@ export const maxDuration = 60;
 
 /** Strip meta-commentary and ensure clean resume text output. */
 function cleanResumeOutput(text: string): string {
-  const lines = text.split("\n");
+  // Strip raw Markdown bold/italic before line processing
+  let out = text
+    .replace(/\*\*([^*]+)\*\*/g, "$1")  // **bold** → bold
+    .replace(/__([^_]+)__/g, "$1")       // __bold__ → bold
+    .replace(/\*([^*]+)\*/g, "$1")       // *italic* → italic
+    .replace(/_([^_]+)_/g, "$1")         // _italic_ → italic
+    // Strip invisible/broken Unicode: soft hyphen, zero-width, BOM, word-joiner
+    .replace(/[­﻿​‌‍⁠]/g, "")
+    // Normalize Unicode hyphens/dashes to ASCII hyphen
+    .replace(/[‐-―−]/g, "-");
+
+  const lines = out.split("\n");
   const cleaned: string[] = [];
   let bodyStarted = false;
 
   for (const line of lines) {
     const t = line.trim();
 
-    // Drop unicode box-drawing separators (ASCII = and - are handled by the HTML renderer)
+    // Drop unicode box-drawing separators and ASCII separator lines
     if (/^[─━═╌╍]{4,}$/.test(t) || /^──/.test(t)) continue;
+    if (/^[=\-_]{4,}$/.test(t)) continue;
 
     // Skip meta preamble before the name starts
     if (!bodyStarted) {
@@ -71,27 +83,27 @@ Receive a resume (possibly in garbled order from PDF extraction). Output the COM
 Rewrite: Professional Summary, Skills, and bullet points for the 2 most recent jobs.
 Preserve word-for-word: older job bullets, all company names, job titles, dates, education, certifications.
 
-═══════════════════════════════════════════════
-CRITICAL LAYOUT RULES — READ CAREFULLY
-═══════════════════════════════════════════════
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+OUTPUT FORMAT — HARD CONSTRAINTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-1. DO NOT use literal divider characters.
-   Do NOT type: ============ or ------------ or __________
-   These are NOT separators in this output. The HTML renderer adds visual section borders automatically.
-   Use ONLY clean blank lines for spacing between sections.
+ABSOLUTE PROHIBITION — never output any of these:
+  • Raw Markdown: **bold**, __bold__, *italic*, _italic_, # headings, [links](url)
+  • Separator/divider lines: ====, ----, ____, ════, ────, or any repeated char ≥4
+  • Browser print artifacts: date/time stamps, page URLs, "about:blank", page numbers
+  • Unicode soft hyphens (­), zero-width spaces, or garbled characters (e.g. "high￾performance")
+  • Any preamble text before the candidate's name
 
-2. DO NOT include browser print artifacts.
-   Never include: date/time stamps, page URLs, "about:blank", page numbers, or any print metadata.
+Use ONLY:
+  • Plain ASCII text
+  • • (U+2022 BULLET) for all list items
+  • · (U+00B7 MIDDLE DOT) as a separator in the contact line
+  • Blank lines for vertical spacing
+  • ALL CAPS for section headers and candidate name
 
-3. Keep the resume to 2 pages maximum.
-   If too long: shorten older experience first, reduce bullets in older roles, tighten the summary.
-
-4. Section order — REQUIRED:
-   NAME → CONTACT INFO → PROFESSIONAL SUMMARY → SKILLS → PROFESSIONAL EXPERIENCE → EDUCATION → CERTIFICATIONS
-
-═══════════════════════════════════════════════
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 EXACT OUTPUT FORMAT
-═══════════════════════════════════════════════
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 [CANDIDATE NAME IN ALL CAPS]
 
@@ -100,7 +112,7 @@ EXACT OUTPUT FORMAT
 
 PROFESSIONAL SUMMARY
 
-[One executive paragraph, left-aligned, 4–6 lines. Lead with the top JD requirement. Include 2+ real metrics. No "results-driven", "passionate", "detail-oriented", "team player", "self-starter", "seasoned".]
+[One executive paragraph, 4–6 lines. Lead with the top JD requirement. Include 2+ real metrics. Never use: results-driven, passionate, detail-oriented, team player, self-starter, seasoned.]
 
 SKILLS
 
@@ -108,7 +120,7 @@ SKILLS
 [Category Label]: [skill1], [skill2], [skill3]
 [Category Label]: [skill1], [skill2], [skill3]
 
-Rules: 5–7 skill lines maximum. Bold only the category label. JD-required skills first.
+5–7 skill lines maximum. No bold, no Markdown. JD-required skills first.
 
 PROFESSIONAL EXPERIENCE
 
@@ -134,68 +146,60 @@ EDUCATION
 CERTIFICATIONS
 
 [Cert One] • [Cert Two] • [Cert Three]
-[Cert Four] • [Cert Five]
 
-═══════════════════════════════════════════════
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 FORMATTING RULES
-═══════════════════════════════════════════════
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 NAME LINE:
-- Full name in ALL CAPS on its own line.
-- Output name on a single clean line with no extra spaces.
+- Full name in ALL CAPS, single clean line, no extra spaces.
 
 CONTACT LINE:
-- Phone · Email on one line.
-- City, State on the next line.
+- "Phone · Email" on one line. City, State on the next line.
 
 SECTION HEADERS:
-- ALL CAPS, plain text: PROFESSIONAL SUMMARY, SKILLS, PROFESSIONAL EXPERIENCE, EDUCATION, CERTIFICATIONS.
-- Each header on its own line, preceded and followed by a blank line.
-- No decorative icons, no colored headers, no sidebars.
+- ALL CAPS plain text only: PROFESSIONAL SUMMARY, SKILLS, PROFESSIONAL EXPERIENCE, EDUCATION, CERTIFICATIONS.
+- Preceded and followed by one blank line. No icons, no decorations.
 
 EXPERIENCE ENTRIES:
-- Company name left-aligned, dates right-aligned on the same line (pad with spaces to ~60 chars total line width).
-- Job title on the next line (plain, not bulleted).
+- Company left-aligned, dates right-aligned on the same line (~60 chars wide, space-padded).
+- Job title on the next line (plain text, not bulleted).
 - One blank line before bullets.
-- Use • for every bullet.
-- 5–7 bullets for the 2 most recent roles (rewritten); 3–4 bullets for older roles (copy exactly).
+- • for every bullet. 5–7 bullets for the 2 most recent roles; 3–4 for older roles.
 - One blank line between roles.
 
 SKILLS:
-- Format: Category Label: skill1, skill2, skill3
-- 5–7 skill lines.
-- Reorder so JD-required skills appear first.
+- Plain text format: "Category Label: skill1, skill2, skill3"
+- No **bold**, no colons after last item, no Markdown.
+- 5–7 lines. JD-required skills first.
 
 CERTIFICATIONS:
-- Compact: multiple certs per line separated by •.
-- Keep certifications on 1–2 lines total.
+- Multiple certs per line separated by •. Keep to 1–2 lines total.
 
-═══════════════════════════════════════════════
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 REWRITE RULES
-═══════════════════════════════════════════════
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Summary: Lead with JD's top requirement. 2+ specific metrics. No generic adjectives. 4–6 lines.
 Skills: "Category: items" format. JD skills first. 5–7 lines.
 Bullets: [Strong Verb] + [Specific Context] + [Quantified Result]. Embed JD keywords naturally.
 Never invent companies, roles, or fabricated results.
 
-═══════════════════════════════════════════════
-CRITICAL RULES
-═══════════════════════════════════════════════
-- Output starts with the person's name on LINE 1. Nothing before it.
-- NO preamble: do not write "Here is", "Optimized resume:", "OPTIMIZED SECTIONS", or any intro.
-- NO meta-commentary anywhere in the output.
-- NO "Original resume:" section at the end.
-- NO separator lines of ====, ----, or ____ — blank lines only for spacing.
-- Use • for all bullet points (never -, *, or numbers).
-- Reconstruct correct section order even if input is garbled.
-- The resume must be 2 pages maximum when printed at standard letter size.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PAGE LENGTH
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2 pages maximum at US Letter size. If too long: shorten older roles first, reduce bullets, tighten summary.
 
-FINAL SELF-CHECK before returning:
-- Is the resume 2 pages or fewer? If not, shorten older roles.
-- Are there any literal ==== or ---- lines? Remove them.
-- Are company names and dates on the same line? Fix if not.
-- Are bullets using •? Fix if not.
-- Are certifications compact (1–2 lines)? Fix if not.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MANDATORY SELF-CHECK — DO THIS BEFORE RETURNING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Scan every line. Does any line contain ** or __ or * or _ used as Markdown? → REMOVE them.
+2. Is the first line the candidate's name? If not → fix.
+3. Are there any separator lines (====, ----, ────)? → DELETE them.
+4. Are company names and dates on the same line? → Fix if not.
+5. Are all bullets using •? → Fix any - or * bullets.
+6. Are certifications on 1–2 lines? → Compress if not.
+7. Are there any broken characters, soft hyphens, or garbled text? → Fix or remove.
+8. Is the resume ≤2 pages? → Shorten older roles if not.
 
 Return ONLY valid JSON: { "resumeText": "<complete resume, \\n for newlines>" }`;
 
