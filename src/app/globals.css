@@ -184,7 +184,8 @@ select {
 }
 @keyframes blink {
   0%, 100% { opacity: 1; }
-  50%       { opacity: 0; }
+  45%       { opacity: 0.1; }
+  55%       { opacity: 0.1; }
 }
 @keyframes marquee-rev {
   from { transform: translateX(-50%); }
@@ -344,13 +345,17 @@ select {
 .stagger.is-visible > *:nth-child(6) { transition-delay:400ms; }
 
 /* ── Coaching bubbles ────────────────────────────────── */
+/* Spring-like overshoot: slides up and slightly overshoots before settling */
 @keyframes bubble-appear {
-  0%   { opacity:0; transform:translateY(10px) scale(0.95); }
-  100% { opacity:1; transform:translateY(0)    scale(1);    }
+  0%   { opacity:0; transform:translateY(14px) scale(0.91); animation-timing-function:cubic-bezier(0.34,1.56,0.64,1); }
+  60%  { opacity:1; transform:translateY(-3px) scale(1.02); }
+  100% { opacity:1; transform:translateY(0)   scale(1);    }
 }
+/* Organic typing indicator — matches real chat apps (WhatsApp / iMessage cadence) */
 @keyframes dot-bounce {
-  0%,60%,100% { transform:translateY(0);    opacity:.35; }
-  30%         { transform:translateY(-5px); opacity:1;   }
+  0%,20%,100% { transform:translateY(0);    opacity:0.45; }
+  40%          { transform:translateY(-7px); opacity:1;    animation-timing-function:cubic-bezier(0.34,1.56,0.64,1); }
+  60%          { transform:translateY(-3px); opacity:0.75; }
 }
 
 /* ── Scan line ───────────────────────────────────────── */
@@ -448,16 +453,20 @@ select {
    ZARI AVATAR & VOICE ANIMATIONS
 ══════════════════════════════════════════════════════ */
 
-/* ── Sphere breathe (idle state) ─────────────────────── */
+/* ── Sphere breathe — float + brightness for life-like idle ─ */
 @keyframes sphere-breathe {
-  0%,100% { transform:scale(1);    filter:brightness(1);   }
-  50%      { transform:scale(1.04); filter:brightness(1.15); }
+  0%   { transform:scale(1)    translateY(0px);   filter:brightness(1);    }
+  30%  { transform:scale(1.03) translateY(-2px);  filter:brightness(1.12); animation-timing-function:cubic-bezier(0.4,0,0.2,1); }
+  60%  { transform:scale(1.05) translateY(-4px);  filter:brightness(1.22); }
+  80%  { transform:scale(1.03) translateY(-2px);  filter:brightness(1.12); }
+  100% { transform:scale(1)    translateY(0px);   filter:brightness(1);    }
 }
 
-/* ── Pulse rings radiating outward ───────────────────── */
+/* ── Pulse rings — starts at full size, expands & fades ──── */
 @keyframes ring-pulse {
-  0%   { transform:scale(0.85); opacity:0.6; }
-  100% { transform:scale(1.55); opacity:0;   }
+  0%   { transform:scale(1);    opacity:0.55; }
+  25%  { opacity:0.4; animation-timing-function:cubic-bezier(0.4,0,0.6,1); }
+  100% { transform:scale(1.7);  opacity:0;    }
 }
 
 /* ── Slow rotation for orbit ring ────────────────────── */
@@ -523,10 +532,15 @@ select {
   to   { opacity:1; transform:scaleY(1)   translateY(0);   }
 }
 
-/* ── Realistic voice waveform (new avatar) ───────────── */
+/* ── Realistic voice waveform — organic multi-step variation ─ */
 @keyframes voice-wave {
-  from { transform: scaleY(0.3); opacity:0.5; }
-  to   { transform: scaleY(1.6); opacity:1;   }
+  0%   { transform:scaleY(0.35); opacity:0.45; animation-timing-function:cubic-bezier(0.4,0,0.2,1); }
+  20%  { transform:scaleY(1.5);  opacity:1;    animation-timing-function:cubic-bezier(0.0,0,0.4,1); }
+  35%  { transform:scaleY(0.6);  opacity:0.65; animation-timing-function:cubic-bezier(0.4,0,0.2,1); }
+  55%  { transform:scaleY(1.8);  opacity:1;    animation-timing-function:cubic-bezier(0.0,0,0.4,1); }
+  70%  { transform:scaleY(0.4);  opacity:0.5;  animation-timing-function:cubic-bezier(0.4,0,0.2,1); }
+  85%  { transform:scaleY(1.3);  opacity:0.9;  }
+  100% { transform:scaleY(0.35); opacity:0.45; }
 }
 
 /* ── Neural orbit particles (new thinking state) ─────── */
@@ -582,6 +596,33 @@ select {
 @keyframes aurora-c {
   0%,100% { transform: translate(0,0) scale(1); opacity:0.10; }
   50%      { transform: translate(35px,45px) scale(1.06); opacity:0.16; }
+}
+
+/* ── Aurora slow — ambient blob drift for voice panels ───── */
+@keyframes aurora-slow {
+  0%   { transform:translate(0px,0px)   scale(1);    opacity:0.12; }
+  25%  { transform:translate(18px,-14px) scale(1.06); opacity:0.18; animation-timing-function:cubic-bezier(0.4,0,0.6,1); }
+  55%  { transform:translate(-12px,20px) scale(0.94); opacity:0.10; }
+  80%  { transform:translate(22px,8px)  scale(1.04); opacity:0.16; }
+  100% { transform:translate(0px,0px)   scale(1);    opacity:0.12; }
+}
+
+/* ── Upload bar — nonlinear fill, stalls at 75% then races ── */
+@keyframes upload-bar {
+  0%   { width:0%;   animation-timing-function:cubic-bezier(0.4,0,0.2,1); }
+  40%  { width:58%;  animation-timing-function:cubic-bezier(0.0,0,1,1); }
+  65%  { width:75%;  animation-timing-function:cubic-bezier(0.0,0,0.1,1); }
+  80%  { width:76%;  animation-timing-function:cubic-bezier(0.4,0,0.2,1); }
+  100% { width:100%; }
+}
+
+/* ── Analyze bar — stalls at 82%, like a real AI spinner ─── */
+@keyframes analyze-bar {
+  0%   { width:0%;  animation-timing-function:cubic-bezier(0.4,0,0.2,1); }
+  35%  { width:52%; animation-timing-function:cubic-bezier(0.0,0,1,1); }
+  62%  { width:82%; animation-timing-function:cubic-bezier(0.0,0,0.05,1); }
+  85%  { width:83%; animation-timing-function:cubic-bezier(0.4,0,0.2,1); }
+  100% { width:100%; }
 }
 
 /* ── Counter number pop ──────────────────────────────── */

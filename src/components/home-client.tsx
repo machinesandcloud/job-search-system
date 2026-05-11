@@ -524,21 +524,21 @@ function FeatureMockup({ type }: { type: string }) {
       <div style={{ padding:"14px 18px 18px" }}>
         {/* UPLOAD */}
         {step === 0 && (
-          <div style={{ border:"2px dashed rgba(59,130,246,0.3)", borderRadius:12, padding:"22px 14px", textAlign:"center", background:"rgba(59,130,246,0.05)", animation:"bubble-appear 0.4s ease" }}>
+          <div style={{ border:"2px dashed rgba(59,130,246,0.3)", borderRadius:12, padding:"22px 14px", textAlign:"center", background:"rgba(59,130,246,0.05)", animation:"bubble-appear 0.5s cubic-bezier(0.34,1.56,0.64,1)" }}>
             <div style={{ width:40,height:40,borderRadius:10,background:"rgba(59,130,246,0.12)",border:"1px solid rgba(59,130,246,0.22)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 10px" }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="#60A5FA" strokeWidth="1.8" style={{ width:20,height:20 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
             </div>
             <p style={{ fontSize:12,fontWeight:700,color:"#60A5FA",marginBottom:3 }}>Uploading resume_v3_final.pdf</p>
             <p style={{ fontSize:10,color:"rgba(255,255,255,0.3)",marginBottom:12 }}>PDF · 847 KB</p>
             <div style={{ height:3,borderRadius:99,background:"rgba(255,255,255,0.07)",overflow:"hidden" }}>
-              <div style={{ height:"100%",background:"linear-gradient(90deg,#3B82F6,#60A5FA)",borderRadius:99,animation:"upload-bar 1.2s ease forwards" }}/>
+              <div style={{ height:"100%",background:"linear-gradient(90deg,#3B82F6,#60A5FA)",borderRadius:99,animation:"upload-bar 2.4s linear forwards" }}/>
             </div>
           </div>
         )}
 
         {/* ANALYZING */}
         {step === 1 && (
-          <div style={{ animation:"bubble-appear 0.4s ease" }}>
+          <div style={{ animation:"bubble-appear 0.5s cubic-bezier(0.34,1.56,0.64,1)" }}>
             <p style={{ fontSize:10.5,fontWeight:700,color:"#60A5FA",marginBottom:11,display:"flex",alignItems:"center",gap:7 }}>
               <span style={{ width:7,height:7,borderRadius:"50%",background:"#3B82F6",animation:"blink 0.9s ease infinite",display:"inline-block" }}/>
               Zari is reading your resume…
@@ -549,7 +549,7 @@ function FeatureMockup({ type }: { type: string }) {
               {label:"Scoring 22 bullet statements",  done:true },
               {label:"Generating AI rewrites",        done:false},
             ].map((item,idx)=>(
-              <div key={item.label} style={{ display:"flex",alignItems:"center",gap:9,marginBottom:9,opacity:idx<3?1:0.45,animation:`bubble-appear 0.35s ${idx*0.15}s both ease` }}>
+              <div key={item.label} style={{ display:"flex",alignItems:"center",gap:9,marginBottom:9,opacity:idx<3?1:0.45,animation:`bubble-appear 0.35s ${idx*0.15}s both cubic-bezier(0.34,1.56,0.64,1)` }}>
                 <div style={{ width:17,height:17,borderRadius:"50%",flexShrink:0,background:item.done?"rgba(134,239,172,0.1)":"rgba(255,255,255,0.04)",border:`1.5px solid ${item.done?"rgba(134,239,172,0.35)":"rgba(255,255,255,0.09)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:item.done?"#86EFAC":"rgba(255,255,255,0.25)" }}>
                   {item.done?"✓":<span style={{ width:5,height:5,borderRadius:"50%",background:"rgba(255,255,255,0.2)",animation:`dot-bounce 1.1s ${idx*0.2}s infinite`,display:"inline-block" }}/>}
                 </div>
@@ -557,14 +557,14 @@ function FeatureMockup({ type }: { type: string }) {
               </div>
             ))}
             <div style={{ marginTop:12,height:3,borderRadius:99,background:"rgba(255,255,255,0.07)",overflow:"hidden" }}>
-              <div style={{ height:"100%",width:"82%",background:"linear-gradient(90deg,#3B82F6,#60A5FA)",borderRadius:99,animation:"analyze-bar 1.6s ease forwards" }}/>
+              <div style={{ height:"100%",width:"82%",background:"linear-gradient(90deg,#3B82F6,#60A5FA)",borderRadius:99,animation:"analyze-bar 2.8s linear forwards" }}/>
             </div>
           </div>
         )}
 
         {/* RESULTS */}
         {step === 2 && (
-          <div style={{ animation:"bubble-appear 0.4s ease" }}>
+          <div style={{ animation:"bubble-appear 0.5s cubic-bezier(0.34,1.56,0.64,1)" }}>
             {/* Score row */}
             <div style={{ display:"flex",gap:12,marginBottom:12,alignItems:"center" }}>
               <div style={{ flexShrink:0,display:"flex",flexDirection:"column",alignItems:"center",gap:3 }}>
@@ -603,7 +603,7 @@ function FeatureMockup({ type }: { type: string }) {
               { before:"Managed supply chain redesign across 5 business units", after:"Led end-to-end supply chain redesign across 5 BUs · cut time-to-ship 22% · $340K in savings · exec sign-off in 3 weeks" },
               { before:"Responsible for vendor relationships in APAC region", after:"Negotiated $1.2M APAC vendor contracts · 3 new partnerships · 18% cost reduction YoY" },
             ].map((b,i)=>(
-              <div key={i} style={{ marginBottom:i===0?9:0, animation:`bubble-appear 0.35s ${i*0.15}s both ease` }}>
+              <div key={i} style={{ marginBottom:i===0?9:0, animation:`bubble-appear 0.35s ${i*0.15}s both cubic-bezier(0.34,1.56,0.64,1)` }}>
                 <div style={{ background:"rgba(220,38,38,0.07)",border:"1px solid rgba(220,38,38,0.2)",borderLeft:"3px solid #DC2626",borderRadius:"0 7px 7px 0",padding:"6px 9px",marginBottom:4 }}>
                   <span style={{ fontSize:8,fontWeight:700,color:"#F87171",display:"block",marginBottom:2 }}>BEFORE</span>
                   <p style={{ fontSize:9.5,color:"rgba(248,113,113,0.8)",textDecoration:"line-through",lineHeight:1.45,margin:0 }}>{b.before}</p>
@@ -615,7 +615,7 @@ function FeatureMockup({ type }: { type: string }) {
               </div>
             ))}
 
-            <button style={{ width:"100%",marginTop:10,fontSize:11,fontWeight:700,padding:"9px",borderRadius:9,border:"none",background:"linear-gradient(135deg,#3B82F6,#2563EB)",color:"white",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:6,boxShadow:"0 3px 14px rgba(37,99,235,0.45)",animation:"bubble-appear 0.35s 0.3s both ease" }}>
+            <button style={{ width:"100%",marginTop:10,fontSize:11,fontWeight:700,padding:"9px",borderRadius:9,border:"none",background:"linear-gradient(135deg,#3B82F6,#2563EB)",color:"white",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:6,boxShadow:"0 3px 14px rgba(37,99,235,0.45)",animation:"bubble-appear 0.35s 0.3s both cubic-bezier(0.34,1.56,0.64,1)" }}>
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:11,height:11 }}><path d="M8 3v8M4 8l4 4 4-4"/></svg>
               Download optimized resume
             </button>
@@ -661,7 +661,7 @@ function FeatureMockup({ type }: { type: string }) {
           </div>
           <span style={{ fontSize:8.5,color:"rgba(200,208,224,0.5)",letterSpacing:"0.05em" }}>{isListening?"listening…":"coaching…"}</span>
           <div style={{ display:"flex",gap:2,alignItems:"flex-end",height:14 }}>
-            {[3,6,11,16,11,6,3].map((h,i)=><div key={i} style={{ width:2.5,borderRadius:99,background:"rgba(165,180,252,0.65)",height:h,animation:`voice-wave ${0.48+i*0.07}s ease-in-out infinite alternate` }}/>)}
+            {[3,6,11,16,11,6,3].map((h,i)=><div key={i} style={{ width:2.5,borderRadius:99,background:"rgba(165,180,252,0.65)",height:h,animation:`voice-wave ${0.48+i*0.07}s linear infinite` }}/>)}
           </div>
           <div style={{ width:40,height:40,borderRadius:"50%",background:isListening?"rgba(239,68,68,0.9)":"rgba(59,130,246,0.85)",boxShadow:isListening?"0 0 0 6px rgba(239,68,68,0.12),0 0 18px rgba(239,68,68,0.4)":"0 0 0 6px rgba(59,130,246,0.1),0 0 18px rgba(59,130,246,0.3)",display:"flex",alignItems:"center",justifyContent:"center",animation:isListening?"sphere-breathe 1.2s ease-in-out infinite":"none" }}>
             {isListening?<div style={{ width:10,height:10,borderRadius:2,background:"white" }}/>:<svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" style={{ width:15,height:15 }}><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0014 0M12 19v3M9 22h6"/></svg>}
@@ -670,24 +670,24 @@ function FeatureMockup({ type }: { type: string }) {
         {/* Chat col */}
         <div style={{ flex:1,display:"flex",flexDirection:"column",gap:6,zIndex:1,overflow:"hidden" }}>
           {visibleMsgs.map((m,i)=>(
-            <div key={i} style={{ display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start",animation:"bubble-appear 0.35s ease" }}>
+            <div key={i} style={{ display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start",animation:"bubble-appear 0.45s cubic-bezier(0.34,1.56,0.64,1)" }}>
               <div style={{ maxWidth:"90%",padding:"8px 10px",fontSize:9.5,lineHeight:1.55,borderRadius:m.role==="coach"?"4px 12px 12px 12px":"12px 4px 12px 12px",background:m.role==="coach"?"rgba(79,70,229,0.28)":"rgba(255,255,255,0.07)",border:m.role==="coach"?"1px solid rgba(59,130,246,0.35)":"1px solid rgba(255,255,255,0.09)",color:"rgba(255,255,255,0.82)" }}>{m.text}</div>
             </div>
           ))}
           {step < SESSION_MSGS && step%2===0 && (
-            <div style={{ alignSelf:"flex-start",padding:"7px 10px",borderRadius:"4px 12px 12px 12px",background:"rgba(79,70,229,0.18)",border:"1px solid rgba(59,130,246,0.2)",display:"flex",gap:3,alignItems:"center",animation:"bubble-appear 0.3s ease" }}>
+            <div style={{ alignSelf:"flex-start",padding:"7px 10px",borderRadius:"4px 12px 12px 12px",background:"rgba(79,70,229,0.18)",border:"1px solid rgba(59,130,246,0.2)",display:"flex",gap:3,alignItems:"center",animation:"bubble-appear 0.4s cubic-bezier(0.34,1.56,0.64,1)" }}>
               {[0,1,2].map(i=><span key={i} style={{ width:4,height:4,borderRadius:"50%",background:"rgba(165,180,252,0.5)",animation:`dot-bounce 1.2s ${i*0.15}s infinite`,display:"inline-block" }}/>)}
             </div>
           )}
           {step >= SESSION_MSGS && (
-            <div style={{ background:"rgba(59,130,246,0.08)",border:"1px solid rgba(59,130,246,0.22)",borderRadius:9,padding:"8px 10px",animation:"bubble-appear 0.3s ease",marginTop:"auto" }}>
+            <div style={{ background:"rgba(59,130,246,0.08)",border:"1px solid rgba(59,130,246,0.22)",borderRadius:9,padding:"8px 10px",animation:"bubble-appear 0.4s cubic-bezier(0.34,1.56,0.64,1)",marginTop:"auto" }}>
               <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6 }}>
                 <span style={{ fontSize:8,fontWeight:700,color:"#60A5FA",textTransform:"uppercase",letterSpacing:"0.1em" }}>STAR Score</span>
                 <span style={{ fontSize:15,fontWeight:900,color:"#60A5FA" }}>8.2/10</span>
               </div>
               <div style={{ display:"flex",gap:4 }}>
                 {[{l:"S",v:9,c:"#4ADE80"},{l:"T",v:8,c:"#60A5FA"},{l:"A",v:9,c:"#4ADE80"},{l:"R",v:7,c:"#FBBF24"}].map((s,i)=>(
-                  <div key={i} style={{ flex:1,background:"rgba(255,255,255,0.04)",borderRadius:5,padding:"4px 0",textAlign:"center",animation:`bubble-appear 0.3s ${i*0.07}s both ease` }}>
+                  <div key={i} style={{ flex:1,background:"rgba(255,255,255,0.04)",borderRadius:5,padding:"4px 0",textAlign:"center",animation:`bubble-appear 0.3s ${i*0.07}s both cubic-bezier(0.34,1.56,0.64,1)` }}>
                     <div style={{ fontSize:11,fontWeight:900,color:s.c,lineHeight:1 }}>{s.v}</div>
                     <div style={{ fontSize:7.5,color:"rgba(255,255,255,0.3)",marginTop:1.5 }}>{s.l}</div>
                   </div>
@@ -723,14 +723,14 @@ function FeatureMockup({ type }: { type: string }) {
 
         {/* Recording state */}
         {step===0&&(
-          <div style={{ animation:"bubble-appear 0.35s ease" }}>
+          <div style={{ animation:"bubble-appear 0.45s cubic-bezier(0.34,1.56,0.64,1)" }}>
             <div style={{ display:"flex",alignItems:"center",justifyContent:"center",gap:6,marginBottom:8 }}>
               <span style={{ width:6,height:6,borderRadius:"50%",background:"#EF4444",animation:"blink 0.8s ease infinite",display:"inline-block" }}/>
               <p style={{ fontSize:10,color:"rgba(255,255,255,0.45)",margin:0 }}>Recording your answer…</p>
             </div>
             <div style={{ display:"flex",gap:2,alignItems:"flex-end",justifyContent:"center",height:26,marginBottom:12 }}>
               {[6,10,18,26,20,30,18,22,14,20,14,10,6].map((h,i)=>(
-                <div key={i} style={{ width:3.5,borderRadius:99,background:"#EF4444",height:h,opacity:0.75,animation:`voice-wave ${0.35+i*0.06}s ease-in-out ${i*0.04}s infinite alternate` }}/>
+                <div key={i} style={{ width:3.5,borderRadius:99,background:"#EF4444",height:h,opacity:0.75,animation:`voice-wave ${0.35+i*0.06}s linear ${i*0.04}s infinite` }}/>
               ))}
             </div>
             <div style={{ display:"flex",gap:8,justifyContent:"center" }}>
@@ -742,20 +742,20 @@ function FeatureMockup({ type }: { type: string }) {
 
         {/* Scoring results */}
         {step===1&&(
-          <div style={{ animation:"bubble-appear 0.35s ease" }}>
+          <div style={{ animation:"bubble-appear 0.45s cubic-bezier(0.34,1.56,0.64,1)" }}>
             <div style={{ display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:4,marginBottom:10 }}>
               {[{l:"Situation",v:9,c:"#86EFAC"},{l:"Task",v:8,c:"#86EFAC"},{l:"Action",v:9,c:"#86EFAC"},{l:"Result",v:7,c:"#FCD34D"},{l:"Leadership",v:9,c:"#86EFAC"},{l:"Impact",v:8,c:"#86EFAC"}].map((s,i)=>(
-                <div key={s.l} style={{ background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:7,padding:"7px 3px",textAlign:"center",animation:`bubble-appear 0.3s ${i*0.07}s both ease` }}>
+                <div key={s.l} style={{ background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:7,padding:"7px 3px",textAlign:"center",animation:`bubble-appear 0.3s ${i*0.07}s both cubic-bezier(0.34,1.56,0.64,1)` }}>
                   <div style={{ fontSize:15,fontWeight:900,color:s.c,lineHeight:1 }}>{s.v}</div>
                   <div style={{ fontSize:6.5,color:"rgba(255,255,255,0.28)",marginTop:2,lineHeight:1.2 }}>{s.l}</div>
                 </div>
               ))}
             </div>
-            <div style={{ borderLeft:"4px solid #2563EB",background:"rgba(37,99,235,0.08)",borderRadius:"0 8px 8px 0",padding:"8px 11px",marginBottom:8,animation:"bubble-appear 0.3s 0.4s both ease" }}>
+            <div style={{ borderLeft:"4px solid #2563EB",background:"rgba(37,99,235,0.08)",borderRadius:"0 8px 8px 0",padding:"8px 11px",marginBottom:8,animation:"bubble-appear 0.3s 0.4s both cubic-bezier(0.34,1.56,0.64,1)" }}>
               <p style={{ fontSize:8.5,fontWeight:800,color:"#60A5FA",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:3 }}>Coaching Note from Zari</p>
               <p style={{ fontSize:10,color:"rgba(147,197,253,0.85)",lineHeight:1.55,margin:0 }}>Strong structure and evidence. Your Result is the weakest — it needs a specific number. Vague outcomes are screened out at this level.</p>
             </div>
-            <div style={{ borderLeft:"4px solid #059669",background:"rgba(5,150,105,0.08)",borderRadius:"0 8px 8px 0",padding:"8px 11px",animation:"bubble-appear 0.3s 0.55s both ease" }}>
+            <div style={{ borderLeft:"4px solid #059669",background:"rgba(5,150,105,0.08)",borderRadius:"0 8px 8px 0",padding:"8px 11px",animation:"bubble-appear 0.3s 0.55s both cubic-bezier(0.34,1.56,0.64,1)" }}>
               <p style={{ fontSize:8.5,fontWeight:800,color:"#34D399",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:3 }}>Stronger Result Statement</p>
               <p style={{ fontSize:10,color:"rgba(52,211,153,0.85)",lineHeight:1.55,margin:0,fontStyle:"italic" }}>&ldquo;Finance signed off 2 weeks ahead of schedule — P1 incidents dropped to zero that quarter. I led that outcome, not just the process.&rdquo;</p>
             </div>
@@ -799,7 +799,7 @@ function FeatureMockup({ type }: { type: string }) {
             {scores.map((s,i)=>{
               const c=s.v>=8?"#4ADE80":s.v>=6?"#FBBF24":"#F87171";
               return(
-                <div key={s.l} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:5,padding:"4px 8px",animation:`bubble-appear 0.3s ${i*0.06}s both ease` }}>
+                <div key={s.l} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:5,padding:"4px 8px",animation:`bubble-appear 0.3s ${i*0.06}s both cubic-bezier(0.34,1.56,0.64,1)` }}>
                   <span style={{ fontSize:9,color:"rgba(255,255,255,0.38)" }}>{s.l}</span>
                   <span style={{ fontSize:10.5,fontWeight:800,color:c }}>{s.v}/10</span>
                 </div>
@@ -810,14 +810,14 @@ function FeatureMockup({ type }: { type: string }) {
 
         {/* BEFORE state */}
         {step===0&&(
-          <div style={{ animation:"bubble-appear 0.3s ease" }}>
+          <div style={{ animation:"bubble-appear 0.4s cubic-bezier(0.34,1.56,0.64,1)" }}>
             <p style={{ fontSize:8.5,fontWeight:700,color:"rgba(255,255,255,0.28)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:7 }}>Priority Fixes</p>
             {[
               {label:"Headline",    fix:"No target role or keywords — invisible to recruiters"},
               {label:"Experience",  fix:"Bullets describe tasks, not impact. No metrics."},
               {label:"Summary",     fix:"Generic opener. Fails to position you for a direction."},
             ].map((item,i)=>(
-              <div key={i} style={{ display:"flex",gap:7,marginBottom:6,animation:`bubble-appear 0.3s ${i*0.08}s both ease` }}>
+              <div key={i} style={{ display:"flex",gap:7,marginBottom:6,animation:`bubble-appear 0.3s ${i*0.08}s both cubic-bezier(0.34,1.56,0.64,1)` }}>
                 <div style={{ width:3.5,borderRadius:99,background:"#EF4444",flexShrink:0,minHeight:14 }}/>
                 <div>
                   <span style={{ fontSize:9.5,fontWeight:700,color:"#F87171" }}>{item.label}: </span>
@@ -834,12 +834,12 @@ function FeatureMockup({ type }: { type: string }) {
 
         {/* AFTER state */}
         {step===1&&(
-          <div style={{ animation:"bubble-appear 0.35s ease" }}>
+          <div style={{ animation:"bubble-appear 0.45s cubic-bezier(0.34,1.56,0.64,1)" }}>
             {[
               {section:"Headline",   before:"Operations Lead at FinCo Ltd",  after:"Senior PM | Ops → Product | $340K impact · cross-functional delivery | Open to new roles"},
               {section:"Summary",    before:"I am a results-driven professional with over 8 years of experience in operations...",  after:"PM transitioning from Ops — I turn ambiguous problems into shipped products with measurable impact across finance and supply chain."},
             ].map((r,i)=>(
-              <div key={i} style={{ marginBottom:i===0?8:0,animation:`bubble-appear 0.35s ${i*0.12}s both ease` }}>
+              <div key={i} style={{ marginBottom:i===0?8:0,animation:`bubble-appear 0.35s ${i*0.12}s both cubic-bezier(0.34,1.56,0.64,1)` }}>
                 <div style={{ fontSize:8,fontWeight:700,color:"rgba(255,255,255,0.28)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:4 }}>{r.section}</div>
                 <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:5 }}>
                   <div style={{ background:"rgba(239,68,68,0.07)",border:"1px solid rgba(239,68,68,0.18)",borderRadius:7,padding:"7px 9px" }}>
@@ -853,7 +853,7 @@ function FeatureMockup({ type }: { type: string }) {
                 </div>
               </div>
             ))}
-            <button style={{ width:"100%",marginTop:9,fontSize:11,fontWeight:700,padding:"8px",borderRadius:8,border:"none",background:"#0A66C2",color:"white",cursor:"pointer",animation:"bubble-appear 0.35s 0.25s both ease" }}>Copy to LinkedIn →</button>
+            <button style={{ width:"100%",marginTop:9,fontSize:11,fontWeight:700,padding:"8px",borderRadius:8,border:"none",background:"#0A66C2",color:"white",cursor:"pointer",animation:"bubble-appear 0.35s 0.25s both cubic-bezier(0.34,1.56,0.64,1)" }}>Copy to LinkedIn →</button>
           </div>
         )}
       </div>
@@ -872,7 +872,7 @@ function FeatureMockup({ type }: { type: string }) {
       </div>
       <div style={{ padding:"14px 18px 18px" }}>
         {step===0&&(
-          <div style={{ animation:"bubble-appear 0.35s ease" }}>
+          <div style={{ animation:"bubble-appear 0.45s cubic-bezier(0.34,1.56,0.64,1)" }}>
             <p style={{ fontSize:10.5,fontWeight:700,color:"rgba(255,255,255,0.68)",marginBottom:10 }}>Tell Zari about your situation</p>
             {[
               {label:"Current level",   val:"Senior Engineer (L5) · 3 years"},
@@ -880,7 +880,7 @@ function FeatureMockup({ type }: { type: string }) {
               {label:"Timeline",        val:"Q2 review cycle"},
               {label:"Biggest blocker", val:"Manager keeps saying 'not yet'"},
             ].map((f,i)=>(
-              <div key={i} style={{ marginBottom:7,animation:`bubble-appear 0.3s ${i*0.08}s both ease` }}>
+              <div key={i} style={{ marginBottom:7,animation:`bubble-appear 0.3s ${i*0.08}s both cubic-bezier(0.34,1.56,0.64,1)` }}>
                 <div style={{ fontSize:8,textTransform:"uppercase",letterSpacing:"0.1em",color:"rgba(255,255,255,0.25)",marginBottom:2 }}>{f.label}</div>
                 <div style={{ fontSize:11,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:7,padding:"6px 10px",color:"rgba(255,255,255,0.72)" }}>{f.val}</div>
               </div>
@@ -892,7 +892,7 @@ function FeatureMockup({ type }: { type: string }) {
           </div>
         )}
         {step===1&&(
-          <div style={{ animation:"bubble-appear 0.35s ease" }}>
+          <div style={{ animation:"bubble-appear 0.45s cubic-bezier(0.34,1.56,0.64,1)" }}>
             {/* Verdict banner */}
             <div style={{ display:"flex",gap:10,alignItems:"flex-start",marginBottom:11,borderLeft:"4px solid #FBBF24",background:"rgba(251,191,36,0.05)",borderRadius:"0 9px 9px 0",padding:"9px 11px" }}>
               <div style={{ display:"flex",flexDirection:"column",alignItems:"center",gap:2,flexShrink:0 }}>
@@ -916,7 +916,7 @@ function FeatureMockup({ type }: { type: string }) {
             {/* Dimension cards */}
             <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:5,marginBottom:9 }}>
               {[{l:"Impact Evidence",v:7,c:"#4ADE80"},{l:"Scope & Influence",v:6,c:"#FBBF24"},{l:"Sponsorship",v:4,c:"#FB923C"},{l:"Communication",v:8,c:"#4ADE80"}].map((d,i)=>(
-                <div key={d.l} style={{ background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderTop:`2.5px solid ${d.c}`,borderRadius:"0 0 7px 7px",padding:"7px 9px",animation:`bubble-appear 0.3s ${i*0.07}s both ease` }}>
+                <div key={d.l} style={{ background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderTop:`2.5px solid ${d.c}`,borderRadius:"0 0 7px 7px",padding:"7px 9px",animation:`bubble-appear 0.3s ${i*0.07}s both cubic-bezier(0.34,1.56,0.64,1)` }}>
                   <div style={{ display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:4 }}>
                     <span style={{ fontSize:8.5,color:"rgba(255,255,255,0.38)",lineHeight:1.3 }}>{d.l}</span>
                     <span style={{ fontSize:14,fontWeight:900,color:d.c }}>{d.v}</span>
@@ -978,13 +978,13 @@ function FeatureMockup({ type }: { type: string }) {
           </div>
         </div>
         {visible.map((m,i)=>(
-          <div key={i} style={{ display:"flex",gap:7,marginBottom:7,flexDirection:m.side==="user"?"row-reverse":"row",animation:"bubble-appear 0.3s ease" }}>
+          <div key={i} style={{ display:"flex",gap:7,marginBottom:7,flexDirection:m.side==="user"?"row-reverse":"row",animation:"bubble-appear 0.4s cubic-bezier(0.34,1.56,0.64,1)" }}>
             <div style={{ width:22,height:22,borderRadius:"50%",flexShrink:0,background:m.side==="coach"?"rgba(255,255,255,0.1)":"#16A34A",display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,fontWeight:800,color:"white" }}>{m.who}</div>
             <div style={{ maxWidth:"78%",padding:"7px 10px",fontSize:10.5,lineHeight:1.5,borderRadius:m.side==="coach"?"3px 11px 11px 11px":"11px 3px 11px 11px",background:m.side==="coach"?"rgba(255,255,255,0.05)":"rgba(134,239,172,0.1)",color:m.side==="coach"?"rgba(255,255,255,0.78)":"rgba(134,239,172,0.9)",border:`1px solid ${m.side==="coach"?"rgba(255,255,255,0.07)":"rgba(134,239,172,0.2)"}` }}>{m.text}</div>
           </div>
         ))}
         {step===1&&(
-          <div style={{ background:"rgba(59,130,246,0.09)",border:"1px solid rgba(59,130,246,0.22)",borderRadius:10,padding:"9px 11px",marginTop:2,animation:"bubble-appear 0.3s 0.25s both ease" }}>
+          <div style={{ background:"rgba(59,130,246,0.09)",border:"1px solid rgba(59,130,246,0.22)",borderRadius:10,padding:"9px 11px",marginTop:2,animation:"bubble-appear 0.3s 0.25s both cubic-bezier(0.34,1.56,0.64,1)" }}>
             <p style={{ fontSize:9.5,fontWeight:700,color:"#60A5FA",marginBottom:3 }}>Zari&apos;s next move</p>
             <p style={{ fontSize:10,color:"rgba(96,165,250,0.85)",lineHeight:1.5,margin:0 }}>&ldquo;$150K is still $12K below market. Hold your number. Respond: &apos;I understand the band, but given the scope expansion I&apos;d be taking on, $158K reflects the impact I&apos;ll drive.&apos;&rdquo;</p>
           </div>
@@ -1150,7 +1150,7 @@ function PlatformWalkthrough() {
 
                   {/* subStep 0: choose mode */}
                   {subStep === 0 && (
-                    <div style={{ flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:11,padding:"0 28px",animation:"bubble-appear 0.4s ease" }}>
+                    <div style={{ flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:11,padding:"0 28px",animation:"bubble-appear 0.5s cubic-bezier(0.34,1.56,0.64,1)" }}>
                       <p style={{ fontSize:11.5,fontWeight:600,color:"rgba(255,255,255,0.38)",marginBottom:2 }}>What would you like to do?</p>
                       {[
                         { id:"score",    label:"Score My Resume",  desc:"Detailed score with ATS match, impact, and clarity feedback.",    badge:null as null|string },
@@ -1169,7 +1169,7 @@ function PlatformWalkthrough() {
 
                   {/* subStep 1: loading */}
                   {subStep === 1 && (
-                    <div style={{ flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,animation:"bubble-appear 0.35s ease" }}>
+                    <div style={{ flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,animation:"bubble-appear 0.45s cubic-bezier(0.34,1.56,0.64,1)" }}>
                       <svg width="54" height="54" viewBox="0 0 54 54" style={{ animation:"spin-slow 0.9s linear infinite",flexShrink:0 }}>
                         <circle cx="27" cy="27" r="20" fill="none" stroke="rgba(59,130,246,0.12)" strokeWidth="3.5"/>
                         <circle cx="27" cy="27" r="20" fill="none" stroke="#3B82F6" strokeWidth="3.5" strokeDasharray="125.6" strokeDashoffset="94" strokeLinecap="round"/>
@@ -1182,14 +1182,14 @@ function PlatformWalkthrough() {
                         </div>
                       </div>
                       <div style={{ width:210,height:2.5,borderRadius:99,background:"rgba(255,255,255,0.06)",overflow:"hidden" }}>
-                        <div style={{ height:"100%",borderRadius:99,background:"linear-gradient(90deg,#3B82F6,#60A5FA)",animation:"upload-bar 1.8s ease forwards" }}/>
+                        <div style={{ height:"100%",borderRadius:99,background:"linear-gradient(90deg,#3B82F6,#60A5FA)",animation:"upload-bar 2.4s linear forwards" }}/>
                       </div>
                     </div>
                   )}
 
                   {/* subStep 2+: results */}
                   {subStep >= 2 && (
-                    <div style={{ flex:1,padding:"10px 14px 8px",overflow:"hidden",display:"flex",flexDirection:"column",gap:7,animation:"bubble-appear 0.4s ease" }}>
+                    <div style={{ flex:1,padding:"10px 14px 8px",overflow:"hidden",display:"flex",flexDirection:"column",gap:7,animation:"bubble-appear 0.5s cubic-bezier(0.34,1.56,0.64,1)" }}>
 
                       {/* Row 1: score ring + 3 metric bars — matches actual screenshot layout */}
                       <div style={{ background:"linear-gradient(145deg,#0C1728,#101C2E)",border:"1px solid rgba(34,197,94,0.2)",borderRadius:12,padding:"10px 14px",display:"flex",gap:14,alignItems:"center",flexShrink:0,boxShadow:"0 0 28px rgba(34,197,94,0.05)" }}>
@@ -1235,7 +1235,7 @@ function PlatformWalkthrough() {
 
                       {/* Row 2: trend + quick wins */}
                       {subStep >= 3 && (
-                        <div style={{ display:"flex",gap:7,flexShrink:0,animation:"bubble-appear 0.4s ease" }}>
+                        <div style={{ display:"flex",gap:7,flexShrink:0,animation:"bubble-appear 0.5s cubic-bezier(0.34,1.56,0.64,1)" }}>
                           {/* Score trend */}
                           <div style={{ background:"#0E1420",border:"1px solid rgba(255,255,255,0.06)",borderRadius:11,padding:"9px 13px",display:"flex",gap:14,alignItems:"center",width:215,flexShrink:0 }}>
                             <div>
@@ -1272,7 +1272,7 @@ function PlatformWalkthrough() {
                                 { n:2, title:"Strengthen weak verbs",     time:"5 min",  body:'Replace "Managed and optimized" in PG Golf Professional with stronger action verbs.' },
                                 { n:3, title:"Add metrics to bullets",    time:"15 min", body:"Include specific metrics in the bullet under Hyland about mentoring teams: how many?" },
                               ].map((w,i) => (
-                                <div key={i} style={{ flex:1,background:"rgba(255,255,255,0.025)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:8,padding:"7px 9px",animation:`bubble-appear 0.3s ${i*0.1}s both ease` }}>
+                                <div key={i} style={{ flex:1,background:"rgba(255,255,255,0.025)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:8,padding:"7px 9px",animation:`bubble-appear 0.3s ${i*0.1}s both cubic-bezier(0.34,1.56,0.64,1)` }}>
                                   <div style={{ display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:4,marginBottom:4 }}>
                                     <span style={{ fontSize:8.5,fontWeight:700,color:"rgba(255,255,255,0.68)",lineHeight:1.35 }}>{w.n}&nbsp;{w.title}</span>
                                     <span style={{ fontSize:7,fontWeight:700,color:"#FBBF24",background:"rgba(251,191,36,0.1)",border:"1px solid rgba(251,191,36,0.2)",padding:"1px 5px",borderRadius:3,whiteSpace:"nowrap",flexShrink:0 }}>{w.time}</span>
@@ -1288,7 +1288,7 @@ function PlatformWalkthrough() {
 
                       {/* Row 3: suggestions + section-by-section */}
                       {subStep >= 4 && (
-                        <div style={{ flex:1,display:"flex",gap:7,overflow:"hidden",animation:"bubble-appear 0.4s ease",minHeight:0 }}>
+                        <div style={{ flex:1,display:"flex",gap:7,overflow:"hidden",animation:"bubble-appear 0.5s cubic-bezier(0.34,1.56,0.64,1)",minHeight:0 }}>
                           {/* Left: suggestions */}
                           <div style={{ flex:1,background:"#0E1420",border:"1px solid rgba(255,255,255,0.06)",borderRadius:11,padding:"9px 12px",overflow:"hidden",display:"flex",flexDirection:"column" }}>
                             <div style={{ display:"flex",gap:8,borderBottom:"1px solid rgba(255,255,255,0.05)",paddingBottom:5,marginBottom:6 }}>
@@ -1345,7 +1345,7 @@ function PlatformWalkthrough() {
                     <span style={{ fontSize:13,fontWeight:700,color:"white" }}>Mock Interview</span>
                     <span style={{ fontSize:8.5,color:"rgba(255,255,255,0.28)" }}>Behavioral &middot; Senior PM &middot; Question 1 of 11</span>
                     <div style={{ marginLeft:"auto",display:"flex",gap:6,alignItems:"center" }}>
-                      {subStep >= 2 && <span style={{ fontSize:8.5,fontWeight:700,color:"#EF4444",background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.22)",padding:"2px 8px",borderRadius:5,animation:"bubble-appear 0.4s ease" }}>45 &middot; Needs Work</span>}
+                      {subStep >= 2 && <span style={{ fontSize:8.5,fontWeight:700,color:"#EF4444",background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.22)",padding:"2px 8px",borderRadius:5,animation:"bubble-appear 0.5s cubic-bezier(0.34,1.56,0.64,1)" }}>45 &middot; Needs Work</span>}
                       <span style={{ fontSize:8,fontWeight:700,color:"rgba(255,255,255,0.35)",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",padding:"2px 10px",borderRadius:5,cursor:"pointer" }}>Next question &#8594;</span>
                     </div>
                   </div>
@@ -1380,7 +1380,7 @@ function PlatformWalkthrough() {
                           { border:"#22C55E", bg:"rgba(34,197,94,0.07)",  label:"Strong answer includes", labelC:"#22C55E", body:"Named the resistance, showed before/after metric, clear coalition steps" },
                           { border:"#FBBF24", bg:"rgba(251,191,36,0.07)", label:"Common mistake",        labelC:"#FBBF24", body:'"Everyone eventually agreed" — no metric, no concrete how' },
                         ].map((h,i) => (
-                          <div key={i} style={{ borderLeft:`2.5px solid ${h.border}`,background:h.bg,borderRadius:"0 7px 7px 0",padding:"6px 11px",animation:`bubble-appear 0.3s ${i*0.1}s both ease` }}>
+                          <div key={i} style={{ borderLeft:`2.5px solid ${h.border}`,background:h.bg,borderRadius:"0 7px 7px 0",padding:"6px 11px",animation:`bubble-appear 0.3s ${i*0.1}s both cubic-bezier(0.34,1.56,0.64,1)` }}>
                             <div style={{ fontSize:7.5,fontWeight:700,textTransform:"uppercase",color:h.labelC,letterSpacing:"0.08em",marginBottom:2 }}>{h.label}</div>
                             <div style={{ fontSize:9.5,color:"rgba(255,255,255,0.58)",lineHeight:1.45 }}>{h.body}</div>
                           </div>
@@ -1389,7 +1389,7 @@ function PlatformWalkthrough() {
                     )}
                     {/* Feedback */}
                     {subStep >= 2 && (
-                      <div style={{ flex:1,display:"flex",gap:9,overflow:"hidden",animation:"bubble-appear 0.4s ease",minHeight:0 }}>
+                      <div style={{ flex:1,display:"flex",gap:9,overflow:"hidden",animation:"bubble-appear 0.5s cubic-bezier(0.34,1.56,0.64,1)",minHeight:0 }}>
                         {/* Score ring */}
                         <div style={{ background:"linear-gradient(145deg,#1C0F12,#1A1022)",border:"1px solid rgba(239,68,68,0.22)",borderRadius:12,padding:"10px 12px",flexShrink:0,display:"flex",flexDirection:"column",alignItems:"center",gap:7,width:132 }}>
                           <div style={{ fontSize:7.5,fontWeight:700,color:"rgba(255,255,255,0.28)",textTransform:"uppercase",letterSpacing:"0.1em" }}>Answer Score</div>
@@ -1404,7 +1404,7 @@ function PlatformWalkthrough() {
                           </svg>
                           <div style={{ display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:3,width:"100%" }}>
                             {[{l:"Situation",v:30},{l:"Task",v:40},{l:"Action",v:20},{l:"Result",v:50}].map((d,i) => (
-                              <div key={d.l} style={{ textAlign:"center",background:"rgba(239,68,68,0.08)",borderRadius:5,padding:"4px 3px",animation:`bubble-appear 0.3s ${i*0.08}s both ease` }}>
+                              <div key={d.l} style={{ textAlign:"center",background:"rgba(239,68,68,0.08)",borderRadius:5,padding:"4px 3px",animation:`bubble-appear 0.3s ${i*0.08}s both cubic-bezier(0.34,1.56,0.64,1)` }}>
                                 <div style={{ fontSize:12,fontWeight:900,color:d.v>=40?"#FBBF24":"#EF4444" }}>{d.v}</div>
                                 <div style={{ fontSize:6.5,color:"rgba(255,255,255,0.28)",marginTop:1 }}>{d.l}</div>
                               </div>
@@ -1413,7 +1413,7 @@ function PlatformWalkthrough() {
                         </div>
                         {/* Coaching */}
                         {subStep >= 3 && (
-                          <div style={{ flex:1,display:"flex",flexDirection:"column",gap:6,overflow:"hidden",animation:"bubble-appear 0.4s ease" }}>
+                          <div style={{ flex:1,display:"flex",flexDirection:"column",gap:6,overflow:"hidden",animation:"bubble-appear 0.5s cubic-bezier(0.34,1.56,0.64,1)" }}>
                             <div style={{ background:"rgba(59,130,246,0.07)",borderLeft:"3px solid #3B82F6",borderRadius:"0 9px 9px 0",padding:"9px 12px",flexShrink:0 }}>
                               <div style={{ display:"flex",alignItems:"center",gap:6,marginBottom:4 }}>
                                 <div style={{ width:18,height:18,borderRadius:5,background:"linear-gradient(135deg,#3B82F6,#2563EB)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:900,color:"white",flexShrink:0 }}>Z</div>
@@ -1448,7 +1448,7 @@ function PlatformWalkthrough() {
                   <div style={{ padding:"9px 16px",borderBottom:"1px solid rgba(255,255,255,0.06)",background:"rgba(8,12,26,0.95)",display:"flex",alignItems:"center",gap:8,flexShrink:0 }}>
                     <span style={{ fontSize:13,fontWeight:700,color:"white" }}>Cover Letter</span>
                     <span style={{ fontSize:8.5,color:"rgba(255,255,255,0.28)" }}>Stripe &mdash; Senior PM</span>
-                    {subStep >= 2 && <span style={{ fontSize:8.5,fontWeight:700,color:"#22C55E",background:"rgba(34,197,94,0.1)",border:"1px solid rgba(34,197,94,0.22)",padding:"2px 8px",borderRadius:5,animation:"bubble-appear 0.4s ease" }}>&#10003; Tailored &amp; Ready</span>}
+                    {subStep >= 2 && <span style={{ fontSize:8.5,fontWeight:700,color:"#22C55E",background:"rgba(34,197,94,0.1)",border:"1px solid rgba(34,197,94,0.22)",padding:"2px 8px",borderRadius:5,animation:"bubble-appear 0.5s cubic-bezier(0.34,1.56,0.64,1)" }}>&#10003; Tailored &amp; Ready</span>}
                     <div style={{ marginLeft:"auto",display:"flex",gap:5,alignItems:"center" }}>
                       {subStep >= 2 && (
                         <>
@@ -1463,7 +1463,7 @@ function PlatformWalkthrough() {
 
                     {/* subStep 0 */}
                     {subStep === 0 && (
-                      <div style={{ display:"flex",flexDirection:"column",gap:7,animation:"bubble-appear 0.4s ease" }}>
+                      <div style={{ display:"flex",flexDirection:"column",gap:7,animation:"bubble-appear 0.5s cubic-bezier(0.34,1.56,0.64,1)" }}>
                         <div style={{ display:"flex",alignItems:"center" }}>
                           {["Background","Job Description","Customize"].map((step,i) => (
                             <div key={step} style={{ display:"flex",alignItems:"center",flex:i<2?1:"auto" }}>
@@ -1547,7 +1547,7 @@ function PlatformWalkthrough() {
 
                     {/* subStep 1: generating */}
                     {subStep === 1 && (
-                      <div style={{ flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:18,animation:"bubble-appear 0.35s ease" }}>
+                      <div style={{ flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:18,animation:"bubble-appear 0.45s cubic-bezier(0.34,1.56,0.64,1)" }}>
                         <svg width="54" height="54" viewBox="0 0 54 54" style={{ animation:"spin-slow 0.9s linear infinite" }}>
                           <circle cx="27" cy="27" r="20" fill="none" stroke="rgba(129,140,248,0.12)" strokeWidth="3.5"/>
                           <circle cx="27" cy="27" r="20" fill="none" stroke="#818CF8" strokeWidth="3.5" strokeDasharray="125.6" strokeDashoffset="94" strokeLinecap="round"/>
@@ -1560,11 +1560,11 @@ function PlatformWalkthrough() {
                           </div>
                         </div>
                         <div style={{ width:210,height:2.5,borderRadius:99,background:"rgba(255,255,255,0.06)",overflow:"hidden" }}>
-                          <div style={{ height:"100%",borderRadius:99,background:"linear-gradient(90deg,#818CF8,#60A5FA)",animation:"upload-bar 1.8s ease forwards" }}/>
+                          <div style={{ height:"100%",borderRadius:99,background:"linear-gradient(90deg,#818CF8,#60A5FA)",animation:"upload-bar 2.4s linear forwards" }}/>
                         </div>
                         <div style={{ display:"flex",gap:14 }}>
                           {["Keywords","Tone","Metrics","ATS"].map((l,i) => (
-                            <div key={l} style={{ display:"flex",flexDirection:"column",alignItems:"center",gap:3,animation:`bubble-appear 0.3s ${i*0.08+0.2}s both ease` }}>
+                            <div key={l} style={{ display:"flex",flexDirection:"column",alignItems:"center",gap:3,animation:`bubble-appear 0.3s ${i*0.08+0.2}s both cubic-bezier(0.34,1.56,0.64,1)` }}>
                               <div style={{ width:6,height:6,borderRadius:"50%",background:"#818CF8",animation:"blink 0.8s ease-in-out infinite",animationDelay:`${i*0.15}s` }}/>
                               <span style={{ fontSize:8,color:"rgba(255,255,255,0.25)" }}>{l}</span>
                             </div>
@@ -1575,7 +1575,7 @@ function PlatformWalkthrough() {
 
                     {/* subStep 2+: results */}
                     {subStep >= 2 && (
-                      <div style={{ flex:1,display:"flex",gap:9,overflow:"hidden",animation:"bubble-appear 0.4s ease",minHeight:0 }}>
+                      <div style={{ flex:1,display:"flex",gap:9,overflow:"hidden",animation:"bubble-appear 0.5s cubic-bezier(0.34,1.56,0.64,1)",minHeight:0 }}>
                         {/* Left analysis col */}
                         <div style={{ flex:1,display:"flex",flexDirection:"column",gap:6,overflow:"hidden" }}>
                           {/* Zari tailored */}
@@ -1595,14 +1595,14 @@ function PlatformWalkthrough() {
                           </div>
                           {/* Opening hook */}
                           {subStep >= 3 && (
-                            <div style={{ background:"rgba(34,197,94,0.06)",border:"1px solid rgba(34,197,94,0.14)",borderLeft:"3px solid #22C55E",borderRadius:"0 10px 10px 0",padding:"9px 12px",flexShrink:0,animation:"bubble-appear 0.4s ease" }}>
+                            <div style={{ background:"rgba(34,197,94,0.06)",border:"1px solid rgba(34,197,94,0.14)",borderLeft:"3px solid #22C55E",borderRadius:"0 10px 10px 0",padding:"9px 12px",flexShrink:0,animation:"bubble-appear 0.5s cubic-bezier(0.34,1.56,0.64,1)" }}>
                               <div style={{ fontSize:7.5,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.12em",color:"#22C55E",marginBottom:5 }}>Opening Hook</div>
                               <p style={{ fontSize:9,color:"rgba(255,255,255,0.62)",lineHeight:1.7,margin:0,fontStyle:"italic" }}>&ldquo;Stripe&rsquo;s mission is increasing the GDP of the internet. I&rsquo;ve spent six years increasing the efficiency of supply chains — I want to bring that same instinct for operational leverage to Stripe.&rdquo;</p>
                             </div>
                           )}
                           {/* Stats row */}
                           {subStep >= 3 && (
-                            <div style={{ display:"flex",gap:6,flexShrink:0,animation:"bubble-appear 0.5s ease" }}>
+                            <div style={{ display:"flex",gap:6,flexShrink:0,animation:"bubble-appear 0.55s cubic-bezier(0.34,1.56,0.64,1)" }}>
                               {[{l:"ATS Pass Rate",v:"94%",c:"#22C55E"},{l:"Keywords Injected",v:"7",c:"#818CF8"},{l:"Read Time",v:"1.8 min",c:"#60A5FA"},{l:"Match Score",v:"91/100",c:"#FBBF24"}].map((s,i)=>(
                                 <div key={i} style={{ flex:1,background:"#0E1420",border:"1px solid rgba(255,255,255,0.06)",borderRadius:8,padding:"7px 9px",textAlign:"center" }}>
                                   <div style={{ fontSize:12,fontWeight:900,color:s.c,lineHeight:1 }}>{s.v}</div>
@@ -1613,7 +1613,7 @@ function PlatformWalkthrough() {
                           )}
                           {/* Keyword match */}
                           {subStep >= 4 && (
-                            <div style={{ background:"rgba(251,191,36,0.05)",border:"1px solid rgba(251,191,36,0.12)",borderRadius:9,padding:"8px 12px",animation:"bubble-appear 0.5s ease",flexShrink:0 }}>
+                            <div style={{ background:"rgba(251,191,36,0.05)",border:"1px solid rgba(251,191,36,0.12)",borderRadius:9,padding:"8px 12px",animation:"bubble-appear 0.55s cubic-bezier(0.34,1.56,0.64,1)",flexShrink:0 }}>
                               <div style={{ fontSize:7.5,fontWeight:700,color:"#FBBF24",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:5 }}>Stripe Keywords Matched</div>
                               <div style={{ display:"flex",gap:4,flexWrap:"wrap" }}>
                                 {["payments","roadmap","0→1","cross-functional","infrastructure","API","fintech","GDP"].map(kw => (
@@ -1728,7 +1728,7 @@ function PlatformWalkthrough() {
 
                       {/* Priority fixes — subStep 1+ */}
                       {subStep >= 1 && (
-                        <div style={{ background:"#0E1420",border:"1px solid rgba(255,255,255,0.06)",borderRadius:11,padding:"9px 12px",flexShrink:0,animation:"bubble-appear 0.4s ease" }}>
+                        <div style={{ background:"#0E1420",border:"1px solid rgba(255,255,255,0.06)",borderRadius:11,padding:"9px 12px",flexShrink:0,animation:"bubble-appear 0.5s cubic-bezier(0.34,1.56,0.64,1)" }}>
                           <div style={{ fontSize:7.5,fontWeight:700,color:"rgba(255,255,255,0.22)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:7 }}>Priority Fixes</div>
                           <div style={{ display:"flex",gap:9 }}>
                             {[
@@ -1754,7 +1754,7 @@ function PlatformWalkthrough() {
 
                       {/* Section scores — subStep 2+ */}
                       {subStep >= 2 && (
-                        <div style={{ background:"#0E1420",border:"1px solid rgba(255,255,255,0.06)",borderRadius:11,padding:"9px 12px",flexShrink:0,animation:"bubble-appear 0.4s ease" }}>
+                        <div style={{ background:"#0E1420",border:"1px solid rgba(255,255,255,0.06)",borderRadius:11,padding:"9px 12px",flexShrink:0,animation:"bubble-appear 0.5s cubic-bezier(0.34,1.56,0.64,1)" }}>
                           <div style={{ fontSize:7.5,fontWeight:700,color:"rgba(255,255,255,0.22)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:7 }}>Detailed Section Scores</div>
                           <div style={{ display:"flex",gap:6 }}>
                             {[{s:"Headline",v:8,t:"Good",c:"#22C55E"},{s:"Summary",v:9,t:"Perfect",c:"#22C55E"},{s:"Experience",v:8,t:"Good",c:"#22C55E"},{s:"Networking",v:4,t:"Needs Work",c:"#EF4444"}].map((sec) => (
@@ -1775,7 +1775,7 @@ function PlatformWalkthrough() {
 
                       {/* LinkedIn profile preview — subStep 3+ */}
                       {subStep >= 3 && (
-                        <div style={{ background:"#0E1420",border:"1px solid rgba(255,255,255,0.07)",borderRadius:11,overflow:"hidden",flex:1,animation:"bubble-appear 0.4s ease",minHeight:0 }}>
+                        <div style={{ background:"#0E1420",border:"1px solid rgba(255,255,255,0.07)",borderRadius:11,overflow:"hidden",flex:1,animation:"bubble-appear 0.5s cubic-bezier(0.34,1.56,0.64,1)",minHeight:0 }}>
                           <div style={{ height:44,background:"linear-gradient(135deg,#1e3a8a,#1d4ed8,#0284c7)",position:"relative",flexShrink:0 }}>
                             <div style={{ position:"absolute",bottom:-17,left:13,width:34,height:34,borderRadius:"50%",background:"linear-gradient(135deg,#3B82F6,#7C3AED)",border:"2.5px solid #0E1420",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"white" }}>SJ</div>
                             <div style={{ position:"absolute",top:8,right:10,fontSize:7.5,fontWeight:700,color:"rgba(255,255,255,0.6)",background:"rgba(0,0,0,0.3)",borderRadius:4,padding:"2px 8px" }}>&#10022; AI Optimized</div>
@@ -1902,7 +1902,7 @@ function PlatformWalkthrough() {
                         {text:"Write personalized cover letter for each PM application using Zari template",    tag:"Cover Letter", tagC:"#22C55E", due:"Thu",     show:subStep>=3},
                         {text:"Connect with 5 people in your target roles — ask for 15-min coffee chat",       tag:"Network",      tagC:"#FBBF24", due:"Fri",     show:subStep>=3},
                       ].filter(t => t.show).map((task,i) => (
-                        <div key={i} style={{ display:"flex",gap:8,alignItems:"flex-start",padding:"9px 12px",background:"#0E1420",border:"1px solid rgba(255,255,255,0.06)",borderRadius:9,animation:`bubble-appear 0.3s ${i*0.08}s both ease`,flexShrink:0 }}>
+                        <div key={i} style={{ display:"flex",gap:8,alignItems:"flex-start",padding:"9px 12px",background:"#0E1420",border:"1px solid rgba(255,255,255,0.06)",borderRadius:9,animation:`bubble-appear 0.3s ${i*0.08}s both cubic-bezier(0.34,1.56,0.64,1)`,flexShrink:0 }}>
                           <div style={{ width:15,height:15,borderRadius:"50%",flexShrink:0,marginTop:1,background:"rgba(255,255,255,0.04)",border:"1.5px solid rgba(255,255,255,0.12)" }}/>
                           <p style={{ fontSize:9.5,color:"rgba(255,255,255,0.75)",lineHeight:1.5,margin:0,flex:1 }}>{task.text}</p>
                           <div style={{ display:"flex",flexDirection:"column",alignItems:"flex-end",gap:3,flexShrink:0 }}>
@@ -1914,7 +1914,7 @@ function PlatformWalkthrough() {
 
                       {/* Weekly goal bar */}
                       {subStep >= 2 && (
-                        <div style={{ background:"rgba(34,197,94,0.05)",border:"1px solid rgba(34,197,94,0.12)",borderRadius:9,padding:"9px 12px",animation:"bubble-appear 0.4s ease",marginTop:"auto",flexShrink:0 }}>
+                        <div style={{ background:"rgba(34,197,94,0.05)",border:"1px solid rgba(34,197,94,0.12)",borderRadius:9,padding:"9px 12px",animation:"bubble-appear 0.5s cubic-bezier(0.34,1.56,0.64,1)",marginTop:"auto",flexShrink:0 }}>
                           <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:5 }}>
                             <div style={{ fontSize:7.5,fontWeight:700,color:"#22C55E",textTransform:"uppercase",letterSpacing:"0.1em" }}>Weekly Goal</div>
                             <span style={{ fontSize:18,fontWeight:900,color:"#22C55E" }}>2/4</span>
@@ -1962,7 +1962,7 @@ function PlatformWalkthrough() {
                         </div>
                         <div style={{ display:"flex",gap:2,alignItems:"flex-end",height:16 }}>
                           {[3,7,13,18,13,7,3].map((h,i)=>(
-                            <div key={i} style={{ width:2.5,borderRadius:99,background:"rgba(165,180,252,0.65)",height:h,animation:`voice-wave ${0.48+i*0.07}s ease-in-out infinite alternate` }}/>
+                            <div key={i} style={{ width:2.5,borderRadius:99,background:"rgba(165,180,252,0.65)",height:h,animation:`voice-wave ${0.48+i*0.07}s linear infinite` }}/>
                           ))}
                         </div>
                         <span style={{ fontSize:9,color:"rgba(200,208,224,0.5)",letterSpacing:"0.05em" }}>listening…</span>
@@ -1985,7 +1985,7 @@ function PlatformWalkthrough() {
 
                       {/* Session stats */}
                       {subStep >= 2 && (
-                        <div style={{ background:"#0E1420",border:"1px solid rgba(255,255,255,0.06)",borderRadius:11,padding:"9px 11px",animation:"bubble-appear 0.35s ease" }}>
+                        <div style={{ background:"#0E1420",border:"1px solid rgba(255,255,255,0.06)",borderRadius:11,padding:"9px 11px",animation:"bubble-appear 0.45s cubic-bezier(0.34,1.56,0.64,1)" }}>
                           <div style={{ fontSize:7.5,fontWeight:700,color:"rgba(255,255,255,0.22)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:7 }}>This Session</div>
                           {[
                             {l:"Questions",  v:"2 / 5",       c:"#60A5FA"},
@@ -2006,14 +2006,14 @@ function PlatformWalkthrough() {
 
                       {/* Chat thread */}
                       <div style={{ flex:1,display:"flex",flexDirection:"column",gap:7,overflow:"hidden" }}>
-                        <div style={{ display:"flex",justifyContent:"flex-start",animation:"bubble-appear 0.35s ease" }}>
+                        <div style={{ display:"flex",justifyContent:"flex-start",animation:"bubble-appear 0.45s cubic-bezier(0.34,1.56,0.64,1)" }}>
                           <div style={{ maxWidth:"88%",padding:"9px 13px",fontSize:10.5,lineHeight:1.6,borderRadius:"4px 14px 14px 14px",background:"rgba(79,70,229,0.22)",border:"1px solid rgba(59,130,246,0.3)",color:"rgba(255,255,255,0.82)" }}>
                             Let&apos;s work on Product Sense. FAANG panels love ambiguity — they want to see how you structure thinking under pressure. Ready for Q1?
                           </div>
                         </div>
 
                         {subStep >= 1 && (
-                          <div style={{ display:"flex",justifyContent:"flex-end",animation:"bubble-appear 0.35s ease" }}>
+                          <div style={{ display:"flex",justifyContent:"flex-end",animation:"bubble-appear 0.45s cubic-bezier(0.34,1.56,0.64,1)" }}>
                             <div style={{ maxWidth:"78%",padding:"9px 13px",fontSize:10.5,lineHeight:1.6,borderRadius:"14px 4px 14px 14px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.09)",color:"rgba(255,255,255,0.75)" }}>
                               Yes — I always over-engineer the &ldquo;design a product for X&rdquo; prompts.
                             </div>
@@ -2021,13 +2021,13 @@ function PlatformWalkthrough() {
                         )}
 
                         {subStep === 1 && (
-                          <div style={{ alignSelf:"flex-start",padding:"8px 12px",borderRadius:"4px 14px 14px 14px",background:"rgba(79,70,229,0.18)",border:"1px solid rgba(59,130,246,0.2)",display:"flex",gap:3,alignItems:"center",animation:"bubble-appear 0.3s ease" }}>
+                          <div style={{ alignSelf:"flex-start",padding:"8px 12px",borderRadius:"4px 14px 14px 14px",background:"rgba(79,70,229,0.18)",border:"1px solid rgba(59,130,246,0.2)",display:"flex",gap:3,alignItems:"center",animation:"bubble-appear 0.4s cubic-bezier(0.34,1.56,0.64,1)" }}>
                             {[0,1,2].map(i=><span key={i} style={{ width:4,height:4,borderRadius:"50%",background:"rgba(165,180,252,0.5)",animation:`dot-bounce 1.2s ${i*0.15}s infinite`,display:"inline-block" }}/>)}
                           </div>
                         )}
 
                         {subStep >= 2 && (
-                          <div style={{ display:"flex",justifyContent:"flex-start",animation:"bubble-appear 0.35s ease" }}>
+                          <div style={{ display:"flex",justifyContent:"flex-start",animation:"bubble-appear 0.45s cubic-bezier(0.34,1.56,0.64,1)" }}>
                             <div style={{ maxWidth:"90%",padding:"9px 13px",fontSize:10.5,lineHeight:1.6,borderRadius:"4px 14px 14px 14px",background:"rgba(79,70,229,0.22)",border:"1px solid rgba(59,130,246,0.3)",color:"rgba(255,255,255,0.82)" }}>
                               That&apos;s the most common PM pitfall. Lock in your framework first: <span style={{ color:"#A5B4FC",fontWeight:700 }}>User → Problem → Constraints → 3 Solutions → Pick 1 → Metrics</span>. Spend 90 seconds on clarity before you say a word. Practice: &ldquo;Design a product for elderly users in emerging markets.&rdquo;
                             </div>
@@ -2035,7 +2035,7 @@ function PlatformWalkthrough() {
                         )}
 
                         {subStep >= 3 && (
-                          <div style={{ display:"flex",justifyContent:"flex-end",animation:"bubble-appear 0.35s ease" }}>
+                          <div style={{ display:"flex",justifyContent:"flex-end",animation:"bubble-appear 0.45s cubic-bezier(0.34,1.56,0.64,1)" }}>
                             <div style={{ maxWidth:"78%",padding:"9px 13px",fontSize:10.5,lineHeight:1.6,borderRadius:"14px 4px 14px 14px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.09)",color:"rgba(255,255,255,0.75)" }}>
                               I&apos;d define elderly as 60+, low digital literacy, feature phone or entry Android in rural India or Indonesia…
                             </div>
@@ -2045,7 +2045,7 @@ function PlatformWalkthrough() {
 
                       {/* Key insight card */}
                       {subStep >= 4 && (
-                        <div style={{ background:"rgba(129,140,248,0.07)",border:"1px solid rgba(129,140,248,0.2)",borderRadius:10,padding:"9px 12px",animation:"bubble-appear 0.35s ease",flexShrink:0 }}>
+                        <div style={{ background:"rgba(129,140,248,0.07)",border:"1px solid rgba(129,140,248,0.2)",borderRadius:10,padding:"9px 12px",animation:"bubble-appear 0.45s cubic-bezier(0.34,1.56,0.64,1)",flexShrink:0 }}>
                           <div style={{ fontSize:8.5,fontWeight:700,color:"#A5B4FC",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:5 }}>Key Insight</div>
                           <p style={{ fontSize:10.5,color:"rgba(165,180,252,0.85)",lineHeight:1.55,margin:0 }}>Strong user definition. FAANG interviewers score on how you surface the right problem — spend 30% of your time on the user alone before jumping to solutions.</p>
                         </div>
@@ -2053,7 +2053,7 @@ function PlatformWalkthrough() {
 
                       {/* Suggested responses */}
                       {subStep >= 2 && (
-                        <div style={{ flexShrink:0,animation:"bubble-appear 0.3s ease" }}>
+                        <div style={{ flexShrink:0,animation:"bubble-appear 0.4s cubic-bezier(0.34,1.56,0.64,1)" }}>
                           <div style={{ fontSize:7.5,fontWeight:700,color:"rgba(255,255,255,0.2)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:5 }}>Suggested responses</div>
                           <div style={{ display:"flex",flexDirection:"column",gap:4 }}>
                             {[
@@ -2282,7 +2282,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
           <div style={{ display:"grid", gridTemplateColumns:"44fr 56fr", gap:72, alignItems:"center" }}>
 
             {/* LEFT — large portrait, swaps on hover */}
-            <div key={activeFounder} style={{ borderRadius:20, overflow:"hidden", aspectRatio:"3/4", boxShadow:"0 32px 80px rgba(0,0,0,0.15)", animation:"bubble-appear 0.45s ease" }}>
+            <div key={activeFounder} style={{ borderRadius:20, overflow:"hidden", aspectRatio:"3/4", boxShadow:"0 32px 80px rgba(0,0,0,0.15)", animation:"bubble-appear 0.45s cubic-bezier(0.34,1.56,0.64,1)" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={FOUNDERS[activeFounder].photo}
@@ -2320,7 +2320,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
               </div>
 
               {/* Story — animates when founder changes */}
-              <div key={`story-${activeFounder}`} style={{ animation:"bubble-appear 0.4s ease" }}>
+              <div key={`story-${activeFounder}`} style={{ animation:"bubble-appear 0.5s cubic-bezier(0.34,1.56,0.64,1)" }}>
                 <h3 style={{ fontSize:"clamp(1.3rem,2.2vw,1.75rem)", fontWeight:900, letterSpacing:"-0.03em", color:"#0A0A0F", lineHeight:1.2, marginBottom:22 }}>
                   {FOUNDERS[activeFounder].h3}
                 </h3>
