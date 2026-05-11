@@ -60,9 +60,14 @@ Rules:
 - Use XYZ formula for bullets: [Strong Verb] + [Skill/Context] + [Quantified Result]
 - No passive voice, no generic adjectives ("results-driven", "passionate", "detail-oriented", "seasoned")
 - Every claim must tie to a real outcome visible in the resume — never fabricate
-- Summary: lead with the single most relevant thing for the target role; include at least one metric; 3-5 lines max
-- Bullets: DIFFERENT opening verb from all previous versions; find a different angle on the impact
-- Skills: reorder toward what matters most for the target role; keep "Category: items" format if original uses it
+- Summary: lead with the single most relevant thing for the target role; include at least one metric; 5–7 lines; NO "results-driven", "passionate", "detail-oriented", "team player", "self-starter", "seasoned"
+- Bullets: DIFFERENT opening verb from all previous versions; find a different angle on the impact; use • for every bullet
+- Skills: reorder toward what matters most for the target role; use "• Category: items" format for every skill line; 5–7 lines
+
+TEMPLATE FORMAT TO FOLLOW for each section type:
+- Summary: plain paragraph, left-aligned, 5–7 lines, no bullets.
+- Skills: each line → "• Category Label: skill1, skill2, skill3" — 5–7 lines total.
+- Experience bullets: "• [Strong Verb] + [Context] + [Quantified Result]" — 5–8 bullets for recent roles.
 
 Return ONLY valid JSON: { "text": "<the rewritten content>" }`;
 
