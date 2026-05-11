@@ -16197,6 +16197,9 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
     used: number;
     limit: number;
   }>(null);
+  const [topupOpen, setTopupOpen] = useState(false);
+  const [topupLoading, setTopupLoading] = useState<string | null>(null);
+  const [topupErr, setTopupErr] = useState<string | null>(null);
   const formatCredits = (value?: number | null) =>
     new Intl.NumberFormat("en-US", {
       minimumFractionDigits: value && value % 1 !== 0 ? 2 : 0,
@@ -16455,18 +16458,66 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
                       </button>
                     )}
 
-                    {/* Buy top-up — coming soon */}
-                    <div style={{ display:"flex", alignItems:"center", gap:14, padding:"15px 18px", borderRadius:14, border:"1px solid rgba(255,255,255,0.07)", background:"rgba(255,255,255,0.025)", opacity:0.5, textAlign:"left" }}>
-                      <div style={{ width:42, height:42, borderRadius:12, background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.08)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width:16, height:16 }}>
-                          <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
-                        </svg>
-                      </div>
-                      <div style={{ flex:1, textAlign:"left" }}>
-                        <div style={{ fontSize:14, fontWeight:700, color:"rgba(255,255,255,0.5)", marginBottom:2 }}>Buy a credit top-up</div>
-                        <div style={{ fontSize:11.5, color:"rgba(255,255,255,0.25)" }}>Add 40, 120, or 300 credits instantly</div>
-                      </div>
-                      <span style={{ fontSize:9.5, fontWeight:900, color:"rgba(255,255,255,0.3)", background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:6, padding:"3px 9px", letterSpacing:"0.1em", textTransform:"uppercase", flexShrink:0 }}>Soon</span>
+                    {/* Buy top-up */}
+                    <div style={{ borderRadius:14, border:`1px solid ${topupOpen ? "rgba(99,102,241,0.35)" : "rgba(255,255,255,0.09)"}`, background:topupOpen ? "rgba(79,70,229,0.08)" : "rgba(255,255,255,0.03)", overflow:"hidden", transition:"border-color 0.2s, background 0.2s" }}>
+                      <button
+                        onClick={() => { setTopupOpen(o => !o); setTopupErr(null); }}
+                        style={{ display:"flex", alignItems:"center", gap:14, padding:"15px 18px", width:"100%", border:"none", background:"transparent", cursor:"pointer", textAlign:"left" }}>
+                        <div style={{ width:42, height:42, borderRadius:12, background:"rgba(99,102,241,0.15)", border:"1px solid rgba(99,102,241,0.25)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="#818CF8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width:16, height:16 }}>
+                            <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+                          </svg>
+                        </div>
+                        <div style={{ flex:1 }}>
+                          <div style={{ fontSize:14, fontWeight:800, color:"rgba(255,255,255,0.88)", marginBottom:2 }}>Buy a credit top-up</div>
+                          <div style={{ fontSize:11.5, color:"#818CF8" }}>Add 40, 120, or 300 credits instantly</div>
+                        </div>
+                        <svg viewBox="0 0 16 16" fill="none" stroke="rgba(129,140,248,0.6)" strokeWidth="2.2" style={{ width:14, height:14, flexShrink:0, transform:topupOpen ? "rotate(90deg)" : "none", transition:"transform 0.2s" }}><path d="M6 3l5 5-5 5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </button>
+
+                      {topupOpen && (
+                        <div style={{ padding:"0 14px 14px", display:"flex", flexDirection:"column", gap:7 }}>
+                          {topupErr && (
+                            <div style={{ fontSize:11.5, color:"#F87171", background:"rgba(239,68,68,0.1)", border:"1px solid rgba(239,68,68,0.2)", borderRadius:8, padding:"8px 12px", marginBottom:2 }}>{topupErr}</div>
+                          )}
+                          {([
+                            { packId:"40",  credits:40,  price:"$19", label:"Starter",    desc:"Perfect for one-time needs" },
+                            { packId:"120", credits:120, price:"$49", label:"Pro",         desc:"Best value for regular users" },
+                            { packId:"300", credits:300, price:"$99", label:"Power",       desc:"Maximum credits at once" },
+                          ] as const).map(pack => {
+                            const isLoading = topupLoading === pack.packId;
+                            return (
+                              <button key={pack.packId}
+                                disabled={topupLoading !== null}
+                                onClick={() => {
+                                  setTopupLoading(pack.packId);
+                                  setTopupErr(null);
+                                  const win = window.open("", "_blank");
+                                  if (!win) { setTopupLoading(null); setTopupErr("Popups are blocked — please allow them and try again."); return; }
+                                  win.document.write('<html><body style="margin:0;background:#060a1c;display:flex;align-items:center;justify-content:center;height:100vh;font-family:system-ui,sans-serif;color:rgba(255,255,255,0.7);font-size:15px">Preparing your checkout…</body></html>');
+                                  fetch("/api/billing/topup", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ packId: pack.packId }) })
+                                    .then(r => r.json())
+                                    .then(data => {
+                                      if (data.url) { win.location.href = data.url; }
+                                      else { win.close(); setTopupErr(data.error || "Something went wrong. Please try again."); }
+                                    })
+                                    .catch(() => { win.close(); setTopupErr("Network error. Please try again."); })
+                                    .finally(() => setTopupLoading(null));
+                                }}
+                                style={{ display:"flex", alignItems:"center", gap:12, padding:"11px 14px", borderRadius:10, border:`1px solid ${isLoading ? "rgba(99,102,241,0.5)" : "rgba(255,255,255,0.08)"}`, background:isLoading ? "rgba(79,70,229,0.15)" : "rgba(255,255,255,0.03)", cursor: topupLoading !== null ? "default" : "pointer", opacity: topupLoading !== null && !isLoading ? 0.45 : 1, transition:"all 0.15s", width:"100%", textAlign:"left" }}>
+                                <div style={{ flex:1 }}>
+                                  <div style={{ fontSize:13, fontWeight:800, color:"rgba(255,255,255,0.88)" }}>{pack.label} — {pack.credits} credits</div>
+                                  <div style={{ fontSize:11, color:"rgba(255,255,255,0.38)", marginTop:1 }}>{pack.desc}</div>
+                                </div>
+                                {isLoading
+                                  ? <div style={{ width:16, height:16, border:"2px solid rgba(129,140,248,0.3)", borderTopColor:"#818CF8", borderRadius:"50%", animation:"spin-slow 0.7s linear infinite", flexShrink:0 }}/>
+                                  : <span style={{ fontSize:14, fontWeight:900, color:"#818CF8", flexShrink:0 }}>{pack.price}</span>
+                                }
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
 
                     {/* Wait — informational only */}

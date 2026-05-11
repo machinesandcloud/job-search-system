@@ -662,10 +662,12 @@ export async function getCurrentPeriodTokenUsage(accountId: string) {
     _sum: { inputTokens: true, outputTokens: true, totalTokens: true },
   });
 
-  const limit = getPlanTokenLimit(subscription.planName, subscription.stripePriceId);
-  const used = aggregate._sum.totalTokens || 0;
+  const planLimit  = getPlanTokenLimit(subscription.planName, subscription.stripePriceId);
+  const bonusTokens = (subscription as { bonusTokens?: number }).bonusTokens ?? 0;
+  const limit  = planLimit + bonusTokens;
+  const used   = aggregate._sum.totalTokens || 0;
   const limitCredits = rawTokensToCredits(limit);
-  const usedCredits = rawTokensToCredits(used);
+  const usedCredits  = rawTokensToCredits(used);
   return {
     limit,
     used,
@@ -676,6 +678,7 @@ export async function getCurrentPeriodTokenUsage(accountId: string) {
     limitCredits,
     usedCredits,
     remainingCredits: Math.max(0, limitCredits - usedCredits),
+    bonusTokens,
     subscription,
   };
 }
@@ -878,6 +881,14 @@ export async function getAiUsageSummary(input: {
     },
     byUser: limitedUsers,
   };
+}
+
+export async function addBonusTokensToAccount(accountId: string, tokens: number) {
+  if (!isDatabaseReady()) return null;
+  return prisma.subscription.update({
+    where: { accountId },
+    data: { bonusTokens: { increment: tokens } },
+  });
 }
 
 export async function hasActiveSubscription(accountId: string) {

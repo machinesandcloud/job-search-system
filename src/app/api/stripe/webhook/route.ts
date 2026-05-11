@@ -3,7 +3,9 @@ import { NextResponse } from "next/server";
 import { prisma, isDatabaseReady } from "@/lib/db";
 import { getStripeClient } from "@/lib/stripe";
 import {
+  addBonusTokensToAccount,
   canAccessSubscriptionStatus,
+  getBillingTokensPerCredit,
   isPaymentIssueSubscriptionStatus,
   logAppEvent,
   mapStripeStatusToAccountStatus,
@@ -153,6 +155,33 @@ export async function POST(request: Request) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
+
+        // One-time top-up payment
+        if (session.mode === "payment" && session.metadata?.topup === "true") {
+          accountId = await resolveAccountId({
+            metadataAccountId: session.metadata?.accountId || session.client_reference_id,
+            stripeCustomerId: typeof session.customer === "string" ? session.customer : session.customer?.id || null,
+            customerEmail: session.customer_details?.email || session.customer_email || null,
+          });
+
+          if (!accountId) throw new Error("Unable to resolve account for top-up payment.");
+
+          const credits = parseInt(session.metadata.credits || "0", 10);
+          const tokensToAdd = credits * getBillingTokensPerCredit();
+          await addBonusTokensToAccount(accountId, tokensToAdd);
+
+          await logAppEvent("topup_completed", {
+            accountId,
+            metadataJson: {
+              sessionId: session.id,
+              packId: session.metadata.packId,
+              credits,
+              tokensToAdd,
+            },
+          });
+          break;
+        }
+
         if (session.mode !== "subscription") {
           await prisma.stripeEvent.update({
             where: { stripeEventId: event.id },
