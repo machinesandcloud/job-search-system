@@ -481,12 +481,12 @@ function FeatureMockup({ type }: { type: string }) {
 
   useEffect(() => {
     const durations: Record<string, number[]> = {
-      resume:    [1400, 1800, 7500],
-      session:   [1600, 1600, 1600, 7000],
-      interview: [2800, 7500],
-      linkedin:  [2500, 7500],
-      promotion: [2200, 7500],
-      salary:    [2500, 7500],
+      resume:    [800,  1000, 3500],
+      session:   [900,  900,  900,  3500],
+      interview: [1400, 3500],
+      linkedin:  [1200, 3500],
+      promotion: [1100, 3500],
+      salary:    [1200, 3500],
     };
     const totals: Record<string, number> = {
       resume:3, session:4, interview:2, linkedin:2, promotion:2, salary:2,
@@ -1014,13 +1014,13 @@ function PlatformWalkthrough() {
   ];
 
   useEffect(() => {
-    const t = setTimeout(() => { setActiveTab(s => (s + 1) % TABS.length); setSubStep(0); }, 9000);
+    const t = setTimeout(() => { setActiveTab(s => (s + 1) % TABS.length); setSubStep(0); }, 6500);
     return () => clearTimeout(t);
   }, [activeTab]);
 
   useEffect(() => {
     if (subStep >= 4) return;
-    const t = setTimeout(() => setSubStep(s => s + 1), 1800);
+    const t = setTimeout(() => setSubStep(s => s + 1), 1200);
     return () => clearTimeout(t);
   }, [subStep, activeTab]);
 
