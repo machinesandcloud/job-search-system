@@ -16246,6 +16246,16 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
       .finally(() => setHydrated(true));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Show credit-limit paywall immediately on load if the account is already over-limit
+  useEffect(() => {
+    const isOperatorViewer = viewer.role === "admin" || viewer.role === "support";
+    if (!isOperatorViewer && viewer.isPaid && viewer.remainingMonthlyCredits !== null && viewer.remainingMonthlyCredits <= 0) {
+      const used  = viewer.usedMonthlyCredits  ?? viewer.creditLimit ?? 0;
+      const limit = viewer.creditLimit ?? viewer.includedMonthlyCredits ?? 0;
+      setCreditLimitNotice({ used, limit });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     const decision = canAccessStage({ planId: viewer.planId, role: viewer.role, stage });
     if (!decision.ok) {
@@ -16263,7 +16273,7 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
   const navigate = (s: Screen) => {
     setScreen(s);
     setUpgradeNotice(null);
-    setCreditLimitNotice(null);
+    // Never clear the credit limit paywall — user must upgrade or buy credits to proceed
     setSidebarOpen(false);
     try { localStorage.setItem("zari_screen", s); } catch { /* ignore */ }
   };
@@ -16373,7 +16383,8 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
         return (
           <div style={{ position:"fixed", inset:0, zIndex:10000, display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
             {/* Backdrop */}
-            <div style={{ position:"absolute", inset:0, backdropFilter:"blur(18px) saturate(0.8) brightness(0.55)", background:"rgba(4,6,13,0.72)" }} onClick={() => setCreditLimitNotice(null)} />
+            {/* Backdrop — no click handler, intentionally blocks the full UI */}
+          <div style={{ position:"absolute", inset:0, backdropFilter:"blur(18px) saturate(0.8) brightness(0.55)", background:"rgba(4,6,13,0.72)" }} />
 
             {/* Aurora blobs */}
             <div style={{ position:"absolute", top:"15%", left:"20%", width:480, height:480, borderRadius:"50%", background:"radial-gradient(circle, rgba(37,99,235,0.18) 0%, transparent 70%)", pointerEvents:"none", animation:"aurora-slow 10s ease-in-out infinite" }}/>
@@ -16390,10 +16401,7 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
                 {/* Top gradient bar */}
                 <div style={{ height:3, background:"linear-gradient(90deg, #2563EB 0%, #6366F1 50%, #8B5CF6 100%)", width:"100%" }}/>
 
-                {/* Close */}
-                <button onClick={() => setCreditLimitNotice(null)} style={{ position:"absolute", top:16, right:16, width:30, height:30, borderRadius:9, border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.05)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", color:"var(--z-text3)", zIndex:2 }}>
-                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:11, height:11 }}><path d="M3 3l10 10M13 3L3 13" strokeLinecap="round"/></svg>
-                </button>
+                {/* No close button — user must act to regain access */}
 
                 <div style={{ padding:"36px 36px 32px" }}>
                   {/* Icon */}
@@ -16456,28 +16464,25 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
                       <div style={{ fontSize:10, fontWeight:800, color:"rgba(255,255,255,0.3)", background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:6, padding:"3px 9px", letterSpacing:"0.06em", textTransform:"uppercase", flexShrink:0 }}>Soon</div>
                     </div>
 
-                    {/* Option 3 — Wait */}
-                    <button
-                      onClick={() => setCreditLimitNotice(null)}
-                      style={{ display:"flex", alignItems:"center", gap:14, padding:"14px 18px", borderRadius:14, border:"1px solid rgba(255,255,255,0.09)", background:"rgba(255,255,255,0.04)", cursor:"pointer", textAlign:"left" }}
-                    >
-                      <div style={{ width:38, height:38, borderRadius:11, background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.09)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width:16, height:16 }}>
+                    {/* Option 3 — Wait (informational only — not dismissable) */}
+                    <div style={{ display:"flex", alignItems:"center", gap:14, padding:"14px 18px", borderRadius:14, border:"1px solid rgba(255,255,255,0.07)", background:"rgba(255,255,255,0.025)", textAlign:"left" }}>
+                      <div style={{ width:38, height:38, borderRadius:11, background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width:16, height:16 }}>
                           <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
                         </svg>
                       </div>
                       <div style={{ flex:1 }}>
-                        <div style={{ fontSize:13.5, fontWeight:700, color:"rgba(255,255,255,0.55)", marginBottom:1 }}>Wait for next cycle</div>
-                        <div style={{ fontSize:12, color:"rgba(255,255,255,0.28)" }}>Your credits reset at your next billing date</div>
+                        <div style={{ fontSize:13, fontWeight:600, color:"rgba(255,255,255,0.35)", marginBottom:2 }}>Wait for next billing cycle</div>
+                        <div style={{ fontSize:11.5, color:"rgba(255,255,255,0.2)", lineHeight:1.5 }}>Your credits reset automatically. Access resumes then.</div>
                       </div>
-                    </button>
+                    </div>
 
                   </div>
 
-                  {/* Footer note */}
+                  {/* Footer note — link opens in new tab so paywall stays */}
                   <div style={{ textAlign:"center", fontSize:12, color:"var(--z-text3)", lineHeight:1.6 }}>
-                    Monthly credits reset automatically.{" "}
-                    <a href="/settings/subscription" onClick={() => setCreditLimitNotice(null)} style={{ color:"#60A5FA", fontWeight:600, textDecoration:"none" }}>Manage subscription →</a>
+                    Monthly credits reset on your billing date.{" "}
+                    <a href="/settings/subscription" target="_blank" rel="noopener noreferrer" style={{ color:"#60A5FA", fontWeight:600, textDecoration:"none" }}>Manage subscription ↗</a>
                   </div>
                 </div>
               </div>
