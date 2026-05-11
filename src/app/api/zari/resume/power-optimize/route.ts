@@ -14,8 +14,8 @@ function cleanResumeOutput(text: string): string {
     .replace(/__([^_]+)__/g, "$1")       // __bold__ → bold
     .replace(/\*([^*]+)\*/g, "$1")       // *italic* → italic
     .replace(/_([^_]+)_/g, "$1")         // _italic_ → italic
-    // Strip invisible/broken Unicode: soft hyphen, zero-width, BOM, word-joiner
-    .replace(/[­﻿​‌‍⁠]/g, "")
+    // Strip invisible/broken Unicode: soft hyphen, zero-width, BOM, word-joiner, and Unicode specials (U+FFF0–U+FFFF)
+    .replace(/[­﻿​‌‍⁠￰-￿]/g, "")
     // Normalize Unicode hyphens/dashes to ASCII hyphen
     .replace(/[‐-―−]/g, "-");
 
@@ -167,6 +167,7 @@ EXPERIENCE ENTRIES:
 - One blank line before bullets.
 - • for every bullet. 5–7 bullets for the 2 most recent roles; 3–4 for older roles.
 - One blank line between roles.
+- PAGE BREAK RULE: Company name, dates, job title, and at least the first 2 bullets MUST appear on the same page. If they do not fit, move the entire entry to the next page.
 
 SKILLS:
 - Plain text format: "Category Label: skill1, skill2, skill3"
@@ -185,9 +186,56 @@ Bullets: [Strong Verb] + [Specific Context] + [Quantified Result]. Embed JD keyw
 Never invent companies, roles, or fabricated results.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-PAGE LENGTH
+PAGE LENGTH AND MARGINS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 2 pages maximum at US Letter size. If too long: shorten older roles first, reduce bullets, tighten summary.
+Use 0.7–0.85 inch side margins and at least 0.5 inch top and bottom safe margins. Never reduce bottom margins to force content onto the page.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PAGINATION AND PAGE-SAFETY RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+The resume must respect real page boundaries. No resume text should appear inside the bottom 0.5 inches of the page. Use a safe bottom margin of at least 0.5 inches on every page.
+
+1. NEVER split a role heading from its bullets.
+   Each experience entry must be treated as a single block:
+     Company Name + Dates
+     Job Title
+     Bullets
+   The company name, dates, job title, and at least the first 2 bullets MUST stay together on the same page.
+   If that block cannot fit, move the entire role (heading + all bullets) to the next page.
+   Never leave a company name or job title alone at the bottom of a page.
+
+   BAD (what the model must not produce):
+     Page 1: Kohl's   Aug 2018 – Sep 2023
+              Lead Platform Engineer
+     Page 2: • Led engineering strategy…
+
+   GOOD:
+     Page 2: Kohl's   Aug 2018 – Sep 2023
+              Lead Platform Engineer
+              • Led engineering strategy…
+
+2. Keep section headers with their content.
+   Do not place a section header at the bottom of a page alone.
+   If a section header cannot fit with at least 2–3 lines of content below it, move the section to the next page.
+
+3. Keep EDUCATION and CERTIFICATIONS together when possible.
+   Since these sections are short, do not split them awkwardly across pages.
+   If EDUCATION appears near the bottom of page 2, ensure CERTIFICATIONS fits cleanly below it.
+
+4. Do not crowd the bottom of the page.
+   If content is too close to the bottom margin, shorten the resume content instead of squeezing it.
+
+5. Reduce content in this order when space is tight:
+   First: older roles | Second: bullet length | Third: skills list | Fourth: professional summary.
+   Never reduce page margins below safe print boundaries.
+
+6. Page 1 should ideally end cleanly after a complete role or complete bullet group.
+   Do not end page 1 immediately after a company name or job title.
+
+7. Page 2 should have enough bottom breathing room.
+   The final certification line should not sit at the very bottom edge of the page.
+   Leave clean white space after the final line.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 MANDATORY SELF-CHECK — DO THIS BEFORE RETURNING
@@ -198,8 +246,17 @@ MANDATORY SELF-CHECK — DO THIS BEFORE RETURNING
 4. Are company names and dates on the same line? → Fix if not.
 5. Are all bullets using •? → Fix any - or * bullets.
 6. Are certifications on 1–2 lines? → Compress if not.
-7. Are there any broken characters, soft hyphens, or garbled text? → Fix or remove.
+7. Are there any broken characters, soft hyphens, or garbled text (e.g. high￾performance)? → Fix or remove.
 8. Is the resume ≤2 pages? → Shorten older roles if not.
+
+FINAL PAGE CHECK — Reject and fix output if any of these are true:
+- Text appears too close to the bottom of the page.
+- A company/date line appears at the bottom without at least 2 bullets under it on the same page.
+- A job title appears at the bottom without bullets under it on the same page.
+- A section header appears without content under it on the same page.
+- Education and Certifications are awkwardly separated across pages.
+- Page 2 ends with text touching the footer area.
+- Any broken/garbled character appears anywhere in the resume.
 
 Return ONLY valid JSON: { "resumeText": "<complete resume, \\n for newlines>" }`;
 
