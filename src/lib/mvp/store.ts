@@ -537,3 +537,66 @@ export async function clearResumeScoreHistory(userId: string): Promise<void> {
     // best-effort
   }
 }
+
+// ─── Generated Resume Snapshots ───────────────────────────────────────────────
+
+export type GeneratedResumeRecord = {
+  id: string;
+  type: "power_optimized" | "revised";
+  label: string;
+  filename: string;
+  resumeText: string;
+  scores?: { overall: number; ats: number; impact: number; clarity: number };
+  createdAt: string;
+};
+
+export async function saveGeneratedResume(
+  userId: string,
+  data: {
+    type: "power_optimized" | "revised";
+    label: string;
+    filename: string;
+    resumeText: string;
+    scores?: { overall: number; ats: number; impact: number; clarity: number };
+  },
+): Promise<GeneratedResumeRecord> {
+  const record: GeneratedResumeRecord = {
+    id: `gen_${crypto.randomUUID()}`,
+    ...data,
+    createdAt: new Date().toISOString(),
+  };
+
+  if (isDatabaseReady()) {
+    try {
+      const existing = await prisma.userPortalState.findUnique({
+        where: { userId_key: { userId, key: "resume_generated" } },
+      });
+      const records: GeneratedResumeRecord[] = existing
+        ? (existing.data as { records: GeneratedResumeRecord[] }).records ?? []
+        : [];
+      records.unshift(record);
+      await prisma.userPortalState.upsert({
+        where: { userId_key: { userId, key: "resume_generated" } },
+        update: { data: { records: records.slice(0, 10) } },
+        create: { userId, key: "resume_generated", data: { records: records.slice(0, 10) } },
+      });
+    } catch {
+      // best-effort
+    }
+  }
+
+  return record;
+}
+
+export async function getGeneratedResumeHistory(userId: string): Promise<GeneratedResumeRecord[]> {
+  if (!isDatabaseReady()) return [];
+  try {
+    const state = await prisma.userPortalState.findUnique({
+      where: { userId_key: { userId, key: "resume_generated" } },
+    });
+    if (!state) return [];
+    return (state.data as { records: GeneratedResumeRecord[] }).records ?? [];
+  } catch {
+    return [];
+  }
+}

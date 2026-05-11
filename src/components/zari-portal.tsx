@@ -2650,6 +2650,8 @@ function generateResumeHtml(text: string, footerNote = ""): string {
 
   for (const raw of text.split("\n")) {
     const t = raw.trim();
+    // Drop ASCII separator lines (====, ----, ____) — HTML uses CSS section borders
+    if (/^[=\-_]{4,}$/.test(t)) continue;
     if (isSectionHeader(t)) {
       inHeader = false;
       cur = { title: t, lines: [] };
@@ -2712,6 +2714,9 @@ function generateResumeHtml(text: string, footerNote = ""): string {
 
     for (const t of joined) {
       if (!t) { closeList(); flushPending(); html += "<br>\n"; continue; }
+
+      // Drop ASCII separator lines — HTML uses CSS section borders
+      if (/^[=\-_]{4,}$/.test(t)) { closeList(); flushPending(); continue; }
 
       // Bullet: char-only (no space required) OR hyphen/asterisk with space
       if (/^[•\u2022►▸→]/.test(t) || /^[-*]\s/.test(t)) {
@@ -2820,22 +2825,24 @@ function generateResumeHtml(text: string, footerNote = ""): string {
 <title>Resume</title>
 <style>
   *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:'Times New Roman',Times,serif;font-size:11pt;line-height:1.5;color:#000;background:#fff;padding:0.85in 1.05in;max-width:8.5in;margin:0 auto}
-  .name{font-size:18pt;font-weight:800;text-align:center;letter-spacing:4px;text-transform:uppercase;margin-bottom:3px}
-  .contact{text-align:center;font-size:10pt;color:#444;margin-bottom:2px}
-  .sec-hdr{font-weight:700;text-align:center;border-top:1.5px solid #000;border-bottom:1.5px solid #000;padding:4px 0;margin:14px 0 7px;letter-spacing:.8px;text-transform:uppercase;font-size:10.5pt}
-  .job-hdr{display:flex;justify-content:space-between;align-items:baseline;margin-top:8px;margin-bottom:1px}
+  @page{margin:0;size:letter portrait}
+  html{background:#fff}
+  body{font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.45;color:#000;background:#fff;padding:.85in 1in;max-width:8.5in;margin:0 auto}
+  .name{font-size:22pt;font-weight:700;text-align:center;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+  .contact{text-align:center;font-size:10pt;color:#333;margin-bottom:2px}
+  .sec-hdr{font-weight:700;text-align:center;border-top:1.5px solid #000;border-bottom:1.5px solid #000;padding:3px 0;margin:12px 0 6px;letter-spacing:.5px;text-transform:uppercase;font-size:11pt}
+  .job-hdr{display:flex;justify-content:space-between;align-items:baseline;margin-top:9px;margin-bottom:1px}
   .company{font-weight:700;font-size:11pt}
-  .date-r{font-size:10pt;color:#333;font-weight:400;white-space:nowrap;margin-left:8px}
-  .date-standalone{font-size:10pt;color:#333;margin-bottom:2px}
-  .bold-line{font-weight:700;margin-top:6px;margin-bottom:1px}
-  .skill-line{margin-bottom:3px;line-height:1.45}
-  ul{padding-left:20px;margin:4px 0 6px}
-  li{margin-bottom:3px;line-height:1.45}
-  p{margin-bottom:3px;line-height:1.5}
-  br{display:block;margin:3px 0;content:""}
-  .footer{margin-top:24pt;font-size:8.5pt;color:#aaa;text-align:center;border-top:1px solid #eee;padding-top:6pt}
-  @media print{@page{margin:.75in .9in;size:letter}body{padding:0}.footer{display:none}}
+  .date-r{font-size:10pt;color:#222;font-weight:500;white-space:nowrap;margin-left:8px}
+  .date-standalone{font-size:10pt;color:#222;margin-bottom:2px}
+  .bold-line{font-weight:700;margin-top:5px;margin-bottom:1px;font-style:italic}
+  .skill-line{margin-bottom:3px;line-height:1.4}
+  ul{padding-left:18px;margin:3px 0 5px;list-style-type:disc}
+  li{margin-bottom:2px;line-height:1.4}
+  p{margin-bottom:3px;line-height:1.45}
+  br{display:block;margin:2px 0;content:""}
+  .footer{margin-top:20pt;font-size:8.5pt;color:#aaa;text-align:center;border-top:1px solid #eee;padding-top:6pt}
+  @media print{@page{margin:0;size:letter portrait}body{padding:.75in .9in}.footer{display:none}}
 </style>
 </head>
 <body>
@@ -8097,6 +8104,8 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
   const [pendingBulletScroll, setPendingBulletScroll] = useState<string | null>(null);
   // Power Optimized download
   const [powerOptimizing, setPowerOptimizing] = useState(false);
+  // Generated resume snapshots
+  const [genHistory, setGenHistory] = useState<Array<{id:string;type:string;label:string;filename:string;resumeText:string;scores?:{overall:number;ats:number;impact:number;clarity:number};createdAt:string}>>([]);
   const [downloadModal, setDownloadModal] = useState<{ type: "revised" | "powerOptimized" } | null>(null);
   // Blob URL for the originally uploaded file (PDF iframe preview)
   const [rawFileUrl, setRawFileUrl] = useState<string | null>(null);
@@ -8231,6 +8240,8 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
       const html = await buildRevisedHtml();
       if (!html) { printWin?.close(); return; }
       deliverHtml(html, `${baseName}-revised.html`);
+      // Save snapshot in background (best-effort)
+      fetch("/api/zari/resume/snapshots", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ type:"revised", label:"Revised Resume", filename: fileName || "resume", resumeText, scores: aiResult ? { overall:aiResult.overall, ats:aiResult.ats, impact:aiResult.impact, clarity:aiResult.clarity } : undefined }) }).then(r=>r.json()).then(d=>{ if(d.id) setGenHistory(prev=>([{ id:d.id, type:"revised" as string, label:"Revised", filename: fileName||"resume", resumeText, scores: aiResult ? { overall:aiResult.overall, ats:aiResult.ats, impact:aiResult.impact, clarity:aiResult.clarity } : undefined, createdAt:new Date().toISOString() }, ...prev] as typeof prev).slice(0,10)); }).catch(()=>{});
       return;
     }
 
@@ -8245,7 +8256,10 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
       });
       const data = await res.json().catch(() => ({})) as { resumeText?: string; error?: string };
       if (!data.resumeText) { setAnalyzeErr(data.error ?? "Download failed — try again."); printWin?.close(); setPowerOptimizing(false); return; }
-      deliverHtml(generateResumeHtml(data.resumeText), `${baseName}-power-optimized.html`);
+      const optimizedHtml = generateResumeHtml(data.resumeText);
+      deliverHtml(optimizedHtml, `${baseName}-power-optimized.html`);
+      // Save snapshot in background (best-effort)
+      fetch("/api/zari/resume/snapshots", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ type:"power_optimized", label:"Power Optimized", filename: fileName||"resume", resumeText: data.resumeText, scores: aiResult ? { overall:aiResult.overall, ats:aiResult.ats, impact:aiResult.impact, clarity:aiResult.clarity } : undefined }) }).then(r=>r.json()).then(d=>{ if(d.id) setGenHistory(prev=>([{ id:d.id, type:"power_optimized" as string, label:"Power Optimized", filename: fileName||"resume", resumeText: data.resumeText, scores: aiResult ? { overall:aiResult.overall, ats:aiResult.ats, impact:aiResult.impact, clarity:aiResult.clarity } : undefined, createdAt:new Date().toISOString() }, ...prev] as typeof prev).slice(0,10)); }).catch(()=>{});
     } catch { setAnalyzeErr("Download failed — try again."); printWin?.close(); }
     setPowerOptimizing(false);
   }
@@ -8290,8 +8304,13 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
   async function fetchHistory() {
     setHistoryLoading(true);
     try {
-      const res = await fetch("/api/zari/resume/history");
+      const [res, snapRes] = await Promise.all([
+        fetch("/api/zari/resume/history"),
+        fetch("/api/zari/resume/snapshots"),
+      ]);
       const data = await res.json().catch(() => ({})) as { history?: ResumeHistoryEntry[] };
+      const snapData = await snapRes.json().catch(() => ({})) as { snapshots?: typeof genHistory };
+      setGenHistory(snapData.snapshots ?? []);
       const server = data.history ?? [];
       const local  = readLocalHistory();
       // Merge: prefer server entries, fill with local ones not already in server.
@@ -10082,6 +10101,54 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                     </div>
                   );
                 })}
+
+                {/* ── Generated Versions ── */}
+                {genHistory.length > 0 && (
+                  <div>
+                    <div style={{ borderTop:"1px solid var(--z-bd)", marginTop:16, paddingTop:16 }}>
+                      <p style={{ fontSize:13.5, fontWeight:800, color:"var(--z-text)", marginBottom:2 }}>Generated Versions</p>
+                      <p style={{ fontSize:11.5, color:"var(--z-text2)", marginBottom:12 }}>Last {genHistory.length} downloaded resume{genHistory.length>1?"s":""} — click to re-download</p>
+                    </div>
+                    {genHistory.map((snap, i) => {
+                      const sc = snap.scores;
+                      const g = sc ? scoreGrade(sc.overall) : null;
+                      return (
+                        <div key={snap.id} style={{ background:"var(--z-card)", borderRadius:14, border:`1px solid ${i===0?"rgba(37,99,235,0.35)":"var(--z-bd)"}`, padding:"14px 16px", marginBottom:9, boxShadow: i===0?"0 2px 8px rgba(37,99,235,0.12)":"0 1px 4px rgba(0,0,0,0.15)" }}>
+                          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:sc?10:0 }}>
+                            <div style={{ flex:1, minWidth:0 }}>
+                              <div style={{ display:"flex", alignItems:"center", gap:7, flexWrap:"wrap" }}>
+                                <span style={{ fontSize:10.5, fontWeight:800, padding:"2px 8px", borderRadius:99, background: snap.type==="power_optimized"?"rgba(37,99,235,0.15)":"rgba(79,70,229,0.12)", color: snap.type==="power_optimized"?"#7B9EFF":"#A78BFA", border:`1px solid ${snap.type==="power_optimized"?"rgba(37,99,235,0.3)":"rgba(139,92,246,0.3)"}` }}>{snap.type==="power_optimized"?"⚡ Power Optimized":"✏ Revised"}</span>
+                                {i===0 && <span style={{ fontSize:10, fontWeight:700, padding:"2px 7px", borderRadius:99, background:"rgba(37,99,235,0.1)", color:"#7B9EFF" }}>Latest</span>}
+                              </div>
+                              <p style={{ fontSize:12, color:"var(--z-text2)", marginTop:4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{snap.filename}</p>
+                              <p style={{ fontSize:10.5, color:"var(--z-text3)", marginTop:1 }}>{new Date(snap.createdAt).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"2-digit",minute:"2-digit"})}</p>
+                            </div>
+                            {g && sc && (
+                              <div style={{ textAlign:"right", flexShrink:0, marginLeft:12 }}>
+                                <p style={{ fontSize:22, fontWeight:900, color:g.color, lineHeight:1 }}>{sc.overall}</p>
+                                <p style={{ fontSize:10, color:g.color, fontWeight:700 }}>{g.label}</p>
+                              </div>
+                            )}
+                          </div>
+                          {sc && (
+                            <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:5, marginBottom:10 }}>
+                              {(["ats","impact","clarity"] as const).map(key => (
+                                <div key={key} style={{ padding:"5px 7px", background:"var(--z-raise)", borderRadius:8, border:"1px solid var(--z-bd)", textAlign:"center" }}>
+                                  <p style={{ fontSize:9, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:2 }}>{key==="ats"?"ATS":key==="impact"?"Impact":"Clarity"}</p>
+                                  <p style={{ fontSize:15, fontWeight:900, color:"var(--z-text)" }}>{sc[key]}</p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          <div style={{ display:"flex", gap:6 }}>
+                            <button onClick={()=>{ const win=window.open("","_blank"); if(!win) return; const html=generateResumeHtml(snap.resumeText); win.document.open(); win.document.write(html); win.document.close(); setTimeout(()=>win.print(),500); }} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 10px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text)", cursor:"pointer" }}>PDF</button>
+                            <button onClick={()=>{ triggerWordDownload(generateResumeHtml(snap.resumeText), `${snap.filename.replace(/\.[^.]+$/,"")}-${snap.type==="power_optimized"?"power-optimized":"revised"}.html`); }} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 10px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text)", cursor:"pointer" }}>Word</button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
           </div>
