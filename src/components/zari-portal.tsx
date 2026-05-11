@@ -4863,6 +4863,25 @@ function ScreenSalaryCompensation() {
     if (form.title || result) lsSet(SAL_KEY, { step, form, result, tab });
   }, [step, form, result, tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Restore previous salary session when server state syncs on login
+  useEffect(() => {
+    const onSynced = () => {
+      setResult(cur => {
+        if (cur) return cur;
+        const synced = lsGet<SalSaved>(SAL_KEY);
+        if (!synced) return cur;
+        if (synced.result) {
+          setStep(3); setForm(synced.form); setTab(synced.tab ?? "overview");
+          return synced.result;
+        }
+        if (synced.form?.title) { setStep((synced.step as 1|2|3) ?? 1); setForm(synced.form); }
+        return cur;
+      });
+    };
+    window.addEventListener("zari-state-synced", onSynced);
+    return () => window.removeEventListener("zari-state-synced", onSynced);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const inp: React.CSSProperties = { width:"100%", border:"1px solid var(--z-bd)", borderRadius:12, padding:"13px 16px", fontSize:14, color:"var(--z-text)", outline:"none", fontFamily:"inherit", background:"var(--z-raise)", boxShadow:"0 2px 20px var(--z-sh)", boxSizing:"border-box", transition:"border-color 0.15s" };
   const textarea: React.CSSProperties = { ...inp, minHeight:120, resize:"vertical" as const, lineHeight:1.7 };
   const card: React.CSSProperties = { background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"26px 28px", boxShadow:"0 2px 24px rgba(0,0,0,0.08)" };
@@ -10228,6 +10247,38 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
     setFetchingUrl(true); setUrlFetchErr("");
     try {
       const res = await fetch("/api/zari/fetch-url", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ url: jobUrl.trim() }) });
+
+  // Restore previous interview session when server state syncs on login
+  useEffect(() => {
+    const onSynced = () => {
+      setSections(cur => {
+        if (cur) return cur;
+        const saved = lsGet<IVSaved>(IV_KEY);
+        if (!saved) return cur;
+        if (saved.sections) {
+          setSetupDone(saved.setupDone);
+          setResumeText(saved.resumeText ?? "");
+          setResumeFileName(saved.resumeFileName ?? "");
+          setLinkedinText(saved.linkedinText ?? "");
+          setJobDesc(saved.jobDesc ?? "");
+          setRound(saved.round ?? null);
+          setSetupStep(saved.setupStep ?? 1);
+          return saved.sections;
+        }
+        if (saved.resumeText || saved.jobDesc) {
+          setResumeText(saved.resumeText ?? "");
+          setResumeFileName(saved.resumeFileName ?? "");
+          setLinkedinText(saved.linkedinText ?? "");
+          setJobDesc(saved.jobDesc ?? "");
+          setRound(saved.round ?? null);
+          setSetupStep(saved.setupStep ?? 1);
+        }
+        return cur;
+      });
+    };
+    window.addEventListener("zari-state-synced", onSynced);
+    return () => window.removeEventListener("zari-state-synced", onSynced);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
       const data = await res.json().catch(() => ({})) as { text?: string; error?: string };
       if (data.text) { setJobDesc(data.text); setUrlFetchErr(""); }
       else setUrlFetchErr(data.error ?? "Couldn't extract text — paste the job description instead.");
@@ -12733,6 +12784,30 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
   }
 
   function handleFile(f: File) {
+
+  // Restore previous LinkedIn session when server state syncs on login
+  useEffect(() => {
+    const onSynced = () => {
+      setResult(cur => {
+        if (cur) return cur;
+        const saved = lsGet<LISaved>(LI_KEY);
+        if (!saved?.result) return cur;
+        setHeadline(saved.headline ?? "");
+        setSummary(saved.summary ?? "");
+        setExperienceJobs(saved.experienceJobs ?? []);
+        setEducation(saved.education ?? "");
+        setSkills(saved.skills ?? "");
+        setLinkedinUrl(saved.linkedinUrl ?? "");
+        setHasPhoto(saved.hasPhoto ?? false);
+        setTargetRole(saved.targetRole ?? "");
+        setInputMode(false);
+        setLISection("score");
+        return saved.result;
+      });
+    };
+    window.addEventListener("zari-state-synced", onSynced);
+    return () => window.removeEventListener("zari-state-synced", onSynced);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
     if (!f) return;
     if (!f.name.toLowerCase().endsWith(".pdf") && f.type !== "application/pdf") {
       setErr("Please upload your LinkedIn profile as a PDF file.");
@@ -14391,6 +14466,41 @@ function ScreenCoverLetter({ stage, active = false, onNavigate }: { stage: Caree
     }
   }, [step, profileText, jobDesc, company, targetRole, candidateName, tone, result, editedLetter]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Restore previous cover letter session when server state syncs on login
+  useEffect(() => {
+    const onSynced = () => {
+      setResult(cur => {
+        if (cur) return cur;
+        const synced = lsGet<CLSaved>(CL_KEY);
+        if (!synced || synced.stage !== stage) return cur;
+        if (synced.result) {
+          setStep(3);
+          setProfileText(synced.profileText ?? "");
+          setProfileFile(synced.profileFile ?? "");
+          setJobDesc(synced.jobDesc ?? "");
+          setCompany(synced.company ?? "");
+          setTargetRole(synced.targetRole ?? "");
+          setCandidateName(synced.candidateName ?? "");
+          setTone((synced.tone as "professional" | "conversational" | "enthusiastic") ?? "professional");
+          setEditedLetter(synced.editedLetter ?? "");
+          return synced.result;
+        }
+        if (synced.profileText || synced.jobDesc) {
+          setStep((synced.step as 1 | 2 | 3) ?? 1);
+          setProfileText(synced.profileText ?? "");
+          setJobDesc(synced.jobDesc ?? "");
+          setCompany(synced.company ?? "");
+          setTargetRole(synced.targetRole ?? "");
+          setCandidateName(synced.candidateName ?? "");
+          setTone((synced.tone as "professional" | "conversational" | "enthusiastic") ?? "professional");
+        }
+        return cur;
+      });
+    };
+    window.addEventListener("zari-state-synced", onSynced);
+    return () => window.removeEventListener("zari-state-synced", onSynced);
+  }, [stage]); // eslint-disable-line react-hooks/exhaustive-deps
+
   async function handleUpload(file: File) {
     setProfileFile(file.name);
     try {
@@ -14462,6 +14572,7 @@ function ScreenCoverLetter({ stage, active = false, onNavigate }: { stage: Caree
       const sigHtml = closingLines.filter(l => l.trim()).map((l, i) =>
         i === 0
           ? "<p class=\"closing\">" + esc(l) + "</p>"
+
           : "<div class=\"sig\">" + esc(l) + "</div>"
       ).join("");
 
