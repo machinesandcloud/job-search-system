@@ -16374,116 +16374,122 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
         );
       })()}
 
-      {/* ── Credit Limit Paywall ── */}
+      {/* ── Credit Limit Paywall — always dark, non-dismissable full-screen gate ── */}
       {creditLimitNotice && (() => {
-        const usedPct = creditLimitNotice.limit > 0 ? Math.min(100, Math.round((creditLimitNotice.used / creditLimitNotice.limit) * 100)) : 100;
-        const nextPlanId  = viewer.planId === "search" ? "growth" : viewer.planId === "growth" ? "executive" : null;
+        const usedPct    = creditLimitNotice.limit > 0 ? Math.min(100, Math.round((creditLimitNotice.used / creditLimitNotice.limit) * 100)) : 100;
+        const nextPlanId   = viewer.planId === "search" ? "growth" : viewer.planId === "growth" ? "executive" : null;
         const nextPlanName = nextPlanId === "growth" ? "Growth" : nextPlanId === "executive" ? "Executive" : null;
         const upgradeHref  = nextPlanId ? `/onboarding/plan?upgrade=${encodeURIComponent(nextPlanId)}` : "/onboarding/plan";
         return (
-          <div style={{ position:"fixed", inset:0, zIndex:10000, display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
-            {/* Backdrop */}
-            {/* Backdrop — no click handler, intentionally blocks the full UI */}
-          <div style={{ position:"absolute", inset:0, backdropFilter:"blur(18px) saturate(0.8) brightness(0.55)", background:"rgba(4,6,13,0.72)" }} />
+          <div style={{ position:"fixed", inset:0, zIndex:10000, display:"flex", alignItems:"center", justifyContent:"center", padding:"24px 20px",
+            background:"radial-gradient(ellipse 140% 80% at 50% -5%, rgba(37,99,235,0.28) 0%, rgba(3,5,15,1) 55%)",
+            fontFamily:"var(--font-geist-sans,Inter,system-ui,sans-serif)", WebkitFontSmoothing:"antialiased" }}>
 
-            {/* Aurora blobs */}
-            <div style={{ position:"absolute", top:"15%", left:"20%", width:480, height:480, borderRadius:"50%", background:"radial-gradient(circle, rgba(37,99,235,0.18) 0%, transparent 70%)", pointerEvents:"none", animation:"aurora-slow 10s ease-in-out infinite" }}/>
-            <div style={{ position:"absolute", bottom:"10%", right:"15%", width:380, height:380, borderRadius:"50%", background:"radial-gradient(circle, rgba(99,102,241,0.14) 0%, transparent 70%)", pointerEvents:"none", animation:"aurora-slow 13s 2s ease-in-out infinite" }}/>
-            <div style={{ position:"absolute", top:"40%", right:"25%", width:220, height:220, borderRadius:"50%", background:"radial-gradient(circle, rgba(139,92,246,0.10) 0%, transparent 70%)", pointerEvents:"none", animation:"aurora-slow 8s 1s ease-in-out infinite" }}/>
+            {/* Portal blur — always applied regardless of theme */}
+            <div style={{ position:"absolute", inset:0, backdropFilter:"blur(24px) brightness(0.3) saturate(0.5)", pointerEvents:"none" }} />
 
-            {/* Modal card */}
-            <div style={{ position:"relative", width:"100%", maxWidth:460, animation:"bubble-appear 0.28s cubic-bezier(0.34,1.56,0.64,1)" }}>
-              {/* Glow halo behind card */}
-              <div style={{ position:"absolute", inset:-2, borderRadius:28, background:"linear-gradient(135deg, rgba(37,99,235,0.35) 0%, rgba(99,102,241,0.25) 50%, rgba(139,92,246,0.20) 100%)", filter:"blur(16px)", opacity:0.7, pointerEvents:"none" }}/>
+            {/* Aurora depth blobs */}
+            <div style={{ position:"absolute", top:"6%",   left:"15%",  width:540, height:540, borderRadius:"50%", background:"radial-gradient(circle, rgba(37,99,235,0.22) 0%, transparent 62%)",  pointerEvents:"none", animation:"aurora-slow 12s ease-in-out infinite" }}/>
+            <div style={{ position:"absolute", bottom:"4%", right:"10%", width:420, height:420, borderRadius:"50%", background:"radial-gradient(circle, rgba(99,102,241,0.18) 0%, transparent 62%)", pointerEvents:"none", animation:"aurora-slow 16s 3s ease-in-out infinite" }}/>
+            <div style={{ position:"absolute", top:"42%",  right:"22%", width:280, height:280, borderRadius:"50%", background:"radial-gradient(circle, rgba(139,92,246,0.14) 0%, transparent 62%)", pointerEvents:"none", animation:"aurora-slow 9s 1.5s ease-in-out infinite" }}/>
 
-              <div style={{ position:"relative", background: isDark ? "rgba(8,14,28,0.96)" : "rgba(255,255,255,0.96)", border:`1px solid rgba(37,99,235,0.25)`, borderRadius:24, overflow:"hidden", boxShadow:"0 40px 100px rgba(0,0,0,0.55), 0 0 0 1px rgba(37,99,235,0.12)" }}>
+            {/* Card */}
+            <div style={{ position:"relative", width:"100%", maxWidth:440, animation:"bubble-appear 0.35s cubic-bezier(0.34,1.56,0.64,1)" }}>
+              {/* Outer glow ring */}
+              <div style={{ position:"absolute", inset:-1, borderRadius:26, background:"linear-gradient(135deg, rgba(37,99,235,0.55), rgba(99,102,241,0.35), rgba(139,92,246,0.28))", filter:"blur(22px)", opacity:0.55, pointerEvents:"none" }}/>
 
-                {/* Top gradient bar */}
-                <div style={{ height:3, background:"linear-gradient(90deg, #2563EB 0%, #6366F1 50%, #8B5CF6 100%)", width:"100%" }}/>
+              <div style={{ position:"relative", background:"linear-gradient(160deg, #09102a 0%, #060a1c 100%)", border:"1px solid rgba(99,102,241,0.28)", borderRadius:24, overflow:"hidden", boxShadow:"0 48px 120px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.07)" }}>
 
-                {/* No close button — user must act to regain access */}
+                {/* Rainbow top bar */}
+                <div style={{ height:3, background:"linear-gradient(90deg, #1D4ED8 0%, #4F46E5 40%, #7C3AED 75%, #6366F1 100%)", width:"100%" }}/>
 
-                <div style={{ padding:"36px 36px 32px" }}>
+                <div style={{ padding:"40px 36px 36px", textAlign:"center" }}>
+
                   {/* Icon */}
-                  <div style={{ width:60, height:60, borderRadius:18, background:"linear-gradient(135deg, rgba(37,99,235,0.2) 0%, rgba(99,102,241,0.15) 100%)", border:"1px solid rgba(37,99,235,0.3)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:20, boxShadow:"0 8px 28px rgba(37,99,235,0.25)" }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#60A5FA" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width:28, height:28 }}>
-                      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                  <div style={{ width:68, height:68, borderRadius:20, background:"linear-gradient(135deg, rgba(37,99,235,0.28) 0%, rgba(99,102,241,0.20) 100%)", border:"1px solid rgba(99,102,241,0.38)", display:"inline-flex", alignItems:"center", justifyContent:"center", marginBottom:22, boxShadow:"0 0 48px rgba(37,99,235,0.35), inset 0 1px 0 rgba(255,255,255,0.08)" }}>
+                    <svg viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ width:32, height:32 }}>
+                      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="rgba(99,102,241,0.28)" stroke="#818CF8" strokeWidth="1.5"/>
                     </svg>
                   </div>
 
+                  {/* Eyebrow */}
+                  <div style={{ fontSize:10, fontWeight:900, color:"#818CF8", textTransform:"uppercase", letterSpacing:"0.22em", marginBottom:10 }}>Credits Exhausted</div>
+
                   {/* Headline */}
-                  <div style={{ fontSize:10.5, fontWeight:800, color:"#60A5FA", textTransform:"uppercase", letterSpacing:"0.14em", marginBottom:8 }}>Credits Exhausted</div>
-                  <h3 style={{ fontSize:22, fontWeight:900, color:"var(--z-text)", margin:"0 0 10px", letterSpacing:"-0.03em", lineHeight:1.2 }}>You&apos;ve used all your credits</h3>
-                  <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.65, margin:"0 0 24px" }}>
-                    Your monthly credit balance is empty. Upgrade your plan for more, buy a top-up, or wait for your next billing cycle to continue.
+                  <h2 style={{ fontSize:27, fontWeight:900, color:"rgba(255,255,255,0.95)", margin:"0 0 13px", letterSpacing:"-0.04em", lineHeight:1.12 }}>
+                    You&apos;ve used all<br/>your credits
+                  </h2>
+
+                  {/* Sub */}
+                  <p style={{ fontSize:13.5, color:"rgba(255,255,255,0.42)", lineHeight:1.72, margin:"0 auto 28px", maxWidth:320 }}>
+                    Your monthly balance is empty. Upgrade your plan, buy a top-up pack, or wait for your next billing cycle to continue.
                   </p>
 
-                  {/* Credit usage bar */}
-                  <div style={{ background:"rgba(255,255,255,0.05)", border:"1px solid rgba(37,99,235,0.15)", borderRadius:14, padding:"16px 18px", marginBottom:24 }}>
+                  {/* Credit bar */}
+                  <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.09)", borderRadius:14, padding:"16px 20px", marginBottom:24 }}>
                     <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
-                      <span style={{ fontSize:12, fontWeight:700, color:"var(--z-text2)" }}>Monthly Credits</span>
-                      <span style={{ fontSize:12.5, fontWeight:800, color:"#F87171" }}>{creditLimitNotice.used.toFixed(0)} / {creditLimitNotice.limit.toFixed(0)} used</span>
+                      <span style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.4)", textTransform:"uppercase", letterSpacing:"0.09em" }}>Monthly Credits</span>
+                      <span style={{ fontSize:13, fontWeight:800, color:"#F87171", letterSpacing:"-0.02em" }}>{creditLimitNotice.used.toFixed(0)} / {creditLimitNotice.limit.toFixed(0)} used</span>
                     </div>
-                    <div style={{ height:7, borderRadius:99, background:"rgba(255,255,255,0.07)", overflow:"hidden" }}>
-                      <div style={{ height:"100%", width:`${usedPct}%`, borderRadius:99, background:"linear-gradient(90deg, #EF4444 0%, #F87171 100%)", boxShadow:"0 0 10px rgba(239,68,68,0.5)" }}/>
+                    <div style={{ height:6, borderRadius:99, background:"rgba(255,255,255,0.07)", overflow:"hidden" }}>
+                      <div style={{ height:"100%", width:`${usedPct}%`, borderRadius:99, background:"linear-gradient(90deg, #B91C1C 0%, #EF4444 60%, #F87171 100%)", boxShadow:"0 0 14px rgba(239,68,68,0.65)" }}/>
                     </div>
-                    <div style={{ marginTop:8, fontSize:11.5, color:"var(--z-text3)" }}>Resets at your next billing cycle</div>
+                    <div style={{ marginTop:9, fontSize:11, color:"rgba(255,255,255,0.22)", textAlign:"center" }}>Resets automatically on your next billing date</div>
                   </div>
 
                   {/* Options */}
-                  <div style={{ display:"flex", flexDirection:"column", gap:10, marginBottom:22 }}>
+                  <div style={{ display:"flex", flexDirection:"column", gap:9, marginBottom:24 }}>
 
-                    {/* Option 1 — Upgrade */}
+                    {/* Upgrade — primary CTA */}
                     {nextPlanName && (
-                      <button
-                        onClick={() => { setCreditLimitNotice(null); window.location.href = upgradeHref; }}
-                        style={{ display:"flex", alignItems:"center", gap:14, padding:"14px 18px", borderRadius:14, border:"1.5px solid rgba(37,99,235,0.4)", background:"linear-gradient(135deg, rgba(37,99,235,0.16) 0%, rgba(99,102,241,0.10) 100%)", cursor:"pointer", textAlign:"left", transition:"all 0.15s" }}
-                      >
-                        <div style={{ width:38, height:38, borderRadius:11, background:"linear-gradient(135deg, #2563EB 0%, #4F46E5 100%)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:"0 4px 14px rgba(37,99,235,0.4)" }}>
-                          <svg viewBox="0 0 20 20" fill="white" style={{ width:16, height:16 }}><path d="M10 2l2.4 6.6H19l-5.7 4.1 2.2 6.7L10 15.4 4.5 19.4l2.2-6.7L1 8.6h6.6L10 2z"/></svg>
+                      <button onClick={() => { window.location.href = upgradeHref; }}
+                        style={{ display:"flex", alignItems:"center", gap:14, padding:"15px 18px", borderRadius:14, border:"1.5px solid rgba(99,102,241,0.5)", background:"linear-gradient(135deg, rgba(37,99,235,0.24) 0%, rgba(79,70,229,0.20) 100%)", cursor:"pointer", textAlign:"left", boxShadow:"0 4px 20px rgba(37,99,235,0.22), inset 0 1px 0 rgba(255,255,255,0.07)" }}>
+                        <div style={{ width:42, height:42, borderRadius:12, background:"linear-gradient(135deg, #2563EB 0%, #4F46E5 100%)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:"0 4px 18px rgba(37,99,235,0.55)" }}>
+                          <svg viewBox="0 0 20 20" fill="white" style={{ width:17, height:17 }}><path d="M10 2l2.4 6.6H19l-5.7 4.1 2.2 6.7L10 15.4 4.5 19.4l2.2-6.7L1 8.6h6.6L10 2z"/></svg>
                         </div>
-                        <div style={{ flex:1 }}>
-                          <div style={{ fontSize:13.5, fontWeight:800, color:"var(--z-text)", marginBottom:1 }}>Upgrade to {nextPlanName}</div>
-                          <div style={{ fontSize:12, color:"#60A5FA" }}>More credits + premium features</div>
+                        <div style={{ flex:1, textAlign:"left" }}>
+                          <div style={{ fontSize:14, fontWeight:800, color:"rgba(255,255,255,0.92)", marginBottom:2 }}>Upgrade to {nextPlanName}</div>
+                          <div style={{ fontSize:11.5, color:"#818CF8" }}>More monthly credits + all premium features</div>
                         </div>
-                        <svg viewBox="0 0 16 16" fill="none" stroke="#60A5FA" strokeWidth="2" style={{ width:14, height:14, flexShrink:0 }}><path d="M6 3l5 5-5 5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        <svg viewBox="0 0 16 16" fill="none" stroke="rgba(129,140,248,0.7)" strokeWidth="2.2" style={{ width:14, height:14, flexShrink:0 }}><path d="M6 3l5 5-5 5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       </button>
                     )}
 
-                    {/* Option 2 — Buy credits */}
-                    <div style={{ display:"flex", alignItems:"center", gap:14, padding:"14px 18px", borderRadius:14, border:"1px solid rgba(255,255,255,0.07)", background:"rgba(255,255,255,0.025)", textAlign:"left", position:"relative", overflow:"hidden" }}>
-                      <div style={{ width:38, height:38, borderRadius:11, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width:16, height:16 }}>
+                    {/* Buy top-up — coming soon */}
+                    <div style={{ display:"flex", alignItems:"center", gap:14, padding:"15px 18px", borderRadius:14, border:"1px solid rgba(255,255,255,0.07)", background:"rgba(255,255,255,0.025)", opacity:0.5, textAlign:"left" }}>
+                      <div style={{ width:42, height:42, borderRadius:12, background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.08)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width:16, height:16 }}>
                           <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
                         </svg>
                       </div>
-                      <div style={{ flex:1 }}>
-                        <div style={{ fontSize:13.5, fontWeight:700, color:"rgba(255,255,255,0.35)", marginBottom:1 }}>Buy a credit top-up</div>
-                        <div style={{ fontSize:12, color:"rgba(255,255,255,0.2)" }}>Add 40, 120, or 300 credits instantly</div>
+                      <div style={{ flex:1, textAlign:"left" }}>
+                        <div style={{ fontSize:14, fontWeight:700, color:"rgba(255,255,255,0.5)", marginBottom:2 }}>Buy a credit top-up</div>
+                        <div style={{ fontSize:11.5, color:"rgba(255,255,255,0.25)" }}>Add 40, 120, or 300 credits instantly</div>
                       </div>
-                      <div style={{ fontSize:10, fontWeight:800, color:"rgba(255,255,255,0.3)", background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:6, padding:"3px 9px", letterSpacing:"0.06em", textTransform:"uppercase", flexShrink:0 }}>Soon</div>
+                      <span style={{ fontSize:9.5, fontWeight:900, color:"rgba(255,255,255,0.3)", background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:6, padding:"3px 9px", letterSpacing:"0.1em", textTransform:"uppercase", flexShrink:0 }}>Soon</span>
                     </div>
 
-                    {/* Option 3 — Wait (informational only — not dismissable) */}
-                    <div style={{ display:"flex", alignItems:"center", gap:14, padding:"14px 18px", borderRadius:14, border:"1px solid rgba(255,255,255,0.07)", background:"rgba(255,255,255,0.025)", textAlign:"left" }}>
-                      <div style={{ width:38, height:38, borderRadius:11, background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width:16, height:16 }}>
+                    {/* Wait — informational only */}
+                    <div style={{ display:"flex", alignItems:"center", gap:14, padding:"15px 18px", borderRadius:14, border:"1px solid rgba(255,255,255,0.05)", background:"rgba(255,255,255,0.015)", opacity:0.42, textAlign:"left" }}>
+                      <div style={{ width:42, height:42, borderRadius:12, background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.07)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width:16, height:16 }}>
                           <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
                         </svg>
                       </div>
-                      <div style={{ flex:1 }}>
-                        <div style={{ fontSize:13, fontWeight:600, color:"rgba(255,255,255,0.35)", marginBottom:2 }}>Wait for next billing cycle</div>
-                        <div style={{ fontSize:11.5, color:"rgba(255,255,255,0.2)", lineHeight:1.5 }}>Your credits reset automatically. Access resumes then.</div>
+                      <div style={{ flex:1, textAlign:"left" }}>
+                        <div style={{ fontSize:14, fontWeight:600, color:"rgba(255,255,255,0.38)", marginBottom:2 }}>Wait for next billing cycle</div>
+                        <div style={{ fontSize:11.5, color:"rgba(255,255,255,0.2)" }}>Credits reset automatically — access resumes then</div>
                       </div>
                     </div>
 
                   </div>
 
-                  {/* Footer note — link opens in new tab so paywall stays */}
-                  <div style={{ textAlign:"center", fontSize:12, color:"var(--z-text3)", lineHeight:1.6 }}>
-                    Monthly credits reset on your billing date.{" "}
-                    <a href="/settings/subscription" target="_blank" rel="noopener noreferrer" style={{ color:"#60A5FA", fontWeight:600, textDecoration:"none" }}>Manage subscription ↗</a>
+                  {/* Footer */}
+                  <div style={{ fontSize:11.5, color:"rgba(255,255,255,0.22)", lineHeight:1.6 }}>
+                    Questions?{" "}
+                    <a href="/settings/subscription" target="_blank" rel="noopener noreferrer" style={{ color:"rgba(129,140,248,0.65)", fontWeight:600, textDecoration:"none" }}>Manage subscription ↗</a>
                   </div>
+
                 </div>
               </div>
             </div>
