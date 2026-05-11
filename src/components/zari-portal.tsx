@@ -8208,16 +8208,34 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
     setDownloadModal(null);
     const baseName = (fileName || "resume").replace(/\.[^.]+$/, "");
 
+    // Open the print window NOW while we still have the user gesture — async awaits kill popup permission
+    let printWin: Window | null = null;
+    if (format === "pdf") {
+      printWin = window.open("", "_blank");
+      if (!printWin) { setAnalyzeErr("Popups are blocked — allow popups for this site to use PDF export."); return; }
+      printWin.document.write('<p style="font-family:sans-serif;padding:40px;color:#555">Generating your resume…</p>');
+    }
+
+    function deliverHtml(html: string, filename: string) {
+      if (format === "word") {
+        triggerWordDownload(html, filename);
+      } else if (printWin) {
+        printWin.document.open();
+        printWin.document.write(html);
+        printWin.document.close();
+        setTimeout(() => { printWin!.print(); }, 500);
+      }
+    }
+
     if (modal?.type === "revised") {
       const html = await buildRevisedHtml();
-      if (!html) return;
-      if (format === "word") triggerWordDownload(html, `${baseName}-revised.html`);
-      else triggerPdfDownload(html);
+      if (!html) { printWin?.close(); return; }
+      deliverHtml(html, `${baseName}-revised.html`);
       return;
     }
 
     // Power Optimized — needs API call
-    if (!aiResult || powerOptimizing) return;
+    if (!aiResult || powerOptimizing) { printWin?.close(); return; }
     setPowerOptimizing(true);
     try {
       const res = await fetch("/api/zari/resume/power-optimize", {
@@ -8226,11 +8244,9 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
         body: JSON.stringify({ resumeText, targetRole: targetRoleInput, jobDescription }),
       });
       const data = await res.json().catch(() => ({})) as { resumeText?: string; error?: string };
-      if (!data.resumeText) { setAnalyzeErr(data.error ?? "Download failed — try again."); setPowerOptimizing(false); return; }
-      const html = generateResumeHtml(data.resumeText);
-      if (format === "word") triggerWordDownload(html, `${baseName}-power-optimized.html`);
-      else triggerPdfDownload(html);
-    } catch { setAnalyzeErr("Download failed — try again."); }
+      if (!data.resumeText) { setAnalyzeErr(data.error ?? "Download failed — try again."); printWin?.close(); setPowerOptimizing(false); return; }
+      deliverHtml(generateResumeHtml(data.resumeText), `${baseName}-power-optimized.html`);
+    } catch { setAnalyzeErr("Download failed — try again."); printWin?.close(); }
     setPowerOptimizing(false);
   }
 
