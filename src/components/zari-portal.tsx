@@ -16163,6 +16163,7 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
   const [stage, setStage] = useState<CareerStage>("job-search");
   const [stageOpen, setStageOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [hydrated,    setHydrated]    = useState(false);
   const [isDark, setIsDark] = useState(() => {
     try { return localStorage.getItem("zari_dark") === "1"; } catch { return false; }
   });
@@ -16225,7 +16226,8 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
         window.dispatchEvent(new CustomEvent("vault-updated"));
         window.dispatchEvent(new CustomEvent("zari-state-synced"));
       })
-      .catch(() => { /* best-effort */ });
+      .catch(() => { /* best-effort */ })
+      .finally(() => setHydrated(true));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -16571,14 +16573,24 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
 
         {/* Screen — all kept mounted, hidden when inactive to preserve state */}
         <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
-          <div className={screen==="session"      ? "zari-screen-active" : ""} style={{ display:screen==="session"      ? "block" : "none", height:"100%" }}><FeatureGate featureName="zari_chat"><ScreenSession stage={stage} onNavigate={navigate}/></FeatureGate></div>
-          <div className={screen==="resume"       ? "zari-screen-active" : ""} style={{ display:screen==="resume"       ? "block" : "none", height:"100%" }}><ScreenResume       stage={stage} onNavigate={s=>navigate(s as Screen)}/></div>
-          <div className={screen==="interview"    ? "zari-screen-active" : ""} style={{ display:screen==="interview"    ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <FeatureGate featureName="zari_pivot_story"><ScreenPivotStoryBuilder active={screen==="interview"}/></FeatureGate> : <ScreenInterview    stage={stage} active={screen==="interview"} onNavigate={s=>navigate(s as Screen)}/>}</div>
-          <div className={screen==="cover-letter" ? "zari-screen-active" : ""} style={{ display:screen==="cover-letter" ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <FeatureGate featureName="zari_credibility_sprint"><ScreenCredibilitySprint active={screen==="cover-letter"}/></FeatureGate> : <ScreenCoverLetter stage={stage} active={screen==="cover-letter"} onNavigate={s=>navigate(s as Screen)}/>}</div>
-          <div className={screen==="linkedin"     ? "zari-screen-active" : ""} style={{ display:screen==="linkedin"     ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <FeatureGate featureName="zari_bridge_network"><ScreenBridgeNetwork active={screen==="linkedin"}/></FeatureGate> : <ScreenLinkedIn     stage={stage} active={screen==="linkedin"} onNavigate={s=>navigate(s as Screen)}/>}</div>
-          <div className={screen==="documents"    ? "zari-screen-active" : ""} style={{ display:screen==="documents"    ? "block" : "none", height:"100%" }}><ScreenDocuments stage={stage} onNavigate={s=>navigate(s as Screen)}/></div>
-          <div className={screen==="plan"         ? "zari-screen-active" : ""} style={{ display:screen==="plan"         ? "block" : "none", height:"100%" }}><ScreenPlan stage={stage} onNavigate={s=>navigate(s as Screen)} active={screen==="plan"}/></div>
-          <div className={screen==="account"      ? "zari-screen-active" : ""} style={{ display:screen==="account"      ? "block" : "none", height:"100%" }}><ScreenAccount viewer={viewer} onNavigate={navigate}/></div>
+          {!hydrated ? (
+            <div style={{ height:"100%", display:"flex", flexDirection:"column", gap:14, padding:"32px 40px" }}>
+              {[0.85, 0.5, 0.65, 0.4, 0.55].map((w, i) => (
+                <div key={i} style={{ height: i===0 ? 72 : 20, borderRadius:10, background:"var(--z-raise)", opacity:0.6, maxWidth:`${w*100}%`, animation:`pulse 1.4s ${i*0.12}s ease-in-out infinite` }} />
+              ))}
+            </div>
+          ) : (
+            <>
+              <div className={screen==="session"      ? "zari-screen-active" : ""} style={{ display:screen==="session"      ? "block" : "none", height:"100%" }}><FeatureGate featureName="zari_chat"><ScreenSession stage={stage} onNavigate={navigate}/></FeatureGate></div>
+              <div className={screen==="resume"       ? "zari-screen-active" : ""} style={{ display:screen==="resume"       ? "block" : "none", height:"100%" }}><ScreenResume       stage={stage} onNavigate={s=>navigate(s as Screen)}/></div>
+              <div className={screen==="interview"    ? "zari-screen-active" : ""} style={{ display:screen==="interview"    ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <FeatureGate featureName="zari_pivot_story"><ScreenPivotStoryBuilder active={screen==="interview"}/></FeatureGate> : <ScreenInterview    stage={stage} active={screen==="interview"} onNavigate={s=>navigate(s as Screen)}/>}</div>
+              <div className={screen==="cover-letter" ? "zari-screen-active" : ""} style={{ display:screen==="cover-letter" ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <FeatureGate featureName="zari_credibility_sprint"><ScreenCredibilitySprint active={screen==="cover-letter"}/></FeatureGate> : <ScreenCoverLetter stage={stage} active={screen==="cover-letter"} onNavigate={s=>navigate(s as Screen)}/>}</div>
+              <div className={screen==="linkedin"     ? "zari-screen-active" : ""} style={{ display:screen==="linkedin"     ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <FeatureGate featureName="zari_bridge_network"><ScreenBridgeNetwork active={screen==="linkedin"}/></FeatureGate> : <ScreenLinkedIn     stage={stage} active={screen==="linkedin"} onNavigate={s=>navigate(s as Screen)}/>}</div>
+              <div className={screen==="documents"    ? "zari-screen-active" : ""} style={{ display:screen==="documents"    ? "block" : "none", height:"100%" }}><ScreenDocuments stage={stage} onNavigate={s=>navigate(s as Screen)}/></div>
+              <div className={screen==="plan"         ? "zari-screen-active" : ""} style={{ display:screen==="plan"         ? "block" : "none", height:"100%" }}><ScreenPlan stage={stage} onNavigate={s=>navigate(s as Screen)} active={screen==="plan"}/></div>
+              <div className={screen==="account"      ? "zari-screen-active" : ""} style={{ display:screen==="account"      ? "block" : "none", height:"100%" }}><ScreenAccount viewer={viewer} onNavigate={navigate}/></div>
+            </>
+          )}
         </div>
 
         {/* Mobile bottom nav */}
