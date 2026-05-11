@@ -16200,6 +16200,7 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
   const [topupOpen, setTopupOpen] = useState(false);
   const [topupLoading, setTopupLoading] = useState<string | null>(null);
   const [topupErr, setTopupErr] = useState<string | null>(null);
+  const [topupCustom, setTopupCustom] = useState("");
   const formatCredits = (value?: number | null) =>
     new Intl.NumberFormat("en-US", {
       minimumFractionDigits: value && value % 1 !== 0 ? 2 : 0,
@@ -16481,9 +16482,9 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
                             <div style={{ fontSize:11.5, color:"#F87171", background:"rgba(239,68,68,0.1)", border:"1px solid rgba(239,68,68,0.2)", borderRadius:8, padding:"8px 12px", marginBottom:2 }}>{topupErr}</div>
                           )}
                           {([
-                            { packId:"40",  credits:40,  price:"$19", label:"Starter",    desc:"Perfect for one-time needs" },
-                            { packId:"120", credits:120, price:"$49", label:"Pro",         desc:"Best value for regular users" },
-                            { packId:"300", credits:300, price:"$99", label:"Power",       desc:"Maximum credits at once" },
+                            { packId:"40",  credits:40,  price:"$20",  label:"Starter", desc:"Perfect for one-time needs" },
+                            { packId:"120", credits:120, price:"$50",  label:"Pro",      desc:"Best value for regular users" },
+                            { packId:"300", credits:300, price:"$120", label:"Power",    desc:"Maximum credits at once" },
                           ] as const).map(pack => {
                             const isLoading = topupLoading === pack.packId;
                             return (
@@ -16516,6 +16517,66 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
                               </button>
                             );
                           })}
+
+                          {/* Custom amount */}
+                          {(() => {
+                            const rawDollars = parseInt(topupCustom, 10);
+                            const validDollars = Number.isFinite(rawDollars) && rawDollars >= 5 ? rawDollars : null;
+                            const customCredits = validDollars ? validDollars * 2 : null;
+                            const isCustomLoading = topupLoading === "custom";
+                            return (
+                              <div style={{ borderTop:"1px solid rgba(255,255,255,0.06)", paddingTop:8, marginTop:2 }}>
+                                <div style={{ fontSize:10.5, fontWeight:700, color:"rgba(255,255,255,0.3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:7 }}>Or enter a custom amount</div>
+                                <div style={{ display:"flex", gap:7 }}>
+                                  <div style={{ position:"relative", flex:1 }}>
+                                    <span style={{ position:"absolute", left:11, top:"50%", transform:"translateY(-50%)", fontSize:14, fontWeight:700, color:"rgba(255,255,255,0.45)", pointerEvents:"none" }}>$</span>
+                                    <input
+                                      type="number"
+                                      min={5}
+                                      step={1}
+                                      placeholder="5"
+                                      value={topupCustom}
+                                      onChange={e => setTopupCustom(e.target.value.replace(/[^0-9]/g, ""))}
+                                      disabled={topupLoading !== null}
+                                      style={{ width:"100%", padding:"10px 10px 10px 26px", borderRadius:9, border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.04)", color:"rgba(255,255,255,0.88)", fontSize:14, fontWeight:700, outline:"none", boxSizing:"border-box", appearance:"textfield", MozAppearance:"textfield" }}
+                                    />
+                                  </div>
+                                  <button
+                                    disabled={!validDollars || topupLoading !== null}
+                                    onClick={() => {
+                                      if (!validDollars) return;
+                                      setTopupLoading("custom");
+                                      setTopupErr(null);
+                                      const win = window.open("", "_blank");
+                                      if (!win) { setTopupLoading(null); setTopupErr("Popups are blocked — please allow them and try again."); return; }
+                                      win.document.write('<html><body style="margin:0;background:#060a1c;display:flex;align-items:center;justify-content:center;height:100vh;font-family:system-ui,sans-serif;color:rgba(255,255,255,0.7);font-size:15px">Preparing your checkout…</body></html>');
+                                      fetch("/api/billing/topup", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ customDollars: validDollars }) })
+                                        .then(r => r.json())
+                                        .then(data => {
+                                          if (data.url) { win.location.href = data.url; }
+                                          else { win.close(); setTopupErr(data.error || "Something went wrong. Please try again."); }
+                                        })
+                                        .catch(() => { win.close(); setTopupErr("Network error. Please try again."); })
+                                        .finally(() => setTopupLoading(null));
+                                    }}
+                                    style={{ padding:"10px 14px", borderRadius:9, border:"1px solid rgba(99,102,241,0.4)", background: validDollars ? "linear-gradient(135deg, rgba(37,99,235,0.3) 0%, rgba(79,70,229,0.25) 100%)" : "rgba(255,255,255,0.04)", cursor: validDollars && topupLoading === null ? "pointer" : "default", opacity: validDollars && topupLoading === null ? 1 : 0.4, transition:"all 0.15s", flexShrink:0, display:"flex", alignItems:"center", gap:6 }}>
+                                    {isCustomLoading
+                                      ? <div style={{ width:14, height:14, border:"2px solid rgba(129,140,248,0.3)", borderTopColor:"#818CF8", borderRadius:"50%", animation:"spin-slow 0.7s linear infinite" }}/>
+                                      : <svg viewBox="0 0 16 16" fill="none" stroke="#818CF8" strokeWidth="2" style={{ width:14, height:14 }}><path d="M3 8h10M9 4l4 4-4 4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                    }
+                                    <span style={{ fontSize:12, fontWeight:800, color:"#818CF8", whiteSpace:"nowrap" }}>
+                                      {customCredits ? `${customCredits} cr` : "Buy"}
+                                    </span>
+                                  </button>
+                                </div>
+                                {validDollars && (
+                                  <div style={{ fontSize:10.5, color:"rgba(255,255,255,0.28)", marginTop:5, textAlign:"center" }}>
+                                    ${validDollars} → {customCredits} credits added to your account
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })()}
                         </div>
                       )}
                     </div>

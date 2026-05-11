@@ -104,9 +104,9 @@ export const FREE_PREVIEW_FEATURES = [
 ];
 
 export const TOP_UP_PACKS = [
-  { tokens: "40 credits", price: "$19" },
-  { tokens: "120 credits", price: "$49" },
-  { tokens: "300 credits", price: "$99" },
+  { tokens: "40 credits", price: "$20" },
+  { tokens: "120 credits", price: "$50" },
+  { tokens: "300 credits", price: "$120" },
 ];
 
 export const PRICING_TRUST_ITEMS = [
