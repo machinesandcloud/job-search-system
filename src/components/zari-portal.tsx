@@ -14808,7 +14808,7 @@ function ScreenCoverLetter({ stage, active = false, onNavigate }: { stage: Caree
   const [copied,        setCopied]        = useState(false);
   const [error,         setError]         = useState("");
   const [showDlMenu,    setShowDlMenu]    = useState(false);
-  type CLSnap = { id:string; subject:string; company:string; targetRole:string; tone:string; stage:string; coverLetter:string; createdAt:string };
+  type CLSnap = { id:string; subject:string; company:string; targetRole:string; tone:string; stage:string; coverLetter:string; tailoringNotes?:{decision:string;impact:string}[]; keyStrengths?:{strength:string;evidence:string}[]; openingHook?:string; createdAt:string };
   const CL_HISTORY_KEY = "zari_cl_history_v1";
   const [clHistory,     setClHistory]     = useState<CLSnap[]>(() => {
     try { return JSON.parse(localStorage.getItem(CL_HISTORY_KEY) ?? "[]") as CLSnap[]; } catch { return []; }
@@ -14894,7 +14894,7 @@ function ScreenCoverLetter({ stage, active = false, onNavigate }: { stage: Caree
         // Save to doc vault
         vaultSave({ type:"cover-letter", name:data.subject||targetRole||"Cover Letter", content:data.coverLetter, meta:{ subject:data.subject??"", targetRole, company, tone, stage } });
         // Save to cover letter snapshot history
-        const clSnapPayload = { subject: data.subject ?? "", company, targetRole, tone, stage, coverLetter: data.coverLetter };
+        const clSnapPayload = { subject: data.subject ?? "", company, targetRole, tone, stage, coverLetter: data.coverLetter, tailoringNotes: (data.tailoringNotes ?? []).map(n => typeof n === "string" ? { decision: n, impact: "" } : n as { decision: string; impact: string }), keyStrengths: (data.keyStrengths ?? []).map(s => typeof s === "string" ? { strength: s, evidence: "" } : s as { strength: string; evidence: string }), openingHook: data.openingHook ?? "" };
         const localSnap: CLSnap = { id: `cl_local_${Date.now()}`, ...clSnapPayload, createdAt: new Date().toISOString() };
         setClHistory(prev => {
           const next = [localSnap, ...prev].slice(0, 10);
@@ -15127,7 +15127,7 @@ function ScreenCoverLetter({ stage, active = false, onNavigate }: { stage: Caree
                             </button>
                             <button
                               onClick={() => {
-                                setResult({ subject:snap.subject, coverLetter:snap.coverLetter }); setEditedLetter(snap.coverLetter);
+                                setResult({ subject:snap.subject, coverLetter:snap.coverLetter, tailoringNotes:snap.tailoringNotes, keyStrengths:snap.keyStrengths, openingHook:snap.openingHook }); setEditedLetter(snap.coverLetter);
                                 setCompany(snap.company); setTargetRole(snap.targetRole); setTone(snap.tone as "professional"|"conversational"|"enthusiastic");
                                 setClMainTab("letter");
                               }}

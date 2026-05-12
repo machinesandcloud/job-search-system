@@ -24,6 +24,9 @@ export async function POST(request: Request) {
     tone?: string;
     stage?: string;
     coverLetter?: string;
+    tailoringNotes?: { decision: string; impact: string }[];
+    keyStrengths?: { strength: string; evidence: string }[];
+    openingHook?: string;
   };
 
   if (!body.coverLetter) {
@@ -37,6 +40,9 @@ export async function POST(request: Request) {
     tone: body.tone || "professional",
     stage: body.stage || "job-search",
     coverLetter: body.coverLetter,
+    tailoringNotes: body.tailoringNotes,
+    keyStrengths: body.keyStrengths,
+    openingHook: body.openingHook,
   });
 
   return NextResponse.json({ ok: true, id: record.id });

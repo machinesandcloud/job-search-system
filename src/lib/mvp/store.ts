@@ -674,6 +674,9 @@ export type CoverLetterSnapshotRecord = {
   tone: string;
   stage: string;
   coverLetter: string;
+  tailoringNotes?: { decision: string; impact: string }[];
+  keyStrengths?: { strength: string; evidence: string }[];
+  openingHook?: string;
   createdAt: string;
 };
 
@@ -686,6 +689,9 @@ export async function saveCoverLetterSnapshot(
     tone: string;
     stage: string;
     coverLetter: string;
+    tailoringNotes?: { decision: string; impact: string }[];
+    keyStrengths?: { strength: string; evidence: string }[];
+    openingHook?: string;
   },
 ): Promise<CoverLetterSnapshotRecord> {
   const record: CoverLetterSnapshotRecord = {
