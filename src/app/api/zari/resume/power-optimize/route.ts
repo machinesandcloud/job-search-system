@@ -161,13 +161,50 @@ SECTION HEADERS:
 - ALL CAPS plain text only: PROFESSIONAL SUMMARY, SKILLS, PROFESSIONAL EXPERIENCE, EDUCATION, CERTIFICATIONS.
 - Preceded and followed by one blank line. No icons, no decorations.
 
-EXPERIENCE ENTRIES:
-- Company left-aligned, dates right-aligned on the same line (~60 chars wide, space-padded).
-- Job title on the next line (plain text, not bulleted).
-- One blank line before bullets.
-- • for every bullet. 5–7 bullets for the 2 most recent roles; 3–4 for older roles.
-- One blank line between roles.
-- PAGE BREAK RULE: Company name, dates, job title, and at least the first 2 bullets MUST appear on the same page. If they do not fit, move the entire entry to the next page.
+PROFESSIONAL EXPERIENCE STRUCTURE — STRICT RULES
+
+Every role must follow this EXACT structure with no deviation:
+
+  Company Name                                      Dates
+  Job Title
+
+  • Bullet
+  • Bullet
+  • Bullet
+
+COMPANY CASING:
+- Use proper brand/title casing. Do NOT convert to all caps.
+- Correct: ISeatz, Kohl's, Hyland, PG Golf
+- Incorrect: ISEATZ, KOHL'S, HYLAND, PG GOLF
+
+COMPANY + DATES on ONE line:
+- Company name left-aligned, dates right-aligned, space-padded to ~60 chars.
+- Never merge company, job title, and dates into one line.
+- Incorrect: PG GOLF PROFESSIONAL SUPPORT ENGINEER Aug 2015 - Jul 2016
+- Correct:
+    PG Golf                                           Aug 2015 - Jul 2016
+    Professional Support Engineer
+
+JOB TITLE on its own line directly below the company/date line.
+- Never place job title beside the company name or dates.
+
+REVERSE CHRONOLOGICAL ORDER — most recent role first, oldest last:
+  ISeatz       Oct 2023 – Present
+  Kohl's       Aug 2018 – Sep 2023
+  Hyland       Aug 2016 – Aug 2018
+  PG Golf      Aug 2015 – Jul 2016
+
+BULLETS — every achievement must begin with •:
+- Correct: • Led engineering strategy for large-scale systems...
+- Incorrect: Led engineering strategy for large-scale systems...
+- 5–7 bullets for the 2 most recent roles (rewritten); 3–4 for older roles (preserve original).
+- Consistent indentation across all roles.
+- No paragraph blocks in Professional Experience — bullets only.
+
+PAGE BREAK RULE:
+- A role entry is a PROTECTED BLOCK. Do not split it.
+- Company name, dates, job title, and at least the first 2 bullets MUST stay on the same page.
+- If they do not fit, move the ENTIRE role (all of it) to the next page.
 
 SKILLS:
 - Plain text format: "Category Label: skill1, skill2, skill3"
@@ -248,6 +285,16 @@ MANDATORY SELF-CHECK — DO THIS BEFORE RETURNING
 6. Are certifications on 1–2 lines? → Compress if not.
 7. Are there any broken characters, soft hyphens, or garbled text (e.g. high￾performance)? → Fix or remove.
 8. Is the resume ≤2 pages? → Shorten older roles if not.
+
+FINAL PROFESSIONAL EXPERIENCE CHECK — Verify ALL of these before returning:
+1. Company names use proper casing (ISeatz, Kohl's, Hyland, PG Golf — not all caps).
+2. Roles are in reverse chronological order (most recent first).
+3. No company, title, and date merged into one line.
+4. Each role follows: Company left / Dates right → Job title below → • bullets underneath.
+5. Every experience item uses a real • bullet point (no plain paragraphs).
+6. No role header stranded alone at the bottom of a page.
+7. Company/date line + job title + at least 2 bullets stay together on the same page.
+If any check fails → revise the layout before producing the final JSON.
 
 FINAL PAGE CHECK — Reject and fix output if any of these are true:
 - Text appears too close to the bottom of the page.

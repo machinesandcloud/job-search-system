@@ -8120,21 +8120,41 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
   const rawFileUrlRef = useRef<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Restore PDF blob URL from localStorage when loading a saved session
-  useEffect(() => {
-    if (!_saved) return;
+  // Shared helper: create a blob URL from a base64 PDF data-URL string and apply it
+  const applyPdfBlob = useCallback((b64: string) => {
     try {
-      const b64 = localStorage.getItem(RESUME_PDF_KEY);
-      if (!b64) return;
       const base64Data = b64.includes(",") ? b64.split(",")[1] : b64;
       const byteStr = atob(base64Data);
       const bytes = new Uint8Array(byteStr.length);
       for (let i = 0; i < byteStr.length; i++) bytes[i] = byteStr.charCodeAt(i);
       const blob = new Blob([bytes], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
+      if (rawFileUrlRef.current) URL.revokeObjectURL(rawFileUrlRef.current);
       rawFileUrlRef.current = url;
       setRawFileUrl(url);
-    } catch { /* PDF not stored or corrupted — re-upload fallback shown */ }
+      return true;
+    } catch { return false; }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Fetch PDF from server and apply; optionally cache back to localStorage
+  const fetchAndApplyServerPdf = useCallback(async () => {
+    try {
+      const r = await fetch("/api/portal/resume-pdf");
+      if (!r.ok) return;
+      const data = await r.json() as { pdf?: string | null };
+      if (!data.pdf) return;
+      if (applyPdfBlob(data.pdf)) {
+        try { localStorage.setItem(RESUME_PDF_KEY, data.pdf); } catch { /* storage full */ }
+      }
+    } catch { /* best-effort */ }
+  }, [applyPdfBlob]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Restore PDF blob URL from localStorage (fast path) then fall back to server
+  useEffect(() => {
+    if (!_saved) return;
+    const b64 = (() => { try { return localStorage.getItem(RESUME_PDF_KEY); } catch { return null; } })();
+    if (b64 && applyPdfBlob(b64)) return;
+    void fetchAndApplyServerPdf();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // After server sync populates localStorage, re-initialize if we're still on the empty "choose" step
@@ -8151,20 +8171,10 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
       setTargetRoleInput(synced.targetRoleInput);
       setCareerLevel(synced.careerLevel);
       setResumeViewMode("suggestions");
-      // Restore PDF blob
-      try {
-        const b64 = localStorage.getItem(RESUME_PDF_KEY);
-        if (b64) {
-          const base64Data = b64.includes(",") ? b64.split(",")[1] : b64;
-          const byteStr = atob(base64Data);
-          const bytes = new Uint8Array(byteStr.length);
-          for (let i = 0; i < byteStr.length; i++) bytes[i] = byteStr.charCodeAt(i);
-          const blob = new Blob([bytes], { type: "application/pdf" });
-          const url = URL.createObjectURL(blob);
-          rawFileUrlRef.current = url;
-          setRawFileUrl(url);
-        }
-      } catch { /* non-fatal */ }
+      // Restore PDF blob: localStorage first, then server fallback
+      const b64 = (() => { try { return localStorage.getItem(RESUME_PDF_KEY); } catch { return null; } })();
+      if (b64 && applyPdfBlob(b64)) return;
+      void fetchAndApplyServerPdf();
     };
     window.addEventListener("zari-state-synced", onSynced);
     return () => window.removeEventListener("zari-state-synced", onSynced);
@@ -8418,11 +8428,18 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
     rawFileUrlRef.current = blobUrl;
     setRawFileUrl(blobUrl);
 
-    // Persist PDF as base64 so it survives page refresh (skip files >3 MB)
-    if (file.size < 3 * 1024 * 1024) {
+    // Persist PDF as base64 — localStorage for fast restore, server for cross-session/device restore
+    if (file.size < 5 * 1024 * 1024) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        try { localStorage.setItem(RESUME_PDF_KEY, reader.result as string); } catch { /* storage full */ }
+        const b64 = reader.result as string;
+        try { localStorage.setItem(RESUME_PDF_KEY, b64); } catch { /* storage full */ }
+        // Mirror to server (best-effort, enables cross-session restore)
+        fetch("/api/portal/resume-pdf", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pdf: b64 }),
+        }).catch(() => { /* non-fatal */ });
       };
       reader.readAsDataURL(file);
     }
@@ -9299,7 +9316,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
               : resumeText
               ? <>
                   <div style={{ fontSize:11, color:"var(--z-text3)", padding:"5px 14px", background:"var(--z-raise)", borderBottom:"1px solid var(--z-bd)", display:"flex", alignItems:"center", justifyContent:"space-between", flexShrink:0 }}>
-                    <span>Text preview · <label style={{ color:"#2563EB", fontWeight:600, cursor:"pointer" }}>re-upload PDF<input type="file" accept=".pdf" style={{ display:"none" }} onChange={e=>{ const f=e.target.files?.[0]; if(!f) return; if(rawFileUrlRef.current) URL.revokeObjectURL(rawFileUrlRef.current); const url=URL.createObjectURL(f); rawFileUrlRef.current=url; setRawFileUrl(url); }}/></label> for annotated view</span>
+                    <span>Text preview · <label style={{ color:"#2563EB", fontWeight:600, cursor:"pointer" }}>re-upload PDF<input type="file" accept=".pdf" style={{ display:"none" }} onChange={e=>{ const f=e.target.files?.[0]; if(!f) return; if(rawFileUrlRef.current) URL.revokeObjectURL(rawFileUrlRef.current); const url=URL.createObjectURL(f); rawFileUrlRef.current=url; setRawFileUrl(url); if(f.size<5*1024*1024){const rd=new FileReader();rd.onloadend=()=>{const b64=rd.result as string;try{localStorage.setItem(RESUME_PDF_KEY,b64)}catch{}fetch("/api/portal/resume-pdf",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({pdf:b64})}).catch(()=>{})};rd.readAsDataURL(f);} }}/></label> for annotated view</span>
                   </div>
                   <div style={{ flex:1, overflowY:"auto", padding:"24px 28px", fontFamily:"Calibri, Arial, Helvetica, sans-serif", fontSize:13, lineHeight:1.65, whiteSpace:"pre-wrap", background:"#fff", color:"#111", textAlign:"left" }}>
                     {resumeText}
