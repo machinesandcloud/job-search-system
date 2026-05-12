@@ -9328,11 +9328,9 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
               : resumeText
               ? <>
                   <div style={{ fontSize:11, color:"var(--z-text3)", padding:"5px 14px", background:"var(--z-raise)", borderBottom:"1px solid var(--z-bd)", display:"flex", alignItems:"center", justifyContent:"space-between", flexShrink:0 }}>
-                    <span>Text preview · <label style={{ color:"#2563EB", fontWeight:600, cursor:"pointer" }}>re-upload PDF<input type="file" accept=".pdf" style={{ display:"none" }} onChange={e=>{ const f=e.target.files?.[0]; if(!f) return; if(rawFileUrlRef.current) URL.revokeObjectURL(rawFileUrlRef.current); const url=URL.createObjectURL(f); rawFileUrlRef.current=url; setRawFileUrl(url); if(f.size<5*1024*1024){const rd=new FileReader();rd.onloadend=()=>{const b64=rd.result as string;try{localStorage.setItem(RESUME_PDF_KEY,b64)}catch{}fetch("/api/portal/resume-pdf",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({pdf:b64})}).catch(()=>{})};rd.readAsDataURL(f);} }}/></label> for annotated view</span>
+                    <span>Formatted preview · <label style={{ color:"#2563EB", fontWeight:600, cursor:"pointer" }}>re-upload PDF<input type="file" accept=".pdf" style={{ display:"none" }} onChange={e=>{ const f=e.target.files?.[0]; if(!f) return; if(rawFileUrlRef.current) URL.revokeObjectURL(rawFileUrlRef.current); const url=URL.createObjectURL(f); rawFileUrlRef.current=url; setRawFileUrl(url); if(f.size<5*1024*1024){const rd=new FileReader();rd.onloadend=()=>{const b64=rd.result as string;try{localStorage.setItem(RESUME_PDF_KEY,b64)}catch{}fetch("/api/portal/resume-pdf",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({pdf:b64})}).catch(()=>{})};rd.readAsDataURL(f);} }}/></label> for annotated view</span>
                   </div>
-                  <div style={{ flex:1, overflowY:"auto", padding:"24px 28px", fontFamily:"Calibri, Arial, Helvetica, sans-serif", fontSize:13, lineHeight:1.65, whiteSpace:"pre-wrap", background:"#fff", color:"#111", textAlign:"left" }}>
-                    {resumeText}
-                  </div>
+                  <iframe srcDoc={generateResumeHtml(resumeText)} style={{ flex:1, width:"100%", border:"none", display:"block", minHeight:0 }} title="Resume preview"/>
                 </>
               : <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:12, background:"var(--z-raise)" }}>
                   <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -14767,12 +14765,20 @@ function ScreenCoverLetter({ stage, active = false, onNavigate }: { stage: Caree
   const [error,         setError]         = useState("");
   const [showDlMenu,    setShowDlMenu]    = useState(false);
   type CLSnap = { id:string; subject:string; company:string; targetRole:string; tone:string; stage:string; coverLetter:string; createdAt:string };
-  const [clHistory,     setClHistory]     = useState<CLSnap[]>([]);
+  const CL_HISTORY_KEY = "zari_cl_history_v1";
+  const [clHistory,     setClHistory]     = useState<CLSnap[]>(() => {
+    try { return JSON.parse(localStorage.getItem(CL_HISTORY_KEY) ?? "[]") as CLSnap[]; } catch { return []; }
+  });
   const [clMainTab,     setClMainTab]     = useState<"letter"|"history">("letter");
 
-  // Load Cover Letter snapshot history once on mount
+  // Load Cover Letter snapshot history: localStorage hydrates immediately, server merges on top
   useEffect(() => {
-    fetch("/api/zari/cover-letter/snapshots").then(r=>r.json()).then((d:{snapshots?:CLSnap[]}) => { if (d.snapshots) setClHistory(d.snapshots); }).catch(()=>{});
+    fetch("/api/zari/cover-letter/snapshots").then(r=>r.json()).then((d:{snapshots?:CLSnap[]}) => {
+      if (d.snapshots && d.snapshots.length > 0) {
+        setClHistory(d.snapshots);
+        try { localStorage.setItem(CL_HISTORY_KEY, JSON.stringify(d.snapshots)); } catch { /* storage full */ }
+      }
+    }).catch(()=>{});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Persist session whenever meaningful state changes
@@ -14845,7 +14851,13 @@ function ScreenCoverLetter({ stage, active = false, onNavigate }: { stage: Caree
         vaultSave({ type:"cover-letter", name:data.subject||targetRole||"Cover Letter", content:data.coverLetter, meta:{ subject:data.subject??"", targetRole, company, tone, stage } });
         // Save to cover letter snapshot history
         const clSnapPayload = { subject: data.subject ?? "", company, targetRole, tone, stage, coverLetter: data.coverLetter };
-        fetch("/api/zari/cover-letter/snapshots", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(clSnapPayload) }).then(r=>r.json()).then((d:{id?:string}) => { if (d.id) setClHistory(prev => ([{ id:d.id!, ...clSnapPayload, createdAt: new Date().toISOString() }, ...prev].slice(0,10))); }).catch(()=>{}); }
+        const localSnap: CLSnap = { id: `cl_local_${Date.now()}`, ...clSnapPayload, createdAt: new Date().toISOString() };
+        setClHistory(prev => {
+          const next = [localSnap, ...prev].slice(0, 10);
+          try { localStorage.setItem(CL_HISTORY_KEY, JSON.stringify(next)); } catch { /* storage full */ }
+          return next;
+        });
+        fetch("/api/zari/cover-letter/snapshots", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(clSnapPayload) }).then(r=>r.json()).then((d:{id?:string}) => { if (d.id) setClHistory(prev => { const next = prev.map(s => s.id === localSnap.id ? { ...s, id: d.id! } : s); try { localStorage.setItem(CL_HISTORY_KEY, JSON.stringify(next)); } catch { /* ignore */ } return next; }); }).catch(()=>{}); }
       else if (!handleBillingApiError(res.status, data as BillingApiErrorData, billing)) setError(data?.error ?? "Generation failed — try again.");
     } catch { setError("Something went wrong — try again."); }
     setGenerating(false);
