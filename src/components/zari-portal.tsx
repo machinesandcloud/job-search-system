@@ -16470,7 +16470,7 @@ function ScreenAccount({ viewer, onNavigate }: { viewer: PortalViewer; onNavigat
                 Upgrade to {nextPlanName}
               </Link>
             ) : null}
-            <Link href="/onboarding/plan" style={{ fontSize: 12.5, fontWeight: 500, padding: "8px 14px", borderRadius: 9, border: "1px solid var(--z-bd)", background: "transparent", color: "var(--z-text2)", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+            <Link href="/onboarding/plan?upgrade=view" style={{ fontSize: 12.5, fontWeight: 500, padding: "8px 14px", borderRadius: 9, border: "1px solid var(--z-bd)", background: "transparent", color: "var(--z-text2)", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
               Compare plans
             </Link>
           </div>
@@ -16518,10 +16518,10 @@ function ScreenAccount({ viewer, onNavigate }: { viewer: PortalViewer; onNavigat
               </div>
             )}
             <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid var(--z-bd)", display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <Link href="/onboarding/plan" style={{ fontSize: 12.5, fontWeight: 700, padding: "8px 16px", borderRadius: 9, background: "linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)", color: "white", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6, boxShadow: "0 3px 12px rgba(37,99,235,0.35)" }}>
+              <Link href={nextPlanHref} style={{ fontSize: 12.5, fontWeight: 700, padding: "8px 16px", borderRadius: 9, background: "linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)", color: "white", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6, boxShadow: "0 3px 12px rgba(37,99,235,0.35)" }}>
                 Buy more credits
               </Link>
-              <Link href="/onboarding/plan" style={{ fontSize: 12.5, fontWeight: 500, padding: "8px 14px", borderRadius: 9, border: "1px solid var(--z-bd)", background: "transparent", color: "var(--z-text2)", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+              <Link href="/onboarding/plan?upgrade=view" style={{ fontSize: 12.5, fontWeight: 500, padding: "8px 14px", borderRadius: 9, border: "1px solid var(--z-bd)", background: "transparent", color: "var(--z-text2)", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
                 Compare plans
               </Link>
             </div>
