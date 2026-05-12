@@ -132,21 +132,31 @@ Job Title
 
 - Company name: left-aligned, proper brand casing — never all-caps a mixed-case brand
 - Dates: right-aligned on same line as company
-- Job title: own line below company/date — NEVER as a bullet
+- Job title: own line below company/date — NEVER as a bullet (• or -); it is always plain text
 - Reverse chronological order (most recent role first)
 - Every bullet uses •
+
+EDUCATION FORMAT — STRICT:
+Each education entry is TWO lines only:
+School Name (line 1)
+Degree Name (line 2)
+
+No bullets. No extra punctuation. Example:
+University of Montreal
+Bachelor of Science in Biochemistry
 
 SELF-CHECK BEFORE RETURNING:
 1. Any Markdown syntax? → REMOVE
 2. Any word problem still present? → REPLACE with suggestion
 3. Every required keyword present at least once? → ADD if missing
 4. Company + dates on same line, job title on next line? → FIX if not
-5. Any job title as a bullet? → CONVERT to plain text line
+5. Any job title as a bullet (• Job Title)? → CONVERT to plain text line
 6. Broken characters (high￾performance)? → FIX
 7. Any consecutive blank lines (3+)? → COLLAPSE to one
 8. All critical findings addressed? → FIX remaining
 9. Company names properly cased? → FIX any all-capped mixed brands
 10. No invented metrics? → REMOVE any fabricated numbers
+11. Education entries: school on line 1, degree on line 2, no bullets? → FIX if not
 
 Return ONLY valid JSON: { "resumeText": "<complete revised resume, \\n for newlines>" }`;
 

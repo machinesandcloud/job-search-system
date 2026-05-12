@@ -297,15 +297,18 @@ Final line must not sit at the bottom edge.
 EDUCATION FORMAT
 ============================================================
 
-Compact. Keep school and degree together:
+Each entry is EXACTLY TWO lines — school name then degree name. No bullets. No extra punctuation.
 
 University Name
 Degree Name
 
-If space is tight, use inline:
-University Name — Degree Name
+Example:
+University of Montreal
+Bachelor of Science in Biochemistry
 
-No large gaps between entries. Do not let Education push Certifications to page 3.
+Multiple entries: separate each pair with one blank line.
+Do not let Education push Certifications to page 3.
+Never use a bullet (• or -) for school or degree lines.
 
 ============================================================
 CERTIFICATIONS FORMAT
@@ -340,6 +343,7 @@ MANDATORY SELF-CHECK — DO EVERY ITEM BEFORE RETURNING
 18. Language inflated for candidate's actual level? → Fix executive language for non-executives
 19. Any forbidden string (about:blank, 1/2, 2/2, broken hyphens)? → Remove
 20. Experience written as paragraphs? → Convert to • bullets
+21. Education entries: school on line 1, degree on line 2, no bullets? → Fix if not
 
 ============================================================
 FINAL EXPERIENCE CHECK

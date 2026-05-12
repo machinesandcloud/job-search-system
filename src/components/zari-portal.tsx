@@ -2575,7 +2575,7 @@ function escHtml(s: string) {
   return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 
-function generateResumeHtml(text: string, footerNote = ""): string {
+function generateResumeHtml(text: string, footerNote = "", showPrintHint = false): string {
   // Strip browser print artifacts that get baked into PDFs printed from the browser
   // e.g. "4/21/26, 11:08 PM Resume", "about:blank 1/3", standalone "Resume" title line
   text = text.split("\n").filter(line => {
@@ -2676,7 +2676,8 @@ function generateResumeHtml(text: string, footerNote = ""): string {
 
   // ── Phase 3: render section content lines ─────────────────
   // autoBullet: experience/work sections auto-wrap body paragraphs as <li>
-  function renderLines(lines: string[], autoBullet = false): string {
+  // isEdu: education sections get bold school / italic degree formatting
+  function renderLines(lines: string[], autoBullet = false, isEdu = false): string {
     // Pre-join: if a line doesn't end in sentence punctuation and the NEXT line
     // starts with lowercase, merge them (handles PDF-wrapped long sentences).
     const joined: string[] = [];
@@ -2703,6 +2704,8 @@ function generateResumeHtml(text: string, footerNote = ""): string {
     let pending: string | null = null;
     let afterJobEntry = false;
     let inJobBlock = false;
+    // Education state: tracks whether we're expecting a school name or degree name
+    let eduState: "school" | "degree" = "school";
 
     const openJobBlock  = () => { if (!inJobBlock) { html += '<div class="job-block">\n'; inJobBlock = true; } };
     const closeJobBlock = () => { if (inJobBlock)  { html += '</div>\n'; inJobBlock = false; } };
@@ -2725,10 +2728,38 @@ function generateResumeHtml(text: string, footerNote = ""): string {
     };
 
     for (const t of joined) {
-      if (!t) { closeList(); flushPending(); html += "<br>\n"; continue; }
+      if (!t) {
+        closeList(); flushPending();
+        if (isEdu) eduState = "school";
+        html += "<br>\n";
+        continue;
+      }
 
       // Drop ASCII separator lines — HTML uses CSS section borders
       if (/^[=\-_]{4,}$/.test(t)) { closeList(); flushPending(); continue; }
+
+      // ── Education section: bold school + italic degree ──────────────────
+      if (isEdu) {
+        const stripped = t.replace(/^[•\u2022►▸→\-*]\s*/, "");
+        if (eduState === "school") {
+          html += `<div class="edu-entry"><p class="edu-school">${escHtml(stripped)}</p>\n`;
+          eduState = "degree";
+        } else {
+          html += `<p class="edu-degree">${escHtml(stripped)}</p></div>\n`;
+          eduState = "school";
+        }
+        continue;
+      }
+
+      // ── Job title misformatted as bullet: only when no title is already buffered (pending===null) ──
+      if (!inList && afterJobEntry && pending === null && /^[•\u2022►▸→]/.test(t)) {
+        const titleText = t.replace(/^[•\u2022►▸→\-*]\s*/, "");
+        if (titleText.length < 90 && titleText.split(/\s+/).length <= 10) {
+          flushPending();
+          html += `<p class="bold-line">${escHtml(titleText)}</p>\n`;
+          continue;
+        }
+      }
 
       // Bullet: char-only (no space required) OR hyphen/asterisk with space
       if (/^[•\u2022►▸→]/.test(t) || /^[-*]\s/.test(t)) {
@@ -2827,7 +2858,8 @@ function generateResumeHtml(text: string, footerNote = ""): string {
   for (const sec of sections) {
     body += `<div class="sec-hdr">${escHtml(sec.title.toUpperCase())}</div>\n`;
     const isExpSec = /experience|employment|work/i.test(sec.title);
-    body += renderLines(sec.lines, isExpSec);
+    const isEduSec = /education|academic/i.test(sec.title);
+    body += renderLines(sec.lines, isExpSec, isEduSec);
   }
 
   const footer = footerNote ? `\n<p class="footer">${escHtml(footerNote)}</p>` : "";
@@ -2836,7 +2868,7 @@ function generateResumeHtml(text: string, footerNote = ""): string {
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Resume</title>
+<title> </title>
 <style>
   *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
   @page{size:letter;margin:0.70in 0.75in 0.75in 0.75in}
@@ -2858,14 +2890,19 @@ function generateResumeHtml(text: string, footerNote = ""): string {
   li{margin-bottom:2pt;padding-left:2pt;line-height:1.15;orphans:3;widows:3}
   p{margin-bottom:2pt;line-height:1.15;orphans:3;widows:3}
   .education-entry{margin-bottom:3pt;break-inside:avoid;page-break-inside:avoid}
+  .edu-entry{margin-bottom:6pt;break-inside:avoid;page-break-inside:avoid}
+  .edu-school{font-weight:700;margin:0 0 1pt;display:block}
+  .edu-degree{font-style:italic;margin:0 0 1pt;padding-left:10pt;display:block}
   .certifications{margin-top:2pt}
   br{display:block;margin:2pt 0;content:""}
   .footer{margin-top:20pt;font-size:8.5pt;color:#aaa;text-align:center;border-top:1px solid #eee;padding-top:6pt}
   @media print{.footer{display:none}}
+  .print-hint{position:fixed;top:0;left:0;right:0;background:#FEF3C7;border-bottom:2px solid #F59E0B;padding:9px 16px;font-family:Arial,sans-serif;font-size:11.5px;color:#92400E;text-align:center;z-index:9999;line-height:1.4}
+  @media print{.print-hint{display:none!important}}
 </style>
 </head>
 <body>
-${body}${footer}
+${showPrintHint ? '<div class="print-hint"><strong>Remove headers &amp; footers from the PDF:</strong> In the print dialog click &ldquo;More settings&rdquo; and uncheck &ldquo;Headers and footers&rdquo;</div>' : ""}\n${body}${footer}
 </body>
 </html>`;
 }
@@ -8263,7 +8300,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
       } catch { /* fall back to bullet-only revision */ }
     }
 
-    return generateResumeHtml(revised);
+    return generateResumeHtml(revised, "", true);
   }
 
   function downloadReconstructed() {
@@ -8291,10 +8328,13 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
       if (format === "word") {
         triggerWordDownload(html, filename);
       } else if (printWin) {
-        printWin.document.open();
-        printWin.document.write(html);
-        printWin.document.close();
-        setTimeout(() => { printWin!.print(); }, 500);
+        // Use blob URL so the print footer shows a blob: URL instead of "about:blank"
+        const blob = new Blob([html], { type: "text/html" });
+        const blobUrl = URL.createObjectURL(blob);
+        printWin.location.replace(blobUrl);
+        printWin.addEventListener("load", () => {
+          setTimeout(() => { printWin!.print(); URL.revokeObjectURL(blobUrl); }, 400);
+        }, { once: true });
       }
     }
 
@@ -8330,7 +8370,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
       });
       const data = await res.json().catch(() => ({})) as { resumeText?: string; error?: string };
       if (!data.resumeText) { setAnalyzeErr(data.error ?? "Download failed — try again."); printWin?.close(); setPowerOptimizing(false); return; }
-      const optimizedHtml = generateResumeHtml(data.resumeText);
+      const optimizedHtml = generateResumeHtml(data.resumeText, "", true);
       deliverHtml(optimizedHtml, `${baseName}-power-optimized.html`);
       // Save snapshot in background (best-effort)
       fetch("/api/zari/resume/snapshots", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ type:"power_optimized", label:"Power Optimized", filename: fileName||"resume", resumeText: data.resumeText, scores: aiResult ? { overall:aiResult.overall, ats:aiResult.ats, impact:aiResult.impact, clarity:aiResult.clarity } : undefined }) }).then(r=>r.json()).then(d=>{ if(d.id) setGenHistory(prev=>([{ id:d.id, type:"power_optimized" as string, label:"Power Optimized", filename: fileName||"resume", resumeText: data.resumeText, scores: aiResult ? { overall:aiResult.overall, ats:aiResult.ats, impact:aiResult.impact, clarity:aiResult.clarity } : undefined, createdAt:new Date().toISOString() }, ...prev] as typeof prev).slice(0,10)); }).catch(()=>{});
@@ -10243,7 +10283,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                           )}
                           {/* Actions */}
                           <div style={{ display:"flex", gap:0, background:"var(--z-card)" }}>
-                            <button onClick={()=>{ const win=window.open("","_blank"); if(!win) return; const html=generateResumeHtml(snap.resumeText); win.document.open(); win.document.write(html); win.document.close(); setTimeout(()=>win.print(),500); }} style={{ flex:1, fontSize:12, fontWeight:700, padding:"10px 14px", border:"none", borderRight:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:6, transition:"background 0.1s" }}
+                            <button onClick={()=>{ const html=generateResumeHtml(snap.resumeText,"",true); const blob=new Blob([html],{type:"text/html"}); const blobUrl=URL.createObjectURL(blob); const win=window.open(blobUrl,"_blank"); if(!win){URL.revokeObjectURL(blobUrl);return;} win.addEventListener("load",()=>{setTimeout(()=>{win.print();URL.revokeObjectURL(blobUrl);},400)},{once:true}); }} style={{ flex:1, fontSize:12, fontWeight:700, padding:"10px 14px", border:"none", borderRight:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:6, transition:"background 0.1s" }}
                               onMouseEnter={e=>(e.currentTarget.style.background="var(--z-raise)")} onMouseLeave={e=>(e.currentTarget.style.background="transparent")}>
                               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                               PDF
