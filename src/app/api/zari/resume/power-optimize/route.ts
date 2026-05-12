@@ -157,12 +157,22 @@ You may add a bracketed placeholder ONLY if the source hints at an outcome witho
 Never fabricate companies, job titles, or project outcomes not in the source.
 
 ============================================================
-LANGUAGE ACCURACY
+CANDIDATE-APPROPRIATE LANGUAGE — STRICT
 ============================================================
 
 Match language to the candidate's ACTUAL background level.
 Do NOT use executive or tech-leadership language for lab technicians, interns, or early-career candidates.
-Do NOT force "digital transformation", "strategic vision", or "technology leadership" into a non-tech resume.
+
+Do NOT use these terms unless explicitly present in the candidate's background:
+- Technology strategy, customer-facing platforms, cloud environments, enterprise technology
+- Vendor management, cybersecurity, KPIs, innovation and transformation initiatives
+- Digital transformation, strategic vision, technology leadership
+
+For lab/biomedical/public health resumes, use grounded language:
+- Laboratory techniques, reagent preparation, sample handling, analytical method validation
+- Quality control, HACCP, GMP/BPF, scientific documentation
+- Epidemiological monitoring, public health surveillance, patient tracing
+- Hygiene protocols, medical record documentation
 
 Verbs by background:
 - Lab/scientific: Prepared, Assisted, Participated, Managed, Conducted, Maintained, Documented, Monitored, Applied, Collaborated
@@ -237,7 +247,8 @@ Rules:
   Correct: ISeatz, Kohl's, BRUCEFO, District de la Cité Verte
   Incorrect: ISEATZ, KOHL'S
 - Dates: right-aligned on the SAME line as company name, space-padded ~60 chars
-- Job title: on its OWN line below company/date — NEVER as a bullet
+- Job title: on its OWN line below company/date — NEVER as a bullet (• or -)
+- The FIRST • bullet must be a responsibility or achievement, NEVER the job title
 - Never merge company + title + dates into one line
 - Reverse chronological order (most recent role first)
 - Every bullet uses • (never -, *, or plain paragraph text)
@@ -246,10 +257,11 @@ CORRECT:
 BRUCEFO, Bruxelles                              Feb 2024 - Jul 2024
 Stage en laboratoire - Bioanalyses & Validation de Méthodes
 
-• Prepared reagents, buffer solutions, and culture media following laboratory protocols.
-• Participated in analytical method validation using ion chromatography for nitrite/nitrate testing.
+• Executed preparation of reagents, buffer solutions, and culture media following laboratory protocols.
+• Implemented analytical method validation using ion chromatography.
+• Managed sample handling in compliance with standard protocols.
 
-INCORRECT (job title as bullet):
+INCORRECT (job title as bullet — FORBIDDEN):
 BRUCEFO, Bruxelles                              Feb 2024 - Jul 2024
 • Stage en laboratoire - Bioanalyses & Validation de Méthodes
 
@@ -294,21 +306,28 @@ Page 2 must not start at the very top edge — real margin applies.
 Final line must not sit at the bottom edge.
 
 ============================================================
-EDUCATION FORMAT
+EDUCATION FORMAT — REQUIRED
 ============================================================
 
-Each entry is EXACTLY TWO lines — school name then degree name. No bullets. No extra punctuation.
+Education uses bullet points. Each entry is TWO lines:
 
-University Name
-Degree Name
+• School Name (line 1 — use •)
+  Degree Name (line 2 — indent, no bullet)
 
-Example:
-University of Montreal
-Bachelor of Science in Biochemistry
+Formatting rules:
+- School name line starts with •
+- Degree name sits directly under the school (plain, no bullet)
+- Separate entries with one blank line
+- No extra punctuation, no Markdown, no bold/italic markers in plain text output
 
-Multiple entries: separate each pair with one blank line.
+Correct:
+• Université Libre de Bruxelles
+  Bachelier en Sciences Biomédicales
+
+• Université de Dschang
+  Master 2 en Santé Publique et Épidémiologie
+
 Do not let Education push Certifications to page 3.
-Never use a bullet (• or -) for school or degree lines.
 
 ============================================================
 CERTIFICATIONS FORMAT
@@ -343,7 +362,8 @@ MANDATORY SELF-CHECK — DO EVERY ITEM BEFORE RETURNING
 18. Language inflated for candidate's actual level? → Fix executive language for non-executives
 19. Any forbidden string (about:blank, 1/2, 2/2, broken hyphens)? → Remove
 20. Experience written as paragraphs? → Convert to • bullets
-21. Education entries: school on line 1, degree on line 2, no bullets? → Fix if not
+21. Education: each entry starts with •school, followed by degree (no bullet)? → Fix if not
+22. Irrelevant tech/cloud/cybersecurity language in a non-tech resume? → Remove
 
 ============================================================
 FINAL EXPERIENCE CHECK
@@ -354,13 +374,16 @@ FINAL EXPERIENCE CHECK
 3. No company + title + date merged into one line
 4. Every role: Company/Dates → Job Title (plain line) → blank line → • bullets
 5. Every experience item uses real • — no plain paragraphs, no job title as bullet
-6. No role or section header stranded at bottom of page
-7. Company/date + job title + first 2 bullets on same page
-8. No role exceeds its bullet count limit
-9. All WORD PROBLEM words replaced
-10. All required keywords present
-11. No forbidden strings in output
-12. No invented metrics
+6. First bullet under every role is a responsibility/achievement, never the job title
+7. No role or section header stranded at bottom of page
+8. Company/date + job title + first 2 bullets on same page
+9. No role exceeds its bullet count limit
+10. All WORD PROBLEM words replaced
+11. All required keywords present
+12. No forbidden strings in output
+13. No invented metrics
+14. Education entries use • for school, plain text for degree
+15. No executive/tech language injected into lab or public health resumes
 
 If any check fails → revise before producing the final JSON.
 

@@ -2249,7 +2249,7 @@ function ZariLiveMode({
   }
 
   function handleMicTap() {
-    ensureAudioCtx(); // must be called in user-gesture handler to unlock audio
+    try { ensureAudioCtx(); } catch { /* AudioContext unavailable — speech synthesis will be used instead */ }
     if (!started) {
       setStarted(true);
       autoLoopRef.current = true;
@@ -2706,10 +2706,12 @@ function generateResumeHtml(text: string, footerNote = "", showPrintHint = false
     let inJobBlock = false;
     // Education state: tracks whether we're expecting a school name or degree name
     let eduState: "school" | "degree" = "school";
+    let inEduList = false;
 
     const openJobBlock  = () => { if (!inJobBlock) { html += '<div class="job-block">\n'; inJobBlock = true; } };
     const closeJobBlock = () => { if (inJobBlock)  { html += '</div>\n'; inJobBlock = false; } };
     const closeList = () => { if (inList) { html += "</ul>\n"; inList = false; closeJobBlock(); } };
+    const closeEduList = () => { if (inEduList) { if (eduState === "degree") { html += `</li>\n`; eduState = "school"; } html += "</ul>\n"; inEduList = false; } };
     const flushPending = (date?: string) => {
       if (pending === null) return;
       const isDatePending = pending.startsWith("__date__");
@@ -2729,8 +2731,12 @@ function generateResumeHtml(text: string, footerNote = "", showPrintHint = false
 
     for (const t of joined) {
       if (!t) {
-        closeList(); flushPending();
-        if (isEdu) eduState = "school";
+        if (isEdu) {
+          // Between edu entries: close unclosed entry but keep list open for next entry
+          if (eduState === "degree") { html += `</li>\n`; eduState = "school"; }
+        } else {
+          closeList(); flushPending();
+        }
         html += "<br>\n";
         continue;
       }
@@ -2738,14 +2744,16 @@ function generateResumeHtml(text: string, footerNote = "", showPrintHint = false
       // Drop ASCII separator lines — HTML uses CSS section borders
       if (/^[=\-_]{4,}$/.test(t)) { closeList(); flushPending(); continue; }
 
-      // ── Education section: bold school + italic degree ──────────────────
+      // ── Education: bullet list with bold school + italic degree ─────────
       if (isEdu) {
-        const stripped = t.replace(/^[•\u2022►▸→\-*]\s*/, "");
+        const stripped = t.replace(/^[•\u2022►▸→\-*]\s*/, "").trim();
+        if (!stripped) continue;
         if (eduState === "school") {
-          html += `<div class="edu-entry"><p class="edu-school">${escHtml(stripped)}</p>\n`;
+          if (!inEduList) { html += '<ul class="education-list">\n'; inEduList = true; }
+          html += `  <li><strong>${escHtml(stripped)}</strong>`;
           eduState = "degree";
         } else {
-          html += `<p class="edu-degree">${escHtml(stripped)}</p></div>\n`;
+          html += `<br><em>${escHtml(stripped)}</em></li>\n`;
           eduState = "school";
         }
         continue;
@@ -2757,6 +2765,7 @@ function generateResumeHtml(text: string, footerNote = "", showPrintHint = false
         if (titleText.length < 90 && titleText.split(/\s+/).length <= 10) {
           flushPending();
           html += `<p class="bold-line">${escHtml(titleText)}</p>\n`;
+          afterJobEntry = false; // prevent next real bullet from also being caught
           continue;
         }
       }
@@ -2832,6 +2841,7 @@ function generateResumeHtml(text: string, footerNote = "", showPrintHint = false
       flushPending();
       html += `<p>${escHtml(t)}</p>\n`;
     }
+    closeEduList();
     closeList();
     flushPending();
     closeJobBlock();
@@ -2890,19 +2900,16 @@ function generateResumeHtml(text: string, footerNote = "", showPrintHint = false
   li{margin-bottom:2pt;padding-left:2pt;line-height:1.15;orphans:3;widows:3}
   p{margin-bottom:2pt;line-height:1.15;orphans:3;widows:3}
   .education-entry{margin-bottom:3pt;break-inside:avoid;page-break-inside:avoid}
-  .edu-entry{margin-bottom:6pt;break-inside:avoid;page-break-inside:avoid}
-  .edu-school{font-weight:700;margin:0 0 1pt;display:block}
-  .edu-degree{font-style:italic;margin:0 0 1pt;padding-left:10pt;display:block}
+  ul.education-list{margin:2pt 0 0 14pt;padding:0;list-style-type:disc}
+  ul.education-list li{margin-bottom:6pt;break-inside:avoid;page-break-inside:avoid;line-height:1.4}
   .certifications{margin-top:2pt}
   br{display:block;margin:2pt 0;content:""}
   .footer{margin-top:20pt;font-size:8.5pt;color:#aaa;text-align:center;border-top:1px solid #eee;padding-top:6pt}
-  @media print{.footer{display:none}}
-  .print-hint{position:fixed;top:0;left:0;right:0;background:#FEF3C7;border-bottom:2px solid #F59E0B;padding:9px 16px;font-family:Arial,sans-serif;font-size:11.5px;color:#92400E;text-align:center;z-index:9999;line-height:1.4}
-  @media print{.print-hint{display:none!important}}
+  @media print{.footer{display:none}.no-print,.no-print *{display:none!important;visibility:hidden!important}#resume{display:block!important;visibility:visible!important}body{background:white!important}}
 </style>
 </head>
 <body>
-${showPrintHint ? '<div class="print-hint"><strong>Remove headers &amp; footers from the PDF:</strong> In the print dialog click &ldquo;More settings&rdquo; and uncheck &ldquo;Headers and footers&rdquo;</div>' : ""}\n${body}${footer}
+${showPrintHint ? '<div class="no-print" style="background:#FEF3C7;border-bottom:2px solid #F59E0B;padding:9px 16px;font-family:Arial,sans-serif;font-size:11.5px;color:#92400E;text-align:center;line-height:1.4"><strong>To remove headers/footers:</strong> In the print dialog &rarr; More settings &rarr; uncheck &ldquo;Headers and footers&rdquo;</div>' : ""}\n<div id="resume">\n${body}${footer}\n</div>
 </body>
 </html>`;
 }
@@ -8328,13 +8335,10 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
       if (format === "word") {
         triggerWordDownload(html, filename);
       } else if (printWin) {
-        // Use blob URL so the print footer shows a blob: URL instead of "about:blank"
-        const blob = new Blob([html], { type: "text/html" });
-        const blobUrl = URL.createObjectURL(blob);
-        printWin.location.replace(blobUrl);
-        printWin.addEventListener("load", () => {
-          setTimeout(() => { printWin!.print(); URL.revokeObjectURL(blobUrl); }, 400);
-        }, { once: true });
+        printWin.document.open();
+        printWin.document.write(html);
+        printWin.document.close();
+        setTimeout(() => { printWin!.print(); }, 500);
       }
     }
 

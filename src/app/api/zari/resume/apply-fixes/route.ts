@@ -92,8 +92,19 @@ METRIC RULE — STRICT:
 Use only metrics present in the original resume. Do not invent percentages, counts, or performance figures.
 If no metric exists for a bullet, describe impact qualitatively. You may add [~X% — confirm] as a placeholder ONLY if the source hints at an outcome.
 
-LANGUAGE ACCURACY:
-Match verbs to candidate's actual background:
+CANDIDATE-APPROPRIATE LANGUAGE:
+Match verbs to candidate's actual background. Do NOT inject executive or tech-leadership language for lab, biomedical, or public health candidates.
+
+Do NOT use unless explicitly in candidate's background:
+- Technology strategy, customer-facing platforms, cloud environments, enterprise technology
+- Vendor management, cybersecurity, KPIs, digital transformation, innovation initiatives
+
+For lab/public health candidates, use grounded language:
+- Laboratory techniques, reagent preparation, sample handling, analytical method validation
+- Quality control, HACCP, GMP/BPF, scientific documentation
+- Epidemiological monitoring, public health surveillance, patient tracing
+
+Verbs by background:
 - Lab/scientific roles: Prepared, Assisted, Participated, Managed, Conducted, Maintained, Documented
 - Tech professional roles: Designed, Built, Implemented, Deployed, Optimized, Automated, Resolved
 - Leadership/executive roles: Led, Directed, Established, Scaled, Drove (only if candidate is truly VP/C-level)
@@ -137,26 +148,31 @@ Job Title
 - Every bullet uses •
 
 EDUCATION FORMAT — STRICT:
-Each education entry is TWO lines only:
-School Name (line 1)
-Degree Name (line 2)
+Each education entry uses a bullet for the school and plain text for the degree:
 
-No bullets. No extra punctuation. Example:
-University of Montreal
-Bachelor of Science in Biochemistry
+• School Name (line 1 — starts with •)
+  Degree Name (line 2 — no bullet, indented)
+
+Separate entries with one blank line. Example:
+• Université Libre de Bruxelles
+  Bachelier en Sciences Biomédicales
+
+• Université de Dschang
+  Master 2 en Santé Publique et Épidémiologie
 
 SELF-CHECK BEFORE RETURNING:
 1. Any Markdown syntax? → REMOVE
 2. Any word problem still present? → REPLACE with suggestion
 3. Every required keyword present at least once? → ADD if missing
 4. Company + dates on same line, job title on next line? → FIX if not
-5. Any job title as a bullet (• Job Title)? → CONVERT to plain text line
+5. Any job title as a bullet (• Job Title)? → CONVERT to plain text line (FIRST bullet must be a responsibility, never the job title)
 6. Broken characters (high￾performance)? → FIX
 7. Any consecutive blank lines (3+)? → COLLAPSE to one
 8. All critical findings addressed? → FIX remaining
 9. Company names properly cased? → FIX any all-capped mixed brands
 10. No invented metrics? → REMOVE any fabricated numbers
-11. Education entries: school on line 1, degree on line 2, no bullets? → FIX if not
+11. Education: • School on line 1, degree (no bullet) on line 2? → FIX if not
+12. Irrelevant tech/cloud/cybersecurity language in a lab or public health resume? → REMOVE
 
 Return ONLY valid JSON: { "resumeText": "<complete revised resume, \\n for newlines>" }`;
 
