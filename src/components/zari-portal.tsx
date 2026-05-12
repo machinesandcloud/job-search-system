@@ -2702,8 +2702,11 @@ function generateResumeHtml(text: string, footerNote = ""): string {
     // line appears before its company name (common in this PDF's extraction order).
     let pending: string | null = null;
     let afterJobEntry = false;
+    let inJobBlock = false;
 
-    const closeList = () => { if (inList) { html += "</ul>\n"; inList = false; } };
+    const openJobBlock  = () => { if (!inJobBlock) { html += '<div class="job-block">\n'; inJobBlock = true; } };
+    const closeJobBlock = () => { if (inJobBlock)  { html += '</div>\n'; inJobBlock = false; } };
+    const closeList = () => { if (inList) { html += "</ul>\n"; inList = false; closeJobBlock(); } };
     const flushPending = (date?: string) => {
       if (pending === null) return;
       const isDatePending = pending.startsWith("__date__");
@@ -2711,6 +2714,7 @@ function generateResumeHtml(text: string, footerNote = ""): string {
         // Stored date waiting for a company name that never came — emit standalone
         html += `<p class="date-standalone">${escHtml(pending.slice(8))}</p>\n`;
       } else if (date) {
+        closeJobBlock(); openJobBlock();
         html += `<div class="job-hdr"><span class="company">${escHtml(pending)}</span><span class="date-r">${escHtml(date)}</span></div>\n`;
         afterJobEntry = true;
       } else {
@@ -2752,6 +2756,7 @@ function generateResumeHtml(text: string, footerNote = ""): string {
         const m = t.match(TRAILING_DATE_RE)!;
         closeList();
         flushPending();
+        closeJobBlock(); openJobBlock();
         html += `<div class="job-hdr"><span class="company">${escHtml(m[1].trim())}</span><span class="date-r">${escHtml(m[2].trim())}</span></div>\n`;
         afterJobEntry = true;
         continue;
@@ -2798,6 +2803,7 @@ function generateResumeHtml(text: string, footerNote = ""): string {
     }
     closeList();
     flushPending();
+    closeJobBlock();
     return html;
   }
 
@@ -2835,7 +2841,7 @@ function generateResumeHtml(text: string, footerNote = ""): string {
   *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
   @page{margin:0;size:letter portrait}
   html{background:#fff}
-  body{font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.45;color:#000;background:#fff;padding:.85in 1in 1.1in;max-width:8.5in;margin:0 auto}
+  body{font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.45;color:#000;background:#fff;padding:.6in .75in .7in;max-width:8.5in;margin:0 auto}
   .name{font-size:22pt;font-weight:700;text-align:center;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
   .contact{text-align:center;font-size:10pt;color:#333;margin-bottom:2px}
   .sec-hdr{font-weight:700;text-align:center;border-top:1.5px solid #000;border-bottom:1.5px solid #000;padding:3px 0;margin:12px 0 6px;letter-spacing:.5px;text-transform:uppercase;font-size:11pt;break-after:avoid;page-break-after:avoid}
@@ -2848,9 +2854,10 @@ function generateResumeHtml(text: string, footerNote = ""): string {
   ul{padding-left:18px;margin:3px 0 5px;list-style-type:disc;break-before:avoid;page-break-before:avoid;orphans:3;widows:3}
   li{margin-bottom:2px;line-height:1.4;orphans:3;widows:3}
   p{margin-bottom:3px;line-height:1.45;orphans:3;widows:3}
+  .job-block{page-break-inside:avoid;break-inside:avoid}
   br{display:block;margin:2px 0;content:""}
   .footer{margin-top:20pt;font-size:8.5pt;color:#aaa;text-align:center;border-top:1px solid #eee;padding-top:6pt}
-  @media print{@page{margin:0;size:letter portrait}body{padding:.75in .9in 1in}.footer{display:none}}
+  @media print{@page{margin:0;size:letter portrait}body{padding:.5in .65in .6in}.footer{display:none}}
 </style>
 </head>
 <body>
@@ -10323,9 +10330,19 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
   if (stage === "salary")     return <FeatureGate featureName="zari_negotiation_sim"><ScreenSalaryNegotiationSim /></FeatureGate>;
   if (stage === "leadership") return <FeatureGate stage="leadership"><ScreenLeadershipStoryPractice /></FeatureGate>;
 
-  type IVSaved = { resumeText: string; resumeFileName: string; linkedinText: string; jobDesc: string; round: InterviewRound | null; sections: InterviewSection[] | null; setupDone: boolean; setupStep?: number };
+  type IVScoredAnswer = { sectionIdx: number; qIdx: number; answer: string; feedback: InterviewFeedback; timestamp: string };
+  type IVSaved = { resumeText: string; resumeFileName: string; linkedinText: string; jobDesc: string; round: InterviewRound | null; sections: InterviewSection[] | null; setupDone: boolean; setupStep?: number; scoredAnswers?: IVScoredAnswer[]; currentSectionIdx?: number; currentQIdx?: number };
   const IV_KEY = `zari_interview_session_v1_${stage}`;
   const _ivSaved = lsGet<IVSaved>(IV_KEY);
+
+  function findStoredAnswer(saved: IVSaved | null, sIdx: number, qI: number): IVScoredAnswer | undefined {
+    return saved?.scoredAnswers?.find(a => a.sectionIdx === sIdx && a.qIdx === qI);
+  }
+
+  const _initSectionIdx = _ivSaved?.currentSectionIdx ?? 0;
+  const _initQIdx = _ivSaved?.currentQIdx ?? 0;
+  const _initStored = findStoredAnswer(_ivSaved, _initSectionIdx, _initQIdx);
+
   const [setupDone,    setSetupDone]    = useState(_ivSaved?.setupDone ?? false);
   const [resumeText,   setResumeText]   = useState(_ivSaved?.resumeText ?? "");
   const [resumeFileName, setResumeFileName] = useState(_ivSaved?.resumeFileName ?? "");
@@ -10338,15 +10355,16 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
   const [round,            setRound]            = useState<InterviewRound | null>(_ivSaved?.round ?? null);
   const [loadingQs,        setLoadingQs]        = useState(false);
   const [sections,         setSections]         = useState<InterviewSection[] | null>(_ivSaved?.sections ?? null);
-  const [activeSectionIdx, setActiveSectionIdx] = useState(0);
-  const [qIdx,             setQIdx]             = useState(0);
-  const [answer,           setAnswer]           = useState("");
-  const [submitted,        setSubmitted]        = useState(false);
+  const [activeSectionIdx, setActiveSectionIdx] = useState(_initSectionIdx);
+  const [qIdx,             setQIdx]             = useState(_initQIdx);
+  const [answer,           setAnswer]           = useState(_initStored?.answer ?? "");
+  const [submitted,        setSubmitted]        = useState(!!_initStored);
   const [isRecording,      setIsRecording]      = useState(false);
   const [recTime,          setRecTime]          = useState(0);
   const [isScoring,        setIsScoring]        = useState(false);
-  const [feedback,         setFeedback]         = useState<InterviewFeedback | null>(null);
+  const [feedback,         setFeedback]         = useState<InterviewFeedback | null>(_initStored?.feedback ?? null);
   const [scoreErr,         setScoreErr]         = useState("");
+  const [scoredAnswers,    setScoredAnswers]    = useState<IVScoredAnswer[]>(_ivSaved?.scoredAnswers ?? []);
 
   useEffect(() => {
     if (!isRecording) return;
@@ -10362,16 +10380,23 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
       setResumeFileName(saved.resumeFileName ?? ""); setLinkedinText(saved.linkedinText ?? "");
       setJobDesc(saved.jobDesc ?? ""); setRound(saved.round ?? null); setSections(saved.sections);
       setSetupStep(saved.setupStep ?? 1);
-      setQIdx(0); setActiveSectionIdx(0); setAnswer(""); setSubmitted(false); setFeedback(null);
+      const sIdx = saved.currentSectionIdx ?? 0; const qI = saved.currentQIdx ?? 0;
+      setActiveSectionIdx(sIdx); setQIdx(qI);
+      setScoredAnswers(saved.scoredAnswers ?? []);
+      const stored = findStoredAnswer(saved, sIdx, qI);
+      if (stored) { setAnswer(stored.answer); setSubmitted(true); setFeedback(stored.feedback); }
+      else { setAnswer(""); setSubmitted(false); setFeedback(null); }
+      setScoreErr("");
     } else if (saved) {
       setSetupDone(false); setResumeText(saved.resumeText ?? ""); setResumeFileName(saved.resumeFileName ?? "");
       setLinkedinText(saved.linkedinText ?? ""); setJobDesc(saved.jobDesc ?? ""); setRound(saved.round ?? null);
       setSetupStep(saved.setupStep ?? 1);
-      setSections(null); setQIdx(0); setActiveSectionIdx(0); setAnswer(""); setSubmitted(false); setFeedback(null);
+      setSections(null); setActiveSectionIdx(0); setQIdx(0); setAnswer(""); setSubmitted(false); setFeedback(null); setScoreErr("");
+      setScoredAnswers(saved.scoredAnswers ?? []);
     } else {
-      setSetupDone(false); setSetupStep(1); setQIdx(0); setActiveSectionIdx(0); setAnswer(""); setSubmitted(false);
+      setSetupDone(false); setSetupStep(1); setActiveSectionIdx(0); setQIdx(0); setAnswer(""); setSubmitted(false);
       setFeedback(null); setSections(null); setRound(null); setResumeText(""); setResumeFileName("");
-      setLinkedinText(""); setJobDesc(""); setJobUrl(""); setUrlFetchErr("");
+      setLinkedinText(""); setJobDesc(""); setJobUrl(""); setUrlFetchErr(""); setScoredAnswers([]); setScoreErr("");
     }
   }, [stage]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -10386,10 +10411,16 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
         setResumeFileName(saved.resumeFileName ?? ""); setLinkedinText(saved.linkedinText ?? "");
         setJobDesc(saved.jobDesc ?? ""); setRound(saved.round ?? null);
         setSections(saved.sections); setSetupStep(saved.setupStep ?? 1);
+        const sIdx = saved.currentSectionIdx ?? 0; const qI = saved.currentQIdx ?? 0;
+        setActiveSectionIdx(sIdx); setQIdx(qI);
+        setScoredAnswers(saved.scoredAnswers ?? []);
+        const stored = findStoredAnswer(saved, sIdx, qI);
+        if (stored) { setAnswer(stored.answer); setSubmitted(true); setFeedback(stored.feedback); }
       } else if (saved.resumeText || saved.jobDesc) {
         setResumeText(saved.resumeText ?? ""); setResumeFileName(saved.resumeFileName ?? "");
         setLinkedinText(saved.linkedinText ?? ""); setJobDesc(saved.jobDesc ?? "");
         setRound(saved.round ?? null); setSetupStep(saved.setupStep ?? 1);
+        setScoredAnswers(saved.scoredAnswers ?? []);
       }
     };
     window.addEventListener("zari-state-synced", onSynced);
@@ -10463,10 +10494,31 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
         body: JSON.stringify({ action: "score-answer", question: q.q, answer, stage, category: q.cat, round, resumeText: [resumeText, linkedinText].filter(Boolean).join("\n\n---\n\n"), jobDescription: jobDesc }),
       });
       const data = await res.json().catch(() => null) as InterviewFeedback | null;
-      if (data && data.overallScore) setFeedback(data);
+      if (data && data.overallScore) {
+        setFeedback(data);
+        // Persist scored answer so it survives logout/login
+        setScoredAnswers(prev => {
+          const filtered = prev.filter(a => !(a.sectionIdx === activeSectionIdx && a.qIdx === qIdx));
+          const updated = [...filtered, { sectionIdx: activeSectionIdx, qIdx, answer, feedback: data, timestamp: new Date().toISOString() }];
+          const saved = lsGet<IVSaved>(IV_KEY) ?? {} as IVSaved;
+          lsSet(IV_KEY, { ...saved, scoredAnswers: updated, currentSectionIdx: activeSectionIdx, currentQIdx: qIdx });
+          return updated;
+        });
+      }
       else setScoreErr("Couldn't score your answer — try again.");
     } catch { setScoreErr("Couldn't score your answer — try again."); }
     setIsScoring(false);
+  }
+
+  // When navigating to a question, restore any stored answer/feedback for that position
+  function navigateTo(sIdx: number, qI: number) {
+    const stored = scoredAnswers.find(a => a.sectionIdx === sIdx && a.qIdx === qI);
+    setActiveSectionIdx(sIdx); setQIdx(qI);
+    if (stored) { setAnswer(stored.answer); setSubmitted(true); setFeedback(stored.feedback); setScoreErr(""); }
+    else { setAnswer(""); setSubmitted(false); setFeedback(null); setScoreErr(""); }
+    // Persist current position
+    const saved = lsGet<IVSaved>(IV_KEY) ?? {} as IVSaved;
+    lsSet(IV_KEY, { ...saved, currentSectionIdx: sIdx, currentQIdx: qI });
   }
 
   const fmt = (s:number) => `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
@@ -10493,7 +10545,7 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
   // Persist setup form when inputs change (so refreshing mid-setup restores them)
   useEffect(() => {
     if (resumeText || linkedinText || jobDesc || round) {
-      lsSet(`zari_interview_session_v1_${stage}`, { resumeText, resumeFileName, linkedinText, jobDesc, round, sections, setupDone, setupStep });
+      lsSet(`zari_interview_session_v1_${stage}`, { resumeText, resumeFileName, linkedinText, jobDesc, round, sections, setupDone, setupStep, scoredAnswers, currentSectionIdx: activeSectionIdx, currentQIdx: qIdx });
     }
   }, [resumeText, linkedinText, jobDesc, round, setupStep]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -10739,7 +10791,7 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
             </div>
             <p style={{ fontSize:12.5, color:"var(--z-text2)" }}>{ACTIVE_SECTION?.name} · Question {qIdx+1} of {SECTION_QUESTIONS.length}</p>
           </div>
-          <button onClick={()=>{ setSetupDone(false); setSetupStep(1); setSections(null); setRound(null); setQIdx(0); setActiveSectionIdx(0); setAnswer(""); setSubmitted(false); setFeedback(null); }}
+          <button onClick={()=>{ setSetupDone(false); setSetupStep(1); setSections(null); setRound(null); setActiveSectionIdx(0); setQIdx(0); setAnswer(""); setSubmitted(false); setFeedback(null); setScoredAnswers([]); lsSet(IV_KEY, { resumeText, resumeFileName, linkedinText, jobDesc, round:null, sections:null, setupDone:false, setupStep:1, scoredAnswers:[] }); }}
             style={{ fontSize:12, fontWeight:600, padding:"6px 14px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>
             ← Start over
           </button>
@@ -10747,15 +10799,18 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
 
         {/* Section tabs */}
         <div style={{ display:"flex", gap:6, marginBottom:20, overflowX:"auto", paddingBottom:2 }}>
-          {sections.map((sec, i) => (
-            <button key={i} onClick={()=>{ setActiveSectionIdx(i); setQIdx(0); setSubmitted(false); setAnswer(""); setFeedback(null); }}
+          {sections.map((sec, i) => {
+            const sectionAnsweredCount = scoredAnswers.filter(a => a.sectionIdx === i).length;
+            return (
+            <button key={i} onClick={()=>navigateTo(i, 0)}
               style={{ flexShrink:0, padding:"8px 16px", borderRadius:10, border:`1.5px solid ${activeSectionIdx===i?"#2563EB":"var(--z-bd)"}`, background:activeSectionIdx===i?"rgba(37,99,235,0.08)":"var(--z-raise)", color:activeSectionIdx===i?"#2563EB":"var(--z-text2)", fontSize:12.5, fontWeight:activeSectionIdx===i?700:500, cursor:"pointer", transition:"all 0.15s", display:"flex", alignItems:"center", gap:6 }}>
               {sec.name}
               <span style={{ fontSize:10.5, fontWeight:600, padding:"1px 7px", borderRadius:99, background:activeSectionIdx===i?"rgba(37,99,235,0.12)":"var(--z-card)", color:activeSectionIdx===i?"#2563EB":"var(--z-text3)", border:"1px solid var(--z-bd)" }}>
-                {sec.questions.length}
+                {sectionAnsweredCount > 0 ? `${sectionAnsweredCount}/${sec.questions.length}` : sec.questions.length}
               </span>
             </button>
-          ))}
+            );
+          })}
         </div>
 
         {/* Section description */}
@@ -10765,9 +10820,12 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
           </div>
         )}
 
-        {/* Progress dots for current section */}
+        {/* Progress dots for current section — clickable, shows answered state */}
         <div style={{ display:"flex", gap:4, marginBottom:20 }}>
-          {SECTION_QUESTIONS.map((_,i) => <div key={i} style={{ height:4, flex:1, borderRadius:99, background:i<qIdx?"#2563EB":i===qIdx?"rgba(37,99,235,0.4)":"var(--z-bd)", transition:"background 0.3s" }}/>)}
+          {SECTION_QUESTIONS.map((_,i) => {
+            const isAnswered = scoredAnswers.some(a => a.sectionIdx === activeSectionIdx && a.qIdx === i);
+            return <div key={i} onClick={()=>navigateTo(activeSectionIdx, i)} title={isAnswered?"Already answered — click to review":"Click to jump to this question"} style={{ height:4, flex:1, borderRadius:99, background:isAnswered?"#4ADE80":i===qIdx?"rgba(37,99,235,0.4)":"var(--z-bd)", transition:"background 0.3s", cursor:"pointer" }}/>;
+          })}
         </div>
 
         {/* Question card */}
@@ -10936,12 +10994,11 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
               <button onClick={()=>{setSubmitted(false);setAnswer("");setFeedback(null);}} style={{ flex:1, fontSize:13.5, fontWeight:600, padding:"12px", borderRadius:12, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text)", cursor:"pointer" }}>Try again</button>
               <button onClick={()=>{
                 const nextQ = qIdx + 1;
-                if (nextQ < SECTION_QUESTIONS.length) { setQIdx(nextQ); }
+                if (nextQ < SECTION_QUESTIONS.length) { navigateTo(activeSectionIdx, nextQ); }
                 else {
                   const nextSec = activeSectionIdx + 1;
-                  if (nextSec < sections.length) { setActiveSectionIdx(nextSec); setQIdx(0); }
+                  if (nextSec < sections.length) { navigateTo(nextSec, 0); }
                 }
-                setSubmitted(false); setAnswer(""); setFeedback(null);
               }} style={{ flex:1, fontSize:13.5, fontWeight:700, padding:"12px", borderRadius:12, border:"none", background:"#2563EB", color:"white", cursor:"pointer", boxShadow:"0 4px 14px rgba(37,99,235,0.28)" }}>
                 {qIdx+1 < SECTION_QUESTIONS.length ? "Next question →" : activeSectionIdx+1 < sections.length ? `Next section: ${sections[activeSectionIdx+1]?.name} →` : "All done ✓"}
               </button>
@@ -12854,6 +12911,14 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
   const [aboutExpanded, setAboutExpanded] = useState(false);
   const [jobsExpanded, setJobsExpanded] = useState<Record<number,boolean>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
+  type LISnap = { id:string; label:string; headline:string; overallScore:number; targetRole:string; stage:string; resultJson:string; createdAt:string };
+  const [liHistory,  setLiHistory]  = useState<LISnap[]>([]);
+  const [liMainTab,  setLiMainTab]  = useState<"review"|"history">("review");
+
+  // Load LinkedIn snapshot history once on mount
+  useEffect(() => {
+    fetch("/api/zari/linkedin/snapshots").then(r=>r.json()).then((d:{snapshots?:LISnap[]}) => { if (d.snapshots) setLiHistory(d.snapshots); }).catch(()=>{});
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // On stage change: restore session for new stage or reset
   useEffect(() => {
@@ -12927,6 +12992,9 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
         lsSet(`zari_li_session_v1_${stage}`, { headline: parsed.headline, summary: parsed.summary, experienceJobs: parsed.experienceJobs ?? [], education: parsed.education, skills: parsed.skills, linkedinUrl: parsed.linkedinUrl, hasPhoto: parsed.hasPhoto, targetRole, result: reviewData });
         // Save to doc vault
         vaultSave({ type:"linkedin", name:parsed.headline||"LinkedIn Profile", content:[parsed.headline,parsed.summary].join("\n\n"), meta:{ score:String(reviewData.overall??0), headline:parsed.headline||"", targetRole, stage } });
+        // Save to LinkedIn snapshot history
+        const liSnapPayload = { label: parsed.headline || "LinkedIn Profile", headline: parsed.headline || "", overallScore: reviewData.overall ?? 0, targetRole, stage, resultJson: JSON.stringify(reviewData) };
+        fetch("/api/zari/linkedin/snapshots", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(liSnapPayload) }).then(r=>r.json()).then((d:{id?:string}) => { if (d.id) setLiHistory(prev => ([{ id:d.id!, ...liSnapPayload, createdAt: new Date().toISOString() }, ...prev].slice(0,10))); }).catch(()=>{});
       } else {
         setErr(reviewData?.error ?? `Analysis failed (HTTP ${reviewRes.status}) — try again.`);
       }
@@ -13181,18 +13249,109 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
             <svg viewBox="0 0 24 24" fill="#38BDF8" style={{ width:14,height:14 }}><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zM9 17H6.477v-7H9v7zM7.694 8.717c-.771 0-1.286-.514-1.286-1.2s.514-1.2 1.286-1.2c.771 0 1.286.514 1.286 1.2s-.514 1.2-1.286 1.2zM18 17h-2.442v-3.826c0-1.058-.651-1.302-1.044-1.302-.394 0-1.228.163-1.228 1.302V17h-2.557v-7h2.557v1.302c.325-.652 1.058-1.302 2.276-1.302C17.349 10 18 11.058 18 13.488V17z"/></svg>
           </div>
           <h1 style={{ fontSize:16, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:0, flex:1 }}>LinkedIn Profile Reviewer</h1>
-          <button onClick={()=>{ setInputMode(true); setResult(null); }}
-            style={{ padding:"7px 16px", borderRadius:8, background:"var(--z-raise)", border:"1px solid var(--z-bd)", color:"var(--z-text2)", fontSize:12.5, fontWeight:600, cursor:"pointer" }}>
-            Analyze new profile
-          </button>
+          <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+            <div style={{ display:"flex", background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderRadius:9, padding:3, gap:2 }}>
+              {(["review","history"] as const).map(t => (
+                <button key={t} onClick={()=>setLiMainTab(t)} style={{ fontSize:12, fontWeight:600, padding:"5px 14px", borderRadius:6, border:"none", background:liMainTab===t?"var(--z-card)":"transparent", color:liMainTab===t?"var(--z-text)":"var(--z-text3)", cursor:"pointer", transition:"all 0.15s", textTransform:"capitalize", boxShadow:liMainTab===t?"0 1px 4px rgba(0,0,0,0.08)":"none" }}>
+                  {t === "history" ? `History${liHistory.length > 0 ? ` (${liHistory.length})` : ""}` : "Review"}
+                </button>
+              ))}
+            </div>
+            <button onClick={()=>{ setInputMode(true); setResult(null); setLiMainTab("review"); }}
+              style={{ padding:"7px 16px", borderRadius:8, background:"var(--z-raise)", border:"1px solid var(--z-bd)", color:"var(--z-text2)", fontSize:12.5, fontWeight:600, cursor:"pointer" }}>
+              Analyze new profile
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Content */}
       <div style={{ flex:1, display:"flex", overflow:"hidden" }}>
 
+      {/* ── History tab ── */}
+      {liMainTab === "history" && (
+        <div style={{ flex:1, overflowY:"auto", padding:"28px 32px" }}>
+          {liHistory.length === 0 ? (
+            <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:300, gap:12 }}>
+              <div style={{ width:48, height:48, borderRadius:14, background:"var(--z-card)", border:"1px solid var(--z-bd)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--z-text3)" strokeWidth="1.6" style={{width:22,height:22}}><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              </div>
+              <p style={{ fontSize:14, fontWeight:600, color:"var(--z-text2)", margin:0 }}>No past reviews yet</p>
+              <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>Your past LinkedIn reviews will appear here after you analyze a profile.</p>
+            </div>
+          ) : (
+            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+              <div style={{ marginBottom:8 }}>
+                <h2 style={{ fontSize:18, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.02em", margin:"0 0 4px" }}>Past LinkedIn Reviews</h2>
+                <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>Your last {liHistory.length} profile review{liHistory.length!==1?"s":""}</p>
+              </div>
+              {liHistory.map((snap, idx) => {
+                const sc = snap.overallScore;
+                const sColor = sc >= 75 ? "#16A34A" : sc >= 55 ? "#0077B5" : "#D97706";
+                const sBg = sc >= 75 ? "rgba(22,163,74,0.08)" : sc >= 55 ? "rgba(0,119,181,0.08)" : "rgba(217,119,6,0.08)";
+                const sLabel = sc >= 85 ? "Excellent" : sc >= 70 ? "Good" : sc >= 55 ? "Needs Work" : "Weak";
+                const d = new Date(snap.createdAt);
+                const dateStr = d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+                const timeStr = d.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
+                const isLatest = idx === 0;
+                return (
+                  <div key={snap.id} style={{ background:"var(--z-card)", border:`1px solid ${isLatest ? sColor + "60" : "var(--z-bd)"}`, borderRadius:16, overflow:"hidden", boxShadow: isLatest ? `0 0 0 1px ${sColor}22, 0 4px 20px rgba(0,0,0,0.07)` : "0 2px 8px rgba(0,0,0,0.05)" }}>
+                    <div style={{ padding:"18px 20px", display:"flex", alignItems:"flex-start", gap:16 }}>
+                      <div style={{ flexShrink:0, textAlign:"center", minWidth:64 }}>
+                        <div style={{ fontSize:26, fontWeight:900, color:sColor, letterSpacing:"-0.04em", lineHeight:1 }}>{sc}</div>
+                        <div style={{ fontSize:9.5, fontWeight:700, color:sColor, background:sBg, border:`1px solid ${sColor}30`, padding:"2px 7px", borderRadius:99, marginTop:4, display:"inline-block" }}>{sLabel}</div>
+                      </div>
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4, flexWrap:"wrap" }}>
+                          {isLatest && <span style={{ fontSize:9, fontWeight:800, color:"#0077B5", background:"rgba(0,119,181,0.1)", border:"1px solid rgba(0,119,181,0.25)", padding:"2px 8px", borderRadius:99, textTransform:"uppercase", letterSpacing:"0.06em" }}>Latest</span>}
+                          <span style={{ fontSize:13, fontWeight:700, color:"var(--z-text)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{snap.headline || snap.label}</span>
+                        </div>
+                        {snap.targetRole && <p style={{ fontSize:12, color:"var(--z-text2)", margin:"0 0 4px" }}>Target: {snap.targetRole}</p>}
+                        <p style={{ fontSize:11.5, color:"var(--z-text3)", margin:0 }}>{dateStr} · {timeStr}</p>
+                      </div>
+                      <div style={{ display:"flex", gap:8, flexShrink:0 }}>
+                        <button
+                          onClick={() => {
+                            try {
+                              const parsed = JSON.parse(snap.resultJson) as LinkedInResult;
+                              setResult(parsed); setLiMainTab("review"); setLISection("score"); setInputMode(false);
+                              lsSet(`zari_li_session_v1_${stage}`, { headline: snap.headline, summary:"", experienceJobs:[], education:"", skills:"", linkedinUrl:"", hasPhoto:false, targetRole: snap.targetRole, result: parsed });
+                            } catch { /* ignore */ }
+                          }}
+                          style={{ fontSize:12, fontWeight:700, padding:"7px 14px", borderRadius:9, border:"1px solid #0077B5", background:"rgba(0,119,181,0.08)", color:"#0077B5", cursor:"pointer" }}>
+                          View
+                        </button>
+                        <button
+                          onClick={() => {
+                            try {
+                              const parsed = JSON.parse(snap.resultJson) as LinkedInResult;
+                              const sections = ["Headline","Summary","Experience","Education","Other"] as const;
+                              const text = sections.map(s => {
+                                const key = s.toLowerCase() as keyof LinkedInResult;
+                                const sec = parsed[key] as LISection | undefined;
+                                if (!sec?.rewrite) return null;
+                                return `${s.toUpperCase()} REWRITE\n${sec.rewrite}`;
+                              }).filter(Boolean).join("\n\n---\n\n");
+                              const blob = new Blob([text], { type:"text/plain" });
+                              const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `linkedin_review_${dateStr.replace(/\s/g,"_")}.txt`; a.click();
+                            } catch { /* ignore */ }
+                          }}
+                          style={{ fontSize:12, fontWeight:600, padding:"7px 12px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer", display:"flex", alignItems:"center", gap:6 }}>
+                          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13}}><path d="M8 3v7M5 7l3 3 3-3"/><path d="M2 12h12"/></svg>
+                          Download
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ── Left sidebar ── */}
-      <div style={{ width:224, background:"var(--z-card)", borderRight:"1px solid var(--z-bd)", flexShrink:0, display:"flex", flexDirection:"column", overflowY:"auto", position:"relative" }}>
+      <div style={{ width:224, background:"var(--z-card)", borderRight:"1px solid var(--z-bd)", flexShrink:0, flexDirection:"column", overflowY:"auto", position:"relative", display: liMainTab==="history" ? "none" : "flex" }}>
         {/* ambient glow blob */}
         <div style={{ position:"absolute", top:"-30px", left:"50%", transform:"translateX(-50%)", width:160, height:160, borderRadius:"50%", background:"none", pointerEvents:"none" }}/>
 
@@ -13270,7 +13429,7 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
       </div>
 
       {/* ── Main content ── */}
-      <div style={{ flex:1, overflowY:"auto", background:"var(--z-raise)", padding:"28px 30px" }}>
+      <div style={{ flex:1, overflowY:"auto", background:"var(--z-raise)", padding:"28px 30px", display: liMainTab==="history" ? "none" : undefined }}>
 
         {/* OVERVIEW */}
         {liSection==="score" && (
@@ -13825,8 +13984,18 @@ function ScreenPromotionToolkit({ onNavigate }: { onNavigate: (s: string) => voi
                 <button onClick={() => setPreview(null)} style={{ width:32, height:32, borderRadius:"50%", border:"none", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer", fontSize:16, fontWeight:700 }}>×</button>
               </div>
             </div>
-            <div style={{ padding:"22px 24px", overflowY:"auto", flex:1 }}>
-              <pre style={{ fontFamily:"Georgia,'Times New Roman',serif", fontSize:13, lineHeight:1.8, color:"var(--z-text)", whiteSpace:"pre-wrap", margin:0 }}>{preview.content}</pre>
+            <div style={{ padding: preview.type === "resume" ? 0 : "22px 24px", overflowY:"auto", flex:1, display:"flex", flexDirection:"column" }}>
+              {preview.type === "resume" ? (
+                <iframe
+                  srcDoc={generateResumeHtml(preview.content)}
+                  style={{ flex:1, border:"none", width:"100%", minHeight:520, background:"#fff" }}
+                  title="Resume preview"
+                />
+              ) : preview.type === "cover-letter" ? (
+                <div style={{ fontFamily:"Georgia,'Times New Roman',serif", fontSize:13.5, lineHeight:1.9, color:"var(--z-text)", whiteSpace:"pre-wrap" }}>{preview.content}</div>
+              ) : (
+                <pre style={{ fontFamily:"Georgia,'Times New Roman',serif", fontSize:13, lineHeight:1.8, color:"var(--z-text)", whiteSpace:"pre-wrap", margin:0 }}>{preview.content}</pre>
+              )}
             </div>
           </div>
         </div>
@@ -14361,8 +14530,18 @@ function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate
                 <button onClick={()=>setPreview(null)} style={{ width:30, height:30, borderRadius:"50%", border:"none", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, fontWeight:700 }}>×</button>
               </div>
             </div>
-            <div style={{ padding:"20px 24px", overflowY:"auto", flex:1 }}>
-              <pre style={{ fontFamily:"Georgia,'Times New Roman',serif", fontSize:13, lineHeight:1.8, color:"var(--z-text)", whiteSpace:"pre-wrap", margin:0 }}>{preview.content}</pre>
+            <div style={{ padding: preview.type === "resume" ? 0 : "20px 24px", overflowY:"auto", flex:1, display:"flex", flexDirection:"column" }}>
+              {preview.type === "resume" ? (
+                <iframe
+                  srcDoc={generateResumeHtml(preview.content)}
+                  style={{ flex:1, border:"none", width:"100%", minHeight:520, background:"#fff" }}
+                  title="Resume preview"
+                />
+              ) : preview.type === "cover-letter" ? (
+                <div style={{ fontFamily:"Georgia,'Times New Roman',serif", fontSize:13.5, lineHeight:1.9, color:"var(--z-text)", whiteSpace:"pre-wrap" }}>{preview.content}</div>
+              ) : (
+                <pre style={{ fontFamily:"Georgia,'Times New Roman',serif", fontSize:13, lineHeight:1.8, color:"var(--z-text)", whiteSpace:"pre-wrap", margin:0 }}>{preview.content}</pre>
+              )}
             </div>
           </div>
         </div>
@@ -14587,6 +14766,15 @@ function ScreenCoverLetter({ stage, active = false, onNavigate }: { stage: Caree
   const [copied,        setCopied]        = useState(false);
   const [error,         setError]         = useState("");
   const [showDlMenu,    setShowDlMenu]    = useState(false);
+  type CLSnap = { id:string; subject:string; company:string; targetRole:string; tone:string; stage:string; coverLetter:string; createdAt:string };
+  const [clHistory,     setClHistory]     = useState<CLSnap[]>([]);
+  const [clMainTab,     setClMainTab]     = useState<"letter"|"history">("letter");
+
+  // Load Cover Letter snapshot history once on mount
+  useEffect(() => {
+    fetch("/api/zari/cover-letter/snapshots").then(r=>r.json()).then((d:{snapshots?:CLSnap[]}) => { if (d.snapshots) setClHistory(d.snapshots); }).catch(()=>{});
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Persist session whenever meaningful state changes
   useEffect(() => {
     if (profileText || jobDesc || result) {
@@ -14654,7 +14842,10 @@ function ScreenCoverLetter({ stage, active = false, onNavigate }: { stage: Caree
         setResult(newResult); setEditedLetter(data.coverLetter);
         lsSet(CL_KEY, { step, profileText, profileFile, jobDesc, company, targetRole, candidateName, tone, result: newResult, editedLetter: data.coverLetter, stage });
         // Save to doc vault
-        vaultSave({ type:"cover-letter", name:data.subject||targetRole||"Cover Letter", content:data.coverLetter, meta:{ subject:data.subject??"", targetRole, company, tone, stage } }); }
+        vaultSave({ type:"cover-letter", name:data.subject||targetRole||"Cover Letter", content:data.coverLetter, meta:{ subject:data.subject??"", targetRole, company, tone, stage } });
+        // Save to cover letter snapshot history
+        const clSnapPayload = { subject: data.subject ?? "", company, targetRole, tone, stage, coverLetter: data.coverLetter };
+        fetch("/api/zari/cover-letter/snapshots", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(clSnapPayload) }).then(r=>r.json()).then((d:{id?:string}) => { if (d.id) setClHistory(prev => ([{ id:d.id!, ...clSnapPayload, createdAt: new Date().toISOString() }, ...prev].slice(0,10))); }).catch(()=>{}); }
       else if (!handleBillingApiError(res.status, data as BillingApiErrorData, billing)) setError(data?.error ?? "Generation failed — try again.");
     } catch { setError("Something went wrong — try again."); }
     setGenerating(false);
@@ -14781,14 +14972,97 @@ function ScreenCoverLetter({ stage, active = false, onNavigate }: { stage: Caree
             <h1 style={{ fontSize:18, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:0 }}>Cover Letter</h1>
             <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>AI-tailored letter written in your voice from your background.</p>
           </div>
-          <button onClick={()=>{ setResult(null); setGenerating(false); setStep(1); }}
-            style={{ padding:"7px 16px", borderRadius:8, background:"var(--z-raise)", border:"1px solid var(--z-bd)", color:"var(--z-text2)", fontSize:12.5, fontWeight:600, cursor:"pointer" }}>
-            New letter
-          </button>
+          <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+            <div style={{ display:"flex", background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderRadius:9, padding:3, gap:2 }}>
+              {(["letter","history"] as const).map(t => (
+                <button key={t} onClick={()=>setClMainTab(t)} style={{ fontSize:12, fontWeight:600, padding:"5px 14px", borderRadius:6, border:"none", background:clMainTab===t?"var(--z-card)":"transparent", color:clMainTab===t?"var(--z-text)":"var(--z-text3)", cursor:"pointer", transition:"all 0.15s", textTransform:"capitalize", boxShadow:clMainTab===t?"0 1px 4px rgba(0,0,0,0.08)":"none" }}>
+                  {t === "history" ? `History${clHistory.length > 0 ? ` (${clHistory.length})` : ""}` : "Letter"}
+                </button>
+              ))}
+            </div>
+            <button onClick={()=>{ setResult(null); setGenerating(false); setStep(1); setClMainTab("letter"); }}
+              style={{ padding:"7px 16px", borderRadius:8, background:"var(--z-raise)", border:"1px solid var(--z-bd)", color:"var(--z-text2)", fontSize:12.5, fontWeight:600, cursor:"pointer" }}>
+              New letter
+            </button>
+          </div>
         </div>
       </div>
       <div style={{ padding:"24px 32px 48px" }}>
-        {generating ? (
+        {/* ── Cover Letter History tab ── */}
+        {clMainTab === "history" && !generating && (
+          <div>
+            {clHistory.length === 0 ? (
+              <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:300, gap:12 }}>
+                <div style={{ width:48, height:48, borderRadius:14, background:"var(--z-card)", border:"1px solid var(--z-bd)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="var(--z-text3)" strokeWidth="1.6" style={{width:22,height:22}}><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                </div>
+                <p style={{ fontSize:14, fontWeight:600, color:"var(--z-text2)", margin:0 }}>No past letters yet</p>
+                <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>Your generated cover letters will appear here.</p>
+                <button onClick={()=>setClMainTab("letter")} style={{ fontSize:13, fontWeight:700, padding:"9px 22px", borderRadius:10, border:"none", background:"#2563EB", color:"white", cursor:"pointer", marginTop:4 }}>Write a letter →</button>
+              </div>
+            ) : (
+              <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+                <div style={{ marginBottom:8 }}>
+                  <h2 style={{ fontSize:18, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.02em", margin:"0 0 4px" }}>Past Cover Letters</h2>
+                  <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>Your last {clHistory.length} generated letter{clHistory.length!==1?"s":""}</p>
+                </div>
+                {clHistory.map((snap, idx) => {
+                  const wordCount = snap.coverLetter.trim().split(/\s+/).length;
+                  const d = new Date(snap.createdAt);
+                  const dateStr = d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+                  const timeStr = d.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
+                  const isLatest = idx === 0;
+                  return (
+                    <div key={snap.id} style={{ background:"var(--z-card)", border:`1px solid ${isLatest ? "rgba(5,150,105,0.4)" : "var(--z-bd)"}`, borderRadius:16, overflow:"hidden", boxShadow: isLatest ? "0 0 0 1px rgba(5,150,105,0.15), 0 4px 20px rgba(0,0,0,0.07)" : "0 2px 8px rgba(0,0,0,0.05)" }}>
+                      <div style={{ padding:"18px 20px", display:"flex", alignItems:"flex-start", gap:16 }}>
+                        <div style={{ flex:1, minWidth:0 }}>
+                          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5, flexWrap:"wrap" }}>
+                            {isLatest && <span style={{ fontSize:9, fontWeight:800, color:"#059669", background:"rgba(5,150,105,0.1)", border:"1px solid rgba(5,150,105,0.25)", padding:"2px 8px", borderRadius:99, textTransform:"uppercase", letterSpacing:"0.06em" }}>Latest</span>}
+                            <span style={{ fontSize:14, fontWeight:700, color:"var(--z-text)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{snap.subject || "Cover Letter"}</span>
+                          </div>
+                          <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:6 }}>
+                            {snap.targetRole && <span style={{ fontSize:11.5, color:"var(--z-text2)", fontWeight:500 }}>{snap.targetRole}</span>}
+                            {snap.company && <span style={{ fontSize:11.5, color:"var(--z-text3)" }}>· {snap.company}</span>}
+                            <span style={{ fontSize:11.5, color:"var(--z-text3)", textTransform:"capitalize" }}>· {snap.tone}</span>
+                          </div>
+                          <p style={{ fontSize:11.5, color:"var(--z-text3)", margin:0 }}>{dateStr} · {timeStr} · {wordCount} words</p>
+                        </div>
+                        <div style={{ display:"flex", gap:8, flexShrink:0 }}>
+                          <button
+                            onClick={() => {
+                              setResult({ subject:snap.subject, coverLetter:snap.coverLetter }); setEditedLetter(snap.coverLetter);
+                              setCompany(snap.company); setTargetRole(snap.targetRole); setTone(snap.tone as "professional"|"conversational"|"enthusiastic");
+                              setClMainTab("letter");
+                            }}
+                            style={{ fontSize:12, fontWeight:700, padding:"7px 14px", borderRadius:9, border:"1px solid #059669", background:"rgba(5,150,105,0.08)", color:"#059669", cursor:"pointer" }}>
+                            View
+                          </button>
+                          <button
+                            onClick={() => { navigator.clipboard.writeText(snap.coverLetter); }}
+                            style={{ fontSize:12, fontWeight:600, padding:"7px 12px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer", display:"flex", alignItems:"center", gap:5 }}>
+                            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13}}><rect x="5" y="2" width="9" height="11" rx="1.5"/><path d="M3 4H2a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1v-1"/></svg>
+                            Copy
+                          </button>
+                          <button
+                            onClick={() => {
+                              const blob = new Blob([snap.coverLetter], { type:"text/plain" });
+                              const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+                              a.download = `cover_letter_${(snap.targetRole||snap.subject||"letter").replace(/\s+/g,"_")}_${dateStr.replace(/\s/g,"_")}.txt`; a.click();
+                            }}
+                            style={{ fontSize:12, fontWeight:600, padding:"7px 12px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer", display:"flex", alignItems:"center", gap:5 }}>
+                            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13}}><path d="M8 3v7M5 7l3 3 3-3"/><path d="M2 12h12"/></svg>
+                            Download
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+        {clMainTab === "letter" && generating ? (
           <div style={{ background:"var(--z-card)", borderRadius:20, padding:"72px 32px", textAlign:"center", boxShadow:"0 8px 40px rgba(0,0,0,0.09)", border:"1px solid var(--z-bd)" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
               {[0,1,2].map(i=><div key={i} style={{ width:11,height:11,borderRadius:"50%",background:"#2563EB",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite`,  }}/>)}
@@ -14796,7 +15070,7 @@ function ScreenCoverLetter({ stage, active = false, onNavigate }: { stage: Caree
             <p style={{ fontSize:17, fontWeight:800, color:"var(--z-text)", marginBottom:8, letterSpacing:"-0.02em" }}>Zari is writing your letter…</p>
             <p style={{ fontSize:13.5, color:"var(--z-text3)" }}>Tailoring every sentence to your background and the role</p>
           </div>
-        ) : result && (
+        ) : clMainTab === "letter" && result && (
           <>
             {/* ── Hero header ── */}
             <div style={{ background:"var(--z-card)", borderRadius:14, padding:"22px 28px", marginBottom:20, border:"1px solid var(--z-bd)", borderTop:"3px solid #059669", position:"relative", overflow:"hidden" }}>

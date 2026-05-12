@@ -60,12 +60,12 @@ Rules:
 - Use XYZ formula for bullets: [Strong Verb] + [Skill/Context] + [Quantified Result]
 - No passive voice, no generic adjectives ("results-driven", "passionate", "detail-oriented", "seasoned")
 - Every claim must tie to a real outcome visible in the resume — never fabricate
-- Summary: lead with the single most relevant thing for the target role; include at least one metric; 5–7 lines; NO "results-driven", "passionate", "detail-oriented", "team player", "self-starter", "seasoned"
+- Summary: lead with the single most relevant thing for the target role; include at least 2 specific metrics or achievements; 8–10 lines; paint the full picture — span of experience, domain depth, key skill areas, and what makes this candidate distinctive; NO "results-driven", "passionate", "detail-oriented", "team player", "self-starter", "seasoned"
 - Bullets: DIFFERENT opening verb from all previous versions; find a different angle on the impact; use • for every bullet
 - Skills: reorder toward what matters most for the target role; use "• Category: items" format for every skill line; 5–7 lines
 
 TEMPLATE FORMAT TO FOLLOW for each section type:
-- Summary: plain paragraph, left-aligned, 5–7 lines, no bullets.
+- Summary: plain paragraph, left-aligned, 8–10 lines, no bullets. Cover: opening hook (top credential or achievement), domain depth, key technical or domain areas, 2+ concrete metrics, career arc or scope, and a closing differentiator.
 - Skills: each line → "• Category Label: skill1, skill2, skill3" — 5–7 lines total.
 - Experience bullets: "• [Strong Verb] + [Context] + [Quantified Result]" — 5–8 bullets for recent roles.
 
@@ -79,7 +79,7 @@ Return ONLY valid JSON: { "text": "<the rewritten content>" }`;
   const reply = await openaiChat(messages, {
     model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
     temperature: 0.7 + (attempt * 0.05), // slightly more creative on each retry
-    maxTokens: 1000,
+    maxTokens: 1500,
     jsonMode: true,
   });
 

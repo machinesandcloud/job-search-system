@@ -41,7 +41,8 @@ function cleanResumeOutput(text: string): string {
     if (bodyStarted) cleaned.push(line);
   }
 
-  return cleaned.join("\n").trim();
+  // Collapse 3+ consecutive newlines (double blank lines) down to 2 (one blank line)
+  return cleaned.join("\n").replace(/\n{3,}/g, "\n\n").trim();
 }
 
 export async function POST(request: Request) {
@@ -159,7 +160,17 @@ CONTACT LINE:
 
 SECTION HEADERS:
 - ALL CAPS plain text only: PROFESSIONAL SUMMARY, SKILLS, PROFESSIONAL EXPERIENCE, EDUCATION, CERTIFICATIONS.
-- Preceded and followed by one blank line. No icons, no decorations.
+- Preceded and followed by exactly ONE blank line — never two or more consecutive blank lines.
+- No icons, no decorations.
+
+BLANK LINE BUDGET — STRICT:
+- Between name block and first section: 1 blank line.
+- Between sections: 1 blank line.
+- Between roles within PROFESSIONAL EXPERIENCE: 1 blank line.
+- Between company/date line and job title: 0 blank lines (job title immediately below).
+- Between job title and first bullet: 1 blank line.
+- Between bullets: 0 blank lines.
+- Double blank lines anywhere = FORBIDDEN. Scan and remove before returning.
 
 PROFESSIONAL EXPERIENCE STRUCTURE — STRICT RULES
 
@@ -285,6 +296,7 @@ MANDATORY SELF-CHECK — DO THIS BEFORE RETURNING
 6. Are certifications on 1–2 lines? → Compress if not.
 7. Are there any broken characters, soft hyphens, or garbled text (e.g. high￾performance)? → Fix or remove.
 8. Is the resume ≤2 pages? → Shorten older roles if not.
+9. Are there any consecutive blank lines (two or more \n\n\n)? → Collapse to one blank line.
 
 FINAL PROFESSIONAL EXPERIENCE CHECK — Verify ALL of these before returning:
 1. Company names use proper casing (ISeatz, Kohl's, Hyland, PG Golf — not all caps).

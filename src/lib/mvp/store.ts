@@ -600,3 +600,129 @@ export async function getGeneratedResumeHistory(userId: string): Promise<Generat
     return [];
   }
 }
+
+// ─── LinkedIn Snapshots ────────────────────────────────────────────────────────
+
+export type LinkedInSnapshotRecord = {
+  id: string;
+  label: string;
+  headline: string;
+  overallScore: number;
+  targetRole: string;
+  stage: string;
+  resultJson: string;
+  createdAt: string;
+};
+
+export async function saveLinkedInSnapshot(
+  userId: string,
+  data: {
+    label: string;
+    headline: string;
+    overallScore: number;
+    targetRole: string;
+    stage: string;
+    resultJson: string;
+  },
+): Promise<LinkedInSnapshotRecord> {
+  const record: LinkedInSnapshotRecord = {
+    id: `li_${crypto.randomUUID()}`,
+    ...data,
+    createdAt: new Date().toISOString(),
+  };
+
+  if (isDatabaseReady()) {
+    try {
+      const existing = await prisma.userPortalState.findUnique({
+        where: { userId_key: { userId, key: "linkedin_snapshots" } },
+      });
+      const records: LinkedInSnapshotRecord[] = existing
+        ? (existing.data as { records: LinkedInSnapshotRecord[] }).records ?? []
+        : [];
+      records.unshift(record);
+      await prisma.userPortalState.upsert({
+        where: { userId_key: { userId, key: "linkedin_snapshots" } },
+        update: { data: { records: records.slice(0, 10) } },
+        create: { userId, key: "linkedin_snapshots", data: { records: records.slice(0, 10) } },
+      });
+    } catch { /* best-effort */ }
+  }
+
+  return record;
+}
+
+export async function getLinkedInSnapshots(userId: string): Promise<LinkedInSnapshotRecord[]> {
+  if (!isDatabaseReady()) return [];
+  try {
+    const state = await prisma.userPortalState.findUnique({
+      where: { userId_key: { userId, key: "linkedin_snapshots" } },
+    });
+    if (!state) return [];
+    return (state.data as { records: LinkedInSnapshotRecord[] }).records ?? [];
+  } catch {
+    return [];
+  }
+}
+
+// ─── Cover Letter Snapshots ────────────────────────────────────────────────────
+
+export type CoverLetterSnapshotRecord = {
+  id: string;
+  subject: string;
+  company: string;
+  targetRole: string;
+  tone: string;
+  stage: string;
+  coverLetter: string;
+  createdAt: string;
+};
+
+export async function saveCoverLetterSnapshot(
+  userId: string,
+  data: {
+    subject: string;
+    company: string;
+    targetRole: string;
+    tone: string;
+    stage: string;
+    coverLetter: string;
+  },
+): Promise<CoverLetterSnapshotRecord> {
+  const record: CoverLetterSnapshotRecord = {
+    id: `cl_${crypto.randomUUID()}`,
+    ...data,
+    createdAt: new Date().toISOString(),
+  };
+
+  if (isDatabaseReady()) {
+    try {
+      const existing = await prisma.userPortalState.findUnique({
+        where: { userId_key: { userId, key: "cover_letter_snapshots" } },
+      });
+      const records: CoverLetterSnapshotRecord[] = existing
+        ? (existing.data as { records: CoverLetterSnapshotRecord[] }).records ?? []
+        : [];
+      records.unshift(record);
+      await prisma.userPortalState.upsert({
+        where: { userId_key: { userId, key: "cover_letter_snapshots" } },
+        update: { data: { records: records.slice(0, 10) } },
+        create: { userId, key: "cover_letter_snapshots", data: { records: records.slice(0, 10) } },
+      });
+    } catch { /* best-effort */ }
+  }
+
+  return record;
+}
+
+export async function getCoverLetterSnapshots(userId: string): Promise<CoverLetterSnapshotRecord[]> {
+  if (!isDatabaseReady()) return [];
+  try {
+    const state = await prisma.userPortalState.findUnique({
+      where: { userId_key: { userId, key: "cover_letter_snapshots" } },
+    });
+    if (!state) return [];
+    return (state.data as { records: CoverLetterSnapshotRecord[] }).records ?? [];
+  } catch {
+    return [];
+  }
+}
