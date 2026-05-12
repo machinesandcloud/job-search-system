@@ -9072,12 +9072,10 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
               <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:13,height:13 }}><path d="M10 4v12M4 10l6 6 6-6"/></svg>
               Download Revised
             </button>
-            {reviewMode==="targeted" && (
-              <button onClick={()=>void downloadPowerOptimized()} disabled={powerOptimizing} style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:700, padding:"8px 16px", borderRadius:10, border:"none", background: powerOptimizing?"var(--z-raise)":"#2563EB", color: powerOptimizing?"var(--z-text3)":"white", cursor: powerOptimizing?"default":"pointer" }}>
-                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:13,height:13 }}><path d="M11 3L5 11h7l-3 6 8-10h-7l3-6z"/></svg>
-                {powerOptimizing ? "Optimizing…" : "Power Optimized"}
-              </button>
-            )}
+            <button onClick={()=>void downloadPowerOptimized()} disabled={powerOptimizing} style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:700, padding:"8px 16px", borderRadius:10, border:"none", background: powerOptimizing?"var(--z-raise)":"#2563EB", color: powerOptimizing?"var(--z-text3)":"white", cursor: powerOptimizing?"default":"pointer" }}>
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:13,height:13 }}><path d="M11 3L5 11h7l-3 6 8-10h-7l3-6z"/></svg>
+              {powerOptimizing ? "Optimizing…" : "Power Optimized"}
+            </button>
           </div>
         </div>
 
@@ -13278,71 +13276,109 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
               <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>Your past LinkedIn reviews will appear here after you analyze a profile.</p>
             </div>
           ) : (
-            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-              <div style={{ marginBottom:8 }}>
-                <h2 style={{ fontSize:18, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.02em", margin:"0 0 4px" }}>Past LinkedIn Reviews</h2>
+            <div style={{ display:"flex", flexDirection:"column", gap:0 }}>
+              <div style={{ marginBottom:20 }}>
+                <h2 style={{ fontSize:20, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 4px" }}>Past LinkedIn Reviews</h2>
                 <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>Your last {liHistory.length} profile review{liHistory.length!==1?"s":""}</p>
               </div>
+              <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
               {liHistory.map((snap, idx) => {
                 const sc = snap.overallScore;
                 const sColor = sc >= 75 ? "#16A34A" : sc >= 55 ? "#0077B5" : "#D97706";
-                const sBg = sc >= 75 ? "rgba(22,163,74,0.08)" : sc >= 55 ? "rgba(0,119,181,0.08)" : "rgba(217,119,6,0.08)";
-                const sLabel = sc >= 85 ? "Excellent" : sc >= 70 ? "Good" : sc >= 55 ? "Needs Work" : "Weak";
+                const sBg   = sc >= 75 ? "rgba(22,163,74,0.1)"  : sc >= 55 ? "rgba(0,119,181,0.1)"  : "rgba(217,119,6,0.1)";
+                const sLabel = sc >= 85 ? "Excellent" : sc >= 70 ? "Good" : sc >= 55 ? "Needs work" : "Weak";
                 const d = new Date(snap.createdAt);
                 const dateStr = d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
                 const timeStr = d.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
                 const isLatest = idx === 0;
+                let sectionScores: {label:string;score:number}[] = [];
+                try {
+                  const parsed = JSON.parse(snap.resultJson) as LinkedInResult;
+                  const keys: (keyof LinkedInResult)[] = ["headline","summary","experience","education"];
+                  sectionScores = keys.map(k => {
+                    const sec = parsed[k] as LISection | undefined;
+                    return sec?.score != null ? { label: k.charAt(0).toUpperCase()+k.slice(1), score: sec.score } : null;
+                  }).filter((x): x is {label:string;score:number} => x !== null);
+                } catch { /* ignore */ }
                 return (
-                  <div key={snap.id} style={{ background:"var(--z-card)", border:`1px solid ${isLatest ? sColor + "60" : "var(--z-bd)"}`, borderRadius:16, overflow:"hidden", boxShadow: isLatest ? `0 0 0 1px ${sColor}22, 0 4px 20px rgba(0,0,0,0.07)` : "0 2px 8px rgba(0,0,0,0.05)" }}>
-                    <div style={{ padding:"18px 20px", display:"flex", alignItems:"flex-start", gap:16 }}>
-                      <div style={{ flexShrink:0, textAlign:"center", minWidth:64 }}>
-                        <div style={{ fontSize:26, fontWeight:900, color:sColor, letterSpacing:"-0.04em", lineHeight:1 }}>{sc}</div>
-                        <div style={{ fontSize:9.5, fontWeight:700, color:sColor, background:sBg, border:`1px solid ${sColor}30`, padding:"2px 7px", borderRadius:99, marginTop:4, display:"inline-block" }}>{sLabel}</div>
-                      </div>
-                      <div style={{ flex:1, minWidth:0 }}>
-                        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4, flexWrap:"wrap" }}>
-                          {isLatest && <span style={{ fontSize:9, fontWeight:800, color:"#0077B5", background:"rgba(0,119,181,0.1)", border:"1px solid rgba(0,119,181,0.25)", padding:"2px 8px", borderRadius:99, textTransform:"uppercase", letterSpacing:"0.06em" }}>Latest</span>}
-                          <span style={{ fontSize:13, fontWeight:700, color:"var(--z-text)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{snap.headline || snap.label}</span>
+                  <div key={snap.id} style={{ background:"var(--z-card)", border:`1px solid ${isLatest ? sColor+"55" : "var(--z-bd)"}`, borderRadius:18, overflow:"hidden", boxShadow: isLatest ? `0 0 0 1px ${sColor}20, 0 6px 28px rgba(0,0,0,0.09)` : "0 2px 10px rgba(0,0,0,0.05)" }}>
+                    <div style={{ height:3, background:`linear-gradient(90deg,${sColor},${sColor}88)` }}/>
+                    <div style={{ padding:"20px 22px" }}>
+                      <div style={{ display:"flex", alignItems:"flex-start", gap:16, marginBottom: sectionScores.length > 0 ? 14 : 0 }}>
+                        {/* Score circle */}
+                        <div style={{ flexShrink:0, textAlign:"center" }}>
+                          <div style={{ width:62, height:62, borderRadius:"50%", border:`3px solid ${sColor}`, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", background:sBg }}>
+                            <span style={{ fontSize:22, fontWeight:900, color:sColor, lineHeight:1, letterSpacing:"-0.03em" }}>{sc}</span>
+                          </div>
+                          <div style={{ fontSize:9.5, fontWeight:700, color:sColor, background:sBg, border:`1px solid ${sColor}30`, padding:"2px 8px", borderRadius:99, marginTop:5, display:"inline-block" }}>{sLabel}</div>
                         </div>
-                        {snap.targetRole && <p style={{ fontSize:12, color:"var(--z-text2)", margin:"0 0 4px" }}>Target: {snap.targetRole}</p>}
-                        <p style={{ fontSize:11.5, color:"var(--z-text3)", margin:0 }}>{dateStr} · {timeStr}</p>
+                        {/* Text */}
+                        <div style={{ flex:1, minWidth:0 }}>
+                          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5, flexWrap:"wrap" }}>
+                            {isLatest && <span style={{ fontSize:9, fontWeight:800, color:"#0077B5", background:"rgba(0,119,181,0.1)", border:"1px solid rgba(0,119,181,0.25)", padding:"2px 8px", borderRadius:99, textTransform:"uppercase", letterSpacing:"0.06em", flexShrink:0 }}>Latest</span>}
+                            <span style={{ fontSize:14.5, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.02em", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{snap.headline || snap.label}</span>
+                          </div>
+                          {snap.targetRole && <p style={{ fontSize:12, color:"var(--z-text2)", margin:"0 0 3px", fontWeight:500 }}>Target: {snap.targetRole}</p>}
+                          <p style={{ fontSize:11.5, color:"var(--z-text3)", margin:0 }}>{dateStr} · {timeStr}</p>
+                        </div>
+                        {/* Actions */}
+                        <div style={{ display:"flex", gap:8, flexShrink:0 }}>
+                          <button
+                            onClick={() => {
+                              try {
+                                const parsed = JSON.parse(snap.resultJson) as LinkedInResult;
+                                setResult(parsed); setLiMainTab("review"); setLISection("score"); setInputMode(false);
+                                lsSet(`zari_li_session_v1_${stage}`, { headline: snap.headline, summary:"", experienceJobs:[], education:"", skills:"", linkedinUrl:"", hasPhoto:false, targetRole: snap.targetRole, result: parsed });
+                              } catch { /* ignore */ }
+                            }}
+                            style={{ fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:9, border:`1px solid ${sColor}`, background:sBg, color:sColor, cursor:"pointer" }}>
+                            View →
+                          </button>
+                          <button
+                            onClick={() => {
+                              try {
+                                const parsed = JSON.parse(snap.resultJson) as LinkedInResult;
+                                const sections = ["Headline","Summary","Experience","Education","Other"] as const;
+                                const text = sections.map(s => {
+                                  const key = s.toLowerCase() as keyof LinkedInResult;
+                                  const sec = parsed[key] as LISection | undefined;
+                                  if (!sec?.rewrite) return null;
+                                  return `${s.toUpperCase()} REWRITE\n${sec.rewrite}`;
+                                }).filter(Boolean).join("\n\n---\n\n");
+                                const blob = new Blob([text], { type:"text/plain" });
+                                const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `linkedin_review_${dateStr.replace(/\s/g,"_")}.txt`; a.click();
+                              } catch { /* ignore */ }
+                            }}
+                            style={{ fontSize:12, fontWeight:600, padding:"7px 12px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer", display:"flex", alignItems:"center", gap:5 }}>
+                            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:12,height:12}}><path d="M8 3v7M5 7l3 3 3-3"/><path d="M2 12h12"/></svg>
+                            Download
+                          </button>
+                        </div>
                       </div>
-                      <div style={{ display:"flex", gap:8, flexShrink:0 }}>
-                        <button
-                          onClick={() => {
-                            try {
-                              const parsed = JSON.parse(snap.resultJson) as LinkedInResult;
-                              setResult(parsed); setLiMainTab("review"); setLISection("score"); setInputMode(false);
-                              lsSet(`zari_li_session_v1_${stage}`, { headline: snap.headline, summary:"", experienceJobs:[], education:"", skills:"", linkedinUrl:"", hasPhoto:false, targetRole: snap.targetRole, result: parsed });
-                            } catch { /* ignore */ }
-                          }}
-                          style={{ fontSize:12, fontWeight:700, padding:"7px 14px", borderRadius:9, border:"1px solid #0077B5", background:"rgba(0,119,181,0.08)", color:"#0077B5", cursor:"pointer" }}>
-                          View
-                        </button>
-                        <button
-                          onClick={() => {
-                            try {
-                              const parsed = JSON.parse(snap.resultJson) as LinkedInResult;
-                              const sections = ["Headline","Summary","Experience","Education","Other"] as const;
-                              const text = sections.map(s => {
-                                const key = s.toLowerCase() as keyof LinkedInResult;
-                                const sec = parsed[key] as LISection | undefined;
-                                if (!sec?.rewrite) return null;
-                                return `${s.toUpperCase()} REWRITE\n${sec.rewrite}`;
-                              }).filter(Boolean).join("\n\n---\n\n");
-                              const blob = new Blob([text], { type:"text/plain" });
-                              const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `linkedin_review_${dateStr.replace(/\s/g,"_")}.txt`; a.click();
-                            } catch { /* ignore */ }
-                          }}
-                          style={{ fontSize:12, fontWeight:600, padding:"7px 12px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer", display:"flex", alignItems:"center", gap:6 }}>
-                          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13}}><path d="M8 3v7M5 7l3 3 3-3"/><path d="M2 12h12"/></svg>
-                          Download
-                        </button>
-                      </div>
+                      {/* Section score bars */}
+                      {sectionScores.length > 0 && (
+                        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10, paddingTop:14, borderTop:"1px solid var(--z-bd2)" }}>
+                          {sectionScores.map(({label,score}) => {
+                            const c = score>=75?"#16A34A":score>=55?"#0077B5":"#D97706";
+                            return (
+                              <div key={label}>
+                                <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
+                                  <span style={{ fontSize:10, fontWeight:600, color:"var(--z-text3)" }}>{label}</span>
+                                  <span style={{ fontSize:10, fontWeight:800, color:c }}>{score}</span>
+                                </div>
+                                <div style={{ height:4, borderRadius:99, background:"var(--z-raise)", overflow:"hidden" }}>
+                                  <div style={{ width:`${score}%`, height:"100%", borderRadius:99, background:c }}/>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
               })}
+              </div>
             </div>
           )}
         </div>
@@ -15013,63 +15049,90 @@ function ScreenCoverLetter({ stage, active = false, onNavigate }: { stage: Caree
                 <button onClick={()=>setClMainTab("letter")} style={{ fontSize:13, fontWeight:700, padding:"9px 22px", borderRadius:10, border:"none", background:"#2563EB", color:"white", cursor:"pointer", marginTop:4 }}>Write a letter →</button>
               </div>
             ) : (
-              <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-                <div style={{ marginBottom:8 }}>
-                  <h2 style={{ fontSize:18, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.02em", margin:"0 0 4px" }}>Past Cover Letters</h2>
+              <div style={{ display:"flex", flexDirection:"column", gap:0 }}>
+                <div style={{ marginBottom:20 }}>
+                  <h2 style={{ fontSize:20, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 4px" }}>Past Cover Letters</h2>
                   <p style={{ fontSize:13, color:"var(--z-text3)", margin:0 }}>Your last {clHistory.length} generated letter{clHistory.length!==1?"s":""}</p>
                 </div>
+                <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
                 {clHistory.map((snap, idx) => {
                   const wordCount = snap.coverLetter.trim().split(/\s+/).length;
                   const d = new Date(snap.createdAt);
                   const dateStr = d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
                   const timeStr = d.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
                   const isLatest = idx === 0;
+                  const toneMap: Record<string,{color:string;bg:string;border:string;label:string}> = {
+                    professional:  { color:"#2563EB", bg:"rgba(37,99,235,0.08)",  border:"rgba(37,99,235,0.25)",  label:"Professional"  },
+                    conversational:{ color:"#7C3AED", bg:"rgba(124,58,237,0.08)", border:"rgba(124,58,237,0.25)", label:"Conversational" },
+                    enthusiastic:  { color:"#D97706", bg:"rgba(217,119,6,0.08)",  border:"rgba(217,119,6,0.25)",  label:"Enthusiastic"  },
+                  };
+                  const tm = toneMap[snap.tone] ?? toneMap.professional;
+                  const excerpt = snap.coverLetter.replace(/\s+/g," ").trim().slice(0, 180);
                   return (
-                    <div key={snap.id} style={{ background:"var(--z-card)", border:`1px solid ${isLatest ? "rgba(5,150,105,0.4)" : "var(--z-bd)"}`, borderRadius:16, overflow:"hidden", boxShadow: isLatest ? "0 0 0 1px rgba(5,150,105,0.15), 0 4px 20px rgba(0,0,0,0.07)" : "0 2px 8px rgba(0,0,0,0.05)" }}>
-                      <div style={{ padding:"18px 20px", display:"flex", alignItems:"flex-start", gap:16 }}>
-                        <div style={{ flex:1, minWidth:0 }}>
-                          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5, flexWrap:"wrap" }}>
-                            {isLatest && <span style={{ fontSize:9, fontWeight:800, color:"#059669", background:"rgba(5,150,105,0.1)", border:"1px solid rgba(5,150,105,0.25)", padding:"2px 8px", borderRadius:99, textTransform:"uppercase", letterSpacing:"0.06em" }}>Latest</span>}
-                            <span style={{ fontSize:14, fontWeight:700, color:"var(--z-text)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{snap.subject || "Cover Letter"}</span>
+                    <div key={snap.id} style={{ background:"var(--z-card)", border:`1px solid ${isLatest ? tm.color+"55" : "var(--z-bd)"}`, borderRadius:18, overflow:"hidden", boxShadow: isLatest ? `0 0 0 1px ${tm.color}18, 0 6px 28px rgba(0,0,0,0.09)` : "0 2px 10px rgba(0,0,0,0.05)", transition:"box-shadow 0.15s" }}>
+                      {/* Top accent stripe */}
+                      <div style={{ height:3, background:`linear-gradient(90deg,${tm.color},${tm.color}88)` }}/>
+                      <div style={{ padding:"20px 22px" }}>
+                        {/* Header row */}
+                        <div style={{ display:"flex", alignItems:"flex-start", gap:12, marginBottom:12 }}>
+                          {/* Letter icon */}
+                          <div style={{ width:40, height:40, borderRadius:12, background:tm.bg, border:`1px solid ${tm.border}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:2 }}>
+                            <svg viewBox="0 0 20 20" fill="none" stroke={tm.color} strokeWidth="1.8" style={{width:18,height:18}}><path d="M17 4H3a1 1 0 00-1 1v10a1 1 0 001 1h14a1 1 0 001-1V5a1 1 0 00-1-1z"/><path d="M1 5l9 7 9-7"/></svg>
                           </div>
-                          <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:6 }}>
-                            {snap.targetRole && <span style={{ fontSize:11.5, color:"var(--z-text2)", fontWeight:500 }}>{snap.targetRole}</span>}
-                            {snap.company && <span style={{ fontSize:11.5, color:"var(--z-text3)" }}>· {snap.company}</span>}
-                            <span style={{ fontSize:11.5, color:"var(--z-text3)", textTransform:"capitalize" }}>· {snap.tone}</span>
+                          <div style={{ flex:1, minWidth:0 }}>
+                            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5, flexWrap:"wrap" }}>
+                              {isLatest && <span style={{ fontSize:9, fontWeight:800, color:tm.color, background:tm.bg, border:`1px solid ${tm.border}`, padding:"2px 8px", borderRadius:99, textTransform:"uppercase", letterSpacing:"0.06em", flexShrink:0 }}>Latest</span>}
+                              <span style={{ fontSize:15, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.02em", lineHeight:1.3 }}>{snap.subject || "Cover Letter"}</span>
+                            </div>
+                            <div style={{ display:"flex", gap:6, flexWrap:"wrap", alignItems:"center" }}>
+                              <span style={{ fontSize:11, fontWeight:700, color:tm.color, background:tm.bg, border:`1px solid ${tm.border}`, padding:"2px 9px", borderRadius:99, textTransform:"capitalize" }}>{tm.label} tone</span>
+                              {snap.targetRole && <span style={{ fontSize:11.5, color:"var(--z-text2)", fontWeight:600 }}>{snap.targetRole}</span>}
+                              {snap.company && <span style={{ fontSize:11.5, color:"var(--z-text3)" }}>· {snap.company}</span>}
+                            </div>
                           </div>
-                          <p style={{ fontSize:11.5, color:"var(--z-text3)", margin:0 }}>{dateStr} · {timeStr} · {wordCount} words</p>
+                          <div style={{ flexShrink:0, textAlign:"right" }}>
+                            <div style={{ fontSize:20, fontWeight:900, color:tm.color, letterSpacing:"-0.03em", lineHeight:1 }}>{wordCount}</div>
+                            <div style={{ fontSize:10, color:"var(--z-text3)", fontWeight:600, marginTop:2 }}>words</div>
+                          </div>
                         </div>
-                        <div style={{ display:"flex", gap:8, flexShrink:0 }}>
-                          <button
-                            onClick={() => {
-                              setResult({ subject:snap.subject, coverLetter:snap.coverLetter }); setEditedLetter(snap.coverLetter);
-                              setCompany(snap.company); setTargetRole(snap.targetRole); setTone(snap.tone as "professional"|"conversational"|"enthusiastic");
-                              setClMainTab("letter");
-                            }}
-                            style={{ fontSize:12, fontWeight:700, padding:"7px 14px", borderRadius:9, border:"1px solid #059669", background:"rgba(5,150,105,0.08)", color:"#059669", cursor:"pointer" }}>
-                            View
-                          </button>
-                          <button
-                            onClick={() => { navigator.clipboard.writeText(snap.coverLetter); }}
-                            style={{ fontSize:12, fontWeight:600, padding:"7px 12px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer", display:"flex", alignItems:"center", gap:5 }}>
-                            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13}}><rect x="5" y="2" width="9" height="11" rx="1.5"/><path d="M3 4H2a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1v-1"/></svg>
-                            Copy
-                          </button>
-                          <button
-                            onClick={() => {
-                              const blob = new Blob([snap.coverLetter], { type:"text/plain" });
-                              const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
-                              a.download = `cover_letter_${(snap.targetRole||snap.subject||"letter").replace(/\s+/g,"_")}_${dateStr.replace(/\s/g,"_")}.txt`; a.click();
-                            }}
-                            style={{ fontSize:12, fontWeight:600, padding:"7px 12px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer", display:"flex", alignItems:"center", gap:5 }}>
-                            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13}}><path d="M8 3v7M5 7l3 3 3-3"/><path d="M2 12h12"/></svg>
-                            Download
-                          </button>
+                        {/* Excerpt */}
+                        <p style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.65, margin:"0 0 14px", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" as const, overflow:"hidden" }}>{excerpt}{excerpt.length < snap.coverLetter.trim().length ? "…" : ""}</p>
+                        {/* Footer row */}
+                        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
+                          <span style={{ fontSize:11.5, color:"var(--z-text3)" }}>{dateStr} · {timeStr}</span>
+                          <div style={{ display:"flex", gap:8, flexShrink:0 }}>
+                            <button
+                              onClick={() => { navigator.clipboard.writeText(snap.coverLetter); }}
+                              style={{ fontSize:12, fontWeight:600, padding:"6px 12px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer", display:"flex", alignItems:"center", gap:5 }}>
+                              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:12,height:12}}><rect x="5" y="2" width="9" height="11" rx="1.5"/><path d="M3 4H2a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1v-1"/></svg>
+                              Copy
+                            </button>
+                            <button
+                              onClick={() => {
+                                const blob = new Blob([snap.coverLetter], { type:"text/plain" });
+                                const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+                                a.download = `cover_letter_${(snap.targetRole||snap.subject||"letter").replace(/\s+/g,"_")}_${dateStr.replace(/\s/g,"_")}.txt`; a.click();
+                              }}
+                              style={{ fontSize:12, fontWeight:600, padding:"6px 12px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer", display:"flex", alignItems:"center", gap:5 }}>
+                              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:12,height:12}}><path d="M8 3v7M5 7l3 3 3-3"/><path d="M2 12h12"/></svg>
+                              Download
+                            </button>
+                            <button
+                              onClick={() => {
+                                setResult({ subject:snap.subject, coverLetter:snap.coverLetter }); setEditedLetter(snap.coverLetter);
+                                setCompany(snap.company); setTargetRole(snap.targetRole); setTone(snap.tone as "professional"|"conversational"|"enthusiastic");
+                                setClMainTab("letter");
+                              }}
+                              style={{ fontSize:12, fontWeight:700, padding:"6px 16px", borderRadius:9, border:`1px solid ${tm.color}`, background:tm.bg, color:tm.color, cursor:"pointer" }}>
+                              View letter →
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
                   );
                 })}
+                </div>
               </div>
             )}
           </div>
