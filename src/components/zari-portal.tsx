@@ -15261,6 +15261,16 @@ function ScreenCoverLetter({ stage, active = false, onNavigate }: { stage: Caree
                 ) : null}
               </div>
             )}
+            {/* ── No-insights notice (history letter saved before insights were persisted) ── */}
+            {!result.tailoringNotes?.length && !result.keyStrengths?.length && !result.openingHook && (
+              <div style={{ background:"var(--z-card)", borderRadius:12, border:"1px solid var(--z-bd)", borderLeft:"3px solid #2563EB", padding:"13px 18px", marginBottom:20, display:"flex", gap:12, alignItems:"center" }}>
+                <svg viewBox="0 0 16 16" fill="none" stroke="#2563EB" strokeWidth="1.8" style={{ width:15,height:15,flexShrink:0 }}><circle cx="8" cy="8" r="7"/><path d="M8 5v3M8 10.5v.5" strokeLinecap="round"/></svg>
+                <p style={{ fontSize:12.5, color:"var(--z-text2)", margin:0, lineHeight:1.5 }}>
+                  AI tailoring insights — the decisions Zari made and key strengths highlighted — are available on newly generated letters. Generate a new letter to see the full analysis.
+                </p>
+              </div>
+            )}
+
             {/* ── Opening hook highlight ── */}
             {result.openingHook && (
               <div style={{ background:"rgba(37,99,235,0.03)", borderRadius:12, border:"1px solid rgba(37,99,235,0.15)", padding:"14px 18px", marginBottom:20, display:"flex", gap:12, alignItems:"flex-start" }}>
@@ -16688,6 +16698,7 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
   const [creditLimitNotice, setCreditLimitNotice] = useState<null | {
     used: number;
     limit: number;
+    proactive?: boolean;
   }>(null);
   const [topupOpen, setTopupOpen] = useState(false);
   const [topupLoading, setTopupLoading] = useState<string | null>(null);
@@ -16998,6 +17009,7 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
 
       {/* ── Credit Limit Paywall — always dark, non-dismissable full-screen gate ── */}
       {creditLimitNotice && (() => {
+        const { proactive } = creditLimitNotice;
         const usedPct    = creditLimitNotice.limit > 0 ? Math.min(100, Math.round((creditLimitNotice.used / creditLimitNotice.limit) * 100)) : 100;
         const nextPlanId   = viewer.planId === "search" ? "growth" : viewer.planId === "growth" ? "executive" : null;
         const nextPlanName = nextPlanId === "growth" ? "Growth" : nextPlanId === "executive" ? "Executive" : null;
@@ -17025,6 +17037,13 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
                 {/* Rainbow top bar */}
                 <div style={{ height:3, background:"linear-gradient(90deg, #1D4ED8 0%, #4F46E5 40%, #7C3AED 75%, #6366F1 100%)", width:"100%" }}/>
 
+                {/* Close button — always visible in proactive mode, shown as X in corner */}
+                {proactive && (
+                  <button onClick={() => { setCreditLimitNotice(null); setTopupOpen(false); setTopupErr(null); }} style={{ position:"absolute", top:16, right:16, width:28, height:28, borderRadius:8, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.1)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", color:"rgba(255,255,255,0.5)", zIndex:2 }}>
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:11, height:11 }}><path d="M3 3l10 10M13 3L3 13"/></svg>
+                  </button>
+                )}
+
                 <div style={{ padding:"28px 28px 24px", textAlign:"center" }}>
 
                   {/* Icon */}
@@ -17035,26 +17054,28 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
                   </div>
 
                   {/* Eyebrow */}
-                  <div style={{ fontSize:10, fontWeight:900, color:"#818CF8", textTransform:"uppercase", letterSpacing:"0.22em", marginBottom:7 }}>Credits Exhausted</div>
+                  <div style={{ fontSize:10, fontWeight:900, color:"#818CF8", textTransform:"uppercase", letterSpacing:"0.22em", marginBottom:7 }}>{proactive ? "Add Credits" : "Credits Exhausted"}</div>
 
                   {/* Headline */}
                   <h2 style={{ fontSize:23, fontWeight:900, color:"rgba(255,255,255,0.95)", margin:"0 0 8px", letterSpacing:"-0.04em", lineHeight:1.15 }}>
-                    You&apos;ve used all your credits
+                    {proactive ? "Add credits to your account" : "You've used all your credits"}
                   </h2>
 
                   {/* Sub */}
                   <p style={{ fontSize:12.5, color:"rgba(255,255,255,0.45)", lineHeight:1.65, margin:"0 auto 16px", maxWidth:320 }}>
-                    Your monthly balance is empty. Upgrade your plan, buy a top-up pack, or wait for your next billing cycle to continue.
+                    {proactive
+                      ? "Pick a credit pack and it's added to your account instantly. Your current access continues uninterrupted."
+                      : "Your monthly balance is empty. Upgrade your plan, buy a top-up pack, or wait for your next billing cycle to continue."}
                   </p>
 
                   {/* Credit bar */}
                   <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.09)", borderRadius:12, padding:"12px 16px", marginBottom:16 }}>
                     <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
                       <span style={{ fontSize:10.5, fontWeight:700, color:"rgba(255,255,255,0.4)", textTransform:"uppercase", letterSpacing:"0.09em" }}>Monthly Credits</span>
-                      <span style={{ fontSize:12.5, fontWeight:800, color:"#F87171", letterSpacing:"-0.02em" }}>{creditLimitNotice.used.toFixed(0)} / {creditLimitNotice.limit.toFixed(0)} used</span>
+                      <span style={{ fontSize:12.5, fontWeight:800, color: proactive ? "#818CF8" : "#F87171", letterSpacing:"-0.02em" }}>{creditLimitNotice.used.toFixed(0)} / {creditLimitNotice.limit.toFixed(0)} used</span>
                     </div>
                     <div style={{ height:5, borderRadius:99, background:"rgba(255,255,255,0.07)", overflow:"hidden" }}>
-                      <div style={{ height:"100%", width:`${usedPct}%`, borderRadius:99, background:"linear-gradient(90deg, #B91C1C 0%, #EF4444 60%, #F87171 100%)", boxShadow:"0 0 10px rgba(239,68,68,0.65)" }}/>
+                      <div style={{ height:"100%", width:`${usedPct}%`, borderRadius:99, background: proactive ? "linear-gradient(90deg, #2563EB 0%, #4F46E5 60%, #818CF8 100%)" : "linear-gradient(90deg, #B91C1C 0%, #EF4444 60%, #F87171 100%)", boxShadow: proactive ? "0 0 10px rgba(99,102,241,0.55)" : "0 0 10px rgba(239,68,68,0.65)" }}/>
                     </div>
                     <div style={{ marginTop:7, fontSize:10.5, color:"rgba(255,255,255,0.28)", textAlign:"center" }}>Resets automatically on your next billing date</div>
                   </div>
@@ -17199,8 +17220,8 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
                       )}
                     </div>
 
-                    {/* Wait — informational */}
-                    <div style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 14px", borderRadius:12, border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.04)", textAlign:"left" }}>
+                    {/* Wait — informational (hidden in proactive mode) */}
+                    {!proactive && <div style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 14px", borderRadius:12, border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.04)", textAlign:"left" }}>
                       <div style={{ width:34, height:34, borderRadius:10, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.11)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                         <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width:15, height:15 }}>
                           <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
@@ -17210,7 +17231,7 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
                         <div style={{ fontSize:13, fontWeight:600, color:"rgba(255,255,255,0.65)", marginBottom:1 }}>Wait for next billing cycle</div>
                         <div style={{ fontSize:11, color:"rgba(255,255,255,0.42)" }}>Credits reset automatically — access resumes then</div>
                       </div>
-                    </div>
+                    </div>}
 
                   </div>
 
@@ -17473,7 +17494,7 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
               <div className={screen==="linkedin"     ? "zari-screen-active" : ""} style={{ display:screen==="linkedin"     ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <FeatureGate featureName="zari_bridge_network"><ScreenBridgeNetwork active={screen==="linkedin"}/></FeatureGate> : <ScreenLinkedIn     stage={stage} active={screen==="linkedin"} onNavigate={s=>navigate(s as Screen)}/>}</div>
               <div className={screen==="documents"    ? "zari-screen-active" : ""} style={{ display:screen==="documents"    ? "block" : "none", height:"100%" }}><ScreenDocuments stage={stage} onNavigate={s=>navigate(s as Screen)}/></div>
               <div className={screen==="plan"         ? "zari-screen-active" : ""} style={{ display:screen==="plan"         ? "block" : "none", height:"100%" }}><ScreenPlan stage={stage} onNavigate={s=>navigate(s as Screen)} active={screen==="plan"}/></div>
-              <div className={screen==="account"      ? "zari-screen-active" : ""} style={{ display:screen==="account"      ? "block" : "none", height:"100%" }}><ScreenAccount viewer={viewer} onNavigate={navigate} onBuyCredits={() => { const used = viewer.usedMonthlyCredits ?? 0; const limit = viewer.creditLimit ?? viewer.includedMonthlyCredits ?? 0; setCreditLimitNotice({ used, limit }); }} onComparePlans={() => setComparePlansOpen(true)}/></div>
+              <div className={screen==="account"      ? "zari-screen-active" : ""} style={{ display:screen==="account"      ? "block" : "none", height:"100%" }}><ScreenAccount viewer={viewer} onNavigate={navigate} onBuyCredits={() => { const used = viewer.usedMonthlyCredits ?? 0; const limit = viewer.creditLimit ?? viewer.includedMonthlyCredits ?? 0; setCreditLimitNotice({ used, limit, proactive: true }); setTopupOpen(true); }} onComparePlans={() => setComparePlansOpen(true)}/></div>
             </>
           )}
         </div>
