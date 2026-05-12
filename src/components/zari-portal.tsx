@@ -2839,25 +2839,29 @@ function generateResumeHtml(text: string, footerNote = ""): string {
 <title>Resume</title>
 <style>
   *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-  @page{margin:0.65in 0.75in;size:letter portrait}
-  html{background:#fff}
-  body{font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.45;color:#000;background:#fff;padding:.5in .6in .5in;max-width:8.5in;margin:0 auto}
-  .name{font-size:22pt;font-weight:700;text-align:center;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
-  .contact{text-align:center;font-size:10pt;color:#333;margin-bottom:2px}
-  .sec-hdr{font-weight:700;text-align:center;border-top:1.5px solid #000;border-bottom:1.5px solid #000;padding:3px 0;margin:12px 0 6px;letter-spacing:.5px;text-transform:uppercase;font-size:11pt;break-after:avoid;page-break-after:avoid}
-  .job-hdr{display:flex;justify-content:space-between;align-items:baseline;margin-top:9px;margin-bottom:1px;break-after:avoid;page-break-after:avoid}
-  .company{font-weight:700;font-size:11pt}
-  .date-r{font-size:10pt;color:#222;font-weight:500;white-space:nowrap;margin-left:8px}
-  .date-standalone{font-size:10pt;color:#222;margin-bottom:2px}
-  .bold-line{font-weight:700;margin-top:5px;margin-bottom:1px;font-style:italic;break-after:avoid;page-break-after:avoid}
-  .skill-line{margin-bottom:3px;line-height:1.4}
-  ul{padding-left:18px;margin:3px 0 5px;list-style-type:disc;break-before:avoid;page-break-before:avoid;orphans:3;widows:3}
-  li{margin-bottom:2px;line-height:1.4;orphans:3;widows:3}
-  p{margin-bottom:3px;line-height:1.45;orphans:3;widows:3}
-  .job-block{page-break-inside:avoid;break-inside:avoid}
-  br{display:block;margin:2px 0;content:""}
+  @page{size:letter;margin:0.70in 0.75in 0.75in 0.75in}
+  html,body{background:#fff}
+  body{font-family:Arial,Calibri,Aptos,Helvetica,sans-serif;font-size:10pt;line-height:1.15;color:#000}
+  @media screen{body{padding:0.70in 0.75in 0.75in 0.75in;max-width:8.5in;margin:0 auto}}
+  @media print{body{margin:0;padding:0;max-width:none}}
+  .name{font-size:26pt;font-weight:700;text-align:center;letter-spacing:0.5pt;text-transform:uppercase;margin-bottom:3pt}
+  .contact{text-align:center;font-size:10pt;line-height:1.2;color:#000;margin-bottom:2pt}
+  .sec-hdr{font-weight:700;text-align:center;border-top:1.5px solid #000;border-bottom:1.5px solid #000;padding:3pt 0;margin:9pt 0 5pt;letter-spacing:0.5pt;text-transform:uppercase;font-size:12pt;break-after:avoid;page-break-after:avoid}
+  .job-block{margin-top:7pt;margin-bottom:7pt;break-inside:avoid;page-break-inside:avoid}
+  .job-hdr{display:flex;justify-content:space-between;align-items:baseline;font-weight:700;break-after:avoid;page-break-after:avoid}
+  .company{font-size:10pt;text-align:left}
+  .date-r{font-size:10pt;font-weight:400;white-space:nowrap;margin-left:8pt}
+  .date-standalone{font-size:10pt;margin-bottom:2pt}
+  .bold-line{font-weight:600;margin-top:1pt;margin-bottom:3pt;font-size:10pt;break-after:avoid;page-break-after:avoid}
+  .skill-line{margin-bottom:2pt;line-height:1.15;font-size:10pt}
+  ul{margin:0 0 0 14pt;padding:0;list-style-type:disc;orphans:3;widows:3}
+  li{margin-bottom:2pt;padding-left:2pt;line-height:1.15;orphans:3;widows:3}
+  p{margin-bottom:2pt;line-height:1.15;orphans:3;widows:3}
+  .education-entry{margin-bottom:3pt;break-inside:avoid;page-break-inside:avoid}
+  .certifications{margin-top:2pt}
+  br{display:block;margin:2pt 0;content:""}
   .footer{margin-top:20pt;font-size:8.5pt;color:#aaa;text-align:center;border-top:1px solid #eee;padding-top:6pt}
-  @media print{@page{margin:0.65in 0.75in;size:letter portrait}body{padding:0;margin:0;max-width:none}.footer{display:none}}
+  @media print{.footer{display:none}}
 </style>
 </head>
 <body>
