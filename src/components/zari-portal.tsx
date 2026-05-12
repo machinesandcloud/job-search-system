@@ -2839,9 +2839,9 @@ function generateResumeHtml(text: string, footerNote = ""): string {
 <title>Resume</title>
 <style>
   *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-  @page{margin:0;size:letter portrait}
+  @page{margin:0.65in 0.75in;size:letter portrait}
   html{background:#fff}
-  body{font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.45;color:#000;background:#fff;padding:.6in .75in .7in;max-width:8.5in;margin:0 auto}
+  body{font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.45;color:#000;background:#fff;padding:.5in .6in .5in;max-width:8.5in;margin:0 auto}
   .name{font-size:22pt;font-weight:700;text-align:center;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
   .contact{text-align:center;font-size:10pt;color:#333;margin-bottom:2px}
   .sec-hdr{font-weight:700;text-align:center;border-top:1.5px solid #000;border-bottom:1.5px solid #000;padding:3px 0;margin:12px 0 6px;letter-spacing:.5px;text-transform:uppercase;font-size:11pt;break-after:avoid;page-break-after:avoid}
@@ -2857,7 +2857,7 @@ function generateResumeHtml(text: string, footerNote = ""): string {
   .job-block{page-break-inside:avoid;break-inside:avoid}
   br{display:block;margin:2px 0;content:""}
   .footer{margin-top:20pt;font-size:8.5pt;color:#aaa;text-align:center;border-top:1px solid #eee;padding-top:6pt}
-  @media print{@page{margin:0;size:letter portrait}body{padding:.5in .65in .6in}.footer{display:none}}
+  @media print{@page{margin:0.65in 0.75in;size:letter portrait}body{padding:0;margin:0;max-width:none}.footer{display:none}}
 </style>
 </head>
 <body>
@@ -8713,9 +8713,9 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
             <p style={{ fontSize:11.5, fontWeight:700, color:"var(--z-text2)", marginBottom:8 }}>Your career level</p>
             <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:7 }}>
               {([["entry","Entry","0–2 yrs"],["mid","Mid-Level","3–7 yrs"],["senior","Senior","8–15 yrs"],["executive","Executive","VP+"]] as [CareerLevel,string,string][]).map(([lvl,label,sub])=>(
-                <button key={lvl} onClick={()=>setCareerLevel(lvl)} style={{ padding:"8px 6px", borderRadius:10, border:`1.5px solid ${careerLevel===lvl?"rgba(37,99,235,0.7)":"#D4D8E8"}`, background:careerLevel===lvl?"rgba(37,99,235,0.10)":"#F7F8FC", cursor:"pointer", textAlign:"center", transition:"all 0.12s" }}>
-                  <p style={{ fontSize:12, fontWeight:700, color:careerLevel===lvl?"#2563EB":"#68738A", margin:0 }}>{label}</p>
-                  <p style={{ fontSize:10, color:"var(--z-text3)", margin:0 }}>{sub}</p>
+                <button key={lvl} onClick={()=>setCareerLevel(lvl)} style={{ padding:"8px 6px", borderRadius:10, border:`1.5px solid ${careerLevel===lvl?"rgba(37,99,235,0.7)":"var(--z-bd)"}`, background:careerLevel===lvl?"rgba(37,99,235,0.10)":"var(--z-raise)", cursor:"pointer", textAlign:"center", transition:"all 0.12s" }}>
+                  <p style={{ fontSize:12, fontWeight:700, color:careerLevel===lvl?"#2563EB":"var(--z-text2)", margin:0 }}>{label}</p>
+                  <p style={{ fontSize:10, color:"var(--z-text2)", margin:0 }}>{sub}</p>
                 </button>
               ))}
             </div>
@@ -17261,8 +17261,8 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
           })()}
         </nav>
 
-        {/* Bottom: account nav button */}
-        <div style={{ margin:"8px 10px 0" }}>
+        {/* Bottom: account nav button + sign out */}
+        <div style={{ margin:"8px 10px 0", display:"flex", flexDirection:"column", gap:4 }}>
           {(() => {
             const isAcct = screen === "account";
             const acctInitials = (viewer.name?.trim() || viewer.email).split(/\s+/).slice(0,2).map(p=>p[0]?.toUpperCase()??"").join("") || "?";
@@ -17284,6 +17284,12 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
               </button>
             );
           })()}
+          <PlatformLogoutButton className="" redirectTo="/login">
+            <button style={{ width:"100%", display:"flex", alignItems:"center", gap:7, padding:"7px 11px", borderRadius:9, border:"1px solid var(--z-bd)", background:"transparent", cursor:"pointer", color:"var(--z-text3)", fontSize:12, fontWeight:500, transition:"all 0.14s" }}>
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:12, height:12, flexShrink:0 }}><path d="M10 11l4-3-4-3M14 8H6M6 3H3a1 1 0 00-1 1v8a1 1 0 001 1h3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              Sign out
+            </button>
+          </PlatformLogoutButton>
         </div>
       </aside>
 

@@ -237,12 +237,55 @@ Never invent companies, roles, or fabricated results.
 PAGE LENGTH AND MARGINS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 2 pages maximum at US Letter size. If too long: shorten older roles first, reduce bullets, tighten summary.
-Use 0.7–0.85 inch side margins and at least 0.5 inch top and bottom safe margins. Never reduce bottom margins to force content onto the page.
+The renderer uses @page { margin: 0.65in 0.75in; } — real document margins on every page, including page 2.
+Do not try to pack content to the very bottom of a page. Page 2 has the same top/bottom safe zones as page 1.
+Never solve spacing issues by overloading bullet counts.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BULLET DENSITY AND PAGE FIT RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Do not overload any role with too many bullets. Use this target count by role:
+
+  Most recent or most relevant role:   5–7 bullets maximum
+  Second role:                         4–6 bullets maximum
+  Older roles:                         3–5 bullets maximum
+  Internships / early-career / short:  3–4 bullets maximum
+
+Never use 8–10 bullets for one role unless the user explicitly requests a very detailed resume.
+
+Compression order when space is tight:
+  1. Reduce older role bullets first
+  2. Shorten long bullets
+  3. Tighten education spacing
+  4. Tighten skills list
+  5. Tighten professional summary
+  Never solve spacing issues by shrinking page margins.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ROLE TITLE FORMATTING — ABSOLUTE RULE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+The job title is NEVER a bullet. It is its own plain-text line directly below the company/date line.
+
+INCORRECT — job title as a bullet:
+  BRUCEFO, Bruxelles                              Feb 2024 – Jul 2024
+  • Stage en laboratoire - Bioanalyses & Validation
+
+CORRECT — job title as its own line:
+  BRUCEFO, Bruxelles                              Feb 2024 – Jul 2024
+  Stage en laboratoire - Bioanalyses & Validation
+
+  • Prepared reagents, buffer solutions, and culture media.
+  • Participated in analytical method validation.
+
+Every role: Company + Dates → Job Title (plain line) → blank line → • bullets.
+Scan every role before returning. If any job title is formatted as a bullet → fix it.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 PAGINATION AND PAGE-SAFETY RULES
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-The resume must respect real page boundaries. No resume text should appear inside the bottom 0.5 inches of the page. Use a safe bottom margin of at least 0.5 inches on every page.
+The resume must respect real page boundaries on every page (not just page 1).
+No text, bullet, section header, or certification line may appear inside the top or bottom 0.65 inches of any page.
+This applies to page 1, page 2, and all continuation pages equally.
 
 1. NEVER split a role heading from its bullets.
    Each experience entry must be treated as a single block:
@@ -275,13 +318,13 @@ The resume must respect real page boundaries. No resume text should appear insid
    If content is too close to the bottom margin, shorten the resume content instead of squeezing it.
 
 5. Reduce content in this order when space is tight:
-   First: older roles | Second: bullet length | Third: skills list | Fourth: professional summary.
+   First: older role bullets | Second: bullet length | Third: skills list | Fourth: professional summary.
    Never reduce page margins below safe print boundaries.
 
 6. Page 1 should ideally end cleanly after a complete role or complete bullet group.
    Do not end page 1 immediately after a company name or job title.
 
-7. Page 2 should have enough bottom breathing room.
+7. Page 2 must not start at the very top edge — the renderer uses a real top margin.
    The final certification line should not sit at the very bottom edge of the page.
    Leave clean white space after the final line.
 
@@ -297,24 +340,30 @@ MANDATORY SELF-CHECK — DO THIS BEFORE RETURNING
 7. Are there any broken characters, soft hyphens, or garbled text (e.g. high￾performance)? → Fix or remove.
 8. Is the resume ≤2 pages? → Shorten older roles if not.
 9. Are there any consecutive blank lines (two or more \n\n\n)? → Collapse to one blank line.
+10. Is any job title formatted as a bullet (•)? → Convert it to a plain text line directly below the company/date line.
+11. Does any role have 8 or more bullets? → Reduce to the role's allowed maximum.
 
 FINAL PROFESSIONAL EXPERIENCE CHECK — Verify ALL of these before returning:
 1. Company names use proper casing (ISeatz, Kohl's, Hyland, PG Golf — not all caps).
 2. Roles are in reverse chronological order (most recent first).
 3. No company, title, and date merged into one line.
-4. Each role follows: Company left / Dates right → Job title below → • bullets underneath.
-5. Every experience item uses a real • bullet point (no plain paragraphs).
+4. Each role follows: Company left / Dates right → Job title (plain line) → blank line → • bullets.
+5. Every experience bullet uses a real • (no plain paragraphs, no job title as a bullet).
 6. No role header stranded alone at the bottom of a page.
 7. Company/date line + job title + at least 2 bullets stay together on the same page.
+8. No role exceeds its bullet count limit (recent: 7 max, second: 6 max, older: 5 max).
 If any check fails → revise the layout before producing the final JSON.
 
 FINAL PAGE CHECK — Reject and fix output if any of these are true:
 - Text appears too close to the bottom of the page.
+- Page 2 content appears to start above the top safe margin.
 - A company/date line appears at the bottom without at least 2 bullets under it on the same page.
 - A job title appears at the bottom without bullets under it on the same page.
+- A job title is formatted as a bullet point.
 - A section header appears without content under it on the same page.
 - Education and Certifications are awkwardly separated across pages.
 - Page 2 ends with text touching the footer area.
+- Any role has more than 7 bullets (unless the most recent role with rich history).
 - Any broken/garbled character appears anywhere in the resume.
 
 Return ONLY valid JSON: { "resumeText": "<complete resume, \\n for newlines>" }`;
