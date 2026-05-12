@@ -8121,8 +8121,9 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
   const [activeSuggestion,setActiveSuggestion]= useState<number | null>(null);
   // Quick Wins deep-link scroll target (bullet `before` text prefix)
   const [pendingBulletScroll, setPendingBulletScroll] = useState<string | null>(null);
-  // Power Optimized download
-  const [powerOptimizing, setPowerOptimizing] = useState(false);
+  // Download loading states
+  const [powerOptimizing,  setPowerOptimizing]  = useState(false);
+  const [revisedApplying,  setRevisedApplying]  = useState(false);
   // Generated resume snapshots
   const [genHistory, setGenHistory] = useState<Array<{id:string;type:string;label:string;filename:string;resumeText:string;scores?:{overall:number;ats:number;impact:number;clarity:number};createdAt:string}>>([]);
   const [downloadModal, setDownloadModal] = useState<{ type: "revised" | "powerOptimized" } | null>(null);
@@ -8219,8 +8220,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
 
   async function buildRevisedHtml(): Promise<string> {
     if (!aiResult) return "";
-    // Use positionally-extracted text so sections come out in visual reading order,
-    // not the potentially-scrambled order from the server-side PDF parser.
+    // Step 1: Apply AI-suggested bullet and section rewrites from the suggestions panel
     let baseText = resumeText;
     if (rawFileUrl) {
       try { baseText = await extractPositionedText(rawFileUrl); } catch { /* fall back */ }
@@ -8235,6 +8235,34 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
         revised = revised.replace(s.originalText.trim(), newText);
       }
     });
+
+    // Step 2: Send to apply-fixes API to address ALL remaining findings:
+    // missing keywords, critical issues, warnings, and word problems
+    const missingKeywords = (aiResult.keywords ?? []).filter(k => !k.found).map(k => ({ word: k.word, importance: k.importance, skillType: k.skillType ?? null }));
+    const criticalFindings = (aiResult.findings ?? []).filter(f => f.type === "critical").map(f => f.text);
+    const warnFindings = (aiResult.findings ?? []).filter(f => f.type === "warn").map(f => f.text);
+    const wordIssues = (aiResult.wordIssues ?? []).map(w => ({ word: w.word, type: w.type, suggestion: w.suggestion }));
+
+    if (missingKeywords.length > 0 || criticalFindings.length > 0 || warnFindings.length > 0 || wordIssues.length > 0) {
+      try {
+        const res = await fetch("/api/zari/resume/apply-fixes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            resumeText: revised,
+            targetRole: targetRoleInput,
+            jobDescription,
+            missingKeywords,
+            criticalFindings,
+            warnFindings,
+            wordIssues,
+          }),
+        });
+        const data = await res.json().catch(() => ({})) as { resumeText?: string; error?: string };
+        if (data.resumeText) revised = data.resumeText;
+      } catch { /* fall back to bullet-only revision */ }
+    }
+
     return generateResumeHtml(revised);
   }
 
@@ -8271,11 +8299,15 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
     }
 
     if (modal?.type === "revised") {
-      const html = await buildRevisedHtml();
-      if (!html) { printWin?.close(); return; }
-      deliverHtml(html, `${baseName}-revised.html`);
-      // Save snapshot in background (best-effort)
-      fetch("/api/zari/resume/snapshots", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ type:"revised", label:"Revised Resume", filename: fileName || "resume", resumeText, scores: aiResult ? { overall:aiResult.overall, ats:aiResult.ats, impact:aiResult.impact, clarity:aiResult.clarity } : undefined }) }).then(r=>r.json()).then(d=>{ if(d.id) setGenHistory(prev=>([{ id:d.id, type:"revised" as string, label:"Revised", filename: fileName||"resume", resumeText, scores: aiResult ? { overall:aiResult.overall, ats:aiResult.ats, impact:aiResult.impact, clarity:aiResult.clarity } : undefined, createdAt:new Date().toISOString() }, ...prev] as typeof prev).slice(0,10)); }).catch(()=>{});
+      setRevisedApplying(true);
+      try {
+        const html = await buildRevisedHtml();
+        if (!html) { printWin?.close(); return; }
+        deliverHtml(html, `${baseName}-revised.html`);
+        // Save snapshot in background (best-effort)
+        fetch("/api/zari/resume/snapshots", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ type:"revised", label:"Revised Resume", filename: fileName || "resume", resumeText, scores: aiResult ? { overall:aiResult.overall, ats:aiResult.ats, impact:aiResult.impact, clarity:aiResult.clarity } : undefined }) }).then(r=>r.json()).then(d=>{ if(d.id) setGenHistory(prev=>([{ id:d.id, type:"revised" as string, label:"Revised", filename: fileName||"resume", resumeText, scores: aiResult ? { overall:aiResult.overall, ats:aiResult.ats, impact:aiResult.impact, clarity:aiResult.clarity } : undefined, createdAt:new Date().toISOString() }, ...prev] as typeof prev).slice(0,10)); }).catch(()=>{});
+      } catch { setAnalyzeErr("Download failed — try again."); printWin?.close(); }
+      setRevisedApplying(false);
       return;
     }
 
@@ -9038,7 +9070,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
           <div style={{ background:"var(--z-raise)", borderRadius:18, padding:"28px 28px 22px", width:340, boxShadow:"0 20px 60px rgba(0,0,0,0.10)" }} onClick={e=>e.stopPropagation()}>
             <p style={{ fontSize:16, fontWeight:800, color:"var(--z-text)", marginBottom:4 }}>Choose format</p>
             <p style={{ fontSize:12.5, color:"var(--z-text2)", marginBottom:20 }}>
-              {downloadModal.type === "powerOptimized" ? "Zari will AI-optimize your resume before downloading." : "Download your resume with Zari's improvements applied."}
+              {downloadModal.type === "powerOptimized" ? "Zari will aggressively rewrite and optimize your resume — fixing all identified issues, injecting missing keywords, and strengthening every bullet." : "Zari will apply all suggestions, fix every identified issue, inject missing keywords, and replace flagged words — preserving your original voice."}
             </p>
             <div style={{ display:"flex", flexDirection:"column", gap:10, marginBottom:18 }}>
               <button onClick={()=>void executeDownload("word")} style={{ display:"flex", alignItems:"center", gap:12, padding:"13px 16px", borderRadius:12, border:"1.5px solid #D9DFF0", background:"var(--z-raise)", cursor:"pointer", textAlign:"left" }}>
@@ -9080,9 +9112,9 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
             </div>
           </div>
           <div style={{ display:"flex", gap:8 }}>
-            <button onClick={downloadReconstructed} style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:700, padding:"8px 14px", borderRadius:10, border:"1.5px solid rgba(37,99,235,0.4)", background:"var(--z-raise)", color:"#7B9EFF", cursor:"pointer" }}>
+            <button onClick={downloadReconstructed} disabled={revisedApplying} style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:700, padding:"8px 14px", borderRadius:10, border:"1.5px solid rgba(37,99,235,0.4)", background: revisedApplying?"var(--z-raise)":"var(--z-raise)", color: revisedApplying?"var(--z-text3)":"#7B9EFF", cursor: revisedApplying?"default":"pointer" }}>
               <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:13,height:13 }}><path d="M10 4v12M4 10l6 6 6-6"/></svg>
-              Download Revised
+              {revisedApplying ? "Applying fixes…" : "Download Revised"}
             </button>
             <button onClick={()=>void downloadPowerOptimized()} disabled={powerOptimizing} style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:700, padding:"8px 16px", borderRadius:10, border:"none", background: powerOptimizing?"var(--z-raise)":"#2563EB", color: powerOptimizing?"var(--z-text3)":"white", cursor: powerOptimizing?"default":"pointer" }}>
               <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:13,height:13 }}><path d="M11 3L5 11h7l-3 6 8-10h-7l3-6z"/></svg>

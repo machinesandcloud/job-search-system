@@ -32,6 +32,7 @@ const FEATURE_REQUIRED_PLAN: Record<string, ProductPlanId> = {
   sessions_events: "search",
   zari_resume_review: "search",
   zari_resume_power_optimize: "search",
+  zari_resume_apply_fixes: "search",
   zari_resume_rewrite_section: "search",
   zari_resume_magic_write: "search",
   zari_linkedin: "search",
