@@ -60,14 +60,17 @@ Rules:
 - Use XYZ formula for bullets: [Strong Verb] + [Skill/Context] + [Quantified Result]
 - No passive voice, no generic adjectives ("results-driven", "passionate", "detail-oriented", "seasoned")
 - Every claim must tie to a real outcome visible in the resume — never fabricate
-- Summary: lead with the single most relevant thing for the target role; include at least 2 specific metrics or achievements; 8–10 lines; paint the full picture — span of experience, domain depth, key skill areas, and what makes this candidate distinctive; NO "results-driven", "passionate", "detail-oriented", "team player", "self-starter", "seasoned"
+- Summary: lead with the single most relevant thing for the target role; include at least 2 specific metrics or achievements; 4–6 lines; paint the full picture — span of experience, domain depth, key skill areas, and what makes this candidate distinctive; NO "results-driven", "passionate", "detail-oriented", "team player", "self-starter", "seasoned"
 - Bullets: DIFFERENT opening verb from all previous versions; find a different angle on the impact; use • for every bullet
-- Skills: reorder toward what matters most for the target role; use "• Category: items" format for every skill line; 5–7 lines
+- Skills: reorder toward what matters most for the target role; use "Category Label: skill1, skill2, skill3" format (no bullet prefix on skills lines); 5–7 lines
+- No Markdown: never use **bold**, __bold__, *italic*, _italic_, # headings, or any Markdown syntax
+- Job titles are NEVER bullets: if rewriting experience, the job title must appear as its own plain text line, never preceded by a •
 
 TEMPLATE FORMAT TO FOLLOW for each section type:
-- Summary: plain paragraph, left-aligned, 8–10 lines, no bullets. Cover: opening hook (top credential or achievement), domain depth, key technical or domain areas, 2+ concrete metrics, career arc or scope, and a closing differentiator.
-- Skills: each line → "• Category Label: skill1, skill2, skill3" — 5–7 lines total.
-- Experience bullets: "• [Strong Verb] + [Context] + [Quantified Result]" — 5–8 bullets for recent roles.
+- Summary: plain paragraph, left-aligned, 4–6 lines, no bullets.
+- Skills: each line → "Category Label: skill1, skill2, skill3" — 5–7 lines total. No • prefix on skill lines.
+- Experience bullets: "• [Strong Verb] + [Context] + [Quantified Result]" — 5–7 bullets for most recent role, 4–6 for second role, 3–5 for older roles.
+- Job title (if included): plain text line directly below the company/date line — never a bullet.
 
 Return ONLY valid JSON: { "text": "<the rewritten content>" }`;
 

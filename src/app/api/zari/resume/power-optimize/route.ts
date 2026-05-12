@@ -56,11 +56,19 @@ export async function POST(request: Request) {
     resumeText?: string;
     targetRole?: string;
     jobDescription?: string;
+    missingKeywords?: { word: string; importance: "required" | "preferred"; skillType?: string | null }[];
+    criticalFindings?: string[];
+    warnFindings?: string[];
+    wordIssues?: { word: string; type: string; suggestion: string }[];
   };
 
   const resumeText = (body.resumeText ?? "").trim();
   const targetRole = (body.targetRole ?? "").trim();
   const jobDescription = (body.jobDescription ?? "").trim();
+  const missingKeywords = body.missingKeywords ?? [];
+  const criticalFindings = (body.criticalFindings ?? []).slice(0, 10);
+  const warnFindings = (body.warnFindings ?? []).slice(0, 8);
+  const wordIssues = (body.wordIssues ?? []).slice(0, 12);
 
   if (!resumeText) {
     return NextResponse.json({ error: "resumeText required" }, { status: 400 });
@@ -72,17 +80,75 @@ export async function POST(request: Request) {
     ? `Target Role: "${targetRole}"`
     : "No specific role — optimize for general strength.";
 
-  const systemPrompt = `You are an expert resume writer AND resume layout formatter.
+  // Build analysis-driven context blocks
+  const requiredMissing = missingKeywords.filter(k => k.importance === "required");
+  const preferredMissing = missingKeywords.filter(k => k.importance === "preferred");
 
-Your job is to generate a resume that is clean, polished, executive, and ATS-friendly.
-This is both a writing task AND a layout task. The output must look like a professional two-page executive resume.
+  const keywordInjectionBlock = missingKeywords.length > 0 ? `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MISSING KEYWORDS — INJECT ALL OF THESE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+An AI resume analyzer identified these keywords as MISSING from the resume. You MUST embed them naturally.
+
+${requiredMissing.length > 0 ? `REQUIRED (must include — ATS will reject without these):
+${requiredMissing.map(k => `  • ${k.word}${k.skillType ? ` [${k.skillType}]` : ""}`).join("\n")}` : ""}
+
+${preferredMissing.length > 0 ? `PREFERRED (include as many as naturally fit):
+${preferredMissing.map(k => `  • ${k.word}${k.skillType ? ` [${k.skillType}]` : ""}`).join("\n")}` : ""}
+
+KEYWORD PLACEMENT STRATEGY — follow this order:
+1. Technical skills / tools → add to SKILLS section under the appropriate category
+2. Soft skills / competencies → weave into PROFESSIONAL SUMMARY or bullet context
+3. Domain terms / methodologies → embed naturally in bullet rewrite context
+4. Certifications → add to CERTIFICATIONS if the candidate plausibly holds them
+
+KEYWORD INJECTION RULES:
+- You MAY reframe existing bullet context to use the exact keyword. If the resume says "container orchestration" and the JD requires "Kubernetes" — rewrite to say "Kubernetes".
+- You MAY extend or add plausible technical context to bullets to make keyword inclusion natural. For example, if the role requires "CI/CD pipelines" and the resume mentions deployments, add "via CI/CD pipelines" naturally.
+- You MAY add tools/technologies to the SKILLS section even if not explicitly named, as long as they are plausible given the candidate's stated experience level and domain.
+- NEVER invent entirely new jobs, companies, or fabricated project outcomes.
+- NEVER add a keyword in a way that sounds forced or unnatural — if it cannot fit naturally, skip it.
+- Every required keyword must appear at least once. Preferred keywords should appear where they fit.` : "";
+
+  const analysisFixBlock = (criticalFindings.length > 0 || warnFindings.length > 0 || wordIssues.length > 0) ? `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+IDENTIFIED ISSUES — FIX ALL OF THESE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+An AI resume analyzer found these specific problems. Address every one of them in your rewrite.
+
+${criticalFindings.length > 0 ? `CRITICAL (must fix):
+${criticalFindings.map(f => `  ✗ ${f}`).join("\n")}` : ""}
+
+${warnFindings.length > 0 ? `WARNINGS (fix where possible):
+${warnFindings.map(f => `  ! ${f}`).join("\n")}` : ""}
+
+${wordIssues.length > 0 ? `WORD PROBLEMS (remove / replace these throughout the resume):
+${wordIssues.map(w => `  • "${w.word}" (${w.type}) → ${w.suggestion}`).join("\n")}` : ""}` : "";
+
+  const systemPrompt = `You are an expert resume writer AND resume layout formatter performing a POWER OPTIMIZATION.
+
+This is a COMPREHENSIVE, AGGRESSIVE rewrite. Your goal is not just formatting — it is to produce a resume that:
+1. Fixes every issue the AI analyzer identified
+2. Embeds ALL missing JD keywords naturally
+3. Rewrites bullets with strong verbs, metrics, and impact language
+4. Is 100% ATS-optimized for the target role
+5. Reads like a polished, executive-grade document
 
 TARGET: ${jobContext}
+${keywordInjectionBlock}
+${analysisFixBlock}
 
 YOUR TASK:
 Receive a resume (possibly in garbled order from PDF extraction). Output the COMPLETE resume as plain text.
-Rewrite: Professional Summary, Skills, and bullet points for the 2 most recent jobs.
-Preserve word-for-word: older job bullets, all company names, job titles, dates, education, certifications.
+Rewrite aggressively: Professional Summary, Skills, and bullet points for the 2 most recent jobs.
+For older roles: preserve job titles, companies, dates — but you MAY rewrite bullets to fix weak verbs and add missing keywords if it fits naturally.
+Preserve exactly: all company names, job titles, dates, education institutions, degree names, certifications.
+
+AGGRESSIVE REWRITE EXPECTATIONS:
+- Professional Summary: completely rewrite. Lead with the JD's top requirement. Include 2+ specific metrics. Embed required keywords naturally. 4–6 lines. No filler adjectives.
+- Skills: rebuild from scratch. Required keywords go first under appropriate category labels. Remove obsolete/irrelevant skills. Add missing technical skills that are plausible given the candidate's domain.
+- Recent role bullets (2 most recent): fully rewrite all bullets. Every bullet must start with a strong verb, include specific context, and end with a quantified result or clear impact. Embed missing keywords naturally.
+- Older role bullets: rewrite weak verbs and clichés identified in WORD PROBLEMS. Add keywords where they fit naturally. Preserve the substance and outcomes.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 OUTPUT FORMAT — HARD CONSTRAINTS
@@ -372,7 +438,7 @@ Return ONLY valid JSON: { "resumeText": "<complete resume, \\n for newlines>" }`
     { role: "system" as const, content: systemPrompt },
     {
       role: "user" as const,
-      content: `Power-optimize this resume. Remember: output starts with the name on line 1, no preamble, no separator lines (====, ----), just the complete clean resume.\n\nRESUME:\n${resumeText.slice(0, 6000)}`,
+      content: `Power-optimize this resume aggressively. Fix ALL identified issues. Inject ALL missing keywords naturally. Output starts with the candidate's name on line 1, no preamble, no separator lines.\n\nRESUME:\n${resumeText.slice(0, 6000)}`,
     },
   ];
 

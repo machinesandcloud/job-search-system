@@ -8282,7 +8282,15 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
       const res = await fetch("/api/zari/resume/power-optimize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resumeText, targetRole: targetRoleInput, jobDescription }),
+        body: JSON.stringify({
+          resumeText,
+          targetRole: targetRoleInput,
+          jobDescription,
+          missingKeywords: (aiResult?.keywords ?? []).filter(k => !k.found).map(k => ({ word: k.word, importance: k.importance, skillType: k.skillType ?? null })),
+          criticalFindings: (aiResult?.findings ?? []).filter(f => f.type === "critical").map(f => f.text),
+          warnFindings: (aiResult?.findings ?? []).filter(f => f.type === "warn").map(f => f.text),
+          wordIssues: (aiResult?.wordIssues ?? []).map(w => ({ word: w.word, type: w.type, suggestion: w.suggestion })),
+        }),
       });
       const data = await res.json().catch(() => ({})) as { resumeText?: string; error?: string };
       if (!data.resumeText) { setAnalyzeErr(data.error ?? "Download failed — try again."); printWin?.close(); setPowerOptimizing(false); return; }
