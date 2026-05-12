@@ -16229,7 +16229,7 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
 /* ═══════════════════════════════════════════════════
    SCREEN: ACCOUNT
 ═══════════════════════════════════════════════════ */
-function ScreenAccount({ viewer, onNavigate }: { viewer: PortalViewer; onNavigate: (s: Screen) => void }) {
+function ScreenAccount({ viewer, onNavigate, onBuyCredits, onComparePlans }: { viewer: PortalViewer; onNavigate: (s: Screen) => void; onBuyCredits: () => void; onComparePlans: () => void }) {
   const isOperator = viewer.role === "admin" || viewer.role === "support";
   const used = viewer.usedMonthlyCredits ?? 0;
   const limit = viewer.creditLimit ?? viewer.includedMonthlyCredits ?? 0;
@@ -16478,9 +16478,9 @@ function ScreenAccount({ viewer, onNavigate }: { viewer: PortalViewer; onNavigat
                 Upgrade to {nextPlanName}
               </Link>
             ) : null}
-            <Link href="/onboarding/plan?upgrade=view" style={{ fontSize: 12.5, fontWeight: 500, padding: "8px 14px", borderRadius: 9, border: "1px solid var(--z-bd)", background: "transparent", color: "var(--z-text2)", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+            <button onClick={onComparePlans} style={{ fontSize: 12.5, fontWeight: 500, padding: "8px 14px", borderRadius: 9, border: "1px solid var(--z-bd)", background: "transparent", color: "var(--z-text2)", cursor: "pointer" }}>
               Compare plans
-            </Link>
+            </button>
           </div>
         )}
       </div>
@@ -16526,12 +16526,12 @@ function ScreenAccount({ viewer, onNavigate }: { viewer: PortalViewer; onNavigat
               </div>
             )}
             <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid var(--z-bd)", display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <Link href={nextPlanHref} style={{ fontSize: 12.5, fontWeight: 700, padding: "8px 16px", borderRadius: 9, background: "linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)", color: "white", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6, boxShadow: "0 3px 12px rgba(37,99,235,0.35)" }}>
+              <button onClick={onBuyCredits} style={{ fontSize: 12.5, fontWeight: 700, padding: "8px 16px", borderRadius: 9, background: "linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)", color: "white", border: "none", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6, boxShadow: "0 3px 12px rgba(37,99,235,0.35)" }}>
                 Buy more credits
-              </Link>
-              <Link href="/onboarding/plan?upgrade=view" style={{ fontSize: 12.5, fontWeight: 500, padding: "8px 14px", borderRadius: 9, border: "1px solid var(--z-bd)", background: "transparent", color: "var(--z-text2)", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+              </button>
+              <button onClick={onComparePlans} style={{ fontSize: 12.5, fontWeight: 500, padding: "8px 14px", borderRadius: 9, border: "1px solid var(--z-bd)", background: "transparent", color: "var(--z-text2)", cursor: "pointer" }}>
                 Compare plans
-              </Link>
+              </button>
             </div>
           </>
         ) : (
@@ -16689,6 +16689,8 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
   const [topupLoading, setTopupLoading] = useState<string | null>(null);
   const [topupErr, setTopupErr] = useState<string | null>(null);
   const [topupCustom, setTopupCustom] = useState("");
+  const [comparePlansOpen, setComparePlansOpen] = useState(false);
+  const [billingPortalLoading, setBillingPortalLoading] = useState(false);
   const formatCredits = (value?: number | null) =>
     new Intl.NumberFormat("en-US", {
       minimumFractionDigits: value && value % 1 !== 0 ? 2 : 0,
@@ -16859,6 +16861,130 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
                 </button>
                 <div style={{ marginTop:12 }}>
                   <button onClick={() => setUpgradeNotice(null)} style={{ fontSize:12.5, color:"var(--z-text3)", background:"none", border:"none", cursor:"pointer", fontWeight:500 }}>Not now</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Compare Plans Modal ── */}
+      {comparePlansOpen && (() => {
+        const PLANS = [
+          {
+            id: "search",
+            name: "Search",
+            price: "Free",
+            credits: "50 credits / mo",
+            color: "#64748B",
+            features: ["Resume review & scoring", "Cover letter generator", "Job search tools", "Basic AI rewrites"],
+          },
+          {
+            id: "growth",
+            name: "Growth",
+            price: "$49/mo",
+            credits: "300 credits / mo",
+            color: "#2563EB",
+            features: ["Everything in Search", "Mock interviews & coaching", "LinkedIn profile review", "Unlimited section rewrites", "Power Optimized resume"],
+          },
+          {
+            id: "executive",
+            name: "Executive",
+            price: "$99/mo",
+            credits: "800 credits / mo",
+            color: "#F59E0B",
+            features: ["Everything in Growth", "Executive positioning tools", "Salary negotiation coaching", "Career pivot blueprint", "Priority AI queue"],
+          },
+        ] as const;
+
+        const planOrder = ["search", "growth", "executive"];
+        const currentIdx = planOrder.indexOf(viewer.planId ?? "search");
+
+        async function openBillingPortal() {
+          setBillingPortalLoading(true);
+          try {
+            const res = await fetch("/api/billing/portal", { method: "POST", headers: { "Content-Type": "application/json" } });
+            const data = await res.json().catch(() => ({})) as { url?: string; error?: string };
+            if (data.url) window.location.href = data.url;
+          } catch { /* ignore */ }
+          setBillingPortalLoading(false);
+        }
+
+        return (
+          <div style={{ position:"fixed", inset:0, zIndex:9998, display:"flex", alignItems:"center", justifyContent:"center", padding:"24px 16px", overflow:"auto" }}>
+            <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.65)", backdropFilter:"blur(4px)" }} onClick={() => setComparePlansOpen(false)} />
+            <div style={{ position:"relative", background:"var(--z-card)", borderRadius:24, maxWidth:720, width:"100%", boxShadow:"0 32px 80px rgba(0,0,0,0.4)", animation:"bubble-appear 0.2s ease", overflow:"hidden" }}>
+              {/* header */}
+              <div style={{ padding:"24px 28px 20px", borderBottom:"1px solid var(--z-bd)", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                <div>
+                  <div style={{ fontSize:18, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.03em" }}>Compare plans</div>
+                  <div style={{ fontSize:12.5, color:"var(--z-text2)", marginTop:2 }}>
+                    Your current plan: <span style={{ fontWeight:700, color:"var(--z-text)" }}>{PLANS.find(p => p.id === viewer.planId)?.name ?? "Free"}</span>
+                  </div>
+                </div>
+                <button onClick={() => setComparePlansOpen(false)} style={{ width:30, height:30, borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", color:"var(--z-text2)" }}>
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:11, height:11 }}><path d="M3 3l10 10M13 3L3 13" strokeLinecap="round"/></svg>
+                </button>
+              </div>
+
+              {/* plan cards */}
+              <div style={{ padding:"20px 24px 28px", display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:12 }}>
+                {PLANS.map(plan => {
+                  const isCurrent = plan.id === viewer.planId;
+                  const planIdx = planOrder.indexOf(plan.id);
+                  const isUpgrade = planIdx > currentIdx;
+                  const isDowngrade = planIdx < currentIdx;
+
+                  return (
+                    <div key={plan.id} style={{ borderRadius:16, border:`2px solid ${isCurrent ? plan.color + "50" : "var(--z-bd)"}`, background: isCurrent ? `${plan.color}08` : "var(--z-raise)", padding:"20px 18px", display:"flex", flexDirection:"column", gap:14, position:"relative", opacity: isCurrent ? 0.75 : 1, transition:"all 0.15s" }}>
+                      {isCurrent && (
+                        <div style={{ position:"absolute", top:-1, right:14, fontSize:10, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.1em", color:plan.color, background:"var(--z-card)", padding:"3px 10px", borderRadius:"0 0 8px 8px", border:`1px solid ${plan.color}40`, borderTop:"none" }}>
+                          Your plan
+                        </div>
+                      )}
+                      {/* plan header */}
+                      <div>
+                        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
+                          <div style={{ width:10, height:10, borderRadius:"50%", background:plan.color, flexShrink:0 }}/>
+                          <div style={{ fontSize:15, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.02em" }}>{plan.name}</div>
+                        </div>
+                        <div style={{ fontSize:20, fontWeight:900, color:plan.color, letterSpacing:"-0.04em", lineHeight:1 }}>{plan.price}</div>
+                        <div style={{ fontSize:11, color:"var(--z-text3)", marginTop:3 }}>{plan.credits}</div>
+                      </div>
+                      {/* features */}
+                      <div style={{ flex:1, display:"flex", flexDirection:"column", gap:7 }}>
+                        {plan.features.map((f, i) => (
+                          <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:8 }}>
+                            <svg viewBox="0 0 12 12" fill="none" stroke={isCurrent ? plan.color : "var(--z-text3)"} strokeWidth="2" style={{ width:10, height:10, flexShrink:0, marginTop:2 }}><path d="M2 6l3 3 5-5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                            <span style={{ fontSize:11.5, color:"var(--z-text2)", lineHeight:1.4 }}>{f}</span>
+                          </div>
+                        ))}
+                      </div>
+                      {/* CTA */}
+                      {isCurrent ? (
+                        <div style={{ fontSize:12, fontWeight:700, textAlign:"center", color:plan.color, padding:"8px 0", borderRadius:9, border:`1px solid ${plan.color}30`, background:`${plan.color}08` }}>
+                          Current plan
+                        </div>
+                      ) : isUpgrade ? (
+                        <button onClick={() => { setComparePlansOpen(false); window.location.href = `/onboarding/plan?upgrade=${encodeURIComponent(plan.id)}`; }} style={{ fontSize:12.5, fontWeight:700, padding:"9px 14px", borderRadius:9, border:"none", background:`linear-gradient(135deg, ${plan.color} 0%, ${plan.color}cc 100%)`, color:"white", cursor:"pointer", boxShadow:`0 4px 14px ${plan.color}35` }}>
+                          Upgrade to {plan.name} →
+                        </button>
+                      ) : isDowngrade ? (
+                        <button onClick={() => { setComparePlansOpen(false); void openBillingPortal(); }} disabled={billingPortalLoading} style={{ fontSize:12.5, fontWeight:600, padding:"9px 14px", borderRadius:9, border:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text2)", cursor:billingPortalLoading ? "default" : "pointer" }}>
+                          {billingPortalLoading ? "Loading…" : `Downgrade to ${plan.name}`}
+                        </button>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div style={{ padding:"0 28px 20px", textAlign:"center" }}>
+                <div style={{ fontSize:11.5, color:"var(--z-text3)" }}>
+                  Questions about plans?{" "}
+                  <button onClick={() => { setComparePlansOpen(false); navigate("account"); }} style={{ background:"none", border:"none", cursor:"pointer", color:"#2563EB", fontWeight:600, fontSize:11.5, padding:0 }}>
+                    Contact support
+                  </button>
                 </div>
               </div>
             </div>
@@ -17343,7 +17469,7 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
               <div className={screen==="linkedin"     ? "zari-screen-active" : ""} style={{ display:screen==="linkedin"     ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <FeatureGate featureName="zari_bridge_network"><ScreenBridgeNetwork active={screen==="linkedin"}/></FeatureGate> : <ScreenLinkedIn     stage={stage} active={screen==="linkedin"} onNavigate={s=>navigate(s as Screen)}/>}</div>
               <div className={screen==="documents"    ? "zari-screen-active" : ""} style={{ display:screen==="documents"    ? "block" : "none", height:"100%" }}><ScreenDocuments stage={stage} onNavigate={s=>navigate(s as Screen)}/></div>
               <div className={screen==="plan"         ? "zari-screen-active" : ""} style={{ display:screen==="plan"         ? "block" : "none", height:"100%" }}><ScreenPlan stage={stage} onNavigate={s=>navigate(s as Screen)} active={screen==="plan"}/></div>
-              <div className={screen==="account"      ? "zari-screen-active" : ""} style={{ display:screen==="account"      ? "block" : "none", height:"100%" }}><ScreenAccount viewer={viewer} onNavigate={navigate}/></div>
+              <div className={screen==="account"      ? "zari-screen-active" : ""} style={{ display:screen==="account"      ? "block" : "none", height:"100%" }}><ScreenAccount viewer={viewer} onNavigate={navigate} onBuyCredits={() => { const used = viewer.usedMonthlyCredits ?? 0; const limit = viewer.creditLimit ?? viewer.includedMonthlyCredits ?? 0; setCreditLimitNotice({ used, limit }); }} onComparePlans={() => setComparePlansOpen(true)}/></div>
             </>
           )}
         </div>
