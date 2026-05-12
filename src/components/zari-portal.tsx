@@ -2835,22 +2835,22 @@ function generateResumeHtml(text: string, footerNote = ""): string {
   *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
   @page{margin:0;size:letter portrait}
   html{background:#fff}
-  body{font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.45;color:#000;background:#fff;padding:.85in 1in;max-width:8.5in;margin:0 auto}
+  body{font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.45;color:#000;background:#fff;padding:.85in 1in 1.1in;max-width:8.5in;margin:0 auto}
   .name{font-size:22pt;font-weight:700;text-align:center;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
   .contact{text-align:center;font-size:10pt;color:#333;margin-bottom:2px}
-  .sec-hdr{font-weight:700;text-align:center;border-top:1.5px solid #000;border-bottom:1.5px solid #000;padding:3px 0;margin:12px 0 6px;letter-spacing:.5px;text-transform:uppercase;font-size:11pt}
-  .job-hdr{display:flex;justify-content:space-between;align-items:baseline;margin-top:9px;margin-bottom:1px}
+  .sec-hdr{font-weight:700;text-align:center;border-top:1.5px solid #000;border-bottom:1.5px solid #000;padding:3px 0;margin:12px 0 6px;letter-spacing:.5px;text-transform:uppercase;font-size:11pt;break-after:avoid;page-break-after:avoid}
+  .job-hdr{display:flex;justify-content:space-between;align-items:baseline;margin-top:9px;margin-bottom:1px;break-after:avoid;page-break-after:avoid}
   .company{font-weight:700;font-size:11pt}
   .date-r{font-size:10pt;color:#222;font-weight:500;white-space:nowrap;margin-left:8px}
   .date-standalone{font-size:10pt;color:#222;margin-bottom:2px}
-  .bold-line{font-weight:700;margin-top:5px;margin-bottom:1px;font-style:italic}
+  .bold-line{font-weight:700;margin-top:5px;margin-bottom:1px;font-style:italic;break-after:avoid;page-break-after:avoid}
   .skill-line{margin-bottom:3px;line-height:1.4}
-  ul{padding-left:18px;margin:3px 0 5px;list-style-type:disc}
-  li{margin-bottom:2px;line-height:1.4}
-  p{margin-bottom:3px;line-height:1.45}
+  ul{padding-left:18px;margin:3px 0 5px;list-style-type:disc;break-before:avoid;page-break-before:avoid;orphans:3;widows:3}
+  li{margin-bottom:2px;line-height:1.4;orphans:3;widows:3}
+  p{margin-bottom:3px;line-height:1.45;orphans:3;widows:3}
   br{display:block;margin:2px 0;content:""}
   .footer{margin-top:20pt;font-size:8.5pt;color:#aaa;text-align:center;border-top:1px solid #eee;padding-top:6pt}
-  @media print{@page{margin:0;size:letter portrait}body{padding:.75in .9in}.footer{display:none}}
+  @media print{@page{margin:0;size:letter portrait}body{padding:.75in .9in 1in}.footer{display:none}}
 </style>
 </head>
 <body>
@@ -8157,28 +8157,33 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
     void fetchAndApplyServerPdf();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // After server sync populates localStorage, re-initialize if we're still on the empty "choose" step
+  // After server sync: restore session (if on choose step) AND always attempt PDF restore
   useEffect(() => {
     const onSynced = () => {
-      if (step !== "choose") return;
-      const synced = loadResumeSession();
-      if (!synced) return;
-      setStep("results");
-      setResumeText(synced.resumeText);
-      setFileName(synced.fileName);
-      setAiResult(synced.aiResult);
-      setReviewMode(synced.reviewMode);
-      setTargetRoleInput(synced.targetRoleInput);
-      setCareerLevel(synced.careerLevel);
-      setResumeViewMode("suggestions");
-      // Restore PDF blob: localStorage first, then server fallback
-      const b64 = (() => { try { return localStorage.getItem(RESUME_PDF_KEY); } catch { return null; } })();
-      if (b64 && applyPdfBlob(b64)) return;
-      void fetchAndApplyServerPdf();
+      // Session restore only needed when starting from "choose" (no local session)
+      if (step === "choose") {
+        const synced = loadResumeSession();
+        if (!synced) return;
+        setStep("results");
+        setResumeText(synced.resumeText);
+        setFileName(synced.fileName);
+        setAiResult(synced.aiResult);
+        setReviewMode(synced.reviewMode);
+        setTargetRoleInput(synced.targetRoleInput);
+        setCareerLevel(synced.careerLevel);
+        setResumeViewMode("suggestions");
+      }
+      // Always attempt PDF restore after server sync if not already loaded
+      // (covers both "choose→results" path and "results" where mount useEffect failed)
+      if (!rawFileUrlRef.current) {
+        const b64 = (() => { try { return localStorage.getItem(RESUME_PDF_KEY); } catch { return null; } })();
+        if (b64 && applyPdfBlob(b64)) return;
+        void fetchAndApplyServerPdf();
+      }
     };
     window.addEventListener("zari-state-synced", onSynced);
     return () => window.removeEventListener("zari-state-synced", onSynced);
-  }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [step, applyPdfBlob, fetchAndApplyServerPdf]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function triggerWordDownload(html: string, name: string) {
     const wordHtml = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">${html.replace(/<html[^>]*>/, "").replace(/<\/html>/, "")}</html>`;
@@ -10138,49 +10143,74 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
 
                 {/* ── Generated Versions ── */}
                 {genHistory.length > 0 && (
-                  <div>
-                    <div style={{ borderTop:"1px solid var(--z-bd)", marginTop:16, paddingTop:16 }}>
-                      <p style={{ fontSize:13.5, fontWeight:800, color:"var(--z-text)", marginBottom:2 }}>Generated Versions</p>
-                      <p style={{ fontSize:11.5, color:"var(--z-text2)", marginBottom:12 }}>Last {genHistory.length} downloaded resume{genHistory.length>1?"s":""} — click to re-download</p>
+                  <div style={{ marginTop:20 }}>
+                    <div style={{ display:"flex", alignItems:"baseline", justifyContent:"space-between", marginBottom:14 }}>
+                      <div>
+                        <p style={{ fontSize:14, fontWeight:800, color:"var(--z-text)", marginBottom:2 }}>Generated Versions</p>
+                        <p style={{ fontSize:11.5, color:"var(--z-text3)" }}>Last {genHistory.length} — click PDF or Word to re-download</p>
+                      </div>
                     </div>
+                    <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                     {genHistory.map((snap, i) => {
                       const sc = snap.scores;
                       const g = sc ? scoreGrade(sc.overall) : null;
+                      const isPO = snap.type === "power_optimized";
+                      const accentColor = isPO ? "#2563EB" : "#7C3AED";
+                      const accentBg   = isPO ? "rgba(37,99,235,0.09)" : "rgba(124,58,237,0.09)";
+                      const accentBd   = isPO ? "rgba(37,99,235,0.22)" : "rgba(124,58,237,0.22)";
                       return (
-                        <div key={snap.id} style={{ background:"var(--z-card)", borderRadius:14, border:`1px solid ${i===0?"rgba(37,99,235,0.35)":"var(--z-bd)"}`, padding:"14px 16px", marginBottom:9, boxShadow: i===0?"0 2px 8px rgba(37,99,235,0.12)":"0 1px 4px rgba(0,0,0,0.15)" }}>
-                          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:sc?10:0 }}>
-                            <div style={{ flex:1, minWidth:0 }}>
-                              <div style={{ display:"flex", alignItems:"center", gap:7, flexWrap:"wrap" }}>
-                                <span style={{ fontSize:10.5, fontWeight:800, padding:"2px 8px", borderRadius:99, background: snap.type==="power_optimized"?"rgba(37,99,235,0.15)":"rgba(79,70,229,0.12)", color: snap.type==="power_optimized"?"#7B9EFF":"#A78BFA", border:`1px solid ${snap.type==="power_optimized"?"rgba(37,99,235,0.3)":"rgba(139,92,246,0.3)"}` }}>{snap.type==="power_optimized"?"⚡ Power Optimized":"✏ Revised"}</span>
-                                {i===0 && <span style={{ fontSize:10, fontWeight:700, padding:"2px 7px", borderRadius:99, background:"rgba(37,99,235,0.1)", color:"#7B9EFF" }}>Latest</span>}
+                        <div key={snap.id} style={{ borderRadius:16, border:`1.5px solid ${i===0 ? accentBd : "var(--z-bd)"}`, overflow:"hidden", boxShadow: i===0 ? `0 0 0 2px ${accentBd}, 0 4px 16px rgba(0,0,0,0.1)` : "0 1px 6px rgba(0,0,0,0.07)" }}>
+                          {/* Card header strip */}
+                          <div style={{ background: i===0 ? accentBg : "var(--z-raise)", padding:"11px 16px 10px", borderBottom:"1px solid var(--z-bd)", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10 }}>
+                            <div style={{ display:"flex", alignItems:"center", gap:8, minWidth:0 }}>
+                              <div style={{ width:30, height:30, borderRadius:9, background: accentBg, border:`1px solid ${accentBd}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:14 }}>
+                                {isPO ? "⚡" : "✏️"}
                               </div>
-                              <p style={{ fontSize:12, color:"var(--z-text2)", marginTop:4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{snap.filename}</p>
-                              <p style={{ fontSize:10.5, color:"var(--z-text3)", marginTop:1 }}>{new Date(snap.createdAt).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"2-digit",minute:"2-digit"})}</p>
+                              <div style={{ minWidth:0 }}>
+                                <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>
+                                  <span style={{ fontSize:11, fontWeight:800, color: accentColor }}>{isPO ? "Power Optimized" : "Revised"}</span>
+                                  {i===0 && <span style={{ fontSize:9.5, fontWeight:700, padding:"1px 7px", borderRadius:99, background: accentBg, color: accentColor, border:`1px solid ${accentBd}` }}>Latest</span>}
+                                </div>
+                                <p style={{ fontSize:10.5, color:"var(--z-text3)", marginTop:1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                                  {new Date(snap.createdAt).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})} · {new Date(snap.createdAt).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"})}
+                                </p>
+                              </div>
                             </div>
                             {g && sc && (
-                              <div style={{ textAlign:"right", flexShrink:0, marginLeft:12 }}>
-                                <p style={{ fontSize:22, fontWeight:900, color:g.color, lineHeight:1 }}>{sc.overall}</p>
-                                <p style={{ fontSize:10, color:g.color, fontWeight:700 }}>{g.label}</p>
+                              <div style={{ textAlign:"center", flexShrink:0, background:"var(--z-card)", borderRadius:10, padding:"5px 11px", border:"1px solid var(--z-bd)" }}>
+                                <p style={{ fontSize:20, fontWeight:900, color:g.color, lineHeight:1.1 }}>{sc.overall}</p>
+                                <p style={{ fontSize:9.5, color:g.color, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em" }}>{g.label}</p>
                               </div>
                             )}
                           </div>
+                          {/* Score row */}
                           {sc && (
-                            <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:5, marginBottom:10 }}>
-                              {(["ats","impact","clarity"] as const).map(key => (
-                                <div key={key} style={{ padding:"5px 7px", background:"var(--z-raise)", borderRadius:8, border:"1px solid var(--z-bd)", textAlign:"center" }}>
-                                  <p style={{ fontSize:9, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:2 }}>{key==="ats"?"ATS":key==="impact"?"Impact":"Clarity"}</p>
-                                  <p style={{ fontSize:15, fontWeight:900, color:"var(--z-text)" }}>{sc[key]}</p>
+                            <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:0, borderBottom:"1px solid var(--z-bd)" }}>
+                              {([["ats","ATS",sc.ats],["impact","Impact",sc.impact],["clarity","Clarity",sc.clarity]] as [string,string,number][]).map(([key,label,val],ki) => (
+                                <div key={key} style={{ padding:"8px 10px", textAlign:"center", borderRight: ki<2 ? "1px solid var(--z-bd)" : "none", background:"var(--z-card)" }}>
+                                  <p style={{ fontSize:9, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:3 }}>{label}</p>
+                                  <p style={{ fontSize:17, fontWeight:900, color: val>=80?"#22C55E":val>=60?"#F59E0B":"#EF4444" }}>{val}</p>
                                 </div>
                               ))}
                             </div>
                           )}
-                          <div style={{ display:"flex", gap:6 }}>
-                            <button onClick={()=>{ const win=window.open("","_blank"); if(!win) return; const html=generateResumeHtml(snap.resumeText); win.document.open(); win.document.write(html); win.document.close(); setTimeout(()=>win.print(),500); }} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 10px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text)", cursor:"pointer" }}>PDF</button>
-                            <button onClick={()=>{ triggerWordDownload(generateResumeHtml(snap.resumeText), `${snap.filename.replace(/\.[^.]+$/,"")}-${snap.type==="power_optimized"?"power-optimized":"revised"}.html`); }} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 10px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text)", cursor:"pointer" }}>Word</button>
+                          {/* Actions */}
+                          <div style={{ display:"flex", gap:0, background:"var(--z-card)" }}>
+                            <button onClick={()=>{ const win=window.open("","_blank"); if(!win) return; const html=generateResumeHtml(snap.resumeText); win.document.open(); win.document.write(html); win.document.close(); setTimeout(()=>win.print(),500); }} style={{ flex:1, fontSize:12, fontWeight:700, padding:"10px 14px", border:"none", borderRight:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:6, transition:"background 0.1s" }}
+                              onMouseEnter={e=>(e.currentTarget.style.background="var(--z-raise)")} onMouseLeave={e=>(e.currentTarget.style.background="transparent")}>
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                              PDF
+                            </button>
+                            <button onClick={()=>{ triggerWordDownload(generateResumeHtml(snap.resumeText), `${snap.filename.replace(/\.[^.]+$/,"")}-${isPO?"power-optimized":"revised"}.html`); }} style={{ flex:1, fontSize:12, fontWeight:700, padding:"10px 14px", border:"none", background:"transparent", color:"var(--z-text)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:6, transition:"background 0.1s" }}
+                              onMouseEnter={e=>(e.currentTarget.style.background="var(--z-raise)")} onMouseLeave={e=>(e.currentTarget.style.background="transparent")}>
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                              Word
+                            </button>
                           </div>
                         </div>
                       );
                     })}
+                    </div>
                   </div>
                 )}
               </div>
