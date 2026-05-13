@@ -8201,6 +8201,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
   // Download loading states
   const [powerOptimizing,  setPowerOptimizing]  = useState(false);
   const [revisedApplying,  setRevisedApplying]  = useState(false);
+  const [reanalyzing,      setReanalyzing]      = useState(false);
   // Generated resume snapshots
   const [genHistory, setGenHistory] = useState<Array<{id:string;type:string;label:string;filename:string;resumeText:string;scores?:{overall:number;ats:number;impact:number;clarity:number};createdAt:string}>>([]);
   const [downloadModal, setDownloadModal] = useState<{ type: "revised" | "powerOptimized" } | null>(null);
@@ -8295,8 +8296,8 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
     }, { once: true });
   }
 
-  async function buildRevisedHtml(): Promise<string> {
-    if (!aiResult) return "";
+  async function buildRevisedHtml(): Promise<{ html: string; revisedText: string }> {
+    if (!aiResult) return { html: "", revisedText: "" };
     // Step 1: Apply AI-suggested bullet and section rewrites from the suggestions panel
     let baseText = resumeText;
     if (rawFileUrl) {
@@ -8340,7 +8341,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
       } catch { /* fall back to bullet-only revision */ }
     }
 
-    return generateResumeHtml(revised, "", true);
+    return { html: generateResumeHtml(revised, "", true), revisedText: revised };
   }
 
   function downloadReconstructed() {
@@ -8379,11 +8380,13 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
     if (modal?.type === "revised") {
       setRevisedApplying(true);
       try {
-        const html = await buildRevisedHtml();
+        const { html, revisedText } = await buildRevisedHtml();
         if (!html) { printWin?.close(); return; }
         deliverHtml(html, `${baseName}-revised.html`);
+        // Re-analyze the revised text in background so scores and findings reflect the new version
+        void silentReanalyze(revisedText);
         // Save snapshot in background (best-effort)
-        fetch("/api/zari/resume/snapshots", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ type:"revised", label:"Revised Resume", filename: fileName || "resume", resumeText, scores: aiResult ? { overall:aiResult.overall, ats:aiResult.ats, impact:aiResult.impact, clarity:aiResult.clarity } : undefined }) }).then(r=>r.json()).then(d=>{ if(d.id) setGenHistory(prev=>([{ id:d.id, type:"revised" as string, label:"Revised", filename: fileName||"resume", resumeText, scores: aiResult ? { overall:aiResult.overall, ats:aiResult.ats, impact:aiResult.impact, clarity:aiResult.clarity } : undefined, createdAt:new Date().toISOString() }, ...prev] as typeof prev).slice(0,10)); }).catch(()=>{});
+        fetch("/api/zari/resume/snapshots", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ type:"revised", label:"Revised Resume", filename: fileName || "resume", resumeText: revisedText, scores: aiResult ? { overall:aiResult.overall, ats:aiResult.ats, impact:aiResult.impact, clarity:aiResult.clarity } : undefined }) }).then(r=>r.json()).then(d=>{ if(d.id) setGenHistory(prev=>([{ id:d.id, type:"revised" as string, label:"Revised", filename: fileName||"resume", resumeText: revisedText, scores: aiResult ? { overall:aiResult.overall, ats:aiResult.ats, impact:aiResult.impact, clarity:aiResult.clarity } : undefined, createdAt:new Date().toISOString() }, ...prev] as typeof prev).slice(0,10)); }).catch(()=>{});
       } catch { setAnalyzeErr("Download failed — try again."); printWin?.close(); }
       setRevisedApplying(false);
       return;
@@ -8410,6 +8413,8 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
       if (!data.resumeText) { setAnalyzeErr(data.error ?? "Download failed — try again."); printWin?.close(); setPowerOptimizing(false); return; }
       const optimizedHtml = generateResumeHtml(data.resumeText, "", true);
       deliverHtml(optimizedHtml, `${baseName}-power-optimized.html`);
+      // Re-analyze the optimized text in background so scores and findings reflect the new version
+      void silentReanalyze(data.resumeText);
       // Save snapshot in background (best-effort)
       fetch("/api/zari/resume/snapshots", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ type:"power_optimized", label:"Power Optimized", filename: fileName||"resume", resumeText: data.resumeText, scores: aiResult ? { overall:aiResult.overall, ats:aiResult.ats, impact:aiResult.impact, clarity:aiResult.clarity } : undefined }) }).then(r=>r.json()).then(d=>{ if(d.id) setGenHistory(prev=>([{ id:d.id, type:"power_optimized" as string, label:"Power Optimized", filename: fileName||"resume", resumeText: data.resumeText, scores: aiResult ? { overall:aiResult.overall, ats:aiResult.ats, impact:aiResult.impact, clarity:aiResult.clarity } : undefined, createdAt:new Date().toISOString() }, ...prev] as typeof prev).slice(0,10)); }).catch(()=>{});
     } catch { setAnalyzeErr("Download failed — try again."); printWin?.close(); }
@@ -8674,6 +8679,29 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
       setStep("paste");
       setAnalyzeErr("Connection error — " + (e instanceof Error ? e.message : "try again."));
     }
+  }
+
+  // Re-analyze the optimized/revised resume in the background and update scores + findings.
+  async function silentReanalyze(revisedText: string) {
+    setReanalyzing(true);
+    try {
+      const res = await fetch("/api/zari/resume", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resumeText: revisedText, filename: fileName || "resume", stage, reviewMode, targetRole: targetRoleInput, jobDescription, careerLevel }),
+      });
+      const data = await res.json().catch(() => null) as ResumeAnalysis | null;
+      if (data?.overall) {
+        setAiResult(data);
+        setResumeText(revisedText);
+        try {
+          const _rsess = { resumeText: revisedText, fileName: fileName || "resume", aiResult: data, reviewMode, targetRoleInput, careerLevel, savedAt: new Date().toISOString() };
+          localStorage.setItem(RESUME_SESSION_KEY, JSON.stringify(_rsess));
+          syncKeyToServer(RESUME_SESSION_KEY, _rsess);
+        } catch { /* non-fatal */ }
+      }
+    } catch { /* silent — don't disrupt the download */ }
+    setReanalyzing(false);
   }
 
   // Fetch history when entering results view
@@ -9247,6 +9275,12 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                     </div>
                   </div>
                   <p style={{ fontSize:11.5, fontWeight:700, color:"var(--z-text3)", marginTop:14, letterSpacing:"0.05em", textTransform:"uppercase" }}>Overall</p>
+                  {reanalyzing && (
+                    <div style={{ fontSize:10, fontWeight:700, color:"#2563EB", padding:"2px 9px", borderRadius:99, background:"rgba(37,99,235,0.1)", border:"1px solid rgba(37,99,235,0.25)", display:"flex", alignItems:"center", gap:4, whiteSpace:"nowrap" }}>
+                      <span style={{ width:5, height:5, borderRadius:"50%", background:"#2563EB", display:"inline-block", animation:"dot-bounce 1.2s ease-in-out infinite" }}/>
+                      Updating…
+                    </div>
+                  )}
                   {overallDelta !== null && (
                     <span style={{ fontSize:11, color:overallDelta>0?"#16A34A":overallDelta<0?"#F87171":"#C0CADB", fontWeight:700, display:"flex", alignItems:"center", gap:3 }}>
                       {overallDelta>0?"+":""}{overallDelta} vs last {overallDelta>0?"↑":overallDelta<0?"↓":"="}
