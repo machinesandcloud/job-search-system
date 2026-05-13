@@ -3044,14 +3044,17 @@ function renderResumeTemplate(d: ResumeStructuredData, showPrintHint = false): s
 <html>
 <head>
 <meta charset="utf-8">
-<title>Resume</title>
+<title></title>
 <style>
 @page { size: letter; margin: 0.75in 0.80in 0.75in 0.80in; }
 *,*::before,*::after{box-sizing:border-box}
 body{font-family:Calibri,Arial,sans-serif;font-size:10.5pt;color:#111;margin:0;padding:0;line-height:1.35}
 .name{font-size:17pt;font-weight:900;text-transform:uppercase;text-align:center;letter-spacing:0.07em;margin-bottom:3pt}
 .contact{text-align:center;font-size:9.5pt;color:#444;margin-bottom:14pt}
-.section-header{font-size:10.5pt;font-weight:900;text-transform:uppercase;letter-spacing:0.09em;color:#111;border-bottom:1pt solid #777;padding-bottom:2pt;margin:14pt 0 5pt}
+.section-header{display:flex;align-items:center;font-size:10pt;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#222;margin:13pt 0 5pt;white-space:nowrap}
+.section-header::before,.section-header::after{content:'';flex:1;border-top:1pt solid #999}
+.section-header::before{margin-right:7pt}
+.section-header::after{margin-left:7pt}
 .summary{font-size:10.5pt;line-height:1.5;margin:0}
 .skills-line{margin:0 0 2pt;font-size:10pt;line-height:1.5}
 .skills-cat{font-weight:700}

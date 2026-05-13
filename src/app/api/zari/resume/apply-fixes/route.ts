@@ -84,10 +84,17 @@ FIELD RULES:
 - name: candidate's full name
 - phone/email/location: exact from original
 - summary: 3–5 sentences, no clichés, lead with strongest qualification for the target role
-- skills: 3–6 categories, JD-required skills first; items are short phrases, no symbols
+- skills: 3–6 categories relevant to the candidate's actual domain; items are short phrases, no symbols
+  IMPORTANT: Do NOT add technology strategy, cloud environments, cybersecurity, vendor management,
+  or enterprise technology into skills unless they explicitly appear in the source resume.
+  For lab/biomedical candidates: categories should be things like Laboratory Techniques, Scientific Methods,
+  Regulatory & Quality, Public Health, Software & Tools.
 - experience.bullets: 3–5 per role, action verb + context + impact; plain text, no bullet symbols
 - education: exact school name and degree as written in original
-- certifications: each cert as a separate string
+- certifications: IMPORTANT — scan the ENTIRE source resume for any certifications, licenses, or
+  compliance credentials (e.g. GMP, BPF, HACCP, ISO, CPR, any professional license). Extract ALL of
+  them into this array even if they appear in a skills section or elsewhere. Each cert as a separate string.
+  If no certifications are mentioned anywhere, return an empty array.
 
 Return ONLY valid JSON:
 {
