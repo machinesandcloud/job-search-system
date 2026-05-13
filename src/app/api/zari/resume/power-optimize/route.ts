@@ -21,6 +21,8 @@ export async function POST(request: Request) {
     criticalFindings?: string[];
     warnFindings?: string[];
     wordIssues?: { word: string; type: string; suggestion: string }[];
+    bulletRewrites?: { before: string; after: string }[];
+    sectionRewrites?: { label: string; text: string }[];
   };
 
   const resumeText = (body.resumeText ?? "").trim();
@@ -30,6 +32,8 @@ export async function POST(request: Request) {
   const criticalFindings = (body.criticalFindings ?? []).slice(0, 10);
   const warnFindings = (body.warnFindings ?? []).slice(0, 8);
   const wordIssues = (body.wordIssues ?? []).slice(0, 12);
+  const bulletRewrites = (body.bulletRewrites ?? []).slice(0, 15);
+  const sectionRewrites = (body.sectionRewrites ?? []).slice(0, 4);
 
   if (!resumeText) {
     return NextResponse.json({ error: "resumeText required" }, { status: 400 });
@@ -59,18 +63,30 @@ ${criticalFindings.length > 0 ? `CRITICAL:\n${criticalFindings.map(f => `  ✗ $
 ${warnFindings.length > 0 ? `WARNINGS:\n${warnFindings.map(f => `  ! ${f}`).join("\n")}` : ""}
 ${wordIssues.length > 0 ? `WORD PROBLEMS (replace everywhere):\n${wordIssues.map(w => `  • "${w.word}" → ${w.suggestion}`).join("\n")}` : ""}` : "";
 
+  const bulletRewriteBlock = bulletRewrites.length > 0 ? `
+PRE-COMPUTED BULLET REWRITES — USE THESE AS THE BASELINE:
+The analysis already computed validated rewrites for problematic bullets. Use these as your starting point — you may further improve them but must not regress to the original bad version.
+${bulletRewrites.map((b, i) => `  ${i + 1}. ORIGINAL: "${b.before}"\n     BASELINE REWRITE: "${b.after}"`).join("\n")}` : "";
+
+  const sectionRewriteBlock = sectionRewrites.length > 0 ? `
+PRE-COMPUTED SECTION REWRITES — USE THESE AS THE BASELINE:
+The analysis already produced these optimized section texts. Use them as your baseline for power optimization.
+${sectionRewrites.map(s => `  ${s.label.toUpperCase()}:\n  ${s.text}`).join("\n\n")}` : "";
+
   const systemPrompt = `You are an expert resume writer and ATS optimization engine. Produce a power-optimized resume as structured data — layout is handled by a separate template, so you must NEVER produce HTML, Markdown, bullet symbols, or formatting instructions.
 
 TARGET: ${jobContext}
 ${keywordBlock}
 ${issueBlock}
+${bulletRewriteBlock}
+${sectionRewriteBlock}
 
 POWER OPTIMIZATION GOALS:
 1. Fix every critical finding, warning, and word problem above — CRITICAL FINDINGS OVERRIDE THE SOURCE
 2. Inject all missing keywords naturally — required keywords must appear at least once
-3. Completely rewrite the summary — lead with the JD's top requirement
+3. Completely rewrite the summary — lead with the JD's top requirement; use the pre-computed summary as a baseline if provided
 4. Rebuild skills from scratch — JD-required first, 5–6 categories, relevant to candidate's actual domain
-5. Fully rewrite bullets for the 2 most recent roles: Verb + Context + Real Impact
+5. Fully rewrite bullets for the 2 most recent roles: Verb + Context + Real Impact; use pre-computed bullet rewrites as baselines
 6. Improve older role bullets using WORD PROBLEMS list above
 
 CRITICAL FINDINGS ARE MANDATORY — NOT OPTIONAL:
@@ -149,7 +165,7 @@ Return ONLY valid JSON:
     { role: "system" as const, content: systemPrompt },
     {
       role: "user" as const,
-      content: `Power-optimize this resume. Fix ALL identified issues. Inject ALL missing keywords. Rewrite the summary and recent role bullets aggressively. Return structured JSON only.\n\nRESUME:\n${resumeText.slice(0, 6000)}`,
+      content: `Power-optimize this resume. Fix ALL identified issues. Inject ALL missing keywords. Use ALL pre-computed rewrites as baselines. Rewrite the summary and recent role bullets aggressively. Return structured JSON only.\n\nRESUME:\n${resumeText.slice(0, 6000)}`,
     },
   ];
 

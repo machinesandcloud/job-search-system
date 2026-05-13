@@ -3046,10 +3046,10 @@ function renderResumeTemplate(d: ResumeStructuredData, showPrintHint = false): s
 <meta charset="utf-8">
 <title></title>
 <style>
-@page { size: letter; margin: 0; }
+@page { size: letter; margin: 0.75in 0.80in; }
 *,*::before,*::after{box-sizing:border-box}
 body{font-family:Calibri,Arial,sans-serif;font-size:10.5pt;color:#111;margin:0;padding:0;line-height:1.35}
-#resume{padding:0.75in 0.80in}
+#resume{padding:0}
 .name{font-size:17pt;font-weight:900;text-transform:uppercase;text-align:center;letter-spacing:0.07em;margin-bottom:3pt}
 .contact{text-align:center;font-size:9.5pt;color:#444;margin-bottom:14pt}
 .section-header{display:flex;align-items:center;font-size:10pt;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#222;margin:13pt 0 5pt;white-space:nowrap}
@@ -8444,12 +8444,14 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
     const criticalFindings = (aiResult.findings ?? []).filter(f => f.type === "critical").map(f => f.text);
     const warnFindings = (aiResult.findings ?? []).filter(f => f.type === "warn").map(f => f.text);
     const wordIssues = (aiResult.wordIssues ?? []).map(w => ({ word: w.word, type: w.type, suggestion: w.suggestion }));
+    const bulletRewrites = (aiResult.bullets ?? []).map(b => ({ before: b.before, after: b.after }));
+    const sectionRewrites = (aiResult.rewrittenSections ?? []).map(s => ({ label: s.label, text: s.text }));
 
     try {
       const res = await fetch("/api/zari/resume/apply-fixes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resumeText, targetRole: targetRoleInput, jobDescription, missingKeywords, criticalFindings, warnFindings, wordIssues }),
+        body: JSON.stringify({ resumeText, targetRole: targetRoleInput, jobDescription, missingKeywords, criticalFindings, warnFindings, wordIssues, bulletRewrites, sectionRewrites }),
       });
       const data = await res.json().catch(() => ({})) as { resumeData?: ResumeStructuredData; error?: string };
       if (data.resumeData) {
@@ -8524,6 +8526,8 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
           criticalFindings: (aiResult?.findings ?? []).filter(f => f.type === "critical").map(f => f.text),
           warnFindings: (aiResult?.findings ?? []).filter(f => f.type === "warn").map(f => f.text),
           wordIssues: (aiResult?.wordIssues ?? []).map(w => ({ word: w.word, type: w.type, suggestion: w.suggestion })),
+          bulletRewrites: (aiResult?.bullets ?? []).map(b => ({ before: b.before, after: b.after })),
+          sectionRewrites: (aiResult?.rewrittenSections ?? []).map(s => ({ label: s.label, text: s.text })),
         }),
       });
       const data = await res.json().catch(() => ({})) as { resumeData?: ResumeStructuredData; error?: string };
@@ -9384,10 +9388,10 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
           return (
             <div style={{ background:"var(--z-card)", borderRadius:20, border:"1px solid var(--z-bd)", padding:"24px 28px", marginBottom:20, boxShadow:"0 12px 48px rgba(0,0,0,0.08)", position:"relative", overflow:"hidden" }}>
               {/* Ambient glow blobs */}
-              <div style={{ position:"absolute", top:-50, right:tailored!==null?200:80, width:220, height:220, background:`radial-gradient(circle,${lcolor}22 0%,transparent 70%)`, pointerEvents:"none" }}/>
+              <div style={{ position:"absolute", top:-50, right:200, width:220, height:220, background:`radial-gradient(circle,${lcolor}22 0%,transparent 70%)`, pointerEvents:"none" }}/>
               <div style={{ position:"absolute", bottom:-60, left:40, width:160, height:160, background:"radial-gradient(circle,rgba(37,99,235,0.12) 0%,transparent 70%)", pointerEvents:"none" }}/>
 
-              <div style={{ display:"grid", gridTemplateColumns: tailored!==null ? "168px 1fr 168px" : "168px 1fr", gap:28, alignItems:"center", position:"relative" }}>
+              <div style={{ display:"grid", gridTemplateColumns:"168px 1fr 168px", gap:28, alignItems:"center", position:"relative" }}>
 
                 {/* Big overall score ring */}
                 <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:6 }}>
@@ -9412,7 +9416,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                 </div>
 
                 {/* Sub-score bars */}
-                <div style={{ display:"flex", flexDirection:"column", gap:16, paddingLeft: tailored!==null ? 4 : 16 }}>
+                <div style={{ display:"flex", flexDirection:"column", gap:16, paddingLeft:4 }}>
                   {subScores.map(sc => {
                     const prev = aiResult?.previousScores?.[sc.key] ?? null;
                     const d = prev !== null ? sc.score - prev : null;
@@ -9441,17 +9445,29 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                   })}
                 </div>
 
-                {/* Tailored job-match panel */}
-                {tailored !== null && (
-                  <div style={{ borderLeft:"1px solid var(--z-bd)", paddingLeft:28, display:"flex", flexDirection:"column", alignItems:"center", gap:6 }}>
-                    <ScoreRing score={tailored} color={gradeColor(tailored)} size={92}/>
-                    <p style={{ fontSize:11.5, fontWeight:700, color:"var(--z-text2)", marginTop:10, textAlign:"center" }}>Job Match</p>
-                    <span style={{ fontSize:10.5, color:"var(--z-text3)", textAlign:"center", lineHeight:1.45 }}>How closely you target this role</span>
-                    <span style={{ fontSize:11, fontWeight:700, padding:"3px 11px", borderRadius:99, background:`${gradeColor(tailored)}22`, color:gradeColor(tailored), border:`1px solid ${gradeColor(tailored)}44`, marginTop:2 }}>
-                      {tailored>=75?"Strong fit":tailored>=55?"Partial fit":tailored>=35?"Weak fit":"Mismatch"}
-                    </span>
-                  </div>
-                )}
+                {/* Tailored job-match panel — always shown, locked in general mode */}
+                <div style={{ borderLeft:"1px solid var(--z-bd)", paddingLeft:28, display:"flex", flexDirection:"column", alignItems:"center", gap:6 }}>
+                  {tailored !== null ? (
+                    <>
+                      <ScoreRing score={tailored} color={gradeColor(tailored)} size={92}/>
+                      <p style={{ fontSize:11.5, fontWeight:700, color:"var(--z-text2)", marginTop:10, textAlign:"center" }}>Job Match</p>
+                      <span style={{ fontSize:10.5, color:"var(--z-text3)", textAlign:"center", lineHeight:1.45 }}>How closely you target this role</span>
+                      <span style={{ fontSize:11, fontWeight:700, padding:"3px 11px", borderRadius:99, background:`${gradeColor(tailored)}22`, color:gradeColor(tailored), border:`1px solid ${gradeColor(tailored)}44`, marginTop:2 }}>
+                        {tailored>=75?"Strong fit":tailored>=55?"Partial fit":tailored>=35?"Weak fit":"Mismatch"}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ width:92, height:92, borderRadius:"50%", border:"3px dashed rgba(255,255,255,0.12)", display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(255,255,255,0.03)" }}>
+                        <span style={{ fontSize:22, fontWeight:900, color:"rgba(255,255,255,0.18)", letterSpacing:"-0.03em" }}>—</span>
+                      </div>
+                      <p style={{ fontSize:11.5, fontWeight:700, color:"var(--z-text3)", marginTop:10, textAlign:"center" }}>Job Match</p>
+                      <span style={{ fontSize:10, color:"var(--z-text3)", textAlign:"center", lineHeight:1.5, maxWidth:130 }}>
+                        {reviewMode === "targeted" ? "Re-run with a job description to score fit" : "Use Targeted mode + paste a JD to unlock"}
+                      </span>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           );

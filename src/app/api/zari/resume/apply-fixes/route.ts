@@ -21,6 +21,8 @@ export async function POST(request: Request) {
     criticalFindings?: string[];
     warnFindings?: string[];
     wordIssues?: { word: string; type: string; suggestion: string }[];
+    bulletRewrites?: { before: string; after: string }[];
+    sectionRewrites?: { label: string; text: string }[];
   };
 
   const resumeText      = (body.resumeText ?? "").trim();
@@ -30,6 +32,8 @@ export async function POST(request: Request) {
   const criticalFindings = (body.criticalFindings ?? []).slice(0, 10);
   const warnFindings    = (body.warnFindings ?? []).slice(0, 8);
   const wordIssues      = (body.wordIssues ?? []).slice(0, 12);
+  const bulletRewrites  = (body.bulletRewrites ?? []).slice(0, 15);
+  const sectionRewrites = (body.sectionRewrites ?? []).slice(0, 4);
 
   if (!resumeText) {
     return NextResponse.json({ error: "resumeText required" }, { status: 400 });
@@ -60,18 +64,31 @@ ${criticalFindings.length > 0 ? `CRITICAL:\n${criticalFindings.map(f => `  ✗ $
 ${warnFindings.length > 0 ? `WARNINGS:\n${warnFindings.map(f => `  ! ${f}`).join("\n")}` : ""}
 ${wordIssues.length > 0 ? `WORD PROBLEMS (replace everywhere):\n${wordIssues.map(w => `  • "${w.word}" → ${w.suggestion}`).join("\n")}` : ""}` : "";
 
-  const systemPrompt = `You are a professional resume editor. Extract and fix resume content — layout is handled by a separate template, so you must NEVER produce HTML, Markdown, bullets symbols, or line-spacing instructions.
+  const bulletRewriteBlock = bulletRewrites.length > 0 ? `
+PRE-COMPUTED BULLET REWRITES — USE THESE DIRECTLY:
+The analysis already computed optimal rewrites for problematic bullets. Use these verbatim in the output — do NOT generate new rewrites for these bullets.
+${bulletRewrites.map((b, i) => `  ${i + 1}. ORIGINAL: "${b.before}"\n     REWRITE: "${b.after}"`).join("\n")}` : "";
+
+  const sectionRewriteBlock = sectionRewrites.length > 0 ? `
+PRE-COMPUTED SECTION REWRITES — USE THESE DIRECTLY:
+The analysis already produced these optimized section texts. Use them verbatim — do NOT generate new versions.
+${sectionRewrites.map(s => `  ${s.label.toUpperCase()}:\n  ${s.text}`).join("\n\n")}` : "";
+
+  const systemPrompt = `You are a professional resume editor. Extract and fix resume content — layout is handled by a separate template, so you must NEVER produce HTML, Markdown, bullet symbols, or line-spacing instructions.
 
 TARGET: ${jobContext}
 ${keywordBlock}
 ${issueBlock}
+${bulletRewriteBlock}
+${sectionRewriteBlock}
 
 YOUR JOB:
 1. Fix every critical finding, warning, and word problem above — CRITICAL FINDINGS OVERRIDE THE SOURCE
 2. Inject all missing keywords naturally
-3. Preserve exact company names, job titles, dates, education, certifications
-4. Do not invent metrics — use only numbers present in the original resume
-5. Keep experience in reverse chronological order
+3. Use the pre-computed bullet rewrites and section rewrites verbatim — they are already validated
+4. Preserve exact company names, job titles, dates, education, certifications
+5. Do not invent metrics — use only numbers present in the original resume
+6. Keep experience in reverse chronological order
 
 CRITICAL FINDINGS ARE MANDATORY — NOT SUGGESTIONS:
 If a critical finding says skills contain unrelated keywords (e.g. "Technology Strategy", "Cybersecurity",
@@ -91,12 +108,14 @@ FIELD RULES:
 - name: candidate's full name
 - phone/email/location: exact from original
 - summary: 3–5 sentences, no clichés, lead with strongest qualification for the target role
+  If a pre-computed Summary rewrite is provided above, use it verbatim.
 - skills: 3–6 categories relevant to the candidate's actual domain; items are short phrases, no symbols
   IMPORTANT: Do NOT add technology strategy, cloud environments, cybersecurity, vendor management,
   or enterprise technology into skills unless they explicitly appear in the source resume.
   For lab/biomedical candidates: categories should be things like Laboratory Techniques, Scientific Methods,
   Regulatory & Quality, Public Health, Software & Tools.
 - experience.bullets: 3–5 per role, action verb + context + impact; plain text, no bullet symbols
+  If a pre-computed bullet rewrite is provided above for a bullet, use the rewrite verbatim.
 - education: exact school name and degree as written in original
 - certifications: IMPORTANT — scan the ENTIRE source resume for any certifications, licenses, or
   compliance credentials (e.g. GMP, BPF, HACCP, ISO, CPR, any professional license). Extract ALL of
@@ -122,7 +141,7 @@ Return ONLY valid JSON:
     { role: "system" as const, content: systemPrompt },
     {
       role: "user" as const,
-      content: `Apply all fixes to this resume. Fix every word problem, inject all missing keywords, address every critical and warning finding. Return structured JSON only.\n\nRESUME:\n${resumeText.slice(0, 6000)}`,
+      content: `Apply all fixes to this resume. Use ALL pre-computed rewrites verbatim. Fix every word problem, inject all missing keywords, address every critical and warning finding. Return structured JSON only.\n\nRESUME:\n${resumeText.slice(0, 6000)}`,
     },
   ];
 
