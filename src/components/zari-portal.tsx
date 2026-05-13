@@ -2947,6 +2947,124 @@ ${showPrintHint ? `<div class="no-print" id="zari-print-guide" style="position:f
 </html>`;
 }
 
+// ── Structured resume data returned by the AI (template approach) ────────────
+type ResumeStructuredData = {
+  name: string;
+  phone?: string;
+  email?: string;
+  location?: string;
+  summary?: string;
+  skills: Array<{ category: string; items: string[] }>;
+  experience: Array<{ company: string; dates: string; title: string; bullets: string[] }>;
+  education: Array<{ school: string; degree: string }>;
+  certifications: string[];
+};
+
+/** Serialize structured data back to plain text (used for re-analysis). */
+function serializeToPlainText(d: ResumeStructuredData): string {
+  const lines: string[] = [];
+  lines.push(d.name);
+  const contact = [d.phone, d.email, d.location].filter(Boolean).join(" · ");
+  if (contact) lines.push(contact);
+  lines.push("");
+  if (d.summary) { lines.push("PROFESSIONAL SUMMARY"); lines.push(d.summary); lines.push(""); }
+  if (d.skills.length) {
+    lines.push("SKILLS");
+    d.skills.forEach(s => lines.push(`${s.category}: ${s.items.join(", ")}`));
+    lines.push("");
+  }
+  if (d.experience.length) {
+    lines.push("PROFESSIONAL EXPERIENCE");
+    d.experience.forEach(e => {
+      lines.push(`${e.company}  ${e.dates}`);
+      lines.push(e.title);
+      e.bullets.forEach(b => lines.push(`• ${b}`));
+      lines.push("");
+    });
+  }
+  if (d.education.length) {
+    lines.push("EDUCATION");
+    d.education.forEach(e => { lines.push(`• ${e.school}`); lines.push(`  ${e.degree}`); lines.push(""); });
+  }
+  if (d.certifications.length) { lines.push("CERTIFICATIONS"); lines.push(d.certifications.join(" • ")); }
+  return lines.join("\n").trim();
+}
+
+/** Render structured resume data into a locked HTML template.
+ *  The AI produces content; this function owns ALL layout decisions. */
+function renderResumeTemplate(d: ResumeStructuredData, showPrintHint = false): string {
+  const e = escHtml;
+  const contact = [d.phone, d.email, d.location].filter(Boolean).map(s => e(s!)).join(" &middot; ");
+
+  const skillsHtml = d.skills.map(s =>
+    `<p class="skills-line"><span class="skills-cat">${e(s.category)}:</span> ${s.items.map(e).join(", ")}</p>`
+  ).join("");
+
+  const expHtml = d.experience.map(ex => `
+<div class="job-block">
+  <div class="job-header"><span class="company">${e(ex.company)}</span><span class="dates">${e(ex.dates)}</span></div>
+  <div class="job-title">${e(ex.title)}</div>
+  <ul class="bullets">${ex.bullets.map(b => `<li>${e(b)}</li>`).join("")}</ul>
+</div>`).join("\n");
+
+  const eduHtml = d.education.map(ed => `
+<div class="edu-entry">
+  <div class="edu-school">${e(ed.school)}</div>
+  <div class="edu-degree">${e(ed.degree)}</div>
+</div>`).join("\n");
+
+  const certsHtml = d.certifications.length
+    ? `<div class="section-header">CERTIFICATIONS</div><p class="certs">${d.certifications.map(e).join(" &bull; ")}</p>`
+    : "";
+
+  const printGuide = showPrintHint
+    ? `<div class="no-print" id="zari-print-guide" style="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.72);display:flex;align-items:center;justify-content:center;font-family:Arial,sans-serif"><div style="background:#fff;border-radius:14px;padding:30px 34px;max-width:420px;width:90vw;box-shadow:0 24px 80px rgba(0,0,0,0.4);text-align:center"><p style="font-size:18px;font-weight:700;margin:0 0 6px;color:#111">Save Resume as PDF</p><p style="font-size:12.5px;color:#555;margin:0 0 18px;line-height:1.5">Follow these steps to remove browser headers/footers from your PDF:</p><ol style="text-align:left;font-size:13px;color:#222;margin:0 0 22px;padding-left:20px;line-height:2"><li>Set Destination to <strong>Save as PDF</strong></li><li>Click <strong>More settings</strong></li><li>Uncheck <strong>Headers and footers</strong></li><li>Click <strong>Save</strong></li></ol><button onclick="document.getElementById('zari-print-guide').style.display='none';window.print()" style="width:100%;padding:13px;background:#2563EB;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">Print / Save as PDF &rarr;</button></div></div>`
+    : "";
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Resume</title>
+<style>
+@page { size: letter; margin: 0.75in 0.80in 0.75in 0.80in; }
+*,*::before,*::after{box-sizing:border-box}
+body{font-family:Calibri,Arial,sans-serif;font-size:10.5pt;color:#111;margin:0;padding:0;line-height:1.35}
+.name{font-size:17pt;font-weight:900;text-transform:uppercase;text-align:center;letter-spacing:0.07em;margin-bottom:3pt}
+.contact{text-align:center;font-size:9.5pt;color:#444;margin-bottom:14pt}
+.section-header{font-size:10.5pt;font-weight:900;text-transform:uppercase;letter-spacing:0.09em;color:#111;border-bottom:1pt solid #777;padding-bottom:2pt;margin:14pt 0 5pt}
+.summary{font-size:10.5pt;line-height:1.5;margin:0}
+.skills-line{margin:0 0 2pt;font-size:10pt;line-height:1.5}
+.skills-cat{font-weight:700}
+.job-block{margin-bottom:8pt;break-inside:avoid;page-break-inside:avoid}
+.job-header{display:flex;justify-content:space-between;align-items:baseline}
+.company{font-weight:700;font-size:10.5pt}
+.dates{font-size:10pt;color:#333;white-space:nowrap;padding-left:8pt}
+.job-title{font-style:italic;font-size:10.5pt;margin:1pt 0 3pt}
+.bullets{margin:2pt 0 0 16pt;padding:0}
+.bullets li{margin-bottom:2.5pt;line-height:1.42}
+.edu-entry{margin-bottom:5pt;break-inside:avoid;page-break-inside:avoid}
+.edu-school{font-weight:700;font-size:10.5pt}
+.edu-degree{font-style:italic;font-size:10pt;color:#333;margin-top:1pt}
+.certs{font-size:10pt;margin:0;line-height:1.5}
+@media print{.no-print,.no-print *{display:none!important;visibility:hidden!important}#resume{display:block!important}}
+</style>
+</head>
+<body>
+${printGuide}
+<div id="resume">
+<div class="name">${e(d.name)}</div>
+${contact ? `<div class="contact">${contact}</div>` : ""}
+${d.summary ? `<div class="section-header">PROFESSIONAL SUMMARY</div><p class="summary">${e(d.summary)}</p>` : ""}
+${d.skills.length ? `<div class="section-header">SKILLS</div>${skillsHtml}` : ""}
+${d.experience.length ? `<div class="section-header">PROFESSIONAL EXPERIENCE</div>${expHtml}` : ""}
+${d.education.length ? `<div class="section-header">EDUCATION</div>${eduHtml}` : ""}
+${certsHtml}
+</div>
+</body>
+</html>`;
+}
+
 const RESUME_SESSION_KEY = "zari_resume_session_v2";
 const RESUME_PDF_KEY     = "zari_resume_pdf_v2";
 function loadResumeSession(): { resumeText:string; fileName:string; aiResult:ResumeAnalysis; reviewMode:"general"|"targeted"; targetRoleInput:string; careerLevel:CareerLevel } | null {
@@ -8298,50 +8416,26 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
 
   async function buildRevisedHtml(): Promise<{ html: string; revisedText: string }> {
     if (!aiResult) return { html: "", revisedText: "" };
-    // Step 1: Apply AI-suggested bullet and section rewrites from the suggestions panel
-    let baseText = resumeText;
-    if (rawFileUrl) {
-      try { baseText = await extractPositionedText(rawFileUrl); } catch { /* fall back */ }
-    }
-    let revised = baseText;
-    (aiResult.bullets ?? []).forEach(b => {
-      if (b.before && b.after) revised = revised.replace(b.before, b.after);
-    });
-    (aiResult.rewrittenSections ?? []).forEach((s, idx) => {
-      const newText = altVersions[idx] ?? s.text;
-      if (s.originalText && s.originalText.trim().length > 20) {
-        revised = revised.replace(s.originalText.trim(), newText);
-      }
-    });
 
-    // Step 2: Send to apply-fixes API to address ALL remaining findings:
-    // missing keywords, critical issues, warnings, and word problems
     const missingKeywords = (aiResult.keywords ?? []).filter(k => !k.found).map(k => ({ word: k.word, importance: k.importance, skillType: k.skillType ?? null }));
     const criticalFindings = (aiResult.findings ?? []).filter(f => f.type === "critical").map(f => f.text);
     const warnFindings = (aiResult.findings ?? []).filter(f => f.type === "warn").map(f => f.text);
     const wordIssues = (aiResult.wordIssues ?? []).map(w => ({ word: w.word, type: w.type, suggestion: w.suggestion }));
 
-    if (missingKeywords.length > 0 || criticalFindings.length > 0 || warnFindings.length > 0 || wordIssues.length > 0) {
-      try {
-        const res = await fetch("/api/zari/resume/apply-fixes", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            resumeText: revised,
-            targetRole: targetRoleInput,
-            jobDescription,
-            missingKeywords,
-            criticalFindings,
-            warnFindings,
-            wordIssues,
-          }),
-        });
-        const data = await res.json().catch(() => ({})) as { resumeText?: string; error?: string };
-        if (data.resumeText) revised = data.resumeText;
-      } catch { /* fall back to bullet-only revision */ }
-    }
+    try {
+      const res = await fetch("/api/zari/resume/apply-fixes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resumeText, targetRole: targetRoleInput, jobDescription, missingKeywords, criticalFindings, warnFindings, wordIssues }),
+      });
+      const data = await res.json().catch(() => ({})) as { resumeData?: ResumeStructuredData; error?: string };
+      if (data.resumeData) {
+        const revisedText = serializeToPlainText(data.resumeData);
+        return { html: renderResumeTemplate(data.resumeData, true), revisedText };
+      }
+    } catch { /* fall back */ }
 
-    return { html: generateResumeHtml(revised, "", true), revisedText: revised };
+    return { html: generateResumeHtml(resumeText, "", true), revisedText: resumeText };
   }
 
   function downloadReconstructed() {
@@ -8409,14 +8503,15 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
           wordIssues: (aiResult?.wordIssues ?? []).map(w => ({ word: w.word, type: w.type, suggestion: w.suggestion })),
         }),
       });
-      const data = await res.json().catch(() => ({})) as { resumeText?: string; error?: string };
-      if (!data.resumeText) { setAnalyzeErr(data.error ?? "Download failed — try again."); printWin?.close(); setPowerOptimizing(false); return; }
-      const optimizedHtml = generateResumeHtml(data.resumeText, "", true);
+      const data = await res.json().catch(() => ({})) as { resumeData?: ResumeStructuredData; error?: string };
+      if (!data.resumeData) { setAnalyzeErr(data.error ?? "Download failed — try again."); printWin?.close(); setPowerOptimizing(false); return; }
+      const optimizedText = serializeToPlainText(data.resumeData);
+      const optimizedHtml = renderResumeTemplate(data.resumeData, true);
       deliverHtml(optimizedHtml, `${baseName}-power-optimized.html`);
       // Re-analyze the optimized text in background so scores and findings reflect the new version
-      void silentReanalyze(data.resumeText);
+      void silentReanalyze(optimizedText);
       // Save snapshot in background (best-effort)
-      fetch("/api/zari/resume/snapshots", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ type:"power_optimized", label:"Power Optimized", filename: fileName||"resume", resumeText: data.resumeText, scores: aiResult ? { overall:aiResult.overall, ats:aiResult.ats, impact:aiResult.impact, clarity:aiResult.clarity } : undefined }) }).then(r=>r.json()).then(d=>{ if(d.id) setGenHistory(prev=>([{ id:d.id, type:"power_optimized" as string, label:"Power Optimized", filename: fileName||"resume", resumeText: data.resumeText, scores: aiResult ? { overall:aiResult.overall, ats:aiResult.ats, impact:aiResult.impact, clarity:aiResult.clarity } : undefined, createdAt:new Date().toISOString() }, ...prev] as typeof prev).slice(0,10)); }).catch(()=>{});
+      fetch("/api/zari/resume/snapshots", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ type:"power_optimized", label:"Power Optimized", filename: fileName||"resume", resumeText: optimizedText, scores: aiResult ? { overall:aiResult.overall, ats:aiResult.ats, impact:aiResult.impact, clarity:aiResult.clarity } : undefined }) }).then(r=>r.json()).then(d=>{ if(d.id) setGenHistory(prev=>([{ id:d.id, type:"power_optimized" as string, label:"Power Optimized", filename: fileName||"resume", resumeText: optimizedText, scores: aiResult ? { overall:aiResult.overall, ats:aiResult.ats, impact:aiResult.impact, clarity:aiResult.clarity } : undefined, createdAt:new Date().toISOString() }, ...prev] as typeof prev).slice(0,10)); }).catch(()=>{});
     } catch { setAnalyzeErr("Download failed — try again."); printWin?.close(); }
     setPowerOptimizing(false);
   }
