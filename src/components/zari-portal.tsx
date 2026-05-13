@@ -1989,10 +1989,10 @@ function ZariLiveMode({
     fetch("/api/zari/voices").then(r => r.json()).then((d: { voices: VoiceOption[] }) => {
       if (!d.voices?.length) return;
       setVoices(d.voices);
-      // Prefer Lauren B by ID, then first voice
-      const preferred = d.voices[0];
-      setActiveVoice(preferred.key);
-      activeVoiceRef.current = preferred.key; // set ref immediately, don't wait for useEffect
+      // Always use Jessica — fall back to first available if not found
+      const jessica = d.voices.find(v => v.label.toLowerCase().includes("jessica")) ?? d.voices[0];
+      setActiveVoice(jessica.key);
+      activeVoiceRef.current = jessica.key;
     }).catch(() => {});
   }, []);
 
@@ -2345,236 +2345,204 @@ function ZariLiveMode({
   const orb = ORB[liveState];
 
   return (
-    <div style={{ position:"fixed", inset:0, zIndex:9999, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", fontFamily:"var(--font-geist-sans,Inter,system-ui,sans-serif)" }}>
+    <div style={{ position:"fixed", inset:0, zIndex:9999, display:"flex", flexDirection:"column", alignItems:"center", fontFamily:"var(--font-geist-sans,Inter,system-ui,sans-serif)", overflow:"hidden" }}>
 
       {/* Deep space background */}
-      <div style={{ position:"absolute", inset:0, background:"radial-gradient(ellipse at 50% 20%, #100d30 0%, #080514 50%, #000000 100%)" }}/>
-      <div style={{ position:"absolute", top:"4%", left:"8%", width:650, height:650, borderRadius:"50%", background:"radial-gradient(circle, rgba(67,56,202,0.22) 0%, transparent 65%)", filter:"blur(90px)", animation:"aurora-a 9s ease-in-out infinite", pointerEvents:"none" }}/>
-      <div style={{ position:"absolute", bottom:"8%", right:"4%", width:520, height:520, borderRadius:"50%", background:"radial-gradient(circle, rgba(59,130,246,0.16) 0%, transparent 65%)", filter:"blur(80px)", animation:"aurora-b 12s ease-in-out infinite", pointerEvents:"none" }}/>
-      <div style={{ position:"absolute", top:"50%", left:"50%", width:900, height:420, borderRadius:"50%", background:"radial-gradient(circle, rgba(79,70,229,0.09) 0%, transparent 70%)", filter:"blur(110px)", transform:"translate(-50%,-50%)", pointerEvents:"none" }}/>
-      <div style={{ position:"absolute", top:"25%", right:"12%", width:340, height:340, borderRadius:"50%", background:"radial-gradient(circle, rgba(139,92,246,0.14) 0%, transparent 65%)", filter:"blur(55px)", animation:"aurora-c 14s ease-in-out infinite", pointerEvents:"none" }}/>
+      <div style={{ position:"absolute", inset:0, background:"radial-gradient(ellipse at 50% 15%, #12103a 0%, #07050f 55%, #000000 100%)" }}/>
+      {/* Aurora blobs */}
+      <div style={{ position:"absolute", top:"-10%", left:"5%", width:700, height:700, borderRadius:"50%", background:"radial-gradient(circle, rgba(67,56,202,0.28) 0%, transparent 60%)", filter:"blur(100px)", animation:"aurora-a 9s ease-in-out infinite", pointerEvents:"none" }}/>
+      <div style={{ position:"absolute", bottom:"5%", right:"3%", width:580, height:580, borderRadius:"50%", background:"radial-gradient(circle, rgba(59,130,246,0.18) 0%, transparent 60%)", filter:"blur(90px)", animation:"aurora-b 12s ease-in-out infinite", pointerEvents:"none" }}/>
+      <div style={{ position:"absolute", top:"50%", left:"50%", width:1000, height:500, borderRadius:"50%", background:"radial-gradient(circle, rgba(79,70,229,0.1) 0%, transparent 65%)", filter:"blur(120px)", transform:"translate(-50%,-50%)", pointerEvents:"none" }}/>
+      <div style={{ position:"absolute", top:"20%", right:"10%", width:380, height:380, borderRadius:"50%", background:"radial-gradient(circle, rgba(139,92,246,0.16) 0%, transparent 60%)", filter:"blur(60px)", animation:"aurora-c 14s ease-in-out infinite", pointerEvents:"none" }}/>
 
       {/* Top bar */}
-      <div style={{ position:"absolute", top:0, left:0, right:0, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"20px 24px", zIndex:1 }}>
+      <div style={{ position:"absolute", top:0, left:0, right:0, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"22px 28px", zIndex:2 }}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          <div style={{ width:28, height:28, borderRadius:"50%", background:"linear-gradient(135deg,#4f46e5,#818cf8)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:800, color:"white", boxShadow:"0 0 18px rgba(59,130,246,0.55)" }}>Z</div>
-          <span style={{ color:"var(--z-text)", fontWeight:700, fontSize:14, letterSpacing:"0.06em" }}>ZARI</span>
-          <span style={{ fontSize:10, color:"var(--z-text3)", fontWeight:500, marginLeft:2, letterSpacing:"0.1em" }}>LIVE</span>
+          <div style={{ width:30, height:30, borderRadius:"50%", background:"linear-gradient(135deg,#4f46e5,#818cf8)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:800, color:"white", boxShadow:"0 0 22px rgba(99,102,241,0.6), 0 0 8px rgba(99,102,241,0.3)" }}>Z</div>
+          <span style={{ color:"rgba(255,255,255,0.9)", fontWeight:700, fontSize:14, letterSpacing:"0.1em" }}>ZARI</span>
+          <span style={{ fontSize:9, color:"rgba(255,255,255,0.28)", fontWeight:600, marginLeft:1, letterSpacing:"0.15em", textTransform:"uppercase" }}>LIVE</span>
         </div>
-        <button onClick={handleClose} style={{ width:32, height:32, borderRadius:"50%", border:"1px solid var(--z-bd)", background:"var(--z-card)", boxShadow:"0 2px 20px rgba(0,0,0,0.07)", color:"var(--z-text2)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.15s" }}>
+        <button onClick={handleClose} style={{ width:34, height:34, borderRadius:"50%", border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.05)", backdropFilter:"blur(10px)", color:"rgba(255,255,255,0.55)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.2s" }}>
           <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:12, height:12 }}><path d="M4 4l12 12M16 4L4 16"/></svg>
         </button>
       </div>
 
-      {/* Orb + rings */}
-      <div style={{ position:"relative", zIndex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:18, marginBottom:20 }}>
+      {/* ── Main content area ── */}
+      <div style={{ position:"relative", zIndex:1, display:"flex", flexDirection:"column", alignItems:"center", width:"100%", height:"100%", paddingTop:80, paddingBottom:32 }}>
 
-        {/* Fixed-size orb wrapper — rings are positioned relative to THIS, not the flex container */}
-        <div style={{ position:"relative", width:200, height:200, flexShrink:0 }}>
-
-          {/* Listening: 2 clean ripple rings */}
-          {liveState === "listening" && [0,1].map(i => (
-            <div key={i} style={{ position:"absolute", top:"50%", left:"50%", width:216, height:216, borderRadius:"50%", border:"1px solid rgba(6,182,212,0.45)", animation:`listen-ripple-v2 ${2.2+i*0.9}s ease-out ${i*0.85}s infinite`, animationFillMode:"backwards", pointerEvents:"none" }}/>
+        {/* Orb */}
+        <div style={{ position:"relative", width:210, height:210, flexShrink:0 }}>
+          {liveState === "listening" && [0,1,2].map(i => (
+            <div key={i} style={{ position:"absolute", top:"50%", left:"50%", width:226, height:226, borderRadius:"50%", border:`1px solid rgba(6,182,212,${0.5-i*0.14})`, animation:`listen-ripple-v2 ${2.4+i*0.85}s ease-out ${i*0.8}s infinite`, pointerEvents:"none" }}/>
           ))}
-
-          {/* Thinking: single spinning arc */}
           {liveState === "thinking" && (
-            <div style={{ position:"absolute", top:"50%", left:"50%", width:224, height:224, borderRadius:"50%", border:"2px solid transparent", borderTopColor:"rgba(139,92,246,0.8)", borderRightColor:"rgba(139,92,246,0.2)", animation:"spin-arc 1.1s linear infinite", animationFillMode:"backwards", pointerEvents:"none" }}/>
+            <div style={{ position:"absolute", top:"50%", left:"50%", width:234, height:234, borderRadius:"50%", border:"2px solid transparent", borderTopColor:"rgba(139,92,246,0.85)", borderRightColor:"rgba(139,92,246,0.22)", animation:"spin-arc 1.1s linear infinite", pointerEvents:"none" }}/>
           )}
-
-          {/* Speaking: subtle outer glow ring */}
-          {liveState === "speaking" && (
-            <div style={{ position:"absolute", top:"50%", left:"50%", width:214, height:214, borderRadius:"50%", border:"1px solid rgba(59,130,246,0.35)", animation:"ring-pulse 2s ease-out infinite", animationFillMode:"backwards", pointerEvents:"none" }}/>
-          )}
-
+          {liveState === "speaking" && [0,1].map(i => (
+            <div key={i} style={{ position:"absolute", top:"50%", left:"50%", width:226+i*18, height:226+i*18, borderRadius:"50%", border:"1px solid rgba(99,102,241,0.3)", animation:`ring-pulse ${1.8+i*0.6}s ease-out ${i*0.4}s infinite`, pointerEvents:"none" }}/>
+          ))}
           <div style={{ position:"absolute", inset:0, borderRadius:"50%", background:orb.gradient, boxShadow:orb.shadow, animation:orb.animation, transition:"background 0.6s ease, box-shadow 0.6s ease" }}/>
         </div>
 
-        <div style={{ textAlign:"center", zIndex:1 }}>
-          <p style={{ color:"rgba(255,255,255,0.95)", fontWeight:700, fontSize:20, letterSpacing:"0.16em", margin:0 }}>ZARI</p>
-          {liveState === "speaking" ? (
-            <div style={{ display:"flex", gap:3, alignItems:"flex-end", justifyContent:"center", height:22, marginTop:7 }}>
-              {[0,1,2,3,4].map(i => (
-                <div key={i} style={{ width:3, borderRadius:2, background:"rgba(165,180,252,0.7)", animation:`bar-eq ${0.48+i*0.07}s ease-in-out ${i*0.09}s infinite` }}/>
-              ))}
-            </div>
-          ) : (
-            <p style={{ color:"var(--z-text3)", fontSize:12, fontWeight:500, margin:"5px 0 0", letterSpacing:"0.04em" }}>{statusText}</p>
-          )}
-        </div>
-      </div>
-
-      {/* Transcript */}
-      <div ref={transcriptRef} style={{ position:"relative", zIndex:1, width:"100%", maxWidth:560, maxHeight:220, overflowY:"auto", padding:"0 20px 8px", display:"flex", flexDirection:"column", gap:7, scrollbarWidth:"none" }}>
-        {transcript.length === 0 && !interimText && (
-          <p style={{ textAlign:"center", color:"rgba(255,255,255,0.13)", fontSize:12, margin:0 }}>{started ? "Say something…" : "Tap the mic to start"}</p>
-        )}
-        {transcript.slice(-6).map((m, i) => (
-          <div key={i} style={{ display:"flex", justifyContent:m.role==="user"?"flex-end":"flex-start", animation:"bubble-appear 0.2s ease" }}>
-            <div style={{ maxWidth:"80%", padding:"9px 14px", borderRadius:m.role==="user"?"16px 4px 16px 16px":"4px 16px 16px 16px", background:m.role==="user"?"rgba(255,255,255,0.07)":"rgba(79,70,229,0.26)", border:`1px solid ${m.role==="user"?"rgba(255,255,255,0.08)":"rgba(59,130,246,0.32)"}`, color:"var(--z-text)", fontSize:13.5, lineHeight:1.6 }}>
-              {m.text}
-            </div>
+        {/* Name + waveform / status */}
+        <div style={{ textAlign:"center", marginTop:20, marginBottom:8 }}>
+          <p style={{ color:"rgba(255,255,255,0.92)", fontWeight:700, fontSize:22, letterSpacing:"0.18em", margin:0, textShadow:"0 0 30px rgba(139,92,246,0.4)" }}>ZARI</p>
+          <div style={{ height:28, display:"flex", alignItems:"center", justifyContent:"center", marginTop:6 }}>
+            {liveState === "speaking" ? (
+              <div style={{ display:"flex", gap:3.5, alignItems:"flex-end", height:22 }}>
+                {[0,1,2,3,4,5,6].map(i => (
+                  <div key={i} style={{ width:3, borderRadius:2, background:`rgba(${i<3?"165,180,252":"129,140,248"},${0.5+i*0.06})`, animation:`bar-eq ${0.42+i*0.06}s ease-in-out ${i*0.07}s infinite` }}/>
+                ))}
+              </div>
+            ) : (
+              <p style={{ color:"rgba(255,255,255,0.38)", fontSize:12, fontWeight:500, margin:0, letterSpacing:"0.06em" }}>{statusText}</p>
+            )}
           </div>
-        ))}
-        {interimText && (
-          <div style={{ display:"flex", justifyContent:"flex-end", animation:"bubble-appear 0.15s ease" }}>
-            <div style={{ maxWidth:"80%", padding:"9px 14px", borderRadius:"16px 4px 16px 16px", background:"var(--z-card)", boxShadow:"0 2px 20px rgba(0,0,0,0.07)", border:"1px solid var(--z-bd2)", color:"var(--z-text3)", fontSize:13.5, fontStyle:"italic" }}>
-              {interimText}
-            </div>
+        </div>
+
+        {/* Transcript glass panel */}
+        <div style={{ width:"100%", maxWidth:580, flex:1, minHeight:0, display:"flex", flexDirection:"column", padding:"0 20px", marginTop:4 }}>
+          <div
+            ref={transcriptRef}
+            style={{
+              flex:1, minHeight:0, overflowY:"auto", display:"flex", flexDirection:"column", gap:10,
+              padding:"14px 16px 10px",
+              background: transcript.length > 0 || interimText ? "rgba(255,255,255,0.03)" : "transparent",
+              backdropFilter: transcript.length > 0 || interimText ? "blur(12px)" : "none",
+              borderRadius:20,
+              border: transcript.length > 0 || interimText ? "1px solid rgba(255,255,255,0.07)" : "none",
+              scrollbarWidth:"none",
+              transition:"background 0.4s ease, border-color 0.4s ease",
+            }}
+          >
+            {transcript.length === 0 && !interimText && (
+              <p style={{ textAlign:"center", color:"rgba(255,255,255,0.15)", fontSize:13, margin:"auto 0", letterSpacing:"0.02em" }}>
+                {started ? "Say something…" : "Tap the mic below to begin"}
+              </p>
+            )}
+            {transcript.slice(-8).map((m, i) => (
+              <div key={i} style={{ display:"flex", flexDirection:"column", alignItems:m.role==="user"?"flex-end":"flex-start", animation:"bubble-appear 0.25s ease" }}>
+                <span style={{ fontSize:9.5, fontWeight:600, letterSpacing:"0.08em", color:"rgba(255,255,255,0.22)", marginBottom:3, paddingLeft:m.role==="user"?0:4, paddingRight:m.role==="user"?4:0, textTransform:"uppercase" }}>
+                  {m.role === "user" ? "You" : "Zari"}
+                </span>
+                <div style={{
+                  maxWidth:"82%", padding:"11px 15px",
+                  borderRadius:m.role==="user" ? "18px 4px 18px 18px" : "4px 18px 18px 18px",
+                  background: m.role==="user"
+                    ? "rgba(255,255,255,0.10)"
+                    : "rgba(99,102,241,0.30)",
+                  border: `1px solid ${m.role==="user" ? "rgba(255,255,255,0.13)" : "rgba(129,140,248,0.35)"}`,
+                  color:"rgba(255,255,255,0.92)",
+                  fontSize:14, lineHeight:1.65,
+                  boxShadow: m.role==="coach" ? "0 2px 20px rgba(99,102,241,0.12)" : "none",
+                }}>
+                  {m.text.replace(/\{\{GO:[a-z-]+\}\}/g, "").trim()}
+                </div>
+              </div>
+            ))}
+            {interimText && (
+              <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", animation:"bubble-appear 0.15s ease" }}>
+                <span style={{ fontSize:9.5, fontWeight:600, letterSpacing:"0.08em", color:"rgba(255,255,255,0.18)", marginBottom:3, paddingRight:4, textTransform:"uppercase" }}>You</span>
+                <div style={{ maxWidth:"82%", padding:"11px 15px", borderRadius:"18px 4px 18px 18px", background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.09)", color:"rgba(255,255,255,0.45)", fontSize:14, fontStyle:"italic", lineHeight:1.65 }}>
+                  {interimText}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Mic permission guide */}
+        {micBlocked && (
+          <div style={{ width:"100%", maxWidth:420, margin:"10px 20px 0", padding:"18px 22px", borderRadius:14, background:"rgba(239,68,68,0.1)", border:"1px solid rgba(239,68,68,0.25)", backdropFilter:"blur(12px)" }}>
+            <p style={{ color:"#FCA5A5", fontWeight:700, fontSize:13, margin:"0 0 8px" }}>Microphone access is blocked</p>
+            <ol style={{ color:"rgba(255,255,255,0.65)", fontSize:12, margin:0, paddingLeft:18, lineHeight:2.1 }}>
+              <li>Click the <strong style={{ color:"rgba(255,255,255,0.9)" }}>lock icon</strong> in the address bar</li>
+              <li>Click <strong style={{ color:"rgba(255,255,255,0.9)" }}>Site settings</strong></li>
+              <li>Set <strong style={{ color:"rgba(255,255,255,0.9)" }}>Microphone</strong> to <strong style={{ color:"rgba(255,255,255,0.9)" }}>Allow</strong></li>
+              <li>Reload and tap the mic again</li>
+            </ol>
+            <button onClick={() => { setMicBlocked(false); autoLoopRef.current = false; setStarted(false); }} style={{ marginTop:10, fontSize:11, color:"rgba(255,255,255,0.35)", background:"none", border:"none", cursor:"pointer", padding:0, textDecoration:"underline" }}>Dismiss</button>
           </div>
         )}
-      </div>
 
-      {/* Mic permission guide — shown when Chrome silently blocks mic without popup */}
-      {micBlocked && (
-        <div style={{ position:"relative", zIndex:1, maxWidth:380, margin:"12px 20px 0", padding:"18px 20px", borderRadius:12, background:"rgba(239,68,68,0.12)", border:"1px solid rgba(239,68,68,0.28)", textAlign:"left" }}>
-          <p style={{ color:"#FCA5A5", fontWeight:700, fontSize:13, margin:"0 0 8px", letterSpacing:"0.01em" }}>Microphone access is blocked</p>
-          <p style={{ color:"#C8D0E0", fontSize:12, margin:"0 0 10px", lineHeight:1.6 }}>To fix this in Chrome:</p>
-          <ol style={{ color:"#C8D0E0", fontSize:12, margin:0, paddingLeft:18, lineHeight:2 }}>
-            <li>Click the <strong style={{ color:"white" }}>lock icon</strong> in the address bar (left of the URL)</li>
-            <li>Click <strong style={{ color:"white" }}>Site settings</strong></li>
-            <li>Find <strong style={{ color:"white" }}>Microphone</strong> and change it to <strong style={{ color:"white" }}>Allow</strong></li>
-            <li>Reload the page and tap the mic again</li>
-          </ol>
-          <button onClick={() => { setMicBlocked(false); autoLoopRef.current = false; setStarted(false); }} style={{ marginTop:10, fontSize:11, color:"rgba(255,255,255,0.5)", background:"none", border:"none", cursor:"pointer", padding:0, textDecoration:"underline" }}>Dismiss</button>
-        </div>
-      )}
-
-      {/* Mic button */}
-      <div style={{ position:"relative", zIndex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:10, marginTop:18 }}>
-        <button
-          onClick={handleMicTap}
-          disabled={liveState === "thinking"}
-          style={{
-            width:70, height:70, borderRadius:"50%", border:"none",
-            cursor: liveState==="thinking" ? "not-allowed" : "pointer",
-            background: liveState==="listening" ? "rgba(239,68,68,0.85)" : liveState==="speaking" ? "rgba(59,130,246,0.28)" : "rgba(59,130,246,0.85)",
-            boxShadow: liveState==="listening" ? "0 0 0 10px rgba(239,68,68,0.1), 0 0 32px rgba(239,68,68,0.5)" : liveState==="idle" ? "0 0 0 10px rgba(59,130,246,0.1), 0 0 32px rgba(59,130,246,0.4)" : "none",
-            display:"flex", alignItems:"center", justifyContent:"center",
-            transition:"all 0.25s ease",
-            animation: liveState==="listening" ? "sphere-breathe 1.2s ease-in-out infinite" : "none",
-          }}
-        >
-          {liveState === "listening"
-            ? <div style={{ width:16, height:16, borderRadius:3, background:"white" }}/>
-            : liveState === "thinking"
-            ? <span style={{ width:16, height:16, borderRadius:"50%", border:"2px solid rgba(255,255,255,0.2)", borderTopColor:"white", display:"block", animation:"spin-slow 0.75s linear infinite" }}/>
-            : liveState === "speaking"
-            ? <svg viewBox="0 0 20 20" fill="none" stroke="white" strokeWidth="1.8" style={{ width:22, height:22, opacity:0.45 }}><path d="M10 2a3 3 0 00-3 3v4a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M4 9v1a6 6 0 0012 0V9"/><line x1="10" y1="15" x2="10" y2="18"/></svg>
-            : <svg viewBox="0 0 20 20" fill="none" stroke="white" strokeWidth="1.8" style={{ width:24, height:24 }}><path d="M10 2a3 3 0 00-3 3v4a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M4 9v1a6 6 0 0012 0V9"/><line x1="10" y1="15" x2="10" y2="18"/></svg>
-          }
-        </button>
-        <p style={{ color:"#C8D0E0", fontSize:11, margin:0, letterSpacing:"0.03em" }}>
-          {liveState==="listening" ? "listening · tap to interrupt" : liveState==="speaking" ? "tap to interrupt" : liveState==="thinking" ? "thinking…" : started ? "hands-free · auto-resumes" : "tap to start"}
-        </p>
-
-        {/* Attach button + badge */}
-        <div style={{ display:"flex", alignItems:"center", gap:8, marginTop:10 }}>
-          <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx,.txt" style={{ display:"none" }}
-            onChange={e => { const f = e.target.files?.[0]; if (f) void handleFileAttach(f); e.target.value = ""; }}
-          />
-          <button onClick={() => fileInputRef.current?.click()} style={{
-            display:"flex", alignItems:"center", gap:5, padding:"5px 12px", borderRadius:20,
-            border:"1px solid var(--z-bd)", background:"rgba(255,255,255,0.05)",
-            color:"var(--z-text3)", fontSize:11, cursor:"pointer", transition:"all 0.15s",
-          }}>
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" style={{ width:12, height:12 }}>
-              <path d="M2 12V4a1 1 0 011-1h6l3 3v6a1 1 0 01-1 1H3a1 1 0 01-1-1z"/><path d="M9 3v3h3"/>
-            </svg>
-            {attachedFile ? attachedFile.name.slice(0, 18) + (attachedFile.name.length > 18 ? "…" : "") : "Attach file"}
-          </button>
-          {attachedFile && (
-            <button onClick={() => { setAttachedFile(null); attachedFileRef.current = null; }} style={{
-              width:18, height:18, borderRadius:"50%", border:"none",
-              background:"var(--z-raise)", color:"var(--z-text3)",
-              cursor:"pointer", fontSize:10, display:"flex", alignItems:"center", justifyContent:"center",
-            }}>×</button>
-          )}
-        </div>
-
-        {/* GO: action chips — shown after bot suggests a tool */}
+        {/* GO: action chips */}
         {goActions.length > 0 && onNavigate && (
-          <div style={{ display:"flex", gap:6, flexWrap:"wrap", justifyContent:"center", marginTop:10 }}>
+          <div style={{ display:"flex", gap:6, flexWrap:"wrap", justifyContent:"center", marginTop:12, padding:"0 20px" }}>
             {goActions.map(s => (
               <button key={s} onClick={() => { setGoActions([]); onClose(); onNavigate(s); }} style={{
-                padding:"5px 13px", borderRadius:20, border:"1px solid rgba(59,130,246,0.45)",
-                background:"rgba(59,130,246,0.18)", color:"rgba(165,180,252,0.9)",
-                fontSize:11, fontWeight:600, cursor:"pointer", transition:"all 0.15s",
+                padding:"7px 16px", borderRadius:99, border:"1px solid rgba(99,102,241,0.5)",
+                background:"rgba(99,102,241,0.18)", backdropFilter:"blur(8px)",
+                color:"rgba(199,210,254,0.95)", fontSize:12, fontWeight:600, cursor:"pointer",
+                transition:"all 0.15s", boxShadow:"0 2px 12px rgba(99,102,241,0.15)",
               }}>
                 {navCtaLabel(stage, s)}
               </button>
             ))}
-            <button onClick={() => setGoActions([])} style={{ padding:"5px 10px", borderRadius:20, border:"1px solid var(--z-bd2)", background:"transparent", color:"#C8D0E0", fontSize:11, cursor:"pointer" }}>dismiss</button>
+            <button onClick={() => setGoActions([])} style={{ padding:"7px 14px", borderRadius:99, border:"1px solid rgba(255,255,255,0.08)", background:"transparent", color:"rgba(255,255,255,0.3)", fontSize:12, cursor:"pointer" }}>dismiss</button>
           </div>
         )}
-      </div>
 
-      {/* Voice picker — avatar cards */}
-      {voices.length > 0 && (
-        <div style={{ position:"relative", zIndex:1, width:"100%", marginTop:14 }}>
-          <p style={{ color:"rgba(255,255,255,0.14)", fontSize:10, margin:"0 0 9px", letterSpacing:"0.1em", textTransform:"uppercase", textAlign:"center" }}>Voice</p>
-          <div style={{ display:"flex", gap:8, overflowX:"auto", padding:"2px 20px 4px", scrollbarWidth:"none", justifyContent:"center", flexWrap:"wrap" }}>
-            {(showAllVoices ? voices : voices.slice(0, 8)).map(v => {
-              const isFemale = v.gender === "f";
-              const selected = activeVoice === v.key;
-              const shortName = v.label.split(" - ")[0].split(" – ")[0].split(",")[0].trim();
-              return (
-                <button key={v.key} onClick={() => { setActiveVoice(v.key); activeVoiceRef.current = v.key; }} style={{
-                  display:"flex", flexDirection:"column", alignItems:"center", gap:5,
-                  padding:"8px 9px 7px", borderRadius:14, flexShrink:0, minWidth:62,
-                  border:`1.5px solid ${selected ? (isFemale ? "rgba(192,132,252,0.8)" : "rgba(56,189,248,0.8)") : "rgba(255,255,255,0.06)"}`,
-                  background: selected ? (isFemale ? "rgba(15,118,110,0.25)" : "rgba(2,132,199,0.2)") : "rgba(255,255,255,0.03)",
-                  cursor:"pointer", transition:"all 0.15s",
-                }}>
-                  <div style={{
-                    width:38, height:38, borderRadius:"50%", flexShrink:0,
-                    background: isFemale ? "linear-gradient(135deg,#d8b4fe,#8b5cf6)" : "linear-gradient(135deg,#7dd3fc,#0284c7)",
-                    display:"flex", alignItems:"center", justifyContent:"center",
-                    boxShadow: selected ? (isFemale ? "0 0 14px rgba(167,139,250,0.6)" : "0 0 14px rgba(56,189,248,0.6)") : "none",
-                    transition:"box-shadow 0.15s",
-                  }}>
-                    {isFemale
-                      ? <svg viewBox="0 0 24 24" fill="white" style={{ width:19, height:19 }}><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
-                      : <svg viewBox="0 0 24 24" fill="white" style={{ width:19, height:19 }}><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/><rect x="10.5" y="1.2" width="3" height="2.4" rx="1" fill="white"/></svg>
-                    }
-                  </div>
-                  <span style={{
-                    fontSize:10, fontWeight:600, letterSpacing:"0.02em", lineHeight:1.2,
-                    color: selected ? (isFemale ? "rgba(216,180,254,1)" : "rgba(125,211,252,1)") : "rgba(255,255,255,0.35)",
-                    maxWidth:62, textOverflow:"ellipsis", overflow:"hidden", whiteSpace:"nowrap", textAlign:"center",
-                  }}>
-                    {shortName}
-                  </span>
-                </button>
-              );
-            })}
-            {!showAllVoices && voices.length > 8 && (
-              <button onClick={() => setShowAllVoices(true)} style={{
-                display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:5,
-                padding:"8px 9px 7px", borderRadius:14, flexShrink:0, minWidth:62,
-                border:"1.5px solid rgba(255,255,255,0.06)", background:"var(--z-raise)", cursor:"pointer",
-              }}>
-                <div style={{ width:38, height:38, borderRadius:"50%", background:"var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                  <span style={{ color:"var(--z-text2)", fontSize:18, lineHeight:1 }}>+</span>
-                </div>
-                <span style={{ fontSize:10, fontWeight:600, color:"var(--z-text3)", letterSpacing:"0.02em" }}>{voices.length - 8} more</span>
-              </button>
-            )}
-            {showAllVoices && voices.length > 8 && (
-              <button onClick={() => setShowAllVoices(false)} style={{
-                display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:5,
-                padding:"8px 9px 7px", borderRadius:14, flexShrink:0, minWidth:62,
-                border:"1.5px solid rgba(255,255,255,0.06)", background:"var(--z-raise)", cursor:"pointer",
-              }}>
-                <div style={{ width:38, height:38, borderRadius:"50%", background:"var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                  <span style={{ color:"var(--z-text2)", fontSize:14, lineHeight:1 }}>↑</span>
-                </div>
-                <span style={{ fontSize:10, fontWeight:600, color:"var(--z-text3)", letterSpacing:"0.02em" }}>less</span>
-              </button>
+        {/* Bottom controls: mic + attach */}
+        <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:12, marginTop:16, flexShrink:0 }}>
+
+          {/* Mic button */}
+          <button
+            onClick={handleMicTap}
+            disabled={liveState === "thinking"}
+            style={{
+              width:76, height:76, borderRadius:"50%", border:"none",
+              cursor: liveState==="thinking" ? "not-allowed" : "pointer",
+              background: liveState==="listening"
+                ? "radial-gradient(circle at 35% 35%, rgba(252,165,165,1), rgba(239,68,68,0.9))"
+                : liveState==="speaking"
+                ? "radial-gradient(circle at 35% 35%, rgba(165,180,252,0.5), rgba(99,102,241,0.3))"
+                : "radial-gradient(circle at 35% 35%, rgba(129,140,248,1), rgba(79,70,229,0.9))",
+              boxShadow: liveState==="listening"
+                ? "0 0 0 8px rgba(239,68,68,0.12), 0 0 0 16px rgba(239,68,68,0.06), 0 0 40px rgba(239,68,68,0.55)"
+                : liveState==="idle" || liveState==="thinking"
+                ? "0 0 0 8px rgba(99,102,241,0.12), 0 0 0 16px rgba(99,102,241,0.05), 0 0 40px rgba(99,102,241,0.45)"
+                : "0 0 0 8px rgba(99,102,241,0.08), 0 0 24px rgba(99,102,241,0.25)",
+              display:"flex", alignItems:"center", justifyContent:"center",
+              transition:"all 0.3s ease",
+              animation: liveState==="listening" ? "sphere-breathe 1.2s ease-in-out infinite" : "none",
+            }}
+          >
+            {liveState === "listening"
+              ? <div style={{ width:18, height:18, borderRadius:4, background:"white" }}/>
+              : liveState === "thinking"
+              ? <span style={{ width:18, height:18, borderRadius:"50%", border:"2.5px solid rgba(255,255,255,0.2)", borderTopColor:"white", display:"block", animation:"spin-slow 0.75s linear infinite" }}/>
+              : liveState === "speaking"
+              ? <svg viewBox="0 0 20 20" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="1.8" style={{ width:24, height:24 }}><path d="M10 2a3 3 0 00-3 3v4a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M4 9v1a6 6 0 0012 0V9"/><line x1="10" y1="15" x2="10" y2="18"/></svg>
+              : <svg viewBox="0 0 20 20" fill="none" stroke="white" strokeWidth="1.8" style={{ width:26, height:26 }}><path d="M10 2a3 3 0 00-3 3v4a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M4 9v1a6 6 0 0012 0V9"/><line x1="10" y1="15" x2="10" y2="18"/></svg>
+            }
+          </button>
+
+          <p style={{ color:"rgba(255,255,255,0.3)", fontSize:11, margin:0, letterSpacing:"0.05em", fontWeight:500 }}>
+            {liveState==="listening" ? "listening · tap to stop" : liveState==="speaking" ? "tap to interrupt" : liveState==="thinking" ? "thinking…" : started ? "hands-free · auto-resumes" : "tap to start"}
+          </p>
+
+          {/* Attach file */}
+          <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+            <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx,.txt" style={{ display:"none" }}
+              onChange={e => { const f = e.target.files?.[0]; if (f) void handleFileAttach(f); e.target.value = ""; }}
+            />
+            <button onClick={() => fileInputRef.current?.click()} style={{
+              display:"flex", alignItems:"center", gap:6, padding:"6px 14px", borderRadius:99,
+              border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.04)",
+              backdropFilter:"blur(8px)", color:"rgba(255,255,255,0.4)", fontSize:11.5, fontWeight:500,
+              cursor:"pointer", transition:"all 0.15s", letterSpacing:"0.02em",
+            }}>
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" style={{ width:12, height:12 }}>
+                <path d="M2 12V4a1 1 0 011-1h6l3 3v6a1 1 0 01-1 1H3a1 1 0 01-1-1z"/><path d="M9 3v3h3"/>
+              </svg>
+              {attachedFile ? attachedFile.name.slice(0, 20) + (attachedFile.name.length > 20 ? "…" : "") : "Attach file"}
+            </button>
+            {attachedFile && (
+              <button onClick={() => { setAttachedFile(null); attachedFileRef.current = null; }} style={{ width:20, height:20, borderRadius:"50%", border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.05)", color:"rgba(255,255,255,0.4)", cursor:"pointer", fontSize:11, display:"flex", alignItems:"center", justifyContent:"center" }}>×</button>
             )}
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
