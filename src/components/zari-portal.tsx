@@ -2193,7 +2193,7 @@ function ZariLiveMode({
   }
 
   /* ── Continuous speech recognition — stays open, no tapping ── */
-  function startListening() {
+  async function startListening() {
     if (!aliveRef.current || liveStateRef.current !== "idle") return;
 
     const SpeechRec = (typeof window !== "undefined")
@@ -2205,6 +2205,24 @@ function ZariLiveMode({
       setLiveState("idle");
       setStatusText("Use Chrome or Edge for live voice");
       return;
+    }
+
+    // getUserMedia forces Chrome to show its permission popup on any HTTPS origin.
+    // SpeechRecognition.start() silently fires not-allowed on new preview URLs without a popup.
+    if (typeof navigator !== "undefined" && navigator.mediaDevices?.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach(t => t.stop());
+      } catch (err) {
+        if (!aliveRef.current) return;
+        const denied = err instanceof Error && (err.name === "NotAllowedError" || err.name === "PermissionDeniedError" || err.name === "SecurityError");
+        autoLoopRef.current = false;
+        setLiveState("idle");
+        setMicBlocked(denied);
+        setStatusText(denied ? "Microphone blocked — see instructions below" : "Microphone unavailable");
+        setInterimText("");
+        return;
+      }
     }
 
     const rec = new SpeechRec();
@@ -2411,10 +2429,11 @@ function ZariLiveMode({
       {micBlocked && (
         <div style={{ position:"relative", zIndex:1, maxWidth:380, margin:"12px 20px 0", padding:"18px 20px", borderRadius:12, background:"rgba(239,68,68,0.12)", border:"1px solid rgba(239,68,68,0.28)", textAlign:"left" }}>
           <p style={{ color:"#FCA5A5", fontWeight:700, fontSize:13, margin:"0 0 8px", letterSpacing:"0.01em" }}>Microphone access is blocked</p>
-          <p style={{ color:"#C8D0E0", fontSize:12, margin:"0 0 10px", lineHeight:1.6 }}>Chrome denied access without asking. To fix:</p>
+          <p style={{ color:"#C8D0E0", fontSize:12, margin:"0 0 10px", lineHeight:1.6 }}>To fix this in Chrome:</p>
           <ol style={{ color:"#C8D0E0", fontSize:12, margin:0, paddingLeft:18, lineHeight:2 }}>
-            <li>Click the <strong style={{ color:"white" }}>lock icon</strong> in your address bar (left of the URL)</li>
-            <li>Find <strong style={{ color:"white" }}>Microphone</strong> and set it to <strong style={{ color:"white" }}>Allow</strong></li>
+            <li>Click the <strong style={{ color:"white" }}>lock icon</strong> in the address bar (left of the URL)</li>
+            <li>Click <strong style={{ color:"white" }}>Site settings</strong></li>
+            <li>Find <strong style={{ color:"white" }}>Microphone</strong> and change it to <strong style={{ color:"white" }}>Allow</strong></li>
             <li>Reload the page and tap the mic again</li>
           </ol>
           <button onClick={() => { setMicBlocked(false); autoLoopRef.current = false; setStarted(false); }} style={{ marginTop:10, fontSize:11, color:"rgba(255,255,255,0.5)", background:"none", border:"none", cursor:"pointer", padding:0, textDecoration:"underline" }}>Dismiss</button>
