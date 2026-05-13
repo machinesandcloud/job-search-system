@@ -66,12 +66,19 @@ ${keywordBlock}
 ${issueBlock}
 
 POWER OPTIMIZATION GOALS:
-1. Fix every critical finding, warning, and word problem above
+1. Fix every critical finding, warning, and word problem above — CRITICAL FINDINGS OVERRIDE THE SOURCE
 2. Inject all missing keywords naturally — required keywords must appear at least once
 3. Completely rewrite the summary — lead with the JD's top requirement
-4. Rebuild skills — JD-required first, 5–6 categories
+4. Rebuild skills from scratch — JD-required first, 5–6 categories, relevant to candidate's actual domain
 5. Fully rewrite bullets for the 2 most recent roles: Verb + Context + Real Impact
 6. Improve older role bullets using WORD PROBLEMS list above
+
+CRITICAL FINDINGS ARE MANDATORY — NOT OPTIONAL:
+If a critical finding says skills contain unrelated keywords (e.g. "Technology Strategy", "Cybersecurity",
+"Cloud environments" for a lab/public health candidate) → REMOVE those skills entirely. Do not carry
+forward content from the source resume that has been flagged as damaging.
+If a critical finding calls out passive voice, weak verbs, missing metrics → fix each affected bullet.
+NEVER copy a flagged problem from the source just because it was there originally.
 
 STRICT PRESERVATION:
 - All company names (exact spelling and casing — never all-caps a mixed-case brand)

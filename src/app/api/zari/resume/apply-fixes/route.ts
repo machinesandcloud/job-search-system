@@ -67,11 +67,18 @@ ${keywordBlock}
 ${issueBlock}
 
 YOUR JOB:
-1. Fix every critical finding, warning, and word problem above
+1. Fix every critical finding, warning, and word problem above — CRITICAL FINDINGS OVERRIDE THE SOURCE
 2. Inject all missing keywords naturally
 3. Preserve exact company names, job titles, dates, education, certifications
 4. Do not invent metrics — use only numbers present in the original resume
 5. Keep experience in reverse chronological order
+
+CRITICAL FINDINGS ARE MANDATORY — NOT SUGGESTIONS:
+If a critical finding says skills contain unrelated keywords (e.g. "Technology Strategy", "Cybersecurity",
+"Cloud environments" for a lab candidate) → REMOVE those specific skills from the output even if they
+appear in the source resume. The analysis has identified them as damaging to the candidate's credibility.
+If a critical finding says passive voice, weak verbs, missing metrics, etc. → fix those bullets.
+Do NOT copy problem content from the source just because it was there originally.
 
 LANGUAGE RULES:
 Match language to the candidate's actual background level.
