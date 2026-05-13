@@ -1995,7 +1995,7 @@ function ZariLiveMode({
     }).catch(() => {});
   }, []);
 
-  type SR = { continuous: boolean; interimResults: boolean; lang: string; start(): void; stop(): void; onresult: ((e: { results: { length: number; [i: number]: { isFinal: boolean; [j: number]: { transcript: string } } } }) => void) | null; onerror: (() => void) | null; onend: (() => void) | null };
+  type SR = { continuous: boolean; interimResults: boolean; lang: string; start(): void; stop(): void; onresult: ((e: { results: { length: number; [i: number]: { isFinal: boolean; [j: number]: { transcript: string } } } }) => void) | null; onerror: ((e: { error: string }) => void) | null; onend: (() => void) | null };
   const audioCtxRef     = useRef<AudioContext | null>(null);
   const sourceNodeRef   = useRef<AudioBufferSourceNode | null>(null);
   const newMsgsRef      = useRef<ChatMsg[]>([]);
@@ -2229,9 +2229,25 @@ function ZariLiveMode({
         setInterimText(text);
       }
     };
-    rec.onerror = () => {
+    rec.onerror = (e: { error: string }) => {
       liveStateRef.current = "idle";
-      if (aliveRef.current) { setLiveState("idle"); setStatusText("Your turn…"); setInterimText(""); }
+      if (!aliveRef.current) return;
+      const err = e?.error ?? "";
+      if (err === "not-allowed" || err === "audio-capture" || err === "service-not-allowed") {
+        // Fatal: mic blocked or unavailable — stop the loop and tell the user
+        autoLoopRef.current = false;
+        setLiveState("idle");
+        setStatusText(err === "not-allowed" ? "Microphone blocked — check browser permissions" : "Microphone unavailable");
+        setInterimText("");
+      } else {
+        // Retryable: no-speech, network, aborted, etc. — keep the loop alive
+        setLiveState("idle");
+        setStatusText("Your turn…");
+        setInterimText("");
+        if (autoLoopRef.current) {
+          setTimeout(() => { if (aliveRef.current && autoLoopRef.current) void startListening(); }, 400);
+        }
+      }
     };
     rec.onend = () => {
       setInterimText("");
