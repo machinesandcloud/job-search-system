@@ -9329,11 +9329,10 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:12,height:12 }}><path d="M10 3L5 8l5 5"/></svg>
               New review
             </button>
-            <button onClick={()=>void silentReanalyze(resumeText)} disabled={reanalyzing} title="Re-run the AI analysis on the current resume" style={{ display:"flex", alignItems:"center", gap:5, fontSize:12, fontWeight:600, color: reanalyzing?"var(--z-text3)":"#2563EB", background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderRadius:8, padding:"6px 12px", cursor: reanalyzing?"default":"pointer", opacity: reanalyzing?0.7:1 }}>
-              {reanalyzing
-                ? <><span style={{ width:8,height:8,borderRadius:"50%",background:"#2563EB",display:"inline-block",animation:"dot-bounce 1.2s ease-in-out infinite" }}/> Re-analyzing…</>
-                : <><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:12,height:12 }}><path d="M13.5 6A6 6 0 1 0 12 11"/><path d="M13.5 2v4h-4"/></svg> Re-analyze</>
-              }
+            <input ref={fileInputRef} type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleFile(f); e.target.value=""; }}/>
+            <button onClick={()=>fileInputRef.current?.click()} title="Upload your updated resume to re-analyze" style={{ display:"flex", alignItems:"center", gap:5, fontSize:12, fontWeight:600, color:"#2563EB", background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderRadius:8, padding:"6px 12px", cursor:"pointer" }}>
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:12,height:12 }}><path d="M13.5 6A6 6 0 1 0 12 11"/><path d="M13.5 2v4h-4"/></svg>
+              Re-analyze
             </button>
             <div>
               <span style={{ fontSize:14, fontWeight:800, color:"var(--z-text)" }}>{fileName || "Resume"}</span>
