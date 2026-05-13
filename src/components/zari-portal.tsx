@@ -2133,9 +2133,9 @@ function ZariLiveMode({
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buf = "";
-      // Early-flush: fire TTS 180ms after first token arrives rather than waiting
-      // for full stream — at Groq speed (750 tok/s) the model is usually done by then
-      let flushTimer: ReturnType<typeof setTimeout> | null = null;
+      // Sentence boundary regex: split on . ! ? followed by optional closing punct then whitespace.
+      // Requires whitespace after — prevents splitting on "3.5 million" mid-token.
+      const SENTENCE_RE = /[.!?][)'"»]?\s+/;
       outer: while (aliveRef.current) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -2147,27 +2147,18 @@ function ZariLiveMode({
           try {
             type C = { choices?: Array<{ delta?: { content?: string } }> };
             const tok = (JSON.parse(d) as C).choices?.[0]?.delta?.content ?? "";
-            if (tok) {
-              buf += tok;
-              if (!flushTimer && !ttsStarted) {
-                flushTimer = setTimeout(() => {
-                  flushTimer = null;
-                  if (buf.trim() && !ttsStarted) { queueSentence(buf); buf = ""; }
-                }, 180);
-              }
-            }
+            if (tok) buf += tok;
           } catch {}
         }
-        // Also fire immediately on sentence boundary
-        const m = /[.!?][)'"»]?\s+/.exec(buf);
-        if (m) {
-          if (flushTimer) { clearTimeout(flushTimer); flushTimer = null; }
+        // Fire TTS only on a complete sentence boundary — never mid-sentence
+        let m = SENTENCE_RE.exec(buf);
+        while (m) {
           queueSentence(buf.slice(0, m.index + m[0].trimEnd().length));
           buf = buf.slice(m.index + m[0].length);
+          m = SENTENCE_RE.exec(buf);
         }
       }
-      if (flushTimer) { clearTimeout(flushTimer); flushTimer = null; }
-      if (buf.trim()) queueSentence(buf); // flush remainder
+      if (buf.trim()) queueSentence(buf); // flush final fragment (last sentence or no-period response)
     } catch {
       if (aliveRef.current) { setLiveState("idle"); setStatusText("Something went wrong — try again"); }
       return;
@@ -2373,13 +2364,13 @@ function ZariLiveMode({
         {/* Orb */}
         <div style={{ position:"relative", width:210, height:210, flexShrink:0 }}>
           {liveState === "listening" && [0,1,2].map(i => (
-            <div key={i} style={{ position:"absolute", top:"50%", left:"50%", width:226, height:226, borderRadius:"50%", border:`1px solid rgba(6,182,212,${0.5-i*0.14})`, animation:`listen-ripple-v2 ${2.4+i*0.85}s ease-out ${i*0.8}s infinite`, pointerEvents:"none" }}/>
+            <div key={i} style={{ position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)", width:226+i*18, height:226+i*18, borderRadius:"50%", border:`1px solid rgba(6,182,212,${0.52-i*0.14})`, animation:`listen-ripple-v2 ${2.4+i*0.85}s ease-out ${i*0.8}s infinite`, pointerEvents:"none" }}/>
           ))}
           {liveState === "thinking" && (
-            <div style={{ position:"absolute", top:"50%", left:"50%", width:234, height:234, borderRadius:"50%", border:"2px solid transparent", borderTopColor:"rgba(139,92,246,0.85)", borderRightColor:"rgba(139,92,246,0.22)", animation:"spin-arc 1.1s linear infinite", pointerEvents:"none" }}/>
+            <div style={{ position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)", width:234, height:234, borderRadius:"50%", border:"2px solid transparent", borderTopColor:"rgba(139,92,246,0.85)", borderRightColor:"rgba(139,92,246,0.22)", animation:"spin-arc 1.1s linear infinite", pointerEvents:"none" }}/>
           )}
           {liveState === "speaking" && [0,1].map(i => (
-            <div key={i} style={{ position:"absolute", top:"50%", left:"50%", width:226+i*18, height:226+i*18, borderRadius:"50%", border:"1px solid rgba(99,102,241,0.3)", animation:`ring-pulse ${1.8+i*0.6}s ease-out ${i*0.4}s infinite`, pointerEvents:"none" }}/>
+            <div key={i} style={{ position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)", width:226+i*22, height:226+i*22, borderRadius:"50%", border:"1px solid rgba(99,102,241,0.32)", animation:`ring-pulse ${1.8+i*0.6}s ease-out ${i*0.4}s infinite`, pointerEvents:"none" }}/>
           ))}
           <div style={{ position:"absolute", inset:0, borderRadius:"50%", background:orb.gradient, boxShadow:orb.shadow, animation:orb.animation, transition:"background 0.6s ease, box-shadow 0.6s ease" }}/>
         </div>
@@ -2429,12 +2420,14 @@ function ZariLiveMode({
                   maxWidth:"82%", padding:"11px 15px",
                   borderRadius:m.role==="user" ? "18px 4px 18px 18px" : "4px 18px 18px 18px",
                   background: m.role==="user"
-                    ? "rgba(255,255,255,0.10)"
-                    : "rgba(99,102,241,0.30)",
-                  border: `1px solid ${m.role==="user" ? "rgba(255,255,255,0.13)" : "rgba(129,140,248,0.35)"}`,
-                  color:"rgba(255,255,255,0.92)",
+                    ? "rgba(99,102,241,0.55)"
+                    : "rgba(30,27,75,0.75)",
+                  border: `1px solid ${m.role==="user" ? "rgba(165,180,252,0.4)" : "rgba(129,140,248,0.25)"}`,
+                  color:"rgba(255,255,255,0.96)",
                   fontSize:14, lineHeight:1.65,
-                  boxShadow: m.role==="coach" ? "0 2px 20px rgba(99,102,241,0.12)" : "none",
+                  boxShadow: m.role==="user"
+                    ? "0 2px 16px rgba(99,102,241,0.25)"
+                    : "0 2px 16px rgba(0,0,0,0.3)",
                 }}>
                   {m.text.replace(/\{\{GO:[a-z-]+\}\}/g, "").trim()}
                 </div>
@@ -2443,7 +2436,7 @@ function ZariLiveMode({
             {interimText && (
               <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", animation:"bubble-appear 0.15s ease" }}>
                 <span style={{ fontSize:9.5, fontWeight:600, letterSpacing:"0.08em", color:"rgba(255,255,255,0.18)", marginBottom:3, paddingRight:4, textTransform:"uppercase" }}>You</span>
-                <div style={{ maxWidth:"82%", padding:"11px 15px", borderRadius:"18px 4px 18px 18px", background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.09)", color:"rgba(255,255,255,0.45)", fontSize:14, fontStyle:"italic", lineHeight:1.65 }}>
+                <div style={{ maxWidth:"82%", padding:"11px 15px", borderRadius:"18px 4px 18px 18px", background:"rgba(99,102,241,0.28)", border:"1px solid rgba(165,180,252,0.2)", color:"rgba(255,255,255,0.55)", fontSize:14, fontStyle:"italic", lineHeight:1.65 }}>
                   {interimText}
                 </div>
               </div>
