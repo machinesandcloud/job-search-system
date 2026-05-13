@@ -1976,6 +1976,7 @@ function ZariLiveMode({
   const [interimText, setInterimText] = useState("");
   const [statusText, setStatusText] = useState("Tap the mic to start");
   const [started, setStarted]       = useState(false);
+  const [micBlocked, setMicBlocked] = useState(false);
   const [voices, setVoices]         = useState<VoiceOption[]>([]);
   const [activeVoice, setActiveVoice] = useState("");
   const [showAllVoices, setShowAllVoices] = useState(false);
@@ -2237,7 +2238,8 @@ function ZariLiveMode({
         // Fatal: mic blocked or unavailable — stop the loop and tell the user
         autoLoopRef.current = false;
         setLiveState("idle");
-        setStatusText(err === "not-allowed" ? "Microphone blocked — check browser permissions" : "Microphone unavailable");
+        setMicBlocked(err === "not-allowed" || err === "service-not-allowed");
+        setStatusText(err === "not-allowed" || err === "service-not-allowed" ? "Microphone blocked — see instructions below" : "Microphone unavailable");
         setInterimText("");
       } else {
         // Retryable: no-speech, network, aborted, etc. — keep the loop alive
@@ -2404,6 +2406,20 @@ function ZariLiveMode({
           </div>
         )}
       </div>
+
+      {/* Mic permission guide — shown when Chrome silently blocks mic without popup */}
+      {micBlocked && (
+        <div style={{ position:"relative", zIndex:1, maxWidth:380, margin:"12px 20px 0", padding:"18px 20px", borderRadius:12, background:"rgba(239,68,68,0.12)", border:"1px solid rgba(239,68,68,0.28)", textAlign:"left" }}>
+          <p style={{ color:"#FCA5A5", fontWeight:700, fontSize:13, margin:"0 0 8px", letterSpacing:"0.01em" }}>Microphone access is blocked</p>
+          <p style={{ color:"#C8D0E0", fontSize:12, margin:"0 0 10px", lineHeight:1.6 }}>Chrome denied access without asking. To fix:</p>
+          <ol style={{ color:"#C8D0E0", fontSize:12, margin:0, paddingLeft:18, lineHeight:2 }}>
+            <li>Click the <strong style={{ color:"white" }}>lock icon</strong> in your address bar (left of the URL)</li>
+            <li>Find <strong style={{ color:"white" }}>Microphone</strong> and set it to <strong style={{ color:"white" }}>Allow</strong></li>
+            <li>Reload the page and tap the mic again</li>
+          </ol>
+          <button onClick={() => { setMicBlocked(false); autoLoopRef.current = false; setStarted(false); }} style={{ marginTop:10, fontSize:11, color:"rgba(255,255,255,0.5)", background:"none", border:"none", cursor:"pointer", padding:0, textDecoration:"underline" }}>Dismiss</button>
+        </div>
+      )}
 
       {/* Mic button */}
       <div style={{ position:"relative", zIndex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:10, marginTop:18 }}>
@@ -2925,7 +2941,8 @@ function generateResumeHtml(text: string, footerNote = "", showPrintHint = false
 </style>
 </head>
 <body>
-${showPrintHint ? '<div class="no-print" style="background:#FEF3C7;border-bottom:2px solid #F59E0B;padding:9px 16px;font-family:Arial,sans-serif;font-size:11.5px;color:#92400E;text-align:center;line-height:1.4"><strong>To remove headers/footers:</strong> In the print dialog &rarr; More settings &rarr; uncheck &ldquo;Headers and footers&rdquo;</div>' : ""}\n<div id="resume">\n${body}${footer}\n</div>
+${showPrintHint ? `<div class="no-print" id="zari-print-guide" style="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.72);display:flex;align-items:center;justify-content:center;font-family:Arial,sans-serif"><div style="background:#fff;border-radius:14px;padding:30px 34px;max-width:420px;width:90vw;box-shadow:0 24px 80px rgba(0,0,0,0.4);text-align:center"><p style="font-size:18px;font-weight:700;margin:0 0 6px;color:#111">Save Resume as PDF</p><p style="font-size:12.5px;color:#555;margin:0 0 18px;line-height:1.5">Follow these steps to remove the browser header/footer from your PDF:</p><ol style="text-align:left;font-size:13px;color:#222;margin:0 0 22px;padding-left:20px;line-height:2"><li>Click <strong>Print / Save as PDF</strong> below</li><li>Set Destination to <strong>Save as PDF</strong></li><li>Expand <strong>More settings</strong></li><li>Uncheck <strong>Headers and footers</strong></li><li>Click <strong>Save</strong></li></ol><button onclick="document.getElementById('zari-print-guide').style.display='none';window.print()" style="width:100%;padding:13px;background:#2563EB;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:-0.01em">Print / Save as PDF &rarr;</button></div></div>` : ""}
+<div id="resume">\n${body}${footer}\n</div>
 </body>
 </html>`;
 }
@@ -8351,10 +8368,11 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
       if (format === "word") {
         triggerWordDownload(html, filename);
       } else if (printWin) {
+        // For PDF: popup shows a step-by-step guide; user clicks the Print button inside it
         printWin.document.open();
         printWin.document.write(html);
         printWin.document.close();
-        setTimeout(() => { printWin!.print(); }, 500);
+        // No auto-print — the print guide modal inside the HTML has the Print button
       }
     }
 
