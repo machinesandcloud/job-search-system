@@ -3046,9 +3046,10 @@ function renderResumeTemplate(d: ResumeStructuredData, showPrintHint = false): s
 <meta charset="utf-8">
 <title></title>
 <style>
-@page { size: letter; margin: 0.75in 0.80in 0.75in 0.80in; }
+@page { size: letter; margin: 0; }
 *,*::before,*::after{box-sizing:border-box}
 body{font-family:Calibri,Arial,sans-serif;font-size:10.5pt;color:#111;margin:0;padding:0;line-height:1.35}
+#resume{padding:0.75in 0.80in}
 .name{font-size:17pt;font-weight:900;text-transform:uppercase;text-align:center;letter-spacing:0.07em;margin-bottom:3pt}
 .contact{text-align:center;font-size:9.5pt;color:#444;margin-bottom:14pt}
 .section-header{display:flex;align-items:center;font-size:10pt;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#222;margin:13pt 0 5pt;white-space:nowrap}
