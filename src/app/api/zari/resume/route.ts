@@ -173,15 +173,21 @@ ${targetRole ? `Target role: "${targetRole}"` : ""}
 ${jobDescription ? `\nJob description:\n${jobDescription.slice(0, 3000)}` : ""}
 
 WHAT TO DO:
-1. Read the entire JD carefully. Extract the 15-20 most important keywords: job title, required skills, tools, certifications, verb patterns used in responsibilities.
-2. Rank them by importance: required > preferred > responsibilities language > soft skills.
-3. For each critical keyword: does it appear on the resume? Is it backed by real evidence or just listed? Flag every MISSING required keyword as a critical finding.
+1. Read the ENTIRE JD carefully — every sentence. Extract keywords in ALL of these categories:
+   TECHNICAL: specific tools, platforms, languages, frameworks, software, technologies, methodologies explicitly named
+   SOFT SKILLS: collaboration, communication, leadership, project management, stakeholder management, mentoring, etc. named in JD
+   DOMAIN TERMS: industry-specific terminology, domain vocabulary, compliance/regulatory terms, certifications mentioned
+   ROLE TITLES: exact title + common synonyms/levels used in the JD
+   RESPONSIBILITIES LANGUAGE: key action verbs and phrases from the responsibilities section (e.g., "drive adoption", "own the roadmap", "lead cross-functional")
+   Be exhaustive — extract 20-30 total keywords, not just 15. The keyword list is the most important output.
+2. Rank them: required (must-have per JD) > preferred (nice-to-have or mentioned once) > soft skills > domain terms.
+3. For each keyword: apply STRICT matching rules. Mark found=true ONLY if the exact term, a direct well-known abbreviation, or a professionally synonymous term appears explicitly. When in doubt, mark found=false.
 4. Identify the positioning gap: how is the person currently positioned vs. what this role requires? Name it honestly.
 5. Rewrite the summary to lead directly with the top 3 requirements from this JD — make the reader immediately understand why this person fits.
 6. Rewrite top bullets to naturally embed the most important JD keywords alongside real achievements — woven in, not bolted on.
 7. Add keywords ONLY where the person's actual background supports them — never fabricate experience they don't have.
 8. The skills section must include all required technical skills from the JD that the person genuinely has.
-9. Score ATS specifically against this JD — if 8 of 15 required keywords are missing, that is a low ATS score.
+9. Score ATS specifically against this JD — if 8 of 20 required keywords are missing, that is a low ATS score.
 10. If there is a significant repositioning gap (e.g., their current role is quite different from the target), call it out clearly and tell them exactly how to bridge it through framing, language, and emphasis — not by inventing experience.
 ═══════════════════════════════════════════════════════` : `
 ═══ GENERAL MODE: QUALITY CHECK AGAINST UNIVERSAL RESUME STANDARDS ═══
@@ -195,6 +201,13 @@ What to do:
 - Check ATS basics: standard section names, no tables/graphics, keywords in context not just listed
 - Check readability: consistent tense, consistent date format, no wall-of-text bullets
 - Flag the biggest actual problems on this specific resume — name the exact bullet, phrase, or section
+
+FINDINGS IN GENERAL MODE — STRICT RULES:
+- ats_keywords findings are ONLY ALLOWED for: non-standard section headers (e.g. "Toolbox" instead of "Skills"), missing contact fields, ATS-breaking formatting (tables, columns, graphics, headers/footers)
+- ABSOLUTELY FORBIDDEN in general mode: ANY finding that suggests the resume is missing role-specific keywords, executive skills, leadership terminology, technology strategy, or any skill from an imagined job description
+- If a finding starts with "Your resume lacks keywords", "missing [role] skills", "lacks [leadership/technology/executive] terminology" → DELETE IT. There is no JD to compare against.
+- Focus ONLY on universal quality issues: weak verbs, passive voice, missing metrics, summary quality, readability, formatting, date consistency
+- Do NOT assign ats_keywords category to findings about missing role-specific skills in general mode
 ═══════════════════════════════════════════════════════`;
 
   // In general mode: inject context for personalization (name, history) but
@@ -317,8 +330,8 @@ FINDINGS CATEGORY DEFINITIONS (assign the most accurate one):
 - format: tables, graphics, columns, fonts, text boxes that break ATS parsing
 
 KEYWORDS INSTRUCTION: ${hasJobContext
-  ? `Extract the 15-20 most critical keywords from the job description. Apply STRICT matching (see keyword rules above). For a highly mismatched resume (e.g., lab technician applying for CTO), you should have 12-18 keywords marked found=false — that is correct and honest. Required = explicitly stated as required/must-have in JD. Preferred = everything else.`
-  : "Return an empty array [] — no job description provided."}
+  ? `Extract 20-30 keywords from the job description covering ALL skill types: technical tools, soft skills, domain terms, role titles, and responsibilities language. Apply STRICT matching (see keyword rules above). Be thorough on soft skills — "cross-functional collaboration", "stakeholder management", "project management", "written communication", etc. are all real keywords if the JD mentions them. For a highly mismatched resume (e.g., lab technician applying for CTO), you should have 15-25 keywords marked found=false — that is correct and honest. Required = explicitly stated as required/must-have in JD. Preferred = mentioned once, nice-to-have, or in the preferred qualifications section.`
+  : "Return an empty array [] — there is NO job description. Do NOT invent keywords, infer a target role, or populate this array under any circumstances. It MUST be exactly []. Returning any keyword entries in general mode is a critical error."}
 
 BULLETS INSTRUCTION: Score every bullet using the individual bullet scoring rubric above. Include ALL bullets scoring below 72 — this is a complete audit, not a sample. If more than 5 score below 72, return the 5 with the LOWEST oldScore (worst bullets first). Maximum 5. Difficulty: easy = swap verb or add metric placeholder (under 5 min); medium = restructure the core thought; hard = person needs to recall specific numbers not present in the text. Every "before" must be the verbatim text from the resume — do not paraphrase or combine bullets.
 

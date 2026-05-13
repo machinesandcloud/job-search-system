@@ -107,15 +107,13 @@ For executive (VP/C-level only): Led, Directed, Established, Scaled.
 FIELD RULES:
 - name: candidate's full name
 - phone/email/location: exact from original
-- summary: 3–5 sentences, no clichés, lead with strongest qualification for the target role
-  If a pre-computed Summary rewrite is provided above, use it verbatim.
-- skills: 3–6 categories relevant to the candidate's actual domain; items are short phrases, no symbols
+- summary: EXACTLY 5 sentences — no more, no fewer. Structure: (1) Role + years + 2-3 core domain skills. (2) Top technical strength with a specific tool or method. (3) Quantified achievement or measurable impact. (4) Second domain strength or soft skill that makes them effective. (5) Forward-looking sentence tied to the target role or value they bring. No clichés. If a pre-computed Summary rewrite is provided above, use it as the base and expand to 5 full sentences.
+- skills: 5–6 categories relevant to the candidate's actual domain; each category must have 4–7 items (not 2–3). Expand from the source resume — if source has "Cell culture" under Lab Techniques, also add related techniques they likely know based on context. Items are short phrases, no symbols.
   IMPORTANT: Do NOT add technology strategy, cloud environments, cybersecurity, vendor management,
   or enterprise technology into skills unless they explicitly appear in the source resume.
   For lab/biomedical candidates: categories should be things like Laboratory Techniques, Scientific Methods,
   Regulatory & Quality, Public Health, Software & Tools.
-- experience.bullets: 3–5 per role, action verb + context + impact; plain text, no bullet symbols
-  If a pre-computed bullet rewrite is provided above for a bullet, use the rewrite verbatim.
+- experience.bullets: MAXIMUM bullets per role — 5 for the most recent role, 4–5 for the second, 3–4 for older roles. Do NOT reduce bullet count from the source unless a bullet is pure duplicate. If a pre-computed bullet rewrite is provided above for a bullet, use the rewrite verbatim. For any remaining bullets not covered by rewrites, improve them using the word problems and verb rules above.
 - education: exact school name and degree as written in original
 - certifications: IMPORTANT — scan the ENTIRE source resume for any certifications, licenses, or
   compliance credentials (e.g. GMP, BPF, HACCP, ISO, CPR, any professional license). Extract ALL of

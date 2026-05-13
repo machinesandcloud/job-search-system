@@ -124,15 +124,16 @@ VERB GUIDE — follow strictly:
   Executive (VP/C-level ONLY): Led, Directed, Transformed, Established, Scaled.
 
 BULLET COUNT:
-  Most recent role: 5 max
-  Second most recent: 4 max
-  Older roles: 3 max
+  Most recent role: 5 bullets (use all 5)
+  Second most recent: 4–5 bullets
+  Older roles: 3–4 bullets
+  Do NOT drop bullets from the source unless they are pure duplicate.
 
 FIELD RULES:
 - name: candidate's full name
 - phone/email/location: exact from original
-- summary: 4–5 sentences, no clichés (no "results-driven", "passionate", "detail-oriented"), lead with top qualification for the target role
-- skills: 5–6 categories relevant to the candidate's ACTUAL domain; items are short phrases, no symbols
+- summary: EXACTLY 5 sentences — (1) Role + years + 2-3 top skills for this JD. (2) Most relevant technical strength with evidence. (3) Quantified achievement from their actual experience. (4) Second key strength aligned to JD requirements. (5) What they will bring to this specific role. No clichés. Lead with the top JD requirement in sentence 1.
+- skills: 5–6 categories with 4–7 items each. Inject JD-required skills that the candidate genuinely has. Items are short phrases, no symbols.
   CRITICAL: Do NOT inject technology strategy, cloud environments, cybersecurity, vendor management,
   enterprise technology, or digital transformation into skills for lab/biomedical/public health candidates.
   Appropriate categories for lab candidates: Laboratory Techniques, Scientific Methods, Regulatory & Quality,

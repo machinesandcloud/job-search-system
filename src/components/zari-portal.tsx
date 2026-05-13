@@ -2133,13 +2133,41 @@ function ZariLiveMode({
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buf = "";
-      // Sentence boundary regex: split on . ! ? followed by optional closing punct then whitespace.
-      // Requires whitespace after — prevents splitting on "3.5 million" mid-token.
-      const SENTENCE_RE = /[.!?][)'"»]?\s+/;
+      let lineBuf = ""; // carries incomplete SSE lines across chunk boundaries
+      // Negative lookbehind excludes "1. " / "2. " list numbering from being sentence splits.
+      // Requires whitespace after punct — prevents "3.5 million" mid-number splits.
+      const SENTENCE_RE = /(?<!\d)[.!?][)'"»]?\s+/;
+      // Clause fallback: if no sentence boundary and buffer is long, split at , ; :
+      const CLAUSE_RE = /[,;:]\s+/;
+      const MAX_CLAUSE_SPLIT = 320;
+
+      function drainBuf() {
+        let m = SENTENCE_RE.exec(buf);
+        while (m) {
+          queueSentence(buf.slice(0, m.index + m[0].trimEnd().length));
+          buf = buf.slice(m.index + m[0].length);
+          m = SENTENCE_RE.exec(buf);
+        }
+        // If no sentence boundary yet but buf is very long, split at a clause boundary
+        // so TTS starts sooner rather than waiting for a period that may not come
+        if (buf.length > MAX_CLAUSE_SPLIT) {
+          const cm = CLAUSE_RE.exec(buf);
+          if (cm && cm.index > 40) {
+            queueSentence(buf.slice(0, cm.index + cm[0].trimEnd().length));
+            buf = buf.slice(cm.index + cm[0].length);
+          }
+        }
+      }
+
       outer: while (aliveRef.current) {
         const { done, value } = await reader.read();
         if (done) break;
-        for (const line of decoder.decode(value, { stream: true }).split("\n")) {
+        // Merge incomplete line from previous chunk, then split — handles SSE lines
+        // that span two network chunks (avoids JSON.parse failures on partial lines)
+        const rawText = lineBuf + decoder.decode(value, { stream: true });
+        const lines = rawText.split("\n");
+        lineBuf = lines.pop() ?? ""; // last element may be incomplete
+        for (const line of lines) {
           const p = line.trim();
           if (!p.startsWith("data:")) continue;
           const d = p.slice(5).trim();
@@ -2150,12 +2178,17 @@ function ZariLiveMode({
             if (tok) buf += tok;
           } catch {}
         }
-        // Fire TTS only on a complete sentence boundary — never mid-sentence
-        let m = SENTENCE_RE.exec(buf);
-        while (m) {
-          queueSentence(buf.slice(0, m.index + m[0].trimEnd().length));
-          buf = buf.slice(m.index + m[0].length);
-          m = SENTENCE_RE.exec(buf);
+        drainBuf();
+      }
+      // Process any leftover partial SSE line from the last chunk
+      if (lineBuf.trim().startsWith("data:")) {
+        const d = lineBuf.trim().slice(5).trim();
+        if (d && d !== "[DONE]") {
+          try {
+            type C = { choices?: Array<{ delta?: { content?: string } }> };
+            const tok = (JSON.parse(d) as C).choices?.[0]?.delta?.content ?? "";
+            if (tok) buf += tok;
+          } catch {}
         }
       }
       if (buf.trim()) queueSentence(buf); // flush final fragment (last sentence or no-period response)
@@ -2572,6 +2605,7 @@ type ResumeHistoryEntry = {
   id: string; filename: string; submittedAt: string;
   mode: string; targetRole?: string;
   scores: ResumeScores;
+  tailoredScore?: number;
 };
 type MagicWriteMode = "refine"|"describe"|"variations";
 type MagicWriteState = {
@@ -8408,20 +8442,32 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
     const bulletRewrites = (aiResult.bullets ?? []).map(b => ({ before: b.before, after: b.after }));
     const sectionRewrites = (aiResult.rewrittenSections ?? []).map(s => ({ label: s.label, text: s.text }));
 
+    // Pre-apply bullet rewrites via text substitution before the API call —
+    // ensures rewrites land even if the AI misses them due to conflicting instructions
+    let preFixedText = resumeText;
+    for (const b of bulletRewrites) {
+      if (b.before?.trim() && b.after?.trim()) {
+        preFixedText = preFixedText.split(b.before.trim()).join(b.after.trim());
+      }
+    }
+
     try {
       const res = await fetch("/api/zari/resume/apply-fixes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resumeText, targetRole: targetRoleInput, jobDescription, missingKeywords, criticalFindings, warnFindings, wordIssues, bulletRewrites, sectionRewrites }),
+        body: JSON.stringify({ resumeText: preFixedText, targetRole: targetRoleInput, jobDescription, missingKeywords, criticalFindings, warnFindings, wordIssues, bulletRewrites, sectionRewrites }),
       });
       const data = await res.json().catch(() => ({})) as { resumeData?: ResumeStructuredData; error?: string };
       if (data.resumeData) {
         const revisedText = serializeToPlainText(data.resumeData);
         return { html: renderResumeTemplate(data.resumeData, true), revisedText };
       }
-    } catch { /* fall back */ }
-
-    return { html: generateResumeHtml(resumeText, "", true), revisedText: resumeText };
+      // If the API returned an error or null data, surface it rather than silently returning unchanged resume
+      const errMsg = data.error ?? "Apply fixes returned no content — try again.";
+      throw new Error(errMsg);
+    } catch (err) {
+      throw err;
+    }
   }
 
   function downloadReconstructed() {
@@ -8463,8 +8509,6 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
         const { html, revisedText } = await buildRevisedHtml();
         if (!html) { printWin?.close(); return; }
         deliverHtml(html, `${baseName}-revised.html`);
-        // Re-analyze the revised text in background so scores and findings reflect the new version
-        void silentReanalyze(revisedText);
         // Save snapshot in background (best-effort)
         fetch("/api/zari/resume/snapshots", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ type:"revised", label:"Revised Resume", filename: fileName || "resume", resumeText: revisedText, scores: aiResult ? { overall:aiResult.overall, ats:aiResult.ats, impact:aiResult.impact, clarity:aiResult.clarity } : undefined }) }).then(r=>r.json()).then(d=>{ if(d.id) setGenHistory(prev=>([{ id:d.id, type:"revised" as string, label:"Revised", filename: fileName||"resume", resumeText: revisedText, scores: aiResult ? { overall:aiResult.overall, ats:aiResult.ats, impact:aiResult.impact, clarity:aiResult.clarity } : undefined, createdAt:new Date().toISOString() }, ...prev] as typeof prev).slice(0,10)); }).catch(()=>{});
       } catch { setAnalyzeErr("Download failed — try again."); printWin?.close(); }
@@ -8496,8 +8540,6 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
       const optimizedText = serializeToPlainText(data.resumeData);
       const optimizedHtml = renderResumeTemplate(data.resumeData, true);
       deliverHtml(optimizedHtml, `${baseName}-power-optimized.html`);
-      // Re-analyze the optimized text in background so scores and findings reflect the new version
-      void silentReanalyze(optimizedText);
       // Save snapshot in background (best-effort)
       fetch("/api/zari/resume/snapshots", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ type:"power_optimized", label:"Power Optimized", filename: fileName||"resume", resumeText: optimizedText, scores: aiResult ? { overall:aiResult.overall, ats:aiResult.ats, impact:aiResult.impact, clarity:aiResult.clarity } : undefined }) }).then(r=>r.json()).then(d=>{ if(d.id) setGenHistory(prev=>([{ id:d.id, type:"power_optimized" as string, label:"Power Optimized", filename: fileName||"resume", resumeText: optimizedText, scores: aiResult ? { overall:aiResult.overall, ats:aiResult.ats, impact:aiResult.impact, clarity:aiResult.clarity } : undefined, createdAt:new Date().toISOString() }, ...prev] as typeof prev).slice(0,10)); }).catch(()=>{});
     } catch { setAnalyzeErr("Download failed — try again."); printWin?.close(); }
@@ -8691,9 +8733,10 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
 
   async function runAnalysis(text?: string) {
     const textToAnalyze = text ?? resumeText;
-    if (!textToAnalyze.trim()) return;
+    if (!textToAnalyze.trim()) { setStep(aiResult ? "results" : "paste"); return; }
     if (targetedInvalid) {
       setAnalyzeErr("Add a job title or paste a job description first — Zari needs a target to score against.");
+      setStep(aiResult ? "results" : "upload");
       return;
     }
     setAnalyzeErr("");
@@ -8713,6 +8756,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
         } else {
           setAnalyzeErr("Could not reach OpenAI — check your API key at platform.openai.com, then try again.");
         }
+        setStep(aiResult ? "results" : "paste");
         return;
       }
     } catch {
@@ -8751,6 +8795,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
           mode: reviewMode,
           targetRole: targetRoleInput || undefined,
           scores: { overall: data.overall, ats: data.ats, impact: data.impact, clarity: data.clarity },
+          tailoredScore: data.tailoredScore,
         });
         setTimeout(() => { setStep("results"); setResumeViewMode("suggestions"); }, 400);
       } else {
@@ -8777,11 +8822,23 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
       if (data?.overall) {
         setAiResult(data);
         setResumeText(revisedText);
+        // Push the re-analyzed score to history so progress is tracked
+        pushLocalHistory({
+          id: `local_${Date.now()}`,
+          filename: fileName || "resume",
+          submittedAt: new Date().toISOString(),
+          mode: reviewMode,
+          targetRole: targetRoleInput || undefined,
+          scores: { overall: data.overall, ats: data.ats, impact: data.impact, clarity: data.clarity },
+          tailoredScore: data.tailoredScore,
+        });
         try {
           const _rsess = { resumeText: revisedText, fileName: fileName || "resume", aiResult: data, reviewMode, targetRoleInput, careerLevel, savedAt: new Date().toISOString() };
           localStorage.setItem(RESUME_SESSION_KEY, JSON.stringify(_rsess));
           syncKeyToServer(RESUME_SESSION_KEY, _rsess);
         } catch { /* non-fatal */ }
+        // Refresh history display to show new score
+        void fetchHistory();
       }
     } catch { /* silent — don't disrupt the download */ }
     setReanalyzing(false);
@@ -9317,6 +9374,13 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
           </div>
         </div>
 
+        {analyzeErr && (
+          <div style={{ background:"rgba(239,68,68,0.12)", border:"1px solid rgba(239,68,68,0.3)", borderRadius:10, padding:"9px 14px", marginBottom:16, fontSize:13, color:"#FCA5A5", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
+            <span>{analyzeErr}</span>
+            <button onClick={()=>setAnalyzeErr("")} style={{ background:"none", border:"none", color:"#FCA5A5", cursor:"pointer", fontSize:16, lineHeight:1, padding:"0 2px", flexShrink:0 }}>×</button>
+          </div>
+        )}
+
         {/* ══ Hero score card ══ */}
         {(() => {
           const kws   = aiResult?.keywords ?? [];
@@ -9538,9 +9602,9 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
             ["overview","Overview", aiResult ? `${aiResult.findings.filter(f=>f.type!=="ok").length} issues` : ""],
             ["bullets","Line-by-Line", aiResult?.bullets?.length ? `${aiResult.bullets.length} bullets` : ""],
             ["rewrite","AI Rewrites", ""],
-            ...(reviewMode === "targeted" && (aiResult?.keywords?.length ?? 0) > 0
-              ? [["keywords","Keywords", `${(aiResult?.keywords??[]).filter(k=>!k.found).length} missing`]]
-              : []),
+            ["keywords", "Keywords", reviewMode === "targeted" && (aiResult?.keywords?.length ?? 0) > 0
+              ? `${(aiResult?.keywords??[]).filter(k=>!k.found).length} missing`
+              : reviewMode === "targeted" ? "" : ""],
             ["history","History", scoreHistory.length > 0 ? `${scoreHistory.length}` : ""],
           ] as ["overview"|"bullets"|"rewrite"|"keywords"|"history", string, string][]).map(([t, label, badge]) => (
             <button key={t} onClick={()=>setTab(t)} style={{ padding:"12px 22px", border:"none", borderBottom:`2.5px solid ${tab===t?"#2563EB":"transparent"}`, marginBottom:"-2px", background:"transparent", cursor:"pointer", fontSize:14, fontWeight:tab===t?700:500, color:tab===t?"var(--z-text)":"var(--z-text3)", display:"flex", alignItems:"center", gap:6, transition:"color 0.15s", whiteSpace:"nowrap" }}>
@@ -10124,7 +10188,33 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
 
             {/* ══ KEYWORDS TAB ══ */}
             {tab==="keywords" && (() => {
+              // General mode — no JD provided, so no keyword analysis possible
+              if (reviewMode !== "targeted") {
+                return (
+                  <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", textAlign:"center", padding:"60px 32px", gap:16 }}>
+                    <div style={{ width:56, height:56, borderRadius:"50%", background:"rgba(37,99,235,0.1)", border:"1.5px solid rgba(37,99,235,0.25)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      {zIcon("target","#7B9EFF")}
+                    </div>
+                    <p style={{ fontSize:17, fontWeight:800, color:"var(--z-text)", margin:0 }}>Keyword analysis requires a job description</p>
+                    <p style={{ fontSize:13, color:"var(--z-text2)", maxWidth:400, lineHeight:1.6, margin:0 }}>
+                      Switch to <strong>Targeted mode</strong> and paste in the job description. Zari will extract all required and preferred keywords, check which are missing from your resume, and tell you exactly where to add them.
+                    </p>
+                    <button onClick={()=>{ setReviewMode("targeted"); setStep("paste"); }} style={{ marginTop:8, padding:"10px 24px", borderRadius:10, background:"rgba(37,99,235,0.15)", border:"1.5px solid rgba(37,99,235,0.4)", color:"#7B9EFF", fontSize:13, fontWeight:700, cursor:"pointer" }}>
+                      Switch to Targeted Mode →
+                    </button>
+                  </div>
+                );
+              }
+              // Targeted mode — no keywords returned yet (AI returned empty array)
               const kws = aiResult?.keywords ?? [];
+              if (kws.length === 0) {
+                return (
+                  <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", textAlign:"center", padding:"60px 32px", gap:12 }}>
+                    <p style={{ fontSize:15, fontWeight:700, color:"var(--z-text)", margin:0 }}>No keywords extracted yet</p>
+                    <p style={{ fontSize:13, color:"var(--z-text2)", maxWidth:360, lineHeight:1.6, margin:0 }}>Re-analyze with a job description pasted in the Targeted mode field to generate a full keyword gap report.</p>
+                  </div>
+                );
+              }
               const required  = kws.filter(k=>k.importance==="required");
               const preferred = kws.filter(k=>k.importance==="preferred");
               const foundReq  = required.filter(k=>k.found).length;
@@ -10381,7 +10471,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                           <p style={{ fontSize:10, color:g.color, fontWeight:700 }}>{g.label}</p>
                         </div>
                       </div>
-                      <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:6 }}>
+                      <div style={{ display:"grid", gridTemplateColumns:`repeat(${entry.tailoredScore != null ? 4 : 3},1fr)`, gap:6 }}>
                         {(["ats","impact","clarity"] as (keyof ResumeScores)[]).map(key => {
                           const delta = d(key);
                           const dc = delta===null?"#A0AABF":delta>0?"#16A34A":delta<0?"#DC2626":"#A0AABF";
@@ -10395,6 +10485,20 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                             </div>
                           );
                         })}
+                        {entry.tailoredScore != null && (() => {
+                          const prevTailored = scoreHistory[i+1]?.tailoredScore ?? null;
+                          const td = prevTailored != null ? entry.tailoredScore - prevTailored : null;
+                          const tdc = td===null?"#A0AABF":td>0?"#16A34A":td<0?"#DC2626":"#A0AABF";
+                          return (
+                            <div style={{ padding:"6px 8px", background:"rgba(37,99,235,0.08)", borderRadius:8, border:"1px solid rgba(37,99,235,0.25)" }}>
+                              <p style={{ fontSize:9, color:"#7B9EFF", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:2 }}>Job Fit</p>
+                              <div style={{ display:"flex", alignItems:"baseline", gap:5 }}>
+                                <span style={{ fontSize:16, fontWeight:900, color:"var(--z-text)" }}>{entry.tailoredScore}</span>
+                                {td!==null && td!==0 && <span style={{ fontSize:10, fontWeight:700, color:tdc }}>{td>0?"+":""}{td}</span>}
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
                     </div>
                   );
@@ -13172,6 +13276,38 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
     fetch("/api/zari/linkedin/snapshots").then(r=>r.json()).then((d:{snapshots?:LISnap[]}) => { if (d.snapshots) setLiHistory(d.snapshots); }).catch(()=>{});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // On mount: if _liSaved was null (server sync previously failed), fetch server state directly.
+  // Screens only render after hydration, so localStorage is already populated from server when this runs.
+  // This is a belt-and-suspenders catch for when that hydration missed this key.
+  useEffect(() => {
+    if (result) return; // already restored from _liSaved at useState init
+    const local = lsGet<LISaved>(LI_KEY);
+    if (local?.result) {
+      // localStorage has it — useState just didn't pick it up (e.g. StrictMode double-render edge case)
+      setHeadline(local.headline ?? ""); setSummary(local.summary ?? "");
+      setExperienceJobs(local.experienceJobs ?? []); setEducation(local.education ?? "");
+      setSkills(local.skills ?? ""); setLinkedinUrl(local.linkedinUrl ?? "");
+      setHasPhoto(local.hasPhoto ?? false); setTargetRole(local.targetRole ?? "");
+      setResult(local.result); setInputMode(false); setLISection("score");
+      return;
+    }
+    // localStorage empty — try fetching server state directly (handles case where syncKeyToServer failed)
+    fetch("/api/portal/state")
+      .then(r => r.ok ? r.json() : null)
+      .then((serverState: Record<string, unknown> | null) => {
+        if (!serverState) return;
+        const d = serverState[LI_KEY] as LISaved | undefined;
+        if (!d?.result) return;
+        try { localStorage.setItem(LI_KEY, JSON.stringify(d)); } catch {}
+        setHeadline(d.headline ?? ""); setSummary(d.summary ?? "");
+        setExperienceJobs(d.experienceJobs ?? []); setEducation(d.education ?? "");
+        setSkills(d.skills ?? ""); setLinkedinUrl(d.linkedinUrl ?? "");
+        setHasPhoto(d.hasPhoto ?? false); setTargetRole(d.targetRole ?? "");
+        setResult(d.result); setInputMode(false); setLISection("score");
+      })
+      .catch(() => {});
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // On stage change: restore session for new stage or reset
   useEffect(() => {
     const saved = lsGet<LISaved>(`zari_li_session_v1_${stage}`);
@@ -13188,10 +13324,10 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
     }
   }, [stage]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Restore previous LinkedIn session when server state syncs on login
+  // Restore from zari-state-synced event (handles cases where this component mounted
+  // before the global hydration event fired, which can happen with fast server responses)
   useEffect(() => {
     const onSynced = () => {
-      if (result) return;
       const saved = lsGet<LISaved>(LI_KEY);
       if (!saved?.result) return;
       setHeadline(saved.headline ?? ""); setSummary(saved.summary ?? "");
@@ -13202,7 +13338,21 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
     };
     window.addEventListener("zari-state-synced", onSynced);
     return () => window.removeEventListener("zari-state-synced", onSynced);
-  }, [result]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Last-resort: if result is still missing after history loads, restore from latest snapshot
+  useEffect(() => {
+    if (result || liHistory.length === 0) return;
+    const latest = liHistory[0];
+    if (!latest.resultJson) return;
+    try {
+      const parsed = JSON.parse(latest.resultJson) as LinkedInResult;
+      if (!parsed) return;
+      setResult(parsed); setInputMode(false); setLISection("score");
+      setTargetRole(latest.targetRole ?? "");
+      if (latest.headline) setHeadline(latest.headline);
+    } catch {}
+  }, [liHistory]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function parseAndAnalyze(file: File) {
     if (parseLoading) return;
@@ -13241,7 +13391,11 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
         setSkills(parsed.skills); setLinkedinUrl(parsed.linkedinUrl);
         setHasPhoto(parsed.hasPhoto);
         setResult(reviewData); setInputMode(false); setLISection("score");
-        lsSet(`zari_li_session_v1_${stage}`, { headline: parsed.headline, summary: parsed.summary, experienceJobs: parsed.experienceJobs ?? [], education: parsed.education, skills: parsed.skills, linkedinUrl: parsed.linkedinUrl, hasPhoto: parsed.hasPhoto, targetRole, result: reviewData });
+        const liSessionData = { headline: parsed.headline, summary: parsed.summary, experienceJobs: parsed.experienceJobs ?? [], education: parsed.education, skills: parsed.skills, linkedinUrl: parsed.linkedinUrl, hasPhoto: parsed.hasPhoto, targetRole, result: reviewData };
+        lsSet(`zari_li_session_v1_${stage}`, liSessionData);
+        // Belt-and-suspenders: explicit server save so data persists across logins even if lsSet's
+        // fire-and-forget sync fails (e.g. session expired at the moment of the lsSet call)
+        fetch("/api/portal/state", { method:"PUT", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ key:`zari_li_session_v1_${stage}`, data: liSessionData }) }).catch(()=>{});
         // Save to doc vault
         vaultSave({ type:"linkedin", name:parsed.headline||"LinkedIn Profile", content:[parsed.headline,parsed.summary].join("\n\n"), meta:{ score:String(reviewData.overall??0), headline:parsed.headline||"", targetRole, stage } });
         // Save to LinkedIn snapshot history
