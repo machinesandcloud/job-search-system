@@ -48,3 +48,4 @@ next-env.d.ts
 # MCP server
 mcp/zoho-crm-server/node_modules
 mcp/zoho-crm-server/dist
+mcp/zoho-crm-server/zoho-config.json
