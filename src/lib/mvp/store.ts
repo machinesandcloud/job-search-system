@@ -611,6 +611,7 @@ export type LinkedInSnapshotRecord = {
   targetRole: string;
   stage: string;
   resultJson: string;
+  profileJson?: string;  // optional, stores {name, summary, experienceJobs}
   createdAt: string;
 };
 
@@ -623,6 +624,7 @@ export async function saveLinkedInSnapshot(
     targetRole: string;
     stage: string;
     resultJson: string;
+    profileJson?: string;
   },
 ): Promise<LinkedInSnapshotRecord> {
   const record: LinkedInSnapshotRecord = {

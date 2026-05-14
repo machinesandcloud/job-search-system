@@ -24,6 +24,7 @@ export async function POST(request: Request) {
     targetRole?: string;
     stage?: string;
     resultJson?: string;
+    profileJson?: string;
   };
 
   if (!body.resultJson) {
@@ -37,6 +38,7 @@ export async function POST(request: Request) {
     targetRole: body.targetRole || "",
     stage: body.stage || "job-search",
     resultJson: body.resultJson,
+    profileJson: body.profileJson,
   });
 
   return NextResponse.json({ ok: true, id: record.id });

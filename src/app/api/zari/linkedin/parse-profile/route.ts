@@ -19,6 +19,7 @@ export type ParsedJob = {
 };
 
 export type ParsedProfile = {
+  name: string;
   headline: string;
   summary: string;
   experienceJobs: ParsedJob[];
@@ -34,6 +35,7 @@ async function extractSectionsWithAI(rawText: string): Promise<Omit<ParsedProfil
 
 Return ONLY valid JSON matching this exact structure:
 {
+  "name": "<full name from the top of the profile>",
   "headline": "<line directly under their name — job title and key skills>",
   "summary": "<full About/Summary section>",
   "experienceJobs": [
@@ -51,6 +53,7 @@ Return ONLY valid JSON matching this exact structure:
 }
 
 Rules:
+- Extract the full name from the top of the profile — usually the first line
 - Return up to 8 most recent jobs in experienceJobs (most recent first)
 - Each job must have its bullets/description separated, NOT concatenated across jobs
 - If a section is absent return empty string or empty array

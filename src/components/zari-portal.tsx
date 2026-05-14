@@ -13244,7 +13244,7 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
   if (stage === "salary")    return <FeatureGate featureName="zari_market_intel"><ScreenSalaryMarketIntel /></FeatureGate>;
 
   type LINav = "score"|"headline"|"summary"|"experience"|"education"|"other"|"networking"|"keywords";
-  type LISaved = { headline: string; summary: string; experienceJobs: ParsedJob[]; education: string; skills: string; linkedinUrl: string; hasPhoto: boolean; targetRole: string; result: LinkedInResult | null };
+  type LISaved = { name?: string; headline: string; summary: string; experienceJobs: ParsedJob[]; education: string; skills: string; linkedinUrl: string; hasPhoto: boolean; targetRole: string; result: LinkedInResult | null };
   const LI_KEY = `zari_li_session_v1_${stage}`;
   const _liSaved = lsGet<LISaved>(LI_KEY);
   const [liSection,      setLISection]      = useState<LINav>("score");
@@ -13253,6 +13253,7 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
   const [dragOver,       setDragOver]       = useState(false);
   const [parseLoading,   setParseLoading]   = useState(false);
   const [loadingMsg,     setLoadingMsg]     = useState("");
+  const [liName,         setLiName]         = useState(_liSaved?.name ?? "");
   const [headline,       setHeadline]       = useState(_liSaved?.headline ?? "");
   const [summary,        setSummary]        = useState(_liSaved?.summary ?? "");
   const [experienceJobs, setExperienceJobs] = useState<ParsedJob[]>(_liSaved?.experienceJobs ?? []);
@@ -13267,7 +13268,7 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
   const [aboutExpanded, setAboutExpanded] = useState(false);
   const [jobsExpanded, setJobsExpanded] = useState<Record<number,boolean>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
-  type LISnap = { id:string; label:string; headline:string; overallScore:number; targetRole:string; stage:string; resultJson:string; createdAt:string };
+  type LISnap = { id:string; label:string; headline:string; overallScore:number; targetRole:string; stage:string; resultJson:string; profileJson?:string; createdAt:string };
   const [liHistory,  setLiHistory]  = useState<LISnap[]>([]);
   const [liMainTab,  setLiMainTab]  = useState<"review"|"history">("review");
 
@@ -13284,7 +13285,7 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
     const local = lsGet<LISaved>(LI_KEY);
     if (local?.result) {
       // localStorage has it — useState just didn't pick it up (e.g. StrictMode double-render edge case)
-      setHeadline(local.headline ?? ""); setSummary(local.summary ?? "");
+      setLiName(local.name ?? ""); setHeadline(local.headline ?? ""); setSummary(local.summary ?? "");
       setExperienceJobs(local.experienceJobs ?? []); setEducation(local.education ?? "");
       setSkills(local.skills ?? ""); setLinkedinUrl(local.linkedinUrl ?? "");
       setHasPhoto(local.hasPhoto ?? false); setTargetRole(local.targetRole ?? "");
@@ -13299,7 +13300,7 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
         const d = serverState[LI_KEY] as LISaved | undefined;
         if (!d?.result) return;
         try { localStorage.setItem(LI_KEY, JSON.stringify(d)); } catch {}
-        setHeadline(d.headline ?? ""); setSummary(d.summary ?? "");
+        setLiName(d.name ?? ""); setHeadline(d.headline ?? ""); setSummary(d.summary ?? "");
         setExperienceJobs(d.experienceJobs ?? []); setEducation(d.education ?? "");
         setSkills(d.skills ?? ""); setLinkedinUrl(d.linkedinUrl ?? "");
         setHasPhoto(d.hasPhoto ?? false); setTargetRole(d.targetRole ?? "");
@@ -13312,14 +13313,14 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
   useEffect(() => {
     const saved = lsGet<LISaved>(`zari_li_session_v1_${stage}`);
     if (saved?.result) {
-      setHeadline(saved.headline ?? ""); setSummary(saved.summary ?? "");
+      setLiName(saved.name ?? ""); setHeadline(saved.headline ?? ""); setSummary(saved.summary ?? "");
       setExperienceJobs(saved.experienceJobs ?? []); setEducation(saved.education ?? "");
       setSkills(saved.skills ?? ""); setLinkedinUrl(saved.linkedinUrl ?? "");
       setHasPhoto(saved.hasPhoto ?? false); setTargetRole(saved.targetRole ?? "");
       setResult(saved.result); setInputMode(false); setLISection("score");
     } else {
       setInputMode(true); setResult(null); setTargetRole(""); setDragOver(false);
-      setHeadline(""); setSummary(""); setExperienceJobs([]); setEducation("");
+      setLiName(""); setHeadline(""); setSummary(""); setExperienceJobs([]); setEducation("");
       setSkills(""); setLinkedinUrl(""); setHasPhoto(false); setErr("");
     }
   }, [stage]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -13330,7 +13331,7 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
     const onSynced = () => {
       const saved = lsGet<LISaved>(LI_KEY);
       if (!saved?.result) return;
-      setHeadline(saved.headline ?? ""); setSummary(saved.summary ?? "");
+      setLiName(saved.name ?? ""); setHeadline(saved.headline ?? ""); setSummary(saved.summary ?? "");
       setExperienceJobs(saved.experienceJobs ?? []); setEducation(saved.education ?? "");
       setSkills(saved.skills ?? ""); setLinkedinUrl(saved.linkedinUrl ?? "");
       setHasPhoto(saved.hasPhoto ?? false); setTargetRole(saved.targetRole ?? "");
@@ -13351,6 +13352,13 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
       setResult(parsed); setInputMode(false); setLISection("score");
       setTargetRole(latest.targetRole ?? "");
       if (latest.headline) setHeadline(latest.headline);
+      // Restore profile text if snapshot has it (newer snapshots include profileJson)
+      if (latest.profileJson) {
+        const pj = JSON.parse(latest.profileJson) as { name?:string; summary?:string; experienceJobs?:ParsedJob[] };
+        if (pj.name) setLiName(pj.name);
+        if (pj.summary) setSummary(pj.summary);
+        if (pj.experienceJobs?.length) setExperienceJobs(pj.experienceJobs);
+      }
     } catch {}
   }, [liHistory]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -13367,7 +13375,7 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
         const msg = pd?.error ?? `Upload failed (HTTP ${pr.status}). Try again or check your PDF.`;
         setErr(msg); setParseLoading(false); return;
       }
-      const parsed = pd as { headline:string; summary:string; experienceJobs:ParsedJob[]; education:string; skills:string; linkedinUrl:string; hasPhoto:boolean; recommendations:string };
+      const parsed = pd as { name:string; headline:string; summary:string; experienceJobs:ParsedJob[]; education:string; skills:string; linkedinUrl:string; hasPhoto:boolean; recommendations:string };
 
       setLoadingMsg("Analyzing your profile…");
       const reviewRes = await fetch("/api/zari/linkedin/review", {
@@ -13386,20 +13394,20 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
       });
       const reviewData = await reviewRes.json().catch(() => null) as (LinkedInResult & { error?: string }) | null;
       if (reviewData && (reviewData.headline || reviewData.summary)) {
-        setHeadline(parsed.headline); setSummary(parsed.summary);
+        setLiName(parsed.name ?? ""); setHeadline(parsed.headline); setSummary(parsed.summary);
         setExperienceJobs(parsed.experienceJobs ?? []); setEducation(parsed.education);
         setSkills(parsed.skills); setLinkedinUrl(parsed.linkedinUrl);
         setHasPhoto(parsed.hasPhoto);
         setResult(reviewData); setInputMode(false); setLISection("score");
-        const liSessionData = { headline: parsed.headline, summary: parsed.summary, experienceJobs: parsed.experienceJobs ?? [], education: parsed.education, skills: parsed.skills, linkedinUrl: parsed.linkedinUrl, hasPhoto: parsed.hasPhoto, targetRole, result: reviewData };
+        const liSessionData = { name: parsed.name ?? "", headline: parsed.headline, summary: parsed.summary, experienceJobs: parsed.experienceJobs ?? [], education: parsed.education, skills: parsed.skills, linkedinUrl: parsed.linkedinUrl, hasPhoto: parsed.hasPhoto, targetRole, result: reviewData };
         lsSet(`zari_li_session_v1_${stage}`, liSessionData);
         // Belt-and-suspenders: explicit server save so data persists across logins even if lsSet's
         // fire-and-forget sync fails (e.g. session expired at the moment of the lsSet call)
         fetch("/api/portal/state", { method:"PUT", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ key:`zari_li_session_v1_${stage}`, data: liSessionData }) }).catch(()=>{});
         // Save to doc vault
         vaultSave({ type:"linkedin", name:parsed.headline||"LinkedIn Profile", content:[parsed.headline,parsed.summary].join("\n\n"), meta:{ score:String(reviewData.overall??0), headline:parsed.headline||"", targetRole, stage } });
-        // Save to LinkedIn snapshot history
-        const liSnapPayload = { label: parsed.headline || "LinkedIn Profile", headline: parsed.headline || "", overallScore: reviewData.overall ?? 0, targetRole, stage, resultJson: JSON.stringify(reviewData) };
+        // Save to LinkedIn snapshot history — include profileJson so history restores can show full preview
+        const liSnapPayload = { label: parsed.headline || "LinkedIn Profile", headline: parsed.headline || "", overallScore: reviewData.overall ?? 0, targetRole, stage, resultJson: JSON.stringify(reviewData), profileJson: JSON.stringify({ name: parsed.name ?? "", summary: parsed.summary, experienceJobs: parsed.experienceJobs ?? [] }) };
         fetch("/api/zari/linkedin/snapshots", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(liSnapPayload) }).then(r=>r.json()).then((d:{id?:string}) => { if (d.id) setLiHistory(prev => ([{ id:d.id!, ...liSnapPayload, createdAt: new Date().toISOString() }, ...prev].slice(0,10))); }).catch(()=>{});
       } else {
         setErr(reviewData?.error ?? `Analysis failed (HTTP ${reviewRes.status}) — try again.`);
@@ -13738,7 +13746,17 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
                               try {
                                 const parsed = JSON.parse(snap.resultJson) as LinkedInResult;
                                 setResult(parsed); setLiMainTab("review"); setLISection("score"); setInputMode(false);
-                                lsSet(`zari_li_session_v1_${stage}`, { headline: snap.headline, summary:"", experienceJobs:[], education:"", skills:"", linkedinUrl:"", hasPhoto:false, targetRole: snap.targetRole, result: parsed });
+                                setHeadline(snap.headline);
+                                // Restore profile text from profileJson if available (newer snapshots)
+                                let restoredName = ""; let restoredSummary = ""; let restoredJobs: ParsedJob[] = [];
+                                if (snap.profileJson) {
+                                  try {
+                                    const pj = JSON.parse(snap.profileJson) as { name?:string; summary?:string; experienceJobs?:ParsedJob[] };
+                                    restoredName = pj.name ?? ""; restoredSummary = pj.summary ?? ""; restoredJobs = pj.experienceJobs ?? [];
+                                  } catch {}
+                                }
+                                setLiName(restoredName); setSummary(restoredSummary); setExperienceJobs(restoredJobs);
+                                lsSet(`zari_li_session_v1_${stage}`, { name: restoredName, headline: snap.headline, summary: restoredSummary, experienceJobs: restoredJobs, education:"", skills:"", linkedinUrl:"", hasPhoto:false, targetRole: snap.targetRole, result: parsed });
                               } catch { /* ignore */ }
                             }}
                             style={{ fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:9, border:`1px solid ${sColor}`, background:sBg, color:sColor, cursor:"pointer" }}>
@@ -14244,7 +14262,7 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
                   : <svg viewBox="0 0 24 24" fill="#CBD5E1" style={{width:22,height:22}}><path d="M12 12c2.67 0 4.8-2.13 4.8-4.8S14.67 2.4 12 2.4 7.2 4.53 7.2 7.2 9.33 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
                 }
               </div>
-              <p style={{ fontSize:13, fontWeight:800, color:"var(--z-text)", marginBottom:4 }}>Your Name</p>
+              <p style={{ fontSize:13, fontWeight:800, color:"var(--z-text)", marginBottom:4 }}>{liName || "Your Name"}</p>
               <p style={{ fontSize:11.5, color:"var(--z-text2)", lineHeight:1.55, marginBottom:hasPhoto?0:4 }}>
                 {previewTab==="current"
                   ? (headline || <span style={{color:"#CBD5E1",fontStyle:"italic"}}>Headline will appear here</span>)
@@ -17214,9 +17232,78 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
   const paymentIssueStatuses = ["past_due", "unpaid", "incomplete", "incomplete_expired"];
   const hasPaymentIssue = !isOperatorViewer && viewer.subscriptionStatus != null && paymentIssueStatuses.includes(viewer.subscriptionStatus);
 
+  // ── Inactivity timeout ──
+  const IDLE_TIMEOUT_MS = 30 * 60 * 1000; // 30 min idle → warning
+  const WARN_DURATION_S = 60;             // 60-second countdown then auto-logout
+  const [idleWarning, setIdleWarning] = useState(false);
+  const [idleCountdown, setIdleCountdown] = useState(WARN_DURATION_S);
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const clearIdleTimers = useCallback(() => {
+    if (idleTimerRef.current) { clearTimeout(idleTimerRef.current); idleTimerRef.current = null; }
+    if (countdownRef.current) { clearInterval(countdownRef.current); countdownRef.current = null; }
+  }, []);
+
+  const resetIdleTimer = useCallback(() => {
+    if (idleWarning) return; // don't reset while warning is showing — user must explicitly confirm
+    clearIdleTimers();
+    idleTimerRef.current = setTimeout(() => {
+      setIdleWarning(true);
+      setIdleCountdown(WARN_DURATION_S);
+      countdownRef.current = setInterval(() => {
+        setIdleCountdown(n => {
+          if (n <= 1) {
+            clearInterval(countdownRef.current!);
+            void fetch("/api/auth/logout", { method:"POST", credentials:"same-origin" }).finally(() => { window.location.assign("/login"); });
+            return 0;
+          }
+          return n - 1;
+        });
+      }, 1000);
+    }, IDLE_TIMEOUT_MS);
+  }, [idleWarning, clearIdleTimers, IDLE_TIMEOUT_MS]);
+
+  useEffect(() => {
+    const events = ["mousemove","keydown","click","scroll","touchstart"] as const;
+    const onActivity = () => resetIdleTimer();
+    events.forEach(e => window.addEventListener(e, onActivity, { passive: true }));
+    resetIdleTimer(); // start timer on mount
+    return () => {
+      events.forEach(e => window.removeEventListener(e, onActivity));
+      clearIdleTimers();
+    };
+  }, [resetIdleTimer, clearIdleTimers]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <BillingContext.Provider value={billingCtx}>
     <div className={isDark?"zari-dark":""} style={{ display:"flex", flexDirection:"column", height:"100vh", overflow:"hidden", background:"var(--z-bg)", fontFamily:"var(--font-geist-sans,Inter,system-ui,sans-serif)", WebkitFontSmoothing:"antialiased", MozOsxFontSmoothing:"grayscale", ...themeVars, backgroundImage: isDark ? "radial-gradient(ellipse 80% 60% at 50% -20%, rgba(37,99,235,0.07) 0%, transparent 100%)" : "none" }}>
+      {/* Inactivity timeout warning modal */}
+      {idleWarning && (
+        <div style={{ position:"fixed", inset:0, zIndex:99998, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(0,0,0,0.6)", backdropFilter:"blur(6px)" }}>
+          <div style={{ background:"var(--z-card)", borderRadius:20, boxShadow:"0 24px 80px rgba(0,0,0,0.35)", padding:"36px 40px", maxWidth:400, width:"100%", textAlign:"center", border:"1px solid var(--z-bd)" }}>
+            <div style={{ width:56, height:56, borderRadius:"50%", background:"rgba(245,158,11,0.12)", border:"2px solid rgba(245,158,11,0.4)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 18px" }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2" style={{ width:26, height:26 }}><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+            <p style={{ fontSize:18, fontWeight:800, color:"var(--z-text)", margin:"0 0 8px", letterSpacing:"-0.02em" }}>Still there?</p>
+            <p style={{ fontSize:13.5, color:"var(--z-text2)", margin:"0 0 20px", lineHeight:1.6 }}>
+              You'll be signed out in <strong style={{ color:"#F59E0B" }}>{idleCountdown}s</strong> due to inactivity.
+            </p>
+            <div style={{ display:"flex", gap:10 }}>
+              <button
+                onClick={() => { void fetch("/api/auth/logout", { method:"POST", credentials:"same-origin" }).finally(() => { window.location.assign("/login"); }); }}
+                style={{ flex:1, fontSize:13.5, fontWeight:600, padding:"11px 16px", borderRadius:11, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>
+                Sign out
+              </button>
+              <button
+                onClick={() => { clearIdleTimers(); setIdleWarning(false); setIdleCountdown(WARN_DURATION_S); resetIdleTimer(); }}
+                style={{ flex:2, fontSize:13.5, fontWeight:700, padding:"11px 16px", borderRadius:11, border:"none", background:"#2563EB", color:"white", cursor:"pointer" }}>
+                Stay signed in
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Upgrade notice modal — shown when user clicks a stage/feature they can't access */}
       {upgradeNotice && (() => {
         const reqPlan = upgradeNotice.requiredPlanId ?? "growth";

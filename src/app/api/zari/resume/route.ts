@@ -107,12 +107,12 @@ BULLET POINT RULES (XYZ formula):
 - Weak verbs to flag as critical: "Responsible for", "Helped", "Assisted", "Participated in", "Worked with", "Supported", "Handled", "Involved in", "Engaged with", "Contributed to"
 - Passive voice to flag: "was responsible", "was tasked", "were deployed", "was involved", "was assigned", "is responsible" — passive voice signals low ownership even with otherwise strong bullets
 - Strong verbs by category:
-  Leadership: Spearheaded, Orchestrated, Directed, Mentored, Championed, Delegated, Recruited, Aligned
+  Leadership: Directed, Mentored, Championed, Delegated, Coordinated, Aligned, Supervised, Facilitated
   Growth: Scaled, Grew, Expanded, Launched, Drove, Boosted, Accelerated, Captured, Generated
   Efficiency: Optimized, Streamlined, Reduced, Cut, Automated, Eliminated, Consolidated, Accelerated
   Engineering/Build: Built, Architected, Engineered, Shipped, Deployed, Designed, Migrated, Integrated
   Analysis: Analyzed, Assessed, Quantified, Identified, Diagnosed, Modeled, Forecasted
-  Strategy: Defined, Established, Implemented, Overhauled, Pioneered, Transformed
+  Strategy: Defined, Established, Implemented, Overhauled, Restructured, Standardized
 - Keep bullets to 1-2 lines max. Wall-of-text bullets get skipped in the 7-second scan.
 
 INDIVIDUAL BULLET SCORING RUBRIC (use when setting oldScore and newScore):
@@ -337,7 +337,7 @@ BULLETS INSTRUCTION: Score every bullet using the individual bullet scoring rubr
 
 QUICK WINS INSTRUCTION: Return exactly 3 quick wins. Rank by: highest improvement to score / least effort. Be ruthlessly specific — name the exact section or bullet. Include the right tab so we can link to it.
 
-WORD ISSUES INSTRUCTION: Scan the full resume text. Report any word or phrase that: (a) appears 3+ times across the resume (repetition), (b) is on the banned-adjective list ("results-driven", "passionate", "detail-oriented", "team player", "go-getter", "dynamic", "motivated", "seasoned", "innovative", "proactive", "thought leader", "synergy", "leverage"), or (c) is a weak verb ("responsible for", "helped", "assisted", "worked with", "supported") used multiple times. Count exact occurrences. Only report real problems — a single use of a weak verb is a bullet issue, not a word issue. A word issue means a systemic pattern.
+WORD ISSUES INSTRUCTION: Scan the full resume text. Report any word or phrase that: (a) appears 3+ times across the resume (repetition), (b) is on the banned-adjective list ("results-driven", "passionate", "detail-oriented", "team player", "go-getter", "dynamic", "motivated", "seasoned", "innovative", "proactive", "thought leader", "synergy", "leverage"), (c) is a weak verb ("responsible for", "helped", "assisted", "worked with", "supported") used multiple times, or (d) is an inflated/overused executive verb ("spearheaded", "orchestrated", "leveraged", "pioneered") that appears — flag these because they read as buzzwords unless the candidate is VP/C-level. Count exact occurrences. Only report real problems — a single use of a weak verb is a bullet issue, not a word issue. A word issue means a systemic pattern. IMPORTANT — When writing the suggestion field: (1) NEVER suggest spearheaded, orchestrated, pioneered, leveraged, visionary, transformed, dynamic, or results-driven as alternatives — these are equally problematic. (2) Suggest only plain strong action verbs from the Strong Verbs list that match the candidate's actual career level.
 
 SECTION SCORES INSTRUCTION: Score each major section found in the resume. If a section is missing, mark present=false and score=0. Verdict must be one specific label, not a full sentence — it's used as a badge.
 
