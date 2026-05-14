@@ -259,7 +259,7 @@ export async function POST(request: Request) {
               stripeCustomerId: typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id,
               stripeSubscriptionId: subscription.id,
               trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
-              currentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : null,
+              currentPeriodEnd: (subscription as unknown as { current_period_end?: number }).current_period_end ? new Date((subscription as unknown as { current_period_end: number }).current_period_end * 1000) : null,
               amount: (price?.unit_amount ?? 0) / 100,
             });
           }
