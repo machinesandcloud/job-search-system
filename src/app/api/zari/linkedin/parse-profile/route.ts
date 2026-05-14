@@ -4,7 +4,7 @@ import { openaiChat } from "@/lib/openai";
 import { ensureSameOrigin } from "@/lib/utils";
 
 export const runtime     = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
 

@@ -4,7 +4,7 @@ import { openaiChat } from "@/lib/openai";
 import { ensureSameOrigin } from "@/lib/utils";
 
 export const runtime     = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 type ExperienceJob = { company: string; title: string; dateRange: string; description: string };
 
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
 
   const headline      = (body.headline    ?? "").trim();
   const summary       = (body.summary     ?? "").trim();
-  const experienceJobs: ExperienceJob[] = (Array.isArray(body.experienceJobs) ? body.experienceJobs : []).slice(0, 5);
+  const experienceJobs: ExperienceJob[] = (Array.isArray(body.experienceJobs) ? body.experienceJobs : []).slice(0, 3);
   const education     = (body.education   ?? "").trim();
   const skills        = (body.skills      ?? "").trim();
   const linkedinUrl   = (body.linkedinUrl ?? "").trim();
@@ -174,8 +174,7 @@ Be specific — quote actual phrases. Generic feedback is useless.`;
     {
       model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
       temperature: 0.25,
-      maxTokens: 5000,
-      // Note: gpt-4o at 5000 tokens takes ~15-20s — do not increase without testing timeout
+      maxTokens: 3200,
       jsonMode: true,
     }
   );

@@ -13544,29 +13544,45 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
       setLoadingMsg("Extracting your profile…");
       const fd = new FormData();
       fd.append("file", file);
-      const pr = await fetch("/api/zari/linkedin/parse-profile", { method:"POST", body:fd });
+      // Retry once on 504 — large PDFs occasionally hit cold-start latency spikes
+      let pr = await fetch("/api/zari/linkedin/parse-profile", { method:"POST", body:fd });
+      if (pr.status === 504) {
+        setLoadingMsg("Taking a moment — retrying…");
+        await new Promise(r => setTimeout(r, 1500));
+        const fd2 = new FormData(); fd2.append("file", file);
+        pr = await fetch("/api/zari/linkedin/parse-profile", { method:"POST", body:fd2 });
+      }
       const pd = await pr.json().catch(() => null);
       if (!pr.ok || !pd || pd.error) {
-        const msg = pd?.error ?? `Upload failed (HTTP ${pr.status}). Try again or check your PDF.`;
+        const msg = pd?.error ?? (pr.status === 504
+          ? "This is taking too long — try a smaller PDF or check your connection and retry."
+          : `Upload failed (HTTP ${pr.status}). Try again or check your PDF.`);
         setErr(msg); setParseLoading(false); return;
       }
       const parsed = pd as { name:string; headline:string; summary:string; experienceJobs:ParsedJob[]; education:string; skills:string; linkedinUrl:string; hasPhoto:boolean; recommendations:string };
 
       setLoadingMsg("Analyzing your profile…");
-      const reviewRes = await fetch("/api/zari/linkedin/review", {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({
-          headline:       parsed.headline,
-          summary:        parsed.summary,
-          experienceJobs: parsed.experienceJobs ?? [],
-          education:      parsed.education,
-          skills:         parsed.skills,
-          linkedinUrl:    parsed.linkedinUrl,
-          hasPhoto:       parsed.hasPhoto,
-          recommendations:parsed.recommendations,
-          targetRole,
-        }),
+      const reviewPayload = JSON.stringify({
+        headline:       parsed.headline,
+        summary:        parsed.summary,
+        experienceJobs: parsed.experienceJobs ?? [],
+        education:      parsed.education,
+        skills:         parsed.skills,
+        linkedinUrl:    parsed.linkedinUrl,
+        hasPhoto:       parsed.hasPhoto,
+        recommendations:parsed.recommendations,
+        targetRole,
       });
+      let reviewRes = await fetch("/api/zari/linkedin/review", {
+        method:"POST", headers:{"Content-Type":"application/json"}, body: reviewPayload,
+      });
+      if (reviewRes.status === 504) {
+        setLoadingMsg("Still working — one more moment…");
+        await new Promise(r => setTimeout(r, 1500));
+        reviewRes = await fetch("/api/zari/linkedin/review", {
+          method:"POST", headers:{"Content-Type":"application/json"}, body: reviewPayload,
+        });
+      }
       const reviewData = await reviewRes.json().catch(() => null) as (LinkedInResult & { error?: string }) | null;
       if (reviewData && (reviewData.headline || reviewData.summary)) {
         setLiName(parsed.name ?? ""); setHeadline(parsed.headline); setSummary(parsed.summary);
