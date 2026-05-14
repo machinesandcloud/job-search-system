@@ -1,5 +1,3 @@
-import axios, { AxiosInstance } from "axios";
-
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type ZohoPlanTier = "Free" | "Search" | "Growth" | "Executive";
@@ -16,18 +14,17 @@ export interface ZohoContact {
   First_Name: string;
   Last_Name: string;
   Email: string;
-  // Askia Coach custom fields
-  Askia_User_Id?: string;
-  Askia_Account_Id?: string;
-  Askia_Plan_Tier?: ZohoPlanTier;
-  Askia_Lifecycle_Stage?: ZohoLifecycleStage;
-  Askia_Trial_Start?: string; // ISO date
-  Askia_Trial_End?: string; // ISO date
-  Askia_Sessions_Count?: number;
-  Askia_Token_Usage?: number;
-  Askia_Last_Active?: string; // ISO date
-  Askia_Stripe_Customer_Id?: string;
-  Askia_Health_Score?: number; // 0-100
+  Zari_User_Id?: string;
+  Zari_Account_Id?: string;
+  Zari_Plan_Tier?: ZohoPlanTier;
+  Zari_Lifecycle_Stage?: ZohoLifecycleStage;
+  Zari_Trial_Start?: string;
+  Zari_Trial_End?: string;
+  Zari_Sessions_Count?: number;
+  Zari_Token_Usage?: number;
+  Zari_Last_Active?: string;
+  Zari_Stripe_Customer_Id?: string;
+  Zari_Health_Score?: number;
   Lead_Source?: string;
 }
 
@@ -38,12 +35,11 @@ export interface ZohoLead {
   Email: string;
   Lead_Source?: string;
   Lead_Status?: string;
-  // Cold email tracking fields
   Cold_Email_Sequence?: string;
   Email_Opens?: number;
   Email_Clicks?: number;
-  Last_Email_Opened?: string; // ISO date
-  Lead_Score?: number; // 0-100
+  Last_Email_Opened?: string;
+  Lead_Score?: number;
   Company?: string;
   Description?: string;
 }
@@ -55,12 +51,11 @@ export interface ZohoDeal {
   Account_Name?: string;
   Contact_Name?: string;
   Amount?: number;
-  Closing_Date?: string; // YYYY-MM-DD
+  Closing_Date?: string;
   Lead_Source?: string;
-  // Askia Coach fields
-  Askia_Plan_Tier?: ZohoPlanTier;
-  Askia_Account_Id?: string;
-  Askia_Subscription_Id?: string;
+  Zari_Plan_Tier?: ZohoPlanTier;
+  Zari_Account_Id?: string;
+  Zari_Subscription_Id?: string;
   Probability?: number;
 }
 
@@ -75,13 +70,13 @@ export interface ZohoActivity {
   Subject: string;
   Activity_Type?: "Call" | "Meeting" | "Task";
   Status?: "Not Started" | "Deferred" | "In Progress" | "Completed" | "Waiting for Input";
-  Due_Date?: string; // YYYY-MM-DD
+  Due_Date?: string;
   Description?: string;
   Who_Id?: { id: string };
   What_Id?: { id: string };
 }
 
-// ─── Lifecycle stage mapping ───────────────────────────────────────────────────
+// ─── Lifecycle + health scoring ───────────────────────────────────────────────
 
 export function computeLifecycleStage(opts: {
   planTier: string;
@@ -91,19 +86,14 @@ export function computeLifecycleStage(opts: {
   sessionCount?: number;
 }): ZohoLifecycleStage {
   const { planTier, subscriptionStatus, trialEnd, lastActive, sessionCount } = opts;
-
   if (planTier === "free" && subscriptionStatus !== "trialing") return "Lead";
   if (subscriptionStatus === "trialing") return "Trial";
-
-  const active = ["active", "trialing"].includes(subscriptionStatus);
-  if (!active) return "Churned";
-
+  if (!["active", "trialing"].includes(subscriptionStatus)) return "Churned";
   if (lastActive) {
-    const daysSinceActive = (Date.now() - lastActive.getTime()) / (1000 * 60 * 60 * 24);
-    if (daysSinceActive > 30) return "At Risk";
+    const days = (Date.now() - lastActive.getTime()) / 86_400_000;
+    if (days > 30) return "At Risk";
   }
   if ((sessionCount ?? 0) < 2) return "At Risk";
-
   return "Active";
 }
 
@@ -115,78 +105,64 @@ export function computeHealthScore(opts: {
   planTier: string;
 }): number {
   const { sessionCount, tokenUsage, daysSinceSignup, subscriptionStatus, planTier } = opts;
-
   let score = 50;
-
-  // Engagement signals
   score += Math.min(sessionCount * 5, 25);
   score += Math.min(tokenUsage / 10000, 15);
-
-  // Recency penalty
   if (daysSinceSignup > 60) score -= 10;
   if (daysSinceSignup > 90) score -= 10;
-
-  // Plan signals
   if (planTier === "premium" || planTier === "team") score += 10;
-
-  // Subscription health
   if (subscriptionStatus === "past_due") score -= 30;
   if (subscriptionStatus === "canceled") score -= 50;
-
   return Math.max(0, Math.min(100, score));
 }
 
 // ─── Token management ─────────────────────────────────────────────────────────
 
-interface TokenCache {
-  accessToken: string;
-  expiresAt: number;
-}
-
-let _tokenCache: TokenCache | null = null;
+let _tokenCache: { accessToken: string; expiresAt: number } | null = null;
 
 async function getAccessToken(): Promise<string> {
   const now = Date.now();
-  if (_tokenCache && _tokenCache.expiresAt > now + 60_000) {
-    return _tokenCache.accessToken;
-  }
+  if (_tokenCache && _tokenCache.expiresAt > now + 60_000) return _tokenCache.accessToken;
 
-  const {
-    ZOHO_CLIENT_ID,
-    ZOHO_CLIENT_SECRET,
-    ZOHO_REFRESH_TOKEN,
-    ZOHO_DATA_CENTER = "com",
-  } = process.env;
-
+  const { ZOHO_CLIENT_ID, ZOHO_CLIENT_SECRET, ZOHO_REFRESH_TOKEN, ZOHO_DATA_CENTER = "com" } = process.env;
   if (!ZOHO_CLIENT_ID || !ZOHO_CLIENT_SECRET || !ZOHO_REFRESH_TOKEN) {
-    throw new Error("Zoho CRM credentials not configured. Set ZOHO_CLIENT_ID, ZOHO_CLIENT_SECRET, ZOHO_REFRESH_TOKEN.");
+    throw new Error("Zoho CRM credentials not configured.");
   }
 
-  const res = await axios.post(
-    `https://accounts.zoho.${ZOHO_DATA_CENTER}/oauth/v2/token`,
-    new URLSearchParams({
+  const res = await fetch(`https://accounts.zoho.${ZOHO_DATA_CENTER}/oauth/v2/token`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
       refresh_token: ZOHO_REFRESH_TOKEN,
       client_id: ZOHO_CLIENT_ID,
       client_secret: ZOHO_CLIENT_SECRET,
       grant_type: "refresh_token",
     }),
-    { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
-  );
+  });
 
-  const { access_token, expires_in } = res.data;
-  _tokenCache = { accessToken: access_token, expiresAt: now + expires_in * 1000 };
-  return access_token;
+  const data = await res.json() as { access_token: string; expires_in: number };
+  _tokenCache = { accessToken: data.access_token, expiresAt: now + data.expires_in * 1000 };
+  return data.access_token;
 }
 
-// ─── HTTP client factory ───────────────────────────────────────────────────────
+// ─── HTTP helper ──────────────────────────────────────────────────────────────
 
-async function crmClient(): Promise<AxiosInstance> {
+async function crmFetch(path: string, init: RequestInit = {}): Promise<unknown> {
   const token = await getAccessToken();
   const dc = process.env.ZOHO_DATA_CENTER || "com";
-  return axios.create({
-    baseURL: `https://www.zohoapis.${dc}/crm/v7`,
-    headers: { Authorization: `Zoho-oauthtoken ${token}` },
+  const res = await fetch(`https://www.zohoapis.${dc}/crm/v7${path}`, {
+    ...init,
+    headers: {
+      Authorization: `Zoho-oauthtoken ${token}`,
+      "Content-Type": "application/json",
+      ...(init.headers ?? {}),
+    },
   });
+  if (!res.ok && res.status !== 204) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Zoho API ${res.status}: ${text}`);
+  }
+  return res.status === 204 ? null : res.json().catch(() => null);
 }
 
 // ─── Core CRM operations ───────────────────────────────────────────────────────
@@ -197,47 +173,36 @@ async function upsertRecord<T extends object>(
   searchField?: string,
   searchValue?: string
 ): Promise<string | null> {
-  if (!process.env.ZOHO_REFRESH_TOKEN) return null; // graceful no-op when unconfigured
-
+  if (!process.env.ZOHO_REFRESH_TOKEN) return null;
   try {
-    const client = await crmClient();
-
-    // Try to find existing record
     if (searchField && searchValue) {
-      const search = await client.get(`/${module}/search`, {
-        params: { criteria: `(${searchField}:equals:${searchValue})`, fields: "id" },
-      });
-      const existing = search.data?.data?.[0];
+      const search = await crmFetch(
+        `/${module}/search?criteria=(${searchField}:equals:${encodeURIComponent(searchValue)})&fields=id`
+      ) as { data?: Array<{ id: string }> } | null;
+      const existing = search?.data?.[0];
       if (existing?.id) {
-        await client.put(`/${module}/${existing.id}`, { data: [data] });
+        await crmFetch(`/${module}/${existing.id}`, {
+          method: "PUT",
+          body: JSON.stringify({ data: [data] }),
+        });
         return existing.id;
       }
     }
-
-    // Create new record
-    const res = await client.post(`/${module}`, { data: [data] });
-    return res.data?.data?.[0]?.details?.id ?? null;
+    const res = await crmFetch(`/${module}`, {
+      method: "POST",
+      body: JSON.stringify({ data: [data] }),
+    }) as { data?: Array<{ details?: { id: string } }> } | null;
+    return res?.data?.[0]?.details?.id ?? null;
   } catch (err) {
     console.error(`[zoho-crm] upsertRecord(${module}) error:`, err);
     return null;
   }
 }
 
-async function updateRecord(module: string, id: string, data: object): Promise<void> {
-  if (!process.env.ZOHO_REFRESH_TOKEN) return;
-  try {
-    const client = await crmClient();
-    await client.put(`/${module}/${id}`, { data: [{ id, ...data }] });
-  } catch (err) {
-    console.error(`[zoho-crm] updateRecord(${module}/${id}) error:`, err);
-  }
-}
-
 async function createNote(note: ZohoNote): Promise<void> {
   if (!process.env.ZOHO_REFRESH_TOKEN) return;
   try {
-    const client = await crmClient();
-    await client.post("/Notes", { data: [note] });
+    await crmFetch("/Notes", { method: "POST", body: JSON.stringify({ data: [note] }) });
   } catch (err) {
     console.error("[zoho-crm] createNote error:", err);
   }
@@ -246,8 +211,7 @@ async function createNote(note: ZohoNote): Promise<void> {
 async function createActivity(activity: ZohoActivity): Promise<void> {
   if (!process.env.ZOHO_REFRESH_TOKEN) return;
   try {
-    const client = await crmClient();
-    await client.post("/Activities", { data: [activity] });
+    await crmFetch("/Activities", { method: "POST", body: JSON.stringify({ data: [activity] }) });
   } catch (err) {
     console.error("[zoho-crm] createActivity error:", err);
   }
@@ -255,10 +219,6 @@ async function createActivity(activity: ZohoActivity): Promise<void> {
 
 // ─── Public API ────────────────────────────────────────────────────────────────
 
-/**
- * Called when a new user signs up via /api/auth/signup or Google OAuth.
- * Creates a Contact in Zoho CRM and returns the Zoho contact ID.
- */
 export async function syncNewUser(opts: {
   userId: string;
   accountId: string;
@@ -271,14 +231,14 @@ export async function syncNewUser(opts: {
     First_Name: opts.firstName,
     Last_Name: opts.lastName,
     Email: opts.email,
-    Askia_User_Id: opts.userId,
-    Askia_Account_Id: opts.accountId,
-    Askia_Plan_Tier: "Free",
-    Askia_Lifecycle_Stage: "Lead",
+    Zari_User_Id: opts.userId,
+    Zari_Account_Id: opts.accountId,
+    Zari_Plan_Tier: "Free",
+    Zari_Lifecycle_Stage: "Lead",
     Lead_Source: opts.source || "Direct",
-    Askia_Sessions_Count: 0,
-    Askia_Token_Usage: 0,
-    Askia_Health_Score: 50,
+    Zari_Sessions_Count: 0,
+    Zari_Token_Usage: 0,
+    Zari_Health_Score: 50,
   };
 
   const contactId = await upsertRecord<ZohoContact>("Contacts", contact, "Email", opts.email);
@@ -286,7 +246,7 @@ export async function syncNewUser(opts: {
   if (contactId) {
     await createNote({
       Note_Title: "User Signed Up",
-      Note_Content: `New user registered on Askia Coach.\nUser ID: ${opts.userId}\nAccount ID: ${opts.accountId}`,
+      Note_Content: `New user registered on Zari.\nUser ID: ${opts.userId}\nAccount ID: ${opts.accountId}`,
       Parent_Id: contactId,
       $se_module: "Contacts",
     });
@@ -295,10 +255,6 @@ export async function syncNewUser(opts: {
   return contactId;
 }
 
-/**
- * Called by Stripe webhook when a trial starts, subscription activates,
- * or any subscription status changes.
- */
 export async function syncSubscriptionChange(opts: {
   userId: string;
   accountId: string;
@@ -320,33 +276,22 @@ export async function syncSubscriptionChange(opts: {
     stripeCustomerId, stripeSubscriptionId, trialEnd, currentPeriodEnd, amount,
   } = opts;
 
-  const lifecycle = computeLifecycleStage({
-    planTier,
-    subscriptionStatus,
-    trialEnd,
-  });
+  const lifecycle = computeLifecycleStage({ planTier, subscriptionStatus, trialEnd });
+  const zohoPlan = ({ free: "Free", pro: "Search", premium: "Growth", team: "Executive" } as Record<string, ZohoPlanTier>)[planTier] ?? "Free";
 
-  const zohoPlan = ({
-    free: "Free",
-    pro: "Search",
-    premium: "Growth",
-    team: "Executive",
-  } as Record<string, ZohoPlanTier>)[planTier] ?? "Free";
-
-  // Upsert contact
   const contactId = await upsertRecord<ZohoContact>(
     "Contacts",
     {
       First_Name: firstName,
       Last_Name: lastName,
       Email: email,
-      Askia_User_Id: userId,
-      Askia_Account_Id: accountId,
-      Askia_Plan_Tier: zohoPlan,
-      Askia_Lifecycle_Stage: lifecycle,
-      Askia_Trial_Start: subscriptionStatus === "trialing" ? new Date().toISOString() : undefined,
-      Askia_Trial_End: trialEnd ? trialEnd.toISOString() : undefined,
-      Askia_Stripe_Customer_Id: stripeCustomerId,
+      Zari_User_Id: userId,
+      Zari_Account_Id: accountId,
+      Zari_Plan_Tier: zohoPlan,
+      Zari_Lifecycle_Stage: lifecycle,
+      Zari_Trial_Start: subscriptionStatus === "trialing" ? new Date().toISOString() : undefined,
+      Zari_Trial_End: trialEnd ? trialEnd.toISOString() : undefined,
+      Zari_Stripe_Customer_Id: stripeCustomerId,
     },
     "Email",
     email
@@ -354,14 +299,7 @@ export async function syncSubscriptionChange(opts: {
 
   if (!contactId) return;
 
-  // Upsert Deal (trial → conversion pipeline)
-  const stage = {
-    trialing: "Trial Started",
-    active: "Customer Won",
-    past_due: "Payment Issue",
-    canceled: "Churned",
-    unpaid: "Payment Issue",
-  }[subscriptionStatus] ?? "Prospect";
+  const stage = ({ trialing: "Trial Started", active: "Customer Won", past_due: "Payment Issue", canceled: "Churned", unpaid: "Payment Issue" } as Record<string, string>)[subscriptionStatus] ?? "Prospect";
 
   await upsertRecord<ZohoDeal>(
     "Deals",
@@ -373,16 +311,15 @@ export async function syncSubscriptionChange(opts: {
       Closing_Date: currentPeriodEnd
         ? currentPeriodEnd.toISOString().split("T")[0]
         : new Date().toISOString().split("T")[0],
-      Askia_Plan_Tier: zohoPlan,
-      Askia_Account_Id: accountId,
-      Askia_Subscription_Id: stripeSubscriptionId,
+      Zari_Plan_Tier: zohoPlan,
+      Zari_Account_Id: accountId,
+      Zari_Subscription_Id: stripeSubscriptionId,
       Lead_Source: "Organic",
     },
-    "Askia_Subscription_Id",
+    "Zari_Subscription_Id",
     stripeSubscriptionId ?? accountId
   );
 
-  // Log note
   await createNote({
     Note_Title: `Subscription ${subscriptionStatus}`,
     Note_Content: `Plan: ${planName} (${planTier})\nStatus: ${subscriptionStatus}\nStripe Sub: ${stripeSubscriptionId ?? "N/A"}`,
@@ -391,9 +328,6 @@ export async function syncSubscriptionChange(opts: {
   });
 }
 
-/**
- * Called when a coaching session completes. Updates engagement signals.
- */
 export async function syncSessionComplete(opts: {
   userId: string;
   email: string;
@@ -405,28 +339,13 @@ export async function syncSessionComplete(opts: {
   subscriptionStatus: string;
   daysSinceSignup: number;
 }): Promise<void> {
-  const {
-    email, sessionId, sessionMode, sessionCount,
-    totalTokenUsage, planTier, subscriptionStatus, daysSinceSignup,
-  } = opts;
+  const { email, sessionId, sessionMode, sessionCount, totalTokenUsage, planTier, subscriptionStatus, daysSinceSignup } = opts;
 
-  const healthScore = computeHealthScore({
-    sessionCount,
-    tokenUsage: totalTokenUsage,
-    daysSinceSignup,
-    subscriptionStatus,
-    planTier,
-  });
+  const healthScore = computeHealthScore({ sessionCount, tokenUsage: totalTokenUsage, daysSinceSignup, subscriptionStatus, planTier });
 
   const contactId = await upsertRecord<Partial<ZohoContact>>(
     "Contacts",
-    {
-      Email: email,
-      Askia_Sessions_Count: sessionCount,
-      Askia_Token_Usage: totalTokenUsage,
-      Askia_Last_Active: new Date().toISOString(),
-      Askia_Health_Score: healthScore,
-    },
+    { Email: email, Zari_Sessions_Count: sessionCount, Zari_Token_Usage: totalTokenUsage, Zari_Last_Active: new Date().toISOString(), Zari_Health_Score: healthScore },
     "Email",
     email
   );
@@ -434,7 +353,7 @@ export async function syncSessionComplete(opts: {
   if (!contactId) return;
 
   await createActivity({
-    Subject: `Askia Coaching Session — ${sessionMode}`,
+    Subject: `Zari Coaching Session — ${sessionMode}`,
     Activity_Type: "Meeting",
     Status: "Completed",
     Due_Date: new Date().toISOString().split("T")[0],
@@ -443,9 +362,6 @@ export async function syncSessionComplete(opts: {
   });
 }
 
-/**
- * Called when a support ticket is created. Logs it as an activity in CRM.
- */
 export async function syncSupportTicket(opts: {
   email: string;
   ticketId: string;
@@ -455,45 +371,33 @@ export async function syncSupportTicket(opts: {
   description: string;
 }): Promise<void> {
   const { email, ticketId, subject, category, priority, description } = opts;
-
-  const res = await (await crmClient()).get("/Contacts/search", {
-    params: { criteria: `(Email:equals:${email})`, fields: "id" },
-  }).catch(() => null);
-
-  const contactId = res?.data?.data?.[0]?.id;
-  if (!contactId) return;
-
-  await createNote({
-    Note_Title: `Support Ticket: ${subject}`,
-    Note_Content: `Ticket ID: ${ticketId}\nCategory: ${category}\nPriority: ${priority}\n\n${description}`,
-    Parent_Id: contactId,
-    $se_module: "Contacts",
-  });
+  if (!process.env.ZOHO_REFRESH_TOKEN) return;
+  try {
+    const res = await crmFetch(
+      `/Contacts/search?criteria=(Email:equals:${encodeURIComponent(email)})&fields=id`
+    ) as { data?: Array<{ id: string }> } | null;
+    const contactId = res?.data?.[0]?.id;
+    if (!contactId) return;
+    await createNote({
+      Note_Title: `Support Ticket: ${subject}`,
+      Note_Content: `Ticket ID: ${ticketId}\nCategory: ${category}\nPriority: ${priority}\n\n${description}`,
+      Parent_Id: contactId,
+      $se_module: "Contacts",
+    });
+  } catch (err) {
+    console.error("[zoho-crm] syncSupportTicket error:", err);
+  }
 }
 
-/**
- * Called when a user churns. Moves lifecycle to Churned and logs reason.
- */
-export async function syncChurn(opts: {
-  email: string;
-  reason?: string;
-  planTier: string;
-}): Promise<void> {
+export async function syncChurn(opts: { email: string; reason?: string; planTier: string }): Promise<void> {
   const { email, reason } = opts;
-
   const contactId = await upsertRecord<Partial<ZohoContact>>(
     "Contacts",
-    {
-      Email: email,
-      Askia_Lifecycle_Stage: "Churned",
-      Askia_Health_Score: 0,
-    },
+    { Email: email, Zari_Lifecycle_Stage: "Churned", Zari_Health_Score: 0 },
     "Email",
     email
   );
-
   if (!contactId) return;
-
   await createNote({
     Note_Title: "User Churned",
     Note_Content: `Subscription canceled.\nReason: ${reason ?? "Not provided"}\nTriggered win-back automation.`,
@@ -502,10 +406,6 @@ export async function syncChurn(opts: {
   });
 }
 
-/**
- * Upserts an inbound lead from the cold email platform.
- * Call this when a cold-email contact signs up via the landing page.
- */
 export async function convertLeadToContact(opts: {
   email: string;
   firstName?: string;
@@ -513,23 +413,22 @@ export async function convertLeadToContact(opts: {
   userId: string;
   accountId: string;
 }): Promise<void> {
-  // First, close out any existing Lead record
+  if (!process.env.ZOHO_REFRESH_TOKEN) return;
   try {
-    const client = await crmClient();
-    const search = await client.get("/Leads/search", {
-      params: { criteria: `(Email:equals:${opts.email})`, fields: "id" },
-    });
-    const leadId = search.data?.data?.[0]?.id;
+    const res = await crmFetch(
+      `/Leads/search?criteria=(Email:equals:${encodeURIComponent(opts.email)})&fields=id`
+    ) as { data?: Array<{ id: string }> } | null;
+    const leadId = res?.data?.[0]?.id;
     if (leadId) {
-      await client.put(`/Leads/${leadId}`, {
-        data: [{ id: leadId, Lead_Status: "Converted" }],
+      await crmFetch(`/Leads/${leadId}`, {
+        method: "PUT",
+        body: JSON.stringify({ data: [{ id: leadId, Lead_Status: "Converted" }] }),
       });
     }
   } catch {
-    // Lead may not exist — that's fine
+    // Lead may not exist — fine
   }
 
-  // Create/update Contact
   await syncNewUser({
     userId: opts.userId,
     accountId: opts.accountId,
