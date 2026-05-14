@@ -89,14 +89,29 @@ async function getCampaignsToken(): Promise<string | null> {
   }
 }
 
-async function campaignsFetch(path: string, params: Record<string, string>): Promise<unknown> {
+async function campaignsFetch(
+  method: "GET" | "POST",
+  path: string,
+  params: Record<string, string>
+): Promise<unknown> {
   const token = await getCampaignsToken();
   if (!token) return null;
 
-  const qs = new URLSearchParams({ ...params, resfmt: "JSON", authtoken: "" });
-  const res = await fetch(`${CAMPAIGNS_BASE}${path}?${qs}`, {
-    headers: { Authorization: `Zoho-oauthtoken ${token}` },
-  });
+  const allParams = new URLSearchParams({ ...params, resfmt: "JSON" });
+
+  const res = await fetch(
+    method === "GET"
+      ? `${CAMPAIGNS_BASE}${path}?${allParams}`
+      : `${CAMPAIGNS_BASE}${path}`,
+    {
+      method,
+      headers: {
+        Authorization: `Zoho-oauthtoken ${token}`,
+        ...(method === "POST" ? { "Content-Type": "application/x-www-form-urlencoded" } : {}),
+      },
+      ...(method === "POST" ? { body: allParams } : {}),
+    }
+  );
   return res.json().catch(() => null);
 }
 
@@ -127,7 +142,7 @@ export async function subscribeToList(
   });
 
   try {
-    await campaignsFetch("/json/listsubscribe", {
+    await campaignsFetch("POST", "/json/listsubscribe", {
       listkey: listKey,
       contactinfo: contactInfo,
     });
@@ -141,7 +156,7 @@ export async function unsubscribeFromList(listEnvKey: string, email: string): Pr
   const listKey = process.env[listEnvKey];
   if (!listKey) return;
   try {
-    await campaignsFetch("/json/listunsubscribe", { listkey: listKey, emailids: email });
+    await campaignsFetch("POST", "/json/listunsubscribe", { listkey: listKey, emailids: email });
   } catch {}
 }
 
@@ -163,7 +178,7 @@ export async function triggerSequence(sequence: ZariSequence, contact: Campaigns
   }
 
   try {
-    await campaignsFetch("/json/addautoresponder", {
+    await campaignsFetch("POST", "/json/addautoresponder", {
       rekey: seqKey,
       emailids: contact.email,
     });
@@ -177,7 +192,7 @@ export async function stopSequence(sequence: ZariSequence, email: string): Promi
   const seqKey = process.env[SEQUENCE_KEY_MAP[sequence]];
   if (!seqKey) return;
   try {
-    await campaignsFetch("/json/removeautoresponder", { rekey: seqKey, emailids: email });
+    await campaignsFetch("POST", "/json/removeautoresponder", { rekey: seqKey, emailids: email });
   } catch {}
 }
 
