@@ -16307,11 +16307,35 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
   if (stage === "promotion")    return <FeatureGate featureName="zari_promotion_readiness"><ScreenPromotionRoadmap onNavigate={onNavigate} active={active} /></FeatureGate>;
   if (stage === "career-change") return <FeatureGate featureName="zari_pivot_analysis"><ScreenCareerChangePlan onNavigate={onNavigate} active={active} /></FeatureGate>;
 
-  const [done,        setDone]        = useState<Set<number>>(new Set());
-  const [aiTasks,     setAiTasks]     = useState<PlanTask[] | null>(null);
-  const [aiCoachNote, setAiCoachNote] = useState<string | null>(null);
-  const [planLoading, setPlanLoading] = useState(false);
-  const [docs,        setDocs]        = useState<DocEntry[]>([]);
+  // ── Intake state ──
+  type IntakeData = { targetRole: string; timeline: string; employed: string; weeklyHours: string; mainChallenge: string };
+  const INTAKE_KEY = `zari_plan_intake_v2_${stage}`;
+  const [intake, setIntake] = useState<Partial<IntakeData>>(() => {
+    try { return JSON.parse(localStorage.getItem(INTAKE_KEY) ?? "{}") as Partial<IntakeData>; } catch { return {}; }
+  });
+  const [intakeStep, setIntakeStep] = useState(0);
+  const [editingIntake, setEditingIntake] = useState(false);
+
+  const intakeComplete = stage !== "job-search" || !!(
+    intake.targetRole?.trim() && intake.timeline && intake.employed && intake.weeklyHours && intake.mainChallenge
+  );
+
+  function saveIntake(patch: Partial<IntakeData>) {
+    const next = { ...intake, ...patch };
+    setIntake(next);
+    try { localStorage.setItem(INTAKE_KEY, JSON.stringify(next)); } catch {}
+  }
+
+  // ── Plan state ──
+  const [done,          setDone]          = useState<Set<number>>(new Set());
+  const [aiTasks,       setAiTasks]       = useState<PlanTask[] | null>(null);
+  const [aiCoachNote,   setAiCoachNote]   = useState<string | null>(null);
+  const [timelineVerdict, setTimelineVerdict] = useState<string>("");
+  const [timelineMessage, setTimelineMessage] = useState<string>("");
+  const [planLoading,   setPlanLoading]   = useState(false);
+  const [docs,          setDocs]          = useState<DocEntry[]>([]);
+  const [lastDocHash,   setLastDocHash]   = useState("");
+  const [newDataReady,  setNewDataReady]  = useState(false);
 
   useEffect(() => {
     setDocs(vaultReadForStage(stage));
@@ -16325,19 +16349,25 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
   const hasCL      = docs.some(d => d.type === "cover-letter");
   const readyCount = [hasResume, hasLI, hasCL].filter(Boolean).length;
   const isReady    = readyCount >= 1;
+  const currentDocHash = docs.map(d => d.id).join(",");
 
-  const SECTION_CARDS = [
-    { type:"resume"       as DocType, key:"resume",       label:"Resume Review",   desc:"Analyze your resume — Zari scores it and finds gaps", color:"var(--z-text2)", bg:"#F0FDFA", done:hasResume },
-    { type:"linkedin"     as DocType, key:"linkedin",     label:"LinkedIn Profile", desc:"Review your profile and get an overall LinkedIn score", color:"#0A66C2", bg:"#EFF6FF", done:hasLI },
-    { type:"cover-letter" as DocType, key:"cover-letter", label:"Cover Letter",     desc:"Generate a tailored cover letter for a specific role",  color:"#059669", bg:"#ECFDF5", done:hasCL },
-  ];
-
+  // Detect new data arriving after plan was generated
   useEffect(() => {
-    if (!isReady) return;
+    if (aiTasks && lastDocHash && currentDocHash !== lastDocHash) {
+      setNewDataReady(true);
+    }
+  }, [currentDocHash, aiTasks, lastDocHash]);
+
+  function generatePlan() {
+    if (!isReady && stage === "job-search") return;
     setDone(new Set());
     setAiTasks(null);
     setAiCoachNote(null);
+    setTimelineVerdict("");
+    setTimelineMessage("");
     setPlanLoading(true);
+    setNewDataReady(false);
+    setLastDocHash(currentDocHash);
     const resumeDoc = docs.find(d => d.type === "resume");
     const liDoc     = docs.find(d => d.type === "linkedin");
     const clDoc     = docs.find(d => d.type === "cover-letter");
@@ -16346,31 +16376,236 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         stage,
-        resumeSnippet:   resumeDoc ? resumeDoc.content.slice(0,600) : "",
-        liHeadline:      liDoc     ? (liDoc.meta.headline||"") : "",
-        liScore:         liDoc     ? (liDoc.meta.score||"")    : "",
-        resumeScore:     resumeDoc ? (resumeDoc.meta.score||"")    : "",
-        targetRole:      resumeDoc?.meta.targetRole || clDoc?.meta.targetRole || "",
+        resumeSnippet:   resumeDoc ? resumeDoc.content.slice(0, 600) : "",
+        liHeadline:      liDoc     ? (liDoc.meta.headline || "")     : "",
+        liScore:         liDoc     ? (liDoc.meta.score || "")        : "",
+        resumeScore:     resumeDoc ? (resumeDoc.meta.score || "")    : "",
+        targetRole:      intake.targetRole || resumeDoc?.meta.targetRole || clDoc?.meta.targetRole || "",
         completedSections: [
           hasResume ? STAGE_NAV_LABELS[stage].resume : "",
-          hasLI ? STAGE_NAV_LABELS[stage].linkedin : "",
-          hasCL ? STAGE_NAV_LABELS[stage]["cover-letter"] : "",
+          hasLI     ? STAGE_NAV_LABELS[stage].linkedin : "",
+          hasCL     ? STAGE_NAV_LABELS[stage]["cover-letter"] : "",
         ].filter(Boolean),
+        timeline:      intake.timeline      || "",
+        employed:      intake.employed      || "",
+        weeklyHours:   intake.weeklyHours   || "",
+        mainChallenge: intake.mainChallenge || "",
       }),
     })
       .then(async r => {
-        const data = await r.json().catch(() => null) as ({ tasks?: PlanTask[]; coachNote?: string } & BillingApiErrorData) | null;
+        const data = await r.json().catch(() => null) as ({
+          tasks?: PlanTask[];
+          coachNote?: string;
+          timelineVerdict?: string;
+          timelineMessage?: string;
+        } & BillingApiErrorData) | null;
         if (!r.ok) { handleBillingApiError(r.status, data as BillingApiErrorData, billing); return; }
-        if (data?.tasks?.length) { setAiTasks(data.tasks); setAiCoachNote((data as {coachNote?:string}).coachNote ?? null); }
+        if (data?.tasks?.length) {
+          setAiTasks(data.tasks);
+          setAiCoachNote(data.coachNote ?? null);
+          setTimelineVerdict(data.timelineVerdict ?? "");
+          setTimelineMessage(data.timelineMessage ?? "");
+        }
       })
       .catch(() => {})
       .finally(() => setPlanLoading(false));
-  }, [stage, isReady, docs.map(d=>d.id).join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
+  }
 
-  // ── Empty state: not enough context ──
-  if (!isReady) return (
+  // Auto-generate once intake is complete and data is ready
+  useEffect(() => {
+    if (!intakeComplete || !isReady || aiTasks || planLoading || editingIntake) return;
+    generatePlan();
+  }, [intakeComplete, stage, isReady]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const SECTION_CARDS = [
+    { type:"resume"       as DocType, key:"resume",       label:"Resume Review",   desc:"Analyze your resume — Zari scores it and finds gaps", color:"var(--z-text2)", bg:"#F0FDFA", done:hasResume },
+    { type:"linkedin"     as DocType, key:"linkedin",     label:"LinkedIn Profile", desc:"Review your profile and get an overall LinkedIn score", color:"#0A66C2", bg:"#EFF6FF", done:hasLI },
+    { type:"cover-letter" as DocType, key:"cover-letter", label:"Cover Letter",     desc:"Generate a tailored cover letter for a specific role",  color:"#059669", bg:"#ECFDF5", done:hasCL },
+  ];
+
+  // ── Intake form (job-search only) ──
+  const TIMELINE_OPTIONS = [
+    { value:"asap",       label:"ASAP / within weeks",  sub:"I need a job now"               },
+    { value:"1-3months",  label:"1–3 months",           sub:"Focused, realistic timeline"     },
+    { value:"3-6months",  label:"3–6 months",           sub:"I have some runway"              },
+    { value:"6months+",   label:"6+ months / no rush",  sub:"Exploring or building toward it" },
+  ];
+  const EMPLOYED_OPTIONS = [
+    { value:"employed-ok",     label:"Employed — no pressure",        sub:"Browsing from a stable place" },
+    { value:"employed-urgent", label:"Employed — need to leave soon", sub:"It's time to go"              },
+    { value:"not-employed",    label:"Not currently working",         sub:"Searching full time"          },
+  ];
+  const HOURS_OPTIONS = [
+    { value:"under5",  label:"Under 5h/week",  sub:"Tight bandwidth"     },
+    { value:"5-10",    label:"5–10h/week",     sub:"Moderate effort"     },
+    { value:"10-20",   label:"10–20h/week",    sub:"Serious push"        },
+    { value:"20plus",  label:"20h+/week",      sub:"Full-time focus"     },
+  ];
+  const CHALLENGE_OPTIONS = [
+    { value:"applications",  label:"Applying but no responses",      sub:"Resume / ATS filtering problem" },
+    { value:"interviews",    label:"Getting interviews, not offers",  sub:"Interview or pitch problem"     },
+    { value:"network",       label:"Weak network, no referrals",     sub:"Access / relationship problem"  },
+    { value:"targeting",     label:"Not sure what to target",        sub:"Clarity / strategy problem"     },
+    { value:"salary",        label:"Leaving money on the table",     sub:"Negotiation problem"            },
+    { value:"starting",      label:"Just getting started",          sub:"Everything is step one"         },
+  ];
+
+  type SelectOptionItem = { value: string; label: string; sub: string };
+
+  function SelectOptions({ options, selected, onSelect }: { options: SelectOptionItem[]; selected?: string; onSelect: (v:string) => void }) {
+    return (
+      <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+        {options.map(o => (
+          <button key={o.value} onClick={() => onSelect(o.value)}
+            style={{ display:"flex", alignItems:"center", gap:14, padding:"14px 18px", borderRadius:12, border:`1.5px solid ${selected===o.value?"#2563EB":"var(--z-bd)"}`, background:selected===o.value?"rgba(37,99,235,0.06)":"var(--z-card)", cursor:"pointer", textAlign:"left", transition:"all 0.15s" }}>
+            <div style={{ width:20, height:20, borderRadius:"50%", border:`2px solid ${selected===o.value?"#2563EB":"var(--z-bd)"}`, background:selected===o.value?"#2563EB":"transparent", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
+              {selected===o.value && <div style={{ width:8, height:8, borderRadius:"50%", background:"white" }}/>}
+            </div>
+            <div>
+              <p style={{ fontSize:13.5, fontWeight:700, color:"var(--z-text)", margin:0, lineHeight:1.3 }}>{o.label}</p>
+              <p style={{ fontSize:11.5, color:"var(--z-text3)", margin:"2px 0 0", lineHeight:1.3 }}>{o.sub}</p>
+            </div>
+          </button>
+        ))}
+      </div>
+    );
+  }
+
+  const INTAKE_STEPS = [
+    {
+      question: "What role are you going after?",
+      sub: "Be specific — \"Senior Product Manager at a fintech startup\" beats \"PM.\" The more specific you are, the sharper the plan.",
+      field: "targetRole" as keyof IntakeData,
+      type: "text" as const,
+    },
+    {
+      question: "When do you need to land?",
+      sub: "Be honest. Aggressive timelines with under-resourced searches don't work — Zari will tell you if your goal needs a reality check.",
+      field: "timeline" as keyof IntakeData,
+      type: "select" as const,
+      options: TIMELINE_OPTIONS,
+    },
+    {
+      question: "What's your current situation?",
+      sub: "This affects how we prioritize — someone searching from unemployment needs different tactics than someone quietly browsing.",
+      field: "employed" as keyof IntakeData,
+      type: "select" as const,
+      options: EMPLOYED_OPTIONS,
+    },
+    {
+      question: "Hours per week you can realistically dedicate?",
+      sub: "Be real. A job search on 3 hours a week takes much longer. Your plan will be calibrated to what you can actually commit.",
+      field: "weeklyHours" as keyof IntakeData,
+      type: "select" as const,
+      options: HOURS_OPTIONS,
+    },
+    {
+      question: "What's your biggest blocker right now?",
+      sub: "Where are you stuck? Your plan will be front-loaded with what addresses this first.",
+      field: "mainChallenge" as keyof IntakeData,
+      type: "select" as const,
+      options: CHALLENGE_OPTIONS,
+    },
+  ];
+
+  const currentStep = INTAKE_STEPS[intakeStep];
+  const stepValue = intake[currentStep?.field as keyof IntakeData] ?? "";
+  const canAdvance = currentStep?.type === "text" ? (stepValue as string).trim().length > 2 : !!stepValue;
+
+  // Show intake form if incomplete or user is editing
+  if ((stage === "job-search" && (!intakeComplete || editingIntake))) {
+    const progress = (intakeStep / INTAKE_STEPS.length) * 100;
+    return (
+      <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
+        <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
+          <h1 style={{ fontSize:22, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 4px" }}>Action Plan</h1>
+          <p style={{ fontSize:13, color:"var(--z-text2)", margin:0 }}>Answer a few questions so Zari can build you a realistic, personalized plan.</p>
+        </div>
+
+        <div style={{ maxWidth:560, margin:"0 auto", padding:"32px 24px 48px" }}>
+          {/* Progress */}
+          <div style={{ marginBottom:28 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
+              <span style={{ fontSize:12, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.06em" }}>Step {intakeStep + 1} of {INTAKE_STEPS.length}</span>
+              <span style={{ fontSize:12, fontWeight:700, color:"#2563EB" }}>{Math.round(progress)}%</span>
+            </div>
+            <div style={{ height:4, background:"var(--z-bd)", borderRadius:99, overflow:"hidden" }}>
+              <div style={{ height:"100%", width:`${progress}%`, background:"#2563EB", borderRadius:99, transition:"width 0.4s ease" }}/>
+            </div>
+          </div>
+
+          {/* Zari header */}
+          <div style={{ display:"flex", gap:12, alignItems:"flex-start", marginBottom:28 }}>
+            <div style={{ width:38, height:38, borderRadius:11, background:"#2563EB", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:15, fontWeight:900, color:"white" }}>Z</div>
+            <div>
+              <p style={{ fontSize:20, fontWeight:800, color:"var(--z-text)", margin:"0 0 6px", letterSpacing:"-0.02em", lineHeight:1.3 }}>{currentStep.question}</p>
+              <p style={{ fontSize:13, color:"var(--z-text2)", margin:0, lineHeight:1.6 }}>{currentStep.sub}</p>
+            </div>
+          </div>
+
+          {/* Input */}
+          {currentStep.type === "text" ? (
+            <div style={{ marginBottom:28 }}>
+              <input
+                value={(intake[currentStep.field] as string) ?? ""}
+                onChange={e => saveIntake({ [currentStep.field]: e.target.value })}
+                onKeyDown={e => { if (e.key === "Enter" && canAdvance) { if (intakeStep < INTAKE_STEPS.length - 1) setIntakeStep(s => s + 1); else { setEditingIntake(false); generatePlan(); } } }}
+                placeholder="e.g. Senior Software Engineer at a growth-stage startup"
+                style={{ width:"100%", padding:"14px 16px", borderRadius:12, border:"1.5px solid var(--z-bd)", background:"var(--z-card)", color:"var(--z-text)", fontSize:14, fontWeight:500, outline:"none", boxSizing:"border-box" }}
+                autoFocus
+              />
+            </div>
+          ) : (
+            <div style={{ marginBottom:28 }}>
+              <SelectOptions
+                options={(currentStep as {options: SelectOptionItem[]}).options}
+                selected={(intake[currentStep.field] as string) ?? ""}
+                onSelect={v => {
+                  saveIntake({ [currentStep.field]: v });
+                  setTimeout(() => {
+                    if (intakeStep < INTAKE_STEPS.length - 1) setIntakeStep(s => s + 1);
+                    else { setEditingIntake(false); generatePlan(); }
+                  }, 150);
+                }}
+              />
+            </div>
+          )}
+
+          {/* Nav buttons */}
+          <div style={{ display:"flex", gap:10, alignItems:"center" }}>
+            {intakeStep > 0 && (
+              <button onClick={() => setIntakeStep(s => s - 1)}
+                style={{ fontSize:13.5, fontWeight:600, padding:"12px 20px", borderRadius:11, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>
+                ← Back
+              </button>
+            )}
+            {editingIntake && intakeStep === 0 && (
+              <button onClick={() => setEditingIntake(false)}
+                style={{ fontSize:13.5, fontWeight:600, padding:"12px 20px", borderRadius:11, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>
+                Cancel
+              </button>
+            )}
+            {currentStep.type === "text" && (
+              <button
+                onClick={() => {
+                  if (!canAdvance) return;
+                  if (intakeStep < INTAKE_STEPS.length - 1) setIntakeStep(s => s + 1);
+                  else { setEditingIntake(false); generatePlan(); }
+                }}
+                disabled={!canAdvance}
+                style={{ fontSize:13.5, fontWeight:700, padding:"12px 24px", borderRadius:11, border:"none", background:canAdvance?"#2563EB":"var(--z-raise)", color:canAdvance?"white":"var(--z-text3)", cursor:canAdvance?"pointer":"default", transition:"all 0.15s" }}>
+                {intakeStep < INTAKE_STEPS.length - 1 ? "Continue →" : "Build My Plan →"}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Empty state: not enough context (only shown if stage is not job-search or no data yet) ──
+  if (!isReady && stage !== "job-search") return (
     <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
-      {/* Page header */}
       <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
         <h1 style={{ fontSize:22, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 4px" }}>Action Plan</h1>
         <p style={{ fontSize:13, color:"var(--z-text2)", margin:0 }}>Your personalized step-by-step roadmap based on completed sections.</p>
@@ -16381,18 +16616,16 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
             <svg viewBox="0 0 24 24" fill="none" stroke="var(--z-text2)" strokeWidth="1.8" style={{width:24,height:24}}><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
           </div>
           <h1 style={{ fontSize:24, fontWeight:900, letterSpacing:"-0.03em", color:"var(--z-text)", marginBottom:10 }}>Your {STAGE_NAV_LABELS[stage].plan} isn&apos;t ready yet</h1>
-          <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.65, }}>
-            Zari needs to see at least one completed section to build a personalized plan.
-            {" "}Complete the steps below and come back — your plan will be waiting.
+          <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.65 }}>
+            Zari needs to see at least one completed section to build a personalized plan.{" "}Complete the steps below and come back.
           </p>
         </div>
-
         <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
           {SECTION_CARDS.map((c, i) => (
             <button key={c.key} onClick={()=>c.done ? undefined : onNavigate(c.key)}
-              style={{ background:"var(--z-card)", border:`1px solid ${c.done ? "#2563EB" : "var(--z-bd)"}`, borderRadius:12, padding:"20px 22px", cursor:c.done?"default":"pointer", textAlign:"left", display:"flex", alignItems:"center", gap:16, transition:"all 0.2s", position:"relative", overflow:"hidden" }}>
+              style={{ background:"var(--z-card)", border:`1px solid ${c.done?"#2563EB":"var(--z-bd)"}`, borderRadius:12, padding:"20px 22px", cursor:c.done?"default":"pointer", textAlign:"left", display:"flex", alignItems:"center", gap:16, transition:"all 0.2s", position:"relative", overflow:"hidden" }}>
               {!c.done && <div style={{ position:"absolute", left:0, top:0, bottom:0, width:3, background:"#2563EB", borderRadius:"12px 0 0 12px" }}/>}
-              <div style={{ width:44, height:44, borderRadius:12, background:c.done ? "#EFF6FF" : "var(--z-raise)", border:"1px solid var(--z-bd)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+              <div style={{ width:44, height:44, borderRadius:12, background:c.done?"#EFF6FF":"var(--z-raise)", border:"1px solid var(--z-bd)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                 {c.done
                   ? <svg viewBox="0 0 20 20" fill="none" stroke="#2563EB" strokeWidth="2.4" style={{width:18,height:18}}><path d="M4 10l5 5 7-7"/></svg>
                   : <span style={{ fontSize:15, fontWeight:900, color:"var(--z-text3)" }}>{i+1}</span>
@@ -16405,20 +16638,9 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
                 </div>
                 <div style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.5 }}>{c.desc}</div>
               </div>
-              {!c.done && (
-                <div style={{ flexShrink:0, width:32, height:32, borderRadius:8, background:"var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"center", color:"#2563EB", border:"1px solid var(--z-bd)" }}>
-                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.2" style={{width:14,height:14}}><path d="M4 8h8M9 4l4 4-4 4"/></svg>
-                </div>
-              )}
+              {!c.done && <div style={{ flexShrink:0, width:32, height:32, borderRadius:8, background:"var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"center", color:"#2563EB", border:"1px solid var(--z-bd)" }}><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.2" style={{width:14,height:14}}><path d="M4 8h8M9 4l4 4-4 4"/></svg></div>}
             </button>
           ))}
-        </div>
-
-        <div style={{ marginTop:28, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:14, padding:"16px 20px", display:"flex", gap:12, alignItems:"flex-start" }}>
-          <div style={{ width:34, height:34, borderRadius:9, background:"#2563EB", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:13, fontWeight:800, color:"white" }}>Z</div>
-          <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.65 }}>
-            The more sections you complete, the more specific your action plan gets. After your resume review Zari already knows what to fix — after LinkedIn it can sequence the work. Give it both and the plan is surgical.
-          </p>
         </div>
       </div>
     </div>
@@ -16446,103 +16668,96 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
   };
 
   const TIMELINE_GROUPS = [
-    {
-      id: "high",
-      label: "This Week",
-      sublabel: "High-impact moves — start here",
-      accent: "#DC2626",
-      accentBg: "linear-gradient(135deg, #FEF2F2, #FFF1F2)",
-      accentBorder: "#FECACA",
-      icon: (
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{width:16,height:16}}>
-          <circle cx="10" cy="10" r="8"/><path d="M10 6v4l3 3"/>
-        </svg>
-      ),
-    },
-    {
-      id: "med",
-      label: "This Month",
-      sublabel: "Build momentum over the next few weeks",
-      accent: "#D97706",
-      accentBg: "linear-gradient(135deg, #FFFBEB, #FFF7ED)",
-      accentBorder: "#FDE68A",
-      icon: (
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{width:16,height:16}}>
-          <rect x="3" y="4" width="14" height="13" rx="2"/><path d="M3 8h14M8 4V2M12 4V2"/>
-        </svg>
-      ),
-    },
-    {
-      id: "low",
-      label: "On the Horizon",
-      sublabel: "Worth doing when you have bandwidth",
-      accent: "#2563EB",
-      accentBg: "linear-gradient(135deg, #EFF6FF, #CCFBF1)",
-      accentBorder: "#BFDBFE",
-      icon: (
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{width:16,height:16}}>
-          <path d="M2 14c3-4 6-6 8-6s5 2 8 6"/><path d="M10 8V5M4 11l-2-1M16 11l2-1"/>
-        </svg>
-      ),
-    },
+    { id:"high", label:"This Week", sublabel:"High-impact moves — start here", accent:"#DC2626", icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{width:16,height:16}}><circle cx="10" cy="10" r="8"/><path d="M10 6v4l3 3"/></svg> },
+    { id:"med",  label:"This Month", sublabel:"Build momentum over the next few weeks", accent:"#D97706", icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{width:16,height:16}}><rect x="3" y="4" width="14" height="13" rx="2"/><path d="M3 8h14M8 4V2M12 4V2"/></svg> },
+    { id:"low",  label:"On the Horizon", sublabel:"Worth doing when you have bandwidth", accent:"#2563EB", icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{width:16,height:16}}><path d="M2 14c3-4 6-6 8-6s5 2 8 6"/><path d="M10 8V5M4 11l-2-1M16 11l2-1"/></svg> },
   ];
 
   return (
     <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
       {/* Page header */}
-      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
+      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
         <div>
           <h1 style={{ fontSize:22, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 4px" }}>Action Plan</h1>
-          <p style={{ fontSize:13, color:"var(--z-text2)", margin:0 }}>Your personalized step-by-step roadmap based on completed sections.</p>
+          <p style={{ fontSize:13, color:"var(--z-text2)", margin:0 }}>
+            {intake.targetRole ? <><strong style={{color:"var(--z-text)"}}>{intake.targetRole}</strong> · </> : ""}
+            {intake.timeline === "asap" ? "ASAP timeline" : intake.timeline === "1-3months" ? "1–3 month timeline" : intake.timeline === "3-6months" ? "3–6 month timeline" : intake.timeline === "6months+" ? "6+ month timeline" : "Personalized roadmap"}
+            {intake.weeklyHours ? ` · ${intake.weeklyHours === "under5" ? "<5h" : intake.weeklyHours === "5-10" ? "5–10h" : intake.weeklyHours === "10-20" ? "10–20h" : "20h+"}/week` : ""}
+          </p>
+        </div>
+        <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+          {stage === "job-search" && (
+            <button onClick={() => { setIntakeStep(0); setEditingIntake(true); }}
+              style={{ fontSize:12, fontWeight:600, padding:"7px 14px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer", display:"flex", alignItems:"center", gap:5 }}>
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{width:12,height:12}}><path d="M11.5 2.5a2.12 2.12 0 0 1 3 3L5 15l-4 1 1-4Z"/></svg>
+              Edit Goals
+            </button>
+          )}
+          <button onClick={() => generatePlan()} disabled={planLoading}
+            style={{ fontSize:12, fontWeight:700, padding:"7px 14px", borderRadius:9, border:"none", background:planLoading?"var(--z-raise)":"#2563EB", color:planLoading?"var(--z-text3)":"white", cursor:planLoading?"default":"pointer", display:"flex", alignItems:"center", gap:5 }}>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{width:12,height:12}}><path d="M13.5 6A6 6 0 1 0 12 11"/><path d="M13.5 2v4h-4"/></svg>
+            {planLoading ? "Generating…" : "Refresh Plan"}
+          </button>
         </div>
       </div>
+
       <div style={{ padding:"20px 28px 40px" }}>
 
-        {/* ── Header ── */}
-        <div style={{ marginBottom:28 }}>
-          <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, flexWrap:"wrap" }}>
-            <div>
-              <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:6 }}>
-                <h1 style={{ fontSize:26, fontWeight:900, letterSpacing:"-0.04em", color:"var(--z-text)", margin:0 }}>Your {STAGE_NAV_LABELS[stage].plan}</h1>
-                {aiTasks && (
-                  <span style={{ fontSize:10.5, fontWeight:800, padding:"3px 9px", borderRadius:99, background:"var(--z-raise)", color:"var(--z-text3)", border:"1px solid var(--z-bd)", letterSpacing:"0.02em" }}>
-                    AI · PERSONALIZED
-                  </span>
-                )}
-              </div>
-              <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.5 }}>
-                Based on your {[
-                  hasResume && "resume",
-                  hasLI && "LinkedIn",
-                  hasCL && "cover letter",
-                ].filter(Boolean).join(", ")} · {readyCount}/3 sections complete
-              </p>
+        {/* New data banner */}
+        {newDataReady && (
+          <div style={{ background:"rgba(37,99,235,0.08)", border:"1.5px solid rgba(37,99,235,0.3)", borderRadius:12, padding:"12px 18px", marginBottom:20, display:"flex", alignItems:"center", gap:12, justifyContent:"space-between" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+              <svg viewBox="0 0 20 20" fill="none" stroke="#2563EB" strokeWidth="2" style={{width:18,height:18,flexShrink:0}}><path d="M10 2a8 8 0 100 16A8 8 0 0010 2z"/><path d="M10 6v4l3 2"/></svg>
+              <p style={{ fontSize:13, fontWeight:600, color:"var(--z-text)", margin:0 }}>New data available — your plan can be updated with the latest section results.</p>
             </div>
-
-            {/* Stats pill */}
-            <div style={{ display:"flex", gap:0, background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderRadius:14, overflow:"hidden", boxShadow:"0 2px 12px rgba(0,0,0,0.07)" }}>
-              {[
-                { label:"Done", value:done.size, color:"#059669" },
-                { label:"Remaining", value:TASKS.length - done.size, color:"#2563EB" },
-                { label:"Total", value:TASKS.length, color:"var(--z-text2)" },
-              ].map((s, i) => (
-                <div key={s.label} style={{ padding:"12px 20px", textAlign:"center", borderLeft: i ? "1px solid var(--z-bd)" : "none" }}>
-                  <div style={{ fontSize:22, fontWeight:900, color:s.color, lineHeight:1 }}>{s.value}</div>
-                  <div style={{ fontSize:10.5, color:"var(--z-text3)", marginTop:3, fontWeight:600, textTransform:"uppercase", letterSpacing:"0.04em" }}>{s.label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {planLoading && (
-          <div style={{ display:"flex", alignItems:"center", gap:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:14, padding:"14px 18px", marginBottom:22, boxShadow:"0 2px 12px rgba(37,99,235,0.06)" }}>
-            <span style={{ width:16,height:16,borderRadius:"50%",border:"2.5px solid rgba(37,99,235,0.25)",borderTopColor:"#2563EB",animation:"spin-slow 0.7s linear infinite",display:"block",flexShrink:0 }}/>
-            <span style={{ fontSize:13.5, color:"#2563EB", fontWeight:600 }}>Zari is analyzing your sections and building a personalized plan…</span>
+            <button onClick={() => generatePlan()} style={{ fontSize:12.5, fontWeight:700, padding:"7px 16px", borderRadius:9, border:"none", background:"#2563EB", color:"white", cursor:"pointer", flexShrink:0 }}>
+              Update Plan →
+            </button>
           </div>
         )}
 
-        {/* ── Progress bar ── */}
+        {/* Timeline pushback */}
+        {(timelineVerdict === "aggressive" || timelineVerdict === "not_feasible") && timelineMessage && (
+          <div style={{ background: timelineVerdict === "not_feasible" ? "rgba(220,38,38,0.07)" : "rgba(245,158,11,0.07)", border:`1.5px solid ${timelineVerdict === "not_feasible" ? "rgba(220,38,38,0.3)" : "rgba(245,158,11,0.35)"}`, borderRadius:12, padding:"14px 18px", marginBottom:20, display:"flex", gap:12, alignItems:"flex-start" }}>
+            <svg viewBox="0 0 20 20" fill="none" stroke={timelineVerdict === "not_feasible" ? "#DC2626" : "#D97706"} strokeWidth="2" style={{width:18,height:18,flexShrink:0,marginTop:1}}><path d="M10 2l8.66 15H1.34L10 2z"/><path d="M10 8v4M10 14.5v.5"/></svg>
+            <div>
+              <p style={{ fontSize:12, fontWeight:800, color: timelineVerdict === "not_feasible" ? "#DC2626" : "#D97706", margin:"0 0 4px", textTransform:"uppercase", letterSpacing:"0.06em" }}>
+                {timelineVerdict === "not_feasible" ? "Timeline Not Feasible" : "Heads Up — Tight Timeline"}
+              </p>
+              <p style={{ fontSize:13, color:"var(--z-text)", margin:0, lineHeight:1.6 }}>{timelineMessage}</p>
+            </div>
+          </div>
+        )}
+
+        {planLoading && (
+          <div style={{ display:"flex", alignItems:"center", gap:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:14, padding:"14px 18px", marginBottom:22 }}>
+            <span style={{ width:16,height:16,borderRadius:"50%",border:"2.5px solid rgba(37,99,235,0.25)",borderTopColor:"#2563EB",animation:"spin-slow 0.7s linear infinite",display:"block",flexShrink:0 }}/>
+            <span style={{ fontSize:13.5, color:"#2563EB", fontWeight:600 }}>Building your personalized plan…</span>
+          </div>
+        )}
+
+        {/* Stats row */}
+        <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, flexWrap:"wrap", marginBottom:24 }}>
+          <div>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:6 }}>
+              <h2 style={{ fontSize:22, fontWeight:900, letterSpacing:"-0.03em", color:"var(--z-text)", margin:0 }}>Your {STAGE_NAV_LABELS[stage].plan}</h2>
+              {aiTasks && <span style={{ fontSize:10.5, fontWeight:800, padding:"3px 9px", borderRadius:99, background:"var(--z-raise)", color:"var(--z-text3)", border:"1px solid var(--z-bd)", letterSpacing:"0.02em" }}>AI · PERSONALIZED</span>}
+            </div>
+            <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.5, margin:0 }}>
+              Based on {[hasResume&&"resume",hasLI&&"LinkedIn",hasCL&&"cover letter"].filter(Boolean).join(", ")} · {readyCount}/3 sections complete
+            </p>
+          </div>
+          <div style={{ display:"flex", gap:0, background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderRadius:14, overflow:"hidden", boxShadow:"0 2px 12px rgba(0,0,0,0.07)" }}>
+            {[{label:"Done",value:done.size,color:"#059669"},{label:"Remaining",value:TASKS.length-done.size,color:"#2563EB"},{label:"Total",value:TASKS.length,color:"var(--z-text2)"}].map((s,i)=>(
+              <div key={s.label} style={{ padding:"12px 20px", textAlign:"center", borderLeft:i?"1px solid var(--z-bd)":"none" }}>
+                <div style={{ fontSize:22, fontWeight:900, color:s.color, lineHeight:1 }}>{s.value}</div>
+                <div style={{ fontSize:10.5, color:"var(--z-text3)", marginTop:3, fontWeight:600, textTransform:"uppercase", letterSpacing:"0.04em" }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Progress bar */}
         <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:16, padding:"18px 22px", marginBottom:24, boxShadow:"0 2px 12px rgba(0,0,0,0.07)" }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
             <span style={{ fontSize:13, fontWeight:700, color:"var(--z-text)" }}>Overall Progress</span>
@@ -16558,21 +16773,19 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
               return (
                 <div key={g.id} style={{ display:"flex", alignItems:"center", gap:6 }}>
                   <div style={{ width:8, height:8, borderRadius:99, background:g.accent }}/>
-                  <span style={{ fontSize:12, color:"var(--z-text2)" }}>
-                    <strong style={{ color:g.accent, fontWeight:700 }}>{doneC}/{total}</strong> {g.label}
-                  </span>
+                  <span style={{ fontSize:12, color:"var(--z-text2)" }}><strong style={{color:g.accent,fontWeight:700}}>{doneC}/{total}</strong> {g.label}</span>
                 </div>
               );
             })}
           </div>
         </div>
 
-        {/* ── Context chips ── */}
-        <div style={{ display:"flex", gap:8, marginBottom:28, flexWrap:"wrap", alignItems:"center" }}>
+        {/* Section context chips */}
+        <div style={{ display:"flex", gap:8, marginBottom:24, flexWrap:"wrap", alignItems:"center" }}>
           <span style={{ fontSize:12, color:"var(--z-text3)", fontWeight:600 }}>Sections:</span>
           {SECTION_CARDS.map(c => (
             <button key={c.key} onClick={()=>onNavigate(c.key)}
-              style={{ display:"flex", alignItems:"center", gap:5, padding:"5px 12px", borderRadius:99, border:"1px solid var(--z-bd)", background:"var(--z-card)", cursor:"pointer", fontSize:12, fontWeight:600, color:"var(--z-text2)", transition:"all 0.15s" }}>
+              style={{ display:"flex", alignItems:"center", gap:5, padding:"5px 12px", borderRadius:99, border:"1px solid var(--z-bd)", background:"var(--z-card)", cursor:"pointer", fontSize:12, fontWeight:600, color:"var(--z-text2)" }}>
               {c.done
                 ? <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.2" style={{width:10,height:10}}><path d="M1.5 6l3 3 6-6"/></svg>
                 : <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" style={{width:10,height:10}}><circle cx="6" cy="6" r="4.5"/></svg>
@@ -16580,13 +16793,10 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
               {c.label}
             </button>
           ))}
-          {!SECTION_CARDS.every(c=>c.done) && (
-            <span style={{ fontSize:12, color:"var(--z-text3)", fontStyle:"italic" }}>Complete more for a sharper plan</span>
-          )}
         </div>
 
-        {/* ── Zari's coaching note (prominent) ── */}
-        <div style={{ marginBottom:28, background:"var(--z-card)", borderRadius:14, padding:"20px 24px", border:"1px solid var(--z-bd)" }}>
+        {/* Zari coaching note */}
+        <div style={{ marginBottom:24, background:"var(--z-card)", borderRadius:14, padding:"18px 22px", border:"1px solid var(--z-bd)" }}>
           <div style={{ display:"flex", gap:14, alignItems:"flex-start" }}>
             <div style={{ width:36, height:36, borderRadius:10, background:"#2563EB", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:14, fontWeight:900, color:"white" }}>Z</div>
             <div>
@@ -16598,7 +16808,7 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
           </div>
         </div>
 
-        {/* ── Tasks by timeline group ── */}
+        {/* Tasks by timeline group */}
         <div style={{ display:"flex", flexDirection:"column", gap:24 }}>
           {TIMELINE_GROUPS.map(group => {
             const groupTasks = TASKS.map((t,i)=>({...t,idx:i})).filter(t=>t.pri===group.id);
@@ -16606,14 +16816,10 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
             const groupDone  = groupTasks.filter(t=>done.has(t.idx)).length;
             const groupTotal = groupTasks.length;
             const groupPct   = groupTotal ? Math.round((groupDone/groupTotal)*100) : 0;
-
             return (
               <div key={group.id}>
-                {/* Group header */}
                 <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
-                  <div style={{ width:30, height:30, borderRadius:8, background:"var(--z-raise)", border:"1px solid var(--z-bd)", display:"flex", alignItems:"center", justifyContent:"center", color:"var(--z-text2)" }}>
-                    {group.icon}
-                  </div>
+                  <div style={{ width:30, height:30, borderRadius:8, background:"var(--z-raise)", border:"1px solid var(--z-bd)", display:"flex", alignItems:"center", justifyContent:"center", color:"var(--z-text2)" }}>{group.icon}</div>
                   <div style={{ flex:1 }}>
                     <div style={{ display:"flex", alignItems:"baseline", gap:8 }}>
                       <span style={{ fontSize:15, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.02em" }}>{group.label}</span>
@@ -16625,8 +16831,6 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
                     <div style={{ height:"100%", width:`${groupPct}%`, background:group.accent, borderRadius:99, transition:"width 0.4s ease" }}/>
                   </div>
                 </div>
-
-                {/* Task cards */}
                 <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
                   {groupTasks.map(task => {
                     const isDone = done.has(task.idx);
@@ -16634,7 +16838,7 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
                     return (
                       <button key={task.idx}
                         onClick={()=>setDone(d=>{const n=new Set(d);n.has(task.idx)?n.delete(task.idx):n.add(task.idx);return n;})}
-                        style={{ display:"flex", alignItems:"flex-start", gap:12, background:"var(--z-raise)", border:`1px solid ${isDone?"rgba(74,222,128,0.25)":"var(--z-bd)"}`, borderLeft:`3.5px solid ${isDone?"#16A34A":group.accent}`, borderRadius:"0 14px 14px 0", padding:"13px 16px", cursor:"pointer", textAlign:"left", transition:"all 0.15s", boxShadow:`0 1px 6px rgba(0,0,0,0.04)` }}>
+                        style={{ display:"flex", alignItems:"flex-start", gap:12, background:"var(--z-raise)", border:`1px solid ${isDone?"rgba(74,222,128,0.25)":"var(--z-bd)"}`, borderLeft:`3.5px solid ${isDone?"#16A34A":group.accent}`, borderRadius:"0 14px 14px 0", padding:"13px 16px", cursor:"pointer", textAlign:"left", transition:"all 0.15s", boxShadow:"0 1px 6px rgba(0,0,0,0.04)" }}>
                         <div style={{ width:22, height:22, borderRadius:6, border:`2px solid ${isDone?"#16A34A":"var(--z-bd)"}`, background:isDone?"rgba(22,163,74,0.15)":"var(--z-card)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>
                           {isDone && <svg viewBox="0 0 12 12" fill="none" style={{width:10,height:10}}><path d="M1.5 6l3 3 6-6" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                         </div>
