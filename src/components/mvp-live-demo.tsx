@@ -279,9 +279,9 @@ export function MvpLiveDemo() {
                 <div className="h-3 w-3 rounded-full bg-emerald-500/50" />
               </div>
               <div className="flex items-center gap-2.5 ml-1">
-                <Image src="/askia-logo.png" alt="Askia" width={16} height={16} className="rounded opacity-60" />
+                <Image src="/askia-logo.png" alt="Zari" width={16} height={16} className="rounded opacity-60" />
                 <span className="text-[12px] font-medium text-white/40">
-                  Askia Coach · {TABS.find(t => t.id === activeTab)?.label}
+                  Zari · {TABS.find(t => t.id === activeTab)?.label}
                 </span>
               </div>
             </div>
@@ -340,7 +340,7 @@ function DemoItemRenderer({ item, accentColor }: { item: Item; accentColor: stri
       return (
         <div className="flex items-center gap-3" style={{ animation: "badge-pop 0.25s ease both" }}>
           <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center overflow-hidden rounded-full">
-            <Image src="/askia-logo.png" alt="A" width={28} height={28} />
+            <Image src="/askia-logo.png" alt="Zari" width={28} height={28} />
           </div>
           <div className="rounded-2xl rounded-tl-sm bg-white/[0.07] px-4 py-3">
             <div className="flex gap-1">
@@ -356,7 +356,7 @@ function DemoItemRenderer({ item, accentColor }: { item: Item; accentColor: stri
       return (
         <div className="flex items-start gap-3" style={{ animation: "badge-pop 0.3s ease both" }}>
           <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center overflow-hidden rounded-full mt-0.5">
-            <Image src="/askia-logo.png" alt="A" width={28} height={28} />
+            <Image src="/askia-logo.png" alt="Zari" width={28} height={28} />
           </div>
           <div className="max-w-[82%] rounded-2xl rounded-tl-sm bg-white/[0.07] px-4 py-3">
             <p className="text-[13px] leading-relaxed text-white/85">

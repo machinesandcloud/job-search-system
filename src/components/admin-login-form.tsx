@@ -29,7 +29,7 @@ export function AdminLoginForm() {
       <h1 className="text-2xl font-semibold text-slate-100">Admin login</h1>
       <p className="mt-2 text-sm text-slate-300">We'll send a magic link to your email.</p>
       <div className="mt-4 space-y-3">
-        <Input placeholder="you@askia.tech" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <Input placeholder="you@zaricoach.com" value={email} onChange={(e) => setEmail(e.target.value)} />
         <Button onClick={submit} className="w-full">
           Send link
         </Button>

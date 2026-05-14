@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export function HomeLink({
   className = "",
-  label = "Askia Coaching",
+  label = "Zari",
 }: {
   className?: string;
   label?: string;

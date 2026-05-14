@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const SESSION_COOKIE = "askia_mvp_uid";
+const SESSION_COOKIE = "zari_session";
 
 const PROTECTED_PATHS = [
   "/dashboard",

@@ -12,6 +12,7 @@ import {
   syncMvpUserToBillingIdentity,
 } from "@/lib/billing";
 import { mapStripePlanTier, syncStripeSubscriptionToAccount, syncUsersForAccountPlan } from "@/lib/subscription-sync";
+import { syncSubscriptionChange, syncChurn } from "@/lib/zoho-crm";
 
 export const runtime = "nodejs";
 
@@ -234,6 +235,35 @@ export async function POST(request: Request) {
           status: finalStatus,
           paymentIssue: finalStatus ? isPaymentIssueSubscriptionStatus(finalStatus) : undefined,
         });
+
+        // Zoho CRM sync (fire-and-forget)
+        const owner = await prisma.user.findFirst({ where: { accountId } });
+        if (owner) {
+          const price = subscription.items.data[0]?.price;
+          const planName = (price?.nickname ?? subscription.metadata?.planName ?? "Unknown Plan") as string;
+          const planTier = mapStripePlanTier(planName, price?.id ?? null);
+          const subscriptionStatus = finalStatus ?? subscription.status;
+
+          if (subscriptionStatus === "canceled") {
+            void syncChurn({ email: owner.email, planTier, reason: "Subscription canceled" });
+          } else {
+            void syncSubscriptionChange({
+              userId: owner.id,
+              accountId,
+              email: owner.email,
+              firstName: owner.firstName ?? "",
+              lastName: owner.lastName ?? "",
+              planName,
+              planTier,
+              subscriptionStatus,
+              stripeCustomerId: typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id,
+              stripeSubscriptionId: subscription.id,
+              trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
+              currentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : null,
+              amount: (price?.unit_amount ?? 0) / 100,
+            });
+          }
+        }
 
         const eventName =
           event.type === "customer.subscription.created"

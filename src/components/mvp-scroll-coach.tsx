@@ -14,7 +14,7 @@ const CHAPTERS = [
     accent: "#0D7182",
     accentVar: "var(--brand)",
     headline: "The AI reads every line.",
-    body: "Askia scans your entire resume in seconds — scoring every bullet for ATS compatibility, metric density, and impact language. Specific rewrites, not vague suggestions.",
+    body: "Zari scans your entire resume in seconds — scoring every bullet for ATS compatibility, metric density, and impact language. Specific rewrites, not vague suggestions.",
     proof: { before: "52", after: "89", label: "Resume score, one session" },
   },
   {
@@ -415,7 +415,7 @@ function CoachingWindow({ chapter }: { chapter: number }) {
           ))}
         </div>
         <div className="flex-1 rounded-md bg-white/[0.05] px-3 py-1 text-center">
-          <span className="text-[10.5px] text-white/25">askia.coach · </span>
+          <span className="text-[10.5px] text-white/25">zaricoach.com · </span>
           <span className="text-[10.5px] font-semibold" style={{ color: ch.accent }}>{ch.surface}</span>
         </div>
         <div className="flex items-center gap-1.5">

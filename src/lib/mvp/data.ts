@@ -3,7 +3,7 @@ import type { DashboardPayload, ReviewOutput } from "./types";
 export const dashboardData: DashboardPayload = {
   user: {
     name: "Steve",
-    email: "steve@askiatech.com",
+    email: "steve@zaricoach.com",
     currentRole: "",
     targetRole: "",
     experienceLevel: "",

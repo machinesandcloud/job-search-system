@@ -139,7 +139,7 @@ export function HeroChatPreview() {
           ))}
         </div>
         <div className="flex-1 rounded-md bg-white/[0.05] px-3 py-1 text-center text-[10.5px] text-white/25">
-          app.zari.coach · Resume Review
+          app.zaricoach.com · Resume Review
         </div>
         {/* Live indicator */}
         <div className="flex items-center gap-1.5">

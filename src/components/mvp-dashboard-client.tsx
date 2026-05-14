@@ -173,7 +173,7 @@ export function MvpDashboardClient() {
           <div className="overflow-hidden rounded-2xl bg-[var(--dark)] text-white">
             <div className="flex items-center justify-between border-b border-white/[0.07] px-6 py-4">
               <div className="flex items-center gap-2.5">
-                <Image src="/askia-logo.png" alt="Askia" width={18} height={18} className="rounded-md opacity-60" />
+                <Image src="/askia-logo.png" alt="Zari" width={18} height={18} className="rounded-md opacity-60" />
                 <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/38">Coaching profile</p>
               </div>
               <Link href="/onboarding" className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[12px] font-medium text-white/45 transition-all hover:bg-white/[0.10] hover:text-white">

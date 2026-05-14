@@ -177,7 +177,7 @@ export default async function PlatformPage() {
                   <div className="flex items-center gap-2.5 border-b border-white/[0.07] px-4 py-3">
                     {["#ff5f57","#febc2e","#28c840"].map((c) => <span key={c} className="h-2.5 w-2.5 rounded-full" style={{ background: c }} />)}
                     <div className="ml-1 flex-1 rounded bg-white/[0.05] px-2.5 py-0.5 text-center text-[10px] text-white/22">
-                      askia.coach · {s.title}
+                      zaricoach.com · {s.title}
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
@@ -299,7 +299,7 @@ export default async function PlatformPage() {
             Experience it yourself.
           </h2>
           <p className="mx-auto mt-4 max-w-lg text-[17px] text-white/50">
-            One free session per surface. No card. No lock-in. See exactly what Askia Coach does before you decide.
+            One free session per surface. No card. No lock-in. See exactly what Zari does before you decide.
           </p>
           <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
             <Link href={userId ? "/dashboard" : "/signup"} className="group inline-flex h-14 items-center gap-2.5 rounded-xl bg-white px-10 text-[15px] font-bold text-[var(--brand)] transition-all hover:-translate-y-0.5">

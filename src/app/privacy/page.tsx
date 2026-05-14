@@ -22,7 +22,7 @@ export default function PrivacyPage() {
         {[
           {
             title: "1. Who We Are",
-            body: "Zari is operated by Askia Technologies Inc. This Privacy Policy explains how we collect, use, and protect your personal information when you use our Service.",
+            body: "Zari is operated by Zari Marketing LLC. This Privacy Policy explains how we collect, use, and protect your personal information when you use our Service.",
           },
           {
             title: "2. Information We Collect",
@@ -42,7 +42,7 @@ export default function PrivacyPage() {
           },
           {
             title: "6. Data Retention",
-            body: "We retain your account data while your account is active and for a reasonable period after deletion for legal and operational purposes. You may request deletion of your account and associated data by contacting privacy@askiatech.com.",
+            body: "We retain your account data while your account is active and for a reasonable period after deletion for legal and operational purposes. You may request deletion of your account and associated data by contacting privacy@zaricoach.com.",
           },
           {
             title: "7. Security",
@@ -50,7 +50,7 @@ export default function PrivacyPage() {
           },
           {
             title: "8. Your Rights",
-            body: "Depending on your jurisdiction, you may have rights to access, correct, delete, or export your personal data. To exercise these rights, contact privacy@askiatech.com. We will respond within 30 days.",
+            body: "Depending on your jurisdiction, you may have rights to access, correct, delete, or export your personal data. To exercise these rights, contact privacy@zaricoach.com. We will respond within 30 days.",
           },
           {
             title: "9. Cookies",
@@ -62,7 +62,7 @@ export default function PrivacyPage() {
           },
           {
             title: "11. Contact",
-            body: "For privacy-related questions, contact us at privacy@askiatech.com.",
+            body: "For privacy-related questions, contact us at privacy@zaricoach.com.",
           },
         ].map(({ title, body }) => (
           <div key={title} style={{ marginBottom: 32 }}>

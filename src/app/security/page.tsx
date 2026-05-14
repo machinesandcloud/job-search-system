@@ -26,7 +26,7 @@ export default async function SecurityPage() {
       authenticated={Boolean(userId)}
       eyebrow="Security"
       title="Trust, privacy, and control should be obvious without digging."
-      description="Competitor sites make space for trust because users need to know what is stored, what is private, and what parts of the experience are handled by external providers. This page does the same for Askia Coach."
+      description="Competitor sites make space for trust because users need to know what is stored, what is private, and what parts of the experience are handled by external providers. This page does the same for Zari."
       primaryCta={{ href: "/settings", label: "Open settings" }}
       secondaryCta={{ href: "/platform", label: "Back to platform" }}
       spotlightTitle="Private by product design, not just footer copy."

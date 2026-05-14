@@ -15,9 +15,9 @@ const USE_CASES = [
     headline: "Back in the market after years away.",
     context: "Your resume has gaps. Your LinkedIn is stale. You're not sure what your skills are worth now or how to position them. And every job listing feels like it's written for someone else.",
     friction: ["Resume format is 5 years out of date", "LinkedIn hasn't been touched since last role", "Unsure how to frame the gap or the growth"],
-    how: "Askia starts with a full resume audit — not to judge the gap, but to reposition what's there. It identifies every transferable signal, rewrites the narrative for current market patterns, and rebuilds LinkedIn to surface in the searches that match where you're going, not where you've been.",
+    how: "Zari starts with a full resume audit — not to judge the gap, but to reposition what's there. It identifies every transferable signal, rewrites the narrative for current market patterns, and rebuilds LinkedIn to surface in the searches that match where you're going, not where you've been.",
     outcome: "Resume repositioned for current market · LinkedIn rebuilt · Clarity on target role and tier · 30-day reentry plan",
-    quote: { text: "I'd been out of work for 14 months after my maternity leave. Askia didn't just fix my resume — it helped me understand how to talk about my experience in a way that landed me 3 interviews in the first week.", name: "Rachel M.", role: "Senior PM, fintech" },
+    quote: { text: "I'd been out of work for 14 months after my maternity leave. Zari didn't just fix my resume — it helped me understand how to talk about my experience in a way that landed me 3 interviews in the first week.", name: "Rachel M.", role: "Senior PM, fintech" },
     icon: "M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15",
   },
   {
@@ -31,7 +31,7 @@ const USE_CASES = [
     friction: ["Resume framed for old industry, not target one", "Lack 'required' keywords from job descriptions", "Interviewers see the switch as a risk, not an asset"],
     how: "The coach analyzes the gap between your background and your target role — precisely. It rewrites your resume to lead with transferable evidence, identifies the 3–4 keywords you're missing, and builds an interview narrative that positions the switch as intentional and strategic rather than desperate.",
     outcome: "Resume reframed for target industry · Gap analysis and closing plan · Interview story built for skeptical interviewers",
-    quote: { text: "I was moving from consulting to product. Every application felt like I was speaking a different language. One session with Askia and my resume suddenly made sense for PM roles. First FAANG interview within 10 days.", name: "Daniel W.", role: "Product Manager" },
+    quote: { text: "I was moving from consulting to product. Every application felt like I was speaking a different language. One session with Zari and my resume suddenly made sense for PM roles. First FAANG interview within 10 days.", name: "Daniel W.", role: "Product Manager" },
     icon: "M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4",
   },
   {
@@ -43,9 +43,9 @@ const USE_CASES = [
     headline: "Applying consistently. Getting silence.",
     context: "You've sent 40+ applications. You're getting through to screens occasionally, but most of the time — nothing. No rejection, no feedback. Just silence. The problem isn't your background. It's the signal you're sending before anyone talks to you.",
     friction: ["Applications disappear into ATS systems", "LinkedIn profile not surfacing in recruiter searches", "No way to identify what's being filtered and why"],
-    how: "Askia runs a full signal audit — resume ATS score, LinkedIn visibility rank, and keyword gap analysis against 10 live job descriptions in your target category. It identifies exactly what's being filtered and why, then rebuilds each surface to pass the filters that were blocking you.",
+    how: "Zari runs a full signal audit — resume ATS score, LinkedIn visibility rank, and keyword gap analysis against 10 live job descriptions in your target category. It identifies exactly what's being filtered and why, then rebuilds each surface to pass the filters that were blocking you.",
     outcome: "ATS score from 52 → 89 · LinkedIn visibility rebuilt · Keyword gaps closed · More human eyes on your application",
-    quote: { text: "I was applying every day and hearing nothing. Askia showed me my resume was scoring 48 on ATS — most of my applications never reached a human. After one session, the silence stopped.", name: "James T.", role: "Software Engineer" },
+    quote: { text: "I was applying every day and hearing nothing. Zari showed me my resume was scoring 48 on ATS — most of my applications never reached a human. After one session, the silence stopped.", name: "James T.", role: "Software Engineer" },
     icon: "M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9",
   },
   {
@@ -59,7 +59,7 @@ const USE_CASES = [
     friction: ["Resume reads as individual contributor, not leader", "Interview answers lack scope and strategic narrative", "LinkedIn positioned for current level, not target level"],
     how: "The coach re-calibrates everything for the tier you're targeting. Resume bullets rewritten to show scope, scale, and business impact at the next level. LinkedIn headline and About rebuilt for senior/staff positioning. Interview coaching focused on executive presence, systems thinking, and cross-functional influence — the signals that separate L5 from L6.",
     outcome: "Materials calibrated for target level · Interview story built for leadership signals · Clear narrative for the promotion or external move",
-    quote: { text: "I was performing at Staff but interviewing like a Senior. Askia completely changed how I talked about my work — from tactical execution to systems and scale. I got the Staff offer in 6 weeks.", name: "Priya K.", role: "Staff Engineer" },
+    quote: { text: "I was performing at Staff but interviewing like a Senior. Zari completely changed how I talked about my work — from tactical execution to systems and scale. I got the Staff offer in 6 weeks.", name: "Priya K.", role: "Staff Engineer" },
     icon: "M13 7h8m0 0v8m0-8l-8 8-4-4-6 6",
   },
 ];
@@ -91,7 +91,7 @@ export default async function UseCasesPage() {
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-[17px] leading-relaxed text-white/48">
             Returning after a break, pivoting to a new industry, breaking through silence, or leveling up —
-            Askia Coach is built for the specific problem you&apos;re actually facing.
+            Zari Coach is built for the specific problem you&apos;re actually facing.
           </p>
         </div>
       </section>
@@ -127,9 +127,9 @@ export default async function UseCasesPage() {
                   ))}
                 </div>
 
-                {/* How Askia helps */}
+                {/* How Zari helps */}
                 <div className="mb-7 rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-5">
-                  <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: uc.accent }}>How Askia helps</p>
+                  <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: uc.accent }}>How Zari helps</p>
                   <p className="text-[14px] leading-7 text-[var(--ink-2)]">{uc.how}</p>
                 </div>
 
@@ -215,7 +215,7 @@ export default async function UseCasesPage() {
         <div className="hero-glow-line absolute left-0 right-0 top-0" />
         <div className="relative mx-auto max-w-3xl px-6 text-center">
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/15 bg-white/10">
-            <Image src="/askia-logo.png" alt="Askia" width={40} height={40} className="rounded-xl" />
+            <Image src="/askia-logo.png" alt="Zari" width={40} height={40} className="rounded-xl" />
           </div>
           <h2 className="text-[2.8rem] font-extrabold tracking-[-0.03em] md:text-[3.4rem]">
             Find your situation.<br />Start your session.

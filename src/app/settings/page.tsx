@@ -105,7 +105,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
                 </div>
               </div>
               <a
-                href="mailto:support@askiatech.com?subject=Account%20deletion%20request"
+                href="mailto:support@zaricoach.com?subject=Account%20deletion%20request"
                 style={{ fontSize: 13, fontWeight: 600, padding: "8px 16px", borderRadius: 9, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.06)", color: "#DC2626", textDecoration: "none", whiteSpace: "nowrap" as const }}
               >
                 Request deletion

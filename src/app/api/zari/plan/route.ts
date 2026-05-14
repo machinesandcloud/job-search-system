@@ -118,9 +118,13 @@ Return ONLY a valid JSON object:
   "tasks": [
     { "text": "<specific, actionable task>", "cat": "<Resume|Interview|LinkedIn|Cover Letter|Job Search|Session|Network|Research|Case|Docs|Feedback|Sponsorship|Visibility|Planning|Milestone>", "pri": "<high|med|low>" }
   ],
-  "coachNote": "<3-4 sentences: honest assessment of their situation, realistic expectations, what to do first and why. If the timeline is aggressive or the setup is under-resourced, say so directly — do not sugarcoat.>",
+  "situationRead": "<2-3 sentences: honest, specific diagnosis of where this person stands right now. Cite their actual scores, role, bandwidth, and stage. No generic advice — this is the real read.>",
+  "coachNote": "<2 sentences: the single most important coaching insight — what has to happen first and the key decision they face right now>",
+  "weekNote": "<1-2 sentences: explain WHY the high-priority tasks this week are the right first moves, tied to their specific situation>",
+  "monthNote": "<1-2 sentences: what the monthly tasks are building toward — what changes for them when this phase is done>",
+  "weeklyRhythm": ["<specific weekly habit 1 — short, actionable, tied to their search>", "<habit 2>", "<habit 3>"],
   "timelineVerdict": "<realistic|aggressive|not_feasible>",
-  "timelineMessage": "<if aggressive or not_feasible: 1-2 sentences of honest pushback about why the timeline is hard and what needs to change. If realistic, empty string.>"
+  "timelineMessage": "<if aggressive or not_feasible: 1-2 sentences of honest pushback. If realistic: empty string.>"
 }
 
 Stage: ${stage}
@@ -143,7 +147,7 @@ Rules — FOLLOW THESE STRICTLY:
   const reply = await openaiChat(messages, {
     model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
     temperature: 0.4,
-    maxTokens: 1200,
+    maxTokens: 1600,
     jsonMode: true,
   });
 

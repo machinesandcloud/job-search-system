@@ -82,7 +82,7 @@ export function MarketingSiteShell({
             <Link href="/privacy"  style={{ color: "rgba(255,255,255,0.35)", textDecoration: "none" }}>Privacy</Link>
             <Link href="/security" style={{ color: "rgba(255,255,255,0.35)", textDecoration: "none" }}>Security</Link>
           </div>
-          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.3)" }}>© 2026 Askia Technologies. All rights reserved.</span>
+          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.3)" }}>© 2026 Zari. All rights reserved.</span>
         </div>
       </footer>
     </div>

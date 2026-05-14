@@ -42,7 +42,7 @@ export async function groqChatJSON(systemPrompt: string, userPrompt: string) {
       const text = await res.text().catch(() => "");
       if (res.status === 429 || text.toLowerCase().includes("rate") || text.toLowerCase().includes("limit")) {
         throw new Error(
-          "Sorry for the inconvenience. Due to extremely high demand, Askia AI is currently unavailable. Join the waitlist to get notified when it's available again."
+          "Sorry for the inconvenience. Due to extremely high demand, Zari AI is currently unavailable. Join the waitlist to get notified when it's available again."
         );
       }
       return null;
@@ -89,7 +89,7 @@ export async function groqChatText(systemPrompt: string, userPrompt: string) {
       const text = await res.text().catch(() => "");
       if (res.status === 429 || text.toLowerCase().includes("rate") || text.toLowerCase().includes("limit")) {
         throw new Error(
-          "Sorry for the inconvenience. Due to extremely high demand, Askia AI is currently unavailable. Join the waitlist to get notified when it's available again."
+          "Sorry for the inconvenience. Due to extremely high demand, Zari AI is currently unavailable. Join the waitlist to get notified when it's available again."
         );
       }
       return null;

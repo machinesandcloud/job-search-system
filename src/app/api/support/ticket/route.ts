@@ -4,6 +4,7 @@ import { ensureSameOrigin } from "@/lib/utils";
 import { syncCurrentUserToBillingIdentity, logAppEvent } from "@/lib/billing";
 import { rateLimit } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/utils";
+import { syncSupportTicket } from "@/lib/zoho-crm";
 
 export const runtime = "nodejs";
 export const maxDuration = 15;
@@ -63,6 +64,16 @@ export async function POST(request: NextRequest) {
       category,
       source: "user_portal",
     },
+  });
+
+  // Fire-and-forget: sync ticket to Zoho CRM as a Contact note
+  void syncSupportTicket({
+    email: identity.user.email,
+    ticketId: ticket.id,
+    subject,
+    category,
+    priority: "medium",
+    description,
   });
 
   return NextResponse.json({ ok: true, ticketId: ticket.id });

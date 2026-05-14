@@ -3120,11 +3120,11 @@ ${certsHtml}
 
 const RESUME_SESSION_KEY = "zari_resume_session_v2";
 const RESUME_PDF_KEY     = "zari_resume_pdf_v2";
-function loadResumeSession(): { resumeText:string; fileName:string; aiResult:ResumeAnalysis; reviewMode:"general"|"targeted"; targetRoleInput:string; careerLevel:CareerLevel } | null {
+function loadResumeSession(): { resumeText:string; fileName:string; aiResult:ResumeAnalysis; reviewMode:"general"|"targeted"; targetRoleInput:string; careerLevel:CareerLevel; jobDescription:string } | null {
   try {
     const raw = localStorage.getItem(RESUME_SESSION_KEY);
     if (!raw) return null;
-    const s = JSON.parse(raw) as { resumeText:string; fileName:string; aiResult:ResumeAnalysis; reviewMode:"general"|"targeted"; targetRoleInput:string; careerLevel:CareerLevel; savedAt:string };
+    const s = JSON.parse(raw) as { resumeText:string; fileName:string; aiResult:ResumeAnalysis; reviewMode:"general"|"targeted"; targetRoleInput:string; careerLevel:CareerLevel; jobDescription:string; savedAt:string };
     // Expire sessions older than 7 days
     if (Date.now() - new Date(s.savedAt).getTime() > 7 * 86400_000) { localStorage.removeItem(RESUME_SESSION_KEY); return null; }
     return s;
@@ -8358,7 +8358,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
   const [reviewMode,      setReviewMode]      = useState<"general"|"targeted">(_saved?.reviewMode ?? "general");
   const [targetRoleInput, setTargetRoleInput] = useState(_saved?.targetRoleInput ?? "");
   const [jdInputMode,     setJdInputMode]     = useState<"paste"|"url">("paste");
-  const [jobDescription,  setJobDescription]  = useState("");
+  const [jobDescription,  setJobDescription]  = useState(_saved?.jobDescription ?? "");
   const [jdUrl,           setJdUrl]           = useState("");
   const [fetchingJdUrl,   setFetchingJdUrl]   = useState(false);
   const [jdUrlErr,        setJdUrlErr]        = useState("");
@@ -8431,6 +8431,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
         setAiResult(synced.aiResult);
         setReviewMode(synced.reviewMode);
         setTargetRoleInput(synced.targetRoleInput);
+        if (synced.jobDescription) setJobDescription(synced.jobDescription);
         setCareerLevel(synced.careerLevel);
         setResumeViewMode("suggestions");
       }
@@ -8819,7 +8820,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
       if (data && data.overall) {
         setAiResult(data);
         // Persist session so page refresh lands back on results
-        try { const _rsess = { resumeText:textToAnalyze, fileName:fileName||"resume", aiResult:data, reviewMode, targetRoleInput, careerLevel, savedAt:new Date().toISOString() }; localStorage.setItem(RESUME_SESSION_KEY, JSON.stringify(_rsess)); syncKeyToServer(RESUME_SESSION_KEY, _rsess); } catch { /* non-fatal */ }
+        try { const _rsess = { resumeText:textToAnalyze, fileName:fileName||"resume", aiResult:data, reviewMode, targetRoleInput, jobDescription, careerLevel, savedAt:new Date().toISOString() }; localStorage.setItem(RESUME_SESSION_KEY, JSON.stringify(_rsess)); syncKeyToServer(RESUME_SESSION_KEY, _rsess); } catch { /* non-fatal */ }
         // Save to doc vault
         try { vaultSave({ type:"resume", name:fileName||"Resume", content:textToAnalyze, meta:{ score:String(data.overall), targetRole:targetRoleInput||"", stage } }); } catch { /* non-fatal */ }
         // Always persist to localStorage so history works regardless of auth state
@@ -8868,7 +8869,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
           tailoredScore: data.tailoredScore,
         });
         try {
-          const _rsess = { resumeText: revisedText, fileName: fileName || "resume", aiResult: data, reviewMode, targetRoleInput, careerLevel, savedAt: new Date().toISOString() };
+          const _rsess = { resumeText: revisedText, fileName: fileName || "resume", aiResult: data, reviewMode, targetRoleInput, jobDescription, careerLevel, savedAt: new Date().toISOString() };
           localStorage.setItem(RESUME_SESSION_KEY, JSON.stringify(_rsess));
           syncKeyToServer(RESUME_SESSION_KEY, _rsess);
         } catch { /* non-fatal */ }
@@ -16521,6 +16522,10 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
   const [done,          setDone]          = useState<Set<number>>(new Set());
   const [aiTasks,       setAiTasks]       = useState<PlanTask[] | null>(null);
   const [aiCoachNote,   setAiCoachNote]   = useState<string | null>(null);
+  const [situationRead, setSituationRead] = useState<string | null>(null);
+  const [weekNote,      setWeekNote]      = useState<string | null>(null);
+  const [monthNote,     setMonthNote]     = useState<string | null>(null);
+  const [weeklyRhythm,  setWeeklyRhythm] = useState<string[]>([]);
   const [timelineVerdict, setTimelineVerdict] = useState<string>("");
   const [timelineMessage, setTimelineMessage] = useState<string>("");
   const [planLoading,   setPlanLoading]   = useState(false);
@@ -16554,6 +16559,10 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
     setDone(new Set());
     setAiTasks(null);
     setAiCoachNote(null);
+    setSituationRead(null);
+    setWeekNote(null);
+    setMonthNote(null);
+    setWeeklyRhythm([]);
     setTimelineVerdict("");
     setTimelineMessage("");
     setPlanLoading(true);
@@ -16586,7 +16595,11 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
       .then(async r => {
         const data = await r.json().catch(() => null) as ({
           tasks?: PlanTask[];
+          situationRead?: string;
           coachNote?: string;
+          weekNote?: string;
+          monthNote?: string;
+          weeklyRhythm?: string[];
           timelineVerdict?: string;
           timelineMessage?: string;
         } & BillingApiErrorData) | null;
@@ -16594,6 +16607,10 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
         if (data?.tasks?.length) {
           setAiTasks(data.tasks);
           setAiCoachNote(data.coachNote ?? null);
+          setSituationRead(data.situationRead ?? null);
+          setWeekNote(data.weekNote ?? null);
+          setMonthNote(data.monthNote ?? null);
+          setWeeklyRhythm(Array.isArray(data.weeklyRhythm) ? data.weeklyRhythm : []);
           setTimelineVerdict(data.timelineVerdict ?? "");
           setTimelineMessage(data.timelineMessage ?? "");
         }
@@ -16866,6 +16883,7 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
 
   return (
     <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
+
       {/* Page header */}
       <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
         <div>
@@ -16892,7 +16910,7 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
         </div>
       </div>
 
-      <div style={{ padding:"20px 28px 40px" }}>
+      <div style={{ padding:"24px 28px 52px" }}>
 
         {/* New data banner */}
         {newDataReady && (
@@ -16901,25 +16919,24 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
               <svg viewBox="0 0 20 20" fill="none" stroke="#2563EB" strokeWidth="2" style={{width:18,height:18,flexShrink:0}}><path d="M10 2a8 8 0 100 16A8 8 0 0010 2z"/><path d="M10 6v4l3 2"/></svg>
               <p style={{ fontSize:13, fontWeight:600, color:"var(--z-text)", margin:0 }}>New data available — your plan can be updated with the latest section results.</p>
             </div>
-            <button onClick={() => generatePlan()} style={{ fontSize:12.5, fontWeight:700, padding:"7px 16px", borderRadius:9, border:"none", background:"#2563EB", color:"white", cursor:"pointer", flexShrink:0 }}>
-              Update Plan →
-            </button>
+            <button onClick={() => generatePlan()} style={{ fontSize:12.5, fontWeight:700, padding:"7px 16px", borderRadius:9, border:"none", background:"#2563EB", color:"white", cursor:"pointer", flexShrink:0 }}>Update Plan →</button>
           </div>
         )}
 
         {/* Timeline pushback */}
         {(timelineVerdict === "aggressive" || timelineVerdict === "not_feasible") && timelineMessage && (
-          <div style={{ background: timelineVerdict === "not_feasible" ? "rgba(220,38,38,0.07)" : "rgba(245,158,11,0.07)", border:`1.5px solid ${timelineVerdict === "not_feasible" ? "rgba(220,38,38,0.3)" : "rgba(245,158,11,0.35)"}`, borderRadius:12, padding:"14px 18px", marginBottom:20, display:"flex", gap:12, alignItems:"flex-start" }}>
-            <svg viewBox="0 0 20 20" fill="none" stroke={timelineVerdict === "not_feasible" ? "#DC2626" : "#D97706"} strokeWidth="2" style={{width:18,height:18,flexShrink:0,marginTop:1}}><path d="M10 2l8.66 15H1.34L10 2z"/><path d="M10 8v4M10 14.5v.5"/></svg>
+          <div style={{ background:timelineVerdict==="not_feasible"?"rgba(220,38,38,0.07)":"rgba(245,158,11,0.07)", border:`1.5px solid ${timelineVerdict==="not_feasible"?"rgba(220,38,38,0.3)":"rgba(245,158,11,0.35)"}`, borderRadius:12, padding:"14px 18px", marginBottom:20, display:"flex", gap:12, alignItems:"flex-start" }}>
+            <svg viewBox="0 0 20 20" fill="none" stroke={timelineVerdict==="not_feasible"?"#DC2626":"#D97706"} strokeWidth="2" style={{width:18,height:18,flexShrink:0,marginTop:1}}><path d="M10 2l8.66 15H1.34L10 2z"/><path d="M10 8v4M10 14.5v.5"/></svg>
             <div>
-              <p style={{ fontSize:12, fontWeight:800, color: timelineVerdict === "not_feasible" ? "#DC2626" : "#D97706", margin:"0 0 4px", textTransform:"uppercase", letterSpacing:"0.06em" }}>
-                {timelineVerdict === "not_feasible" ? "Timeline Not Feasible" : "Heads Up — Tight Timeline"}
+              <p style={{ fontSize:12, fontWeight:800, color:timelineVerdict==="not_feasible"?"#DC2626":"#D97706", margin:"0 0 4px", textTransform:"uppercase", letterSpacing:"0.06em" }}>
+                {timelineVerdict==="not_feasible"?"Timeline Not Feasible":"Heads Up — Tight Timeline"}
               </p>
               <p style={{ fontSize:13, color:"var(--z-text)", margin:0, lineHeight:1.6 }}>{timelineMessage}</p>
             </div>
           </div>
         )}
 
+        {/* Loading */}
         {planLoading && (
           <div style={{ display:"flex", alignItems:"center", gap:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:14, padding:"14px 18px", marginBottom:22 }}>
             <span style={{ width:16,height:16,borderRadius:"50%",border:"2.5px solid rgba(37,99,235,0.25)",borderTopColor:"#2563EB",animation:"spin-slow 0.7s linear infinite",display:"block",flexShrink:0 }}/>
@@ -16927,116 +16944,109 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
           </div>
         )}
 
-        {/* Stats row */}
-        <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, flexWrap:"wrap", marginBottom:24 }}>
-          <div>
-            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:6 }}>
-              <h2 style={{ fontSize:22, fontWeight:900, letterSpacing:"-0.03em", color:"var(--z-text)", margin:0 }}>Your {STAGE_NAV_LABELS[stage].plan}</h2>
-              {aiTasks && <span style={{ fontSize:10.5, fontWeight:800, padding:"3px 9px", borderRadius:99, background:"var(--z-raise)", color:"var(--z-text3)", border:"1px solid var(--z-bd)", letterSpacing:"0.02em" }}>AI · PERSONALIZED</span>}
-            </div>
-            <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.5, margin:0 }}>
-              Based on {[hasResume&&"resume",hasLI&&"LinkedIn",hasCL&&"cover letter"].filter(Boolean).join(", ")} · {readyCount}/3 sections complete
-            </p>
-          </div>
-          <div style={{ display:"flex", gap:0, background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderRadius:14, overflow:"hidden", boxShadow:"0 2px 12px rgba(0,0,0,0.07)" }}>
-            {[{label:"Done",value:done.size,color:"#059669"},{label:"Remaining",value:TASKS.length-done.size,color:"#2563EB"},{label:"Total",value:TASKS.length,color:"var(--z-text2)"}].map((s,i)=>(
-              <div key={s.label} style={{ padding:"12px 20px", textAlign:"center", borderLeft:i?"1px solid var(--z-bd)":"none" }}>
-                <div style={{ fontSize:22, fontWeight:900, color:s.color, lineHeight:1 }}>{s.value}</div>
-                <div style={{ fontSize:10.5, color:"var(--z-text3)", marginTop:3, fontWeight:600, textTransform:"uppercase", letterSpacing:"0.04em" }}>{s.label}</div>
+        {/* ── Situation Assessment Card ── */}
+        <div style={{ background:"linear-gradient(135deg,#0C1425 0%,#0F1729 50%,#0A1020 100%)", border:"1px solid rgba(37,99,235,0.22)", borderRadius:20, padding:"24px 26px 20px", marginBottom:32, position:"relative", overflow:"hidden" }}>
+          <div style={{ position:"absolute", top:-60, right:-60, width:220, height:220, borderRadius:"50%", background:"radial-gradient(circle,rgba(37,99,235,0.1) 0%,transparent 65%)", pointerEvents:"none" }}/>
+          <div style={{ position:"absolute", bottom:-40, left:-20, width:160, height:160, borderRadius:"50%", background:"radial-gradient(circle,rgba(99,102,241,0.07) 0%,transparent 65%)", pointerEvents:"none" }}/>
+          <div style={{ position:"relative" }}>
+            <div style={{ display:"flex", gap:14, alignItems:"flex-start", marginBottom:20 }}>
+              <div style={{ width:42, height:42, borderRadius:13, background:"linear-gradient(135deg,#2563EB,#4F46E5)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:16, fontWeight:900, color:"white", boxShadow:"0 4px 16px rgba(37,99,235,0.4)" }}>Z</div>
+              <div style={{ flex:1 }}>
+                <p style={{ fontSize:10.5, fontWeight:700, color:"rgba(147,197,253,0.6)", margin:"0 0 7px", textTransform:"uppercase", letterSpacing:"0.12em" }}>Zari&apos;s Situation Read</p>
+                <p style={{ fontSize:14.5, color:"rgba(255,255,255,0.86)", lineHeight:1.75, margin:0 }}>
+                  {situationRead ?? aiCoachNote ?? "Your plan will include an honest assessment of exactly where you stand and what needs to happen first."}
+                </p>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Progress bar */}
-        <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:16, padding:"18px 22px", marginBottom:24, boxShadow:"0 2px 12px rgba(0,0,0,0.07)" }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
-            <span style={{ fontSize:13, fontWeight:700, color:"var(--z-text)" }}>Overall Progress</span>
-            <span style={{ fontSize:18, fontWeight:900, color:"#2563EB" }}>{pct}%</span>
-          </div>
-          <div style={{ height:8, background:"var(--z-raise)", borderRadius:99, overflow:"hidden" }}>
-            <div style={{ height:"100%", width:`${pct}%`, background:"#2563EB", borderRadius:99, transition:"width 0.5s ease" }}/>
-          </div>
-          <div style={{ display:"flex", gap:16, marginTop:12 }}>
-            {TIMELINE_GROUPS.map(g => {
-              const total = TASKS.filter(t=>t.pri===g.id).length;
-              const doneC = TASKS.filter((t,i)=>t.pri===g.id&&done.has(i)).length;
-              return (
-                <div key={g.id} style={{ display:"flex", alignItems:"center", gap:6 }}>
-                  <div style={{ width:8, height:8, borderRadius:99, background:g.accent }}/>
-                  <span style={{ fontSize:12, color:"var(--z-text2)" }}><strong style={{color:g.accent,fontWeight:700}}>{doneC}/{total}</strong> {g.label}</span>
+            </div>
+            <div style={{ paddingTop:16, borderTop:"1px solid rgba(255,255,255,0.07)", display:"flex", alignItems:"center", gap:0, flexWrap:"wrap" }}>
+              {[
+                {label:"Done",      value:done.size,                color:"#4ADE80"},
+                {label:"Remaining", value:TASKS.length-done.size,  color:"#60A5FA"},
+                {label:"Total",     value:TASKS.length,            color:"rgba(255,255,255,0.45)"},
+              ].map((s,i) => (
+                <div key={s.label} style={{ display:"flex", alignItems:"baseline", gap:5, paddingRight:20, marginRight:20, borderRight:i<2?"1px solid rgba(255,255,255,0.09)":"none" }}>
+                  <span style={{ fontSize:22, fontWeight:900, color:s.color, lineHeight:1 }}>{s.value}</span>
+                  <span style={{ fontSize:10.5, color:"rgba(255,255,255,0.38)", fontWeight:600, textTransform:"uppercase", letterSpacing:"0.05em" }}>{s.label}</span>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Section context chips */}
-        <div style={{ display:"flex", gap:8, marginBottom:24, flexWrap:"wrap", alignItems:"center" }}>
-          <span style={{ fontSize:12, color:"var(--z-text3)", fontWeight:600 }}>Sections:</span>
-          {SECTION_CARDS.map(c => (
-            <button key={c.key} onClick={()=>onNavigate(c.key)}
-              style={{ display:"flex", alignItems:"center", gap:5, padding:"5px 12px", borderRadius:99, border:"1px solid var(--z-bd)", background:"var(--z-card)", cursor:"pointer", fontSize:12, fontWeight:600, color:"var(--z-text2)" }}>
-              {c.done
-                ? <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.2" style={{width:10,height:10}}><path d="M1.5 6l3 3 6-6"/></svg>
-                : <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" style={{width:10,height:10}}><circle cx="6" cy="6" r="4.5"/></svg>
-              }
-              {c.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Zari coaching note */}
-        <div style={{ marginBottom:24, background:"var(--z-card)", borderRadius:14, padding:"18px 22px", border:"1px solid var(--z-bd)" }}>
-          <div style={{ display:"flex", gap:14, alignItems:"flex-start" }}>
-            <div style={{ width:36, height:36, borderRadius:10, background:"#2563EB", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:14, fontWeight:900, color:"white" }}>Z</div>
-            <div>
-              <p style={{ fontSize:11, fontWeight:700, color:"var(--z-text3)", marginBottom:6, textTransform:"uppercase", letterSpacing:"0.08em" }}>Zari&apos;s Coaching Note</p>
-              <p style={{ fontSize:14, color:"var(--z-text)", lineHeight:1.7, margin:0 }}>
-                {aiCoachNote ?? "Start with the high-priority tasks — they have the highest leverage right now. Each one you check off makes your search sharper. Come back as you complete sections and your plan will automatically get more specific."}
-              </p>
+              ))}
+              <div style={{ marginLeft:"auto", display:"flex", alignItems:"center", gap:8 }}>
+                <div style={{ width:88, height:4, background:"rgba(255,255,255,0.08)", borderRadius:99, overflow:"hidden" }}>
+                  <div style={{ height:"100%", width:`${pct}%`, background:"linear-gradient(90deg,#2563EB,#818CF8)", borderRadius:99, transition:"width 0.5s ease" }}/>
+                </div>
+                <span style={{ fontSize:13.5, fontWeight:800, color:"#60A5FA" }}>{pct}%</span>
+              </div>
+            </div>
+            <div style={{ display:"flex", gap:6, marginTop:14, flexWrap:"wrap", alignItems:"center" }}>
+              <span style={{ fontSize:10.5, color:"rgba(255,255,255,0.28)", fontWeight:600, marginRight:2 }}>Sections:</span>
+              {SECTION_CARDS.map(c => (
+                <button key={c.key} onClick={()=>onNavigate(c.key)}
+                  style={{ display:"flex", alignItems:"center", gap:4, padding:"4px 11px", borderRadius:99, border:`1px solid ${c.done?"rgba(74,222,128,0.28)":"rgba(255,255,255,0.1)"}`, background:c.done?"rgba(74,222,128,0.07)":"rgba(255,255,255,0.03)", cursor:"pointer", fontSize:11, fontWeight:600, color:c.done?"#4ADE80":"rgba(255,255,255,0.4)" }}>
+                  {c.done
+                    ? <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" style={{width:8,height:8}}><path d="M1.5 6l3 3 6-6"/></svg>
+                    : <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" style={{width:8,height:8}}><circle cx="6" cy="6" r="4.5"/></svg>
+                  }
+                  {c.label}
+                </button>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Tasks by timeline group */}
-        <div style={{ display:"flex", flexDirection:"column", gap:24 }}>
+        {/* ── Task Sections ── */}
+        <div style={{ display:"flex", flexDirection:"column", gap:36 }}>
           {TIMELINE_GROUPS.map(group => {
-            const groupTasks = TASKS.map((t,i)=>({...t,idx:i})).filter(t=>t.pri===group.id);
+            const groupTasks = TASKS.map((t,i) => ({...t, idx:i})).filter(t => t.pri === group.id);
             if (!groupTasks.length) return null;
-            const groupDone  = groupTasks.filter(t=>done.has(t.idx)).length;
+            const groupDone  = groupTasks.filter(t => done.has(t.idx)).length;
             const groupTotal = groupTasks.length;
-            const groupPct   = groupTotal ? Math.round((groupDone/groupTotal)*100) : 0;
+            const groupPct   = groupTotal ? Math.round((groupDone / groupTotal) * 100) : 0;
+            const zariNote   = group.id === "high" ? weekNote : group.id === "med" ? monthNote : null;
             return (
               <div key={group.id}>
-                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
-                  <div style={{ width:30, height:30, borderRadius:8, background:"var(--z-raise)", border:"1px solid var(--z-bd)", display:"flex", alignItems:"center", justifyContent:"center", color:"var(--z-text2)" }}>{group.icon}</div>
-                  <div style={{ flex:1 }}>
-                    <div style={{ display:"flex", alignItems:"baseline", gap:8 }}>
-                      <span style={{ fontSize:15, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.02em" }}>{group.label}</span>
-                      <span style={{ fontSize:12, color:group.accent, fontWeight:700 }}>{groupDone}/{groupTotal}</span>
-                    </div>
-                    <div style={{ fontSize:12, color:"var(--z-text3)", marginTop:1 }}>{group.sublabel}</div>
+                {/* Section header */}
+                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, paddingBottom:12, borderBottom:`1px solid ${group.accent}1A` }}>
+                  <div style={{ width:9, height:9, borderRadius:"50%", background:group.accent, boxShadow:`0 0 10px ${group.accent}99`, flexShrink:0 }}/>
+                  <span style={{ fontSize:12.5, fontWeight:900, color:"var(--z-text)", textTransform:"uppercase", letterSpacing:"0.06em" }}>{group.label}</span>
+                  <div style={{ background:`${group.accent}18`, border:`1px solid ${group.accent}30`, borderRadius:99, padding:"2px 9px" }}>
+                    <span style={{ fontSize:11.5, color:group.accent, fontWeight:700 }}>{groupDone}/{groupTotal}</span>
                   </div>
-                  <div style={{ width:60, height:5, background:"var(--z-bd)", borderRadius:99, overflow:"hidden" }}>
+                  <span style={{ fontSize:12, color:"var(--z-text3)" }}>{group.sublabel}</span>
+                  <div style={{ marginLeft:"auto", width:56, height:3.5, background:"var(--z-bd)", borderRadius:99, overflow:"hidden" }}>
                     <div style={{ height:"100%", width:`${groupPct}%`, background:group.accent, borderRadius:99, transition:"width 0.4s ease" }}/>
                   </div>
                 </div>
-                <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+
+                {/* Embedded Zari note for this phase */}
+                {zariNote && (
+                  <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:`3px solid ${group.accent}`, borderRadius:"0 13px 13px 0", padding:"13px 16px", marginBottom:14, display:"flex", gap:10, alignItems:"flex-start" }}>
+                    <div style={{ width:24, height:24, borderRadius:7, background:"#2563EB", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:9, fontWeight:900, color:"white", marginTop:0.5 }}>Z</div>
+                    <div>
+                      <p style={{ fontSize:10.5, fontWeight:700, color:"var(--z-text3)", margin:"0 0 4px", textTransform:"uppercase", letterSpacing:"0.08em" }}>
+                        {group.id === "high" ? "Why These First" : "What This Phase Builds"}
+                      </p>
+                      <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.65, margin:0 }}>{zariNote}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Task cards */}
+                <div style={{ display:"flex", flexDirection:"column", gap:7 }}>
                   {groupTasks.map(task => {
                     const isDone = done.has(task.idx);
-                    const cc = CAT_COLORS[task.cat] ?? { color:"var(--z-text2)", bg:"#F5F7FF", border:"#E4E8F5" };
+                    const cc = CAT_COLORS[task.cat] ?? { color:"var(--z-text2)", bg:"var(--z-raise)", border:"var(--z-bd)" };
                     return (
                       <button key={task.idx}
                         onClick={()=>setDone(d=>{const n=new Set(d);n.has(task.idx)?n.delete(task.idx):n.add(task.idx);return n;})}
-                        style={{ display:"flex", alignItems:"flex-start", gap:12, background:"var(--z-raise)", border:`1px solid ${isDone?"rgba(74,222,128,0.25)":"var(--z-bd)"}`, borderLeft:`3.5px solid ${isDone?"#16A34A":group.accent}`, borderRadius:"0 14px 14px 0", padding:"13px 16px", cursor:"pointer", textAlign:"left", transition:"all 0.15s", boxShadow:"0 1px 6px rgba(0,0,0,0.04)" }}>
-                        <div style={{ width:22, height:22, borderRadius:6, border:`2px solid ${isDone?"#16A34A":"var(--z-bd)"}`, background:isDone?"rgba(22,163,74,0.15)":"var(--z-card)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>
-                          {isDone && <svg viewBox="0 0 12 12" fill="none" style={{width:10,height:10}}><path d="M1.5 6l3 3 6-6" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                        style={{ display:"flex", alignItems:"flex-start", gap:14, background:isDone?"var(--z-raise)":"var(--z-card)", border:`1px solid ${isDone?"rgba(74,222,128,0.18)":"var(--z-bd)"}`, borderLeft:`3px solid ${isDone?"#16A34A":group.accent}`, borderRadius:"0 14px 14px 0", padding:"14px 18px", cursor:"pointer", textAlign:"left", transition:"all 0.18s", opacity:isDone?0.6:1 }}>
+                        <div style={{ width:22, height:22, borderRadius:7, border:`2px solid ${isDone?"#16A34A":"var(--z-bd)"}`, background:isDone?"rgba(22,163,74,0.12)":"transparent", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1, transition:"all 0.18s" }}>
+                          {isDone && <svg viewBox="0 0 12 12" fill="none" style={{width:9,height:9}}><path d="M1.5 6l3 3 6-6" stroke="#16A34A" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                         </div>
                         <div style={{ flex:1 }}>
-                          <p style={{ fontSize:13.5, color:isDone?"var(--z-text3)":"var(--z-text)", textDecoration:isDone?"line-through":"none", lineHeight:1.5, margin:0 }}>{task.text}</p>
+                          <p style={{ fontSize:13.5, color:isDone?"var(--z-text3)":"var(--z-text)", textDecoration:isDone?"line-through":"none", lineHeight:1.6, margin:0, transition:"all 0.18s" }}>{task.text}</p>
                         </div>
-                        <span style={{ flexShrink:0, fontSize:11, fontWeight:700, padding:"3px 9px", borderRadius:99, background:cc.bg, color:cc.color, border:`1px solid ${cc.border}`, whiteSpace:"nowrap", alignSelf:"center" }}>{task.cat}</span>
+                        <span style={{ flexShrink:0, fontSize:11, fontWeight:700, padding:"3px 10px", borderRadius:99, background:isDone?"transparent":cc.bg, color:isDone?"var(--z-text3)":cc.color, border:`1px solid ${isDone?"var(--z-bd)":cc.border}`, whiteSpace:"nowrap", alignSelf:"center", transition:"all 0.18s" }}>
+                          {isDone ? "Done" : task.cat}
+                        </span>
                       </button>
                     );
                   })}
@@ -17045,6 +17055,30 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
             );
           })}
         </div>
+
+        {/* ── Weekly Rhythm ── */}
+        {weeklyRhythm.length > 0 && (
+          <div style={{ marginTop:40, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"22px 24px", boxShadow:"0 2px 16px rgba(0,0,0,0.06)" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:18 }}>
+              <div style={{ width:36, height:36, borderRadius:10, background:"rgba(37,99,235,0.1)", border:"1px solid rgba(37,99,235,0.18)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                <svg viewBox="0 0 20 20" fill="none" stroke="#2563EB" strokeWidth="2" style={{width:16,height:16}}><rect x="3" y="4" width="14" height="13" rx="2"/><path d="M3 8h14M8 4V2M12 4V2"/></svg>
+              </div>
+              <div>
+                <p style={{ fontSize:14, fontWeight:800, color:"var(--z-text)", margin:0, letterSpacing:"-0.01em" }}>Your Weekly Rhythm</p>
+                <p style={{ fontSize:12, color:"var(--z-text3)", margin:0 }}>Build these habits throughout your search — they compound</p>
+              </div>
+            </div>
+            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+              {weeklyRhythm.map((habit, i) => (
+                <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:12, padding:"12px 14px", background:"var(--z-raise)", borderRadius:12, border:"1px solid var(--z-bd)" }}>
+                  <div style={{ width:24, height:24, borderRadius:99, background:"rgba(37,99,235,0.1)", border:"1px solid rgba(37,99,235,0.18)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:800, color:"#2563EB", flexShrink:0 }}>{i+1}</div>
+                  <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.6, margin:0 }}>{habit}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );

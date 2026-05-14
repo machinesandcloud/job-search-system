@@ -15,7 +15,7 @@ import {
 import { getBaseUrl } from "@/lib/utils";
 
 export type CoachAdminRole = "admin" | "support";
-export const DEFAULT_COACH_ADMIN_EMAIL = "steve@askiatech.com";
+export const DEFAULT_COACH_ADMIN_EMAIL = "steve@zaricoach.com";
 
 export const ACTIVE_SUBSCRIPTION_STATUSES = new Set(["active", "trialing"]);
 export const RESTRICTED_SUBSCRIPTION_STATUSES = new Set([
@@ -48,7 +48,7 @@ export function isPlaceholderCoachAdminEmail(email?: string | null) {
   return (
     normalized === "you@example.com" ||
     normalized.endsWith("@example.com") ||
-    normalized.endsWith("@askiatech.local")
+    normalized.endsWith("@zari.local")
   );
 }
 
@@ -532,7 +532,7 @@ export async function ensureCoachAdminUser(email: string, role: CoachAdminRole) 
         OR: [
           { email: "you@example.com" },
           { email: { endsWith: "@example.com" } },
-          { email: { endsWith: "@askiatech.local" } },
+          { email: { endsWith: "@zari.local" } },
         ],
       },
       orderBy: { createdAt: "asc" },

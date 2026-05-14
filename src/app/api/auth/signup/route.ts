@@ -3,6 +3,7 @@ import { setCurrentUserSessionOnResponse } from "@/lib/mvp/auth";
 import { createPlatformUser } from "@/lib/platform-users";
 import { rateLimit } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/utils";
+import { syncNewUser } from "@/lib/zoho-crm";
 
 export const maxDuration = 15;
 
@@ -32,6 +33,17 @@ export async function POST(request: Request) {
 
   try {
     const user = await createPlatformUser({ firstName, lastName, email, password });
+
+    // Fire-and-forget: sync new user to Zoho CRM (non-blocking)
+    void syncNewUser({
+      userId: user.userId,
+      accountId: (user.profile as any)?.accountId ?? user.userId,
+      email,
+      firstName,
+      lastName,
+      source: "Direct",
+    });
+
     const response = NextResponse.json({ ok: true, user: user.profile }, { status: 201 });
     return setCurrentUserSessionOnResponse(response, user.userId);
   } catch (error) {

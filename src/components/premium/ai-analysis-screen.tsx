@@ -180,7 +180,7 @@ export function AIAnalysisScreen({
           {failureReason ? (
             <div className="mt-4 rounded-2xl border border-rose-400/20 bg-rose-500/10 p-4 text-xs text-rose-100">
               <p>
-                Sorry for the inconvenience. Due to extremely high demand, Askia AI is currently
+                Sorry for the inconvenience. Due to extremely high demand, Zari AI is currently
                 unavailable. Join the waitlist to get notified when it’s available again.
               </p>
               <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-3 text-[11px] text-white/80">

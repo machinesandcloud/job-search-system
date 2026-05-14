@@ -112,6 +112,7 @@ function isInternalOperatorAccount(account: { users?: Array<{ role?: string | nu
 
 type AccountPageProps = {
   params: Promise<{ accountId: string }>;
+  searchParams: Promise<{ callsPage?: string }>;
 };
 
 type FeatureTokenEntry = {
@@ -128,9 +129,12 @@ type FeatureTokenEntry = {
   } | null;
 };
 
-export default async function CoachAdminAccountPage({ params }: AccountPageProps) {
+export default async function CoachAdminAccountPage({ params, searchParams }: AccountPageProps) {
   const session = await requireCoachAdminSession("support");
   const { accountId } = await params;
+  const { callsPage } = await searchParams;
+  const callsPageIndex = Math.max(0, parseInt(callsPage ?? "0", 10) || 0);
+  const CALLS_PER_PAGE = 10;
 
   const account = await prisma.account.findUnique({
     where: { id: accountId },
@@ -311,10 +315,18 @@ export default async function CoachAdminAccountPage({ params }: AccountPageProps
                         <p className={cx("mt-1 text-xs uppercase tracking-[0.16em]", coachAdminTextSoftClass)}>{(usage?.totalTokens || 0).toLocaleString()} tokens</p>
                       </div>
                     </div>
-                    <div className="mt-4 grid gap-3 md:grid-cols-3">
+                    <div className="mt-4 grid gap-3 md:grid-cols-4">
                       <div className={cx(coachAdminSubtleCardClass, "px-3 py-3")}>
                         <p className={cx("text-[10px] font-semibold uppercase tracking-[0.18em]", coachAdminTextSoftClass)}>Requests</p>
                         <p className={cx("mt-2 text-sm font-medium", coachAdminTextPrimaryClass)}>{usage?.requestCount || 0}</p>
+                      </div>
+                      <div className={cx(coachAdminSubtleCardClass, "px-3 py-3")}>
+                        <p className={cx("text-[10px] font-semibold uppercase tracking-[0.18em]", coachAdminTextSoftClass)}>Credits used</p>
+                        <p className={cx("mt-2 text-sm font-medium", coachAdminTextPrimaryClass)}>
+                          {tokenUsage && tokenUsage.used > 0 && usage?.totalTokens
+                            ? Math.round((usage.totalTokens / tokenUsage.used) * (tokenUsage.usedCredits ?? 0)).toLocaleString()
+                            : "0"}
+                        </p>
                       </div>
                       <div className={cx(coachAdminSubtleCardClass, "px-3 py-3")}>
                         <p className={cx("text-[10px] font-semibold uppercase tracking-[0.18em]", coachAdminTextSoftClass)}>Top model</p>
@@ -419,7 +431,7 @@ export default async function CoachAdminAccountPage({ params }: AccountPageProps
                 </div>
                 <div className="mt-4 grid gap-3">
                   {tokenEntries.length ? (
-                    tokenEntries.slice(0, 12).map((entry: FeatureTokenEntry) => {
+                    tokenEntries.slice(callsPageIndex * CALLS_PER_PAGE, (callsPageIndex + 1) * CALLS_PER_PAGE).map((entry: FeatureTokenEntry) => {
                       const estimate = estimateTrackedTokenCostUsd({
                         model: entry.model,
                         inputTokens: entry.inputTokens,
@@ -466,6 +478,21 @@ export default async function CoachAdminAccountPage({ params }: AccountPageProps
                     <CoachAdminEmptyState title="No tracked model calls yet" body="As this account uses AI features, exact request previews, token counts, and estimated spend will appear here." />
                   )}
                 </div>
+                {tokenEntries.length > CALLS_PER_PAGE && (
+                  <div className="mt-4 flex items-center justify-between gap-3">
+                    <p className={cx("text-xs uppercase tracking-[0.14em]", coachAdminTextSoftClass)}>
+                      Page {callsPageIndex + 1} of {Math.ceil(tokenEntries.length / CALLS_PER_PAGE)} · {tokenEntries.length} calls
+                    </p>
+                    <div className="flex gap-2">
+                      {callsPageIndex > 0 ? (
+                        <Link href={`?callsPage=${callsPageIndex - 1}`} className={cx("rounded-[10px] border border-[color:var(--ca-border)] px-3 py-1.5 text-xs font-semibold", coachAdminTextPrimaryClass)}>← Prev</Link>
+                      ) : null}
+                      {(callsPageIndex + 1) * CALLS_PER_PAGE < tokenEntries.length ? (
+                        <Link href={`?callsPage=${callsPageIndex + 1}`} className={cx("rounded-[10px] border border-[color:var(--ca-border)] px-3 py-1.5 text-xs font-semibold", coachAdminTextPrimaryClass)}>Next →</Link>
+                      ) : null}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </CoachAdminPanel>

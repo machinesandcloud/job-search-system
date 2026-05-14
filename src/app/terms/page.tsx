@@ -26,7 +26,7 @@ export default function TermsPage() {
           },
           {
             title: "2. Description of Service",
-            body: "Zari is an AI-powered career coaching platform that assists users with job searching, resume building, interview preparation, and related career activities. The Service is provided by Askia Technologies Inc.",
+            body: "Zari is an AI-powered career coaching platform that assists users with job searching, resume building, interview preparation, and related career activities. The Service is provided by Zari Marketing LLC.",
           },
           {
             title: "3. Account Registration",
@@ -54,7 +54,7 @@ export default function TermsPage() {
           },
           {
             title: "9. Limitation of Liability",
-            body: "To the maximum extent permitted by law, Askia Technologies Inc. shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the Service.",
+            body: "To the maximum extent permitted by law, Zari Marketing LLC shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the Service.",
           },
           {
             title: "10. Changes to Terms",
@@ -62,7 +62,7 @@ export default function TermsPage() {
           },
           {
             title: "11. Contact",
-            body: "For questions about these Terms, contact us at legal@askiatech.com.",
+            body: "For questions about these Terms, contact us at legal@zaricoach.com.",
           },
         ].map(({ title, body }) => (
           <div key={title} style={{ marginBottom: 32 }}>

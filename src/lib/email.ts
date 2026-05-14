@@ -74,7 +74,7 @@ export async function sendAdminMagicLink(email: string, token: string) {
     </div>
   `;
   return resend.emails.send({
-    from: "Askia Admin <no-reply@askia.tech>",
+    from: "Zari <no-reply@zaricoach.com>",
     to: email,
     subject: "Admin login link",
     html,

@@ -143,7 +143,7 @@ const FOUNDERS = [
     name: "Steve J Ngoumnai",
     title: "Founder & CEO",
     h3: "From Platform Engineer to career coach at scale.",
-    story1: `"I spent years watching talented people get passed over — not because they lacked ability, but because they couldn't tell their story. As a Platform Engineer and career advisor at Askia Enterprise and Machines & Cloud, I saw the same pattern repeat: vague bullets, weak interview stories, salary negotiations abandoned too early.`,
+    story1: `"I spent years watching talented people get passed over — not because they lacked ability, but because they couldn't tell their story. As a Platform Engineer and career advisor, I saw the same pattern repeat: vague bullets, weak interview stories, salary negotiations abandoned too early.`,
     story2: `Owen and Leanne brought 15+ years of executive coaching and career transition expertise. Together, we built Zari to give every professional access to the same coaching that used to cost thousands — specific, memory-driven, and built for people serious about their next move."`,
     sig: "– Steve J Ngoumnai",
   },
@@ -653,9 +653,9 @@ function FeatureMockup({ type }: { type: string }) {
         <div style={{ position:"absolute",top:"-30%",left:"10%",width:200,height:200,borderRadius:"50%",background:"radial-gradient(circle,rgba(79,70,229,0.15),transparent 65%)",animation:"aurora-slow 8s ease-in-out infinite",pointerEvents:"none" }}/>
         {/* Orb col */}
         <div style={{ display:"flex",flexDirection:"column",alignItems:"center",gap:8,flexShrink:0,zIndex:1 }}>
-          <div style={{ position:"relative",width:76,height:76 }}>
-            {isListening&&<><div style={{ position:"absolute",inset:-10,borderRadius:"50%",border:"1.5px solid rgba(99,102,241,0.28)",animation:"ring-pulse 2.2s ease-out infinite",pointerEvents:"none" }}/><div style={{ position:"absolute",inset:-20,borderRadius:"50%",border:"1px solid rgba(99,102,241,0.12)",animation:"ring-pulse 3.1s 0.8s ease-out infinite",pointerEvents:"none" }}/></>}
-            <div style={{ width:76,height:76,borderRadius:"50%",background:isListening?"radial-gradient(circle at 32% 32%,#9a8ff5,#4f46e5 50%,#1a1756)":"radial-gradient(circle at 32% 32%,#c7d2fe,#6366f1 42%,#1e1b4b)",boxShadow:isListening?"0 0 32px 10px rgba(79,70,229,0.42),0 0 65px 22px rgba(67,56,202,0.15)":"0 0 45px 16px rgba(59,130,246,0.5),0 0 90px 35px rgba(67,56,202,0.2)",animation:"sphere-breathe 4s ease-in-out infinite",display:"flex",alignItems:"center",justifyContent:"center" }}>
+          <div style={{ position:"relative",width:116,height:116,display:"flex",alignItems:"center",justifyContent:"center" }}>
+            {isListening&&<><div style={{ position:"absolute",inset:10,borderRadius:"50%",border:"1.5px solid rgba(99,102,241,0.28)",animation:"ring-pulse 2.2s ease-out infinite",pointerEvents:"none" }}/><div style={{ position:"absolute",inset:0,borderRadius:"50%",border:"1px solid rgba(99,102,241,0.12)",animation:"ring-pulse 3.1s 0.8s ease-out infinite",pointerEvents:"none" }}/></>}
+            <div style={{ width:76,height:76,borderRadius:"50%",background:isListening?"radial-gradient(circle at 32% 32%,#9a8ff5,#4f46e5 50%,#1a1756)":"radial-gradient(circle at 32% 32%,#c7d2fe,#6366f1 42%,#1e1b4b)",boxShadow:isListening?"0 0 32px 10px rgba(79,70,229,0.42),0 0 65px 22px rgba(67,56,202,0.15)":"0 0 45px 16px rgba(59,130,246,0.5),0 0 90px 35px rgba(67,56,202,0.2)",animation:"sphere-breathe 4s ease-in-out infinite",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
               <span style={{ fontSize:16,fontWeight:900,color:"rgba(255,255,255,0.65)" }}>Z</span>
             </div>
           </div>
@@ -1040,7 +1040,7 @@ function PlatformWalkthrough() {
   ];
 
   return (
-    <section style={{ background:"linear-gradient(180deg,#04060E 0%,#080C1A 60%,#060913 100%)", padding:"96px 20px 108px", position:"sticky", top:0, zIndex:2 }}>
+    <section style={{ background:"linear-gradient(180deg,#04060E 0%,#080C1A 60%,#060913 100%)", padding:"96px 20px 340px" }}>
       <div style={{ maxWidth:1280, margin:"0 auto" }}>
 
         {/* Header */}
@@ -1072,7 +1072,7 @@ function PlatformWalkthrough() {
             <div style={{ display:"flex", gap:6 }}>
               {["#FF5F57","#FEBC2E","#28C840"].map(c => <div key={c} style={{ width:11,height:11,borderRadius:"50%",background:c,opacity:0.85 }}/>)}
             </div>
-            <div style={{ flex:1, background:"rgba(255,255,255,0.05)", borderRadius:7, padding:"5px 14px", textAlign:"center", fontSize:11, color:"rgba(255,255,255,0.22)", letterSpacing:"0.02em" }}>app.zari.coach/dashboard</div>
+            <div style={{ flex:1, background:"rgba(255,255,255,0.05)", borderRadius:7, padding:"5px 14px", textAlign:"center", fontSize:11, color:"rgba(255,255,255,0.22)", letterSpacing:"0.02em" }}>app.zaricoach.com/dashboard</div>
             <div style={{ width:60 }}/>
           </div>
 
@@ -1953,10 +1953,10 @@ function PlatformWalkthrough() {
 
                       {/* Orb card */}
                       <div style={{ background:"radial-gradient(ellipse at 50% 20%,#0e0b2e,#060514)",border:"1px solid rgba(129,140,248,0.18)",borderRadius:13,padding:"14px 12px",display:"flex",flexDirection:"column",alignItems:"center",gap:7,flexShrink:0 }}>
-                        <div style={{ position:"relative",width:70,height:70 }}>
-                          <div style={{ position:"absolute",inset:-10,borderRadius:"50%",border:"1.5px solid rgba(99,102,241,0.3)",animation:"ring-pulse 2.2s ease-out infinite",pointerEvents:"none" }}/>
-                          <div style={{ position:"absolute",inset:-20,borderRadius:"50%",border:"1px solid rgba(99,102,241,0.12)",animation:"ring-pulse 3.1s 0.8s ease-out infinite",pointerEvents:"none" }}/>
-                          <div style={{ width:70,height:70,borderRadius:"50%",background:"radial-gradient(circle at 32% 32%, #9a8ff5, #4f46e5 50%, #1a1756 100%)",boxShadow:"0 0 35px 12px rgba(79,70,229,0.42), 0 0 70px 25px rgba(67,56,202,0.15)",animation:"sphere-breathe 4s ease-in-out infinite",display:"flex",alignItems:"center",justifyContent:"center" }}>
+                        <div style={{ position:"relative",width:110,height:110,display:"flex",alignItems:"center",justifyContent:"center" }}>
+                          <div style={{ position:"absolute",inset:10,borderRadius:"50%",border:"1.5px solid rgba(99,102,241,0.3)",animation:"ring-pulse 2.2s ease-out infinite",pointerEvents:"none" }}/>
+                          <div style={{ position:"absolute",inset:0,borderRadius:"50%",border:"1px solid rgba(99,102,241,0.12)",animation:"ring-pulse 3.1s 0.8s ease-out infinite",pointerEvents:"none" }}/>
+                          <div style={{ width:70,height:70,borderRadius:"50%",background:"radial-gradient(circle at 32% 32%, #9a8ff5, #4f46e5 50%, #1a1756 100%)",boxShadow:"0 0 35px 12px rgba(79,70,229,0.42), 0 0 70px 25px rgba(67,56,202,0.15)",animation:"sphere-breathe 4s ease-in-out infinite",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
                             <span style={{ fontSize:18,fontWeight:900,color:"rgba(255,255,255,0.7)" }}>Z</span>
                           </div>
                         </div>
@@ -2280,7 +2280,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
       <PlatformWalkthrough />
 
       {/* ══════ FOUNDER SECTION — interactive hover ══════ */}
-      <section style={{ background:"white", padding:"0 40px", minHeight:"100vh", display:"flex", alignItems:"center", position:"relative", zIndex:3 }}>
+      <section style={{ background:"white", padding:"0 40px", minHeight:"100vh", display:"flex", alignItems:"center", }}>
         <div style={{ maxWidth:1200, margin:"0 auto", width:"100%", paddingTop:96, paddingBottom:96 }}>
           <h2 style={{ textAlign:"center", fontSize:"clamp(1.9rem,3.5vw,2.6rem)", fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", marginBottom:64 }}>
             Meet the founders behind Zari
@@ -2348,7 +2348,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
       </section>
 
       {/* ══════ FEATURES — Kleo-style sections ══════ */}
-      <section id="features" style={{ background:"#FAFBFF", position:"relative", zIndex:3 }}>
+      <section id="features" style={{ background:"#FAFBFF", }}>
         {FEATURES.map((f, i) => (
           <div key={f.tag} style={{ padding:"112px 20px", minHeight:"100vh", display:"flex", alignItems:"center", background: i%2===0?"#FAFBFF":"white" }}>
             <div style={{ maxWidth:1440, margin:"0 auto" }}>
@@ -2359,7 +2359,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
       </section>
 
       {/* ══════ FAQ — Kleo layout ══════ */}
-      <section style={{ padding:"0 40px", minHeight:"100vh", display:"flex", alignItems:"center", background:"#FAFBFF", position:"relative", zIndex:3 }}>
+      <section style={{ padding:"0 40px", minHeight:"100vh", display:"flex", alignItems:"center", background:"#FAFBFF", }}>
         <div style={{ maxWidth:1200, margin:"0 auto", width:"100%", paddingTop:96, paddingBottom:96 }}>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 2fr", gap:80, alignItems:"start" }}>
 
@@ -2572,7 +2572,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
             <Link href="/terms"   style={{ color:"rgba(255,255,255,0.35)", textDecoration:"none" }}>Terms of Service</Link>
             <Link href="/privacy" style={{ color:"rgba(255,255,255,0.35)", textDecoration:"none" }}>Privacy</Link>
           </div>
-          <span style={{ fontSize:13, color:"rgba(255,255,255,0.3)" }}>© 2026 Askia Technologies. All rights reserved.</span>
+          <span style={{ fontSize:13, color:"rgba(255,255,255,0.3)" }}>© 2026 Zari. All rights reserved.</span>
         </div>
       </footer>
     </div>

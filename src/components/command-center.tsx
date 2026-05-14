@@ -249,7 +249,7 @@ export function CommandCenter({ assessment, userEmail }: CommandCenterProps) {
     <div className="flex min-h-screen bg-[#0A0E27] text-white">
       <aside className="hidden w-60 flex-shrink-0 border-r border-white/10 bg-[#0A0E27]/95 p-4 lg:flex lg:flex-col">
         <div className="border-b border-white/10 pb-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">Askia Coaching</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">Zari</p>
           <p className="text-xs text-white/50">Command Center</p>
         </div>
         <nav className="mt-4 flex-1 space-y-1">

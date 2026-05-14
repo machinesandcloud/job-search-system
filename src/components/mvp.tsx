@@ -8,7 +8,7 @@ function cn(...values: Array<string | false | null | undefined>) {
   return values.filter(Boolean).join(" ");
 }
 
-// Extended logo set from askia-site
+// Company logo set
 const logoFiles = [
   { src: "/logos/google.svg", alt: "Google" },
   { src: "/logos/meta.svg", alt: "Meta" },
@@ -22,7 +22,7 @@ const logoFiles = [
   { src: "/logos/spotify.svg", alt: "Spotify" },
 ];
 
-export { ZariLogo as AskiaLogo };
+export { ZariLogo as ZariLogoAlias };
 
 export function SiteHeader({ authenticated = false }: { authenticated?: boolean }) {
   return (
@@ -131,8 +131,8 @@ function SiteFooter() {
           <p className="text-xs text-[var(--muted)]">© 2026 Zari AI. All rights reserved.</p>
           <p className="text-xs text-[var(--muted)]">
             Powered by{" "}
-            <a href="https://askia.tech" target="_blank" rel="noopener noreferrer" className="text-[var(--brand)] hover:underline">
-              askia.tech
+            <a href="https://zaricoach.com" target="_blank" rel="noopener noreferrer" className="text-[var(--brand)] hover:underline">
+              zaricoach.com
             </a>
           </p>
         </div>

@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import type { NextResponse } from "next/server";
 import { prisma, isDatabaseReady } from "@/lib/db";
 
-export const sessionCookieName = "askia_mvp_uid";
+export const sessionCookieName = "zari_session";
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
 
 function hashSessionToken(token: string) {

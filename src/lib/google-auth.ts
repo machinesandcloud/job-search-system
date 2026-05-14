@@ -4,7 +4,7 @@ import { getBaseUrl } from "@/lib/utils";
 
 export type GoogleAuthMode = "login" | "signup";
 
-const GOOGLE_OAUTH_COOKIE = "askia_google_oauth";
+const GOOGLE_OAUTH_COOKIE = "zari_google_oauth";
 const GOOGLE_SCOPES = ["openid", "email", "profile"];
 
 export function getGoogleOauthCookieName() {
