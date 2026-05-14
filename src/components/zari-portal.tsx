@@ -1845,7 +1845,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
                   maxWidth:"72%", padding:"11px 15px", fontSize:13.5, lineHeight:1.65,
                   borderRadius: msg.role==="coach" ? "4px 16px 16px 16px" : "16px 4px 16px 16px",
                   background: msg.role==="coach" ? "var(--z-card)" : "linear-gradient(135deg,#3730a3,#2563EB)",
-                  color:"var(--z-text)",
+                  color: msg.role==="coach" ? "var(--z-text)" : "white",
                   border: msg.role==="coach" ? "1px solid var(--z-bd)" : "none",
                   boxShadow: msg.role!=="coach" ? "0 4px 16px rgba(37,99,235,0.35)" : "none",
                 }}>
@@ -1997,15 +1997,16 @@ function ZariLiveMode({
   }, []);
 
   type SR = { continuous: boolean; interimResults: boolean; lang: string; start(): void; stop(): void; onresult: ((e: { results: { length: number; [i: number]: { isFinal: boolean; [j: number]: { transcript: string } } } }) => void) | null; onerror: ((e: { error: string }) => void) | null; onend: (() => void) | null };
-  const audioCtxRef     = useRef<AudioContext | null>(null);
-  const sourceNodeRef   = useRef<AudioBufferSourceNode | null>(null);
-  const newMsgsRef      = useRef<ChatMsg[]>([]);
-  const liveStateRef    = useRef<LiveState>("idle");
-  const autoLoopRef     = useRef(false);
-  const recognitionRef  = useRef<SR | null>(null);
-  const transcriptRef   = useRef<HTMLDivElement>(null);
-  const aliveRef        = useRef(true);
-  const activeVoiceRef  = useRef("");
+  const audioCtxRef           = useRef<AudioContext | null>(null);
+  const sourceNodeRef         = useRef<AudioBufferSourceNode | null>(null);
+  const newMsgsRef            = useRef<ChatMsg[]>([]);
+  const liveStateRef          = useRef<LiveState>("idle");
+  const autoLoopRef           = useRef(false);
+  const recognitionRef        = useRef<SR | null>(null);
+  const transcriptRef         = useRef<HTMLDivElement>(null);
+  const aliveRef              = useRef(true);
+  const activeVoiceRef        = useRef("");
+  const micPermGrantedRef     = useRef(false); // skip getUserMedia after first grant
 
   useEffect(() => { liveStateRef.current = liveState; }, [liveState]);
   useEffect(() => { activeVoiceRef.current = activeVoice; }, [activeVoice]);
@@ -2134,22 +2135,46 @@ function ZariLiveMode({
       const decoder = new TextDecoder();
       let buf = "";
       let lineBuf = ""; // carries incomplete SSE lines across chunk boundaries
-      // Negative lookbehind excludes "1. " / "2. " list numbering from being sentence splits.
-      // Requires whitespace after punct — prevents "3.5 million" mid-number splits.
-      const SENTENCE_RE = /(?<!\d)[.!?][)'"»]?\s+/;
-      // Clause fallback: if no sentence boundary and buffer is long, split at , ; :
-      const CLAUSE_RE = /[,;:]\s+/;
-      const MAX_CLAUSE_SPLIT = 320;
+      // Sentence boundary rules:
+      // - negative lookbehind: skip digits (3.5), and common abbrevs (Mr. Dr. vs. etc. e.g. i.e. No.)
+      // - positive lookahead: only split if followed by capital letter, digit, or quote (real new sentence)
+      // - handles optional closing punct: ." ?) etc.
+      const ABBREV_RE = /\b(?:Mr|Mrs|Ms|Dr|Prof|Sr|Jr|St|vs|etc|e\.g|i\.e|No|Fig|approx|est)\s*$/i;
+      function isSentenceBoundary(before: string, after: string): boolean {
+        if (/\d$/.test(before)) return false; // number before period (e.g. "3.")
+        if (ABBREV_RE.test(before)) return false; // abbreviation
+        if (!/^[A-Z0-9"'‘“’”]/.test(after)) return false; // next word must start with capital
+        return true;
+      }
+      // Clause fallback: if no sentence boundary and buffer is long, split at , ; : or —
+      const CLAUSE_RE = /[,;:—]\s+/;
+      const MAX_CLAUSE_SPLIT = 180; // start TTS sooner (was 320)
 
       function drainBuf() {
-        let m = SENTENCE_RE.exec(buf);
-        while (m) {
-          queueSentence(buf.slice(0, m.index + m[0].trimEnd().length));
-          buf = buf.slice(m.index + m[0].length);
-          m = SENTENCE_RE.exec(buf);
+        // Split on sentence boundaries: [.!?] optionally followed by closing punct, then whitespace
+        const PUNCT_RE = /[.!?][)'"»]?\s+/g;
+        let m: RegExpExecArray | null;
+        let lastIndex = 0;
+        PUNCT_RE.lastIndex = 0;
+        while ((m = PUNCT_RE.exec(buf)) !== null) {
+          const before = buf.slice(0, m.index + 1); // up to and including the punct
+          const after  = buf.slice(m.index + m[0].length);
+          if (isSentenceBoundary(before, after)) {
+            queueSentence(buf.slice(lastIndex, m.index + 1));
+            lastIndex = m.index + m[0].length;
+            PUNCT_RE.lastIndex = lastIndex;
+          }
         }
-        // If no sentence boundary yet but buf is very long, split at a clause boundary
-        // so TTS starts sooner rather than waiting for a period that may not come
+        buf = buf.slice(lastIndex);
+
+        // Also split on paragraph breaks (double newline) immediately
+        const paraIdx = buf.indexOf("\n\n");
+        if (paraIdx > 0) {
+          queueSentence(buf.slice(0, paraIdx));
+          buf = buf.slice(paraIdx + 2).trimStart();
+        }
+
+        // Clause-boundary fallback when no sentence split found and buffer is long
         if (buf.length > MAX_CLAUSE_SPLIT) {
           const cm = CLAUSE_RE.exec(buf);
           if (cm && cm.index > 40) {
@@ -2212,7 +2237,7 @@ function ZariLiveMode({
     if (aliveRef.current && autoLoopRef.current) {
       setLiveState("idle");
       setStatusText("Your turn…");
-      setTimeout(() => { if (aliveRef.current && autoLoopRef.current) void startListening(); }, 250);
+      setTimeout(() => { if (aliveRef.current && autoLoopRef.current) void startListening(); }, 50);
     }
   }
 
@@ -2233,10 +2258,12 @@ function ZariLiveMode({
 
     // getUserMedia forces Chrome to show its permission popup on any HTTPS origin.
     // SpeechRecognition.start() silently fires not-allowed on new preview URLs without a popup.
-    if (typeof navigator !== "undefined" && navigator.mediaDevices?.getUserMedia) {
+    // Skip on subsequent calls — permission is already granted and the round-trip adds ~300ms lag.
+    if (!micPermGrantedRef.current && typeof navigator !== "undefined" && navigator.mediaDevices?.getUserMedia) {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         stream.getTracks().forEach(t => t.stop());
+        micPermGrantedRef.current = true;
       } catch (err) {
         if (!aliveRef.current) return;
         const denied = err instanceof Error && (err.name === "NotAllowedError" || err.name === "PermissionDeniedError" || err.name === "SecurityError");
@@ -10717,16 +10744,78 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
   const [submitted,        setSubmitted]        = useState(!!_initStored);
   const [isRecording,      setIsRecording]      = useState(false);
   const [recTime,          setRecTime]          = useState(0);
+  const [recErr,           setRecErr]           = useState("");
+  const [volBars,          setVolBars]          = useState<number[]>(Array(24).fill(4));
   const [isScoring,        setIsScoring]        = useState(false);
   const [feedback,         setFeedback]         = useState<InterviewFeedback | null>(_initStored?.feedback ?? null);
   const [scoreErr,         setScoreErr]         = useState("");
   const [scoredAnswers,    setScoredAnswers]    = useState<IVScoredAnswer[]>(_ivSaved?.scoredAnswers ?? []);
+  const ivRecorderRef  = useRef<MediaRecorder | null>(null);
+  const ivChunksRef    = useRef<Blob[]>([]);
+  const ivAnalyserRef  = useRef<AnalyserNode | null>(null);
+  const ivAnimFrameRef = useRef<number>(0);
 
   useEffect(() => {
     if (!isRecording) return;
     const t = setInterval(() => setRecTime(s=>s+1), 1000);
     return () => clearInterval(t);
   }, [isRecording]);
+
+  async function startRecordingIV() {
+    setRecErr("");
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const actx = new AudioContext();
+      const src = actx.createMediaStreamSource(stream);
+      const analyser = actx.createAnalyser();
+      analyser.fftSize = 64;
+      src.connect(analyser);
+      ivAnalyserRef.current = analyser;
+      const freqData = new Uint8Array(analyser.frequencyBinCount);
+      function tick() {
+        analyser.getByteFrequencyData(freqData);
+        const bars = Array.from({ length: 24 }, (_, i) => {
+          const idx = Math.floor((i / 24) * freqData.length);
+          return Math.max(4, (freqData[idx] / 255) * 26);
+        });
+        setVolBars(bars);
+        ivAnimFrameRef.current = requestAnimationFrame(tick);
+      }
+      ivAnimFrameRef.current = requestAnimationFrame(tick);
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/ogg";
+      const recorder = new MediaRecorder(stream, { mimeType });
+      ivChunksRef.current = [];
+      recorder.ondataavailable = e => { if (e.data.size > 0) ivChunksRef.current.push(e.data); };
+      recorder.onstop = async () => {
+        cancelAnimationFrame(ivAnimFrameRef.current);
+        setVolBars(Array(24).fill(4));
+        stream.getTracks().forEach(t => t.stop());
+        void actx.close();
+        const blob = new Blob(ivChunksRef.current, { type: mimeType });
+        setIsRecording(false);
+        if (blob.size < 1000) return;
+        try {
+          const form = new FormData();
+          form.append("audio", blob);
+          const res = await fetch("/api/zari/transcribe", { method: "POST", body: form });
+          const d = await res.json().catch(() => ({})) as { text?: string };
+          const txt = (d.text ?? "").trim();
+          if (txt) setAnswer(prev => prev ? `${prev} ${txt}` : txt);
+        } catch { /* non-fatal */ }
+      };
+      recorder.start();
+      ivRecorderRef.current = recorder;
+      setIsRecording(true);
+      setRecTime(0);
+    } catch {
+      setRecErr("Microphone access denied. Please allow mic access in your browser settings.");
+    }
+  }
+
+  function stopRecordingIV() {
+    ivRecorderRef.current?.stop();
+    ivRecorderRef.current = null;
+  }
 
   // On stage change: restore session for new stage or reset
   useEffect(() => {
@@ -11249,16 +11338,21 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
           <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:18, padding:22, boxShadow:"0 2px 12px rgba(0,0,0,0.07)" }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
               <p style={{ fontSize:14, fontWeight:700, color:"var(--z-text)" }}>Your answer</p>
-              <button onClick={() => { setIsRecording(r=>!r); if(isRecording) setRecTime(0); }} style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:99, border:`1px solid ${isRecording?"rgba(239,68,68,0.3)":"var(--z-bd)"}`, cursor:"pointer", background:isRecording?"rgba(239,68,68,0.08)":"var(--z-raise)", color:isRecording?"#EF4444":"var(--z-text2)" }}>
+              <button onClick={() => isRecording ? stopRecordingIV() : void startRecordingIV()} style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:99, border:`1px solid ${isRecording?"rgba(239,68,68,0.3)":"var(--z-bd)"}`, cursor:"pointer", background:isRecording?"rgba(239,68,68,0.08)":"var(--z-raise)", color:isRecording?"#EF4444":"var(--z-text2)" }}>
                 <span style={{ width:7, height:7, borderRadius:"50%", background:isRecording?"#DC2626":"#2563EB", animation:isRecording?"blink 0.7s step-end infinite":"none" }}/>
                 {isRecording ? `Stop · ${fmt(recTime)}` : "Record voice"}
               </button>
             </div>
+            {recErr && (
+              <div style={{ background:"rgba(239,68,68,0.08)", border:"1px solid rgba(239,68,68,0.2)", borderRadius:10, padding:"10px 14px", marginBottom:12, fontSize:12.5, color:"#DC2626", fontWeight:500 }}>
+                {recErr}
+              </div>
+            )}
             {isRecording && (
               <div style={{ background:"var(--z-raise)", border:"1px solid rgba(239,68,68,0.25)", borderRadius:12, padding:"14px 18px", marginBottom:14, display:"flex", alignItems:"center", gap:12 }}>
                 <span style={{ fontSize:11, fontWeight:700, color:"#EF4444" }}>Recording…</span>
-                <div style={{ display:"flex", gap:2, alignItems:"flex-end", height:24 }}>
-                  {Array.from({length:24}).map((_,i) => <div key={i} style={{ width:3, borderRadius:99, background:"#EF4444", height:Math.random()*20+4, animation:`voice-wave ${0.4+Math.random()*0.4}s ease-in-out ${i*0.03}s infinite alternate` }}/>)}
+                <div style={{ display:"flex", gap:2, alignItems:"flex-end", height:28 }}>
+                  {volBars.map((h, i) => <div key={i} style={{ width:3, borderRadius:99, background:"#EF4444", height:h, transition:"height 0.08s ease" }}/>)}
                 </div>
               </div>
             )}
