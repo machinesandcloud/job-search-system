@@ -12,7 +12,7 @@ import {
   syncMvpUserToBillingIdentity,
 } from "@/lib/billing";
 import { mapStripePlanTier, syncStripeSubscriptionToAccount, syncUsersForAccountPlan } from "@/lib/subscription-sync";
-import { syncSubscriptionChange, syncChurn } from "@/lib/zoho-crm";
+import { onSubscriptionChanged, onUserChurned } from "@/lib/zoho-engine";
 
 export const runtime = "nodejs";
 
@@ -245,9 +245,15 @@ export async function POST(request: Request) {
           const subscriptionStatus = finalStatus ?? subscription.status;
 
           if (subscriptionStatus === "canceled") {
-            void syncChurn({ email: owner.email, planTier, reason: "Subscription canceled" });
+            void onUserChurned({
+              email: owner.email,
+              firstName: owner.firstName ?? undefined,
+              planTier,
+              reason: "Subscription canceled",
+              mrr: (price?.unit_amount ?? 0) / 100,
+            });
           } else {
-            void syncSubscriptionChange({
+            void onSubscriptionChanged({
               userId: owner.id,
               accountId,
               email: owner.email,

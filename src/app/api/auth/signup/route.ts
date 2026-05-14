@@ -3,7 +3,7 @@ import { setCurrentUserSessionOnResponse } from "@/lib/mvp/auth";
 import { createPlatformUser } from "@/lib/platform-users";
 import { rateLimit } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/utils";
-import { syncNewUser } from "@/lib/zoho-crm";
+import { onUserSignedUp } from "@/lib/zoho-engine";
 
 export const maxDuration = 15;
 
@@ -34,8 +34,8 @@ export async function POST(request: Request) {
   try {
     const user = await createPlatformUser({ firstName, lastName, email, password });
 
-    // Fire-and-forget: sync new user to Zoho CRM (non-blocking)
-    void syncNewUser({
+    // Fire-and-forget: full CRM + campaign engine (non-blocking)
+    void onUserSignedUp({
       userId: user.userId,
       accountId: (user.profile as any)?.accountId ?? user.userId,
       email,
