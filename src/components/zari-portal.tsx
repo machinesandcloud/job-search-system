@@ -2391,7 +2391,7 @@ function ZariLiveMode({
     idle:      { gradient:"radial-gradient(circle at 32% 32%, #9a8ff5, #4f46e5 50%, #1a1756 100%)", shadow:"0 0 60px 22px rgba(79,70,229,0.32), 0 0 130px 50px rgba(67,56,202,0.12)", animation:"sphere-breathe 4s ease-in-out infinite" },
     listening: { gradient:"radial-gradient(circle at 32% 32%, #7ef3ff, #06b6d4 50%, #0c3d52 100%)", shadow:"0 0 75px 28px rgba(6,182,212,0.55), 0 0 150px 60px rgba(6,182,212,0.18)", animation:"sphere-breathe 1.1s ease-in-out infinite" },
     thinking:  { gradient:"radial-gradient(circle at 32% 32%, #d8b4fe, #8b5cf6 50%, #2e1065 100%)", shadow:"0 0 65px 24px rgba(139,92,246,0.48), 0 0 140px 55px rgba(15,118,110,0.18)", animation:"sphere-breathe 2.5s ease-in-out infinite" },
-    speaking:  { gradient:"radial-gradient(circle at 32% 32%, #c7d2fe, #6366f1 42%, #1e1b4b 100%)", shadow:"0 0 95px 40px rgba(59,130,246,0.68), 0 0 190px 75px rgba(67,56,202,0.28)", animation:"sphere-breathe 0.55s ease-in-out infinite" },
+    speaking:  { gradient:"radial-gradient(circle at 32% 32%, #c7d2fe, #6366f1 42%, #1e1b4b 100%)", shadow:"0 0 95px 40px rgba(59,130,246,0.68), 0 0 190px 75px rgba(67,56,202,0.28)", animation:"sphere-breathe 1.6s ease-in-out infinite" },
   };
   const orb = ORB[liveState];
 
@@ -2441,8 +2441,16 @@ function ZariLiveMode({
           <div style={{ height:28, display:"flex", alignItems:"center", justifyContent:"center", marginTop:6 }}>
             {liveState === "speaking" ? (
               <div style={{ display:"flex", gap:3.5, alignItems:"flex-end", height:22 }}>
-                {[0,1,2,3,4,5,6].map(i => (
-                  <div key={i} style={{ width:3, borderRadius:2, background:`rgba(${i<3?"165,180,252":"129,140,248"},${0.5+i*0.06})`, animation:`bar-eq ${0.42+i*0.06}s ease-in-out ${i*0.07}s infinite` }}/>
+                {([
+                  ["bar-eq-1","1.9s","0s"],
+                  ["bar-eq-2","2.3s","0.28s"],
+                  ["bar-eq-3","1.65s","0.55s"],
+                  ["bar-eq-4","2.7s","0.1s"],
+                  ["bar-eq-5","2.0s","0.72s"],
+                  ["bar-eq-6","1.8s","0.4s"],
+                  ["bar-eq-7","2.4s","0.18s"],
+                ] as [string,string,string][]).map(([kf,dur,del], i) => (
+                  <div key={i} style={{ width:3, borderRadius:2, background:`rgba(${i<3?"165,180,252":"129,140,248"},${0.5+i*0.06})`, animation:`${kf} ${dur} ease-in-out ${del} infinite` }}/>
                 ))}
               </div>
             ) : (
@@ -18130,7 +18138,13 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
         @keyframes ring-pulse { 0%{transform:translate(-50%,-50%) scale(1);opacity:0.6} 100%{transform:translate(-50%,-50%) scale(1.5);opacity:0} }
         @keyframes listen-ripple { 0%{transform:scale(1);opacity:0.5} 100%{transform:scale(1.8);opacity:0} }
         @keyframes listen-ripple-v2 { 0%{transform:translate(-50%,-50%) scale(1);opacity:0.65} 100%{transform:translate(-50%,-50%) scale(1.7);opacity:0} }
-        @keyframes bar-eq { 0%,100%{height:3px} 50%{height:22px} }
+        @keyframes bar-eq-1 { 0%,100%{height:4px} 30%{height:10px} 62%{height:18px} }
+        @keyframes bar-eq-2 { 0%,100%{height:4px} 18%{height:19px} 52%{height:8px} 78%{height:15px} }
+        @keyframes bar-eq-3 { 0%,100%{height:4px} 38%{height:22px} 68%{height:10px} }
+        @keyframes bar-eq-4 { 0%,100%{height:4px} 14%{height:9px} 48%{height:21px} 82%{height:12px} }
+        @keyframes bar-eq-5 { 0%,100%{height:4px} 28%{height:16px} 58%{height:22px} }
+        @keyframes bar-eq-6 { 0%,100%{height:4px} 44%{height:17px} 70%{height:7px} 88%{height:13px} }
+        @keyframes bar-eq-7 { 0%,100%{height:4px} 22%{height:20px} 56%{height:11px} 80%{height:16px} }
         @keyframes eye-glow { 0%,100%{opacity:0.9} 50%{opacity:0.6} }
         @keyframes aurora-a { 0%,100%{transform:translate(-50%,0) scale(1)} 50%{transform:translate(-50%,10px) scale(1.05)} }
         @keyframes aurora-b { 0%,100%{transform:translate(0,0) scale(1)} 60%{transform:translate(-20px,15px) scale(1.04)} }

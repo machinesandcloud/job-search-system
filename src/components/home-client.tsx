@@ -661,7 +661,7 @@ function FeatureMockup({ type }: { type: string }) {
           </div>
           <span style={{ fontSize:8.5,color:"rgba(200,208,224,0.5)",letterSpacing:"0.05em" }}>{isListening?"listening…":"coaching…"}</span>
           <div style={{ display:"flex",gap:2,alignItems:"flex-end",height:14 }}>
-            {[3,6,11,16,11,6,3].map((h,i)=><div key={i} style={{ width:2.5,borderRadius:99,background:"rgba(165,180,252,0.65)",height:h,animation:`voice-wave ${0.48+i*0.07}s linear infinite` }}/>)}
+            {[3,6,11,16,11,6,3].map((h,i)=><div key={i} style={{ width:2.5,borderRadius:99,background:"rgba(165,180,252,0.65)",height:h,transformOrigin:"bottom",animation:`voice-wave ${1.8+i*0.22}s ease-in-out ${i*0.18}s infinite` }}/>)}
           </div>
           <div style={{ width:40,height:40,borderRadius:"50%",background:isListening?"rgba(239,68,68,0.9)":"rgba(59,130,246,0.85)",boxShadow:isListening?"0 0 0 6px rgba(239,68,68,0.12),0 0 18px rgba(239,68,68,0.4)":"0 0 0 6px rgba(59,130,246,0.1),0 0 18px rgba(59,130,246,0.3)",display:"flex",alignItems:"center",justifyContent:"center",animation:isListening?"sphere-breathe 1.2s ease-in-out infinite":"none" }}>
             {isListening?<div style={{ width:10,height:10,borderRadius:2,background:"white" }}/>:<svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" style={{ width:15,height:15 }}><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0014 0M12 19v3M9 22h6"/></svg>}
@@ -730,7 +730,7 @@ function FeatureMockup({ type }: { type: string }) {
             </div>
             <div style={{ display:"flex",gap:2,alignItems:"flex-end",justifyContent:"center",height:26,marginBottom:12 }}>
               {[6,10,18,26,20,30,18,22,14,20,14,10,6].map((h,i)=>(
-                <div key={i} style={{ width:3.5,borderRadius:99,background:"#EF4444",height:h,opacity:0.75,animation:`voice-wave ${0.35+i*0.06}s linear ${i*0.04}s infinite` }}/>
+                <div key={i} style={{ width:3.5,borderRadius:99,background:"#EF4444",height:h,opacity:0.75,transformOrigin:"bottom",animation:`voice-wave ${1.7+i*0.2}s ease-in-out ${i*0.15}s infinite` }}/>
               ))}
             </div>
             <div style={{ display:"flex",gap:8,justifyContent:"center" }}>
@@ -1040,7 +1040,7 @@ function PlatformWalkthrough() {
   ];
 
   return (
-    <section style={{ background:"linear-gradient(180deg,#04060E 0%,#080C1A 60%,#060913 100%)", padding:"96px 20px 108px" }}>
+    <section style={{ background:"linear-gradient(180deg,#04060E 0%,#080C1A 60%,#060913 100%)", padding:"96px 20px 108px", position:"sticky", top:0, zIndex:2 }}>
       <div style={{ maxWidth:1280, margin:"0 auto" }}>
 
         {/* Header */}
@@ -1962,7 +1962,7 @@ function PlatformWalkthrough() {
                         </div>
                         <div style={{ display:"flex",gap:2,alignItems:"flex-end",height:16 }}>
                           {[3,7,13,18,13,7,3].map((h,i)=>(
-                            <div key={i} style={{ width:2.5,borderRadius:99,background:"rgba(165,180,252,0.65)",height:h,animation:`voice-wave ${0.48+i*0.07}s linear infinite` }}/>
+                            <div key={i} style={{ width:2.5,borderRadius:99,background:"rgba(165,180,252,0.65)",height:h,animation:`voice-wave ${1.8+i*0.22}s ease-in-out ${i*0.18}s infinite` }}/>
                           ))}
                         </div>
                         <span style={{ fontSize:9,color:"rgba(200,208,224,0.5)",letterSpacing:"0.05em" }}>listening…</span>
@@ -2280,7 +2280,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
       <PlatformWalkthrough />
 
       {/* ══════ FOUNDER SECTION — interactive hover ══════ */}
-      <section style={{ background:"white", padding:"0 40px", minHeight:"100vh", display:"flex", alignItems:"center" }}>
+      <section style={{ background:"white", padding:"0 40px", minHeight:"100vh", display:"flex", alignItems:"center", position:"relative", zIndex:3 }}>
         <div style={{ maxWidth:1200, margin:"0 auto", width:"100%", paddingTop:96, paddingBottom:96 }}>
           <h2 style={{ textAlign:"center", fontSize:"clamp(1.9rem,3.5vw,2.6rem)", fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", marginBottom:64 }}>
             Meet the founders behind Zari
@@ -2348,7 +2348,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
       </section>
 
       {/* ══════ FEATURES — Kleo-style sections ══════ */}
-      <section id="features" style={{ background:"#FAFBFF" }}>
+      <section id="features" style={{ background:"#FAFBFF", position:"relative", zIndex:3 }}>
         {FEATURES.map((f, i) => (
           <div key={f.tag} style={{ padding:"112px 20px", minHeight:"100vh", display:"flex", alignItems:"center", background: i%2===0?"#FAFBFF":"white" }}>
             <div style={{ maxWidth:1440, margin:"0 auto" }}>
@@ -2359,7 +2359,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
       </section>
 
       {/* ══════ FAQ — Kleo layout ══════ */}
-      <section style={{ padding:"0 40px", minHeight:"100vh", display:"flex", alignItems:"center", background:"#FAFBFF" }}>
+      <section style={{ padding:"0 40px", minHeight:"100vh", display:"flex", alignItems:"center", background:"#FAFBFF", position:"relative", zIndex:3 }}>
         <div style={{ maxWidth:1200, margin:"0 auto", width:"100%", paddingTop:96, paddingBottom:96 }}>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 2fr", gap:80, alignItems:"start" }}>
 
@@ -2403,7 +2403,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
       </section>
 
       {/* ══════ REVIEW WALL — Kleo-style ══════ */}
-      <section id="reviews" style={{ padding:"100px 20px 110px", minHeight:"100vh", background:"white", position:"relative", overflow:"hidden" }}>
+      <section id="reviews" style={{ padding:"100px 20px 110px", minHeight:"100vh", background:"white", position:"relative", zIndex:3, overflow:"hidden" }}>
 
         {/* Animated floating hearts — drift upward from random x positions */}
         {([
@@ -2496,7 +2496,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
       </section>
 
       {/* ══════ FINAL CTA ══════ */}
-      <section style={{ padding:"96px 28px", background:"#0A0A0F", position:"relative", overflow:"hidden" }}>
+      <section style={{ padding:"96px 28px", background:"#0A0A0F", position:"relative", zIndex:3, overflow:"hidden" }}>
         <div aria-hidden style={{ position:"absolute", inset:0, pointerEvents:"none" }}>
           <div style={{ position:"absolute", width:600, height:600, top:"-20%", left:"50%", transform:"translateX(-50%)", background:"rgba(67,97,238,0.22)", filter:"blur(120px)", borderRadius:"50%" }}/>
           <div style={{ position:"absolute", width:280, height:280, bottom:"-5%", right:"8%", background:"rgba(6,182,212,0.12)", filter:"blur(80px)", borderRadius:"50%" }}/>
