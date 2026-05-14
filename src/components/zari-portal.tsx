@@ -10750,10 +10750,14 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
   const [feedback,         setFeedback]         = useState<InterviewFeedback | null>(_initStored?.feedback ?? null);
   const [scoreErr,         setScoreErr]         = useState("");
   const [scoredAnswers,    setScoredAnswers]    = useState<IVScoredAnswer[]>(_ivSaved?.scoredAnswers ?? []);
-  const ivRecorderRef  = useRef<MediaRecorder | null>(null);
-  const ivChunksRef    = useRef<Blob[]>([]);
-  const ivAnalyserRef  = useRef<AnalyserNode | null>(null);
-  const ivAnimFrameRef = useRef<number>(0);
+  const ivRecorderRef   = useRef<MediaRecorder | null>(null);
+  const ivChunksRef     = useRef<Blob[]>([]);
+  const ivAnalyserRef   = useRef<AnalyserNode | null>(null);
+  const ivAnimFrameRef  = useRef<number>(0);
+  const ivRecogRef      = useRef<{ stop(): void } | null>(null);
+  const ivFinalTextRef  = useRef<string>("");
+  const ivMicStreamRef  = useRef<MediaStream | null>(null);
+  const ivAudioCtxRef   = useRef<AudioContext | null>(null);
 
   useEffect(() => {
     if (!isRecording) return;
@@ -10763,14 +10767,33 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
 
   async function startRecordingIV() {
     setRecErr("");
+    type SRec = { continuous: boolean; interimResults: boolean; lang: string; start(): void; stop(): void;
+      onresult: ((e: { resultIndex: number; results: { length: number; [i: number]: { isFinal: boolean; [j: number]: { transcript: string } } } }) => void) | null;
+      onerror: ((e: { error: string }) => void) | null; onend: (() => void) | null };
+    const SpeechRec = typeof window !== "undefined"
+      ? ((window as unknown as Record<string, unknown>)["SpeechRecognition"] as (new() => SRec) | undefined)
+        ?? ((window as unknown as Record<string, unknown>)["webkitSpeechRecognition"] as (new() => SRec) | undefined)
+      : undefined;
+
+    // Acquire mic stream (needed for Web Audio volume bars and permission)
+    let stream: MediaStream | null = null;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      setRecErr("Microphone access denied. Please allow mic access in your browser settings.");
+      return;
+    }
+    ivMicStreamRef.current = stream;
+
+    // Web Audio analyser for volume-driven animation bars
+    try {
       const actx = new AudioContext();
       const src = actx.createMediaStreamSource(stream);
       const analyser = actx.createAnalyser();
       analyser.fftSize = 64;
       src.connect(analyser);
       ivAnalyserRef.current = analyser;
+      ivAudioCtxRef.current = actx;
       const freqData = new Uint8Array(analyser.frequencyBinCount);
       function tick() {
         analyser.getByteFrequencyData(freqData);
@@ -10782,15 +10805,65 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
         ivAnimFrameRef.current = requestAnimationFrame(tick);
       }
       ivAnimFrameRef.current = requestAnimationFrame(tick);
+    } catch { /* volume animation non-critical */ }
+
+    function cleanupAudio() {
+      cancelAnimationFrame(ivAnimFrameRef.current);
+      setVolBars(Array(24).fill(4));
+      ivMicStreamRef.current?.getTracks().forEach(t => t.stop());
+      ivMicStreamRef.current = null;
+      if (ivAudioCtxRef.current) { void ivAudioCtxRef.current.close(); ivAudioCtxRef.current = null; }
+    }
+
+    if (SpeechRec) {
+      // Real-time: words appear as you speak via browser SpeechRecognition
+      const rec = new SpeechRec();
+      rec.continuous = true;
+      rec.interimResults = true;
+      rec.lang = "en-US";
+      ivFinalTextRef.current = answer; // snapshot existing answer as base
+      ivRecogRef.current = rec;
+
+      rec.onresult = (e) => {
+        let interim = "";
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          if (e.results[i].isFinal) {
+            const word = e.results[i][0].transcript;
+            ivFinalTextRef.current = ivFinalTextRef.current
+              ? `${ivFinalTextRef.current.trimEnd()} ${word.trim()}` : word.trim();
+          } else {
+            interim += e.results[i][0].transcript;
+          }
+        }
+        const display = interim
+          ? `${ivFinalTextRef.current.trimEnd()} ${interim}`.trim()
+          : ivFinalTextRef.current;
+        setAnswer(display);
+      };
+      rec.onerror = (e) => {
+        if (e.error === "not-allowed" || e.error === "audio-capture") {
+          setRecErr("Microphone blocked. Please allow mic access in your browser settings.");
+          setIsRecording(false);
+          cleanupAudio();
+        }
+        // no-speech / network errors are non-fatal with continuous=true
+      };
+      rec.onend = () => {
+        setIsRecording(false);
+        cleanupAudio();
+      };
+
+      rec.start();
+      setIsRecording(true);
+      setRecTime(0);
+    } else {
+      // Fallback for browsers without SpeechRecognition: record + Whisper transcribe
       const mimeType = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/ogg";
       const recorder = new MediaRecorder(stream, { mimeType });
       ivChunksRef.current = [];
       recorder.ondataavailable = e => { if (e.data.size > 0) ivChunksRef.current.push(e.data); };
       recorder.onstop = async () => {
-        cancelAnimationFrame(ivAnimFrameRef.current);
-        setVolBars(Array(24).fill(4));
-        stream.getTracks().forEach(t => t.stop());
-        void actx.close();
+        cleanupAudio();
         const blob = new Blob(ivChunksRef.current, { type: mimeType });
         setIsRecording(false);
         if (blob.size < 1000) return;
@@ -10800,19 +10873,19 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
           const res = await fetch("/api/zari/transcribe", { method: "POST", body: form });
           const d = await res.json().catch(() => ({})) as { text?: string };
           const txt = (d.text ?? "").trim();
-          if (txt) setAnswer(prev => prev ? `${prev} ${txt}` : txt);
+          if (txt) setAnswer(prev => prev ? `${prev.trimEnd()} ${txt}` : txt);
         } catch { /* non-fatal */ }
       };
       recorder.start();
       ivRecorderRef.current = recorder;
       setIsRecording(true);
       setRecTime(0);
-    } catch {
-      setRecErr("Microphone access denied. Please allow mic access in your browser settings.");
     }
   }
 
   function stopRecordingIV() {
+    try { ivRecogRef.current?.stop(); } catch {}
+    ivRecogRef.current = null;
     ivRecorderRef.current?.stop();
     ivRecorderRef.current = null;
   }
