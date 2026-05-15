@@ -28,7 +28,7 @@ export function TrialOnboarding1({ firstName, unsubscribeUrl }: { firstName?: st
       <CtaButton href={APP}>Start my first session →</CtaButton>
       <Divider />
       <Text style={muted()}>Have a question? Just reply — I read every one.</Text>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
@@ -49,7 +49,7 @@ export function TrialOnboarding2({ firstName, unsubscribeUrl }: { firstName?: st
         That's it. No setup, no form to fill out. Just start talking.
       </Text>
       <CtaButton href={APP}>Open Zari →</CtaButton>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
@@ -71,7 +71,7 @@ export function TrialOnboarding3({ unsubscribeUrl }: { unsubscribeUrl: string })
         When Zari has that context, every response is targeted to your exact situation — not generic templates that could apply to anyone. The quality difference is significant. Try it in your next session.
       </Text>
       <CtaButton href={APP}>Run a session now →</CtaButton>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
@@ -99,7 +99,7 @@ export function TrialOnboarding4({ firstName, unsubscribeUrl }: { firstName?: st
       <CtaButton href={APP}>Open Zari →</CtaButton>
       <Divider />
       <Text style={muted()}>Reply here if there's something specific you're working through. I read every response.</Text>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
@@ -145,7 +145,7 @@ export function TrialOnboarding5({ firstName, unsubscribeUrl }: { firstName?: st
       <CtaButton href={`${APP}/billing`}>Upgrade my account →</CtaButton>
       <Divider />
       <Text style={muted()}>Questions about plans? Just reply — happy to help you find the right fit.</Text>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
@@ -165,7 +165,7 @@ export function TrialEnding1({ firstName, unsubscribeUrl }: { firstName?: string
       <CtaButton href={`${APP}/billing`}>Upgrade before it ends →</CtaButton>
       <Divider />
       <Text style={muted()}>No pressure. But if you're mid-search, dropping from full access to limited right now isn't ideal timing.</Text>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
@@ -183,7 +183,7 @@ export function TrialEnding2({ firstName, unsubscribeUrl }: { firstName?: string
         Search plan is $39/month. Cancel anytime. It takes 60 seconds.
       </Text>
       <CtaButton href={`${APP}/billing`}>Keep my account active →</CtaButton>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }

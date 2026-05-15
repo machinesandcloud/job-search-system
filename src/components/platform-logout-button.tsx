@@ -60,7 +60,7 @@ export function PlatformLogoutButton({
     <>
       {loading && <SigningOutOverlay />}
       <button type="button" onClick={logout} disabled={loading} className={className}
-        style={{ all: "unset", display: "contents" }}>
+        style={className ? { cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1 } : { all: "unset" as const, display: "contents" }}>
         {children}
       </button>
     </>

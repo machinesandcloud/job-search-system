@@ -23,7 +23,7 @@ export function LeadNurture1({ unsubscribeUrl }: { unsubscribeUrl: string }) {
         Zari is your AI career coach. Resume review, LinkedIn optimization, interview prep, career strategy — available 24/7, no appointment. It takes 60 seconds to start, no credit card required.
       </Text>
       <CtaButton href={`${APP}/signup`}>Start my free trial →</CtaButton>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
@@ -48,7 +48,7 @@ export function LeadNurture2({ unsubscribeUrl }: { unsubscribeUrl: string }) {
         Zari can review your entire resume and give you specific rewrites like this — targeted to your role, not generic advice.
       </Text>
       <CtaButton href={`${APP}/signup`}>Get my resume reviewed free</CtaButton>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
@@ -74,7 +74,7 @@ export function LeadNurture3({ unsubscribeUrl }: { unsubscribeUrl: string }) {
         Fixing all three takes about 30 minutes if you know exactly what to change. Zari walks you through it, section by section, with specific rewrites for your target role.
       </Text>
       <CtaButton href={`${APP}/signup`}>Optimize my LinkedIn →</CtaButton>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
@@ -105,7 +105,7 @@ export function LeadNurture4({ unsubscribeUrl }: { unsubscribeUrl: string }) {
         His experience hadn't changed. His strategy hadn't changed. The quality of his materials and his preparation had.
       </Blockquote>
       <CtaButton href={`${APP}/signup`}>Start my free trial</CtaButton>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
@@ -132,7 +132,7 @@ export function LeadNurture5({ unsubscribeUrl }: { unsubscribeUrl: string }) {
         Most people prepare by reading lists of questions. The people who get offers practice by answering out loud, getting feedback, and improving in real time.
       </Text>
       <CtaButton href={`${APP}/signup`}>Practice my interview free →</CtaButton>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
@@ -166,7 +166,7 @@ export function LeadNurture6({ unsubscribeUrl }: { unsubscribeUrl: string }) {
         Zari remembers your background between sessions — every conversation builds on the last. Like having a career coach on call, without the $300/hour price tag.
       </Text>
       <CtaButton href={`${APP}/signup`}>Create my free account →</CtaButton>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
@@ -192,7 +192,7 @@ export function LeadNurture7({ unsubscribeUrl }: { unsubscribeUrl: string }) {
       <Text style={muted()}>
         If now isn't the right time, no worries at all. Good luck out there.
       </Text>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }

@@ -1,14 +1,12 @@
 import * as React from "react";
 import { Text, Section } from "@react-email/components";
-import { Layout, CtaButton, Blockquote, Divider, Signature, Step, p, h2, muted, colors } from "../base";
+import { Layout, CtaButton, Blockquote, Divider, Signature, Step, p, muted, colors } from "../base";
 
 const APP = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.zaricoach.com";
 
-// ─── Non-starter 1 — 48h nudge ────────────────────────────────────────────────
 export function NonStarter1({ firstName, unsubscribeUrl }: { firstName?: string; unsubscribeUrl: string }) {
   return (
-    <Layout preview="You signed up but haven't started — here's the fastest way in." unsubscribeUrl={unsubscribeUrl}>
-      <Text style={h2()}>You haven't started yet.</Text>
+    <Layout preview="You signed up but haven't started — here's the fastest way in." headline="You haven't started yet." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
         {firstName ?? "Hey"} — you signed up for Zari 2 days ago but haven't run a session yet. Wanted to check in.
       </Text>
@@ -24,16 +22,14 @@ export function NonStarter1({ firstName, unsubscribeUrl }: { firstName?: string;
       <Text style={muted()}>
         If something about the signup process felt confusing, reply here. I'll sort it out directly.
       </Text>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
 
-// ─── Non-starter 2 — 5-day "what's stopping you" ─────────────────────────────
 export function NonStarter2({ firstName, unsubscribeUrl }: { firstName?: string; unsubscribeUrl: string }) {
   return (
-    <Layout preview="Quick question: what's stopping you from using Zari?" unsubscribeUrl={unsubscribeUrl}>
-      <Text style={h2()}>What's holding you back?</Text>
+    <Layout preview="Quick question: what's stopping you from using Zari?" headline="What's holding you back?" unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
         {firstName ?? "Hey"} — I'll be direct. You've been signed up for almost a week and haven't started. I'm genuinely curious why.
       </Text>
@@ -53,16 +49,14 @@ export function NonStarter2({ firstName, unsubscribeUrl }: { firstName?: string;
         Or reply here and tell me what's actually going on. I read every response and I'll help you figure out the right starting point.
       </Text>
       <CtaButton href={APP}>Open Zari now →</CtaButton>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
 
-// ─── Non-starter 3 — 10-day final push ───────────────────────────────────────
 export function NonStarter3({ firstName, unsubscribeUrl }: { firstName?: string; unsubscribeUrl: string }) {
   return (
-    <Layout preview="Your free trial ends soon — use it before it's gone." unsubscribeUrl={unsubscribeUrl}>
-      <Text style={h2()}>Your trial is almost over — and you haven't used it yet.</Text>
+    <Layout preview="Your free trial ends soon — use it before it's gone." headline="Your trial is almost over — and you haven't used it yet." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
         {firstName ?? "Hey"} — your free trial ends soon. You haven't run a session yet.
       </Text>
@@ -80,16 +74,14 @@ export function NonStarter3({ firstName, unsubscribeUrl }: { firstName?: string;
       <Text style={muted()}>
         If you've decided Zari isn't right for you, you can cancel from billing settings. No questions asked.
       </Text>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
 
-// ─── Feature activation 1 — Recap sessions ────────────────────────────────────
 export function FeatureActivation1({ firstName, unsubscribeUrl }: { firstName?: string; unsubscribeUrl: string }) {
   return (
-    <Layout preview="The Zari feature that compounds over time — most users miss it entirely." unsubscribeUrl={unsubscribeUrl}>
-      <Text style={h2()}>The feature that makes every future session better.</Text>
+    <Layout preview="The Zari feature that compounds over time — most users miss it entirely." headline="The feature that makes every future session better." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
         {firstName ?? "Hey"} — you've run a few sessions with Zari. I want to make sure you've found this one.
       </Text>
@@ -107,16 +99,14 @@ export function FeatureActivation1({ firstName, unsubscribeUrl }: { firstName?: 
         Next time you have a call — even a 15-minute recruiter screen — try it. 10 minutes of debrief now is worth 2 hours of prep later.
       </Text>
       <CtaButton href={APP}>Try a Recap session →</CtaButton>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
 
-// ─── Feature activation 2 — Negotiation ──────────────────────────────────────
 export function FeatureActivation2({ firstName, unsubscribeUrl }: { firstName?: string; unsubscribeUrl: string }) {
   return (
-    <Layout preview="Most people leave $10K–$30K on the table in salary negotiations." unsubscribeUrl={unsubscribeUrl}>
-      <Text style={h2()}>The conversation most candidates don't prepare for.</Text>
+    <Layout preview="Most people leave $10K–$30K on the table in salary negotiations." headline="The conversation most candidates don't prepare for." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
         {firstName ?? "Hey"} — interviews get all the prep attention. But salary negotiation is where most people lose the most money, and it's the most underprepared conversation in the job search.
       </Text>
@@ -135,16 +125,14 @@ export function FeatureActivation2({ firstName, unsubscribeUrl }: { firstName?: 
         Even if you're not at the offer stage yet — run a negotiation sim now. Practice once with no stakes, and you'll walk into the real conversation completely differently.
       </Text>
       <CtaButton href={APP}>Run a negotiation sim →</CtaButton>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
 
-// ─── Feature activation 3 — Career strategy ───────────────────────────────────
 export function FeatureActivation3({ firstName, unsubscribeUrl }: { firstName?: string; unsubscribeUrl: string }) {
   return (
-    <Layout preview="Beyond the job search — using Zari to think through your bigger career move." unsubscribeUrl={unsubscribeUrl}>
-      <Text style={h2()}>The question most job seekers don't ask until it's too late.</Text>
+    <Layout preview="Beyond the job search — using Zari to think through your bigger career move." headline="The question most job seekers don't ask until it's too late." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
         {firstName ?? "Hey"} — there's a question worth asking before you land the next role:
       </Text>
@@ -161,16 +149,14 @@ export function FeatureActivation3({ firstName, unsubscribeUrl }: { firstName?: 
         Open a Career Strategy session and tell Zari where you're trying to get. The conversation is different from anything else in the product.
       </Text>
       <CtaButton href={APP}>Open Career Strategy →</CtaButton>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
 
-// ─── Referral ask ─────────────────────────────────────────────────────────────
 export function ReferralAsk({ firstName, referralUrl, unsubscribeUrl }: { firstName?: string; referralUrl: string; unsubscribeUrl: string }) {
   return (
-    <Layout preview="Get one month free — share Zari with one person who's job searching." unsubscribeUrl={unsubscribeUrl}>
-      <Text style={h2()}>Give a month. Get a month.</Text>
+    <Layout preview="Get one month free — share Zari with one person who's job searching." headline="Give a month. Get a month." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
         {firstName ?? "Hey"} — you've been using Zari for a while now. I wanted to offer something back.
       </Text>
@@ -194,16 +180,14 @@ export function ReferralAsk({ firstName, referralUrl, unsubscribeUrl }: { firstN
       <CtaButton href={referralUrl}>Share my referral link →</CtaButton>
       <Divider />
       <Text style={muted()}>Referral credits are added automatically once your friend's trial converts to a paid plan.</Text>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
 
-// ─── Testimonial ask ──────────────────────────────────────────────────────────
 export function TestimonialAsk({ firstName, testimonialUrl, unsubscribeUrl }: { firstName?: string; testimonialUrl: string; unsubscribeUrl: string }) {
   return (
-    <Layout preview="45 days in — would you share what Zari's been like for you?" unsubscribeUrl={unsubscribeUrl}>
-      <Text style={h2()}>You've been using Zari for 45 days.</Text>
+    <Layout preview="45 days in — would you share what Zari's been like for you?" headline="You've been using Zari for 45 days." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
         {firstName ?? "Hey"} — you've been with us long enough to have a real opinion. I have one question:
       </Text>
@@ -224,12 +208,11 @@ export function TestimonialAsk({ firstName, testimonialUrl, unsubscribeUrl }: { 
       <Text style={muted()}>
         If the experience hasn't been what you expected, reply here instead. I genuinely want to know — it's how we get better.
       </Text>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
 
-// ─── Annual upsell ────────────────────────────────────────────────────────────
 export function AnnualUpsell({ firstName, planName, monthlyPrice, annualMonthlyPrice, annualUrl, unsubscribeUrl }: {
   firstName?: string;
   planName: string;
@@ -240,8 +223,7 @@ export function AnnualUpsell({ firstName, planName, monthlyPrice, annualMonthlyP
 }) {
   const savings = (monthlyPrice - annualMonthlyPrice) * 12;
   return (
-    <Layout preview={`You've been on Zari for 3 months — switching to annual saves you $${savings}.`} unsubscribeUrl={unsubscribeUrl}>
-      <Text style={h2()}>Three months in. Want to lock in a better rate?</Text>
+    <Layout preview={`You've been on Zari for 3 months — switching to annual saves you $${savings}.`} headline="Three months in. Want to lock in a better rate?" unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
         {firstName ?? "Hey"} — you've been on Zari {planName} for about 3 months. If it's been useful, there's a simple way to save money on it.
       </Text>
@@ -271,7 +253,7 @@ export function AnnualUpsell({ firstName, planName, monthlyPrice, annualMonthlyP
       <CtaButton href={annualUrl}>Switch to annual →</CtaButton>
       <Divider />
       <Text style={muted()}>Questions about billing or switching? Reply here.</Text>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }

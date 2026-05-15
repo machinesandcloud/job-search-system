@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Text, Section } from "@react-email/components";
-import { Layout, CtaButton, Blockquote, Divider, Signature, Step, StatRow, p, h2, muted, colors } from "../base";
+import { Layout, CtaButton, Blockquote, Divider, Signature, Step, StatRow, p, muted, colors } from "../base";
 
 const APP = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.zaricoach.com";
 
@@ -8,12 +8,10 @@ function planLabel(tier?: string) {
   return ({ pro: "Search", premium: "Growth", team: "Executive" } as Record<string, string>)[tier ?? ""] ?? "Search";
 }
 
-// ─── Paid Welcome 1 ───────────────────────────────────────────────────────────
 export function PaidWelcome1({ firstName, planTier, unsubscribeUrl }: { firstName?: string; planTier?: string; unsubscribeUrl: string }) {
   const plan = planLabel(planTier);
   return (
-    <Layout preview={`You're in. Welcome to Zari ${plan}.`} unsubscribeUrl={unsubscribeUrl}>
-      <Text style={h2()}>You're in. Welcome to Zari {plan}.</Text>
+    <Layout preview={`You're in. Welcome to Zari ${plan}.`} headline={<>You're in. Welcome to Zari {plan}.</>} unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
         {firstName ? `${firstName}, your` : "Your"} {plan} plan is active. Here's what you now have access to:
       </Text>
@@ -38,16 +36,14 @@ export function PaidWelcome1({ firstName, planTier, unsubscribeUrl }: { firstNam
         Best first move: spend 30 minutes doing a full resume and LinkedIn review. That context sets the foundation for every future session and makes all the coaching sharper.
       </Blockquote>
       <CtaButton href={APP}>Open Zari →</CtaButton>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
 
-// ─── Paid Welcome 2 — Feature spotlight ───────────────────────────────────────
 export function PaidWelcome2({ firstName, unsubscribeUrl }: { firstName?: string; unsubscribeUrl: string }) {
   return (
-    <Layout preview="The Zari feature most people don't find until week 3." unsubscribeUrl={unsubscribeUrl}>
-      <Text style={h2()}>The feature most people discover too late.</Text>
+    <Layout preview="The Zari feature most people don't find until week 3." headline="The feature most people discover too late." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
         {firstName ?? "Hey"} — you've been on Zari for a few days. I want to make sure you've found this.
       </Text>
@@ -65,16 +61,14 @@ export function PaidWelcome2({ firstName, unsubscribeUrl }: { firstName?: string
         Next time you have a call — even a recruiter screen — try it. 10 minutes of debrief now saves you from repeating the same mistakes in your final round.
       </Text>
       <CtaButton href={APP}>Open Zari →</CtaButton>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
 
-// ─── Paid Welcome 3 — Week 1 check-in ────────────────────────────────────────
 export function PaidWelcome3({ firstName, unsubscribeUrl }: { firstName?: string; unsubscribeUrl: string }) {
   return (
-    <Layout preview="Your first week with Zari — quick check-in." unsubscribeUrl={unsubscribeUrl}>
-      <Text style={h2()}>One week in — how's it going?</Text>
+    <Layout preview="Your first week with Zari — quick check-in." headline="One week in — how's it going?" unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
         {firstName ?? "Hey"} — you've been on Zari for a week. Wanted to check in properly.
       </Text>
@@ -91,16 +85,14 @@ export function PaidWelcome3({ firstName, unsubscribeUrl }: { firstName?: string
       <CtaButton href={APP}>Open Zari →</CtaButton>
       <Divider />
       <Text style={muted()}>Whatever's on your mind — reply here. I read every response.</Text>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
 
-// ─── Milestone: Session 1 ─────────────────────────────────────────────────────
 export function Milestone1({ firstName, unsubscribeUrl }: { firstName?: string; unsubscribeUrl: string }) {
   return (
-    <Layout preview="First session complete. Here's what to do next." unsubscribeUrl={unsubscribeUrl}>
-      <Text style={h2()}>First session complete. You're already ahead.</Text>
+    <Layout preview="First session complete. Here's what to do next." headline="First session complete. You're already ahead." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
         {firstName ? `${firstName}, most` : "Most"} people sign up for tools like this and never open them. You did. That's not nothing — that's the whole thing.
       </Text>
@@ -117,22 +109,20 @@ export function Milestone1({ firstName, unsubscribeUrl }: { firstName?: string; 
         </Step>
       </Section>
       <CtaButton href={APP}>Start my next session →</CtaButton>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
 
-// ─── Milestone: Session 5 ─────────────────────────────────────────────────────
 export function Milestone5({ firstName, planTier, unsubscribeUrl }: { firstName?: string; planTier?: string; unsubscribeUrl: string }) {
   const isBasicPlan = !planTier || planTier === "free" || planTier === "pro";
   return (
-    <Layout preview="5 sessions in. You're in the top 15%." unsubscribeUrl={unsubscribeUrl}>
+    <Layout preview="5 sessions in. You're in the top 15%." headline="5 sessions. You're doing something right." unsubscribeUrl={unsubscribeUrl}>
       <StatRow stats={[
         { value: "5", label: "sessions completed" },
         { value: "Top 15%", label: "of all Zari users" },
         { value: "3×", label: "avg interview rate vs. 0 sessions" },
       ]} />
-      <Text style={h2()}>5 sessions. You're doing something right.</Text>
       <Text style={p()}>
         {firstName ?? "You"}'ve completed 5 Zari sessions. That puts you in the top 15% of users by engagement — and the data is clear: more sessions correlate directly with faster outcomes.
       </Text>
@@ -157,7 +147,7 @@ export function Milestone5({ firstName, planTier, unsubscribeUrl }: { firstName?
           <CtaButton href={APP}>Start session 6 →</CtaButton>
         </>
       )}
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }

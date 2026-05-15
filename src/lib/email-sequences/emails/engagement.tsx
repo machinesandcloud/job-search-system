@@ -1,14 +1,12 @@
 import * as React from "react";
 import { Text, Section, Link, Row, Column } from "@react-email/components";
-import { Layout, CtaButton, Blockquote, Divider, Signature, Step, p, h2, muted, colors } from "../base";
+import { Layout, CtaButton, Blockquote, Divider, Signature, Step, p, muted, colors } from "../base";
 
 const APP = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.zaricoach.com";
 
-// ─── Upsell Limit 1 — Approaching cap ────────────────────────────────────────
 export function UpsellLimit1({ firstName, unsubscribeUrl }: { firstName?: string; unsubscribeUrl: string }) {
   return (
-    <Layout preview="You're running out of session depth — here's how to keep going." unsubscribeUrl={unsubscribeUrl}>
-      <Text style={h2()}>You're getting real results. Don't let a cap slow you down.</Text>
+    <Layout preview="You're running out of session depth — here's how to keep going." headline="You're getting real results. Don't let a cap slow you down." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
         {firstName ?? "Hey"} — you've been using Zari consistently, which puts you in the group of users actually making progress. The session data is clear: more sessions equals faster outcomes.
       </Text>
@@ -21,16 +19,14 @@ export function UpsellLimit1({ firstName, unsubscribeUrl }: { firstName?: string
       <CtaButton href={`${APP}/billing`}>Upgrade to Growth →</CtaButton>
       <Divider />
       <Text style={muted()}>Questions about plans? Reply here — I'll help you find the right fit.</Text>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
 
-// ─── Upsell Limit 2 — At cap ──────────────────────────────────────────────────
 export function UpsellLimit2({ firstName, unsubscribeUrl }: { firstName?: string; unsubscribeUrl: string }) {
   return (
-    <Layout preview="Your session limit is up. Here's how to keep going." unsubscribeUrl={unsubscribeUrl}>
-      <Text style={h2()}>You hit the limit. Here's how to keep going.</Text>
+    <Layout preview="Your session limit is up. Here's how to keep going." headline="You hit the limit. Here's how to keep going." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
         {firstName ?? "Hey"} — you've maxed out your session depth for this period. To continue at full depth, you'll need to upgrade.
       </Text>
@@ -65,16 +61,14 @@ export function UpsellLimit2({ firstName, unsubscribeUrl }: { firstName?: string
       <CtaButton href={`${APP}/billing`}>Upgrade to Growth — $89/mo →</CtaButton>
       <Divider />
       <Text style={muted()}>Want to stay on Search and wait for your reset? No problem — your account stays active and sessions resume automatically.</Text>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
 
-// ─── At Risk 1 — First re-engagement ─────────────────────────────────────────
 export function AtRisk1({ firstName, unsubscribeUrl }: { firstName?: string; unsubscribeUrl: string }) {
   return (
-    <Layout preview="Haven't seen you in a while — is everything going okay?" unsubscribeUrl={unsubscribeUrl}>
-      <Text style={h2()}>We haven't seen you in a while.</Text>
+    <Layout preview="Haven't seen you in a while — is everything going okay?" headline="We haven't seen you in a while." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
         {firstName ?? "Hey"} — it's been a bit since your last Zari session. Wanted to check in.
       </Text>
@@ -88,16 +82,14 @@ export function AtRisk1({ firstName, unsubscribeUrl }: { firstName?: string; uns
         Is there something specific you're stuck on? Reply here — I read every response and will personally help you figure out the next move.
       </Text>
       <CtaButton href={APP}>Pick up where I left off →</CtaButton>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
 
-// ─── At Risk 2 — Motivation ───────────────────────────────────────────────────
 export function AtRisk2({ firstName, unsubscribeUrl }: { firstName?: string; unsubscribeUrl: string }) {
   return (
-    <Layout preview="For when the job search feels stuck — a different take." unsubscribeUrl={unsubscribeUrl}>
-      <Text style={h2()}>When nothing seems to be working.</Text>
+    <Layout preview="For when the job search feels stuck — a different take." headline="When nothing seems to be working." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
         {firstName ?? "Hey"} — I want to share something we see a lot.
       </Text>
@@ -122,16 +114,14 @@ export function AtRisk2({ firstName, unsubscribeUrl }: { firstName?: string; uns
         One honest audit session with Zari — where you share what's been happening and we dig in — usually identifies the block within 20 minutes.
       </Text>
       <CtaButton href={APP}>Run a diagnostic session →</CtaButton>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
 
-// ─── At Risk 3 — Final check-in ───────────────────────────────────────────────
 export function AtRisk3({ firstName, unsubscribeUrl }: { firstName?: string; unsubscribeUrl: string }) {
   return (
-    <Layout preview="Last check-in. After this I'll stop reaching out." unsubscribeUrl={unsubscribeUrl}>
-      <Text style={h2()}>One last check-in.</Text>
+    <Layout preview="Last check-in. After this I'll stop reaching out." headline="One last check-in." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
         {firstName ?? "Hey"} — I've sent a couple of check-ins and haven't heard back. I don't want to keep filling your inbox if it's not helpful.
       </Text>
@@ -150,17 +140,15 @@ export function AtRisk3({ firstName, unsubscribeUrl }: { firstName?: string; uns
       <Text style={muted()}>
         After this email, I'll stop reaching out. But you can always reply here or open Zari whenever you're ready. Good luck out there.
       </Text>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
 
-// ─── NPS Survey ───────────────────────────────────────────────────────────────
 export function NpsSurvey({ firstName, npsUrl, unsubscribeUrl }: { firstName?: string; npsUrl: string; unsubscribeUrl: string }) {
   const scores = Array.from({ length: 11 }, (_, i) => i);
   return (
-    <Layout preview="Quick question: how likely are you to recommend Zari?" unsubscribeUrl={unsubscribeUrl}>
-      <Text style={h2()}>How are we doing?</Text>
+    <Layout preview="Quick question: how likely are you to recommend Zari?" headline="How are we doing?" unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
         {firstName ?? "Hey"} — you've been using Zari for about a month. One question:
       </Text>
@@ -212,7 +200,7 @@ export function NpsSurvey({ firstName, npsUrl, unsubscribeUrl }: { firstName?: s
       <Text style={muted()}>
         If there's something specific you'd want to share — what's working, what's not — just reply here. I read everything.
       </Text>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }

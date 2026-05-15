@@ -1,14 +1,12 @@
 import * as React from "react";
 import { Text } from "@react-email/components";
-import { Layout, CtaButton, Divider, Signature, p, h2, muted } from "../base";
+import { Layout, CtaButton, Divider, Signature, p, muted } from "../base";
 
 const APP = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.zaricoach.com";
 
-// ─── Dunning 1 — Payment failed ───────────────────────────────────────────────
 export function Dunning1({ firstName, unsubscribeUrl }: { firstName?: string; unsubscribeUrl: string }) {
   return (
-    <Layout preview="Action needed: your payment didn't go through." unsubscribeUrl={unsubscribeUrl}>
-      <Text style={h2()}>Your payment didn't go through.</Text>
+    <Layout preview="Action needed: your payment didn't go through." headline="Your payment didn't go through." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
         {firstName ?? "Hey"} — we just tried to charge your card for your Zari subscription and it didn't go through.
       </Text>
@@ -21,16 +19,14 @@ export function Dunning1({ firstName, unsubscribeUrl }: { firstName?: string; un
       <CtaButton href={`${APP}/billing`}>Update my payment →</CtaButton>
       <Divider />
       <Text style={muted()}>If you're seeing this in error or your bank blocked the charge, reply here and I'll look into it manually.</Text>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
 
-// ─── Dunning 2 — Access at risk ───────────────────────────────────────────────
 export function Dunning2({ firstName, unsubscribeUrl }: { firstName?: string; unsubscribeUrl: string }) {
   return (
-    <Layout preview="Your Zari access is at risk — 4 days left to update your payment." unsubscribeUrl={unsubscribeUrl}>
-      <Text style={h2()}>We still couldn't collect payment.</Text>
+    <Layout preview="Your Zari access is at risk — 4 days left to update your payment." headline="We still couldn't collect payment." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
         {firstName ?? "Hey"} — we tried your card again and it still isn't going through. Your account is still active, but we have a few days before we have to pause it.
       </Text>
@@ -43,16 +39,14 @@ export function Dunning2({ firstName, unsubscribeUrl }: { firstName?: string; un
       <CtaButton href={`${APP}/billing`}>Fix my payment now →</CtaButton>
       <Divider />
       <Text style={muted()}>Need to pause your subscription instead? Reply here and we'll sort it out — no hassle.</Text>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
 
-// ─── Dunning 3 — Account suspended ───────────────────────────────────────────
 export function Dunning3({ firstName, unsubscribeUrl }: { firstName?: string; unsubscribeUrl: string }) {
   return (
-    <Layout preview="Your Zari account has been paused." unsubscribeUrl={unsubscribeUrl}>
-      <Text style={h2()}>Your account is paused.</Text>
+    <Layout preview="Your Zari account has been paused." headline="Your account is paused." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
         {firstName ?? "Hey"} — after multiple attempts, we weren't able to collect payment, so your account has been paused.
       </Text>
@@ -65,7 +59,7 @@ export function Dunning3({ firstName, unsubscribeUrl }: { firstName?: string; un
       <Text style={muted()}>
         If you're no longer looking to continue — no problem at all. Your data will remain saved for 90 days if you ever want to come back. Reply here if you have any questions.
       </Text>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }

@@ -108,12 +108,22 @@ export function PricingPlanCard({
 
           {authenticated ? (
             checkoutEnabled ? (
-              <SubscriptionCheckoutButton
-                planId={plan.id}
-                label={plan.cta}
-                className={`flex w-full items-center justify-center rounded-2xl py-3.5 text-[14px] font-semibold transition-all hover:-translate-y-0.5 ${tone.buttonClass}`}
-                buttonStyle={tone.buttonStyle}
-              />
+              <>
+                <SubscriptionCheckoutButton
+                  planId={plan.id}
+                  label={plan.cta}
+                  className={`flex w-full items-center justify-center rounded-2xl py-3.5 text-[14px] font-semibold transition-all hover:-translate-y-0.5 ${tone.buttonClass}`}
+                  buttonStyle={tone.buttonStyle}
+                />
+                {plan.id === "search" && (
+                  <a
+                    href="/api/onboarding/free-preview"
+                    className="mt-3 flex w-full items-center justify-center rounded-2xl border border-[var(--border)] py-3 text-[13px] font-semibold text-[var(--ink-2)] transition-all hover:border-[var(--brand)] hover:text-[var(--brand)]"
+                  >
+                    Start for free →
+                  </a>
+                )}
+              </>
             ) : (
               <div className="mt-8">
                 <button

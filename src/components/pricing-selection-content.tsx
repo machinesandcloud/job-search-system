@@ -95,25 +95,8 @@ export function PricingSelectionContent({
             ))}
           </div>
 
-          {authenticated && (
-            <Reveal>
-              <div className="mx-auto mt-8 flex items-center justify-center gap-3 rounded-2xl border border-dashed border-[#4361EE]/25 bg-[#4361EE]/[0.03] px-8 py-5">
-                <svg viewBox="0 0 20 20" fill="none" stroke="#4361EE" strokeWidth="1.7" className="h-5 w-5 shrink-0 opacity-70"><circle cx="10" cy="10" r="8"/><path d="M10 6v4l2.5 2.5" strokeLinecap="round"/></svg>
-                <p className="text-[13.5px] text-[#5A6180]">
-                  Not ready to choose a plan?{" "}
-                  <a
-                    href="/api/onboarding/free-preview"
-                    className="font-semibold text-[#4361EE] underline-offset-2 hover:underline"
-                  >
-                    Start exploring free — no card needed →
-                  </a>
-                </p>
-              </div>
-            </Reveal>
-          )}
-
           <Reveal>
-            <p className="mx-auto mt-6 max-w-3xl text-center text-[13px] leading-6 text-[#7A849C]">
+            <p className="mx-auto mt-8 max-w-3xl text-center text-[13px] leading-6 text-[#7A849C]">
               {PRICING_TRUST_ITEMS.join(" · ")}
             </p>
           </Reveal>

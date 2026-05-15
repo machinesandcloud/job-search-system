@@ -1,14 +1,12 @@
 import * as React from "react";
 import { Text, Section } from "@react-email/components";
-import { Layout, CtaButton, Blockquote, Divider, Signature, Step, StatRow, p, h2, muted } from "../base";
+import { Layout, CtaButton, Blockquote, Divider, Signature, Step, StatRow, p, muted } from "../base";
 
 const APP = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.zaricoach.com";
 
-// ─── Win Back 30 — First touch ────────────────────────────────────────────────
 export function WinBack30({ firstName, unsubscribeUrl }: { firstName?: string; unsubscribeUrl: string }) {
   return (
-    <Layout preview="It's been 30 days. Here's what's changed at Zari." unsubscribeUrl={unsubscribeUrl}>
-      <Text style={h2()}>It's been a month. A lot has changed.</Text>
+    <Layout preview="It's been 30 days. Here's what's changed at Zari." headline="It's been a month. A lot has changed." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
         {firstName ?? "Hey"} — it's been about 30 days since you were last active on Zari.
       </Text>
@@ -32,21 +30,19 @@ export function WinBack30({ firstName, unsubscribeUrl }: { firstName?: string; u
       <CtaButton href={APP}>Come back to Zari →</CtaButton>
       <Divider />
       <Text style={muted()}>If you've moved on and landed something — genuinely happy for you. Reply and let me know.</Text>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
 
-// ─── Win Back 60 — Social proof ───────────────────────────────────────────────
 export function WinBack60({ firstName, unsubscribeUrl }: { firstName?: string; unsubscribeUrl: string }) {
   return (
-    <Layout preview="Two months out. Here's what Zari users are doing right now." unsubscribeUrl={unsubscribeUrl}>
+    <Layout preview="Two months out. Here's what Zari users are doing right now." headline="Two months out. Still searching?" unsubscribeUrl={unsubscribeUrl}>
       <StatRow stats={[
         { value: "68%", label: "land interviews within 6 weeks" },
         { value: "2.4×", label: "avg callback increase after resume review" },
         { value: "41 days", label: "avg time-to-offer for consistent users" },
       ]} />
-      <Text style={h2()}>Two months out. Still searching?</Text>
       <Text style={p()}>
         {firstName ?? "Hey"} — it's been about 60 days. I don't know where your search stands, but if it's still open, here's what we're seeing from users who are active right now.
       </Text>
@@ -60,16 +56,14 @@ export function WinBack60({ firstName, unsubscribeUrl }: { firstName?: string; u
         Your account is still there, with everything intact. Come back and tell Zari where you're stuck.
       </Text>
       <CtaButton href={APP}>Pick up where I left off →</CtaButton>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }
 
-// ─── Win Back 90 — Final attempt ──────────────────────────────────────────────
 export function WinBack90({ firstName, unsubscribeUrl }: { firstName?: string; unsubscribeUrl: string }) {
   return (
-    <Layout preview="My last email. No pitch — just one honest note." unsubscribeUrl={unsubscribeUrl}>
-      <Text style={h2()}>Three months. My last reach-out.</Text>
+    <Layout preview="My last email. No pitch — just one honest note." headline="Three months. My last reach-out." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
         {firstName ?? "Hey"} — it's been 90 days. This is my last email.
       </Text>
@@ -87,7 +81,7 @@ export function WinBack90({ firstName, unsubscribeUrl }: { firstName?: string; u
       </Text>
       <Divider />
       <Text style={muted()}>This is the last email you'll receive from us. If you ever want to return, just log in — no re-enrollment needed.</Text>
-      <Signature name="Steve at Zari" />
+      <Signature />
     </Layout>
   );
 }

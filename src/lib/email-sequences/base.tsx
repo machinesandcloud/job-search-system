@@ -15,26 +15,21 @@ import {
 } from "@react-email/components";
 import * as React from "react";
 
-// ─── Design tokens ────────────────────────────────────────────────────────────
-// Derived from analysis of Stripe, Linear, Notion, Studio (react.email) templates.
-// max-width: 640px (all premium templates use 640, not 600)
-// Shell color: neutral grey — card appears to float
-// Text: never pure black — cool near-black + readable grey for body
-// Heading: 40px, weight 700, -0.8px letter-spacing (tight = designed)
-// Body: 16px, weight 400, 1.65 line-height
-// CTA: centered, brand blue, 15px 600w, generous padding, 8px radius
+// ─── Design tokens ─────────────────────────────────────────────────────────────
 
 export const colors = {
-  brand:         "#3B6CF5",   // Zari blue (matched to logo)
-  brandLight:    "#EBF0FF",   // light blue tint for callouts/stats bg
-  brandBorder:   "#C5D5FD",   // callout/step circle border
-  text:          "#16171A",   // cool near-black — headlines
-  body:          "#52535A",   // comfortable reading grey — body text
-  muted:         "#818285",   // secondary info, captions
-  subtle:        "#9899A1",   // footer, timestamps
-  border:        "#E4E6EA",   // card border, dividers
-  shell:         "#F0F2F5",   // outer background — card floats on this
+  brand:         "#3B6CF5",
+  brandLight:    "#EBF0FF",
+  brandBorder:   "#C5D5FD",
+  text:          "#1A1A1A",
+  body:          "#52535A",
+  muted:         "#818285",
+  subtle:        "#9899A1",
+  border:        "#E4E6EA",
+  shell:         "#E8EAE2",   // warm sage — card floats on this
   cardBg:        "#FFFFFF",
+  footerBg:      "#F5F5F1",
+  footerBorder:  "#E4E4E0",
 };
 
 export const font = `Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif`;
@@ -42,20 +37,29 @@ export const font = `Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helv
 const APP_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "https://app.zaricoach.com";
 const LOGO_URL = `${APP_URL}/assets/zari-logo-transparent-400w.png`;
 
-// ─── Layout ───────────────────────────────────────────────────────────────────
+function getMonthYear() {
+  return new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
+}
+
+// ─── Layout ────────────────────────────────────────────────────────────────────
+
 interface LayoutProps {
   preview?: string;
   headline?: React.ReactNode;
+  badge?: React.ReactNode;
   unsubscribeUrl: string;
   children: React.ReactNode;
 }
 
-export function Layout({ preview, headline, unsubscribeUrl, children }: LayoutProps) {
+export function Layout({ preview, headline, badge, unsubscribeUrl, children }: LayoutProps) {
   return (
     <Html lang="en">
       <Head>
         <meta name="color-scheme" content="light" />
         <meta name="supported-color-schemes" content="light" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" />
+        <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet" />
       </Head>
       {preview && <Preview>{preview}</Preview>}
       <Body style={{
@@ -71,74 +75,111 @@ export function Layout({ preview, headline, unsubscribeUrl, children }: LayoutPr
           padding: "40px 16px 56px",
         }}>
 
+          {/* ── Card ── */}
           <Section style={{
             backgroundColor: colors.cardBg,
-            borderRadius: "8px",
-            border: `1px solid ${colors.border}`,
+            borderRadius: "10px",
+            border: "1px solid #D0D2CA",
           }}>
 
-            {/* ── Logo strip — white, tight, centered ── */}
+            {/* ── Header: logo left · date right ── */}
             <Row>
-              <Column style={{ padding: "20px 32px 18px", textAlign: "center", borderBottom: `1px solid ${colors.border}` }}>
+              <Column style={{ padding: "22px 28px 18px", verticalAlign: "middle" }}>
                 <Img
                   src={LOGO_URL}
-                  width={88}
-                  height={27}
+                  width={100}
+                  height={46}
                   alt="Zari"
-                  style={{ display: "block", margin: "0 auto" }}
+                  style={{ display: "block" }}
                 />
+              </Column>
+              <Column style={{ padding: "22px 28px 18px", textAlign: "right", verticalAlign: "middle" }}>
+                <Text style={{
+                  fontFamily: font,
+                  margin: 0,
+                  color: colors.muted,
+                  fontSize: "12px",
+                  lineHeight: "1",
+                  letterSpacing: "0.1px",
+                }}>
+                  {getMonthYear()}
+                </Text>
               </Column>
             </Row>
 
-            {/* ── Blue hero — large white headline ── */}
-            {headline && (
-              <Row>
-                <Column style={{ backgroundColor: colors.brand, padding: "40px 40px 36px" }}>
+            {/* ── Separator ── */}
+            <Row>
+              <Column style={{ padding: "0 28px" }}>
+                <Hr style={{ borderColor: "#EAEAEC", margin: 0 }} />
+              </Column>
+            </Row>
+
+            {/* ── Content: badge + headline + body ── */}
+            <Row>
+              <Column style={{ padding: "36px 40px 48px" }}>
+
+                {badge && (
                   <Text style={{
                     fontFamily: font,
-                    color: "#FFFFFF",
-                    fontSize: "30px",
+                    margin: "0 0 18px",
+                    color: colors.brand,
+                    fontSize: "13px",
+                    fontWeight: "600",
+                    letterSpacing: "0.1px",
+                    lineHeight: "1",
+                  }}>
+                    {badge}
+                  </Text>
+                )}
+
+                {headline && (
+                  <Text style={{
+                    fontFamily: font,
+                    margin: "0 0 28px",
+                    color: colors.text,
+                    fontSize: "32px",
                     fontWeight: "800",
-                    lineHeight: "1.2",
-                    letterSpacing: "-0.5px",
-                    margin: 0,
+                    lineHeight: "1.15",
+                    letterSpacing: "-0.8px",
                   }}>
                     {headline}
                   </Text>
-                </Column>
-              </Row>
-            )}
+                )}
 
-            {/* ── White content ── */}
-            <Row>
-              <Column style={{ padding: "32px 40px 44px" }}>
                 {children}
+
               </Column>
             </Row>
 
-          </Section>
+            {/* ── Footer inside card ── */}
+            <Row>
+              <Column style={{
+                padding: "20px 28px",
+                backgroundColor: colors.footerBg,
+                borderTop: `1px solid ${colors.footerBorder}`,
+                borderRadius: "0 0 10px 10px",
+              }}>
+                <Text style={{
+                  fontFamily: font,
+                  margin: 0,
+                  color: colors.muted,
+                  fontSize: "12px",
+                  lineHeight: "1.75",
+                  textAlign: "center",
+                }}>
+                  <Link href={unsubscribeUrl} style={{ color: colors.muted, textDecoration: "underline" }}>
+                    Unsubscribe
+                  </Link>
+                  {" · "}You received this because you signed up for Zari.
+                  <br />
+                  © {new Date().getFullYear()} Zari, Inc.{" · "}
+                  <Link href={APP_URL} style={{ color: colors.muted, textDecoration: "none" }}>
+                    zaricoach.com
+                  </Link>
+                </Text>
+              </Column>
+            </Row>
 
-          {/* ── Footer ── */}
-          <Section style={{ padding: "20px 0 0" }}>
-            <Text style={{
-              margin: 0,
-              fontFamily: font,
-              color: colors.subtle,
-              fontSize: "12px",
-              lineHeight: "1.7",
-              letterSpacing: "0.1px",
-              textAlign: "center",
-            }}>
-              Zari · AI career coaching ·{" "}
-              <Link href={APP_URL} style={{ color: colors.subtle, textDecoration: "none" }}>
-                zaricoach.com
-              </Link>
-              <br />
-              <Link href={unsubscribeUrl} style={{ color: colors.subtle, textDecoration: "underline" }}>
-                Unsubscribe
-              </Link>
-              {" "}· You received this because you signed up for Zari.
-            </Text>
           </Section>
 
         </Container>
@@ -147,7 +188,8 @@ export function Layout({ preview, headline, unsubscribeUrl, children }: LayoutPr
   );
 }
 
-// ─── CTA Button — centered, prominent ─────────────────────────────────────────
+// ─── CTA Button — pill shape ───────────────────────────────────────────────────
+
 interface CtaButtonProps {
   href: string;
   children: React.ReactNode;
@@ -167,8 +209,8 @@ export function CtaButton({ href, children }: CtaButtonProps) {
           letterSpacing: "-0.042px",
           lineHeight: "1",
           textDecoration: "none",
-          padding: "14px 28px",
-          borderRadius: "8px",
+          padding: "14px 30px",
+          borderRadius: "999px",
           display: "inline-block",
         }}
       >
@@ -178,8 +220,8 @@ export function CtaButton({ href, children }: CtaButtonProps) {
   );
 }
 
-// ─── Blockquote / Callout ─────────────────────────────────────────────────────
-// Light brand-blue background + left accent border — visible, not garish
+// ─── Blockquote ────────────────────────────────────────────────────────────────
+
 interface BlockquoteProps {
   children: React.ReactNode;
 }
@@ -209,14 +251,13 @@ export function Blockquote({ children }: BlockquoteProps) {
 
 export const Highlight = Blockquote;
 
-// ─── Divider ──────────────────────────────────────────────────────────────────
+// ─── Divider ───────────────────────────────────────────────────────────────────
+
 export function Divider() {
   return <Hr style={{ borderColor: colors.border, margin: "28px 0" }} />;
 }
 
-// ─── Typography helpers ───────────────────────────────────────────────────────
-// 4-size scale: 40px hero / 16px body / 14px step desc / 12-13px footer
-// Every size has a specific weight and letter-spacing — no defaults
+// ─── Typography helpers ────────────────────────────────────────────────────────
 
 export const h2 = (style?: React.CSSProperties): React.CSSProperties => ({
   fontFamily: font,
@@ -249,26 +290,47 @@ export const muted = (style?: React.CSSProperties): React.CSSProperties => ({
   ...style,
 });
 
-// ─── Signature ────────────────────────────────────────────────────────────────
-export function Signature({ name = "Steve at Zari" }: { name?: string }) {
+// ─── Signature ─────────────────────────────────────────────────────────────────
+
+export function Signature({ name = "Steve", title = "Founder, Zari" }: { name?: string; title?: string }) {
   return (
-    <>
-      <Divider />
+    <Section style={{ marginTop: "32px" }}>
+      <Hr style={{ borderColor: colors.border, margin: "0 0 22px" }} />
+      <Text style={{
+        fontFamily: font,
+        margin: "0 0 10px",
+        color: colors.body,
+        fontSize: "15px",
+        lineHeight: "1.5",
+      }}>
+        Best,
+      </Text>
+      <Text style={{
+        fontFamily: "'Great Vibes', cursive",
+        margin: "0 0 3px",
+        color: colors.text,
+        fontSize: "38px",
+        fontWeight: "400",
+        lineHeight: "1.2",
+        letterSpacing: "0.5px",
+      }}>
+        {name}
+      </Text>
       <Text style={{
         fontFamily: font,
         margin: 0,
         color: colors.muted,
-        fontSize: "14px",
-        lineHeight: "1.6",
-        letterSpacing: "-0.014px",
+        fontSize: "13px",
+        lineHeight: "1.5",
       }}>
-        — {name}
+        {title}
       </Text>
-    </>
+    </Section>
   );
 }
 
-// ─── Numbered steps ───────────────────────────────────────────────────────────
+// ─── Numbered steps ────────────────────────────────────────────────────────────
+
 interface StepProps {
   number: number;
   title: string;
@@ -328,8 +390,8 @@ export function Step({ number, title, children }: StepProps) {
   );
 }
 
-// ─── Stats row ────────────────────────────────────────────────────────────────
-// Brand-blue numbers on light-blue bg, separated by vertical rules
+// ─── Stats row ─────────────────────────────────────────────────────────────────
+
 interface StatProps {
   stats: { value: string; label: string }[];
 }

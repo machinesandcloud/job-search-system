@@ -85,66 +85,125 @@ export function CoachAdminLogoutButton({ className = "" }: { className?: string 
   );
 }
 
-export function CoachAdminCancelSubscriptionButton({
+const CANCEL_REASONS = [
+  "User requested cancellation",
+  "Payment issue / non-payment",
+  "Switched to a different plan",
+  "Account created in error",
+  "Violation of terms",
+  "Other",
+];
+
+export function CoachAdminCancelAccountButton({
   accountId,
-  disabled = false,
+  hasSubscription,
 }: {
   accountId: string;
-  disabled?: boolean;
+  hasSubscription: boolean;
 }) {
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState(CANCEL_REASONS[0]);
+  const [note, setNote] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  async function onClick() {
-    if (disabled || loading) return;
-    const confirmed = window.confirm(
-      "Cancel this customer's subscription immediately? This will cancel the Stripe subscription and remove paid access right away."
-    );
-    if (!confirmed) return;
+  const ready = confirm.trim().toUpperCase() === "CANCEL";
 
+  async function onSubmit() {
+    if (!ready || loading) return;
     setLoading(true);
     setError("");
     try {
       const res = await fetch(`/api/coach-admin/accounts/${accountId}/subscription`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason, note }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || "Unable to cancel subscription.");
+        setError(data.error || "Unable to cancel account.");
+        setLoading(false);
       } else {
         window.location.reload();
       }
     } catch {
-      setError("Unable to cancel subscription.");
-    } finally {
+      setError("Unable to cancel account.");
       setLoading(false);
     }
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
+    <>
       <button
         type="button"
-        onClick={onClick}
-        disabled={disabled || loading}
+        onClick={() => setOpen(true)}
         style={{
           display: "inline-flex", alignItems: "center", justifyContent: "center",
           borderRadius: 99, border: "1px solid rgba(244,63,94,0.45)",
           background: "rgba(244,63,94,0.10)", padding: "7px 16px",
           fontSize: 13, fontWeight: 600, color: "#F43F5E",
-          cursor: disabled || loading ? "not-allowed" : "pointer",
-          opacity: disabled || loading ? 0.6 : 1,
-          transition: "background 0.12s, border-color 0.12s",
-          whiteSpace: "nowrap",
+          cursor: "pointer", whiteSpace: "nowrap",
+          transition: "background 0.12s",
         }}
-        onMouseEnter={e => { if (!disabled && !loading) (e.currentTarget as HTMLButtonElement).style.background = "rgba(244,63,94,0.18)"; }}
+        onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(244,63,94,0.18)"; }}
         onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(244,63,94,0.10)"; }}
       >
-        {loading ? "Canceling…" : "Cancel subscription"}
+        Cancel account
       </button>
-      {error ? <p style={{ fontSize: 12, color: "#F43F5E", textAlign: "right", margin: 0 }}>{error}</p> : null}
-    </div>
+
+      {open && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
+          onClick={e => { if (e.target === e.currentTarget) setOpen(false); }}>
+          <div style={{ background: "var(--ca-card)", border: "1px solid var(--ca-bd)", borderRadius: 18, padding: "28px 28px 24px", width: "100%", maxWidth: 420, boxShadow: "0 24px 80px rgba(0,0,0,0.45)" }}>
+            <p style={{ fontSize: 16, fontWeight: 700, color: "var(--ca-text)", marginBottom: 4 }}>Cancel account</p>
+            <p style={{ fontSize: 12.5, color: "var(--ca-text3)", marginBottom: 20, lineHeight: 1.6 }}>
+              {hasSubscription ? "This will cancel the Stripe subscription and remove paid access immediately." : "This will close the account."} This action cannot be undone.
+            </p>
+
+            <label style={{ display: "block", fontSize: 11.5, fontWeight: 600, color: "var(--ca-text2)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.07em" }}>Reason</label>
+            <select
+              value={reason}
+              onChange={e => setReason(e.target.value)}
+              style={{ width: "100%", fontSize: 13, padding: "9px 12px", borderRadius: 10, border: "1px solid var(--ca-bd)", background: "var(--ca-raise)", color: "var(--ca-text)", outline: "none", marginBottom: 14, fontFamily: "inherit" }}
+            >
+              {CANCEL_REASONS.map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
+
+            <label style={{ display: "block", fontSize: 11.5, fontWeight: 600, color: "var(--ca-text2)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.07em" }}>Additional notes (optional)</label>
+            <textarea
+              value={note}
+              onChange={e => setNote(e.target.value)}
+              rows={2}
+              placeholder="Any context for this cancellation…"
+              style={{ width: "100%", boxSizing: "border-box", fontSize: 13, padding: "9px 12px", borderRadius: 10, border: "1px solid var(--ca-bd)", background: "var(--ca-raise)", color: "var(--ca-text)", outline: "none", marginBottom: 14, fontFamily: "inherit", resize: "vertical" }}
+            />
+
+            <label style={{ display: "block", fontSize: 11.5, fontWeight: 600, color: "#F43F5E", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.07em" }}>Type CANCEL to confirm</label>
+            <input
+              value={confirm}
+              onChange={e => setConfirm(e.target.value)}
+              placeholder="CANCEL"
+              autoComplete="off"
+              style={{ width: "100%", boxSizing: "border-box", fontSize: 13, fontWeight: 700, padding: "9px 12px", borderRadius: 10, border: `1px solid ${ready ? "rgba(244,63,94,0.6)" : "var(--ca-bd)"}`, background: "var(--ca-raise)", color: "#F43F5E", outline: "none", marginBottom: 18, fontFamily: "monospace", letterSpacing: "0.1em", transition: "border-color 0.15s" }}
+            />
+
+            {error && <p style={{ fontSize: 12, color: "#F43F5E", marginBottom: 12 }}>{error}</p>}
+
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+              <button type="button" onClick={() => { setOpen(false); setConfirm(""); setError(""); }}
+                style={{ padding: "8px 16px", borderRadius: 10, border: "1px solid var(--ca-bd)", background: "transparent", color: "var(--ca-text2)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+                Keep account
+              </button>
+              <button type="button" onClick={onSubmit} disabled={!ready || loading}
+                style={{ padding: "8px 18px", borderRadius: 10, border: "none", background: ready ? "#F43F5E" : "rgba(244,63,94,0.25)", color: ready ? "#fff" : "rgba(244,63,94,0.5)", fontSize: 13, fontWeight: 700, cursor: ready && !loading ? "pointer" : "not-allowed", transition: "background 0.15s, color 0.15s" }}>
+                {loading ? "Canceling…" : "Cancel account"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
