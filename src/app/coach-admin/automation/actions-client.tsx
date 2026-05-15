@@ -146,3 +146,65 @@ export function TriggerQueueButton({ isAdmin }: { isAdmin: boolean }) {
     </div>
   );
 }
+
+type BackfillResult = {
+  total?: number;
+  enrolled?: number;
+  skipped?: number;
+  suppressed?: number;
+  emailsSent?: number;
+  errors?: number;
+};
+
+export function BackfillButton({ isAdmin }: { isAdmin: boolean }) {
+  const [status, setStatus] = useState<"idle" | "confirm" | "loading" | "ok" | "err">("idle");
+  const [result, setResult] = useState<BackfillResult | null>(null);
+  const router = useRouter();
+
+  if (!isAdmin) return null;
+
+  async function run() {
+    setStatus("loading");
+    setResult(null);
+    const res = await fetch("/api/coach-admin/automation/backfill", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+    if (res.ok) {
+      const data: BackfillResult = await res.json();
+      setResult(data);
+      setStatus("ok");
+      router.refresh();
+    } else {
+      setStatus("err");
+    }
+  }
+
+  if (status === "confirm") {
+    return (
+      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <span style={{ fontSize: 11, color: "var(--ca-text2)" }}>Send welcome emails to all un-enrolled users?</span>
+        <button onClick={run} style={{ ...btn("#F43F5E"), padding: "4px 10px" }}>Yes, send</button>
+        <button onClick={() => setStatus("idle")} style={{ ...btn("#6B7280"), padding: "4px 10px" }}>Cancel</button>
+      </div>
+    );
+  }
+
+  if (status === "ok" && result) {
+    return (
+      <div style={{ fontSize: 11, color: "#22C55E", fontWeight: 600 }}>
+        Backfill done · {result.enrolled} enrolled · {result.emailsSent} sent · {result.skipped} skipped
+      </div>
+    );
+  }
+
+  return (
+    <button
+      disabled={status === "loading"}
+      onClick={() => setStatus("confirm")}
+      style={{ ...btn("#F59E0B"), padding: "5px 12px", opacity: status === "loading" ? 0.5 : 1 }}
+    >
+      {status === "loading" ? "Backfilling…" : status === "err" ? "Error — retry?" : "Backfill all users"}
+    </button>
+  );
+}

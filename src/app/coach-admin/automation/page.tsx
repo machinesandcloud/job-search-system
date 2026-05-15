@@ -1,7 +1,7 @@
 import { requireCoachAdminActor } from "@/lib/coach-admin-auth";
 import { prisma } from "@/lib/db";
 import { CoachAdminPill } from "@/components/coach-admin-ui";
-import { CancelEnrollmentButton, UnsuppressButton, EnrollForm, TriggerQueueButton } from "./actions-client";
+import { CancelEnrollmentButton, UnsuppressButton, EnrollForm, TriggerQueueButton, BackfillButton } from "./actions-client";
 
 export const dynamic = "force-dynamic";
 
@@ -120,6 +120,17 @@ export default async function AutomationPage() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
+      {/* Backfill banner — admin only */}
+      {isAdmin && (
+        <Card style={{ padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ca-text)", marginBottom: 2 }}>Backfill existing users</div>
+            <div style={{ fontSize: 11.5, color: "var(--ca-text3)" }}>Enroll all un-enrolled users in their correct sequence and send immediately-due emails.</div>
+          </div>
+          <BackfillButton isAdmin={isAdmin} />
+        </Card>
+      )}
 
       {/* KPI strip */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 8 }}>
