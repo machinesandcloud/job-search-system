@@ -111,6 +111,25 @@ export interface NpsSubmittedEvent {
   planTier: string;
 }
 
+export interface PaymentFailedEvent {
+  email: string;
+  firstName?: string;
+  planTier: string;
+  invoiceId?: string;
+  amountCents: number;
+}
+
+export interface PaymentRecoveredEvent {
+  email: string;
+  firstName?: string;
+  planTier: string;
+  planName: string;
+  amountCents: number;
+  stripeInvoiceId?: string;
+  stripeSubscriptionId?: string;
+  periodEnd?: Date | null;
+}
+
 // ─── Event handlers ───────────────────────────────────────────────────────────
 
 /**
@@ -208,7 +227,8 @@ export async function onSubscriptionChanged(event: SubscriptionChangedEvent): Pr
 
     if (event.subscriptionStatus === "active") {
       const isUpgrade = event.previousPlanTier && event.previousPlanTier !== event.planTier;
-      void cancelMany(event.email, ["trial_onboarding", "trial_ending", "at_risk"]);
+      // Cancel all lifecycle sequences — covers win-back (re-subscriber), at-risk, trial
+      void cancelMany(event.email, ["trial_onboarding", "trial_ending", "at_risk", "win_back_30", "win_back_60", "win_back_90", "dunning"]);
       if (!isUpgrade) {
         void enroll("paid_welcome", event.email, meta);
       }
@@ -320,6 +340,42 @@ export async function onLeadCaptured(event: LeadCapturedEvent): Promise<void> {
  * If detractor (0-6): flag for immediate follow-up.
  * If promoter (9-10): trigger referral ask.
  */
+/**
+ * Stripe invoice.payment_failed — card declined, bank rejection, etc.
+ * CRM: note on contact. Email: dunning sequence.
+ */
+export async function onPaymentFailed(event: PaymentFailedEvent): Promise<void> {
+  try {
+    void enroll("dunning", event.email, { firstName: event.firstName, planTier: event.planTier });
+  } catch (err) {
+    console.error("[zoho-engine] onPaymentFailed error:", err);
+  }
+}
+
+/**
+ * Stripe invoice.payment_succeeded after a previous failure — payment recovered.
+ * CRM: cancel dunning. Email: cancel dunning sequence. Books: record the payment.
+ */
+export async function onPaymentRecovered(event: PaymentRecoveredEvent): Promise<void> {
+  try {
+    void cancel(event.email, "dunning");
+    if (event.amountCents > 0) {
+      void syncPaymentToBooks({
+        email: event.email,
+        firstName: event.firstName ?? "",
+        lastName: "",
+        planName: event.planName,
+        amount: event.amountCents,
+        stripeInvoiceId: event.stripeInvoiceId,
+        stripeSubscriptionId: event.stripeSubscriptionId,
+        periodEnd: event.periodEnd,
+      });
+    }
+  } catch (err) {
+    console.error("[zoho-engine] onPaymentRecovered error:", err);
+  }
+}
+
 export async function onNpsSubmitted(event: NpsSubmittedEvent): Promise<void> {
   try {
     await syncNpsScore({

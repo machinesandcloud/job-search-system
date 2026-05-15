@@ -12,7 +12,7 @@ import {
   syncMvpUserToBillingIdentity,
 } from "@/lib/billing";
 import { mapStripePlanTier, syncStripeSubscriptionToAccount, syncUsersForAccountPlan } from "@/lib/subscription-sync";
-import { onSubscriptionChanged, onUserChurned } from "@/lib/zoho-engine";
+import { onSubscriptionChanged, onUserChurned, onPaymentFailed, onPaymentRecovered, onTrialEnding } from "@/lib/zoho-engine";
 
 export const runtime = "nodejs";
 
@@ -289,6 +289,31 @@ export async function POST(request: Request) {
         break;
       }
 
+      case "customer.subscription.trial_will_end": {
+        // Fires 3 days before trial ends — more reliable than our cron scan
+        const subscription = event.data.object as Stripe.Subscription;
+        accountId = await resolveAccountId({
+          stripeSubscriptionId: subscription.id,
+          stripeCustomerId: typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id || null,
+        });
+        if (accountId) {
+          const owner = await prisma.user.findFirst({ where: { accountId } });
+          if (owner) {
+            const sessionCount = await prisma.coachingSession.count({ where: { userId: owner.id, status: "complete" } });
+            void onTrialEnding({
+              userId: owner.id,
+              email: owner.email,
+              firstName: owner.firstName ?? "",
+              planTier: owner.planTier ?? "free",
+              daysRemaining: 3,
+              sessionCount,
+            });
+          }
+          await logAppEvent("trial_will_end", { accountId, metadataJson: { stripeSubscriptionId: subscription.id } });
+        }
+        break;
+      }
+
       case "invoice.payment_succeeded":
       case "invoice.payment_failed": {
         const invoice = event.data.object as Stripe.Invoice;
@@ -302,11 +327,13 @@ export async function POST(request: Request) {
 
         if (!accountId) throw new Error(`Unable to resolve account for ${event.type}.`);
 
+        const isFailure = event.type === "invoice.payment_failed";
+
         if (stripeSubscriptionId) {
           const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
           await syncStripeSubscriptionToAccount(accountId, subscription, {
-            status: event.type === "invoice.payment_failed" ? "past_due" : "active",
-            paymentIssue: isPaymentIssueSubscriptionStatus(event.type === "invoice.payment_failed" ? "past_due" : "active"),
+            status: isFailure ? "past_due" : "active",
+            paymentIssue: isPaymentIssueSubscriptionStatus(isFailure ? "past_due" : "active"),
           });
         } else {
           const linePeriod = invoice.lines.data[0]?.period;
@@ -314,14 +341,48 @@ export async function POST(request: Request) {
             accountId,
             stripeCustomerId,
             stripeSubscriptionId,
-            status: event.type === "invoice.payment_failed" ? "past_due" : "active",
+            status: isFailure ? "past_due" : "active",
             currentPeriodStart: linePeriod?.start ? new Date(linePeriod.start * 1000) : null,
             currentPeriodEnd: linePeriod?.end ? new Date(linePeriod.end * 1000) : null,
           });
         }
 
+        // Engine hooks for dunning and Books sync
+        const owner = await prisma.user.findFirst({ where: { accountId } });
+        if (owner) {
+          const price = stripeSubscriptionId
+            ? (await stripe.subscriptions.retrieve(stripeSubscriptionId)).items.data[0]?.price
+            : null;
+          const planName = price?.nickname ?? "Zari Subscription";
+          const planTier = owner.planTier ?? "free";
+
+          if (isFailure) {
+            void onPaymentFailed({
+              email: owner.email,
+              firstName: owner.firstName ?? undefined,
+              planTier,
+              invoiceId: invoice.id,
+              amountCents: invoice.amount_due,
+            });
+          } else {
+            // Renewal payment success — sync to Books, cancel any active dunning
+            void onPaymentRecovered({
+              email: owner.email,
+              firstName: owner.firstName ?? undefined,
+              planTier,
+              planName,
+              amountCents: invoice.amount_paid,
+              stripeInvoiceId: invoice.id,
+              stripeSubscriptionId: stripeSubscriptionId ?? undefined,
+              periodEnd: invoice.lines.data[0]?.period?.end
+                ? new Date(invoice.lines.data[0].period.end * 1000)
+                : null,
+            });
+          }
+        }
+
         await logAppEvent(
-          event.type === "invoice.payment_failed" ? "subscription_payment_failed" : "subscription_payment_succeeded",
+          isFailure ? "subscription_payment_failed" : "subscription_payment_succeeded",
           {
             accountId,
             metadataJson: {

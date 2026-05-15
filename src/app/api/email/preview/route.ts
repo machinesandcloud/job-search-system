@@ -7,6 +7,7 @@ import { TrialOnboarding1, TrialOnboarding2, TrialOnboarding3, TrialOnboarding4,
 import { PaidWelcome1, PaidWelcome2, PaidWelcome3, Milestone1, Milestone5 } from "@/lib/email-sequences/emails/paid";
 import { UpsellLimit1, UpsellLimit2, AtRisk1, AtRisk2, AtRisk3, NpsSurvey } from "@/lib/email-sequences/emails/engagement";
 import { WinBack30, WinBack60, WinBack90 } from "@/lib/email-sequences/emails/win-back";
+import { Dunning1, Dunning2, Dunning3 } from "@/lib/email-sequences/emails/dunning";
 
 const APP = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.zaricoach.com";
 const UNSUB = `${APP}/unsubscribe`;
@@ -48,6 +49,10 @@ const PREVIEWS: Record<string, () => React.ReactElement> = {
   "win_back_30":        () => React.createElement(WinBack30, { firstName: "Alex", unsubscribeUrl: UNSUB }),
   "win_back_60":        () => React.createElement(WinBack60, { firstName: "Alex", unsubscribeUrl: UNSUB }),
   "win_back_90":        () => React.createElement(WinBack90, { firstName: "Alex", unsubscribeUrl: UNSUB }),
+  // Dunning
+  "dunning_1":          () => React.createElement(Dunning1, { firstName: "Alex", unsubscribeUrl: UNSUB }),
+  "dunning_2":          () => React.createElement(Dunning2, { firstName: "Alex", unsubscribeUrl: UNSUB }),
+  "dunning_3":          () => React.createElement(Dunning3, { firstName: "Alex", unsubscribeUrl: UNSUB }),
 };
 
 export async function GET(req: NextRequest) {

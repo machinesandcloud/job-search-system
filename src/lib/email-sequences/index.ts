@@ -15,6 +15,7 @@ import { TrialOnboarding1, TrialOnboarding2, TrialOnboarding3, TrialOnboarding4,
 import { PaidWelcome1, PaidWelcome2, PaidWelcome3, Milestone1, Milestone5 } from "./emails/paid";
 import { UpsellLimit1, UpsellLimit2, AtRisk1, AtRisk2, AtRisk3, NpsSurvey } from "./emails/engagement";
 import { WinBack30, WinBack60, WinBack90 } from "./emails/win-back";
+import { Dunning1, Dunning2, Dunning3 } from "./emails/dunning";
 
 export const UNSUB_PLACEHOLDER = "{{UNSUB_URL}}";
 const NPS_PLACEHOLDER = "{{NPS_URL}}";
@@ -32,7 +33,8 @@ export type ZariSequence =
   | "win_back_30"
   | "win_back_60"
   | "win_back_90"
-  | "nps_survey";
+  | "nps_survey"
+  | "dunning";
 
 // ─── Template definitions ─────────────────────────────────────────────────────
 
@@ -104,6 +106,11 @@ function makeTemplates(meta: Meta, unsubUrl: string, npsUrl: string): Record<Zar
     nps_survey: [
       t("Quick question: how likely are you to recommend Zari?", React.createElement(NpsSurvey, { firstName, npsUrl, unsubscribeUrl: unsubUrl })),
     ],
+    dunning: [
+      t("Action needed: your payment didn't go through.", React.createElement(Dunning1, { firstName, unsubscribeUrl: unsubUrl })),
+      t("Your Zari access is at risk — please update your payment.", React.createElement(Dunning2, { firstName, unsubscribeUrl: unsubUrl })),
+      t("Your Zari account has been paused.", React.createElement(Dunning3, { firstName, unsubscribeUrl: unsubUrl })),
+    ],
   };
 }
 
@@ -122,6 +129,7 @@ const SEQUENCE_DELAYS: Record<ZariSequence, number[]> = {
   win_back_60:      [0],
   win_back_90:      [0],
   nps_survey:       [0],
+  dunning:          [0, 3, 7],
 };
 
 // ─── Suppression ──────────────────────────────────────────────────────────────
