@@ -14,6 +14,9 @@ import {
   syncSubscriptionChange,
   syncSessionComplete,
   syncChurn,
+  syncNpsScore,
+  syncPaymentToBooks,
+  flagHighValueSignup,
   computeLifecycleStage,
   computeHealthScore,
 } from "@/lib/zoho-crm";
@@ -209,6 +212,26 @@ export async function onSubscriptionChanged(event: SubscriptionChangedEvent): Pr
       if (!isUpgrade) {
         void enroll("paid_welcome", event.email, meta);
       }
+
+      // Record revenue in Zoho Books and flag high-value accounts for personal outreach
+      if (event.amount && event.amount > 0) {
+        void syncPaymentToBooks({
+          email: event.email,
+          firstName: event.firstName,
+          lastName: event.lastName,
+          planName: event.planName,
+          amount: event.amount,
+          stripeSubscriptionId: event.stripeSubscriptionId,
+          periodEnd: event.currentPeriodEnd,
+        });
+      }
+
+      void flagHighValueSignup({
+        email: event.email,
+        firstName: event.firstName,
+        lastName: event.lastName,
+        planTier: event.planTier,
+      });
     }
   } catch (err) {
     console.error("[zoho-engine] onSubscriptionChanged error:", err);
@@ -299,15 +322,12 @@ export async function onLeadCaptured(event: LeadCapturedEvent): Promise<void> {
  */
 export async function onNpsSubmitted(event: NpsSubmittedEvent): Promise<void> {
   try {
-    const category = event.score >= 9 ? "Promoter" : event.score >= 7 ? "Passive" : "Detractor";
-    // The CRM note + activity is logged via the /api/support/ticket route
-    // For now we just log — add CRM direct note write here once custom fields are set up
-    console.log(`[zoho-engine] NPS ${event.score} (${category}) from ${event.email}`);
-
-    if (category === "Detractor") {
-      // TODO: trigger high-priority CRM task for personal follow-up by Steve
-      // await createCrmTask({ subject: `NPS Detractor follow-up — ${event.email}`, priority: "High" });
-    }
+    await syncNpsScore({
+      email: event.email,
+      score: event.score,
+      comment: event.comment,
+      planTier: event.planTier,
+    });
   } catch (err) {
     console.error("[zoho-engine] onNpsSubmitted error:", err);
   }

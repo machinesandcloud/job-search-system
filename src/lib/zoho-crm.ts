@@ -438,3 +438,228 @@ export async function convertLeadToContact(opts: {
     source: "Cold Email",
   });
 }
+
+// ─── Zoho Books HTTP helper ────────────────────────────────────────────────────
+
+async function booksFetch(path: string, init: RequestInit = {}): Promise<unknown> {
+  const token = await getAccessToken();
+  const dc = process.env.ZOHO_DATA_CENTER || "com";
+  const orgId = process.env.ZOHO_BOOKS_ORG_ID;
+  if (!orgId) return null; // Books not configured — skip silently
+  const url = new URL(`https://www.zohoapis.${dc}/books/v3${path}`);
+  url.searchParams.set("organization_id", orgId);
+  const res = await fetch(url.toString(), {
+    ...init,
+    headers: {
+      Authorization: `Zoho-oauthtoken ${token}`,
+      "Content-Type": "application/json",
+      ...(init.headers ?? {}),
+    },
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Zoho Books API ${res.status}: ${text}`);
+  }
+  return res.json().catch(() => null);
+}
+
+// ─── Books: ensure a customer record exists for a Zari subscriber ──────────────
+
+async function ensureBooksCustomer(opts: { email: string; firstName: string; lastName: string }): Promise<string | null> {
+  try {
+    const search = await booksFetch(`/contacts?email=${encodeURIComponent(opts.email)}&contact_type=customer`) as {
+      contacts?: Array<{ contact_id: string }>;
+    } | null;
+    if (search?.contacts?.[0]?.contact_id) return search.contacts[0].contact_id;
+
+    const res = await booksFetch("/contacts", {
+      method: "POST",
+      body: JSON.stringify({
+        contact_name: `${opts.firstName} ${opts.lastName}`.trim() || opts.email,
+        contact_type: "customer",
+        contact_persons: [{ first_name: opts.firstName, last_name: opts.lastName, email: opts.email, is_primary_contact: true }],
+      }),
+    }) as { contact?: { contact_id: string } } | null;
+    return res?.contact?.contact_id ?? null;
+  } catch (err) {
+    console.error("[zoho-crm] ensureBooksCustomer error:", err);
+    return null;
+  }
+}
+
+/**
+ * Record a paid subscription activation in Zoho Books.
+ * Creates an invoice + payment so revenue is tracked without manual entry.
+ */
+export async function syncPaymentToBooks(opts: {
+  email: string;
+  firstName: string;
+  lastName: string;
+  planName: string;
+  amount: number;             // in cents
+  stripeInvoiceId?: string;
+  stripeSubscriptionId?: string;
+  periodEnd?: Date | null;
+}): Promise<void> {
+  if (!process.env.ZOHO_REFRESH_TOKEN || !process.env.ZOHO_BOOKS_ORG_ID) return;
+  try {
+    const customerId = await ensureBooksCustomer({ email: opts.email, firstName: opts.firstName, lastName: opts.lastName });
+    if (!customerId) return;
+
+    const amountDollars = opts.amount / 100;
+    const today = new Date().toISOString().split("T")[0];
+    const dueDate = opts.periodEnd ? opts.periodEnd.toISOString().split("T")[0] : today;
+
+    // Create the invoice
+    const invoiceRes = await booksFetch("/invoices", {
+      method: "POST",
+      body: JSON.stringify({
+        customer_id: customerId,
+        invoice_date: today,
+        due_date: dueDate,
+        reference_number: opts.stripeInvoiceId ?? opts.stripeSubscriptionId,
+        line_items: [{
+          name: opts.planName,
+          description: `Zari ${opts.planName} subscription`,
+          quantity: 1,
+          rate: amountDollars,
+        }],
+      }),
+    }) as { invoice?: { invoice_id: string } } | null;
+
+    const invoiceId = invoiceRes?.invoice?.invoice_id;
+    if (!invoiceId) return;
+
+    // Immediately record the payment (Stripe already charged them)
+    await booksFetch("/customerpayments", {
+      method: "POST",
+      body: JSON.stringify({
+        customer_id: customerId,
+        payment_mode: "creditcard",
+        amount: amountDollars,
+        date: today,
+        reference_number: opts.stripeInvoiceId ?? "stripe",
+        invoices: [{ invoice_id: invoiceId, amount_applied: amountDollars }],
+      }),
+    });
+  } catch (err) {
+    console.error("[zoho-crm] syncPaymentToBooks error:", err);
+  }
+}
+
+// ─── CRM Tasks ────────────────────────────────────────────────────────────────
+
+async function createCrmTask(opts: {
+  subject: string;
+  description?: string;
+  priority?: "High" | "Medium" | "Low";
+  contactEmail?: string;
+  dueOffsetDays?: number;
+}): Promise<void> {
+  if (!process.env.ZOHO_REFRESH_TOKEN) return;
+  try {
+    let contactId: string | undefined;
+    if (opts.contactEmail) {
+      const res = await crmFetch(
+        `/Contacts/search?criteria=(Email:equals:${encodeURIComponent(opts.contactEmail)})&fields=id`
+      ) as { data?: Array<{ id: string }> } | null;
+      contactId = res?.data?.[0]?.id;
+    }
+
+    const dueDate = new Date(Date.now() + (opts.dueOffsetDays ?? 1) * 86_400_000).toISOString().split("T")[0];
+
+    await crmFetch("/Tasks", {
+      method: "POST",
+      body: JSON.stringify({
+        data: [{
+          Subject: opts.subject,
+          Status: "Not Started",
+          Priority: opts.priority ?? "High",
+          Due_Date: dueDate,
+          Description: opts.description,
+          ...(contactId ? { Who_Id: { id: contactId } } : {}),
+        }],
+      }),
+    });
+  } catch (err) {
+    console.error("[zoho-crm] createCrmTask error:", err);
+  }
+}
+
+/**
+ * Log an NPS score to the CRM contact record and create a task for detractors.
+ */
+export async function syncNpsScore(opts: {
+  email: string;
+  score: number;
+  comment?: string;
+  planTier: string;
+}): Promise<void> {
+  if (!process.env.ZOHO_REFRESH_TOKEN) return;
+  try {
+    const contactId = await upsertRecord<Partial<ZohoContact>>(
+      "Contacts",
+      { Email: opts.email },
+      "Email",
+      opts.email
+    );
+
+    const category = opts.score >= 9 ? "Promoter 🟢" : opts.score >= 7 ? "Passive 🟡" : "Detractor 🔴";
+
+    if (contactId) {
+      await createNote({
+        Note_Title: `NPS Score: ${opts.score}/10 (${category})`,
+        Note_Content: `Score: ${opts.score}/10\nCategory: ${category}\nPlan: ${opts.planTier}${opts.comment ? `\n\nComment:\n${opts.comment}` : ""}`,
+        Parent_Id: contactId,
+        $se_module: "Contacts",
+      });
+    }
+
+    // Detractors (0-6): personal follow-up task due in 1 day
+    if (opts.score <= 6) {
+      await createCrmTask({
+        subject: `🔴 NPS Detractor follow-up — score ${opts.score} from ${opts.email}`,
+        description: `User rated Zari ${opts.score}/10.\n\nComment: ${opts.comment ?? "none"}\n\nPlan: ${opts.planTier}\n\nPersonal outreach required within 24h to understand the issue and save the account.`,
+        priority: "High",
+        contactEmail: opts.email,
+        dueOffsetDays: 1,
+      });
+    }
+
+    // Promoters (9-10): referral ask task (lower priority, 3 days)
+    if (opts.score >= 9) {
+      await createCrmTask({
+        subject: `🟢 Promoter referral ask — ${opts.email} rated ${opts.score}/10`,
+        description: `User is a promoter (${opts.score}/10). Consider reaching out to ask for a testimonial or referral.`,
+        priority: "Low",
+        contactEmail: opts.email,
+        dueOffsetDays: 3,
+      });
+    }
+  } catch (err) {
+    console.error("[zoho-crm] syncNpsScore error:", err);
+  }
+}
+
+/**
+ * Create a high-priority follow-up task for enterprise/team signups.
+ * These are high-value accounts worth personal outreach.
+ */
+export async function flagHighValueSignup(opts: {
+  email: string;
+  firstName: string;
+  lastName: string;
+  planTier: string;
+}): Promise<void> {
+  if (!process.env.ZOHO_REFRESH_TOKEN) return;
+  if (!["team", "premium"].includes(opts.planTier)) return;
+
+  const label = opts.planTier === "team" ? "Executive" : "Growth";
+  await createCrmTask({
+    subject: `⭐ High-value ${label} signup — ${opts.firstName} ${opts.lastName} (${opts.email})`,
+    description: `New ${label} plan subscriber.\nEmail: ${opts.email}\n\nPersonally welcome them within 24h — these accounts have the highest LTV and churn risk.`,
+    priority: "High",
+    contactEmail: opts.email,
+    dueOffsetDays: 1,
+  });
+}
