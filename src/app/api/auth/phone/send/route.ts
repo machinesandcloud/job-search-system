@@ -59,8 +59,22 @@ export async function POST(request: Request) {
   try {
     await sendSmsOtp(phone, code);
   } catch (err) {
-    console.error("[phone/send] Twilio error", err);
-    return NextResponse.json({ error: "Failed to send SMS. Please check the number and try again." }, { status: 502 });
+    const twilioErr = err as { message?: string; code?: number; status?: number };
+    console.error("[phone/send] Twilio error", { code: twilioErr.code, status: twilioErr.status, message: twilioErr.message });
+    // Surface actionable errors
+    if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN) {
+      return NextResponse.json({ error: "SMS service not configured. Contact support." }, { status: 502 });
+    }
+    if (twilioErr.code === 20003 || twilioErr.message?.includes("authenticate")) {
+      return NextResponse.json({ error: "SMS service authentication failed. Contact support." }, { status: 502 });
+    }
+    if (twilioErr.code === 21211 || twilioErr.code === 21614) {
+      return NextResponse.json({ error: "That phone number is not valid. Please check and try again." }, { status: 400 });
+    }
+    if (twilioErr.code === 21408) {
+      return NextResponse.json({ error: "SMS not supported for that number. Try a mobile number." }, { status: 400 });
+    }
+    return NextResponse.json({ error: "Failed to send SMS. Please try again or use a different number." }, { status: 502 });
   }
 
   return NextResponse.json({ ok: true });

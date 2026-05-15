@@ -17732,10 +17732,23 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
     };
   }, [resetIdleTimer, clearIdleTimers]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  function normalizePhone(raw: string): string {
+    // Strip everything except leading + and digits
+    const hasPlus = raw.trimStart().startsWith("+");
+    const digits = raw.replace(/\D/g, "");
+    if (!digits) return "";
+    if (hasPlus) return "+" + digits;
+    // Auto-prepend +1 for bare 10-digit US numbers
+    if (digits.length === 10) return "+1" + digits;
+    if (digits.length === 11 && digits.startsWith("1")) return "+" + digits;
+    return "+" + digits;
+  }
+
   async function sendPhoneOtp() {
     setPhoneLoading(true); setPhoneError(null);
+    const phone = normalizePhone(phoneInput);
     try {
-      const res = await fetch("/api/auth/phone/send", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ phone: phoneInput }) });
+      const res = await fetch("/api/auth/phone/send", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ phone }) });
       const data = await res.json().catch(() => ({})) as { error?: string };
       if (!res.ok) { setPhoneError(data.error || "Failed to send code."); setPhoneLoading(false); return; }
       setPhoneStep("otp");
@@ -17776,37 +17789,50 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
                 type="tel"
                 placeholder="+1 (555) 000-0000"
                 value={phoneInput}
-                onChange={e => { setPhoneInput(e.target.value); setPhoneError(null); }}
+                onChange={e => {
+                  const raw = e.target.value;
+                  // Auto-format: if user types only digits (no +), prepend +1 live
+                  const digits = raw.replace(/\D/g, "");
+                  const hasPlus = raw.trimStart().startsWith("+");
+                  let formatted = raw;
+                  if (!hasPlus && digits.length > 0) formatted = "+1" + digits;
+                  setPhoneInput(formatted);
+                  setPhoneError(null);
+                }}
                 onKeyDown={e => e.key === "Enter" && !phoneLoading && sendPhoneOtp()}
-                style={{ width:"100%", boxSizing:"border-box", fontSize:16, fontWeight:500, padding:"14px 18px", borderRadius:14, border:"2px solid #E2E8F0", background:"#F8FAFC", color:"#0F172A", outline:"none", marginBottom:12, fontFamily:"inherit" }}
+                onFocus={e => { e.currentTarget.style.borderColor = "#4F46E5"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(79,70,229,0.15)"; }}
+                onBlur={e => { e.currentTarget.style.borderColor = "#E2E8F0"; e.currentTarget.style.boxShadow = "none"; }}
+                style={{ width:"100%", boxSizing:"border-box", fontSize:17, fontWeight:500, padding:"14px 18px", borderRadius:14, border:"2px solid #E2E8F0", background:"#F8FAFC", color:"#0F172A", outline:"none", marginBottom:12, fontFamily:"inherit", transition:"border-color 0.15s, box-shadow 0.15s" }}
               />
               {phoneError && <p style={{ fontSize:13, color:"#EF4444", marginBottom:12, textAlign:"left" }}>{phoneError}</p>}
               <button
                 onClick={sendPhoneOtp}
                 disabled={phoneLoading || !phoneInput.trim()}
-                style={{ width:"100%", padding:"15px", borderRadius:14, border:"none", background: phoneLoading || !phoneInput.trim() ? "#CBD5E1" : "linear-gradient(135deg,#4F46E5 0%,#7C3AED 100%)", color:"#fff", fontSize:16, fontWeight:700, cursor: phoneLoading || !phoneInput.trim() ? "not-allowed" : "pointer", letterSpacing:"-0.01em", transition:"background 0.15s" }}>
+                style={{ width:"100%", padding:"15px", borderRadius:14, border:"none", background: phoneLoading || !phoneInput.trim() ? "#CBD5E1" : "linear-gradient(135deg,#4F46E5 0%,#7C3AED 100%)", color:"#fff", fontSize:16, fontWeight:700, cursor: phoneLoading || !phoneInput.trim() ? "not-allowed" : "pointer", letterSpacing:"-0.01em", transition:"background 0.15s, opacity 0.15s", boxShadow: "0 4px 14px rgba(79,70,229,0.35)" }}>
                 {phoneLoading ? "Sending…" : "Send verification code"}
               </button>
             </>
           ) : (
             <>
-              <p style={{ fontSize:13, color:"#64748B", marginBottom:14, textAlign:"left" }}>Enter the 6-digit code sent to <strong style={{ color:"#0F172A" }}>{phoneInput}</strong></p>
+              <p style={{ fontSize:13, color:"#64748B", marginBottom:14, textAlign:"left" }}>Enter the 6-digit code sent to <strong style={{ color:"#0F172A" }}>{normalizePhone(phoneInput)}</strong></p>
               <input
                 type="text"
                 inputMode="numeric"
                 pattern="[0-9]*"
-                placeholder="000000"
+                placeholder="— — — — — —"
                 maxLength={6}
                 value={otpInput}
                 onChange={e => { setOtpInput(e.target.value.replace(/\D/g,"")); setPhoneError(null); }}
                 onKeyDown={e => e.key === "Enter" && !phoneLoading && verifyPhoneOtp()}
-                style={{ width:"100%", boxSizing:"border-box", fontSize:28, fontWeight:800, padding:"14px 18px", borderRadius:14, border:"2px solid #E2E8F0", background:"#F8FAFC", color:"#0F172A", outline:"none", marginBottom:12, letterSpacing:"0.3em", textAlign:"center", fontFamily:"monospace" }}
+                onFocus={e => { e.currentTarget.style.borderColor = "#4F46E5"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(79,70,229,0.15)"; e.currentTarget.style.background = "#FAFAFE"; }}
+                onBlur={e => { e.currentTarget.style.borderColor = otpInput.length === 6 ? "#4F46E5" : "#E2E8F0"; e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.background = "#F8FAFC"; }}
+                style={{ width:"100%", boxSizing:"border-box", fontSize:32, fontWeight:800, padding:"16px 18px", borderRadius:14, border:"2px solid #E2E8F0", background:"#F8FAFC", color:"#1E1B4B", outline:"none", marginBottom:12, letterSpacing:"0.45em", textAlign:"center", fontFamily:"monospace", transition:"border-color 0.15s, box-shadow 0.15s, background 0.15s" }}
               />
               {phoneError && <p style={{ fontSize:13, color:"#EF4444", marginBottom:12, textAlign:"left" }}>{phoneError}</p>}
               <button
                 onClick={verifyPhoneOtp}
                 disabled={phoneLoading || otpInput.length !== 6}
-                style={{ width:"100%", padding:"15px", borderRadius:14, border:"none", background: phoneLoading || otpInput.length !== 6 ? "#CBD5E1" : "linear-gradient(135deg,#4F46E5 0%,#7C3AED 100%)", color:"#fff", fontSize:16, fontWeight:700, cursor: phoneLoading || otpInput.length !== 6 ? "not-allowed" : "pointer", letterSpacing:"-0.01em", transition:"background 0.15s", marginBottom:10 }}>
+                style={{ width:"100%", padding:"15px", borderRadius:14, border:"none", background: phoneLoading || otpInput.length !== 6 ? "#CBD5E1" : "linear-gradient(135deg,#4F46E5 0%,#7C3AED 100%)", color:"#fff", fontSize:16, fontWeight:700, cursor: phoneLoading || otpInput.length !== 6 ? "not-allowed" : "pointer", letterSpacing:"-0.01em", transition:"background 0.15s", marginBottom:10, boxShadow: otpInput.length === 6 ? "0 4px 14px rgba(79,70,229,0.35)" : "none" }}>
                 {phoneLoading ? "Verifying…" : "Confirm code"}
               </button>
               <button

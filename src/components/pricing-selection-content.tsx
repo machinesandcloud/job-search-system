@@ -95,28 +95,28 @@ export function PricingSelectionContent({
             ))}
           </div>
 
-          <Reveal>
-            <p className="mx-auto mt-8 max-w-3xl text-center text-[13px] leading-6 text-[#7A849C]">
-              {PRICING_TRUST_ITEMS.join(" · ")}
-            </p>
-          </Reveal>
-
           {authenticated && (
             <Reveal>
-              <div className="mx-auto mt-10 flex max-w-xl flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-8 py-6 text-center">
-                <p className="text-[14px] font-semibold text-[#0A0A0F]">Not ready to commit?</p>
-                <p className="text-[13px] leading-[1.6] text-[#5A6180]">
-                  Try Zari for free — no credit card needed. You&apos;ll get limited access to core features so you can see what the coaching experience is like before choosing a plan.
+              <div className="mx-auto mt-8 flex items-center justify-center gap-3 rounded-2xl border border-dashed border-[#4361EE]/25 bg-[#4361EE]/[0.03] px-8 py-5">
+                <svg viewBox="0 0 20 20" fill="none" stroke="#4361EE" strokeWidth="1.7" className="h-5 w-5 shrink-0 opacity-70"><circle cx="10" cy="10" r="8"/><path d="M10 6v4l2.5 2.5" strokeLinecap="round"/></svg>
+                <p className="text-[13.5px] text-[#5A6180]">
+                  Not ready to choose a plan?{" "}
+                  <a
+                    href="/api/onboarding/free-preview"
+                    className="font-semibold text-[#4361EE] underline-offset-2 hover:underline"
+                  >
+                    Start exploring free — no card needed →
+                  </a>
                 </p>
-                <a
-                  href="/api/onboarding/free-preview"
-                  className="mt-1 inline-flex items-center gap-2 rounded-full border border-[#4361EE]/30 bg-white px-5 py-2.5 text-[13px] font-semibold text-[#4361EE] shadow-sm transition-all hover:border-[#4361EE]/60 hover:bg-[#4361EE]/5"
-                >
-                  Start exploring free →
-                </a>
               </div>
             </Reveal>
           )}
+
+          <Reveal>
+            <p className="mx-auto mt-6 max-w-3xl text-center text-[13px] leading-6 text-[#7A849C]">
+              {PRICING_TRUST_ITEMS.join(" · ")}
+            </p>
+          </Reveal>
         </div>
       </section>
 
