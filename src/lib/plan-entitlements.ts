@@ -15,6 +15,26 @@ const PLAN_RANK: Record<ProductPlanId, number> = {
   executive: 3,
 };
 
+// Free-tier configuration — no expiry, job-search only, no chat, 1 use per feature
+export const FREE_TOKEN_LIMIT = 18_000; // ~2-3 feature uses before token paywall
+export const FREE_MAX_USES_PER_FEATURE = 1;
+
+export const FREE_ACCESSIBLE_FEATURES = new Set([
+  "zari_resume_review",
+  "zari_resume_power_optimize",
+  "zari_resume_apply_fixes",
+  "zari_resume_rewrite_section",
+  "zari_resume_magic_write",
+  "zari_linkedin_review",
+  "zari_linkedin_parse_profile",
+  "zari_linkedin",
+  "zari_cover_letter",
+  "zari_plan",
+  "zari_interview",
+  // Explicitly NOT included: zari_chat, zari_speak, zari_transcribe, zari_negotiation_sim,
+  // zari_promotion_*, zari_salary_analysis, zari_career_change_*, zari_exec_*, zari_market_intel
+]);
+
 const STAGE_REQUIRED_PLAN: Record<CareerStage, ProductPlanId> = {
   "job-search": "search",
   promotion: "growth",

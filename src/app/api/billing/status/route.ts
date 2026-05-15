@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     request.nextUrl.searchParams.get("session_id") ||
     request.nextUrl.searchParams.get("sessionId");
 
-  if (!access.ok && access.status === 402 && sessionId && access.account) {
+  if (access.ok && access.isFreeTier && sessionId && access.account) {
     try {
       const stripe = getStripeClient();
       const session = await stripe.checkout.sessions.retrieve(sessionId, {
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
     } catch (error) {
       console.error("[billing/status] unable to reconcile subscription during status poll", {
         sessionId,
-        accountId: access.account.id,
+        accountId: access.ok ? access.account?.id : undefined,
         error,
       });
     }
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
       {
         ok: false,
         error: access.error,
-        subscriptionStatus: access.subscription?.status || null,
+        subscriptionStatus: null,
       },
       { status: access.status }
     );

@@ -20,10 +20,11 @@ import {
 type BillingCtx = {
   planId: string | null;
   role: string | null;
+  isPaid: boolean;
   onPlanBlock: (requiredPlanId: string, message: string) => void;
   onCreditLimit: (used: number, limit: number) => void;
 };
-const BillingContext = createContext<BillingCtx>({ planId: null, role: null, onPlanBlock: () => {}, onCreditLimit: () => {} });
+const BillingContext = createContext<BillingCtx>({ planId: null, role: null, isPaid: true, onPlanBlock: () => {}, onCreditLimit: () => {} });
 function useBillingCtx() { return useContext(BillingContext); }
 
 type BillingApiErrorData = {
@@ -266,6 +267,7 @@ export type PortalViewer = {
   planId: string | null;
   planName: string;
   isPaid: boolean;
+  phoneVerified: boolean;
   subscriptionStatus: string | null;
   includedMonthlyCredits: number | null;
   usedMonthlyCredits: number | null;
@@ -8507,10 +8509,18 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
   }
 
   function downloadReconstructed() {
+    if (!billing.isPaid) {
+      billing.onPlanBlock("search", "Upgrade to Search to download your optimized resume. Your plan includes unlimited downloads, AI rewrites, and more.");
+      return;
+    }
     setDownloadModal({ type: "revised" });
   }
 
   async function downloadPowerOptimized() {
+    if (!billing.isPaid) {
+      billing.onPlanBlock("search", "Upgrade to Search to download your optimized resume. Your plan includes unlimited downloads, AI rewrites, and more.");
+      return;
+    }
     setDownloadModal({ type: "powerOptimized" });
   }
 
@@ -10595,12 +10605,12 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                           )}
                           {/* Actions */}
                           <div style={{ display:"flex", gap:0, background:"var(--z-card)" }}>
-                            <button onClick={()=>{ const html=generateResumeHtml(snap.resumeText,"",true); const blob=new Blob([html],{type:"text/html"}); const blobUrl=URL.createObjectURL(blob); const win=window.open(blobUrl,"_blank"); if(!win){URL.revokeObjectURL(blobUrl);return;} win.addEventListener("load",()=>{setTimeout(()=>{win.print();URL.revokeObjectURL(blobUrl);},400)},{once:true}); }} style={{ flex:1, fontSize:12, fontWeight:700, padding:"10px 14px", border:"none", borderRight:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:6, transition:"background 0.1s" }}
+                            <button onClick={()=>{ if(!billing.isPaid){billing.onPlanBlock("search","Upgrade to Search to download your resume.");return;} const html=generateResumeHtml(snap.resumeText,"",true); const blob=new Blob([html],{type:"text/html"}); const blobUrl=URL.createObjectURL(blob); const win=window.open(blobUrl,"_blank"); if(!win){URL.revokeObjectURL(blobUrl);return;} win.addEventListener("load",()=>{setTimeout(()=>{win.print();URL.revokeObjectURL(blobUrl);},400)},{once:true}); }} style={{ flex:1, fontSize:12, fontWeight:700, padding:"10px 14px", border:"none", borderRight:"1px solid var(--z-bd)", background:"transparent", color:"var(--z-text)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:6, transition:"background 0.1s" }}
                               onMouseEnter={e=>(e.currentTarget.style.background="var(--z-raise)")} onMouseLeave={e=>(e.currentTarget.style.background="transparent")}>
                               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                               PDF
                             </button>
-                            <button onClick={()=>{ triggerWordDownload(generateResumeHtml(snap.resumeText), `${snap.filename.replace(/\.[^.]+$/,"")}-${isPO?"power-optimized":"revised"}.html`); }} style={{ flex:1, fontSize:12, fontWeight:700, padding:"10px 14px", border:"none", background:"transparent", color:"var(--z-text)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:6, transition:"background 0.1s" }}
+                            <button onClick={()=>{ if(!billing.isPaid){billing.onPlanBlock("search","Upgrade to Search to download your resume.");return;} triggerWordDownload(generateResumeHtml(snap.resumeText), `${snap.filename.replace(/\.[^.]+$/,"")}-${isPO?"power-optimized":"revised"}.html`); }} style={{ flex:1, fontSize:12, fontWeight:700, padding:"10px 14px", border:"none", background:"transparent", color:"var(--z-text)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:6, transition:"background 0.1s" }}
                               onMouseEnter={e=>(e.currentTarget.style.background="var(--z-raise)")} onMouseLeave={e=>(e.currentTarget.style.background="transparent")}>
                               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                               Word
@@ -13416,6 +13426,7 @@ function ScreenPromotionVisibility({ active = false, onNavigate }: { active?: bo
 }
 
 function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerStage; active?: boolean; onNavigate?: (s: string) => void }) {
+  const billing = useBillingCtx();
   if (stage === "promotion") return <FeatureGate featureName="zari_promotion_visibility"><ScreenPromotionVisibility active={active} onNavigate={onNavigate} /></FeatureGate>;
   if (stage === "salary")    return <FeatureGate featureName="zari_market_intel"><ScreenSalaryMarketIntel /></FeatureGate>;
 
@@ -13956,6 +13967,7 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
                           </button>
                           <button
                             onClick={() => {
+                              if (!billing.isPaid) { billing.onPlanBlock("search", "Upgrade to Search to download your LinkedIn review."); return; }
                               try {
                                 const parsed = JSON.parse(snap.resultJson) as LinkedInResult;
                                 const sections = ["Headline","Summary","Experience","Education","Other"] as const;
@@ -15113,6 +15125,7 @@ function ScreenCareerChangePlan({ onNavigate, active }: { onNavigate: (s: string
    SCREEN: DOCUMENTS — drag-drop vault
 ═══════════════════════════════════════════════════ */
 function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate: (s: string) => void }) {
+  const billing = useBillingCtx();
   if (stage === "promotion")    return <FeatureGate featureName="zari_promotion_toolkit"><ScreenPromotionToolkit onNavigate={onNavigate} /></FeatureGate>;
   if (stage === "career-change") return <FeatureGate featureName="zari_career_change_docs"><ScreenCareerChangeDocuments onNavigate={onNavigate} /></FeatureGate>;
 
@@ -15143,6 +15156,7 @@ function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate
   }
 
   function downloadDoc(doc: DocEntry) {
+    if (!billing.isPaid) { billing.onPlanBlock("search", "Upgrade to Search to download your documents."); return; }
     const blob = new Blob([doc.content], { type:"text/plain" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
@@ -15608,12 +15622,20 @@ function ScreenCoverLetter({ stage, active = false, onNavigate }: { stage: Caree
   }
 
   function downloadWord() {
+    if (!billing.isPaid) {
+      billing.onPlanBlock("search", "Upgrade to Search to download your cover letter. Your plan includes unlimited cover letter generation and downloads.");
+      return;
+    }
     const blob = new Blob([buildLetterHtml(false)], { type:"application/msword" });
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
     a.download = safeName() + ".doc"; a.click();
   }
 
   function downloadPdf() {
+    if (!billing.isPaid) {
+      billing.onPlanBlock("search", "Upgrade to Search to download your cover letter. Your plan includes unlimited cover letter generation and downloads.");
+      return;
+    }
     const win = window.open("","_blank");
     if (!win) return;
     win.document.write(buildLetterHtml(true));
@@ -17551,6 +17573,12 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
   const [topupCustom, setTopupCustom] = useState("");
   const [comparePlansOpen, setComparePlansOpen] = useState(false);
   const [billingPortalLoading, setBillingPortalLoading] = useState(false);
+  const [phoneInput, setPhoneInput] = useState("");
+  const [otpInput, setOtpInput] = useState("");
+  const [phoneStep, setPhoneStep] = useState<"phone"|"otp">("phone");
+  const [phoneLoading, setPhoneLoading] = useState(false);
+  const [phoneError, setPhoneError] = useState<string|null>(null);
+  const [phoneVerified, setPhoneVerified] = useState(viewer.phoneVerified);
   const formatCredits = (value?: number | null) =>
     new Intl.NumberFormat("en-US", {
       minimumFractionDigits: value && value % 1 !== 0 ? 2 : 0,
@@ -17579,7 +17607,7 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
     setCreditLimitNotice({ used, limit });
   }, []);
 
-  const billingCtx: BillingCtx = { planId: viewer.planId, role: viewer.role ?? null, onPlanBlock: promptUpgrade, onCreditLimit: promptCreditLimit };
+  const billingCtx: BillingCtx = { planId: viewer.planId, role: viewer.role ?? null, isPaid: viewer.isPaid, onPlanBlock: promptUpgrade, onCreditLimit: promptCreditLimit };
 
   // Hydrate localStorage from server on first load — server is source of truth
   useEffect(() => {
@@ -17704,8 +17732,94 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
     };
   }, [resetIdleTimer, clearIdleTimers]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  async function sendPhoneOtp() {
+    setPhoneLoading(true); setPhoneError(null);
+    try {
+      const res = await fetch("/api/auth/phone/send", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ phone: phoneInput }) });
+      const data = await res.json().catch(() => ({})) as { error?: string };
+      if (!res.ok) { setPhoneError(data.error || "Failed to send code."); setPhoneLoading(false); return; }
+      setPhoneStep("otp");
+    } catch { setPhoneError("Network error. Please try again."); }
+    setPhoneLoading(false);
+  }
+
+  async function verifyPhoneOtp() {
+    setPhoneLoading(true); setPhoneError(null);
+    try {
+      const res = await fetch("/api/auth/phone/verify", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ code: otpInput }) });
+      const data = await res.json().catch(() => ({})) as { error?: string };
+      if (!res.ok) { setPhoneError(data.error || "Verification failed."); setPhoneLoading(false); return; }
+      setPhoneVerified(true);
+    } catch { setPhoneError("Network error. Please try again."); }
+    setPhoneLoading(false);
+  }
+
   return (
     <BillingContext.Provider value={billingCtx}>
+
+    {/* ── Phone Verification Gate (free tier, unverified) ── */}
+    {!isOperatorViewer && !viewer.isPaid && !phoneVerified && (
+      <div style={{ position:"fixed", inset:0, zIndex:99999, display:"flex", alignItems:"center", justifyContent:"center", background:"linear-gradient(135deg,#0F172A 0%,#1E1B4B 50%,#0F172A 100%)", padding:24 }}>
+        <div style={{ background:"#FFFFFF", borderRadius:28, boxShadow:"0 32px 96px rgba(0,0,0,0.45)", padding:"44px 40px 40px", maxWidth:440, width:"100%", textAlign:"center" }}>
+          {/* Icon */}
+          <div style={{ width:72, height:72, borderRadius:"50%", background:"linear-gradient(135deg,#4F46E5 0%,#7C3AED 100%)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 22px", boxShadow:"0 8px 24px rgba(79,70,229,0.4)" }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" style={{width:32,height:32}}><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+          </div>
+          <p style={{ fontSize:24, fontWeight:900, color:"#0F172A", letterSpacing:"-0.03em", marginBottom:10 }}>Verify your phone</p>
+          <p style={{ fontSize:15, color:"#64748B", lineHeight:1.6, marginBottom:32 }}>
+            One quick step before you start. We verify your phone to keep one free account per person.
+          </p>
+
+          {phoneStep === "phone" ? (
+            <>
+              <input
+                type="tel"
+                placeholder="+1 (555) 000-0000"
+                value={phoneInput}
+                onChange={e => { setPhoneInput(e.target.value); setPhoneError(null); }}
+                onKeyDown={e => e.key === "Enter" && !phoneLoading && sendPhoneOtp()}
+                style={{ width:"100%", boxSizing:"border-box", fontSize:16, fontWeight:500, padding:"14px 18px", borderRadius:14, border:"2px solid #E2E8F0", background:"#F8FAFC", color:"#0F172A", outline:"none", marginBottom:12, fontFamily:"inherit" }}
+              />
+              {phoneError && <p style={{ fontSize:13, color:"#EF4444", marginBottom:12, textAlign:"left" }}>{phoneError}</p>}
+              <button
+                onClick={sendPhoneOtp}
+                disabled={phoneLoading || !phoneInput.trim()}
+                style={{ width:"100%", padding:"15px", borderRadius:14, border:"none", background: phoneLoading || !phoneInput.trim() ? "#CBD5E1" : "linear-gradient(135deg,#4F46E5 0%,#7C3AED 100%)", color:"#fff", fontSize:16, fontWeight:700, cursor: phoneLoading || !phoneInput.trim() ? "not-allowed" : "pointer", letterSpacing:"-0.01em", transition:"background 0.15s" }}>
+                {phoneLoading ? "Sending…" : "Send verification code"}
+              </button>
+            </>
+          ) : (
+            <>
+              <p style={{ fontSize:13, color:"#64748B", marginBottom:14, textAlign:"left" }}>Enter the 6-digit code sent to <strong style={{ color:"#0F172A" }}>{phoneInput}</strong></p>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                placeholder="000000"
+                maxLength={6}
+                value={otpInput}
+                onChange={e => { setOtpInput(e.target.value.replace(/\D/g,"")); setPhoneError(null); }}
+                onKeyDown={e => e.key === "Enter" && !phoneLoading && verifyPhoneOtp()}
+                style={{ width:"100%", boxSizing:"border-box", fontSize:28, fontWeight:800, padding:"14px 18px", borderRadius:14, border:"2px solid #E2E8F0", background:"#F8FAFC", color:"#0F172A", outline:"none", marginBottom:12, letterSpacing:"0.3em", textAlign:"center", fontFamily:"monospace" }}
+              />
+              {phoneError && <p style={{ fontSize:13, color:"#EF4444", marginBottom:12, textAlign:"left" }}>{phoneError}</p>}
+              <button
+                onClick={verifyPhoneOtp}
+                disabled={phoneLoading || otpInput.length !== 6}
+                style={{ width:"100%", padding:"15px", borderRadius:14, border:"none", background: phoneLoading || otpInput.length !== 6 ? "#CBD5E1" : "linear-gradient(135deg,#4F46E5 0%,#7C3AED 100%)", color:"#fff", fontSize:16, fontWeight:700, cursor: phoneLoading || otpInput.length !== 6 ? "not-allowed" : "pointer", letterSpacing:"-0.01em", transition:"background 0.15s", marginBottom:10 }}>
+                {phoneLoading ? "Verifying…" : "Confirm code"}
+              </button>
+              <button
+                onClick={() => { setPhoneStep("phone"); setOtpInput(""); setPhoneError(null); }}
+                style={{ background:"none", border:"none", color:"#94A3B8", fontSize:13, cursor:"pointer", textDecoration:"underline" }}>
+                Wrong number? Go back
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    )}
+
     <div className={isDark?"zari-dark":""} style={{ display:"flex", flexDirection:"column", height:"100vh", overflow:"hidden", background:"var(--z-bg)", fontFamily:"var(--font-geist-sans,Inter,system-ui,sans-serif)", WebkitFontSmoothing:"antialiased", MozOsxFontSmoothing:"grayscale", ...themeVars, backgroundImage: isDark ? "radial-gradient(ellipse 80% 60% at 50% -20%, rgba(37,99,235,0.07) 0%, transparent 100%)" : "none" }}>
       {/* Inactivity timeout warning modal */}
       {idleWarning && (

@@ -135,6 +135,8 @@ model User {
   consentPersonalize  Boolean        @default(true)
   consentAnalytics    Boolean        @default(true)
   marketingOptIn      Boolean        @default(false)
+  phone               String?        @unique
+  phoneVerified       Boolean        @default(false)
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
   account             Account?       @relation("AccountMembers", fields: [accountId], references: [id], onDelete: SetNull)
@@ -154,6 +156,7 @@ model User {
   appEvents           AppEvent[]
   adminNotes          AdminNote[]    @relation("AdminNoteAuthor")
   tokenUsageEntries   AiTokenUsage[]
+  phoneVerifications  PhoneVerification[]
 }
 
 model Account {
@@ -209,6 +212,17 @@ model AppSession {
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model PhoneVerification {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @unique @db.Uuid
+  phone     String
+  codeHash  String
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model CoachProfile {

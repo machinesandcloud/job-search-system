@@ -11,6 +11,9 @@ import {
   getRequiredPlanForFeature,
   getUpgradePrompt,
   normalizeProductPlanId,
+  FREE_TOKEN_LIMIT,
+  FREE_MAX_USES_PER_FEATURE,
+  FREE_ACCESSIBLE_FEATURES,
 } from "@/lib/plan-entitlements";
 import { getBaseUrl } from "@/lib/utils";
 
@@ -976,13 +979,13 @@ export async function getCurrentSubscriptionAccess() {
       };
     }
 
+    // No active paid subscription — allow as free tier (no expiry, limited access)
     return {
-      ok: false as const,
-      status: 402,
-      error: getBillingBlockReason(subscription?.status),
+      ok: true as const,
       user: identity.user,
       account: identity.account,
-      subscription: subscription || null,
+      subscription: null,
+      isFreeTier: true as const,
     };
   }
 
@@ -991,6 +994,7 @@ export async function getCurrentSubscriptionAccess() {
     user: identity.user,
     account: identity.account,
     subscription,
+    isFreeTier: false as const,
   };
 }
 
@@ -1024,12 +1028,102 @@ export async function requirePaidRouteAccess(
           ok: false,
           code: "subscription_required",
           error: access.error,
-          subscriptionStatus: access.subscription?.status || null,
+          subscriptionStatus: null,
         },
         { status: access.status }
       ),
     };
   }
+
+  // ── FREE TIER GATING ──────────────────────────────────────────────────────
+  if (access.isFreeTier) {
+    const role = access.user?.role;
+    if (role !== "admin" && role !== "support") {
+      // Block features not available on free plan
+      if (!FREE_ACCESSIBLE_FEATURES.has(featureName)) {
+        return {
+          ok: false as const,
+          response: NextResponse.json(
+            {
+              ok: false,
+              code: "plan_upgrade_required",
+              error: "Upgrade to Search to unlock this feature.",
+              featureName,
+              currentPlanId: null,
+              currentPlanName: "Free",
+              requiredPlanId: "search",
+              requiredPlanName: "Search",
+            },
+            { status: 402 }
+          ),
+        };
+      }
+
+      if (access.account && isDatabaseReady()) {
+        try {
+          // Check lifetime token budget for free users (no period bounds — never resets)
+          const freeTokenAgg = await prisma.aiTokenUsage.aggregate({
+            where: { accountId: access.account.id },
+            _sum: { totalTokens: true },
+          });
+          const usedFreeTokens = freeTokenAgg._sum.totalTokens || 0;
+          if (usedFreeTokens >= FREE_TOKEN_LIMIT) {
+            return {
+              ok: false as const,
+              response: NextResponse.json(
+                {
+                  ok: false,
+                  code: "credit_limit_reached",
+                  error: "You've used your free preview. Upgrade to Search to keep going.",
+                  creditUsage: { used: usedFreeTokens, limit: FREE_TOKEN_LIMIT },
+                },
+                { status: 429 }
+              ),
+            };
+          }
+
+          // Enforce 1 use per feature on free plan
+          const priorUses = await prisma.aiTokenUsage.count({
+            where: { accountId: access.account.id, featureName },
+          });
+          if (priorUses >= FREE_MAX_USES_PER_FEATURE) {
+            return {
+              ok: false as const,
+              response: NextResponse.json(
+                {
+                  ok: false,
+                  code: "plan_upgrade_required",
+                  error: "You've used your free preview of this feature. Upgrade to Search for unlimited access.",
+                  featureName,
+                  currentPlanId: null,
+                  currentPlanName: "Free",
+                  requiredPlanId: "search",
+                  requiredPlanName: "Search",
+                },
+                { status: 402 }
+              ),
+            };
+          }
+        } catch {
+          // non-fatal — allow through if DB check fails
+        }
+      }
+
+      // Log and allow free-tier use
+      try {
+        if (access.account) {
+          await logAppEvent("feature_used", {
+            accountId: access.account.id,
+            userId: access.user?.id,
+            metadataJson: { featureName, tier: "free", ...metadataJson },
+          });
+        }
+      } catch { /* non-fatal */ }
+
+      return { ok: true as const, access, usage: null };
+    }
+  }
+  // ── END FREE TIER GATING ──────────────────────────────────────────────────
 
   let usage = null;
   if (access.account) {

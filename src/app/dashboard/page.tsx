@@ -34,6 +34,7 @@ function buildPortalViewer(input: {
   const planId = getPricingCatalogPlanId(subscriptionSource?.planName, subscriptionSource?.stripePriceId);
   const subscriptionStatus = subscriptionSource?.status || null;
   const isPaid = role === "admin" || role === "support" || canAccessSubscriptionStatus(subscriptionStatus);
+  const phoneVerified = role === "admin" || role === "support" || Boolean(identity?.user?.phoneVerified);
 
   return {
     name,
@@ -45,6 +46,7 @@ function buildPortalViewer(input: {
         ? "Internal operator"
         : getReadablePlanName(subscriptionSource?.planName, subscriptionSource?.stripePriceId),
     isPaid,
+    phoneVerified,
     subscriptionStatus,
     includedMonthlyCredits:
       role === "admin" || role === "support"
