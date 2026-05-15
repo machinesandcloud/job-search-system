@@ -16,7 +16,11 @@ type Meta = {
 
 // ─── Base layout ─────────────────────────────────────────────────────────────
 
-function layout(content: string, unsubscribeEmail?: string): string {
+// UNSUB_PLACEHOLDER is replaced at send time with the recipient's personalised URL
+export const UNSUB_PLACEHOLDER = "{{UNSUB_URL}}";
+
+function layout(content: string): string {
+  const unsubUrl = UNSUB_PLACEHOLDER;
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -31,8 +35,10 @@ function layout(content: string, unsubscribeEmail?: string): string {
       <!-- Header -->
       <tr>
         <td style="background:#0f172a;padding:24px 40px;">
-          <span style="color:#ffffff;font-size:22px;font-weight:700;letter-spacing:-0.5px;">Zari</span>
-          <span style="color:#64748b;font-size:14px;margin-left:8px;">AI Career Coach</span>
+          <a href="${APP_URL}" style="text-decoration:none;">
+            <span style="color:#ffffff;font-size:22px;font-weight:700;letter-spacing:-0.5px;">Zari</span>
+            <span style="color:#64748b;font-size:14px;margin-left:8px;">AI Career Coach</span>
+          </a>
         </td>
       </tr>
       <!-- Body -->
@@ -45,8 +51,8 @@ function layout(content: string, unsubscribeEmail?: string): string {
       <tr>
         <td style="background:#f8fafc;padding:24px 40px;border-top:1px solid #e2e8f0;">
           <p style="margin:0;color:#94a3b8;font-size:12px;line-height:1.6;">
-            Zari · AI-powered career coaching · <a href="https://zaricoach.com" style="color:#64748b;">zaricoach.com</a><br/>
-            ${unsubscribeEmail ? `<a href="https://zaricoach.com/unsubscribe?email=${encodeURIComponent(unsubscribeEmail)}" style="color:#94a3b8;">Unsubscribe</a>` : '<a href="https://zaricoach.com/unsubscribe" style="color:#94a3b8;">Unsubscribe</a>'}
+            Zari · AI-powered career coaching · <a href="${APP_URL}" style="color:#64748b;">zaricoach.com</a><br/>
+            <a href="${unsubUrl}" style="color:#94a3b8;">Unsubscribe</a>
           </p>
         </td>
       </tr>
@@ -65,7 +71,7 @@ function hi(firstName?: string): string {
   return firstName ? `Hi ${firstName},` : "Hi there,";
 }
 
-const APP_URL = "https://app.zaricoach.com";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.zaricoach.com";
 
 // ─── Lead Nurture (7 emails — leads who haven't signed up yet) ────────────────
 

@@ -516,6 +516,12 @@ model UserPortalState {
   @@index([userId])
 }
 
+model EmailSuppression {
+  email     String   @id
+  reason    String   // "unsubscribe" | "bounce" | "complaint"
+  createdAt DateTime @default(now())
+}
+
 model EmailSequenceEnrollment {
   id          String    @id @default(cuid())
   email       String

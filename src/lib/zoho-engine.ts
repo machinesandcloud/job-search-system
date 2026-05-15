@@ -269,26 +269,10 @@ export async function onUserChurned(event: ChurnEvent): Promise<void> {
     void cancel(event.email);
 
     const meta = { firstName: event.firstName, planTier: event.planTier };
+    // win_back_30 sends immediately; 60 and 90 are pre-scheduled from churn date
     void enroll("win_back_30", event.email, meta);
-
-    // Enroll win_back_60 and win_back_90 with pre-calculated delays so they
-    // fire at the right time relative to the churn date, not relative to each other.
-    const sixtyDays = new Date(Date.now() + 60 * 86_400_000);
-    const ninetyDays = new Date(Date.now() + 90 * 86_400_000);
-    void import("@/lib/db").then(({ prisma }) =>
-      Promise.all([
-        prisma.emailSequenceEnrollment.upsert({
-          where: { email_sequence: { email: event.email, sequence: "win_back_60" } },
-          update: { step: 0, nextSendAt: sixtyDays, canceledAt: null, completedAt: null, metadata: meta as object },
-          create: { email: event.email, sequence: "win_back_60", step: 0, nextSendAt: sixtyDays, metadata: meta as object },
-        }),
-        prisma.emailSequenceEnrollment.upsert({
-          where: { email_sequence: { email: event.email, sequence: "win_back_90" } },
-          update: { step: 0, nextSendAt: ninetyDays, canceledAt: null, completedAt: null, metadata: meta as object },
-          create: { email: event.email, sequence: "win_back_90", step: 0, nextSendAt: ninetyDays, metadata: meta as object },
-        }),
-      ])
-    );
+    void enroll("win_back_60", event.email, meta, new Date(Date.now() + 60 * 86_400_000));
+    void enroll("win_back_90", event.email, meta, new Date(Date.now() + 90 * 86_400_000));
   } catch (err) {
     console.error("[zoho-engine] onUserChurned error:", err);
   }
