@@ -39,12 +39,6 @@ export default async function OnboardingPlanPage({ searchParams }: { searchParam
           </Link>
 
           <div className="flex items-center gap-3">
-            <Link
-              href="/api/onboarding/free-preview"
-              className="hidden rounded-full border border-[var(--border)] px-4 py-2 text-[13px] font-semibold text-[var(--muted)] transition-colors hover:border-[var(--brand)] hover:text-[var(--brand)] sm:inline-flex"
-            >
-              Continue with free preview
-            </Link>
             <PlatformLogoutButton
               className="rounded-full border border-[var(--border)] px-4 py-2 text-[13px] font-semibold text-[var(--ink-2)] transition-colors hover:border-[var(--ink)] hover:text-[var(--ink)]"
             />

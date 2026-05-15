@@ -100,6 +100,23 @@ export function PricingSelectionContent({
               {PRICING_TRUST_ITEMS.join(" · ")}
             </p>
           </Reveal>
+
+          {authenticated && (
+            <Reveal>
+              <div className="mx-auto mt-10 flex max-w-xl flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-8 py-6 text-center">
+                <p className="text-[14px] font-semibold text-[#0A0A0F]">Not ready to commit?</p>
+                <p className="text-[13px] leading-[1.6] text-[#5A6180]">
+                  Try Zari for free — no credit card needed. You&apos;ll get limited access to core features so you can see what the coaching experience is like before choosing a plan.
+                </p>
+                <a
+                  href="/api/onboarding/free-preview"
+                  className="mt-1 inline-flex items-center gap-2 rounded-full border border-[#4361EE]/30 bg-white px-5 py-2.5 text-[13px] font-semibold text-[#4361EE] shadow-sm transition-all hover:border-[#4361EE]/60 hover:bg-[#4361EE]/5"
+                >
+                  Start exploring free →
+                </a>
+              </div>
+            </Reveal>
+          )}
         </div>
       </section>
 
