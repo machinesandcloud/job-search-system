@@ -9399,10 +9399,16 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
               New review
             </button>
             <input ref={fileInputRef} type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleFile(f); e.target.value=""; }}/>
-            <button onClick={()=>fileInputRef.current?.click()} title="Upload your updated resume to re-analyze" style={{ display:"flex", alignItems:"center", gap:5, fontSize:12, fontWeight:600, color:"#2563EB", background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderRadius:8, padding:"6px 12px", cursor:"pointer" }}>
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:12,height:12 }}><path d="M13.5 6A6 6 0 1 0 12 11"/><path d="M13.5 2v4h-4"/></svg>
-              Re-analyze
-            </button>
+            {billing.isPaid
+              ? <button onClick={()=>fileInputRef.current?.click()} title="Upload your updated resume to re-analyze" style={{ display:"flex", alignItems:"center", gap:5, fontSize:12, fontWeight:600, color:"#2563EB", background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderRadius:8, padding:"6px 12px", cursor:"pointer" }}>
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:12,height:12 }}><path d="M13.5 6A6 6 0 1 0 12 11"/><path d="M13.5 2v4h-4"/></svg>
+                  Re-analyze
+                </button>
+              : <button onClick={()=>billing.onPlanBlock("search","Upgrade to re-analyze your resume as many times as you want.")} style={{ display:"flex", alignItems:"center", gap:5, fontSize:12, fontWeight:600, color:"#F59E0B", background:"rgba(245,158,11,0.1)", border:"1px solid rgba(245,158,11,0.35)", borderRadius:8, padding:"6px 12px", cursor:"pointer" }}>
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:12,height:12 }}><rect x="3" y="7" width="10" height="8" rx="1.5"/><path d="M5 7V5a3 3 0 016 0v2"/></svg>
+                  Re-analyze
+                </button>
+            }
             <div>
               <span style={{ fontSize:14, fontWeight:800, color:"var(--z-text)" }}>{fileName || "Resume"}</span>
               <span style={{ fontSize:12, color:"var(--z-text3)", marginLeft:8 }}>{careerLevel.charAt(0).toUpperCase()+careerLevel.slice(1)}-level · {reviewMode === "targeted" && targetRoleInput ? targetRoleInput : "General review"}</span>
@@ -10041,7 +10047,8 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                             <svg viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" strokeWidth="2" style={{ width:18,height:18 }}><path d="M12 5v14M5 12l7 7 7-7"/></svg>
                           </div>
                           {/* After */}
-                          <div style={{ marginBottom:10 }}>
+                          <div style={{ position:"relative", marginBottom:10 }}>
+                            <div style={{ filter:billing.isPaid?"none":"blur(4px)", pointerEvents:billing.isPaid?"auto":"none", userSelect:billing.isPaid?"auto":"none" }}>
                             <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:5 }}>
                               <div style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(22,163,74,0.15)", borderRadius:6, padding:"3px 9px" }}>
                                 <svg viewBox="0 0 12 12" fill="none" stroke="#4ADE80" strokeWidth="2" style={{ width:9,height:9,flexShrink:0 }}><path d="M2 6h8M6 2l4 4-4 4"/></svg>
@@ -10055,9 +10062,18 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                               </div>
                               <button onClick={()=>{ void navigator.clipboard.writeText(b.after); }} style={{ padding:"9px 13px", borderRadius:9, border:"1px solid rgba(22,163,74,0.3)", background:"rgba(22,163,74,0.1)", color:"#4ADE80", cursor:"pointer", flexShrink:0, fontSize:11, fontWeight:700, whiteSpace:"nowrap" }}>Copy</button>
                             </div>
+                            </div>
+                            {!billing.isPaid && (
+                              <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", gap:10, zIndex:5 }}>
+                                <svg viewBox="0 0 20 20" fill="none" stroke="#7B9EFF" strokeWidth="1.8" style={{ width:16,height:16,flexShrink:0 }}><rect x="4" y="9" width="12" height="10" rx="2"/><path d="M7 9V6a3 3 0 016 0v3"/></svg>
+                                <button onClick={()=>billing.onPlanBlock("search","Upgrade to see Zari's AI rewrites and copy improved bullets directly to your resume.")} style={{ fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:9, border:"none", background:"#2563EB", color:"white", cursor:"pointer" }}>
+                                  Unlock rewrites →
+                                </button>
+                              </div>
+                            )}
                           </div>
                           {/* Magic Write */}
-                          {!mw ? (
+                          {billing.isPaid && (!mw ? (
                             <button onClick={()=>openMagicWrite(i)} style={{ fontSize:11.5, fontWeight:700, padding:"7px 15px", borderRadius:9, border:"1.5px solid rgba(37,99,235,0.4)", background:"var(--z-raise)", color:"#7B9EFF", cursor:"pointer", display:"inline-flex", alignItems:"center", gap:6 }}>
                               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width:11, height:11 }}><path d="M13 2l1 4-8.5 8.5L2 16l1.5-3.5L12 4l1-2z"/><path d="M10 4l2 2"/></svg>
                               Magic Write — customize this rewrite
@@ -10093,7 +10109,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                                 </div>
                               )}
                             </div>
-                          )}
+                          ))}
                         </div>
                       </div>
                     );
@@ -10121,6 +10137,8 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                   <p style={{ fontSize:13.5, fontWeight:800, color:"var(--z-text)", marginBottom:4 }}>AI Rewrites</p>
                   <p style={{ fontSize:11.5, color:"var(--z-text2)" }}>Zari rewrote your key sections. Each card shows the original vs the improved version.</p>
                 </div>
+                <div style={{ position:"relative" }}>
+                <div style={{ display:"flex", flexDirection:"column", gap:14, filter:billing.isPaid?"none":"blur(5px)", pointerEvents:billing.isPaid?"auto":"none", userSelect:billing.isPaid?"auto":"none" }}>
                 {(aiResult?.rewrittenSections ?? []).map((s, idx) => {
                   const displayed = altVersions[idx] ?? s.text;
                   const isRegen = rewritingIdx === idx;
@@ -10229,6 +10247,22 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                 <button onClick={()=>{ const all=(aiResult?.rewrittenSections??[]).map((s,i)=>`${s.label}:\n${altVersions[i]??s.text}`).join("\n\n"); void navigator.clipboard.writeText(all); }} style={{ fontSize:13, fontWeight:700, padding:"11px", borderRadius:11, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>
                   Copy all rewrites →
                 </button>
+                </div>
+                {!billing.isPaid && (
+                  <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:14, background:"linear-gradient(to bottom, transparent 0%, var(--z-bg) 45%)", borderRadius:16, zIndex:10, padding:"40px 24px" }}>
+                    <div style={{ width:44, height:44, borderRadius:14, background:"rgba(37,99,235,0.12)", border:"1.5px solid rgba(37,99,235,0.25)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      <svg viewBox="0 0 20 20" fill="none" stroke="#7B9EFF" strokeWidth="1.8" style={{ width:20,height:20 }}><rect x="4" y="9" width="12" height="10" rx="2"/><path d="M7 9V6a3 3 0 016 0v3"/></svg>
+                    </div>
+                    <div style={{ textAlign:"center" }}>
+                      <p style={{ fontSize:15, fontWeight:800, color:"var(--z-text)", marginBottom:6, letterSpacing:"-0.02em" }}>AI rewrites are a paid feature</p>
+                      <p style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.6, maxWidth:280 }}>Upgrade to see Zari&apos;s full section rewrites — optimized summaries, bullets, and more.</p>
+                    </div>
+                    <button onClick={()=>billing.onPlanBlock("search","Upgrade to unlock AI section rewrites, unlimited re-analysis, and full keyword gap reports.")} style={{ fontSize:13, fontWeight:700, padding:"11px 28px", borderRadius:12, border:"none", background:"#2563EB", color:"white", cursor:"pointer" }}>
+                      Unlock AI Rewrites →
+                    </button>
+                  </div>
+                )}
+                </div>
               </div>
             )}
 
@@ -10396,7 +10430,8 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
 
                   {/* Preferred keywords */}
                   {preferred.length > 0 && (
-                    <div style={{ background:"var(--z-card)", borderRadius:16, border:"1px solid var(--z-bd)", padding:"16px 18px", boxShadow:"0 2px 12px rgba(0,0,0,0.07)" }}>
+                    <div style={{ position:"relative" }}>
+                    <div style={{ background:"var(--z-card)", borderRadius:16, border:"1px solid var(--z-bd)", padding:"16px 18px", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", filter:billing.isPaid?"none":"blur(4px)", pointerEvents:billing.isPaid?"auto":"none", userSelect:billing.isPaid?"auto":"none" }}>
                       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
                         <div>
                           <p style={{ fontSize:12.5, fontWeight:800, color:"var(--z-text)" }}>Preferred Skills</p>
@@ -10408,14 +10443,23 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                         {preferred.map((kw,i) => {
                           const stm = SKILL_TYPE_META[kw.skillType ?? "soft"] ?? SKILL_TYPE_META.soft;
                           return (
-                            <div key={i} title={kw.found&&kw.context?`Found: "${kw.context}"`:"Not found"} style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"5px 12px", borderRadius:99, border:`1.5px solid ${kw.found?"rgba(37,99,235,0.4)":"rgba(255,255,255,0.1)"}`, background:kw.found?"rgba(37,99,235,0.1)":"rgba(255,255,255,0.04)", cursor:"default" }}>
-                              <span style={{ width:6, height:6, borderRadius:"50%", background:kw.found?"#7B9EFF":"rgba(255,255,255,0.25)", flexShrink:0 }}/>
-                              <span style={{ fontSize:12, fontWeight:700, color:kw.found?"#7B9EFF":"rgba(255,255,255,0.55)" }}>{kw.word}</span>
+                            <div key={i} title={kw.found&&kw.context?`Found: "${kw.context}"`:"Not found"} style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"5px 12px", borderRadius:99, border:`1.5px solid ${kw.found?"rgba(37,99,235,0.4)":"var(--z-bd)"}`, background:kw.found?"rgba(37,99,235,0.1)":"var(--z-raise)", cursor:"default" }}>
+                              <span style={{ width:6, height:6, borderRadius:"50%", background:kw.found?"#7B9EFF":"var(--z-text3)", flexShrink:0 }}/>
+                              <span style={{ fontSize:12, fontWeight:700, color:kw.found?"#7B9EFF":"var(--z-text2)" }}>{kw.word}</span>
                               <span style={{ fontSize:9, fontWeight:600, color:stm.color, background:`${stm.color}20`, padding:"0 4px", borderRadius:4 }}>{stm.label}</span>
                             </div>
                           );
                         })}
                       </div>
+                    </div>
+                    {!billing.isPaid && (
+                      <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", gap:12, background:"rgba(var(--z-bg-rgb,255,255,255),0.6)", backdropFilter:"blur(2px)", borderRadius:16, zIndex:5 }}>
+                        <svg viewBox="0 0 20 20" fill="none" stroke="#7B9EFF" strokeWidth="1.8" style={{ width:18,height:18,flexShrink:0 }}><rect x="4" y="9" width="12" height="10" rx="2"/><path d="M7 9V6a3 3 0 016 0v3"/></svg>
+                        <button onClick={()=>billing.onPlanBlock("search","Upgrade to see preferred keyword coverage and unlock full keyword gap reports.")} style={{ fontSize:12.5, fontWeight:700, padding:"8px 18px", borderRadius:10, border:"none", background:"#2563EB", color:"white", cursor:"pointer" }}>
+                          Unlock Preferred Skills →
+                        </button>
+                      </div>
+                    )}
                     </div>
                   )}
 
