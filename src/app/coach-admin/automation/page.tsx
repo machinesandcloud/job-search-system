@@ -1,7 +1,7 @@
 import { requireCoachAdminActor } from "@/lib/coach-admin-auth";
 import { prisma } from "@/lib/db";
 import { CoachAdminPill } from "@/components/coach-admin-ui";
-import { CancelEnrollmentButton, UnsuppressButton, EnrollForm, TriggerQueueButton, BackfillButton } from "./actions-client";
+import { CancelEnrollmentButton, UnsuppressButton, EnrollForm, TriggerQueueButton, BackfillButton, BroadcastForm } from "./actions-client";
 
 export const dynamic = "force-dynamic";
 
@@ -204,6 +204,14 @@ export default async function AutomationPage() {
 
         {/* Right column */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
+          {/* Broadcast */}
+          {isAdmin && (
+            <Card style={{ padding: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--ca-text3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>Broadcast email</div>
+              <BroadcastForm isAdmin={isAdmin} />
+            </Card>
+          )}
 
           {/* Manual enroll */}
           <Card style={{ padding: 14 }}>

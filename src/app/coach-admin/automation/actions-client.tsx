@@ -208,3 +208,97 @@ export function BackfillButton({ isAdmin }: { isAdmin: boolean }) {
     </button>
   );
 }
+
+type BroadcastResult = { sent?: number; skipped?: number; errors?: number; total?: number };
+
+export function BroadcastForm({ isAdmin }: { isAdmin: boolean }) {
+  const [subject, setSubject] = useState("");
+  const [message, setMessage] = useState("");
+  const [status, setStatus] = useState<"idle" | "confirm" | "sending" | "ok" | "err">("idle");
+  const [result, setResult] = useState<BroadcastResult | null>(null);
+
+  if (!isAdmin) return null;
+
+  async function send(testOnly: boolean) {
+    setStatus("sending");
+    setResult(null);
+    const res = await fetch("/api/coach-admin/automation/broadcast", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ subject: subject.trim(), message: message.trim(), testOnly }),
+    });
+    if (res.ok) {
+      const data: BroadcastResult = await res.json();
+      setResult(data);
+      setStatus("ok");
+    } else {
+      setStatus("err");
+    }
+  }
+
+  if (status === "ok" && result) {
+    return (
+      <div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "#22C55E", marginBottom: 6 }}>
+          Sent! {result.sent} delivered · {result.skipped} suppressed · {result.errors} errors
+        </div>
+        <button onClick={() => { setStatus("idle"); setSubject(""); setMessage(""); setResult(null); }} style={{ ...btn("#6B7280"), padding: "4px 10px" }}>
+          Send another
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <input
+        value={subject}
+        onChange={e => setSubject(e.target.value)}
+        placeholder="Subject line"
+        style={{ fontSize: 12, padding: "7px 10px", borderRadius: 7, border: "1px solid var(--ca-bd)", background: "var(--ca-raise)", color: "var(--ca-text)", outline: "none", width: "100%", boxSizing: "border-box" as const }}
+      />
+      <textarea
+        value={message}
+        onChange={e => setMessage(e.target.value)}
+        placeholder="Email body (plain text, line breaks become paragraphs)"
+        rows={5}
+        style={{ fontSize: 12, padding: "7px 10px", borderRadius: 7, border: "1px solid var(--ca-bd)", background: "var(--ca-raise)", color: "var(--ca-text)", outline: "none", width: "100%", boxSizing: "border-box" as const, resize: "vertical", fontFamily: "inherit" }}
+      />
+      {status === "confirm" ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <div style={{ fontSize: 11.5, color: "#F59E0B", fontWeight: 600 }}>
+            This will email ALL contacts. Are you sure?
+          </div>
+          <div style={{ display: "flex", gap: 6 }}>
+            <button
+              onClick={() => send(false)}
+              disabled={status !== "confirm"}
+              style={{ ...btn("#F43F5E"), padding: "5px 12px" }}
+            >
+              Yes, send to everyone
+            </button>
+            <button onClick={() => setStatus("idle")} style={{ ...btn("#6B7280"), padding: "5px 10px" }}>Cancel</button>
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: "flex", gap: 6 }}>
+          <button
+            disabled={!subject.trim() || !message.trim() || status === "sending"}
+            onClick={() => send(true)}
+            style={{ ...btn("#6B7280"), padding: "5px 12px", opacity: (!subject.trim() || !message.trim()) ? 0.4 : 1 }}
+          >
+            {status === "sending" ? "Sending…" : "Send test (1 user)"}
+          </button>
+          <button
+            disabled={!subject.trim() || !message.trim() || status === "sending"}
+            onClick={() => setStatus("confirm")}
+            style={{ ...btn("#3B82F6"), padding: "5px 12px", opacity: (!subject.trim() || !message.trim()) ? 0.4 : 1 }}
+          >
+            Send to all
+          </button>
+        </div>
+      )}
+      {status === "err" && <div style={{ fontSize: 11, color: "#F43F5E" }}>Send failed — check Resend API key and try again.</div>}
+    </div>
+  );
+}
