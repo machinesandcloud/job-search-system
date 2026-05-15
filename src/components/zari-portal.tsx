@@ -10789,6 +10789,7 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
   const _initQIdx = _ivSaved?.currentQIdx ?? 0;
   const _initStored = findStoredAnswer(_ivSaved, _initSectionIdx, _initQIdx);
 
+  const billing = useBillingCtx();
   const [setupDone,    setSetupDone]    = useState(_ivSaved?.setupDone ?? false);
   const [resumeText,   setResumeText]   = useState(_ivSaved?.resumeText ?? "");
   const [resumeFileName, setResumeFileName] = useState(_ivSaved?.resumeFileName ?? "");
@@ -11409,8 +11410,24 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
           })}
         </div>
 
+        {/* Free-tier gate: lock questions 3+ */}
+        {!billing.isPaid && qIdx >= 2 && (
+          <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:16, padding:"48px 32px", textAlign:"center", marginBottom:20, boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
+            <div style={{ width:52, height:52, borderRadius:16, background:"rgba(37,99,235,0.1)", border:"1.5px solid rgba(37,99,235,0.25)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px" }}>
+              <svg viewBox="0 0 20 20" fill="none" stroke="#7B9EFF" strokeWidth="1.8" style={{ width:22,height:22 }}><rect x="4" y="9" width="12" height="10" rx="2"/><path d="M7 9V6a3 3 0 016 0v3"/></svg>
+            </div>
+            <p style={{ fontSize:17, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.02em", marginBottom:8 }}>Unlock all {SECTION_QUESTIONS.length} questions</p>
+            <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.65, maxWidth:340, margin:"0 auto 20px" }}>
+              You&apos;ve completed your 2 free practice questions. Upgrade to continue with all questions, voice recording, and AI feedback.
+            </p>
+            <button onClick={()=>billing.onPlanBlock("search","Upgrade to unlock all interview questions, voice recording, and AI scoring for every answer.")} style={{ fontSize:13.5, fontWeight:700, padding:"12px 28px", borderRadius:12, border:"none", background:"#2563EB", color:"white", cursor:"pointer" }}>
+              Unlock Full Interview →
+            </button>
+          </div>
+        )}
+
         {/* Question card */}
-        {q && (
+        {q && (billing.isPaid || qIdx < 2) && (
           <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #2563EB", borderRadius:12, overflow:"hidden", marginBottom:20 }}>
             <div style={{ padding:"22px 24px 18px" }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:12 }}>
@@ -11470,14 +11487,20 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
           </div>
         )}
 
-        {!submitted ? (
+        {!submitted && (billing.isPaid || qIdx < 2) ? (
           <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:18, padding:22, boxShadow:"0 2px 12px rgba(0,0,0,0.07)" }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
               <p style={{ fontSize:14, fontWeight:700, color:"var(--z-text)" }}>Your answer</p>
-              <button onClick={() => isRecording ? stopRecordingIV() : void startRecordingIV()} style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:99, border:`1px solid ${isRecording?"rgba(239,68,68,0.3)":"var(--z-bd)"}`, cursor:"pointer", background:isRecording?"rgba(239,68,68,0.08)":"var(--z-raise)", color:isRecording?"#EF4444":"var(--z-text2)" }}>
-                <span style={{ width:7, height:7, borderRadius:"50%", background:isRecording?"#DC2626":"#2563EB", animation:isRecording?"blink 0.7s step-end infinite":"none" }}/>
-                {isRecording ? `Stop · ${fmt(recTime)}` : "Record voice"}
-              </button>
+              {billing.isPaid
+                ? <button onClick={() => isRecording ? stopRecordingIV() : void startRecordingIV()} style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:99, border:`1px solid ${isRecording?"rgba(239,68,68,0.3)":"var(--z-bd)"}`, cursor:"pointer", background:isRecording?"rgba(239,68,68,0.08)":"var(--z-raise)", color:isRecording?"#EF4444":"var(--z-text2)" }}>
+                    <span style={{ width:7, height:7, borderRadius:"50%", background:isRecording?"#DC2626":"#2563EB", animation:isRecording?"blink 0.7s step-end infinite":"none" }}/>
+                    {isRecording ? `Stop · ${fmt(recTime)}` : "Record voice"}
+                  </button>
+                : <button onClick={()=>billing.onPlanBlock("search","Upgrade to unlock voice recording for your mock interviews.")} style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:99, border:"1px solid rgba(245,158,11,0.35)", cursor:"pointer", background:"rgba(245,158,11,0.08)", color:"#D97706" }}>
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:10,height:10,flexShrink:0 }}><rect x="3" y="7" width="10" height="8" rx="1.5"/><path d="M5 7V5a3 3 0 016 0v2"/></svg>
+                    Record voice
+                  </button>
+              }
             </div>
             {recErr && (
               <div style={{ background:"rgba(239,68,68,0.08)", border:"1px solid rgba(239,68,68,0.2)", borderRadius:10, padding:"10px 14px", marginBottom:12, fontSize:12.5, color:"#DC2626", fontWeight:500 }}>
@@ -14130,11 +14153,18 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
         </nav>
 
         <div style={{ padding:"10px 8px 14px", borderTop:"1px solid var(--z-bd)" }}>
-          <button onClick={()=>setInputMode(true)}
-            style={{ width:"100%", fontSize:11.5, fontWeight:600, padding:"9px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-card)", boxShadow:"0 2px 20px rgba(0,0,0,0.07)", color:"var(--z-text3)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:6, transition:"all 0.15s" }}>
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:12,height:12}}><path d="M10 3L5 8l5 5"/></svg>
-            Re-analyze
-          </button>
+          {billing.isPaid
+            ? <button onClick={()=>setInputMode(true)}
+                style={{ width:"100%", fontSize:11.5, fontWeight:600, padding:"9px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-card)", boxShadow:"0 2px 20px rgba(0,0,0,0.07)", color:"var(--z-text3)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:6, transition:"all 0.15s" }}>
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:12,height:12}}><path d="M10 3L5 8l5 5"/></svg>
+                Re-analyze
+              </button>
+            : <button onClick={()=>billing.onPlanBlock("search","Upgrade to re-analyze your LinkedIn profile and unlock all section rewrites.")}
+                style={{ width:"100%", fontSize:11.5, fontWeight:600, padding:"9px", borderRadius:9, border:"1px solid rgba(245,158,11,0.35)", background:"rgba(245,158,11,0.08)", color:"#D97706", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:6, transition:"all 0.15s" }}>
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{width:10,height:10}}><rect x="3" y="7" width="10" height="8" rx="1.5"/><path d="M5 7V5a3 3 0 016 0v2"/></svg>
+                Re-analyze
+              </button>
+          }
         </div>
       </div>
 
@@ -14224,8 +14254,26 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
           </>
         )}
 
+        {/* Free-tier section gate */}
+        {!billing.isPaid && liSection !== "score" && liSection !== "keywords" && (
+          <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", textAlign:"center", padding:"60px 32px", gap:16 }}>
+            <div style={{ width:52, height:52, borderRadius:16, background:"rgba(0,119,181,0.1)", border:"1.5px solid rgba(0,119,181,0.25)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+              <svg viewBox="0 0 20 20" fill="none" stroke="#0077B5" strokeWidth="1.8" style={{ width:22,height:22 }}><rect x="4" y="9" width="12" height="10" rx="2"/><path d="M7 9V6a3 3 0 016 0v3"/></svg>
+            </div>
+            <div>
+              <p style={{ fontSize:17, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.02em", marginBottom:8 }}>Section rewrites are a paid feature</p>
+              <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.65, maxWidth:340, margin:"0 auto 20px" }}>
+                Upgrade to see AI-powered rewrites and coaching for your {liSection} section and all other LinkedIn sections.
+              </p>
+            </div>
+            <button onClick={()=>billing.onPlanBlock("search","Upgrade to unlock LinkedIn section rewrites, AI coaching, and keyword analysis.")} style={{ fontSize:13.5, fontWeight:700, padding:"12px 28px", borderRadius:12, border:"none", background:"#0077B5", color:"white", cursor:"pointer" }}>
+              Unlock Section Details →
+            </button>
+          </div>
+        )}
+
         {/* SECTION DETAIL — non-experience, non-networking */}
-        {activeSec && activeSecKey && activeSecKey !== "experience" && activeSecKey !== "networking" && (
+        {billing.isPaid && activeSec && activeSecKey && activeSecKey !== "experience" && activeSecKey !== "networking" && (
           <>
             {/* Section header */}
             <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:20, marginBottom:20 }}>
@@ -14301,7 +14349,7 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
         )}
 
         {/* EXPERIENCE — per-job cards */}
-        {liSection === "experience" && result?.experience && (
+        {billing.isPaid && liSection === "experience" && result?.experience && (
           <>
             <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:20, marginBottom:20 }}>
               <div>
@@ -14400,7 +14448,7 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
         )}
 
         {/* NETWORKING */}
-        {liSection === "networking" && result?.networking && (
+        {billing.isPaid && liSection === "networking" && result?.networking && (
           <>
             <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:20, marginBottom:20 }}>
               <div>
@@ -14438,7 +14486,7 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
         )}
 
         {/* KEYWORDS */}
-        {liSection==="keywords" && (
+        {billing.isPaid && liSection==="keywords" && (
           <>
             <div style={{ marginBottom:20 }}>
               <h2 style={{ fontSize:22, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", marginBottom:4 }}>Keywords</h2>
@@ -15957,7 +16005,8 @@ function ScreenCoverLetter({ stage, active = false, onNavigate }: { stage: Caree
             )}
 
             {/* ── Letter paper document ── */}
-            <div style={{ background:"var(--z-raise)", borderRadius:10, boxShadow:"0 8px 40px rgba(0,0,0,0.4)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
+            <div style={{ position:"relative" }}>
+            <div style={{ background:"var(--z-raise)", borderRadius:10, boxShadow:"0 8px 40px rgba(0,0,0,0.4)", border:"1px solid var(--z-bd)", overflow:"hidden", filter:billing.isPaid?"none":"blur(5px)", pointerEvents:billing.isPaid?"auto":"none", userSelect:billing.isPaid?"auto":"none" }}>
               <div style={{ padding:"52px 56px 56px", fontFamily:"Georgia,'Times New Roman',serif" }}>
                 {editMode ? (
                   <textarea style={{ width:"100%", minHeight:560, border:"1.5px solid #D9DFF0", borderRadius:10, padding:"16px", fontSize:14, lineHeight:1.9, color:"var(--z-text)", outline:"none", resize:"vertical", fontFamily:"Georgia,'Times New Roman',serif", boxSizing:"border-box" }}
@@ -15966,6 +16015,21 @@ function ScreenCoverLetter({ stage, active = false, onNavigate }: { stage: Caree
                   <div style={{ fontSize:14, lineHeight:1.95, color:"var(--z-text)", fontFamily:"inherit", whiteSpace:"pre-wrap" }}>{result.coverLetter}</div>
                 )}
               </div>
+            </div>
+            {!billing.isPaid && (
+              <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:16, background:"linear-gradient(to bottom, transparent 0%, var(--z-bg) 50%)", borderRadius:10, zIndex:10, padding:"40px 24px" }}>
+                <div style={{ width:48, height:48, borderRadius:14, background:"rgba(5,150,105,0.12)", border:"1.5px solid rgba(5,150,105,0.3)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                  <svg viewBox="0 0 20 20" fill="none" stroke="#059669" strokeWidth="1.8" style={{ width:22,height:22 }}><rect x="4" y="9" width="12" height="10" rx="2"/><path d="M7 9V6a3 3 0 016 0v3"/></svg>
+                </div>
+                <div style={{ textAlign:"center" }}>
+                  <p style={{ fontSize:16, fontWeight:800, color:"var(--z-text)", marginBottom:6, letterSpacing:"-0.02em" }}>Upgrade to read your cover letter</p>
+                  <p style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.6, maxWidth:300 }}>Zari wrote a tailored letter just for you. Upgrade to read it, edit it, and download it.</p>
+                </div>
+                <button onClick={()=>billing.onPlanBlock("search","Upgrade to access your cover letter, edit it, and download as PDF or Word.")} style={{ fontSize:13.5, fontWeight:700, padding:"12px 28px", borderRadius:12, border:"none", background:"#059669", color:"white", cursor:"pointer" }}>
+                  Unlock Cover Letter →
+                </button>
+              </div>
+            )}
             </div>
           </>
         )}
@@ -16564,6 +16628,30 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
   const billing = useBillingCtx();
   if (stage === "promotion")    return <FeatureGate featureName="zari_promotion_readiness"><ScreenPromotionRoadmap onNavigate={onNavigate} active={active} /></FeatureGate>;
   if (stage === "career-change") return <FeatureGate featureName="zari_pivot_analysis"><ScreenCareerChangePlan onNavigate={onNavigate} active={active} /></FeatureGate>;
+  if (!billing.isPaid) return (
+    <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+      <div style={{ textAlign:"center", padding:"48px 32px", maxWidth:420 }}>
+        <div style={{ width:64, height:64, borderRadius:20, background:"rgba(37,99,235,0.1)", border:"1.5px solid rgba(37,99,235,0.25)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 20px" }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#7B9EFF" strokeWidth="1.6" style={{ width:28,height:28 }}><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/><path d="M9 12l2 2 4-4"/></svg>
+        </div>
+        <h2 style={{ fontSize:22, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", marginBottom:10 }}>Your personalized action plan</h2>
+        <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.7, marginBottom:24 }}>
+          Zari builds a week-by-week plan tailored to your resume, LinkedIn score, and job search timeline. Upgrade to generate it.
+        </p>
+        <div style={{ background:"var(--z-card)", borderRadius:14, border:"1px solid var(--z-bd)", padding:"18px 20px", marginBottom:24, textAlign:"left" }}>
+          {["Personalized week-by-week task breakdown","Priority ranking based on your timeline","AI coach notes for each action item","Auto-updates as you complete tools"].map((f,i) => (
+            <div key={i} style={{ display:"flex", alignItems:"center", gap:10, marginBottom:i<3?10:0 }}>
+              <svg viewBox="0 0 12 12" fill="none" stroke="#7B9EFF" strokeWidth="2.5" style={{ width:12,height:12,flexShrink:0 }}><path d="M2 6l3 3 5-5"/></svg>
+              <span style={{ fontSize:13, color:"var(--z-text2)" }}>{f}</span>
+            </div>
+          ))}
+        </div>
+        <button onClick={()=>billing.onPlanBlock("search","Upgrade to generate your personalized action plan with AI coaching and week-by-week tasks.")} style={{ width:"100%", fontSize:14, fontWeight:700, padding:"14px", borderRadius:12, border:"none", background:"#2563EB", color:"white", cursor:"pointer" }}>
+          Unlock Action Plan →
+        </button>
+      </div>
+    </div>
+  );
 
   // ── Intake state ──
   type IntakeData = { targetRole: string; timeline: string; employed: string; weeklyHours: string; mainChallenge: string };
@@ -18152,21 +18240,26 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
                   </div>
 
                   {/* Eyebrow */}
-                  <div style={{ fontSize:10, fontWeight:900, color:"#818CF8", textTransform:"uppercase", letterSpacing:"0.22em", marginBottom:7 }}>{proactive ? "Add Credits" : "Credits Exhausted"}</div>
+                  <div style={{ fontSize:10, fontWeight:900, color:"#818CF8", textTransform:"uppercase", letterSpacing:"0.22em", marginBottom:7 }}>
+                    {!viewer.isPaid ? "Free Session Used" : proactive ? "Add Credits" : "Credits Exhausted"}
+                  </div>
 
                   {/* Headline */}
                   <h2 style={{ fontSize:23, fontWeight:900, color:"rgba(255,255,255,0.95)", margin:"0 0 8px", letterSpacing:"-0.04em", lineHeight:1.15 }}>
-                    {proactive ? "Add credits to your account" : "You've used all your credits"}
+                    {!viewer.isPaid ? "You've used your free session" : proactive ? "Add credits to your account" : "You've used all your credits"}
                   </h2>
 
                   {/* Sub */}
                   <p style={{ fontSize:12.5, color:"rgba(255,255,255,0.45)", lineHeight:1.65, margin:"0 auto 16px", maxWidth:320 }}>
-                    {proactive
+                    {!viewer.isPaid
+                      ? "Your free access has been used. Upgrade to a paid plan to continue using Zari — resume review, cover letters, interview practice, and more."
+                      : proactive
                       ? "Pick a credit pack and it's added to your account instantly. Your current access continues uninterrupted."
                       : "Your monthly balance is empty. Upgrade your plan, buy a top-up pack, or wait for your next billing cycle to continue."}
                   </p>
 
-                  {/* Credit bar */}
+                  {/* Credit bar — only for paid users */}
+                  {viewer.isPaid && (
                   <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.09)", borderRadius:12, padding:"12px 16px", marginBottom:16 }}>
                     <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
                       <span style={{ fontSize:10.5, fontWeight:700, color:"rgba(255,255,255,0.4)", textTransform:"uppercase", letterSpacing:"0.09em" }}>Monthly Credits</span>
@@ -18177,9 +18270,27 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
                     </div>
                     <div style={{ marginTop:7, fontSize:10.5, color:"rgba(255,255,255,0.28)", textAlign:"center" }}>Resets automatically on your next billing date</div>
                   </div>
+                  )}
 
-                  {/* Options */}
-                  <div style={{ display:"flex", flexDirection:"column", gap:7, marginBottom:16 }}>
+                  {/* Free-tier upgrade CTA — shown instead of top-up options */}
+                  {!viewer.isPaid && (
+                    <div style={{ display:"flex", flexDirection:"column", gap:7, marginBottom:16 }}>
+                      <button onClick={() => { window.location.href = "/onboarding/plan"; }}
+                        style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 14px", borderRadius:12, border:"1.5px solid rgba(99,102,241,0.5)", background:"linear-gradient(135deg, rgba(37,99,235,0.24) 0%, rgba(79,70,229,0.20) 100%)", cursor:"pointer", textAlign:"left", boxShadow:"0 4px 20px rgba(37,99,235,0.22), inset 0 1px 0 rgba(255,255,255,0.07)" }}>
+                        <div style={{ width:38, height:38, borderRadius:11, background:"linear-gradient(135deg, #2563EB 0%, #4F46E5 100%)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:"0 4px 14px rgba(37,99,235,0.55)" }}>
+                          <svg viewBox="0 0 20 20" fill="white" style={{ width:17, height:17 }}><path d="M10 2l2.4 6.6H19l-5.7 4.1 2.2 6.7L10 15.4 4.5 19.4l2.2-6.7L1 8.6h6.6L10 2z"/></svg>
+                        </div>
+                        <div style={{ flex:1, textAlign:"left" }}>
+                          <div style={{ fontSize:14, fontWeight:800, color:"rgba(255,255,255,0.92)", marginBottom:2 }}>Upgrade to Search</div>
+                          <div style={{ fontSize:11.5, color:"#818CF8" }}>Unlimited sessions + all premium features</div>
+                        </div>
+                        <svg viewBox="0 0 16 16" fill="none" stroke="rgba(129,140,248,0.7)" strokeWidth="2.2" style={{ width:14, height:14, flexShrink:0 }}><path d="M6 3l5 5-5 5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Options — paid users only */}
+                  {viewer.isPaid && <div style={{ display:"flex", flexDirection:"column", gap:7, marginBottom:16 }}>
 
                     {/* Upgrade — primary CTA */}
                     {nextPlanName && (
@@ -18331,7 +18442,7 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
                       </div>
                     </div>}
 
-                  </div>
+                  </div>}
 
                   {/* Footer */}
                   <div style={{ fontSize:11, color:"rgba(255,255,255,0.3)", lineHeight:1.6, marginTop:14 }}>

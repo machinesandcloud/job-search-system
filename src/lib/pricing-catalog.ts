@@ -1,10 +1,16 @@
 export type PricingPlanId = "search" | "growth" | "executive";
+export type PricingBilling = "monthly" | "annual";
 
 export type PricingPlan = {
   id: PricingPlanId;
   name: string;
   priceCents: number;
+  annualPriceCents: number;      // total billed annually
+  annualMonthlyPriceCents: number; // shown as $/month when billed annually
   price: string;
+  annualPrice: string;           // e.g. "$399/year"
+  annualMonthlyPrice: string;    // e.g. "$33/mo"
+  annualSavings: string;         // e.g. "Save $69"
   period: string;
   tag: string;
   accessLabel: string;
@@ -22,7 +28,12 @@ export const PRICING_PLANS: PricingPlan[] = [
     id: "search",
     name: "Search",
     priceCents: 3900,
+    annualPriceCents: 39900,       // $399/yr — saves $69 vs monthly
+    annualMonthlyPriceCents: 3325, // $33.25/mo
     price: "$39",
+    annualPrice: "$399/year",
+    annualMonthlyPrice: "$33/mo",
+    annualSavings: "Save $69",
     period: "/month",
     tag: "Job search only",
     accessLabel: "Resume, LinkedIn, cover letter, interview prep, and action plans",
@@ -44,7 +55,12 @@ export const PRICING_PLANS: PricingPlan[] = [
     id: "growth",
     name: "Growth",
     priceCents: 8900,
+    annualPriceCents: 89900,        // $899/yr — saves $169 vs monthly
+    annualMonthlyPriceCents: 7492,  // $74.92/mo
     price: "$89",
+    annualPrice: "$899/year",
+    annualMonthlyPrice: "$75/mo",
+    annualSavings: "Save $169",
     period: "/month",
     tag: "Most popular",
     accessLabel: "Everything except executive leadership tools",
@@ -67,7 +83,12 @@ export const PRICING_PLANS: PricingPlan[] = [
     id: "executive",
     name: "Executive",
     priceCents: 17900,
+    annualPriceCents: 179900,        // $1799/yr — saves $349 vs monthly
+    annualMonthlyPriceCents: 14992,  // $149.92/mo
     price: "$179",
+    annualPrice: "$1,799/year",
+    annualMonthlyPrice: "$150/mo",
+    annualSavings: "Save $349",
     period: "/month",
     tag: "Leadership included",
     accessLabel: "Everything, including leadership and executive positioning",

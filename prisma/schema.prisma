@@ -536,6 +536,34 @@ model EmailSuppression {
   createdAt DateTime @default(now())
 }
 
+model Referral {
+  id            String   @id @default(uuid()) @db.Uuid
+  referrerEmail String
+  referreeEmail String?
+  referralCode  String   @unique
+  status        String   @default("pending") // pending | signed_up | converted
+  creditGranted Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([referrerEmail])
+  @@index([referralCode])
+}
+
+model ChurnSurvey {
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String?  @db.Uuid
+  email         String
+  reason        String   // too_expensive | not_useful | missing_feature | got_job | other
+  comment       String?  @db.Text
+  offerShown    Boolean  @default(false)
+  offerAccepted Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  @@index([email])
+  @@index([createdAt])
+}
+
 model EmailSequenceEnrollment {
   id          String    @id @default(cuid())
   email       String

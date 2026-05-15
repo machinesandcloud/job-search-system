@@ -1074,13 +1074,19 @@ export async function requirePaidRouteAccess(
                 {
                   ok: false,
                   code: "credit_limit_reached",
-                  error: "You've used your free preview. Upgrade to Search to keep going.",
-                  creditUsage: { used: usedFreeTokens, limit: FREE_TOKEN_LIMIT },
+                  error: "You've used your free credits. Upgrade to Search to keep going.",
+                  creditUsage: { used: usedFreeTokens, limit: FREE_TOKEN_LIMIT, percentUsed: 100 },
                 },
                 { status: 429 }
               ),
             };
           }
+
+          // Soft warning at 75% of free limit — still allows the request
+          const freePercentUsed = Math.round((usedFreeTokens / FREE_TOKEN_LIMIT) * 100);
+          const freeTokenWarning = freePercentUsed >= 75
+            ? { percentUsed: freePercentUsed, used: usedFreeTokens, limit: FREE_TOKEN_LIMIT, threshold: "75" as const }
+            : null;
 
           // Enforce 1 use per feature on free plan
           const priorUses = await prisma.aiTokenUsage.count({
@@ -1104,23 +1110,23 @@ export async function requirePaidRouteAccess(
               ),
             };
           }
+
+          // Log and allow free-tier use
+          try {
+            await logAppEvent("feature_used", {
+              accountId: access.account.id,
+              userId: access.user?.id,
+              metadataJson: { featureName, tier: "free", percentUsed: freePercentUsed, ...metadataJson },
+            });
+          } catch { /* non-fatal */ }
+
+          return { ok: true as const, access, usage: null, tokenLimitWarning: freeTokenWarning };
         } catch {
           // non-fatal — allow through if DB check fails
         }
       }
 
-      // Log and allow free-tier use
-      try {
-        if (access.account) {
-          await logAppEvent("feature_used", {
-            accountId: access.account.id,
-            userId: access.user?.id,
-            metadataJson: { featureName, tier: "free", ...metadataJson },
-          });
-        }
-      } catch { /* non-fatal */ }
-
-      return { ok: true as const, access, usage: null };
+      return { ok: true as const, access, usage: null, tokenLimitWarning: null };
     }
   }
   // ── END FREE TIER GATING ──────────────────────────────────────────────────
@@ -1208,12 +1214,27 @@ export async function requirePaidRouteAccess(
     };
   }
 
+  // Soft warning for paid tier: warn at 75% and 90% of monthly limit
+  let paidTokenWarning: { percentUsed: number; used: number; limit: number; threshold: "75" | "90" } | null = null;
+  if (usage && usage.limit > 0) {
+    const percentUsed = Math.round((usage.used / usage.limit) * 100);
+    if (percentUsed >= 90) {
+      paidTokenWarning = { percentUsed, used: usage.used, limit: usage.limit, threshold: "90" };
+    } else if (percentUsed >= 75) {
+      paidTokenWarning = { percentUsed, used: usage.used, limit: usage.limit, threshold: "75" };
+    }
+  }
+
   try {
     if (access.account) {
       await logAppEvent("feature_used", {
         accountId: access.account.id,
         userId: access.user?.id,
-        metadataJson: { featureName, ...metadataJson },
+        metadataJson: {
+          featureName,
+          percentUsed: usage && usage.limit > 0 ? Math.round((usage.used / usage.limit) * 100) : null,
+          ...metadataJson,
+        },
       });
     }
   } catch { /* non-fatal */ }
@@ -1222,6 +1243,7 @@ export async function requirePaidRouteAccess(
     ok: true as const,
     access,
     usage,
+    tokenLimitWarning: paidTokenWarning,
   };
 }
 

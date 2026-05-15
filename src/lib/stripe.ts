@@ -26,8 +26,21 @@ function firstDefinedEnv(keys: string[]) {
   return null;
 }
 
-export function getStripeSubscriptionPriceId(planId?: string | null) {
+export function getStripeAnnualPriceId(planId?: string | null) {
   const normalized = `${planId || ""}`.trim().toLowerCase();
+  if (normalized === "search") return firstDefinedEnv(["STRIPE_PRICE_ID_SEARCH_ANNUAL"]);
+  if (normalized === "growth" || normalized === "pro") return firstDefinedEnv(["STRIPE_PRICE_ID_GROWTH_ANNUAL"]);
+  if (normalized === "executive" || normalized === "premium" || normalized === "team") return firstDefinedEnv(["STRIPE_PRICE_ID_EXECUTIVE_ANNUAL"]);
+  return null;
+}
+
+export function getStripeSubscriptionPriceId(planId?: string | null, billing?: "monthly" | "annual") {
+  const normalized = `${planId || ""}`.trim().toLowerCase();
+
+  if (billing === "annual") {
+    const annualId = getStripeAnnualPriceId(normalized);
+    if (annualId) return annualId;
+  }
 
   if (normalized === "search") {
     return firstDefinedEnv(["STRIPE_PRICE_ID_SEARCH_MONTHLY", "STRIPE_PRICE_ID_SEARCH"]);

@@ -56,23 +56,23 @@ export function NonStarter2({ firstName, unsubscribeUrl }: { firstName?: string;
 
 export function NonStarter3({ firstName, unsubscribeUrl }: { firstName?: string; unsubscribeUrl: string }) {
   return (
-    <Layout preview="Your free trial ends soon — use it before it's gone." headline="Your trial is almost over — and you haven't used it yet." unsubscribeUrl={unsubscribeUrl}>
+    <Layout preview="Your free credits are still unused. Last nudge." headline="Your free credits are still there. Last nudge." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
-        {firstName ?? "Hey"} — your free trial ends soon. You haven't run a session yet.
+        {firstName ?? "Hey"} — you signed up for Zari and haven't run a single session. Your free credits are sitting there unused.
       </Text>
       <Text style={p()}>
-        I'm not going to oversell it. If you don't find it useful, cancel. No hard feelings.
+        I'm not going to oversell it. If you try it and don't find it useful, you're on the free plan — there's nothing to cancel.
       </Text>
       <Text style={p()}>
-        But you signed up for a reason. Whatever that reason was — a job search, an upcoming interview, a career transition — it's worth 20 minutes of your time to see if Zari can actually help.
+        But you signed up for a reason. Whatever that reason was — a job search, an upcoming interview, a career transition — it's worth 15 minutes of your time to see if Zari can actually help before you write it off.
       </Text>
       <Text style={p()}>
-        Run one complete session before your trial ends. Resume review, interview prep, LinkedIn — whichever is most relevant right now. If it doesn't deliver something useful within that session, it's not for you.
+        Open one session. Resume review, interview prep, LinkedIn — whichever is most relevant right now. If it doesn't deliver something useful, it's not for you.
       </Text>
-      <CtaButton href={APP}>Use my trial →</CtaButton>
+      <CtaButton href={APP}>Use my free credits →</CtaButton>
       <Divider />
       <Text style={muted()}>
-        If you've decided Zari isn't right for you, you can cancel from billing settings. No questions asked.
+        After this I'll stop reaching out. But your account stays open — come back whenever you're ready.
       </Text>
       <Signature />
     </Layout>

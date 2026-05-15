@@ -15,8 +15,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
   }
 
-  const body = (await request.json().catch(() => ({}))) as { planId?: string };
+  const body = (await request.json().catch(() => ({}))) as { planId?: string; billing?: string };
   const requestedPlanId = typeof body.planId === "string" ? body.planId.trim().toLowerCase() : null;
+  const requestedBilling: "monthly" | "annual" = body.billing === "annual" ? "annual" : "monthly";
 
   const identity = await syncCurrentUserToBillingIdentity();
   if (!identity) {
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "An active subscription already exists for this account." }, { status: 409 });
   }
 
-  const priceId = getStripeSubscriptionPriceId(requestedPlanId);
+  const priceId = getStripeSubscriptionPriceId(requestedPlanId, requestedBilling);
   if (!priceId) {
     return NextResponse.json(
       { error: requestedPlanId ? `Stripe price for plan "${requestedPlanId}" is not configured.` : "Monthly Stripe price is not configured." },
@@ -57,6 +58,7 @@ export async function POST(request: NextRequest) {
       userId: identity.user.id,
       externalAuthId: identity.mvpUser?.id || identity.user.id,
       requestedPlanId: requestedPlanId || "default",
+      billing: requestedBilling,
     },
     ...(existingSubscription?.stripeCustomerId
       ? { customer: existingSubscription.stripeCustomerId }
@@ -67,6 +69,7 @@ export async function POST(request: NextRequest) {
         userId: identity.user.id,
         externalAuthId: identity.mvpUser?.id || identity.user.id,
         requestedPlanId: requestedPlanId || "default",
+        billing: requestedBilling,
       },
       ...(Number.isFinite(trialDays) && trialDays > 0 ? { trial_period_days: trialDays } : {}),
     },
@@ -79,6 +82,7 @@ export async function POST(request: NextRequest) {
       sessionId: session.id,
       priceId,
       requestedPlanId,
+      billing: requestedBilling,
       mode: "subscription",
     },
   });
