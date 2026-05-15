@@ -3,7 +3,7 @@
 // Central orchestrator for all sales & marketing automation.
 // Every product event flows through here. The engine decides:
 //   1. What to write to Zoho CRM (contacts, deals, activities, notes)
-//   2. Which email sequences to trigger or stop in Zoho Campaigns
+//   2. Which email sequences to trigger or cancel (via Resend + DB scheduler)
 //   3. How to update the lead/health score
 //
 // Usage: call the relevant handler from API routes — all calls are fire-and-forget.
@@ -17,13 +17,7 @@ import {
   computeLifecycleStage,
   computeHealthScore,
 } from "@/lib/zoho-crm";
-import {
-  triggerSequence,
-  stopSequence,
-  moveToList,
-  subscribeToList,
-  type CampaignsContact,
-} from "@/lib/zoho-campaigns";
+import { enroll, cancel, cancelMany } from "@/lib/email-sequences";
 
 // ─── Event payloads ───────────────────────────────────────────────────────────
 
@@ -114,31 +108,12 @@ export interface NpsSubmittedEvent {
   planTier: string;
 }
 
-// ─── Helper ───────────────────────────────────────────────────────────────────
-
-function campaignsContact(opts: {
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  planTier?: string;
-  lifecycleStage?: string;
-}): CampaignsContact {
-  return {
-    email: opts.email,
-    firstName: opts.firstName,
-    lastName: opts.lastName,
-    planTier: opts.planTier,
-    lifecycleStage: opts.lifecycleStage,
-  };
-}
-
 // ─── Event handlers ───────────────────────────────────────────────────────────
 
 /**
  * A new user signed up (free trial or direct).
  * CRM: create Contact in "Lead" stage.
- * Campaigns: start trial_onboarding sequence.
- * If they came from cold email: move them off the lead_nurture list.
+ * Email: stop lead_nurture if from cold email, start trial_onboarding.
  */
 export async function onUserSignedUp(event: UserSignedUpEvent): Promise<void> {
   try {
@@ -151,24 +126,13 @@ export async function onUserSignedUp(event: UserSignedUpEvent): Promise<void> {
       source: event.source,
     });
 
-    const contact = campaignsContact({
-      email: event.email,
-      firstName: event.firstName,
-      lastName: event.lastName,
-      planTier: "Free",
-      lifecycleStage: "Lead",
-    });
+    const meta = { firstName: event.firstName, lastName: event.lastName };
 
-    // If converted from cold email nurture, stop that sequence
     if (event.source === "Cold Email") {
-      void stopSequence("lead_nurture", event.email);
-      void moveToList("ZOHO_LIST_LEADS", "ZOHO_LIST_TRIAL", contact);
-    } else {
-      void subscribeToList("ZOHO_LIST_TRIAL", contact);
+      void cancel(event.email, "lead_nurture");
     }
 
-    // Start 14-day trial onboarding sequence
-    void triggerSequence("trial_onboarding", contact);
+    void enroll("trial_onboarding", event.email, meta);
   } catch (err) {
     console.error("[zoho-engine] onUserSignedUp error:", err);
   }
@@ -177,8 +141,7 @@ export async function onUserSignedUp(event: UserSignedUpEvent): Promise<void> {
 /**
  * A user completed a coaching session.
  * CRM: update engagement signals + health score + log activity.
- * Campaigns: fire milestone emails at sessions 1, 5, 10.
- *            If approaching token limit, trigger upsell sequence.
+ * Email: milestone at session 1 and 5, upsell at 80% token limit, NPS at day 30.
  */
 export async function onSessionCompleted(event: SessionCompletedEvent): Promise<void> {
   try {
@@ -194,28 +157,17 @@ export async function onSessionCompleted(event: SessionCompletedEvent): Promise<
       daysSinceSignup: event.daysSinceSignup,
     });
 
-    const contact = campaignsContact({
-      email: event.email,
-      firstName: event.firstName,
-      planTier: event.planTier,
-      lifecycleStage: event.subscriptionStatus === "active" ? "Active" : "Trial",
-    });
+    const meta = { firstName: event.firstName, planTier: event.planTier, email: event.email };
 
-    // Milestone triggers
-    if (event.sessionCount === 1) {
-      void triggerSequence("milestone_1", contact);
-    } else if (event.sessionCount === 5) {
-      void triggerSequence("milestone_5", contact);
-    }
+    if (event.sessionCount === 1) void enroll("milestone_1", event.email, meta);
+    if (event.sessionCount === 5) void enroll("milestone_5", event.email, meta);
 
-    // Upsell trigger when approaching plan token limit
     if ((event.tokenLimitPercent ?? 0) >= 80 && event.planTier !== "team") {
-      void triggerSequence("upsell_limit", contact);
+      void enroll("upsell_limit", event.email, meta);
     }
 
-    // NPS trigger at 30 days for active customers (only once per lifecycle)
     if (event.daysSinceSignup === 30 && event.subscriptionStatus === "active") {
-      void triggerSequence("nps_survey", contact);
+      void enroll("nps_survey", event.email, meta);
     }
   } catch (err) {
     console.error("[zoho-engine] onSessionCompleted error:", err);
@@ -225,7 +177,7 @@ export async function onSessionCompleted(event: SessionCompletedEvent): Promise<
 /**
  * A Stripe subscription event fired (trial start, activation, upgrade, downgrade, past_due).
  * CRM: update Contact + upsert Deal with correct pipeline stage.
- * Campaigns: move contact to appropriate list + trigger right sequence.
+ * Email: stop trial sequences on upgrade, send paid_welcome for new paying customers.
  */
 export async function onSubscriptionChanged(event: SubscriptionChangedEvent): Promise<void> {
   try {
@@ -245,40 +197,18 @@ export async function onSubscriptionChanged(event: SubscriptionChangedEvent): Pr
       amount: event.amount,
     });
 
-    const tierLabel = ({ free: "Free", pro: "Search", premium: "Growth", team: "Executive" } as Record<string, string>)[event.planTier] ?? "Free";
-    const contact = campaignsContact({
-      email: event.email,
-      firstName: event.firstName,
-      lastName: event.lastName,
-      planTier: tierLabel,
-    });
+    const meta = { firstName: event.firstName, lastName: event.lastName, planTier: event.planTier };
 
     if (event.subscriptionStatus === "trialing") {
-      // Trial started — already handled by onUserSignedUp for new signups,
-      // but handle upgrades/downgrades that enter a new trial
-      contact.lifecycleStage = "Trial";
-      void triggerSequence("trial_onboarding", contact);
+      void enroll("trial_onboarding", event.email, meta);
     }
 
     if (event.subscriptionStatus === "active") {
       const isUpgrade = event.previousPlanTier && event.previousPlanTier !== event.planTier;
-      contact.lifecycleStage = "Active";
-
-      // Stop trial sequences, move to customer list
-      void stopSequence("trial_onboarding", event.email);
-      void stopSequence("trial_ending", event.email);
-      void stopSequence("at_risk", event.email);
-      void moveToList("ZOHO_LIST_TRIAL", "ZOHO_LIST_CUSTOMERS", contact);
-
+      void cancelMany(event.email, ["trial_onboarding", "trial_ending", "at_risk"]);
       if (!isUpgrade) {
-        // New paying customer → welcome sequence
-        void triggerSequence("paid_welcome", contact);
+        void enroll("paid_welcome", event.email, meta);
       }
-    }
-
-    if (event.subscriptionStatus === "past_due") {
-      // Payment failed — CRM already updated. Consider adding a dunning email here.
-      contact.lifecycleStage = "At Risk";
     }
   } catch (err) {
     console.error("[zoho-engine] onSubscriptionChanged error:", err);
@@ -287,18 +217,11 @@ export async function onSubscriptionChanged(event: SubscriptionChangedEvent): Pr
 
 /**
  * Trial ending soon (cron job fires this 3 days before expiry).
- * CRM: log "Trial Ending Soon" activity.
- * Campaigns: trigger urgency sequence.
+ * Email: start trial_ending urgency sequence.
  */
 export async function onTrialEnding(event: TrialEndingEvent): Promise<void> {
   try {
-    const contact = campaignsContact({
-      email: event.email,
-      firstName: event.firstName,
-      planTier: "Free",
-      lifecycleStage: "Trial",
-    });
-    void triggerSequence("trial_ending", contact);
+    void enroll("trial_ending", event.email, { firstName: event.firstName });
   } catch (err) {
     console.error("[zoho-engine] onTrialEnding error:", err);
   }
@@ -306,22 +229,11 @@ export async function onTrialEnding(event: TrialEndingEvent): Promise<void> {
 
 /**
  * User flagged as at-risk by the health check cron.
- * CRM: update lifecycle to "At Risk", log activity.
- * Campaigns: start re-engagement sequence.
+ * Email: start re-engagement sequence.
  */
 export async function onUserAtRisk(event: UserAtRiskEvent): Promise<void> {
   try {
-    // CRM update — reuse syncSessionComplete with stale data to update health score
-    // In production you'd have a dedicated updateContactLifecycle call
-    const contact = campaignsContact({
-      email: event.email,
-      firstName: event.firstName,
-      planTier: event.planTier,
-      lifecycleStage: "At Risk",
-    });
-
-    void moveToList("ZOHO_LIST_CUSTOMERS", "ZOHO_LIST_AT_RISK", contact);
-    void triggerSequence("at_risk", contact);
+    void enroll("at_risk", event.email, { firstName: event.firstName, planTier: event.planTier });
   } catch (err) {
     console.error("[zoho-engine] onUserAtRisk error:", err);
   }
@@ -329,7 +241,7 @@ export async function onUserAtRisk(event: UserAtRiskEvent): Promise<void> {
 
 /**
  * User came back after being at-risk (new session after >14 day gap).
- * Stop the at-risk sequence, move back to customer list.
+ * Stop the at-risk re-engagement sequence.
  */
 export async function onUserReengaged(opts: {
   email: string;
@@ -337,15 +249,14 @@ export async function onUserReengaged(opts: {
   planTier: string;
 }): Promise<void> {
   try {
-    void stopSequence("at_risk", opts.email);
-    void moveToList("ZOHO_LIST_AT_RISK", "ZOHO_LIST_CUSTOMERS", campaignsContact(opts));
+    void cancel(opts.email, "at_risk");
   } catch {}
 }
 
 /**
  * User churned (subscription canceled).
  * CRM: mark Contact "Churned", close Deal as Lost.
- * Campaigns: stop all active sequences, start win-back cadence.
+ * Email: stop all active sequences, enroll in win-back cadence (30/60/90 day).
  */
 export async function onUserChurned(event: ChurnEvent): Promise<void> {
   try {
@@ -355,25 +266,29 @@ export async function onUserChurned(event: ChurnEvent): Promise<void> {
       planTier: event.planTier,
     });
 
-    const contact = campaignsContact({
-      email: event.email,
-      firstName: event.firstName,
-      planTier: event.planTier,
-      lifecycleStage: "Churned",
-    });
+    void cancel(event.email);
 
-    // Stop all active sequences
-    void stopSequence("trial_onboarding", event.email);
-    void stopSequence("trial_ending", event.email);
-    void stopSequence("paid_welcome", event.email);
-    void stopSequence("at_risk", event.email);
-    void stopSequence("upsell_limit", event.email);
+    const meta = { firstName: event.firstName, planTier: event.planTier };
+    void enroll("win_back_30", event.email, meta);
 
-    // Move to win-back list and start win-back cadence (day 1 exit email)
-    void moveToList("ZOHO_LIST_CUSTOMERS", "ZOHO_LIST_WIN_BACK", contact);
-    void triggerSequence("win_back_30", contact);
-    // win_back_60 and win_back_90 are scheduled within the Zoho Campaigns
-    // autoresponder as delayed follow-ups, not separate API calls
+    // Enroll win_back_60 and win_back_90 with pre-calculated delays so they
+    // fire at the right time relative to the churn date, not relative to each other.
+    const sixtyDays = new Date(Date.now() + 60 * 86_400_000);
+    const ninetyDays = new Date(Date.now() + 90 * 86_400_000);
+    void import("@/lib/db").then(({ prisma }) =>
+      Promise.all([
+        prisma.emailSequenceEnrollment.upsert({
+          where: { email_sequence: { email: event.email, sequence: "win_back_60" } },
+          update: { step: 0, nextSendAt: sixtyDays, canceledAt: null, completedAt: null, metadata: meta as object },
+          create: { email: event.email, sequence: "win_back_60", step: 0, nextSendAt: sixtyDays, metadata: meta as object },
+        }),
+        prisma.emailSequenceEnrollment.upsert({
+          where: { email_sequence: { email: event.email, sequence: "win_back_90" } },
+          update: { step: 0, nextSendAt: ninetyDays, canceledAt: null, completedAt: null, metadata: meta as object },
+          create: { email: event.email, sequence: "win_back_90", step: 0, nextSendAt: ninetyDays, metadata: meta as object },
+        }),
+      ])
+    );
   } catch (err) {
     console.error("[zoho-engine] onUserChurned error:", err);
   }
@@ -382,20 +297,11 @@ export async function onUserChurned(event: ChurnEvent): Promise<void> {
 /**
  * A cold email or website lead was captured (before they sign up).
  * CRM: create Lead record.
- * Campaigns: add to leads list and start nurture sequence.
+ * Email: start lead_nurture sequence.
  */
 export async function onLeadCaptured(event: LeadCapturedEvent): Promise<void> {
   try {
-    const contact = campaignsContact({
-      email: event.email,
-      firstName: event.firstName,
-      lastName: event.lastName,
-      planTier: "Free",
-      lifecycleStage: "Lead",
-    });
-
-    void subscribeToList("ZOHO_LIST_LEADS", contact);
-    void triggerSequence("lead_nurture", contact);
+    void enroll("lead_nurture", event.email, { firstName: event.firstName, lastName: event.lastName });
   } catch (err) {
     console.error("[zoho-engine] onLeadCaptured error:", err);
   }

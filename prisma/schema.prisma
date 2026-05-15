@@ -515,3 +515,20 @@ model UserPortalState {
   @@unique([userId, key])
   @@index([userId])
 }
+
+model EmailSequenceEnrollment {
+  id          String    @id @default(cuid())
+  email       String
+  sequence    String
+  step        Int       @default(0)
+  nextSendAt  DateTime
+  completedAt DateTime?
+  canceledAt  DateTime?
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([email, sequence])
+  @@index([nextSendAt])
+  @@index([sequence])
+}

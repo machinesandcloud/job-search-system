@@ -6,6 +6,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { onUserAtRisk, onTrialEnding } from "@/lib/zoho-engine";
 import { computeHealthScore } from "@/lib/zoho-crm";
+import { processSequenceQueue } from "@/lib/email-sequences";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -18,7 +19,16 @@ export async function GET(request: Request) {
   }
 
   const now = new Date();
-  const results = { atRisk: 0, trialEnding: 0, errors: 0 };
+  const results = { atRisk: 0, trialEnding: 0, emailsSent: 0, errors: 0 };
+
+  // ── 0. Process email sequence queue ────────────────────────────────────────
+  try {
+    const emailResults = await processSequenceQueue();
+    results.emailsSent = emailResults.sent;
+    results.errors += emailResults.errors;
+  } catch (err) {
+    console.error("[cron/zoho-health] sequence queue error:", err);
+  }
 
   // ── 1. Detect at-risk active subscribers ───────────────────────────────────
   // Definition: paying user with no session in 14+ days AND health score < 50
