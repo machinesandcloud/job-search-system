@@ -8827,7 +8827,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
       const data = await res.json().catch(() => null) as ResumeAnalysis | null;
       clearInterval(interval);
       setProgress(100);
-      if (data && data.overall) {
+      if (data && typeof data.overall === "number") {
         setAiResult(data);
         // Persist session so page refresh lands back on results
         try { const _rsess = { resumeText:textToAnalyze, fileName:fileName||"resume", aiResult:data, reviewMode, targetRoleInput, jobDescription, careerLevel, savedAt:new Date().toISOString() }; localStorage.setItem(RESUME_SESSION_KEY, JSON.stringify(_rsess)); syncKeyToServer(RESUME_SESSION_KEY, _rsess); } catch { /* non-fatal */ }
@@ -8846,7 +8846,11 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
         setTimeout(() => { setStep("results"); setResumeViewMode("suggestions"); }, 400);
       } else {
         setStep("paste");
-        if (!handleBillingApiError(res.status, data as BillingApiErrorData, billing)) setAnalyzeErr((data as {error?:string}|null)?.error ?? "Analysis failed — try again.");
+        if (res.status === 504 || res.status === 502 || data === null) {
+          setAnalyzeErr("Analysis timed out — please try again. If it keeps failing, try a shorter resume.");
+        } else if (!handleBillingApiError(res.status, data as BillingApiErrorData, billing)) {
+          setAnalyzeErr((data as {error?:string}|null)?.error ?? "Analysis failed — try again.");
+        }
       }
     } catch (e) {
       clearInterval(interval);
