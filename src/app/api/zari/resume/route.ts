@@ -354,14 +354,12 @@ Voice rules:
     { role: "user" as const, content: `Analyze this resume:\n\n${resumeText.slice(0, 6500)}` },
   ];
 
-  // Default to gpt-4o-mini: faster (~150 tok/s vs ~60 tok/s for gpt-4o), stays well within function timeout.
-  // Set OPENAI_MODEL_QUALITY=gpt-4o in Netlify env to opt into the slower, higher-quality model.
-  const model = process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o-mini";
+  const model = process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o";
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 55000);
+  const timeout = setTimeout(() => controller.abort(), 45000);
   let reply: string | null = null;
   try {
-    reply = await openaiChat(messages, { model, temperature: 0.2, maxTokens: 2500, jsonMode: true }, controller.signal);
+    reply = await openaiChat(messages, { model, temperature: 0.2, maxTokens: 3500, jsonMode: true }, controller.signal);
   } finally {
     clearTimeout(timeout);
   }
@@ -379,14 +377,7 @@ Voice rules:
       if (isQuota) return NextResponse.json({ error: "OpenAI quota exceeded — check your billing at platform.openai.com" }, { status: 503 });
       return NextResponse.json({ error: `OpenAI request failed (HTTP ${err.status}) — try again` }, { status: 503 });
     }
-    if (err?.code === "network_error") {
-      const isTimeout = err.message?.toLowerCase().includes("abort") || err.message?.toLowerCase().includes("timeout");
-      return NextResponse.json(
-        { error: isTimeout ? "Analysis took too long — please try again. If it keeps failing, try a shorter resume." : `Connection error — ${err.message}` },
-        { status: 503 }
-      );
-    }
-    return NextResponse.json({ error: "Analysis failed — try again." }, { status: 503 });
+    return NextResponse.json({ error: "Analysis failed — try again" }, { status: 503 });
   }
 
   try {
