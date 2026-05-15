@@ -2539,7 +2539,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
               </div>
               <p style={{ fontSize:17, lineHeight:1.72, color:"#111827", margin:"0 0 32px", fontWeight:400 }}>
                 I&apos;d been applying for 3 months with no callbacks. Zari audited my resume in one session and I rewrote it overnight.{" "}
-                <strong style={{ fontWeight:800, color:"#111827" }}>I had 4 interview invites the following week.</strong>{" "}
+                <span style={{ background:"rgba(99,102,241,0.13)", borderRadius:4, padding:"1px 4px", fontWeight:500 }}>I had 4 interview invites the following week.</span>{" "}
                 I thought I was doing everything right — I wasn&apos;t.
               </p>
               <div style={{ display:"flex", alignItems:"center", gap:14 }}>
@@ -2559,7 +2559,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
               </div>
               <p style={{ fontSize:17, lineHeight:1.72, color:"#111827", margin:"0 0 32px", fontWeight:400 }}>
                 I nearly accepted their first offer without saying a word. Zari walked me through all three rounds of negotiation.{" "}
-                <strong style={{ fontWeight:800, color:"#111827" }}>I walked away with $22K more than I would have taken.</strong>{" "}
+                <span style={{ background:"rgba(99,102,241,0.13)", borderRadius:4, padding:"1px 4px", fontWeight:500 }}>I walked away with $22K more than I would have taken.</span>{" "}
                 Every dollar I didn&apos;t leave on the table was because of this.
               </p>
               <div style={{ display:"flex", alignItems:"center", gap:14 }}>
@@ -2579,7 +2579,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
               </div>
               <p style={{ fontSize:17, lineHeight:1.72, color:"#111827", margin:"0 0 32px", fontWeight:400 }}>
                 I&apos;ve worked with expensive coaches before. None came close to this.{" "}
-                <strong style={{ fontWeight:800, color:"#111827" }}>The final round interviewer asked me the exact question Zari drilled me on the night before.</strong>{" "}
+                <span style={{ background:"rgba(99,102,241,0.13)", borderRadius:4, padding:"1px 4px", fontWeight:500 }}>The final round interviewer asked me the exact question Zari drilled me on the night before.</span>{" "}
                 I was ready. I got the offer.
               </p>
               <div style={{ display:"flex", alignItems:"center", gap:14 }}>
