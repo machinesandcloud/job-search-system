@@ -56,9 +56,18 @@ function HighlightedText({ text, highlights }: { text: string; highlights: strin
     <>
       {parts.map((part, i) =>
         set.has(part) ? (
-          <span key={i} style={{ background: "rgba(99,102,241,0.13)", borderRadius: 4, padding: "1px 4px", fontWeight: 600 }}>
+          <mark
+            key={i}
+            style={{
+              background: "linear-gradient(104deg, rgba(99,102,241,0) 0.9%, rgba(99,102,241,0.18) 2.4%, rgba(99,102,241,0.14) 95.8%, rgba(99,102,241,0) 98%)",
+              borderRadius: 3,
+              padding: "1px 2px",
+              fontWeight: 600,
+              color: "inherit",
+            }}
+          >
             {part}
-          </span>
+          </mark>
         ) : (
           part
         )
@@ -69,48 +78,28 @@ function HighlightedText({ text, highlights }: { text: string; highlights: strin
 
 export function HomeReviewWall() {
   return (
-    <section id="reviews" style={{ padding:"100px 20px 110px", minHeight:"100vh", background:"white", position:"relative", overflow:"hidden" }}>
+    <section id="reviews" style={{ padding:"100px 20px 120px", background:"#EEEEFF", position:"relative", overflow:"hidden" }}>
+      {/* Floating hearts */}
       {([
-        { left:"3%", delay:"0s", dur:"14s", s:28, o:0.36 },
-        { left:"9%", delay:"1.2s", dur:"16s", s:20, o:0.30 },
-        { left:"16%", delay:"0.4s", dur:"13s", s:24, o:0.34 },
-        { left:"23%", delay:"2.1s", dur:"17s", s:18, o:0.28 },
-        { left:"30%", delay:"0.8s", dur:"15s", s:30, o:0.38 },
-        { left:"37%", delay:"1.7s", dur:"12s", s:16, o:0.26 },
-        { left:"44%", delay:"3.0s", dur:"14s", s:22, o:0.32 },
-        { left:"51%", delay:"0.2s", dur:"16s", s:28, o:0.40 },
-        { left:"58%", delay:"1.5s", dur:"13s", s:20, o:0.30 },
-        { left:"65%", delay:"2.6s", dur:"15s", s:24, o:0.34 },
-        { left:"72%", delay:"0.6s", dur:"18s", s:16, o:0.26 },
-        { left:"79%", delay:"1.9s", dur:"14s", s:30, o:0.36 },
-        { left:"86%", delay:"3.4s", dur:"12s", s:18, o:0.28 },
-        { left:"93%", delay:"0.9s", dur:"16s", s:22, o:0.32 },
-        { left:"6%", delay:"4.1s", dur:"13s", s:16, o:0.24 },
-        { left:"13%", delay:"2.8s", dur:"15s", s:20, o:0.30 },
-        { left:"20%", delay:"5.0s", dur:"17s", s:26, o:0.38 },
-        { left:"28%", delay:"1.1s", dur:"14s", s:18, o:0.28 },
-        { left:"35%", delay:"3.7s", dur:"13s", s:28, o:0.36 },
-        { left:"42%", delay:"0.5s", dur:"16s", s:20, o:0.30 },
-        { left:"49%", delay:"4.5s", dur:"18s", s:22, o:0.34 },
-        { left:"56%", delay:"2.3s", dur:"12s", s:30, o:0.42 },
-        { left:"63%", delay:"1.4s", dur:"14s", s:16, o:0.24 },
-        { left:"70%", delay:"3.2s", dur:"15s", s:24, o:0.34 },
-        { left:"77%", delay:"5.5s", dur:"17s", s:20, o:0.30 },
-        { left:"84%", delay:"4.8s", dur:"13s", s:18, o:0.28 },
-        { left:"91%", delay:"2.0s", dur:"16s", s:26, o:0.38 },
-        { left:"5%", delay:"6.2s", dur:"15s", s:22, o:0.32 },
-        { left:"18%", delay:"3.9s", dur:"14s", s:28, o:0.36 },
-        { left:"26%", delay:"1.6s", dur:"18s", s:16, o:0.26 },
-        { left:"33%", delay:"5.8s", dur:"13s", s:24, o:0.34 },
-        { left:"40%", delay:"0.7s", dur:"16s", s:20, o:0.30 },
-        { left:"47%", delay:"4.3s", dur:"15s", s:30, o:0.40 },
-        { left:"54%", delay:"2.5s", dur:"17s", s:18, o:0.28 },
-        { left:"61%", delay:"6.8s", dur:"14s", s:22, o:0.34 },
-        { left:"68%", delay:"1.3s", dur:"12s", s:26, o:0.38 },
-        { left:"75%", delay:"4.0s", dur:"16s", s:16, o:0.24 },
-        { left:"82%", delay:"7.1s", dur:"15s", s:28, o:0.36 },
-        { left:"89%", delay:"2.7s", dur:"13s", s:20, o:0.30 },
-        { left:"96%", delay:"5.2s", dur:"18s", s:24, o:0.34 },
+        { left:"3%", delay:"0s", dur:"14s", s:28, o:0.28 },
+        { left:"9%", delay:"1.2s", dur:"16s", s:20, o:0.22 },
+        { left:"16%", delay:"0.4s", dur:"13s", s:24, o:0.26 },
+        { left:"23%", delay:"2.1s", dur:"17s", s:18, o:0.20 },
+        { left:"30%", delay:"0.8s", dur:"15s", s:30, o:0.30 },
+        { left:"37%", delay:"1.7s", dur:"12s", s:16, o:0.20 },
+        { left:"44%", delay:"3.0s", dur:"14s", s:22, o:0.24 },
+        { left:"51%", delay:"0.2s", dur:"16s", s:28, o:0.32 },
+        { left:"58%", delay:"1.5s", dur:"13s", s:20, o:0.22 },
+        { left:"65%", delay:"2.6s", dur:"15s", s:24, o:0.26 },
+        { left:"72%", delay:"0.6s", dur:"18s", s:16, o:0.20 },
+        { left:"79%", delay:"1.9s", dur:"14s", s:30, o:0.28 },
+        { left:"86%", delay:"3.4s", dur:"12s", s:18, o:0.22 },
+        { left:"93%", delay:"0.9s", dur:"16s", s:22, o:0.24 },
+        { left:"6%", delay:"4.1s", dur:"13s", s:16, o:0.18 },
+        { left:"20%", delay:"5.0s", dur:"17s", s:26, o:0.30 },
+        { left:"56%", delay:"2.3s", dur:"12s", s:30, o:0.34 },
+        { left:"70%", delay:"3.2s", dur:"15s", s:24, o:0.26 },
+        { left:"84%", delay:"4.8s", dur:"13s", s:18, o:0.22 },
       ] as { left: string; delay: string; dur: string; s: number; o: number }[]).map((h, i) => (
         <div
           key={i}
@@ -125,7 +114,7 @@ export function HomeReviewWall() {
             pointerEvents:"none",
             userSelect:"none",
             lineHeight:1,
-            zIndex:10,
+            zIndex:1,
             animation:`${["heart-float","heart-float-left","heart-float-right","heart-float-sway"][i % 4]} ${h.dur} ${h.delay} ease-in infinite`,
           }}
         >
@@ -134,44 +123,52 @@ export function HomeReviewWall() {
       ))}
 
       <div style={{ maxWidth:1440, margin:"0 auto", position:"relative", zIndex:2 }}>
+        {/* Header */}
         <div style={{ textAlign:"center", marginBottom:72 }}>
-          <h2 style={{ fontSize:"clamp(2.2rem,4.5vw,3.2rem)", fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", marginBottom:14 }}>
-            Loved by 1,200+ candidates.
+          <p style={{ fontSize:12, fontWeight:700, letterSpacing:"0.18em", textTransform:"uppercase", color:"#6366F1", marginBottom:16 }}>
+            What people are saying
+          </p>
+          <h2 style={{ fontSize:"clamp(2.4rem,4.5vw,3.4rem)", fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", margin:0 }}>
+            Real results. Real people.
           </h2>
-          <p style={{ fontSize:18, color:"#68738A" }}>Real sessions. Real results. Real offers.</p>
         </div>
 
-        <div style={{ columns:3, columnGap:24 }}>
+        {/* Masonry grid */}
+        <div style={{ columns:3, columnGap:28 }}>
           {WALL_REVIEWS.map((r, i) => (
             <div
               key={i}
-              className="review-card"
               style={{
                 breakInside:"avoid",
-                marginBottom:24,
-                background:"white",
-                border:"1px solid rgba(226,232,240,0.9)",
-                borderRadius:20,
-                padding:"28px 26px 24px",
-                boxShadow:"0 4px 22px rgba(99,102,241,0.10),0 1px 4px rgba(0,0,0,0.05)",
+                marginBottom:28,
+                background:"#FFFFFF",
+                border:"1px solid rgba(226,232,240,0.7)",
+                borderRadius:24,
+                padding:"32px 30px 28px",
+                boxShadow:"0 2px 8px rgba(99,102,241,0.06), 0 8px 32px rgba(99,102,241,0.08)",
               }}
             >
-              <div style={{ display:"flex", gap:2, marginBottom:18 }}>
+              {/* Stars */}
+              <div style={{ display:"flex", gap:3, marginBottom:20 }}>
                 {Array.from({ length:5 }).map((_, j) => (
-                  <span key={j} style={{ fontSize:18, color:"#F97316", lineHeight:1 }}>★</span>
+                  <span key={j} style={{ fontSize:22, color:"#F59E0B", lineHeight:1 }}>★</span>
                 ))}
               </div>
-              <p style={{ fontSize:15.5, lineHeight:1.72, color:"#111827", margin:"0 0 22px", fontWeight:400 }}>
+
+              {/* Quote */}
+              <p style={{ fontSize:16.5, lineHeight:1.78, color:"#111827", margin:"0 0 26px", fontWeight:450 }}>
                 <HighlightedText text={r.quote} highlights={r.highlights} />
               </p>
-              <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-                <div style={{ width:48, height:48, borderRadius:"50%", overflow:"hidden", background:`linear-gradient(135deg,${r.color1},${r.color2})`, flexShrink:0 }}>
+
+              {/* Avatar + name */}
+              <div style={{ display:"flex", alignItems:"center", gap:14 }}>
+                <div style={{ width:52, height:52, borderRadius:"50%", overflow:"hidden", background:`linear-gradient(135deg,${r.color1},${r.color2})`, flexShrink:0 }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={r.photo} alt={r.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
                 </div>
                 <div>
-                  <div style={{ fontSize:14, fontWeight:700, color:"#0A0A0F", letterSpacing:"-0.01em" }}>{r.name}</div>
-                  <div style={{ fontSize:12.5, color:"#6B7280", marginTop:1 }}>{r.role}</div>
+                  <div style={{ fontSize:14.5, fontWeight:700, color:"#0A0A0F", letterSpacing:"-0.01em" }}>{r.name}</div>
+                  <div style={{ fontSize:13, color:"#6B7280", marginTop:2 }}>{r.role}</div>
                 </div>
               </div>
             </div>
