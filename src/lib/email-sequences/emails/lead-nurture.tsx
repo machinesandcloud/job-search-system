@@ -22,7 +22,7 @@ export function LeadNurture1({ unsubscribeUrl }: { unsubscribeUrl: string }) {
       <Text style={p()}>
         Zari is your AI career coach. Resume review, LinkedIn optimization, interview prep, career strategy — available 24/7, no appointment. It takes 60 seconds to start, no credit card required.
       </Text>
-      <CtaButton href={`${APP}/signup`}>Start my free trial →</CtaButton>
+      <CtaButton href={`${APP}/signup`}>Get started →</CtaButton>
       <Signature />
     </Layout>
   );
@@ -104,7 +104,7 @@ export function LeadNurture4({ unsubscribeUrl }: { unsubscribeUrl: string }) {
       <Blockquote>
         His experience hadn't changed. His strategy hadn't changed. The quality of his materials and his preparation had.
       </Blockquote>
-      <CtaButton href={`${APP}/signup`}>Start my free trial</CtaButton>
+      <CtaButton href={`${APP}/signup`}>Get started</CtaButton>
       <Signature />
     </Layout>
   );

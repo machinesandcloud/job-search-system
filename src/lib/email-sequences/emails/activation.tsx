@@ -165,7 +165,7 @@ export function ReferralAsk({ firstName, referralUrl, unsubscribeUrl }: { firstN
       </Text>
       <Section style={{ margin: "16px 0 24px" }}>
         <Step number={1} title="They get">
-          14 days free instead of 7 — double the trial to actually see results.
+          An extended trial at no charge — more time to actually see results.
         </Step>
         <Step number={2} title="You get">
           One free month added to your subscription automatically.

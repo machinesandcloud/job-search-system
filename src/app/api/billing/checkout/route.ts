@@ -45,7 +45,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: message }, { status: 501 });
   }
 
-  const trialDays = Number.parseInt(process.env.STRIPE_TRIAL_DAYS || "", 10);
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
     line_items: [{ price: priceId, quantity: 1 }],
@@ -71,7 +70,6 @@ export async function POST(request: NextRequest) {
         requestedPlanId: requestedPlanId || "default",
         billing: requestedBilling,
       },
-      ...(Number.isFinite(trialDays) && trialDays > 0 ? { trial_period_days: trialDays } : {}),
     },
   });
 
