@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ZariLogo } from "@/components/zari-logo";
 
-function navIcon(name: "home" | "tickets" | "users" | "sparkles", size = 15) {
+function navIcon(name: "home" | "tickets" | "users" | "sparkles" | "automation", size = 15) {
   const p = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.8", strokeLinecap: "round" as const, strokeLinejoin: "round" as const, width: size, height: size, style: { flexShrink: 0, display: "block" } };
   switch (name) {
     case "home":
@@ -15,14 +15,17 @@ function navIcon(name: "home" | "tickets" | "users" | "sparkles", size = 15) {
       return <svg {...p}><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" /><circle cx="9.5" cy="7" r="3.25" /><path d="M21 21v-2a4 4 0 0 0-3-3.87" /><path d="M16.5 3.13a3.25 3.25 0 0 1 0 6.74" /></svg>;
     case "sparkles":
       return <svg {...p}><path d="m12 3 1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3Z" /><path d="m19 14 .8 2.2L22 17l-2.2.8L19 20l-.8-2.2L16 17l2.2-.8L19 14Z" /></svg>;
+    case "automation":
+      return <svg {...p}><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" /></svg>;
   }
 }
 
 const NAV_ITEMS = [
-  { href: "/coach-admin",          label: "Overview",       icon: "home"      as const },
-  { href: "/coach-admin/accounts", label: "Accounts",       icon: "users"     as const },
-  { href: "/coach-admin/tickets",  label: "Support Queue",  icon: "tickets"   as const },
-  { href: "/coach-admin#ai-usage", label: "AI Usage",       icon: "sparkles"  as const },
+  { href: "/coach-admin",             label: "Overview",    icon: "home"       as const },
+  { href: "/coach-admin/accounts",    label: "Accounts",    icon: "users"      as const },
+  { href: "/coach-admin/tickets",     label: "Support",     icon: "tickets"    as const },
+  { href: "/coach-admin/automation",  label: "Automation",  icon: "automation" as const },
+  { href: "/coach-admin#ai-usage",    label: "AI Usage",    icon: "sparkles"   as const },
 ];
 
 function getInitials(email: string) {

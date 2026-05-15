@@ -20,7 +20,7 @@ import {
   computeLifecycleStage,
   computeHealthScore,
 } from "@/lib/zoho-crm";
-import { enroll, cancel, cancelMany } from "@/lib/email-sequences";
+import { enroll, cancel, cancelMany, sendNow } from "@/lib/email-sequences";
 import { prisma, isDatabaseReady } from "@/lib/db";
 
 // ─── Event payloads ───────────────────────────────────────────────────────────
@@ -156,7 +156,9 @@ export async function onUserSignedUp(event: UserSignedUpEvent): Promise<void> {
       void cancel(event.email, "lead_nurture");
     }
 
-    void enroll("trial_onboarding", event.email, meta);
+    await enroll("trial_onboarding", event.email, meta);
+    // Send the welcome email immediately — don't make new users wait for the daily cron
+    void sendNow("trial_onboarding", event.email);
     // Non-starter nudge fires if they don't complete a session within 48h
     // The cron will cancel this once a session is detected
     void enroll("non_starter", event.email, meta);

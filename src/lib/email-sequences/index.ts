@@ -249,6 +249,47 @@ export async function cancelMany(email: string, sequences: ZariSequence[]): Prom
 
 // ─── Cron processor ──────────────────────────────────────────────────────────
 
+/**
+ * Immediately send the first email of a sequence for a given email address,
+ * without waiting for the cron. Used for time-sensitive emails like welcome.
+ */
+export async function sendNow(sequence: ZariSequence, email: string): Promise<void> {
+  const suppressed = await prisma.emailSuppression.findUnique({ where: { email } });
+  if (suppressed) return;
+
+  const enrollment = await prisma.emailSequenceEnrollment.findUnique({
+    where: { email_sequence: { email, sequence } },
+  });
+  if (!enrollment || enrollment.canceledAt || enrollment.completedAt || enrollment.step !== 0) return;
+
+  const delays = SEQUENCE_DELAYS[sequence];
+  if (!delays || delays.length === 0) return;
+
+  const meta = (enrollment.metadata as Meta) ?? {};
+  const unsubUrl = `${APP_URL}/api/email/unsubscribe?email=${encodeURIComponent(email)}`;
+  const npsUrl = `${APP_URL}/api/nps?email=${encodeURIComponent(email)}`;
+
+  const templates = makeTemplates(meta, unsubUrl, npsUrl);
+  const tmpl = templates[sequence]?.[0];
+  if (!tmpl) return;
+
+  const html = await render(tmpl.element);
+  await sendEmail({ to: email, subject: tmpl.subject, html });
+
+  const now = new Date();
+  if (delays.length === 1) {
+    await prisma.emailSequenceEnrollment.update({
+      where: { id: enrollment.id },
+      data: { step: 1, completedAt: now },
+    });
+  } else {
+    await prisma.emailSequenceEnrollment.update({
+      where: { id: enrollment.id },
+      data: { step: 1, nextSendAt: new Date(now.getTime() + delays[1] * 86_400_000) },
+    });
+  }
+}
+
 /** Called by the daily cron. Sends all due sequence emails. Returns counts. */
 export async function processSequenceQueue(): Promise<{ sent: number; errors: number }> {
   const now = new Date();
