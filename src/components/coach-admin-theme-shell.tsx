@@ -189,6 +189,8 @@ export function CoachAdminThemeShell({
         .coach-admin-btn-scale { transition: transform 0.15s ease, box-shadow 0.15s ease !important; }
         .coach-admin-btn-scale:hover { transform: scale(1.02) !important; }
         .coach-admin-btn-scale:active { transform: scale(0.98) !important; }
+        .coach-admin-row-hover:hover { background: var(--ca-raise) !important; }
+        .coach-admin-dark .coach-admin-row-hover:hover { background: rgba(255,255,255,0.03) !important; }
         ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--ca-bd); border-radius: 99px; }
@@ -198,18 +200,14 @@ export function CoachAdminThemeShell({
       {session ? <CoachAdminShellNav email={session.email} role={session.role} isDark={isDark} onToggleTheme={toggleTheme} /> : null}
 
       <main style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
-        <div style={{ flexShrink: 0, height: 54, background: "var(--ca-card)", borderBottom: "1px solid var(--ca-bd)", display: "flex", alignItems: "center", padding: "0 26px", gap: 12, position: "relative" }}>
-          <div style={{ position: "absolute", bottom: 0, left: 0, height: 2, width: "100%", background: "linear-gradient(90deg, rgba(37,99,235,0.7) 0%, rgba(37,99,235,0.18) 40%, transparent 100%)", pointerEvents: "none" }} />
-          <h2 style={{ fontSize: 15, fontWeight: 700, color: "var(--ca-text)", letterSpacing: "-0.02em", margin: 0 }}>
-            {sectionTitle}
-          </h2>
+        <div style={{ flexShrink: 0, height: 46, background: "var(--ca-card)", borderBottom: "1px solid var(--ca-bd)", display: "flex", alignItems: "center", padding: "0 20px", gap: 10 }}>
+          <h2 style={{ fontSize: 13.5, fontWeight: 700, color: "var(--ca-text)", letterSpacing: "-0.02em", margin: 0 }}>{sectionTitle}</h2>
           <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
-            <CoachAdminPill tone="brand">{sectionPill}</CoachAdminPill>
             <CoachAdminLogoutButton className={cx(coachAdminGhostButtonClass, "rounded-[8px] border-[color:var(--ca-bd)] bg-transparent px-3 py-1.5 text-xs font-semibold")} />
           </div>
         </div>
 
-        <div style={{ flex: 1, overflow: "auto", padding: "18px 22px 22px" }}>
+        <div style={{ flex: 1, overflow: "auto", padding: "16px 20px 24px" }}>
           {children}
         </div>
       </main>

@@ -1,26 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CoachAdminLoginForm } from "@/components/coach-admin-forms";
-import {
-  CoachAdminEmptyState,
-  CoachAdminLinkButton,
-  CoachAdminMetaItem,
-  CoachAdminMetricCard,
-  CoachAdminPanel,
-  CoachAdminPill,
-  CoachAdminProgress,
-  coachAdminInsetCardClass,
-  coachAdminListCardClass,
-  coachAdminSubtleCardClass,
-  coachAdminTextMutedClass,
-  coachAdminTextPrimaryClass,
-  coachAdminTextSoftClass,
-  cx,
-} from "@/components/coach-admin-ui";
-import {
-  getCoachAdminBetaAutoLoginConfig,
-  getCoachAdminSession,
-} from "@/lib/coach-admin-auth";
+import { CoachAdminPill, coachAdminTextPrimaryClass, coachAdminTextMutedClass, coachAdminTextSoftClass, cx } from "@/components/coach-admin-ui";
+import { getCoachAdminBetaAutoLoginConfig, getCoachAdminSession } from "@/lib/coach-admin-auth";
 import { isDatabaseReady, prisma } from "@/lib/db";
 import { formatCurrency } from "@/lib/utils";
 import {
@@ -34,98 +16,86 @@ import {
 } from "@/lib/billing";
 import { repairPlatformUsersWithoutAccounts } from "@/lib/platform-users";
 
-function formatDate(value?: Date | null) {
-  if (!value) return "—";
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-  }).format(new Date(value));
-}
-
-function formatDateTime(value?: Date | null) {
-  if (!value) return "—";
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(value));
+function fmt(v?: Date | null, time?: boolean) {
+  if (!v) return "—";
+  return new Intl.DateTimeFormat("en-US", time
+    ? { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }
+    : { month: "short", day: "numeric" }
+  ).format(new Date(v));
 }
 
 function statusTone(status?: string | null) {
-  const value = `${status || ""}`.toLowerCase();
-  if (value === "active" || value === "trialing") return "emerald" as const;
-  if (value === "past_due" || value === "unpaid") return "gold" as const;
-  if (value === "canceled" || value === "incomplete_expired") return "rose" as const;
+  const v = `${status || ""}`.toLowerCase();
+  if (v === "active" || v === "trialing") return "emerald" as const;
+  if (v === "past_due" || v === "unpaid") return "gold" as const;
+  if (v === "canceled" || v === "incomplete_expired") return "rose" as const;
   return "slate" as const;
 }
 
-function priorityTone(priority?: string | null) {
-  const value = `${priority || ""}`.toLowerCase();
-  if (value === "urgent" || value === "high") return "rose" as const;
-  if (value === "medium") return "gold" as const;
+function priorityTone(p?: string | null) {
+  const v = `${p || ""}`.toLowerCase();
+  if (v === "urgent" || v === "high") return "rose" as const;
+  if (v === "medium") return "gold" as const;
   return "cyan" as const;
 }
 
-function getHealthLabel(account: any) {
-  if (isInternalOperatorAccount(account)) return "Internal operator";
-  if (!account.subscription) return "Needs checkout";
-  const status = `${account.subscription.status || account.status || ""}`.toLowerCase();
-  if (status === "trialing") return "Trialing";
-  if (status === "active") return "Healthy";
-  if (status === "canceled") return "Canceled";
-  if (status === "incomplete" || status === "incomplete_expired") return "Needs checkout";
-  if (isPaymentIssueSubscriptionStatus(status)) return "Payment issue";
-  return status ? status.replace(/_/g, " ") : "Needs checkout";
+function isInternal(account: any) {
+  return Array.isArray(account?.users) && account.users.some((u: any) => u.role === "admin" || u.role === "support");
 }
 
-function isInternalOperatorAccount(account: any) {
-  return Array.isArray(account?.users) && account.users.some((user: any) => user.role === "admin" || user.role === "support");
+function isPlaceholderInternal(account: any) {
+  return isInternal(account) && Array.isArray(account?.users) && account.users.some((u: any) => isPlaceholderCoachAdminEmail(u?.email));
 }
 
-function getAccountPlanLabel(account: any) {
-  if (isInternalOperatorAccount(account)) return "Internal operator account";
-  return account.subscription?.planName || account.subscription?.stripePriceId || "No plan yet";
+function healthLabel(account: any) {
+  if (isInternal(account)) return "internal";
+  if (!account.subscription) return "no plan";
+  const s = `${account.subscription.status || account.status || ""}`.toLowerCase();
+  if (s === "trialing") return "trial";
+  if (s === "active") return "active";
+  if (s === "canceled") return "canceled";
+  if (s === "incomplete" || s === "incomplete_expired") return "incomplete";
+  if (isPaymentIssueSubscriptionStatus(s)) return "past due";
+  return s || "no plan";
 }
 
-function isPlaceholderInternalOperatorAccount(account: any) {
-  if (!isInternalOperatorAccount(account)) return false;
-  return Array.isArray(account?.users) && account.users.some((user: any) => isPlaceholderCoachAdminEmail(user?.email));
+function planLabel(account: any) {
+  if (isInternal(account)) return "Internal";
+  return account.subscription?.planName || "—";
 }
 
-function getMetadataRecord(value: unknown) {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
-  return value as Record<string, unknown>;
-}
-
-function getRequestPreview(metadata: unknown) {
-  const record = getMetadataRecord(metadata);
-  const preview = typeof record.requestPreview === "string" ? record.requestPreview.trim() : "";
-  if (preview) return preview;
-  const fallback = typeof record.featureName === "string" ? record.featureName.trim() : "";
-  return fallback || "No request preview captured";
-}
-
-function SetupWarning({ title, body }: { title: string; body: string }) {
+function SectionHeader({ title, action, count }: { title: string; action?: React.ReactNode; count?: number }) {
   return (
-    <CoachAdminPanel eyebrow="Billing setup needed" title={title} description={body}>
-      <div className="grid gap-4 md:grid-cols-3">
-        <CoachAdminMetaItem label="Database" value="Set `DATABASE_URL` or `NETLIFY_DATABASE_URL` in production." />
-        <CoachAdminMetaItem label="Migrations" value="Apply the latest Prisma migration so billing models exist." />
-        <CoachAdminMetaItem label="Access" value="The admin session is live. This is a data-layer readiness issue, not an auth failure." />
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--ca-text)", letterSpacing: "-0.01em" }}>{title}</span>
+        {count !== undefined && <span style={{ fontSize: 11, fontWeight: 600, color: "var(--ca-text3)", background: "var(--ca-raise)", border: "1px solid var(--ca-bd)", borderRadius: 99, padding: "0 7px", lineHeight: "18px" }}>{count}</span>}
       </div>
-    </CoachAdminPanel>
+      {action}
+    </div>
+  );
+}
+
+function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
+  return (
+    <div style={{ borderRadius: 16, border: "1px solid var(--ca-bd)", background: "var(--ca-card)", overflow: "hidden", ...style }}>
+      {children}
+    </div>
+  );
+}
+
+function EmptyRow({ label }: { label: string }) {
+  return (
+    <div style={{ padding: "16px 14px", fontSize: 12.5, color: "var(--ca-text3)", textAlign: "center", borderTop: "1px solid var(--ca-bd)" }}>{label}</div>
   );
 }
 
 export default async function CoachAdminPage() {
   const session = await getCoachAdminSession();
   if (!session) {
-    if (getCoachAdminBetaAutoLoginConfig()) {
-      redirect("/api/coach-admin/beta-login?next=/coach-admin");
-    }
+    if (getCoachAdminBetaAutoLoginConfig()) redirect("/api/coach-admin/beta-login?next=/coach-admin");
     return (
-      <div className="flex min-h-[70vh] items-center justify-center px-2">
+      <div style={{ display: "flex", minHeight: "70vh", alignItems: "center", justifyContent: "center", padding: "0 16px" }}>
         <CoachAdminLoginForm />
       </div>
     );
@@ -133,10 +103,10 @@ export default async function CoachAdminPage() {
 
   if (!isDatabaseReady()) {
     return (
-      <SetupWarning
-        title="Coach admin signed in, but the billing database is unavailable"
-        body="This deployment does not currently have a valid runtime database connection for billing tables. Wire production database access and the dashboard will start hydrating with subscriptions, accounts, tickets, and token telemetry."
-      />
+      <Card style={{ padding: 24, maxWidth: 640 }}>
+        <p style={{ fontSize: 13, fontWeight: 700, color: "var(--ca-text)", marginBottom: 6 }}>Database unavailable</p>
+        <p style={{ fontSize: 13, color: "var(--ca-text2)", lineHeight: 1.6 }}>Admin session is live but the billing database is not reachable. Wire <code>DATABASE_URL</code> and apply the Prisma migration to start loading data.</p>
+      </Card>
     );
   }
 
@@ -145,439 +115,242 @@ export default async function CoachAdminPage() {
   let recentTickets: any[] = [];
   let aiUsageSummary = null as Awaited<ReturnType<typeof getAiUsageSummary>>;
   let recentAiRequests: any[] = [];
-  let repairedUsersCount = 0;
 
   try {
     await ensureCoachAdminUser(session.email, session.role);
-    const repairResult = await repairPlatformUsersWithoutAccounts();
-    repairedUsersCount = repairResult.repaired;
+    await repairPlatformUsersWithoutAccounts();
 
     [subscriptions, accounts, recentTickets, aiUsageSummary, recentAiRequests] = await Promise.all([
-      prisma.subscription.findMany({
-        include: {
-          account: { include: { users: true } },
-        },
-        orderBy: { updatedAt: "desc" },
-      }),
-      prisma.account.findMany({
-        include: {
-          users: true,
-          subscription: true,
-        },
-        orderBy: { createdAt: "desc" },
-        take: 20,
-      }),
-      prisma.supportTicket.findMany({
-        include: {
-          account: true,
-          reporter: true,
-          assignedTo: true,
-        },
-        orderBy: { updatedAt: "desc" },
-        take: 12,
-      }),
-      getAiUsageSummary({ limit: 8 }),
+      prisma.subscription.findMany({ include: { account: { include: { users: true } } }, orderBy: { updatedAt: "desc" } }),
+      prisma.account.findMany({ include: { users: true, subscription: true }, orderBy: { createdAt: "desc" }, take: 30 }),
+      prisma.supportTicket.findMany({ include: { account: true, reporter: true, assignedTo: true }, orderBy: { updatedAt: "desc" }, take: 20 }),
+      getAiUsageSummary({ limit: 10 }),
       prisma.aiTokenUsage.findMany({
-        orderBy: { createdAt: "desc" },
-        take: 12,
-        select: {
-          id: true,
-          createdAt: true,
-          model: true,
-          featureName: true,
-          inputTokens: true,
-          outputTokens: true,
-          totalTokens: true,
-          metadataJson: true,
-          user: {
-            select: {
-              email: true,
-            },
-          },
-          account: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
+        orderBy: { createdAt: "desc" }, take: 20,
+        select: { id: true, createdAt: true, model: true, featureName: true, inputTokens: true, outputTokens: true, totalTokens: true, metadataJson: true, user: { select: { email: true } }, account: { select: { id: true, name: true } } },
       }),
     ]);
-  } catch (error) {
-    console.error("[coach-admin-page] failed to load billing data", error);
+  } catch (err) {
+    console.error("[coach-admin-page] failed to load data", err);
     return (
-      <SetupWarning
-        title="Admin session is live, but the billing tables are not ready"
-        body="The most common causes are an unreachable production database or a migration that has not been applied yet. Auth is working. The dashboard dataset is what needs to catch up."
-      />
+      <Card style={{ padding: 24, maxWidth: 640 }}>
+        <p style={{ fontSize: 13, fontWeight: 700, color: "var(--ca-text)", marginBottom: 6 }}>Data load failed</p>
+        <p style={{ fontSize: 13, color: "var(--ca-text2)", lineHeight: 1.6 }}>The billing tables are likely unreachable or a migration is missing. Auth is working fine.</p>
+      </Card>
     );
   }
 
-  const activeCount = subscriptions.filter((item: any) => item.status === "active").length;
-  const trialingCount = subscriptions.filter((item: any) => item.status === "trialing").length;
-  const pastDueCount = subscriptions.filter((item: any) => item.status === "past_due" || item.status === "unpaid").length;
-  const canceledCount = subscriptions.filter((item: any) => item.status === "canceled").length;
-  const failedPaymentsCount = subscriptions.filter((item: any) => isPaymentIssueSubscriptionStatus(item.status)).length;
-  const mrrCents = subscriptions
-    .filter((item: any) => item.status === "active" || item.status === "trialing")
-    .reduce((sum: number, item: any) => sum + getPlanMonthlyAmountCents(item.planName, item.stripePriceId), 0);
-  const arrCents = mrrCents * 12;
-  const upcomingRenewals = subscriptions.filter((item: any) => {
-    if (!item.currentPeriodEnd) return false;
-    const days = (new Date(item.currentPeriodEnd).getTime() - Date.now()) / (1000 * 60 * 60 * 24);
-    return days >= 0 && days <= 14 && (item.status === "active" || item.status === "trialing");
-  }).length;
+  const activeCount     = subscriptions.filter((s: any) => s.status === "active").length;
+  const trialingCount   = subscriptions.filter((s: any) => s.status === "trialing").length;
+  const pastDueCount    = subscriptions.filter((s: any) => s.status === "past_due" || s.status === "unpaid").length;
+  const canceledCount   = subscriptions.filter((s: any) => s.status === "canceled").length;
+  const failedCount     = subscriptions.filter((s: any) => isPaymentIssueSubscriptionStatus(s.status)).length;
+  const mrrCents        = subscriptions.filter((s: any) => s.status === "active" || s.status === "trialing").reduce((sum: number, s: any) => sum + getPlanMonthlyAmountCents(s.planName, s.stripePriceId), 0);
+  const upcomingRenew   = subscriptions.filter((s: any) => { if (!s.currentPeriodEnd) return false; const d = (new Date(s.currentPeriodEnd).getTime() - Date.now()) / 86400000; return d >= 0 && d <= 14 && (s.status === "active" || s.status === "trialing"); }).length;
+  const estimatedSpend  = aiUsageSummary?.total.estimatedCostUsd || 0;
+  const totalTokens     = aiUsageSummary?.total.totalTokens || 0;
+  const trackedUsers    = aiUsageSummary?.total.trackedUsers || 0;
+  const topAiUsers      = aiUsageSummary?.byUser || [];
+  const visibleAccounts = accounts.filter((a: any) => !isPlaceholderInternal(a));
+  const riskAccounts    = accounts.filter((a: any) => { const s = a.subscription?.status || a.status; return isPaymentIssueSubscriptionStatus(s) || s === "canceled" || s === "incomplete_expired"; });
+  const openTickets     = recentTickets.filter((t: any) => t.status !== "resolved" && t.status !== "closed");
+  const subMax          = Math.max(activeCount, trialingCount, pastDueCount, canceledCount, 1);
 
-  const accountsHealthy = accounts.filter((item: any) => ["active", "trialing"].includes(item.subscription?.status || item.status)).length;
-  const healthPercent = accounts.length ? Math.round((accountsHealthy / accounts.length) * 100) : 0;
-  const topRiskAccounts = accounts
-    .filter((item: any) => {
-      const status = item.subscription?.status || item.status;
-      return isPaymentIssueSubscriptionStatus(status) || status === "canceled" || status === "incomplete_expired";
-    })
-    .slice(0, 4);
-  const prioritySortedTickets = [...recentTickets].sort((a: any, b: any) => {
-    const order = { urgent: 4, high: 3, medium: 2, low: 1 } as Record<string, number>;
-    return (order[b.priority] || 0) - (order[a.priority] || 0);
-  });
-  const recentHotTickets = prioritySortedTickets.slice(0, 4);
-  const totalTokens = aiUsageSummary?.total.totalTokens || 0;
-  const estimatedAiSpend = aiUsageSummary?.total.estimatedCostUsd || 0;
-  const trackedUsers = aiUsageSummary?.total.trackedUsers || 0;
-  const topAiUsers = aiUsageSummary?.byUser || [];
-  const subscriptionMax = Math.max(activeCount, trialingCount, pastDueCount, canceledCount, 1);
-  const visibleAccounts = accounts.filter((account: any) => !isPlaceholderInternalOperatorAccount(account));
+  const kpis = [
+    { label: "MRR",           value: formatCurrency(mrrCents / 100),            color: "#22C55E" },
+    { label: "ARR",           value: formatCurrency(mrrCents / 100 * 12),        color: "#22C55E" },
+    { label: "Active",        value: activeCount,                                color: "#3B82F6" },
+    { label: "Trialing",      value: trialingCount,                              color: "#06B6D4" },
+    { label: "At risk",       value: failedCount,                                color: failedCount > 0 ? "#F59E0B" : "var(--ca-text3)" },
+    { label: "AI spend",      value: formatUsdEstimate(estimatedSpend),          color: "#8B5CF6" },
+    { label: "Tokens",        value: totalTokens.toLocaleString(),               color: "var(--ca-text2)" },
+    { label: "Renewing soon", value: upcomingRenew,                              color: upcomingRenew > 0 ? "#F59E0B" : "var(--ca-text3)" },
+  ];
 
   return (
-    <div className="space-y-6">
-      <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <CoachAdminPanel
-          eyebrow="Overview"
-          title="Billing and account health"
-          description="Monitor subscription state, payment risk, renewals, and AI spend from the same control surface."
-          action={<CoachAdminLinkButton href="/coach-admin/tickets" tone="brand">Open ticket queue</CoachAdminLinkButton>}
-          className="min-h-[320px]"
-        >
-          <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
-            <div className={cx(coachAdminInsetCardClass, "p-5")}>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p className={cx("text-[11px] font-semibold uppercase tracking-[0.22em]", coachAdminTextSoftClass)}>Monthly recurring revenue</p>
-                  <div className={cx("mt-3 text-5xl font-semibold tracking-[-0.08em]", coachAdminTextPrimaryClass)}>{formatCurrency(mrrCents / 100)}</div>
-                  <p className={cx("mt-3 text-sm leading-6", coachAdminTextMutedClass)}>Annualized run-rate {formatCurrency(arrCents / 100)} based on current active and trialing accounts.</p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <CoachAdminPill tone="emerald">{activeCount} active</CoachAdminPill>
-                  <CoachAdminPill tone="cyan">{trialingCount} trialing</CoachAdminPill>
-                  <CoachAdminPill tone="gold">{upcomingRenewals} renewing soon</CoachAdminPill>
-                </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
+      {/* ── KPI Strip ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(8,1fr)", gap: 8 }}>
+        {kpis.map(k => (
+          <Card key={k.label} style={{ padding: "12px 14px" }}>
+            <div style={{ fontSize: 10.5, fontWeight: 600, color: "var(--ca-text3)", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 5 }}>{k.label}</div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: k.color, letterSpacing: "-0.04em", lineHeight: 1 }}>{k.value}</div>
+          </Card>
+        ))}
+      </div>
+
+      {/* ── Main grid ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 16, alignItems: "start" }}>
+
+        {/* Left column */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
+          {/* Accounts table */}
+          <Card>
+            <div style={{ padding: "12px 14px 10px", borderBottom: "1px solid var(--ca-bd)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <SectionHeader title="Accounts" count={visibleAccounts.length} />
+              <Link href="/coach-admin/accounts" style={{ fontSize: 11.5, fontWeight: 600, color: "#3B82F6", textDecoration: "none" }}>View all →</Link>
+            </div>
+            {/* Table header */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 90px 120px 80px 80px 36px", padding: "7px 14px", borderBottom: "1px solid var(--ca-bd)", gap: 8 }}>
+              {["Account", "Status", "Owner", "Plan", "Renews", ""].map(h => (
+                <span key={h} style={{ fontSize: 10, fontWeight: 700, color: "var(--ca-text3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{h}</span>
+              ))}
+            </div>
+            {visibleAccounts.length ? visibleAccounts.slice(0, 12).map((account: any, i: number) => {
+              const owner = account.users.find((u: any) => u.id === account.ownerUserId) || account.users[0];
+              const hl = healthLabel(account);
+              const tone = isInternal(account) ? "brand" : statusTone(account.subscription?.status || account.status);
+              return (
+                <Link key={account.id} href={`/coach-admin/accounts/${account.id}`} style={{ display: "grid", gridTemplateColumns: "1fr 90px 120px 80px 80px 36px", padding: "9px 14px", gap: 8, borderTop: i > 0 ? "1px solid var(--ca-bd)" : "none", textDecoration: "none", transition: "background 0.1s", alignItems: "center" }}
+                  className="coach-admin-row-hover">
+                  <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ca-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{account.name}</span>
+                  <span><CoachAdminPill tone={tone}>{hl}</CoachAdminPill></span>
+                  <span style={{ fontSize: 12, color: "var(--ca-text2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{owner?.email?.split("@")[0] || "—"}</span>
+                  <span style={{ fontSize: 12, color: "var(--ca-text2)" }}>{planLabel(account)}</span>
+                  <span style={{ fontSize: 12, color: "var(--ca-text3)" }}>{fmt(account.subscription?.currentPeriodEnd)}</span>
+                  <span style={{ fontSize: 12, color: "var(--ca-text3)", textAlign: "right" }}>→</span>
+                </Link>
+              );
+            }) : <EmptyRow label="No accounts yet" />}
+          </Card>
+
+          {/* AI Usage per user */}
+          <Card>
+            <div style={{ padding: "12px 14px 10px", borderBottom: "1px solid var(--ca-bd)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <SectionHeader title="AI Usage" count={trackedUsers} />
+              <Link href="/coach-admin#ai-usage" style={{ fontSize: 11.5, fontWeight: 600, color: "#8B5CF6", textDecoration: "none" }}>{formatUsdEstimate(estimatedSpend)} total</Link>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 80px 70px 90px 90px", padding: "7px 14px", borderBottom: "1px solid var(--ca-bd)", gap: 8 }}>
+              {["User", "Requests", "Tokens", "Spend", "Top feature"].map(h => (
+                <span key={h} style={{ fontSize: 10, fontWeight: 700, color: "var(--ca-text3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{h}</span>
+              ))}
+            </div>
+            {topAiUsers.length ? topAiUsers.map((user, i) => (
+              <div key={user.userId || user.email} style={{ display: "grid", gridTemplateColumns: "1fr 80px 70px 90px 90px", padding: "9px 14px", gap: 8, borderTop: i > 0 ? "1px solid var(--ca-bd)" : "none", alignItems: "center" }}>
+                <span style={{ fontSize: 12.5, fontWeight: 500, color: "var(--ca-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</span>
+                <span style={{ fontSize: 12, color: "var(--ca-text2)" }}>{user.requestCount.toLocaleString()}</span>
+                <span style={{ fontSize: 12, color: "var(--ca-text2)" }}>{user.totalTokens.toLocaleString()}</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#8B5CF6" }}>{formatUsdEstimate(user.estimatedCostUsd)}</span>
+                <span style={{ fontSize: 11, color: "var(--ca-text3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.topFeature || "—"}</span>
               </div>
-              <div className="mt-8 grid gap-4 sm:grid-cols-2">
-                <CoachAdminProgress label="Revenue-ready accounts" value={activeCount + trialingCount} max={Math.max(accounts.length, 1)} tone="emerald" valueLabel={`${activeCount + trialingCount} / ${accounts.length || 0}`} />
-                <CoachAdminProgress label="Payment risk load" value={failedPaymentsCount} max={Math.max(accounts.length, 1)} tone="gold" valueLabel={`${failedPaymentsCount} flagged`} />
-              </div>
+            )) : <EmptyRow label="No AI usage tracked yet" />}
+          </Card>
+
+          {/* Recent AI calls */}
+          <Card id="ai-usage">
+            <div style={{ padding: "12px 14px 10px", borderBottom: "1px solid var(--ca-bd)" }}>
+              <SectionHeader title="Recent model calls" count={recentAiRequests.length} />
             </div>
-
-            <div className="grid gap-4">
-              <CoachAdminMetricCard
-                label="Account health"
-                value={`${healthPercent}%`}
-                note="Percent of visible accounts currently in good standing."
-                tone="emerald"
-                accent={<div className="h-14 w-14 rounded-full border border-emerald-300/20 bg-emerald-400/10" />}
-              />
-              <CoachAdminMetricCard
-                label="Estimated AI spend"
-                value={formatUsdEstimate(estimatedAiSpend)}
-                note={`Tracked text-model spend across ${trackedUsers || 0} user${trackedUsers === 1 ? "" : "s"}.`}
-                tone="cyan"
-                accent={<div className="h-14 w-14 rounded-full border border-cyan-300/20 bg-cyan-400/10" />}
-              />
+            <div style={{ display: "grid", gridTemplateColumns: "130px 1fr 120px 60px 70px 80px", padding: "7px 14px", borderBottom: "1px solid var(--ca-bd)", gap: 8 }}>
+              {["Feature", "User / Account", "Model", "Tokens", "Cost", "Time"].map(h => (
+                <span key={h} style={{ fontSize: 10, fontWeight: 700, color: "var(--ca-text3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{h}</span>
+              ))}
             </div>
-          </div>
-        </CoachAdminPanel>
-
-        <CoachAdminPanel eyebrow="Subscription state" title="Access mix" description="See where paid access is healthy, where it is at risk, and what needs intervention.">
-          <div className="space-y-5">
-            <CoachAdminProgress label="Active" value={activeCount} max={subscriptionMax} tone="emerald" />
-            <CoachAdminProgress label="Trialing" value={trialingCount} max={subscriptionMax} tone="cyan" />
-            <CoachAdminProgress label="Past due / unpaid" value={pastDueCount} max={subscriptionMax} tone="gold" />
-            <CoachAdminProgress label="Canceled" value={canceledCount} max={subscriptionMax} tone="rose" />
-          </div>
-
-          <div className="mt-6 grid gap-3">
-            <div className={cx(coachAdminSubtleCardClass, "px-4 py-4")}>
-              <p className={cx("text-[11px] font-semibold uppercase tracking-[0.2em]", coachAdminTextSoftClass)}>Failed payments</p>
-              <p className={cx("mt-2 text-2xl font-semibold tracking-[-0.05em]", coachAdminTextPrimaryClass)}>{failedPaymentsCount}</p>
-              <p className={cx("mt-2 text-sm leading-6", coachAdminTextMutedClass)}>Accounts that should already be on your recovery radar.</p>
-            </div>
-            <div className={cx(coachAdminSubtleCardClass, "px-4 py-4")}>
-              <p className={cx("text-[11px] font-semibold uppercase tracking-[0.2em]", coachAdminTextSoftClass)}>Upcoming renewals</p>
-              <p className={cx("mt-2 text-2xl font-semibold tracking-[-0.05em]", coachAdminTextPrimaryClass)}>{upcomingRenewals}</p>
-              <p className={cx("mt-2 text-sm leading-6", coachAdminTextMutedClass)}>Useful for pre-renewal outreach and monitoring churn signals.</p>
-            </div>
-          </div>
-        </CoachAdminPanel>
-      </section>
-
-      <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-6">
-        <CoachAdminMetricCard label="Active subscriptions" value={activeCount} note="Accounts with paid access right now." tone="emerald" />
-        <CoachAdminMetricCard label="Trial users" value={trialingCount} note="Current Stripe trials that can convert or churn." tone="cyan" />
-        <CoachAdminMetricCard label="Past due / unpaid" value={pastDueCount} note="Accounts currently blocked or trending toward support." tone="gold" />
-        <CoachAdminMetricCard label="Canceled" value={canceledCount} note="Accounts no longer carrying paid access." tone="rose" />
-        <CoachAdminMetricCard label="Tracked model tokens" value={totalTokens.toLocaleString()} note="Lifetime tracked OpenAI prompt and completion tokens." tone="brand" />
-        <CoachAdminMetricCard label="Tracked users" value={trackedUsers} note="Users with recorded tokenized AI activity." tone="slate" />
-      </section>
-
-      {repairedUsersCount > 0 ? (
-        <CoachAdminPanel
-          eyebrow="Recovered records"
-          title="Operator repair pass completed"
-          description={`Re-linked ${repairedUsersCount} user${repairedUsersCount === 1 ? "" : "s"} that existed in the platform but were missing a visible account record.`}
-        >
-          <div className="grid gap-4 md:grid-cols-3">
-            <CoachAdminMetaItem label="What happened" value="Some earlier auth attempts created real users before the account link was fully established." />
-            <CoachAdminMetaItem label="What changed" value="This admin load repaired those users into normal account records automatically." />
-            <CoachAdminMetaItem label="What to do" value="Refresh this page once if you want to see the repaired records in the account list below." />
-          </div>
-        </CoachAdminPanel>
-      ) : null}
-
-      <section id="accounts" className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <CoachAdminPanel
-          eyebrow="Accounts"
-          title="Customer accounts"
-          description="Open any account to inspect billing state, user-level usage, support history, and internal notes."
-          action={<CoachAdminPill tone="slate">{visibleAccounts.length} visible accounts</CoachAdminPill>}
-        >
-          <div className="grid gap-3">
-            {visibleAccounts.length ? (
-              visibleAccounts.slice(0, 8).map((account: any) => {
-                const owner = account.users.find((user: any) => user.id === account.ownerUserId) || account.users[0];
-                const status = account.subscription?.status || account.status;
-                const plan = getAccountPlanLabel(account);
-                const statusPillTone = isInternalOperatorAccount(account) ? "brand" : statusTone(status);
-                return (
-                  <Link
-                    key={account.id}
-                    href={`/coach-admin/accounts/${account.id}`}
-                className={cx("group px-5 py-4", coachAdminListCardClass)}
-              >
-                    <div className="flex flex-wrap items-start justify-between gap-4">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-3">
-                          <p className={cx("text-lg font-semibold tracking-[-0.04em]", coachAdminTextPrimaryClass)}>{account.name}</p>
-                          <CoachAdminPill tone={statusPillTone}>{getHealthLabel(account)}</CoachAdminPill>
-                        </div>
-                        <p className={cx("mt-2 text-sm", coachAdminTextMutedClass)}>{owner?.email || "Unknown owner"} · {account.users.length} user(s)</p>
-                      </div>
-                      <div className="text-right">
-                        <p className={cx("text-[11px] font-semibold uppercase tracking-[0.18em]", coachAdminTextSoftClass)}>Renewal</p>
-                        <p className={cx("mt-2 text-sm", coachAdminTextPrimaryClass)}>{formatDate(account.subscription?.currentPeriodEnd)}</p>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 grid gap-3 md:grid-cols-[1fr_auto] md:items-center">
-                      <div className={cx("rounded-[18px] border border-[color:var(--ca-border)] bg-[var(--ca-surface-strong)] px-4 py-3 text-sm", coachAdminTextMutedClass)}>{plan}</div>
-                      <div className={cx("text-sm transition", coachAdminTextSoftClass, "group-hover:text-[color:var(--ca-text-muted)]")}>
-                        Open account →
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })
-            ) : (
-              <CoachAdminEmptyState title="No accounts yet" body="Once users complete checkout and sync into billing, their accounts will appear here." />
-            )}
-          </div>
-        </CoachAdminPanel>
-
-        <div className="grid gap-6">
-          <CoachAdminPanel eyebrow="Risk radar" title="Accounts that need attention" description="Payment or lifecycle states that deserve operator follow-up.">
-            <div className="grid gap-3">
-              {topRiskAccounts.length ? (
-                topRiskAccounts.map((account: any) => (
-                  <Link key={account.id} href={`/coach-admin/accounts/${account.id}`} className={cx("px-4 py-4", coachAdminListCardClass, "rounded-[22px]")}>
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className={cx("font-medium", coachAdminTextPrimaryClass)}>{account.name}</p>
-                        <p className={cx("mt-1 text-sm", coachAdminTextMutedClass)}>{getHealthLabel(account)}</p>
-                      </div>
-                      <CoachAdminPill tone={statusTone(account.subscription?.status || account.status)}>
-                        {account.subscription?.status || account.status}
-                      </CoachAdminPill>
-                    </div>
-                  </Link>
-                ))
-              ) : (
-                <CoachAdminEmptyState title="No immediate payment risks" body="The risk list will populate as past_due, unpaid, canceled, or incomplete accounts appear." />
-              )}
-            </div>
-          </CoachAdminPanel>
-
-          <CoachAdminPanel
-            eyebrow="Support"
-            title="Recent tickets"
-            description="The current support queue, prioritized for fast operator triage."
-            action={<CoachAdminLinkButton href="/coach-admin/tickets" tone="cyan">View all tickets</CoachAdminLinkButton>}
-          >
-            <div className="grid gap-3">
-              {recentHotTickets.length ? (
-                recentHotTickets.map((ticket: any) => (
-                  <Link key={ticket.id} href={`/coach-admin/tickets/${ticket.id}`} className={cx("px-4 py-4", coachAdminListCardClass, "rounded-[22px]")}>
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0 flex-1">
-                        <p className={cx("font-medium", coachAdminTextPrimaryClass)}>{ticket.subject}</p>
-                        <p className={cx("mt-1 line-clamp-2 text-sm leading-6", coachAdminTextMutedClass)}>{ticket.account?.name || "Unknown account"} · {ticket.reporter?.email || "No reporter"}</p>
-                      </div>
-                      <CoachAdminPill tone={priorityTone(ticket.priority)}>{ticket.priority}</CoachAdminPill>
-                    </div>
-                    <div className={cx("mt-3 flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.16em]", coachAdminTextSoftClass)}>
-                      <span>{ticket.status.replace(/_/g, " ")}</span>
-                      <span>•</span>
-                      <span>Updated {formatDate(ticket.updatedAt)}</span>
-                    </div>
-                  </Link>
-                ))
-              ) : (
-                <CoachAdminEmptyState title="No tickets yet" body="Open, in-progress, and resolved support work will surface here once the queue starts moving." />
-              )}
-            </div>
-          </CoachAdminPanel>
+            {recentAiRequests.length ? recentAiRequests.map((entry: any, i: number) => {
+              const cost = estimateTrackedTokenCostUsd({ model: entry.model, inputTokens: entry.inputTokens, outputTokens: entry.outputTokens, totalTokens: entry.totalTokens });
+              return (
+                <div key={entry.id} style={{ display: "grid", gridTemplateColumns: "130px 1fr 120px 60px 70px 80px", padding: "8px 14px", gap: 8, borderTop: i > 0 ? "1px solid var(--ca-bd)" : "none", alignItems: "center" }}>
+                  <span style={{ fontSize: 11.5, fontWeight: 600, color: "var(--ca-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{entry.featureName || "llm_request"}</span>
+                  <span style={{ fontSize: 11.5, color: "var(--ca-text2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{entry.user?.email || "—"}{entry.account?.name ? ` · ${entry.account.name}` : ""}</span>
+                  <span style={{ fontSize: 11, color: "var(--ca-text3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{entry.model}</span>
+                  <span style={{ fontSize: 11.5, color: "var(--ca-text2)" }}>{entry.totalTokens.toLocaleString()}</span>
+                  <span style={{ fontSize: 11.5, fontWeight: 600, color: "#8B5CF6" }}>{formatUsdEstimate(cost.estimatedCostUsd)}</span>
+                  <span style={{ fontSize: 11, color: "var(--ca-text3)" }}>{fmt(entry.createdAt, true)}</span>
+                </div>
+              );
+            }) : <EmptyRow label="No model calls recorded yet" />}
+          </Card>
         </div>
-      </section>
 
-      <section id="ai-usage" className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-        <CoachAdminPanel
-          eyebrow="AI utilization"
-          title="Who is consuming model spend"
-          description="Per-user view of tracked OpenAI token usage and estimated spend."
-          action={<CoachAdminPill tone="slate">{formatUsdEstimate(estimatedAiSpend)} total</CoachAdminPill>}
-        >
-          <div className="grid gap-3">
-            {topAiUsers.length ? (
-              topAiUsers.map((user) => (
-                <div key={user.userId || user.email} className={cx("rounded-[24px] px-4 py-4", coachAdminListCardClass)}>
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <p className={cx("font-medium", coachAdminTextPrimaryClass)}>{user.email}</p>
-                      <p className={cx("mt-1 text-xs uppercase tracking-[0.16em]", coachAdminTextSoftClass)}>
-                        {user.role} · {user.requestCount} request{user.requestCount === 1 ? "" : "s"}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className={cx("text-sm font-semibold", coachAdminTextPrimaryClass)}>{formatUsdEstimate(user.estimatedCostUsd)}</p>
-                      <p className={cx("mt-1 text-xs uppercase tracking-[0.16em]", coachAdminTextSoftClass)}>{user.totalTokens.toLocaleString()} tokens</p>
-                    </div>
+        {/* Right column */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
+          {/* Subscription mix */}
+          <Card style={{ padding: "14px" }}>
+            <SectionHeader title="Subscription mix" />
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
+              {[
+                { label: "Active",    value: activeCount,   color: "#22C55E", bg: "rgba(34,197,94,0.08)" },
+                { label: "Trialing",  value: trialingCount, color: "#06B6D4", bg: "rgba(6,182,212,0.08)" },
+                { label: "Past due",  value: pastDueCount,  color: "#F59E0B", bg: "rgba(245,158,11,0.08)" },
+                { label: "Canceled",  value: canceledCount, color: "#F43F5E", bg: "rgba(244,63,94,0.08)" },
+              ].map(s => (
+                <div key={s.label} style={{ borderRadius: 10, border: "1px solid var(--ca-bd)", background: s.bg, padding: "10px 12px" }}>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: s.color, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>{s.label}</div>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: s.color, letterSpacing: "-0.04em", lineHeight: 1 }}>{s.value}</div>
+                </div>
+              ))}
+            </div>
+            {/* Progress bars */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+              {[
+                { label: "Active",   value: activeCount,   color: "#22C55E" },
+                { label: "Trialing", value: trialingCount, color: "#06B6D4" },
+                { label: "Past due", value: pastDueCount,  color: "#F59E0B" },
+                { label: "Canceled", value: canceledCount, color: "#F43F5E" },
+              ].map(s => (
+                <div key={s.label}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--ca-text3)", marginBottom: 3 }}>
+                    <span>{s.label}</span><span>{s.value}</span>
                   </div>
-                  <div className="mt-4 grid gap-3 md:grid-cols-3">
-                    <div className={cx("rounded-[18px] border border-[color:var(--ca-border)] bg-[var(--ca-surface-strong)] px-3 py-3")}>
-                      <p className={cx("text-[10px] font-semibold uppercase tracking-[0.18em]", coachAdminTextSoftClass)}>Input</p>
-                      <p className={cx("mt-2 text-sm font-medium", coachAdminTextPrimaryClass)}>{user.inputTokens.toLocaleString()}</p>
-                    </div>
-                    <div className={cx("rounded-[18px] border border-[color:var(--ca-border)] bg-[var(--ca-surface-strong)] px-3 py-3")}>
-                      <p className={cx("text-[10px] font-semibold uppercase tracking-[0.18em]", coachAdminTextSoftClass)}>Top model</p>
-                      <p className={cx("mt-2 text-sm font-medium", coachAdminTextPrimaryClass)}>{user.topModel || "Unknown"}</p>
-                    </div>
-                    <div className={cx("rounded-[18px] border border-[color:var(--ca-border)] bg-[var(--ca-surface-strong)] px-3 py-3")}>
-                      <p className={cx("text-[10px] font-semibold uppercase tracking-[0.18em]", coachAdminTextSoftClass)}>Top feature</p>
-                      <p className={cx("mt-2 text-sm font-medium", coachAdminTextPrimaryClass)}>{user.topFeature || "Unlabeled"}</p>
-                    </div>
+                  <div style={{ height: 4, borderRadius: 99, background: "var(--ca-raise)", overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: `${Math.max(4, Math.round((s.value / subMax) * 100))}%`, borderRadius: 99, background: s.color, transition: "width 0.3s" }} />
                   </div>
                 </div>
-              ))
-            ) : (
-              <CoachAdminEmptyState title="No tracked user activity yet" body="As users call paid AI routes, token usage and estimated spend will show up here." />
-            )}
-          </div>
-        </CoachAdminPanel>
+              ))}
+            </div>
+            {/* Quick stats */}
+            <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              <div style={{ borderRadius: 10, border: "1px solid var(--ca-bd)", padding: "9px 11px" }}>
+                <div style={{ fontSize: 10, color: "var(--ca-text3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 3 }}>Failed payments</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: failedCount > 0 ? "#F59E0B" : "var(--ca-text3)", letterSpacing: "-0.04em" }}>{failedCount}</div>
+              </div>
+              <div style={{ borderRadius: 10, border: "1px solid var(--ca-bd)", padding: "9px 11px" }}>
+                <div style={{ fontSize: 10, color: "var(--ca-text3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 3 }}>Renewing ≤14d</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: upcomingRenew > 0 ? "#F59E0B" : "var(--ca-text3)", letterSpacing: "-0.04em" }}>{upcomingRenew}</div>
+              </div>
+            </div>
+          </Card>
 
-        <CoachAdminPanel
-          eyebrow="AI mix"
-          title="Global usage snapshot"
-          description="Global OpenAI usage across the app."
-        >
-          <div className="grid gap-4 md:grid-cols-2">
-            <CoachAdminMetricCard
-              label="Estimated spend"
-              value={formatUsdEstimate(estimatedAiSpend)}
-              note="Current estimate from tracked GPT-4o family token usage."
-              tone="brand"
-            />
-            <CoachAdminMetricCard
-              label="Top model"
-              value={aiUsageSummary?.total.topModel || "—"}
-              note="Model generating the most tracked tokens right now."
-              tone="slate"
-            />
-          </div>
-          <div className="mt-4 grid gap-3 md:grid-cols-3">
-            <div className={cx(coachAdminSubtleCardClass, "px-4 py-4")}>
-              <p className={cx("text-[11px] font-semibold uppercase tracking-[0.2em]", coachAdminTextSoftClass)}>Requests</p>
-              <p className={cx("mt-2 text-2xl font-semibold tracking-[-0.05em]", coachAdminTextPrimaryClass)}>{aiUsageSummary?.total.requestCount.toLocaleString() || "0"}</p>
+          {/* Support queue */}
+          <Card>
+            <div style={{ padding: "12px 14px 10px", borderBottom: "1px solid var(--ca-bd)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <SectionHeader title="Support queue" count={openTickets.length} />
+              <Link href="/coach-admin/tickets" style={{ fontSize: 11.5, fontWeight: 600, color: "#06B6D4", textDecoration: "none" }}>All →</Link>
             </div>
-            <div className={cx(coachAdminSubtleCardClass, "px-4 py-4")}>
-              <p className={cx("text-[11px] font-semibold uppercase tracking-[0.2em]", coachAdminTextSoftClass)}>Input tokens</p>
-              <p className={cx("mt-2 text-2xl font-semibold tracking-[-0.05em]", coachAdminTextPrimaryClass)}>{aiUsageSummary?.total.inputTokens.toLocaleString() || "0"}</p>
-            </div>
-            <div className={cx(coachAdminSubtleCardClass, "px-4 py-4")}>
-              <p className={cx("text-[11px] font-semibold uppercase tracking-[0.2em]", coachAdminTextSoftClass)}>Output tokens</p>
-              <p className={cx("mt-2 text-2xl font-semibold tracking-[-0.05em]", coachAdminTextPrimaryClass)}>{aiUsageSummary?.total.outputTokens.toLocaleString() || "0"}</p>
-            </div>
-          </div>
+            {openTickets.length ? openTickets.slice(0, 8).map((ticket: any, i: number) => (
+              <Link key={ticket.id} href={`/coach-admin/tickets/${ticket.id}`} style={{ display: "block", padding: "10px 14px", borderTop: i > 0 ? "1px solid var(--ca-bd)" : "none", textDecoration: "none", transition: "background 0.1s" }} className="coach-admin-row-hover">
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 4 }}>
+                  <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--ca-text)", lineHeight: 1.35, flex: 1 }}>{ticket.subject}</span>
+                  <CoachAdminPill tone={priorityTone(ticket.priority)}>{ticket.priority}</CoachAdminPill>
+                </div>
+                <div style={{ fontSize: 11, color: "var(--ca-text3)" }}>
+                  {ticket.account?.name || "Unknown"} · {fmt(ticket.updatedAt)}
+                </div>
+              </Link>
+            )) : <EmptyRow label="No open tickets" />}
+          </Card>
 
-          <div className="mt-4">
-            <p className={cx("text-[11px] font-semibold uppercase tracking-[0.2em]", coachAdminTextSoftClass)}>Recent model calls</p>
-            <div className="mt-3 grid gap-3">
-              {recentAiRequests.length ? (
-                recentAiRequests.map((entry: any) => {
-                  const estimate = estimateTrackedTokenCostUsd({
-                    model: entry.model,
-                    inputTokens: entry.inputTokens,
-                    outputTokens: entry.outputTokens,
-                    totalTokens: entry.totalTokens,
-                  });
-
-                  return (
-                    <div key={entry.id} className={cx("rounded-[22px] px-4 py-4", coachAdminListCardClass)}>
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1">
-                          <p className={cx("font-medium", coachAdminTextPrimaryClass)}>
-                            {entry.featureName || "llm_request"} · {entry.model}
-                          </p>
-                          <p className={cx("mt-2 text-sm leading-6", coachAdminTextMutedClass)}>
-                            {getRequestPreview(entry.metadataJson)}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className={cx("text-sm font-semibold", coachAdminTextPrimaryClass)}>{formatUsdEstimate(estimate.estimatedCostUsd)}</p>
-                          <p className={cx("mt-1 text-xs uppercase tracking-[0.16em]", coachAdminTextSoftClass)}>
-                            {entry.totalTokens.toLocaleString()} tokens
-                          </p>
-                        </div>
-                      </div>
-                      <div className={cx("mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs uppercase tracking-[0.16em]", coachAdminTextSoftClass)}>
-                        <span>{formatDateTime(entry.createdAt)}</span>
-                        <span>•</span>
-                        <span>{entry.user?.email || "Unknown user"}</span>
-                        <span>•</span>
-                        <span>{entry.account?.name || "Unknown account"}</span>
-                      </div>
-                      <div className="mt-3 grid gap-2 md:grid-cols-3">
-                        <CoachAdminMetaItem label="Input" value={entry.inputTokens.toLocaleString()} />
-                        <CoachAdminMetaItem label="Output" value={entry.outputTokens.toLocaleString()} />
-                        <CoachAdminMetaItem label="Total" value={entry.totalTokens.toLocaleString()} />
-                      </div>
-                    </div>
-                  );
-                })
-              ) : (
-                <CoachAdminEmptyState title="No tracked model calls yet" body="As users call AI routes, exact request previews and token counts will populate here." />
-              )}
+          {/* Risk radar */}
+          <Card>
+            <div style={{ padding: "12px 14px 10px", borderBottom: "1px solid var(--ca-bd)" }}>
+              <SectionHeader title="Risk radar" count={riskAccounts.length} />
             </div>
-          </div>
-        </CoachAdminPanel>
-      </section>
+            {riskAccounts.length ? riskAccounts.slice(0, 6).map((account: any, i: number) => (
+              <Link key={account.id} href={`/coach-admin/accounts/${account.id}`} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "9px 14px", gap: 8, borderTop: i > 0 ? "1px solid var(--ca-bd)" : "none", textDecoration: "none", transition: "background 0.1s" }} className="coach-admin-row-hover">
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--ca-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{account.name}</div>
+                  <div style={{ fontSize: 11, color: "var(--ca-text3)", marginTop: 2 }}>{healthLabel(account)}</div>
+                </div>
+                <CoachAdminPill tone={statusTone(account.subscription?.status || account.status)}>{healthLabel(account)}</CoachAdminPill>
+              </Link>
+            )) : <EmptyRow label="No payment risks detected" />}
+          </Card>
+
+        </div>
+      </div>
     </div>
   );
 }
