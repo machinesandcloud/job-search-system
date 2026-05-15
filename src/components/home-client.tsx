@@ -2517,6 +2517,85 @@ export function HomeClient({ userId }: { userId: boolean }) {
       {/* ══════ PLATFORM WALKTHROUGH ══════ */}
       <PlatformWalkthrough />
 
+      {/* ══════ SPOTLIGHT REVIEWS — Kleo style ══════ */}
+      <section style={{ background:"linear-gradient(180deg,#EEF0FF 0%,#F4F5FF 55%,#FAFBFF 100%)", padding:"96px 24px 108px" }}>
+        <div style={{ maxWidth:1180, margin:"0 auto" }}>
+
+          {/* Header */}
+          <div style={{ textAlign:"center", marginBottom:56 }}>
+            <p style={{ fontSize:13, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.16em", color:"#6366F1", marginBottom:12 }}>What people are saying</p>
+            <h2 style={{ fontSize:"clamp(2rem,3.6vw,2.7rem)", fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", lineHeight:1.1, margin:0 }}>
+              Real results. Real people.
+            </h2>
+          </div>
+
+          {/* 3-card grid */}
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:24, alignItems:"start" }}>
+
+            {/* Card 1 — Resume */}
+            <div style={{ background:"white", borderRadius:22, padding:"32px 30px 28px", boxShadow:"0 2px 16px rgba(99,102,241,0.07),0 1px 3px rgba(0,0,0,0.06)", border:"1px solid rgba(99,102,241,0.08)" }}>
+              <div style={{ display:"flex", gap:3, marginBottom:22 }}>
+                {[0,1,2,3,4].map(i=><span key={i} style={{ fontSize:20, color:"#F97316", lineHeight:1 }}>★</span>)}
+              </div>
+              <p style={{ fontSize:15.5, lineHeight:1.7, color:"#1A1A2E", margin:"0 0 26px" }}>
+                I&apos;d been applying for 3 months with no callbacks. Zari audited my resume in one session and I rewrote it overnight.{" "}
+                <strong>I had 4 interview invites the following week.</strong>{" "}
+                I thought I was doing everything right — I wasn&apos;t.
+              </p>
+              <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="https://randomuser.me/api/portraits/men/46.jpg" alt="Marcus Webb" style={{ width:42, height:42, borderRadius:"50%", objectFit:"cover", flexShrink:0 }} />
+                <div>
+                  <p style={{ fontSize:14, fontWeight:700, color:"#0A0A0F", margin:0 }}>Marcus Webb</p>
+                  <p style={{ fontSize:12.5, color:"#6B7280", margin:0 }}>Senior PM at Figma</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 2 — Salary (center, slightly elevated) */}
+            <div style={{ background:"white", borderRadius:22, padding:"32px 30px 28px", boxShadow:"0 8px 40px rgba(99,102,241,0.14),0 2px 8px rgba(0,0,0,0.08)", border:"1px solid rgba(99,102,241,0.12)", transform:"translateY(-8px)" }}>
+              <div style={{ display:"flex", gap:3, marginBottom:22 }}>
+                {[0,1,2,3,4].map(i=><span key={i} style={{ fontSize:20, color:"#F97316", lineHeight:1 }}>★</span>)}
+              </div>
+              <p style={{ fontSize:15.5, lineHeight:1.7, color:"#1A1A2E", margin:"0 0 26px" }}>
+                I nearly accepted their first offer without saying a word. Zari walked me through all three rounds of negotiation.{" "}
+                <strong>I walked away with $22K more than I would have taken.</strong>{" "}
+                Every dollar I didn&apos;t leave on the table was because of this.
+              </p>
+              <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Priya Sundaram" style={{ width:42, height:42, borderRadius:"50%", objectFit:"cover", flexShrink:0 }} />
+                <div>
+                  <p style={{ fontSize:14, fontWeight:700, color:"#0A0A0F", margin:0 }}>Priya Sundaram</p>
+                  <p style={{ fontSize:12.5, color:"#6B7280", margin:0 }}>Engineering Manager</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 3 — Interview */}
+            <div style={{ background:"white", borderRadius:22, padding:"32px 30px 28px", boxShadow:"0 2px 16px rgba(99,102,241,0.07),0 1px 3px rgba(0,0,0,0.06)", border:"1px solid rgba(99,102,241,0.08)" }}>
+              <div style={{ display:"flex", gap:3, marginBottom:22 }}>
+                {[0,1,2,3,4].map(i=><span key={i} style={{ fontSize:20, color:"#F97316", lineHeight:1 }}>★</span>)}
+              </div>
+              <p style={{ fontSize:15.5, lineHeight:1.7, color:"#1A1A2E", margin:"0 0 26px" }}>
+                I&apos;ve worked with expensive coaches before. None came close to this.{" "}
+                <strong>The final round interviewer asked me the exact question Zari drilled me on the night before.</strong>{" "}
+                I was ready. I got the offer.
+              </p>
+              <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Devon Clarke" style={{ width:42, height:42, borderRadius:"50%", objectFit:"cover", flexShrink:0 }} />
+                <div>
+                  <p style={{ fontSize:14, fontWeight:700, color:"#0A0A0F", margin:0 }}>Devon Clarke</p>
+                  <p style={{ fontSize:12.5, color:"#6B7280", margin:0 }}>Director of Operations at Stripe</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
       {/* ══════ FOUNDER SECTION — interactive hover ══════ */}
       <section style={{ background:"white", padding:"0 40px", minHeight:"100vh", display:"flex", alignItems:"center", }}>
         <div style={{ maxWidth:1200, margin:"0 auto", width:"100%", paddingTop:96, paddingBottom:96 }}>
