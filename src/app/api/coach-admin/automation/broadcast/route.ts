@@ -61,11 +61,11 @@ export async function POST(request: NextRequest) {
 
   const { subject, message, testOnly = false } = body;
 
-  if (!subject || typeof subject !== "string" || subject.trim().length < 3) {
-    return NextResponse.json({ error: "subject required (min 3 chars)" }, { status: 400 });
+  if (!subject || typeof subject !== "string" || subject.trim().length < 1) {
+    return NextResponse.json({ error: "subject is required" }, { status: 400 });
   }
-  if (!message || typeof message !== "string" || message.trim().length < 10) {
-    return NextResponse.json({ error: "message required (min 10 chars)" }, { status: 400 });
+  if (!message || typeof message !== "string" || message.trim().length < 1) {
+    return NextResponse.json({ error: "message body is required" }, { status: 400 });
   }
 
   const suppressionRows = await prisma.emailSuppression.findMany({ select: { email: true } });
@@ -92,6 +92,12 @@ export async function POST(request: NextRequest) {
     try {
       const html = buildHtml(subject.trim(), message.trim(), user.firstName ?? "", user.email);
       await sendEmail({ to: user.email, subject: subject.trim(), html });
+      await prisma.appEvent.create({
+        data: {
+          eventName: "email_sent",
+          metadataJson: { email: user.email, subject: subject.trim(), type: "broadcast" },
+        },
+      }).catch(() => {});
       sent++;
     } catch (err) {
       console.error(`[broadcast] failed for ${user.email}:`, err);

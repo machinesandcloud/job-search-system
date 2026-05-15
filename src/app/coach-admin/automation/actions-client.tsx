@@ -216,22 +216,25 @@ export function BroadcastForm({ isAdmin }: { isAdmin: boolean }) {
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState<"idle" | "confirm" | "sending" | "ok" | "err">("idle");
   const [result, setResult] = useState<BroadcastResult | null>(null);
+  const [errorMsg, setErrorMsg] = useState("");
 
   if (!isAdmin) return null;
 
   async function send(testOnly: boolean) {
     setStatus("sending");
     setResult(null);
+    setErrorMsg("");
     const res = await fetch("/api/coach-admin/automation/broadcast", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ subject: subject.trim(), message: message.trim(), testOnly }),
     });
+    const data = await res.json().catch(() => ({}));
     if (res.ok) {
-      const data: BroadcastResult = await res.json();
-      setResult(data);
+      setResult(data as BroadcastResult);
       setStatus("ok");
     } else {
+      setErrorMsg((data as any)?.error || `Error ${res.status}`);
       setStatus("err");
     }
   }
@@ -298,7 +301,7 @@ export function BroadcastForm({ isAdmin }: { isAdmin: boolean }) {
           </button>
         </div>
       )}
-      {status === "err" && <div style={{ fontSize: 11, color: "#F43F5E" }}>Send failed — check Resend API key and try again.</div>}
+      {status === "err" && <div style={{ fontSize: 11, color: "#F43F5E" }}>{errorMsg || "Send failed"}</div>}
     </div>
   );
 }

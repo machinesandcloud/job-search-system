@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireCoachAdminActor } from "@/lib/coach-admin-auth";
 import { prisma } from "@/lib/db";
 import { CoachAdminPill } from "@/components/coach-admin-ui";
@@ -93,6 +94,7 @@ export default async function AutomationPage() {
       where: { eventName: "nps_submitted" },
       orderBy: { createdAt: "desc" },
       take: 20,
+      include: { user: { select: { email: true } } },
     }),
     prisma.appEvent.findMany({
       where: {
@@ -102,6 +104,7 @@ export default async function AutomationPage() {
       },
       orderBy: { createdAt: "desc" },
       take: 30,
+      include: { user: { select: { email: true } } },
     }),
   ]);
 
@@ -133,6 +136,10 @@ export default async function AutomationPage() {
       )}
 
       {/* KPI strip */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: -4 }}>
+        <span style={{ fontSize: 11, fontWeight: 700, color: "var(--ca-text3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Overview</span>
+        <Link href="/coach-admin/automation/emails" style={{ fontSize: 11.5, fontWeight: 600, color: "var(--ca-text3)", textDecoration: "none" }}>Email log →</Link>
+      </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 8 }}>
         {kpis.map(k => (
           <Card key={k.label} style={{ padding: "12px 14px" }}>
@@ -175,9 +182,10 @@ export default async function AutomationPage() {
             <TH cols="1fr 220px 130px" labels={["User", "Event", "Date"]} />
             {recentFunnelEvents.length ? recentFunnelEvents.map((e: any, i: number) => {
               const meta = e.metadataJson as any;
+              const userEmail = e.user?.email || meta?.email || meta?.userEmail || "—";
               return (
                 <div key={e.id} style={{ display: "grid", gridTemplateColumns: "1fr 220px 130px", padding: "9px 16px", gap: 8, borderTop: i > 0 ? "1px solid var(--ca-bd)" : "none", alignItems: "center" }}>
-                  <span style={{ fontSize: 12, color: "var(--ca-text2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{meta?.email || e.userId || "—"}</span>
+                  <span style={{ fontSize: 12, color: "var(--ca-text2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userEmail}</span>
                   <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ca-text)" }}>{e.eventName}</span>
                   <span style={{ fontSize: 11.5, color: "var(--ca-text3)" }}>{fmt(e.createdAt, true)}</span>
                 </div>

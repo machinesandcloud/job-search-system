@@ -281,6 +281,14 @@ export async function sendNow(sequence: ZariSequence, email: string): Promise<vo
   ]);
   await sendEmail({ to: email, subject: tmpl.subject, html, text, unsubscribeUrl: unsubUrl });
 
+  // Log the send so it appears in the email history view
+  await prisma.appEvent.create({
+    data: {
+      eventName: "email_sent",
+      metadataJson: { email, sequence, step: 0, subject: tmpl.subject, type: "sequence" },
+    },
+  }).catch(() => {});
+
   const now = new Date();
   if (delays.length === 1) {
     await prisma.emailSequenceEnrollment.update({
@@ -348,6 +356,12 @@ export async function processSequenceQueue(): Promise<{ sent: number; errors: nu
         render(tmpl.element, { plainText: true }),
       ]);
       await sendEmail({ to: enrollment.email, subject: tmpl.subject, html, text, unsubscribeUrl: unsubUrl });
+      await prisma.appEvent.create({
+        data: {
+          eventName: "email_sent",
+          metadataJson: { email: enrollment.email, sequence, step: stepIdx, subject: tmpl.subject, type: "sequence" },
+        },
+      }).catch(() => {});
       sent++;
 
       const nextStepIdx = stepIdx + 1;
