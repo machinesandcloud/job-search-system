@@ -17814,7 +17814,7 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
             </>
           ) : (
             <>
-              <p style={{ fontSize:13, color:"#64748B", marginBottom:14, textAlign:"left" }}>Enter the 6-digit code sent to <strong style={{ color:"#0F172A" }}>{normalizePhone(phoneInput)}</strong></p>
+              <p style={{ fontSize:13, color:"#64748B", marginBottom:14, textAlign:"left" }}>SMS is currently in test mode. Use code: <strong style={{ color:"#4F46E5", letterSpacing:"0.1em" }}>123456</strong></p>
               <input
                 type="text"
                 inputMode="numeric"
