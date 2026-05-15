@@ -59,12 +59,14 @@ function HighlightedText({ text, highlights }: { text: string; highlights: strin
           <mark
             key={i}
             style={{
-              background: "linear-gradient(104deg, rgba(99,102,241,0) 0.9%, rgba(99,102,241,0.18) 2.4%, rgba(99,102,241,0.14) 95.8%, rgba(99,102,241,0) 98%)",
-              borderRadius: 3,
-              padding: "1px 2px",
-              fontWeight: 600,
-              color: "inherit",
-            }}
+              background: "rgba(99,102,241,0.15)",
+              borderRadius: 5,
+              padding: "2px 5px",
+              fontWeight: 700,
+              color: "#1e1b4b",
+              boxDecorationBreak: "clone",
+              WebkitBoxDecorationBreak: "clone",
+            } as React.CSSProperties}
           >
             {part}
           </mark>
@@ -78,97 +80,105 @@ function HighlightedText({ text, highlights }: { text: string; highlights: strin
 
 export function HomeReviewWall() {
   return (
-    <section id="reviews" style={{ padding:"100px 20px 120px", background:"#EEEEFF", position:"relative", overflow:"hidden" }}>
+    <section id="reviews" style={{ padding:"100px 20px 120px", background:"#EEF0FF", position:"relative", overflow:"hidden" }}>
+
       {/* Floating hearts */}
       {([
-        { left:"3%", delay:"0s", dur:"14s", s:28, o:0.28 },
-        { left:"9%", delay:"1.2s", dur:"16s", s:20, o:0.22 },
-        { left:"16%", delay:"0.4s", dur:"13s", s:24, o:0.26 },
-        { left:"23%", delay:"2.1s", dur:"17s", s:18, o:0.20 },
-        { left:"30%", delay:"0.8s", dur:"15s", s:30, o:0.30 },
-        { left:"37%", delay:"1.7s", dur:"12s", s:16, o:0.20 },
-        { left:"44%", delay:"3.0s", dur:"14s", s:22, o:0.24 },
-        { left:"51%", delay:"0.2s", dur:"16s", s:28, o:0.32 },
-        { left:"58%", delay:"1.5s", dur:"13s", s:20, o:0.22 },
-        { left:"65%", delay:"2.6s", dur:"15s", s:24, o:0.26 },
-        { left:"72%", delay:"0.6s", dur:"18s", s:16, o:0.20 },
-        { left:"79%", delay:"1.9s", dur:"14s", s:30, o:0.28 },
-        { left:"86%", delay:"3.4s", dur:"12s", s:18, o:0.22 },
-        { left:"93%", delay:"0.9s", dur:"16s", s:22, o:0.24 },
-        { left:"6%", delay:"4.1s", dur:"13s", s:16, o:0.18 },
-        { left:"20%", delay:"5.0s", dur:"17s", s:26, o:0.30 },
-        { left:"56%", delay:"2.3s", dur:"12s", s:30, o:0.34 },
-        { left:"70%", delay:"3.2s", dur:"15s", s:24, o:0.26 },
-        { left:"84%", delay:"4.8s", dur:"13s", s:18, o:0.22 },
+        { left:"3%", delay:"0s", dur:"14s", s:28, o:0.25 },
+        { left:"9%", delay:"1.2s", dur:"16s", s:20, o:0.20 },
+        { left:"16%", delay:"0.4s", dur:"13s", s:24, o:0.22 },
+        { left:"23%", delay:"2.1s", dur:"17s", s:18, o:0.18 },
+        { left:"30%", delay:"0.8s", dur:"15s", s:30, o:0.28 },
+        { left:"37%", delay:"1.7s", dur:"12s", s:16, o:0.18 },
+        { left:"44%", delay:"3.0s", dur:"14s", s:22, o:0.22 },
+        { left:"51%", delay:"0.2s", dur:"16s", s:28, o:0.30 },
+        { left:"58%", delay:"1.5s", dur:"13s", s:20, o:0.20 },
+        { left:"65%", delay:"2.6s", dur:"15s", s:24, o:0.24 },
+        { left:"72%", delay:"0.6s", dur:"18s", s:16, o:0.18 },
+        { left:"79%", delay:"1.9s", dur:"14s", s:30, o:0.26 },
+        { left:"86%", delay:"3.4s", dur:"12s", s:18, o:0.20 },
+        { left:"93%", delay:"0.9s", dur:"16s", s:22, o:0.22 },
+        { left:"6%", delay:"4.1s", dur:"13s", s:16, o:0.16 },
+        { left:"20%", delay:"5.0s", dur:"17s", s:26, o:0.28 },
+        { left:"56%", delay:"2.3s", dur:"12s", s:30, o:0.32 },
+        { left:"70%", delay:"3.2s", dur:"15s", s:24, o:0.24 },
+        { left:"84%", delay:"4.8s", dur:"13s", s:18, o:0.20 },
       ] as { left: string; delay: string; dur: string; s: number; o: number }[]).map((h, i) => (
         <div
           key={i}
           aria-hidden
           style={{
-            position:"absolute",
-            bottom:"-30px",
-            left:h.left,
-            fontSize:h.s,
-            color:"#E8336D",
-            opacity:h.o,
-            pointerEvents:"none",
-            userSelect:"none",
-            lineHeight:1,
-            zIndex:1,
+            position:"absolute", bottom:"-30px", left:h.left,
+            fontSize:h.s, color:"#E8336D", opacity:h.o,
+            pointerEvents:"none", userSelect:"none", lineHeight:1, zIndex:1,
             animation:`${["heart-float","heart-float-left","heart-float-right","heart-float-sway"][i % 4]} ${h.dur} ${h.delay} ease-in infinite`,
           }}
-        >
-          ♥
-        </div>
+        >♥</div>
       ))}
 
       <div style={{ maxWidth:1440, margin:"0 auto", position:"relative", zIndex:2 }}>
+
         {/* Header */}
-        <div style={{ textAlign:"center", marginBottom:72 }}>
-          <p style={{ fontSize:12, fontWeight:700, letterSpacing:"0.18em", textTransform:"uppercase", color:"#6366F1", marginBottom:16 }}>
+        <div style={{ textAlign:"center", marginBottom:80 }}>
+          <p style={{ fontSize:11.5, fontWeight:700, letterSpacing:"0.2em", textTransform:"uppercase", color:"#6366F1", marginBottom:18 }}>
             What people are saying
           </p>
-          <h2 style={{ fontSize:"clamp(2.4rem,4.5vw,3.4rem)", fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", margin:0 }}>
+          <h2 style={{ fontSize:"clamp(2.6rem,4.8vw,3.6rem)", fontWeight:900, letterSpacing:"-0.045em", color:"#0A0A0F", margin:"0 0 16px" }}>
             Real results. Real people.
           </h2>
+          <p style={{ fontSize:17, color:"#6B7280", margin:0 }}>Real sessions. Real offers.</p>
         </div>
 
         {/* Masonry grid */}
-        <div style={{ columns:3, columnGap:28 }}>
+        <div style={{ columns:3, columnGap:24 }}>
           {WALL_REVIEWS.map((r, i) => (
             <div
               key={i}
               style={{
                 breakInside:"avoid",
-                marginBottom:28,
+                marginBottom:24,
                 background:"#FFFFFF",
-                border:"1px solid rgba(226,232,240,0.7)",
-                borderRadius:24,
-                padding:"32px 30px 28px",
-                boxShadow:"0 2px 8px rgba(99,102,241,0.06), 0 8px 32px rgba(99,102,241,0.08)",
+                border:"1.5px solid rgba(209,213,255,0.7)",
+                borderRadius:20,
+                padding:"32px 28px 26px",
+                boxShadow:"0 1px 3px rgba(99,102,241,0.06), 0 6px 24px rgba(99,102,241,0.09), 0 16px 48px rgba(99,102,241,0.04)",
+                transition:"box-shadow 0.2s, transform 0.2s",
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLDivElement).style.transform = "translateY(-3px)";
+                (e.currentTarget as HTMLDivElement).style.boxShadow = "0 2px 6px rgba(99,102,241,0.08), 0 12px 40px rgba(99,102,241,0.13), 0 24px 64px rgba(99,102,241,0.06)";
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLDivElement).style.transform = "";
+                (e.currentTarget as HTMLDivElement).style.boxShadow = "0 1px 3px rgba(99,102,241,0.06), 0 6px 24px rgba(99,102,241,0.09), 0 16px 48px rgba(99,102,241,0.04)";
               }}
             >
               {/* Stars */}
-              <div style={{ display:"flex", gap:3, marginBottom:20 }}>
+              <div style={{ display:"flex", gap:2, marginBottom:18 }}>
                 {Array.from({ length:5 }).map((_, j) => (
-                  <span key={j} style={{ fontSize:22, color:"#F59E0B", lineHeight:1 }}>★</span>
+                  <svg key={j} viewBox="0 0 24 24" fill="#F59E0B" style={{ width:20, height:20, flexShrink:0 }}>
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
                 ))}
               </div>
 
               {/* Quote */}
-              <p style={{ fontSize:16.5, lineHeight:1.78, color:"#111827", margin:"0 0 26px", fontWeight:450 }}>
+              <p style={{ fontSize:16, lineHeight:1.78, color:"#111827", margin:"0 0 24px", fontWeight:400 }}>
                 <HighlightedText text={r.quote} highlights={r.highlights} />
               </p>
 
+              {/* Divider */}
+              <div style={{ height:1, background:"rgba(209,213,255,0.6)", marginBottom:20 }} />
+
               {/* Avatar + name */}
-              <div style={{ display:"flex", alignItems:"center", gap:14 }}>
-                <div style={{ width:52, height:52, borderRadius:"50%", overflow:"hidden", background:`linear-gradient(135deg,${r.color1},${r.color2})`, flexShrink:0 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                <div style={{ width:48, height:48, borderRadius:"50%", overflow:"hidden", background:`linear-gradient(135deg,${r.color1},${r.color2})`, flexShrink:0, boxShadow:"0 2px 8px rgba(99,102,241,0.2)" }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={r.photo} alt={r.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
                 </div>
                 <div>
-                  <div style={{ fontSize:14.5, fontWeight:700, color:"#0A0A0F", letterSpacing:"-0.01em" }}>{r.name}</div>
-                  <div style={{ fontSize:13, color:"#6B7280", marginTop:2 }}>{r.role}</div>
+                  <div style={{ fontSize:14, fontWeight:700, color:"#0A0A0F", letterSpacing:"-0.01em" }}>{r.name}</div>
+                  <div style={{ fontSize:12.5, color:"#6B7280", marginTop:2 }}>{r.role}</div>
                 </div>
               </div>
             </div>
