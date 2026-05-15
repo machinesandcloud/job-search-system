@@ -7,23 +7,17 @@
 
 import { prisma } from "@/lib/db";
 import { sendEmail } from "@/lib/resend";
-import {
-  lead_nurture,
-  trial_onboarding,
-  trial_ending,
-  paid_welcome,
-  milestone_1,
-  milestone_5,
-  upsell_limit,
-  at_risk,
-  win_back_30,
-  win_back_60,
-  win_back_90,
-  nps_survey,
-  UNSUB_PLACEHOLDER,
-  type EmailTemplate,
-} from "./templates";
+import { render } from "@react-email/render";
+import * as React from "react";
 
+import { LeadNurture1, LeadNurture2, LeadNurture3, LeadNurture4, LeadNurture5, LeadNurture6, LeadNurture7 } from "./emails/lead-nurture";
+import { TrialOnboarding1, TrialOnboarding2, TrialOnboarding3, TrialOnboarding4, TrialOnboarding5, TrialEnding1, TrialEnding2 } from "./emails/trial";
+import { PaidWelcome1, PaidWelcome2, PaidWelcome3, Milestone1, Milestone5 } from "./emails/paid";
+import { UpsellLimit1, UpsellLimit2, AtRisk1, AtRisk2, AtRisk3, NpsSurvey } from "./emails/engagement";
+import { WinBack30, WinBack60, WinBack90 } from "./emails/win-back";
+
+export const UNSUB_PLACEHOLDER = "{{UNSUB_URL}}";
+const NPS_PLACEHOLDER = "{{NPS_URL}}";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.zaricoach.com";
 
 export type ZariSequence =
@@ -40,33 +34,94 @@ export type ZariSequence =
   | "win_back_90"
   | "nps_survey";
 
-// ─── Sequence definitions ─────────────────────────────────────────────────────
+// ─── Template definitions ─────────────────────────────────────────────────────
 
 type Meta = Record<string, string | number | boolean | undefined>;
-type Step = { delayDays: number; template: (meta: Meta) => EmailTemplate };
 
-function steps(arr: EmailTemplate[], deltas: number[]): Step[] {
-  return arr.map((t, i) => ({ delayDays: deltas[i] ?? 0, template: () => t }));
+interface EmailTemplate {
+  subject: string;
+  element: React.ReactElement;
 }
 
-// Delays are *between* emails (days after previous send, not from day 0)
-const SEQUENCES: Record<ZariSequence, Step[]> = {
-  lead_nurture:     steps(lead_nurture,     [0, 2, 3, 3, 4, 4, 5]),
-  trial_onboarding: steps(trial_onboarding, [0, 2, 3, 4, 4]),
-  trial_ending:     steps(trial_ending,     [0, 2]),
-  paid_welcome: [
-    { delayDays: 0, template: (m) => paid_welcome(m)[0] },
-    { delayDays: 3, template: (m) => paid_welcome(m)[1] },
-    { delayDays: 4, template: (m) => paid_welcome(m)[2] },
-  ],
-  milestone_1:  [{ delayDays: 0, template: (m) => milestone_1(m) }],
-  milestone_5:  [{ delayDays: 0, template: (m) => milestone_5(m) }],
-  upsell_limit: steps(upsell_limit, [0, 3]),
-  at_risk:      steps(at_risk,      [0, 7, 7]),
-  win_back_30:  [{ delayDays: 0, template: () => win_back_30 }],
-  win_back_60:  [{ delayDays: 0, template: () => win_back_60 }],
-  win_back_90:  [{ delayDays: 0, template: () => win_back_90 }],
-  nps_survey:   [{ delayDays: 0, template: (m) => nps_survey(m) }],
+function t(subject: string, element: React.ReactElement): EmailTemplate {
+  return { subject, element };
+}
+
+function makeTemplates(meta: Meta, unsubUrl: string, npsUrl: string): Record<ZariSequence, EmailTemplate[]> {
+  const firstName = typeof meta.firstName === "string" ? meta.firstName : undefined;
+  const planTier = typeof meta.planTier === "string" ? meta.planTier : undefined;
+
+  return {
+    lead_nurture: [
+      t("Most job searches fail in the first 3 weeks.", React.createElement(LeadNurture1, { unsubscribeUrl: unsubUrl })),
+      t("Your resume summary is probably hurting you.", React.createElement(LeadNurture2, { unsubscribeUrl: unsubUrl })),
+      t("Why recruiters can't find your LinkedIn profile.", React.createElement(LeadNurture3, { unsubscribeUrl: unsubUrl })),
+      t("6 months of nothing. Then 3 offers in 5 weeks.", React.createElement(LeadNurture4, { unsubscribeUrl: unsubUrl })),
+      t("The interview mistake 93% of candidates make.", React.createElement(LeadNurture5, { unsubscribeUrl: unsubUrl })),
+      t("Your free Zari account is ready.", React.createElement(LeadNurture6, { unsubscribeUrl: unsubUrl })),
+      t("My last email to you.", React.createElement(LeadNurture7, { unsubscribeUrl: unsubUrl })),
+    ],
+    trial_onboarding: [
+      t("Welcome to Zari — here's how to get started", React.createElement(TrialOnboarding1, { firstName, unsubscribeUrl: unsubUrl })),
+      t("Not sure where to start? Here's the fastest path.", React.createElement(TrialOnboarding2, { firstName, unsubscribeUrl: unsubUrl })),
+      t("The one habit top Zari users share.", React.createElement(TrialOnboarding3, { unsubscribeUrl: unsubUrl })),
+      t("How's the search going?", React.createElement(TrialOnboarding4, { firstName, unsubscribeUrl: unsubUrl })),
+      t("Your trial ends tomorrow.", React.createElement(TrialOnboarding5, { firstName, unsubscribeUrl: unsubUrl })),
+    ],
+    trial_ending: [
+      t("Your Zari trial ends in 3 days.", React.createElement(TrialEnding1, { firstName, unsubscribeUrl: unsubUrl })),
+      t("Today is your last day.", React.createElement(TrialEnding2, { firstName, unsubscribeUrl: unsubUrl })),
+    ],
+    paid_welcome: [
+      t("You're in. Welcome to Zari — here's everything you've unlocked.", React.createElement(PaidWelcome1, { firstName, planTier, unsubscribeUrl: unsubUrl })),
+      t("The Zari feature most people find too late.", React.createElement(PaidWelcome2, { firstName, unsubscribeUrl: unsubUrl })),
+      t("One week in — how's it going?", React.createElement(PaidWelcome3, { firstName, unsubscribeUrl: unsubUrl })),
+    ],
+    milestone_1: [
+      t("First session complete — here's what to do next.", React.createElement(Milestone1, { firstName, unsubscribeUrl: unsubUrl })),
+    ],
+    milestone_5: [
+      t("5 sessions. You're in the top 15%.", React.createElement(Milestone5, { firstName, planTier, unsubscribeUrl: unsubUrl })),
+    ],
+    upsell_limit: [
+      t("You're approaching your session limit — here's how to keep going.", React.createElement(UpsellLimit1, { firstName, unsubscribeUrl: unsubUrl })),
+      t("Your session limit is up. Here's how to keep going.", React.createElement(UpsellLimit2, { firstName, unsubscribeUrl: unsubUrl })),
+    ],
+    at_risk: [
+      t("Haven't seen you in a while — quick check-in.", React.createElement(AtRisk1, { firstName, unsubscribeUrl: unsubUrl })),
+      t("When the job search feels stuck — a different take.", React.createElement(AtRisk2, { firstName, unsubscribeUrl: unsubUrl })),
+      t("One last check-in.", React.createElement(AtRisk3, { firstName, unsubscribeUrl: unsubUrl })),
+    ],
+    win_back_30: [
+      t("It's been a month. A lot has changed at Zari.", React.createElement(WinBack30, { firstName, unsubscribeUrl: unsubUrl })),
+    ],
+    win_back_60: [
+      t("Two months out — still searching?", React.createElement(WinBack60, { firstName, unsubscribeUrl: unsubUrl })),
+    ],
+    win_back_90: [
+      t("Three months. My last reach-out.", React.createElement(WinBack90, { firstName, unsubscribeUrl: unsubUrl })),
+    ],
+    nps_survey: [
+      t("Quick question: how likely are you to recommend Zari?", React.createElement(NpsSurvey, { firstName, npsUrl, unsubscribeUrl: unsubUrl })),
+    ],
+  };
+}
+
+// ─── Sequence timing (delays between emails in days) ──────────────────────────
+
+const SEQUENCE_DELAYS: Record<ZariSequence, number[]> = {
+  lead_nurture:     [0, 2, 3, 3, 4, 4, 5],
+  trial_onboarding: [0, 2, 3, 4, 4],
+  trial_ending:     [0, 2],
+  paid_welcome:     [0, 3, 4],
+  milestone_1:      [0],
+  milestone_5:      [0],
+  upsell_limit:     [0, 3],
+  at_risk:          [0, 7, 7],
+  win_back_30:      [0],
+  win_back_60:      [0],
+  win_back_90:      [0],
+  nps_survey:       [0],
 };
 
 // ─── Suppression ──────────────────────────────────────────────────────────────
@@ -80,7 +135,6 @@ export async function suppress(
     update: { reason },
     create: { email, reason },
   });
-  // Cancel all active enrollments for this email
   await prisma.emailSequenceEnrollment.updateMany({
     where: { email, canceledAt: null, completedAt: null },
     data: { canceledAt: new Date() },
@@ -108,7 +162,7 @@ export async function enroll(
   const suppressed = await prisma.emailSuppression.findUnique({ where: { email } });
   if (suppressed) return;
 
-  const firstDelay = SEQUENCES[sequence][0]?.delayDays ?? 0;
+  const firstDelay = SEQUENCE_DELAYS[sequence][0] ?? 0;
   const nextSendAt = firstSendAt ?? new Date(Date.now() + firstDelay * 86_400_000);
 
   await prisma.emailSequenceEnrollment.upsert({
@@ -157,7 +211,6 @@ export async function processSequenceQueue(): Promise<{ sent: number; errors: nu
   const suppressedSet = new Set(suppressed.map((s: { email: string }) => s.email));
 
   for (const enrollment of due) {
-    // Auto-cancel suppressed enrollments
     if (suppressedSet.has(enrollment.email)) {
       await prisma.emailSequenceEnrollment.update({
         where: { id: enrollment.id },
@@ -168,30 +221,35 @@ export async function processSequenceQueue(): Promise<{ sent: number; errors: nu
 
     try {
       const sequence = enrollment.sequence as ZariSequence;
-      const seqSteps = SEQUENCES[sequence];
-      if (!seqSteps) continue;
+      const delays = SEQUENCE_DELAYS[sequence];
+      if (!delays) continue;
 
-      const step = seqSteps[enrollment.step];
-      if (!step) continue;
+      const stepIdx = enrollment.step;
+      if (stepIdx >= delays.length) continue;
 
       const meta = (enrollment.metadata as Meta) ?? {};
-      const { subject, html: rawHtml } = step.template(meta);
-
-      // Inject personalised unsubscribe URL
       const unsubUrl = `${APP_URL}/api/email/unsubscribe?email=${encodeURIComponent(enrollment.email)}`;
-      const html = rawHtml.replaceAll(UNSUB_PLACEHOLDER, unsubUrl);
+      const npsUrl = `${APP_URL}/api/nps?email=${encodeURIComponent(enrollment.email)}`;
 
-      await sendEmail({ to: enrollment.email, subject, html });
+      const templates = makeTemplates(meta, unsubUrl, npsUrl);
+      const sequenceTemplates = templates[sequence];
+      if (!sequenceTemplates) continue;
+
+      const tmpl = sequenceTemplates[stepIdx];
+      if (!tmpl) continue;
+
+      const html = await render(tmpl.element);
+      await sendEmail({ to: enrollment.email, subject: tmpl.subject, html });
       sent++;
 
-      const nextStepIdx = enrollment.step + 1;
-      if (nextStepIdx >= seqSteps.length) {
+      const nextStepIdx = stepIdx + 1;
+      if (nextStepIdx >= delays.length) {
         await prisma.emailSequenceEnrollment.update({
           where: { id: enrollment.id },
           data: { step: nextStepIdx, completedAt: now },
         });
       } else {
-        const nextDelay = seqSteps[nextStepIdx].delayDays;
+        const nextDelay = delays[nextStepIdx];
         await prisma.emailSequenceEnrollment.update({
           where: { id: enrollment.id },
           data: { step: nextStepIdx, nextSendAt: new Date(now.getTime() + nextDelay * 86_400_000) },
