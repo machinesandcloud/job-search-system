@@ -16,6 +16,11 @@ import { PaidWelcome1, PaidWelcome2, PaidWelcome3, Milestone1, Milestone5 } from
 import { UpsellLimit1, UpsellLimit2, AtRisk1, AtRisk2, AtRisk3, NpsSurvey } from "./emails/engagement";
 import { WinBack30, WinBack60, WinBack90 } from "./emails/win-back";
 import { Dunning1, Dunning2, Dunning3 } from "./emails/dunning";
+import {
+  NonStarter1, NonStarter2, NonStarter3,
+  FeatureActivation1, FeatureActivation2, FeatureActivation3,
+  ReferralAsk, TestimonialAsk, AnnualUpsell,
+} from "./emails/activation";
 
 export const UNSUB_PLACEHOLDER = "{{UNSUB_URL}}";
 const NPS_PLACEHOLDER = "{{NPS_URL}}";
@@ -34,7 +39,12 @@ export type ZariSequence =
   | "win_back_60"
   | "win_back_90"
   | "nps_survey"
-  | "dunning";
+  | "dunning"
+  | "non_starter"
+  | "feature_activation"
+  | "referral"
+  | "testimonial"
+  | "annual_upsell";
 
 // ─── Template definitions ─────────────────────────────────────────────────────
 
@@ -52,6 +62,10 @@ function t(subject: string, element: React.ReactElement): EmailTemplate {
 function makeTemplates(meta: Meta, unsubUrl: string, npsUrl: string): Record<ZariSequence, EmailTemplate[]> {
   const firstName = typeof meta.firstName === "string" ? meta.firstName : undefined;
   const planTier = typeof meta.planTier === "string" ? meta.planTier : undefined;
+  const planName = typeof meta.planName === "string" ? meta.planName : "Search";
+  const referralUrl = typeof meta.referralUrl === "string" ? meta.referralUrl : `${APP_URL}/signup`;
+  const testimonialUrl = typeof meta.testimonialUrl === "string" ? meta.testimonialUrl : `${APP_URL}/testimonial`;
+  const annualUrl = `${APP_URL}/billing?plan=annual`;
 
   return {
     lead_nurture: [
@@ -111,6 +125,32 @@ function makeTemplates(meta: Meta, unsubUrl: string, npsUrl: string): Record<Zar
       t("Your Zari access is at risk — please update your payment.", React.createElement(Dunning2, { firstName, unsubscribeUrl: unsubUrl })),
       t("Your Zari account has been paused.", React.createElement(Dunning3, { firstName, unsubscribeUrl: unsubUrl })),
     ],
+    non_starter: [
+      t("You haven't started yet — here's the fastest way in.", React.createElement(NonStarter1, { firstName, unsubscribeUrl: unsubUrl })),
+      t("What's stopping you from using Zari?", React.createElement(NonStarter2, { firstName, unsubscribeUrl: unsubUrl })),
+      t("Your free trial ends soon — and you haven't used it.", React.createElement(NonStarter3, { firstName, unsubscribeUrl: unsubUrl })),
+    ],
+    feature_activation: [
+      t("The Zari feature that compounds over time.", React.createElement(FeatureActivation1, { firstName, unsubscribeUrl: unsubUrl })),
+      t("Most candidates leave $10K–$30K on the table in negotiations.", React.createElement(FeatureActivation2, { firstName, unsubscribeUrl: unsubUrl })),
+      t("The question most job seekers don't ask until it's too late.", React.createElement(FeatureActivation3, { firstName, unsubscribeUrl: unsubUrl })),
+    ],
+    referral: [
+      t("Get one free month — just share Zari with one person.", React.createElement(ReferralAsk, { firstName, referralUrl, unsubscribeUrl: unsubUrl })),
+    ],
+    testimonial: [
+      t("45 days in — would you share what Zari's been like for you?", React.createElement(TestimonialAsk, { firstName, testimonialUrl, unsubscribeUrl: unsubUrl })),
+    ],
+    annual_upsell: [
+      t(`Switch to annual and save $${(39 - 32) * 12} — you've been on Zari 3 months.`, React.createElement(AnnualUpsell, {
+        firstName,
+        planName,
+        monthlyPrice: 39,
+        annualMonthlyPrice: 32,
+        annualUrl,
+        unsubscribeUrl: unsubUrl,
+      })),
+    ],
   };
 }
 
@@ -130,6 +170,11 @@ const SEQUENCE_DELAYS: Record<ZariSequence, number[]> = {
   win_back_90:      [0],
   nps_survey:       [0],
   dunning:          [0, 3, 7],
+  non_starter:      [2, 3, 5],   // 2 days after signup, then 3, then 5
+  feature_activation: [0, 5, 5], // session 2 trigger, then 5-day gaps
+  referral:         [0],
+  testimonial:      [0],
+  annual_upsell:    [0],
 };
 
 // ─── Suppression ──────────────────────────────────────────────────────────────

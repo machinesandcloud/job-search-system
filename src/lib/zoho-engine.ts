@@ -155,6 +155,9 @@ export async function onUserSignedUp(event: UserSignedUpEvent): Promise<void> {
     }
 
     void enroll("trial_onboarding", event.email, meta);
+    // Non-starter nudge fires if they don't complete a session within 48h
+    // The cron will cancel this once a session is detected
+    void enroll("non_starter", event.email, meta);
   } catch (err) {
     console.error("[zoho-engine] onUserSignedUp error:", err);
   }
@@ -181,7 +184,12 @@ export async function onSessionCompleted(event: SessionCompletedEvent): Promise<
 
     const meta = { firstName: event.firstName, planTier: event.planTier, email: event.email };
 
-    if (event.sessionCount === 1) void enroll("milestone_1", event.email, meta);
+    if (event.sessionCount === 1) {
+      void enroll("milestone_1", event.email, meta);
+      // They've started — cancel the non-starter nudge sequence
+      void cancel(event.email, "non_starter");
+    }
+    if (event.sessionCount === 2) void enroll("feature_activation", event.email, meta);
     if (event.sessionCount === 5) void enroll("milestone_5", event.email, meta);
 
     if ((event.tokenLimitPercent ?? 0) >= 80 && event.planTier !== "team") {
@@ -190,6 +198,25 @@ export async function onSessionCompleted(event: SessionCompletedEvent): Promise<
 
     if (event.daysSinceSignup === 30 && event.subscriptionStatus === "active") {
       void enroll("nps_survey", event.email, meta);
+    }
+
+    // Referral ask at day 21 for active paid users (they know the product by now)
+    if (event.daysSinceSignup === 21 && event.subscriptionStatus === "active") {
+      const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.zaricoach.com";
+      const referralUrl = `${APP_URL}/signup?ref=${encodeURIComponent(event.email)}`;
+      void enroll("referral", event.email, { ...meta, referralUrl });
+    }
+
+    // Testimonial ask at day 45 for active paid users
+    if (event.daysSinceSignup === 45 && event.subscriptionStatus === "active") {
+      const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.zaricoach.com";
+      const testimonialUrl = `${APP_URL}/testimonial?email=${encodeURIComponent(event.email)}`;
+      void enroll("testimonial", event.email, { ...meta, testimonialUrl });
+    }
+
+    // Annual upsell at day 90 for monthly subscribers
+    if (event.daysSinceSignup === 90 && event.subscriptionStatus === "active" && event.planTier !== "team") {
+      void enroll("annual_upsell", event.email, { ...meta, planName: event.planTier });
     }
   } catch (err) {
     console.error("[zoho-engine] onSessionCompleted error:", err);
@@ -227,8 +254,8 @@ export async function onSubscriptionChanged(event: SubscriptionChangedEvent): Pr
 
     if (event.subscriptionStatus === "active") {
       const isUpgrade = event.previousPlanTier && event.previousPlanTier !== event.planTier;
-      // Cancel all lifecycle sequences — covers win-back (re-subscriber), at-risk, trial
-      void cancelMany(event.email, ["trial_onboarding", "trial_ending", "at_risk", "win_back_30", "win_back_60", "win_back_90", "dunning"]);
+      // Cancel all lifecycle sequences — covers win-back (re-subscriber), at-risk, trial, non-starter
+      void cancelMany(event.email, ["trial_onboarding", "trial_ending", "at_risk", "win_back_30", "win_back_60", "win_back_90", "dunning", "non_starter"]);
       if (!isUpgrade) {
         void enroll("paid_welcome", event.email, meta);
       }
