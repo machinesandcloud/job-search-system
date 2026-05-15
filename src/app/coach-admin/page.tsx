@@ -76,9 +76,9 @@ function SectionHeader({ title, action, count }: { title: string; action?: React
   );
 }
 
-function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
+function Card({ children, style, id }: { children: React.ReactNode; style?: React.CSSProperties; id?: string }) {
   return (
-    <div style={{ borderRadius: 16, border: "1px solid var(--ca-bd)", background: "var(--ca-card)", overflow: "hidden", ...style }}>
+    <div id={id} style={{ borderRadius: 16, border: "1px solid var(--ca-bd)", background: "var(--ca-card)", overflow: "hidden", ...style }}>
       {children}
     </div>
   );

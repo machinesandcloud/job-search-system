@@ -16,34 +16,41 @@ import {
 import * as React from "react";
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
+// Derived from analysis of Stripe, Linear, Notion, Studio (react.email) templates.
+// max-width: 640px (all premium templates use 640, not 600)
+// Shell color: neutral grey — card appears to float
+// Text: never pure black — cool near-black + readable grey for body
+// Heading: 40px, weight 700, -0.8px letter-spacing (tight = designed)
+// Body: 16px, weight 400, 1.65 line-height
+// CTA: centered, brand blue, 15px 600w, generous padding, 8px radius
+
 export const colors = {
-  brand:    "#4F46E5",
-  brandDark:"#3730A3",
-  header:   "#0D1117",
-  text:     "#1E293B",
-  muted:    "#64748B",
-  subtle:   "#94A3B8",
-  border:   "#E2E8F0",
-  bg:       "#F8FAFC",
-  cardBg:   "#FFFFFF",
-  accent:   "#EEF2FF",
-  accentBorder: "#C7D2FE",
-  success:  "#10B981",
-  warning:  "#F59E0B",
+  brand:         "#3B6CF5",   // Zari blue (matched to logo)
+  brandLight:    "#EBF0FF",   // light blue tint for callouts/stats bg
+  brandBorder:   "#C5D5FD",   // callout/step circle border
+  text:          "#16171A",   // cool near-black — headlines
+  body:          "#52535A",   // comfortable reading grey — body text
+  muted:         "#818285",   // secondary info, captions
+  subtle:        "#9899A1",   // footer, timestamps
+  border:        "#E4E6EA",   // card border, dividers
+  shell:         "#F0F2F5",   // outer background — card floats on this
+  cardBg:        "#FFFFFF",
 };
 
-export const font = `-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif`;
+export const font = `Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif`;
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.zaricoach.com";
+const APP_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "https://app.zaricoach.com";
+const LOGO_URL = `${APP_URL}/assets/zari-logo-transparent-400w.png`;
 
-// ─── Base Layout ──────────────────────────────────────────────────────────────
+// ─── Layout ───────────────────────────────────────────────────────────────────
 interface LayoutProps {
   preview?: string;
+  headline?: React.ReactNode;
   unsubscribeUrl: string;
   children: React.ReactNode;
 }
 
-export function Layout({ preview, unsubscribeUrl, children }: LayoutProps) {
+export function Layout({ preview, headline, unsubscribeUrl, children }: LayoutProps) {
   return (
     <Html lang="en">
       <Head>
@@ -51,107 +58,96 @@ export function Layout({ preview, unsubscribeUrl, children }: LayoutProps) {
         <meta name="supported-color-schemes" content="light" />
       </Head>
       {preview && <Preview>{preview}</Preview>}
-      <Body style={{ margin: 0, padding: 0, backgroundColor: "#EFF3F8", fontFamily: font }}>
-        {/* Outer wrapper */}
-        <Section style={{ padding: "40px 0" }}>
-          <Container style={{ maxWidth: "600px", margin: "0 auto" }}>
+      <Body style={{
+        margin: 0,
+        padding: 0,
+        backgroundColor: colors.shell,
+        fontFamily: font,
+        WebkitFontSmoothing: "antialiased",
+      }}>
+        <Container style={{
+          maxWidth: "600px",
+          margin: "0 auto",
+          padding: "40px 16px 56px",
+        }}>
 
-            {/* ── Header ── */}
-            <Section style={{
-              backgroundColor: colors.header,
-              borderRadius: "16px 16px 0 0",
-              padding: "0",
-              overflow: "hidden",
-            }}>
-              <Row>
-                <Column style={{ padding: "28px 40px 0" }}>
-                  <table cellPadding="0" cellSpacing="0" style={{ borderCollapse: "collapse" }}>
-                    <tr>
-                      <td style={{ verticalAlign: "middle", paddingRight: "10px" }}>
-                        {/* Z icon mark */}
-                        <table cellPadding="0" cellSpacing="0">
-                          <tr>
-                            <td style={{
-                              width: "32px", height: "32px",
-                              backgroundColor: colors.brand,
-                              borderRadius: "8px",
-                              textAlign: "center",
-                              verticalAlign: "middle",
-                            }}>
-                              <span style={{ color: "#fff", fontSize: "16px", fontWeight: "800", letterSpacing: "-1px", lineHeight: "32px", display: "block" }}>Z</span>
-                            </td>
-                          </tr>
-                        </table>
-                      </td>
-                      <td style={{ verticalAlign: "middle" }}>
-                        <span style={{ color: "#FFFFFF", fontSize: "20px", fontWeight: "800", letterSpacing: "-0.5px" }}>Zari</span>
-                      </td>
-                    </tr>
-                  </table>
-                </Column>
-              </Row>
-              {/* Gradient accent stripe */}
-              <Row>
-                <Column style={{ paddingTop: "20px" }}>
-                  <table cellPadding="0" cellSpacing="0" style={{ width: "100%", borderCollapse: "collapse" }}>
-                    <tr>
-                      <td style={{ height: "3px", backgroundColor: "#4F46E5", width: "40%" }} />
-                      <td style={{ height: "3px", backgroundColor: "#6366F1", width: "30%" }} />
-                      <td style={{ height: "3px", backgroundColor: "#818CF8", width: "20%" }} />
-                      <td style={{ height: "3px", backgroundColor: "#A5B4FC", width: "10%" }} />
-                    </tr>
-                  </table>
-                </Column>
-              </Row>
-            </Section>
+          <Section style={{
+            backgroundColor: colors.cardBg,
+            borderRadius: "8px",
+            border: `1px solid ${colors.border}`,
+          }}>
 
-            {/* ── Body ── */}
-            <Section style={{
-              backgroundColor: colors.cardBg,
-              padding: "40px",
-              borderLeft: "1px solid #E2E8F0",
-              borderRight: "1px solid #E2E8F0",
-            }}>
-              {children}
-            </Section>
+            {/* ── Logo strip — white, tight, centered ── */}
+            <Row>
+              <Column style={{ padding: "20px 32px 18px", textAlign: "center", borderBottom: `1px solid ${colors.border}` }}>
+                <Img
+                  src={LOGO_URL}
+                  width={88}
+                  height={27}
+                  alt="Zari"
+                  style={{ display: "block", margin: "0 auto" }}
+                />
+              </Column>
+            </Row>
 
-            {/* ── Footer ── */}
-            <Section style={{
-              backgroundColor: colors.bg,
-              borderRadius: "0 0 16px 16px",
-              padding: "24px 40px",
-              borderTop: `1px solid ${colors.border}`,
-              border: "1px solid #E2E8F0",
-              borderTopWidth: "0",
-            }}>
+            {/* ── Blue hero — large white headline ── */}
+            {headline && (
               <Row>
-                <Column>
-                  <Text style={{ margin: 0, color: colors.subtle, fontSize: "12px", lineHeight: "1.6" }}>
-                    <strong style={{ color: colors.muted }}>Zari</strong> · AI-powered career coaching
-                    {" · "}
-                    <Link href={APP_URL} style={{ color: colors.muted, textDecoration: "none" }}>
-                      zaricoach.com
-                    </Link>
-                  </Text>
-                  <Text style={{ margin: "6px 0 0", color: colors.subtle, fontSize: "12px" }}>
-                    <Link href={unsubscribeUrl} style={{ color: colors.subtle, textDecoration: "underline" }}>
-                      Unsubscribe
-                    </Link>
-                    {" · "}
-                    You received this because you signed up for Zari.
+                <Column style={{ backgroundColor: colors.brand, padding: "40px 40px 36px" }}>
+                  <Text style={{
+                    fontFamily: font,
+                    color: "#FFFFFF",
+                    fontSize: "30px",
+                    fontWeight: "800",
+                    lineHeight: "1.2",
+                    letterSpacing: "-0.5px",
+                    margin: 0,
+                  }}>
+                    {headline}
                   </Text>
                 </Column>
               </Row>
-            </Section>
+            )}
 
-          </Container>
-        </Section>
+            {/* ── White content ── */}
+            <Row>
+              <Column style={{ padding: "32px 40px 44px" }}>
+                {children}
+              </Column>
+            </Row>
+
+          </Section>
+
+          {/* ── Footer ── */}
+          <Section style={{ padding: "20px 0 0" }}>
+            <Text style={{
+              margin: 0,
+              fontFamily: font,
+              color: colors.subtle,
+              fontSize: "12px",
+              lineHeight: "1.7",
+              letterSpacing: "0.1px",
+              textAlign: "center",
+            }}>
+              Zari · AI career coaching ·{" "}
+              <Link href={APP_URL} style={{ color: colors.subtle, textDecoration: "none" }}>
+                zaricoach.com
+              </Link>
+              <br />
+              <Link href={unsubscribeUrl} style={{ color: colors.subtle, textDecoration: "underline" }}>
+                Unsubscribe
+              </Link>
+              {" "}· You received this because you signed up for Zari.
+            </Text>
+          </Section>
+
+        </Container>
       </Body>
     </Html>
   );
 }
 
-// ─── CTA Button ───────────────────────────────────────────────────────────────
+// ─── CTA Button — centered, prominent ─────────────────────────────────────────
 interface CtaButtonProps {
   href: string;
   children: React.ReactNode;
@@ -159,19 +155,21 @@ interface CtaButtonProps {
 
 export function CtaButton({ href, children }: CtaButtonProps) {
   return (
-    <Section style={{ textAlign: "center", margin: "32px 0 0" }}>
+    <Section style={{ textAlign: "center", margin: "28px 0 0" }}>
       <Button
         href={href}
         style={{
           backgroundColor: colors.brand,
           color: "#FFFFFF",
+          fontFamily: font,
           fontSize: "15px",
           fontWeight: "600",
+          letterSpacing: "-0.042px",
+          lineHeight: "1",
           textDecoration: "none",
-          padding: "14px 32px",
-          borderRadius: "10px",
+          padding: "14px 28px",
+          borderRadius: "8px",
           display: "inline-block",
-          letterSpacing: "-0.1px",
         }}
       >
         {children}
@@ -180,30 +178,97 @@ export function CtaButton({ href, children }: CtaButtonProps) {
   );
 }
 
-// ─── Highlight box ────────────────────────────────────────────────────────────
-interface HighlightProps {
+// ─── Blockquote / Callout ─────────────────────────────────────────────────────
+// Light brand-blue background + left accent border — visible, not garish
+interface BlockquoteProps {
   children: React.ReactNode;
-  variant?: "info" | "tip" | "quote";
 }
 
-export function Highlight({ children, variant = "info" }: HighlightProps) {
-  const borderColor = variant === "tip" ? colors.success : variant === "quote" ? "#A855F7" : colors.brand;
+export function Blockquote({ children }: BlockquoteProps) {
   return (
     <Section style={{
-      backgroundColor: colors.accent,
-      borderLeft: `4px solid ${borderColor}`,
-      borderRadius: "0 10px 10px 0",
-      padding: "16px 20px",
+      backgroundColor: colors.brandLight,
+      borderLeft: `4px solid ${colors.brand}`,
+      borderRadius: "0 8px 8px 0",
+      padding: "18px 20px",
       margin: "24px 0",
     }}>
-      <Text style={{ margin: 0, color: colors.text, fontSize: "15px", lineHeight: "1.65" }}>
+      <Text style={{
+        margin: 0,
+        fontFamily: font,
+        color: colors.body,
+        fontSize: "15px",
+        lineHeight: "1.7",
+        letterSpacing: "-0.042px",
+      }}>
         {children}
       </Text>
     </Section>
   );
 }
 
-// ─── Step list ────────────────────────────────────────────────────────────────
+export const Highlight = Blockquote;
+
+// ─── Divider ──────────────────────────────────────────────────────────────────
+export function Divider() {
+  return <Hr style={{ borderColor: colors.border, margin: "28px 0" }} />;
+}
+
+// ─── Typography helpers ───────────────────────────────────────────────────────
+// 4-size scale: 40px hero / 16px body / 14px step desc / 12-13px footer
+// Every size has a specific weight and letter-spacing — no defaults
+
+export const h2 = (style?: React.CSSProperties): React.CSSProperties => ({
+  fontFamily: font,
+  margin: "0 0 14px",
+  color: colors.text,
+  fontSize: "18px",
+  fontWeight: "700",
+  letterSpacing: "-0.3px",
+  lineHeight: "1.4",
+  ...style,
+});
+
+export const p = (style?: React.CSSProperties): React.CSSProperties => ({
+  fontFamily: font,
+  margin: "0 0 16px",
+  color: colors.body,
+  fontSize: "15px",
+  lineHeight: "1.7",
+  letterSpacing: "-0.01px",
+  ...style,
+});
+
+export const muted = (style?: React.CSSProperties): React.CSSProperties => ({
+  fontFamily: font,
+  color: colors.muted,
+  fontSize: "13px",
+  lineHeight: "1.6",
+  letterSpacing: "-0.013px",
+  margin: "16px 0 0",
+  ...style,
+});
+
+// ─── Signature ────────────────────────────────────────────────────────────────
+export function Signature({ name = "Steve at Zari" }: { name?: string }) {
+  return (
+    <>
+      <Divider />
+      <Text style={{
+        fontFamily: font,
+        margin: 0,
+        color: colors.muted,
+        fontSize: "14px",
+        lineHeight: "1.6",
+        letterSpacing: "-0.014px",
+      }}>
+        — {name}
+      </Text>
+    </>
+  );
+}
+
+// ─── Numbered steps ───────────────────────────────────────────────────────────
 interface StepProps {
   number: number;
   title: string;
@@ -212,103 +277,99 @@ interface StepProps {
 
 export function Step({ number, title, children }: StepProps) {
   return (
-    <Row style={{ marginBottom: "16px" }}>
-      <Column style={{ width: "36px", verticalAlign: "top", paddingTop: "2px" }}>
-        <table cellPadding="0" cellSpacing="0">
-          <tr>
-            <td style={{
-              width: "28px", height: "28px",
-              backgroundColor: colors.brand,
+    <Section style={{ margin: "0 0 20px" }}>
+      <table cellPadding="0" cellSpacing="0" style={{ borderCollapse: "collapse", width: "100%" }}>
+        <tr>
+          <td style={{ verticalAlign: "top", paddingRight: "14px", paddingTop: "1px", width: "34px" }}>
+            <div style={{
+              width: "28px",
+              height: "28px",
+              backgroundColor: colors.brandLight,
+              border: `1.5px solid ${colors.brandBorder}`,
               borderRadius: "50%",
               textAlign: "center",
-              verticalAlign: "middle",
+              lineHeight: "28px",
+              fontFamily: font,
+              fontSize: "12px",
+              fontWeight: "700",
+              color: colors.brand,
+              display: "block",
+              letterSpacing: "-0.012px",
             }}>
-              <span style={{ color: "#fff", fontSize: "13px", fontWeight: "700", lineHeight: "28px", display: "block" }}>{number}</span>
-            </td>
-          </tr>
-        </table>
-      </Column>
-      <Column style={{ verticalAlign: "top", paddingLeft: "12px" }}>
-        <Text style={{ margin: "0 0 4px", color: colors.text, fontSize: "15px", fontWeight: "700", lineHeight: "1.4" }}>{title}</Text>
-        <Text style={{ margin: 0, color: colors.muted, fontSize: "14px", lineHeight: "1.6" }}>{children}</Text>
-      </Column>
-    </Row>
+              {number}
+            </div>
+          </td>
+          <td style={{ verticalAlign: "top" }}>
+            <Text style={{
+              fontFamily: font,
+              margin: "0 0 4px",
+              color: colors.text,
+              fontSize: "15px",
+              fontWeight: "600",
+              lineHeight: "1.5",
+              letterSpacing: "-0.042px",
+            }}>
+              {title}
+            </Text>
+            <Text style={{
+              fontFamily: font,
+              margin: 0,
+              color: colors.body,
+              fontSize: "14px",
+              lineHeight: "1.7",
+              letterSpacing: "-0.014px",
+            }}>
+              {children}
+            </Text>
+          </td>
+        </tr>
+      </table>
+    </Section>
   );
 }
 
-// ─── Divider ──────────────────────────────────────────────────────────────────
-export function Divider() {
-  return <Hr style={{ borderColor: "#F1F5F9", margin: "28px 0" }} />;
-}
-
-// ─── Body text helpers ────────────────────────────────────────────────────────
-export const p = (style?: React.CSSProperties): React.CSSProperties => ({
-  margin: "0 0 16px",
-  color: colors.text,
-  fontSize: "16px",
-  lineHeight: "1.7",
-  ...style,
-});
-
-export const h2 = (style?: React.CSSProperties): React.CSSProperties => ({
-  margin: "0 0 20px",
-  color: colors.text,
-  fontSize: "24px",
-  fontWeight: "800",
-  letterSpacing: "-0.5px",
-  lineHeight: "1.3",
-  ...style,
-});
-
-export const muted = (style?: React.CSSProperties): React.CSSProperties => ({
-  color: colors.muted,
-  fontSize: "14px",
-  lineHeight: "1.6",
-  margin: "16px 0 0",
-  ...style,
-});
-
-// ─── Signature ────────────────────────────────────────────────────────────────
-export function Signature({ name = "The Zari Team" }: { name?: string }) {
-  return (
-    <>
-      <Divider />
-      <Text style={{ margin: 0, color: colors.muted, fontSize: "15px", lineHeight: "1.6" }}>
-        All the best,<br />
-        <strong style={{ color: colors.text }}>{name}</strong>
-      </Text>
-    </>
-  );
-}
-
-// ─── Stat card row ────────────────────────────────────────────────────────────
+// ─── Stats row ────────────────────────────────────────────────────────────────
+// Brand-blue numbers on light-blue bg, separated by vertical rules
 interface StatProps {
   stats: { value: string; label: string }[];
 }
 
 export function StatRow({ stats }: StatProps) {
   return (
-    <Section style={{ margin: "24px 0" }}>
-      <Row>
-        {stats.map((s, i) => (
-          <Column key={i} style={{ textAlign: "center", padding: "0 8px" }}>
-            <table cellPadding="0" cellSpacing="0" style={{ width: "100%", borderCollapse: "collapse" }}>
-              <tr>
-                <td style={{
-                  backgroundColor: colors.accent,
-                  border: `1px solid ${colors.accentBorder}`,
-                  borderRadius: "10px",
-                  padding: "16px",
-                  textAlign: "center",
-                }}>
-                  <div style={{ color: colors.brand, fontSize: "28px", fontWeight: "800", letterSpacing: "-1px", lineHeight: "1" }}>{s.value}</div>
-                  <div style={{ color: colors.muted, fontSize: "12px", marginTop: "4px" }}>{s.label}</div>
-                </td>
-              </tr>
-            </table>
-          </Column>
-        ))}
-      </Row>
+    <Section style={{
+      backgroundColor: colors.brandLight,
+      borderRadius: "10px",
+      padding: "28px 0",
+      margin: "0 0 32px",
+    }}>
+      <table cellPadding="0" cellSpacing="0" style={{ width: "100%", borderCollapse: "collapse" }}>
+        <tr>
+          {stats.map((s, i) => (
+            <td key={i} style={{
+              textAlign: "center",
+              padding: "0 16px",
+              borderRight: i < stats.length - 1 ? `1px solid ${colors.brandBorder}` : "none",
+            }}>
+              <div style={{
+                fontFamily: font,
+                color: colors.brand,
+                fontSize: "34px",
+                fontWeight: "800",
+                letterSpacing: "-1.5px",
+                lineHeight: "1",
+              }}>{s.value}</div>
+              <div style={{
+                fontFamily: font,
+                color: colors.muted,
+                fontSize: "12px",
+                marginTop: "7px",
+                lineHeight: "1.45",
+                letterSpacing: "-0.012px",
+              }}>{s.label}</div>
+            </td>
+          ))}
+        </tr>
+      </table>
     </Section>
   );
 }

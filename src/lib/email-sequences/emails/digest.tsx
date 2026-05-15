@@ -44,7 +44,7 @@ export function WeeklyDigest(metrics: DigestMetrics) {
                     <table cellPadding="0" cellSpacing="0">
                       <tr>
                         <td style={{ verticalAlign: "middle", paddingRight: "12px" }}>
-                          <div style={{ width: "32px", height: "32px", backgroundColor: "#4F46E5", borderRadius: "8px", textAlign: "center", lineHeight: "32px" }}>
+                          <div style={{ width: "32px", height: "32px", backgroundColor: colors.brand, borderRadius: "8px", textAlign: "center", lineHeight: "32px" }}>
                             <span style={{ color: "#fff", fontSize: "16px", fontWeight: "800" }}>Z</span>
                           </div>
                         </td>
@@ -75,7 +75,7 @@ export function WeeklyDigest(metrics: DigestMetrics) {
                               <tr>
                                 <td style={{ backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: "10px", padding: "16px", textAlign: "center" }}>
                                   <div style={{ fontSize: "11px", color: colors.muted, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px" }}>{kpi.label}</div>
-                                  <div style={{ fontSize: "24px", fontWeight: "800", color: "#4F46E5", letterSpacing: "-1px", lineHeight: "1" }}>{kpi.value}</div>
+                                  <div style={{ fontSize: "24px", fontWeight: "800", color: colors.brand, letterSpacing: "-1px", lineHeight: "1" }}>{kpi.value}</div>
                                   <div style={{ fontSize: "11px", color: kpi.subColor, marginTop: "4px", fontWeight: "600" }}>{kpi.sub}</div>
                                 </td>
                               </tr>
@@ -135,7 +135,7 @@ export function WeeklyDigest(metrics: DigestMetrics) {
                                       <div style={{ fontSize: "12px", color: colors.muted }}>{u.email}</div>
                                     </td>
                                     <td style={{ textAlign: "right" }}>
-                                      <span style={{ fontSize: "13px", fontWeight: "700", color: "#4F46E5" }}>{u.sessions} sessions</span>
+                                      <span style={{ fontSize: "13px", fontWeight: "700", color: colors.brand }}>{u.sessions} sessions</span>
                                     </td>
                                   </tr>
                                 </table>
