@@ -34,8 +34,15 @@ export const colors = {
 
 export const font = `Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif`;
 
-const APP_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "https://app.zaricoach.com";
-const LOGO_URL = `${APP_URL}/assets/zari-logo-transparent-400w.png`;
+// Single source of truth for all email links — checks both NEXT_PUBLIC vars,
+// falls back to the hardcoded production domain so links never break.
+export const SITE_URL =
+  (process.env.NEXT_PUBLIC_APP_URL ?? process.env.NEXT_PUBLIC_BASE_URL ?? "").replace(/\/$/, "") ||
+  "https://app.zaricoach.com";
+
+// Absolute URL so the logo loads in email clients regardless of env vars.
+// The file lives at public/assets/zari-logo-transparent-400w.png.
+const LOGO_URL = "https://app.zaricoach.com/assets/zari-logo-transparent-400w.png";
 
 function getMonthYear() {
   return new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
@@ -173,7 +180,7 @@ export function Layout({ preview, headline, badge, unsubscribeUrl, children }: L
                   {" · "}You received this because you signed up for Zari.
                   <br />
                   © {new Date().getFullYear()} Zari, Inc.{" · "}
-                  <Link href={APP_URL} style={{ color: colors.muted, textDecoration: "none" }}>
+                  <Link href={SITE_URL} style={{ color: colors.muted, textDecoration: "none" }}>
                     zaricoach.com
                   </Link>
                 </Text>

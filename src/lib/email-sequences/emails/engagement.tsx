@@ -1,8 +1,6 @@
 import * as React from "react";
 import { Text, Section, Link, Row, Column } from "@react-email/components";
-import { Layout, CtaButton, Blockquote, Divider, Signature, Step, p, muted, colors } from "../base";
-
-const APP = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.zaricoach.com";
+import { Layout, CtaButton, Blockquote, Divider, Signature, Step, p, muted, colors, SITE_URL as APP } from "../base";
 
 const FEATURE_LABELS: Record<string, string> = {
   resume: "resume review",
@@ -254,7 +252,7 @@ export function DetractorFollowup1({ firstName, unsubscribeUrl }: { firstName?: 
       <Text style={p()}>
         And as a small acknowledgment that we fell short: I've added <strong>$20 in free credits</strong> to your account. No strings attached.
       </Text>
-      <CtaButton href={`${process.env.NEXT_PUBLIC_APP_URL ?? "https://app.zaricoach.com"}`}>Open Zari →</CtaButton>
+      <CtaButton href={APP}>Open Zari →</CtaButton>
       <Divider />
       <Text style={muted()}>
         If you'd prefer to cancel, you can do that from billing settings — no friction, no questions asked.
@@ -283,7 +281,7 @@ export function DetractorFollowup2({ firstName, unsubscribeUrl }: { firstName?: 
       <Text style={p()}>
         If Zari just wasn't the right fit, that's a completely valid outcome. I'd still appreciate knowing why — one sentence is enough.
       </Text>
-      <CtaButton href={`${process.env.NEXT_PUBLIC_APP_URL ?? "https://app.zaricoach.com"}`}>Open Zari →</CtaButton>
+      <CtaButton href={APP}>Open Zari →</CtaButton>
       <Divider />
       <Text style={muted()}>
         After this I'll stop following up. Whatever you decide — good luck with the search.

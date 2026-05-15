@@ -24,7 +24,9 @@ import {
 
 export const UNSUB_PLACEHOLDER = "{{UNSUB_URL}}";
 const NPS_PLACEHOLDER = "{{NPS_URL}}";
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.zaricoach.com";
+const APP_URL =
+  (process.env.NEXT_PUBLIC_APP_URL ?? process.env.NEXT_PUBLIC_BASE_URL ?? "").replace(/\/$/, "") ||
+  "https://app.zaricoach.com";
 
 export type ZariSequence =
   | "lead_nurture"
@@ -273,8 +275,11 @@ export async function sendNow(sequence: ZariSequence, email: string): Promise<vo
   const tmpl = templates[sequence]?.[0];
   if (!tmpl) return;
 
-  const html = await render(tmpl.element);
-  await sendEmail({ to: email, subject: tmpl.subject, html });
+  const [html, text] = await Promise.all([
+    render(tmpl.element),
+    render(tmpl.element, { plainText: true }),
+  ]);
+  await sendEmail({ to: email, subject: tmpl.subject, html, text, unsubscribeUrl: unsubUrl });
 
   const now = new Date();
   if (delays.length === 1) {
@@ -338,8 +343,11 @@ export async function processSequenceQueue(): Promise<{ sent: number; errors: nu
       const tmpl = sequenceTemplates[stepIdx];
       if (!tmpl) continue;
 
-      const html = await render(tmpl.element);
-      await sendEmail({ to: enrollment.email, subject: tmpl.subject, html });
+      const [html, text] = await Promise.all([
+        render(tmpl.element),
+        render(tmpl.element, { plainText: true }),
+      ]);
+      await sendEmail({ to: enrollment.email, subject: tmpl.subject, html, text, unsubscribeUrl: unsubUrl });
       sent++;
 
       const nextStepIdx = stepIdx + 1;

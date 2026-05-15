@@ -1,8 +1,6 @@
 import * as React from "react";
 import { Text, Section } from "@react-email/components";
-import { Layout, CtaButton, Blockquote, Divider, Signature, Step, StatRow, p, muted, colors } from "../base";
-
-const APP = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.zaricoach.com";
+import { Layout, CtaButton, Blockquote, Divider, Signature, Step, StatRow, p, muted, colors, SITE_URL as APP } from "../base";
 
 function planLabel(tier?: string) {
   return ({ pro: "Search", premium: "Growth", team: "Executive" } as Record<string, string>)[tier ?? ""] ?? "Search";

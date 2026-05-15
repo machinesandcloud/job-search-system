@@ -1,8 +1,6 @@
 import * as React from "react";
 import { Text, Section } from "@react-email/components";
-import { Layout, CtaButton, Blockquote, Divider, Signature, Step, StatRow, p, muted } from "../base";
-
-const APP = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.zaricoach.com";
+import { Layout, CtaButton, Blockquote, Divider, Signature, Step, StatRow, p, muted, SITE_URL as APP } from "../base";
 
 export function WinBack30({ firstName, unsubscribeUrl }: { firstName?: string; unsubscribeUrl: string }) {
   return (
