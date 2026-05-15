@@ -123,16 +123,27 @@ export function CoachAdminCancelSubscriptionButton({
   }
 
   return (
-    <div className="flex flex-col items-end gap-2">
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
       <button
         type="button"
         onClick={onClick}
         disabled={disabled || loading}
-        className="inline-flex items-center justify-center rounded-full border border-rose-400/35 bg-rose-400/10 px-4 py-2.5 text-sm font-semibold text-rose-100 transition hover:-translate-y-0.5 hover:bg-rose-400/16 disabled:cursor-not-allowed disabled:opacity-60"
+        style={{
+          display: "inline-flex", alignItems: "center", justifyContent: "center",
+          borderRadius: 99, border: "1px solid rgba(244,63,94,0.45)",
+          background: "rgba(244,63,94,0.10)", padding: "7px 16px",
+          fontSize: 13, fontWeight: 600, color: "#F43F5E",
+          cursor: disabled || loading ? "not-allowed" : "pointer",
+          opacity: disabled || loading ? 0.6 : 1,
+          transition: "background 0.12s, border-color 0.12s",
+          whiteSpace: "nowrap",
+        }}
+        onMouseEnter={e => { if (!disabled && !loading) (e.currentTarget as HTMLButtonElement).style.background = "rgba(244,63,94,0.18)"; }}
+        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(244,63,94,0.10)"; }}
       >
-        {loading ? "Canceling..." : "Cancel subscription now"}
+        {loading ? "Canceling…" : "Cancel subscription"}
       </button>
-      {error ? <p className="max-w-sm text-right text-sm text-rose-300">{error}</p> : null}
+      {error ? <p style={{ fontSize: 12, color: "#F43F5E", textAlign: "right", margin: 0 }}>{error}</p> : null}
     </div>
   );
 }
