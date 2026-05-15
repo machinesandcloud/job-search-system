@@ -34,6 +34,7 @@ export async function POST(request: Request) {
     let email = bodyEmail;
     let userId: string | undefined;
     let planTier = "free";
+    let firstName: string | undefined;
 
     if (!email) {
       userId = (await getCurrentUserId()) ?? undefined;
@@ -41,11 +42,13 @@ export async function POST(request: Request) {
         const user = await prisma.user.findUnique({ where: { id: userId } });
         email = user?.email ?? "";
         planTier = user?.planTier ?? "free";
+        firstName = user?.firstName ?? undefined;
       }
     } else {
       const user = await prisma.user.findUnique({ where: { email } });
       userId = user?.id;
       planTier = user?.planTier ?? "free";
+      firstName = user?.firstName ?? undefined;
     }
 
     if (!email) return NextResponse.json({ error: "Email required" }, { status: 400 });
@@ -61,7 +64,7 @@ export async function POST(request: Request) {
 
     // Fire CRM/follow-up logic
     if (userId) {
-      void onNpsSubmitted({ userId, email, score, comment: comment || undefined, planTier });
+      void onNpsSubmitted({ userId, email, firstName, score, comment: comment || undefined, planTier });
     }
 
     return NextResponse.json({ ok: true });

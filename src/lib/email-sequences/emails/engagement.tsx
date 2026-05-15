@@ -4,17 +4,41 @@ import { Layout, CtaButton, Blockquote, Divider, Signature, Step, p, muted, colo
 
 const APP = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.zaricoach.com";
 
-export function UpsellLimit1({ firstName, unsubscribeUrl }: { firstName?: string; unsubscribeUrl: string }) {
+const FEATURE_LABELS: Record<string, string> = {
+  resume: "resume review",
+  linkedin: "LinkedIn optimization",
+  interview: "interview prep",
+  career: "career strategy",
+  confidence: "confidence coaching",
+  recap: "interview recap",
+  salary: "salary negotiation",
+  promotion: "promotion coaching",
+};
+
+function featureLabel(featureName?: string | null) {
+  if (!featureName) return null;
+  const key = Object.keys(FEATURE_LABELS).find((k) => featureName.toLowerCase().includes(k));
+  return key ? FEATURE_LABELS[key] : null;
+}
+
+export function UpsellLimit1({ firstName, topFeature, unsubscribeUrl }: { firstName?: string; topFeature?: string; unsubscribeUrl: string }) {
+  const label = featureLabel(topFeature);
   return (
-    <Layout preview="You're running out of session depth — here's how to keep going." headline="You're getting real results. Don't let a cap slow you down." unsubscribeUrl={unsubscribeUrl}>
+    <Layout preview="You're close to your credit limit — here's how to keep going." headline="You're getting real results. Don't let a cap slow you down." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
-        {firstName ?? "Hey"} — you've been using Zari consistently, which puts you in the group of users actually making progress. The session data is clear: more sessions equals faster outcomes.
+        {firstName ?? "Hey"} — you've been using Zari consistently, which puts you in the group of users actually making progress. The data is clear: more sessions equal faster outcomes.
       </Text>
+      {label ? (
+        <Text style={p()}>
+          You've been doing a lot of <strong>{label}</strong> — exactly the kind of work that moves the needle. You're close to your monthly credit limit, and this is the worst moment to lose momentum.
+        </Text>
+      ) : (
+        <Text style={p()}>
+          You're close to your monthly credit limit. If you're in an active search right now, this is the worst moment to hit a wall.
+        </Text>
+      )}
       <Text style={p()}>
-        You're close to your monthly session limit. On Growth ($89/mo) you get unlimited session depth — longer conversations, richer context, no interruptions mid-interview prep or resume review.
-      </Text>
-      <Text style={p()}>
-        If you're in an active search right now, this is the worst moment to hit a wall. The upgrade takes 60 seconds.
+        On Growth ($89/mo) you get 400 credits/month — longer conversations, richer context, no interruptions mid-session. The upgrade takes 60 seconds.
       </Text>
       <CtaButton href={`${APP}/billing`}>Upgrade to Growth →</CtaButton>
       <Divider />
@@ -24,14 +48,20 @@ export function UpsellLimit1({ firstName, unsubscribeUrl }: { firstName?: string
   );
 }
 
-export function UpsellLimit2({ firstName, unsubscribeUrl }: { firstName?: string; unsubscribeUrl: string }) {
+export function UpsellLimit2({ firstName, topFeature, unsubscribeUrl }: { firstName?: string; topFeature?: string; unsubscribeUrl: string }) {
+  const label = featureLabel(topFeature);
   return (
     <Layout preview="Your session limit is up. Here's how to keep going." headline="You hit the limit. Here's how to keep going." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
-        {firstName ?? "Hey"} — you've maxed out your session depth for this period. To continue at full depth, you'll need to upgrade.
+        {firstName ?? "Hey"} — you've hit your monthly credit limit. To keep running sessions, you'll need to upgrade or wait for your next billing period.
       </Text>
+      {label && (
+        <Text style={p()}>
+          You've been putting serious work into <strong>{label}</strong>. Don't lose that momentum right now — upgrading keeps you going without missing a beat.
+        </Text>
+      )}
       <Text style={p()}>
-        You can still use Zari with shorter sessions until your period resets. But if you're in the middle of interview prep or a critical application, that's not ideal timing.
+        You can wait for your period to reset — but if you're mid-interview prep or actively applying, that gap is costly.
       </Text>
       <Section style={{ margin: "24px 0" }}>
         <table cellPadding="0" cellSpacing="0" style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
@@ -199,6 +229,64 @@ export function NpsSurvey({ firstName, npsUrl, unsubscribeUrl }: { firstName?: s
       <Divider />
       <Text style={muted()}>
         If there's something specific you'd want to share — what's working, what's not — just reply here. I read everything.
+      </Text>
+      <Signature />
+    </Layout>
+  );
+}
+
+export function DetractorFollowup1({ firstName, unsubscribeUrl }: { firstName?: string; unsubscribeUrl: string }) {
+  return (
+    <Layout
+      preview="Your feedback landed. I want to make it right."
+      headline="Your feedback landed."
+      unsubscribeUrl={unsubscribeUrl}
+    >
+      <Text style={p()}>
+        {firstName ?? "Hey"} — you gave us a low score on that survey, and I want to respond to it directly.
+      </Text>
+      <Text style={p()}>
+        I read every response. If Zari hasn't been delivering what you expected — whether that's the quality of the coaching, a missing feature, or something that just didn't click — I genuinely want to know what it was.
+      </Text>
+      <Text style={p()}>
+        Reply here and tell me what happened. I'm not trying to talk you into staying. I want to understand what went wrong so we can fix it — for you and for everyone else.
+      </Text>
+      <Text style={p()}>
+        And as a small acknowledgment that we fell short: I've added <strong>$20 in free credits</strong> to your account. No strings attached.
+      </Text>
+      <CtaButton href={`${process.env.NEXT_PUBLIC_APP_URL ?? "https://app.zaricoach.com"}`}>Open Zari →</CtaButton>
+      <Divider />
+      <Text style={muted()}>
+        If you'd prefer to cancel, you can do that from billing settings — no friction, no questions asked.
+      </Text>
+      <Signature />
+    </Layout>
+  );
+}
+
+export function DetractorFollowup2({ firstName, unsubscribeUrl }: { firstName?: string; unsubscribeUrl: string }) {
+  return (
+    <Layout
+      preview="One more thing — a direct offer if Zari missed the mark."
+      headline="A direct offer."
+      unsubscribeUrl={unsubscribeUrl}
+    >
+      <Text style={p()}>
+        {firstName ?? "Hey"} — I sent a note a few days ago after your survey, and wanted to follow up once more.
+      </Text>
+      <Text style={p()}>
+        If the issue was something specific — a feature that didn't work, advice that wasn't useful, a workflow that was confusing — I can help you personally. Reply here and I'll jump in directly.
+      </Text>
+      <Text style={p()}>
+        If the issue was price, I can extend a 50% discount for your next month. Just reply "discount" and I'll apply it.
+      </Text>
+      <Text style={p()}>
+        If Zari just wasn't the right fit, that's a completely valid outcome. I'd still appreciate knowing why — one sentence is enough.
+      </Text>
+      <CtaButton href={`${process.env.NEXT_PUBLIC_APP_URL ?? "https://app.zaricoach.com"}`}>Open Zari →</CtaButton>
+      <Divider />
+      <Text style={muted()}>
+        After this I'll stop following up. Whatever you decide — good luck with the search.
       </Text>
       <Signature />
     </Layout>

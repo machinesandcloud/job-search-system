@@ -35,13 +35,15 @@ export async function GET(request: Request) {
   try {
     const activeUsers = await prisma.user.findMany({
       where: {
-        subscription: {
-          status: { in: ["active", "trialing"] },
+        account: {
+          subscription: {
+            status: { in: ["active", "trialing"] },
+          },
         },
       },
       include: {
-        subscription: true,
-        coachingSessions: {
+        account: { include: { subscription: true } },
+        sessions: {
           where: { status: "complete" },
           orderBy: { createdAt: "desc" },
           take: 1,
@@ -51,7 +53,7 @@ export async function GET(request: Request) {
 
     for (const user of activeUsers) {
       try {
-        const lastSession = user.coachingSessions[0];
+        const lastSession = user.sessions[0];
         const daysSinceLastSession = lastSession
           ? Math.floor((now.getTime() - lastSession.createdAt.getTime()) / 86_400_000)
           : 999;
@@ -68,13 +70,15 @@ export async function GET(request: Request) {
         const daysSinceSignup = Math.floor(
           (now.getTime() - user.createdAt.getTime()) / 86_400_000
         );
+        const subStatus = user.account?.subscription?.status ?? "free";
 
         const healthScore = computeHealthScore({
           sessionCount,
           tokenUsage: tokenSum._sum.totalTokens ?? 0,
           daysSinceSignup,
-          subscriptionStatus: user.subscription?.status ?? "free",
+          subscriptionStatus: subStatus,
           planTier: user.planTier ?? "free",
+          daysSinceLastSession,
         });
 
         if (healthScore < 50) {
@@ -83,7 +87,7 @@ export async function GET(request: Request) {
             email: user.email,
             firstName: user.firstName ?? "",
             planTier: user.planTier ?? "free",
-            subscriptionStatus: user.subscription?.status ?? "free",
+            subscriptionStatus: subStatus,
             daysSinceLastSession,
             healthScore,
           });

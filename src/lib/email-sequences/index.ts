@@ -13,7 +13,7 @@ import * as React from "react";
 import { LeadNurture1, LeadNurture2, LeadNurture3, LeadNurture4, LeadNurture5, LeadNurture6, LeadNurture7 } from "./emails/lead-nurture";
 import { TrialOnboarding1, TrialOnboarding2, TrialOnboarding3, TrialOnboarding4, TrialOnboarding5, TrialEnding1, TrialEnding2 } from "./emails/trial";
 import { PaidWelcome1, PaidWelcome2, PaidWelcome3, Milestone1, Milestone5 } from "./emails/paid";
-import { UpsellLimit1, UpsellLimit2, AtRisk1, AtRisk2, AtRisk3, NpsSurvey } from "./emails/engagement";
+import { UpsellLimit1, UpsellLimit2, AtRisk1, AtRisk2, AtRisk3, NpsSurvey, DetractorFollowup1, DetractorFollowup2 } from "./emails/engagement";
 import { WinBack30, WinBack60, WinBack90 } from "./emails/win-back";
 import { Dunning1, Dunning2, Dunning3 } from "./emails/dunning";
 import {
@@ -44,7 +44,8 @@ export type ZariSequence =
   | "feature_activation"
   | "referral"
   | "testimonial"
-  | "annual_upsell";
+  | "annual_upsell"
+  | "detractor_followup";
 
 // ─── Template definitions ─────────────────────────────────────────────────────
 
@@ -100,8 +101,8 @@ function makeTemplates(meta: Meta, unsubUrl: string, npsUrl: string): Record<Zar
       t("5 sessions. You're in the top 15%.", React.createElement(Milestone5, { firstName, planTier, unsubscribeUrl: unsubUrl })),
     ],
     upsell_limit: [
-      t("You're approaching your session limit — here's how to keep going.", React.createElement(UpsellLimit1, { firstName, unsubscribeUrl: unsubUrl })),
-      t("Your session limit is up. Here's how to keep going.", React.createElement(UpsellLimit2, { firstName, unsubscribeUrl: unsubUrl })),
+      t("You're approaching your session limit — here's how to keep going.", React.createElement(UpsellLimit1, { firstName, topFeature: typeof meta.topFeature === "string" ? meta.topFeature : undefined, unsubscribeUrl: unsubUrl })),
+      t("Your session limit is up. Here's how to keep going.", React.createElement(UpsellLimit2, { firstName, topFeature: typeof meta.topFeature === "string" ? meta.topFeature : undefined, unsubscribeUrl: unsubUrl })),
     ],
     at_risk: [
       t("Haven't seen you in a while — quick check-in.", React.createElement(AtRisk1, { firstName, unsubscribeUrl: unsubUrl })),
@@ -151,6 +152,10 @@ function makeTemplates(meta: Meta, unsubUrl: string, npsUrl: string): Record<Zar
         unsubscribeUrl: unsubUrl,
       })),
     ],
+    detractor_followup: [
+      t("Your feedback landed. I want to make it right.", React.createElement(DetractorFollowup1, { firstName, unsubscribeUrl: unsubUrl })),
+      t("A direct offer — let me know if I can help.", React.createElement(DetractorFollowup2, { firstName, unsubscribeUrl: unsubUrl })),
+    ],
   };
 }
 
@@ -172,9 +177,10 @@ const SEQUENCE_DELAYS: Record<ZariSequence, number[]> = {
   dunning:          [0, 3, 7],
   non_starter:      [2, 3, 5],   // 2 days after signup, then 3, then 5
   feature_activation: [0, 5, 5], // session 2 trigger, then 5-day gaps
-  referral:         [0],
-  testimonial:      [0],
-  annual_upsell:    [0],
+  referral:           [0],
+  testimonial:        [0],
+  annual_upsell:      [0],
+  detractor_followup: [0, 3],
 };
 
 // ─── Suppression ──────────────────────────────────────────────────────────────

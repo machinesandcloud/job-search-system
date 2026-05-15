@@ -25,6 +25,9 @@ export interface ZohoContact {
   Zari_Last_Active?: string;
   Zari_Stripe_Customer_Id?: string;
   Zari_Health_Score?: number;
+  Zari_Churn_Risk_Score?: number;
+  Zari_Features_Used?: string;
+  Zari_Session_Frequency?: number;
   Lead_Source?: string;
 }
 
@@ -103,17 +106,55 @@ export function computeHealthScore(opts: {
   daysSinceSignup: number;
   subscriptionStatus: string;
   planTier: string;
+  daysSinceLastSession?: number;
+  sessionFrequencyTrend?: number; // positive = improving, negative = declining
 }): number {
-  const { sessionCount, tokenUsage, daysSinceSignup, subscriptionStatus, planTier } = opts;
+  const { sessionCount, tokenUsage, daysSinceSignup, subscriptionStatus, planTier, daysSinceLastSession, sessionFrequencyTrend } = opts;
   let score = 50;
   score += Math.min(sessionCount * 5, 25);
   score += Math.min(tokenUsage / 10000, 15);
   if (daysSinceSignup > 60) score -= 10;
   if (daysSinceSignup > 90) score -= 10;
-  if (planTier === "premium" || planTier === "team") score += 10;
+  if (planTier === "premium" || planTier === "growth" || planTier === "team") score += 10;
   if (subscriptionStatus === "past_due") score -= 30;
   if (subscriptionStatus === "canceled") score -= 50;
-  return Math.max(0, Math.min(100, score));
+
+  // Inactivity penalty
+  if (daysSinceLastSession !== undefined) {
+    if (daysSinceLastSession > 30) score -= 20;
+    else if (daysSinceLastSession > 14) score -= 10;
+    else if (daysSinceLastSession > 7) score -= 5;
+  }
+
+  // Engagement trend signal (±1 per trend unit, capped at ±10)
+  if (sessionFrequencyTrend !== undefined) {
+    score += Math.max(-10, Math.min(10, sessionFrequencyTrend * 3));
+  }
+
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+/** Predictive churn risk score 0–100 (higher = more likely to churn). */
+export function computeChurnRiskScore(opts: {
+  healthScore: number;
+  daysSinceLastSession?: number;
+  sessionFrequencyTrend?: number;
+  subscriptionStatus: string;
+  npsScore?: number;
+}): number {
+  const { healthScore, daysSinceLastSession, sessionFrequencyTrend, subscriptionStatus, npsScore } = opts;
+  let risk = 100 - healthScore;
+
+  if (daysSinceLastSession !== undefined) {
+    if (daysSinceLastSession > 30) risk += 20;
+    else if (daysSinceLastSession > 14) risk += 10;
+  }
+  if ((sessionFrequencyTrend ?? 0) < -1) risk += 10;
+  if (subscriptionStatus === "past_due") risk += 15;
+  if (npsScore !== undefined && npsScore <= 6) risk += 20;
+  if (npsScore !== undefined && npsScore >= 9) risk -= 15;
+
+  return Math.max(0, Math.min(100, Math.round(risk)));
 }
 
 // ─── Token management ─────────────────────────────────────────────────────────

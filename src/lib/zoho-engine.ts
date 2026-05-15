@@ -21,6 +21,7 @@ import {
   computeHealthScore,
 } from "@/lib/zoho-crm";
 import { enroll, cancel, cancelMany } from "@/lib/email-sequences";
+import { prisma, isDatabaseReady } from "@/lib/db";
 
 // ─── Event payloads ───────────────────────────────────────────────────────────
 
@@ -106,6 +107,7 @@ export interface LeadCapturedEvent {
 export interface NpsSubmittedEvent {
   userId: string;
   email: string;
+  firstName?: string;
   score: number;          // 0–10
   comment?: string;
   planTier: string;
@@ -193,7 +195,18 @@ export async function onSessionCompleted(event: SessionCompletedEvent): Promise<
     if (event.sessionCount === 5) void enroll("milestone_5", event.email, meta);
 
     if ((event.tokenLimitPercent ?? 0) >= 80 && event.planTier !== "team") {
-      void enroll("upsell_limit", event.email, meta);
+      let topFeature: string | undefined;
+      if (isDatabaseReady()) {
+        try {
+          const topUsage = await prisma.aiTokenUsage.findFirst({
+            where: { account: { users: { some: { id: event.userId } } } },
+            orderBy: { totalTokens: "desc" },
+            select: { featureName: true },
+          });
+          topFeature = topUsage?.featureName ?? undefined;
+        } catch { /* non-fatal */ }
+      }
+      void enroll("upsell_limit", event.email, { ...meta, ...(topFeature ? { topFeature } : {}) });
     }
 
     if (event.daysSinceSignup === 30 && event.subscriptionStatus === "active") {
@@ -411,6 +424,18 @@ export async function onNpsSubmitted(event: NpsSubmittedEvent): Promise<void> {
       comment: event.comment,
       planTier: event.planTier,
     });
+
+    const meta = { firstName: event.firstName, planTier: event.planTier };
+
+    if (event.score <= 6) {
+      // Detractor: personal follow-up email sequence (day 0 + day 3)
+      void enroll("detractor_followup", event.email, meta);
+    } else if (event.score >= 9) {
+      // Promoter: ask for a referral while goodwill is high
+      const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.zaricoach.com";
+      const referralUrl = `${APP_URL}/signup?ref=${encodeURIComponent(event.email)}`;
+      void enroll("referral", event.email, { ...meta, referralUrl });
+    }
   } catch (err) {
     console.error("[zoho-engine] onNpsSubmitted error:", err);
   }
