@@ -17857,9 +17857,21 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
     const events = ["mousemove","keydown","click","scroll","touchstart"] as const;
     const onActivity = () => resetIdleTimer();
     events.forEach(e => window.addEventListener(e, onActivity, { passive: true }));
-    resetIdleTimer(); // start timer on mount
+
+    // Freeze timer when tab is hidden; reset when user comes back
+    const onVisibility = () => {
+      if (document.hidden) {
+        clearIdleTimers();
+      } else {
+        resetIdleTimer();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    if (!document.hidden) resetIdleTimer(); // start timer on mount only if tab is visible
     return () => {
       events.forEach(e => window.removeEventListener(e, onActivity));
+      document.removeEventListener("visibilitychange", onVisibility);
       clearIdleTimers();
     };
   }, [resetIdleTimer, clearIdleTimers]); // eslint-disable-line react-hooks/exhaustive-deps
