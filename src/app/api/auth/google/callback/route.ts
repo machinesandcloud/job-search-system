@@ -1,11 +1,8 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import {
-  clearGoogleOauthCookie,
-  decodeGoogleOauthCookie,
+  decodeGoogleOauthState,
   getDefaultGoogleNext,
   getGoogleAuthConfig,
-  getGoogleOauthCookieName,
   sanitizeInternalNext,
 } from "@/lib/google-auth";
 import { setCurrentUserSessionOnResponse } from "@/lib/mvp/auth";
@@ -38,36 +35,31 @@ function buildAuthErrorRedirect(request: Request, mode: "login" | "signup", mess
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const cookieStore = await cookies();
-  const flow = decodeGoogleOauthCookie(cookieStore.get(getGoogleOauthCookieName())?.value);
+  const stateParam = url.searchParams.get("state");
+  const flow = decodeGoogleOauthState(stateParam);
   const mode = flow?.mode || "login";
   const errorParam = url.searchParams.get("error");
   const code = url.searchParams.get("code");
-  const state = url.searchParams.get("state");
 
-  if (!flow || !state || state !== flow.state) {
-    return clearGoogleOauthCookie(
-      buildAuthErrorRedirect(request, mode, "Google sign-in expired. Please try again.")
-    );
+  if (!flow) {
+    return buildAuthErrorRedirect(request, mode, "Google sign-in expired. Please try again.");
   }
 
   if (errorParam) {
-    return clearGoogleOauthCookie(
-      buildAuthErrorRedirect(request, mode, errorParam === "access_denied" ? "Google sign-in was cancelled." : "Google sign-in failed.")
+    return buildAuthErrorRedirect(
+      request,
+      mode,
+      errorParam === "access_denied" ? "Google sign-in was cancelled." : "Google sign-in failed."
     );
   }
 
   if (!code) {
-    return clearGoogleOauthCookie(
-      buildAuthErrorRedirect(request, mode, "Google did not return a login code.")
-    );
+    return buildAuthErrorRedirect(request, mode, "Google did not return a login code.");
   }
 
   const config = getGoogleAuthConfig();
   if (!config) {
-    return clearGoogleOauthCookie(
-      buildAuthErrorRedirect(request, mode, "Google sign-in is not configured.")
-    );
+    return buildAuthErrorRedirect(request, mode, "Google sign-in is not configured.");
   }
 
   let tokenPayload: GoogleTokenResponse;
@@ -91,9 +83,7 @@ export async function GET(request: Request) {
     }
   } catch (error) {
     console.error("[google-auth] token exchange failed", error);
-    return clearGoogleOauthCookie(
-      buildAuthErrorRedirect(request, mode, "Google sign-in could not be completed right now.")
-    );
+    return buildAuthErrorRedirect(request, mode, "Google sign-in could not be completed right now.");
   }
 
   let profile: GoogleUserInfo;
@@ -108,9 +98,7 @@ export async function GET(request: Request) {
     }
   } catch (error) {
     console.error("[google-auth] userinfo fetch failed", error);
-    return clearGoogleOauthCookie(
-      buildAuthErrorRedirect(request, mode, "Your Google account must provide a verified email.")
-    );
+    return buildAuthErrorRedirect(request, mode, "Your Google account must provide a verified email.");
   }
 
   try {
@@ -127,12 +115,9 @@ export async function GET(request: Request) {
         : sanitizeInternalNext(flow.next, getDefaultGoogleNext(mode));
 
     const response = NextResponse.redirect(new URL(next, request.url));
-    clearGoogleOauthCookie(response);
     return setCurrentUserSessionOnResponse(response, auth.userId);
   } catch (error) {
     console.error("[google-auth] platform user sync failed", error);
-    return clearGoogleOauthCookie(
-      buildAuthErrorRedirect(request, mode, "We could not finish signing you in with Google.")
-    );
+    return buildAuthErrorRedirect(request, mode, "We could not finish signing you in with Google.");
   }
 }

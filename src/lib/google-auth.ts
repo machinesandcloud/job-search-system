@@ -24,6 +24,36 @@ export function generateGoogleOauthState() {
   return crypto.randomBytes(24).toString("hex");
 }
 
+// Stateless OAuth state — encodes mode/next inside the state param so the
+// callback doesn't depend on a cookie surviving the cross-site redirect.
+export function encodeGoogleOauthState(input: { mode: GoogleAuthMode; next: string }): string {
+  const payload = { nonce: crypto.randomBytes(24).toString("hex"), mode: input.mode, next: input.next };
+  return Buffer.from(JSON.stringify(payload)).toString("base64url");
+}
+
+export function decodeGoogleOauthState(state: string | null | undefined): {
+  nonce: string;
+  mode: GoogleAuthMode;
+  next: string;
+} | null {
+  if (!state) return null;
+  try {
+    const parsed = JSON.parse(Buffer.from(state, "base64url").toString("utf8")) as {
+      nonce?: string;
+      mode?: GoogleAuthMode;
+      next?: string;
+    };
+    if (!parsed.nonce || (parsed.mode !== "login" && parsed.mode !== "signup")) return null;
+    return {
+      nonce: parsed.nonce,
+      mode: parsed.mode,
+      next: sanitizeInternalNext(parsed.next, getDefaultGoogleNext(parsed.mode)),
+    };
+  } catch {
+    return null;
+  }
+}
+
 export function getDefaultGoogleNext(mode: GoogleAuthMode) {
   return mode === "signup" ? "/onboarding/plan" : "/dashboard";
 }

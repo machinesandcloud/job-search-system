@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import {
-  applyGoogleOauthCookie,
   buildGoogleAuthUrl,
-  generateGoogleOauthState,
+  encodeGoogleOauthState,
   getDefaultGoogleNext,
   sanitizeInternalNext,
   type GoogleAuthMode,
@@ -19,11 +18,13 @@ export async function GET(request: Request) {
   const mode = getMode(url.searchParams.get("mode"));
   const next = sanitizeInternalNext(url.searchParams.get("next"), getDefaultGoogleNext(mode));
 
-  let googleUrl: string;
-  const state = generateGoogleOauthState();
+  // Encode mode + next inside the state so the callback doesn't need a cookie.
+  // Cookies set on redirect responses are stripped by some CDN/proxy layers (Netlify).
+  const state = encodeGoogleOauthState({ mode, next });
 
   try {
-    googleUrl = buildGoogleAuthUrl({ state, mode, next });
+    const googleUrl = buildGoogleAuthUrl({ state, mode, next });
+    return NextResponse.redirect(googleUrl);
   } catch (error) {
     const destination = new URL(mode === "signup" ? "/signup" : "/login", request.url);
     destination.searchParams.set(
@@ -32,7 +33,4 @@ export async function GET(request: Request) {
     );
     return NextResponse.redirect(destination);
   }
-
-  const response = NextResponse.redirect(googleUrl);
-  return applyGoogleOauthCookie(response, { state, mode, next });
 }
