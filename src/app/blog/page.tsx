@@ -535,6 +535,42 @@ const POSTS = [
     date: "May 2025",
     accent: "#DC2626",
   },
+  {
+    slug: "negotiating-equity",
+    title: "How to Negotiate Equity — RSUs, Options & Startup Percentages (2025)",
+    excerpt: "Equity negotiation is different from salary negotiation — different math, different timing, different leverage. How to evaluate what you have, what to ask for, and the exact scripts for each equity type.",
+    tag: "Negotiation",
+    readTime: "11 min read",
+    date: "May 2025",
+    accent: "#7C3AED",
+  },
+  {
+    slug: "how-to-get-promoted-at-work",
+    title: "How to Get Promoted at Work — The Real System (2025)",
+    excerpt: "4 promotion myths and the system that actually works — how calibration meetings work, why sponsorship matters more than mentorship, and how to build the documented case your manager can use in the room you're not in.",
+    tag: "Career Growth",
+    readTime: "11 min read",
+    date: "May 2025",
+    accent: "#059669",
+  },
+  {
+    slug: "system-design-interview",
+    title: "System Design Interview — What They Score & How to Prepare (2025)",
+    excerpt: "The 6 scoring dimensions, the 5-step framework for any system design question, and the senior-level signals for 4 common systems. For mid-to-senior engineers targeting FAANG and top-tier companies.",
+    tag: "Interviews",
+    readTime: "14 min read",
+    date: "May 2025",
+    accent: "#0D7182",
+  },
+  {
+    slug: "job-search-while-employed",
+    title: "How to Job Search While Employed — Without Getting Caught (2025)",
+    excerpt: "The 5 privacy risks, how to schedule interviews around a full-time job, what to say to employers about references, and the leverage your current job gives you in negotiations. A complete guide to a confidential search.",
+    tag: "Job Search Strategy",
+    readTime: "11 min read",
+    date: "May 2025",
+    accent: "#F97316",
+  },
 ];
 
 export default async function BlogPage() {

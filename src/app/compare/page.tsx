@@ -31,6 +31,7 @@ const COMPARISONS = [
   { href: "/compare/zari-vs-careerflow", title: "Zari vs Careerflow", summary: "Careerflow tracks your job applications and scores your LinkedIn profile. Zari coaches your resume, interviews, LinkedIn, and salary negotiation. Different tools — here's when you need each." },
   { href: "/compare/zari-vs-copy-ai", title: "Zari vs Copy.ai", summary: "Copy.ai is a general-purpose content AI. Zari is purpose-built for job search — with ATS resume analysis, interview coaching, LinkedIn optimization, and salary negotiation." },
   { href: "/compare/zari-vs-jasper", title: "Zari vs Jasper", summary: "Jasper is a marketing content platform for content teams. Zari is an AI career coach for job seekers. Here's where each tool wins — and which one you actually need." },
+  { href: "/compare/zari-vs-resume-io", title: "Zari vs Resume.io", summary: "Resume.io builds a clean, professionally formatted resume. Zari optimizes it for ATS, coaches your interviews, LinkedIn, and salary negotiation. Which one you actually need." },
 ];
 
 export default async function ComparePage() {
