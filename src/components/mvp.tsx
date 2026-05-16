@@ -118,6 +118,7 @@ function SiteFooter() {
         { label: "Data Scientists", href: "/career-coach-for-data-scientists" },
         { label: "Finance Professionals", href: "/career-coach-for-finance-professionals" },
         { label: "Sales Professionals", href: "/career-coach-for-sales-professionals" },
+        { label: "Designers", href: "/career-coach-for-designers" },
         { label: "Executives", href: "/career-coach-for-executives" },
         { label: "Nurses", href: "/career-coach-for-nurses" },
         { label: "Teachers", href: "/career-coach-for-teachers" },

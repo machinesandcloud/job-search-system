@@ -48,6 +48,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/career-coach-for-data-scientists`,             lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/career-coach-for-finance-professionals`,       lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/career-coach-for-sales-professionals`,         lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/career-coach-for-designers`,                   lastModified: now, changeFrequency: "monthly", priority: 0.88 },
 
     // Audience-specific pages
     { url: `${base}/career-coaching-for-job-seekers`,     lastModified: now, changeFrequency: "monthly", priority: 0.85 },
@@ -87,6 +88,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/blog/how-to-ask-for-a-raise`,                 lastModified: now, changeFrequency: "monthly", priority: 0.85 },
     { url: `${base}/blog/linkedin-summary-examples`,              lastModified: now, changeFrequency: "monthly", priority: 0.85 },
     { url: `${base}/blog/how-to-explain-gaps-in-employment`,      lastModified: now, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/blog/job-search-tips`,                        lastModified: now, changeFrequency: "monthly", priority: 0.87 },
+    { url: `${base}/blog/linkedin-summary-examples`,              lastModified: now, changeFrequency: "monthly", priority: 0.85 },
 
     // Auth / conversion
     { url: `${base}/signup`,  lastModified: now, changeFrequency: "monthly", priority: 0.8 },

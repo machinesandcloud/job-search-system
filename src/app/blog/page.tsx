@@ -211,6 +211,15 @@ const POSTS = [
     date: "May 2025",
     accent: "#7a8dff",
   },
+  {
+    slug: "job-search-tips",
+    title: "25 Job Search Tips That Actually Work in 2025",
+    excerpt: "25 specific, actionable job search strategies — covering ATS, LinkedIn, networking, referrals, and the mindset mistakes that slow you down.",
+    tag: "Job Search",
+    readTime: "13 min read",
+    date: "May 2025",
+    accent: "#0D7182",
+  },
 ];
 
 export default async function BlogPage() {
