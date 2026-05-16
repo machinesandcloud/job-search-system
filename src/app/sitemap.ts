@@ -51,6 +51,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/career-coach-for-designers`,                   lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/career-coach-for-hr-professionals`,            lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/career-coach-for-cybersecurity-professionals`, lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/career-coach-for-operations-professionals`,   lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/career-coach-for-lawyers`,                    lastModified: now, changeFrequency: "monthly", priority: 0.88 },
 
     // Audience-specific pages
     { url: `${base}/career-coaching-for-job-seekers`,     lastModified: now, changeFrequency: "monthly", priority: 0.85 },
@@ -67,6 +69,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/compare/zari-vs-gemini`,              lastModified: now, changeFrequency: "monthly", priority: 0.90 },
     { url: `${base}/compare/zari-vs-kickresume`,          lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/compare/zari-vs-rezi`,                lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/compare/zari-vs-enhancv`,             lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/compare/zari-vs-novoresume`,          lastModified: now, changeFrequency: "monthly", priority: 0.88 },
 
     // Blog / resources
     { url: `${base}/blog`,                                        lastModified: now, changeFrequency: "weekly",  priority: 0.85 },
@@ -100,6 +104,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/blog/professional-summary-for-resume`,        lastModified: now, changeFrequency: "monthly", priority: 0.87 },
     { url: `${base}/blog/how-to-cold-email-for-a-job`,           lastModified: now, changeFrequency: "monthly", priority: 0.87 },
     { url: `${base}/blog/career-goals-examples`,                 lastModified: now, changeFrequency: "monthly", priority: 0.87 },
+    { url: `${base}/blog/linkedin-recommendation-examples`,      lastModified: now, changeFrequency: "monthly", priority: 0.87 },
+    { url: `${base}/blog/how-to-write-two-weeks-notice`,         lastModified: now, changeFrequency: "monthly", priority: 0.87 },
 
     // Auth / conversion
     { url: `${base}/signup`,  lastModified: now, changeFrequency: "monthly", priority: 0.8 },

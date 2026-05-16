@@ -274,6 +274,24 @@ const POSTS = [
     date: "May 2025",
     accent: "#7a8dff",
   },
+  {
+    slug: "linkedin-recommendation-examples",
+    title: "LinkedIn Recommendation Examples — How to Write One That Actually Helps (2025)",
+    excerpt: "How to write a LinkedIn recommendation that lands — with word-for-word examples for managers, colleagues, direct reports, and clients, plus how to ask for one.",
+    tag: "LinkedIn",
+    readTime: "9 min read",
+    date: "May 2025",
+    accent: "#4ca7e6",
+  },
+  {
+    slug: "how-to-write-two-weeks-notice",
+    title: "How to Write a Two Weeks Notice — Resignation Letter Templates (2025)",
+    excerpt: "Word-for-word resignation letter templates for every situation — standard notice, warm departure, hostile environment, and urgent exit. Plus what never to include.",
+    tag: "Job Search",
+    readTime: "7 min read",
+    date: "May 2025",
+    accent: "#F97316",
+  },
 ];
 
 export default async function BlogPage() {

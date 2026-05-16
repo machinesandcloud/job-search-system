@@ -125,6 +125,8 @@ function SiteFooter() {
         { label: "Nurses", href: "/career-coach-for-nurses" },
         { label: "Teachers", href: "/career-coach-for-teachers" },
         { label: "Marketing Professionals", href: "/career-coach-for-marketing-professionals" },
+        { label: "Operations Professionals", href: "/career-coach-for-operations-professionals" },
+        { label: "Lawyers", href: "/career-coach-for-lawyers" },
       ],
     },
     {
@@ -149,6 +151,8 @@ function SiteFooter() {
         { label: "Behavioral Interview Questions", href: "/blog/behavioral-interview-questions" },
         { label: "How to Write a Cover Letter", href: "/blog/how-to-write-a-cover-letter" },
         { label: "Interview Prep Guide", href: "/blog/how-to-prepare-for-job-interview" },
+        { label: "Zari vs Enhancv", href: "/compare/zari-vs-enhancv" },
+        { label: "Zari vs Novoresume", href: "/compare/zari-vs-novoresume" },
       ],
     },
   ];
