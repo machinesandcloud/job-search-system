@@ -41,6 +41,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/career-coach-for-software-engineers`, lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/career-coach-for-product-managers`,   lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/career-coach-for-executives`,         lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/career-coach-for-nurses`,             lastModified: now, changeFrequency: "monthly", priority: 0.88 },
 
     // Audience-specific pages
     { url: `${base}/career-coaching-for-job-seekers`,     lastModified: now, changeFrequency: "monthly", priority: 0.85 },
@@ -68,6 +69,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/blog/how-to-answer-tell-me-about-yourself`,   lastModified: now, changeFrequency: "monthly", priority: 0.82 },
     { url: `${base}/blog/resume-summary-examples`,                lastModified: now, changeFrequency: "monthly", priority: 0.82 },
     { url: `${base}/blog/how-to-negotiate-job-offer`,             lastModified: now, changeFrequency: "monthly", priority: 0.82 },
+    { url: `${base}/blog/star-method-interview`,                   lastModified: now, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/blog/behavioral-interview-questions`,          lastModified: now, changeFrequency: "monthly", priority: 0.85 },
 
     // Auth / conversion
     { url: `${base}/signup`,  lastModified: now, changeFrequency: "monthly", priority: 0.8 },
