@@ -40,12 +40,7 @@ export const SITE_URL =
   (process.env.NEXT_PUBLIC_APP_URL ?? process.env.NEXT_PUBLIC_BASE_URL ?? "").replace(/\/$/, "") ||
   "https://app.zaricoach.com";
 
-// API route is used instead of /assets/ because Netlify doesn't reliably serve
-// public/ static files at the root path with publish=".next".
-const LOGO_URL = `${
-  (process.env.NEXT_PUBLIC_APP_URL ?? process.env.NEXT_PUBLIC_BASE_URL ?? "").replace(/\/$/, "") ||
-  "https://app.zaricoach.com"
-}/api/assets/logo`;
+const LOGO_URL = `${process.env.NEXT_PUBLIC_BASE_URL || "https://zaricoach.com"}/assets/zari-logo-transparent-400w.png`;
 
 function getMonthYear() {
   return new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
