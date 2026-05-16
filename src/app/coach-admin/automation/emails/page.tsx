@@ -123,11 +123,14 @@ export default async function EmailsPage() {
           {/* Sent emails */}
           <Card>
             <CardHeader title="Sent emails" count={sentLog.length} sub="last 200" />
-            <TH cols="1fr 130px 90px 110px" labels={["Recipient", "Sequence / type", "Step", "Sent"]} />
+            <TH cols="1fr 120px 80px 110px 60px" labels={["Recipient", "Sequence / type", "Step", "Sent", ""]} />
             {sentLog.length ? sentLog.map((e: any, i: number) => {
               const m = e.metadataJson as any;
+              const previewHref = m?.sequence && m?.step != null
+                ? `/api/coach-admin/automation/email-preview?sequence=${encodeURIComponent(m.sequence)}&step=${m.step}`
+                : null;
               return (
-                <div key={e.id} style={{ display: "grid", gridTemplateColumns: "1fr 130px 90px 110px", padding: "8px 16px", gap: 8, borderTop: i > 0 ? "1px solid var(--ca-bd)" : "none", alignItems: "center" }}>
+                <div key={e.id} style={{ display: "grid", gridTemplateColumns: "1fr 120px 80px 110px 60px", padding: "8px 16px", gap: 8, borderTop: i > 0 ? "1px solid var(--ca-bd)" : "none", alignItems: "center" }}>
                   <span style={{ fontSize: 12, color: "var(--ca-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m?.email || "—"}</span>
                   <span>
                     {m?.sequence
@@ -136,9 +139,14 @@ export default async function EmailsPage() {
                     }
                   </span>
                   <span style={{ fontSize: 11.5, color: "var(--ca-text3)" }}>
-                    {m?.step != null ? `#${(m.step as number) + 1} — ${m.subject?.slice(0, 22) ?? ""}` : m?.subject?.slice(0, 30) ?? "—"}
+                    {m?.step != null ? `#${(m.step as number) + 1}` : "—"}
                   </span>
                   <span style={{ fontSize: 11.5, color: "var(--ca-text3)" }}>{fmt(e.createdAt, true)}</span>
+                  <span>
+                    {previewHref && (
+                      <a href={previewHref} target="_blank" rel="noreferrer" style={{ fontSize: 11.5, color: "var(--ca-text3)", textDecoration: "none" }}>View ↗</a>
+                    )}
+                  </span>
                 </div>
               );
             }) : <EmptyRow label="No emails logged yet — emails sent from now on will appear here" />}
@@ -147,13 +155,21 @@ export default async function EmailsPage() {
           {/* Scheduled (upcoming) */}
           <Card>
             <CardHeader title="Scheduled (upcoming)" count={scheduled.length} />
-            <TH cols="1fr 140px 50px 120px" labels={["Recipient", "Sequence", "Step", "Sends at"]} />
+            <TH cols="1fr 130px 50px 110px 60px" labels={["Recipient", "Sequence", "Step", "Sends at", ""]} />
             {scheduled.length ? scheduled.map((e: any, i: number) => (
-              <div key={e.id} style={{ display: "grid", gridTemplateColumns: "1fr 140px 50px 120px", padding: "8px 16px", gap: 8, borderTop: i > 0 ? "1px solid var(--ca-bd)" : "none", alignItems: "center" }}>
+              <div key={e.id} style={{ display: "grid", gridTemplateColumns: "1fr 130px 50px 110px 60px", padding: "8px 16px", gap: 8, borderTop: i > 0 ? "1px solid var(--ca-bd)" : "none", alignItems: "center" }}>
                 <span style={{ fontSize: 12, color: "var(--ca-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{e.email}</span>
                 <CoachAdminPill tone={sequenceTone(e.sequence)}>{e.sequence}</CoachAdminPill>
                 <span style={{ fontSize: 12, color: "var(--ca-text3)", textAlign: "center" }}>#{e.step + 1}</span>
                 <span style={{ fontSize: 11.5, color: "var(--ca-text2)" }}>{fmt(e.nextSendAt, true)}</span>
+                <a
+                  href={`/api/coach-admin/automation/email-preview?sequence=${encodeURIComponent(e.sequence)}&step=${e.step}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ fontSize: 11.5, color: "var(--ca-text3)", textDecoration: "none" }}
+                >
+                  View ↗
+                </a>
               </div>
             )) : <EmptyRow label="No emails scheduled" />}
           </Card>
@@ -172,9 +188,11 @@ export default async function EmailsPage() {
               return (
                 <div key={seq} style={{ borderTop: i > 0 ? "1px solid var(--ca-bd)" : "none" }}>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 60px 60px 70px 70px", padding: "9px 16px", gap: 8, alignItems: "center" }}>
-                    <div>
-                      <CoachAdminPill tone={sequenceTone(seq)}>{seq}</CoachAdminPill>
-                      {meta && <span style={{ fontSize: 10.5, color: "var(--ca-text3)", marginLeft: 6 }}>{meta.steps} emails · {meta.duration}d</span>}
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <Link href={`/coach-admin/automation/emails/${encodeURIComponent(seq)}`} style={{ textDecoration: "none" }}>
+                        <CoachAdminPill tone={sequenceTone(seq)}>{seq}</CoachAdminPill>
+                      </Link>
+                      {meta && <span style={{ fontSize: 10.5, color: "var(--ca-text3)" }}>{meta.steps} emails · {meta.duration}d</span>}
                     </div>
                     <span style={{ fontSize: 13, fontWeight: 700, color: "var(--ca-text)", textAlign: "center" }}>{stats.total}</span>
                     <span style={{ fontSize: 12, color: "#06B6D4", textAlign: "center" }}>{stats.active}</span>

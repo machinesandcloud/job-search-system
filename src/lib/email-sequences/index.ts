@@ -185,6 +185,29 @@ const SEQUENCE_DELAYS: Record<ZariSequence, number[]> = {
   detractor_followup: [0, 3],
 };
 
+// ─── Preview helper ───────────────────────────────────────────────────────────
+
+/** Render all email steps for a sequence with sample data, for admin preview. */
+export async function getSequencePreviewSteps(
+  sequence: ZariSequence
+): Promise<{ stepIndex: number; subject: string; html: string; delayDays: number }[]> {
+  const unsubUrl = `${APP_URL}/api/email/unsubscribe?email=preview%40example.com`;
+  const npsUrl = `${APP_URL}/api/nps?email=preview%40example.com&score=10`;
+  const meta: Meta = { firstName: "Alex", planTier: "Search", planName: "Search" };
+  const templates = makeTemplates(meta, unsubUrl, npsUrl);
+  const steps = templates[sequence];
+  if (!steps?.length) return [];
+  const delays = SEQUENCE_DELAYS[sequence] ?? [];
+  return Promise.all(
+    steps.map(async (tmpl, i) => ({
+      stepIndex: i,
+      subject: tmpl.subject,
+      html: await render(tmpl.element),
+      delayDays: delays[i] ?? 0,
+    }))
+  );
+}
+
 // ─── Suppression ──────────────────────────────────────────────────────────────
 
 export async function suppress(
