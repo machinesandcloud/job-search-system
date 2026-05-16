@@ -54,6 +54,9 @@ export const metadata: Metadata = {
     "job search help",
     "career coach app",
   ],
+  verification: {
+    google: "haoJBUE_KvxuRtHey4HWGCzX_tIWtgm-OuA9BjkJTqI",
+  },
   authors: [{ name: "Zari", url: BASE_URL }],
   creator: "Zari",
   publisher: "Zari",
