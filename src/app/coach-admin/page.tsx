@@ -78,7 +78,7 @@ function SectionHeader({ title, action, count }: { title: string; action?: React
 
 function Card({ children, style, id }: { children: React.ReactNode; style?: React.CSSProperties; id?: string }) {
   return (
-    <div id={id} style={{ borderRadius: 16, border: "1px solid var(--ca-bd)", background: "var(--ca-card)", overflow: "hidden", ...style }}>
+    <div id={id} style={{ borderRadius: 8, border: "1px solid var(--ca-bd)", background: "var(--ca-card)", overflow: "hidden", ...style }}>
       {children}
     </div>
   );
@@ -171,12 +171,12 @@ export default async function CoachAdminPage() {
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
       {/* ── KPI Strip ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(8,1fr)", gap: 8 }}>
-        {kpis.map(k => (
-          <Card key={k.label} style={{ padding: "12px 14px" }}>
-            <div style={{ fontSize: 10.5, fontWeight: 600, color: "var(--ca-text3)", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 5 }}>{k.label}</div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: k.color, letterSpacing: "-0.04em", lineHeight: 1 }}>{k.value}</div>
-          </Card>
+      <div style={{ display: "flex", gap: 0, borderRadius: 8, border: "1px solid var(--ca-bd)", background: "var(--ca-card)", overflow: "hidden" }}>
+        {kpis.map((k, i) => (
+          <div key={k.label} style={{ flex: 1, padding: "14px 16px", borderLeft: i > 0 ? "1px solid var(--ca-bd)" : "none" }}>
+            <div style={{ fontSize: 10.5, fontWeight: 600, color: "var(--ca-text3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>{k.label}</div>
+            <div style={{ fontSize: 22, fontWeight: 700, color: k.color, letterSpacing: "-0.03em", lineHeight: 1 }}>{k.value}</div>
+          </div>
         ))}
       </div>
 

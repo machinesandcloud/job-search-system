@@ -97,8 +97,8 @@ export default async function AccountsPage({ searchParams }: { searchParams: Pro
       </div>
 
       {/* Table */}
-      <div style={{ borderRadius: 14, border: "1px solid var(--ca-bd)", background: "var(--ca-card)", overflow: "hidden" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "36px 1fr 110px 90px 120px 100px 28px", padding: "8px 16px", borderBottom: "1px solid var(--ca-bd)", gap: 10, background: "var(--ca-raise)" }}>
+      <div style={{ borderRadius: 8, border: "1px solid var(--ca-bd)", background: "var(--ca-card)", overflow: "hidden" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "36px 1fr 110px 90px 120px 100px 28px", padding: "7px 16px", borderBottom: "1px solid var(--ca-bd)", gap: 10, background: "var(--ca-raise)" }}>
           {["", "Account / Owner", "Status", "Plan", "Credits / mo", "Renewal", ""].map(h => (
             <span key={h} style={{ fontSize: 10, fontWeight: 700, color: "var(--ca-text3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{h}</span>
           ))}

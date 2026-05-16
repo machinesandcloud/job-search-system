@@ -16,7 +16,7 @@ function fmt(v?: Date | null, time = false) {
 
 function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   return (
-    <div style={{ borderRadius: 16, border: "1px solid var(--ca-bd)", background: "var(--ca-card)", overflow: "hidden", ...style }}>
+    <div style={{ borderRadius: 8, border: "1px solid var(--ca-bd)", background: "var(--ca-card)", overflow: "hidden", ...style }}>
       {children}
     </div>
   );
@@ -24,11 +24,11 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
 
 function CardHeader({ title, count, action }: { title: string; count?: number; action?: React.ReactNode }) {
   return (
-    <div style={{ padding: "12px 16px 10px", borderBottom: "1px solid var(--ca-bd)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--ca-text)", letterSpacing: "-0.01em" }}>{title}</span>
+    <div style={{ padding: "10px 14px", borderBottom: "1px solid var(--ca-bd)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, background: "var(--ca-raise)" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+        <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ca-text)" }}>{title}</span>
         {count !== undefined && (
-          <span style={{ fontSize: 11, fontWeight: 600, color: "var(--ca-text3)", background: "var(--ca-raise)", border: "1px solid var(--ca-bd)", borderRadius: 99, padding: "0 7px", lineHeight: "18px" }}>{count}</span>
+          <span style={{ fontSize: 11, fontWeight: 500, color: "var(--ca-text3)", background: "var(--ca-bd)", borderRadius: 4, padding: "0 5px", lineHeight: "17px" }}>{count}</span>
         )}
       </div>
       {action && <div>{action}</div>}
@@ -37,14 +37,14 @@ function CardHeader({ title, count, action }: { title: string; count?: number; a
 }
 
 function EmptyRow({ label }: { label: string }) {
-  return <div style={{ padding: "16px", fontSize: 12.5, color: "var(--ca-text3)", textAlign: "center", borderTop: "1px solid var(--ca-bd)" }}>{label}</div>;
+  return <div style={{ padding: "20px 14px", fontSize: 12.5, color: "var(--ca-text3)", textAlign: "center" }}>{label}</div>;
 }
 
 function TH({ cols, labels }: { cols: string; labels: string[] }) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: cols, padding: "7px 16px", borderBottom: "1px solid var(--ca-bd)", gap: 8 }}>
+    <div style={{ display: "grid", gridTemplateColumns: cols, padding: "6px 14px", borderBottom: "1px solid var(--ca-bd)", gap: 8, background: "var(--ca-raise)" }}>
       {labels.map(h => (
-        <span key={h} style={{ fontSize: 10, fontWeight: 700, color: "var(--ca-text3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{h}</span>
+        <span key={h} style={{ fontSize: 10.5, fontWeight: 600, color: "var(--ca-text3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>{h}</span>
       ))}
     </div>
   );
@@ -124,28 +124,25 @@ export default async function AutomationPage() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
-      {/* Backfill banner — admin only */}
-      {isAdmin && (
-        <Card style={{ padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ca-text)", marginBottom: 2 }}>Backfill existing users</div>
-            <div style={{ fontSize: 11.5, color: "var(--ca-text3)" }}>Enroll all un-enrolled users in their correct sequence and send immediately-due emails.</div>
-          </div>
-          <BackfillButton isAdmin={isAdmin} />
-        </Card>
-      )}
-
-      {/* KPI strip */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: -4 }}>
-        <span style={{ fontSize: 11, fontWeight: 700, color: "var(--ca-text3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Overview</span>
-        <Link href="/coach-admin/automation/emails" style={{ fontSize: 11.5, fontWeight: 600, color: "var(--ca-text3)", textDecoration: "none" }}>Email log →</Link>
+      {/* Page header */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div>
+          <h1 style={{ fontSize: 17, fontWeight: 700, color: "var(--ca-text)", letterSpacing: "-0.02em", margin: 0 }}>Automation</h1>
+          <p style={{ fontSize: 12, color: "var(--ca-text3)", margin: "2px 0 0" }}>Email sequences, queue, suppression, and NPS</p>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <Link href="/coach-admin/automation/emails" style={{ fontSize: 12, fontWeight: 500, color: "var(--ca-text2)", textDecoration: "none", padding: "5px 10px", borderRadius: 6, border: "1px solid var(--ca-bd)", background: "var(--ca-card)" }}>Email log →</Link>
+          {isAdmin && <BackfillButton isAdmin={isAdmin} />}
+        </div>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 8 }}>
-        {kpis.map(k => (
-          <Card key={k.label} style={{ padding: "12px 14px" }}>
-            <div style={{ fontSize: 10.5, fontWeight: 600, color: "var(--ca-text3)", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 5 }}>{k.label}</div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: k.color, letterSpacing: "-0.04em", lineHeight: 1 }}>{k.value}</div>
-          </Card>
+
+      {/* KPI strip — flat, inline */}
+      <div style={{ display: "flex", gap: 0, borderRadius: 8, border: "1px solid var(--ca-bd)", background: "var(--ca-card)", overflow: "hidden" }}>
+        {kpis.map((k, i) => (
+          <div key={k.label} style={{ flex: 1, padding: "14px 16px", borderLeft: i > 0 ? "1px solid var(--ca-bd)" : "none" }}>
+            <div style={{ fontSize: 10.5, fontWeight: 600, color: "var(--ca-text3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>{k.label}</div>
+            <div style={{ fontSize: 24, fontWeight: 700, color: k.color, letterSpacing: "-0.04em", lineHeight: 1 }}>{k.value}</div>
+          </div>
         ))}
       </div>
 

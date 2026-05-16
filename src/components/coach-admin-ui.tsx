@@ -70,7 +70,7 @@ export function CoachAdminPill({
   return (
     <span
       className={cx(
-        "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
+        "inline-flex items-center rounded-md border px-2 py-0.5 text-[11px] font-medium tracking-[0.04em]",
         toneMap[tone].pill,
         className
       )}
