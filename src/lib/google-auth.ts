@@ -1,57 +1,14 @@
 import crypto from "node:crypto";
-import type { NextResponse } from "next/server";
-import { getBaseUrl } from "@/lib/utils";
 
 export type GoogleAuthMode = "login" | "signup";
 
-const GOOGLE_OAUTH_COOKIE = "zari_google_oauth";
 const GOOGLE_SCOPES = ["openid", "email", "profile"];
 
-export function getGoogleOauthCookieName() {
-  return GOOGLE_OAUTH_COOKIE;
-}
-
-export function getGoogleAuthConfig() {
+export function getGoogleCredentials() {
   const clientId = (process.env.GOOGLE_CLIENT_ID || "").trim();
   const clientSecret = (process.env.GOOGLE_CLIENT_SECRET || "").trim();
-  const redirectUri = (process.env.GOOGLE_REDIRECT_URI || "").trim() || new URL("/api/auth/google/callback", getBaseUrl()).toString();
-
   if (!clientId || !clientSecret) return null;
-  return { clientId, clientSecret, redirectUri };
-}
-
-export function generateGoogleOauthState() {
-  return crypto.randomBytes(24).toString("hex");
-}
-
-// Stateless OAuth state — encodes mode/next inside the state param so the
-// callback doesn't depend on a cookie surviving the cross-site redirect.
-export function encodeGoogleOauthState(input: { mode: GoogleAuthMode; next: string }): string {
-  const payload = { nonce: crypto.randomBytes(24).toString("hex"), mode: input.mode, next: input.next };
-  return Buffer.from(JSON.stringify(payload)).toString("base64url");
-}
-
-export function decodeGoogleOauthState(state: string | null | undefined): {
-  nonce: string;
-  mode: GoogleAuthMode;
-  next: string;
-} | null {
-  if (!state) return null;
-  try {
-    const parsed = JSON.parse(Buffer.from(state, "base64url").toString("utf8")) as {
-      nonce?: string;
-      mode?: GoogleAuthMode;
-      next?: string;
-    };
-    if (!parsed.nonce || (parsed.mode !== "login" && parsed.mode !== "signup")) return null;
-    return {
-      nonce: parsed.nonce,
-      mode: parsed.mode,
-      next: sanitizeInternalNext(parsed.next, getDefaultGoogleNext(parsed.mode)),
-    };
-  } catch {
-    return null;
-  }
+  return { clientId, clientSecret };
 }
 
 export function getDefaultGoogleNext(mode: GoogleAuthMode) {
@@ -63,27 +20,47 @@ export function sanitizeInternalNext(next: string | null | undefined, fallback =
   return next;
 }
 
-export function encodeGoogleOauthCookie(input: {
-  state: string;
+// State encodes mode, next, redirectUri, and a random nonce.
+// This makes the flow stateless (no cookie) and host-agnostic (works on any
+// Netlify URL or custom domain without changing env vars or Google Console).
+export function encodeGoogleOauthState(input: {
   mode: GoogleAuthMode;
   next: string;
-}) {
-  return Buffer.from(JSON.stringify(input)).toString("base64url");
+  redirectUri: string;
+}): string {
+  const payload = {
+    nonce: crypto.randomBytes(24).toString("hex"),
+    mode: input.mode,
+    next: input.next,
+    redirectUri: input.redirectUri,
+  };
+  return Buffer.from(JSON.stringify(payload)).toString("base64url");
 }
 
-export function decodeGoogleOauthCookie(value: string | undefined) {
-  if (!value) return null;
+export function decodeGoogleOauthState(state: string | null | undefined): {
+  nonce: string;
+  mode: GoogleAuthMode;
+  next: string;
+  redirectUri: string;
+} | null {
+  if (!state) return null;
   try {
-    const parsed = JSON.parse(Buffer.from(value, "base64url").toString("utf8")) as {
-      state?: string;
+    const parsed = JSON.parse(Buffer.from(state, "base64url").toString("utf8")) as {
+      nonce?: string;
       mode?: GoogleAuthMode;
       next?: string;
+      redirectUri?: string;
     };
-    if (!parsed.state || (parsed.mode !== "login" && parsed.mode !== "signup")) return null;
+    if (
+      !parsed.nonce ||
+      (parsed.mode !== "login" && parsed.mode !== "signup") ||
+      !parsed.redirectUri
+    ) return null;
     return {
-      state: parsed.state,
+      nonce: parsed.nonce,
       mode: parsed.mode,
       next: sanitizeInternalNext(parsed.next, getDefaultGoogleNext(parsed.mode)),
+      redirectUri: parsed.redirectUri,
     };
   } catch {
     return null;
@@ -92,17 +69,14 @@ export function decodeGoogleOauthCookie(value: string | undefined) {
 
 export function buildGoogleAuthUrl(input: {
   state: string;
-  mode: GoogleAuthMode;
-  next?: string | null;
+  redirectUri: string;
 }) {
-  const config = getGoogleAuthConfig();
-  if (!config) {
-    throw new Error("Google sign-in is not configured.");
-  }
+  const creds = getGoogleCredentials();
+  if (!creds) throw new Error("Google sign-in is not configured.");
 
   const params = new URLSearchParams({
-    client_id: config.clientId,
-    redirect_uri: config.redirectUri,
+    client_id: creds.clientId,
+    redirect_uri: input.redirectUri,
     response_type: "code",
     scope: GOOGLE_SCOPES.join(" "),
     access_type: "offline",
@@ -112,29 +86,4 @@ export function buildGoogleAuthUrl(input: {
   });
 
   return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
-}
-
-export function applyGoogleOauthCookie(
-  response: NextResponse,
-  input: { state: string; mode: GoogleAuthMode; next: string }
-) {
-  response.cookies.set(GOOGLE_OAUTH_COOKIE, encodeGoogleOauthCookie(input), {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 10,
-  });
-  return response;
-}
-
-export function clearGoogleOauthCookie(response: NextResponse) {
-  response.cookies.set(GOOGLE_OAUTH_COOKIE, "", {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 0,
-  });
-  return response;
 }

@@ -2,14 +2,13 @@ import { NextResponse } from "next/server";
 import {
   decodeGoogleOauthState,
   getDefaultGoogleNext,
-  getGoogleAuthConfig,
+  getGoogleCredentials,
   sanitizeInternalNext,
 } from "@/lib/google-auth";
 import { setCurrentUserSessionOnResponse } from "@/lib/mvp/auth";
 import { authenticateGooglePlatformUser } from "@/lib/platform-users";
 
 export const maxDuration = 15;
-
 export const runtime = "nodejs";
 
 type GoogleTokenResponse = {
@@ -19,7 +18,6 @@ type GoogleTokenResponse = {
 };
 
 type GoogleUserInfo = {
-  sub?: string;
   email?: string;
   email_verified?: boolean;
   given_name?: string;
@@ -27,10 +25,10 @@ type GoogleUserInfo = {
   name?: string;
 };
 
-function buildAuthErrorRedirect(request: Request, mode: "login" | "signup", message: string) {
-  const destination = new URL(mode === "signup" ? "/signup" : "/login", request.url);
-  destination.searchParams.set("authError", message);
-  return NextResponse.redirect(destination);
+function authError(request: Request, mode: "login" | "signup", message: string) {
+  const dest = new URL(mode === "signup" ? "/signup" : "/login", request.url);
+  dest.searchParams.set("authError", message);
+  return NextResponse.redirect(dest);
 }
 
 export async function GET(request: Request) {
@@ -38,29 +36,18 @@ export async function GET(request: Request) {
   const stateParam = url.searchParams.get("state");
   const flow = decodeGoogleOauthState(stateParam);
   const mode = flow?.mode || "login";
-  const errorParam = url.searchParams.get("error");
   const code = url.searchParams.get("code");
+  const errorParam = url.searchParams.get("error");
 
-  if (!flow) {
-    return buildAuthErrorRedirect(request, mode, "Google sign-in expired. Please try again.");
-  }
+  if (!flow) return authError(request, mode, "Google sign-in expired. Please try again.");
+  if (errorParam) return authError(request, mode, errorParam === "access_denied" ? "Google sign-in was cancelled." : "Google sign-in failed.");
+  if (!code) return authError(request, mode, "Google did not return a login code.");
 
-  if (errorParam) {
-    return buildAuthErrorRedirect(
-      request,
-      mode,
-      errorParam === "access_denied" ? "Google sign-in was cancelled." : "Google sign-in failed."
-    );
-  }
+  const creds = getGoogleCredentials();
+  if (!creds) return authError(request, mode, "Google sign-in is not configured.");
 
-  if (!code) {
-    return buildAuthErrorRedirect(request, mode, "Google did not return a login code.");
-  }
-
-  const config = getGoogleAuthConfig();
-  if (!config) {
-    return buildAuthErrorRedirect(request, mode, "Google sign-in is not configured.");
-  }
+  // Use the redirectUri that was encoded at the start of the flow — must match exactly.
+  const redirectUri = flow.redirectUri;
 
   let tokenPayload: GoogleTokenResponse;
   try {
@@ -69,21 +56,20 @@ export async function GET(request: Request) {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         code,
-        client_id: config.clientId,
-        client_secret: config.clientSecret,
-        redirect_uri: config.redirectUri,
+        client_id: creds.clientId,
+        client_secret: creds.clientSecret,
+        redirect_uri: redirectUri,
         grant_type: "authorization_code",
       }),
       cache: "no-store",
     });
-
     tokenPayload = await tokenRes.json().catch(() => ({}));
     if (!tokenRes.ok || !tokenPayload.access_token) {
-      throw new Error(tokenPayload.error_description || tokenPayload.error || "Google token exchange failed.");
+      throw new Error(tokenPayload.error_description || tokenPayload.error || "Token exchange failed.");
     }
   } catch (error) {
     console.error("[google-auth] token exchange failed", error);
-    return buildAuthErrorRedirect(request, mode, "Google sign-in could not be completed right now.");
+    return authError(request, mode, "Google sign-in could not be completed right now.");
   }
 
   let profile: GoogleUserInfo;
@@ -93,12 +79,10 @@ export async function GET(request: Request) {
       cache: "no-store",
     });
     profile = await profileRes.json().catch(() => ({}));
-    if (!profileRes.ok || !profile.email || !profile.email_verified) {
-      throw new Error("Verified Google email is required.");
-    }
+    if (!profileRes.ok || !profile.email || !profile.email_verified) throw new Error("Verified Google email required.");
   } catch (error) {
     console.error("[google-auth] userinfo fetch failed", error);
-    return buildAuthErrorRedirect(request, mode, "Your Google account must provide a verified email.");
+    return authError(request, mode, "Your Google account must provide a verified email.");
   }
 
   try {
@@ -114,15 +98,18 @@ export async function GET(request: Request) {
         ? "/onboarding/plan"
         : sanitizeInternalNext(flow.next, getDefaultGoogleNext(mode));
 
-    // Return a 200 HTML response with Set-Cookie rather than a redirect.
-    // Netlify CDN strips Set-Cookie headers from redirect (3xx) responses,
-    // so the session cookie would never reach the browser via NextResponse.redirect.
+    // Return a 200 HTML page with Set-Cookie so the session cookie isn't stripped
+    // by Netlify CDN (which drops Set-Cookie on redirect responses).
+    // The meta-refresh navigates to the destination on the same origin.
     const destination = new URL(next, request.url).toString();
     const html = `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${destination}"><title>Signing in…</title></head><body></body></html>`;
-    const response = new NextResponse(html, { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } });
+    const response = new NextResponse(html, {
+      status: 200,
+      headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
+    });
     return setCurrentUserSessionOnResponse(response, auth.userId);
   } catch (error) {
     console.error("[google-auth] platform user sync failed", error);
-    return buildAuthErrorRedirect(request, mode, "We could not finish signing you in with Google.");
+    return authError(request, mode, "We could not finish signing you in with Google.");
   }
 }
