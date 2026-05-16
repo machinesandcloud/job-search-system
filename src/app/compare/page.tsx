@@ -18,6 +18,7 @@ const COMPARISONS = [
   { href: "/compare/zari-vs-resume-worded", title: "Zari vs Resume Worded", summary: "Resume Worded gives feedback. Zari gives feedback AND writes the improved version for you." },
   { href: "/compare/zari-vs-linkedin-premium", title: "Zari vs LinkedIn Premium", summary: "LinkedIn Premium improves your visibility. Zari improves your candidacy. Here's which one to invest in." },
   { href: "/compare/zari-vs-chatgpt", title: "Zari vs ChatGPT", summary: "ChatGPT is a general-purpose AI. Zari is purpose-built for career coaching with session memory and STAR evaluation." },
+  { href: "/compare/zari-vs-gemini", title: "Zari vs Google Gemini", summary: "Gemini is Google's general AI with web search. Zari is built specifically for career coaching with ATS scoring and memory." },
 ];
 
 export default async function ComparePage() {

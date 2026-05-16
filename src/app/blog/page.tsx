@@ -193,6 +193,24 @@ const POSTS = [
     date: "May 2025",
     accent: "#10B981",
   },
+  {
+    slug: "linkedin-summary-examples",
+    title: "20 LinkedIn Summary Examples That Actually Work (2025)",
+    excerpt: "20 LinkedIn About section examples for software engineers, product managers, marketers, career changers, and more — with the formula behind each one.",
+    tag: "LinkedIn",
+    readTime: "10 min read",
+    date: "May 2025",
+    accent: "#4ca7e6",
+  },
+  {
+    slug: "how-to-explain-gaps-in-employment",
+    title: "How to Explain Gaps in Employment — Scripts & Examples (2025)",
+    excerpt: "Word-for-word scripts for explaining employment gaps in interviews — for layoffs, health reasons, caregiving, and career pivots.",
+    tag: "Job Search",
+    readTime: "10 min read",
+    date: "May 2025",
+    accent: "#7a8dff",
+  },
 ];
 
 export default async function BlogPage() {
