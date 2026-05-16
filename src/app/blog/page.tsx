@@ -184,6 +184,15 @@ const POSTS = [
     date: "May 2025",
     accent: "#F97316",
   },
+  {
+    slug: "how-to-ask-for-a-raise",
+    title: "How to Ask for a Raise — Scripts, Timing & What to Say (2025)",
+    excerpt: "The exact timing, preparation steps, and word-for-word scripts for a raise conversation — plus how to handle the 4 most common objections.",
+    tag: "Negotiation",
+    readTime: "11 min read",
+    date: "May 2025",
+    accent: "#10B981",
+  },
 ];
 
 export default async function BlogPage() {
