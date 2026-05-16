@@ -256,6 +256,24 @@ const POSTS = [
     date: "May 2025",
     accent: "#10B981",
   },
+  {
+    slug: "how-to-cold-email-for-a-job",
+    title: "How to Cold Email for a Job — Templates That Get Responses (2025)",
+    excerpt: "How to cold email a hiring manager or recruiter for a job. Includes subject lines, word-for-word email templates, and the follow-up sequence that gets responses.",
+    tag: "Job Search",
+    readTime: "9 min read",
+    date: "May 2025",
+    accent: "#0D7182",
+  },
+  {
+    slug: "career-goals-examples",
+    title: "Career Goals Examples — How to Answer \"What Are Your Career Goals?\" (2025)",
+    excerpt: "15 word-for-word career goals examples for interviews — plus the formula, what interviewers are actually testing, and what never to say.",
+    tag: "Interviews",
+    readTime: "8 min read",
+    date: "May 2025",
+    accent: "#7a8dff",
+  },
 ];
 
 export default async function BlogPage() {

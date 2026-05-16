@@ -98,6 +98,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/blog/interview-questions-to-ask`,             lastModified: now, changeFrequency: "monthly", priority: 0.87 },
     { url: `${base}/blog/how-to-follow-up-on-job-application`,    lastModified: now, changeFrequency: "monthly", priority: 0.85 },
     { url: `${base}/blog/professional-summary-for-resume`,        lastModified: now, changeFrequency: "monthly", priority: 0.87 },
+    { url: `${base}/blog/how-to-cold-email-for-a-job`,           lastModified: now, changeFrequency: "monthly", priority: 0.87 },
+    { url: `${base}/blog/career-goals-examples`,                 lastModified: now, changeFrequency: "monthly", priority: 0.87 },
 
     // Auth / conversion
     { url: `${base}/signup`,  lastModified: now, changeFrequency: "monthly", priority: 0.8 },
