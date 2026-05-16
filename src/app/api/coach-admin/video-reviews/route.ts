@@ -10,8 +10,8 @@ export const maxDuration = 15;
 
 export async function GET(request: NextRequest) {
   if (!ensureSameOrigin(request)) return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
-  const session = await requireCoachAdminActor(request);
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const actor = await requireCoachAdminActor();
+  if (!actor) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const reviews = await prisma.videoReview.findMany({
     orderBy: { createdAt: "desc" },
@@ -22,8 +22,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   if (!ensureSameOrigin(request)) return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
-  const session = await requireCoachAdminActor(request);
-  if (!session || session.role !== "admin") return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const actor = await requireCoachAdminActor();
+  if (!actor || actor.session.role !== "admin") return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await request.json().catch(() => ({})) as { reviewId?: string; action?: string };
   const { reviewId, action } = body;

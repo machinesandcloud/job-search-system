@@ -1,3 +1,4 @@
+import type { VideoReview } from "@prisma/client";
 import { requireCoachAdminSession } from "@/lib/coach-admin-auth";
 import { prisma } from "@/lib/db";
 import { CoachAdminVideoReviewActions } from "@/components/coach-admin-forms";
@@ -12,7 +13,7 @@ export default async function VideoReviewsPage() {
   const reviews = await prisma.videoReview.findMany({
     orderBy: { createdAt: "desc" },
     take: 100,
-  });
+  }) as VideoReview[];
 
   const pending = reviews.filter(r => r.status === "pending");
   const done = reviews.filter(r => r.status !== "pending");
