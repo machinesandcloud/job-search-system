@@ -337,6 +337,24 @@ const POSTS = [
     date: "May 2025",
     accent: "#7a8dff",
   },
+  {
+    slug: "amazon-leadership-principles-interview",
+    title: "Amazon Leadership Principles Interview — How to Answer All 16 (2025)",
+    excerpt: "Word-for-word STAR examples for Amazon's 16 leadership principles — the most common questions asked, common traps, and what interviewers are actually evaluating.",
+    tag: "Interviews",
+    readTime: "15 min read",
+    date: "May 2025",
+    accent: "#EC4899",
+  },
+  {
+    slug: "linkedin-connection-request-message",
+    title: "LinkedIn Connection Request Messages — 10 Templates That Get Accepted (2025)",
+    excerpt: "10 word-for-word LinkedIn connection request templates for recruiters, hiring managers, cold outreach, mutual connections, and every other situation.",
+    tag: "LinkedIn",
+    readTime: "7 min read",
+    date: "May 2025",
+    accent: "#4ca7e6",
+  },
 ];
 
 export default async function BlogPage() {

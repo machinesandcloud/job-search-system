@@ -129,6 +129,7 @@ function SiteFooter() {
         { label: "Lawyers", href: "/career-coach-for-lawyers" },
         { label: "Accountants & CPAs", href: "/career-coach-for-accountants" },
         { label: "Project Managers", href: "/career-coach-for-project-managers" },
+        { label: "Recent Graduates", href: "/career-coach-for-recent-graduates" },
       ],
     },
     {
