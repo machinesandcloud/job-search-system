@@ -2532,8 +2532,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
                 I thought I was doing everything right — I wasn&apos;t.
               </p>
               <div style={{ display:"flex", alignItems:"center", gap:14 }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="https://randomuser.me/api/portraits/men/46.jpg" alt="Marcus Webb" style={{ width:52, height:52, borderRadius:"50%", objectFit:"cover", flexShrink:0 }} />
+                <div style={{ width:52, height:52, borderRadius:"50%", flexShrink:0, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:17, fontWeight:800, color:"white" }}>MW</div>
                 <div>
                   <p style={{ fontSize:15, fontWeight:700, color:"#0A0A0F", margin:0, letterSpacing:"-0.01em" }}>Marcus Webb</p>
                   <p style={{ fontSize:13, color:"#6B7280", margin:0, marginTop:1 }}>Senior PM at Figma</p>
@@ -2552,8 +2551,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
                 Every dollar I didn&apos;t leave on the table was because of this.
               </p>
               <div style={{ display:"flex", alignItems:"center", gap:14 }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Priya Sundaram" style={{ width:52, height:52, borderRadius:"50%", objectFit:"cover", flexShrink:0 }} />
+                <div style={{ width:52, height:52, borderRadius:"50%", flexShrink:0, background:"linear-gradient(135deg,#7C3AED,#A78BFA)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:17, fontWeight:800, color:"white" }}>PS</div>
                 <div>
                   <p style={{ fontSize:15, fontWeight:700, color:"#0A0A0F", margin:0, letterSpacing:"-0.01em" }}>Priya Sundaram</p>
                   <p style={{ fontSize:13, color:"#6B7280", margin:0, marginTop:1 }}>Engineering Manager</p>
@@ -2572,8 +2570,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
                 I was ready. I got the offer.
               </p>
               <div style={{ display:"flex", alignItems:"center", gap:14 }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Devon Clarke" style={{ width:52, height:52, borderRadius:"50%", objectFit:"cover", flexShrink:0 }} />
+                <div style={{ width:52, height:52, borderRadius:"50%", flexShrink:0, background:"linear-gradient(135deg,#059669,#34D399)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:17, fontWeight:800, color:"white" }}>DC</div>
                 <div>
                   <p style={{ fontSize:15, fontWeight:700, color:"#0A0A0F", margin:0, letterSpacing:"-0.01em" }}>Devon Clarke</p>
                   <p style={{ fontSize:13, color:"#6B7280", margin:0, marginTop:1 }}>Director of Operations at Stripe</p>
