@@ -355,6 +355,15 @@ const POSTS = [
     date: "May 2025",
     accent: "#4ca7e6",
   },
+  {
+    slug: "how-to-write-a-cover-letter-with-no-experience",
+    title: "How to Write a Cover Letter With No Experience — 3 Examples (2025)",
+    excerpt: "3 word-for-word cover letter examples for recent graduates and career changers — the structure, the opening lines that get read, and what never to include.",
+    tag: "Cover Letters",
+    readTime: "9 min read",
+    date: "May 2025",
+    accent: "#EC4899",
+  },
 ];
 
 export default async function BlogPage() {

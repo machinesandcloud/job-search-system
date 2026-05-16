@@ -130,6 +130,7 @@ function SiteFooter() {
         { label: "Accountants & CPAs", href: "/career-coach-for-accountants" },
         { label: "Project Managers", href: "/career-coach-for-project-managers" },
         { label: "Recent Graduates", href: "/career-coach-for-recent-graduates" },
+        { label: "UX Designers", href: "/career-coach-for-ux-designers" },
       ],
     },
     {
