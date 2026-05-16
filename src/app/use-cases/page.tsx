@@ -1,9 +1,22 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { PageFrame } from "@/components/mvp";
 import { getCurrentUserId } from "@/lib/mvp/auth";
 import { Reveal } from "@/components/reveal";
 import { StarField, CursorGlow } from "@/components/mvp-hero-extras";
+
+export const metadata: Metadata = {
+  title: "Who It's For — AI Career Coaching for Every Job Search Situation",
+  description:
+    "Returning after a gap, pivoting industries, breaking through ATS silence, or leveling up to the next role — Zari's AI career coach is built for your specific situation.",
+  alternates: { canonical: "/use-cases" },
+  openGraph: {
+    title: "Zari Use Cases — Career Coaching for Every Situation",
+    description: "Career changers, job seekers, returners, and level-up candidates all use Zari. See how AI coaching adapts to your specific challenge.",
+    url: "/use-cases",
+  },
+};
 
 const USE_CASES = [
   {

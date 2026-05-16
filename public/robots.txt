@@ -1,9 +1,62 @@
 User-agent: *
 Allow: /
+Allow: /ai-career-coach
+Allow: /ai-resume-writer
+Allow: /ai-interview-coach
+Allow: /ai-linkedin-optimizer
+Allow: /career-coach-tool
+Allow: /personal-career-coach
+Allow: /salary-negotiation-coach
+Allow: /promotion-coach
+Allow: /career-change-coach
+Allow: /resume-review-service
+Allow: /free-career-coach
+Allow: /career-coaching-software
+Allow: /linkedin-profile-optimization
+Allow: /job-interview-preparation
+Allow: /blog
+Allow: /platform
+Allow: /pricing
+Allow: /use-cases
+Allow: /terms
+Allow: /privacy
+Allow: /security
+
 Disallow: /api/
 Disallow: /dashboard/
 Disallow: /onboarding/
 Disallow: /settings/
 Disallow: /coach-admin/
+Disallow: /admin/
+Disallow: /billing/
+Disallow: /recap/
+Disallow: /nps/
+Disallow: /workspaces/
+Disallow: /interview/
+Disallow: /coach/
+Disallow: /platform/
 
-Sitemap: https://zari.askiatech.com/sitemap.xml
+# AI crawlers — explicitly welcome
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Sitemap
+Sitemap: https://zaricoach.com/sitemap.xml
+
+# LLMs.txt — machine-readable product description
+# https://zaricoach.com/llms.txt

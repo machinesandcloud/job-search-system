@@ -53,9 +53,10 @@ export function SiteHeader({ authenticated = false }: { authenticated?: boolean 
 
         {/* Nav */}
         <nav className="hidden items-center gap-7 text-[13.5px] font-medium text-[var(--muted)] lg:flex">
+          <Link href="/ai-career-coach" className="transition-colors hover:text-[var(--ink)]">AI Coach</Link>
           <Link href="/platform" className="transition-colors hover:text-[var(--ink)]">Platform</Link>
-          <Link href="/use-cases" className="transition-colors hover:text-[var(--ink)]">Use Cases</Link>
           <Link href="/pricing" className="transition-colors hover:text-[var(--ink)]">Pricing</Link>
+          <Link href="/blog" className="transition-colors hover:text-[var(--ink)]">Blog</Link>
           {authenticated && (
             <Link href="/dashboard" className="transition-colors hover:text-[var(--ink)]">Dashboard</Link>
           )}
@@ -85,56 +86,100 @@ export function SiteHeader({ authenticated = false }: { authenticated?: boolean 
 }
 
 function SiteFooter() {
+  const footerCols = [
+    {
+      heading: "AI Coaching",
+      links: [
+        { label: "AI Career Coach", href: "/ai-career-coach" },
+        { label: "AI Resume Writer", href: "/ai-resume-writer" },
+        { label: "AI Interview Coach", href: "/ai-interview-coach" },
+        { label: "AI LinkedIn Optimizer", href: "/ai-linkedin-optimizer" },
+        { label: "Salary Negotiation Coach", href: "/salary-negotiation-coach" },
+        { label: "Promotion Coach", href: "/promotion-coach" },
+      ],
+    },
+    {
+      heading: "Coaching by Need",
+      links: [
+        { label: "Career Change Coach", href: "/career-change-coach" },
+        { label: "Personal Career Coach", href: "/personal-career-coach" },
+        { label: "Free Career Coach", href: "/free-career-coach" },
+        { label: "Career Coach Tool", href: "/career-coach-tool" },
+        { label: "Resume Review Service", href: "/resume-review-service" },
+        { label: "Career Coaching Software", href: "/career-coaching-software" },
+      ],
+    },
+    {
+      heading: "Product",
+      links: [
+        { label: "Platform", href: "/platform" },
+        { label: "Use Cases", href: "/use-cases" },
+        { label: "Pricing", href: "/pricing" },
+        { label: "Security", href: "/security" },
+        { label: "Terms", href: "/terms" },
+        { label: "Privacy", href: "/privacy" },
+      ],
+    },
+    {
+      heading: "Resources",
+      links: [
+        { label: "Blog", href: "/blog" },
+        { label: "Best AI Career Coach", href: "/blog/best-ai-career-coach" },
+        { label: "How to Write a Resume with AI", href: "/blog/how-to-write-resume-with-ai" },
+        { label: "ATS Resume Tips", href: "/blog/ats-resume-tips" },
+        { label: "LinkedIn Optimization Guide", href: "/blog/how-to-optimize-linkedin-profile" },
+        { label: "Interview Prep Guide", href: "/blog/how-to-prepare-for-job-interview" },
+      ],
+    },
+  ];
+
   return (
-    <footer className="border-t border-[var(--border)] bg-white">
-      <div className="mx-auto max-w-7xl px-6 py-10">
-        <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
+    <footer className="border-t border-[var(--border)] bg-[var(--bg)]">
+      <div className="mx-auto max-w-7xl px-6 py-14">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
           {/* Brand */}
-          <div>
+          <div className="lg:col-span-1">
             <Link href="/" className="flex items-center gap-2.5">
               <ZariLogo size={28} />
               <span className="text-sm font-bold text-[var(--ink)]">
                 Zari{" "}
-                <span
-                  style={{
-                    background: "linear-gradient(135deg, #7C3AED, #22D3EE)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    backgroundClip: "text",
-                  }}
-                >
+                <span style={{ background: "linear-gradient(135deg, #7C3AED, #22D3EE)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
                   AI Coach
                 </span>
               </span>
             </Link>
-            <p className="mt-2 max-w-xs text-xs leading-5 text-[var(--muted)]">
-              Voice-powered AI career coaching. Real feedback, real preparation, real results.
+            <p className="mt-3 max-w-[200px] text-[12px] leading-5 text-[var(--muted)]">
+              The #1 AI career coach for resume, LinkedIn, interviews, and salary negotiation.
             </p>
+            <div className="mt-4 flex items-center gap-1.5 rounded-lg border border-[var(--brand)]/20 bg-[var(--brand)]/[0.04] px-3 py-2 text-[11px] font-semibold text-[var(--brand)]">
+              Free to start · No credit card
+            </div>
           </div>
 
-          {/* Links */}
-          <div className="grid grid-cols-2 gap-x-16 gap-y-3 text-sm text-[var(--muted)] sm:grid-cols-4">
-            {[
-              { label: "Platform", href: "/platform" },
-              { label: "Use Cases", href: "/use-cases" },
-              { label: "Pricing", href: "/pricing" },
-              { label: "Security", href: "/security" },
-            ].map((link) => (
-              <Link key={link.href} href={link.href} className="transition-colors hover:text-[var(--ink)]">
-                {link.label}
-              </Link>
-            ))}
-          </div>
+          {/* Link columns */}
+          {footerCols.map((col) => (
+            <div key={col.heading}>
+              <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">{col.heading}</p>
+              <ul className="space-y-2.5">
+                {col.links.map((link) => (
+                  <li key={link.href}>
+                    <Link href={link.href} className="text-[12.5px] text-[var(--muted)] transition-colors hover:text-[var(--ink)]">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
 
-        <div className="mt-8 flex flex-col gap-2 border-t border-[var(--border)] pt-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs text-[var(--muted)]">© 2026 Zari AI. All rights reserved.</p>
-          <p className="text-xs text-[var(--muted)]">
-            Powered by{" "}
-            <a href="https://zaricoach.com" target="_blank" rel="noopener noreferrer" className="text-[var(--brand)] hover:underline">
-              zaricoach.com
-            </a>
-          </p>
+        <div className="mt-12 flex flex-col gap-2 border-t border-[var(--border)] pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-[11px] text-[var(--muted)]">© 2025 Zari AI. All rights reserved. · <a href="https://zaricoach.com" className="hover:underline">zaricoach.com</a></p>
+          <div className="flex items-center gap-4 text-[11px] text-[var(--muted)]">
+            <Link href="/terms" className="hover:text-[var(--ink)]">Terms</Link>
+            <Link href="/privacy" className="hover:text-[var(--ink)]">Privacy</Link>
+            <Link href="/security" className="hover:text-[var(--ink)]">Security</Link>
+          </div>
         </div>
       </div>
     </footer>

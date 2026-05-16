@@ -1,9 +1,22 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { PageFrame } from "@/components/mvp";
 import { getCurrentUserId } from "@/lib/mvp/auth";
 import { Reveal } from "@/components/reveal";
 import { StarField, CursorGlow } from "@/components/mvp-hero-extras";
+
+export const metadata: Metadata = {
+  title: "Platform — AI Career Coaching Tools for Resume, LinkedIn & Interviews",
+  description:
+    "Explore Zari's AI career coaching platform: resume ATS optimization, LinkedIn profile overhaul, mock interview coaching, and career strategy — all with session memory and actionable outputs.",
+  alternates: { canonical: "/platform" },
+  openGraph: {
+    title: "Zari Platform — Four AI Career Coaching Surfaces",
+    description: "Resume review, LinkedIn optimization, interview coaching, career strategy. Each with its own workspace and session memory.",
+    url: "/platform",
+  },
+};
 
 const SURFACES = [
   {
