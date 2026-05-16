@@ -19,6 +19,8 @@ const COMPARISONS = [
   { href: "/compare/zari-vs-linkedin-premium", title: "Zari vs LinkedIn Premium", summary: "LinkedIn Premium improves your visibility. Zari improves your candidacy. Here's which one to invest in." },
   { href: "/compare/zari-vs-chatgpt", title: "Zari vs ChatGPT", summary: "ChatGPT is a general-purpose AI. Zari is purpose-built for career coaching with session memory and STAR evaluation." },
   { href: "/compare/zari-vs-gemini", title: "Zari vs Google Gemini", summary: "Gemini is Google's general AI with web search. Zari is built specifically for career coaching with ATS scoring and memory." },
+  { href: "/compare/zari-vs-kickresume", title: "Zari vs Kickresume", summary: "Kickresume builds polished resume templates. Zari optimizes for ATS and coaches you through the full job search." },
+  { href: "/compare/zari-vs-rezi", title: "Zari vs Rezi", summary: "Rezi focuses on ATS resume scoring. Zari adds interview coaching, LinkedIn optimization, and salary negotiation." },
 ];
 
 export default async function ComparePage() {

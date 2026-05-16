@@ -49,6 +49,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/career-coach-for-finance-professionals`,       lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/career-coach-for-sales-professionals`,         lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/career-coach-for-designers`,                   lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/career-coach-for-hr-professionals`,            lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/career-coach-for-cybersecurity-professionals`, lastModified: now, changeFrequency: "monthly", priority: 0.88 },
 
     // Audience-specific pages
     { url: `${base}/career-coaching-for-job-seekers`,     lastModified: now, changeFrequency: "monthly", priority: 0.85 },
@@ -63,6 +65,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/compare/zari-vs-linkedin-premium`,   lastModified: now, changeFrequency: "monthly", priority: 0.90 },
     { url: `${base}/compare/zari-vs-chatgpt`,             lastModified: now, changeFrequency: "monthly", priority: 0.90 },
     { url: `${base}/compare/zari-vs-gemini`,              lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/compare/zari-vs-kickresume`,          lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/compare/zari-vs-rezi`,                lastModified: now, changeFrequency: "monthly", priority: 0.88 },
 
     // Blog / resources
     { url: `${base}/blog`,                                        lastModified: now, changeFrequency: "weekly",  priority: 0.85 },
@@ -90,6 +94,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/blog/how-to-explain-gaps-in-employment`,      lastModified: now, changeFrequency: "monthly", priority: 0.85 },
     { url: `${base}/blog/job-search-tips`,                        lastModified: now, changeFrequency: "monthly", priority: 0.87 },
     { url: `${base}/blog/linkedin-summary-examples`,              lastModified: now, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/blog/weakness-interview-answer`,              lastModified: now, changeFrequency: "monthly", priority: 0.87 },
+    { url: `${base}/blog/interview-questions-to-ask`,             lastModified: now, changeFrequency: "monthly", priority: 0.87 },
+    { url: `${base}/blog/how-to-follow-up-on-job-application`,    lastModified: now, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/blog/professional-summary-for-resume`,        lastModified: now, changeFrequency: "monthly", priority: 0.87 },
 
     // Auth / conversion
     { url: `${base}/signup`,  lastModified: now, changeFrequency: "monthly", priority: 0.8 },
