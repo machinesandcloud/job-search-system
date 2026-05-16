@@ -48,8 +48,10 @@ export async function getCurrentUserId() {
 
     return session.userId === parsed.userId ? session.userId : null;
   } catch (error) {
-    console.error("[mvp-auth] failed to resolve current user session", error);
-    return null;
+    // DB unavailable or AppSession table missing — trust the cookie value so sessions
+    // survive DB outages and deployments before migrations have run.
+    console.error("[mvp-auth] failed to resolve current user session, falling back to cookie userId", error);
+    return parsed.userId;
   }
 }
 
