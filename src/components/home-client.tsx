@@ -356,18 +356,11 @@ function PersonCard({ p, size = "lg" }: { p: typeof PEOPLE[0]; size?: "sm"|"lg" 
           {/* Photo ring */}
           <div style={{ position:"absolute", inset:-2, borderRadius:"50%", background:`linear-gradient(135deg,${p.color1},${p.color2})`, opacity:0.4 }}/>
           <div style={{
-            position:"absolute", inset:0, display:"flex",
+            position:"absolute", inset:0,
             borderRadius:"50%",
-            background:`linear-gradient(135deg,${p.color1},${p.color2})`,
-            alignItems:"center", justifyContent:"center",
-            fontSize: s ? 16 : 12, fontWeight:800, color:"white",
+            background:`url(${p.photo}) center/cover, linear-gradient(135deg,${p.color1},${p.color2})`,
             border:"2px solid white",
-            overflow:"hidden",
-          }}>
-            {p.initials}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={p.photo} alt="" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />
-          </div>
+          }} />
           {/* Verified dot */}
           <div style={{ position:"absolute", bottom:-1, right:-1, width: s?14:10, height: s?14:10, borderRadius:"50%", background:"#22C55E", border:"2px solid white", display:"flex", alignItems:"center", justifyContent:"center" }}>
             {s && <svg viewBox="0 0 8 8" fill="white" style={{ width:6,height:6 }}><path d="M1 4l2 2 4-4" stroke="white" strokeWidth="1.2" fill="none"/></svg>}
@@ -2438,11 +2431,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
             <div style={{ display:"flex", alignItems:"center", gap:14, flexShrink:0 }}>
               <div style={{ display:"flex" }}>
                 {PEOPLE.slice(0,5).map((p, i) => (
-                  <div key={i} style={{ width:54, height:54, borderRadius:"50%", border:"3px solid white", overflow:"hidden", marginLeft: i>0?-14:0, background:`linear-gradient(135deg,${p.color1},${p.color2})`, flexShrink:0, boxShadow:"0 2px 8px rgba(0,0,0,0.15)", position:"relative", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, fontWeight:800, color:"white" }}>
-                    {p.initials}
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={p.photo} alt="" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />
-                  </div>
+                  <div key={i} style={{ width:54, height:54, borderRadius:"50%", border:"3px solid white", marginLeft: i>0?-14:0, background:`url(${p.photo}) center/cover, linear-gradient(135deg,${p.color1},${p.color2})`, flexShrink:0, boxShadow:"0 2px 8px rgba(0,0,0,0.15)" }} />
                 ))}
               </div>
               <div style={{ textAlign:"left" }}>
@@ -2783,11 +2772,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
                 boxShadow:"0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)",
               }}>
                 <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:14 }}>
-                  <div style={{ width:44, height:44, borderRadius:"50%", overflow:"hidden", flexShrink:0, position:"relative", background:`linear-gradient(135deg,${r.color1},${r.color2})`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, fontWeight:800, color:"white" }}>
-                    {r.name.split(" ").map((n: string) => n[0]).join("").slice(0,2)}
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={r.photo} alt="" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />
-                  </div>
+                  <div style={{ width:44, height:44, borderRadius:"50%", flexShrink:0, background:`url(${r.photo}) center/cover, linear-gradient(135deg,${r.color1},${r.color2})` }} />
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ fontSize:15, fontWeight:700, color:"#111827", lineHeight:1.2 }}>{r.name}</div>
                     <div style={{ fontSize:12.5, color:"#6B7280", marginTop:3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.role}</div>
@@ -2817,11 +2802,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
           <div style={{ display:"flex", justifyContent:"center", marginBottom:28 }}>
             <div style={{ display:"flex" }}>
               {PEOPLE.slice(0,5).map((p,i) => (
-                <div key={i} style={{ width:44, height:44, borderRadius:"50%", border:"3px solid #0A0A0F", overflow:"hidden", marginLeft: i>0?-12:0, background:`linear-gradient(135deg,${p.color1},${p.color2})`, flexShrink:0, position:"relative", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, fontWeight:800, color:"white" }}>
-                  {p.initials}
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={p.photo} alt="" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />
-                </div>
+                <div key={i} style={{ width:44, height:44, borderRadius:"50%", border:"3px solid #0A0A0F", marginLeft: i>0?-12:0, background:`url(${p.photo}) center/cover, linear-gradient(135deg,${p.color1},${p.color2})`, flexShrink:0 }} />
               ))}
             </div>
           </div>

@@ -80,11 +80,9 @@ export function PricingSocialProof({
 
                 <div className="mt-6 flex items-center gap-3">
                   <div
-                    className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-[12px] font-bold text-white"
-                    style={{ background: item.accent }}
-                  >
-                    {item.initials}
-                  </div>
+                    className="h-11 w-11 flex-shrink-0 rounded-full"
+                    style={{ background: `url(${item.photo}) center/cover, ${item.accent}` }}
+                  />
                   <div>
                     <p className="text-[14px] font-bold text-[var(--ink)]">{item.name}</p>
                     <p className="text-[13px] text-[var(--muted)]">{item.role}</p>

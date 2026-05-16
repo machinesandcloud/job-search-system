@@ -166,6 +166,7 @@ export const PRICING_TESTIMONIALS = [
     role: "PM → Senior PM at Notion",
     company: "Search plan",
     initials: "PM",
+    photo: "/avatars/1.jpg",
     accent: "#4361EE",
     tag: "Job search",
     quote:
@@ -176,6 +177,7 @@ export const PRICING_TESTIMONIALS = [
     role: "IC → Engineering Manager",
     company: "Growth plan",
     initials: "SL",
+    photo: "/avatars/3.jpg",
     accent: "#06B6D4",
     tag: "Promotion",
     quote:
@@ -186,6 +188,7 @@ export const PRICING_TESTIMONIALS = [
     role: "Sales Lead → Google APM",
     company: "Growth plan",
     initials: "RO",
+    photo: "/avatars/39.jpg",
     accent: "#059669",
     tag: "Salary",
     quote:
@@ -196,6 +199,7 @@ export const PRICING_TESTIMONIALS = [
     role: "Finance → Stripe PM",
     company: "Growth plan",
     initials: "CD",
+    photo: "/avatars/4.jpg",
     accent: "#8B5CF6",
     tag: "Career change",
     quote:
@@ -206,6 +210,7 @@ export const PRICING_TESTIMONIALS = [
     role: "Director → VP Engineering",
     company: "Executive plan",
     initials: "JT",
+    photo: "/avatars/38.jpg",
     accent: "#F59E0B",
     tag: "Leadership",
     quote:
@@ -216,6 +221,7 @@ export const PRICING_TESTIMONIALS = [
     role: "COO → Advisor & Board",
     company: "Executive plan",
     initials: "NF",
+    photo: "/avatars/15.jpg",
     accent: "#DC2626",
     tag: "Executive",
     quote:
