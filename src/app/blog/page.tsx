@@ -292,6 +292,24 @@ const POSTS = [
     date: "May 2025",
     accent: "#F97316",
   },
+  {
+    slug: "networking-email-templates",
+    title: "Networking Email Templates — 8 Word-for-Word Examples That Get Replies (2025)",
+    excerpt: "8 networking email templates for informational interviews, referral requests, reconnecting with old contacts, and cold outreach — with subject lines that get opened.",
+    tag: "Job Search",
+    readTime: "10 min read",
+    date: "May 2025",
+    accent: "#0D7182",
+  },
+  {
+    slug: "how-to-answer-why-do-you-want-to-work-here",
+    title: "\"Why Do You Want to Work Here?\" — How to Answer (With Examples) 2025",
+    excerpt: "The formula and 5 word-for-word examples for 'Why do you want to work here?' — the interview question that reveals whether you actually did your research.",
+    tag: "Interviews",
+    readTime: "9 min read",
+    date: "May 2025",
+    accent: "#EC4899",
+  },
 ];
 
 export default async function BlogPage() {

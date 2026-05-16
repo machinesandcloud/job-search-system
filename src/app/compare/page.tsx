@@ -23,6 +23,7 @@ const COMPARISONS = [
   { href: "/compare/zari-vs-rezi", title: "Zari vs Rezi", summary: "Rezi focuses on ATS resume scoring. Zari adds interview coaching, LinkedIn optimization, and salary negotiation." },
   { href: "/compare/zari-vs-enhancv", title: "Zari vs Enhancv", summary: "Enhancv builds visually stunning resumes. Zari coaches your entire job search with ATS optimization and interview prep." },
   { href: "/compare/zari-vs-novoresume", title: "Zari vs Novoresume", summary: "Novoresume produces clean one-page resumes. Zari covers ATS optimization, LinkedIn, interview coaching, and salary negotiation." },
+  { href: "/compare/zari-vs-claude", title: "Zari vs Claude", summary: "Claude is a powerful general AI. Zari is purpose-built for job search with ATS scoring, interview evaluation, and session memory." },
 ];
 
 export default async function ComparePage() {

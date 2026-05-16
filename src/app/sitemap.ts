@@ -71,6 +71,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/compare/zari-vs-rezi`,                lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/compare/zari-vs-enhancv`,             lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/compare/zari-vs-novoresume`,          lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/compare/zari-vs-claude`,              lastModified: now, changeFrequency: "monthly", priority: 0.90 },
 
     // Blog / resources
     { url: `${base}/blog`,                                        lastModified: now, changeFrequency: "weekly",  priority: 0.85 },
@@ -106,6 +107,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/blog/career-goals-examples`,                 lastModified: now, changeFrequency: "monthly", priority: 0.87 },
     { url: `${base}/blog/linkedin-recommendation-examples`,      lastModified: now, changeFrequency: "monthly", priority: 0.87 },
     { url: `${base}/blog/how-to-write-two-weeks-notice`,         lastModified: now, changeFrequency: "monthly", priority: 0.87 },
+    { url: `${base}/blog/networking-email-templates`,            lastModified: now, changeFrequency: "monthly", priority: 0.87 },
+    { url: `${base}/blog/how-to-answer-why-do-you-want-to-work-here`, lastModified: now, changeFrequency: "monthly", priority: 0.87 },
 
     // Auth / conversion
     { url: `${base}/signup`,  lastModified: now, changeFrequency: "monthly", priority: 0.8 },
