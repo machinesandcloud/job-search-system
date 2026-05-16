@@ -26,10 +26,11 @@ export async function GET(request: Request) {
     return NextResponse.redirect(dest);
   }
 
-  // Build the redirect URI from the current request's origin so the flow works
-  // on any domain (zaricoach.com, main--zari-coach.netlify.app, localhost, etc.)
-  // without changing env vars. All origins must be registered in Google Console.
-  const redirectUri = `${url.origin}/api/auth/google/callback`;
+  // Use the configured redirect URI (env var) when set so it's always a stable,
+  // registered URL. Fall back to the request origin only in local dev.
+  const redirectUri =
+    (process.env.GOOGLE_REDIRECT_URI || "").trim() ||
+    `${url.origin}/api/auth/google/callback`;
   const state = encodeGoogleOauthState({ mode, next, redirectUri });
 
   try {
