@@ -261,7 +261,7 @@ export default async function RevenuePage() {
           {[
             { label: "New signups", value: accountsThisMonth, color: "var(--ca-text)" },
             { label: "Checkout completed", value: checkoutsThisMonth, color: "#22C55E" },
-            { label: "Active today", value: activeSubs.filter(s => s.createdAt >= startOfMonth).length, color: "#3B82F6" },
+            { label: "Active today", value: activeSubs.filter((s: { createdAt: Date }) => s.createdAt >= startOfMonth).length, color: "#3B82F6" },
           ].map((row, i) => (
             <div key={row.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", borderTop: i > 0 ? "1px solid var(--ca-bd)" : "none" }}>
               <div>
