@@ -310,6 +310,15 @@ const POSTS = [
     date: "May 2025",
     accent: "#EC4899",
   },
+  {
+    slug: "how-to-evaluate-a-job-offer",
+    title: "How to Evaluate a Job Offer — The Complete Framework (2025)",
+    excerpt: "The 6-dimension framework for evaluating any job offer before you sign — compensation, role fit, company health, team quality, culture, and long-term trajectory.",
+    tag: "Job Search",
+    readTime: "11 min read",
+    date: "May 2025",
+    accent: "#0D7182",
+  },
 ];
 
 export default async function BlogPage() {
