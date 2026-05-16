@@ -17,7 +17,7 @@ const S = {
   iconInactive: "#484F58",
 };
 
-function NavIcon({ name, size = 16 }: { name: "home" | "tickets" | "users" | "sparkles" | "automation"; size?: number }) {
+function NavIcon({ name, size = 16 }: { name: "home" | "tickets" | "users" | "sparkles" | "automation" | "revenue"; size?: number }) {
   const props = { viewBox: "0 0 24 24", fill: "none" as const, stroke: "currentColor", strokeWidth: "1.75", strokeLinecap: "round" as const, strokeLinejoin: "round" as const, width: size, height: size, style: { display: "block", flexShrink: 0 } };
   switch (name) {
     case "home":
@@ -30,11 +30,14 @@ function NavIcon({ name, size = 16 }: { name: "home" | "tickets" | "users" | "sp
       return <svg {...props}><path d="m12 3 1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3Z" /><path d="m19 14 .8 2.2L22 17l-2.2.8L19 20l-.8-2.2L16 17l2.2-.8L19 14Z" /></svg>;
     case "automation":
       return <svg {...props}><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" /></svg>;
+    case "revenue":
+      return <svg {...props}><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>;
   }
 }
 
 const NAV_ITEMS = [
   { href: "/coach-admin",            label: "Overview",   icon: "home"       as const },
+  { href: "/coach-admin/revenue",    label: "Revenue",    icon: "revenue"    as const },
   { href: "/coach-admin/accounts",   label: "Accounts",   icon: "users"      as const },
   { href: "/coach-admin/tickets",    label: "Support",    icon: "tickets"    as const },
   { href: "/coach-admin/automation", label: "Automation", icon: "automation" as const },
