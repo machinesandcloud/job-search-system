@@ -114,7 +114,12 @@ export async function GET(request: Request) {
         ? "/onboarding/plan"
         : sanitizeInternalNext(flow.next, getDefaultGoogleNext(mode));
 
-    const response = NextResponse.redirect(new URL(next, request.url));
+    // Return a 200 HTML response with Set-Cookie rather than a redirect.
+    // Netlify CDN strips Set-Cookie headers from redirect (3xx) responses,
+    // so the session cookie would never reach the browser via NextResponse.redirect.
+    const destination = new URL(next, request.url).toString();
+    const html = `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${destination}"><title>Signing in…</title></head><body></body></html>`;
+    const response = new NextResponse(html, { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } });
     return setCurrentUserSessionOnResponse(response, auth.userId);
   } catch (error) {
     console.error("[google-auth] platform user sync failed", error);

@@ -207,6 +207,88 @@ export function CoachAdminCancelAccountButton({
   );
 }
 
+export function CoachAdminDeleteAccountButton({ accountId }: { accountId: string }) {
+  const [open, setOpen] = useState(false);
+  const [confirm, setConfirm] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const ready = confirm.trim().toUpperCase() === "DELETE";
+
+  async function onSubmit() {
+    if (!ready || loading) return;
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/coach-admin/accounts/${accountId}`, { method: "DELETE" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || "Unable to delete account.");
+        setLoading(false);
+      } else {
+        window.location.href = "/coach-admin/accounts";
+      }
+    } catch {
+      setError("Unable to delete account.");
+      setLoading(false);
+    }
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        style={{
+          display: "inline-flex", alignItems: "center", justifyContent: "center",
+          borderRadius: 99, border: "1px solid rgba(107,114,128,0.4)",
+          background: "transparent", padding: "7px 16px",
+          fontSize: 13, fontWeight: 600, color: "var(--ca-text3)",
+          cursor: "pointer", whiteSpace: "nowrap", transition: "background 0.12s, color 0.12s, border-color 0.12s",
+        }}
+        onMouseEnter={e => { const b = e.currentTarget as HTMLButtonElement; b.style.background = "rgba(244,63,94,0.1)"; b.style.color = "#F43F5E"; b.style.borderColor = "rgba(244,63,94,0.4)"; }}
+        onMouseLeave={e => { const b = e.currentTarget as HTMLButtonElement; b.style.background = "transparent"; b.style.color = "var(--ca-text3)"; b.style.borderColor = "rgba(107,114,128,0.4)"; }}
+      >
+        Delete account
+      </button>
+
+      {open && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
+          onClick={e => { if (e.target === e.currentTarget) setOpen(false); }}>
+          <div style={{ background: "var(--ca-card)", border: "1px solid var(--ca-bd)", borderRadius: 18, padding: "28px 28px 24px", width: "100%", maxWidth: 420, boxShadow: "0 24px 80px rgba(0,0,0,0.55)" }}>
+            <p style={{ fontSize: 16, fontWeight: 700, color: "var(--ca-text)", marginBottom: 4 }}>Delete account</p>
+            <p style={{ fontSize: 12.5, color: "var(--ca-text3)", marginBottom: 20, lineHeight: 1.6 }}>
+              This permanently deletes the account and all associated users, sessions, and data. Any active Stripe subscription will be canceled first. <strong style={{ color: "#F43F5E" }}>This cannot be undone.</strong>
+            </p>
+
+            <label style={{ display: "block", fontSize: 11.5, fontWeight: 600, color: "#F43F5E", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.07em" }}>Type DELETE to confirm</label>
+            <input
+              value={confirm}
+              onChange={e => setConfirm(e.target.value)}
+              placeholder="DELETE"
+              autoComplete="off"
+              style={{ width: "100%", boxSizing: "border-box", fontSize: 13, fontWeight: 700, padding: "9px 12px", borderRadius: 10, border: `1px solid ${ready ? "rgba(244,63,94,0.6)" : "var(--ca-bd)"}`, background: "var(--ca-raise)", color: "#F43F5E", outline: "none", marginBottom: 18, fontFamily: "monospace", letterSpacing: "0.1em", transition: "border-color 0.15s" }}
+            />
+
+            {error && <p style={{ fontSize: 12, color: "#F43F5E", marginBottom: 12 }}>{error}</p>}
+
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+              <button type="button" onClick={() => { setOpen(false); setConfirm(""); setError(""); }}
+                style={{ padding: "8px 16px", borderRadius: 10, border: "1px solid var(--ca-bd)", background: "transparent", color: "var(--ca-text2)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+                Keep account
+              </button>
+              <button type="button" onClick={onSubmit} disabled={!ready || loading}
+                style={{ padding: "8px 18px", borderRadius: 10, border: "none", background: ready ? "#F43F5E" : "rgba(244,63,94,0.25)", color: ready ? "#fff" : "rgba(244,63,94,0.5)", fontSize: 13, fontWeight: 700, cursor: ready && !loading ? "pointer" : "not-allowed", transition: "background 0.15s, color 0.15s" }}>
+                {loading ? "Deleting…" : "Delete permanently"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 export function CoachAdminNoteForm({
   endpoint,
   placeholder = "Add an internal note...",

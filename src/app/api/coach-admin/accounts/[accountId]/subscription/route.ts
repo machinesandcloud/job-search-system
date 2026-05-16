@@ -39,12 +39,26 @@ export async function POST(
   }
 
   const subscription = account.subscription;
-  if (!subscription) {
-    return NextResponse.json({ error: "This account does not have an active subscription record." }, { status: 400 });
-  }
+  const { reason, note: noteText } = await request.json().catch(() => ({}));
 
-  if (!subscription.stripeSubscriptionId) {
-    return NextResponse.json({ error: "Stripe subscription ID is missing for this account." }, { status: 400 });
+  // No Stripe subscription — just mark the account canceled in the DB.
+  if (!subscription?.stripeSubscriptionId) {
+    try {
+      await prisma.account.update({ where: { id: accountId }, data: { status: "canceled" } });
+      await Promise.all([
+        logAppEvent("subscription_canceled", {
+          accountId,
+          userId: user.id,
+          metadataJson: { source: "coach_admin", canceledBy: user.email, reason: reason || "admin_action", noStripeSubscription: true },
+        }),
+        prisma.adminNote.create({
+          data: { accountId, userId: user.id, note: `Account marked canceled from coach admin (no Stripe subscription).${noteText ? ` Note: ${noteText}` : ""}` },
+        }),
+      ]);
+      return NextResponse.json({ ok: true, accountId, status: "canceled" });
+    } catch (error: any) {
+      return NextResponse.json({ error: error?.message || "Unable to cancel account." }, { status: 500 });
+    }
   }
 
   let stripe;
@@ -69,13 +83,14 @@ export async function POST(
           source: "coach_admin",
           stripeSubscriptionId: canceled.id,
           canceledBy: user.email,
+          reason: reason || "admin_action",
         },
       }),
       prisma.adminNote.create({
         data: {
           accountId,
           userId: user.id,
-          note: `Subscription canceled immediately from coach admin. Stripe subscription ${canceled.id}.`,
+          note: `Subscription canceled immediately from coach admin. Stripe subscription ${canceled.id}.${noteText ? ` Note: ${noteText}` : ""}`,
         },
       }),
     ]);
