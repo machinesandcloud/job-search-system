@@ -187,6 +187,21 @@ const SEQUENCE_DELAYS: Record<ZariSequence, number[]> = {
 
 // ─── Preview helper ───────────────────────────────────────────────────────────
 
+/** Return subjects + delays for each step — no rendering. Used by the admin sequence overview page. */
+export function getSequenceStepMeta(
+  sequence: ZariSequence
+): { stepIndex: number; subject: string; delayDays: number }[] {
+  const templates = makeTemplates({}, "", "");
+  const steps = templates[sequence];
+  if (!steps?.length) return [];
+  const delays = SEQUENCE_DELAYS[sequence] ?? [];
+  return steps.map((tmpl, i) => ({
+    stepIndex: i,
+    subject: tmpl.subject,
+    delayDays: delays[i] ?? 0,
+  }));
+}
+
 /** Render all email steps for a sequence with sample data, for admin preview. */
 export async function getSequencePreviewSteps(
   sequence: ZariSequence

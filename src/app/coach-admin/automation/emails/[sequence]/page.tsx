@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireCoachAdminActor } from "@/lib/coach-admin-auth";
-import { getSequencePreviewSteps } from "@/lib/email-sequences";
+import { getSequenceStepMeta } from "@/lib/email-sequences";
 import type { ZariSequence } from "@/lib/email-sequences";
 import { SEQUENCE_DELAYS_META } from "../../sequence-meta";
 import { CoachAdminPill } from "@/components/coach-admin-ui";
@@ -26,7 +26,7 @@ export default async function SequenceEmailsPage({ params }: { params: Promise<{
   await requireCoachAdminActor("support");
   const { sequence } = await params;
 
-  const steps = await getSequencePreviewSteps(sequence as ZariSequence);
+  const steps = getSequenceStepMeta(sequence as ZariSequence);
   const meta = SEQUENCE_DELAYS_META[sequence as ZariSequence];
 
   return (
@@ -50,9 +50,9 @@ export default async function SequenceEmailsPage({ params }: { params: Promise<{
             {meta.duration > 0 ? ` · ${meta.duration}-day campaign` : " · single send"}
           </span>
         )}
-        {!steps.length && (
-          <span style={{ fontSize: 12, color: "#F43F5E" }}>Unknown sequence — no templates found</span>
-        )}
+        <span style={{ fontSize: 11, color: "var(--ca-text3)", marginLeft: "auto" }}>
+          Previews use sample data — real emails use each recipient&rsquo;s actual first name.
+        </span>
       </div>
 
       {/* Email steps */}
@@ -91,9 +91,9 @@ export default async function SequenceEmailsPage({ params }: { params: Promise<{
             <span style={{ fontSize: 13, color: "var(--ca-text)", fontWeight: 500 }}>{step.subject}</span>
           </div>
 
-          {/* Rendered email */}
+          {/* Rendered email — loaded via API route so external images (logo, fonts) work correctly */}
           <iframe
-            srcDoc={step.html}
+            src={`/api/coach-admin/automation/email-preview?sequence=${encodeURIComponent(sequence)}&step=${step.stepIndex}`}
             style={{ display: "block", width: "100%", height: 700, border: "none", background: "#f9fafb" }}
             title={`Step ${step.stepIndex + 1}: ${step.subject}`}
           />
