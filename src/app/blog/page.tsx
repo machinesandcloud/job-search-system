@@ -319,6 +319,24 @@ const POSTS = [
     date: "May 2025",
     accent: "#0D7182",
   },
+  {
+    slug: "how-to-get-a-job-with-no-experience",
+    title: "How to Get a Job With No Experience — 12 Strategies That Work (2025)",
+    excerpt: "12 specific strategies for landing a job without traditional experience — for recent graduates, career changers, and anyone who's been told they need experience to get experience.",
+    tag: "Job Search",
+    readTime: "12 min read",
+    date: "May 2025",
+    accent: "#10B981",
+  },
+  {
+    slug: "where-do-you-see-yourself-in-5-years",
+    title: "\"Where Do You See Yourself in 5 Years?\" — How to Answer (2025)",
+    excerpt: "The formula and 5 word-for-word examples for answering the 5-year interview question — by career stage, including the honest version that actually works.",
+    tag: "Interviews",
+    readTime: "8 min read",
+    date: "May 2025",
+    accent: "#7a8dff",
+  },
 ];
 
 export default async function BlogPage() {

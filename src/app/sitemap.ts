@@ -54,6 +54,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/career-coach-for-operations-professionals`,   lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/career-coach-for-lawyers`,                    lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/career-coach-for-accountants`,                lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/career-coach-for-project-managers`,           lastModified: now, changeFrequency: "monthly", priority: 0.88 },
 
     // Audience-specific pages
     { url: `${base}/career-coaching-for-job-seekers`,     lastModified: now, changeFrequency: "monthly", priority: 0.85 },
@@ -111,6 +112,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/blog/networking-email-templates`,            lastModified: now, changeFrequency: "monthly", priority: 0.87 },
     { url: `${base}/blog/how-to-answer-why-do-you-want-to-work-here`, lastModified: now, changeFrequency: "monthly", priority: 0.87 },
     { url: `${base}/blog/how-to-evaluate-a-job-offer`,              lastModified: now, changeFrequency: "monthly", priority: 0.87 },
+    { url: `${base}/blog/how-to-get-a-job-with-no-experience`,     lastModified: now, changeFrequency: "monthly", priority: 0.87 },
+    { url: `${base}/blog/where-do-you-see-yourself-in-5-years`,    lastModified: now, changeFrequency: "monthly", priority: 0.87 },
 
     // Auth / conversion
     { url: `${base}/signup`,  lastModified: now, changeFrequency: "monthly", priority: 0.8 },
