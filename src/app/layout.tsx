@@ -103,9 +103,6 @@ export const metadata: Metadata = {
   },
   category: "Technology",
   classification: "Career Coaching Software",
-  verification: {
-    google: process.env.GOOGLE_SITE_VERIFICATION || "",
-  },
 };
 
 export default function RootLayout({
