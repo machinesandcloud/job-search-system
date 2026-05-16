@@ -67,7 +67,7 @@ function makeTemplates(meta: Meta, unsubUrl: string, npsUrl: string): Record<Zar
   const planTier = typeof meta.planTier === "string" ? meta.planTier : undefined;
   const planName = typeof meta.planName === "string" ? meta.planName : "Search";
   const referralUrl = typeof meta.referralUrl === "string" ? meta.referralUrl : `${APP_URL}/signup`;
-  const testimonialUrl = typeof meta.testimonialUrl === "string" ? meta.testimonialUrl : `${APP_URL}/testimonial`;
+  const testimonialUrl = typeof meta.testimonialUrl === "string" ? meta.testimonialUrl : `${APP_URL}/video-review`;
   const annualUrl = `${APP_URL}/billing?plan=annual`;
 
   return {
