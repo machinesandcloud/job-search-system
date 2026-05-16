@@ -2438,8 +2438,10 @@ export function HomeClient({ userId }: { userId: boolean }) {
             <div style={{ display:"flex", alignItems:"center", gap:14, flexShrink:0 }}>
               <div style={{ display:"flex" }}>
                 {PEOPLE.slice(0,5).map((p, i) => (
-                  <div key={i} style={{ width:54, height:54, borderRadius:"50%", border:"3px solid white", overflow:"hidden", marginLeft: i>0?-14:0, background:`linear-gradient(135deg,${p.color1},${p.color2})`, flexShrink:0, boxShadow:"0 2px 8px rgba(0,0,0,0.15)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, fontWeight:800, color:"white" }}>
+                  <div key={i} style={{ width:54, height:54, borderRadius:"50%", border:"3px solid white", overflow:"hidden", marginLeft: i>0?-14:0, background:`linear-gradient(135deg,${p.color1},${p.color2})`, flexShrink:0, boxShadow:"0 2px 8px rgba(0,0,0,0.15)", position:"relative", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, fontWeight:800, color:"white" }}>
                     {p.initials}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={p.photo} alt="" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />
                   </div>
                 ))}
               </div>
