@@ -4,14 +4,16 @@ import { getCurrentUserId } from "@/lib/mvp/auth";
 import { prisma } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
 import { ensureSameOrigin } from "@/lib/utils";
-
-// Twilio is disabled — all OTP codes are "123456" until SMS is configured.
-const DUMMY_CODE = "123456";
+import { sendSmsOtp } from "@/lib/twilio";
 
 export const runtime = "nodejs";
 export const maxDuration = 15;
 
 const E164_RE = /^\+[1-9]\d{7,14}$/;
+
+function generateOtp(): string {
+  return String(crypto.randomInt(100000, 999999));
+}
 
 export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) {
@@ -48,7 +50,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "This phone number is already associated with another account." }, { status: 409 });
   }
 
-  const codeHash = crypto.createHash("sha256").update(DUMMY_CODE).digest("hex");
+  const code = generateOtp();
+  const codeHash = crypto.createHash("sha256").update(code).digest("hex");
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
   await prisma.phoneVerification.upsert({
@@ -56,6 +59,14 @@ export async function POST(request: Request) {
     create: { userId, phone, codeHash, expiresAt },
     update: { phone, codeHash, expiresAt, attempts: 0 },
   });
+
+  try {
+    await sendSmsOtp(phone, code);
+  } catch (error) {
+    console.error("[phone-send] SMS send failed", error);
+    await prisma.phoneVerification.delete({ where: { userId } }).catch(() => null);
+    return NextResponse.json({ error: "Could not send verification SMS. Please try again." }, { status: 502 });
+  }
 
   return NextResponse.json({ ok: true });
 }
