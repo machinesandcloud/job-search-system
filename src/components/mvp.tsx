@@ -136,6 +136,7 @@ function SiteFooter() {
         { label: "Medical Professionals", href: "/career-coach-for-medical-professionals" },
         { label: "Veterans", href: "/career-coach-for-veterans" },
         { label: "Real Estate Professionals", href: "/career-coach-for-real-estate-professionals" },
+        { label: "Entrepreneurs", href: "/career-coach-for-entrepreneurs" },
       ],
     },
     {
@@ -166,6 +167,7 @@ function SiteFooter() {
         { label: "Zari vs Microsoft Copilot", href: "/compare/zari-vs-microsoft-copilot" },
         { label: "Zari vs Careerflow", href: "/compare/zari-vs-careerflow" },
         { label: "Zari vs Copy.ai", href: "/compare/zari-vs-copy-ai" },
+        { label: "Zari vs Jasper", href: "/compare/zari-vs-jasper" },
       ],
     },
   ];

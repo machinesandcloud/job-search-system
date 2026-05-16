@@ -463,6 +463,42 @@ const POSTS = [
     date: "May 2025",
     accent: "#0D7182",
   },
+  {
+    slug: "software-engineer-resume",
+    title: "Software Engineer Resume — Examples, Templates & ATS Tips (2025)",
+    excerpt: "Every section, every career level (junior to staff), and the 5 ATS rules that determine whether a recruiter ever sees your resume. With real before-and-after examples for tech companies.",
+    tag: "Resume",
+    readTime: "13 min read",
+    date: "May 2025",
+    accent: "#7C3AED",
+  },
+  {
+    slug: "data-scientist-resume",
+    title: "Data Scientist Resume — Examples, Skills & ATS Tips (2025)",
+    excerpt: "Skills sections, bullet formulas, and common mistakes — by DS track (analytics, applied ML, MLOps, research). With before-and-after bullet examples at junior, mid-level, and senior levels.",
+    tag: "Resume",
+    readTime: "12 min read",
+    date: "May 2025",
+    accent: "#059669",
+  },
+  {
+    slug: "internal-salary-negotiation",
+    title: "How to Negotiate Salary Internally — Scripts & Timing (2025)",
+    excerpt: "Internal negotiation is different from offer negotiation — different leverage, different timing, different pushback. Word-for-word scripts for opening the conversation, making the ask, and handling 'budget is frozen' and 'you're at the top of your band.'",
+    tag: "Salary Negotiation",
+    readTime: "10 min read",
+    date: "May 2025",
+    accent: "#10B981",
+  },
+  {
+    slug: "career-change-at-50",
+    title: "Career Change at 50 — What's Different, What to Ignore, How to Do It (2025)",
+    excerpt: "More doable than most people assume, harder in specific ways most don't anticipate. A honest look at age discrimination, network advantages, the right resume rules at 50, and the transitions that work best at this career stage.",
+    tag: "Career Change",
+    readTime: "12 min read",
+    date: "May 2025",
+    accent: "#DC2626",
+  },
 ];
 
 export default async function BlogPage() {

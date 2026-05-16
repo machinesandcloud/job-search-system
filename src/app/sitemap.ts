@@ -62,6 +62,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/career-coach-for-medical-professionals`,       lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/career-coach-for-veterans`,                   lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/career-coach-for-real-estate-professionals`,  lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/career-coach-for-entrepreneurs`,             lastModified: now, changeFrequency: "monthly", priority: 0.88 },
 
     // Audience-specific pages
     { url: `${base}/career-coaching-for-job-seekers`,     lastModified: now, changeFrequency: "monthly", priority: 0.85 },
@@ -87,6 +88,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/compare/zari-vs-microsoft-copilot`,  lastModified: now, changeFrequency: "monthly", priority: 0.90 },
     { url: `${base}/compare/zari-vs-careerflow`,         lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/compare/zari-vs-copy-ai`,           lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/compare/zari-vs-jasper`,            lastModified: now, changeFrequency: "monthly", priority: 0.88 },
 
     // Blog / resources
     { url: `${base}/blog`,                                        lastModified: now, changeFrequency: "weekly",  priority: 0.85 },
@@ -141,6 +143,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/blog/highest-paying-jobs`,                   lastModified: now, changeFrequency: "monthly", priority: 0.90 },
     { url: `${base}/blog/signs-you-should-quit-your-job`,        lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/blog/product-manager-interview-questions`,   lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/blog/software-engineer-resume`,             lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/data-scientist-resume`,                lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/internal-salary-negotiation`,          lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/blog/career-change-at-50`,                  lastModified: now, changeFrequency: "monthly", priority: 0.88 },
 
     // Auth / conversion
     { url: `${base}/signup`,  lastModified: now, changeFrequency: "monthly", priority: 0.8 },
