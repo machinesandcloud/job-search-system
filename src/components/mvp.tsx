@@ -131,6 +131,7 @@ function SiteFooter() {
         { label: "Project Managers", href: "/career-coach-for-project-managers" },
         { label: "Recent Graduates", href: "/career-coach-for-recent-graduates" },
         { label: "UX Designers", href: "/career-coach-for-ux-designers" },
+        { label: "Consultants", href: "/career-coach-for-consultants" },
       ],
     },
     {
@@ -157,6 +158,8 @@ function SiteFooter() {
         { label: "Interview Prep Guide", href: "/blog/how-to-prepare-for-job-interview" },
         { label: "Zari vs Enhancv", href: "/compare/zari-vs-enhancv" },
         { label: "Zari vs Novoresume", href: "/compare/zari-vs-novoresume" },
+        { label: "Zari vs Zety", href: "/compare/zari-vs-zety" },
+        { label: "Zari vs Microsoft Copilot", href: "/compare/zari-vs-microsoft-copilot" },
       ],
     },
   ];

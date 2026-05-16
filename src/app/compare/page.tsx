@@ -26,6 +26,8 @@ const COMPARISONS = [
   { href: "/compare/zari-vs-claude", title: "Zari vs Claude", summary: "Claude is a powerful general AI. Zari is purpose-built for job search with ATS scoring, interview evaluation, and session memory." },
   { href: "/compare/zari-vs-resumeio", title: "Zari vs Resume.io", summary: "Resume.io guides you through building a clean resume. Zari coaches you through landing the job — ATS optimization, interviews, and salary negotiation." },
   { href: "/compare/zari-vs-perplexity", title: "Zari vs Perplexity", summary: "Perplexity is an AI research engine. Zari is an AI career coach. They're complementary — here's exactly where each wins for job seekers." },
+  { href: "/compare/zari-vs-zety", title: "Zari vs Zety", summary: "Zety builds polished resume templates with pre-written content suggestions. Zari coaches your entire job search — ATS scoring, interview prep, LinkedIn, and salary negotiation." },
+  { href: "/compare/zari-vs-microsoft-copilot", title: "Zari vs Microsoft Copilot", summary: "Copilot is a general-purpose AI embedded in Office apps. Zari is purpose-built for job search coaching. They overlap in some areas and diverge completely in others." },
 ];
 
 export default async function ComparePage() {

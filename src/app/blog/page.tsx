@@ -364,6 +364,33 @@ const POSTS = [
     date: "May 2025",
     accent: "#EC4899",
   },
+  {
+    slug: "how-to-handle-a-bad-reference",
+    title: "How to Handle a Bad Reference — What to Do Before It Tanks Your Offer (2025)",
+    excerpt: "Most candidates don't know they have a damaging reference until offers stop coming. The 4 types, how to detect them, and the exact repair playbook — before a bad reference costs you the job.",
+    tag: "Job Search Strategy",
+    readTime: "7 min read",
+    date: "May 2025",
+    accent: "#DC2626",
+  },
+  {
+    slug: "remote-job-search-tips",
+    title: "Remote Job Search Tips — How to Find and Land a Real Remote Role (2025)",
+    excerpt: "Most postings labeled 'remote' aren't really remote. Where real remote jobs are actually posted, what remote employers test for, and how to signal remote readiness in your resume and interviews.",
+    tag: "Remote Work",
+    readTime: "10 min read",
+    date: "May 2025",
+    accent: "#059669",
+  },
+  {
+    slug: "google-interview-prep",
+    title: "Google Interview Prep — The Complete Guide to Google's Hiring Process (2025)",
+    excerpt: "Google's hiring committee model, Googleyness criterion, level-setting comp committee — none of it works how candidates expect. Stage-by-stage breakdown with prep strategy for every round.",
+    tag: "Interviews",
+    readTime: "15 min read",
+    date: "May 2025",
+    accent: "#4ca7e6",
+  },
 ];
 
 export default async function BlogPage() {

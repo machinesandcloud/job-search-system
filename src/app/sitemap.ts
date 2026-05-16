@@ -57,6 +57,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/career-coach-for-project-managers`,           lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/career-coach-for-recent-graduates`,           lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/career-coach-for-ux-designers`,               lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/career-coach-for-consultants`,               lastModified: now, changeFrequency: "monthly", priority: 0.88 },
 
     // Audience-specific pages
     { url: `${base}/career-coaching-for-job-seekers`,     lastModified: now, changeFrequency: "monthly", priority: 0.85 },
@@ -78,6 +79,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/compare/zari-vs-claude`,              lastModified: now, changeFrequency: "monthly", priority: 0.90 },
     { url: `${base}/compare/zari-vs-resumeio`,            lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/compare/zari-vs-perplexity`,          lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/compare/zari-vs-zety`,               lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/compare/zari-vs-microsoft-copilot`,  lastModified: now, changeFrequency: "monthly", priority: 0.90 },
 
     // Blog / resources
     { url: `${base}/blog`,                                        lastModified: now, changeFrequency: "weekly",  priority: 0.85 },
@@ -121,6 +124,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/blog/amazon-leadership-principles-interview`,  lastModified: now, changeFrequency: "monthly", priority: 0.87 },
     { url: `${base}/blog/linkedin-connection-request-message`,     lastModified: now, changeFrequency: "monthly", priority: 0.87 },
     { url: `${base}/blog/how-to-write-a-cover-letter-with-no-experience`, lastModified: now, changeFrequency: "monthly", priority: 0.87 },
+    { url: `${base}/blog/how-to-handle-a-bad-reference`,            lastModified: now, changeFrequency: "monthly", priority: 0.87 },
+    { url: `${base}/blog/remote-job-search-tips`,                   lastModified: now, changeFrequency: "monthly", priority: 0.87 },
+    { url: `${base}/blog/google-interview-prep`,                    lastModified: now, changeFrequency: "monthly", priority: 0.88 },
 
     // Auth / conversion
     { url: `${base}/signup`,  lastModified: now, changeFrequency: "monthly", priority: 0.8 },
