@@ -517,3 +517,100 @@ export function CoachAdminVideoReviewActions({ reviewId }: { reviewId: string })
     </div>
   );
 }
+
+export function CoachAdminGrantCreditButton({ accountId }: { accountId: string }) {
+  const [open, setOpen] = useState(false);
+  const [months, setMonths] = useState(1);
+  const [reason, setReason] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleGrant() {
+    setLoading(true);
+    setError("");
+    const res = await fetch(`/api/coach-admin/accounts/${accountId}/grant-credit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ months, reason }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setError(data.error || "Something went wrong.");
+      setLoading(false);
+      return;
+    }
+    setDone(true);
+    setLoading(false);
+    setOpen(false);
+  }
+
+  if (done) {
+    return (
+      <span style={{ fontSize: 13, color: "#166534", fontWeight: 600 }}>
+        ✓ {months} month{months > 1 ? "s" : ""} granted
+      </span>
+    );
+  }
+
+  return (
+    <>
+      <button onClick={() => setOpen(true)} className={coachAdminGhostButtonClass}>
+        Grant free months
+      </button>
+
+      {open && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50 }}>
+          <div style={{ background: "var(--ca-surface, #fff)", borderRadius: 14, padding: "28px 28px 24px", width: 360, boxShadow: "0 8px 40px rgba(0,0,0,0.18)" }}>
+            <h3 style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 700, color: "var(--ca-text, #0F172A)" }}>Grant free months</h3>
+            <p style={{ margin: "0 0 20px", fontSize: 13, color: "var(--ca-text3, #64748B)" }}>
+              Extends the subscription by the selected number of months. User is notified by email.
+            </p>
+
+            <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--ca-text2, #334155)", marginBottom: 6 }}>How many months?</label>
+            <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+              {[1, 2, 3].map(m => (
+                <button
+                  key={m}
+                  onClick={() => setMonths(m)}
+                  style={{
+                    flex: 1, padding: "8px 0", borderRadius: 8, border: "1.5px solid",
+                    borderColor: months === m ? "#2563EB" : "var(--ca-bd, #E2E8F0)",
+                    background: months === m ? "#EFF6FF" : "transparent",
+                    color: months === m ? "#1D4ED8" : "var(--ca-text2, #334155)",
+                    fontWeight: 600, fontSize: 14, cursor: "pointer",
+                  }}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+
+            <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--ca-text2, #334155)", marginBottom: 6 }}>
+              Reason <span style={{ fontWeight: 400, color: "var(--ca-text3, #64748B)" }}>(included in user email)</span>
+            </label>
+            <textarea
+              value={reason}
+              onChange={e => setReason(e.target.value)}
+              placeholder="e.g. Thank you for your video review, courtesy credit..."
+              rows={3}
+              className={coachAdminInputClass}
+              style={{ resize: "vertical" }}
+            />
+
+            {error && <p style={{ fontSize: 13, color: "#EF4444", marginTop: 8 }}>{error}</p>}
+
+            <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
+              <button onClick={() => { setOpen(false); setError(""); }} className={coachAdminGhostButtonClass} style={{ flex: 1 }}>
+                Cancel
+              </button>
+              <button onClick={handleGrant} disabled={loading} className={coachAdminPrimaryButtonClass} style={{ flex: 1 }}>
+                {loading ? "Granting…" : `Grant ${months} month${months > 1 ? "s" : ""}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

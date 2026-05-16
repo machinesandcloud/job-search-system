@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CoachAdminCancelAccountButton, CoachAdminDeleteAccountButton, CoachAdminNoteForm, SupportTicketCreateForm } from "@/components/coach-admin-forms";
+import { CoachAdminCancelAccountButton, CoachAdminDeleteAccountButton, CoachAdminGrantCreditButton, CoachAdminNoteForm, SupportTicketCreateForm } from "@/components/coach-admin-forms";
 import { CoachAdminPill } from "@/components/coach-admin-ui";
 import {
   estimateTrackedTokenCostUsd, formatUsdEstimate, getAiUsageSummary,
@@ -118,6 +118,7 @@ export default async function CoachAdminAccountPage({ params, searchParams }: Pr
   const isInternal      = account.users.some((u: typeof account.users[number]) => isOperatorRole(u.role));
   const canCancel       = session.role === "admin" && !isInternal && subscription?.status !== "canceled" && account.status !== "canceled";
   const canDelete       = session.role === "admin" && !isInternal;
+  const canGrantCredit  = session.role === "admin" && Boolean(subscription?.stripeSubscriptionId);
   const hasPayIssue     = subscription ? isPaymentIssueSubscriptionStatus(subscription.status) : account.paymentIssue;
   const openTickets     = tickets.filter((t: typeof tickets[number]) => t.status !== "resolved" && t.status !== "closed").length;
   const creditPct       = tokenUsage && planCredits && planCredits > 0 ? Math.min(100, Math.round(((tokenUsage.usedCredits ?? 0) / planCredits) * 100)) : 0;
@@ -138,6 +139,7 @@ export default async function CoachAdminAccountPage({ params, searchParams }: Pr
         {subscription?.cancelAtPeriodEnd && <CoachAdminPill tone="gold">Cancels at period end</CoachAdminPill>}
         {hasPayIssue && <CoachAdminPill tone="gold">Payment issue</CoachAdminPill>}
         <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+          {canGrantCredit && <CoachAdminGrantCreditButton accountId={accountId} />}
           {canCancel && <CoachAdminCancelAccountButton accountId={accountId} hasSubscription={Boolean(subscription?.stripeSubscriptionId)} />}
           {canDelete && <CoachAdminDeleteAccountButton accountId={accountId} />}
         </div>
