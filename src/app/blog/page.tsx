@@ -130,6 +130,33 @@ const POSTS = [
     date: "March 2025",
     accent: "#10B981",
   },
+  {
+    slug: "star-method-interview",
+    title: "The STAR Method for Interviews — Examples & Formula (2025)",
+    excerpt: "How to use the STAR method to answer behavioral interview questions — with 10 word-for-word examples for the most common questions.",
+    tag: "Interviews",
+    readTime: "9 min read",
+    date: "May 2025",
+    accent: "#EC4899",
+  },
+  {
+    slug: "behavioral-interview-questions",
+    title: "30 Behavioral Interview Questions (With Strong Answers)",
+    excerpt: "The 30 behavioral questions that appear in every interview, the STAR answers that impress, and the mistakes that eliminate candidates on the spot.",
+    tag: "Interviews",
+    readTime: "12 min read",
+    date: "May 2025",
+    accent: "#7a8dff",
+  },
+  {
+    slug: "how-to-write-a-cover-letter",
+    title: "How to Write a Cover Letter That Gets Read (2025) — With Examples",
+    excerpt: "The exact structure, 5 opening lines that work, a complete word-for-word example, and what to never write in a cover letter.",
+    tag: "Cover Letters",
+    readTime: "10 min read",
+    date: "May 2025",
+    accent: "#0D7182",
+  },
 ];
 
 export default async function BlogPage() {

@@ -94,6 +94,7 @@ function SiteFooter() {
         { label: "AI Resume Writer", href: "/ai-resume-writer" },
         { label: "AI Interview Coach", href: "/ai-interview-coach" },
         { label: "AI LinkedIn Optimizer", href: "/ai-linkedin-optimizer" },
+        { label: "Cover Letter Writer", href: "/cover-letter-writer" },
         { label: "Salary Negotiation Coach", href: "/salary-negotiation-coach" },
         { label: "Promotion Coach", href: "/promotion-coach" },
       ],
@@ -107,6 +108,17 @@ function SiteFooter() {
         { label: "Career Coach Tool", href: "/career-coach-tool" },
         { label: "Resume Review Service", href: "/resume-review-service" },
         { label: "Career Coaching Software", href: "/career-coaching-software" },
+      ],
+    },
+    {
+      heading: "By Profession",
+      links: [
+        { label: "Software Engineers", href: "/career-coach-for-software-engineers" },
+        { label: "Product Managers", href: "/career-coach-for-product-managers" },
+        { label: "Executives", href: "/career-coach-for-executives" },
+        { label: "Nurses", href: "/career-coach-for-nurses" },
+        { label: "Teachers", href: "/career-coach-for-teachers" },
+        { label: "Marketing Professionals", href: "/career-coach-for-marketing-professionals" },
       ],
     },
     {
@@ -127,7 +139,9 @@ function SiteFooter() {
         { label: "Best AI Career Coach", href: "/blog/best-ai-career-coach" },
         { label: "How to Write a Resume with AI", href: "/blog/how-to-write-resume-with-ai" },
         { label: "ATS Resume Tips", href: "/blog/ats-resume-tips" },
-        { label: "LinkedIn Optimization Guide", href: "/blog/how-to-optimize-linkedin-profile" },
+        { label: "STAR Method Interview", href: "/blog/star-method-interview" },
+        { label: "Behavioral Interview Questions", href: "/blog/behavioral-interview-questions" },
+        { label: "How to Write a Cover Letter", href: "/blog/how-to-write-a-cover-letter" },
         { label: "Interview Prep Guide", href: "/blog/how-to-prepare-for-job-interview" },
       ],
     },
@@ -136,7 +150,7 @@ function SiteFooter() {
   return (
     <footer className="border-t border-[var(--border)] bg-[var(--bg)]">
       <div className="mx-auto max-w-7xl px-6 py-14">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-6">
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link href="/" className="flex items-center gap-2.5">

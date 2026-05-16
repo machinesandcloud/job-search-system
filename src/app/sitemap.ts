@@ -30,6 +30,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     // Service pages
     { url: `${base}/resume-review-service`,         lastModified: now, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/cover-letter-writer`,           lastModified: now, changeFrequency: "monthly", priority: 0.9 },
     { url: `${base}/linkedin-profile-optimization`, lastModified: now, changeFrequency: "monthly", priority: 0.85 },
     { url: `${base}/job-interview-preparation`,     lastModified: now, changeFrequency: "monthly", priority: 0.85 },
 
@@ -41,7 +42,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/career-coach-for-software-engineers`, lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/career-coach-for-product-managers`,   lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/career-coach-for-executives`,         lastModified: now, changeFrequency: "monthly", priority: 0.88 },
-    { url: `${base}/career-coach-for-nurses`,             lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/career-coach-for-nurses`,                      lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/career-coach-for-teachers`,                    lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/career-coach-for-marketing-professionals`,     lastModified: now, changeFrequency: "monthly", priority: 0.88 },
 
     // Audience-specific pages
     { url: `${base}/career-coaching-for-job-seekers`,     lastModified: now, changeFrequency: "monthly", priority: 0.85 },
@@ -71,6 +74,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/blog/how-to-negotiate-job-offer`,             lastModified: now, changeFrequency: "monthly", priority: 0.82 },
     { url: `${base}/blog/star-method-interview`,                   lastModified: now, changeFrequency: "monthly", priority: 0.85 },
     { url: `${base}/blog/behavioral-interview-questions`,          lastModified: now, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/blog/how-to-write-a-cover-letter`,            lastModified: now, changeFrequency: "monthly", priority: 0.85 },
 
     // Auth / conversion
     { url: `${base}/signup`,  lastModified: now, changeFrequency: "monthly", priority: 0.8 },
