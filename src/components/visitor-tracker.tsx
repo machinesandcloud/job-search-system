@@ -100,10 +100,12 @@ async function sendPageView(sessionDbId: string, page: string, title: string): P
 async function sendDuration(pageViewId: string, duration: number) {
   if (duration < 1) return;
   try {
-    navigator.sendBeacon(
-      "/api/track",
-      JSON.stringify({ type: "duration", pageViewId, duration }),
+    // sendBeacon defaults to text/plain — wrap in a Blob so the server receives application/json
+    const blob = new Blob(
+      [JSON.stringify({ type: "duration", pageViewId, duration })],
+      { type: "application/json" },
     );
+    navigator.sendBeacon("/api/track", blob);
   } catch { /* */ }
 }
 

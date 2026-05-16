@@ -2,15 +2,6 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCoachAdminSession } from "@/lib/coach-admin-auth";
 import { isDatabaseReady, prisma } from "@/lib/db";
-import { CoachAdminPill } from "@/components/coach-admin-ui";
-
-function fmt(v?: Date | null, time?: boolean) {
-  if (!v) return "—";
-  return new Intl.DateTimeFormat("en-US", time
-    ? { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }
-    : { month: "short", day: "numeric" }
-  ).format(new Date(v));
-}
 
 function ago(v?: Date | null): string {
   if (!v) return "—";
@@ -79,7 +70,6 @@ export default async function VisitorsPage() {
 
   const now = new Date();
   const last5min  = new Date(now.getTime() - 5 * 60 * 1000);
-  const last30min = new Date(now.getTime() - 30 * 60 * 1000);
   const today     = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const last30d   = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   const last7d    = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -219,7 +209,7 @@ export default async function VisitorsPage() {
             </div>
             {/* Table header */}
             <div style={{ display: "grid", gridTemplateColumns: "28px 1fr 90px 70px 70px 60px 70px", padding: "7px 14px", borderBottom: "1px solid var(--ca-bd)", gap: 8 }}>
-              {["", "Landing page", "Browser", "OS", "Device", "Pages", "First seen"].map((h, i) => (
+              {["", "Landing page", "Browser", "OS", "Country / Screen", "Pages", "First seen"].map((h, i) => (
                 <span key={i} style={{ fontSize: 10, fontWeight: 700, color: "var(--ca-text3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{h}</span>
               ))}
             </div>
@@ -311,7 +301,7 @@ export default async function VisitorsPage() {
           <Card style={{ padding: 14 }}>
             <SectionHeader title="Browsers" sub="30 days" />
             <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 6 }}>
-              {browserBreakdown.map((b: typeof browserBreakdown[0], i: number) => (
+              {browserBreakdown.map((b: typeof browserBreakdown[0]) => (
                 <div key={b.browser ?? "unknown"} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <span style={{ fontSize: 12.5, color: "var(--ca-text)", fontWeight: 500 }}>{b.browser || "Other"}</span>
                   <span style={{ fontSize: 12, fontWeight: 700, color: browserColor(b.browser) }}>{b._count.id}</span>
