@@ -91,19 +91,21 @@ export default async function EmailsPage() {
     }),
   ]);
 
-  // Build per-sequence summary from allEnrollments
-  const sequenceMap = new Map<string, { total: number; active: number; completed: number; canceled: number }>();
+  // Build per-sequence summary — all 19 sequences, merging enrollment stats
+  const enrollmentMap = new Map<string, { total: number; active: number; completed: number; canceled: number }>();
   for (const e of allEnrollments) {
     const s = e.sequence;
-    if (!sequenceMap.has(s)) sequenceMap.set(s, { total: 0, active: 0, completed: 0, canceled: 0 });
-    const entry = sequenceMap.get(s)!;
+    if (!enrollmentMap.has(s)) enrollmentMap.set(s, { total: 0, active: 0, completed: 0, canceled: 0 });
+    const entry = enrollmentMap.get(s)!;
     entry.total++;
     if (e.canceledAt) entry.canceled++;
     else if (e.completedAt) entry.completed++;
     else entry.active++;
   }
-  const sequenceSummaries = [...sequenceMap.entries()]
-    .sort((a, b) => b[1].total - a[1].total);
+  const zero = { total: 0, active: 0, completed: 0, canceled: 0 };
+  const sequenceSummaries = Object.keys(SEQUENCE_DELAYS_META)
+    .map(seq => [seq, enrollmentMap.get(seq) ?? { ...zero }] as [string, typeof zero])
+    .sort((a, b) => b[1].total - a[1].total || a[0].localeCompare(b[0]));
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>

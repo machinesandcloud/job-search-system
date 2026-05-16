@@ -32,9 +32,20 @@ const nextConfig: NextConfig = {
   turbopack: {},
   async headers() {
     return [
+      // Security headers on page routes only.
+      // API routes return JSON/HTML data — CSP doesn't apply meaningfully there
+      // and it was blocking images in the email preview iframe.
       {
-        source: "/(.*)",
+        source: "/((?!api/).*)",
         headers: securityHeaders,
+      },
+      // Basic hygiene for all API routes (no CSP)
+      {
+        source: "/api/(.*)",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-DNS-Prefetch-Control", value: "on" },
+        ],
       },
     ];
   },
