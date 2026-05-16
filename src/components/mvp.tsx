@@ -115,6 +115,8 @@ function SiteFooter() {
       links: [
         { label: "Software Engineers", href: "/career-coach-for-software-engineers" },
         { label: "Product Managers", href: "/career-coach-for-product-managers" },
+        { label: "Data Scientists", href: "/career-coach-for-data-scientists" },
+        { label: "Finance Professionals", href: "/career-coach-for-finance-professionals" },
         { label: "Executives", href: "/career-coach-for-executives" },
         { label: "Nurses", href: "/career-coach-for-nurses" },
         { label: "Teachers", href: "/career-coach-for-teachers" },

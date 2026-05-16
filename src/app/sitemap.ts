@@ -45,6 +45,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/career-coach-for-nurses`,                      lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/career-coach-for-teachers`,                    lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/career-coach-for-marketing-professionals`,     lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/career-coach-for-data-scientists`,             lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/career-coach-for-finance-professionals`,       lastModified: now, changeFrequency: "monthly", priority: 0.88 },
 
     // Audience-specific pages
     { url: `${base}/career-coaching-for-job-seekers`,     lastModified: now, changeFrequency: "monthly", priority: 0.85 },
@@ -75,6 +77,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/blog/star-method-interview`,                   lastModified: now, changeFrequency: "monthly", priority: 0.85 },
     { url: `${base}/blog/behavioral-interview-questions`,          lastModified: now, changeFrequency: "monthly", priority: 0.85 },
     { url: `${base}/blog/how-to-write-a-cover-letter`,            lastModified: now, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/blog/common-interview-questions`,             lastModified: now, changeFrequency: "monthly", priority: 0.87 },
+    { url: `${base}/blog/thank-you-email-after-interview`,        lastModified: now, changeFrequency: "monthly", priority: 0.85 },
 
     // Auth / conversion
     { url: `${base}/signup`,  lastModified: now, changeFrequency: "monthly", priority: 0.8 },

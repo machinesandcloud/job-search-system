@@ -157,6 +157,24 @@ const POSTS = [
     date: "May 2025",
     accent: "#0D7182",
   },
+  {
+    slug: "common-interview-questions",
+    title: "40 Most Common Interview Questions (With Strong Answers) — 2025",
+    excerpt: "The 40 interview questions that appear in nearly every job interview — with strong, specific answers and the thinking behind each one.",
+    tag: "Interviews",
+    readTime: "14 min read",
+    date: "May 2025",
+    accent: "#7a8dff",
+  },
+  {
+    slug: "thank-you-email-after-interview",
+    title: "Thank You Email After Interview — Examples & Templates (2025)",
+    excerpt: "How to write a thank you email after an interview that actually helps your candidacy. Includes 3 word-for-word examples and what to never write.",
+    tag: "Interviews",
+    readTime: "8 min read",
+    date: "May 2025",
+    accent: "#10B981",
+  },
 ];
 
 export default async function BlogPage() {
