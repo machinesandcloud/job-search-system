@@ -185,26 +185,37 @@ export function ReferralAsk({ firstName, referralUrl, unsubscribeUrl }: { firstN
 
 export function TestimonialAsk({ firstName, testimonialUrl, unsubscribeUrl }: { firstName?: string; testimonialUrl: string; unsubscribeUrl: string }) {
   return (
-    <Layout preview="45 days in — would you share what Zari's been like for you?" headline="You've been using Zari for 45 days." unsubscribeUrl={unsubscribeUrl}>
+    <Layout preview="Record a 2-minute video about Zari — get a free month on us." headline="Get a free month. Takes 2 minutes." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
-        {firstName ?? "Hey"} — you've been with us long enough to have a real opinion. I have one question:
+        {firstName ?? "Hey"} — you've been using Zari for 45 days. I have an offer:
       </Text>
       <Text style={p({ fontWeight: "600", fontSize: "16px" })}>
-        Would you be willing to share what Zari's been like for you?
+        Record a short video about your experience — get one month free, on us.
       </Text>
       <Text style={p()}>
-        Not a formal review — just a few sentences about what you've been using it for and whether it's been worth it. Something like what you'd tell a friend who asked.
+        No script. No production required. Just open Loom (or your phone camera), hit record, and spend 60–90 seconds talking about what you've been using Zari for and whether it's been worth it.
       </Text>
       <Text style={p()}>
-        These testimonials are what help other job seekers decide whether to try Zari. They're more valuable than any ad we could run — because people trust other people, not marketing copy.
+        Something like what you'd tell a friend who asked. That's it.
       </Text>
+      <Section style={{ margin: "16px 0 24px" }}>
+        <Step number={1} title="Record a short video">
+          Use Loom, your phone, or any tool you prefer. 60–90 seconds is plenty. No editing needed.
+        </Step>
+        <Step number={2} title="Submit the link">
+          Paste the video link on the next page. Takes 30 seconds.
+        </Step>
+        <Step number={3} title="Get one month free">
+          Once we review your video, one free month is added to your account automatically.
+        </Step>
+      </Section>
       <Text style={p()}>
-        Takes about 2 minutes. No prompts, no forms — just tell us what's been true for you.
+        Video testimonials are the most valuable thing we can show someone considering Zari — more than any ad. If it's been useful for you, this is an easy way to help others and get something back.
       </Text>
-      <CtaButton href={testimonialUrl}>Share my experience →</CtaButton>
+      <CtaButton href={testimonialUrl}>Submit my video →</CtaButton>
       <Divider />
       <Text style={muted()}>
-        If the experience hasn't been what you expected, reply here instead. I genuinely want to know — it's how we get better.
+        If the experience hasn't been what you expected, reply here instead. I genuinely want to know.
       </Text>
       <Signature />
     </Layout>

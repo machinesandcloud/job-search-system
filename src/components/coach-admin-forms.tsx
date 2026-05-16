@@ -460,3 +460,60 @@ export function SupportTicketUpdateForm({
     </form>
   );
 }
+
+export function CoachAdminVideoReviewActions({ reviewId }: { reviewId: string }) {
+  const [loading, setLoading] = useState<"approve" | "reject" | null>(null);
+  const [done, setDone] = useState<"approved" | "rejected" | null>(null);
+  const [error, setError] = useState("");
+
+  async function act(action: "approve" | "reject") {
+    setLoading(action);
+    setError("");
+    const res = await fetch("/api/coach-admin/video-reviews", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reviewId, action }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setError(data.error || "Something went wrong.");
+      setLoading(null);
+      return;
+    }
+    setDone(action === "approve" ? "approved" : "rejected");
+    setLoading(null);
+  }
+
+  if (done) {
+    return (
+      <span style={{
+        fontSize: 12, fontWeight: 600, padding: "4px 12px", borderRadius: 999,
+        background: done === "approved" ? "#DCFCE7" : "#FEE2E2",
+        color: done === "approved" ? "#166534" : "#991B1B",
+        whiteSpace: "nowrap",
+      }}>
+        {done === "approved" ? "Approved · credited" : "Rejected"}
+      </span>
+    );
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
+      <button
+        onClick={() => act("approve")}
+        disabled={!!loading}
+        style={{ fontSize: 13, fontWeight: 600, padding: "6px 16px", borderRadius: 8, background: "#111827", color: "#fff", border: "none", cursor: "pointer", whiteSpace: "nowrap" }}
+      >
+        {loading === "approve" ? "Approving…" : "Approve + grant month"}
+      </button>
+      <button
+        onClick={() => act("reject")}
+        disabled={!!loading}
+        style={{ fontSize: 13, fontWeight: 500, padding: "6px 16px", borderRadius: 8, background: "transparent", color: "#EF4444", border: "1px solid #FCA5A5", cursor: "pointer", whiteSpace: "nowrap" }}
+      >
+        {loading === "reject" ? "Rejecting…" : "Reject"}
+      </button>
+      {error && <p style={{ fontSize: 12, color: "#EF4444", margin: 0 }}>{error}</p>}
+    </div>
+  );
+}
