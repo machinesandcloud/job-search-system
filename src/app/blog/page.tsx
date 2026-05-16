@@ -436,6 +436,33 @@ const POSTS = [
     date: "May 2025",
     accent: "#059669",
   },
+  {
+    slug: "highest-paying-jobs",
+    title: "Highest Paying Jobs in 2025 — By Sector, With Real Compensation Data",
+    excerpt: "What actually pays at the top of tech, healthcare, finance, and law — median total comp, why each pays what it does, and the realistic path to get there. No fluff, no 'become a surgeon' advice.",
+    tag: "Career Strategy",
+    readTime: "13 min read",
+    date: "May 2025",
+    accent: "#7C3AED",
+  },
+  {
+    slug: "signs-you-should-quit-your-job",
+    title: "12 Signs You Should Quit Your Job — And 4 Signs You Shouldn't Yet (2025)",
+    excerpt: "Structural problems vs temporary rough patches — the honest guide distinguishing organizational signals, career trajectory, compensation gaps, and wellbeing from situations that can still be fixed.",
+    tag: "Career Decisions",
+    readTime: "11 min read",
+    date: "May 2025",
+    accent: "#DC2626",
+  },
+  {
+    slug: "product-manager-interview-questions",
+    title: "Product Manager Interview Questions — 40 Questions With Strong Answers (2025)",
+    excerpt: "The 4 PM interview question types — product design, estimation, strategy, and behavioral — with the frameworks, common mistakes, and strong signals for each. Written for candidates preparing for Google, Meta, and top-tier PM roles.",
+    tag: "Interviews",
+    readTime: "14 min read",
+    date: "May 2025",
+    accent: "#0D7182",
+  },
 ];
 
 export default async function BlogPage() {

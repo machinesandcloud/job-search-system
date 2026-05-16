@@ -59,7 +59,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/career-coach-for-ux-designers`,               lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/career-coach-for-consultants`,               lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/career-coach-for-supply-chain-professionals`, lastModified: now, changeFrequency: "monthly", priority: 0.88 },
-    { url: `${base}/career-coach-for-medical-professionals`,     lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/career-coach-for-medical-professionals`,       lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/career-coach-for-veterans`,                   lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/career-coach-for-real-estate-professionals`,  lastModified: now, changeFrequency: "monthly", priority: 0.88 },
 
     // Audience-specific pages
     { url: `${base}/career-coaching-for-job-seekers`,     lastModified: now, changeFrequency: "monthly", priority: 0.85 },
@@ -84,6 +86,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/compare/zari-vs-zety`,               lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/compare/zari-vs-microsoft-copilot`,  lastModified: now, changeFrequency: "monthly", priority: 0.90 },
     { url: `${base}/compare/zari-vs-careerflow`,         lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/compare/zari-vs-copy-ai`,           lastModified: now, changeFrequency: "monthly", priority: 0.88 },
 
     // Blog / resources
     { url: `${base}/blog`,                                        lastModified: now, changeFrequency: "weekly",  priority: 0.85 },
@@ -135,6 +138,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/blog/career-change-at-40`,                    lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/blog/faang-interview-prep`,                   lastModified: now, changeFrequency: "monthly", priority: 0.90 },
     { url: `${base}/blog/informational-interview-questions`,      lastModified: now, changeFrequency: "monthly", priority: 0.87 },
+    { url: `${base}/blog/highest-paying-jobs`,                   lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/signs-you-should-quit-your-job`,        lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/blog/product-manager-interview-questions`,   lastModified: now, changeFrequency: "monthly", priority: 0.88 },
 
     // Auth / conversion
     { url: `${base}/signup`,  lastModified: now, changeFrequency: "monthly", priority: 0.8 },

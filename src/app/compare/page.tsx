@@ -29,6 +29,7 @@ const COMPARISONS = [
   { href: "/compare/zari-vs-zety", title: "Zari vs Zety", summary: "Zety builds polished resume templates with pre-written content suggestions. Zari coaches your entire job search — ATS scoring, interview prep, LinkedIn, and salary negotiation." },
   { href: "/compare/zari-vs-microsoft-copilot", title: "Zari vs Microsoft Copilot", summary: "Copilot is a general-purpose AI embedded in Office apps. Zari is purpose-built for job search coaching. They overlap in some areas and diverge completely in others." },
   { href: "/compare/zari-vs-careerflow", title: "Zari vs Careerflow", summary: "Careerflow tracks your job applications and scores your LinkedIn profile. Zari coaches your resume, interviews, LinkedIn, and salary negotiation. Different tools — here's when you need each." },
+  { href: "/compare/zari-vs-copy-ai", title: "Zari vs Copy.ai", summary: "Copy.ai is a general-purpose content AI. Zari is purpose-built for job search — with ATS resume analysis, interview coaching, LinkedIn optimization, and salary negotiation." },
 ];
 
 export default async function ComparePage() {
