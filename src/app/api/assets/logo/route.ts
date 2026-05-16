@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 
-export const dynamic = "force-static";
-export const revalidate = false;
+export const dynamic = "force-dynamic";
 
 // PNG embedded so this works in any serverless env — Netlify functions
 // cannot reliably read public/ via process.cwd().
