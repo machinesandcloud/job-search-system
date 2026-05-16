@@ -97,6 +97,33 @@ export async function setCurrentUserSessionOnResponse(response: NextResponse, us
   return response;
 }
 
+const ACTIVATION_TTL = 120; // seconds — one-time token for cross-domain session handoff
+
+export function createActivationToken(userId: string): string {
+  const exp = Math.floor(Date.now() / 1000) + ACTIVATION_TTL;
+  const payload = Buffer.from(JSON.stringify({ userId, exp })).toString("base64url");
+  const secret = (process.env.APP_SECRET || "local-dev-secret").trim();
+  const sig = crypto.createHmac("sha256", secret).update(payload).digest("base64url");
+  return `${payload}.${sig}`;
+}
+
+export function verifyActivationToken(token: string): string | null {
+  try {
+    const dotIdx = token.lastIndexOf(".");
+    if (dotIdx === -1) return null;
+    const payload = token.slice(0, dotIdx);
+    const sig = token.slice(dotIdx + 1);
+    const secret = (process.env.APP_SECRET || "local-dev-secret").trim();
+    const expected = crypto.createHmac("sha256", secret).update(payload).digest("base64url");
+    if (sig !== expected) return null;
+    const parsed = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as { userId?: string; exp?: number };
+    if (!parsed.userId || !parsed.exp || Math.floor(Date.now() / 1000) > parsed.exp) return null;
+    return parsed.userId;
+  } catch {
+    return null;
+  }
+}
+
 export async function clearCurrentUserSession() {
   const cookieStore = await cookies();
   const raw = cookieStore.get(sessionCookieName)?.value;

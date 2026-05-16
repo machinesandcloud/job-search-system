@@ -5,7 +5,7 @@ import {
   getGoogleCredentials,
   sanitizeInternalNext,
 } from "@/lib/google-auth";
-import { setCurrentUserSessionOnResponse } from "@/lib/mvp/auth";
+import { createActivationToken } from "@/lib/mvp/auth";
 import { authenticateGooglePlatformUser } from "@/lib/platform-users";
 
 export const maxDuration = 15;
@@ -98,16 +98,15 @@ export async function GET(request: Request) {
         ? "/onboarding/plan"
         : sanitizeInternalNext(flow.next, getDefaultGoogleNext(mode));
 
-    // Return a 200 HTML page with Set-Cookie so the session cookie isn't stripped
-    // by Netlify CDN (which drops Set-Cookie on redirect responses).
-    // The meta-refresh navigates to the destination on the same origin.
-    const destination = new URL(next, request.url).toString();
-    const html = `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${destination}"><title>Signing in…</title></head><body></body></html>`;
-    const response = new NextResponse(html, {
-      status: 200,
-      headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
-    });
-    return setCurrentUserSessionOnResponse(response, auth.userId);
+    // Issue a short-lived signed token and redirect to /api/auth/activate.
+    // The activate endpoint runs on whatever domain the browser actually lands on
+    // (which may differ from this callback's domain if Netlify redirects to a
+    // deploy-specific URL), and sets the session cookie there.
+    const activationToken = createActivationToken(auth.userId);
+    const activateUrl = new URL("/api/auth/activate", request.url);
+    activateUrl.searchParams.set("token", activationToken);
+    activateUrl.searchParams.set("next", next);
+    return NextResponse.redirect(activateUrl, { status: 302 });
   } catch (error) {
     console.error("[google-auth] platform user sync failed", error);
     return authError(request, mode, "We could not finish signing you in with Google.");
