@@ -132,6 +132,8 @@ function SiteFooter() {
         { label: "Recent Graduates", href: "/career-coach-for-recent-graduates" },
         { label: "UX Designers", href: "/career-coach-for-ux-designers" },
         { label: "Consultants", href: "/career-coach-for-consultants" },
+        { label: "Supply Chain", href: "/career-coach-for-supply-chain-professionals" },
+        { label: "Medical Professionals", href: "/career-coach-for-medical-professionals" },
       ],
     },
     {
@@ -160,6 +162,7 @@ function SiteFooter() {
         { label: "Zari vs Novoresume", href: "/compare/zari-vs-novoresume" },
         { label: "Zari vs Zety", href: "/compare/zari-vs-zety" },
         { label: "Zari vs Microsoft Copilot", href: "/compare/zari-vs-microsoft-copilot" },
+        { label: "Zari vs Careerflow", href: "/compare/zari-vs-careerflow" },
       ],
     },
   ];

@@ -58,6 +58,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/career-coach-for-recent-graduates`,           lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/career-coach-for-ux-designers`,               lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/career-coach-for-consultants`,               lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/career-coach-for-supply-chain-professionals`, lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/career-coach-for-medical-professionals`,     lastModified: now, changeFrequency: "monthly", priority: 0.88 },
 
     // Audience-specific pages
     { url: `${base}/career-coaching-for-job-seekers`,     lastModified: now, changeFrequency: "monthly", priority: 0.85 },
@@ -81,6 +83,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/compare/zari-vs-perplexity`,          lastModified: now, changeFrequency: "monthly", priority: 0.90 },
     { url: `${base}/compare/zari-vs-zety`,               lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/compare/zari-vs-microsoft-copilot`,  lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/compare/zari-vs-careerflow`,         lastModified: now, changeFrequency: "monthly", priority: 0.88 },
 
     // Blog / resources
     { url: `${base}/blog`,                                        lastModified: now, changeFrequency: "weekly",  priority: 0.85 },
@@ -127,6 +130,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/blog/how-to-handle-a-bad-reference`,            lastModified: now, changeFrequency: "monthly", priority: 0.87 },
     { url: `${base}/blog/remote-job-search-tips`,                   lastModified: now, changeFrequency: "monthly", priority: 0.87 },
     { url: `${base}/blog/google-interview-prep`,                    lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/blog/mckinsey-interview-prep`,                 lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/blog/how-to-get-promoted-fast`,               lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/blog/career-change-at-40`,                    lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/blog/faang-interview-prep`,                   lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/informational-interview-questions`,      lastModified: now, changeFrequency: "monthly", priority: 0.87 },
 
     // Auth / conversion
     { url: `${base}/signup`,  lastModified: now, changeFrequency: "monthly", priority: 0.8 },

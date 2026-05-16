@@ -28,6 +28,7 @@ const COMPARISONS = [
   { href: "/compare/zari-vs-perplexity", title: "Zari vs Perplexity", summary: "Perplexity is an AI research engine. Zari is an AI career coach. They're complementary — here's exactly where each wins for job seekers." },
   { href: "/compare/zari-vs-zety", title: "Zari vs Zety", summary: "Zety builds polished resume templates with pre-written content suggestions. Zari coaches your entire job search — ATS scoring, interview prep, LinkedIn, and salary negotiation." },
   { href: "/compare/zari-vs-microsoft-copilot", title: "Zari vs Microsoft Copilot", summary: "Copilot is a general-purpose AI embedded in Office apps. Zari is purpose-built for job search coaching. They overlap in some areas and diverge completely in others." },
+  { href: "/compare/zari-vs-careerflow", title: "Zari vs Careerflow", summary: "Careerflow tracks your job applications and scores your LinkedIn profile. Zari coaches your resume, interviews, LinkedIn, and salary negotiation. Different tools — here's when you need each." },
 ];
 
 export default async function ComparePage() {
