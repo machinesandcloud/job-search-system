@@ -16,6 +16,7 @@ const COMPARISONS = [
   { href: "/compare/zari-vs-teal", title: "Zari vs Teal", summary: "Teal is a job tracker. Zari is an AI career coach. Different tools for different jobs." },
   { href: "/compare/zari-vs-jobscan", title: "Zari vs Jobscan", summary: "Jobscan scores resumes. Zari scores AND rewrites them — then coaches you on LinkedIn and interviews too." },
   { href: "/compare/zari-vs-resume-worded", title: "Zari vs Resume Worded", summary: "Resume Worded gives feedback. Zari gives feedback AND writes the improved version for you." },
+  { href: "/compare/zari-vs-linkedin-premium", title: "Zari vs LinkedIn Premium", summary: "LinkedIn Premium improves your visibility. Zari improves your candidacy. Here's which one to invest in." },
 ];
 
 export default async function ComparePage() {

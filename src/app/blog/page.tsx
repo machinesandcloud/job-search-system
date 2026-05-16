@@ -175,6 +175,15 @@ const POSTS = [
     date: "May 2025",
     accent: "#10B981",
   },
+  {
+    slug: "resume-format-guide",
+    title: "Resume Format Guide: Which Format Is Best for You? (2025)",
+    excerpt: "Chronological, functional, or hybrid? The complete guide to resume formats — which one to use based on your experience, career history, and target role.",
+    tag: "Resume",
+    readTime: "9 min read",
+    date: "May 2025",
+    accent: "#F97316",
+  },
 ];
 
 export default async function BlogPage() {
