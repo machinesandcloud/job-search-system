@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Inter, Sora } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
 import { OrganizationJsonLd, SoftwareAppJsonLd } from "@/components/json-ld";
+import { VisitorTracker } from "@/components/visitor-tracker";
 
 const display = Sora({
   subsets: ["latin"],
@@ -116,7 +118,12 @@ export default function RootLayout({
         <OrganizationJsonLd />
         <SoftwareAppJsonLd />
       </head>
-      <body>{children}</body>
+      <body>
+        <Suspense fallback={null}>
+          <VisitorTracker />
+        </Suspense>
+        {children}
+      </body>
     </html>
   );
 }

@@ -17,7 +17,7 @@ const S = {
   iconInactive: "#484F58",
 };
 
-function NavIcon({ name, size = 16 }: { name: "home" | "tickets" | "users" | "sparkles" | "automation" | "revenue" | "video"; size?: number }) {
+function NavIcon({ name, size = 16 }: { name: "home" | "tickets" | "users" | "sparkles" | "automation" | "revenue" | "video" | "visitors"; size?: number }) {
   const props = { viewBox: "0 0 24 24", fill: "none" as const, stroke: "currentColor", strokeWidth: "1.75", strokeLinecap: "round" as const, strokeLinejoin: "round" as const, width: size, height: size, style: { display: "block", flexShrink: 0 } };
   switch (name) {
     case "home":
@@ -34,11 +34,14 @@ function NavIcon({ name, size = 16 }: { name: "home" | "tickets" | "users" | "sp
       return <svg {...props}><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>;
     case "video":
       return <svg {...props}><path d="m15 10 4.553-2.069A1 1 0 0 1 21 8.82v6.36a1 1 0 0 1-1.447.889L15 14M3 8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8Z" /></svg>;
+    case "visitors":
+      return <svg {...props}><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>;
   }
 }
 
 const NAV_ITEMS = [
   { href: "/coach-admin",                  label: "Overview",   icon: "home"       as const },
+  { href: "/coach-admin/visitors",         label: "Visitors",   icon: "visitors"   as const },
   { href: "/coach-admin/revenue",          label: "Revenue",    icon: "revenue"    as const },
   { href: "/coach-admin/accounts",         label: "Accounts",   icon: "users"      as const },
   { href: "/coach-admin/tickets",          label: "Support",    icon: "tickets"    as const },

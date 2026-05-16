@@ -595,3 +595,45 @@ model EmailSequenceEnrollment {
   @@index([nextSendAt])
   @@index([sequence])
 }
+
+model VisitorSession {
+  id           String            @id @default(uuid()) @db.Uuid
+  visitorId    String            // persistent anonymous ID from localStorage (_zvid)
+  userId       String?           // set when user is authenticated (plain string, no FK)
+  ipAddress    String?
+  userAgent    String?           @db.Text
+  browser      String?
+  os           String?
+  device       String?           // desktop | mobile | tablet | bot
+  country      String?
+  referrer     String?           @db.Text
+  landingPage  String?           @db.Text
+  utmSource    String?
+  utmMedium    String?
+  utmCampaign  String?
+  language     String?
+  screenWidth  Int?
+  screenHeight Int?
+  firstSeenAt  DateTime          @default(now())
+  lastSeenAt   DateTime          @default(now())
+  pageViews    VisitorPageView[]
+
+  @@index([visitorId])
+  @@index([firstSeenAt])
+  @@index([lastSeenAt])
+}
+
+model VisitorPageView {
+  id        String         @id @default(uuid()) @db.Uuid
+  sessionId String         @db.Uuid
+  page      String         @db.Text
+  title     String?
+  referrer  String?        @db.Text
+  duration  Int?           // seconds, updated on next page load or unload
+  createdAt DateTime       @default(now())
+  session   VisitorSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+  @@index([page, createdAt])
+  @@index([createdAt])
+}
