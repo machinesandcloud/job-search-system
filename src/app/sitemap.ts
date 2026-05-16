@@ -146,7 +146,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/blog/software-engineer-resume`,             lastModified: now, changeFrequency: "monthly", priority: 0.90 },
     { url: `${base}/blog/data-scientist-resume`,                lastModified: now, changeFrequency: "monthly", priority: 0.90 },
     { url: `${base}/blog/internal-salary-negotiation`,          lastModified: now, changeFrequency: "monthly", priority: 0.88 },
-    { url: `${base}/blog/career-change-at-50`,                  lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/blog/career-change-at-50`,                       lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/blog/linkedin-optimization-for-recruiters`,     lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/how-to-get-a-job-at-google`,               lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/how-to-write-a-resume-with-no-experience`, lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/blog/executive-resume`,                          lastModified: now, changeFrequency: "monthly", priority: 0.88 },
 
     // Auth / conversion
     { url: `${base}/signup`,  lastModified: now, changeFrequency: "monthly", priority: 0.8 },

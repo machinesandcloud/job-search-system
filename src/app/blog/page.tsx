@@ -499,6 +499,42 @@ const POSTS = [
     date: "May 2025",
     accent: "#DC2626",
   },
+  {
+    slug: "linkedin-optimization-for-recruiters",
+    title: "LinkedIn Optimization for Recruiter Search — The Complete 2025 Guide",
+    excerpt: "How LinkedIn's algorithm ranks profiles in recruiter search — and the specific changes that surface you to recruiters actively looking for your background. Headline formula, About structure, skills strategy, and activity signals.",
+    tag: "LinkedIn",
+    readTime: "11 min read",
+    date: "May 2025",
+    accent: "#4ca7e6",
+  },
+  {
+    slug: "how-to-get-a-job-at-google",
+    title: "How to Get a Job at Google — The Complete Guide (2025)",
+    excerpt: "How Google actually hires — application paths by likelihood, every funnel stage with how-to-pass and what-not-to-do, what 'Googleyness' means in practice, and the hiring committee process most candidates don't understand.",
+    tag: "Interviews",
+    readTime: "14 min read",
+    date: "May 2025",
+    accent: "#0D7182",
+  },
+  {
+    slug: "how-to-write-a-resume-with-no-experience",
+    title: "How to Write a Resume With No Experience — 5 Real Examples (2025)",
+    excerpt: "Five types of experience that substitute for job history — projects, internships, volunteer work, freelance, and personal builds — with the exact framing that makes each credible to hiring managers and ATS systems.",
+    tag: "Resume",
+    readTime: "9 min read",
+    date: "May 2025",
+    accent: "#7C3AED",
+  },
+  {
+    slug: "executive-resume",
+    title: "Executive Resume — C-Suite & VP Resume Examples and Strategy (2025)",
+    excerpt: "The frame shifts that make a resume read at VP and C-suite level — from task completion to business outcomes, from functional leadership to company-wide strategy, plus the 5 rules that are different for executive resumes.",
+    tag: "Resume",
+    readTime: "11 min read",
+    date: "May 2025",
+    accent: "#DC2626",
+  },
 ];
 
 export default async function BlogPage() {
