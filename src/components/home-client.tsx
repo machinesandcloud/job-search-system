@@ -355,7 +355,6 @@ function PersonCard({ p, size = "lg" }: { p: typeof PEOPLE[0]; size?: "sm"|"lg" 
         <div style={{ position:"relative", width: s?48:36, height: s?48:36, flexShrink:0 }}>
           {/* Photo ring */}
           <div style={{ position:"absolute", inset:-2, borderRadius:"50%", background:`linear-gradient(135deg,${p.color1},${p.color2})`, opacity:0.4 }}/>
-          {/* Initials avatar — instant CSS render, no external request */}
           <div style={{
             position:"absolute", inset:0, display:"flex",
             borderRadius:"50%",
@@ -363,8 +362,11 @@ function PersonCard({ p, size = "lg" }: { p: typeof PEOPLE[0]; size?: "sm"|"lg" 
             alignItems:"center", justifyContent:"center",
             fontSize: s ? 16 : 12, fontWeight:800, color:"white",
             border:"2px solid white",
+            overflow:"hidden",
           }}>
             {p.initials}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={p.photo} alt="" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />
           </div>
           {/* Verified dot */}
           <div style={{ position:"absolute", bottom:-1, right:-1, width: s?14:10, height: s?14:10, borderRadius:"50%", background:"#22C55E", border:"2px solid white", display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -2779,8 +2781,10 @@ export function HomeClient({ userId }: { userId: boolean }) {
                 boxShadow:"0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)",
               }}>
                 <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:14 }}>
-                  <div style={{ width:44, height:44, borderRadius:"50%", overflow:"hidden", flexShrink:0, background:`linear-gradient(135deg,${r.color1},${r.color2})`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, fontWeight:800, color:"white" }}>
+                  <div style={{ width:44, height:44, borderRadius:"50%", overflow:"hidden", flexShrink:0, position:"relative", background:`linear-gradient(135deg,${r.color1},${r.color2})`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, fontWeight:800, color:"white" }}>
                     {r.name.split(" ").map((n: string) => n[0]).join("").slice(0,2)}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={r.photo} alt="" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />
                   </div>
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ fontSize:15, fontWeight:700, color:"#111827", lineHeight:1.2 }}>{r.name}</div>
@@ -2811,8 +2815,10 @@ export function HomeClient({ userId }: { userId: boolean }) {
           <div style={{ display:"flex", justifyContent:"center", marginBottom:28 }}>
             <div style={{ display:"flex" }}>
               {PEOPLE.slice(0,5).map((p,i) => (
-                <div key={i} style={{ width:44, height:44, borderRadius:"50%", border:"3px solid #0A0A0F", overflow:"hidden", marginLeft: i>0?-12:0, background:`linear-gradient(135deg,${p.color1},${p.color2})`, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, fontWeight:800, color:"white" }}>
+                <div key={i} style={{ width:44, height:44, borderRadius:"50%", border:"3px solid #0A0A0F", overflow:"hidden", marginLeft: i>0?-12:0, background:`linear-gradient(135deg,${p.color1},${p.color2})`, flexShrink:0, position:"relative", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, fontWeight:800, color:"white" }}>
                   {p.initials}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={p.photo} alt="" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />
                 </div>
               ))}
             </div>
