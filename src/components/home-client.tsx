@@ -99,7 +99,7 @@ const WALL_REVIEWS = [
   { name:"Omar A.",      role:"Consultant → Uber Strategy",     photo:"/avatars/41.jpg",   color1:"#059669", color2:"#86EFAC", quote:"It felt like talking to someone who'd been through my exact transition. Nothing generic. Every answer specific to my situation.", highlights:["Every answer specific to my situation."] },
   { name:"Jess M.",      role:"SDR → RevOps PM, Salesforce",    photo:"/avatars/8.jpg", color1:"#D97706", color2:"#FDE68A", quote:"Zari told me I was leaving money on the table. I countered to $148K. They said yes immediately. I almost left $18K behind.", highlights:["I countered to $148K.", "I almost left $18K behind."] },
   { name:"Dev P.",       role:"EM → Director, Snowflake",       photo:"/avatars/42.jpg",   color1:"#4361EE", color2:"#BAE6FD", quote:"Not 'be more strategic' — actual specific things to do, week by week. The most useful coaching I've ever had.", highlights:["The most useful coaching I've ever had."] },
-  { name:"Fatoumata K.", role:"Ops Manager → LinkedIn PM",      photo:"/avatars/9.jpg", color1:"#DC2626", color2:"#FCA5A5", quote:"The career change felt impossible. Every recruiter said I wasn't 'product enough.' Zari spent two sessions just on narrative — repositioning 5 years of ops work as product intuition, not a liability. Then we practiced every version of 'why are you switching?' until I stopped hedging and started owning it. LinkedIn's final round had four back-to-back PM interviews. I came out feeling like I'd done them all before. I had. Just with Zari.", highlights:["I came out feeling like I'd done them all before."] },
+  { name:"Claire M.", role:"Ops Manager → LinkedIn PM",      photo:"/avatars/9.jpg", color1:"#DC2626", color2:"#FCA5A5", quote:"The career change felt impossible. Every recruiter said I wasn't 'product enough.' Zari spent two sessions just on narrative — repositioning 5 years of ops work as product intuition, not a liability. Then we practiced every version of 'why are you switching?' until I stopped hedging and started owning it. LinkedIn's final round had four back-to-back PM interviews. I came out feeling like I'd done them all before. I had. Just with Zari.", highlights:["I came out feeling like I'd done them all before."] },
   { name:"Chris Y.",     role:"Senior PM → Staff PM, Notion",   photo:"/avatars/43.jpg",   color1:"#0284C7", color2:"#67E8F9", quote:"LinkedIn views went from 2 to 22 per week. Just the headline. Nothing else changed.", highlights:["LinkedIn views went from 2 to 22 per week."] },
   { name:"Aisha T.",     role:"Customer Success → PM, HubSpot", photo:"/avatars/10.jpg", color1:"#7C3AED", color2:"#DDD6FE", quote:"Told my whole career I wasn't technical enough. Zari showed me how to position customer insight as a superpower. HubSpot agreed.", highlights:["HubSpot agreed."] },
   { name:"Patrick H.",   role:"Sr PM → Group PM, Stripe",       photo:"/avatars/44.jpg",   color1:"#0284C7", color2:"#BAE6FD", quote:"Zari pushed me to counter twice. Most people stop at one. Ended up $22K above their so-called final offer.", highlights:["$22K above their so-called final offer."] },
@@ -116,7 +116,7 @@ const WALL_REVIEWS = [
   { name:"Kenji T.",     role:"Senior SWE → Staff, Slack",      photo:"/avatars/51.jpg",   color1:"#4361EE", color2:"#C7D2FE", quote:"Staff promo is a different argument — you're selling org impact. Zari coached me on that language. Slack approved first cycle.", highlights:["Slack approved first cycle."] },
   { name:"Nadia F.",     role:"COO → Advisor & Board",          photo:"/avatars/15.jpg", color1:"#DC2626", color2:"#FECACA", quote:"At my level it was about board positioning. Zari understood governance language and helped me write a bio that actually opens doors.", highlights:["a bio that actually opens doors"] },
   { name:"Tyler G.",     role:"Product Analyst → PM, Spotify",  photo:"/avatars/52.jpg",   color1:"#059669", color2:"#A7F3D0", quote:"One of twelve Spotify finalists. Zari had run me through every question type they use. It felt like I'd already done the interview.", highlights:["It felt like I'd already done the interview."] },
-  { name:"Rashida M.",   role:"UX Researcher → PM, Figma",      photo:"/avatars/16.jpg", color1:"#7C3AED", color2:"#DDD6FE", quote:"Research background was invisible on my resume. Zari wrote the one bullet that fixed it. Now it's how I open every interview.", highlights:["the one bullet that fixed it"] },
+  { name:"Sarah M.",   role:"UX Researcher → PM, Figma",      photo:"/avatars/16.jpg", color1:"#7C3AED", color2:"#DDD6FE", quote:"Research background was invisible on my resume. Zari wrote the one bullet that fixed it. Now it's how I open every interview.", highlights:["the one bullet that fixed it"] },
   { name:"Will N.",      role:"L4 → L5 SWE, Apple",             photo:"/avatars/53.jpg",   color1:"#0284C7", color2:"#E0F2FE", quote:"Apple's promo bar is high and opaque. Zari mapped my work to the criteria they actually use. Got promoted 7 months in.", highlights:["Got promoted 7 months in."] },
   { name:"Mo K.",        role:"SWE → EM, Plaid",                photo:"/avatars/54.jpg",   color1:"#DC2626", color2:"#FCA5A5", quote:"'How would you handle a low performer?' cold would have killed me. Zari made me answer it 8 ways. I was ready for anything.", highlights:["I was ready for anything."] },
   { name:"Amara O.",     role:"Strategy → Chief of Staff, Lyft", photo:"/avatars/17.jpg",color1:"#D97706", color2:"#FEF3C7", quote:"Salary coaching paid for itself in the first hour. Walked into Lyft knowing my leverage. Left $30K above their opening number.", highlights:["Left $30K above their opening number."] },
@@ -319,14 +319,14 @@ function Nav({ userId }: { userId: boolean }) {
           <span style={{ fontSize:30, fontWeight:900, color:"#0A0A0F", letterSpacing:"-0.04em", lineHeight:1 }}>Zari</span>
         </Link>
         <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-          <Link href="/login" style={{
+          <Link href="/login" className="zari-nav-signin" style={{
             display:"inline-flex", alignItems:"center",
             padding:"9px 18px", borderRadius:10,
             border:"1.5px solid #E2E6F0",
             fontSize:13.5, fontWeight:600, color:"#3A4257", textDecoration:"none",
             transition:"all 0.15s",
           }}>Sign in</Link>
-          <Link href={userId ? "/dashboard" : "/signup"} style={{
+          <Link href={userId ? "/dashboard" : "/signup"} className="zari-nav-cta" style={{
             display:"inline-flex", alignItems:"center", gap:7,
             padding:"9px 20px", borderRadius:10,
             background:"#0A0A0F", color:"white",
@@ -2334,6 +2334,7 @@ function PlatformWalkthrough() {
 export function HomeClient({ userId }: { userId: boolean }) {
   const [currentReview, setCurrentReview] = useState(0);
   const [activeFounder, setActiveFounder] = useState(0);
+  const [mobileFeature, setMobileFeature] = useState(0);
 
   useEffect(() => {
     const t = setInterval(() => setCurrentReview(i => (i+1) % PEOPLE.length), 4000);
@@ -2385,8 +2386,10 @@ export function HomeClient({ userId }: { userId: boolean }) {
           html, body { overflow-x: hidden !important; max-width: 100vw !important; }
           .zari-home { overflow-x: hidden !important; }
 
-          /* Nav */
-          .zari-nav-inner { padding: 0 16px !important; }
+          /* Nav — compact on mobile */
+          .zari-nav-inner { padding: 0 14px !important; gap: 8px !important; }
+          .zari-nav-signin { padding: 7px 12px !important; font-size: 12.5px !important; }
+          .zari-nav-cta { padding: 7px 14px !important; font-size: 12.5px !important; gap: 5px !important; }
 
           /* Hero section */
           .zari-hero { padding-top: 84px !important; }
@@ -2407,10 +2410,10 @@ export function HomeClient({ userId }: { userId: boolean }) {
           .zari-hero-strip-featured { display: none !important; }
           .zari-hero-social-text { font-size: 15px !important; white-space: normal !important; }
 
-          /* Platform walkthrough */
+          /* Platform walkthrough — taller content, scrollable */
           .zari-platform-shell { height: auto !important; flex-direction: column !important; }
           .zari-platform-sidebar { display: none !important; }
-          .zari-platform-content { height: 420px !important; overflow: hidden !important; }
+          .zari-platform-content { height: 520px !important; overflow-y: auto !important; }
 
           /* Spotlight reviews: single column */
           .zari-reviews-grid {
@@ -2420,20 +2423,19 @@ export function HomeClient({ userId }: { userId: boolean }) {
           .zari-reviews-grid > * { padding: 28px 24px !important; }
           .zari-reviews-grid > *:nth-child(2) { transform: none !important; }
 
-          /* Founder section */
+          /* Founder section — centered avatars, no tilting */
           .zari-founder-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
           .zari-founder-portrait { display: none !important; }
+          .zari-founder-avatars { justify-content: center !important; gap: 20px !important; }
           .zari-founder-section {
             padding: 0 20px !important;
             min-height: auto !important;
             align-items: flex-start !important;
           }
 
-          /* Features: single column, hide mockup (unreadable at mobile size) */
-          .zari-feature-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
-          .zari-feature-grid > * { order: unset !important; }
-          .zari-feature-mockup { display: none !important; }
-          .zari-feature-row { padding: 56px 20px !important; min-height: auto !important; }
+          /* Features: hide scroll sections on mobile — replaced by tab component */
+          #features { display: none !important; }
+          .zari-mobile-features { display: block !important; }
 
           /* FAQ */
           .zari-faq-grid { grid-template-columns: 1fr !important; gap: 28px !important; }
@@ -2454,6 +2456,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
           .zari-spotlight-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
 
           /* Footer */
+          .zari-footer-nav { align-items: flex-start !important; }
           .zari-footer-body {
             padding: 40px 20px 24px !important;
             flex-direction: column !important;
@@ -2648,7 +2651,8 @@ export function HomeClient({ userId }: { userId: boolean }) {
                 I thought I was doing everything right — I wasn&apos;t.
               </p>
               <div style={{ display:"flex", alignItems:"center", gap:14 }}>
-                <div style={{ width:52, height:52, borderRadius:"50%", flexShrink:0, background:"linear-gradient(135deg,#4361EE,#818CF8)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:17, fontWeight:800, color:"white" }}>MW</div>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/avatars/36.jpg" alt="Marcus Webb" loading="lazy" decoding="async" style={{ width:52, height:52, borderRadius:"50%", objectFit:"cover", flexShrink:0 }} />
                 <div>
                   <p style={{ fontSize:15, fontWeight:700, color:"#0A0A0F", margin:0, letterSpacing:"-0.01em" }}>Marcus Webb</p>
                   <p style={{ fontSize:13, color:"#6B7280", margin:0, marginTop:1 }}>Senior PM at Figma</p>
@@ -2667,7 +2671,8 @@ export function HomeClient({ userId }: { userId: boolean }) {
                 Every dollar I didn&apos;t leave on the table was because of this.
               </p>
               <div style={{ display:"flex", alignItems:"center", gap:14 }}>
-                <div style={{ width:52, height:52, borderRadius:"50%", flexShrink:0, background:"linear-gradient(135deg,#7C3AED,#A78BFA)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:17, fontWeight:800, color:"white" }}>PS</div>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/avatars/1.jpg" alt="Priya Sundaram" loading="lazy" decoding="async" style={{ width:52, height:52, borderRadius:"50%", objectFit:"cover", flexShrink:0 }} />
                 <div>
                   <p style={{ fontSize:15, fontWeight:700, color:"#0A0A0F", margin:0, letterSpacing:"-0.01em" }}>Priya Sundaram</p>
                   <p style={{ fontSize:13, color:"#6B7280", margin:0, marginTop:1 }}>Engineering Manager</p>
@@ -2686,7 +2691,8 @@ export function HomeClient({ userId }: { userId: boolean }) {
                 I was ready. I got the offer.
               </p>
               <div style={{ display:"flex", alignItems:"center", gap:14 }}>
-                <div style={{ width:52, height:52, borderRadius:"50%", flexShrink:0, background:"linear-gradient(135deg,#059669,#34D399)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:17, fontWeight:800, color:"white" }}>DC</div>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/avatars/37.jpg" alt="Devon Clarke" loading="lazy" decoding="async" style={{ width:52, height:52, borderRadius:"50%", objectFit:"cover", flexShrink:0 }} />
                 <div>
                   <p style={{ fontSize:15, fontWeight:700, color:"#0A0A0F", margin:0, letterSpacing:"-0.01em" }}>Devon Clarke</p>
                   <p style={{ fontSize:13, color:"#6B7280", margin:0, marginTop:1 }}>Director of Operations at Stripe</p>
@@ -2722,7 +2728,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
             {/* RIGHT — avatars + story */}
             <div>
               {/* Founder avatar row — hover to switch */}
-              <div style={{ display:"flex", gap:28, marginBottom:40, flexWrap:"wrap" }}>
+              <div className="zari-founder-avatars" style={{ display:"flex", gap:28, marginBottom:40, flexWrap:"wrap" }}>
                 {FOUNDERS.map((f, i) => (
                   <div
                     key={f.name}
@@ -2767,6 +2773,46 @@ export function HomeClient({ userId }: { userId: boolean }) {
           </div>
         </div>
       </section>
+
+      {/* ══════ FEATURES — mobile tabbed view (hidden on desktop) ══════ */}
+      <div className="zari-mobile-features" style={{ display:"none", background:"#FAFBFF", padding:"56px 20px 64px" }}>
+        <div style={{ textAlign:"center", marginBottom:28 }}>
+          <p style={{ fontSize:12, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.18em", color:"#4361EE", margin:"0 0 10px" }}>What Zari can do</p>
+          <h2 style={{ fontSize:"clamp(1.8rem,6vw,2.2rem)", fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", margin:0 }}>Every tool you need</h2>
+        </div>
+        {/* Horizontal scrollable tab strip */}
+        <div style={{ display:"flex", gap:8, overflowX:"auto", paddingBottom:6, marginBottom:28, scrollbarWidth:"none" }}>
+          {FEATURES.map((f, i) => (
+            <button key={f.tag} onClick={() => setMobileFeature(i)} style={{
+              padding:"7px 16px", borderRadius:99, border:"1px solid",
+              borderColor: mobileFeature===i ? "#4361EE" : "#E2E6F0",
+              background: mobileFeature===i ? "#EEF2FF" : "white",
+              color: mobileFeature===i ? "#4361EE" : "#68738A",
+              fontSize:13, fontWeight:600, cursor:"pointer", whiteSpace:"nowrap",
+              flexShrink:0, transition:"all 0.15s",
+            }}>{f.tag}</button>
+          ))}
+        </div>
+        {/* Active feature content */}
+        <div key={mobileFeature} style={{ animation:"step-fade-in 0.4s cubic-bezier(0.16,1,0.3,1) both" }}>
+          <h2 style={{ fontSize:"clamp(1.7rem,5.5vw,2.1rem)", fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", lineHeight:1.1, marginBottom:14, whiteSpace:"pre-line" }}>{FEATURES[mobileFeature].headline}</h2>
+          <p style={{ fontSize:15, color:"#68738A", lineHeight:1.75, marginBottom:24 }}>{FEATURES[mobileFeature].body}</p>
+          <ul style={{ listStyle:"none", margin:0, padding:0, display:"flex", flexDirection:"column", gap:12, marginBottom:28 }}>
+            {FEATURES[mobileFeature].bullets.map(b => (
+              <li key={b} style={{ display:"flex", alignItems:"flex-start", gap:10, fontSize:14.5, color:"#1E2235" }}>
+                <div style={{ width:20, height:20, borderRadius:"50%", background:"#EEF2FF", border:"1px solid rgba(67,97,238,0.2)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:2 }}>
+                  <svg viewBox="0 0 20 20" fill="none" stroke="#4361EE" strokeWidth="2.5" style={{ width:10,height:10 }}><polyline points="4,10 8,14 16,6"/></svg>
+                </div>
+                {b}
+              </li>
+            ))}
+          </ul>
+          <Link href="/signup" style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"13px 24px", borderRadius:12, background:"#0A0A0F", color:"white", fontSize:14, fontWeight:700, textDecoration:"none", boxShadow:"0 4px 16px rgba(0,0,0,0.14)" }}>
+            Try {FEATURES[mobileFeature].tag} free
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ width:12,height:12 }}><path d="M3 8h10M9 5l3 3-3 3"/></svg>
+          </Link>
+        </div>
+      </div>
 
       {/* ══════ FEATURES — Kleo-style sections ══════ */}
       <section id="features" style={{ background:"#FAFBFF", }}>
@@ -2951,7 +2997,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
             </p>
           </div>
           {/* Right: nav */}
-          <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:14 }}>
+          <div className="zari-footer-nav" style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:14 }}>
             <Link href="/login"  style={{ fontSize:15, fontWeight:500, color:"rgba(255,255,255,0.65)", textDecoration:"none", transition:"color 0.15s" }}>Sign in</Link>
             <Link href="/signup" style={{ fontSize:15, fontWeight:500, color:"rgba(255,255,255,0.65)", textDecoration:"none", transition:"color 0.15s" }}>Get started</Link>
           </div>
