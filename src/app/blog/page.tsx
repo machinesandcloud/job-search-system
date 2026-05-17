@@ -625,6 +625,24 @@ const POSTS = [
     date: "May 2025",
     accent: "#059669",
   },
+  {
+    slug: "project-manager-resume",
+    title: "Project Manager Resume — Examples, Skills & ATS Tips (2025)",
+    excerpt: "What hiring managers read for in a PM resume — delivery record, scale, methodology fluency, and stakeholder evidence — with before/after bullet examples across Agile, Waterfall, and Hybrid tracks, plus PMP/PMI-ACP keyword strategy.",
+    tag: "Resume",
+    readTime: "12 min read",
+    date: "May 2025",
+    accent: "#0D7182",
+  },
+  {
+    slug: "how-to-get-a-job-fast",
+    title: "How to Get a Job Fast — The 4-Week Playbook (2025)",
+    excerpt: "The 4 search mistakes that slow you down, and a week-by-week action plan to compress a 3-month search into 4 weeks — from resume audit to first offer. For job seekers who can't afford to wait.",
+    tag: "Job Search Strategy",
+    readTime: "11 min read",
+    date: "May 2025",
+    accent: "#F97316",
+  },
 ];
 
 export default async function BlogPage() {

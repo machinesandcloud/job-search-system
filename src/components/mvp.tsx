@@ -173,6 +173,8 @@ function SiteFooter() {
         { label: "Zari vs Glassdoor", href: "/compare/zari-vs-glassdoor" },
         { label: "Zari vs Wellfound", href: "/compare/zari-vs-wellfound" },
         { label: "Zari vs Handshake", href: "/compare/zari-vs-handshake" },
+        { label: "Zari vs ZipRecruiter", href: "/compare/zari-vs-ziprecruiter" },
+        { label: "Zari vs Monster", href: "/compare/zari-vs-monster" },
       ],
     },
   ];

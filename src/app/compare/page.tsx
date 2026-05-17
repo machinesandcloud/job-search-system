@@ -36,6 +36,8 @@ const COMPARISONS = [
   { href: "/compare/zari-vs-glassdoor", title: "Zari vs Glassdoor", summary: "Glassdoor provides salary data, company reviews, and interview reports. Zari coaches you through using that data — from ATS optimization to offer negotiation." },
   { href: "/compare/zari-vs-wellfound", title: "Zari vs Wellfound", summary: "Wellfound (AngelList) is the dominant startup job board with equity transparency and direct founder access. Zari coaches you to compete for those roles — resume, interviews, and startup offer negotiation." },
   { href: "/compare/zari-vs-handshake", title: "Zari vs Handshake", summary: "Handshake connects students and recent grads with campus recruiters and early-career employers. Zari coaches the skills to compete — ATS resume optimization, interview prep, and first-offer negotiation." },
+  { href: "/compare/zari-vs-ziprecruiter", title: "Zari vs ZipRecruiter", summary: "ZipRecruiter matches you with employers using AI. Zari coaches you to win the match — ATS resume optimization, mock interviews, and salary negotiation. How to use both in sequence." },
+  { href: "/compare/zari-vs-monster", title: "Zari vs Monster", summary: "Monster is one of the original job boards — listings, salary data, and a resume database searched by recruiters. Zari is an AI career coach that helps you compete for the roles you find there." },
 ];
 
 export default async function ComparePage() {
