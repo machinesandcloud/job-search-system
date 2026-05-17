@@ -841,6 +841,42 @@ const POSTS = [
     date: "May 2025",
     accent: "#8B5CF6",
   },
+  {
+    slug: "how-to-job-search-after-layoff",
+    title: "How to Job Search After a Layoff — The Complete Playbook (2025)",
+    excerpt: "A layoff hits your routine, income, and sense of direction at once. Week-by-week playbook from first 48 hours to first offer — severance strategy, LinkedIn post script, search system, and how to explain it in interviews.",
+    tag: "Job Search Strategy",
+    readTime: "13 min read",
+    date: "May 2025",
+    accent: "#F97316",
+  },
+  {
+    slug: "engineering-manager-resume",
+    title: "Engineering Manager Resume — Examples, Skills & ATS Tips (2025)",
+    excerpt: "An EM resume isn't a senior engineer resume with 'managed a team' added. What hiring managers read for at this level — team building, delivery ownership, technical credibility, org influence — with before/after bullet rewrites.",
+    tag: "Resume",
+    readTime: "12 min read",
+    date: "May 2025",
+    accent: "#0D7182",
+  },
+  {
+    slug: "nursing-interview-questions",
+    title: "Nursing Interview Questions — With Strong Answers (2025)",
+    excerpt: "The most common nursing interview questions — behavioral, clinical scenario, and situational — with strong STAR-method answers. Covers new grad RN, travel nursing, ICU, and charge nurse interviews.",
+    tag: "Interviews",
+    readTime: "11 min read",
+    date: "May 2025",
+    accent: "#0D7182",
+  },
+  {
+    slug: "transferable-skills",
+    title: "Transferable Skills — How to Identify and Use Them (2025)",
+    excerpt: "Transferable skills are the reason career changes work — but most people can't articulate theirs. A framework for identifying what you bring, how to reframe it for a new industry, and exactly how to present it on a resume and in interviews.",
+    tag: "Career Change",
+    readTime: "10 min read",
+    date: "May 2025",
+    accent: "#F97316",
+  },
 ];
 
 export default async function BlogPage() {
