@@ -1084,6 +1084,33 @@ const POSTS = [
     date: "May 2025",
     accent: "#0D7182",
   },
+  {
+    slug: "mba-resume",
+    title: "MBA Resume — Templates, Examples & ATS Tips for Business School (2025)",
+    excerpt: "MBA resumes operate under different rules: one page strictly, GPA conventions that vary by track, and bullet format that leads with leadership scope. What MBB and banking recruiters look for — and the mistakes that filter candidates early.",
+    tag: "Resume",
+    readTime: "9 min read",
+    date: "May 2025",
+    accent: "#7C3AED",
+  },
+  {
+    slug: "devops-resume",
+    title: "DevOps Resume — Examples, Skills & ATS Keywords (2025)",
+    excerpt: "DevOps resumes that fail ATS list tools without showing infrastructure outcomes. Hiring managers want deployment frequency improvements, incident reduction, and platform scale. Before/after examples for DevOps engineers, SREs, and platform engineers.",
+    tag: "Resume",
+    readTime: "10 min read",
+    date: "May 2025",
+    accent: "#3B82F6",
+  },
+  {
+    slug: "phone-screen-interview-tips",
+    title: "Phone Screen Interview Tips — How to Pass the Recruiter Call (2025)",
+    excerpt: "A phone screen is a filter, not a full interview. Recruiters eliminate candidates on compensation, logistics, and basic narrative clarity. What they're actually assessing and how to pass the screen and advance.",
+    tag: "Interviews",
+    readTime: "8 min read",
+    date: "May 2025",
+    accent: "#059669",
+  },
 ];
 
 export default async function BlogPage() {

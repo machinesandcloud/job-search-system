@@ -195,6 +195,8 @@ function SiteFooter() {
         { label: "Zari vs Bayt.com", href: "/compare/zari-vs-bayt" },
         { label: "Zari vs XING", href: "/compare/zari-vs-xing" },
         { label: "Zari vs GulfTalent", href: "/compare/zari-vs-gulftalent" },
+        { label: "Zari vs Stepstone", href: "/compare/zari-vs-stepstone" },
+        { label: "Zari vs SEEK", href: "/compare/zari-vs-seek-australia" },
       ],
     },
   ];

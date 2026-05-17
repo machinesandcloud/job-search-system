@@ -58,6 +58,8 @@ const COMPARISONS = [
   { href: "/compare/zari-vs-bayt", title: "Zari vs Bayt.com", summary: "Bayt.com is the leading job board in the Arab world — UAE, Saudi Arabia, Kuwait, Qatar, and across the MENA region. Zari coaches you to win those roles — ATS optimization, interview prep for GCC norms, and negotiating total packages including allowances." },
   { href: "/compare/zari-vs-xing", title: "Zari vs XING", summary: "XING is the dominant professional network and job board in Germany, Austria, and Switzerland — the DACH region's equivalent of LinkedIn with deeper penetration in traditional German industries and Mittelstand companies. Zari coaches you to land those roles." },
   { href: "/compare/zari-vs-gulftalent", title: "Zari vs GulfTalent", summary: "GulfTalent specializes in senior and executive roles across the GCC — UAE, Saudi Arabia, Kuwait, Qatar, Bahrain, and Oman. Zari coaches you to land those roles and negotiate the full executive package including housing, education allowance, and end-of-service." },
+  { href: "/compare/zari-vs-stepstone", title: "Zari vs Stepstone", summary: "Stepstone is one of Europe's largest job boards — millions of active listings in Germany, Austria, Belgium, and the Netherlands. Zari coaches you to land those roles — Lebenslauf optimization, German interview prep, and salary negotiation." },
+  { href: "/compare/zari-vs-seek-australia", title: "Zari vs SEEK Australia", summary: "SEEK is Australia's #1 job board — millions of active listings across every industry and location. Zari coaches you to win those roles — ATS resume optimization, selection criteria for government roles, interview prep, and superannuation-aware salary negotiation." },
 ];
 
 export default async function ComparePage() {
