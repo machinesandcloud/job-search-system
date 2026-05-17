@@ -40,6 +40,8 @@ const COMPARISONS = [
   { href: "/compare/zari-vs-monster", title: "Zari vs Monster", summary: "Monster is one of the original job boards — listings, salary data, and a resume database searched by recruiters. Zari is an AI career coach that helps you compete for the roles you find there." },
   { href: "/compare/zari-vs-dice", title: "Zari vs Dice", summary: "Dice is the tech-focused job board — listings, recruiter network, and salary data for software engineers and IT professionals. Zari coaches you to win the tech roles you find there." },
   { href: "/compare/zari-vs-linkedin-jobs", title: "Zari vs LinkedIn Jobs", summary: "LinkedIn Jobs is the dominant professional job board with recruiter visibility and AI matching. Zari coaches you through the roles you find there — ATS optimization, interview prep, LinkedIn profile rewrites, and offer negotiation." },
+  { href: "/compare/zari-vs-simplyhired", title: "Zari vs SimplyHired", summary: "SimplyHired aggregates job listings with salary estimates — useful for discovery across a wide range of industries. Zari coaches you to win the roles you find there — ATS optimization, interview prep, and offer negotiation." },
+  { href: "/compare/zari-vs-careerbuilder", title: "Zari vs CareerBuilder", summary: "CareerBuilder is one of the original job boards — listings, employer AI matching, and a resume database. Zari is the AI career coach that helps you compete for the roles you find there." },
 ];
 
 export default async function ComparePage() {

@@ -679,6 +679,42 @@ const POSTS = [
     date: "May 2025",
     accent: "#DC2626",
   },
+  {
+    slug: "accounting-resume",
+    title: "Accounting Resume — Examples, Skills & ATS Tips (2025)",
+    excerpt: "What accounting hiring managers filter for first: software fluency, close timeline ownership, financial scope, and compliance experience. With before/after bullet examples for staff accountant, senior accountant, and controller — plus ATS keyword strategy by role type.",
+    tag: "Resume",
+    readTime: "12 min read",
+    date: "May 2025",
+    accent: "#059669",
+  },
+  {
+    slug: "sales-resume",
+    title: "Sales Resume — Examples, Skills & ATS Tips (2025)",
+    excerpt: "Sales hiring managers go to quota attainment first, then deal size, sales cycle, and pipeline metrics. With before/after examples for SDR, AE, and sales manager — plus ATS keyword strategy by sales motion (SMB, mid-market, enterprise).",
+    tag: "Resume",
+    readTime: "12 min read",
+    date: "May 2025",
+    accent: "#F97316",
+  },
+  {
+    slug: "teacher-resume",
+    title: "Teacher Resume — Examples, Skills & ATS Tips (2025)",
+    excerpt: "School district ATS systems filter for certification first, then principals read for student outcome data — the detail most teacher resumes omit. With before/after examples for new, experienced, and lead teachers, plus ATS keywords by subject area.",
+    tag: "Resume",
+    readTime: "11 min read",
+    date: "May 2025",
+    accent: "#4ca7e6",
+  },
+  {
+    slug: "salary-bands",
+    title: "Salary Bands Explained — How to Use Them in Negotiations (2025)",
+    excerpt: "Salary bands are the invisible constraint behind every negotiation. Learn how bands work, how to find your target company's ranges, and exactly what to say when the recruiter tells you 'we're already at the top of the band.'",
+    tag: "Negotiation",
+    readTime: "11 min read",
+    date: "May 2025",
+    accent: "#10B981",
+  },
 ];
 
 export default async function BlogPage() {

@@ -178,26 +178,22 @@ const FOUNDERS = [
 /* ══════════════════════════════════════════════════
    HERO PROMPT — Kleo-style intent capture
 ══════════════════════════════════════════════════ */
-const HERO_CHIPS: { label:string; sublabel:string; svg:React.ReactNode }[] = [
+const HERO_CHIPS: { label:string; svg:React.ReactNode }[] = [
   {
-    label:"Job search",
-    sublabel:"Land more interviews",
-    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:14,height:14,flexShrink:0}}><circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l3 3"/></svg>,
+    label:"I'm job searching",
+    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13,flexShrink:0}}><circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l3 3"/></svg>,
   },
   {
-    label:"Get promoted",
-    sublabel:"Build your case",
-    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:14,height:14,flexShrink:0}}><path d="M8 2v8M4 6l4-4 4 4"/><path d="M3 13h10"/></svg>,
+    label:"Help me get promoted",
+    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13,flexShrink:0}}><path d="M8 2v8M4 6l4-4 4 4"/><path d="M3 13h10"/></svg>,
   },
   {
-    label:"Negotiate salary",
-    sublabel:"Know your number",
-    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:14,height:14,flexShrink:0}}><rect x="1" y="4" width="14" height="9" rx="1.5"/><path d="M5 4V3a3 3 0 016 0v1"/><path d="M8 9a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg>,
+    label:"Negotiate my salary",
+    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13,flexShrink:0}}><rect x="1" y="4" width="14" height="9" rx="1.5"/><path d="M5 4V3a3 3 0 016 0v1"/><path d="M8 9a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg>,
   },
   {
-    label:"Switch careers",
-    sublabel:"Reframe your story",
-    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:14,height:14,flexShrink:0}}><path d="M2 8h12M9 4l5 4-5 4"/></svg>,
+    label:"I'm switching careers",
+    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13,flexShrink:0}}><path d="M2 8h12M9 4l5 4-5 4"/></svg>,
   },
 ];
 
