@@ -179,6 +179,8 @@ function SiteFooter() {
         { label: "Zari vs LinkedIn Jobs", href: "/compare/zari-vs-linkedin-jobs" },
         { label: "Zari vs SimplyHired", href: "/compare/zari-vs-simplyhired" },
         { label: "Zari vs CareerBuilder", href: "/compare/zari-vs-careerbuilder" },
+        { label: "Zari vs Google for Jobs", href: "/compare/zari-vs-google-for-jobs" },
+        { label: "Zari vs Seek", href: "/compare/zari-vs-seek" },
       ],
     },
   ];

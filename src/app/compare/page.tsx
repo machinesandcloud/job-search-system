@@ -42,6 +42,8 @@ const COMPARISONS = [
   { href: "/compare/zari-vs-linkedin-jobs", title: "Zari vs LinkedIn Jobs", summary: "LinkedIn Jobs is the dominant professional job board with recruiter visibility and AI matching. Zari coaches you through the roles you find there — ATS optimization, interview prep, LinkedIn profile rewrites, and offer negotiation." },
   { href: "/compare/zari-vs-simplyhired", title: "Zari vs SimplyHired", summary: "SimplyHired aggregates job listings with salary estimates — useful for discovery across a wide range of industries. Zari coaches you to win the roles you find there — ATS optimization, interview prep, and offer negotiation." },
   { href: "/compare/zari-vs-careerbuilder", title: "Zari vs CareerBuilder", summary: "CareerBuilder is one of the original job boards — listings, employer AI matching, and a resume database. Zari is the AI career coach that helps you compete for the roles you find there." },
+  { href: "/compare/zari-vs-google-for-jobs", title: "Zari vs Google for Jobs", summary: "Google for Jobs aggregates listings from across the web directly in Google Search. Zari coaches you to win the roles you find there — ATS optimization, interview prep, and offer negotiation." },
+  { href: "/compare/zari-vs-seek", title: "Zari vs Seek", summary: "Seek is the dominant job board in Australia, New Zealand, and Southeast Asia. Zari coaches you to land the roles you find there — ATS optimization for Australian hiring norms, interview prep, and salary negotiation." },
 ];
 
 export default async function ComparePage() {

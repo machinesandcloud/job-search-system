@@ -715,6 +715,42 @@ const POSTS = [
     date: "May 2025",
     accent: "#10B981",
   },
+  {
+    slug: "hr-resume",
+    title: "HR Resume — Examples, Skills & ATS Keywords (2025)",
+    excerpt: "HR hiring managers screen for workforce scope, measurable program ownership, ER complexity, and HRIS fluency. Most HR resumes describe responsibilities. The ones that get callbacks describe business outcomes.",
+    tag: "Resume",
+    readTime: "10 min read",
+    date: "May 2025",
+    accent: "#8B5CF6",
+  },
+  {
+    slug: "financial-analyst-resume",
+    title: "Financial Analyst Resume — Examples, Skills & ATS Tips (2025)",
+    excerpt: "Finance hiring managers scan for modeling depth, financial scope, business impact, and data tools. Most analyst resumes describe work produced. The ones that get callbacks describe decisions driven.",
+    tag: "Resume",
+    readTime: "10 min read",
+    date: "May 2025",
+    accent: "#F59E0B",
+  },
+  {
+    slug: "how-to-network",
+    title: "How to Network Professionally — The Complete Guide (2025)",
+    excerpt: "Most people network wrong — transactionally, during desperation, or not at all. The professionals who consistently land good opportunities build genuine relationships before they need them.",
+    tag: "Career Strategy",
+    readTime: "9 min read",
+    date: "May 2025",
+    accent: "#0EA5E9",
+  },
+  {
+    slug: "imposter-syndrome-at-work",
+    title: "Imposter Syndrome at Work — How to Recognize and Overcome It (2025)",
+    excerpt: "70% of professionals experience imposter syndrome at some point — including the highest performers. Understanding which type you have and how it shows up in your career is the difference between managing it and letting it manage your decisions.",
+    tag: "Career Strategy",
+    readTime: "10 min read",
+    date: "May 2025",
+    accent: "#EC4899",
+  },
 ];
 
 export default async function BlogPage() {

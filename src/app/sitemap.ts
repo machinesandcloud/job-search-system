@@ -182,6 +182,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/blog/salary-bands`,                           lastModified: now, changeFrequency: "monthly", priority: 0.90 },
     { url: `${base}/compare/zari-vs-simplyhired`,                 lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/compare/zari-vs-careerbuilder`,               lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/hr-resume`,                              lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/financial-analyst-resume`,               lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/how-to-network`,                         lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/imposter-syndrome-at-work`,              lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/compare/zari-vs-google-for-jobs`,             lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/compare/zari-vs-seek`,                        lastModified: now, changeFrequency: "monthly", priority: 0.88 },
 
     // Auth / conversion
     { url: `${base}/signup`,  lastModified: now, changeFrequency: "monthly", priority: 0.8 },
