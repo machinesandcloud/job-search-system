@@ -223,6 +223,7 @@ function HeroPrompt({ userId }: { userId: boolean }) {
         transition:"all 0.2s",
       }}>
         <textarea
+          className="zari-hero-textarea"
           style={{
             display:"block", width:"100%", border:"none", outline:"none",
             fontSize:17, color:"#0A0A0F", background:"transparent",
@@ -258,11 +259,12 @@ function HeroPrompt({ userId }: { userId: boolean }) {
       </div>
 
       {/* Quick-action chips — all 4 in one row */}
-      <div style={{ display:"flex", justifyContent:"center", gap:10, marginTop:16, flexWrap:"nowrap" }}>
+      <div className="zari-hero-chips" style={{ display:"flex", justifyContent:"center", gap:10, marginTop:16, flexWrap:"nowrap" }}>
         {HERO_CHIPS.map(chip => (
           <button
             key={chip.label}
             onClick={() => go(chip.label)}
+            className="zari-hero-chip"
             style={{
               display:"inline-flex", alignItems:"center", gap:7,
               fontSize:14, fontWeight:500, color:"#3A4257",
@@ -449,7 +451,7 @@ function FeatureSection({ f, flip, idx }: { f:typeof FEATURES[0]; flip:boolean; 
       </div>
 
       {/* Mockup — square-ish panel, centered in column */}
-      <div style={{ order: flip ? 1 : 2, display:"flex", alignItems:"center", justifyContent:"center" }}>
+      <div className="zari-feature-mockup" style={{ order: flip ? 1 : 2, display:"flex", alignItems:"center", justifyContent:"center" }}>
         <div style={{ width:"100%", maxWidth:560 }}>
           <FeatureMockup type={f.mockup} />
         </div>
@@ -2333,7 +2335,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
   }, []);
 
   return (
-    <div style={{ fontFamily:"var(--font-geist-sans,Inter,-apple-system,sans-serif)", background:"white", color:"#0A0A0F" }}>
+    <div className="zari-home" style={{ fontFamily:"var(--font-geist-sans,Inter,-apple-system,sans-serif)", background:"white", color:"#0A0A0F" }}>
       <style>{`
         @keyframes marquee-x { from{transform:translateX(0)} to{transform:translateX(-50%)} }
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.15} }
@@ -2368,83 +2370,123 @@ export function HomeClient({ userId }: { userId: boolean }) {
         * { box-sizing: border-box; }
         a { transition: opacity 0.18s; } a:hover { opacity: 0.72; }
 
-        /* ── Mobile responsive ───────────────────────────── */
+        /* ── Prevent horizontal scroll globally ─────────── */
+        .zari-home { overflow-x: hidden; }
+
+        /* ── Mobile (≤ 767px) ────────────────────────────── */
         @media (max-width: 767px) {
+          /* Hard-stop any overflow on the page */
+          html, body { overflow-x: hidden !important; max-width: 100vw !important; }
+          .zari-home { overflow-x: hidden !important; }
+
+          /* Nav */
           .zari-nav-inner { padding: 0 16px !important; }
-          .zari-hero { padding-top: 96px !important; }
+
+          /* Hero section */
+          .zari-hero { padding-top: 84px !important; }
+          .zari-hero-textarea { font-size: 15px !important; padding: 18px 56px 18px 18px !important; min-height: 110px !important; }
+
+          /* Hero chips: wrap to 2×2 grid */
+          .zari-hero-chips {
+            flex-wrap: wrap !important;
+            gap: 8px !important;
+            padding: 0 4px !important;
+          }
+          .zari-hero-chip { font-size: 13px !important; padding: 8px 13px !important; }
+
+          /* Hero social proof strip */
           .zari-hero-strip-inner {
-            padding: 28px 20px !important;
+            padding: 24px 20px !important;
             flex-direction: column !important;
-            gap: 20px !important;
+            gap: 16px !important;
             align-items: flex-start !important;
           }
           .zari-hero-strip-divider { display: none !important; }
           .zari-hero-strip-featured { display: none !important; }
+          .zari-hero-social-text { font-size: 15px !important; white-space: normal !important; }
 
+          /* Platform walkthrough */
           .zari-platform-shell { height: auto !important; flex-direction: column !important; }
           .zari-platform-sidebar { display: none !important; }
-          .zari-platform-content { height: 460px !important; }
+          .zari-platform-content { height: 420px !important; overflow: hidden !important; }
 
+          /* Spotlight reviews: single column */
           .zari-reviews-grid {
             grid-template-columns: 1fr !important;
-            gap: 18px !important;
+            gap: 16px !important;
           }
+          .zari-reviews-grid > * { padding: 28px 24px !important; }
           .zari-reviews-grid > *:nth-child(2) { transform: none !important; }
 
-          .zari-founder-grid {
-            grid-template-columns: 1fr !important;
-            gap: 40px !important;
-          }
+          /* Founder section */
+          .zari-founder-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
           .zari-founder-portrait { display: none !important; }
-          .zari-founder-section { padding-top: 64px !important; padding-bottom: 64px !important; min-height: auto !important; }
-
-          .zari-feature-grid {
-            grid-template-columns: 1fr !important;
-            gap: 40px !important;
+          .zari-founder-section {
+            padding: 0 20px !important;
+            min-height: auto !important;
+            align-items: flex-start !important;
           }
+
+          /* Features: single column, hide mockup (unreadable at mobile size) */
+          .zari-feature-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
           .zari-feature-grid > * { order: unset !important; }
-          .zari-feature-row { padding: 64px 20px !important; min-height: auto !important; }
+          .zari-feature-mockup { display: none !important; }
+          .zari-feature-row { padding: 56px 20px !important; min-height: auto !important; }
 
-          .zari-faq-grid {
-            grid-template-columns: 1fr !important;
-            gap: 32px !important;
-          }
+          /* FAQ */
+          .zari-faq-grid { grid-template-columns: 1fr !important; gap: 28px !important; }
           .zari-faq-sticky { position: static !important; }
-          .zari-faq-section { padding-top: 64px !important; padding-bottom: 64px !important; min-height: auto !important; }
-
-          .zari-wall-masonry { columns: 1 !important; }
-          .zari-wall-section { padding: 64px 16px 72px !important; min-height: auto !important; }
-
-          .zari-spotlight-section { padding: 72px 16px 80px !important; }
-          .zari-spotlight-grid {
-            grid-template-columns: 1fr !important;
-            gap: 18px !important;
+          .zari-faq-section {
+            padding: 0 20px !important;
+            min-height: auto !important;
           }
+          .zari-faq-inner { padding-top: 56px !important; padding-bottom: 56px !important; }
+          .zari-founder-inner { padding-top: 56px !important; padding-bottom: 56px !important; }
 
+          /* Review wall: single column */
+          .zari-wall-masonry { columns: 1 !important; column-gap: 0 !important; }
+          .zari-wall-section { padding: 56px 16px 64px !important; min-height: auto !important; }
+
+          /* Spotlight 3-card reviews */
+          .zari-spotlight-section { padding: 64px 16px 72px !important; }
+          .zari-spotlight-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
+
+          /* Footer */
           .zari-footer-body {
             padding: 40px 20px 24px !important;
             flex-direction: column !important;
             align-items: flex-start !important;
+            gap: 24px !important;
           }
-          .zari-footer-bar { padding: 16px 20px 24px !important; flex-direction: column !important; gap: 8px !important; }
-          .zari-footer-links { flex-wrap: wrap !important; gap: 16px !important; }
+          .zari-footer-bar {
+            padding: 16px 20px 24px !important;
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 10px !important;
+          }
+          .zari-footer-links { flex-wrap: wrap !important; gap: 14px !important; }
         }
 
+        /* ── Tablet (768–1023px) ─────────────────────────── */
         @media (min-width: 768px) and (max-width: 1023px) {
+          .zari-hero-chips { flex-wrap: wrap !important; }
           .zari-reviews-grid { grid-template-columns: repeat(2,1fr) !important; }
+          .zari-reviews-grid > *:nth-child(2) { transform: none !important; }
           .zari-wall-masonry { columns: 2 !important; }
-          .zari-feature-grid {
-            grid-template-columns: 1fr !important;
-            gap: 48px !important;
-          }
+          .zari-feature-grid { grid-template-columns: 1fr !important; gap: 48px !important; }
           .zari-feature-grid > * { order: unset !important; }
-          .zari-feature-row { padding: 80px 24px !important; min-height: auto !important; }
+          .zari-feature-mockup { display: none !important; }
+          .zari-feature-row { padding: 72px 32px !important; min-height: auto !important; }
           .zari-founder-grid { grid-template-columns: 1fr !important; gap: 48px !important; }
           .zari-founder-portrait { display: none !important; }
           .zari-founder-section { min-height: auto !important; }
           .zari-faq-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
           .zari-faq-sticky { position: static !important; }
           .zari-faq-section { min-height: auto !important; }
+          .zari-platform-shell { height: auto !important; }
+          .zari-platform-content { height: 500px !important; }
+          .zari-spotlight-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
+          .zari-spotlight-section { padding: 72px 32px 80px !important; }
         }
       `}</style>
 
@@ -2515,7 +2557,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
                 <div style={{ display:"flex", gap:2, marginBottom:5 }}>
                   {Array.from({length:5}).map((_,i)=><svg key={i} viewBox="0 0 20 20" fill="#F59E0B" style={{ width:22,height:22 }}><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>)}
                 </div>
-                <div style={{ fontSize:17, fontWeight:600, color:"#2D3550", whiteSpace:"nowrap" }}>Loved by 1,200+ candidates</div>
+                <div className="zari-hero-social-text" style={{ fontSize:17, fontWeight:600, color:"#2D3550", whiteSpace:"nowrap" }}>Loved by 1,200+ candidates</div>
               </div>
             </div>
 
@@ -2656,7 +2698,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
 
       {/* ══════ FOUNDER SECTION — interactive hover ══════ */}
       <section className="zari-founder-section" style={{ background:"white", padding:"0 40px", minHeight:"100vh", display:"flex", alignItems:"center", }}>
-        <div style={{ maxWidth:1200, margin:"0 auto", width:"100%", paddingTop:96, paddingBottom:96 }}>
+        <div className="zari-founder-inner" style={{ maxWidth:1200, margin:"0 auto", width:"100%", paddingTop:96, paddingBottom:96 }}>
           <h2 style={{ textAlign:"center", fontSize:"clamp(1.9rem,3.5vw,2.6rem)", fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", marginBottom:64 }}>
             Meet the founders behind Zari
           </h2>
@@ -2737,7 +2779,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
 
       {/* ══════ FAQ — Kleo layout ══════ */}
       <section className="zari-faq-section" style={{ padding:"0 40px", minHeight:"100vh", display:"flex", alignItems:"center", background:"#FAFBFF", }}>
-        <div style={{ maxWidth:1200, margin:"0 auto", width:"100%", paddingTop:96, paddingBottom:96 }}>
+        <div className="zari-faq-inner" style={{ maxWidth:1200, margin:"0 auto", width:"100%", paddingTop:96, paddingBottom:96 }}>
           <div className="zari-faq-grid" style={{ display:"grid", gridTemplateColumns:"1fr 2fr", gap:80, alignItems:"start" }}>
 
             {/* LEFT — sticky heading */}
