@@ -258,20 +258,20 @@ function HeroPrompt({ userId }: { userId: boolean }) {
         </button>
       </div>
 
-      {/* Quick-action chips — 2×2 card grid */}
-      <div className="zari-hero-chips" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginTop:16 }}>
+      {/* Quick-action chips */}
+      <div className="zari-hero-chips" style={{ display:"flex", justifyContent:"center", gap:10, marginTop:16, flexWrap:"nowrap" }}>
         {HERO_CHIPS.map(chip => (
           <button
             key={chip.label}
             onClick={() => go(chip.label)}
             className="zari-hero-chip"
             style={{
-              display:"flex", alignItems:"center", gap:10,
-              fontSize:14, fontWeight:600, color:"#1E2235",
-              padding:"12px 16px", borderRadius:12, textAlign:"left",
+              display:"inline-flex", alignItems:"center", gap:7,
+              fontSize:14, fontWeight:500, color:"#3A4257",
+              padding:"9px 18px", borderRadius:99, whiteSpace:"nowrap",
               background:"white", border:"1px solid #E2E6F0",
               cursor:"pointer", transition:"all 0.15s",
-              boxShadow:"0 1px 6px rgba(0,0,0,0.05)",
+              boxShadow:"0 1px 6px rgba(0,0,0,0.06)",
             }}
             onMouseEnter={e => {
               (e.currentTarget as HTMLButtonElement).style.borderColor = "#4361EE";
@@ -281,16 +281,11 @@ function HeroPrompt({ userId }: { userId: boolean }) {
             onMouseLeave={e => {
               (e.currentTarget as HTMLButtonElement).style.borderColor = "#E2E6F0";
               (e.currentTarget as HTMLButtonElement).style.background = "white";
-              (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 1px 6px rgba(0,0,0,0.05)";
+              (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 1px 6px rgba(0,0,0,0.06)";
             }}
           >
-            <div style={{ width:32, height:32, borderRadius:8, background:"#EEF2FF", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:"#4361EE" }}>
-              {chip.svg}
-            </div>
-            <div>
-              <div style={{ fontSize:13.5, fontWeight:700, color:"#0A0A0F", lineHeight:1.2 }}>{chip.label}</div>
-              <div style={{ fontSize:12, color:"#68738A", marginTop:2, lineHeight:1 }}>{chip.sublabel}</div>
-            </div>
+            {chip.svg}
+            {chip.label}
           </button>
         ))}
       </div>
@@ -2397,10 +2392,9 @@ export function HomeClient({ userId }: { userId: boolean }) {
           .zari-hero { padding-top: 84px !important; }
           .zari-hero-textarea { font-size: 15px !important; padding: 18px 56px 18px 18px !important; min-height: 110px !important; }
 
-          /* Hero chips: tighten on small screens */
-          .zari-hero-chips { gap: 8px !important; }
-          .zari-hero-chip { padding: 10px 12px !important; }
-          .zari-hero-chip > div:first-child { width: 28px !important; height: 28px !important; }
+          /* Hero chips: wrap to 2×2 on small screens */
+          .zari-hero-chips { flex-wrap: wrap !important; justify-content: center !important; gap: 8px !important; }
+          .zari-hero-chip { padding: 8px 14px !important; font-size: 13px !important; }
 
           /* Hero social proof strip */
           .zari-hero-strip-inner {
