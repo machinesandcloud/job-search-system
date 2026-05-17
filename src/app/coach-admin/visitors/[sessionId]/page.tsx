@@ -3,6 +3,14 @@ import Link from "next/link";
 import { getCoachAdminSession } from "@/lib/coach-admin-auth";
 import { isDatabaseReady, prisma } from "@/lib/db";
 
+const _regionNames = (typeof Intl !== "undefined" && "DisplayNames" in Intl)
+  ? new Intl.DisplayNames(["en"], { type: "region" })
+  : null;
+function countryName(code?: string | null): string | null {
+  if (!code) return null;
+  try { return _regionNames?.of(code) ?? code; } catch { return code; }
+}
+
 type Props = { params: Promise<{ sessionId: string }> };
 
 function fmtDate(v?: Date | null): string {
@@ -167,7 +175,7 @@ export default async function VisitorDetailPage({ params }: Props) {
               visitorSession.browser,
               visitorSession.os,
               visitorSession.device,
-              [visitorSession.city, visitorSession.region, visitorSession.country].filter(Boolean).join(", ") || "unknown location",
+              [visitorSession.city, visitorSession.region, countryName(visitorSession.country)].filter(Boolean).join(", ") || "unknown location",
               fmtDate(visitorSession.firstSeenAt),
             ].filter(Boolean).join(" · ")}
           </div>
@@ -289,7 +297,7 @@ export default async function VisitorDetailPage({ params }: Props) {
               <Row label="Device"        value={visitorSession.device} />
               <Row label="City"          value={visitorSession.city} />
               <Row label="Region"        value={visitorSession.region} />
-              <Row label="Country"       value={visitorSession.country} />
+              <Row label="Country"       value={countryName(visitorSession.country)} />
               <Row label="Timezone"      value={visitorSession.timezone} />
               <Row label="Language"      value={visitorSession.language} />
               <Row label="Screen"        value={visitorSession.screenWidth ? `${visitorSession.screenWidth} × ${visitorSession.screenHeight}` : null} />

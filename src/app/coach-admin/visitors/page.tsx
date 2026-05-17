@@ -45,6 +45,15 @@ function deviceIcon(device?: string | null) {
   return "🖥️";
 }
 
+// Convert ISO 3166-1 alpha-2 country codes to full English names
+const _regionNames = (typeof Intl !== "undefined" && "DisplayNames" in Intl)
+  ? new Intl.DisplayNames(["en"], { type: "region" })
+  : null;
+function countryName(code?: string | null): string | null {
+  if (!code) return null;
+  try { return _regionNames?.of(code) ?? code; } catch { return code; }
+}
+
 function browserColor(browser?: string | null): string {
   switch (browser) {
     case "Chrome":  return "#4CAF50";
@@ -141,9 +150,11 @@ export default async function VisitorsPage() {
     prisma.visitorPageView.count({ where: { createdAt: { gte: last7d }, session: { device: { not: "bot" } } } }),
   ]);
 
-  // Determine returning visitors — check both visitorId (localStorage) and IP address
+  // Determine returning visitors — check visitorId (localStorage) AND IP address.
+  // IP-based check uses an in-memory count from the current 50 sessions (guaranteed accurate)
+  // plus a DB query for IPs that may have appeared in older sessions not in this window.
   const distinctVisitorIds = [...new Set(recentSessions.map((s: typeof recentSessions[0]) => s.visitorId))].filter((v) => v !== "anon");
-  const distinctIps = [...new Set(recentSessions.map((s: typeof recentSessions[0]) => s.ipAddress))].filter(Boolean) as string[];
+  const distinctIps        = [...new Set(recentSessions.map((s: typeof recentSessions[0]) => s.ipAddress))].filter(Boolean) as string[];
 
   const [returningData, returningIpData] = await Promise.all([
     distinctVisitorIds.length
@@ -153,7 +164,7 @@ export default async function VisitorsPage() {
           where: { visitorId: { in: distinctVisitorIds } },
           having: { id: { _count: { gt: 1 } } },
         })
-      : Promise.resolve([]),
+      : Promise.resolve([] as { visitorId: string }[]),
     distinctIps.length
       ? prisma.visitorSession.groupBy({
           by: ["ipAddress"],
@@ -161,11 +172,21 @@ export default async function VisitorsPage() {
           where: { ipAddress: { in: distinctIps } },
           having: { id: { _count: { gt: 1 } } },
         })
-      : Promise.resolve([]),
+      : Promise.resolve([] as { ipAddress: string | null }[]),
   ]);
 
-  const returningSet   = new Set(returningData.map((r: typeof returningData[0]) => r.visitorId));
-  const returningIpSet = new Set(returningIpData.map((r: typeof returningIpData[0]) => r.ipAddress as string));
+  const returningSet = new Set(returningData.map((r: { visitorId: string }) => r.visitorId));
+
+  // In-memory IP count: most reliable — if same IP appears 2+ times in the current page, it's returning
+  const ipCounts = new Map<string, number>();
+  for (const s of recentSessions) {
+    if (s.ipAddress) ipCounts.set(s.ipAddress, (ipCounts.get(s.ipAddress) ?? 0) + 1);
+  }
+  // Also add any IPs flagged by the DB query (older sessions outside the current 50)
+  for (const r of returningIpData as { ipAddress: string | null }[]) {
+    if (r.ipAddress) ipCounts.set(r.ipAddress, Math.max(ipCounts.get(r.ipAddress) ?? 0, 2));
+  }
+  const returningIpSet = new Set([...ipCounts.entries()].filter(([, c]) => c > 1).map(([ip]) => ip));
 
   const avgPagesPerSession = recentSessions.length
     ? (recentSessions.reduce((s: number, r: typeof recentSessions[0]) => s + r.pageViews.length, 0) / recentSessions.length).toFixed(1)
@@ -240,20 +261,18 @@ export default async function VisitorsPage() {
                       rel="noopener noreferrer"
                       style={{ fontSize: 12.5, fontWeight: 500, color: "var(--ca-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textDecoration: "none", display: "block" }}
                     >
-                      {currentPage.title || currentPage.page}
+                      {currentPage.title || (currentPage.page === "/" ? "Homepage" : currentPage.page)}
                       <span style={{ fontSize: 10, color: "var(--ca-text3)", marginLeft: 4 }}>↗</span>
                     </a>
                   ) : (
                     <div style={{ fontSize: 12.5, color: "var(--ca-text3)" }}>—</div>
                   )}
-                  {currentPage?.page && currentPage.title && (
-                    <div style={{ fontSize: 10.5, fontFamily: "monospace", color: "var(--ca-text3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{currentPage.page}</div>
-                  )}
+                  <div style={{ fontSize: 10.5, fontFamily: "monospace", color: "var(--ca-text3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{currentPage?.page || "—"}</div>
                 </div>
                 <div style={{ minWidth: 0 }}>
-                  {(s.city || s.region) && <div style={{ fontSize: 11.5, color: "var(--ca-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{[s.city, s.region].filter(Boolean).join(", ")}</div>}
-                  {s.country && <div style={{ fontSize: 10.5, color: "var(--ca-text3)" }}>{s.country}</div>}
-                  {!s.city && !s.region && !s.country && <span style={{ color: "var(--ca-text3)", fontSize: 11 }}>—</span>}
+                  {s.city && <div style={{ fontSize: 11.5, fontWeight: 500, color: "var(--ca-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.city}</div>}
+                  {(countryName(s.country) || s.region) && <div style={{ fontSize: 10.5, color: "var(--ca-text3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{[s.region, countryName(s.country)].filter(Boolean).join(", ")}</div>}
+                  {!s.city && !s.country && !s.region && <span style={{ color: "var(--ca-text3)", fontSize: 11 }}>—</span>}
                 </div>
                 <span style={{ fontSize: 11.5, fontWeight: 600, color: browserColor(s.browser) }}>{s.browser || "—"}</span>
                 <span style={{ fontSize: 11, color: "#22C55E", fontWeight: 600 }}>{secAgo < 60 ? `${secAgo}s ago` : `${Math.floor(secAgo / 60)}m ago`}</span>
@@ -282,7 +301,7 @@ export default async function VisitorsPage() {
             </div>
 
             {recentSessions.length ? recentSessions.map((s: typeof recentSessions[0], i: number) => {
-              const path = (() => { try { return new URL(s.landingPage || "/", "https://x").pathname; } catch { return s.landingPage || "/"; } })();
+              const rawPage = s.landingPage || "/";
               const isReturning = returningSet.has(s.visitorId) || (s.ipAddress ? returningIpSet.has(s.ipAddress) : false);
               return (
                 <div
@@ -291,20 +310,20 @@ export default async function VisitorsPage() {
                 >
                   <span style={{ fontSize: 14, textAlign: "center" }}>{deviceIcon(s.device)}</span>
 
-                  {/* Visitor cell: clickable title/path links to actual page, IP below */}
+                  {/* Visitor cell: title (primary) + exact path + IP */}
                   <div style={{ minWidth: 0 }}>
                     <a
-                      href={path}
+                      href={rawPage}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{ fontSize: 12.5, fontWeight: 500, color: "var(--ca-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textDecoration: "none", display: "block" }}
-                      title={`Visit ${path} ↗`}
+                      title={`Visit ${rawPage} ↗`}
                     >
-                      {s.landingPageTitle || path}
+                      {s.landingPageTitle || (rawPage === "/" ? "Homepage" : rawPage)}
                       <span style={{ fontSize: 10, color: "var(--ca-text3)", marginLeft: 4 }}>↗</span>
                     </a>
                     <div style={{ fontSize: 10.5, fontFamily: "monospace", color: "var(--ca-text3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginTop: 1 }}>
-                      {path}{s.ipAddress ? ` · ${s.ipAddress}` : ""}
+                      {rawPage}{s.ipAddress ? ` · ${s.ipAddress}` : ""}
                     </div>
                     {s.referrer && (
                       <div style={{ fontSize: 10.5, color: "var(--ca-text3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={s.referrer}>
@@ -321,16 +340,19 @@ export default async function VisitorsPage() {
                   <span style={{ fontSize: 11.5, fontWeight: 600, color: browserColor(s.browser) }}>{s.browser || "—"}</span>
                   <span style={{ fontSize: 11.5, color: "var(--ca-text2)" }}>{s.os || "—"}</span>
 
-                  {/* Location: city / region / country + screen */}
+                  {/* Location: city first, then full country name */}
                   <div style={{ minWidth: 0 }}>
-                    {(s.city || s.region) && (
-                      <div style={{ fontSize: 11.5, color: "var(--ca-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {[s.city, s.region].filter(Boolean).join(", ")}
+                    {s.city && (
+                      <div style={{ fontSize: 11.5, fontWeight: 500, color: "var(--ca-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {s.city}
                       </div>
                     )}
-                    {s.country && <div style={{ fontSize: 10.5, color: "var(--ca-text3)" }}>{s.country}</div>}
-                    {s.screenWidth && <div style={{ fontSize: 10, color: "var(--ca-text3)" }}>{s.screenWidth}×{s.screenHeight}</div>}
-                    {!s.city && !s.region && !s.country && !s.screenWidth && <span style={{ color: "var(--ca-text3)", fontSize: 11 }}>—</span>}
+                    {(countryName(s.country) || s.region) && (
+                      <div style={{ fontSize: 10.5, color: "var(--ca-text3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {[s.region, countryName(s.country)].filter(Boolean).join(", ")}
+                      </div>
+                    )}
+                    {!s.city && !s.country && !s.region && <span style={{ color: "var(--ca-text3)", fontSize: 11 }}>—</span>}
                   </div>
 
                   <span style={{ fontSize: 12, fontWeight: 700, color: "var(--ca-text2)", textAlign: "center" }}>{s.pageViews.length}</span>
@@ -427,7 +449,7 @@ export default async function VisitorsPage() {
             <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 6 }}>
               {countryBreakdown.map((c: typeof countryBreakdown[0]) => (
                 <div key={c.country ?? "unknown"} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <span style={{ fontSize: 12.5, color: "var(--ca-text)" }}>{c.country || "Unknown"}</span>
+                  <span style={{ fontSize: 12.5, color: "var(--ca-text)" }}>{countryName(c.country) || "Unknown"}</span>
                   <span style={{ fontSize: 12, fontWeight: 700, color: "var(--ca-text2)" }}>{c._count.id}</span>
                 </div>
               ))}

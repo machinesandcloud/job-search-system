@@ -182,53 +182,121 @@ export function VisitorTracker() {
   useEffect(() => {
     if (skip()) return;
 
-    // Scroll depth milestones per page
+    // ── Scroll depth (rAF-throttled, cumulative milestones) ─────────────────
     const scrolled = new Set<number>();
-    const onScroll = () => {
-      const el    = document.documentElement;
-      const total = el.scrollHeight - el.clientHeight;
+    let _rafId: number | null = null;
+
+    const checkScroll = () => {
+      const root  = document.documentElement;
+      const total = root.scrollHeight - root.clientHeight;
       if (total <= 0) return;
-      const pct = Math.round((el.scrollTop / total) * 100);
+      // window.scrollY is the standard; scrollTop is the fallback
+      const scrollY = window.scrollY ?? root.scrollTop;
+      const pct = Math.round((scrollY / total) * 100);
       for (const m of [25, 50, 75, 90]) {
         if (pct >= m && !scrolled.has(m)) { scrolled.add(m); enqueue("scroll", { depth: m }); }
       }
     };
 
-    // Click tracking (throttled, with rage-click detection)
+    const onScroll = () => {
+      if (_rafId !== null) return;
+      _rafId = requestAnimationFrame(() => { _rafId = null; checkScroll(); });
+    };
+
+    // Check once on mount — catches pre-scrolled pages or very short pages
+    checkScroll();
+
+    // ── Click tracking (composedPath + SVG-aware + aria-label) ───────────────
+    const INTERACTIVE = "a,button,[role='button'],[role='link'],label[for],select,summary";
+
+    // Extract the best human-readable label from an element.
+    // Priority: aria-label → title → direct text (SVG children excluded).
+    function getClickLabel(el: Element): string {
+      const explicit = (el as HTMLElement).getAttribute?.("aria-label") ||
+                       (el as HTMLElement).getAttribute?.("title");
+      if (explicit) return explicit.slice(0, 80);
+
+      let text = "";
+      for (const child of Array.from(el.childNodes)) {
+        if (child.nodeType === 3) {                       // Text node
+          text += (child.textContent || "").trim() + " ";
+        } else if (child.nodeType === 1) {               // Element node
+          const c = child as Element;
+          // Skip SVG subtrees — they're icons, not labels
+          if (c.namespaceURI !== "http://www.w3.org/2000/svg") {
+            text += ((c as HTMLElement).innerText || c.textContent || "").trim() + " ";
+          }
+        }
+      }
+      text = text.trim().replace(/\s+/g, " ").slice(0, 80);
+      return text || (el.textContent ?? "").trim().replace(/\s+/g, " ").slice(0, 80);
+    }
+
     let lastClickMs   = 0;
     const clickBurst: { t: number; x: number; y: number }[] = [];
 
     const onClick = (e: MouseEvent) => {
-      const now    = Date.now();
-      const target = e.target as HTMLElement;
-      const el     = target.closest("a,button,[role='button'],input[type='submit'],input[type='button']") ?? target;
+      const now = Date.now();
 
-      // Rage-click: 3+ clicks within 1 s within 80px area
+      // composedPath() gives the full DOM path from innermost to outermost;
+      // this is more accurate than e.target for SVG children and shadow DOM.
+      const composed = (e.composedPath ? e.composedPath() : [e.target]) as EventTarget[];
+
+      // Walk the path upward to find the first interactive element
+      let el: Element | null = null;
+      for (const node of composed) {
+        if (!(node instanceof Element)) continue;
+        if (node === document.body || node === document.documentElement) break;
+        if (node.matches(INTERACTIVE)) { el = node; break; }
+      }
+
+      // If no interactive parent found, check if the click was inside SVG.
+      // Walk from the raw target up to SVG root, then look for a button/link
+      // immediately outside the SVG (e.g. <button><svg>…</svg></button>).
+      if (!el) {
+        const rawTarget = composed[0] as Element | null;
+        if (rawTarget instanceof Element) {
+          const svgRoot = rawTarget.closest?.("svg");
+          if (svgRoot) {
+            const outside = svgRoot.parentElement?.closest(INTERACTIVE);
+            if (outside) {
+              el = outside;
+            } else {
+              // Pure decorative SVG with no interactive wrapper — skip
+              return;
+            }
+          } else {
+            el = rawTarget;
+          }
+        }
+      }
+      if (!el) return;
+
+      // Rage-click: 3+ clicks within 1 s within 80 px area
       const fresh = clickBurst.filter((c) => now - c.t < 1000);
       fresh.push({ t: now, x: e.clientX, y: e.clientY });
       if (fresh.length >= 3) {
         const xs = fresh.map((c) => c.x), ys = fresh.map((c) => c.y);
-        const spread = Math.max(...xs) - Math.min(...xs) + (Math.max(...ys) - Math.min(...ys));
-        if (spread < 80) {
+        if (Math.max(...xs) - Math.min(...xs) + (Math.max(...ys) - Math.min(...ys)) < 80) {
           enqueue("rage_click", { count: fresh.length });
           fresh.length = 0;
         }
       }
       clickBurst.splice(0, clickBurst.length, ...fresh);
 
-      // Regular click — throttle to 1 per 300 ms
+      // Throttle regular clicks to 1 per 300 ms
       if (now - lastClickMs < 300) return;
       lastClickMs = now;
 
-      const text = (el.textContent ?? "").trim().replace(/\s+/g, " ").slice(0, 80);
-      const href = (el as HTMLAnchorElement).href;
+      const text     = getClickLabel(el);
+      const href     = (el as HTMLAnchorElement).href || el.closest?.("a")?.href;
       const isExternal = href && !href.startsWith(window.location.origin);
 
       enqueue("click", {
-        element:  el.tagName?.toLowerCase(),
-        text:     text || undefined,
-        href:     href ? (isExternal ? href : href.replace(window.location.origin, "")) : undefined,
-        id:       el.id || undefined,
+        element: el.tagName?.toLowerCase(),
+        text:    text || undefined,
+        href:    href ? (isExternal ? href : href.replace(window.location.origin, "")) : undefined,
+        id:      (el as HTMLElement).id || undefined,
       });
     };
 
