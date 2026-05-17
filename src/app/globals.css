@@ -784,6 +784,14 @@ select {
 }
 
 /* ── Kleo testimonial card ───────────────────────────── */
+/* ── Performance: defer rendering for off-screen sections ── */
+.zari-wall-section,
+.zari-founder-section,
+.zari-faq-section {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 800px;
+}
+
 .kleo-testimonial {
   background: #FFFFFF;
   border: 1px solid #E4E8F5;

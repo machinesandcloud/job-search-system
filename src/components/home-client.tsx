@@ -2551,7 +2551,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
           Used by candidates targeting
         </p>
         <div style={{ overflow:"hidden", WebkitMaskImage:"linear-gradient(to right,transparent,black 5%,black 95%,transparent)", maskImage:"linear-gradient(to right,transparent,black 5%,black 95%,transparent)" }}>
-          <div style={{ display:"flex", alignItems:"center", gap:80, animation:"marquee-x 38s linear infinite", whiteSpace:"nowrap" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:80, animation:"marquee-x 38s linear infinite", whiteSpace:"nowrap", willChange:"transform" }}>
             {[...LOGOS,...LOGOS].map((l,i) => (
               <div key={i} style={{ display:"flex", alignItems:"center", justifyContent:"center", height:56, flexShrink:0 }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
