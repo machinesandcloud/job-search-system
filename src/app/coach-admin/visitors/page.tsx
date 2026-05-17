@@ -76,6 +76,7 @@ export default async function VisitorsPage() {
 
   const [
     liveCount,
+    liveSessions,
     todaySessions,
     last30dSessions,
     recentSessions,
@@ -88,6 +89,12 @@ export default async function VisitorsPage() {
     last7dPageViews,
   ] = await Promise.all([
     prisma.visitorSession.count({ where: { lastSeenAt: { gte: last5min }, device: { not: "bot" } } }),
+    prisma.visitorSession.findMany({
+      where: { lastSeenAt: { gte: last5min }, device: { not: "bot" } },
+      orderBy: { lastSeenAt: "desc" },
+      take: 20,
+      include: { pageViews: { orderBy: { createdAt: "desc" }, take: 1, select: { page: true, title: true, createdAt: true } } },
+    }),
     prisma.visitorSession.count({ where: { firstSeenAt: { gte: today }, device: { not: "bot" } } }),
     prisma.visitorSession.count({ where: { firstSeenAt: { gte: last30d }, device: { not: "bot" } } }),
     prisma.visitorSession.findMany({
@@ -163,9 +170,9 @@ export default async function VisitorsPage() {
     { label: "Pages / session", value: avgPagesPerSession,   sub: "recent 50",  color: "var(--ca-text2)" },
   ];
 
-  // Grid columns: icon | visitor+IP | browser | os | country | pages | first seen | type | →
-  const COLS = "28px 1fr 90px 70px 90px 44px 76px 70px 20px";
-  const HEADERS = ["", "Visitor / IP", "Browser", "OS", "Country", "Pages", "First seen", "Type", ""];
+  // Grid columns: icon | visitor+IP | browser | os | location | pages | first seen | type | →
+  const COLS = "28px 1fr 90px 70px 110px 44px 76px 70px 20px";
+  const HEADERS = ["", "Visitor / Landing page", "Browser", "OS", "Location", "Pages", "First seen", "Type", ""];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -187,6 +194,52 @@ export default async function VisitorsPage() {
           </div>
         ))}
       </div>
+
+      {/* Live visitors */}
+      {liveCount > 0 && (
+        <Card>
+          <div style={{ padding: "12px 14px 10px", borderBottom: "1px solid var(--ca-bd)", display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: "#22C55E", boxShadow: "0 0 0 3px rgba(34,197,94,0.25)", flexShrink: 0 }} />
+            <span style={{ fontSize: 12, fontWeight: 700, color: "var(--ca-text)", letterSpacing: "-0.01em" }}>Live right now</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: "#22C55E", background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.3)", borderRadius: 99, padding: "0 7px", lineHeight: "18px" }}>{liveCount}</span>
+            <span style={{ fontSize: 10.5, color: "var(--ca-text3)", marginLeft: "auto" }}>active in last 5 min · auto-refreshes on next visit</span>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "28px 1fr 90px 90px 80px", gap: 8, padding: "7px 14px", borderBottom: "1px solid var(--ca-bd)" }}>
+            {["", "Current page", "Location", "Browser", "Active"].map((h, i) => (
+              <span key={i} style={{ fontSize: 10, fontWeight: 700, color: "var(--ca-text3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{h}</span>
+            ))}
+          </div>
+          {liveSessions.map((s: typeof liveSessions[0], i: number) => {
+            const currentPage = s.pageViews[0];
+            const secAgo = Math.round((Date.now() - new Date(s.lastSeenAt).getTime()) / 1000);
+            return (
+              <Link
+                key={s.id}
+                href={`/coach-admin/visitors/${s.id}`}
+                style={{ display: "grid", gridTemplateColumns: "28px 1fr 90px 90px 80px", gap: 8, padding: "8px 14px", borderTop: i > 0 ? "1px solid var(--ca-bd)" : "none", alignItems: "center", textDecoration: "none", transition: "background 0.1s" }}
+                className="coach-admin-row-hover"
+              >
+                <span style={{ fontSize: 14, textAlign: "center" }}>{deviceIcon(s.device)}</span>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 500, color: "var(--ca-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {currentPage?.title || currentPage?.page || "—"}
+                  </div>
+                  {currentPage?.page && currentPage.title && (
+                    <div style={{ fontSize: 10.5, fontFamily: "monospace", color: "var(--ca-text3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{currentPage.page}</div>
+                  )}
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  {(s.city || s.region) && <div style={{ fontSize: 11.5, color: "var(--ca-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{[s.city, s.region].filter(Boolean).join(", ")}</div>}
+                  {s.country && <div style={{ fontSize: 10.5, color: "var(--ca-text3)" }}>{s.country}</div>}
+                  {!s.city && !s.region && !s.country && <span style={{ color: "var(--ca-text3)", fontSize: 11 }}>—</span>}
+                </div>
+                <span style={{ fontSize: 11.5, fontWeight: 600, color: browserColor(s.browser) }}>{s.browser || "—"}</span>
+                <span style={{ fontSize: 11, color: "#22C55E", fontWeight: 600 }}>{secAgo < 60 ? `${secAgo}s ago` : `${Math.floor(secAgo / 60)}m ago`}</span>
+              </Link>
+            );
+          })}
+        </Card>
+      )}
 
       {/* Main grid */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 16, alignItems: "start" }}>
@@ -217,12 +270,14 @@ export default async function VisitorsPage() {
                 >
                   <span style={{ fontSize: 14, textAlign: "center" }}>{deviceIcon(s.device)}</span>
 
-                  {/* Visitor cell: landing page + IP + referrer + UTM */}
+                  {/* Visitor cell: page title + path + IP + referrer + UTM */}
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: 12.5, fontWeight: 500, color: "var(--ca-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={s.landingPage || ""}>{path}</div>
-                    {s.ipAddress && (
-                      <div style={{ fontSize: 10.5, color: "var(--ca-text3)", fontFamily: "monospace", marginTop: 1 }}>{s.ipAddress}</div>
-                    )}
+                    <div style={{ fontSize: 12.5, fontWeight: 500, color: "var(--ca-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={s.landingPageTitle || s.landingPage || ""}>
+                      {s.landingPageTitle || path}
+                    </div>
+                    <div style={{ fontSize: 10.5, fontFamily: "monospace", color: "var(--ca-text3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginTop: 1 }}>
+                      {path}{s.ipAddress ? ` · ${s.ipAddress}` : ""}
+                    </div>
                     {s.referrer && (
                       <div style={{ fontSize: 10.5, color: "var(--ca-text3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={s.referrer}>
                         ← {(() => { try { return new URL(s.referrer).hostname; } catch { return s.referrer; } })()}
@@ -238,11 +293,16 @@ export default async function VisitorsPage() {
                   <span style={{ fontSize: 11.5, fontWeight: 600, color: browserColor(s.browser) }}>{s.browser || "—"}</span>
                   <span style={{ fontSize: 11.5, color: "var(--ca-text2)" }}>{s.os || "—"}</span>
 
-                  {/* Country + screen */}
+                  {/* Location: city / region / country + screen */}
                   <div style={{ minWidth: 0 }}>
-                    {s.country && <div style={{ fontSize: 11.5, color: "var(--ca-text2)" }}>{s.country}</div>}
+                    {(s.city || s.region) && (
+                      <div style={{ fontSize: 11.5, color: "var(--ca-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {[s.city, s.region].filter(Boolean).join(", ")}
+                      </div>
+                    )}
+                    {s.country && <div style={{ fontSize: 10.5, color: "var(--ca-text3)" }}>{s.country}</div>}
                     {s.screenWidth && <div style={{ fontSize: 10, color: "var(--ca-text3)" }}>{s.screenWidth}×{s.screenHeight}</div>}
-                    {!s.country && !s.screenWidth && <span style={{ color: "var(--ca-text3)", fontSize: 11 }}>—</span>}
+                    {!s.city && !s.region && !s.country && !s.screenWidth && <span style={{ color: "var(--ca-text3)", fontSize: 11 }}>—</span>}
                   </div>
 
                   <span style={{ fontSize: 12, fontWeight: 700, color: "var(--ca-text2)", textAlign: "center" }}>{s.pageViews.length}</span>

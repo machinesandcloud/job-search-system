@@ -3,186 +3,285 @@
 import { useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
-const VISITOR_ID_KEY = "_zvid";     // persists in localStorage (cross-session)
-const SESSION_ID_KEY = "_zsid";     // persists in sessionStorage (per browser tab)
-const PAGE_VIEW_KEY  = "_zpvid";    // current pageview ID for duration tracking
+// ─── Storage keys ────────────────────────────────────────────────────────────
+const VISITOR_ID_KEY = "_zvid";   // persists across sessions (localStorage)
+const SESSION_ID_KEY = "_zsid";   // per-tab session DB id (sessionStorage)
+const PAGE_VIEW_KEY  = "_zpvid";  // current pageview id for duration (sessionStorage)
+
+// ─── Module-level state (survives route changes, no React re-renders needed) ─
+let _sessionDbId: string | null = null;
+let _pageViewId:  string | null = null;
+let _eventQueue:  QueuedEvent[] = [];
+let _flushTimer:  ReturnType<typeof setTimeout> | null = null;
+
+interface QueuedEvent {
+  type: string;
+  page: string;
+  data?: Record<string, unknown>;
+  timestamp: string;
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function skip() {
+  if (typeof window === "undefined") return true;
+  // Don't track the admin portal itself
+  return window.location.pathname.startsWith("/coach-admin");
+}
 
 function getOrCreateVisitorId(): string {
   try {
     let id = localStorage.getItem(VISITOR_ID_KEY);
-    if (!id) {
-      id = crypto.randomUUID();
-      localStorage.setItem(VISITOR_ID_KEY, id);
-    }
+    if (!id) { id = crypto.randomUUID(); localStorage.setItem(VISITOR_ID_KEY, id); }
     return id;
-  } catch {
-    return "anon";
-  }
+  } catch { return "anon"; }
 }
 
-function getSessionDbId(): string | null {
-  try { return sessionStorage.getItem(SESSION_ID_KEY); } catch { return null; }
-}
+function ss(key: string): string | null { try { return sessionStorage.getItem(key); } catch { return null; } }
+function ssSet(key: string, val: string) { try { sessionStorage.setItem(key, val); } catch { /* */ } }
+function ssDel(key: string)              { try { sessionStorage.removeItem(key);   } catch { /* */ } }
 
-function setSessionDbId(id: string) {
-  try { sessionStorage.setItem(SESSION_ID_KEY, id); } catch { /* */ }
-}
-
-function getPageViewId(): string | null {
-  try { return sessionStorage.getItem(PAGE_VIEW_KEY); } catch { return null; }
-}
-
-function setPageViewId(id: string | null) {
-  try {
-    if (id) sessionStorage.setItem(PAGE_VIEW_KEY, id);
-    else sessionStorage.removeItem(PAGE_VIEW_KEY);
-  } catch { /* */ }
-}
-
-function getUtmParams(): Record<string, string> {
+function utmParams() {
   try {
     const p = new URLSearchParams(window.location.search);
     const out: Record<string, string> = {};
-    for (const key of ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"]) {
-      const v = p.get(key);
-      if (v) out[key] = v;
+    for (const k of ["utm_source", "utm_medium", "utm_campaign"]) {
+      const v = p.get(k); if (v) out[k] = v;
     }
     return out;
   } catch { return {}; }
 }
 
-async function createSession(visitorId: string): Promise<string | null> {
-  const utms = getUtmParams();
-  try {
-    const res = await fetch("/api/track", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        type: "session",
-        visitorId,
-        landingPage: window.location.pathname + window.location.search,
-        referrer: document.referrer || undefined,
-        utmSource: utms["utm_source"],
-        utmMedium: utms["utm_medium"],
-        utmCampaign: utms["utm_campaign"],
-        language: navigator.language,
-        screenWidth: window.screen?.width,
-        screenHeight: window.screen?.height,
-      }),
-      keepalive: true,
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.sessionDbId ?? null;
-  } catch { return null; }
+// ─── Event queue + flush ─────────────────────────────────────────────────────
+function enqueue(type: string, data?: Record<string, unknown>) {
+  if (!_sessionDbId || skip()) return;
+  _eventQueue.push({ type, page: window.location.pathname + window.location.search, data, timestamp: new Date().toISOString() });
+  if (!_flushTimer) _flushTimer = setTimeout(flushQueue, 3000);
 }
 
-async function sendPageView(sessionDbId: string, page: string, title: string): Promise<string | null> {
+async function flushQueue() {
+  _flushTimer = null;
+  if (!_sessionDbId || _eventQueue.length === 0) return;
+  const batch = _eventQueue.splice(0);
   try {
-    const res = await fetch("/api/track", {
+    await fetch("/api/track", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        type: "pageview",
-        sessionDbId,
-        page,
-        title,
-        referrer: document.referrer || undefined,
-      }),
+      body: JSON.stringify({ type: "events", sessionDbId: _sessionDbId, pageViewId: _pageViewId, events: batch }),
       keepalive: true,
     });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.pageViewId ?? null;
-  } catch { return null; }
-}
-
-async function sendDuration(pageViewId: string, duration: number) {
-  if (duration < 1) return;
-  try {
-    // sendBeacon defaults to text/plain — wrap in a Blob so the server receives application/json
-    const blob = new Blob(
-      [JSON.stringify({ type: "duration", pageViewId, duration })],
-      { type: "application/json" },
-    );
-    navigator.sendBeacon("/api/track", blob);
   } catch { /* */ }
 }
 
-export function VisitorTracker() {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const sessionDbIdRef = useRef<string | null>(null);
-  const pageStartRef   = useRef<number>(Date.now());
-  const initialized    = useRef(false);
+function flushQueueBeacon() {
+  if (_flushTimer) { clearTimeout(_flushTimer); _flushTimer = null; }
+  if (!_sessionDbId || _eventQueue.length === 0) return;
+  const batch = _eventQueue.splice(0);
+  try {
+    navigator.sendBeacon("/api/track", new Blob(
+      [JSON.stringify({ type: "events", sessionDbId: _sessionDbId, pageViewId: _pageViewId, events: batch })],
+      { type: "application/json" },
+    ));
+  } catch { /* */ }
+}
 
-  // Initialize session once on first mount
+function sendDurationBeacon(pvId: string, seconds: number) {
+  if (seconds < 1) return;
+  try {
+    navigator.sendBeacon("/api/track", new Blob(
+      [JSON.stringify({ type: "duration", pageViewId: pvId, duration: seconds })],
+      { type: "application/json" },
+    ));
+  } catch { /* */ }
+}
+
+// ─── Component ───────────────────────────────────────────────────────────────
+export function VisitorTracker() {
+  const pathname     = usePathname();
+  const searchParams = useSearchParams();
+  const pageStart    = useRef(Date.now());
+  const initialized  = useRef(false);
+
+  // ── 1. Init session once per tab ─────────────────────────────────────────
   useEffect(() => {
-    if (initialized.current) return;
+    if (initialized.current || skip()) return;
     initialized.current = true;
 
-    const visitorId = getOrCreateVisitorId();
-    const existingSession = getSessionDbId();
-
-    if (existingSession) {
-      sessionDbIdRef.current = existingSession;
-    } else {
-      createSession(visitorId).then((dbId) => {
-        if (dbId) {
-          sessionDbIdRef.current = dbId;
-          setSessionDbId(dbId);
-        }
-      });
+    const existing = ss(SESSION_ID_KEY);
+    if (existing) {
+      _sessionDbId = existing;
+      return;
     }
+
+    const utms = utmParams();
+    fetch("/api/track", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        type:             "session",
+        visitorId:        getOrCreateVisitorId(),
+        landingPage:      window.location.pathname + window.location.search,
+        landingPageTitle: document.title.slice(0, 300),
+        referrer:         document.referrer || undefined,
+        utmSource:        utms.utm_source,
+        utmMedium:        utms.utm_medium,
+        utmCampaign:      utms.utm_campaign,
+        language:         navigator.language,
+        screenWidth:      window.screen?.width,
+        screenHeight:     window.screen?.height,
+      }),
+      keepalive: true,
+    })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.sessionDbId) { _sessionDbId = d.sessionDbId; ssSet(SESSION_ID_KEY, d.sessionDbId); }
+      })
+      .catch(() => { /* */ });
   }, []);
 
-  // Track pageviews on route change
+  // ── 2. Page view on every route change ───────────────────────────────────
   useEffect(() => {
-    // Flush duration for the previous page
-    const prevPageViewId = getPageViewId();
-    if (prevPageViewId) {
-      const elapsed = Math.round((Date.now() - pageStartRef.current) / 1000);
-      sendDuration(prevPageViewId, elapsed);
-      setPageViewId(null);
+    if (skip()) return;
+
+    // Flush previous page duration + queued events
+    const prevPv = ss(PAGE_VIEW_KEY);
+    if (prevPv) {
+      sendDurationBeacon(prevPv, Math.round((Date.now() - pageStart.current) / 1000));
+      ssDel(PAGE_VIEW_KEY);
+      _pageViewId = null;
     }
-    pageStartRef.current = Date.now();
+    flushQueueBeacon();
+    pageStart.current = Date.now();
 
     const page = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : "");
 
-    // Wait for session if it's being created
     const track = async () => {
-      let sessionDbId = sessionDbIdRef.current || getSessionDbId();
-      if (!sessionDbId) {
-        // Session not ready yet — wait a bit and retry
-        await new Promise((r) => setTimeout(r, 800));
-        sessionDbId = sessionDbIdRef.current || getSessionDbId();
+      let dbId = _sessionDbId || ss(SESSION_ID_KEY);
+      if (!dbId) {
+        await new Promise((r) => setTimeout(r, 1000));
+        dbId = _sessionDbId || ss(SESSION_ID_KEY);
       }
-      if (!sessionDbId) return;
+      if (!dbId) return;
+      _sessionDbId = dbId;
 
-      const pvId = await sendPageView(sessionDbId, page, document.title);
-      if (pvId) setPageViewId(pvId);
+      try {
+        const res = await fetch("/api/track", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ type: "pageview", sessionDbId: dbId, page, title: document.title, referrer: document.referrer || undefined }),
+          keepalive: true,
+        });
+        const d = await res.json();
+        if (d.pageViewId) { _pageViewId = d.pageViewId; ssSet(PAGE_VIEW_KEY, d.pageViewId); }
+      } catch { /* */ }
     };
 
     track();
   }, [pathname, searchParams]);
 
-  // Flush duration on tab close / visibility hide
+  // ── 3. Granular event listeners ───────────────────────────────────────────
+  useEffect(() => {
+    if (skip()) return;
+
+    // Scroll depth milestones per page
+    const scrolled = new Set<number>();
+    const onScroll = () => {
+      const el    = document.documentElement;
+      const total = el.scrollHeight - el.clientHeight;
+      if (total <= 0) return;
+      const pct = Math.round((el.scrollTop / total) * 100);
+      for (const m of [25, 50, 75, 90]) {
+        if (pct >= m && !scrolled.has(m)) { scrolled.add(m); enqueue("scroll", { depth: m }); }
+      }
+    };
+
+    // Click tracking (throttled, with rage-click detection)
+    let lastClickMs   = 0;
+    const clickBurst: { t: number; x: number; y: number }[] = [];
+
+    const onClick = (e: MouseEvent) => {
+      const now    = Date.now();
+      const target = e.target as HTMLElement;
+      const el     = target.closest("a,button,[role='button'],input[type='submit'],input[type='button']") ?? target;
+
+      // Rage-click: 3+ clicks within 1 s within 80px area
+      const fresh = clickBurst.filter((c) => now - c.t < 1000);
+      fresh.push({ t: now, x: e.clientX, y: e.clientY });
+      if (fresh.length >= 3) {
+        const xs = fresh.map((c) => c.x), ys = fresh.map((c) => c.y);
+        const spread = Math.max(...xs) - Math.min(...xs) + (Math.max(...ys) - Math.min(...ys));
+        if (spread < 80) {
+          enqueue("rage_click", { count: fresh.length });
+          fresh.length = 0;
+        }
+      }
+      clickBurst.splice(0, clickBurst.length, ...fresh);
+
+      // Regular click — throttle to 1 per 300 ms
+      if (now - lastClickMs < 300) return;
+      lastClickMs = now;
+
+      const text = (el.textContent ?? "").trim().replace(/\s+/g, " ").slice(0, 80);
+      const href = (el as HTMLAnchorElement).href;
+      const isExternal = href && !href.startsWith(window.location.origin);
+
+      enqueue("click", {
+        element:  el.tagName?.toLowerCase(),
+        text:     text || undefined,
+        href:     href ? (isExternal ? href : href.replace(window.location.origin, "")) : undefined,
+        id:       el.id || undefined,
+      });
+    };
+
+    // Form: field touched + submit
+    const touched = new Set<string>();
+    const onFocusIn = (e: FocusEvent) => {
+      const el = e.target as HTMLInputElement;
+      if (!["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName)) return;
+      const form    = el.closest("form");
+      const formKey = form?.id || form?.getAttribute("name") || form?.action || "form";
+      if (touched.has(formKey)) return;
+      touched.add(formKey);
+      enqueue("form_start", { form: formKey !== "form" ? formKey : undefined, field: el.name || el.type || el.tagName.toLowerCase() });
+    };
+
+    const onSubmit = (e: SubmitEvent) => {
+      const form = e.target as HTMLFormElement;
+      enqueue("form_submit", { form: form.id || form.getAttribute("name") || undefined });
+    };
+
+    // Copy (captures intent — not the actual content for privacy)
+    const onCopy = () => {
+      const sel = window.getSelection()?.toString().trim();
+      if (sel && sel.length > 5) enqueue("copy", { length: sel.length, preview: sel.slice(0, 60) });
+    };
+
+    window.addEventListener("scroll",    onScroll,   { passive: true });
+    document.addEventListener("click",    onClick,    { passive: true });
+    document.addEventListener("focusin",  onFocusIn,  { passive: true });
+    document.addEventListener("submit",   onSubmit);
+    document.addEventListener("copy",     onCopy,     { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll",    onScroll);
+      document.removeEventListener("click",    onClick);
+      document.removeEventListener("focusin",  onFocusIn);
+      document.removeEventListener("submit",   onSubmit);
+      document.removeEventListener("copy",     onCopy);
+    };
+  }, [pathname]); // re-attach on navigation (resets scroll milestones naturally)
+
+  // ── 4. Flush on tab hide / close ─────────────────────────────────────────
   useEffect(() => {
     const flush = () => {
-      const pvId = getPageViewId();
-      if (!pvId) return;
-      const elapsed = Math.round((Date.now() - pageStartRef.current) / 1000);
-      sendDuration(pvId, elapsed);
+      const pvId = ss(PAGE_VIEW_KEY);
+      if (pvId) sendDurationBeacon(pvId, Math.round((Date.now() - pageStart.current) / 1000));
+      flushQueueBeacon();
     };
-
-    const onVisibilityChange = () => {
-      if (document.visibilityState === "hidden") flush();
-    };
-
-    document.addEventListener("visibilitychange", onVisibilityChange);
+    const onVis = () => { if (document.visibilityState === "hidden") flush(); };
+    document.addEventListener("visibilitychange", onVis);
     window.addEventListener("beforeunload", flush);
     return () => {
-      document.removeEventListener("visibilitychange", onVisibilityChange);
+      document.removeEventListener("visibilitychange", onVis);
       window.removeEventListener("beforeunload", flush);
     };
   }, []);

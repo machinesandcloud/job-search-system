@@ -606,21 +606,40 @@ model VisitorSession {
   os           String?
   device       String?           // desktop | mobile | tablet | bot
   country      String?
-  referrer     String?           @db.Text
-  landingPage  String?           @db.Text
-  utmSource    String?
-  utmMedium    String?
-  utmCampaign  String?
-  language     String?
-  screenWidth  Int?
-  screenHeight Int?
-  firstSeenAt  DateTime          @default(now())
-  lastSeenAt   DateTime          @default(now())
-  pageViews    VisitorPageView[]
+  referrer         String?           @db.Text
+  landingPage      String?           @db.Text
+  landingPageTitle String?
+  utmSource        String?
+  utmMedium        String?
+  utmCampaign      String?
+  language         String?
+  screenWidth      Int?
+  screenHeight     Int?
+  city             String?
+  region           String?
+  timezone         String?
+  firstSeenAt      DateTime          @default(now())
+  lastSeenAt       DateTime          @default(now())
+  pageViews        VisitorPageView[]
+  events           VisitorEvent[]
 
   @@index([visitorId])
   @@index([firstSeenAt])
   @@index([lastSeenAt])
+}
+
+model VisitorEvent {
+  id         String         @id @default(uuid()) @db.Uuid
+  sessionId  String         @db.Uuid
+  pageViewId String?        @db.Uuid
+  type       String         // click | scroll | form_start | form_submit | rage_click | copy
+  page       String         @db.Text
+  data       Json?
+  createdAt  DateTime       @default(now())
+  session    VisitorSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+  @@index([type, createdAt])
 }
 
 model VisitorPageView {
