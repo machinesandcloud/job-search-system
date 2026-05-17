@@ -141,17 +141,31 @@ export default async function VisitorsPage() {
     prisma.visitorPageView.count({ where: { createdAt: { gte: last7d }, session: { device: { not: "bot" } } } }),
   ]);
 
-  // Determine which visitorIds are returning (have more than one session total)
+  // Determine returning visitors — check both visitorId (localStorage) and IP address
   const distinctVisitorIds = [...new Set(recentSessions.map((s: typeof recentSessions[0]) => s.visitorId))].filter((v) => v !== "anon");
-  const returningData = distinctVisitorIds.length
-    ? await prisma.visitorSession.groupBy({
-        by: ["visitorId"],
-        _count: { id: true },
-        where: { visitorId: { in: distinctVisitorIds } },
-        having: { id: { _count: { gt: 1 } } },
-      })
-    : [];
-  const returningSet = new Set(returningData.map((r: typeof returningData[0]) => r.visitorId));
+  const distinctIps = [...new Set(recentSessions.map((s: typeof recentSessions[0]) => s.ipAddress))].filter(Boolean) as string[];
+
+  const [returningData, returningIpData] = await Promise.all([
+    distinctVisitorIds.length
+      ? prisma.visitorSession.groupBy({
+          by: ["visitorId"],
+          _count: { id: true },
+          where: { visitorId: { in: distinctVisitorIds } },
+          having: { id: { _count: { gt: 1 } } },
+        })
+      : Promise.resolve([]),
+    distinctIps.length
+      ? prisma.visitorSession.groupBy({
+          by: ["ipAddress"],
+          _count: { id: true },
+          where: { ipAddress: { in: distinctIps } },
+          having: { id: { _count: { gt: 1 } } },
+        })
+      : Promise.resolve([]),
+  ]);
+
+  const returningSet   = new Set(returningData.map((r: typeof returningData[0]) => r.visitorId));
+  const returningIpSet = new Set(returningIpData.map((r: typeof returningIpData[0]) => r.ipAddress as string));
 
   const avgPagesPerSession = recentSessions.length
     ? (recentSessions.reduce((s: number, r: typeof recentSessions[0]) => s + r.pageViews.length, 0) / recentSessions.length).toFixed(1)
@@ -204,8 +218,8 @@ export default async function VisitorsPage() {
             <span style={{ fontSize: 11, fontWeight: 600, color: "#22C55E", background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.3)", borderRadius: 99, padding: "0 7px", lineHeight: "18px" }}>{liveCount}</span>
             <span style={{ fontSize: 10.5, color: "var(--ca-text3)", marginLeft: "auto" }}>active in last 5 min · auto-refreshes on next visit</span>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "28px 1fr 90px 90px 80px", gap: 8, padding: "7px 14px", borderBottom: "1px solid var(--ca-bd)" }}>
-            {["", "Current page", "Location", "Browser", "Active"].map((h, i) => (
+          <div style={{ display: "grid", gridTemplateColumns: "28px 1fr 90px 90px 50px 30px", gap: 8, padding: "7px 14px", borderBottom: "1px solid var(--ca-bd)" }}>
+            {["", "Current page", "Location", "Browser", "Active", ""].map((h, i) => (
               <span key={i} style={{ fontSize: 10, fontWeight: 700, color: "var(--ca-text3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{h}</span>
             ))}
           </div>
@@ -213,17 +227,25 @@ export default async function VisitorsPage() {
             const currentPage = s.pageViews[0];
             const secAgo = Math.round((Date.now() - new Date(s.lastSeenAt).getTime()) / 1000);
             return (
-              <Link
+              <div
                 key={s.id}
-                href={`/coach-admin/visitors/${s.id}`}
-                style={{ display: "grid", gridTemplateColumns: "28px 1fr 90px 90px 80px", gap: 8, padding: "8px 14px", borderTop: i > 0 ? "1px solid var(--ca-bd)" : "none", alignItems: "center", textDecoration: "none", transition: "background 0.1s" }}
-                className="coach-admin-row-hover"
+                style={{ display: "grid", gridTemplateColumns: "28px 1fr 90px 90px 50px 30px", gap: 8, padding: "8px 14px", borderTop: i > 0 ? "1px solid var(--ca-bd)" : "none", alignItems: "center" }}
               >
                 <span style={{ fontSize: 14, textAlign: "center" }}>{deviceIcon(s.device)}</span>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 12.5, fontWeight: 500, color: "var(--ca-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {currentPage?.title || currentPage?.page || "—"}
-                  </div>
+                  {currentPage?.page ? (
+                    <a
+                      href={currentPage.page}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ fontSize: 12.5, fontWeight: 500, color: "var(--ca-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textDecoration: "none", display: "block" }}
+                    >
+                      {currentPage.title || currentPage.page}
+                      <span style={{ fontSize: 10, color: "var(--ca-text3)", marginLeft: 4 }}>↗</span>
+                    </a>
+                  ) : (
+                    <div style={{ fontSize: 12.5, color: "var(--ca-text3)" }}>—</div>
+                  )}
                   {currentPage?.page && currentPage.title && (
                     <div style={{ fontSize: 10.5, fontFamily: "monospace", color: "var(--ca-text3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{currentPage.page}</div>
                   )}
@@ -235,7 +257,8 @@ export default async function VisitorsPage() {
                 </div>
                 <span style={{ fontSize: 11.5, fontWeight: 600, color: browserColor(s.browser) }}>{s.browser || "—"}</span>
                 <span style={{ fontSize: 11, color: "#22C55E", fontWeight: 600 }}>{secAgo < 60 ? `${secAgo}s ago` : `${Math.floor(secAgo / 60)}m ago`}</span>
-              </Link>
+                <Link href={`/coach-admin/visitors/${s.id}`} style={{ fontSize: 12, color: "var(--ca-text3)", textDecoration: "none", textAlign: "right" }}>→</Link>
+              </div>
             );
           })}
         </Card>
@@ -260,21 +283,26 @@ export default async function VisitorsPage() {
 
             {recentSessions.length ? recentSessions.map((s: typeof recentSessions[0], i: number) => {
               const path = (() => { try { return new URL(s.landingPage || "/", "https://x").pathname; } catch { return s.landingPage || "/"; } })();
-              const isReturning = returningSet.has(s.visitorId);
+              const isReturning = returningSet.has(s.visitorId) || (s.ipAddress ? returningIpSet.has(s.ipAddress) : false);
               return (
-                <Link
+                <div
                   key={s.id}
-                  href={`/coach-admin/visitors/${s.id}`}
-                  style={{ display: "grid", gridTemplateColumns: COLS, padding: "8px 14px", gap: 8, borderTop: i > 0 ? "1px solid var(--ca-bd)" : "none", alignItems: "center", textDecoration: "none", transition: "background 0.1s" }}
-                  className="coach-admin-row-hover"
+                  style={{ display: "grid", gridTemplateColumns: COLS, padding: "8px 14px", gap: 8, borderTop: i > 0 ? "1px solid var(--ca-bd)" : "none", alignItems: "center" }}
                 >
                   <span style={{ fontSize: 14, textAlign: "center" }}>{deviceIcon(s.device)}</span>
 
-                  {/* Visitor cell: page title + path + IP + referrer + UTM */}
+                  {/* Visitor cell: clickable title/path links to actual page, IP below */}
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: 12.5, fontWeight: 500, color: "var(--ca-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={s.landingPageTitle || s.landingPage || ""}>
+                    <a
+                      href={path}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ fontSize: 12.5, fontWeight: 500, color: "var(--ca-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textDecoration: "none", display: "block" }}
+                      title={`Visit ${path} ↗`}
+                    >
                       {s.landingPageTitle || path}
-                    </div>
+                      <span style={{ fontSize: 10, color: "var(--ca-text3)", marginLeft: 4 }}>↗</span>
+                    </a>
                     <div style={{ fontSize: 10.5, fontFamily: "monospace", color: "var(--ca-text3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginTop: 1 }}>
                       {path}{s.ipAddress ? ` · ${s.ipAddress}` : ""}
                     </div>
@@ -319,8 +347,9 @@ export default async function VisitorsPage() {
                     {isReturning ? "Returning" : "New"}
                   </span>
 
-                  <span style={{ fontSize: 12, color: "var(--ca-text3)", textAlign: "right" }}>→</span>
-                </Link>
+                  {/* Arrow links to session detail */}
+                  <Link href={`/coach-admin/visitors/${s.id}`} style={{ fontSize: 12, color: "var(--ca-text3)", textAlign: "right", textDecoration: "none" }}>→</Link>
+                </div>
               );
             }) : <EmptyRow label="No sessions yet — tracking activates as soon as a visitor loads the site" />}
           </Card>
