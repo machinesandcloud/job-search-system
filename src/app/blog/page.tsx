@@ -895,6 +895,24 @@ const POSTS = [
     date: "May 2025",
     accent: "#DC2626",
   },
+  {
+    slug: "how-to-get-a-job-at-amazon",
+    title: "How to Get a Job at Amazon — The Complete Guide (2025)",
+    excerpt: "Amazon's 16 Leadership Principles govern every interview and hiring decision. Stage-by-stage breakdown of the process, what each LP actually tests, how the bar raiser works, and the STAR story prep that gets you through the loop.",
+    tag: "Interviews",
+    readTime: "14 min read",
+    date: "May 2025",
+    accent: "#F97316",
+  },
+  {
+    slug: "supply-chain-resume",
+    title: "Supply Chain Resume — Examples, Skills & ATS Tips (2025)",
+    excerpt: "Supply chain resumes that get callbacks show business outcomes — efficiency gains, cost savings, fill rate improvements — not just processes managed. Before/after examples across analyst, procurement, logistics, and demand planning tracks.",
+    tag: "Resume",
+    readTime: "11 min read",
+    date: "May 2025",
+    accent: "#059669",
+  },
 ];
 
 export default async function BlogPage() {

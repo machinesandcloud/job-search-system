@@ -208,6 +208,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/compare/zari-vs-careerone`,                   lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/compare/zari-vs-cv-library`,                  lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/blog/cybersecurity-resume`,                   lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/how-to-get-a-job-at-amazon`,            lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/supply-chain-resume`,                    lastModified: now, changeFrequency: "monthly", priority: 0.90 },
     { url: `${base}/compare/zari-vs-jobstreet`,                   lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/compare/zari-vs-totaljobs`,                   lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/blog/ux-designer-resume`,                     lastModified: now, changeFrequency: "monthly", priority: 0.90 },
