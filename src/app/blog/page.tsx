@@ -949,6 +949,24 @@ const POSTS = [
     date: "May 2025",
     accent: "#F97316",
   },
+  {
+    slug: "how-to-write-a-linkedin-post",
+    title: "How to Write a LinkedIn Post That Gets Seen (2025)",
+    excerpt: "LinkedIn's algorithm rewards early engagement — but most posts generate no comments in the first hour and disappear. The hook problem, post structures that drive engagement, and how to build visibility that brings inbound recruiter interest.",
+    tag: "LinkedIn",
+    readTime: "10 min read",
+    date: "May 2025",
+    accent: "#0D7182",
+  },
+  {
+    slug: "how-to-get-a-job-at-microsoft",
+    title: "How to Get a Job at Microsoft — Interview Process & Tips (2025)",
+    excerpt: "Microsoft's loop is collaborative, Growth Mindset-forward, and significantly different from Amazon or Google. How each stage works, what the 'as appropriate' hire evaluates, and how to answer behavioral questions the Microsoft way.",
+    tag: "Interviews",
+    readTime: "13 min read",
+    date: "May 2025",
+    accent: "#7C3AED",
+  },
 ];
 
 export default async function BlogPage() {

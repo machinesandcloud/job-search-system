@@ -216,6 +216,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/blog/salary-negotiation-email`,               lastModified: now, changeFrequency: "monthly", priority: 0.90 },
     { url: `${base}/compare/zari-vs-naukri`,                      lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/compare/zari-vs-efinancialcareers`,           lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/blog/how-to-write-a-linkedin-post`,          lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/how-to-get-a-job-at-microsoft`,         lastModified: now, changeFrequency: "monthly", priority: 0.90 },
     { url: `${base}/compare/zari-vs-jobstreet`,                   lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/compare/zari-vs-totaljobs`,                   lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/blog/ux-designer-resume`,                     lastModified: now, changeFrequency: "monthly", priority: 0.90 },
