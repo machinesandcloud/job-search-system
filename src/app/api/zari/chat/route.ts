@@ -272,7 +272,7 @@ You're on a live voice call. Speak accordingly.
   let reply = await openaiChat(messages, {
     model:       process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o-mini",
     temperature: 0.75,
-    maxTokens:   1200,
+    maxTokens:   4096,
     usageFeature: "zari_chat",
     usageMetadata: {
       stage,
@@ -296,7 +296,7 @@ You're on a live voice call. Speak accordingly.
             model: process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile",
             messages,
             temperature: 0.75,
-            max_tokens: 1200,
+            max_tokens: 4096,
           }),
         });
         if (groqRes.ok) {
