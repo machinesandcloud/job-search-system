@@ -199,6 +199,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/blog/salary-expectations-interview`,          lastModified: now, changeFrequency: "monthly", priority: 0.90 },
     { url: `${base}/blog/data-analyst-resume`,                    lastModified: now, changeFrequency: "monthly", priority: 0.90 },
     { url: `${base}/blog/job-offer-letter`,                       lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/compare/zari-vs-jobstreet`,                   lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/compare/zari-vs-totaljobs`,                   lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/blog/ux-designer-resume`,                     lastModified: now, changeFrequency: "monthly", priority: 0.90 },
 
     // Auth / conversion
     { url: `${base}/signup`,  lastModified: now, changeFrequency: "monthly", priority: 0.8 },

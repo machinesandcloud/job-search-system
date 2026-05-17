@@ -832,6 +832,15 @@ const POSTS = [
     date: "May 2025",
     accent: "#7C3AED",
   },
+  {
+    slug: "ux-designer-resume",
+    title: "UX Designer Resume — Portfolio, ATS Tips & Examples (2025)",
+    excerpt: "UX design hiring is portfolio-first — but ATS filters your resume before anyone sees your Figma link. How to write a UX resume that passes the filter and makes recruiters want to click through to your portfolio.",
+    tag: "Resume",
+    readTime: "10 min read",
+    date: "May 2025",
+    accent: "#8B5CF6",
+  },
 ];
 
 export default async function BlogPage() {
