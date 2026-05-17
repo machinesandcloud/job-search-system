@@ -34,6 +34,8 @@ const COMPARISONS = [
   { href: "/compare/zari-vs-resume-io", title: "Zari vs Resume.io", summary: "Resume.io builds a clean, professionally formatted resume. Zari optimizes it for ATS, coaches your interviews, LinkedIn, and salary negotiation. Which one you actually need." },
   { href: "/compare/zari-vs-indeed", title: "Zari vs Indeed", summary: "Indeed is the largest job search engine. Zari is an AI career coach. They're sequential, not competing — Indeed finds roles, Zari helps you land them." },
   { href: "/compare/zari-vs-glassdoor", title: "Zari vs Glassdoor", summary: "Glassdoor provides salary data, company reviews, and interview reports. Zari coaches you through using that data — from ATS optimization to offer negotiation." },
+  { href: "/compare/zari-vs-wellfound", title: "Zari vs Wellfound", summary: "Wellfound (AngelList) is the dominant startup job board with equity transparency and direct founder access. Zari coaches you to compete for those roles — resume, interviews, and startup offer negotiation." },
+  { href: "/compare/zari-vs-handshake", title: "Zari vs Handshake", summary: "Handshake connects students and recent grads with campus recruiters and early-career employers. Zari coaches the skills to compete — ATS resume optimization, interview prep, and first-offer negotiation." },
 ];
 
 export default async function ComparePage() {

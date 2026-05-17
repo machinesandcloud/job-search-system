@@ -598,6 +598,33 @@ const POSTS = [
     date: "May 2025",
     accent: "#0D7182",
   },
+  {
+    slug: "marketing-manager-resume",
+    title: "Marketing Manager Resume — Examples, Skills & ATS Tips (2025)",
+    excerpt: "What CMOs read for in a marketing resume — revenue attribution, channel depth, budget scale, and marketing stack fluency — by specialization (demand gen, content, brand, PMM) with before/after bullets and ATS keyword strategy.",
+    tag: "Resume",
+    readTime: "12 min read",
+    date: "May 2025",
+    accent: "#EC4899",
+  },
+  {
+    slug: "how-to-respond-to-job-rejection",
+    title: "How to Respond to a Job Rejection — Emails That Keep the Door Open (2025)",
+    excerpt: "Word-for-word rejection response emails for every situation — automated rejection, post-phone-screen, post-interview, and late-stage. Why responding graciously turns rejections into future opportunities.",
+    tag: "Job Search Strategy",
+    readTime: "9 min read",
+    date: "May 2025",
+    accent: "#DC2626",
+  },
+  {
+    slug: "how-to-negotiate-remote-work",
+    title: "How to Negotiate Remote Work — Scripts for Any Situation (2025)",
+    excerpt: "Scripts for 4 scenarios: negotiating remote in a new offer, asking your current employer, responding to an RTO mandate, and pushing hybrid to fully remote — with timing strategy and what to do when they say no.",
+    tag: "Negotiation",
+    readTime: "9 min read",
+    date: "May 2025",
+    accent: "#059669",
+  },
 ];
 
 export default async function BlogPage() {

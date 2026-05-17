@@ -92,6 +92,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/compare/zari-vs-resume-io`,        lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/compare/zari-vs-indeed`,           lastModified: now, changeFrequency: "monthly", priority: 0.90 },
     { url: `${base}/compare/zari-vs-glassdoor`,        lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/compare/zari-vs-wellfound`,        lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/compare/zari-vs-handshake`,        lastModified: now, changeFrequency: "monthly", priority: 0.88 },
 
     // Blog / resources
     { url: `${base}/blog`,                                        lastModified: now, changeFrequency: "weekly",  priority: 0.85 },
@@ -161,6 +163,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/blog/product-manager-resume`,                  lastModified: now, changeFrequency: "monthly", priority: 0.90 },
     { url: `${base}/blog/how-to-counter-offer`,                    lastModified: now, changeFrequency: "monthly", priority: 0.90 },
     { url: `${base}/blog/cv-vs-resume`,                            lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/marketing-manager-resume`,               lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/how-to-respond-to-job-rejection`,        lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/blog/how-to-negotiate-remote-work`,           lastModified: now, changeFrequency: "monthly", priority: 0.88 },
 
     // Auth / conversion
     { url: `${base}/signup`,  lastModified: now, changeFrequency: "monthly", priority: 0.8 },
