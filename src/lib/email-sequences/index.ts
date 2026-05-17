@@ -68,7 +68,7 @@ function makeTemplates(meta: Meta, unsubUrl: string, npsUrl: string): Record<Zar
   const planName = typeof meta.planName === "string" ? meta.planName : "Search";
   const referralUrl = typeof meta.referralUrl === "string" ? meta.referralUrl : `${APP_URL}/signup`;
   const testimonialUrl = typeof meta.testimonialUrl === "string" ? meta.testimonialUrl : `${APP_URL}/video-review`;
-  const annualUrl = `${APP_URL}/billing?plan=annual`;
+  const annualUrl = `${APP_URL}/settings/subscription?plan=annual`;
 
   return {
     lead_nurture: [

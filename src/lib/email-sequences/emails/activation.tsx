@@ -4,12 +4,12 @@ import { Layout, CtaButton, Blockquote, Divider, Signature, Step, p, muted, colo
 
 export function NonStarter1({ firstName, unsubscribeUrl }: { firstName?: string; unsubscribeUrl: string }) {
   return (
-    <Layout preview="You signed up but haven't started — here's the fastest way in." headline="You haven't started yet." unsubscribeUrl={unsubscribeUrl}>
+    <Layout preview="You signed up but haven't started. Here's the fastest way in." headline="You haven't started yet." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
-        {firstName ?? "Hey"} — you signed up for Zari 2 days ago but haven't run a session yet. Wanted to check in.
+        {firstName ?? "Hey"}, you signed up for Zari 2 days ago but haven't run a session yet. Wanted to check in.
       </Text>
       <Text style={p()}>
-        I know there's always something more urgent. But if you're actively job searching — or planning to be — every week you wait is a week of momentum you're not building.
+        I know there's always something more urgent. But if you're actively job searching, or planning to be, every week you wait is a week of momentum you're not building.
       </Text>
       <Text style={p({ fontWeight: "600" })}>The fastest way to start:</Text>
       <Blockquote>
@@ -29,18 +29,18 @@ export function NonStarter2({ firstName, unsubscribeUrl }: { firstName?: string;
   return (
     <Layout preview="Quick question: what's stopping you from using Zari?" headline="What's holding you back?" unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
-        {firstName ?? "Hey"} — I'll be direct. You've been signed up for almost a week and haven't started. I'm genuinely curious why.
+        {firstName ?? "Hey"}, I'll be direct. You've been signed up for almost a week and haven't started. I'm genuinely curious why.
       </Text>
       <Text style={p()}>Is it one of these?</Text>
       <Section style={{ margin: "16px 0 24px" }}>
         <Step number={1} title="Not sure where to start">
-          Start here: open Zari → Resume Review → paste your resume → ask for the top 5 changes that would improve your callback rate. Done in 15 minutes.
+          Start here: open Zari, go to Resume Review, paste your resume, and ask for the top 5 changes that would improve your callback rate. Done in 15 minutes.
         </Step>
         <Step number={2} title="Not actively searching right now">
-          That's fine. But if you're planning to search in the next 6 months, now is the best time to get your materials ready — before the urgency kicks in.
+          That's fine. But if you're planning to search in the next 6 months, now is the best time to get your materials ready, before the urgency kicks in.
         </Step>
         <Step number={3} title="Wasn't sure it would actually be useful">
-          Fair skepticism. Run one session and form your own view. If it's not genuinely useful, cancel within the trial — no charge.
+          Fair skepticism. Run one session and form your own view. If it's not genuinely useful, cancel within the trial. No charge.
         </Step>
       </Section>
       <Text style={p()}>
@@ -56,21 +56,21 @@ export function NonStarter3({ firstName, unsubscribeUrl }: { firstName?: string;
   return (
     <Layout preview="Your free credits are still unused. Last nudge." headline="Your free credits are still there. Last nudge." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
-        {firstName ?? "Hey"} — you signed up for Zari and haven't run a single session. Your free credits are sitting there unused.
+        {firstName ?? "Hey"}, you signed up for Zari and haven't run a single session. Your free credits are sitting there unused.
       </Text>
       <Text style={p()}>
-        I'm not going to oversell it. If you try it and don't find it useful, you're on the free plan — there's nothing to cancel.
+        I'm not going to oversell it. If you try it and don't find it useful, you're on the free plan. There's nothing to cancel.
       </Text>
       <Text style={p()}>
-        But you signed up for a reason. Whatever that reason was — a job search, an upcoming interview, a career transition — it's worth 15 minutes of your time to see if Zari can actually help before you write it off.
+        But you signed up for a reason. Whatever that reason was: a job search, an upcoming interview, a career transition. It's worth 15 minutes of your time to see if Zari can actually help before you write it off.
       </Text>
       <Text style={p()}>
-        Open one session. Resume review, interview prep, LinkedIn — whichever is most relevant right now. If it doesn't deliver something useful, it's not for you.
+        Open one session. Resume review, interview prep, LinkedIn, whichever is most relevant right now. If it doesn't deliver something useful, it's not for you.
       </Text>
       <CtaButton href={APP}>Use my free credits →</CtaButton>
       <Divider />
       <Text style={muted()}>
-        After this I'll stop reaching out. But your account stays open — come back whenever you're ready.
+        After this I'll stop reaching out. But your account stays open. Come back whenever you're ready.
       </Text>
       <Signature />
     </Layout>
@@ -79,13 +79,13 @@ export function NonStarter3({ firstName, unsubscribeUrl }: { firstName?: string;
 
 export function FeatureActivation1({ firstName, unsubscribeUrl }: { firstName?: string; unsubscribeUrl: string }) {
   return (
-    <Layout preview="The Zari feature that compounds over time — most users miss it entirely." headline="The feature that makes every future session better." unsubscribeUrl={unsubscribeUrl}>
+    <Layout preview="The Zari feature that compounds over time. Most users miss it entirely." headline="The feature that makes every future session better." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
-        {firstName ?? "Hey"} — you've run a few sessions with Zari. I want to make sure you've found this one.
+        {firstName ?? "Hey"}, you've run a few sessions with Zari. I want to make sure you've found this one.
       </Text>
       <Text style={p({ fontWeight: "600" })}>Recap Sessions.</Text>
       <Text style={p()}>
-        After any interview — a phone screen, a panel, a technical round — open a Recap session and walk Zari through exactly what happened. What you were asked. How you answered. What felt off.
+        After any interview (a phone screen, a panel, a technical round), open a Recap session and walk Zari through exactly what happened. What you were asked. How you answered. What felt off.
       </Text>
       <Text style={p()}>
         Zari analyzes your performance, identifies patterns in your weak answers, and helps you tighten them before the next round.
@@ -94,7 +94,7 @@ export function FeatureActivation1({ firstName, unsubscribeUrl }: { firstName?: 
         The compounding effect is real. Candidates who debrief after every interview improve measurably faster than those who prep in isolation. The feedback loop is what makes the difference.
       </Text>
       <Text style={p()}>
-        Next time you have a call — even a 15-minute recruiter screen — try it. 10 minutes of debrief now is worth 2 hours of prep later.
+        Next time you have a call, even a 15-minute recruiter screen, try it. 10 minutes of debrief now is worth 2 hours of prep later.
       </Text>
       <CtaButton href={APP}>Try a Recap session →</CtaButton>
       <Signature />
@@ -106,21 +106,21 @@ export function FeatureActivation2({ firstName, unsubscribeUrl }: { firstName?: 
   return (
     <Layout preview="Most people leave $10K–$30K on the table in salary negotiations." headline="The conversation most candidates don't prepare for." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
-        {firstName ?? "Hey"} — interviews get all the prep attention. But salary negotiation is where most people lose the most money, and it's the most underprepared conversation in the job search.
+        {firstName ?? "Hey"}, interviews get all the prep attention. But salary negotiation is where most people lose the most money, and it's the most underprepared conversation in the job search.
       </Text>
       <Section style={{ margin: "16px 0 24px" }}>
         <Step number={1} title="The anchoring problem">
-          Most candidates accept the first number. Simply making a counteroffer — politely, with reasoning — results in higher offers 85% of the time.
+          Most candidates accept the first number. Simply making a counteroffer, politely, with reasoning, results in higher offers 85% of the time.
         </Step>
         <Step number={2} title="The research gap">
           Negotiating without knowing your market value is negotiating blind. Zari can surface comp data for your role, level, and location in minutes.
         </Step>
         <Step number={3} title="The script problem">
-          Most people know they should negotiate. They just don't know what to say. Zari runs you through the exact conversation — what to say, how to handle pushback, when to hold.
+          Most people know they should negotiate. They just don't know what to say. Zari runs you through the exact conversation: what to say, how to handle pushback, when to hold.
         </Step>
       </Section>
       <Text style={p()}>
-        Even if you're not at the offer stage yet — run a negotiation sim now. Practice once with no stakes, and you'll walk into the real conversation completely differently.
+        Even if you're not at the offer stage yet, run a negotiation sim now. Practice once with no stakes, and you'll walk into the real conversation completely differently.
       </Text>
       <CtaButton href={APP}>Run a negotiation sim →</CtaButton>
       <Signature />
@@ -130,18 +130,18 @@ export function FeatureActivation2({ firstName, unsubscribeUrl }: { firstName?: 
 
 export function FeatureActivation3({ firstName, unsubscribeUrl }: { firstName?: string; unsubscribeUrl: string }) {
   return (
-    <Layout preview="Beyond the job search — using Zari to think through your bigger career move." headline="The question most job seekers don't ask until it's too late." unsubscribeUrl={unsubscribeUrl}>
+    <Layout preview="Beyond the job search: using Zari to think through your bigger career move." headline="The question most job seekers don't ask until it's too late." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
-        {firstName ?? "Hey"} — there's a question worth asking before you land the next role:
+        {firstName ?? "Hey"}, there's a question worth asking before you land the next role:
       </Text>
       <Blockquote>
-        "Is the next job actually moving me toward where I want to be in 5 years — or just sideways?"
+        "Is the next job actually moving me toward where I want to be in 5 years, or just sideways?"
       </Blockquote>
       <Text style={p()}>
         Most people optimize for "get out of current situation" without stress-testing whether the target role is actually the right move. They land something, stay 18 months, and start the search again.
       </Text>
       <Text style={p()}>
-        Zari's Career Strategy mode is built for this. It's not tactical prep — it's big-picture thinking. Your positioning, your narrative, the type of move that makes sense for where you want to end up, and how to tell your story so interviewers see you as the obvious choice.
+        Zari's Career Strategy mode is built for this. It's not tactical prep, it's big-picture thinking. Your positioning, your narrative, the type of move that makes sense for where you want to end up, and how to tell your story so interviewers see you as the obvious choice.
       </Text>
       <Text style={p()}>
         Open a Career Strategy session and tell Zari where you're trying to get. The conversation is different from anything else in the product.
@@ -154,16 +154,16 @@ export function FeatureActivation3({ firstName, unsubscribeUrl }: { firstName?: 
 
 export function ReferralAsk({ firstName, referralUrl, unsubscribeUrl }: { firstName?: string; referralUrl: string; unsubscribeUrl: string }) {
   return (
-    <Layout preview="Get one month free — share Zari with one person who's job searching." headline="Give a month. Get a month." unsubscribeUrl={unsubscribeUrl}>
+    <Layout preview="Get one month free. Share Zari with one person who's job searching." headline="Give a month. Get a month." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
-        {firstName ?? "Hey"} — you've been using Zari for a while now. I wanted to offer something back.
+        {firstName ?? "Hey"}, you've been using Zari for a while now. I wanted to offer something back.
       </Text>
       <Text style={p()}>
-        If you know someone who's currently job searching — or about to be — share Zari with them. When they sign up using your link:
+        If you know someone who's currently job searching, or about to be, share Zari with them. When they sign up using your link:
       </Text>
       <Section style={{ margin: "16px 0 24px" }}>
         <Step number={1} title="They get">
-          An extended trial at no charge — more time to actually see results.
+          An extended trial at no charge. More time to actually see results.
         </Step>
         <Step number={2} title="You get">
           One free month added to your subscription automatically.
@@ -185,22 +185,22 @@ export function ReferralAsk({ firstName, referralUrl, unsubscribeUrl }: { firstN
 
 export function TestimonialAsk({ firstName, testimonialUrl, unsubscribeUrl }: { firstName?: string; testimonialUrl: string; unsubscribeUrl: string }) {
   return (
-    <Layout preview="Record a 2-minute video about Zari — get a free month on us." headline="Get a free month. Takes 2 minutes." unsubscribeUrl={unsubscribeUrl}>
+    <Layout preview="Record a 2-minute video about Zari. Get a free month on us." headline="Get a free month. Takes 2 minutes." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
-        {firstName ?? "Hey"} — you've been using Zari for 45 days. I have an offer:
+        {firstName ?? "Hey"}, you've been using Zari for 45 days. I have an offer:
       </Text>
       <Text style={p({ fontWeight: "600", fontSize: "16px" })}>
-        Record a short video about your experience — get one month free, on us.
+        Record a short video about your experience and get one month free, on us.
       </Text>
       <Text style={p()}>
-        No script. No production required. Just open Loom (or your phone camera), hit record, and spend 60–90 seconds talking about what you've been using Zari for and whether it's been worth it.
+        No script. No production required. Just open Loom (or your phone camera), hit record, and spend 60-90 seconds talking about what you've been using Zari for and whether it's been worth it.
       </Text>
       <Text style={p()}>
         Something like what you'd tell a friend who asked. That's it.
       </Text>
       <Section style={{ margin: "16px 0 24px" }}>
         <Step number={1} title="Record a short video">
-          Use Loom, your phone, or any tool you prefer. 60–90 seconds is plenty. No editing needed.
+          Use Loom, your phone, or any tool you prefer. 60-90 seconds is plenty. No editing needed.
         </Step>
         <Step number={2} title="Submit the link">
           Paste the video link on the next page. Takes 30 seconds.
@@ -210,7 +210,7 @@ export function TestimonialAsk({ firstName, testimonialUrl, unsubscribeUrl }: { 
         </Step>
       </Section>
       <Text style={p()}>
-        Video testimonials are the most valuable thing we can show someone considering Zari — more than any ad. If it's been useful for you, this is an easy way to help others and get something back.
+        Video testimonials are the most valuable thing we can show someone considering Zari, more than any ad. If it's been useful for you, this is an easy way to help others and get something back.
       </Text>
       <CtaButton href={testimonialUrl}>Submit my video →</CtaButton>
       <Divider />
@@ -232,9 +232,9 @@ export function AnnualUpsell({ firstName, planName, monthlyPrice, annualMonthlyP
 }) {
   const savings = (monthlyPrice - annualMonthlyPrice) * 12;
   return (
-    <Layout preview={`You've been on Zari for 3 months — switching to annual saves you $${savings}.`} headline="Three months in. Want to lock in a better rate?" unsubscribeUrl={unsubscribeUrl}>
+    <Layout preview={`You've been on Zari for 3 months. Switching to annual saves you $${savings}.`} headline="Three months in. Want to lock in a better rate?" unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
-        {firstName ?? "Hey"} — you've been on Zari {planName} for about 3 months. If it's been useful, there's a simple way to save money on it.
+        {firstName ?? "Hey"}, you've been on Zari {planName} for about 3 months. If it's been useful, there's a simple way to save money on it.
       </Text>
       <Section style={{ margin: "24px 0" }}>
         <table cellPadding="0" cellSpacing="0" style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
@@ -248,7 +248,7 @@ export function AnnualUpsell({ firstName, planName, monthlyPrice, annualMonthlyP
             </tr>
             <tr>
               <td style={{ padding: "16px 18px", backgroundColor: colors.brandLight, border: `1px solid ${colors.brand}`, borderRadius: "0 0 8px 8px" }}>
-                <div style={{ color: colors.brand, fontSize: "12px", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "4px" }}>Annual — save ${savings}</div>
+                <div style={{ color: colors.brand, fontSize: "12px", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "4px" }}>Annual (save ${savings})</div>
                 <div style={{ color: colors.text, fontSize: "17px", fontWeight: "700" }}>${annualMonthlyPrice}/month · billed annually</div>
                 <div style={{ color: colors.brand, fontSize: "13px", fontWeight: "600", marginTop: "2px" }}>${annualMonthlyPrice * 12} per year · you save ${savings}</div>
               </td>
@@ -257,7 +257,7 @@ export function AnnualUpsell({ firstName, planName, monthlyPrice, annualMonthlyP
         </table>
       </Section>
       <Text style={p()}>
-        Same product, same sessions, same depth. Just a better price for people who are committed to the search. Your current billing period is preserved — you'll be credited for any unused time when you switch.
+        Same product, same sessions, same depth. Just a better price for people who are committed to the search. Your current billing period is preserved. You'll be credited for any unused time when you switch.
       </Text>
       <CtaButton href={annualUrl}>Switch to annual →</CtaButton>
       <Divider />

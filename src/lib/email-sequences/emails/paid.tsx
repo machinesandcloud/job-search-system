@@ -15,10 +15,10 @@ export function PaidWelcome1({ firstName, planTier, unsubscribeUrl }: { firstNam
       </Text>
       <Section style={{ margin: "16px 0 24px" }}>
         {[
-          ["Unlimited sessions", "Resume, LinkedIn, interview, career strategy, confidence, and recap modes — no caps."],
+          ["Unlimited sessions", "Resume, LinkedIn, interview, career strategy, confidence, and recap modes. No caps."],
           ["Full session depth", "Longer, richer conversations with more context retained per session."],
           ["Persistent memory", "Zari builds a detailed model of your background across every session."],
-          ["Priority support", "Reply to any email — you're now at the top of the queue."],
+          ["Priority support", "Reply to any email. You're now at the top of the queue."],
         ].map(([title, desc], i) => (
           <Section key={i} style={{ margin: "0 0 14px" }}>
             <Text style={{ fontFamily: "-apple-system, sans-serif", margin: "0 0 2px", color: colors.text, fontSize: "14px", fontWeight: "600", lineHeight: "1.5" }}>
@@ -43,20 +43,20 @@ export function PaidWelcome2({ firstName, unsubscribeUrl }: { firstName?: string
   return (
     <Layout preview="The Zari feature most people don't find until week 3." headline="The feature most people discover too late." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
-        {firstName ?? "Hey"} — you've been on Zari for a few days. I want to make sure you've found this.
+        {firstName ?? "Hey"}, you've been on Zari for a few days. I want to make sure you've found this.
       </Text>
       <Text style={p({ fontWeight: "600" })}>The Recap Session.</Text>
       <Text style={p()}>
-        After any interview — even a 15-minute phone screen — open a Recap session and walk Zari through what happened. What you were asked, how you answered, what felt off.
+        After any interview, even a 15-minute phone screen, open a Recap session and walk Zari through what happened. What you were asked, how you answered, what felt off.
       </Text>
       <Text style={p()}>
         Zari analyzes your performance, spots patterns, and helps you tighten your weakest answers before the next round.
       </Text>
       <Text style={p()}>
-        Users who do this consistently cut their time-to-offer significantly. The compounding effect of improving after every interview is real — and most candidates skip it entirely.
+        Users who do this consistently cut their time-to-offer significantly. The compounding effect of improving after every interview is real. Most candidates skip it entirely.
       </Text>
       <Text style={p()}>
-        Next time you have a call — even a recruiter screen — try it. 10 minutes of debrief now saves you from repeating the same mistakes in your final round.
+        Next time you have a call, even a recruiter screen, try it. 10 minutes of debrief now saves you from repeating the same mistakes in your final round.
       </Text>
       <CtaButton href={APP}>Open Zari →</CtaButton>
       <Signature />
@@ -66,23 +66,23 @@ export function PaidWelcome2({ firstName, unsubscribeUrl }: { firstName?: string
 
 export function PaidWelcome3({ firstName, unsubscribeUrl }: { firstName?: string; unsubscribeUrl: string }) {
   return (
-    <Layout preview="Your first week with Zari — quick check-in." headline="One week in — how's it going?" unsubscribeUrl={unsubscribeUrl}>
+    <Layout preview="Your first week with Zari. Quick check-in." headline="One week in. How's it going?" unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
-        {firstName ?? "Hey"} — you've been on Zari for a week. Wanted to check in properly.
+        {firstName ?? "Hey"}, you've been on Zari for a week. Wanted to check in properly.
       </Text>
       <Text style={p()}>
-        Is the coaching landing the way you expected? If there's a specific area where you're not getting the depth you want — interview prep, salary negotiation, LinkedIn, anything — reply here and I'll look into it personally.
+        Is the coaching landing the way you expected? If there's a specific area where you're not getting the depth you want (interview prep, salary negotiation, LinkedIn, anything), reply here and I'll look into it personally.
       </Text>
       <Divider />
       <Text style={p()}>
         If you're finding Zari genuinely helpful, there's one thing that would mean a lot:
       </Text>
       <Text style={p()}>
-        If you know someone who's job searching right now, send them a message. Word of mouth is how Zari grows — and you'd be doing them a real favor.
+        If you know someone who's job searching right now, send them a message. Word of mouth is how Zari grows. You'd be doing them a real favor.
       </Text>
       <CtaButton href={APP}>Open Zari →</CtaButton>
       <Divider />
-      <Text style={muted()}>Whatever's on your mind — reply here. I read every response.</Text>
+      <Text style={muted()}>Whatever's on your mind, reply here. I read every response.</Text>
       <Signature />
     </Layout>
   );
@@ -92,12 +92,12 @@ export function Milestone1({ firstName, unsubscribeUrl }: { firstName?: string; 
   return (
     <Layout preview="First session complete. Here's what to do next." headline="First session complete. You're already ahead." unsubscribeUrl={unsubscribeUrl}>
       <Text style={p()}>
-        {firstName ? `${firstName}, most` : "Most"} people sign up for tools like this and never open them. You did. That's not nothing — that's the whole thing.
+        {firstName ? `${firstName}, most` : "Most"} people sign up for tools like this and never open them. You did. That's not nothing. That's the whole thing.
       </Text>
       <Text style={p({ fontWeight: "600" })}>Here's how to build on it:</Text>
       <Section style={{ margin: "16px 0 24px" }}>
         <Step number={1} title="Implement at least 3 suggestions today">
-          While they're fresh. The users who act within 24 hours get dramatically better results — momentum compounds.
+          While they're fresh. The users who act within 24 hours get dramatically better results. Momentum compounds.
         </Step>
         <Step number={2} title="Schedule your next session">
           Treat it like a gym appointment. Users who do one session a week close faster than users who do 4 in a burst, then nothing.
@@ -122,7 +122,7 @@ export function Milestone5({ firstName, planTier, unsubscribeUrl }: { firstName?
         { value: "3×", label: "avg interview rate vs. 0 sessions" },
       ]} />
       <Text style={p()}>
-        {firstName ?? "You"}'ve completed 5 Zari sessions. That puts you in the top 15% of users by engagement — and the data is clear: more sessions correlate directly with faster outcomes.
+        {firstName ?? "You"}'ve completed 5 Zari sessions. That puts you in the top 15% of users by engagement. The data is clear: more sessions correlate directly with faster outcomes.
       </Text>
       <Text style={p()}>
         At this point, Zari has a detailed model of your background, goals, and patterns. Every session from here is sharper than the last.
@@ -131,12 +131,12 @@ export function Milestone5({ firstName, planTier, unsubscribeUrl }: { firstName?
         <>
           <Divider />
           <Text style={p()}>
-            One thing worth flagging: on your current plan, there's a cap on session depth. Users on Growth ($89/mo) get significantly longer, richer conversations per session — which matters when you're deep in a final-round prep or working through a complex pivot.
+            One thing worth flagging: on your current plan, there's a cap on session depth. Users on Growth ($89/mo) get significantly longer, richer conversations per session, which matters when you're deep in a final-round prep or working through a complex pivot.
           </Text>
           <Blockquote>
             If you're actively interviewing right now, the upgrade is worth it. The quality difference in session depth is noticeable.
           </Blockquote>
-          <CtaButton href={`${APP}/billing`}>See Growth plan →</CtaButton>
+          <CtaButton href={`${APP}/settings/subscription`}>See Growth plan →</CtaButton>
         </>
       )}
       {!isBasicPlan && (

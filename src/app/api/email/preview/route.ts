@@ -68,8 +68,8 @@ const PREVIEWS: Record<string, () => React.ReactElement> = {
   "feature_activation_3": () => React.createElement(FeatureActivation3, { firstName: "Alex", unsubscribeUrl: UNSUB }),
   // Growth
   "referral":           () => React.createElement(ReferralAsk, { firstName: "Alex", referralUrl: `${APP}/signup?ref=alex`, unsubscribeUrl: UNSUB }),
-  "testimonial":        () => React.createElement(TestimonialAsk, { firstName: "Alex", testimonialUrl: `${APP}/testimonial`, unsubscribeUrl: UNSUB }),
-  "annual_upsell":      () => React.createElement(AnnualUpsell, { firstName: "Alex", planName: "Search", monthlyPrice: 39, annualMonthlyPrice: 32, annualUrl: `${APP}/billing?plan=annual`, unsubscribeUrl: UNSUB }),
+  "testimonial":        () => React.createElement(TestimonialAsk, { firstName: "Alex", testimonialUrl: `${APP}/video-review`, unsubscribeUrl: UNSUB }),
+  "annual_upsell":      () => React.createElement(AnnualUpsell, { firstName: "Alex", planName: "Search", monthlyPrice: 39, annualMonthlyPrice: 32, annualUrl: `${APP}/settings/subscription?plan=annual`, unsubscribeUrl: UNSUB }),
 };
 
 export async function GET(req: NextRequest) {

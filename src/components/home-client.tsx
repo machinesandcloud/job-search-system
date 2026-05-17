@@ -311,14 +311,12 @@ function Nav({ userId }: { userId: boolean }) {
       borderBottom: scrolled ? "1px solid rgba(0,0,0,0.06)" : "1px solid transparent",
       transition:"all 0.3s ease",
     }}>
-      <div style={{ maxWidth:1380, margin:"0 auto", padding:"0 32px", height:"100%", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+      <div className="zari-nav-inner" style={{ maxWidth:1380, margin:"0 auto", padding:"0 32px", height:"100%", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
         <Link href="/" style={{ display:"flex", alignItems:"center", gap:11, textDecoration:"none" }}>
           <ZariLogo size={42} />
           <span style={{ fontSize:30, fontWeight:900, color:"#0A0A0F", letterSpacing:"-0.04em", lineHeight:1 }}>Zari</span>
         </Link>
         <div style={{ display:"flex", alignItems:"center", gap:28 }}>
-          <a href="#features" style={{ fontSize:14, fontWeight:500, color:"#68738A", textDecoration:"none" }}>Features</a>
-          <a href="#reviews" style={{ fontSize:14, fontWeight:500, color:"#68738A", textDecoration:"none" }}>Reviews</a>
           <Link href="/login" style={{ fontSize:14, fontWeight:500, color:"#68738A", textDecoration:"none" }}>Sign in</Link>
           <Link href={userId ? "/dashboard" : "/signup"} style={{
             display:"inline-flex", alignItems:"center", gap:7,
@@ -404,7 +402,7 @@ function FeatureSection({ f, flip, idx }: { f:typeof FEATURES[0]; flip:boolean; 
   }, []);
 
   return (
-    <div ref={ref} style={{
+    <div ref={ref} className="zari-feature-grid" style={{
       display:"grid",
       gridTemplateColumns: flip ? "62fr 38fr" : "38fr 62fr",
       gap:80,
@@ -1300,10 +1298,10 @@ function PlatformWalkthrough() {
           </div>
 
           {/* App shell */}
-          <div style={{ display:"flex", height:580 }}>
+          <div className="zari-platform-shell" style={{ display:"flex", height:580 }}>
 
             {/* ── Sidebar ── */}
-            <div style={{ width:162,background:"#0B0F1A",borderRight:"1px solid rgba(255,255,255,0.06)",display:"flex",flexDirection:"column",flexShrink:0 }}>
+            <div className="zari-platform-sidebar" style={{ width:162,background:"#0B0F1A",borderRight:"1px solid rgba(255,255,255,0.06)",display:"flex",flexDirection:"column",flexShrink:0 }}>
               <div style={{ display:"flex",alignItems:"center",gap:8,padding:"13px 12px 10px",borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
                 <div style={{ width:26,height:26,borderRadius:7,background:"linear-gradient(135deg,#3B82F6,#2563EB)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:900,color:"white",flexShrink:0,boxShadow:"0 4px 12px rgba(37,99,235,0.35)" }}>Z</div>
                 <span style={{ fontSize:13,fontWeight:800,color:"white",letterSpacing:"-0.04em",flex:1 }}>Zari</span>
@@ -1347,7 +1345,7 @@ function PlatformWalkthrough() {
             </div>
 
             {/* ── Main content ── */}
-            <div key={activeTab} style={{ flex:1,overflow:"hidden",position:"relative",background:"linear-gradient(160deg,#08101E 0%,#0A0D14 100%)",animation:"tab-fade-in 0.55s cubic-bezier(0.16,1,0.3,1) both" }}>
+            <div key={activeTab} className="zari-platform-content" style={{ flex:1,overflow:"hidden",position:"relative",background:"linear-gradient(160deg,#08101E 0%,#0A0D14 100%)",animation:"tab-fade-in 0.55s cubic-bezier(0.16,1,0.3,1) both" }}>
 
               {/* ══ RESUME REVIEW ══ */}
               {activeTab === 1 && (
@@ -2369,12 +2367,91 @@ export function HomeClient({ userId }: { userId: boolean }) {
         .review-card:hover { transform:translateY(-6px) scale(1.01); box-shadow:0 16px 48px rgba(67,97,238,0.15) !important; border-color:#C7D2FE !important; }
         * { box-sizing: border-box; }
         a { transition: opacity 0.18s; } a:hover { opacity: 0.72; }
+
+        /* ── Mobile responsive ───────────────────────────── */
+        @media (max-width: 767px) {
+          .zari-nav-inner { padding: 0 16px !important; }
+          .zari-hero { padding-top: 96px !important; }
+          .zari-hero-strip-inner {
+            padding: 28px 20px !important;
+            flex-direction: column !important;
+            gap: 20px !important;
+            align-items: flex-start !important;
+          }
+          .zari-hero-strip-divider { display: none !important; }
+          .zari-hero-strip-featured { display: none !important; }
+
+          .zari-platform-shell { height: auto !important; flex-direction: column !important; }
+          .zari-platform-sidebar { display: none !important; }
+          .zari-platform-content { height: 460px !important; }
+
+          .zari-reviews-grid {
+            grid-template-columns: 1fr !important;
+            gap: 18px !important;
+          }
+          .zari-reviews-grid > *:nth-child(2) { transform: none !important; }
+
+          .zari-founder-grid {
+            grid-template-columns: 1fr !important;
+            gap: 40px !important;
+          }
+          .zari-founder-portrait { display: none !important; }
+          .zari-founder-section { padding-top: 64px !important; padding-bottom: 64px !important; min-height: auto !important; }
+
+          .zari-feature-grid {
+            grid-template-columns: 1fr !important;
+            gap: 40px !important;
+          }
+          .zari-feature-grid > * { order: unset !important; }
+          .zari-feature-row { padding: 64px 20px !important; min-height: auto !important; }
+
+          .zari-faq-grid {
+            grid-template-columns: 1fr !important;
+            gap: 32px !important;
+          }
+          .zari-faq-sticky { position: static !important; }
+          .zari-faq-section { padding-top: 64px !important; padding-bottom: 64px !important; min-height: auto !important; }
+
+          .zari-wall-masonry { columns: 1 !important; }
+          .zari-wall-section { padding: 64px 16px 72px !important; min-height: auto !important; }
+
+          .zari-spotlight-section { padding: 72px 16px 80px !important; }
+          .zari-spotlight-grid {
+            grid-template-columns: 1fr !important;
+            gap: 18px !important;
+          }
+
+          .zari-footer-body {
+            padding: 40px 20px 24px !important;
+            flex-direction: column !important;
+            align-items: flex-start !important;
+          }
+          .zari-footer-bar { padding: 16px 20px 24px !important; flex-direction: column !important; gap: 8px !important; }
+          .zari-footer-links { flex-wrap: wrap !important; gap: 16px !important; }
+        }
+
+        @media (min-width: 768px) and (max-width: 1023px) {
+          .zari-reviews-grid { grid-template-columns: repeat(2,1fr) !important; }
+          .zari-wall-masonry { columns: 2 !important; }
+          .zari-feature-grid {
+            grid-template-columns: 1fr !important;
+            gap: 48px !important;
+          }
+          .zari-feature-grid > * { order: unset !important; }
+          .zari-feature-row { padding: 80px 24px !important; min-height: auto !important; }
+          .zari-founder-grid { grid-template-columns: 1fr !important; gap: 48px !important; }
+          .zari-founder-portrait { display: none !important; }
+          .zari-founder-section { min-height: auto !important; }
+          .zari-faq-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
+          .zari-faq-sticky { position: static !important; }
+          .zari-faq-section { min-height: auto !important; }
+        }
       `}</style>
 
       <Nav userId={userId} />
 
       {/* ══════ HERO ══════ */}
-      <section style={{
+      <section className="zari-hero" style={{
         background:"linear-gradient(180deg,#EEF2FF 0%,#F5F7FF 40%,#FAFBFF 70%,#FFFFFF 100%)",
         paddingTop:160,
         minHeight:"100vh",
@@ -2425,7 +2502,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
 
         {/* ── Full-width social + featured strip ── */}
         <div style={{ marginTop:48 }}>
-          <div style={{ maxWidth:1400, margin:"0 auto", padding:"40px 72px", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"nowrap", gap:48 }}>
+          <div className="zari-hero-strip-inner" style={{ maxWidth:1400, margin:"0 auto", padding:"40px 72px", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"nowrap", gap:48 }}>
 
             {/* LEFT: avatars + stars + text */}
             <div style={{ display:"flex", alignItems:"center", gap:14, flexShrink:0 }}>
@@ -2443,10 +2520,10 @@ export function HomeClient({ userId }: { userId: boolean }) {
             </div>
 
             {/* Divider */}
-            <div style={{ width:1, alignSelf:"stretch", background:"rgba(67,97,238,0.12)", flexShrink:0 }} />
+            <div className="zari-hero-strip-divider" style={{ width:1, alignSelf:"stretch", background:"rgba(67,97,238,0.12)", flexShrink:0 }} />
 
             {/* RIGHT: "Featured in" stacked above logos */}
-            <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-start", gap:11 }}>
+            <div className="zari-hero-strip-featured" style={{ display:"flex", flexDirection:"column", alignItems:"flex-start", gap:11 }}>
               <span style={{ fontSize:11, fontWeight:700, color:"#9AA3B8", textTransform:"uppercase", letterSpacing:"0.1em" }}>Featured in</span>
               <div style={{ display:"flex", alignItems:"center", gap:36, flexWrap:"nowrap" }}>
                 <span style={{ display:"flex", alignItems:"center", gap:8, whiteSpace:"nowrap" }}>
@@ -2481,6 +2558,8 @@ export function HomeClient({ userId }: { userId: boolean }) {
                 <img
                   src={l.src}
                   alt={l.name}
+                  loading="lazy"
+                  decoding="async"
                   style={{ height:62, maxWidth:160, objectFit:"contain", filter:"grayscale(1) opacity(0.72)" }}
                   onError={(e) => {
                     const img = e.currentTarget;
@@ -2500,7 +2579,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
       <PlatformWalkthrough />
 
       {/* ══════ SPOTLIGHT REVIEWS — Kleo style ══════ */}
-      <section style={{ background:"linear-gradient(180deg,#ECEFFE 0%,#F3F4FF 50%,#FAFAFF 100%)", padding:"112px 32px 124px" }}>
+      <section className="zari-spotlight-section" style={{ background:"linear-gradient(180deg,#ECEFFE 0%,#F3F4FF 50%,#FAFAFF 100%)", padding:"112px 32px 124px" }}>
         <div style={{ maxWidth:1320, margin:"0 auto" }}>
 
           {/* Header */}
@@ -2512,7 +2591,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
           </div>
 
           {/* 3-card grid */}
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:28, alignItems:"start" }}>
+          <div className="zari-spotlight-grid" style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:28, alignItems:"start" }}>
 
             {/* Card 1 — Resume */}
             <div style={{ background:"white", borderRadius:24, padding:"40px 38px 34px", boxShadow:"0 4px 24px rgba(99,102,241,0.08),0 1px 4px rgba(0,0,0,0.05)", border:"1px solid rgba(226,232,240,0.8)" }}>
@@ -2576,20 +2655,22 @@ export function HomeClient({ userId }: { userId: boolean }) {
       </section>
 
       {/* ══════ FOUNDER SECTION — interactive hover ══════ */}
-      <section style={{ background:"white", padding:"0 40px", minHeight:"100vh", display:"flex", alignItems:"center", }}>
+      <section className="zari-founder-section" style={{ background:"white", padding:"0 40px", minHeight:"100vh", display:"flex", alignItems:"center", }}>
         <div style={{ maxWidth:1200, margin:"0 auto", width:"100%", paddingTop:96, paddingBottom:96 }}>
           <h2 style={{ textAlign:"center", fontSize:"clamp(1.9rem,3.5vw,2.6rem)", fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", marginBottom:64 }}>
             Meet the founders behind Zari
           </h2>
 
-          <div style={{ display:"grid", gridTemplateColumns:"44fr 56fr", gap:72, alignItems:"center" }}>
+          <div className="zari-founder-grid" style={{ display:"grid", gridTemplateColumns:"44fr 56fr", gap:72, alignItems:"center" }}>
 
             {/* LEFT — large portrait, swaps on hover */}
-            <div key={activeFounder} style={{ borderRadius:20, overflow:"hidden", aspectRatio:"3/4", boxShadow:"0 32px 80px rgba(0,0,0,0.15)", animation:"step-fade-in 0.65s cubic-bezier(0.16,1,0.3,1) both" }}>
+            <div className="zari-founder-portrait" key={activeFounder} style={{ borderRadius:20, overflow:"hidden", aspectRatio:"3/4", boxShadow:"0 32px 80px rgba(0,0,0,0.15)", animation:"step-fade-in 0.65s cubic-bezier(0.16,1,0.3,1) both" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={FOUNDERS[activeFounder].photo}
                 alt={FOUNDERS[activeFounder].name}
+                loading="lazy"
+                decoding="async"
                 style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top" }}
               />
             </div>
@@ -2612,7 +2693,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
                       transition:"box-shadow 0.2s, border-color 0.2s",
                     }}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={f.photo} alt={f.name} style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top" }} />
+                      <img src={f.photo} alt={f.name} loading="lazy" decoding="async" style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top" }} />
                     </div>
                     <div style={{ textAlign:"center" }}>
                       <div style={{ fontSize:13, fontWeight:700, color: activeFounder === i ? "#4361EE" : "#0A0A0F", transition:"color 0.2s" }}>{f.name}</div>
@@ -2646,7 +2727,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
       {/* ══════ FEATURES — Kleo-style sections ══════ */}
       <section id="features" style={{ background:"#FAFBFF", }}>
         {FEATURES.map((f, i) => (
-          <div key={f.tag} style={{ padding:"112px 20px", minHeight:"100vh", display:"flex", alignItems:"center", background: i%2===0?"#FAFBFF":"white" }}>
+          <div key={f.tag} className="zari-feature-row" style={{ padding:"112px 20px", minHeight:"100vh", display:"flex", alignItems:"center", background: i%2===0?"#FAFBFF":"white" }}>
             <div style={{ maxWidth:1440, margin:"0 auto" }}>
               <FeatureSection f={f} flip={i%2!==0} idx={i} />
             </div>
@@ -2655,12 +2736,12 @@ export function HomeClient({ userId }: { userId: boolean }) {
       </section>
 
       {/* ══════ FAQ — Kleo layout ══════ */}
-      <section style={{ padding:"0 40px", minHeight:"100vh", display:"flex", alignItems:"center", background:"#FAFBFF", }}>
+      <section className="zari-faq-section" style={{ padding:"0 40px", minHeight:"100vh", display:"flex", alignItems:"center", background:"#FAFBFF", }}>
         <div style={{ maxWidth:1200, margin:"0 auto", width:"100%", paddingTop:96, paddingBottom:96 }}>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 2fr", gap:80, alignItems:"start" }}>
+          <div className="zari-faq-grid" style={{ display:"grid", gridTemplateColumns:"1fr 2fr", gap:80, alignItems:"start" }}>
 
             {/* LEFT — sticky heading */}
-            <div style={{ position:"sticky", top:120 }}>
+            <div className="zari-faq-sticky" style={{ position:"sticky", top:120 }}>
               <h2 style={{ fontSize:"clamp(2rem,3.8vw,2.8rem)", fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", lineHeight:1.15 }}>
                 You have questions,<br />we have answers
               </h2>
@@ -2699,7 +2780,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
       </section>
 
       {/* ══════ REVIEW WALL — Kleo-style ══════ */}
-      <section id="reviews" style={{ padding:"100px 20px 110px", minHeight:"100vh", background:"white", position:"relative", zIndex:3, overflow:"hidden" }}>
+      <section id="reviews" className="zari-wall-section" style={{ padding:"100px 20px 110px", minHeight:"100vh", background:"white", position:"relative", zIndex:3, overflow:"hidden" }}>
 
         {/* Animated floating hearts — drift upward from random x positions */}
         {([
@@ -2761,7 +2842,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
           </div>
 
           {/* 3-column masonry */}
-          <div style={{ columns:3, columnGap:20 }}>
+          <div className="zari-wall-masonry" style={{ columns:3, columnGap:20 }}>
             {WALL_REVIEWS.map((r,i) => (
               <div key={i} className="review-card" style={{
                 breakInside:"avoid", marginBottom:20,
@@ -2841,7 +2922,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
       {/* Footer */}
       <footer style={{ background:"linear-gradient(180deg, #060810 0%, #0C1022 100%)" }}>
         {/* Main footer body */}
-        <div style={{ maxWidth:1380, margin:"0 auto", padding:"64px 40px 48px", display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap", gap:40 }}>
+        <div className="zari-footer-body" style={{ maxWidth:1380, margin:"0 auto", padding:"64px 40px 48px", display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap", gap:40 }}>
           {/* Left: brand + tagline */}
           <div style={{ maxWidth:480 }}>
             <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:20 }}>
@@ -2859,8 +2940,8 @@ export function HomeClient({ userId }: { userId: boolean }) {
           </div>
         </div>
         {/* Bottom bar */}
-        <div style={{ maxWidth:1380, margin:"0 auto", padding:"20px 40px 28px", borderTop:"1px solid rgba(255,255,255,0.07)", display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12 }}>
-          <div style={{ display:"flex", gap:28, fontSize:13, color:"rgba(255,255,255,0.35)" }}>
+        <div className="zari-footer-bar" style={{ maxWidth:1380, margin:"0 auto", padding:"20px 40px 28px", borderTop:"1px solid rgba(255,255,255,0.07)", display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12 }}>
+          <div className="zari-footer-links" style={{ display:"flex", gap:28, fontSize:13, color:"rgba(255,255,255,0.35)" }}>
             <Link href="/terms"   style={{ color:"rgba(255,255,255,0.35)", textDecoration:"none" }}>Terms of Service</Link>
             <Link href="/privacy" style={{ color:"rgba(255,255,255,0.35)", textDecoration:"none" }}>Privacy</Link>
           </div>

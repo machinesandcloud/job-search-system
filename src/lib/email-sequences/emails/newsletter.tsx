@@ -16,11 +16,11 @@ const EDITIONS: Array<{
     headline: "Your LinkedIn headline is losing you recruiter views.",
     tip: {
       title: "The one rewrite that changes everything.",
-      body: "Most LinkedIn headlines are job titles. 'Senior Product Manager at Acme Corp.' That's a name badge, not a pitch. Recruiters search for outcomes, not roles. A headline like 'PM who ships B2B products from 0→1 · ex-Stripe · SaaS growth' tells them exactly who you are and who should hire you. Rewrite yours today — it's the highest-leverage 15 minutes you'll spend on your search.",
+      body: "Most LinkedIn headlines are job titles. 'Senior Product Manager at Acme Corp.' That's a name badge, not a pitch. Recruiters search for outcomes, not roles. A headline like 'PM who ships B2B products from 0→1 · ex-Stripe · SaaS growth' tells them exactly who you are and who should hire you. Rewrite yours today. It's the highest-leverage 15 minutes you'll spend on your search.",
     },
     feature: {
       name: "LinkedIn Optimizer",
-      body: "Zari rewrites your headline, about section, and bullets for recruiter search — then scores your profile visibility before and after. Most users see a 2–3× jump in profile views within a week.",
+      body: "Zari rewrites your headline, about section, and bullets for recruiter search, then scores your profile visibility before and after. Most users see a 2–3× jump in profile views within a week.",
       cta: "Optimize your LinkedIn",
     },
     story: {
@@ -39,7 +39,7 @@ const EDITIONS: Array<{
     },
     feature: {
       name: "Interview Coach",
-      body: "Zari scores your answers live on six dimensions — situation clarity, decision quality, result impact, leadership signal, communication, and self-awareness. Every answer gets a debrief with exactly what to change.",
+      body: "Zari scores your answers live on six dimensions: situation clarity, decision quality, result impact, leadership signal, communication, and self-awareness. Every answer gets a debrief with exactly what to change.",
       cta: "Practice your interview answers",
     },
     story: {
@@ -54,7 +54,7 @@ const EDITIONS: Array<{
     headline: "How to position for a promotion before the cycle opens.",
     tip: {
       title: "Promo cycles aren't won during the review. They're won 3 months before.",
-      body: "By the time your manager is writing your review, the decision is already made. The work happens now: getting your name in the right conversations, building a case document your manager can forward to their skip-level, and closing the gaps your rubric actually cares about. Find out what 'ready for the next level' means to the decision-maker in your org — not your manager's guess, their actual words. Then write two or three sentences that prove you're already there.",
+      body: "By the time your manager is writing your review, the decision is already made. The work happens now: getting your name in the right conversations, building a case document your manager can forward to their skip-level, and closing the gaps your rubric actually cares about. Find out what 'ready for the next level' means to the decision-maker in your org, not your manager's guess, their actual words. Then write two or three sentences that prove you're already there.",
     },
     feature: {
       name: "Promotion Coaching",
@@ -73,11 +73,11 @@ const EDITIONS: Array<{
     headline: "One change that makes recruiters respond.",
     tip: {
       title: "Your outreach message is about you. It should be about them.",
-      body: "Most cold recruiter messages fail because they lead with 'I'm looking for a new role' — which puts all the work on the recruiter. A message that converts leads with specific relevance: 'I saw you're scaling the platform team after the Series B — I've built infra at similar inflection points at X and Y.' Two sentences, specific, about their problem. Your background comes second. The rule: if your message could be copy-pasted to any recruiter, it will get no response from this one.",
+      body: "Most cold recruiter messages fail because they lead with 'I'm looking for a new role,' which puts all the work on the recruiter. A message that converts leads with specific relevance: 'I saw you're scaling the platform team after the Series B. I've built infra at similar inflection points at X and Y.' Two sentences, specific, about their problem. Your background comes second. The rule: if your message could be copy-pasted to any recruiter, it will get no response from this one.",
     },
     feature: {
       name: "Resume Review",
-      body: "Zari reads your resume against a specific job description and rewrites every bullet for maximum recruiter signal — ATS keywords, impact framing, and the one line that makes a hiring manager want to read the rest.",
+      body: "Zari reads your resume against a specific job description and rewrites every bullet for maximum recruiter signal: ATS keywords, impact framing, and the one line that makes a hiring manager want to read the rest.",
       cta: "Optimize your resume",
     },
     story: {
@@ -92,7 +92,7 @@ const EDITIONS: Array<{
     headline: "Why your first counter in a negotiation matters more than your last.",
     tip: {
       title: "The anchor you set on day one shapes every number after it.",
-      body: "Most people accept the first number or counter once. The research is clear: whoever anchors high first extracts more value, even when both sides know what's happening. When you get an offer, your first counter should be 15–20% above the number you actually want — not because you expect to get it, but because it moves the midpoint of the negotiation in your favor. Then say nothing after you name your number. Silence isn't aggression. It's leverage.",
+      body: "Most people accept the first number or counter once. The research is clear: whoever anchors high first extracts more value, even when both sides know what's happening. When you get an offer, your first counter should be 15–20% above the number you actually want. Not because you expect to get it, but because it moves the midpoint of the negotiation in your favor. Then say nothing after you name your number. Silence isn't aggression. It's leverage.",
     },
     feature: {
       name: "Salary Negotiation",
@@ -111,11 +111,11 @@ const EDITIONS: Array<{
     headline: "Mid-year: the searches that don't start in June don't close in Q3.",
     tip: {
       title: "The best time to start is now. The second best time was January.",
-      body: "Q3 is historically the strongest hiring quarter for tech and product roles — budgets are confirmed, teams know their headcount, and Q4 freezes haven't started. But most job searches take 8–12 weeks from first application to offer. If you haven't started yet, mid-June is the inflection point. Start with your resume and LinkedIn — those two things gate every inbound and outbound move you'll make. Getting them right takes a few hours and changes the entire search.",
+      body: "Q3 is historically the strongest hiring quarter for tech and product roles. Budgets are confirmed, teams know their headcount, and Q4 freezes haven't started. But most job searches take 8–12 weeks from first application to offer. If you haven't started yet, mid-June is the inflection point. Start with your resume and LinkedIn, the two things that gate every inbound and outbound move you'll make. Getting them right takes a few hours and changes the entire search.",
     },
     feature: {
       name: "Voice Coach",
-      body: "Zari remembers every session and builds on what you've worked on. Tell it where you are — active search, passive, just starting — and it adapts the coaching to your exact situation. No onboarding form, no setup.",
+      body: "Zari remembers every session and builds on what you've worked on. Tell it where you are (active search, passive, just starting) and it adapts the coaching to your exact situation. No onboarding form, no setup.",
       cta: "Start your search coaching",
     },
     story: {
@@ -130,11 +130,11 @@ const EDITIONS: Array<{
     headline: "The question that reveals whether you'll get an offer.",
     tip: {
       title: "What questions do you have for us?",
-      body: "The single most underestimated part of every interview. Most people ask about culture, roadmap, or growth opportunities — safe questions that signal no real research and zero conviction. The question that consistently moves candidates from shortlist to offer: 'What does success look like for this role in the first 90 days — and what usually gets in the way?' It shows strategic thinking, invites them to sell you, and gives you real signal about the role. Ask one great question. It's worth more than five good answers.",
+      body: "The single most underestimated part of every interview. Most people ask about culture, roadmap, or growth opportunities, safe questions that signal no real research and zero conviction. The question that consistently moves candidates from shortlist to offer: 'What does success look like for this role in the first 90 days, and what usually gets in the way?' It shows strategic thinking, invites them to sell you, and gives you real signal about the role. Ask one great question. It's worth more than five good answers.",
     },
     feature: {
       name: "Interview Coach",
-      body: "Zari preps you for panel interviews, behavioral rounds, and case interviews — and also coaches your questions to ask, your close, and how to handle the 'what are your weaknesses?' trap.",
+      body: "Zari preps you for panel interviews, behavioral rounds, and case interviews. It also coaches your questions to ask, your close, and how to handle the 'what are your weaknesses?' trap.",
       cta: "Prep your next interview",
     },
     story: {
@@ -149,17 +149,17 @@ const EDITIONS: Array<{
     headline: "How to write a resume bullet that clears ATS and still reads like a human wrote it.",
     tip: {
       title: "The formula that works: Action + Scope + Result + Context.",
-      body: "ATS systems score keyword density. Humans score whether they believe you. Most bullets fail one or the other. The structure that clears both: start with a strong verb (Led, Reduced, Built — not 'Responsible for'), add the scope (team size, budget, system scale), the result (metric, timeframe), and one word of context that tells them why it was hard. 'Reduced API latency 40% across 12 services by migrating from synchronous polling to event-driven architecture, cutting p99 from 800ms to 90ms.' Specific, scannable, credible.",
+      body: "ATS systems score keyword density. Humans score whether they believe you. Most bullets fail one or the other. The structure that clears both: start with a strong verb (Led, Reduced, Built, not 'Responsible for'), add the scope (team size, budget, system scale), the result (metric, timeframe), and one word of context that tells them why it was hard. 'Reduced API latency 40% across 12 services by migrating from synchronous polling to event-driven architecture, cutting p99 from 800ms to 90ms.' Specific, scannable, credible.",
     },
     feature: {
       name: "Resume Review",
-      body: "Zari rewrites bullets line by line using this exact framework — then shows you the before/after ATS score and explains every change. Most users see their score jump 20–35 points on the first session.",
+      body: "Zari rewrites bullets line by line using this exact framework, then shows you the before/after ATS score and explains every change. Most users see their score jump 20–35 points on the first session.",
       cta: "Rewrite your resume bullets",
     },
     story: {
       name: "Priya M.",
       role: "PM → Senior PM, Notion",
-      quote: "Zari told me exactly what was wrong with my resume. Not vague feedback — line by line. Uncomfortable but it worked.",
+      quote: "Zari told me exactly what was wrong with my resume. Not vague feedback. Line by line. Uncomfortable but it worked.",
       stat: "Senior PM offer at Notion",
     },
   },
@@ -168,11 +168,11 @@ const EDITIONS: Array<{
     headline: "Q4 hiring surge starts now. Here's how to get ahead of it.",
     tip: {
       title: "September applications close Q4 offers.",
-      body: "Most candidates wait until October to apply for Q4 roles. The ones who get offers applied in September — before the surge, before the competition thickened, before the best hiring managers had full pipelines. Start your applications now. The process takes 6–10 weeks. If you want an offer before year-end, your first applications need to go in this week. Even if you're not fully ready, being in the pipeline now beats being perfect in November.",
+      body: "Most candidates wait until October to apply for Q4 roles. The ones who get offers applied in September, before the surge, before the competition thickened, before the best hiring managers had full pipelines. Start your applications now. The process takes 6–10 weeks. If you want an offer before year-end, your first applications need to go in this week. Even if you're not fully ready, being in the pipeline now beats being perfect in November.",
     },
     feature: {
       name: "Voice Coach",
-      body: "Session memory means Zari picks up exactly where you left off — whether you're updating your materials, prepping for a specific company, or working through a promotion case. No recap needed.",
+      body: "Session memory means Zari picks up exactly where you left off, whether you're updating your materials, prepping for a specific company, or working through a promotion case. No recap needed.",
       cta: "Pick up where you left off",
     },
     story: {
@@ -187,11 +187,11 @@ const EDITIONS: Array<{
     headline: "The 'tell me about yourself' answer that works at every level.",
     tip: {
       title: "Four sentences. That's it.",
-      body: "The structure: (1) Where you started and where you are now — one sentence. (2) The thread that connects your career — the consistent thing you do, regardless of title. (3) What you've been building toward — the reason you're in this conversation. (4) What you're looking for in your next role — specific enough to show conviction. Most people ramble for three minutes. Four precise sentences takes 60 seconds, leaves them wanting more, and signals that you actually prepared. That's the entire point of the question.",
+      body: "The structure: (1) Where you started and where you are now, one sentence. (2) The thread that connects your career, the consistent thing you do, regardless of title. (3) What you've been building toward, the reason you're in this conversation. (4) What you're looking for in your next role, specific enough to show conviction. Most people ramble for three minutes. Four precise sentences takes 60 seconds, leaves them wanting more, and signals that you actually prepared. That's the entire point of the question.",
     },
     feature: {
       name: "Interview Coach",
-      body: "Zari runs your 'tell me about yourself' answer through its full scoring framework — clarity, narrative arc, confidence signal, and how it sets up the rest of the interview. You'll know exactly what to change before the call.",
+      body: "Zari runs your 'tell me about yourself' answer through its full scoring framework: clarity, narrative arc, confidence signal, and how it sets up the rest of the interview. You'll know exactly what to change before the call.",
       cta: "Nail your opener",
     },
     story: {
@@ -206,11 +206,11 @@ const EDITIONS: Array<{
     headline: "Year-end review prep: document your impact before the conversation.",
     tip: {
       title: "The review conversation is too late to build your case.",
-      body: "Performance reviews are decided in the weeks before they're written. By the time you're sitting across from your manager, they've already formed a view. Your job in November is to proactively feed them the narrative — a short doc (5–7 bullets, one page) with your biggest impact moments from the year, tied to business outcomes, not activity. Email it to your manager as 'prep for our upcoming review conversation.' It gets read. It shapes their memory. It becomes the review.",
+      body: "Performance reviews are decided in the weeks before they're written. By the time you're sitting across from your manager, they've already formed a view. Your job in November is to proactively feed them the narrative: a short doc (5–7 bullets, one page) with your biggest impact moments from the year, tied to business outcomes, not activity. Email it to your manager as 'prep for our upcoming review conversation.' It gets read. It shapes their memory. It becomes the review.",
     },
     feature: {
       name: "Promotion Coaching",
-      body: "Zari helps you draft your impact document — surfacing the right proof from your work history, tying each item to the outcomes your company actually measures, and preparing you for the pushback questions your manager will ask.",
+      body: "Zari helps you draft your impact document, surfacing the right proof from your work history, tying each item to the outcomes your company actually measures, and preparing you for the pushback questions your manager will ask.",
       cta: "Draft your impact doc",
     },
     story: {
@@ -225,11 +225,11 @@ const EDITIONS: Array<{
     headline: "How to use Q4 downtime to get Q1 offers.",
     tip: {
       title: "Most people go quiet in December. That's your opening.",
-      body: "Hiring slows down in December but it doesn't stop. Hiring managers are still meeting candidates, still making decisions, still starting processes for January roles. The candidates who land Q1 offers are the ones who applied in late November and December — not January. Use the slower pace to your advantage: update your materials, reach out to your network while everyone is in a reflective, year-end mood, and get your applications in before the January surge where you'll compete with every other person who waited.",
+      body: "Hiring slows down in December but it doesn't stop. Hiring managers are still meeting candidates, still making decisions, still starting processes for January roles. The candidates who land Q1 offers are the ones who applied in late November and December, not January. Use the slower pace to your advantage: update your materials, reach out to your network while everyone is in a reflective, year-end mood, and get your applications in before the January surge where you'll compete with every other person who waited.",
     },
     feature: {
       name: "Resume Review",
-      body: "Zari's full resume workflow — ATS scan, line-by-line bullet rewrites, keyword gap analysis against your target roles, and a downloadable optimized version — takes about 45 minutes. Perfect for the quieter weeks ahead.",
+      body: "Zari's full resume workflow (ATS scan, line-by-line bullet rewrites, keyword gap analysis against your target roles, and a downloadable optimized version) takes about 45 minutes. Perfect for the quieter weeks ahead.",
       cta: "Update your resume now",
     },
     story: {
@@ -330,7 +330,7 @@ export function NewsletterMonthly({
 
       {/* ── Closing ── */}
       <Text style={muted({ marginTop: 32 })}>
-        As always — reply to this if you have a question, a story, or feedback. I read every one.
+        Reply to this if you have a question, a story, or feedback. I read every one.
       </Text>
       <Text style={muted()}>
         If your situation changed and you no longer want these,{" "}
