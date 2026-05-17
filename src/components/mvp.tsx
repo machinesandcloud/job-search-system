@@ -187,6 +187,8 @@ function SiteFooter() {
         { label: "Zari vs Totaljobs", href: "/compare/zari-vs-totaljobs" },
         { label: "Zari vs CV-Library", href: "/compare/zari-vs-cv-library" },
         { label: "Zari vs CareerOne", href: "/compare/zari-vs-careerone" },
+        { label: "Zari vs Naukri", href: "/compare/zari-vs-naukri" },
+        { label: "Zari vs eFinancialCareers", href: "/compare/zari-vs-efinancialcareers" },
       ],
     },
   ];

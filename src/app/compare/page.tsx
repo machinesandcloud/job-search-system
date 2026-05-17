@@ -50,6 +50,8 @@ const COMPARISONS = [
   { href: "/compare/zari-vs-totaljobs", title: "Zari vs Totaljobs", summary: "Totaljobs is one of the UK's major job boards with hundreds of thousands of active listings. Zari coaches you to land the roles you find there — CV optimization, competency-based interview prep, and UK salary negotiation." },
   { href: "/compare/zari-vs-careerone", title: "Zari vs CareerOne", summary: "CareerOne is an Australian job board aggregating listings across Sydney, Melbourne, Brisbane, and all major Australian markets. Zari coaches you to win the roles you find there — ATS optimization, interview prep, and salary negotiation." },
   { href: "/compare/zari-vs-cv-library", title: "Zari vs CV-Library", summary: "CV-Library is one of the UK's largest independent job boards — with over 180,000 active jobs across every industry and region. Zari coaches you to land those roles — CV optimization, competency-based interview prep, and UK offer negotiation." },
+  { href: "/compare/zari-vs-naukri", title: "Zari vs Naukri", summary: "Naukri.com is India's #1 job portal — with over 6.5 crore registered job seekers and the largest recruiter base in the Indian market. Zari coaches you to win those roles — ATS optimization for Indian hiring norms, interview prep, and salary negotiation." },
+  { href: "/compare/zari-vs-efinancialcareers", title: "Zari vs eFinancialCareers", summary: "eFinancialCareers is the leading job board for finance, banking, investment management, and fintech roles globally. Zari coaches you to land those roles — ATS optimization for financial services hiring, technical interview prep, and compensation negotiation." },
 ];
 
 export default async function ComparePage() {

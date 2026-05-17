@@ -913,6 +913,42 @@ const POSTS = [
     date: "May 2025",
     accent: "#059669",
   },
+  {
+    slug: "consulting-resume",
+    title: "Consulting Resume — MBB, Big 4 & Independent Consultant Examples (2025)",
+    excerpt: "MBB and Big 4 consulting resumes are evaluated against a different standard. The consulting bullet formula, GPA rules, and before/after examples for analyst, associate, engagement manager, and independent consultant levels.",
+    tag: "Resume",
+    readTime: "11 min read",
+    date: "May 2025",
+    accent: "#7C3AED",
+  },
+  {
+    slug: "legal-resume",
+    title: "Legal Resume Examples — Attorney, Paralegal & Law Clerk Templates (2025)",
+    excerpt: "Legal employers scan bar admissions, practice area keywords, deal/matter experience, and court systems before reading a single bullet. Before/after examples for attorneys, paralegals, and law clerks with ATS keyword strategy by practice area.",
+    tag: "Resume",
+    readTime: "10 min read",
+    date: "May 2025",
+    accent: "#0D7182",
+  },
+  {
+    slug: "remote-work-resume",
+    title: "Remote Work Resume — How to Position Yourself for Remote Jobs (2025)",
+    excerpt: "Remote hiring scans for async communication evidence, timezone flexibility, self-direction, and remote tool fluency. Most resumes ignore these signals entirely. How to position your experience for remote-first hiring managers.",
+    tag: "Resume",
+    readTime: "9 min read",
+    date: "May 2025",
+    accent: "#059669",
+  },
+  {
+    slug: "salary-negotiation-email",
+    title: "Salary Negotiation Email — Templates That Work (2025)",
+    excerpt: "Most salary negotiation emails are too aggressive (ultimatum framing) or too weak (asking permission). The effective approach: state your counter specifically, anchor it to market data, and make it easy to say yes. Templates for every scenario.",
+    tag: "Negotiation",
+    readTime: "10 min read",
+    date: "May 2025",
+    accent: "#F97316",
+  },
 ];
 
 export default async function BlogPage() {
