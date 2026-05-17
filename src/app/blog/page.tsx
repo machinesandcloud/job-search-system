@@ -1057,6 +1057,33 @@ const POSTS = [
     date: "May 2025",
     accent: "#3B82F6",
   },
+  {
+    slug: "data-engineer-resume",
+    title: "Data Engineer Resume — Examples, Skills & ATS Keywords (2025)",
+    excerpt: "Data engineer resumes fail ATS when they list tools without showing what those tools built. Hiring managers want pipeline ownership, data volume, and reliability metrics. Before/after examples across backend, analytics, streaming, and platform specializations.",
+    tag: "Resume",
+    readTime: "10 min read",
+    date: "May 2025",
+    accent: "#7C3AED",
+  },
+  {
+    slug: "internship-resume",
+    title: "Internship Resume — How to Write One With No Experience (2025)",
+    excerpt: "Internship hiring managers aren't looking for work experience — they know you don't have it. They're looking for signals that you'll get the most out of 12 weeks. How to surface curiosity, initiative, and relevant projects effectively.",
+    tag: "Resume",
+    readTime: "8 min read",
+    date: "May 2025",
+    accent: "#059669",
+  },
+  {
+    slug: "second-interview-tips",
+    title: "Second Interview Tips — How to Prepare & What's Different (2025)",
+    excerpt: "A second interview tests fundamentally different things than the first screen. The evaluators change, the questions go deeper, and culture fit is being assessed explicitly. How to prepare specifically for round two.",
+    tag: "Interviews",
+    readTime: "9 min read",
+    date: "May 2025",
+    accent: "#0D7182",
+  },
 ];
 
 export default async function BlogPage() {

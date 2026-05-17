@@ -193,6 +193,8 @@ function SiteFooter() {
         { label: "Zari vs We Work Remotely", href: "/compare/zari-vs-weworkremotely" },
         { label: "Zari vs FlexJobs", href: "/compare/zari-vs-flexjobs" },
         { label: "Zari vs Bayt.com", href: "/compare/zari-vs-bayt" },
+        { label: "Zari vs XING", href: "/compare/zari-vs-xing" },
+        { label: "Zari vs GulfTalent", href: "/compare/zari-vs-gulftalent" },
       ],
     },
   ];
