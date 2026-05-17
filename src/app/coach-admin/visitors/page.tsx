@@ -69,10 +69,10 @@ export default async function VisitorsPage() {
   }
 
   const now = new Date();
-  const last5min  = new Date(now.getTime() - 5 * 60 * 1000);
-  const today     = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const last30d   = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-  const last7d    = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const last5min = new Date(now.getTime() - 5 * 60 * 1000);
+  const today    = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const last30d  = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const last7d   = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
   const [
     liveCount,
@@ -87,24 +87,15 @@ export default async function VisitorsPage() {
     todayPageViews,
     last7dPageViews,
   ] = await Promise.all([
-    // Live visitors — lastSeenAt in past 5 min
     prisma.visitorSession.count({ where: { lastSeenAt: { gte: last5min }, device: { not: "bot" } } }),
-
-    // Sessions today
     prisma.visitorSession.count({ where: { firstSeenAt: { gte: today }, device: { not: "bot" } } }),
-
-    // Unique visitor IDs in last 30d (approximated by session count)
     prisma.visitorSession.count({ where: { firstSeenAt: { gte: last30d }, device: { not: "bot" } } }),
-
-    // Recent sessions (last 50, no bots)
     prisma.visitorSession.findMany({
       where: { device: { not: "bot" } },
       orderBy: { firstSeenAt: "desc" },
       take: 50,
       include: { pageViews: { orderBy: { createdAt: "asc" }, select: { id: true, page: true, title: true, duration: true, createdAt: true } } },
     }),
-
-    // Top pages by view count in last 30d
     prisma.visitorPageView.groupBy({
       by: ["page"],
       _count: { id: true },
@@ -112,29 +103,19 @@ export default async function VisitorsPage() {
       orderBy: { _count: { id: "desc" } },
       take: 15,
     }),
-
-    // Top referrers in last 30d (non-null, non-empty)
     prisma.visitorSession.groupBy({
       by: ["referrer"],
       _count: { id: true },
-      where: {
-        firstSeenAt: { gte: last30d },
-        device: { not: "bot" },
-        referrer: { not: null },
-      },
+      where: { firstSeenAt: { gte: last30d }, device: { not: "bot" }, referrer: { not: null } },
       orderBy: { _count: { id: "desc" } },
       take: 10,
     }),
-
-    // Device breakdown
     prisma.visitorSession.groupBy({
       by: ["device"],
       _count: { id: true },
       where: { firstSeenAt: { gte: last30d } },
       orderBy: { _count: { id: "desc" } },
     }),
-
-    // Browser breakdown
     prisma.visitorSession.groupBy({
       by: ["browser"],
       _count: { id: true },
@@ -142,8 +123,6 @@ export default async function VisitorsPage() {
       orderBy: { _count: { id: "desc" } },
       take: 6,
     }),
-
-    // Country breakdown
     prisma.visitorSession.groupBy({
       by: ["country"],
       _count: { id: true },
@@ -151,13 +130,21 @@ export default async function VisitorsPage() {
       orderBy: { _count: { id: "desc" } },
       take: 10,
     }),
-
-    // Pageviews today
     prisma.visitorPageView.count({ where: { createdAt: { gte: today }, session: { device: { not: "bot" } } } }),
-
-    // Pageviews last 7d
     prisma.visitorPageView.count({ where: { createdAt: { gte: last7d }, session: { device: { not: "bot" } } } }),
   ]);
+
+  // Determine which visitorIds are returning (have more than one session total)
+  const distinctVisitorIds = [...new Set(recentSessions.map((s: typeof recentSessions[0]) => s.visitorId))].filter((v) => v !== "anon");
+  const returningData = distinctVisitorIds.length
+    ? await prisma.visitorSession.groupBy({
+        by: ["visitorId"],
+        _count: { id: true },
+        where: { visitorId: { in: distinctVisitorIds } },
+        having: { id: { _count: { gt: 1 } } },
+      })
+    : [];
+  const returningSet = new Set(returningData.map((r: typeof returningData[0]) => r.visitorId));
 
   const avgPagesPerSession = recentSessions.length
     ? (recentSessions.reduce((s: number, r: typeof recentSessions[0]) => s + r.pageViews.length, 0) / recentSessions.length).toFixed(1)
@@ -168,13 +155,17 @@ export default async function VisitorsPage() {
   const deviceTotal = deviceBreakdown.reduce((s: number, d: typeof deviceBreakdown[0]) => s + d._count.id, 0) || 1;
 
   const kpis = [
-    { label: "Live now",       value: liveCount,           sub: "last 5 min",  color: liveCount > 0 ? "#22C55E" : "var(--ca-text3)" },
-    { label: "Today sessions", value: todaySessions,        sub: "no bots",     color: "#3B82F6" },
-    { label: "30d sessions",   value: last30dSessions,      sub: "total",       color: "#06B6D4" },
-    { label: "Today pageviews",value: todayPageViews,        sub: "",            color: "#8B5CF6" },
-    { label: "7d pageviews",   value: last7dPageViews,       sub: "",            color: "#F59E0B" },
-    { label: "Pages / session",value: avgPagesPerSession,    sub: "recent 50",   color: "var(--ca-text2)" },
+    { label: "Live now",        value: liveCount,          sub: "last 5 min", color: liveCount > 0 ? "#22C55E" : "var(--ca-text3)" },
+    { label: "Today sessions",  value: todaySessions,       sub: "no bots",    color: "#3B82F6" },
+    { label: "30d sessions",    value: last30dSessions,     sub: "total",      color: "#06B6D4" },
+    { label: "Today pageviews", value: todayPageViews,       sub: "",           color: "#8B5CF6" },
+    { label: "7d pageviews",    value: last7dPageViews,      sub: "",           color: "#F59E0B" },
+    { label: "Pages / session", value: avgPagesPerSession,   sub: "recent 50",  color: "var(--ca-text2)" },
   ];
+
+  // Grid columns: icon | visitor+IP | browser | os | country | pages | first seen | type | →
+  const COLS = "28px 1fr 90px 70px 90px 44px 76px 70px 20px";
+  const HEADERS = ["", "Visitor / IP", "Browser", "OS", "Country", "Pages", "First seen", "Type", ""];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -200,48 +191,78 @@ export default async function VisitorsPage() {
       {/* Main grid */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 16, alignItems: "start" }}>
 
-        {/* Left — Recent sessions */}
+        {/* Left column */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
+          {/* Recent sessions table */}
           <Card>
             <div style={{ padding: "12px 14px 10px", borderBottom: "1px solid var(--ca-bd)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <SectionHeader title="Recent sessions" count={recentSessions.length} sub="last 50, no bots" />
+              <SectionHeader title="Recent sessions" count={recentSessions.length} sub="last 50 · click to inspect" />
             </div>
-            {/* Table header */}
-            <div style={{ display: "grid", gridTemplateColumns: "28px 1fr 90px 70px 70px 60px 70px", padding: "7px 14px", borderBottom: "1px solid var(--ca-bd)", gap: 8 }}>
-              {["", "Landing page", "Browser", "OS", "Country / Screen", "Pages", "First seen"].map((h, i) => (
+            <div style={{ display: "grid", gridTemplateColumns: COLS, padding: "7px 14px", borderBottom: "1px solid var(--ca-bd)", gap: 8 }}>
+              {HEADERS.map((h, i) => (
                 <span key={i} style={{ fontSize: 10, fontWeight: 700, color: "var(--ca-text3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{h}</span>
               ))}
             </div>
+
             {recentSessions.length ? recentSessions.map((s: typeof recentSessions[0], i: number) => {
               const path = (() => { try { return new URL(s.landingPage || "/", "https://x").pathname; } catch { return s.landingPage || "/"; } })();
+              const isReturning = returningSet.has(s.visitorId);
               return (
-                <div key={s.id} style={{ display: "grid", gridTemplateColumns: "28px 1fr 90px 70px 70px 60px 70px", padding: "8px 14px", gap: 8, borderTop: i > 0 ? "1px solid var(--ca-bd)" : "none", alignItems: "center" }}>
+                <Link
+                  key={s.id}
+                  href={`/coach-admin/visitors/${s.id}`}
+                  style={{ display: "grid", gridTemplateColumns: COLS, padding: "8px 14px", gap: 8, borderTop: i > 0 ? "1px solid var(--ca-bd)" : "none", alignItems: "center", textDecoration: "none", transition: "background 0.1s" }}
+                  className="coach-admin-row-hover"
+                >
                   <span style={{ fontSize: 14, textAlign: "center" }}>{deviceIcon(s.device)}</span>
+
+                  {/* Visitor cell: landing page + IP + referrer + UTM */}
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontSize: 12.5, fontWeight: 500, color: "var(--ca-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={s.landingPage || ""}>{path}</div>
+                    {s.ipAddress && (
+                      <div style={{ fontSize: 10.5, color: "var(--ca-text3)", fontFamily: "monospace", marginTop: 1 }}>{s.ipAddress}</div>
+                    )}
                     {s.referrer && (
-                      <div style={{ fontSize: 10.5, color: "var(--ca-text3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginTop: 1 }} title={s.referrer}>
-                        from {(() => { try { return new URL(s.referrer).hostname; } catch { return s.referrer; } })()}
+                      <div style={{ fontSize: 10.5, color: "var(--ca-text3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={s.referrer}>
+                        ← {(() => { try { return new URL(s.referrer).hostname; } catch { return s.referrer; } })()}
                       </div>
                     )}
                     {(s.utmSource || s.utmCampaign) && (
-                      <div style={{ fontSize: 10, color: "#F59E0B", marginTop: 1 }}>
+                      <div style={{ fontSize: 10, color: "#F59E0B" }}>
                         {[s.utmSource, s.utmMedium, s.utmCampaign].filter(Boolean).join(" / ")}
                       </div>
                     )}
                   </div>
+
                   <span style={{ fontSize: 11.5, fontWeight: 600, color: browserColor(s.browser) }}>{s.browser || "—"}</span>
                   <span style={{ fontSize: 11.5, color: "var(--ca-text2)" }}>{s.os || "—"}</span>
-                  <div>
-                    {s.country && <span style={{ fontSize: 10.5, color: "var(--ca-text3)", display: "block" }}>{s.country}</span>}
-                    {s.screenWidth && <span style={{ fontSize: 10, color: "var(--ca-text3)" }}>{s.screenWidth}×{s.screenHeight}</span>}
+
+                  {/* Country + screen */}
+                  <div style={{ minWidth: 0 }}>
+                    {s.country && <div style={{ fontSize: 11.5, color: "var(--ca-text2)" }}>{s.country}</div>}
+                    {s.screenWidth && <div style={{ fontSize: 10, color: "var(--ca-text3)" }}>{s.screenWidth}×{s.screenHeight}</div>}
+                    {!s.country && !s.screenWidth && <span style={{ color: "var(--ca-text3)", fontSize: 11 }}>—</span>}
                   </div>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ca-text2)" }}>{s.pageViews.length}</span>
+
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "var(--ca-text2)", textAlign: "center" }}>{s.pageViews.length}</span>
                   <span style={{ fontSize: 11, color: "var(--ca-text3)" }}>{ago(s.firstSeenAt)}</span>
-                </div>
+
+                  {/* Returning / New badge */}
+                  <span style={{
+                    fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 99, letterSpacing: "0.04em",
+                    background: isReturning ? "rgba(6,182,212,0.1)" : "rgba(34,197,94,0.1)",
+                    color: isReturning ? "#06B6D4" : "#22C55E",
+                    border: `1px solid ${isReturning ? "rgba(6,182,212,0.3)" : "rgba(34,197,94,0.3)"}`,
+                    whiteSpace: "nowrap",
+                  }}>
+                    {isReturning ? "Returning" : "New"}
+                  </span>
+
+                  <span style={{ fontSize: 12, color: "var(--ca-text3)", textAlign: "right" }}>→</span>
+                </Link>
               );
-            }) : <EmptyRow label="No sessions recorded yet — tracking starts as soon as visitors load the site" />}
+            }) : <EmptyRow label="No sessions yet — tracking activates as soon as a visitor loads the site" />}
           </Card>
 
           {/* Top pages */}
@@ -321,7 +342,7 @@ export default async function VisitorsPage() {
                   <span style={{ fontSize: 12, fontWeight: 700, color: "var(--ca-text2)" }}>{c._count.id}</span>
                 </div>
               ))}
-              {!countryBreakdown.length && <p style={{ fontSize: 12, color: "var(--ca-text3)", textAlign: "center", marginTop: 4 }}>No country data yet — requires Netlify or Cloudflare headers</p>}
+              {!countryBreakdown.length && <p style={{ fontSize: 12, color: "var(--ca-text3)", textAlign: "center", marginTop: 4 }}>No country data yet</p>}
             </div>
           </Card>
 

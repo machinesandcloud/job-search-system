@@ -26,7 +26,14 @@ function parseUA(ua: string): { browser: string; os: string; device: string } {
   else if (/chromeos|cros/i.test(ua)) os = "ChromeOS";
 
   let browser = "Other";
-  if (/edg\//i.test(ua)) browser = "Edge";
+  // iOS variants must be checked first — Apple forces WebKit on all iOS browsers,
+  // so CriOS (Chrome iOS), FxiOS (Firefox iOS), EdgiOS (Edge iOS) all include
+  // "Safari" in their UA strings and would otherwise be mis-detected.
+  if (/CriOS\//i.test(ua)) browser = "Chrome";
+  else if (/FxiOS\//i.test(ua)) browser = "Firefox";
+  else if (/EdgiOS\//i.test(ua)) browser = "Edge";
+  else if (/OPiOS\//i.test(ua)) browser = "Opera";
+  else if (/edg\//i.test(ua)) browser = "Edge";
   else if (/opr\/|opera/i.test(ua)) browser = "Opera";
   else if (/chrome\/\d/i.test(ua) && !/chromium/i.test(ua)) browser = "Chrome";
   else if (/firefox\//i.test(ua)) browser = "Firefox";
