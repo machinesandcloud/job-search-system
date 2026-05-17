@@ -1030,6 +1030,33 @@ const POSTS = [
     date: "May 2025",
     accent: "#7C3AED",
   },
+  {
+    slug: "how-to-decline-a-job-offer",
+    title: "How to Decline a Job Offer — Email Templates & Scripts (2025)",
+    excerpt: "The same recruiter who placed you could refer you to the next role. Declining well keeps the relationship intact. Exact email templates for every scenario — accepted another offer, compensation, role fit, and timing.",
+    tag: "Offer Stage",
+    readTime: "7 min read",
+    date: "May 2025",
+    accent: "#DC2626",
+  },
+  {
+    slug: "job-acceptance-letter",
+    title: "Job Acceptance Letter — Email Templates & What to Confirm (2025)",
+    excerpt: "A job acceptance email does more than say yes — it confirms the terms you negotiated and creates a written record before the formal paperwork. Templates for every scenario with a pre-signing checklist.",
+    tag: "Offer Stage",
+    readTime: "8 min read",
+    date: "May 2025",
+    accent: "#059669",
+  },
+  {
+    slug: "python-developer-resume",
+    title: "Python Developer Resume — Examples & ATS Keywords (2025)",
+    excerpt: "Listing 'Python' is table stakes. Hiring managers want framework depth, system scale, and measurable impact. Before/after examples for junior, mid-level, and senior Python engineers across backend, data, and ML specializations.",
+    tag: "Resume",
+    readTime: "10 min read",
+    date: "May 2025",
+    accent: "#3B82F6",
+  },
 ];
 
 export default async function BlogPage() {
