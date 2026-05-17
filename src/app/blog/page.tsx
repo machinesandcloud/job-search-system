@@ -1021,6 +1021,15 @@ const POSTS = [
     date: "May 2025",
     accent: "#059669",
   },
+  {
+    slug: "marketing-resume",
+    title: "Marketing Resume — Examples, Skills & ATS Tips (2025)",
+    excerpt: "Marketing hiring managers scan for channel ownership and the revenue or growth metrics those channels drove. Most marketing resumes list tactics. Before/after examples for content, paid media, growth, and brand marketing tracks.",
+    tag: "Resume",
+    readTime: "10 min read",
+    date: "May 2025",
+    accent: "#7C3AED",
+  },
 ];
 
 export default async function BlogPage() {
