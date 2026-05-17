@@ -254,7 +254,7 @@ You're on a live voice call. Speak accordingly.
     const streamRes = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${authKey}` },
-      body: JSON.stringify({ model, messages, temperature: 0.85, max_tokens: 55, stream: true }),
+      body: JSON.stringify({ model, messages, temperature: 0.85, max_tokens: 200, stream: true }),
     });
     if (!streamRes.ok || !streamRes.body) {
       return NextResponse.json({ message: "Having trouble right now — try again." });
