@@ -48,6 +48,8 @@ const COMPARISONS = [
   { href: "/compare/zari-vs-reed-co-uk", title: "Zari vs Reed.co.uk", summary: "Reed.co.uk is one of the UK's largest job boards — with listings across London, Manchester, Birmingham, and every major UK market. Zari coaches you to land the roles you find there — CV optimization, competency-based interview prep, and UK offer negotiation." },
   { href: "/compare/zari-vs-jobstreet", title: "Zari vs JobStreet", summary: "JobStreet is the dominant job board in Southeast Asia — Malaysia, Singapore, Philippines, and Indonesia. Zari coaches you to win the roles you find there — ATS optimization, interview prep, and offer negotiation across SEA markets." },
   { href: "/compare/zari-vs-totaljobs", title: "Zari vs Totaljobs", summary: "Totaljobs is one of the UK's major job boards with hundreds of thousands of active listings. Zari coaches you to land the roles you find there — CV optimization, competency-based interview prep, and UK salary negotiation." },
+  { href: "/compare/zari-vs-careerone", title: "Zari vs CareerOne", summary: "CareerOne is an Australian job board aggregating listings across Sydney, Melbourne, Brisbane, and all major Australian markets. Zari coaches you to win the roles you find there — ATS optimization, interview prep, and salary negotiation." },
+  { href: "/compare/zari-vs-cv-library", title: "Zari vs CV-Library", summary: "CV-Library is one of the UK's largest independent job boards — with over 180,000 active jobs across every industry and region. Zari coaches you to land those roles — CV optimization, competency-based interview prep, and UK offer negotiation." },
 ];
 
 export default async function ComparePage() {

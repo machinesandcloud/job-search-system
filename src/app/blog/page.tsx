@@ -886,6 +886,15 @@ const POSTS = [
     date: "May 2025",
     accent: "#4ca7e6",
   },
+  {
+    slug: "cybersecurity-resume",
+    title: "Cybersecurity Resume — Examples, Certifications & ATS Tips (2025)",
+    excerpt: "Hiring managers scan certifications first, then specific threat types and tools, then operational scope. Most security resumes list tools without context. Before/after examples by specialization: SOC analyst, penetration tester, security engineer, cloud security.",
+    tag: "Resume",
+    readTime: "12 min read",
+    date: "May 2025",
+    accent: "#DC2626",
+  },
 ];
 
 export default async function BlogPage() {
