@@ -204,6 +204,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/blog/engineering-manager-resume`,             lastModified: now, changeFrequency: "monthly", priority: 0.90 },
     { url: `${base}/blog/nursing-interview-questions`,            lastModified: now, changeFrequency: "monthly", priority: 0.90 },
     { url: `${base}/blog/transferable-skills`,                    lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/linkedin-job-search`,                    lastModified: now, changeFrequency: "monthly", priority: 0.90 },
     { url: `${base}/compare/zari-vs-jobstreet`,                   lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/compare/zari-vs-totaljobs`,                   lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/blog/ux-designer-resume`,                     lastModified: now, changeFrequency: "monthly", priority: 0.90 },

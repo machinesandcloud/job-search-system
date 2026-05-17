@@ -877,6 +877,15 @@ const POSTS = [
     date: "May 2025",
     accent: "#F97316",
   },
+  {
+    slug: "linkedin-job-search",
+    title: "LinkedIn Job Search — How to Use LinkedIn to Find and Land Jobs (2025)",
+    excerpt: "Most people use LinkedIn to browse job postings. The professionals who consistently land roles use it completely differently — for inbound recruiter discovery, warm outreach, and social proof. How to use LinkedIn for your job search the right way.",
+    tag: "LinkedIn",
+    readTime: "10 min read",
+    date: "May 2025",
+    accent: "#4ca7e6",
+  },
 ];
 
 export default async function BlogPage() {

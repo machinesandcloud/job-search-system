@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PageFrame } from "@/components/mvp";
 import { getCurrentUserId } from "@/lib/mvp/auth";
-import { BreadcrumbJsonLd } from "@/components/json-ld";
+import { FaqJsonLd, BreadcrumbJsonLd } from "@/components/json-ld";
 
 export const metadata: Metadata = {
   title: "Zari vs Careerflow — AI Career Coach vs Job Tracker (2025)",
@@ -18,6 +18,25 @@ export const metadata: Metadata = {
 };
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://zaricoach.com";
+
+const FAQS = [
+  {
+    question: "What is Careerflow used for?",
+    answer: "Careerflow is a Chrome extension primarily used for tracking job applications across LinkedIn, Indeed, and other job boards. It saves job postings into a visual Kanban pipeline (Saved → Applied → Interview → Offer), scores your LinkedIn profile, and provides InMail templates for recruiter outreach. It also has a basic ATS resume checker. It's strongest as an organizational layer on top of a job search.",
+  },
+  {
+    question: "Does Careerflow do interview coaching?",
+    answer: "No. Careerflow's feature set is focused on pre-application activities — tracking, profiling, and document organization. It doesn't offer mock interviews, STAR framework coaching, or any post-application coaching. If you're getting interviews but struggling to convert them to offers, Careerflow can't help with that. Zari covers the full funnel from application to offer.",
+  },
+  {
+    question: "Can I use Careerflow and Zari together?",
+    answer: "Yes — they're genuinely complementary. Careerflow handles the organizational layer (tracking which roles you've applied to, where you are in each process) while Zari handles the coaching layer (making your applications stronger, preparing you for interviews, optimizing your LinkedIn, negotiating offers). Many active job seekers use both simultaneously.",
+  },
+  {
+    question: "Is Careerflow's LinkedIn scorer accurate?",
+    answer: "Careerflow's LinkedIn score gives you a fast sense of obvious gaps — missing sections, thin headlines, low connection counts. It's useful for a quick audit. Zari's LinkedIn coaching goes deeper: it rewrites your actual headline, About section, and experience bullets using the keyword patterns that LinkedIn's algorithm surfaces in recruiter searches. A score tells you there's a problem; coaching tells you what to write instead.",
+  },
+];
 
 const FEATURE_COMPARISON = [
   {
@@ -71,6 +90,7 @@ export default async function ZariVsCareerflowPage() {
   const userId = await getCurrentUserId();
   return (
     <PageFrame authenticated={Boolean(userId)}>
+      <FaqJsonLd faqs={FAQS} />
       <BreadcrumbJsonLd items={[
         { name: "Home", url: BASE_URL },
         { name: "Compare", url: `${BASE_URL}/compare` },
@@ -146,7 +166,7 @@ export default async function ZariVsCareerflowPage() {
       {/* Verdict */}
       <section className="bg-white py-14">
         <div className="mx-auto max-w-3xl px-6">
-          <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-8">
+          <div className="rounded-2xl border border-[var(--brand)]/20 bg-[var(--brand)]/[0.04] p-8">
             <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-[var(--brand)]">Honest verdict</p>
             <p className="text-[17px] font-bold text-[var(--ink)]">Complementary tools — but Zari covers the parts that matter more</p>
             <p className="mt-4 text-[14px] leading-7 text-[var(--muted)]">Careerflow&apos;s job tracker is genuinely useful for organized job seekers applying to many roles. If you want a visual pipeline and LinkedIn profile score, Careerflow delivers that efficiently.</p>
@@ -157,6 +177,21 @@ export default async function ZariVsCareerflowPage() {
                 Try Zari free <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M5 12h14M12 5l7 7-7 7" /></svg>
               </Link>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="bg-[var(--bg)] py-14">
+        <div className="mx-auto max-w-3xl px-6">
+          <h2 className="text-[1.5rem] font-extrabold tracking-[-0.025em] text-[var(--ink)]">Common questions</h2>
+          <div className="mt-8 space-y-4">
+            {FAQS.map((faq) => (
+              <div key={faq.question} className="rounded-xl border border-[var(--border)] bg-white p-5">
+                <p className="font-bold text-[var(--ink)]">{faq.question}</p>
+                <p className="mt-2 text-[13.5px] leading-6 text-[var(--muted)]">{faq.answer}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
