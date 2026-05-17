@@ -194,6 +194,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/blog/entry-level-resume`,                     lastModified: now, changeFrequency: "monthly", priority: 0.90 },
     { url: `${base}/compare/zari-vs-workopolis`,                  lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/compare/zari-vs-reed-co-uk`,                  lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/blog/finance-resume`,                         lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/how-to-explain-being-fired`,             lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/salary-expectations-interview`,          lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/data-analyst-resume`,                    lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/job-offer-letter`,                       lastModified: now, changeFrequency: "monthly", priority: 0.90 },
 
     // Auth / conversion
     { url: `${base}/signup`,  lastModified: now, changeFrequency: "monthly", priority: 0.8 },
