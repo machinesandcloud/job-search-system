@@ -58,7 +58,7 @@ export default async function GrantsPage() {
           <span>Renews</span>
           <span>Last grant</span>
         </div>
-        {accounts.map(account => {
+        {accounts.map((account: typeof accounts[0]) => {
           const sub = account.subscription!;
           const sc = statusColor(sub.status);
           const lastGrant = lastGrantByAccount.get(account.id);
@@ -105,9 +105,9 @@ export default async function GrantsPage() {
             Grant history ({grantEvents.length})
           </h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {grantEvents.map(e => {
+            {grantEvents.map((e: typeof grantEvents[0]) => {
               const meta = e.metadataJson as Record<string, unknown> | null;
-              const account = accounts.find(a => a.id === e.accountId);
+              const account = accounts.find((a: typeof accounts[0]) => a.id === e.accountId);
               const label = meta?.type === "discount"
                 ? `${meta.discountPct}% off for ${meta.discountMonths} month${Number(meta.discountMonths) > 1 ? "s" : ""}`
                 : `${meta?.months} free month${Number(meta?.months) > 1 ? "s" : ""}`;
