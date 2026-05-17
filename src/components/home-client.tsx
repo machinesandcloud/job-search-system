@@ -178,22 +178,26 @@ const FOUNDERS = [
 /* ══════════════════════════════════════════════════
    HERO PROMPT — Kleo-style intent capture
 ══════════════════════════════════════════════════ */
-const HERO_CHIPS: { label:string; svg:React.ReactNode }[] = [
+const HERO_CHIPS: { label:string; sublabel:string; svg:React.ReactNode }[] = [
   {
-    label:"I'm job searching",
-    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13,flexShrink:0}}><circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l3 3"/></svg>,
+    label:"Job search",
+    sublabel:"Land more interviews",
+    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:14,height:14,flexShrink:0}}><circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l3 3"/></svg>,
   },
   {
-    label:"Help me get promoted",
-    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13,flexShrink:0}}><path d="M8 2v8M4 6l4-4 4 4"/><path d="M3 13h10"/></svg>,
+    label:"Get promoted",
+    sublabel:"Build your case",
+    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:14,height:14,flexShrink:0}}><path d="M8 2v8M4 6l4-4 4 4"/><path d="M3 13h10"/></svg>,
   },
   {
-    label:"Negotiate my salary",
-    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13,flexShrink:0}}><rect x="1" y="4" width="14" height="9" rx="1.5"/><path d="M5 4V3a3 3 0 016 0v1"/><path d="M8 9a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg>,
+    label:"Negotiate salary",
+    sublabel:"Know your number",
+    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:14,height:14,flexShrink:0}}><rect x="1" y="4" width="14" height="9" rx="1.5"/><path d="M5 4V3a3 3 0 016 0v1"/><path d="M8 9a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg>,
   },
   {
-    label:"I'm switching careers",
-    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:13,height:13,flexShrink:0}}><path d="M2 8h12M9 4l5 4-5 4"/></svg>,
+    label:"Switch careers",
+    sublabel:"Reframe your story",
+    svg:<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:14,height:14,flexShrink:0}}><path d="M2 8h12M9 4l5 4-5 4"/></svg>,
   },
 ];
 
@@ -258,34 +262,39 @@ function HeroPrompt({ userId }: { userId: boolean }) {
         </button>
       </div>
 
-      {/* Quick-action chips — all 4 in one row */}
-      <div className="zari-hero-chips" style={{ display:"flex", justifyContent:"center", gap:10, marginTop:16, flexWrap:"nowrap" }}>
+      {/* Quick-action chips — 2×2 card grid */}
+      <div className="zari-hero-chips" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginTop:16 }}>
         {HERO_CHIPS.map(chip => (
           <button
             key={chip.label}
             onClick={() => go(chip.label)}
             className="zari-hero-chip"
             style={{
-              display:"inline-flex", alignItems:"center", gap:7,
-              fontSize:14, fontWeight:500, color:"#3A4257",
-              padding:"9px 18px", borderRadius:99, whiteSpace:"nowrap",
+              display:"flex", alignItems:"center", gap:10,
+              fontSize:14, fontWeight:600, color:"#1E2235",
+              padding:"12px 16px", borderRadius:12, textAlign:"left",
               background:"white", border:"1px solid #E2E6F0",
               cursor:"pointer", transition:"all 0.15s",
-              boxShadow:"0 1px 6px rgba(0,0,0,0.06)",
+              boxShadow:"0 1px 6px rgba(0,0,0,0.05)",
             }}
             onMouseEnter={e => {
               (e.currentTarget as HTMLButtonElement).style.borderColor = "#4361EE";
-              (e.currentTarget as HTMLButtonElement).style.color = "#4361EE";
-              (e.currentTarget as HTMLButtonElement).style.background = "#F0F4FF";
+              (e.currentTarget as HTMLButtonElement).style.background = "#F5F7FF";
+              (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 16px rgba(67,97,238,0.12)";
             }}
             onMouseLeave={e => {
               (e.currentTarget as HTMLButtonElement).style.borderColor = "#E2E6F0";
-              (e.currentTarget as HTMLButtonElement).style.color = "#3A4257";
               (e.currentTarget as HTMLButtonElement).style.background = "white";
+              (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 1px 6px rgba(0,0,0,0.05)";
             }}
           >
-            {chip.svg}
-            {chip.label}
+            <div style={{ width:32, height:32, borderRadius:8, background:"#EEF2FF", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:"#4361EE" }}>
+              {chip.svg}
+            </div>
+            <div>
+              <div style={{ fontSize:13.5, fontWeight:700, color:"#0A0A0F", lineHeight:1.2 }}>{chip.label}</div>
+              <div style={{ fontSize:12, color:"#68738A", marginTop:2, lineHeight:1 }}>{chip.sublabel}</div>
+            </div>
           </button>
         ))}
       </div>
@@ -318,8 +327,14 @@ function Nav({ userId }: { userId: boolean }) {
           <ZariLogo size={42} />
           <span style={{ fontSize:30, fontWeight:900, color:"#0A0A0F", letterSpacing:"-0.04em", lineHeight:1 }}>Zari</span>
         </Link>
-        <div style={{ display:"flex", alignItems:"center", gap:28 }}>
-          <Link href="/login" style={{ fontSize:14, fontWeight:500, color:"#68738A", textDecoration:"none" }}>Sign in</Link>
+        <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+          <Link href="/login" style={{
+            display:"inline-flex", alignItems:"center",
+            padding:"9px 18px", borderRadius:10,
+            border:"1.5px solid #E2E6F0",
+            fontSize:13.5, fontWeight:600, color:"#3A4257", textDecoration:"none",
+            transition:"all 0.15s",
+          }}>Sign in</Link>
           <Link href={userId ? "/dashboard" : "/signup"} style={{
             display:"inline-flex", alignItems:"center", gap:7,
             padding:"9px 20px", borderRadius:10,
@@ -2386,13 +2401,10 @@ export function HomeClient({ userId }: { userId: boolean }) {
           .zari-hero { padding-top: 84px !important; }
           .zari-hero-textarea { font-size: 15px !important; padding: 18px 56px 18px 18px !important; min-height: 110px !important; }
 
-          /* Hero chips: wrap to 2×2 grid */
-          .zari-hero-chips {
-            flex-wrap: wrap !important;
-            gap: 8px !important;
-            padding: 0 4px !important;
-          }
-          .zari-hero-chip { font-size: 13px !important; padding: 8px 13px !important; }
+          /* Hero chips: tighten on small screens */
+          .zari-hero-chips { gap: 8px !important; }
+          .zari-hero-chip { padding: 10px 12px !important; }
+          .zari-hero-chip > div:first-child { width: 28px !important; height: 28px !important; }
 
           /* Hero social proof strip */
           .zari-hero-strip-inner {
@@ -2469,7 +2481,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
 
         /* ── Tablet (768–1023px) ─────────────────────────── */
         @media (min-width: 768px) and (max-width: 1023px) {
-          .zari-hero-chips { flex-wrap: wrap !important; }
+          .zari-hero-chips { gap: 10px !important; }
           .zari-reviews-grid { grid-template-columns: repeat(2,1fr) !important; }
           .zari-reviews-grid > *:nth-child(2) { transform: none !important; }
           .zari-wall-masonry { columns: 2 !important; }
@@ -2593,7 +2605,7 @@ export function HomeClient({ userId }: { userId: boolean }) {
           Used by candidates targeting
         </p>
         <div style={{ overflow:"hidden", WebkitMaskImage:"linear-gradient(to right,transparent,black 5%,black 95%,transparent)", maskImage:"linear-gradient(to right,transparent,black 5%,black 95%,transparent)" }}>
-          <div style={{ display:"flex", alignItems:"center", gap:80, animation:"marquee-x 38s linear infinite", whiteSpace:"nowrap", willChange:"transform" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:80, animation:"marquee-x 18s linear infinite", whiteSpace:"nowrap", willChange:"transform" }}>
             {[...LOGOS,...LOGOS].map((l,i) => (
               <div key={i} style={{ display:"flex", alignItems:"center", justifyContent:"center", height:56, flexShrink:0 }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -2703,17 +2715,17 @@ export function HomeClient({ userId }: { userId: boolean }) {
             Meet the founders behind Zari
           </h2>
 
-          <div className="zari-founder-grid" style={{ display:"grid", gridTemplateColumns:"44fr 56fr", gap:72, alignItems:"center" }}>
+          <div className="zari-founder-grid" style={{ display:"grid", gridTemplateColumns:"42fr 58fr", gap:64, alignItems:"center" }}>
 
             {/* LEFT — large portrait, swaps on hover */}
-            <div className="zari-founder-portrait" key={activeFounder} style={{ borderRadius:20, overflow:"hidden", aspectRatio:"3/4", boxShadow:"0 32px 80px rgba(0,0,0,0.15)", animation:"step-fade-in 0.65s cubic-bezier(0.16,1,0.3,1) both" }}>
+            <div className="zari-founder-portrait" key={activeFounder} style={{ borderRadius:20, overflow:"hidden", aspectRatio:"4/5", boxShadow:"0 32px 80px rgba(0,0,0,0.15)", animation:"step-fade-in 0.65s cubic-bezier(0.16,1,0.3,1) both" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={FOUNDERS[activeFounder].photo}
                 alt={FOUNDERS[activeFounder].name}
                 loading="lazy"
                 decoding="async"
-                style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top" }}
+                style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center 15%" }}
               />
             </div>
 
@@ -2824,54 +2836,27 @@ export function HomeClient({ userId }: { userId: boolean }) {
       {/* ══════ REVIEW WALL — Kleo-style ══════ */}
       <section id="reviews" className="zari-wall-section" style={{ padding:"100px 20px 110px", minHeight:"100vh", background:"white", position:"relative", zIndex:3, overflow:"hidden" }}>
 
-        {/* Animated floating hearts — drift upward from random x positions */}
+        {/* Animated floating hearts — 12 total, GPU-composited only */}
         {([
-          { left:"3%",  delay:"0s",    dur:"14s", s:28, o:0.36 },
-          { left:"9%",  delay:"1.2s",  dur:"16s", s:20, o:0.30 },
-          { left:"16%", delay:"0.4s",  dur:"13s", s:24, o:0.34 },
-          { left:"23%", delay:"2.1s",  dur:"17s", s:18, o:0.28 },
-          { left:"30%", delay:"0.8s",  dur:"15s", s:30, o:0.38 },
-          { left:"37%", delay:"1.7s",  dur:"12s", s:16, o:0.26 },
-          { left:"44%", delay:"3.0s",  dur:"14s", s:22, o:0.32 },
-          { left:"51%", delay:"0.2s",  dur:"16s", s:28, o:0.40 },
-          { left:"58%", delay:"1.5s",  dur:"13s", s:20, o:0.30 },
-          { left:"65%", delay:"2.6s",  dur:"15s", s:24, o:0.34 },
-          { left:"72%", delay:"0.6s",  dur:"18s", s:16, o:0.26 },
-          { left:"79%", delay:"1.9s",  dur:"14s", s:30, o:0.36 },
-          { left:"86%", delay:"3.4s",  dur:"12s", s:18, o:0.28 },
-          { left:"93%", delay:"0.9s",  dur:"16s", s:22, o:0.32 },
-          { left:"6%",  delay:"4.1s",  dur:"13s", s:16, o:0.24 },
-          { left:"13%", delay:"2.8s",  dur:"15s", s:20, o:0.30 },
-          { left:"20%", delay:"5.0s",  dur:"17s", s:26, o:0.38 },
-          { left:"28%", delay:"1.1s",  dur:"14s", s:18, o:0.28 },
-          { left:"35%", delay:"3.7s",  dur:"13s", s:28, o:0.36 },
-          { left:"42%", delay:"0.5s",  dur:"16s", s:20, o:0.30 },
-          { left:"49%", delay:"4.5s",  dur:"18s", s:22, o:0.34 },
-          { left:"56%", delay:"2.3s",  dur:"12s", s:30, o:0.42 },
-          { left:"63%", delay:"1.4s",  dur:"14s", s:16, o:0.24 },
-          { left:"70%", delay:"3.2s",  dur:"15s", s:24, o:0.34 },
-          { left:"77%", delay:"5.5s",  dur:"17s", s:20, o:0.30 },
-          { left:"84%", delay:"4.8s",  dur:"13s", s:18, o:0.28 },
-          { left:"91%", delay:"2.0s",  dur:"16s", s:26, o:0.38 },
-          { left:"5%",  delay:"6.2s",  dur:"15s", s:22, o:0.32 },
-          { left:"18%", delay:"3.9s",  dur:"14s", s:28, o:0.36 },
-          { left:"26%", delay:"1.6s",  dur:"18s", s:16, o:0.26 },
-          { left:"33%", delay:"5.8s",  dur:"13s", s:24, o:0.34 },
-          { left:"40%", delay:"0.7s",  dur:"16s", s:20, o:0.30 },
-          { left:"47%", delay:"4.3s",  dur:"15s", s:30, o:0.40 },
-          { left:"54%", delay:"2.5s",  dur:"17s", s:18, o:0.28 },
-          { left:"61%", delay:"6.8s",  dur:"14s", s:22, o:0.34 },
-          { left:"68%", delay:"1.3s",  dur:"12s", s:26, o:0.38 },
-          { left:"75%", delay:"4.0s",  dur:"16s", s:16, o:0.24 },
-          { left:"82%", delay:"7.1s",  dur:"15s", s:28, o:0.36 },
-          { left:"89%", delay:"2.7s",  dur:"13s", s:20, o:0.30 },
-          { left:"96%", delay:"5.2s",  dur:"18s", s:24, o:0.34 },
+          { left:"5%",  delay:"0s",   dur:"12s", s:24, o:0.32 },
+          { left:"14%", delay:"1.8s", dur:"14s", s:18, o:0.28 },
+          { left:"24%", delay:"0.5s", dur:"11s", s:28, o:0.36 },
+          { left:"34%", delay:"3.0s", dur:"13s", s:16, o:0.26 },
+          { left:"44%", delay:"1.2s", dur:"15s", s:22, o:0.34 },
+          { left:"54%", delay:"4.2s", dur:"12s", s:20, o:0.30 },
+          { left:"63%", delay:"0.8s", dur:"14s", s:26, o:0.38 },
+          { left:"72%", delay:"2.5s", dur:"11s", s:18, o:0.28 },
+          { left:"81%", delay:"1.5s", dur:"13s", s:24, o:0.34 },
+          { left:"89%", delay:"3.8s", dur:"15s", s:20, o:0.30 },
+          { left:"18%", delay:"5.0s", dur:"12s", s:16, o:0.24 },
+          { left:"57%", delay:"2.2s", dur:"14s", s:28, o:0.36 },
         ] as {left:string;delay:string;dur:string;s:number;o:number}[]).map((h,i) => (
           <div key={i} aria-hidden style={{
             position:"absolute", bottom:"-30px", left:h.left,
             fontSize:h.s, color:"#E8336D", opacity:h.o,
             pointerEvents:"none", userSelect:"none", lineHeight:1, zIndex:10,
-            animation:`${["heart-float","heart-float-left","heart-float-right","heart-float-sway"][i%4]} ${h.dur} ${h.delay} ease-in infinite`,
+            willChange:"transform",
+            animation:`heart-float ${h.dur} ${h.delay} ease-in infinite`,
           }}>♥</div>
         ))}
 
