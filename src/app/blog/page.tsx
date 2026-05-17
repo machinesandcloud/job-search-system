@@ -643,6 +643,42 @@ const POSTS = [
     date: "May 2025",
     accent: "#F97316",
   },
+  {
+    slug: "nurse-resume",
+    title: "Nurse Resume — Examples, Skills & ATS Tips (2025)",
+    excerpt: "What nurse managers read for in a nursing resume — clinical competency by unit, patient outcomes, certifications, and leadership. With before/after bullet examples across ICU, ED, med-surg, OR, and travel nursing tracks.",
+    tag: "Resume",
+    readTime: "12 min read",
+    date: "May 2025",
+    accent: "#0D7182",
+  },
+  {
+    slug: "operations-manager-resume",
+    title: "Operations Manager Resume — Examples, Skills & ATS Tips (2025)",
+    excerpt: "What ops hiring managers read for — P&L ownership, process improvement metrics, team scale, and cross-functional leadership. With before/after bullet examples by career level and ATS keyword strategy by industry.",
+    tag: "Resume",
+    readTime: "12 min read",
+    date: "May 2025",
+    accent: "#059669",
+  },
+  {
+    slug: "personal-brand",
+    title: "Personal Branding for Professionals — How to Build Yours (2025)",
+    excerpt: "Personal branding isn't about becoming an influencer. It's about controlling what comes up when a recruiter Googles you. A practical guide to LinkedIn, content strategy, and professional visibility — by time investment level.",
+    tag: "Career Strategy",
+    readTime: "10 min read",
+    date: "May 2025",
+    accent: "#7C3AED",
+  },
+  {
+    slug: "job-search-burnout",
+    title: "Job Search Burnout — How to Recover and Search Smarter (2025)",
+    excerpt: "Job search burnout has 3 stages — each with different causes and different solutions. Identify which stage you're in, the search patterns that cause burnout, and how to restructure your effort so it actually produces results.",
+    tag: "Job Search Strategy",
+    readTime: "10 min read",
+    date: "May 2025",
+    accent: "#DC2626",
+  },
 ];
 
 export default async function BlogPage() {

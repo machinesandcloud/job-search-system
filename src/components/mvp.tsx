@@ -175,6 +175,8 @@ function SiteFooter() {
         { label: "Zari vs Handshake", href: "/compare/zari-vs-handshake" },
         { label: "Zari vs ZipRecruiter", href: "/compare/zari-vs-ziprecruiter" },
         { label: "Zari vs Monster", href: "/compare/zari-vs-monster" },
+        { label: "Zari vs Dice", href: "/compare/zari-vs-dice" },
+        { label: "Zari vs LinkedIn Jobs", href: "/compare/zari-vs-linkedin-jobs" },
       ],
     },
   ];
