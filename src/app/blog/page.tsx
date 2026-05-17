@@ -967,6 +967,15 @@ const POSTS = [
     date: "May 2025",
     accent: "#7C3AED",
   },
+  {
+    slug: "how-to-prepare-for-an-interview",
+    title: "How to Prepare for a Job Interview — Complete Guide (2025)",
+    excerpt: "Most candidates prepare by reviewing their resume and hoping. Candidates who consistently land offers prepare differently: deep company research, role-specific answer libraries, and practice until delivery stops feeling rehearsed. The complete system.",
+    tag: "Interviews",
+    readTime: "12 min read",
+    date: "May 2025",
+    accent: "#059669",
+  },
 ];
 
 export default async function BlogPage() {
