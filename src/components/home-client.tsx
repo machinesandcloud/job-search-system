@@ -2341,6 +2341,17 @@ export function HomeClient({ userId }: { userId: boolean }) {
     return () => clearInterval(t);
   }, []);
 
+  // Auto-advance mobile feature tabs after one full animation cycle
+  useEffect(() => {
+    const cycleTimes: Record<string, number> = {
+      resume: 12500, session: 11900, interview: 11100,
+      linkedin: 10700, promotion: 10700, salary: 10700,
+    };
+    const duration = cycleTimes[FEATURES[mobileFeature].mockup] ?? 10700;
+    const t = setTimeout(() => setMobileFeature(f => (f + 1) % FEATURES.length), duration);
+    return () => clearTimeout(t);
+  }, [mobileFeature]);
+
   return (
     <div className="zari-home" style={{ fontFamily:"var(--font-geist-sans,Inter,-apple-system,sans-serif)", background:"white", color:"#0A0A0F" }}>
       <style>{`
@@ -2775,13 +2786,14 @@ export function HomeClient({ userId }: { userId: boolean }) {
       </section>
 
       {/* ══════ FEATURES — mobile tabbed view (hidden on desktop) ══════ */}
-      <div className="zari-mobile-features" style={{ display:"none", background:"#FAFBFF", padding:"56px 20px 64px" }}>
-        <div style={{ textAlign:"center", marginBottom:28 }}>
+      <div className="zari-mobile-features" style={{ display:"none", background:"linear-gradient(180deg,#F8F9FF 0%,#FAFBFF 100%)", padding:"56px 0 64px" }}>
+        <div style={{ textAlign:"center", marginBottom:24, padding:"0 20px" }}>
           <p style={{ fontSize:12, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.18em", color:"#4361EE", margin:"0 0 10px" }}>What Zari can do</p>
           <h2 style={{ fontSize:"clamp(1.8rem,6vw,2.2rem)", fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", margin:0 }}>Every tool you need</h2>
         </div>
+
         {/* Horizontal scrollable tab strip */}
-        <div style={{ display:"flex", gap:8, overflowX:"auto", paddingBottom:6, marginBottom:28, scrollbarWidth:"none" }}>
+        <div style={{ display:"flex", gap:8, overflowX:"auto", padding:"0 20px 6px", marginBottom:24, scrollbarWidth:"none" }}>
           {FEATURES.map((f, i) => (
             <button key={f.tag} onClick={() => setMobileFeature(i)} style={{
               padding:"7px 16px", borderRadius:99, border:"1px solid",
@@ -2793,13 +2805,31 @@ export function HomeClient({ userId }: { userId: boolean }) {
             }}>{f.tag}</button>
           ))}
         </div>
-        {/* Active feature content */}
-        <div key={mobileFeature} style={{ animation:"step-fade-in 0.4s cubic-bezier(0.16,1,0.3,1) both" }}>
-          <h2 style={{ fontSize:"clamp(1.7rem,5.5vw,2.1rem)", fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", lineHeight:1.1, marginBottom:14, whiteSpace:"pre-line" }}>{FEATURES[mobileFeature].headline}</h2>
-          <p style={{ fontSize:15, color:"#68738A", lineHeight:1.75, marginBottom:24 }}>{FEATURES[mobileFeature].body}</p>
-          <ul style={{ listStyle:"none", margin:0, padding:0, display:"flex", flexDirection:"column", gap:12, marginBottom:28 }}>
+
+        {/* Progress dots */}
+        <div style={{ display:"flex", justifyContent:"center", gap:6, marginBottom:20 }}>
+          {FEATURES.map((_, i) => (
+            <div key={i} onClick={() => setMobileFeature(i)} style={{
+              width: mobileFeature===i ? 20 : 6, height:6, borderRadius:99,
+              background: mobileFeature===i ? "#4361EE" : "#D1D5E8",
+              transition:"all 0.3s", cursor:"pointer",
+            }}/>
+          ))}
+        </div>
+
+        {/* Animated mockup */}
+        <div key={`mockup-${mobileFeature}`} style={{ padding:"0 20px", marginBottom:28, animation:"step-fade-in 0.5s cubic-bezier(0.16,1,0.3,1) both" }}>
+          <FeatureMockup type={FEATURES[mobileFeature].mockup} />
+        </div>
+
+        {/* Feature text */}
+        <div key={`text-${mobileFeature}`} style={{ padding:"0 20px", animation:"step-fade-in 0.5s 0.1s cubic-bezier(0.16,1,0.3,1) both" }}>
+          <span style={{ display:"inline-block", fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.16em", color:"#4361EE", background:"#EEF2FF", border:"1px solid rgba(67,97,238,0.2)", padding:"4px 12px", borderRadius:99, marginBottom:14 }}>{FEATURES[mobileFeature].tag}</span>
+          <h2 style={{ fontSize:"clamp(1.6rem,5.5vw,2rem)", fontWeight:900, letterSpacing:"-0.04em", color:"#0A0A0F", lineHeight:1.1, marginBottom:12, whiteSpace:"pre-line" }}>{FEATURES[mobileFeature].headline}</h2>
+          <p style={{ fontSize:15, color:"#68738A", lineHeight:1.75, marginBottom:20 }}>{FEATURES[mobileFeature].body}</p>
+          <ul style={{ listStyle:"none", margin:0, padding:0, display:"flex", flexDirection:"column", gap:10, marginBottom:24 }}>
             {FEATURES[mobileFeature].bullets.map(b => (
-              <li key={b} style={{ display:"flex", alignItems:"flex-start", gap:10, fontSize:14.5, color:"#1E2235" }}>
+              <li key={b} style={{ display:"flex", alignItems:"flex-start", gap:10, fontSize:14, color:"#1E2235" }}>
                 <div style={{ width:20, height:20, borderRadius:"50%", background:"#EEF2FF", border:"1px solid rgba(67,97,238,0.2)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:2 }}>
                   <svg viewBox="0 0 20 20" fill="none" stroke="#4361EE" strokeWidth="2.5" style={{ width:10,height:10 }}><polyline points="4,10 8,14 16,6"/></svg>
                 </div>
