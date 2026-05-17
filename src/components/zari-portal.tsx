@@ -1292,6 +1292,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
   const [pastSessions, setPastSessions] = useState<Array<{ id: string; title: string; startedAt: string; transcript: Array<{ role: string; message: string }> }>>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [selectedHistory, setSelectedHistory] = useState<string | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -1698,12 +1699,17 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
         background:"var(--z-raise)",
       }}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:11, fontWeight:700, color:"#22C55E", padding:"3px 10px", borderRadius:99, background:"rgba(34,197,94,0.1)", border:"1px solid rgba(34,197,94,0.2)" }}>
+          {/* Mobile: history toggle button */}
+          <button className="zari-session-hist-btn" onClick={() => setShowHistory(h => !h)} title="Chat history"
+            style={{ alignItems:"center", justifyContent:"center", width:34, height:34, borderRadius:9, border:"1px solid var(--z-bd)", background:showHistory?"rgba(37,99,235,0.12)":"transparent", cursor:"pointer", color:showHistory?"#2563EB":"var(--z-text2)", flexShrink:0 }}>
+            <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.8" style={{width:15,height:15}}><circle cx="9" cy="9" r="7"/><path d="M9 5v4l2.5 2.5" strokeLinecap="round"/></svg>
+          </button>
+          <span className="zari-session-live-badge" style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:11, fontWeight:700, color:"#22C55E", padding:"3px 10px", borderRadius:99, background:"rgba(34,197,94,0.1)", border:"1px solid rgba(34,197,94,0.2)" }}>
             <span style={{ width:5,height:5,borderRadius:"50%",background:"#22C55E",animation:"blink 1.1s ease-in-out infinite" }}/>
             Live
           </span>
-          <span style={{ fontFamily:"monospace", fontSize:11, color:"var(--z-text3)", padding:"3px 10px", borderRadius:99, background:"var(--z-card)", boxShadow:"0 2px 20px rgba(0,0,0,0.07)", border:"1px solid var(--z-bd)" }}>{fmt(elapsed)}</span>
-          <span style={{ display:"inline-flex", alignItems:"center", gap:4, fontSize:11, fontWeight:600, color:STAGE_META[stage].color, padding:"3px 9px", borderRadius:99, background:`${STAGE_META[stage].color}18`, border:`1px solid ${STAGE_META[stage].color}35` }}>{STAGE_ICONS[stage]} {STAGE_META[stage].label}</span>
+          <span className="zari-session-timer" style={{ fontFamily:"monospace", fontSize:11, color:"var(--z-text3)", padding:"3px 10px", borderRadius:99, background:"var(--z-card)", boxShadow:"0 2px 20px rgba(0,0,0,0.07)", border:"1px solid var(--z-bd)" }}>{fmt(elapsed)}</span>
+          <span className="zari-session-stage-badge" style={{ display:"inline-flex", alignItems:"center", gap:4, fontSize:11, fontWeight:600, color:STAGE_META[stage].color, padding:"3px 9px", borderRadius:99, background:`${STAGE_META[stage].color}18`, border:`1px solid ${STAGE_META[stage].color}35` }}>{STAGE_ICONS[stage]} {STAGE_META[stage].label}</span>
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
           <button onClick={() => setShowLiveMode(true)} style={{
@@ -1722,8 +1728,11 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
       {/* ── MAIN BODY ── */}
       <div style={{ flex:1, display:"flex", minHeight:0, overflow:"hidden" }}>
 
+        {/* Mobile overlay for history panel */}
+        {showHistory && <div className="zari-session-hist-overlay" onClick={() => setShowHistory(false)} />}
+
         {/* ── LEFT PANEL: always history ── */}
-        <div style={{
+        <div className={`zari-session-history${showHistory ? " show" : ""}`} style={{
           width:252, flexShrink:0, display:"flex", flexDirection:"column",
           borderRight:"1px solid var(--z-bd)",
           background:"var(--z-card)",
@@ -18141,7 +18150,7 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
               </div>
 
               {/* plan cards */}
-              <div style={{ padding:"20px 24px 28px", display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:12 }}>
+              <div className="zari-compare-plans-grid" style={{ padding:"20px 24px 28px", display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:12 }}>
                 {PLANS.map(plan => {
                   const isCurrent = plan.id === viewer.planId;
                   const planIdx = planOrder.indexOf(plan.id);
@@ -18541,10 +18550,36 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
           .zari-bottom-nav { display:flex !important; }
           .zari-topbar-hamburger { display:flex !important; }
           .zari-main { padding-bottom:60px !important; }
+          /* Session inner history panel — slide in from left on mobile */
+          .zari-session-history { position:fixed !important; left:0; top:0; bottom:0; z-index:300; transform:translateX(-100%); transition:transform 0.25s cubic-bezier(0.4,0,0.2,1); width:280px !important; max-width:85vw; box-shadow:4px 0 32px rgba(0,0,0,0.28) !important; }
+          .zari-session-history.show { transform:translateX(0); }
+          .zari-session-hist-overlay { display:flex !important; }
+          .zari-session-hist-btn { display:flex !important; }
+          /* Hide session topbar badges on mobile — keep it clean */
+          .zari-session-live-badge, .zari-session-timer, .zari-session-stage-badge { display:none !important; }
+          /* Reduce padding in session topbar on mobile */
+          .zari-session-topbar { padding:0 12px 0 10px !important; height:48px !important; }
+          /* Tighten chat message bubbles on mobile */
+          .zari-chat-bubble { max-width:85% !important; }
+          /* Reduce chat input padding on mobile */
+          .zari-chat-input-wrap { padding:0 12px 14px !important; }
+          .zari-chat-input-textarea { padding:12px 120px 12px 14px !important; font-size:15px !important; }
+          .zari-quick-prompts { padding:0 12px 8px !important; gap:6px !important; }
+          .zari-quick-prompts button { font-size:12px !important; padding:7px 13px !important; }
+          /* Portal topbar user info — hide email on small screens */
+          .zari-topbar-user-email { display:none !important; }
+          /* Stage badge in topbar — abbreviated */
+          .zari-topbar-stage-badge { display:none !important; }
+          /* Compare plans modal — stack on mobile */
+          .zari-compare-plans-grid { grid-template-columns:1fr !important; }
+          /* Screen sections — reduce horizontal padding */
+          .zari-screen-padded { padding-left:16px !important; padding-right:16px !important; }
         }
         .zari-mobile-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:199; backdrop-filter:blur(2px); }
+        .zari-session-hist-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:299; backdrop-filter:blur(2px); }
+        .zari-session-hist-btn { display:none; }
         .zari-bottom-nav { display:none; position:fixed; bottom:0; left:0; right:0; height:58px; background:var(--z-card); border-top:1px solid var(--z-bd); z-index:100; align-items:stretch; }
-        .zari-bottom-nav-btn { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; background:none; border:none; cursor:pointer; font-size:10px; font-weight:600; color:var(--z-text3); transition:color 0.14s; padding:0; }
+        .zari-bottom-nav-btn { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; background:none; border:none; cursor:pointer; font-size:10px; font-weight:600; color:var(--z-text3); transition:color 0.14s; padding:0; min-width:0; }
         .zari-bottom-nav-btn.active { color:#2563EB; }
         .zari-topbar-hamburger { display:none; align-items:center; justify-content:center; width:34px; height:34px; border-radius:9px; border:1px solid var(--z-bd); background:transparent; cursor:pointer; color:var(--z-text2); margin-right:4px; }
       `}</style>
@@ -18693,13 +18728,13 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
             {STAGE_NAV_LABELS[stage][screen]}
           </h2>
           <div style={{ marginLeft:"auto", display:"flex", gap:8, alignItems:"center" }}>
-            <div style={{ display:"flex", alignItems:"center", gap:6, padding:"4px 11px 4px 9px", borderRadius:99, background: isDark ? `${accentInfo.color}18` : `${accentInfo.color}10`, border:`1px solid ${accentInfo.color}30` }}>
+            <div className="zari-topbar-stage-badge" style={{ display:"flex", alignItems:"center", gap:6, padding:"4px 11px 4px 9px", borderRadius:99, background: isDark ? `${accentInfo.color}18` : `${accentInfo.color}10`, border:`1px solid ${accentInfo.color}30` }}>
               <span style={{ display:"inline-flex", alignItems:"center", color: accentInfo.color }}>{STAGE_ICONS[stage]}</span>
               <span style={{ fontSize:11.5, fontWeight:600, color: accentInfo.color }}>{STAGE_META[stage].label}</span>
             </div>
             <button onClick={()=>navigate("account")} style={{ minWidth:0, maxWidth:240, display:"flex", flexDirection:"column", alignItems:"flex-end", padding:"6px 10px", borderRadius:10, border: screen==="account" ? "1px solid rgba(37,99,235,0.3)" : "1px solid var(--z-bd)", background:isDark ? "rgba(255,255,255,0.03)" : "var(--z-raise)", cursor:"pointer", transition:"all 0.15s" }}>
               <div style={{ fontSize:12.5, fontWeight:700, color: screen==="account" ? "#2563EB" : "var(--z-text)", lineHeight:1.2, maxWidth:"100%", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{userDisplayName}</div>
-              <div style={{ fontSize:11, color:"var(--z-text2)", lineHeight:1.2, maxWidth:"100%", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{userEmail}</div>
+              <div className="zari-topbar-user-email" style={{ fontSize:11, color:"var(--z-text2)", lineHeight:1.2, maxWidth:"100%", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{userEmail}</div>
             </button>
           </div>
         </div>
@@ -18729,10 +18764,10 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
         {/* Mobile bottom nav */}
         <nav className="zari-bottom-nav">
           {([
-            { id:"session",      icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" style={{width:20,height:20}}><path d="M10 2a3 3 0 00-3 3v4a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M4 9v1a6 6 0 0012 0V9"/><line x1="10" y1="15" x2="10" y2="18"/></svg>, label:"Chat" },
+            { id:"session",      icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" style={{width:20,height:20}}><path d="M3 3h12a1 1 0 011 1v7a1 1 0 01-1 1H6l-4 3V4a1 1 0 011-1z"/></svg>, label:"Chat" },
             { id:"resume",       icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" style={{width:20,height:20}}><rect x="3" y="2" width="14" height="16" rx="2"/><path d="M7 7h6M7 10h6M7 13h4"/></svg>, label:"Resume" },
             { id:"interview",    icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" style={{width:20,height:20}}><circle cx="10" cy="6" r="3"/><path d="M3 17c0-3.866 3.134-6 7-6s7 2.134 7 6"/></svg>, label:"Interview" },
-            { id:"documents",    icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" style={{width:20,height:20}}><path d="M5 2h7l4 4v12a1 1 0 01-1 1H5a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M12 2v4h4"/></svg>, label:"Docs" },
+            { id:"linkedin",     icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" style={{width:20,height:20}}><rect x="2" y="2" width="16" height="16" rx="3"/><path d="M6 9v5M6 6.5v.5M9 14V11a2.5 2.5 0 015 0v3M9 11v3"/></svg>, label:"LinkedIn" },
             { id:"account",      icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" style={{width:20,height:20}}><circle cx="10" cy="7" r="3.5"/><path d="M3 17c0-3.314 3.134-5.5 7-5.5s7 2.186 7 5.5"/></svg>, label:"Account" },
           ] as { id: Screen; icon: React.ReactNode; label: string }[]).map(item => (
             <button key={item.id} className={`zari-bottom-nav-btn${screen===item.id?" active":""}`} onClick={()=>navigate(item.id)}>
