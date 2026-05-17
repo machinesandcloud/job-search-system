@@ -169,6 +169,8 @@ function SiteFooter() {
         { label: "Zari vs Copy.ai", href: "/compare/zari-vs-copy-ai" },
         { label: "Zari vs Jasper", href: "/compare/zari-vs-jasper" },
         { label: "Zari vs Resume.io", href: "/compare/zari-vs-resume-io" },
+        { label: "Zari vs Indeed", href: "/compare/zari-vs-indeed" },
+        { label: "Zari vs Glassdoor", href: "/compare/zari-vs-glassdoor" },
       ],
     },
   ];

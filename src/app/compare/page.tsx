@@ -32,6 +32,8 @@ const COMPARISONS = [
   { href: "/compare/zari-vs-copy-ai", title: "Zari vs Copy.ai", summary: "Copy.ai is a general-purpose content AI. Zari is purpose-built for job search — with ATS resume analysis, interview coaching, LinkedIn optimization, and salary negotiation." },
   { href: "/compare/zari-vs-jasper", title: "Zari vs Jasper", summary: "Jasper is a marketing content platform for content teams. Zari is an AI career coach for job seekers. Here's where each tool wins — and which one you actually need." },
   { href: "/compare/zari-vs-resume-io", title: "Zari vs Resume.io", summary: "Resume.io builds a clean, professionally formatted resume. Zari optimizes it for ATS, coaches your interviews, LinkedIn, and salary negotiation. Which one you actually need." },
+  { href: "/compare/zari-vs-indeed", title: "Zari vs Indeed", summary: "Indeed is the largest job search engine. Zari is an AI career coach. They're sequential, not competing — Indeed finds roles, Zari helps you land them." },
+  { href: "/compare/zari-vs-glassdoor", title: "Zari vs Glassdoor", summary: "Glassdoor provides salary data, company reviews, and interview reports. Zari coaches you through using that data — from ATS optimization to offer negotiation." },
 ];
 
 export default async function ComparePage() {

@@ -571,6 +571,33 @@ const POSTS = [
     date: "May 2025",
     accent: "#F97316",
   },
+  {
+    slug: "product-manager-resume",
+    title: "Product Manager Resume — Examples, Templates & ATS Tips (2025)",
+    excerpt: "What hiring managers at Google, Meta, and top-tier companies read for in a PM resume — by company stage, career level, and PM type. With before/after bullet examples, ATS keyword strategy, and the 4 signals that make or break a PM application.",
+    tag: "Resume",
+    readTime: "13 min read",
+    date: "May 2025",
+    accent: "#7C3AED",
+  },
+  {
+    slug: "how-to-counter-offer",
+    title: "How to Counter Offer a Job — Scripts, Math & What to Say (2025)",
+    excerpt: "The exact number to counter with, the email template, and word-for-word scripts for every pushback — including 'we've given you our best offer,' the band limit, and the deadline pressure tactic.",
+    tag: "Negotiation",
+    readTime: "10 min read",
+    date: "May 2025",
+    accent: "#10B981",
+  },
+  {
+    slug: "cv-vs-resume",
+    title: "CV vs Resume — What's the Difference? Which One to Use (2025)",
+    excerpt: "The 4 actual differences between a CV and a resume — length, content, customization, and purpose — and a decision framework for every situation, including the countries and industries where the distinction doesn't apply.",
+    tag: "Job Search Basics",
+    readTime: "8 min read",
+    date: "May 2025",
+    accent: "#0D7182",
+  },
 ];
 
 export default async function BlogPage() {

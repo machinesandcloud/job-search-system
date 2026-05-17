@@ -90,6 +90,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/compare/zari-vs-copy-ai`,           lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/compare/zari-vs-jasper`,            lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/compare/zari-vs-resume-io`,        lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/compare/zari-vs-indeed`,           lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/compare/zari-vs-glassdoor`,        lastModified: now, changeFrequency: "monthly", priority: 0.90 },
 
     // Blog / resources
     { url: `${base}/blog`,                                        lastModified: now, changeFrequency: "weekly",  priority: 0.85 },
@@ -156,6 +158,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/blog/how-to-get-promoted-at-work`,              lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/blog/system-design-interview`,                   lastModified: now, changeFrequency: "monthly", priority: 0.90 },
     { url: `${base}/blog/job-search-while-employed`,                lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/blog/product-manager-resume`,                  lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/how-to-counter-offer`,                    lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/cv-vs-resume`,                            lastModified: now, changeFrequency: "monthly", priority: 0.90 },
 
     // Auth / conversion
     { url: `${base}/signup`,  lastModified: now, changeFrequency: "monthly", priority: 0.8 },
