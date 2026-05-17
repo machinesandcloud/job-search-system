@@ -44,6 +44,8 @@ const COMPARISONS = [
   { href: "/compare/zari-vs-careerbuilder", title: "Zari vs CareerBuilder", summary: "CareerBuilder is one of the original job boards — listings, employer AI matching, and a resume database. Zari is the AI career coach that helps you compete for the roles you find there." },
   { href: "/compare/zari-vs-google-for-jobs", title: "Zari vs Google for Jobs", summary: "Google for Jobs aggregates listings from across the web directly in Google Search. Zari coaches you to win the roles you find there — ATS optimization, interview prep, and offer negotiation." },
   { href: "/compare/zari-vs-seek", title: "Zari vs Seek", summary: "Seek is the dominant job board in Australia, New Zealand, and Southeast Asia. Zari coaches you to land the roles you find there — ATS optimization for Australian hiring norms, interview prep, and salary negotiation." },
+  { href: "/compare/zari-vs-workopolis", title: "Zari vs Workopolis", summary: "Workopolis is one of Canada's major job boards — with listings across Toronto, Vancouver, Calgary, and beyond. Zari coaches you to win the Canadian roles you find there — ATS optimization, interview prep, and offer negotiation." },
+  { href: "/compare/zari-vs-reed-co-uk", title: "Zari vs Reed.co.uk", summary: "Reed.co.uk is one of the UK's largest job boards — with listings across London, Manchester, Birmingham, and every major UK market. Zari coaches you to land the roles you find there — CV optimization, competency-based interview prep, and UK offer negotiation." },
 ];
 
 export default async function ComparePage() {

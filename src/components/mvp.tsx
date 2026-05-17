@@ -181,6 +181,8 @@ function SiteFooter() {
         { label: "Zari vs CareerBuilder", href: "/compare/zari-vs-careerbuilder" },
         { label: "Zari vs Google for Jobs", href: "/compare/zari-vs-google-for-jobs" },
         { label: "Zari vs Seek", href: "/compare/zari-vs-seek" },
+        { label: "Zari vs Workopolis", href: "/compare/zari-vs-workopolis" },
+        { label: "Zari vs Reed.co.uk", href: "/compare/zari-vs-reed-co-uk" },
       ],
     },
   ];

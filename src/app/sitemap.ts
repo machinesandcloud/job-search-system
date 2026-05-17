@@ -188,6 +188,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/blog/imposter-syndrome-at-work`,              lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/compare/zari-vs-google-for-jobs`,             lastModified: now, changeFrequency: "monthly", priority: 0.90 },
     { url: `${base}/compare/zari-vs-seek`,                        lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/blog/graphic-designer-resume`,                lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/cover-letter-examples`,                  lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/how-to-ask-for-a-promotion`,             lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/entry-level-resume`,                     lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/compare/zari-vs-workopolis`,                  lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/compare/zari-vs-reed-co-uk`,                  lastModified: now, changeFrequency: "monthly", priority: 0.88 },
 
     // Auth / conversion
     { url: `${base}/signup`,  lastModified: now, changeFrequency: "monthly", priority: 0.8 },

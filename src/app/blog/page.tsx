@@ -751,6 +751,42 @@ const POSTS = [
     date: "May 2025",
     accent: "#EC4899",
   },
+  {
+    slug: "graphic-designer-resume",
+    title: "Graphic Designer Resume — Portfolio, Skills & ATS Tips (2025)",
+    excerpt: "Your portfolio shows the work. Your resume gets you to the portfolio review. Most design applications are filtered by ATS before any human sees your portfolio link — which means the resume has to work first.",
+    tag: "Resume",
+    readTime: "9 min read",
+    date: "May 2025",
+    accent: "#A855F7",
+  },
+  {
+    slug: "cover-letter-examples",
+    title: "Cover Letter Examples — By Situation, With Exact Language (2025)",
+    excerpt: "Five cover letter examples for five situations: standard application, career change, internal promotion, cold outreach, and referral — each with exact opening language, body structure, and close.",
+    tag: "Job Search",
+    readTime: "10 min read",
+    date: "May 2025",
+    accent: "#3B82F6",
+  },
+  {
+    slug: "how-to-ask-for-a-promotion",
+    title: "How to Ask for a Promotion — Timing, Script & Mistakes to Avoid (2025)",
+    excerpt: "Most promotion requests fail before the conversation starts — because of bad timing, missing evidence, or framing that makes the case about tenure instead of performance.",
+    tag: "Career Strategy",
+    readTime: "11 min read",
+    date: "May 2025",
+    accent: "#10B981",
+  },
+  {
+    slug: "entry-level-resume",
+    title: "Entry-Level Resume — What to Include When You Have No Experience (2025)",
+    excerpt: "Writing an entry-level resume isn't about hiding limited work history — it's about knowing what to include instead. Every section, what to write, what to avoid, and ATS tips for new graduates.",
+    tag: "Resume",
+    readTime: "10 min read",
+    date: "May 2025",
+    accent: "#F97316",
+  },
 ];
 
 export default async function BlogPage() {
