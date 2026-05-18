@@ -60,6 +60,8 @@ const COMPARISONS = [
   { href: "/compare/zari-vs-gulftalent", title: "Zari vs GulfTalent", summary: "GulfTalent specializes in senior and executive roles across the GCC — UAE, Saudi Arabia, Kuwait, Qatar, Bahrain, and Oman. Zari coaches you to land those roles and negotiate the full executive package including housing, education allowance, and end-of-service." },
   { href: "/compare/zari-vs-stepstone", title: "Zari vs Stepstone", summary: "Stepstone is one of Europe's largest job boards — millions of active listings in Germany, Austria, Belgium, and the Netherlands. Zari coaches you to land those roles — Lebenslauf optimization, German interview prep, and salary negotiation." },
   { href: "/compare/zari-vs-seek-australia", title: "Zari vs SEEK Australia", summary: "SEEK is Australia's #1 job board — millions of active listings across every industry and location. Zari coaches you to win those roles — ATS resume optimization, selection criteria for government roles, interview prep, and superannuation-aware salary negotiation." },
+  { href: "/compare/zari-vs-remote-co", title: "Zari vs Remote.co", summary: "Remote.co curates verified fully-remote job listings from companies with genuine remote cultures. Zari coaches you to win those roles — resume tailored to async-first signals, interview prep for distributed teams, and remote salary negotiation." },
+  { href: "/compare/zari-vs-linkedin-learning", title: "Zari vs LinkedIn Learning", summary: "LinkedIn Learning teaches skills through 21,000+ video courses. Zari coaches your active job search — resume, interviews, and negotiation. They serve different career stages — here's when to use each." },
 ];
 
 export default async function ComparePage() {
