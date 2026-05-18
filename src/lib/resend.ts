@@ -11,7 +11,7 @@ export function getResendClient(): Resend {
   return _client;
 }
 
-export const FROM_EMAIL = process.env.RESEND_FROM_EMAIL ?? "Zari AI <coach@zaricoach.com>";
+export const FROM_EMAIL = process.env.RESEND_FROM_EMAIL ?? "Steve from Zari <coach@zaricoach.com>";
 export const REPLY_TO = process.env.RESEND_REPLY_TO ?? "support@zaricoach.com";
 
 export async function sendEmail(opts: {
