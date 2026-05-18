@@ -1111,6 +1111,33 @@ const POSTS = [
     date: "May 2025",
     accent: "#059669",
   },
+  {
+    slug: "how-to-write-a-resignation-letter",
+    title: "How to Write a Resignation Letter — Templates & Tips (2025)",
+    excerpt: "A resignation letter does one thing: formally documents your departure with a notice period start date. Exact templates for every situation — standard resignation, immediate departure, difficult relationships, and counter-offer response.",
+    tag: "Career",
+    readTime: "8 min read",
+    date: "May 2025",
+    accent: "#0D7182",
+  },
+  {
+    slug: "react-developer-resume",
+    title: "React Developer Resume — Examples & ATS Keywords (2025)",
+    excerpt: "React developer resumes that get callbacks show application complexity, performance impact, and state management depth — not just that you 'built UIs in React.' Before/after examples for junior, mid, and senior levels.",
+    tag: "Resume",
+    readTime: "10 min read",
+    date: "May 2025",
+    accent: "#3B82F6",
+  },
+  {
+    slug: "cloud-engineer-resume",
+    title: "Cloud Engineer Resume — Examples, Skills & ATS Keywords (2025)",
+    excerpt: "Cloud engineer resumes fail when they list certifications and services without showing what was built and at what scale. Hiring managers scan for infrastructure ownership, cost impact, and multi-cloud depth. Before/after examples for AWS, GCP, and Azure engineers.",
+    tag: "Resume",
+    readTime: "10 min read",
+    date: "May 2025",
+    accent: "#F97316",
+  },
 ];
 
 export default async function BlogPage() {
