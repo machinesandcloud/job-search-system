@@ -37,7 +37,7 @@ export const font = `Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helv
 // Single source of truth for all email links — checks both NEXT_PUBLIC vars,
 // falls back to the hardcoded production domain so links never break.
 export const SITE_URL =
-  (process.env.NEXT_PUBLIC_APP_URL ?? process.env.NEXT_PUBLIC_BASE_URL ?? "").replace(/\/$/, "") ||
+  (process.env.URL || process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || "").replace(/\/$/, "") ||
   "https://app.zaricoach.com";
 
 const LOGO_URL = `${(
