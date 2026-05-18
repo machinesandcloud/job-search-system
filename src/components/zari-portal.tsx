@@ -1362,11 +1362,17 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
   async function startRecording() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus") ? "audio/webm;codecs=opus"
+      const preferred = MediaRecorder.isTypeSupported("audio/webm;codecs=opus") ? "audio/webm;codecs=opus"
         : MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm"
         : MediaRecorder.isTypeSupported("audio/mp4") ? "audio/mp4"
-        : "audio/ogg";
-      const recorder = new MediaRecorder(stream, { mimeType });
+        : "";
+      let recorder: MediaRecorder;
+      try {
+        recorder = preferred ? new MediaRecorder(stream, { mimeType: preferred }) : new MediaRecorder(stream);
+      } catch {
+        recorder = new MediaRecorder(stream);
+      }
+      const mimeType = recorder.mimeType || preferred || "audio/webm";
       audioChunksRef.current = [];
       recorder.ondataavailable = e => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
       recorder.onstop = async () => {
@@ -1374,7 +1380,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
         const blob = new Blob(audioChunksRef.current, { type: mimeType });
         setIsRecording(false);
         if (blob.size < 500) return;
-        const ext = mimeType.includes("mp4") ? "m4a" : mimeType.includes("ogg") ? "ogg" : "webm";
+        const ext = mimeType.includes("mp4") || mimeType.includes("m4a") ? "m4a" : mimeType.includes("ogg") ? "ogg" : "webm";
         const form = new FormData();
         form.append("audio", blob, `recording.${ext}`);
         try {
@@ -9674,7 +9680,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
         })()}
 
         {/* ══ Tab navigation ══ */}
-        <div style={{ display:"flex", gap:0, borderBottom:"2px solid var(--z-bd)", marginBottom:22 }}>
+        <div className="zari-resume-tabs" style={{ display:"flex", gap:0, borderBottom:"2px solid var(--z-bd)", marginBottom:22 }}>
           {([
             ["overview","Overview", aiResult ? `${aiResult.findings.filter(f=>f.type!=="ok").length} issues` : ""],
             ["bullets","Line-by-Line", aiResult?.bullets?.length ? `${aiResult.bullets.length} bullets` : ""],
@@ -9746,7 +9752,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
           </div>
 
           {/* ── Right: analysis panel ── */}
-          <div className="zari-resume-viewer-panel" style={{ display:"flex", flexDirection:"column", gap:16, height:"calc(100vh - 260px)", overflowY:"auto" }}>
+          <div className="zari-resume-analysis-panel" style={{ display:"flex", flexDirection:"column", gap:16, height:"calc(100vh - 260px)", overflowY:"auto" }}>
             {/* ══ OVERVIEW TAB ══ */}
             {tab==="overview" && (() => {
               const CATEGORY_META: Record<string,{label:string;color:string;bg:string;border:string}> = {
@@ -10947,11 +10953,17 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
       setRecTime(0);
     } else {
       // Fallback for browsers without SpeechRecognition: record + Whisper transcribe
-      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus") ? "audio/webm;codecs=opus"
+      const ivPreferred = MediaRecorder.isTypeSupported("audio/webm;codecs=opus") ? "audio/webm;codecs=opus"
         : MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm"
         : MediaRecorder.isTypeSupported("audio/mp4") ? "audio/mp4"
-        : "audio/ogg";
-      const recorder = new MediaRecorder(stream, { mimeType });
+        : "";
+      let recorder: MediaRecorder;
+      try {
+        recorder = ivPreferred ? new MediaRecorder(stream, { mimeType: ivPreferred }) : new MediaRecorder(stream);
+      } catch {
+        recorder = new MediaRecorder(stream);
+      }
+      const mimeType = recorder.mimeType || ivPreferred || "audio/webm";
       ivChunksRef.current = [];
       recorder.ondataavailable = e => { if (e.data.size > 0) ivChunksRef.current.push(e.data); };
       recorder.onstop = async () => {
@@ -10960,7 +10972,7 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
         setIsRecording(false);
         if (blob.size < 500) return;
         try {
-          const ext = mimeType.includes("mp4") ? "m4a" : mimeType.includes("ogg") ? "ogg" : "webm";
+          const ext = mimeType.includes("mp4") || mimeType.includes("m4a") ? "m4a" : mimeType.includes("ogg") ? "ogg" : "webm";
           const form = new FormData();
           form.append("audio", blob, `recording.${ext}`);
           const res = await fetch("/api/zari/transcribe", { method: "POST", body: form });
@@ -18625,6 +18637,16 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
           .zari-li-main-content { padding:16px 14px 32px !important; }
           /* 4-column grids → 2 columns on mobile */
           .zari-four-col { grid-template-columns:1fr 1fr !important; }
+          /* Screen slots: clip horizontal overflow so nothing bleeds past viewport */
+          .zari-screen-slot { overflow-x:hidden !important; }
+          .zari-screens-wrapper { overflow-x:hidden !important; }
+          /* Resume tab bar: scroll horizontally instead of overflowing */
+          .zari-resume-tabs { overflow-x:auto !important; overflow-y:hidden !important; -webkit-overflow-scrolling:touch; flex-wrap:nowrap !important; scrollbar-width:none !important; }
+          .zari-resume-tabs::-webkit-scrollbar { display:none !important; }
+          /* Resume analysis right panel: auto height on mobile so it shows all content */
+          .zari-resume-analysis-panel { height:auto !important; min-height:200px; overflow-y:visible !important; }
+          /* Prevent any card or content element from busting out of viewport */
+          .zari-screen-slot > * { max-width:100vw; box-sizing:border-box; }
         }
         .zari-mobile-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:199; backdrop-filter:blur(2px); }
         .zari-session-hist-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:299; backdrop-filter:blur(2px); }
@@ -18791,7 +18813,7 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
         </div>
 
         {/* Screen — all kept mounted, hidden when inactive to preserve state */}
-        <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
+        <div className="zari-screens-wrapper" style={{ flex:1, overflow:"hidden", position:"relative" }}>
           {!hydrated ? (
             <div style={{ height:"100%", display:"flex", flexDirection:"column", gap:14, padding:"32px 40px" }}>
               {[0.85, 0.5, 0.65, 0.4, 0.55].map((w, i) => (
@@ -18800,14 +18822,14 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
             </div>
           ) : (
             <>
-              <div className={screen==="session"      ? "zari-screen-active" : ""} style={{ display:screen==="session"      ? "block" : "none", height:"100%" }}><FeatureGate featureName="zari_chat"><ScreenSession stage={stage} onNavigate={navigate}/></FeatureGate></div>
-              <div className={screen==="resume"       ? "zari-screen-active" : ""} style={{ display:screen==="resume"       ? "block" : "none", height:"100%" }}><ScreenResume       stage={stage} onNavigate={s=>navigate(s as Screen)}/></div>
-              <div className={screen==="interview"    ? "zari-screen-active" : ""} style={{ display:screen==="interview"    ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <FeatureGate featureName="zari_pivot_story"><ScreenPivotStoryBuilder active={screen==="interview"}/></FeatureGate> : <ScreenInterview    stage={stage} active={screen==="interview"} onNavigate={s=>navigate(s as Screen)}/>}</div>
-              <div className={screen==="cover-letter" ? "zari-screen-active" : ""} style={{ display:screen==="cover-letter" ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <FeatureGate featureName="zari_credibility_sprint"><ScreenCredibilitySprint active={screen==="cover-letter"}/></FeatureGate> : <ScreenCoverLetter stage={stage} active={screen==="cover-letter"} onNavigate={s=>navigate(s as Screen)}/>}</div>
-              <div className={screen==="linkedin"     ? "zari-screen-active" : ""} style={{ display:screen==="linkedin"     ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <FeatureGate featureName="zari_bridge_network"><ScreenBridgeNetwork active={screen==="linkedin"}/></FeatureGate> : <ScreenLinkedIn     stage={stage} active={screen==="linkedin"} onNavigate={s=>navigate(s as Screen)}/>}</div>
-              <div className={screen==="documents"    ? "zari-screen-active" : ""} style={{ display:screen==="documents"    ? "block" : "none", height:"100%" }}><ScreenDocuments stage={stage} onNavigate={s=>navigate(s as Screen)}/></div>
-              <div className={screen==="plan"         ? "zari-screen-active" : ""} style={{ display:screen==="plan"         ? "block" : "none", height:"100%" }}><ScreenPlan stage={stage} onNavigate={s=>navigate(s as Screen)} active={screen==="plan"}/></div>
-              <div className={screen==="account"      ? "zari-screen-active" : ""} style={{ display:screen==="account"      ? "block" : "none", height:"100%" }}><ScreenAccount viewer={viewer} onNavigate={navigate} onBuyCredits={() => { const used = viewer.usedMonthlyCredits ?? 0; const limit = viewer.creditLimit ?? viewer.includedMonthlyCredits ?? 0; setCreditLimitNotice({ used, limit, proactive: true }); setTopupOpen(true); }} onComparePlans={() => setComparePlansOpen(true)}/></div>
+              <div className={`zari-screen-slot${screen==="session"      ? " zari-screen-active" : ""}`} style={{ display:screen==="session"      ? "block" : "none", height:"100%" }}><FeatureGate featureName="zari_chat"><ScreenSession stage={stage} onNavigate={navigate}/></FeatureGate></div>
+              <div className={`zari-screen-slot${screen==="resume"       ? " zari-screen-active" : ""}`} style={{ display:screen==="resume"       ? "block" : "none", height:"100%" }}><ScreenResume       stage={stage} onNavigate={s=>navigate(s as Screen)}/></div>
+              <div className={`zari-screen-slot${screen==="interview"    ? " zari-screen-active" : ""}`} style={{ display:screen==="interview"    ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <FeatureGate featureName="zari_pivot_story"><ScreenPivotStoryBuilder active={screen==="interview"}/></FeatureGate> : <ScreenInterview    stage={stage} active={screen==="interview"} onNavigate={s=>navigate(s as Screen)}/>}</div>
+              <div className={`zari-screen-slot${screen==="cover-letter" ? " zari-screen-active" : ""}`} style={{ display:screen==="cover-letter" ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <FeatureGate featureName="zari_credibility_sprint"><ScreenCredibilitySprint active={screen==="cover-letter"}/></FeatureGate> : <ScreenCoverLetter stage={stage} active={screen==="cover-letter"} onNavigate={s=>navigate(s as Screen)}/>}</div>
+              <div className={`zari-screen-slot${screen==="linkedin"     ? " zari-screen-active" : ""}`} style={{ display:screen==="linkedin"     ? "block" : "none", height:"100%" }}>{stage==="career-change" ? <FeatureGate featureName="zari_bridge_network"><ScreenBridgeNetwork active={screen==="linkedin"}/></FeatureGate> : <ScreenLinkedIn     stage={stage} active={screen==="linkedin"} onNavigate={s=>navigate(s as Screen)}/>}</div>
+              <div className={`zari-screen-slot${screen==="documents"    ? " zari-screen-active" : ""}`} style={{ display:screen==="documents"    ? "block" : "none", height:"100%" }}><ScreenDocuments stage={stage} onNavigate={s=>navigate(s as Screen)}/></div>
+              <div className={`zari-screen-slot${screen==="plan"         ? " zari-screen-active" : ""}`} style={{ display:screen==="plan"         ? "block" : "none", height:"100%" }}><ScreenPlan stage={stage} onNavigate={s=>navigate(s as Screen)} active={screen==="plan"}/></div>
+              <div className={`zari-screen-slot${screen==="account"      ? " zari-screen-active" : ""}`} style={{ display:screen==="account"      ? "block" : "none", height:"100%" }}><ScreenAccount viewer={viewer} onNavigate={navigate} onBuyCredits={() => { const used = viewer.usedMonthlyCredits ?? 0; const limit = viewer.creditLimit ?? viewer.includedMonthlyCredits ?? 0; setCreditLimitNotice({ used, limit, proactive: true }); setTopupOpen(true); }} onComparePlans={() => setComparePlansOpen(true)}/></div>
             </>
           )}
         </div>
