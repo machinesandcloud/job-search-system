@@ -305,3 +305,57 @@ export function BroadcastForm({ isAdmin }: { isAdmin: boolean }) {
     </div>
   );
 }
+
+export function SendTestButton() {
+  const [to, setTo] = useState("");
+  const [status, setStatus] = useState<"idle" | "sending" | "ok" | "err">("idle");
+  const [result, setResult] = useState<{ ok: boolean; error?: string; from?: string } | null>(null);
+
+  async function send() {
+    if (!to.trim()) return;
+    setStatus("sending");
+    setResult(null);
+    const res = await fetch("/api/coach-admin/automation/send-test", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ to: to.trim() }),
+    });
+    const data = await res.json().catch(() => ({}));
+    setResult(data);
+    setStatus(data.ok ? "ok" : "err");
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div style={{ fontSize: 11, fontWeight: 600, color: "var(--ca-text2)", marginBottom: 2 }}>
+        Send a test email to verify Resend is working
+      </div>
+      <div style={{ display: "flex", gap: 6 }}>
+        <input
+          value={to}
+          onChange={e => setTo(e.target.value)}
+          placeholder="your@email.com"
+          style={{ fontSize: 12, padding: "6px 10px", borderRadius: 7, border: "1px solid var(--ca-bd)", background: "var(--ca-raise)", color: "var(--ca-text)", outline: "none", flex: 1 }}
+        />
+        <button
+          onClick={send}
+          disabled={!to.trim() || status === "sending"}
+          style={{ ...btn("#3B82F6"), padding: "5px 14px", opacity: !to.trim() ? 0.4 : 1 }}
+        >
+          {status === "sending" ? "Sending…" : "Send test"}
+        </button>
+      </div>
+      {status === "ok" && result && (
+        <div style={{ fontSize: 11, color: "#22C55E", lineHeight: 1.5 }}>
+          Delivered. From: {result.from}
+          <button onClick={() => { setStatus("idle"); setTo(""); setResult(null); }} style={{ marginLeft: 8, ...btn("#6B7280"), padding: "2px 7px" }}>Reset</button>
+        </div>
+      )}
+      {status === "err" && result && (
+        <div style={{ fontSize: 11, color: "#F43F5E", lineHeight: 1.5, wordBreak: "break-word" as const }}>
+          {result.error || "Send failed"}{result.from ? ` (from: ${result.from})` : ""}
+        </div>
+      )}
+    </div>
+  );
+}

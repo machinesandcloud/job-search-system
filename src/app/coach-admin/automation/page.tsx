@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireCoachAdminActor } from "@/lib/coach-admin-auth";
 import { prisma } from "@/lib/db";
 import { CoachAdminPill } from "@/components/coach-admin-ui";
-import { CancelEnrollmentButton, UnsuppressButton, EnrollForm, TriggerQueueButton, BackfillButton, BroadcastForm } from "./actions-client";
+import { CancelEnrollmentButton, UnsuppressButton, EnrollForm, TriggerQueueButton, BackfillButton, BroadcastForm, SendTestButton } from "./actions-client";
 
 export const dynamic = "force-dynamic";
 
@@ -209,6 +209,14 @@ export default async function AutomationPage() {
 
         {/* Right column */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
+          {/* Email delivery test */}
+          {isAdmin && (
+            <Card style={{ padding: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--ca-text3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>Email delivery test</div>
+              <SendTestButton />
+            </Card>
+          )}
 
           {/* Broadcast */}
           {isAdmin && (

@@ -317,7 +317,13 @@ export async function sendNow(sequence: ZariSequence, email: string): Promise<vo
     render(tmpl.element),
     render(tmpl.element, { plainText: true }),
   ]);
-  await sendEmail({ to: email, subject: tmpl.subject, html, text, unsubscribeUrl: unsubUrl });
+
+  try {
+    await sendEmail({ to: email, subject: tmpl.subject, html, text, unsubscribeUrl: unsubUrl });
+  } catch (err) {
+    console.error(`[sendNow] Resend failed for ${email} / ${sequence}:`, err);
+    throw err;
+  }
 
   // Log the send so it appears in the email history view
   await prisma.appEvent.create({
