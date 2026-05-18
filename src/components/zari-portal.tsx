@@ -1576,6 +1576,17 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
   useEffect(() => { const t = setInterval(() => setElapsed(e => e+1), 1000); return () => clearInterval(t); }, []);
   useEffect(() => { if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight; }, [msgs, isLoading]);
 
+  const sendMsgRef = useRef(sendMessage);
+  useEffect(() => { sendMsgRef.current = sendMessage; });
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const text = (e as CustomEvent<string>).detail;
+      if (text) void sendMsgRef.current(text);
+    };
+    window.addEventListener("zari-quick-ask", handler);
+    return () => window.removeEventListener("zari-quick-ask", handler);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const fmt = (s:number) => `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
 
   async function sendMessage(
@@ -17744,6 +17755,9 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
   const [topupLoading, setTopupLoading] = useState<string | null>(null);
   const [topupErr, setTopupErr] = useState<string | null>(null);
   const [topupCustom, setTopupCustom] = useState("");
+  const [askZariOpen, setAskZariOpen] = useState(false);
+  const [askZariText, setAskZariText] = useState("");
+  const askZariInputRef = useRef<HTMLTextAreaElement>(null);
   const [comparePlansOpen, setComparePlansOpen] = useState(false);
   const [billingPortalLoading, setBillingPortalLoading] = useState(false);
   const [phoneInput, setPhoneInput] = useState("");
@@ -18655,6 +18669,9 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
           /* Documents card: icon+meta on row 1, action buttons on row 2 */
           .zari-doc-card { align-items:flex-start !important; }
           .zari-doc-card-actions { flex-basis:100% !important; padding-left:56px; margin-top:4px; }
+          /* Ask Zari bubble — raise above bottom nav on mobile */
+          .zari-ask-bubble-wrap { bottom:74px !important; right:16px !important; }
+          .zari-ask-popover { width:calc(100vw - 32px) !important; max-width:320px; }
         }
         .zari-mobile-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:199; backdrop-filter:blur(2px); }
         .zari-session-hist-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:299; backdrop-filter:blur(2px); }
@@ -18663,6 +18680,19 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
         .zari-bottom-nav-btn { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; background:none; border:none; cursor:pointer; font-size:10px; font-weight:600; color:var(--z-text3); transition:color 0.14s; padding:0; min-width:0; }
         .zari-bottom-nav-btn.active { color:#2563EB; }
         .zari-topbar-hamburger { display:none; align-items:center; justify-content:center; width:34px; height:34px; border-radius:9px; border:1px solid var(--z-bd); background:transparent; cursor:pointer; color:var(--z-text2); margin-right:4px; }
+        /* Ask Zari floating bubble */
+        .zari-ask-bubble-wrap { position:fixed; bottom:24px; right:24px; z-index:500; display:flex; flex-direction:column; align-items:flex-end; gap:10px; }
+        .zari-ask-bubble-btn { display:flex; align-items:center; gap:7px; padding:11px 20px; border-radius:99px; background:#2563EB; color:#fff; border:none; cursor:pointer; font-size:14px; font-weight:700; box-shadow:0 4px 18px rgba(37,99,235,0.35); transition:transform 0.15s ease, box-shadow 0.15s ease; white-space:nowrap; }
+        .zari-ask-bubble-btn:hover { transform:scale(1.04); box-shadow:0 6px 22px rgba(37,99,235,0.45); }
+        .zari-ask-bubble-btn:active { transform:scale(0.97); }
+        .zari-ask-popover { background:var(--z-card); border:1px solid var(--z-bd); border-radius:16px; padding:16px; width:300px; box-shadow:0 8px 32px rgba(0,0,0,0.14); }
+        .zari-ask-popover-label { font-size:13px; font-weight:700; color:var(--z-text); margin:0 0 10px; }
+        .zari-ask-textarea { width:100%; border:1px solid var(--z-bd); border-radius:10px; padding:10px 12px; font-size:13px; background:var(--z-bg); color:var(--z-text); resize:none; outline:none; box-sizing:border-box; line-height:1.5; font-family:inherit; }
+        .zari-ask-textarea:focus { border-color:#2563EB; }
+        .zari-ask-cancel-btn { padding:7px 14px; border-radius:8px; border:1px solid var(--z-bd); background:transparent; color:var(--z-text2); font-size:13px; font-weight:600; cursor:pointer; }
+        .zari-ask-cancel-btn:hover { background:var(--z-raise); }
+        .zari-ask-submit-btn { padding:7px 16px; border-radius:8px; border:none; background:#2563EB; color:#fff; font-size:13px; font-weight:700; cursor:pointer; }
+        .zari-ask-submit-btn:hover { background:#1d4ed8; }
       `}</style>
 
       {/* Mobile sidebar overlay */}
@@ -18862,6 +18892,65 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
             </button>
           ))}
         </nav>
+
+        {/* Ask Zari floating bubble */}
+        <div className="zari-ask-bubble-wrap">
+          {askZariOpen && (
+            <div className="zari-ask-popover">
+              <p className="zari-ask-popover-label">Ask Zari anything</p>
+              <textarea
+                ref={askZariInputRef}
+                className="zari-ask-textarea"
+                placeholder="What would you like Zari to explain or help with?"
+                value={askZariText}
+                onChange={e => setAskZariText(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    if (askZariText.trim()) {
+                      window.dispatchEvent(new CustomEvent("zari-quick-ask", { detail: askZariText.trim() }));
+                      setAskZariText("");
+                      setAskZariOpen(false);
+                      navigate("session");
+                    }
+                  }
+                }}
+                rows={3}
+              />
+              <div style={{ display:"flex", gap:8, justifyContent:"flex-end", marginTop:8 }}>
+                <button className="zari-ask-cancel-btn" onClick={() => { setAskZariOpen(false); setAskZariText(""); }}>
+                  Cancel
+                </button>
+                <button
+                  className="zari-ask-submit-btn"
+                  onClick={() => {
+                    if (askZariText.trim()) {
+                      window.dispatchEvent(new CustomEvent("zari-quick-ask", { detail: askZariText.trim() }));
+                      setAskZariText("");
+                      setAskZariOpen(false);
+                      navigate("session");
+                    }
+                  }}
+                >
+                  Ask Zari →
+                </button>
+              </div>
+            </div>
+          )}
+          <button
+            className="zari-ask-bubble-btn"
+            onClick={() => {
+              setAskZariOpen(o => !o);
+              if (!askZariOpen) setTimeout(() => askZariInputRef.current?.focus(), 50);
+            }}
+            aria-label="Ask Zari"
+          >
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" style={{width:18,height:18}}>
+              <path d="M3 3h12a1 1 0 011 1v7a1 1 0 01-1 1H6l-4 3V4a1 1 0 011-1z"/>
+            </svg>
+            <span>Ask Zari</span>
+          </button>
+        </div>
       </main>
     </div>
     </div>
