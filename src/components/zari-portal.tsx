@@ -1373,9 +1373,10 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
         stream.getTracks().forEach(t => t.stop());
         const blob = new Blob(audioChunksRef.current, { type: mimeType });
         setIsRecording(false);
-        if (blob.size < 1000) return;
+        if (blob.size < 500) return;
+        const ext = mimeType.includes("mp4") ? "m4a" : mimeType.includes("ogg") ? "ogg" : "webm";
         const form = new FormData();
-        form.append("audio", blob);
+        form.append("audio", blob, `recording.${ext}`);
         try {
           const res = await fetch("/api/zari/transcribe", { method: "POST", body: form });
           const data = await res.json().catch(() => ({})) as { text?: string };
@@ -1383,7 +1384,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
           if (text) void sendMessage(text);
         } catch { /* non-fatal */ }
       };
-      recorder.start();
+      recorder.start(100);
       mediaRecorderRef.current = recorder;
       setIsRecording(true);
     } catch { /* mic permission denied or unavailable */ }
@@ -9413,7 +9414,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
         </div>
       )}
 
-      <div style={{ padding:"24px 32px 48px" }}>
+      <div className="zari-results-outer" style={{ padding:"24px 32px 48px" }}>
 
         {/* ── Top bar ── */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20, gap:12, flexWrap:"wrap" }}>
@@ -9492,7 +9493,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
               <div style={{ position:"absolute", top:-50, right:200, width:220, height:220, background:`radial-gradient(circle,${lcolor}22 0%,transparent 70%)`, pointerEvents:"none" }}/>
               <div style={{ position:"absolute", bottom:-60, left:40, width:160, height:160, background:"radial-gradient(circle,rgba(37,99,235,0.12) 0%,transparent 70%)", pointerEvents:"none" }}/>
 
-              <div style={{ display:"grid", gridTemplateColumns:"168px 1fr 168px", gap:28, alignItems:"center", position:"relative" }}>
+              <div className="zari-score-hero-grid" style={{ display:"grid", gridTemplateColumns:"168px 1fr 168px", gap:28, alignItems:"center", position:"relative" }}>
 
                 {/* Big overall score ring */}
                 <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:6 }}>
@@ -9690,9 +9691,9 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
           ))}
         </div>
 
-        <div style={{ display:"grid", gridTemplateColumns:"minmax(0,48%) 1fr", gap:24 }}>
+        <div className="zari-resume-viewer-grid" style={{ display:"grid", gridTemplateColumns:"minmax(0,48%) 1fr", gap:24 }}>
           {/* ── Left: resume viewer ── */}
-          <div style={{ background:"var(--z-card)", boxShadow:"0 2px 20px rgba(0,0,0,0.07)", borderRadius:16, overflow:"hidden", height:"calc(100vh - 260px)", display:"flex", flexDirection:"column", border:"1px solid var(--z-bd)" }}>
+          <div className="zari-resume-viewer-panel" style={{ background:"var(--z-card)", boxShadow:"0 2px 20px rgba(0,0,0,0.07)", borderRadius:16, overflow:"hidden", height:"calc(100vh - 260px)", display:"flex", flexDirection:"column", border:"1px solid var(--z-bd)" }}>
             {/* Panel header */}
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px", background:"var(--z-raise)", borderBottom:"1px solid var(--z-bd)", flexShrink:0 }}>
               <div style={{ display:"flex", background:"var(--z-raise)", borderRadius:9, padding:3 }}>
@@ -9745,7 +9746,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
           </div>
 
           {/* ── Right: analysis panel ── */}
-          <div style={{ display:"flex", flexDirection:"column", gap:16, height:"calc(100vh - 260px)", overflowY:"auto" }}>
+          <div className="zari-resume-viewer-panel" style={{ display:"flex", flexDirection:"column", gap:16, height:"calc(100vh - 260px)", overflowY:"auto" }}>
             {/* ══ OVERVIEW TAB ══ */}
             {tab==="overview" && (() => {
               const CATEGORY_META: Record<string,{label:string;color:string;bg:string;border:string}> = {
@@ -9822,7 +9823,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                   {bs && (
                     <div style={{ background:"var(--z-card)", borderRadius:16, border:"1px solid var(--z-bd)", padding:"20px 22px", boxShadow:"0 2px 12px rgba(0,0,0,0.07)" }}>
                       <p style={{ fontSize:13, fontWeight:800, color:"var(--z-text)", marginBottom:14, textTransform:"uppercase", letterSpacing:"0.06em" }}>Bullet quality snapshot</p>
-                      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10 }}>
+                      <div className="zari-four-col" style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10 }}>
                         {[
                           { val:bs.total,           label:"Total bullets",   color:"var(--z-text2)", bg:"rgba(255,255,255,0.06)" },
                           { val:bs.withMetrics,      label:"Have metrics",   color:`${bs.withMetrics/Math.max(bs.total,1)>=0.6?"#4ADE80":"#F87171"}`, bg:`${bs.withMetrics/Math.max(bs.total,1)>=0.6?"rgba(74,222,128,0.1)":"rgba(248,113,113,0.1)"}` },
@@ -10957,17 +10958,18 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
         cleanupAudio();
         const blob = new Blob(ivChunksRef.current, { type: mimeType });
         setIsRecording(false);
-        if (blob.size < 1000) return;
+        if (blob.size < 500) return;
         try {
+          const ext = mimeType.includes("mp4") ? "m4a" : mimeType.includes("ogg") ? "ogg" : "webm";
           const form = new FormData();
-          form.append("audio", blob);
+          form.append("audio", blob, `recording.${ext}`);
           const res = await fetch("/api/zari/transcribe", { method: "POST", body: form });
           const d = await res.json().catch(() => ({})) as { text?: string };
           const txt = (d.text ?? "").trim();
           if (txt) setAnswer(prev => prev ? `${prev.trimEnd()} ${txt}` : txt);
         } catch { /* non-fatal */ }
       };
-      recorder.start();
+      recorder.start(100);
       ivRecorderRef.current = recorder;
       setIsRecording(true);
       setRecTime(0);
@@ -14196,7 +14198,7 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
       </div>
 
       {/* ── Main content ── */}
-      <div style={{ flex:1, overflowY:"auto", background:"var(--z-raise)", padding:"28px 30px", display: liMainTab==="history" ? "none" : undefined }}>
+      <div className="zari-li-main-content" style={{ flex:1, overflowY:"auto", background:"var(--z-raise)", padding:"28px 30px", display: liMainTab==="history" ? "none" : undefined }}>
 
         {/* OVERVIEW */}
         {liSection==="score" && (
@@ -14207,7 +14209,7 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
             </div>
 
             {/* Score card + quick wins */}
-            <div style={{ display:"grid", gridTemplateColumns:"260px 1fr", gap:16, marginBottom:16 }}>
+            <div className="zari-li-score-grid" style={{ display:"grid", gridTemplateColumns:"260px 1fr", gap:16, marginBottom:16 }}>
               <div style={{ background:"var(--z-card)", borderRadius:16, padding:"26px 20px", boxShadow:"0 2px 12px rgba(0,0,0,0.06)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", position:"relative", overflow:"hidden", border:"1px solid var(--z-bd)" }}>
                 <div style={{ position:"absolute", top:"-40px", left:"50%", transform:"translateX(-50%)", width:200, height:200, borderRadius:"50%", background:`radial-gradient(circle,${overall>=75?"rgba(34,197,94,0.12)":overall>=55?"rgba(0,119,181,0.12)":"rgba(251,191,36,0.12)"} 0%,transparent 70%)`, pointerEvents:"none" }}/>
                 <p style={{ fontSize:9.5, fontWeight:800, color:"var(--z-text2)", letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:16, position:"relative" }}>Overall Score</p>
@@ -18609,6 +18611,20 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
           .zari-score-section { flex-direction:column !important; }
           /* Action buttons row — wrap on mobile */
           .zari-action-row { flex-wrap:wrap !important; }
+          /* Resume results outer padding */
+          .zari-results-outer { padding:16px 14px 40px !important; }
+          /* Resume hero score card: 3-col → single column stack */
+          .zari-score-hero-grid { grid-template-columns:1fr !important; }
+          /* Resume results: PDF viewer + scores → stack vertically */
+          .zari-resume-viewer-grid { grid-template-columns:1fr !important; }
+          /* Resume PDF viewer panel: fixed viewport height → reasonable mobile height */
+          .zari-resume-viewer-panel { height:55vw !important; min-height:260px !important; max-height:420px !important; }
+          /* LinkedIn overview score card + priority fixes → stack */
+          .zari-li-score-grid { grid-template-columns:1fr !important; }
+          /* LinkedIn main content — reduce padding */
+          .zari-li-main-content { padding:16px 14px 32px !important; }
+          /* 4-column grids → 2 columns on mobile */
+          .zari-four-col { grid-template-columns:1fr 1fr !important; }
         }
         .zari-mobile-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:199; backdrop-filter:blur(2px); }
         .zari-session-hist-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:299; backdrop-filter:blur(2px); }
@@ -18796,15 +18812,20 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
           )}
         </div>
 
-        {/* Mobile bottom nav */}
+        {/* Mobile bottom nav — stage-aware labels */}
         <nav className="zari-bottom-nav">
-          {([
-            { id:"session",      icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" style={{width:20,height:20}}><path d="M3 3h12a1 1 0 011 1v7a1 1 0 01-1 1H6l-4 3V4a1 1 0 011-1z"/></svg>, label:"Chat" },
-            { id:"resume",       icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" style={{width:20,height:20}}><rect x="3" y="2" width="14" height="16" rx="2"/><path d="M7 7h6M7 10h6M7 13h4"/></svg>, label:"Resume" },
-            { id:"interview",    icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" style={{width:20,height:20}}><circle cx="10" cy="6" r="3"/><path d="M3 17c0-3.866 3.134-6 7-6s7 2.134 7 6"/></svg>, label:"Interview" },
-            { id:"linkedin",     icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" style={{width:20,height:20}}><rect x="2" y="2" width="16" height="16" rx="3"/><path d="M6 9v5M6 6.5v.5M9 14V11a2.5 2.5 0 015 0v3M9 11v3"/></svg>, label:"LinkedIn" },
-            { id:"account",      icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" style={{width:20,height:20}}><circle cx="10" cy="7" r="3.5"/><path d="M3 17c0-3.314 3.134-5.5 7-5.5s7 2.186 7 5.5"/></svg>, label:"Account" },
-          ] as { id: Screen; icon: React.ReactNode; label: string }[]).map(item => (
+          {(([
+            { id:"session" as Screen,   icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" style={{width:20,height:20}}><path d="M3 3h12a1 1 0 011 1v7a1 1 0 01-1 1H6l-4 3V4a1 1 0 011-1z"/></svg>,
+              label:{ "job-search":"Chat","promotion":"Ask Zari","salary":"Chat","career-change":"Chat","leadership":"Chat" }[stage] },
+            { id:"resume" as Screen,    icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" style={{width:20,height:20}}><rect x="3" y="2" width="14" height="16" rx="2"/><path d="M7 7h6M7 10h6M7 13h4"/></svg>,
+              label:{ "job-search":"Resume","promotion":"Reality","salary":"Research","career-change":"Pivot","leadership":"Exec Bio" }[stage] },
+            { id:"interview" as Screen, icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" style={{width:20,height:20}}><circle cx="10" cy="6" r="3"/><path d="M3 17c0-3.866 3.134-6 7-6s7 2.134 7 6"/></svg>,
+              label:{ "job-search":"Interview","promotion":"Practice","salary":"Negotiate","career-change":"Story","leadership":"Story" }[stage] },
+            { id:"linkedin" as Screen,  icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" style={{width:20,height:20}}><rect x="2" y="2" width="16" height="16" rx="3"/><path d="M6 9v5M6 6.5v.5M9 14V11a2.5 2.5 0 015 0v3M9 11v3"/></svg>,
+              label:{ "job-search":"LinkedIn","promotion":"Allies","salary":"Market","career-change":"Network","leadership":"Comms" }[stage] },
+            { id:"account" as Screen,   icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" style={{width:20,height:20}}><circle cx="10" cy="7" r="3.5"/><path d="M3 17c0-3.314 3.134-5.5 7-5.5s7 2.186 7 5.5"/></svg>,
+              label:"Account" },
+          ] as { id: Screen; icon: React.ReactNode; label: string }[])).map(item => (
             <button key={item.id} className={`zari-bottom-nav-btn${screen===item.id?" active":""}`} onClick={()=>navigate(item.id)}>
               {item.icon}
               <span>{item.label}</span>
