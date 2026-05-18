@@ -1192,6 +1192,33 @@ const POSTS = [
     date: "May 2025",
     accent: "#EC4899",
   },
+  {
+    slug: "how-to-find-a-mentor",
+    title: "How to Find a Mentor — A Practical Guide for Professionals (2025)",
+    excerpt: "\"Find someone you admire and reach out\" is true but incomplete. The 5 places where most lasting mentorships actually originate, exactly how to make the ask at each stage, and the difference between a mentor and a sponsor (and why you eventually need both).",
+    tag: "Career Strategy",
+    readTime: "9 min read",
+    date: "May 2025",
+    accent: "#059669",
+  },
+  {
+    slug: "executive-presence",
+    title: "Executive Presence — What It Actually Is and How to Build It (2025)",
+    excerpt: "\"You need more executive presence\" is one of the most common and least useful pieces of career feedback. This breaks it into 5 concrete, developable components — each with observable signals, development practices, and before/after examples.",
+    tag: "Career Strategy",
+    readTime: "10 min read",
+    date: "May 2025",
+    accent: "#7C3AED",
+  },
+  {
+    slug: "how-to-get-a-job-at-netflix",
+    title: "How to Get a Job at Netflix — Interview Process & Culture (2025)",
+    excerpt: "Netflix's Freedom & Responsibility culture, keeper test, and top-of-market salary philosophy change how you need to prepare. 5-stage process breakdown, what Netflix looks for that no other FAANG emphasizes, and how to negotiate a Netflix offer.",
+    tag: "Interview Prep",
+    readTime: "10 min read",
+    date: "May 2025",
+    accent: "#DC2626",
+  },
 ];
 
 const FEATURED_SLUGS = [

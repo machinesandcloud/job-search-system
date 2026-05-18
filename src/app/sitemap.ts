@@ -260,6 +260,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/blog/product-designer-resume`,               lastModified: now, changeFrequency: "monthly", priority: 0.90 },
     { url: `${base}/compare/zari-vs-payscale`,                   lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/compare/zari-vs-job-hero`,                   lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/blog/how-to-find-a-mentor`,                  lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/executive-presence`,                    lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/how-to-get-a-job-at-netflix`,           lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/compare/zari-vs-careerly`,                   lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/compare/zari-vs-huntr`,                      lastModified: now, changeFrequency: "monthly", priority: 0.88 },
 
     // Auth / conversion
     { url: `${base}/signup`,  lastModified: now, changeFrequency: "monthly", priority: 0.8 },

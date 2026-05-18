@@ -66,6 +66,8 @@ const COMPARISONS = [
   { href: "/compare/zari-vs-levels-fyi", title: "Zari vs Levels.fyi", summary: "Levels.fyi is the most accurate source of tech compensation data — total comp by company, level, and location. Zari coaches you to negotiate the numbers it shows. They're sequential: data first, then execution." },
   { href: "/compare/zari-vs-payscale", title: "Zari vs PayScale", summary: "PayScale provides skill-adjusted salary reports across 8,000+ job titles and industries — broader than any tech-only database. Zari coaches you to negotiate the numbers it shows. Research first, then execution." },
   { href: "/compare/zari-vs-job-hero", title: "Zari vs Job Hero", summary: "Job Hero is an AI-powered job search organizer — Kanban pipeline, browser extension, and basic AI resume tailoring. Zari coaches the quality of each application: deep resume rewriting, interview prep, and salary negotiation." },
+  { href: "/compare/zari-vs-careerly", title: "Zari vs Careerly", summary: "Careerly automates job discovery and application volume with AI matching and auto-apply. Zari coaches the quality of each application — deep resume rewriting, company-specific interview prep, and salary negotiation." },
+  { href: "/compare/zari-vs-huntr", title: "Zari vs Huntr", summary: "Huntr is the best job search tracker — Kanban board, contact management, and funnel analytics. Zari coaches quality per application: resume depth, interview performance, and offer negotiation. Use both." },
 ];
 
 export default async function ComparePage() {
