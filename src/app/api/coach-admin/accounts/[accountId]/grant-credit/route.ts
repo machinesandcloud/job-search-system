@@ -122,3 +122,62 @@ export async function POST(
 
   return NextResponse.json({ ok: true, ...eventMeta });
 }
+
+// ── Revoke the most recent grant for this account ─────────────────────────────
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ accountId: string }> }
+) {
+  if (!ensureSameOrigin(request)) return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
+  const actor = await requireCoachAdminActor();
+  if (!actor || actor.session.role !== "admin") return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { accountId } = await params;
+
+  const account = await prisma.account.findUnique({
+    where: { id: accountId },
+    include: {
+      subscription: true,
+      ownerUser: { select: { id: true, email: true, firstName: true } },
+    },
+  });
+  if (!account) return NextResponse.json({ error: "Account not found" }, { status: 404 });
+
+  const sub = account.subscription;
+  if (!sub?.stripeSubscriptionId) {
+    return NextResponse.json({ error: "No active Stripe subscription." }, { status: 409 });
+  }
+
+  // Find the last grant to determine what to revoke
+  const lastGrant = await prisma.appEvent.findFirst({
+    where: { accountId, eventName: "admin_credit_granted" },
+    orderBy: { createdAt: "desc" },
+  });
+  if (!lastGrant) return NextResponse.json({ error: "No grant found for this account." }, { status: 404 });
+
+  const meta = lastGrant.metadataJson as Record<string, unknown>;
+  const stripe = getStripeClient();
+
+  if (meta?.type === "discount") {
+    // Remove all discounts from the subscription
+    await stripe.subscriptions.update(sub.stripeSubscriptionId, { discounts: [] });
+  } else {
+    // End the trial immediately (restores normal billing)
+    await stripe.subscriptions.update(sub.stripeSubscriptionId, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      trial_end: "now" as any,
+      proration_behavior: "none",
+    });
+  }
+
+  await prisma.appEvent.create({
+    data: {
+      accountId,
+      userId: account.ownerUser.id,
+      eventName: "admin_credit_revoked",
+      metadataJson: { revokedBy: actor.session.email, originalType: meta?.type, originalMeta: meta },
+    },
+  }).catch(() => null);
+
+  return NextResponse.json({ ok: true });
+}

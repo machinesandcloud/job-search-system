@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { coachAdminGhostButtonClass, coachAdminInputClass, coachAdminPrimaryButtonClass } from "@/components/coach-admin-ui";
 
 type GrantType = "months" | "discount";
@@ -168,3 +169,95 @@ const labelStyle: React.CSSProperties = {
   display: "block", fontSize: 12, fontWeight: 600,
   color: "var(--ca-text2, #334155)", marginBottom: 6,
 };
+
+export function CoachAdminRevokeButton({
+  accountId,
+  grantLabel,
+}: {
+  accountId: string;
+  grantLabel: string;
+}) {
+  const router = useRouter();
+  const [confirming, setConfirming] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleRevoke() {
+    setLoading(true);
+    setError("");
+    const res = await fetch(`/api/coach-admin/accounts/${accountId}/grant-credit`, {
+      method: "DELETE",
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setError(data.error || "Something went wrong.");
+      setLoading(false);
+      return;
+    }
+    setConfirming(false);
+    setLoading(false);
+    router.refresh();
+  }
+
+  if (!confirming) {
+    return (
+      <button
+        onClick={() => setConfirming(true)}
+        style={{
+          fontSize: 11.5, fontWeight: 600, padding: "3px 10px", borderRadius: 99, cursor: "pointer",
+          background: "rgba(239,68,68,0.1)", color: "#EF4444",
+          border: "1px solid rgba(239,68,68,0.3)",
+          whiteSpace: "nowrap",
+        }}
+      >
+        Revoke
+      </button>
+    );
+  }
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)",
+      display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50,
+    }}
+      onClick={(e) => { if (e.target === e.currentTarget) setConfirming(false); }}
+    >
+      <div style={{
+        background: "var(--ca-card)", border: "1px solid var(--ca-bd)",
+        borderRadius: 12, padding: 28, width: 380, boxShadow: "0 12px 40px rgba(0,0,0,0.3)",
+      }}>
+        <h3 style={{ margin: "0 0 8px", fontSize: 15, fontWeight: 700, color: "var(--ca-text)" }}>
+          Revoke grant?
+        </h3>
+        <p style={{ margin: "0 0 6px", fontSize: 13, color: "var(--ca-text2)", lineHeight: 1.5 }}>
+          This will remove <strong style={{ color: "var(--ca-text)" }}>{grantLabel}</strong> from this account immediately.
+        </p>
+        <p style={{ margin: "0 0 20px", fontSize: 12, color: "var(--ca-text3)" }}>
+          For a discount grant, the coupon is removed from Stripe. For free months, the trial period ends now and regular billing resumes.
+        </p>
+        {error && <p style={{ fontSize: 13, color: "#EF4444", marginBottom: 12 }}>{error}</p>}
+        <div style={{ display: "flex", gap: 10 }}>
+          <button
+            onClick={() => setConfirming(false)}
+            className={coachAdminGhostButtonClass}
+            style={{ flex: 1 }}
+            disabled={loading}
+          >
+            Keep grant
+          </button>
+          <button
+            onClick={handleRevoke}
+            disabled={loading}
+            style={{
+              flex: 1, padding: "9px 0", borderRadius: 8, border: "none", cursor: "pointer",
+              background: loading ? "rgba(239,68,68,0.5)" : "#EF4444",
+              color: "#fff", fontSize: 13, fontWeight: 700,
+            }}
+          >
+            {loading ? "Revoking…" : "Yes, revoke"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

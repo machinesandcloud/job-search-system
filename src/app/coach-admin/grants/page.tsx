@@ -1,6 +1,6 @@
 import { requireCoachAdminSession } from "@/lib/coach-admin-auth";
 import { prisma } from "@/lib/db";
-import { CoachAdminGrantModal } from "@/components/coach-admin-grants";
+import { CoachAdminGrantModal, CoachAdminRevokeButton } from "@/components/coach-admin-grants";
 
 function fmt(v?: Date | null) {
   if (!v) return "—";
@@ -52,7 +52,7 @@ export default async function GrantsPage() {
     }
   }
 
-  const COLS = "1fr 120px 110px 120px 1fr";
+  const COLS = "1fr 120px 110px 120px 1fr 90px";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -69,7 +69,7 @@ export default async function GrantsPage() {
       <div style={{ borderRadius: 8, border: "1px solid var(--ca-bd)", background: "var(--ca-card)", overflow: "hidden" }}>
         {/* Header row */}
         <div style={{ display: "grid", gridTemplateColumns: COLS, padding: "8px 16px", borderBottom: "1px solid var(--ca-bd)", gap: 12 }}>
-          {["Account", "Plan", "Status", "Renews", "Last grant"].map((h) => (
+          {["Account", "Plan", "Status", "Renews", "Last grant", ""].map((h) => (
             <span key={h} style={{ fontSize: 10, fontWeight: 700, color: "var(--ca-text3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{h}</span>
           ))}
         </div>
@@ -107,17 +107,33 @@ export default async function GrantsPage() {
               {/* Renews */}
               <span style={{ fontSize: 12, color: "var(--ca-text2)" }}>{fmt(sub.currentPeriodEnd)}</span>
 
-              {/* Last grant + Grant button */}
-              <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+              {/* Last grant info */}
+              <div style={{ minWidth: 0 }}>
                 {lastGrant ? (
-                  <span style={{ fontSize: 11.5, color: "var(--ca-text3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
-                    {meta?.type === "discount"
-                      ? `${meta.discountPct}% off ${meta.discountMonths}mo`
-                      : `+${meta?.months}mo`
-                    } · {fmt(lastGrant.createdAt)}
-                  </span>
+                  <>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "var(--ca-text2)" }}>
+                      {meta?.type === "discount"
+                        ? `${meta.discountPct}% off ${meta.discountMonths}mo`
+                        : `+${meta?.months}mo`}
+                    </div>
+                    <div style={{ fontSize: 11, color: "var(--ca-text3)", marginTop: 1 }}>{fmt(lastGrant.createdAt)}</div>
+                  </>
                 ) : (
-                  <span style={{ fontSize: 11.5, color: "var(--ca-text3)", flex: 1 }}>—</span>
+                  <span style={{ fontSize: 12, color: "var(--ca-text3)" }}>—</span>
+                )}
+              </div>
+
+              {/* Grant + Revoke actions */}
+              <div style={{ display: "flex", alignItems: "center", gap: 6, justifyContent: "flex-end" }}>
+                {lastGrant && (
+                  <CoachAdminRevokeButton
+                    accountId={account.id}
+                    grantLabel={
+                      meta?.type === "discount"
+                        ? `${meta.discountPct}% off for ${meta.discountMonths}mo`
+                        : `+${meta?.months} free month${Number(meta?.months) > 1 ? "s" : ""}`
+                    }
+                  />
                 )}
                 <CoachAdminGrantModal
                   accountId={account.id}
