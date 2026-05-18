@@ -1362,7 +1362,10 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
   async function startRecording() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mimeType = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/ogg";
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus") ? "audio/webm;codecs=opus"
+        : MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm"
+        : MediaRecorder.isTypeSupported("audio/mp4") ? "audio/mp4"
+        : "audio/ogg";
       const recorder = new MediaRecorder(stream, { mimeType });
       audioChunksRef.current = [];
       recorder.ondataavailable = e => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
@@ -2263,7 +2266,8 @@ function ZariLiveMode({
 
     if (!SpeechRec) {
       setLiveState("idle");
-      setStatusText("Use Chrome or Edge for live voice");
+      setMicBlocked(true);
+      setStatusText("Voice not supported in this browser");
       return;
     }
 
@@ -2526,13 +2530,24 @@ function ZariLiveMode({
         {/* Mic permission guide */}
         {micBlocked && (
           <div style={{ width:"100%", maxWidth:420, margin:"10px 20px 0", padding:"18px 22px", borderRadius:14, background:"rgba(239,68,68,0.1)", border:"1px solid rgba(239,68,68,0.25)", backdropFilter:"blur(12px)" }}>
-            <p style={{ color:"#FCA5A5", fontWeight:700, fontSize:13, margin:"0 0 8px" }}>Microphone access is blocked</p>
-            <ol style={{ color:"rgba(255,255,255,0.65)", fontSize:12, margin:0, paddingLeft:18, lineHeight:2.1 }}>
-              <li>Click the <strong style={{ color:"rgba(255,255,255,0.9)" }}>lock icon</strong> in the address bar</li>
-              <li>Click <strong style={{ color:"rgba(255,255,255,0.9)" }}>Site settings</strong></li>
-              <li>Set <strong style={{ color:"rgba(255,255,255,0.9)" }}>Microphone</strong> to <strong style={{ color:"rgba(255,255,255,0.9)" }}>Allow</strong></li>
-              <li>Reload and tap the mic again</li>
-            </ol>
+            {statusText === "Voice not supported in this browser" ? (
+              <>
+                <p style={{ color:"#FCA5A5", fontWeight:700, fontSize:13, margin:"0 0 8px" }}>Voice not available in this browser</p>
+                <p style={{ color:"rgba(255,255,255,0.65)", fontSize:12, margin:"0 0 8px", lineHeight:1.7 }}>
+                  Live voice requires Chrome or Edge on desktop. On iOS, please use the text chat instead — tap the × to close and type your message.
+                </p>
+              </>
+            ) : (
+              <>
+                <p style={{ color:"#FCA5A5", fontWeight:700, fontSize:13, margin:"0 0 8px" }}>Microphone access is blocked</p>
+                <ol style={{ color:"rgba(255,255,255,0.65)", fontSize:12, margin:0, paddingLeft:18, lineHeight:2.1 }}>
+                  <li>Click the <strong style={{ color:"rgba(255,255,255,0.9)" }}>lock icon</strong> in the address bar</li>
+                  <li>Click <strong style={{ color:"rgba(255,255,255,0.9)" }}>Site settings</strong></li>
+                  <li>Set <strong style={{ color:"rgba(255,255,255,0.9)" }}>Microphone</strong> to <strong style={{ color:"rgba(255,255,255,0.9)" }}>Allow</strong></li>
+                  <li>Reload and tap the mic again</li>
+                </ol>
+              </>
+            )}
             <button onClick={() => { setMicBlocked(false); autoLoopRef.current = false; setStarted(false); }} style={{ marginTop:10, fontSize:11, color:"rgba(255,255,255,0.35)", background:"none", border:"none", cursor:"pointer", padding:0, textDecoration:"underline" }}>Dismiss</button>
           </div>
         )}
@@ -4130,7 +4145,7 @@ function PromotionSharedIntakeFlow({
       </div>
 
       {/* Two-column body */}
-      <div style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
+      <div className="zari-two-col" style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
         {/* LEFT: Form */}
         <div>
           <div style={{ marginBottom:28 }}>
@@ -4236,7 +4251,7 @@ function PromotionSharedIntakeFlow({
         </div>
 
         {/* RIGHT: Sidebar */}
-        <div style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
+        <div className="zari-sticky-col" style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
           <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
               {zIcon(stepCtx.icon, "#60A5FA")}
@@ -4493,7 +4508,7 @@ function ScreenPromotionReadiness() {
     return (
       <div style={{ height:"100%", display:"flex", overflow:"hidden", background:"var(--z-raise)" }}>
         {/* LEFT PANEL */}
-        <div style={{ width:264, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
+        <div className="zari-inner-sidebar" style={{ width:264, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
           <div style={{ padding:"22px 16px 14px" }}>
             <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:14 }}>
               <div style={{ position:"relative", width:68, height:68, flexShrink:0 }}>
@@ -4910,7 +4925,7 @@ function ScreenPromotionReadiness() {
       </div>
 
       {/* Two-column body */}
-      <div style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
+      <div className="zari-two-col" style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
         {/* LEFT: Form */}
         <div>
           <div style={{ marginBottom:28 }}>
@@ -5039,7 +5054,7 @@ function ScreenPromotionReadiness() {
         </div>
 
         {/* RIGHT: Sidebar */}
-        <div style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
+        <div className="zari-sticky-col" style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
           <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
               {zIcon(stepCtx.icon, "#60A5FA")}
@@ -5219,7 +5234,7 @@ function ScreenSalaryCompensation() {
     return (
       <div style={{ height:"100%", display:"flex", overflow:"hidden", background:"var(--z-raise)" }}>
         {/* LEFT PANEL */}
-        <div style={{ width:264, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
+        <div className="zari-inner-sidebar" style={{ width:264, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
           <div style={{ padding:"22px 16px 14px" }}>
             <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:14 }}>
               <div style={{ position:"relative", width:68, height:68, flexShrink:0 }}>
@@ -5408,7 +5423,7 @@ function ScreenSalaryCompensation() {
       />
 
       {/* Two-column body */}
-      <div style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
+      <div className="zari-two-col" style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
         <div>
           <div style={{ marginBottom:28 }}>
             <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"var(--z-text3)", marginBottom:6 }}>Step {step} of 3</p>
@@ -5502,7 +5517,7 @@ function ScreenSalaryCompensation() {
         </div>
 
         {/* RIGHT: Sidebar */}
-        <div style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
+        <div className="zari-sticky-col" style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
           <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
               {zIcon(salaryStepCtx.icon, "#60A5FA")}
@@ -5954,7 +5969,7 @@ function ScreenPivotAnalysis() {
       />
 
       {/* Two-column body */}
-      <div style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
+      <div className="zari-two-col" style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
         <div>
           <div style={{ marginBottom:28 }}>
             <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"var(--z-text3)", marginBottom:6 }}>Step {step} of 3</p>
@@ -6081,7 +6096,7 @@ function ScreenPivotAnalysis() {
         </div>
 
         {/* RIGHT: Sidebar */}
-        <div style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
+        <div className="zari-sticky-col" style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
           <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
               {zIcon(pivotStepCtx.icon, "#60A5FA")}
@@ -6264,7 +6279,7 @@ function ScreenPivotStoryBuilder({ active }:{ active:boolean }) {
         <button onClick={()=>{ _ccStore.clearCache("story"); activated.current=false; }} style={{ fontSize:11, fontWeight:700, padding:"6px 13px", borderRadius:8, border:"1px solid rgba(255,255,255,0.12)", background:"rgba(255,255,255,0.05)", color:"rgba(255,255,255,0.5)", cursor:"pointer" }}>Regenerate</button>
       </div>
 
-      <div style={{ flex:1, overflowY:"auto", padding:"24px 32px 52px", display:"grid", gridTemplateColumns:"1fr 280px", gap:22, alignItems:"start" }}>
+      <div className="zari-two-col" style={{ flex:1, overflowY:"auto", padding:"24px 32px 52px", display:"grid", gridTemplateColumns:"1fr 280px", gap:22, alignItems:"start" }}>
         <div style={{ display:"flex", flexDirection:"column", gap:18 }}>
           {sections.map(s => (
             <div key={s.key} style={{ borderRadius:18, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderTop:`3px solid ${ACCENT}`, overflow:"hidden" }}>
@@ -6286,7 +6301,7 @@ function ScreenPivotStoryBuilder({ active }:{ active:boolean }) {
           ))}
         </div>
 
-        <div style={{ position:"sticky", top:0, display:"flex", flexDirection:"column", gap:14 }}>
+        <div className="zari-sticky-col" style={{ position:"sticky", top:0, display:"flex", flexDirection:"column", gap:14 }}>
           <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:18, padding:"18px 20px" }}>
             <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:14 }}>Tips for this pivot</div>
             <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
@@ -6704,7 +6719,7 @@ function ScreenSalaryNegotiationSim() {
         />
 
         {/* Two-column body */}
-        <div style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 300px", gap:28, alignItems:"start" }}>
+        <div className="zari-two-col" style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 300px", gap:28, alignItems:"start" }}>
           <div>
             <div style={{ marginBottom:24 }}>
               <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"var(--z-text3)", marginBottom:6 }}>Step {simStep} of 2</p>
@@ -6774,7 +6789,7 @@ function ScreenSalaryNegotiationSim() {
           </div>
 
           {/* Right sidebar */}
-          <div style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
+          <div className="zari-sticky-col" style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
             <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
               <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
                 {zIcon(stepCtx.icon, "#60A5FA")}
@@ -7391,7 +7406,7 @@ function ScreenSalaryMarketIntel() {
                 {/* Median marker */}
                 <div style={{ position:"absolute", left:"50%", top:-4, width:3, height:16, borderRadius:99, background:vm.color, transform:"translateX(-50%)" }}/>
               </div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:6 }}>
+              <div className="zari-three-col" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:6 }}>
                 {[{ label:"Floor", val:result.rangeFloor, accent:"var(--z-text3)" }, { label:"Median", val:result.rangeMedian, accent:vm.color }, { label:"Ceiling", val:result.rangeCeiling, accent:"var(--z-text3)" }].map(r => (
                   <div key={r.label} style={{ textAlign:"center", padding:"10px 6px", borderRadius:10, background:"var(--z-raise)", border:`1px solid ${r.label === "Median" ? vm.border : "var(--z-bd)"}` }}>
                     <div style={{ fontSize:9, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:4 }}>{r.label}</div>
@@ -8029,7 +8044,7 @@ function ScreenExecPositioning() {
     return (
       <div style={{ height:"100%", display:"flex", overflow:"hidden", background:"var(--z-raise)" }}>
         {/* LEFT PANEL */}
-        <div style={{ width:264, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
+        <div className="zari-inner-sidebar" style={{ width:264, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
           <div style={{ padding:"22px 16px 14px" }}>
             <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:14 }}>
               <div style={{ position:"relative", width:68, height:68, flexShrink:0 }}>
@@ -8232,7 +8247,7 @@ function ScreenExecPositioning() {
       />
 
       {/* Two-column body */}
-      <div style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
+      <div className="zari-two-col" style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
         <div>
           <div style={{ marginBottom:28 }}>
             <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"var(--z-text3)", marginBottom:6 }}>Step {step} of 3</p>
@@ -8304,7 +8319,7 @@ function ScreenExecPositioning() {
         </div>
 
         {/* RIGHT: Sidebar */}
-        <div style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
+        <div className="zari-sticky-col" style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
           <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
               {zIcon(execStepCtx.icon, "#60A5FA")}
@@ -9161,7 +9176,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
         </div>
       </div>
       {/* Two-column body */}
-      <div style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 300px", gap:28, alignItems:"start" }}>
+      <div className="zari-two-col" style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 300px", gap:28, alignItems:"start" }}>
         <div>
           <div style={{ marginBottom:24 }}>
             <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"var(--z-text3)", marginBottom:6 }}>{reviewMode==="targeted" ? "Step 2 of 2" : "Your resume"}</p>
@@ -9185,7 +9200,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
           </div>
         </div>
         {/* Sidebar */}
-        <div style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
+        <div className="zari-sticky-col" style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
           <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
               {zIcon("clipboard", "#60A5FA")}
@@ -9234,7 +9249,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
         </div>
       </div>
       {/* Two-column body */}
-      <div style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 300px", gap:28, alignItems:"start" }}>
+      <div className="zari-two-col" style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 300px", gap:28, alignItems:"start" }}>
         <div>
           <div style={{ marginBottom:24 }}>
             <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", color:"var(--z-text3)", marginBottom:6 }}>{reviewMode==="targeted" ? "Step 2 of 2" : "Your resume"}</p>
@@ -9287,7 +9302,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
           </div>
         </div>
         {/* Sidebar */}
-        <div style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
+        <div className="zari-sticky-col" style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
           <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
               {zIcon("file", "#60A5FA")}
@@ -9632,7 +9647,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                 <svg viewBox="0 0 16 16" fill="none" style={{ width:14,height:14 }}><path d="M8 1l1.5 4.5H14l-3.7 2.7 1.4 4.3L8 9.9l-3.7 2.6L5.7 8.2 2 5.5h4.5z" fill="#F59E0B" stroke="#F59E0B" strokeWidth="0.5"/></svg>
                 <p style={{ fontSize:12, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.01em" }}>Quick Wins — top changes by impact</p>
               </div>
-              <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10 }}>
+              <div className="zari-three-col" style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10 }}>
                 {(aiResult!.quickWins ?? []).slice(0,3).map((w, i) => {
                   const ps = PRIORITY_STYLE[w.impact] ?? PRIORITY_STYLE.medium;
                   const ec = EFFORT_COLOR[w.effort] ?? "#68738A";
@@ -9986,7 +10001,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                         <p style={{ fontSize:13, fontWeight:800, color:"var(--z-text)" }}>Line-by-Line Audit</p>
                         <span style={{ fontSize:11, color:"var(--z-text2)" }}>{aiResult?.bullets?.length ?? 0} bullet{(aiResult?.bullets?.length??0)!==1?"s":""} need work</span>
                       </div>
-                      <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:6 }}>
+                      <div className="zari-three-col" style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:6 }}>
                         {[
                           { val:`${bs.withMetrics}/${bs.total}`, label:"Have metrics", ok:bs.withMetrics/Math.max(bs.total,1)>=0.6 },
                           { val:`${bs.withStrongVerbs}/${bs.total}`, label:"Strong verbs", ok:bs.withStrongVerbs/Math.max(bs.total,1)>=0.7 },
@@ -10325,7 +10340,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                 <>
                   {/* Coverage hero */}
                   <div style={{ background:"var(--z-card)", borderRadius:16, border:`1.5px solid ${coverage>=70?"rgba(74,222,128,0.35)":coverage>=45?"rgba(251,191,36,0.3)":"rgba(248,113,113,0.3)"}`, padding:"18px 20px", boxShadow:"0 4px 20px rgba(0,0,0,0.07)" }}>
-                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:14 }}>
+                    <div className="zari-three-col" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:14 }}>
                       {[
                         { label:"Overall coverage", val:`${coverage}%`, color:coverage>=70?"#4ADE80":coverage>=45?"#FBBF24":"#F87171", sub:`${kws.filter(k=>k.found).length}/${kws.length} keywords` },
                         { label:"Required found",   val:`${foundReq}/${required.length}`, color:reqCoverage>=70?"#4ADE80":reqCoverage>=45?"#FBBF24":"#F87171", sub:`${missingReq.length} still missing` },
@@ -10524,7 +10539,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                         </div>
                       </div>
                       {/* Mini bars per dimension */}
-                      <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8 }}>
+                      <div className="zari-three-col" style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8 }}>
                         {(["ats","impact","clarity"] as (keyof ResumeScores)[]).map(key => {
                           const fv = rev[0].scores[key], lv = rev[rev.length-1].scores[key], d = lv-fv;
                           const c = d>0?"#16A34A":d<0?"#DC2626":"#A0AABF";
@@ -10647,7 +10662,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                           </div>
                           {/* Score row */}
                           {sc && (
-                            <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:0, borderBottom:"1px solid var(--z-bd)" }}>
+                            <div className="zari-three-col" style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:0, borderBottom:"1px solid var(--z-bd)" }}>
                               {([["ats","ATS",sc.ats],["impact","Impact",sc.impact],["clarity","Clarity",sc.clarity]] as [string,string,number][]).map(([key,label,val],ki) => (
                                 <div key={key} style={{ padding:"8px 10px", textAlign:"center", borderRight: ki<2 ? "1px solid var(--z-bd)" : "none", background:"var(--z-card)" }}>
                                   <p style={{ fontSize:9, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:3 }}>{label}</p>
@@ -10931,7 +10946,10 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
       setRecTime(0);
     } else {
       // Fallback for browsers without SpeechRecognition: record + Whisper transcribe
-      const mimeType = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/ogg";
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus") ? "audio/webm;codecs=opus"
+        : MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm"
+        : MediaRecorder.isTypeSupported("audio/mp4") ? "audio/mp4"
+        : "audio/ogg";
       const recorder = new MediaRecorder(stream, { mimeType });
       ivChunksRef.current = [];
       recorder.ondataavailable = e => { if (e.data.size > 0) ivChunksRef.current.push(e.data); };
@@ -11178,7 +11196,7 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
           </div>
         </div>
       ) : (
-        <div style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 300px", gap:28, alignItems:"start" }}>
+        <div className="zari-two-col" style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 300px", gap:28, alignItems:"start" }}>
 
           {/* LEFT: Form */}
           <div>
@@ -11321,7 +11339,7 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
           </div>
 
           {/* RIGHT: Sidebar */}
-          <div style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
+          <div className="zari-sticky-col" style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
             <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
               <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
                 {zIcon(interviewStepCtx.icon, "#60A5FA")}
@@ -13098,7 +13116,7 @@ function ScreenPromotionVisibility({ active = false, onNavigate }: { active?: bo
     return (
       <div style={{ height:"100%", display:"flex", overflow:"hidden", background:"var(--z-raise)" }}>
         {/* LEFT PANEL */}
-        <div style={{ width:264, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
+        <div className="zari-inner-sidebar" style={{ width:264, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
           <div style={{ padding:"20px 16px 16px" }}>
             {/* Progress ring + headline */}
             <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:14 }}>
@@ -13767,7 +13785,7 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
             </div>
           </div>
         ) : (
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 340px", gap:28, alignItems:"start" }}>
+          <div className="zari-two-col" style={{ display:"grid", gridTemplateColumns:"1fr 340px", gap:28, alignItems:"start" }}>
 
             {/* LEFT: Upload */}
             <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
@@ -14093,7 +14111,7 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
       )}
 
       {/* ── Left sidebar ── */}
-      <div style={{ width:224, background:"var(--z-card)", borderRight:"1px solid var(--z-bd)", flexShrink:0, flexDirection:"column", overflowY:"auto", position:"relative", display: liMainTab==="history" ? "none" : "flex" }}>
+      <div className="zari-inner-sidebar" style={{ width:224, background:"var(--z-card)", borderRight:"1px solid var(--z-bd)", flexShrink:0, flexDirection:"column", overflowY:"auto", position:"relative", display: liMainTab==="history" ? "none" : "flex" }}>
         {/* ambient glow blob */}
         <div style={{ position:"absolute", top:"-30px", left:"50%", transform:"translateX(-50%)", width:160, height:160, borderRadius:"50%", background:"none", pointerEvents:"none" }}/>
 
@@ -14539,7 +14557,7 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
       </div>
 
       {/* ── Right preview panel ── */}
-      <div style={{ width:280, flexShrink:0, borderLeft:"1px solid var(--z-bd)", background:"var(--z-raise)", overflowY:"auto", display:"flex", flexDirection:"column" }}>
+      <div className="zari-inner-sidebar-right" style={{ width:280, flexShrink:0, borderLeft:"1px solid var(--z-bd)", background:"var(--z-raise)", overflowY:"auto", display:"flex", flexDirection:"column" }}>
         {/* Tab switcher */}
         <div style={{ padding:"14px 14px 10px", borderBottom:"1px solid var(--z-bd2)" }}>
           <p style={{ fontSize:10.5, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>Profile Preview</p>
@@ -16088,7 +16106,7 @@ function ScreenCoverLetter({ stage, active = false, onNavigate }: { stage: Caree
       </div>
 
       {/* Two-column body */}
-      <div style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 300px", gap:28, alignItems:"start" }}>
+      <div className="zari-two-col" style={{ padding:"24px 32px 48px", display:"grid", gridTemplateColumns:"1fr 300px", gap:28, alignItems:"start" }}>
 
         {/* LEFT: form */}
         <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"28px 28px 24px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
@@ -16248,7 +16266,7 @@ function ScreenCoverLetter({ stage, active = false, onNavigate }: { stage: Caree
         </div>
 
         {/* RIGHT: sticky sidebar */}
-        <div style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
+        <div className="zari-sticky-col" style={{ position:"sticky", top:24, display:"flex", flexDirection:"column", gap:14 }}>
           <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:20, padding:"22px 22px 20px", boxShadow:"0 2px 20px rgba(0,0,0,0.07)" }}>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
               {zIcon(clCtx.icon, "#34D399")}
@@ -18574,6 +18592,23 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
           .zari-compare-plans-grid { grid-template-columns:1fr !important; }
           /* Screen sections — reduce horizontal padding */
           .zari-screen-padded { padding-left:16px !important; padding-right:16px !important; }
+          /* Two-column grids → single column */
+          .zari-two-col { grid-template-columns:1fr !important; padding:16px 14px 40px !important; gap:14px !important; }
+          /* Sticky right columns become normal flow */
+          .zari-sticky-col { position:relative !important; top:0 !important; }
+          /* Inner sidebars (fixed-width panels) — hide on mobile */
+          .zari-inner-sidebar { display:none !important; }
+          .zari-inner-sidebar-right { display:none !important; }
+          /* Three-column grids → two columns on mobile */
+          .zari-three-col { grid-template-columns:1fr 1fr !important; }
+          /* Screen-level overflow protection */
+          .zari-screen-inner { overflow-x:hidden !important; }
+          /* Page header areas — reduce padding on mobile */
+          .zari-page-header { padding:12px 16px !important; }
+          /* Score rings — smaller on mobile */
+          .zari-score-section { flex-direction:column !important; }
+          /* Action buttons row — wrap on mobile */
+          .zari-action-row { flex-wrap:wrap !important; }
         }
         .zari-mobile-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:199; backdrop-filter:blur(2px); }
         .zari-session-hist-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:299; backdrop-filter:blur(2px); }
