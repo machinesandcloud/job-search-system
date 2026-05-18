@@ -9654,7 +9654,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
                 <svg viewBox="0 0 16 16" fill="none" style={{ width:14,height:14 }}><path d="M8 1l1.5 4.5H14l-3.7 2.7 1.4 4.3L8 9.9l-3.7 2.6L5.7 8.2 2 5.5h4.5z" fill="#F59E0B" stroke="#F59E0B" strokeWidth="0.5"/></svg>
                 <p style={{ fontSize:12, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.01em" }}>Quick Wins — top changes by impact</p>
               </div>
-              <div className="zari-three-col" style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10 }}>
+              <div className="zari-quick-wins-grid" style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10 }}>
                 {(aiResult!.quickWins ?? []).slice(0,3).map((w, i) => {
                   const ps = PRIORITY_STYLE[w.impact] ?? PRIORITY_STYLE.medium;
                   const ec = EFFORT_COLOR[w.effort] ?? "#68738A";
@@ -13995,7 +13995,7 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
 
       {/* ── History tab ── */}
       {liMainTab === "history" && (
-        <div style={{ flex:1, overflowY:"auto", padding:"28px 32px" }}>
+        <div className="zari-li-history-wrap" style={{ flex:1, overflowY:"auto", padding:"28px 32px" }}>
           {liHistory.length === 0 ? (
             <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:300, gap:12 }}>
               <div style={{ width:48, height:48, borderRadius:14, background:"var(--z-card)", border:"1px solid var(--z-bd)", display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -14033,7 +14033,7 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
                   <div key={snap.id} style={{ background:"var(--z-card)", border:`1px solid ${isLatest ? sColor+"55" : "var(--z-bd)"}`, borderRadius:18, overflow:"hidden", boxShadow: isLatest ? `0 0 0 1px ${sColor}20, 0 6px 28px rgba(0,0,0,0.09)` : "0 2px 10px rgba(0,0,0,0.05)" }}>
                     <div style={{ height:3, background:`linear-gradient(90deg,${sColor},${sColor}88)` }}/>
                     <div style={{ padding:"20px 22px" }}>
-                      <div style={{ display:"flex", alignItems:"flex-start", gap:16, marginBottom: sectionScores.length > 0 ? 14 : 0 }}>
+                      <div className="zari-li-history-row" style={{ display:"flex", alignItems:"flex-start", gap:16, marginBottom: sectionScores.length > 0 ? 14 : 0, flexWrap:"wrap" }}>
                         {/* Score circle */}
                         <div style={{ flexShrink:0, textAlign:"center" }}>
                           <div style={{ width:62, height:62, borderRadius:"50%", border:`3px solid ${sColor}`, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", background:sBg }}>
@@ -14048,10 +14048,10 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
                             <span style={{ fontSize:14.5, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.02em", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{snap.headline || snap.label}</span>
                           </div>
                           {snap.targetRole && <p style={{ fontSize:12, color:"var(--z-text2)", margin:"0 0 3px", fontWeight:500 }}>Target: {snap.targetRole}</p>}
-                          <p style={{ fontSize:11.5, color:"var(--z-text3)", margin:0 }}>{dateStr} · {timeStr}</p>
+                          <p style={{ fontSize:11.5, color:"var(--z-text3)", margin:0, whiteSpace:"nowrap" }}>{dateStr} · {timeStr}</p>
                         </div>
                         {/* Actions */}
-                        <div style={{ display:"flex", gap:8, flexShrink:0 }}>
+                        <div className="zari-li-history-actions" style={{ display:"flex", gap:8, flexShrink:0 }}>
                           <button
                             onClick={() => {
                               try {
@@ -15454,17 +15454,17 @@ function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate
               const date = new Date(doc.createdAt).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
               const wc   = words(doc.content);
               return (
-                <div key={doc.id} style={{ background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderLeft:`3.5px solid ${m.color}`, borderRadius:"0 14px 14px 0", padding:"14px 18px", display:"flex", alignItems:"center", gap:14, boxShadow:"0 1px 6px rgba(0,0,0,0.05)", transition:"box-shadow 0.15s" }}>
+                <div key={doc.id} className="zari-doc-card" style={{ background:"var(--z-raise)", border:"1px solid var(--z-bd)", borderLeft:`3.5px solid ${m.color}`, borderRadius:"0 14px 14px 0", padding:"14px 18px", display:"flex", alignItems:"center", gap:14, flexWrap:"wrap", boxShadow:"0 1px 6px rgba(0,0,0,0.05)", transition:"box-shadow 0.15s" }}>
                   <div style={{ width:42, height:42, borderRadius:11, background:m.bg, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:m.color }}>{m.icon}</div>
                   <div style={{ flex:1, minWidth:0 }}>
                     <p style={{ fontSize:13.5, fontWeight:700, color:"var(--z-text)", marginBottom:3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{doc.name}</p>
                     <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
                       <span style={{ fontSize:11, fontWeight:700, padding:"2px 8px", borderRadius:99, background:m.bg, color:m.color, border:`1px solid ${m.color}30` }}>{m.label}</span>
-                      <span style={{ fontSize:11, color:"var(--z-text3)" }}>{wc.toLocaleString()} words · {date}</span>
+                      <span style={{ fontSize:11, color:"var(--z-text3)", whiteSpace:"nowrap" }}>{wc.toLocaleString()} words · {date}</span>
                       {doc.meta.score && <span style={{ fontSize:11, fontWeight:700, color:"var(--z-text3)", background:"var(--z-raise)", border:"1px solid var(--z-bd)", padding:"1px 7px", borderRadius:99 }}>Score {doc.meta.score}</span>}
                     </div>
                   </div>
-                  <div style={{ display:"flex", gap:6, flexShrink:0 }}>
+                  <div className="zari-doc-card-actions" style={{ display:"flex", gap:6, flexShrink:0 }}>
                     <button onClick={()=>setPreview(doc)} style={{ fontSize:11.5, fontWeight:600, padding:"6px 12px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Preview</button>
                     <button onClick={()=>downloadDoc(doc)} style={{ fontSize:11.5, fontWeight:600, padding:"6px 12px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>↓</button>
                     <button onClick={()=>onNavigate(m.section)} style={{ fontSize:11.5, fontWeight:700, padding:"6px 16px", borderRadius:8, border:"none", background:"#2563EB", color:"white", cursor:"pointer" }}>Open →</button>
@@ -18647,6 +18647,14 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
           .zari-resume-analysis-panel { height:auto !important; min-height:200px; overflow-y:visible !important; }
           /* Prevent any card or content element from busting out of viewport */
           .zari-screen-slot > * { max-width:100vw; box-sizing:border-box; }
+          /* Quick Wins grid: single column on mobile so 1-2 cards fill full width */
+          .zari-quick-wins-grid { grid-template-columns:1fr !important; }
+          /* LinkedIn history: reduce outer padding + wrap actions to new row */
+          .zari-li-history-wrap { padding:14px 14px 40px !important; }
+          .zari-li-history-actions { flex-basis:100% !important; padding-left:78px; }
+          /* Documents card: icon+meta on row 1, action buttons on row 2 */
+          .zari-doc-card { align-items:flex-start !important; }
+          .zari-doc-card-actions { flex-basis:100% !important; padding-left:56px; margin-top:4px; }
         }
         .zari-mobile-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:199; backdrop-filter:blur(2px); }
         .zari-session-hist-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:299; backdrop-filter:blur(2px); }
