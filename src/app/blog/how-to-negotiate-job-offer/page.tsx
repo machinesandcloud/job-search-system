@@ -3,6 +3,7 @@ import Link from "next/link";
 import { PageFrame } from "@/components/mvp";
 import { getCurrentUserId } from "@/lib/mvp/auth";
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/json-ld";
+import { StatCard } from "@/components/animated-stat";
 
 export const metadata: Metadata = {
   title: "How to Negotiate a Job Offer — Scripts, Tactics & What to Say (2025)",
@@ -44,6 +45,18 @@ export default async function NegotiateJobOfferPage() {
           <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/[0.05] px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-white/40">Salary & Negotiation</div>
           <h1 className="text-[2.6rem] font-extrabold leading-[1.08] tracking-[-0.03em]">How to Negotiate a Job Offer — Scripts, Tactics & What to Say (2025)</h1>
           <p className="mt-5 text-[15px] text-white/50">Updated {MODIFIED} · 11 min read</p>
+        </div>
+      </section>
+
+      {/* Animated negotiation stats */}
+      <section className="bg-[var(--bg)] py-10">
+        <div className="mx-auto max-w-4xl px-6">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <StatCard value={85} suffix="%" label="Of hiring managers have room to improve the first offer" accent="#059669" />
+            <StatCard value={70} suffix="%" label="Of employers expect candidates to negotiate" accent="#0D7182" />
+            <StatCard value={37} suffix="%" label="Of candidates actually try to negotiate (most don't)" accent="#DC2626" />
+            <StatCard value={15} suffix="K" prefix="$" label="Average additional first-year comp gained by negotiating" accent="#7C3AED" />
+          </div>
         </div>
       </section>
 

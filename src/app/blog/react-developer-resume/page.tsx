@@ -3,6 +3,7 @@ import Link from "next/link";
 import { PageFrame } from "@/components/mvp";
 import { getCurrentUserId } from "@/lib/mvp/auth";
 import { ArticleJsonLd, FaqJsonLd, BreadcrumbJsonLd } from "@/components/json-ld";
+import { StatCard } from "@/components/animated-stat";
 
 export const metadata: Metadata = {
   title: "React Developer Resume — Examples & ATS Keywords (2025)",
@@ -111,6 +112,18 @@ export default async function ReactDeveloperResumePage() {
           <p className="mx-auto mt-5 max-w-2xl text-[16px] leading-relaxed text-white/55">
             &ldquo;Built UI components in React&rdquo; describes tutorial work. Hiring managers want application complexity, performance impact numbers, and state management depth. Before/after for every level.
           </p>
+        </div>
+      </section>
+
+      {/* React market stats */}
+      <section className="bg-[var(--bg)] py-10">
+        <div className="mx-auto max-w-4xl px-6">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <StatCard value={43} suffix="%" label="Of all frontend job openings mention React as a requirement" accent="#0D7182" />
+            <StatCard value={2} suffix="M+" label="React developers worldwide — the largest frontend community" accent="#7C3AED" />
+            <StatCard value={58} suffix="%" label="Of React resumes miss performance metrics — a major signal gap" accent="#DC2626" />
+            <StatCard value={94} label="Lighthouse score threshold that top React engineers demonstrate on resumes" accent="#059669" />
+          </div>
         </div>
       </section>
 

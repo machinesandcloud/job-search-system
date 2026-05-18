@@ -3,6 +3,7 @@ import Link from "next/link";
 import { PageFrame } from "@/components/mvp";
 import { getCurrentUserId } from "@/lib/mvp/auth";
 import { ArticleJsonLd, FaqJsonLd, BreadcrumbJsonLd } from "@/components/json-ld";
+import { StatCard } from "@/components/animated-stat";
 
 export const metadata: Metadata = {
   title: "Software Engineer Resume — Examples, Templates & ATS Tips (2025)",
@@ -142,6 +143,18 @@ export default async function SoftwareEngineerResumePage() {
           <p className="mt-5 max-w-2xl text-[16px] leading-relaxed text-white/55">
             Most SWE resumes fail before a human reads them. Not because the experience is weak — because the format, framing, or keyword matching is off. This guide covers every section, all four career levels, and the ATS rules that determine whether your resume gets read.
           </p>
+        </div>
+      </section>
+
+      {/* Animated stats */}
+      <section className="bg-[var(--bg)] py-10">
+        <div className="mx-auto max-w-4xl px-6">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <StatCard value={75} suffix="%" label="Resumes rejected by ATS before a human sees them" accent="#DC2626" />
+            <StatCard value={6} suffix="s" label="Average time a recruiter spends on the first scan" accent="#D97706" />
+            <StatCard value={3} suffix="x" label="More interviews with quantified achievement bullets" accent="#059669" />
+            <StatCard value={92} suffix="%" label="Of FAANG-level job descriptions require keyword matching" accent="#7C3AED" />
+          </div>
         </div>
       </section>
 

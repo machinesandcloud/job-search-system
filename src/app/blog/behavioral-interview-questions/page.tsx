@@ -3,6 +3,7 @@ import Link from "next/link";
 import { PageFrame } from "@/components/mvp";
 import { getCurrentUserId } from "@/lib/mvp/auth";
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/json-ld";
+import { StatCard } from "@/components/animated-stat";
 
 export const metadata: Metadata = {
   title: "50 Behavioral Interview Questions & Answers (2025) — With STAR Examples",
@@ -134,6 +135,18 @@ export default async function BehavioralInterviewQuestionsPage() {
           <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/[0.05] px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-white/40">Interviews</div>
           <h1 className="text-[2.6rem] font-extrabold leading-[1.08] tracking-[-0.03em]">50 Behavioral Interview Questions & Answers (2025) — With STAR Examples</h1>
           <p className="mt-5 text-[15px] text-white/50">Updated {MODIFIED} · 15 min read</p>
+        </div>
+      </section>
+
+      {/* Coverage stats */}
+      <section className="bg-[var(--bg)] py-10">
+        <div className="mx-auto max-w-4xl px-6">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <StatCard value={50} label="Behavioral questions covered in this guide" accent="#7C3AED" />
+            <StatCard value={7} label="Question categories (conflict, leadership, failure...)" accent="#0D7182" />
+            <StatCard value={6} label="Core stories cover the majority of all behavioral rounds" accent="#059669" />
+            <StatCard value={100} suffix="%" label="Of FAANG/MBB interviews include behavioral questions" accent="#D97706" />
+          </div>
         </div>
       </section>
 

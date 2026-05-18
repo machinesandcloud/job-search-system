@@ -3,6 +3,7 @@ import Link from "next/link";
 import { PageFrame } from "@/components/mvp";
 import { getCurrentUserId } from "@/lib/mvp/auth";
 import { FaqJsonLd, BreadcrumbJsonLd } from "@/components/json-ld";
+import { WinScore } from "@/components/animated-stat";
 
 export const metadata: Metadata = {
   title: "Zari vs ChatGPT for Career Coaching — What's the Real Difference? (2025)",
@@ -126,7 +127,11 @@ export default async function ZariVsChatGPTPage() {
             ChatGPT can do career coaching work — with the right prompts. Zari was built specifically for career coaching, so it does that work by default. The real difference isn&apos;t capability, it&apos;s the prompting overhead and career-specific depth.
           </p>
 
-          <div className="mt-10 grid gap-4 sm:grid-cols-2">
+          <div className="mt-8 flex justify-center">
+            <WinScore zariWins={6} total={8} competitorName="ChatGPT" />
+          </div>
+
+          <div className="mt-8 grid gap-4 sm:grid-cols-2">
             <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
               <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-white/40">ChatGPT is better for</p>
               <ul className="mt-3 space-y-2">
