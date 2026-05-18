@@ -1,9 +1,9 @@
 import type { Config } from "@netlify/functions";
 
-// Runs at 7am CT (noon UTC) every day.
-// Calls the app's cron endpoint (which processes email queues + health checks).
+// Runs at 7pm CT (midnight UTC) every day.
+// Second daily pass — catches afternoon/evening enrollments so they go out same day.
 export const config: Config = {
-  schedule: "0 12 * * *",
+  schedule: "0 0 * * *",
 };
 
 export default async function handler() {
@@ -11,7 +11,7 @@ export default async function handler() {
   const baseUrl = process.env.URL;
 
   if (!secret || !baseUrl) {
-    console.error("[cron-daily] CRON_SECRET or URL env var is not set");
+    console.error("[cron-evening] CRON_SECRET or URL env var is not set");
     return;
   }
 
@@ -21,5 +21,5 @@ export default async function handler() {
   });
 
   const body = await res.json().catch(() => ({}));
-  console.log(`[cron-daily] status=${res.status}`, body);
+  console.log(`[cron-evening] status=${res.status}`, body);
 }
