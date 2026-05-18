@@ -23,22 +23,43 @@ export async function POST(request: NextRequest) {
     });
   }
 
+  const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.zaricoach.com";
+  const LOGO_URL = `${APP_URL}/assets/zari-logo-transparent-400w.png`;
+  const FONT = `-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif`;
+
   try {
     await sendEmail({
       to,
-      subject: "Zari email test — delivery check",
-      html: `
-        <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 16px;">
-          <h2 style="font-size:18px;font-weight:700;color:#111;">Email system working.</h2>
-          <p style="color:#555;font-size:14px;line-height:1.6;">
-            If you're seeing this, Resend is configured correctly and emails are delivering.
-          </p>
-          <p style="color:#999;font-size:12px;margin-top:24px;">
-            Sent from: ${FROM_EMAIL}<br/>
-            Sent at: ${new Date().toISOString()}
-          </p>
-        </div>
-      `,
+      subject: "Zari email delivery test",
+      html: `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"></head>
+<body style="margin:0;padding:0;background:#E8EAE2;font-family:${FONT};">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#E8EAE2;padding:40px 16px 56px;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:10px;border:1px solid #D0D2CA;overflow:hidden;">
+        <tr>
+          <td style="padding:22px 28px 18px;vertical-align:middle;">
+            <img src="${LOGO_URL}" width="100" height="46" alt="Zari" style="display:block;border:0;">
+          </td>
+          <td style="padding:22px 28px 18px;text-align:right;vertical-align:middle;">
+            <span style="color:#818285;font-size:12px;">Delivery test</span>
+          </td>
+        </tr>
+        <tr><td colspan="2" style="padding:0 28px;"><hr style="border:none;border-top:1px solid #EAEAEC;margin:0;"></td></tr>
+        <tr><td colspan="2" style="padding:36px 40px 48px;">
+          <p style="margin:0 0 12px;font-size:24px;font-weight:800;color:#1A1A1A;letter-spacing:-0.5px;line-height:1.2;">Email system working.</p>
+          <p style="margin:0;font-size:15px;color:#52535A;line-height:1.7;">Resend is configured correctly. Emails are delivering from <strong>${FROM_EMAIL}</strong>.</p>
+          <p style="margin:16px 0 0;font-size:12px;color:#9899A1;">Sent at ${new Date().toISOString()}</p>
+        </td></tr>
+        <tr><td colspan="2" style="padding:20px 28px;background:#F5F5F1;border-top:1px solid #E4E4E0;border-radius:0 0 10px 10px;">
+          <p style="margin:0;font-size:12px;color:#818285;line-height:1.75;text-align:center;">Admin delivery test &nbsp;·&nbsp; <a href="${APP_URL}" style="color:#818285;text-decoration:none;">zaricoach.com</a></p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`,
     });
 
     return NextResponse.json({ ok: true, to, from: FROM_EMAIL });
