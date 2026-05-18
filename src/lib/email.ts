@@ -2,7 +2,7 @@ import { Resend } from "resend";
 import { getBaseUrl } from "./utils";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-const fromAddress = process.env.RESEND_FROM || "onboarding@resend.dev";
+const fromAddress = process.env.RESEND_FROM_EMAIL ?? process.env.RESEND_FROM ?? "coach@zaricoach.com";
 
 export async function sendResultsEmail(email: string, token: string, hasPro: boolean) {
   if (!resend) return { skipped: true, reason: "RESEND_API_KEY missing" } as const;

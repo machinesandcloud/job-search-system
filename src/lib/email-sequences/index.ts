@@ -81,41 +81,41 @@ function makeTemplates(meta: Meta, unsubUrl: string, npsUrl: string): Record<Zar
       t("My last email to you.", React.createElement(LeadNurture7, { unsubscribeUrl: unsubUrl })),
     ],
     trial_onboarding: [
-      t("Welcome to Zari — here's how to use your free credits.", React.createElement(TrialOnboarding1, { firstName, unsubscribeUrl: unsubUrl })),
-      t("Your free credits are waiting — here's the best first move.", React.createElement(TrialOnboarding2, { firstName, unsubscribeUrl: unsubUrl })),
+      t("Welcome to Zari. Here's how to use your free credits.", React.createElement(TrialOnboarding1, { firstName, unsubscribeUrl: unsubUrl })),
+      t("Your free credits are waiting. Here's the best first move.", React.createElement(TrialOnboarding2, { firstName, unsubscribeUrl: unsubUrl })),
       t("The one habit top Zari users share.", React.createElement(TrialOnboarding3, { unsubscribeUrl: unsubUrl })),
       t("How's the search going?", React.createElement(TrialOnboarding4, { firstName, unsubscribeUrl: unsubUrl })),
       t("Free gets you started. Here's what's on the other side.", React.createElement(TrialOnboarding5, { firstName, unsubscribeUrl: unsubUrl })),
     ],
     trial_ending: [
-      t("Your free credits are almost up — here's how to keep going.", React.createElement(TrialEnding1, { firstName, unsubscribeUrl: unsubUrl })),
+      t("Your free credits are almost up. Here's how to keep going.", React.createElement(TrialEnding1, { firstName, unsubscribeUrl: unsubUrl })),
       t("You've hit your free limit. Here's how to continue.", React.createElement(TrialEnding2, { firstName, unsubscribeUrl: unsubUrl })),
     ],
     paid_welcome: [
-      t("You're in. Welcome to Zari — here's everything you've unlocked.", React.createElement(PaidWelcome1, { firstName, planTier, unsubscribeUrl: unsubUrl })),
+      t("You're in. Here's everything you've unlocked with Zari.", React.createElement(PaidWelcome1, { firstName, planTier, unsubscribeUrl: unsubUrl })),
       t("The Zari feature most people find too late.", React.createElement(PaidWelcome2, { firstName, unsubscribeUrl: unsubUrl })),
-      t("One week in — how's it going?", React.createElement(PaidWelcome3, { firstName, unsubscribeUrl: unsubUrl })),
+      t("One week in. How's it going?", React.createElement(PaidWelcome3, { firstName, unsubscribeUrl: unsubUrl })),
     ],
     milestone_1: [
-      t("First session complete — here's what to do next.", React.createElement(Milestone1, { firstName, unsubscribeUrl: unsubUrl })),
+      t("First session done. Here's what to do next.", React.createElement(Milestone1, { firstName, unsubscribeUrl: unsubUrl })),
     ],
     milestone_5: [
       t("5 sessions. You're in the top 15%.", React.createElement(Milestone5, { firstName, planTier, unsubscribeUrl: unsubUrl })),
     ],
     upsell_limit: [
-      t("You're approaching your session limit — here's how to keep going.", React.createElement(UpsellLimit1, { firstName, topFeature: typeof meta.topFeature === "string" ? meta.topFeature : undefined, unsubscribeUrl: unsubUrl })),
+      t("You're approaching your session limit. Here's how to keep going.", React.createElement(UpsellLimit1, { firstName, topFeature: typeof meta.topFeature === "string" ? meta.topFeature : undefined, unsubscribeUrl: unsubUrl })),
       t("Your session limit is up. Here's how to keep going.", React.createElement(UpsellLimit2, { firstName, topFeature: typeof meta.topFeature === "string" ? meta.topFeature : undefined, unsubscribeUrl: unsubUrl })),
     ],
     at_risk: [
-      t("Haven't seen you in a while — quick check-in.", React.createElement(AtRisk1, { firstName, unsubscribeUrl: unsubUrl })),
-      t("When the job search feels stuck — a different take.", React.createElement(AtRisk2, { firstName, unsubscribeUrl: unsubUrl })),
+      t("Haven't seen you in a while. Quick check-in.", React.createElement(AtRisk1, { firstName, unsubscribeUrl: unsubUrl })),
+      t("When the job search feels stuck: a different take.", React.createElement(AtRisk2, { firstName, unsubscribeUrl: unsubUrl })),
       t("One last check-in.", React.createElement(AtRisk3, { firstName, unsubscribeUrl: unsubUrl })),
     ],
     win_back_30: [
       t("It's been a month. A lot has changed at Zari.", React.createElement(WinBack30, { firstName, unsubscribeUrl: unsubUrl })),
     ],
     win_back_60: [
-      t("Two months out — still searching?", React.createElement(WinBack60, { firstName, unsubscribeUrl: unsubUrl })),
+      t("Two months out. Still searching?", React.createElement(WinBack60, { firstName, unsubscribeUrl: unsubUrl })),
     ],
     win_back_90: [
       t("Three months. My last reach-out.", React.createElement(WinBack90, { firstName, unsubscribeUrl: unsubUrl })),
@@ -125,11 +125,11 @@ function makeTemplates(meta: Meta, unsubUrl: string, npsUrl: string): Record<Zar
     ],
     dunning: [
       t("Action needed: your payment didn't go through.", React.createElement(Dunning1, { firstName, unsubscribeUrl: unsubUrl })),
-      t("Your Zari access is at risk — please update your payment.", React.createElement(Dunning2, { firstName, unsubscribeUrl: unsubUrl })),
+      t("Your Zari access is at risk. Please update your payment.", React.createElement(Dunning2, { firstName, unsubscribeUrl: unsubUrl })),
       t("Your Zari account has been paused.", React.createElement(Dunning3, { firstName, unsubscribeUrl: unsubUrl })),
     ],
     non_starter: [
-      t("You haven't started yet — here's the fastest way in.", React.createElement(NonStarter1, { firstName, unsubscribeUrl: unsubUrl })),
+      t("You haven't started yet. Here's the fastest way in.", React.createElement(NonStarter1, { firstName, unsubscribeUrl: unsubUrl })),
       t("What's stopping you from using Zari?", React.createElement(NonStarter2, { firstName, unsubscribeUrl: unsubUrl })),
       t("Your free credits are still unused. Last nudge.", React.createElement(NonStarter3, { firstName, unsubscribeUrl: unsubUrl })),
     ],
@@ -139,13 +139,13 @@ function makeTemplates(meta: Meta, unsubUrl: string, npsUrl: string): Record<Zar
       t("The question most job seekers don't ask until it's too late.", React.createElement(FeatureActivation3, { firstName, unsubscribeUrl: unsubUrl })),
     ],
     referral: [
-      t("Get one free month — just share Zari with one person.", React.createElement(ReferralAsk, { firstName, referralUrl, unsubscribeUrl: unsubUrl })),
+      t("Get one free month. Just share Zari with one person.", React.createElement(ReferralAsk, { firstName, referralUrl, unsubscribeUrl: unsubUrl })),
     ],
     testimonial: [
-      t("Get a free month — record a 2-minute video about Zari.", React.createElement(TestimonialAsk, { firstName, testimonialUrl, unsubscribeUrl: unsubUrl })),
+      t("Get a free month. Record a 2-minute video about Zari.", React.createElement(TestimonialAsk, { firstName, testimonialUrl, unsubscribeUrl: unsubUrl })),
     ],
     annual_upsell: [
-      t(`Switch to annual and save $${(39 - 32) * 12} — you've been on Zari 3 months.`, React.createElement(AnnualUpsell, {
+      t(`Switch to annual and save $${(39 - 32) * 12}. You've been on Zari 3 months.`, React.createElement(AnnualUpsell, {
         firstName,
         planName,
         monthlyPrice: 39,
@@ -156,7 +156,7 @@ function makeTemplates(meta: Meta, unsubUrl: string, npsUrl: string): Record<Zar
     ],
     detractor_followup: [
       t("Your feedback landed. I want to make it right.", React.createElement(DetractorFollowup1, { firstName, unsubscribeUrl: unsubUrl })),
-      t("A direct offer — let me know if I can help.", React.createElement(DetractorFollowup2, { firstName, unsubscribeUrl: unsubUrl })),
+      t("A direct offer. Let me know if I can help.", React.createElement(DetractorFollowup2, { firstName, unsubscribeUrl: unsubUrl })),
     ],
   };
 }
