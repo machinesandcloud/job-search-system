@@ -50,6 +50,25 @@ function getIp(req: NextRequest): string | null {
 }
 
 function getGeo(req: NextRequest) {
+  // Netlify provides x-nf-geo as a JSON blob with richer data than individual headers.
+  // Format: {"country":{"code":"US","name":"United States"},"city":"New York","subdivision":{"code":"NY","name":"New York"},"timezone":"America/New_York","latitude":40.71,"longitude":-74.00}
+  const nfGeo = req.headers.get("x-nf-geo");
+  if (nfGeo) {
+    try {
+      const g = JSON.parse(nfGeo) as {
+        country?:     { code?: string; name?: string };
+        city?:        string;
+        subdivision?: { code?: string; name?: string };
+        timezone?:    string;
+      };
+      return {
+        country:  g.country?.code   || req.headers.get("x-country")  || req.headers.get("cf-ipcountry") || null,
+        city:     g.city            || req.headers.get("x-city")     || null,
+        region:   g.subdivision?.code || g.subdivision?.name || req.headers.get("x-region") || null,
+        timezone: g.timezone        || req.headers.get("x-timezone") || null,
+      };
+    } catch { /* fall through to individual headers */ }
+  }
   return {
     country:  req.headers.get("x-country")  || req.headers.get("cf-ipcountry") || req.headers.get("x-vercel-ip-country") || null,
     city:     req.headers.get("x-city")     || req.headers.get("x-vercel-ip-city") || null,
