@@ -189,12 +189,19 @@ export async function onSessionCompleted(event: SessionCompletedEvent): Promise<
     const meta = { firstName: event.firstName, planTier: event.planTier, email: event.email };
 
     if (event.sessionCount === 1) {
-      void enroll("milestone_1", event.email, meta);
+      await enroll("milestone_1", event.email, meta);
+      void sendNow("milestone_1", event.email);
       // They've started — cancel the non-starter nudge sequence
       void cancel(event.email, "non_starter");
     }
-    if (event.sessionCount === 2) void enroll("feature_activation", event.email, meta);
-    if (event.sessionCount === 5) void enroll("milestone_5", event.email, meta);
+    if (event.sessionCount === 2) {
+      await enroll("feature_activation", event.email, meta);
+      void sendNow("feature_activation", event.email);
+    }
+    if (event.sessionCount === 5) {
+      await enroll("milestone_5", event.email, meta);
+      void sendNow("milestone_5", event.email);
+    }
 
     if ((event.tokenLimitPercent ?? 0) >= 80 && event.planTier !== "team") {
       let topFeature: string | undefined;
@@ -208,7 +215,9 @@ export async function onSessionCompleted(event: SessionCompletedEvent): Promise<
           topFeature = topUsage?.featureName ?? undefined;
         } catch { /* non-fatal */ }
       }
-      void enroll("upsell_limit", event.email, { ...meta, ...(topFeature ? { topFeature } : {}) });
+      const upsellMeta = { ...meta, ...(topFeature ? { topFeature } : {}) };
+      await enroll("upsell_limit", event.email, upsellMeta);
+      void sendNow("upsell_limit", event.email);
     }
 
     if (event.daysSinceSignup === 30 && event.subscriptionStatus === "active") {
@@ -272,7 +281,8 @@ export async function onSubscriptionChanged(event: SubscriptionChangedEvent): Pr
       // Cancel all lifecycle sequences — covers win-back (re-subscriber), at-risk, trial, non-starter
       void cancelMany(event.email, ["trial_onboarding", "trial_ending", "at_risk", "win_back_30", "win_back_60", "win_back_90", "dunning", "non_starter"]);
       if (!isUpgrade) {
-        void enroll("paid_welcome", event.email, meta);
+        await enroll("paid_welcome", event.email, meta);
+        void sendNow("paid_welcome", event.email);
       }
 
       // Record revenue in Zoho Books and flag high-value accounts for personal outreach
@@ -355,7 +365,8 @@ export async function onUserChurned(event: ChurnEvent): Promise<void> {
 
     const meta = { firstName: event.firstName, planTier: event.planTier };
     // win_back_30 sends immediately; 60 and 90 are pre-scheduled from churn date
-    void enroll("win_back_30", event.email, meta);
+    await enroll("win_back_30", event.email, meta);
+    void sendNow("win_back_30", event.email);
     void enroll("win_back_60", event.email, meta, new Date(Date.now() + 60 * 86_400_000));
     void enroll("win_back_90", event.email, meta, new Date(Date.now() + 90 * 86_400_000));
   } catch (err) {
@@ -388,7 +399,8 @@ export async function onLeadCaptured(event: LeadCapturedEvent): Promise<void> {
  */
 export async function onPaymentFailed(event: PaymentFailedEvent): Promise<void> {
   try {
-    void enroll("dunning", event.email, { firstName: event.firstName, planTier: event.planTier });
+    await enroll("dunning", event.email, { firstName: event.firstName, planTier: event.planTier });
+    void sendNow("dunning", event.email);
   } catch (err) {
     console.error("[zoho-engine] onPaymentFailed error:", err);
   }
@@ -431,7 +443,8 @@ export async function onNpsSubmitted(event: NpsSubmittedEvent): Promise<void> {
 
     if (event.score <= 6) {
       // Detractor: personal follow-up email sequence (day 0 + day 3)
-      void enroll("detractor_followup", event.email, meta);
+      await enroll("detractor_followup", event.email, meta);
+      void sendNow("detractor_followup", event.email);
     } else if (event.score >= 9) {
       // Promoter: ask for a referral while goodwill is high
       const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.zaricoach.com";
