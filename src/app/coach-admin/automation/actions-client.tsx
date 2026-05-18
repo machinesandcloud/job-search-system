@@ -214,6 +214,7 @@ type BroadcastResult = { sent?: number; skipped?: number; errors?: number; total
 export function BroadcastForm({ isAdmin }: { isAdmin: boolean }) {
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
+  const [testEmail, setTestEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "confirm" | "sending" | "ok" | "err">("idle");
   const [result, setResult] = useState<BroadcastResult | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
@@ -227,7 +228,7 @@ export function BroadcastForm({ isAdmin }: { isAdmin: boolean }) {
     const res = await fetch("/api/coach-admin/automation/broadcast", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ subject: subject.trim(), message: message.trim(), testOnly }),
+      body: JSON.stringify({ subject: subject.trim(), message: message.trim(), testOnly, testEmail: testEmail.trim() || undefined }),
     });
     const data = await res.json().catch(() => ({}));
     if (res.ok) {
@@ -245,12 +246,14 @@ export function BroadcastForm({ isAdmin }: { isAdmin: boolean }) {
         <div style={{ fontSize: 12, fontWeight: 700, color: "#22C55E", marginBottom: 6 }}>
           Sent! {result.sent} delivered · {result.skipped} suppressed · {result.errors} errors
         </div>
-        <button onClick={() => { setStatus("idle"); setSubject(""); setMessage(""); setResult(null); }} style={{ ...btn("#6B7280"), padding: "4px 10px" }}>
+        <button onClick={() => { setStatus("idle"); setSubject(""); setMessage(""); setTestEmail(""); setResult(null); }} style={{ ...btn("#6B7280"), padding: "4px 10px" }}>
           Send another
         </button>
       </div>
     );
   }
+
+  const canSend = subject.trim() && message.trim() && status !== "sending";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -267,17 +270,19 @@ export function BroadcastForm({ isAdmin }: { isAdmin: boolean }) {
         rows={5}
         style={{ fontSize: 12, padding: "7px 10px", borderRadius: 7, border: "1px solid var(--ca-bd)", background: "var(--ca-raise)", color: "var(--ca-text)", outline: "none", width: "100%", boxSizing: "border-box" as const, resize: "vertical", fontFamily: "inherit" }}
       />
+      <input
+        value={testEmail}
+        onChange={e => setTestEmail(e.target.value)}
+        placeholder="Test recipient email (optional)"
+        style={{ fontSize: 12, padding: "7px 10px", borderRadius: 7, border: "1px solid var(--ca-bd)", background: "var(--ca-raise)", color: "var(--ca-text)", outline: "none", width: "100%", boxSizing: "border-box" as const }}
+      />
       {status === "confirm" ? (
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           <div style={{ fontSize: 11.5, color: "#F59E0B", fontWeight: 600 }}>
             This will email ALL contacts. Are you sure?
           </div>
           <div style={{ display: "flex", gap: 6 }}>
-            <button
-              onClick={() => send(false)}
-              disabled={status !== "confirm"}
-              style={{ ...btn("#F43F5E"), padding: "5px 12px" }}
-            >
+            <button onClick={() => send(false)} style={{ ...btn("#F43F5E"), padding: "5px 12px" }}>
               Yes, send to everyone
             </button>
             <button onClick={() => setStatus("idle")} style={{ ...btn("#6B7280"), padding: "5px 10px" }}>Cancel</button>
@@ -286,16 +291,16 @@ export function BroadcastForm({ isAdmin }: { isAdmin: boolean }) {
       ) : (
         <div style={{ display: "flex", gap: 6 }}>
           <button
-            disabled={!subject.trim() || !message.trim() || status === "sending"}
+            disabled={!canSend}
             onClick={() => send(true)}
-            style={{ ...btn("#6B7280"), padding: "5px 12px", opacity: (!subject.trim() || !message.trim()) ? 0.4 : 1 }}
+            style={{ ...btn("#6B7280"), padding: "5px 12px", opacity: !canSend ? 0.4 : 1 }}
           >
-            {status === "sending" ? "Sending…" : "Send test (1 user)"}
+            {status === "sending" ? "Sending…" : "Send test"}
           </button>
           <button
-            disabled={!subject.trim() || !message.trim() || status === "sending"}
+            disabled={!canSend}
             onClick={() => setStatus("confirm")}
-            style={{ ...btn("#3B82F6"), padding: "5px 12px", opacity: (!subject.trim() || !message.trim()) ? 0.4 : 1 }}
+            style={{ ...btn("#3B82F6"), padding: "5px 12px", opacity: !canSend ? 0.4 : 1 }}
           >
             Send to all
           </button>

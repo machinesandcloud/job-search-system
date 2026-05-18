@@ -101,10 +101,11 @@ export async function POST(request: NextRequest) {
   const body = (await request.json().catch(() => ({}))) as {
     subject?: string;
     message?: string;
-    testOnly?: boolean;  // if true, only send to the logged-in admin email
+    testOnly?: boolean;
+    testEmail?: string;
   };
 
-  const { subject, message, testOnly = false } = body;
+  const { subject, message, testOnly = false, testEmail } = body;
 
   if (!subject || typeof subject !== "string" || subject.trim().length < 1) {
     return NextResponse.json({ error: "subject is required" }, { status: 400 });
@@ -116,17 +117,25 @@ export async function POST(request: NextRequest) {
   const suppressionRows = await prisma.emailSuppression.findMany({ select: { email: true } });
   const suppressedSet = new Set(suppressionRows.map((r: { email: string }) => r.email));
 
-  const users = testOnly
-    ? await prisma.user.findMany({
-        where: { role: "member", email: { not: { contains: "@coach-admin" } } },
-        select: { email: true, firstName: true },
-        take: 1,
-        orderBy: { createdAt: "desc" },
-      })
-    : await prisma.user.findMany({
-        where: { role: "member", email: { not: { contains: "@coach-admin" } } },
-        select: { email: true, firstName: true },
-      });
+  let users: { email: string; firstName: string | null }[];
+
+  if (testOnly && testEmail && typeof testEmail === "string" && testEmail.includes("@")) {
+    // Send to the specific test address provided
+    users = [{ email: testEmail.trim().toLowerCase(), firstName: null }];
+  } else if (testOnly) {
+    // Fall back to most recent member
+    users = await prisma.user.findMany({
+      where: { role: "member", email: { not: { contains: "@coach-admin" } } },
+      select: { email: true, firstName: true },
+      take: 1,
+      orderBy: { createdAt: "desc" },
+    });
+  } else {
+    users = await prisma.user.findMany({
+      where: { role: "member", email: { not: { contains: "@coach-admin" } } },
+      select: { email: true, firstName: true },
+    });
+  }
 
   let sent = 0;
   let skipped = 0;
