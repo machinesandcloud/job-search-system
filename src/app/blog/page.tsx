@@ -1165,6 +1165,33 @@ const POSTS = [
     date: "May 2025",
     accent: "#374151",
   },
+  {
+    slug: "machine-learning-engineer-resume",
+    title: "Machine Learning Engineer Resume — Examples & ATS Keywords (2025)",
+    excerpt: "ML engineer resumes that get callbacks show deployed models and production systems — not Kaggle notebooks. 7-tier skills breakdown, before/after bullets for junior/mid/senior, and how to frame LLM/GenAI experience for 2025 hiring.",
+    tag: "Resume",
+    readTime: "11 min read",
+    date: "May 2025",
+    accent: "#7C3AED",
+  },
+  {
+    slug: "linkedin-outreach-message-templates",
+    title: "LinkedIn Outreach Message Templates That Get Replies (2025)",
+    excerpt: "Most cold LinkedIn messages get ignored because they lead with what you need. These 6 copy-paste templates — cold outreach, referral asks, informational interviews, reconnecting — are structured to lead with value and make replying easy.",
+    tag: "LinkedIn",
+    readTime: "9 min read",
+    date: "May 2025",
+    accent: "#0369A1",
+  },
+  {
+    slug: "product-designer-resume",
+    title: "Product Designer Resume — Portfolio vs Resume, ATS Keywords (2025)",
+    excerpt: "Design hiring is portfolio-first — but 78% of designer resumes get filtered by ATS before a human ever opens your portfolio. What belongs on the resume vs in case studies, before/after bullets, and the 5-tier keyword breakdown for UX/product design roles.",
+    tag: "Resume",
+    readTime: "10 min read",
+    date: "May 2025",
+    accent: "#EC4899",
+  },
 ];
 
 const FEATURED_SLUGS = [

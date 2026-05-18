@@ -201,6 +201,8 @@ function SiteFooter() {
         { label: "Zari vs LinkedIn Learning", href: "/compare/zari-vs-linkedin-learning" },
         { label: "Zari vs Himalayas", href: "/compare/zari-vs-himalayas" },
         { label: "Zari vs Levels.fyi", href: "/compare/zari-vs-levels-fyi" },
+        { label: "Zari vs PayScale", href: "/compare/zari-vs-payscale" },
+        { label: "Zari vs Job Hero", href: "/compare/zari-vs-job-hero" },
       ],
     },
   ];

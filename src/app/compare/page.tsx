@@ -64,6 +64,8 @@ const COMPARISONS = [
   { href: "/compare/zari-vs-linkedin-learning", title: "Zari vs LinkedIn Learning", summary: "LinkedIn Learning teaches skills through 21,000+ video courses. Zari coaches your active job search — resume, interviews, and negotiation. They serve different career stages — here's when to use each." },
   { href: "/compare/zari-vs-himalayas", title: "Zari vs Himalayas", summary: "Himalayas curates remote-first job listings with salary transparency on every posting. Zari coaches you to win those roles — ATS resume tailoring, async-first interview prep, and remote package negotiation including home office stipends and location-adjusted pay." },
   { href: "/compare/zari-vs-levels-fyi", title: "Zari vs Levels.fyi", summary: "Levels.fyi is the most accurate source of tech compensation data — total comp by company, level, and location. Zari coaches you to negotiate the numbers it shows. They're sequential: data first, then execution." },
+  { href: "/compare/zari-vs-payscale", title: "Zari vs PayScale", summary: "PayScale provides skill-adjusted salary reports across 8,000+ job titles and industries — broader than any tech-only database. Zari coaches you to negotiate the numbers it shows. Research first, then execution." },
+  { href: "/compare/zari-vs-job-hero", title: "Zari vs Job Hero", summary: "Job Hero is an AI-powered job search organizer — Kanban pipeline, browser extension, and basic AI resume tailoring. Zari coaches the quality of each application: deep resume rewriting, interview prep, and salary negotiation." },
 ];
 
 export default async function ComparePage() {

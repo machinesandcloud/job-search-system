@@ -255,6 +255,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/blog/java-developer-resume`,                 lastModified: now, changeFrequency: "monthly", priority: 0.90 },
     { url: `${base}/blog/full-stack-developer-resume`,           lastModified: now, changeFrequency: "monthly", priority: 0.90 },
     { url: `${base}/blog/how-to-get-a-job-at-apple`,            lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/machine-learning-engineer-resume`,      lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/linkedin-outreach-message-templates`,   lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/product-designer-resume`,               lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/compare/zari-vs-payscale`,                   lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/compare/zari-vs-job-hero`,                   lastModified: now, changeFrequency: "monthly", priority: 0.88 },
 
     // Auth / conversion
     { url: `${base}/signup`,  lastModified: now, changeFrequency: "monthly", priority: 0.8 },
