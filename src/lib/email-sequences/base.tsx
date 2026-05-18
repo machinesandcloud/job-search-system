@@ -299,13 +299,6 @@ export function Signature({ name = "Steve", title = "Founder, Zari" }: { name?: 
   return (
     <Section style={{ marginTop: "32px" }}>
       <Hr style={{ borderColor: colors.border, margin: "0 0 22px" }} />
-      <Img
-        src={`${SITE_URL}/assets/steve-photo.jpg`}
-        width={56}
-        height={56}
-        alt={name}
-        style={{ borderRadius: "50%", display: "block", margin: "0 0 14px" }}
-      />
       <Text style={{
         fontFamily: font,
         margin: "0 0 10px",
@@ -328,13 +321,20 @@ export function Signature({ name = "Steve", title = "Founder, Zari" }: { name?: 
       </Text>
       <Text style={{
         fontFamily: font,
-        margin: 0,
+        margin: "0 0 14px",
         color: colors.muted,
         fontSize: "13px",
         lineHeight: "1.5",
       }}>
         {title}
       </Text>
+      <Img
+        src={`${SITE_URL}/assets/steve-photo.jpg`}
+        width={56}
+        height={56}
+        alt={name}
+        style={{ borderRadius: "50%", display: "block" }}
+      />
     </Section>
   );
 }

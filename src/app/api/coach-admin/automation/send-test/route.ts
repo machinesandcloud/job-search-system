@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.zaricoach.com";
+  const APP_URL = (process.env.URL || process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || "https://app.zaricoach.com").replace(/\/$/, "");
   const LOGO_URL = `${APP_URL}/assets/zari-logo-transparent-400w.png`;
   const FONT = `-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif`;
 

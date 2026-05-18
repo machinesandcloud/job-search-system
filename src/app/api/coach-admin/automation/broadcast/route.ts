@@ -6,7 +6,7 @@ import { sendEmail } from "@/lib/resend";
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.zaricoach.com";
+const APP_URL = (process.env.URL || process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || "https://app.zaricoach.com").replace(/\/$/, "");
 const LOGO_URL = `${APP_URL}/assets/zari-logo-transparent-400w.png`;
 const STEVE_URL = `${APP_URL}/assets/steve-photo.jpg`;
 const FONT = `-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif`;
@@ -61,11 +61,8 @@ function buildHtml(subject: string, body: string, firstName: string, email: stri
 
           <!-- Signature -->
           <table cellpadding="0" cellspacing="0" style="margin-top:32px;width:100%;">
-            <tr><td colspan="2">
+            <tr><td>
               <hr style="border:none;border-top:1px solid #E4E6EA;margin:0 0 22px;">
-            </td></tr>
-            <tr><td style="padding-bottom:10px;">
-              <img src="${STEVE_URL}" width="56" height="56" alt="Steve" style="display:block;border-radius:50%;border:0;">
             </td></tr>
             <tr><td>
               <p style="margin:0 0 10px;font-family:${FONT};font-size:15px;color:#52535A;line-height:1.5;">Best,</p>
@@ -74,7 +71,10 @@ function buildHtml(subject: string, body: string, firstName: string, email: stri
               <p style="margin:0 0 3px;font-family:'Great Vibes',cursive;font-size:38px;font-weight:400;color:#1A1A1A;line-height:1.2;letter-spacing:0.5px;">Steve</p>
             </td></tr>
             <tr><td>
-              <p style="margin:0;font-family:${FONT};font-size:13px;color:#818285;line-height:1.5;">Founder, Zari</p>
+              <p style="margin:0 0 14px;font-family:${FONT};font-size:13px;color:#818285;line-height:1.5;">Founder, Zari</p>
+            </td></tr>
+            <tr><td>
+              <img src="${STEVE_URL}" width="56" height="56" alt="Steve" style="display:block;border-radius:50%;border:0;">
             </td></tr>
           </table>
         </td></tr>
