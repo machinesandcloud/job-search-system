@@ -48,3 +48,6 @@ next-env.d.ts
 # MCP server (local-only, configured via ~/.claude/settings.json)
 mcp/
 deno.lock
+
+# Local reference photos (not part of the app)
+reference-photos/
