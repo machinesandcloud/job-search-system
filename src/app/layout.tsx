@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import "./globals.css";
 import { OrganizationJsonLd, SoftwareAppJsonLd } from "@/components/json-ld";
 import { VisitorTracker } from "@/components/visitor-tracker";
+import { GlobalScrollReveal } from "@/components/global-scroll-reveal";
 
 const display = Sora({
   subsets: ["latin"],
@@ -122,6 +123,7 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <VisitorTracker />
         </Suspense>
+        <GlobalScrollReveal />
         {children}
       </body>
     </html>
