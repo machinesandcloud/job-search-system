@@ -1140,57 +1140,132 @@ const POSTS = [
   },
 ];
 
+const FEATURED_SLUGS = [
+  "behavioral-interview-questions",
+  "how-to-negotiate-job-offer",
+  "software-engineer-resume",
+  "salary-negotiation-tips",
+  "how-to-write-a-cover-letter",
+  "star-method-interview",
+];
+
+const CATEGORIES: { id: string; label: string; icon: string; color: string; tags: string[] }[] = [
+  { id: "resume",      label: "Resume",       icon: "📄", color: "#0D7182", tags: ["Resume"] },
+  { id: "interviews",  label: "Interviews",   icon: "🎯", color: "#7C3AED", tags: ["Interviews", "Interview Prep"] },
+  { id: "negotiation", label: "Negotiation",  icon: "💰", color: "#059669", tags: ["Negotiation", "Salary Negotiation"] },
+  { id: "job-search",  label: "Job Search",   icon: "🔍", color: "#D97706", tags: ["Job Search", "Job Search Strategy", "Job Search Basics", "Remote Work", "Networking"] },
+  { id: "linkedin",    label: "LinkedIn",     icon: "🔗", color: "#0369A1", tags: ["LinkedIn"] },
+  { id: "career",      label: "Career",       icon: "🚀", color: "#DC2626", tags: ["Career Strategy", "Career Change", "Career Growth", "Career Decisions", "Career", "Promotion", "Cover Letters", "Offer Stage", "Comparison"] },
+];
+
+function getCategoryId(tag: string): string {
+  for (const cat of CATEGORIES) {
+    if (cat.tags.includes(tag)) return cat.id;
+  }
+  return "career";
+}
+
+function PostCard({ post }: { post: typeof POSTS[0] }) {
+  return (
+    <Link href={`/blog/${post.slug}`} className="group flex flex-col rounded-2xl border border-[var(--border)] bg-white shadow-[var(--shadow)] transition-all hover:-translate-y-1 hover:shadow-[var(--shadow-lg)]">
+      <div className="flex-1 p-6">
+        <div className="mb-4 flex items-center gap-3">
+          <span className="rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider" style={{ background: `${post.accent}14`, color: post.accent }}>
+            {post.tag}
+          </span>
+          <span className="text-[11px] text-[var(--muted)]">{post.readTime}</span>
+        </div>
+        <h2 className="mb-3 text-[15.5px] font-bold leading-snug text-[var(--ink)] transition-colors group-hover:text-[var(--brand)]">{post.title}</h2>
+        <p className="text-[13.5px] leading-6 text-[var(--muted)]">{post.excerpt}</p>
+      </div>
+      <div className="flex items-center justify-between border-t border-[var(--border)] px-6 py-4">
+        <span className="text-[12px] text-[var(--muted)]">{post.date}</span>
+        <span className="flex items-center gap-1 text-[12px] font-semibold transition-transform group-hover:translate-x-0.5" style={{ color: post.accent }}>
+          Read <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+        </span>
+      </div>
+    </Link>
+  );
+}
+
 export default async function BlogPage() {
   const userId = await getCurrentUserId();
+
+  const featured = FEATURED_SLUGS.map(s => POSTS.find(p => p.slug === s)).filter(Boolean) as typeof POSTS;
+  const byCategory = Object.fromEntries(
+    CATEGORIES.map(cat => [cat.id, POSTS.filter(p => getCategoryId(p.tag) === cat.id)])
+  );
+
   return (
     <PageFrame authenticated={Boolean(userId)}>
+
       {/* HERO */}
-      <section className="relative overflow-hidden bg-[var(--dark)] pb-20 pt-16 text-white">
+      <section className="relative overflow-hidden bg-[var(--dark)] pb-16 pt-14 text-white">
         <div className="pointer-events-none absolute inset-0 grid-pattern opacity-40" />
         <div className="relative mx-auto max-w-4xl px-6 text-center">
           <div className="mb-5 inline-flex items-center gap-2.5 rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-white/50">Career Advice · Guides · Tips</div>
           <h1 className="text-[2.8rem] font-extrabold leading-[1.05] tracking-[-0.035em] md:text-[3.8rem]">Career advice backed<br /><span className="gradient-text-animated">by AI coaching data.</span></h1>
-          <p className="mx-auto mt-5 max-w-xl text-[16px] leading-relaxed text-white/50">Resume, LinkedIn, interviews, negotiation, and career strategy — guides built from what actually works across 10,000+ coaching sessions.</p>
-        </div>
-      </section>
+          <p className="mx-auto mt-5 max-w-xl text-[16px] leading-relaxed text-white/50">Resume, LinkedIn, interviews, negotiation, and career strategy — from 10,000+ coaching sessions.</p>
 
-      {/* POSTS GRID */}
-      <section className="bg-[var(--bg)] py-20 md:py-28">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {POSTS.map((post) => (
-              <Link key={post.slug} href={`/blog/${post.slug}`} className="group flex flex-col rounded-2xl border border-[var(--border)] bg-white shadow-[var(--shadow)] transition-all hover:-translate-y-1 hover:shadow-[var(--shadow-lg)]">
-                <div className="flex-1 p-6">
-                  <div className="mb-4 flex items-center gap-3">
-                    <span className="rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider" style={{ background: `${post.accent}14`, color: post.accent }}>
-                      {post.tag}
-                    </span>
-                    <span className="text-[11px] text-[var(--muted)]">{post.readTime}</span>
-                  </div>
-                  <h2 className="mb-3 text-[15.5px] font-bold leading-snug text-[var(--ink)] group-hover:text-[var(--brand)]">{post.title}</h2>
-                  <p className="text-[13.5px] leading-6 text-[var(--muted)]">{post.excerpt}</p>
-                </div>
-                <div className="flex items-center justify-between border-t border-[var(--border)] px-6 py-4">
-                  <span className="text-[12px] text-[var(--muted)]">{post.date}</span>
-                  <span className="flex items-center gap-1 text-[12px] font-semibold" style={{ color: post.accent }}>
-                    Read article <svg className="h-3 w-3 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-                  </span>
-                </div>
-              </Link>
+          {/* Category quick-nav */}
+          <div className="mt-10 flex flex-wrap justify-center gap-2.5">
+            {CATEGORIES.map(cat => (
+              <a key={cat.id} href={`#${cat.id}`} className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.06] px-4 py-2 text-[12px] font-semibold text-white/70 transition-all hover:border-white/20 hover:bg-white/10 hover:text-white">
+                <span>{cat.icon}</span> {cat.label}
+                <span className="ml-1 rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] text-white/50">{byCategory[cat.id]?.length ?? 0}</span>
+              </a>
             ))}
           </div>
         </div>
       </section>
 
+      {/* FEATURED */}
+      <section className="bg-white py-14">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="mb-7 flex items-center justify-between">
+            <h2 className="text-[1.5rem] font-extrabold tracking-[-0.025em] text-[var(--ink)]">Most read this month</h2>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {featured.map(post => <PostCard key={post.slug} post={post} />)}
+          </div>
+        </div>
+      </section>
+
+      {/* CATEGORY SECTIONS */}
+      {CATEGORIES.map(cat => {
+        const posts = byCategory[cat.id] ?? [];
+        if (posts.length === 0) return null;
+        return (
+          <section key={cat.id} id={cat.id} className="scroll-mt-20 border-t border-[var(--border)] bg-[var(--bg)] py-14">
+            <div className="mx-auto max-w-6xl px-6">
+              <div className="mb-7 flex items-center gap-3">
+                <span className="text-2xl">{cat.icon}</span>
+                <div>
+                  <h2 className="text-[1.5rem] font-extrabold tracking-[-0.025em] text-[var(--ink)]">{cat.label}</h2>
+                  <p className="text-[12px] text-[var(--muted)]">{posts.length} guides</p>
+                </div>
+                <div className="ml-auto h-px flex-1 bg-[var(--border)]" />
+              </div>
+              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {posts.map(post => <PostCard key={post.slug} post={post} />)}
+              </div>
+            </div>
+          </section>
+        );
+      })}
+
       {/* CTA */}
-      <section className="noise-overlay relative overflow-hidden py-20 text-white" style={{ background: "linear-gradient(135deg,#052830 0%,var(--brand) 45%,var(--dark) 100%)" }}>
-        <div className="pointer-events-none absolute inset-0 grid-pattern opacity-50" />
+      <section className="relative overflow-hidden bg-[var(--dark)] py-20 text-white">
+        <div className="pointer-events-none absolute inset-0 grid-pattern opacity-40" />
         <div className="relative mx-auto max-w-2xl px-6 text-center">
           <h2 className="text-[2.2rem] font-extrabold tracking-[-0.03em]">Ready to put this into practice?</h2>
           <p className="mx-auto mt-4 max-w-md text-[16px] text-white/55">One free session on every coaching surface. Start with your resume, LinkedIn, or an interview — no card required.</p>
-          <div className="mt-8">
-            <Link href="/signup" className="group inline-flex h-13 items-center gap-2 rounded-xl bg-white px-8 text-[15px] font-bold text-[var(--brand)] transition-all hover:-translate-y-0.5">
+          <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+            <Link href={userId ? "/dashboard" : "/signup"} className="group inline-flex h-12 items-center gap-2 rounded-xl bg-[var(--brand)] px-8 text-[15px] font-bold text-white shadow-[0_4px_20px_rgba(67,97,238,0.35)] transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(67,97,238,0.45)]">
               Start coaching free <svg className="h-4 w-4 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+            </Link>
+            <Link href="/compare" className="inline-flex h-12 items-center gap-2 rounded-xl border border-white/20 px-8 text-[15px] font-semibold text-white/80 transition-all hover:border-white/40 hover:text-white">
+              Compare tools
             </Link>
           </div>
         </div>
