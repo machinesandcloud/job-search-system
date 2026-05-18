@@ -40,12 +40,6 @@ export const SITE_URL =
   (process.env.NEXT_PUBLIC_APP_URL ?? process.env.NEXT_PUBLIC_BASE_URL ?? "").replace(/\/$/, "") ||
   "https://app.zaricoach.com";
 
-const LOGO_URL = `${(
-  process.env.URL ||              // Netlify auto-injects: always the correct deploy URL
-  process.env.NEXT_PUBLIC_APP_URL ||
-  process.env.NEXT_PUBLIC_BASE_URL
-)?.replace(/\/$/, "")}/assets/zari-logo-transparent-400w.png`;
-
 function getMonthYear() {
   return new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
 }
@@ -94,7 +88,17 @@ export function Layout({ preview, headline, badge, unsubscribeUrl, children }: L
             {/* ── Header: logo left · date right ── */}
             <Row>
               <Column style={{ padding: "22px 28px 18px", verticalAlign: "middle" }}>
-                <Img src={LOGO_URL} width={100} height={46} alt="Zari" style={{ display: "block" }} />
+                <Text style={{
+                  fontFamily: font,
+                  margin: 0,
+                  color: colors.brand,
+                  fontSize: "20px",
+                  fontWeight: "800",
+                  letterSpacing: "-0.5px",
+                  lineHeight: "1",
+                }}>
+                  Zari
+                </Text>
               </Column>
               <Column style={{ padding: "22px 28px 18px", textAlign: "right", verticalAlign: "middle" }}>
                 <Text style={{
