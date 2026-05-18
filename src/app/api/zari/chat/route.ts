@@ -22,11 +22,28 @@ type CoverLetterCtx = {
   name?: string; subject?: string; targetRole?: string; company?: string; tone?: string; content?: string;
 };
 type UploadCtx = { name: string; content: string };
+type InterviewAnswerCtx = {
+  section: string; question: string; score: number;
+  dimensions: { label: string; score: number }[];
+  coachNote: string; suggestedResult: string;
+};
+type InterviewCtx = {
+  round?: string; jobDescExcerpt?: string;
+  questionsAnswered: number; averageScore: number;
+  answers: InterviewAnswerCtx[];
+};
+type LinkedInAnalysisCtx = {
+  overallScore: number; targetRole?: string; profileHeadline?: string;
+  sections: Record<string, { score: number; verdict: string }>;
+  missingKeywords: string[];
+};
 type SectionContext = {
-  resume?:      ResumeCtx;
-  linkedin?:    LinkedInCtx;
-  coverLetter?: CoverLetterCtx;
-  uploads?:     UploadCtx[];
+  resume?:          ResumeCtx;
+  linkedin?:        LinkedInCtx;
+  coverLetter?:     CoverLetterCtx;
+  uploads?:         UploadCtx[];
+  interview?:       InterviewCtx;
+  linkedinAnalysis?: LinkedInAnalysisCtx;
 };
 
 function getFirstNameFromUserContext(userContext: string) {
@@ -92,6 +109,40 @@ function buildDocumentBlock(
     for (const u of ctx.uploads) {
       parts.push(`UPLOADED DOCUMENT: ${u.name}\n\n${u.content}`);
     }
+  }
+
+  if (ctx?.interview) {
+    const iv = ctx.interview;
+    const lines: string[] = [
+      `MOCK INTERVIEW RESULTS — ${iv.questionsAnswered} question${iv.questionsAnswered !== 1 ? "s" : ""} answered` +
+      (iv.round ? ` · Round: ${iv.round}` : "") +
+      `\nAverage score: ${iv.averageScore}/100`,
+    ];
+    if (iv.jobDescExcerpt) lines.push(`Job description:\n${iv.jobDescExcerpt}`);
+    for (const a of iv.answers) {
+      lines.push(
+        `\nSection: ${a.section}\nQuestion: ${a.question}\nScore: ${a.score}/100` +
+        (a.dimensions.length ? `\nDimensions: ${a.dimensions.map(d => `${d.label} ${d.score}`).join(" · ")}` : "") +
+        `\nCoach note: ${a.coachNote}` +
+        (a.suggestedResult ? `\nStrong answer looks like: ${a.suggestedResult}` : ""),
+      );
+    }
+    parts.push(lines.join("\n"));
+  }
+
+  if (ctx?.linkedinAnalysis) {
+    const li = ctx.linkedinAnalysis;
+    const secLines = Object.entries(li.sections)
+      .map(([name, s]) => `  ${name}: ${s.score}/100 — ${s.verdict}`)
+      .join("\n");
+    parts.push(
+      `LINKEDIN PROFILE ANALYSIS` +
+      (li.targetRole      ? `\nTarget role: ${li.targetRole}`          : "") +
+      (li.profileHeadline ? `\nCurrent headline: ${li.profileHeadline}` : "") +
+      `\nOverall score: ${li.overallScore}/100` +
+      (secLines ? `\nSection scores:\n${secLines}` : "") +
+      (li.missingKeywords.length ? `\nMissing keywords: ${li.missingKeywords.join(", ")}` : ""),
+    );
   }
 
   if (uploadedContent && uploadedFileName) {

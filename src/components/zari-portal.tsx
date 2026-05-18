@@ -1480,6 +1480,70 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
       }
     } catch { /* non-fatal */ }
 
+    // Interview mock results
+    try {
+      type IVSavedCtx = {
+        round?: string; jobDesc?: string; setupDone?: boolean;
+        sections?: Array<{ name: string; questions: Array<{ q: string }> }>;
+        scoredAnswers?: Array<{
+          sectionIdx: number; qIdx: number; answer: string;
+          feedback: { overallScore: number; dimensions: { label: string; score: number }[]; coachNote: string; suggestedResult: string };
+        }>;
+      };
+      const iv = lsGet<IVSavedCtx>(`zari_interview_session_v1_${stage}`);
+      if (iv?.setupDone && iv.scoredAnswers && iv.scoredAnswers.length > 0) {
+        const answers = iv.scoredAnswers.map(sa => ({
+          section:  iv.sections?.[sa.sectionIdx]?.name ?? "Interview",
+          question: iv.sections?.[sa.sectionIdx]?.questions?.[sa.qIdx]?.q ?? "—",
+          score:    sa.feedback.overallScore,
+          dimensions: sa.feedback.dimensions,
+          coachNote:  sa.feedback.coachNote,
+          suggestedResult: sa.feedback.suggestedResult,
+        }));
+        const avg = Math.round(answers.reduce((s, a) => s + a.score, 0) / answers.length);
+        ctx.interview = {
+          round: iv.round,
+          jobDescExcerpt: iv.jobDesc?.slice(0, 600),
+          questionsAnswered: answers.length,
+          averageScore: avg,
+          answers,
+        };
+      }
+    } catch { /* non-fatal */ }
+
+    // LinkedIn analysis results
+    try {
+      type LISavedCtx = {
+        targetRole?: string; headline?: string;
+        result?: {
+          overall: number;
+          headline: { score: number; verdict: string };
+          summary: { score: number; verdict: string };
+          experience: { score: number; verdict: string };
+          education: { score: number; verdict: string };
+          networking: { score: number; verdict: string };
+          keywords?: { present: string[]; missing: string[] };
+        };
+      };
+      const liAnalysis = lsGet<LISavedCtx>(`zari_li_session_v1_${stage}`);
+      if (liAnalysis?.result) {
+        const r = liAnalysis.result;
+        ctx.linkedinAnalysis = {
+          overallScore:    r.overall,
+          targetRole:      liAnalysis.targetRole,
+          profileHeadline: liAnalysis.headline,
+          sections: {
+            headline:    { score: r.headline.score,    verdict: r.headline.verdict },
+            summary:     { score: r.summary.score,     verdict: r.summary.verdict },
+            experience:  { score: r.experience.score,  verdict: r.experience.verdict },
+            education:   { score: r.education.score,   verdict: r.education.verdict },
+            networking:  { score: r.networking.score,  verdict: r.networking.verdict },
+          },
+          missingKeywords: r.keywords?.missing?.slice(0, 10) ?? [],
+        };
+      }
+    } catch { /* non-fatal */ }
+
     return ctx;
   }
 
