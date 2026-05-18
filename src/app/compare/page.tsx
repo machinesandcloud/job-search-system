@@ -62,6 +62,8 @@ const COMPARISONS = [
   { href: "/compare/zari-vs-seek-australia", title: "Zari vs SEEK Australia", summary: "SEEK is Australia's #1 job board — millions of active listings across every industry and location. Zari coaches you to win those roles — ATS resume optimization, selection criteria for government roles, interview prep, and superannuation-aware salary negotiation." },
   { href: "/compare/zari-vs-remote-co", title: "Zari vs Remote.co", summary: "Remote.co curates verified fully-remote job listings from companies with genuine remote cultures. Zari coaches you to win those roles — resume tailored to async-first signals, interview prep for distributed teams, and remote salary negotiation." },
   { href: "/compare/zari-vs-linkedin-learning", title: "Zari vs LinkedIn Learning", summary: "LinkedIn Learning teaches skills through 21,000+ video courses. Zari coaches your active job search — resume, interviews, and negotiation. They serve different career stages — here's when to use each." },
+  { href: "/compare/zari-vs-himalayas", title: "Zari vs Himalayas", summary: "Himalayas curates remote-first job listings with salary transparency on every posting. Zari coaches you to win those roles — ATS resume tailoring, async-first interview prep, and remote package negotiation including home office stipends and location-adjusted pay." },
+  { href: "/compare/zari-vs-levels-fyi", title: "Zari vs Levels.fyi", summary: "Levels.fyi is the most accurate source of tech compensation data — total comp by company, level, and location. Zari coaches you to negotiate the numbers it shows. They're sequential: data first, then execution." },
 ];
 
 export default async function ComparePage() {

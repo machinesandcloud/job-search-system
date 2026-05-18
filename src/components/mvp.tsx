@@ -199,6 +199,8 @@ function SiteFooter() {
         { label: "Zari vs SEEK", href: "/compare/zari-vs-seek-australia" },
         { label: "Zari vs Remote.co", href: "/compare/zari-vs-remote-co" },
         { label: "Zari vs LinkedIn Learning", href: "/compare/zari-vs-linkedin-learning" },
+        { label: "Zari vs Himalayas", href: "/compare/zari-vs-himalayas" },
+        { label: "Zari vs Levels.fyi", href: "/compare/zari-vs-levels-fyi" },
       ],
     },
   ];

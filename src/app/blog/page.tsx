@@ -1138,6 +1138,33 @@ const POSTS = [
     date: "May 2025",
     accent: "#F97316",
   },
+  {
+    slug: "java-developer-resume",
+    title: "Java Developer Resume — Examples, Skills & ATS Keywords (2025)",
+    excerpt: "Java developer resumes that pass ATS and impress hiring managers show system scale, Spring ecosystem depth, and architecture decisions — not just a list of frameworks. Before/after examples for junior, mid, and senior levels, plus a 7-tier skills section breakdown.",
+    tag: "Resume",
+    readTime: "11 min read",
+    date: "May 2025",
+    accent: "#B45309",
+  },
+  {
+    slug: "full-stack-developer-resume",
+    title: "Full Stack Developer Resume — Examples, Skills & ATS Keywords (2025)",
+    excerpt: "Full stack resumes that get callbacks show end-to-end ownership and product impact — not just a list of frameworks for both frontend and backend. Before/after examples for MERN, Next.js, Django+React, and Spring Boot+React stacks.",
+    tag: "Resume",
+    readTime: "11 min read",
+    date: "May 2025",
+    accent: "#6D28D9",
+  },
+  {
+    slug: "how-to-get-a-job-at-apple",
+    title: "How to Get a Job at Apple — Interview Process & Tips (2025)",
+    excerpt: "Apple's hiring is fundamentally different from Google or Meta. Design quality, domain depth, and cross-functional craft matter as much as algorithms. Full breakdown of all 5 interview stages — what happens, how to prepare, and how Apple compares to every other FAANG company.",
+    tag: "Interview Prep",
+    readTime: "10 min read",
+    date: "May 2025",
+    accent: "#374151",
+  },
 ];
 
 const FEATURED_SLUGS = [
