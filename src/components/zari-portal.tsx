@@ -4200,7 +4200,7 @@ function PromotionSharedIntakeFlow({
   return (
     <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
       {/* Page header */}
-      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
+      <div className="zari-cl-result-header" style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
           <div>
             <h1 style={{ fontSize:18, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:"0 0 3px" }}>{sectionLabel}</h1>
@@ -4635,7 +4635,7 @@ function ScreenPromotionReadiness() {
           </div>
         </div>
         {/* RIGHT PANEL */}
-        <div style={{ flex:1, overflowY:"auto", padding:"24px 28px 40px" }}>
+        <div className="zari-result-content" style={{ flex:1, overflowY:"auto", padding:"24px 28px 40px" }}>
 
             {resultTab === "overview" && (
               <div style={{ display:"grid", gap:16, paddingBottom:40 }}>
@@ -4977,7 +4977,7 @@ function ScreenPromotionReadiness() {
   return (
     <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
       {/* Page header */}
-      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
+      <div className="zari-cl-result-header" style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
           <div>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4 }}>
@@ -5293,8 +5293,8 @@ function ScreenSalaryCompensation() {
   if (generating && !result) {
     return (
       <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
-        <div style={{ padding:"72px 40px" }}>
-          <div style={{ borderRadius:24, border:"1px solid var(--z-bd)", background:"var(--z-card)", padding:"72px 32px", textAlign:"center" }}>
+        <div className="zari-loading-wrap" style={{ padding:"72px 40px" }}>
+          <div className="zari-loading-card" style={{ borderRadius:24, border:"1px solid var(--z-bd)", background:"var(--z-card)", padding:"72px 32px", textAlign:"center" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
               {[0,1,2].map(i => <div key={i} style={{ width:11,height:11,borderRadius:"50%",background:"#2563EB",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
             </div>
@@ -5365,7 +5365,7 @@ function ScreenSalaryCompensation() {
           </div>
         </div>
         {/* RIGHT PANEL */}
-        <div style={{ flex:1, overflowY:"auto", padding:"24px 28px 40px" }}>
+        <div className="zari-result-content" style={{ flex:1, overflowY:"auto", padding:"24px 28px 40px" }}>
             {tab === "overview" && (
               <div style={{ display:"grid", gap:18 }}>
                 <div style={{ borderRadius:14, background:"rgba(220,38,38,0.04)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #DC2626", padding:"22px 26px" }}>
@@ -6966,7 +6966,7 @@ function ScreenSalaryNegotiationSim() {
             <button onClick={reset} style={{ flex:1, fontSize:12, fontWeight:700, padding:"8px 10px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>New</button>
           </div>
         </div>
-        <div style={{ flex:1, overflowY:"auto", padding:"28px 32px 48px" }}>
+        <div className="zari-result-content" style={{ flex:1, overflowY:"auto", padding:"28px 32px 48px" }}>
           <div style={{ display:"grid", gap:20 }}>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
               <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #059669", padding:"22px 24px" }}>
@@ -7784,7 +7784,7 @@ Start by asking them to tell you the story first.`;
             <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.7, margin:0 }}>Zari acts as your executive coach — you tell the story, Zari pushes you to make it sharper, more specific, and unmistakably yours.</p>
           </div>
 
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:18 }}>
+          <div className="zari-two-col" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:18 }}>
             {storyTypes.map(s => (
               <button key={s.value} onClick={() => setForm(f => ({...f, storyType:s.value}))} style={{ textAlign:"left", padding:"14px 16px", borderRadius:12, border:`1px solid ${form.storyType === s.value ? "#2563EB" : "var(--z-bd)"}`, background:form.storyType === s.value ? "#EFF6FF" : "var(--z-card)", cursor:"pointer" }}>
                 <div style={{ fontSize:13, fontWeight:700, color:form.storyType === s.value ? "#2563EB" : "var(--z-text)", marginBottom:4 }}>{s.label}</div>
@@ -8103,8 +8103,8 @@ function ScreenExecPositioning() {
   if (generating && !result) {
     return (
       <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
-        <div style={{ padding:"72px 40px" }}>
-          <div style={{ borderRadius:24, border:"1px solid var(--z-bd)", background:"var(--z-card)", boxShadow:"0 4px 32px rgba(0,0,0,0.09)", padding:"72px 32px", textAlign:"center" }}>
+        <div className="zari-loading-wrap" style={{ padding:"72px 40px" }}>
+          <div className="zari-loading-card" style={{ borderRadius:24, border:"1px solid var(--z-bd)", background:"var(--z-card)", boxShadow:"0 4px 32px rgba(0,0,0,0.09)", padding:"72px 32px", textAlign:"center" }}>
             <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
               {[0,1,2].map(i => <div key={i} style={{ width:11,height:11,borderRadius:"50%",background:"#2563EB",animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
             </div>
@@ -8174,7 +8174,7 @@ function ScreenExecPositioning() {
           </div>
         </div>
         {/* RIGHT PANEL */}
-        <div style={{ flex:1, overflowY:"auto", padding:"24px 28px 40px" }}>
+        <div className="zari-result-content" style={{ flex:1, overflowY:"auto", padding:"24px 28px 40px" }}>
             {tab === "overview" && (
               <div style={{ display:"grid", gap:18 }}>
                 <div style={{ borderRadius:14, background:"rgba(220,38,38,0.04)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #DC2626", padding:"22px 26px" }}>
@@ -9234,7 +9234,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
   if (step === "paste") return (
     <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
       {/* Page header */}
-      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
+      <div className="zari-cl-result-header" style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
           <div>
             <h1 style={{ fontSize:18, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:"0 0 3px" }}>Resume Review</h1>
@@ -9307,7 +9307,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
   if (step === "upload") return (
     <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
       {/* Page header */}
-      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
+      <div className="zari-cl-result-header" style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
           <div>
             <h1 style={{ fontSize:18, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", margin:"0 0 3px" }}>Resume Review</h1>
@@ -11254,7 +11254,7 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
         onChange={e=>{ const f=e.target.files?.[0]; if(f) { void handleInterviewFile(f); } e.target.value=""; }}/>
 
       {/* Page header */}
-      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
+      <div className="zari-cl-result-header" style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
           <div>
             <h1 style={{ fontSize:22, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 4px" }}>Mock Interview</h1>
@@ -11478,7 +11478,7 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
 
   return (
     <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
-      <div style={{ padding:"20px 28px" }}>
+      <div className="zari-result-content" style={{ padding:"20px 28px" }}>
 
         {/* Header */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20, flexWrap:"wrap", gap:10 }}>
@@ -12071,7 +12071,7 @@ function ScreenPromotionPitch({ active = false, onNavigate }: { active?: boolean
           style={{ display:"none" }}
           onChange={e => { const f = e.target.files?.[0]; if (f) void handleUpload(f); e.target.value = ""; }}
         />
-        <div style={{ padding:"24px 32px 48px", position:"relative" }}>
+        <div className="zari-result-content" style={{ padding:"24px 32px 48px", position:"relative" }}>
           <div style={promotionHeroStyle(theme)}>
             <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 82% 18%, rgba(251,207,232,0.18), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
             <div style={promotionHeroGridStyle()}>
@@ -12211,7 +12211,7 @@ function ScreenPromotionPitch({ active = false, onNavigate }: { active?: boolean
 
   return (
     <div style={promotionPageStyle(theme)}>
-      <div style={{ padding:"24px 32px 48px", position:"relative" }}>
+      <div className="zari-result-content" style={{ padding:"24px 32px 48px", position:"relative" }}>
         <div style={promotionHeroStyle(theme)}>
           <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 84% 18%, rgba(251,207,232,0.16), transparent 26%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
           <div style={{ position:"relative", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, flexWrap:"wrap" }}>
@@ -12894,7 +12894,7 @@ function ScreenPromotionDocument({ active = false, onNavigate }: { active?: bool
   return (
     <div style={promotionPageStyle(theme)}>
       <input ref={fileInputRef} type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e => { const f = e.target.files?.[0]; if (f) void handleUpload(f); e.target.value = ""; }} />
-      <div style={{ padding:"24px 32px 48px", position:"relative" }}>
+      <div className="zari-result-content" style={{ padding:"24px 32px 48px", position:"relative" }}>
         <div style={promotionHeroStyle(theme)}>
           <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 84% 18%, rgba(167,243,208,0.2), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
           <div style={promotionHeroGridStyle()}>
@@ -13257,7 +13257,7 @@ function ScreenPromotionVisibility({ active = false, onNavigate }: { active?: bo
         </div>
 
         {/* RIGHT PANEL */}
-        <div style={{ flex:1, overflowY:"auto", padding:"24px 28px 48px" }}>
+        <div className="zari-result-content" style={{ flex:1, overflowY:"auto", padding:"24px 28px 48px" }}>
 
           {resultTab === "overview" && (
             <div style={{ display:"grid", gap:16 }}>
@@ -13515,7 +13515,7 @@ function ScreenPromotionVisibility({ active = false, onNavigate }: { active?: bo
   return (
     <div style={promotionPageStyle(theme)}>
       <input ref={fileInputRef} type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e => { const f = e.target.files?.[0]; if (f) void handleUpload(f); e.target.value = ""; }} />
-      <div style={{ padding:"24px 32px 48px", position:"relative" }}>
+      <div className="zari-result-content" style={{ padding:"24px 32px 48px", position:"relative" }}>
         <div style={promotionHeroStyle(theme)}>
           <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 84% 18%, rgba(147,197,253,0.2), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
           <div style={promotionHeroGridStyle()}>
@@ -13851,7 +13851,7 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
         onChange={e=>{ const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value=""; }}/>
 
       {/* Page header */}
-      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
+      <div className="zari-cl-result-header" style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
         <div style={{ display:"flex", alignItems:"center", gap:12 }}>
           <div style={{ width:32, height:32, borderRadius:10, background:"rgba(0,119,181,0.2)", border:"1px solid rgba(0,119,181,0.4)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
             <svg viewBox="0 0 24 24" fill="#38BDF8" style={{ width:16,height:16 }}><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zM9 17H6.477v-7H9v7zM7.694 8.717c-.771 0-1.286-.514-1.286-1.2s.514-1.2 1.286-1.2c.771 0 1.286.514 1.286 1.2s-.514 1.2-1.286 1.2zM18 17h-2.442v-3.826c0-1.058-.651-1.302-1.044-1.302-.394 0-1.228.163-1.228 1.302V17h-2.557v-7h2.557v1.302c.325-.652 1.058-1.302 2.276-1.302C17.349 10 18 11.058 18 13.488V17z"/></svg>
@@ -13863,7 +13863,7 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
         </div>
       </div>
 
-      <div style={{ padding:"32px 40px 56px" }}>
+      <div className="zari-result-content" style={{ padding:"32px 40px 56px" }}>
 
         {parseLoading ? (
           <div style={{ display:"flex", alignItems:"center", justifyContent:"center", minHeight:360 }}>
@@ -14877,7 +14877,7 @@ function ScreenPromotionToolkit({ onNavigate }: { onNavigate: (s: string) => voi
 
       <input ref={fileInputRef} type="file" accept=".pdf,.docx,.txt" style={{ display:"none" }} onChange={e => { const f = e.target.files?.[0]; if (f) void handleFile(f); e.target.value = ""; }} />
 
-      <div style={{ padding:"24px 32px 48px", position:"relative" }}>
+      <div className="zari-result-content" style={{ padding:"24px 32px 48px", position:"relative" }}>
         <div style={promotionHeroStyle(theme)}>
           <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 84% 18%, rgba(148,163,184,0.12), transparent 32%), radial-gradient(circle at 16% 72%, rgba(100,116,139,0.1), transparent 30%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
           <div style={{ position:"relative", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:20, flexWrap:"wrap", marginBottom:20 }}>
@@ -15095,7 +15095,7 @@ function ScreenCareerChangeDocuments({ onNavigate }: { onNavigate: (s: string) =
       <input ref={fileInputRef} type="file" accept=".pdf,.docx,.txt" style={{ display: "none" }}
         onChange={e => { const f = e.target.files?.[0]; if (f) void handleFile(f); e.target.value = ""; }} />
 
-      <div style={{ background: "var(--z-card)", borderBottom: "1px solid var(--z-bd)", padding: "16px 28px" }}>
+      <div className="zari-cl-result-header" style={{ background: "var(--z-card)", borderBottom: "1px solid var(--z-bd)", padding: "16px 28px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
           <div>
             <h1 style={{ fontSize: 18, fontWeight: 900, color: "var(--z-text)", letterSpacing: "-0.02em", margin: "0 0 2px" }}>Career Change Hub</h1>
@@ -15108,7 +15108,7 @@ function ScreenCareerChangeDocuments({ onNavigate }: { onNavigate: (s: string) =
         </div>
       </div>
 
-      <div style={{ padding: "24px 28px 48px" }}>
+      <div className="zari-result-content" style={{ padding: "24px 28px 48px" }}>
         {/* Pivot status banner */}
         {ready ? (
           <div style={{ background: "linear-gradient(135deg, #EFF6FF, #ECFDF5)", border: "1px solid #BFDBFE", borderRadius: 14, padding: "16px 20px", marginBottom: 24, display: "flex", alignItems: "center", gap: 14 }}>
@@ -15427,7 +15427,7 @@ function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate
         onChange={e=>{ const f=e.target.files?.[0]; if(f) void handleFile(f); e.target.value=""; }}/>
 
       {/* Page header */}
-      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
+      <div className="zari-cl-result-header" style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
         <div style={{ display:"flex", alignItems:"center", gap:12 }}>
           <div style={{ width:32, height:32, borderRadius:10, background:"rgba(100,116,139,0.2)", border:"1px solid rgba(100,116,139,0.35)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="1.8" style={{ width:16,height:16 }}><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
@@ -15439,7 +15439,7 @@ function ScreenDocuments({ stage, onNavigate }: { stage: CareerStage; onNavigate
         </div>
       </div>
 
-      <div style={{ padding:"24px 32px 48px" }}>
+      <div className="zari-result-content" style={{ padding:"24px 32px 48px" }}>
 
         {/* ── Hero header ── */}
         <div style={{ background:"var(--z-card)", borderRadius:14, padding:"24px 28px", marginBottom:24, border:"1px solid var(--z-bd)" }}>
@@ -16168,7 +16168,7 @@ function ScreenCoverLetter({ stage, active = false, onNavigate }: { stage: Caree
         onChange={e=>{ const f=e.target.files?.[0]; if(f) { void handleUpload(f); } e.target.value=""; }}/>
 
       {/* Page header */}
-      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
+      <div className="zari-cl-result-header" style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
           <div>
             <h1 style={{ fontSize:22, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 4px" }}>Cover Letter</h1>
@@ -16498,7 +16498,7 @@ function ScreenPromotionRoadmap({ onNavigate, active = false }: { onNavigate: (s
   if (!isReady) {
     return (
       <div style={promotionPageStyle(theme)}>
-        <div style={{ padding:"24px 32px 48px", position:"relative" }}>
+        <div className="zari-result-content" style={{ padding:"24px 32px 48px", position:"relative" }}>
           <div style={promotionHeroStyle(theme)}>
             <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 84% 18%, rgba(251,207,232,0.18), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
             <div style={promotionHeroGridStyle()}>
@@ -16598,7 +16598,7 @@ function ScreenPromotionRoadmap({ onNavigate, active = false }: { onNavigate: (s
 
   return (
     <div style={promotionPageStyle(theme)}>
-      <div style={{ padding:"24px 32px 48px", position:"relative" }}>
+      <div className="zari-result-content" style={{ padding:"24px 32px 48px", position:"relative" }}>
 
         {/* ── Hero: dark immersive banner ── */}
         <div style={{ borderRadius:24, background:"linear-gradient(135deg, #0F1525 0%, #1A1040 60%, #0F1525 100%)", border:"1px solid rgba(255,255,255,0.08)", padding:"32px 36px", marginBottom:20, position:"relative", overflow:"hidden" }}>
@@ -16995,12 +16995,12 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
     const progress = (intakeStep / INTAKE_STEPS.length) * 100;
     return (
       <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
-        <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
+        <div className="zari-cl-result-header" style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
           <h1 style={{ fontSize:22, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 4px" }}>Action Plan</h1>
           <p style={{ fontSize:13, color:"var(--z-text2)", margin:0 }}>Answer a few questions so Zari can build you a realistic, personalized plan.</p>
         </div>
 
-        <div style={{ maxWidth:560, margin:"0 auto", padding:"32px 24px 48px" }}>
+        <div className="zari-result-content" style={{ maxWidth:560, margin:"0 auto", padding:"32px 24px 48px" }}>
           {/* Progress */}
           <div style={{ marginBottom:28 }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
@@ -17084,11 +17084,11 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
   // ── Empty state: not enough context (only shown if stage is not job-search or no data yet) ──
   if (!isReady && stage !== "job-search") return (
     <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
-      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
+      <div className="zari-cl-result-header" style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
         <h1 style={{ fontSize:22, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 4px" }}>Action Plan</h1>
         <p style={{ fontSize:13, color:"var(--z-text2)", margin:0 }}>Your personalized step-by-step roadmap based on completed sections.</p>
       </div>
-      <div style={{ padding:"36px 28px" }}>
+      <div className="zari-result-content" style={{ padding:"36px 28px" }}>
         <div style={{ textAlign:"center", marginBottom:40 }}>
           <div style={{ width:52, height:52, borderRadius:14, background:"var(--z-raise)", border:"1px solid var(--z-bd)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 18px" }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="var(--z-text2)" strokeWidth="1.8" style={{width:24,height:24}}><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
@@ -17155,7 +17155,7 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
     <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
 
       {/* Page header */}
-      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
+      <div className="zari-cl-result-header" style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
         <div>
           <h1 style={{ fontSize:22, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.03em", margin:"0 0 4px" }}>Action Plan</h1>
           <p style={{ fontSize:13, color:"var(--z-text2)", margin:0 }}>
@@ -17180,7 +17180,7 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
         </div>
       </div>
 
-      <div style={{ padding:"24px 28px 52px" }}>
+      <div className="zari-result-content" style={{ padding:"24px 28px 52px" }}>
 
         {/* New data banner */}
         {newDataReady && (
@@ -18750,6 +18750,9 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
           .zari-account-outer { padding: 16px 14px 40px !important; }
           /* Bridge Network two-column grid → single column on mobile */
           .zari-bridge-layout { grid-template-columns: 1fr !important; padding: 14px 14px 40px !important; }
+          /* Loading/generating state wrappers — reduce vertical padding */
+          .zari-loading-wrap { padding: 20px 16px !important; }
+          .zari-loading-card { padding: 40px 20px !important; }
         }
         .zari-mobile-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:199; backdrop-filter:blur(2px); }
         .zari-session-hist-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:299; backdrop-filter:blur(2px); }
