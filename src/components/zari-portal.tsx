@@ -5514,7 +5514,7 @@ function ScreenSalaryCompensation() {
           </div>
           {step === 1 && (
             <div style={{ ...card, display:"grid", gap:14 }}>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+              <div className="zari-form-cols" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                 <div>
                   <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Job title <span style={{ color:"#F87171" }}>*</span></p>
                   <input value={form.title} onChange={e => setForm(f => ({...f,title:e.target.value}))} placeholder="e.g. Senior Product Manager" style={inp} />
@@ -5527,7 +5527,7 @@ function ScreenSalaryCompensation() {
                   </select>
                 </div>
               </div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+              <div className="zari-form-cols" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                 <div>
                   <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Industry</p>
                   <input value={form.industry} onChange={e => setForm(f => ({...f,industry:e.target.value}))} placeholder="e.g. Tech / SaaS" style={inp} />
@@ -5552,7 +5552,7 @@ function ScreenSalaryCompensation() {
           )}
           {step === 2 && (
             <div style={{ ...card, display:"grid", gap:14 }}>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+              <div className="zari-form-cols" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                 <div>
                   <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Current base salary</p>
                   <input value={form.currentComp} onChange={e => setForm(f => ({...f,currentComp:e.target.value}))} placeholder="e.g. $120,000" style={inp} />
@@ -5570,7 +5570,7 @@ function ScreenSalaryCompensation() {
           )}
           {step === 3 && (
             <div style={{ ...card, display:"grid", gap:14 }}>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+              <div className="zari-form-cols" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                 <div>
                   <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Location</p>
                   <input value={form.location} onChange={e => setForm(f => ({...f,location:e.target.value}))} placeholder="e.g. San Francisco, CA / Remote" style={inp} />
@@ -5741,7 +5741,7 @@ function ScreenPivotAnalysis() {
 
   if (generating && !result) {
     return (
-      <div style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--z-raise)", padding:"40px" }}>
+      <div className="zari-loading-wrap" style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--z-raise)", padding:"40px" }}>
         <div style={{ borderRadius:24, border:"1px solid rgba(56,189,248,0.2)", background:"linear-gradient(135deg, rgba(2,132,199,0.08), rgba(56,189,248,0.04))", padding:"72px 52px", textAlign:"center", maxWidth:480, width:"100%" }}>
           <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:24 }}>
             {[0,1,2].map(i => <div key={i} style={{ width:10,height:10,borderRadius:"50%",background:ACCENT2,animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
@@ -5778,7 +5778,7 @@ function ScreenPivotAnalysis() {
       <div style={{ height:"100%", display:"flex", flexDirection:"column", overflow:"hidden", background:"var(--z-raise)" }}>
 
         {/* ── HERO HEADER ── */}
-        <div style={{ flexShrink:0, background:"linear-gradient(160deg,#071525 0%,#0b1e38 50%,#0f172a 100%)", borderBottom:"1px solid rgba(56,189,248,0.15)", padding:"26px 32px 22px", position:"relative", overflow:"hidden" }}>
+        <div className="zari-cl-result-header" style={{ flexShrink:0, background:"linear-gradient(160deg,#071525 0%,#0b1e38 50%,#0f172a 100%)", borderBottom:"1px solid rgba(56,189,248,0.15)", padding:"26px 32px 22px", position:"relative", overflow:"hidden" }}>
           <div style={{ position:"absolute", top:-70, right:-50, width:280, height:280, borderRadius:"50%", background:`radial-gradient(circle, ${vMeta.glow} 0%, transparent 65%)`, pointerEvents:"none" }}/>
           <div style={{ position:"absolute", bottom:-50, left:80, width:200, height:200, borderRadius:"50%", background:"radial-gradient(circle, rgba(2,132,199,0.08) 0%, transparent 70%)", pointerEvents:"none" }}/>
           <div style={{ display:"flex", alignItems:"flex-start", gap:22, position:"relative" }}>
@@ -5844,7 +5844,7 @@ function ScreenPivotAnalysis() {
         </div>
 
         {/* ── CONTENT ── */}
-        <div style={{ flex:1, overflowY:"auto", padding:"28px 32px 52px" }}>
+        <div className="zari-result-content" style={{ flex:1, overflowY:"auto", padding:"28px 32px 52px" }}>
 
           {/* OVERVIEW */}
           {tab === "overview" && (
@@ -6060,7 +6060,7 @@ function ScreenPivotAnalysis() {
           </div>
           {step === 1 && (
             <div style={{ ...card, display:"grid", gap:14 }}>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+              <div className="zari-form-cols" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                 <div>
                   <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Current role / title</p>
                   <input value={form.fromRole} onChange={e => setForm(f => ({...f,fromRole:e.target.value}))} placeholder="e.g. Software Engineer" style={inp} />
@@ -6070,7 +6070,7 @@ function ScreenPivotAnalysis() {
                   <input value={form.fromIndustry} onChange={e => setForm(f => ({...f,fromIndustry:e.target.value}))} placeholder="e.g. Fintech" style={inp} />
                 </div>
               </div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+              <div className="zari-form-cols" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                 <div>
                   <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Target role / title <span style={{ color:"#F87171" }}>*</span></p>
                   <input value={form.toRole} onChange={e => setForm(f => ({...f,toRole:e.target.value}))} placeholder="e.g. Product Manager" style={inp} />
@@ -6140,7 +6140,7 @@ function ScreenPivotAnalysis() {
           )}
           {step === 3 && (
             <div style={{ ...card, display:"grid", gap:16 }}>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+              <div className="zari-form-cols" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                 <div>
                   <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Timeline</p>
                   <select value={form.timeline} onChange={e => setForm(f => ({...f,timeline:e.target.value}))} style={sel}>
@@ -6319,7 +6319,7 @@ function ScreenPivotStoryBuilder({ active }:{ active:boolean }) {
   );
 
   if (generating) return (
-    <div style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--z-raise)", padding:"40px" }}>
+    <div className="zari-loading-wrap" style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--z-raise)", padding:"40px" }}>
       <div style={{ borderRadius:24, border:`1px solid rgba(167,139,250,0.2)`, background:`linear-gradient(135deg,rgba(124,58,237,0.08),rgba(167,139,250,0.04))`, padding:"64px 52px", textAlign:"center", maxWidth:440, width:"100%" }}>
         <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:22 }}>
           {[0,1,2].map(i=><div key={i} style={{ width:10,height:10,borderRadius:"50%",background:ACCENT2,animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
@@ -6349,7 +6349,7 @@ function ScreenPivotStoryBuilder({ active }:{ active:boolean }) {
 
   return (
     <div style={{ height:"100%", display:"flex", flexDirection:"column", overflow:"hidden", background:"var(--z-raise)" }}>
-      <div style={{ flexShrink:0, background:"linear-gradient(160deg,#1a0533 0%,#2d0b5c 50%,#1a0533 100%)", borderBottom:"1px solid rgba(167,139,250,0.18)", padding:"22px 32px", display:"flex", alignItems:"center", gap:16 }}>
+      <div className="zari-cl-result-header" style={{ flexShrink:0, background:"linear-gradient(160deg,#1a0533 0%,#2d0b5c 50%,#1a0533 100%)", borderBottom:"1px solid rgba(167,139,250,0.18)", padding:"22px 32px", display:"flex", alignItems:"center", gap:16 }}>
         <div style={{ flex:1 }}>
           <div style={{ fontSize:10.5, fontWeight:800, color:ACCENT2, textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:6 }}>Story Builder</div>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
@@ -6448,7 +6448,7 @@ function ScreenCredibilitySprint({ active }:{ active:boolean }) {
   );
 
   if (generating) return (
-    <div style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--z-raise)", padding:"40px" }}>
+    <div className="zari-loading-wrap" style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--z-raise)", padding:"40px" }}>
       <div style={{ borderRadius:24, border:`1px solid rgba(52,211,153,0.2)`, background:`linear-gradient(135deg,rgba(5,150,105,0.08),rgba(52,211,153,0.04))`, padding:"64px 52px", textAlign:"center", maxWidth:440, width:"100%" }}>
         <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:22 }}>
           {[0,1,2].map(i=><div key={i} style={{ width:10,height:10,borderRadius:"50%",background:ACCENT2,animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
@@ -6478,7 +6478,7 @@ function ScreenCredibilitySprint({ active }:{ active:boolean }) {
 
   return (
     <div style={{ height:"100%", display:"flex", flexDirection:"column", overflow:"hidden", background:"var(--z-raise)" }}>
-      <div style={{ flexShrink:0, background:"linear-gradient(160deg,#012a1a 0%,#064e3b 50%,#012a1a 100%)", borderBottom:"1px solid rgba(52,211,153,0.18)", padding:"22px 32px", display:"flex", alignItems:"center", gap:16 }}>
+      <div className="zari-cl-result-header" style={{ flexShrink:0, background:"linear-gradient(160deg,#012a1a 0%,#064e3b 50%,#012a1a 100%)", borderBottom:"1px solid rgba(52,211,153,0.18)", padding:"22px 32px", display:"flex", alignItems:"center", gap:16 }}>
         <div style={{ flex:1 }}>
           <div style={{ fontSize:10.5, fontWeight:800, color:ACCENT2, textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:6 }}>Credibility Sprint</div>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
@@ -6586,7 +6586,7 @@ function ScreenBridgeNetwork({ active }:{ active:boolean }) {
   );
 
   if (generating) return (
-    <div style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--z-raise)", padding:"40px" }}>
+    <div className="zari-loading-wrap" style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--z-raise)", padding:"40px" }}>
       <div style={{ borderRadius:24, border:`1px solid rgba(251,146,60,0.2)`, background:`linear-gradient(135deg,rgba(234,88,12,0.08),rgba(251,146,60,0.04))`, padding:"64px 52px", textAlign:"center", maxWidth:440, width:"100%" }}>
         <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:22 }}>
           {[0,1,2].map(i=><div key={i} style={{ width:10,height:10,borderRadius:"50%",background:ACCENT2,animation:`dot-bounce 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}
@@ -6612,7 +6612,7 @@ function ScreenBridgeNetwork({ active }:{ active:boolean }) {
   const pc = personaColors[activeIdx] ?? ACCENT2;
   return (
     <div style={{ height:"100%", display:"flex", flexDirection:"column", overflow:"hidden", background:"var(--z-raise)" }}>
-      <div style={{ flexShrink:0, background:"linear-gradient(160deg,#1c0a00 0%,#431407 50%,#1c0a00 100%)", borderBottom:"1px solid rgba(251,146,60,0.18)", padding:"22px 32px", display:"flex", alignItems:"center", gap:16 }}>
+      <div className="zari-cl-result-header" style={{ flexShrink:0, background:"linear-gradient(160deg,#1c0a00 0%,#431407 50%,#1c0a00 100%)", borderBottom:"1px solid rgba(251,146,60,0.18)", padding:"22px 32px", display:"flex", alignItems:"center", gap:16 }}>
         <div style={{ flex:1 }}>
           <div style={{ fontSize:10.5, fontWeight:800, color:ACCENT2, textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:6 }}>Bridge Network</div>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
@@ -6813,7 +6813,7 @@ function ScreenSalaryNegotiationSim() {
               <div style={{ ...card, display:"grid", gap:24 }}>
                 <div>
                   <p style={{ fontSize:11, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", margin:"0 0 12px" }}>What are you practicing?</p>
-                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+                  <div className="zari-form-cols" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
                     {scenarios.map(s => (
                       <button key={s.value} onClick={() => setScenario(s.value)} style={{ textAlign:"left", padding:"16px 18px", borderRadius:14, border:`2px solid ${scenario===s.value ? s.border : "var(--z-bd)"}`, background:scenario===s.value ? s.bg : "var(--z-raise)", cursor:"pointer", transition:"all 0.15s" }}>
                         <div style={{ fontSize:13.5, fontWeight:800, color:scenario===s.value ? s.color : "var(--z-text)", marginBottom:4 }}>{s.label}</div>
@@ -6842,7 +6842,7 @@ function ScreenSalaryNegotiationSim() {
                   <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Role <span style={{ color:"#F87171" }}>*</span></p>
                   <input value={form.role} onChange={e => setForm(f => ({...f,role:e.target.value}))} placeholder="e.g. Senior Product Manager" style={inp} />
                 </div>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                <div className="zari-form-cols" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                   <div>
                     <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Company (optional)</p>
                     <input value={form.company} onChange={e => setForm(f => ({...f,company:e.target.value}))} placeholder="e.g. Stripe" style={inp} />
@@ -6931,7 +6931,7 @@ function ScreenSalaryNegotiationSim() {
     const verdictBg = debrief.score >= 75 ? "rgba(5,150,105,0.08)" : debrief.score >= 50 ? "rgba(217,119,6,0.08)" : "rgba(220,38,38,0.08)";
     return (
       <div style={{ height:"100%", display:"flex", overflow:"hidden", background:"var(--z-raise)" }}>
-        <div style={{ width:272, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
+        <div className="zari-inner-sidebar" style={{ width:272, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
           <div style={{ padding:"28px 20px 20px" }}>
             <div style={{ display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", marginBottom:20 }}>
               <div style={{ position:"relative", width:88, height:88, marginBottom:14 }}>
@@ -6968,7 +6968,7 @@ function ScreenSalaryNegotiationSim() {
         </div>
         <div className="zari-result-content" style={{ flex:1, overflowY:"auto", padding:"28px 32px 48px" }}>
           <div style={{ display:"grid", gap:20 }}>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+            <div className="zari-form-cols" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
               <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #059669", padding:"22px 24px" }}>
                 <div style={{ fontSize:10.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:14 }}>What you nailed</div>
                 <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
@@ -7073,7 +7073,7 @@ function ScreenSalaryNegotiationSim() {
       </div>
 
       {/* COACHING SIDEBAR */}
-      <div style={{ width:284, flexShrink:0, borderLeft:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
+      <div className="zari-inner-sidebar-right" style={{ width:284, flexShrink:0, borderLeft:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
         <div style={{ padding:"18px 16px 14px", borderBottom:"1px solid var(--z-bd)" }}>
           <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
             <div style={{ width:8, height:8, borderRadius:999, background:"#D97706", boxShadow:"0 0 6px rgba(217,119,6,0.5)", animation:"pulse 2s ease-in-out infinite" }}/>
@@ -7349,7 +7349,7 @@ function ScreenSalaryNegotiationEmail() {
               ))}
             </div>
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+          <div className="zari-form-cols" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
             <div>
               <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Role <span style={{ color:"#EF4444" }}>*</span></p>
               <input value={form.role} onChange={e => setForm(f => ({...f, role:e.target.value}))} placeholder="e.g. Senior Product Manager" style={inp} />
@@ -7359,7 +7359,7 @@ function ScreenSalaryNegotiationEmail() {
               <input value={form.company} onChange={e => setForm(f => ({...f, company:e.target.value}))} placeholder="e.g. Stripe" style={inp} />
             </div>
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+          <div className="zari-form-cols" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
             <div>
               <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Current / offered comp</p>
               <input value={form.currentComp} onChange={e => setForm(f => ({...f, currentComp:e.target.value}))} placeholder="e.g. $130K" style={inp} />
@@ -7640,7 +7640,7 @@ function ScreenSalaryMarketIntel() {
         </div>
 
         <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:16, padding:"26px", display:"grid", gap:16 }}>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+          <div className="zari-form-cols" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
             <div>
               <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Role <span style={{ color:"#EF4444" }}>*</span></p>
               <input value={form.role} onChange={e => setForm(f => ({...f, role:e.target.value}))} placeholder="e.g. Senior Product Manager" style={inp} />
@@ -7650,7 +7650,7 @@ function ScreenSalaryMarketIntel() {
               <input value={form.industry} onChange={e => setForm(f => ({...f, industry:e.target.value}))} placeholder="e.g. B2B SaaS" style={inp} />
             </div>
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+          <div className="zari-form-cols" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
             <div>
               <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Location</p>
               <input value={form.location} onChange={e => setForm(f => ({...f, location:e.target.value}))} placeholder="e.g. San Francisco / Remote" style={inp} />
@@ -7660,7 +7660,7 @@ function ScreenSalaryMarketIntel() {
               <input value={form.experience} onChange={e => setForm(f => ({...f, experience:e.target.value}))} placeholder="e.g. 8 years" style={inp} />
             </div>
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+          <div className="zari-form-cols" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
             <div>
               <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Current comp (optional)</p>
               <input value={form.currentComp} onChange={e => setForm(f => ({...f, currentComp:e.target.value}))} placeholder="e.g. $120K" style={inp} />
@@ -7986,7 +7986,7 @@ Rules:
         </div>
 
         <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderRadius:14, padding:"24px", display:"grid", gap:14 }}>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+          <div className="zari-form-cols" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
             <div>
               <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Target type</p>
               <select value={form.targetType} onChange={e => setForm(f => ({...f, targetType:e.target.value}))} style={sel}>
@@ -8004,7 +8004,7 @@ Rules:
               </select>
             </div>
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+          <div className="zari-form-cols" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
             <div>
               <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Your current role <span style={{ color:"#EF4444" }}>*</span></p>
               <input value={form.currentRole} onChange={e => setForm(f => ({...f, currentRole:e.target.value}))} placeholder="e.g. Chief Product Officer, Series C" style={inp} />
@@ -8014,7 +8014,7 @@ Rules:
               <input value={form.name} onChange={e => setForm(f => ({...f, name:e.target.value}))} placeholder="e.g. Alex Chen" style={inp} />
             </div>
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+          <div className="zari-form-cols" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
             <div>
               <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 7px" }}>Organization name (optional)</p>
               <input value={form.orgName} onChange={e => setForm(f => ({...f, orgName:e.target.value}))} placeholder="e.g. HealthTech Ventures" style={inp} />
@@ -8338,7 +8338,7 @@ function ScreenExecPositioning() {
           </div>
           {step === 1 && (
             <div style={{ ...card, display:"grid", gap:14 }}>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+              <div className="zari-form-cols" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                 <div>
                   <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Current title <span style={{ color:"#F87171" }}>*</span></p>
                   <input value={form.currentTitle} onChange={e => setForm(f => ({...f,currentTitle:e.target.value}))} placeholder="e.g. VP of Engineering" style={inp} />
@@ -8348,7 +8348,7 @@ function ScreenExecPositioning() {
                   <input value={form.targetRole} onChange={e => setForm(f => ({...f,targetRole:e.target.value}))} placeholder="e.g. CTO / Board Director" style={inp} />
                 </div>
               </div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+              <div className="zari-form-cols" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                 <div>
                   <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", color:"var(--z-text3)", margin:"0 0 8px" }}>Current scope</p>
                   <input value={form.currentScope} onChange={e => setForm(f => ({...f,currentScope:e.target.value}))} placeholder="e.g. Org of 80, $20M P&L" style={inp} />
@@ -9048,7 +9048,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
         </div>
 
         {/* Two path cards */}
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:20 }}>
+        <div className="zari-form-cols" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:20 }}>
 
           {/* Score My Resume */}
           <button
@@ -11396,7 +11396,7 @@ function ScreenInterview({ stage, active = false, onNavigate }: { stage: CareerS
 
             {setupStep === 3 && (
               <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                <div className="zari-form-cols" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                   {(Object.entries(ROUND_META) as [InterviewRound, typeof ROUND_META[InterviewRound]][]).map(([id, meta]) => (
                     <button key={id} onClick={()=>setRound(id)}
                       onMouseEnter={e=>{ if(round!==id) e.currentTarget.style.boxShadow="0 4px 12px var(--z-sh)"; }}
@@ -14426,7 +14426,7 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
                   </div>
                   <p style={{ fontSize:15, fontWeight:800, color:"var(--z-text)" }}>AI Coach — Suggested Rewrite</p>
                 </div>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                <div className="zari-form-cols" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                   <div style={{ background:"var(--z-raise)", borderRadius:12, padding:"14px 16px", border:"1px solid var(--z-bd)" }}>
                     <p style={{ fontSize:10.5, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Current</p>
                     <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.7, whiteSpace:"pre-wrap" }}>{secInputs[activeSecKey] || "(not provided)"}</p>
@@ -14537,7 +14537,7 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
                       </div>
                       <p style={{ fontSize:14, fontWeight:800, color:"var(--z-text)" }}>AI Coach — Suggested Rewrite</p>
                     </div>
-                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                    <div className="zari-form-cols" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                       <div style={{ background:"var(--z-raise)", borderRadius:12, padding:"14px 16px", border:"1px solid var(--z-bd)" }}>
                         <p style={{ fontSize:10.5, fontWeight:800, color:"#94A3B8", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>Current</p>
                         <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.7, whiteSpace:"pre-wrap" }}>
@@ -14609,7 +14609,7 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
               <p style={{ fontSize:13.5, color:"var(--z-text2)" }}>The right keywords make you appear in recruiter searches. Adding missing ones can dramatically increase profile views.</p>
             </div>
 
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:16 }}>
+            <div className="zari-form-cols" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:16 }}>
               <div style={{ background:"var(--z-card)", borderRadius:16, padding:"20px 22px", boxShadow:"0 2px 10px rgba(0,0,0,0.07)", border:"1px solid rgba(22,163,74,0.2)" }}>
                 <p style={{ fontSize:12, fontWeight:800, color:"#34D399", textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:14 }}>Found in your profile</p>
                 <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
@@ -16313,7 +16313,7 @@ function ScreenCoverLetter({ stage, active = false, onNavigate }: { stage: Caree
             <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
               <div style={{ border:"1px solid var(--z-bd)", borderRadius:14, padding:18, display:"flex", flexDirection:"column", gap:12 }}>
                 <p style={{ fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.07em", color:"var(--z-text3)", margin:0 }}>Role details (optional)</p>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+                <div className="zari-form-cols" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
                   <input value={company} onChange={e=>setCompany(e.target.value)} placeholder="Company name"
                     style={{ border:"1px solid var(--z-bd)", borderRadius:10, padding:"13px 16px", fontSize:14, color:"var(--z-text)", outline:"none", fontFamily:"inherit", background:"var(--z-raise)", transition:"border-color 0.15s" }}/>
                   <input value={targetRole} onChange={e=>setTargetRole(e.target.value)} placeholder="Target role"
@@ -18036,7 +18036,7 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
     {/* ── Phone Verification Gate (free tier, unverified) ── */}
     {!isOperatorViewer && !viewer.isPaid && !phoneVerified && (
       <div style={{ position:"fixed", inset:0, zIndex:99999, display:"flex", alignItems:"center", justifyContent:"center", background:"linear-gradient(135deg,#0F172A 0%,#1E1B4B 50%,#0F172A 100%)", padding:24 }}>
-        <div style={{ background:"#FFFFFF", borderRadius:28, boxShadow:"0 32px 96px rgba(0,0,0,0.45)", padding:"44px 40px 40px", maxWidth:440, width:"100%", textAlign:"center" }}>
+        <div className="zari-modal-inner" style={{ background:"#FFFFFF", borderRadius:28, boxShadow:"0 32px 96px rgba(0,0,0,0.45)", padding:"44px 40px 40px", maxWidth:440, width:"100%", textAlign:"center" }}>
           {/* Icon */}
           <div style={{ width:72, height:72, borderRadius:"50%", background:"linear-gradient(135deg,#4F46E5 0%,#7C3AED 100%)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 22px", boxShadow:"0 8px 24px rgba(79,70,229,0.4)" }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" style={{width:32,height:32}}><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
@@ -18113,7 +18113,7 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
       {/* Inactivity timeout warning modal */}
       {idleWarning && (
         <div style={{ position:"fixed", inset:0, zIndex:99998, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(0,0,0,0.6)", backdropFilter:"blur(6px)" }}>
-          <div style={{ background:"var(--z-card)", borderRadius:20, boxShadow:"0 24px 80px rgba(0,0,0,0.35)", padding:"36px 40px", maxWidth:400, width:"100%", textAlign:"center", border:"1px solid var(--z-bd)" }}>
+          <div className="zari-modal-inner" style={{ background:"var(--z-card)", borderRadius:20, boxShadow:"0 24px 80px rgba(0,0,0,0.35)", padding:"36px 40px", maxWidth:400, width:"100%", textAlign:"center", border:"1px solid var(--z-bd)" }}>
             <div style={{ width:56, height:56, borderRadius:"50%", background:"rgba(245,158,11,0.12)", border:"2px solid rgba(245,158,11,0.4)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 18px" }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2" style={{ width:26, height:26 }}><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
             </div>
@@ -18156,7 +18156,7 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
               <button onClick={() => setUpgradeNotice(null)} style={{ position:"absolute", top:16, right:16, width:28, height:28, borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", color:"var(--z-text2)" }}>
                 <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:11, height:11 }}><path d="M3 3l10 10M13 3L3 13" strokeLinecap="round"/></svg>
               </button>
-              <div style={{ padding:"32px 36px 28px" }}>
+              <div className="zari-modal-inner" style={{ padding:"32px 36px 28px" }}>
                 {/* Icon */}
                 <div style={{ width:56, height:56, borderRadius:16, background:`linear-gradient(135deg, ${planColor}20, ${planColor}10)`, border:`1px solid ${planColor}30`, display:"inline-flex", alignItems:"center", justifyContent:"center", marginBottom:18, boxShadow:`0 8px 24px ${planColor}20` }}>
                   <svg viewBox="0 0 24 24" fill="none" stroke={planColor} strokeWidth="2" style={{ width:26, height:26 }}>
@@ -18753,6 +18753,10 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
           /* Loading/generating state wrappers — reduce vertical padding */
           .zari-loading-wrap { padding: 20px 16px !important; }
           .zari-loading-card { padding: 40px 20px !important; }
+          /* Two-column form/card grids → single column on mobile */
+          .zari-form-cols { grid-template-columns: 1fr !important; }
+          /* Modal inner cards — reduce side padding on mobile */
+          .zari-modal-inner { padding: 28px 20px 22px !important; }
         }
         .zari-mobile-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:199; backdrop-filter:blur(2px); }
         .zari-session-hist-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:299; backdrop-filter:blur(2px); }
