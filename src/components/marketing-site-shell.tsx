@@ -60,7 +60,7 @@ export function MarketingSiteShell({
 
       <footer style={{ background: "linear-gradient(180deg, #060810 0%, #0C1022 100%)" }}>
         {/* Main footer body */}
-        <div style={{ maxWidth: 1380, margin: "0 auto", padding: "64px 40px 48px", display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 40 }}>
+        <div className="mx-auto flex flex-wrap items-start justify-between gap-10 px-5 pb-12 pt-12 md:px-10 md:pb-12 md:pt-16" style={{ maxWidth: 1380 }}>
           <div style={{ maxWidth: 480 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
               <ZariLogo size={52} />
@@ -76,7 +76,7 @@ export function MarketingSiteShell({
           </div>
         </div>
         {/* Bottom bar */}
-        <div style={{ maxWidth: 1380, margin: "0 auto", padding: "20px 40px 28px", borderTop: "1px solid rgba(255,255,255,0.07)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+        <div className="mx-auto flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.07] px-5 py-5 md:px-10" style={{ maxWidth: 1380 }}>
           <div style={{ display: "flex", gap: 28, fontSize: 13, color: "rgba(255,255,255,0.35)" }}>
             <Link href="/terms"    style={{ color: "rgba(255,255,255,0.35)", textDecoration: "none" }}>Terms of Service</Link>
             <Link href="/privacy"  style={{ color: "rgba(255,255,255,0.35)", textDecoration: "none" }}>Privacy</Link>

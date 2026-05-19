@@ -6491,7 +6491,7 @@ function ScreenCredibilitySprint({ active }:{ active:boolean }) {
         <button onClick={()=>{ _ccStore.clearCache("sprint"); activated.current=false; }} style={{ fontSize:11, fontWeight:700, padding:"6px 13px", borderRadius:8, border:"1px solid rgba(255,255,255,0.12)", background:"rgba(255,255,255,0.05)", color:"rgba(255,255,255,0.5)", cursor:"pointer" }}>Regenerate</button>
       </div>
 
-      <div style={{ flex:1, overflowY:"auto", padding:"24px 32px 52px" }}>
+      <div className="zari-result-content" style={{ flex:1, overflowY:"auto", padding:"24px 32px 52px" }}>
         <div style={{ borderRadius:16, background:`linear-gradient(135deg,rgba(5,150,105,0.09),rgba(52,211,153,0.04))`, border:`1px solid rgba(52,211,153,0.18)`, padding:"20px 24px", marginBottom:24, display:"flex", gap:14, alignItems:"flex-start" }}>
           {zIcon("trending-up", ACCENT2)}
           <div>
@@ -6624,7 +6624,7 @@ function ScreenBridgeNetwork({ active }:{ active:boolean }) {
         <button onClick={()=>{ _ccStore.clearCache("network"); activated.current=false; }} style={{ fontSize:11, fontWeight:700, padding:"6px 13px", borderRadius:8, border:"1px solid rgba(255,255,255,0.12)", background:"rgba(255,255,255,0.05)", color:"rgba(255,255,255,0.5)", cursor:"pointer" }}>Regenerate</button>
       </div>
 
-      <div style={{ flex:1, overflowY:"auto", padding:"24px 32px 52px", display:"grid", gridTemplateColumns:"220px 1fr", gap:20, alignItems:"start" }}>
+      <div className="zari-bridge-layout" style={{ flex:1, overflowY:"auto", padding:"24px 32px 52px", display:"grid", gridTemplateColumns:"220px 1fr", gap:20, alignItems:"start" }}>
         <div style={{ display:"flex", flexDirection:"column", gap:8, position:"sticky", top:0 }}>
           <div style={{ borderRadius:14, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"14px 16px", marginBottom:4 }}>
             <div style={{ fontSize:10, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Strategy</div>
@@ -7240,7 +7240,7 @@ function ScreenSalaryNegotiationEmail() {
     const v = versions[activeVersion];
     return (
       <div style={{ height:"100%", display:"flex", overflow:"hidden", background:"var(--z-raise)" }}>
-        <div style={{ width:272, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column" }}>
+        <div className="zari-inner-sidebar" style={{ width:272, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column" }}>
           <div style={{ padding:"22px 16px 16px" }}>
             <div style={{ fontSize:9.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Negotiation Email</div>
             <div style={{ fontSize:14, fontWeight:800, color:"var(--z-text)", marginBottom:4 }}>{form.role}</div>
@@ -7274,7 +7274,7 @@ function ScreenSalaryNegotiationEmail() {
             <button onClick={() => { setVersions(null); setForm({ role:"", company:"", currentComp:"", targetComp:"", competingOffer:"", reason:"", emailType:"offer" }); lsClear(SNE_KEY); }} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"8px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>New</button>
           </div>
         </div>
-        <div style={{ flex:1, overflowY:"auto", padding:"28px 32px 48px" }}>
+        <div className="zari-result-content" style={{ flex:1, overflowY:"auto", padding:"28px 32px 48px" }}>
           <div style={{ borderRadius:16, background:"var(--z-card)", border:`1px solid var(--z-bd)`, borderTop:`3px solid ${v.color}`, overflow:"hidden", marginBottom:16 }}>
             <div style={{ padding:"18px 24px", borderBottom:"1px solid var(--z-bd)", background:v.bg, display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16 }}>
               <div style={{ flex:1 }}>
@@ -7471,7 +7471,7 @@ function ScreenSalaryMarketIntel() {
     return (
       <div style={{ height:"100%", display:"flex", overflow:"hidden", background:"var(--z-raise)" }}>
         {/* LEFT PANEL */}
-        <div style={{ width:276, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
+        <div className="zari-inner-sidebar" style={{ width:276, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
           <div style={{ padding:"24px 18px 18px" }}>
             <div style={{ fontSize:9.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:10 }}>Market Intel</div>
             <div style={{ marginBottom:14 }}>
@@ -7510,8 +7510,8 @@ function ScreenSalaryMarketIntel() {
           </div>
         </div>
         {/* RIGHT PANEL */}
-        <div style={{ flex:1, overflowY:"auto", padding:"24px 28px 40px" }}>
-          <div style={{ display:"flex", gap:6, marginBottom:20, borderBottom:"1px solid var(--z-bd)", paddingBottom:14 }}>
+        <div className="zari-result-content" style={{ flex:1, overflowY:"auto", padding:"24px 28px 40px" }}>
+          <div className="zari-result-tab-bar" style={{ display:"flex", gap:6, marginBottom:20, borderBottom:"1px solid var(--z-bd)", paddingBottom:14 }}>
             {miTabs.map(t => (
               <button key={t.id} onClick={() => setMiTab(t.id)} style={{ padding:"8px 16px", borderRadius:9, border:`1px solid ${miTab === t.id ? "#2563EB" : "var(--z-bd)"}`, background:miTab === t.id ? "rgba(37,99,235,0.08)" : "transparent", color:miTab === t.id ? "#2563EB" : "var(--z-text2)", fontSize:13, fontWeight:miTab === t.id ? 800 : 500, cursor:"pointer", display:"flex", alignItems:"center", gap:6 }}>
                 {t.label}
@@ -7932,7 +7932,7 @@ Rules:
     const tm = targetMeta[form.targetType as keyof typeof targetMeta] ?? targetMeta.exec;
     return (
       <div style={{ height:"100%", display:"flex", overflow:"hidden", background:"var(--z-raise)" }}>
-        <div style={{ width:272, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column" }}>
+        <div className="zari-inner-sidebar" style={{ width:272, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column" }}>
           <div style={{ padding:"24px 18px 18px" }}>
             <div style={{ fontSize:9.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:10 }}>Exec Outreach</div>
             <div style={{ marginBottom:12 }}>
@@ -7958,7 +7958,7 @@ Rules:
             <button onClick={() => { setResult(null); setForm({ name:"", currentRole:"", targetType:"board", orgName:"", orgContext:"", uniqueValue:"", tone:"formal" }); }} style={{ flex:1, fontSize:12, fontWeight:700, padding:"8px", borderRadius:9, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>New</button>
           </div>
         </div>
-        <div style={{ flex:1, overflowY:"auto", padding:"28px 32px 48px" }}>
+        <div className="zari-result-content" style={{ flex:1, overflowY:"auto", padding:"28px 32px 48px" }}>
           <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderTop:`3px solid ${tm.color}`, borderRadius:16, overflow:"hidden" }}>
             <div style={{ padding:"18px 26px", borderBottom:"1px solid var(--z-bd)", background:tm.bg, display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16 }}>
               <div style={{ flex:1 }}>
@@ -12745,7 +12745,7 @@ function ScreenPromotionDocument({ active = false, onNavigate }: { active?: bool
   if (result || generating) {
     return (
       <div style={promotionPageStyle(theme)}>
-        <div style={{ padding:"24px 32px 48px", position:"relative" }}>
+        <div className="zari-result-content" style={{ padding:"24px 32px 48px", position:"relative" }}>
           {generating ? (
             <div style={{ ...promotionHeroStyle(theme), padding:"82px 32px", textAlign:"center" }}>
               <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 50% 12%, rgba(167,243,208,0.2), transparent 28%)", animation:"aurora-pulse 8s ease-in-out infinite", pointerEvents:"none" }}/>
@@ -15252,12 +15252,12 @@ function ScreenCareerChangePlan({ onNavigate, active }: { onNavigate: (s: string
 
   return (
     <div style={{ height: "100%", overflow: "auto", background: "var(--z-raise)" }}>
-      <div style={{ background: "var(--z-card)", borderBottom: "1px solid var(--z-bd)", padding: "16px 28px" }}>
+      <div className="zari-cl-result-header" style={{ background: "var(--z-card)", borderBottom: "1px solid var(--z-bd)", padding: "16px 28px" }}>
         <h1 style={{ fontSize: 18, fontWeight: 900, color: "var(--z-text)", letterSpacing: "-0.02em", margin: "0 0 2px" }}>Transition Plan</h1>
         <p style={{ fontSize: 13, color: "var(--z-text3)", margin: 0 }}>Your step-by-step career change roadmap.</p>
       </div>
 
-      <div style={{ padding: "24px 28px 48px" }}>
+      <div className="zari-result-content" style={{ padding: "24px 28px 48px" }}>
         {/* Progress header */}
         <div style={{ background: "var(--z-card)", borderRadius: 14, padding: "20px 22px", marginBottom: 24, border: "1px solid var(--z-bd)" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: ready ? 14 : 0 }}>
@@ -15861,8 +15861,8 @@ function ScreenCoverLetter({ stage, active = false, onNavigate }: { stage: Caree
   if (result || generating) return (
     <div style={{ height:"100%", overflow:"auto", background:"var(--z-raise)" }}>
       {/* Page header */}
-      <div style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
-        <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+      <div className="zari-cl-result-header" style={{ background:"var(--z-card)", borderBottom:"1px solid var(--z-bd)", padding:"16px 28px" }}>
+        <div className="zari-cl-header-inner" style={{ display:"flex", alignItems:"center", gap:12 }}>
           <div style={{ width:32, height:32, borderRadius:10, background:"rgba(16,185,129,0.18)", border:"1px solid rgba(16,185,129,0.35)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="#34D399" strokeWidth="1.8" style={{ width:16,height:16 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
           </div>
@@ -15885,7 +15885,7 @@ function ScreenCoverLetter({ stage, active = false, onNavigate }: { stage: Caree
           </div>
         </div>
       </div>
-      <div style={{ padding:"24px 32px 48px" }}>
+      <div className="zari-cl-result-body" style={{ padding:"24px 32px 48px" }}>
         {/* ── Cover Letter History tab ── */}
         {clMainTab === "history" && !generating && (
           <div>
@@ -17446,7 +17446,7 @@ function ScreenAccount({ viewer, onNavigate, onBuyCredits, onComparePlans }: { v
   const nextPlanHref = viewer.planId === "search" ? "/onboarding/plan?upgrade=growth" : "/onboarding/plan?upgrade=executive";
 
   return (
-    <div style={{ height: "100%", overflowY: "auto", padding: "28px 32px", maxWidth: 700, margin: "0 auto" }}>
+    <div className="zari-account-outer" style={{ height: "100%", overflowY: "auto", padding: "28px 32px", maxWidth: 700, margin: "0 auto" }}>
 
       {/* Support ticket modal */}
       {showSupportModal && (
@@ -18736,6 +18736,20 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
           /* Ask Zari bubble — raise above bottom nav on mobile */
           .zari-ask-bubble-wrap { bottom:74px !important; right:16px !important; }
           .zari-ask-popover { width:calc(100vw - 32px) !important; max-width:320px; }
+          /* Result right-panel content — reduce padding */
+          .zari-result-content { padding: 14px 14px 40px !important; }
+          /* Result tab bars — scrollable instead of overflow */
+          .zari-result-tab-bar { overflow-x: auto !important; overflow-y: hidden !important; -webkit-overflow-scrolling: touch; flex-wrap: nowrap !important; scrollbar-width: none !important; padding-bottom: 14px !important; }
+          .zari-result-tab-bar::-webkit-scrollbar { display: none !important; }
+          /* Cover letter result header — tighter padding and wrap controls */
+          .zari-cl-result-header { padding: 12px 16px !important; }
+          .zari-cl-header-inner { flex-wrap: wrap !important; gap: 8px !important; }
+          /* Cover letter result body — reduce padding */
+          .zari-cl-result-body { padding: 14px 14px 40px !important; }
+          /* Account page outer — reduce padding */
+          .zari-account-outer { padding: 16px 14px 40px !important; }
+          /* Bridge Network two-column grid → single column on mobile */
+          .zari-bridge-layout { grid-template-columns: 1fr !important; padding: 14px 14px 40px !important; }
         }
         .zari-mobile-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:199; backdrop-filter:blur(2px); }
         .zari-session-hist-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:299; backdrop-filter:blur(2px); }
