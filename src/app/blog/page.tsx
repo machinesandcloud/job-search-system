@@ -1390,6 +1390,15 @@ const POSTS = [
     date: "May 2025",
     accent: "#003087",
   },
+  {
+    slug: "job-search-statistics-2025",
+    title: "50+ Job Search Statistics That Will Change How You Apply (2025)",
+    excerpt: "Data-backed job search statistics covering ATS screening, interview funnel conversion, salary negotiation outcomes, AI in hiring, and LinkedIn performance — with sourced numbers and what they mean for your search strategy.",
+    tag: "Research",
+    readTime: "10 min read",
+    date: "May 2025",
+    accent: "#7C3AED",
+  },
 ];
 
 const FEATURED_SLUGS = [

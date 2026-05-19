@@ -90,6 +90,26 @@ export default async function SalaryNegotiationTipsPage() {
               Practice negotiating free <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M5 12h14M12 5l7 7-7 7" /></svg>
             </Link>
           </div>
+
+          <div className="mt-8">
+            <h3 className="mb-3 text-[14px] font-bold text-[var(--ink)]">Related guides</h3>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { href: "/salary-calculator", label: "Salary Calculator" },
+                { href: "/blog/salary-negotiation-email", label: "Salary Negotiation Email Templates" },
+                { href: "/blog/how-to-negotiate-job-offer", label: "How to Negotiate a Job Offer" },
+                { href: "/blog/negotiating-equity", label: "Negotiating Equity" },
+                { href: "/blog/internal-salary-negotiation", label: "Internal Salary Negotiation" },
+                { href: "/blog/job-search-statistics-2025", label: "Job Search Statistics 2025" },
+                { href: "/salary/software-engineer-salary-san-francisco", label: "SWE Salary in San Francisco" },
+                { href: "/salary/product-manager-salary-new-york-city", label: "PM Salary in New York" },
+              ].map((link) => (
+                <Link key={link.href} href={link.href} className="rounded-full border border-[var(--border)] bg-[var(--bg)] px-3 py-1.5 text-[12px] font-medium text-[var(--brand)] hover:bg-[var(--brand)]/5 transition-all">
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
       </article>
     </PageFrame>

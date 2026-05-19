@@ -257,8 +257,33 @@ export default async function SoftwareEngineerResumePage() {
         </div>
       </section>
 
+      {/* Related guides */}
+      <section className="bg-[var(--bg)] py-10">
+        <div className="mx-auto max-w-4xl px-6">
+          <h3 className="mb-4 text-[14px] font-bold text-[var(--ink)]">Related guides</h3>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { href: "/blog/ats-resume-tips", label: "ATS Resume Tips" },
+              { href: "/blog/technical-interview-preparation", label: "Technical Interview Prep" },
+              { href: "/blog/system-design-interview", label: "System Design Interview" },
+              { href: "/blog/behavioral-interview-questions", label: "Behavioral Interview Questions" },
+              { href: "/blog/how-to-get-a-job-at-google", label: "How to Get a Job at Google" },
+              { href: "/blog/how-to-get-a-job-at-amazon", label: "How to Get a Job at Amazon" },
+              { href: "/blog/salary-negotiation-tips", label: "Salary Negotiation Tips" },
+              { href: "/salary/software-engineer-salary-san-francisco", label: "SWE Salary in San Francisco" },
+              { href: "/salary/software-engineer-salary-new-york-city", label: "SWE Salary in New York" },
+              { href: "/salary/software-engineer-salary-remote", label: "SWE Remote Salary" },
+            ].map((link) => (
+              <Link key={link.href} href={link.href} className="rounded-full border border-[var(--border)] bg-white px-3 py-1.5 text-[12px] font-medium text-[var(--brand)] hover:bg-[var(--brand)]/5 transition-all">
+                {link.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
-      <section className="bg-[var(--bg)] py-14">
+      <section className="bg-white py-14">
         <div className="mx-auto max-w-3xl px-6">
           <div className="rounded-2xl border border-[var(--brand)]/20 bg-[var(--brand)]/[0.04] p-10 text-center">
             <p className="mb-2 text-[18px] font-bold text-[var(--ink)]">Get your resume ATS-scored and rewritten by AI.</p>

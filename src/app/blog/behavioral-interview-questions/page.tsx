@@ -185,7 +185,26 @@ export default async function BehavioralInterviewQuestionsPage() {
             </p>
           </div>
 
-          <div className="mt-16 rounded-2xl border border-[var(--brand)]/20 bg-[var(--brand)]/[0.04] p-8 text-center">
+          <div className="mt-10 mb-6">
+            <h3 className="mb-3 text-[14px] font-bold text-[var(--ink)]">Related guides</h3>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { href: "/blog/star-method-interview", label: "STAR Method Interview" },
+                { href: "/blog/technical-interview-preparation", label: "Technical Interview Prep" },
+                { href: "/blog/amazon-leadership-principles-interview", label: "Amazon Leadership Principles" },
+                { href: "/blog/google-interview-prep", label: "Google Interview Prep" },
+                { href: "/blog/how-to-get-a-job-at-meta", label: "Meta Interview Prep" },
+                { href: "/blog/weakness-interview-answer", label: "Interview Weakness Answer" },
+                { href: "/blog/job-search-statistics-2025", label: "Job Search Statistics 2025" },
+              ].map((link) => (
+                <Link key={link.href} href={link.href} className="rounded-full border border-[var(--border)] bg-[var(--bg)] px-3 py-1.5 text-[12px] font-medium text-[var(--brand)] hover:bg-[var(--brand)]/5 transition-all">
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-[var(--brand)]/20 bg-[var(--brand)]/[0.04] p-8 text-center">
             <p className="mb-2 text-[17px] font-bold text-[var(--ink)]">Practice any of these 50 questions with AI coaching — free</p>
             <p className="mb-6 text-[14px] text-[var(--muted)]">STAR scoring, specific feedback, and coaching on every answer.</p>
             <Link href={userId ? "/dashboard" : "/signup"} className="inline-flex h-12 items-center gap-2 rounded-xl bg-[var(--brand)] px-8 text-[14px] font-bold text-white shadow-[0_4px_20px_rgba(13,113,130,0.3)] transition-all hover:-translate-y-0.5">
