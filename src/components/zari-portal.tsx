@@ -6252,7 +6252,8 @@ function ScreenPivotAnalysis() {
                 const sBg    = a.strength === "Strong" ? "rgba(52,211,153,0.12)"  : a.strength === "Moderate" ? "rgba(251,191,36,0.12)"  : "rgba(148,163,184,0.12)";
                 const sWidth = a.strength === "Strong" ? "88%" : a.strength === "Moderate" ? "58%" : "32%";
                 return (
-                  <div key={i} style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:`4px solid ${sColor}`, padding:"20px 24px" }}>
+                  <div key={i} style={{ borderRadius:16, background:`linear-gradient(135deg,${sColor}10 0%,${sColor}04 100%)`, border:`1px solid ${sColor}22`, padding:"20px 24px", position:"relative", overflow:"hidden" }}>
+                    <div style={{ position:"absolute", top:-20, right:-20, width:80, height:80, borderRadius:"50%", background:`radial-gradient(circle,${sColor}20 0%,transparent 70%)`, pointerEvents:"none" }}/>
                     <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:10 }}>
                       <span style={{ fontSize:10, fontWeight:800, color:sColor, width:20, textAlign:"center", flexShrink:0 }}>{i+1}</span>
                       <div style={{ fontSize:15, fontWeight:800, color:"var(--z-text)", flex:1, letterSpacing:"-0.01em" }}>{a.skill}</div>
@@ -6703,24 +6704,31 @@ function ScreenPivotStoryBuilder({ active }:{ active:boolean }) {
 
       <div className="zari-two-col" style={{ flex:1, overflowY:"auto", padding:"24px 32px 52px", display:"grid", gridTemplateColumns:"1fr 280px", gap:22, alignItems:"start" }}>
         <div style={{ display:"flex", flexDirection:"column", gap:18 }}>
-          {sections.map(s => (
-            <div key={s.key} style={{ borderRadius:18, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderTop:`3px solid ${ACCENT}`, overflow:"hidden" }}>
-              <div style={{ padding:"18px 22px 0", display:"flex", alignItems:"center", gap:10 }}>
+          {sections.map((s, si) => {
+            const sColors = ["#7C3AED","#2563EB","#0891B2"];
+            const sc = sColors[si] ?? ACCENT;
+            return (
+            <div key={s.key} style={{ position:"relative", borderRadius:20, background:`linear-gradient(135deg, ${sc}10 0%, ${sc}03 100%)`, border:`1px solid ${sc}28`, overflow:"hidden" }}>
+              <div style={{ position:"absolute", top:-28, right:-28, width:120, height:120, borderRadius:"50%", background:`radial-gradient(circle, ${sc}14 0%, transparent 70%)`, pointerEvents:"none" }} />
+              <div style={{ padding:"18px 22px 14px", display:"flex", alignItems:"flex-start", gap:10, borderBottom:`1px solid ${sc}18`, position:"relative" }}>
                 <div style={{ flex:1 }}>
-                  <div style={{ fontSize:12, fontWeight:800, color:ACCENT, letterSpacing:"-0.01em", marginBottom:2 }}>{s.label}</div>
+                  <div style={{ fontSize:12.5, fontWeight:800, color:sc, letterSpacing:"-0.01em", marginBottom:3 }}>{s.label}</div>
                   <div style={{ fontSize:11, color:"var(--z-text3)" }}>{s.context}</div>
                 </div>
-                <button onClick={()=>copy(s.key, s.text.replace(/^"|"$/g,""))} style={{ fontSize:11, fontWeight:700, padding:"5px 13px", borderRadius:8, border:`1px solid ${ACCENT}30`, background:`rgba(124,58,237,0.07)`, color:ACCENT, cursor:"pointer", flexShrink:0 }}>{copied===s.key ? "Copied ✓" : "Copy"}</button>
+                <button onClick={()=>copy(s.key, s.text.replace(/^"|"$/g,""))} style={{ fontSize:11, fontWeight:700, padding:"6px 14px", borderRadius:9, border:`1px solid ${sc}30`, background:`${sc}0a`, color:sc, cursor:"pointer", flexShrink:0 }}>{copied===s.key ? "Copied ✓" : "Copy"}</button>
               </div>
-              <div style={{ padding:"14px 22px 18px" }}>
+              <div style={{ padding:"16px 22px 20px", position:"relative" }}>
                 <p style={{ fontSize:14.5, color:"var(--z-text)", lineHeight:1.9, margin:0, whiteSpace:"pre-wrap", fontStyle:s.italic?"italic":"normal" }}>{s.text}</p>
               </div>
-              <div style={{ padding:"10px 22px 14px", borderTop:"1px solid var(--z-bd)", background:`rgba(124,58,237,0.03)`, display:"flex", gap:8, alignItems:"flex-start" }}>
-                <svg viewBox="0 0 12 12" fill="none" stroke={ACCENT2} strokeWidth="1.7" style={{width:11,height:11,flexShrink:0,marginTop:2}}><circle cx="6" cy="6" r="5"/><path d="M6 4v2.5M6 9v.4"/></svg>
+              <div style={{ padding:"10px 22px 14px", borderTop:`1px solid ${sc}14`, background:`${sc}05`, display:"flex", gap:8, alignItems:"flex-start" }}>
+                <div style={{ width:18, height:18, borderRadius:"50%", background:`${sc}14`, border:`1px solid ${sc}28`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>
+                  <svg viewBox="0 0 12 12" fill="none" stroke={sc} strokeWidth="1.7" style={{width:8,height:8}}><circle cx="6" cy="6" r="5"/><path d="M6 4v2.5M6 9v.4"/></svg>
+                </div>
                 <p style={{ fontSize:12, color:"var(--z-text3)", margin:0, lineHeight:1.6 }}>{s.note}</p>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="zari-sticky-col" style={{ position:"sticky", top:0, display:"flex", flexDirection:"column", gap:14 }}>
@@ -6986,7 +6994,8 @@ function ScreenBridgeNetwork({ active }:{ active:boolean }) {
 
         {p && (
           <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-            <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:`4px solid ${pc}`, padding:"18px 22px" }}>
+            <div style={{ borderRadius:16, background:`linear-gradient(135deg,${pc}10 0%,${pc}04 100%)`, border:`1px solid ${pc}22`, padding:"18px 22px", position:"relative", overflow:"hidden" }}>
+              <div style={{ position:"absolute", top:-20, right:-20, width:80, height:80, borderRadius:"50%", background:`radial-gradient(circle,${pc}20 0%,transparent 70%)`, pointerEvents:"none" }}/>
               <div style={{ fontSize:10, fontWeight:800, color:pc, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Why this person matters</div>
               <p style={{ fontSize:14, color:"var(--z-text)", lineHeight:1.8, margin:0 }}>{p.why}</p>
             </div>
@@ -6994,17 +7003,17 @@ function ScreenBridgeNetwork({ active }:{ active:boolean }) {
               <div style={{ fontSize:10, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>How to find them</div>
               <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.8, margin:0 }}>{p.where}</p>
             </div>
-            <div style={{ borderRadius:16, background:"var(--z-card)", border:`1px solid var(--z-bd)`, borderTop:`3px solid ${pc}`, overflow:"hidden" }}>
+            <div style={{ borderRadius:16, background:"linear-gradient(160deg,#071525 0%,#0b1e38 60%,#0f172a 100%)", border:`1px solid ${pc}25`, overflow:"hidden", position:"relative" }}>
               <div style={{ padding:"18px 22px 0", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
                 <div style={{ fontSize:10, fontWeight:800, color:pc, textTransform:"uppercase", letterSpacing:"0.1em" }}>Outreach template</div>
-                <button onClick={()=>copy(activeIdx)} style={{ fontSize:11.5, fontWeight:700, padding:"5px 14px", borderRadius:8, border:`1px solid ${pc}30`, background:`${pc}08`, color:pc, cursor:"pointer" }}>{copied===activeIdx ? "Copied ✓" : "Copy"}</button>
+                <button onClick={()=>copy(activeIdx)} style={{ fontSize:11.5, fontWeight:700, padding:"5px 14px", borderRadius:8, border:`1px solid ${pc}50`, background:`${pc}20`, color:pc, cursor:"pointer" }}>{copied===activeIdx ? "Copied ✓" : "Copy"}</button>
               </div>
               <div style={{ padding:"14px 22px 22px" }}>
-                <p style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.9, margin:0, whiteSpace:"pre-wrap" }}>{p.template}</p>
+                <p style={{ fontSize:13.5, color:"rgba(255,255,255,0.88)", lineHeight:1.9, margin:0, whiteSpace:"pre-wrap" }}>{p.template}</p>
               </div>
-              <div style={{ padding:"12px 22px 16px", borderTop:"1px solid var(--z-bd)", background:"rgba(245,158,11,0.04)", display:"flex", gap:8, alignItems:"flex-start" }}>
+              <div style={{ padding:"12px 22px 16px", borderTop:"1px solid rgba(255,255,255,0.08)", background:"rgba(245,158,11,0.08)", display:"flex", gap:8, alignItems:"flex-start" }}>
                 <svg viewBox="0 0 12 12" fill="none" stroke="#F59E0B" strokeWidth="1.7" style={{width:10,height:10,flexShrink:0,marginTop:2}}><circle cx="6" cy="6" r="5"/><path d="M6 4v2.5M6 9v.4"/></svg>
-                <p style={{ fontSize:12, color:"var(--z-text3)", margin:0, lineHeight:1.55 }}>Personalize before sending — reference something specific about their work or background. Generic outreach gets ignored.</p>
+                <p style={{ fontSize:12, color:"rgba(255,255,255,0.5)", margin:0, lineHeight:1.55 }}>Personalize before sending — reference something specific about their work or background. Generic outreach gets ignored.</p>
               </div>
             </div>
           </div>
@@ -7615,16 +7624,16 @@ function ScreenSalaryNegotiationEmail() {
           </div>
         </div>
         <div className="zari-result-content" style={{ flex:1, overflowY:"auto", padding:"28px 32px 48px" }}>
-          <div style={{ borderRadius:16, background:"var(--z-card)", border:`1px solid var(--z-bd)`, borderTop:`3px solid ${v.color}`, overflow:"hidden", marginBottom:16 }}>
-            <div style={{ padding:"18px 24px", borderBottom:"1px solid var(--z-bd)", background:v.bg, display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16 }}>
+          <div style={{ borderRadius:16, background:"linear-gradient(160deg,#071525 0%,#0b1e38 60%,#0f172a 100%)", border:`1px solid ${v.color}30`, overflow:"hidden", marginBottom:16, position:"relative" }}>
+            <div style={{ padding:"18px 24px", borderBottom:"1px solid rgba(255,255,255,0.08)", background:"rgba(255,255,255,0.04)", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16 }}>
               <div style={{ flex:1 }}>
                 <div style={{ fontSize:10, fontWeight:800, color:v.color, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>{v.label} Version — Subject</div>
-                <div style={{ fontSize:15, fontWeight:700, color:"var(--z-text)", lineHeight:1.4 }}>{v.subject}</div>
+                <div style={{ fontSize:15, fontWeight:700, color:"rgba(255,255,255,0.95)", lineHeight:1.4 }}>{v.subject}</div>
               </div>
-              <button onClick={() => { navigator.clipboard.writeText(`Subject: ${v.subject}\n\n${v.email}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2500); }).catch(() => {}); }} style={{ fontSize:12.5, fontWeight:700, padding:"8px 18px", borderRadius:10, border:`1px solid ${copied ? v.color : "var(--z-bd)"}`, background:copied ? v.bg : "var(--z-card)", color:copied ? v.color : "var(--z-text2)", cursor:"pointer", flexShrink:0, transition:"all 0.2s" }}>{copied ? "Copied ✓" : "Copy"}</button>
+              <button onClick={() => { navigator.clipboard.writeText(`Subject: ${v.subject}\n\n${v.email}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2500); }).catch(() => {}); }} style={{ fontSize:12.5, fontWeight:700, padding:"8px 18px", borderRadius:10, border:`1px solid ${v.color}50`, background:`${v.color}20`, color:v.color, cursor:"pointer", flexShrink:0, transition:"all 0.2s" }}>{copied ? "Copied ✓" : "Copy"}</button>
             </div>
             <div style={{ padding:"26px 28px" }}>
-              <pre style={{ fontFamily:"inherit", fontSize:14.5, color:"var(--z-text)", lineHeight:1.9, whiteSpace:"pre-wrap", margin:0 }}>{v.email}</pre>
+              <pre style={{ fontFamily:"inherit", fontSize:14.5, color:"rgba(255,255,255,0.88)", lineHeight:1.9, whiteSpace:"pre-wrap", margin:0 }}>{v.email}</pre>
             </div>
           </div>
           {v.sendTips.length > 0 && (
@@ -7635,7 +7644,7 @@ function ScreenSalaryNegotiationEmail() {
                   ? { tip: rawTip, timing: "", why: "" }
                   : rawTip as SendTip;
                 return (
-                  <div key={i} style={{ borderRadius:14, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:`4px solid ${v.color}`, overflow:"hidden" }}>
+                  <div key={i} style={{ borderRadius:14, background:`linear-gradient(135deg,${v.color}10 0%,${v.color}04 100%)`, border:`1px solid ${v.color}22`, overflow:"hidden", position:"relative" }}>
                     <div style={{ padding:"14px 18px 12px", display:"flex", gap:12, alignItems:"flex-start" }}>
                       <span style={{ fontSize:10, fontWeight:900, color:v.color, background:`${v.color}18`, border:`1px solid ${v.color}35`, borderRadius:999, width:22, height:22, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>{i+1}</span>
                       <div style={{ flex:1 }}>
@@ -7867,7 +7876,7 @@ function ScreenSalaryMarketIntel() {
                   ? { title: `Point ${i+1}`, point: rawPt, deploy: "" }
                   : rawPt;
                 return (
-                  <div key={i} style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #2563EB", overflow:"hidden", boxShadow:"0 2px 12px rgba(0,0,0,0.05)" }}>
+                  <div key={i} style={{ borderRadius:16, background:"linear-gradient(135deg,rgba(37,99,235,0.08) 0%,rgba(37,99,235,0.03) 100%)", border:"1px solid rgba(37,99,235,0.2)", overflow:"hidden" }}>
                     <div style={{ padding:"18px 22px 14px", background:"rgba(37,99,235,0.03)" }}>
                       <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
                         <span style={{ fontSize:10, fontWeight:900, color:"#2563EB", background:"rgba(37,99,235,0.12)", border:"1px solid rgba(37,99,235,0.25)", borderRadius:999, width:24, height:24, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{i+1}</span>
@@ -7901,7 +7910,7 @@ function ScreenSalaryMarketIntel() {
                   ? { factor: rawF, impact: "", leverage: "" }
                   : rawF;
                 return (
-                  <div key={i} style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #D97706", overflow:"hidden", boxShadow:"0 2px 12px rgba(0,0,0,0.05)" }}>
+                  <div key={i} style={{ borderRadius:16, background:"linear-gradient(135deg,rgba(217,119,6,0.08) 0%,rgba(217,119,6,0.03) 100%)", border:"1px solid rgba(217,119,6,0.2)", overflow:"hidden" }}>
                     <div style={{ padding:"18px 22px 14px", background:"rgba(217,119,6,0.03)" }}>
                       <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
                         <div style={{ flexShrink:0, width:24, height:24, borderRadius:999, background:"rgba(217,119,6,0.12)", border:"1px solid rgba(217,119,6,0.25)", display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -8299,16 +8308,16 @@ Rules:
           </div>
         </div>
         <div className="zari-result-content" style={{ flex:1, overflowY:"auto", padding:"28px 32px 48px" }}>
-          <div style={{ background:"var(--z-card)", border:"1px solid var(--z-bd)", borderTop:`3px solid ${tm.color}`, borderRadius:16, overflow:"hidden" }}>
-            <div style={{ padding:"18px 26px", borderBottom:"1px solid var(--z-bd)", background:tm.bg, display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16 }}>
+          <div style={{ background:"linear-gradient(160deg,#071525 0%,#0b1e38 60%,#0f172a 100%)", border:`1px solid ${tm.color}30`, borderRadius:16, overflow:"hidden", position:"relative" }}>
+            <div style={{ padding:"18px 26px", borderBottom:"1px solid rgba(255,255,255,0.08)", background:"rgba(255,255,255,0.04)", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16 }}>
               <div style={{ flex:1 }}>
                 <div style={{ fontSize:10, fontWeight:800, color:tm.color, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>Subject</div>
-                <div style={{ fontSize:15, fontWeight:700, color:"var(--z-text)", lineHeight:1.4 }}>{result.subject}</div>
+                <div style={{ fontSize:15, fontWeight:700, color:"rgba(255,255,255,0.95)", lineHeight:1.4 }}>{result.subject}</div>
               </div>
-              <button onClick={() => { navigator.clipboard.writeText(`Subject: ${result.subject}\n\n${result.letter}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2500); }).catch(() => {}); }} style={{ fontSize:12.5, fontWeight:700, padding:"8px 18px", borderRadius:10, border:`1px solid ${copied ? tm.color : "var(--z-bd)"}`, background:copied ? tm.bg : "var(--z-card)", color:copied ? tm.color : "var(--z-text2)", cursor:"pointer", flexShrink:0, transition:"all 0.2s" }}>{copied ? "Copied ✓" : "Copy letter"}</button>
+              <button onClick={() => { navigator.clipboard.writeText(`Subject: ${result.subject}\n\n${result.letter}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2500); }).catch(() => {}); }} style={{ fontSize:12.5, fontWeight:700, padding:"8px 18px", borderRadius:10, border:`1px solid ${tm.color}50`, background:`${tm.color}20`, color:tm.color, cursor:"pointer", flexShrink:0, transition:"all 0.2s" }}>{copied ? "Copied ✓" : "Copy letter"}</button>
             </div>
             <div style={{ padding:"28px 30px" }}>
-              <pre style={{ fontFamily:"inherit", fontSize:14.5, color:"var(--z-text)", lineHeight:1.9, whiteSpace:"pre-wrap", margin:0 }}>{result.letter}</pre>
+              <pre style={{ fontFamily:"inherit", fontSize:14.5, color:"rgba(255,255,255,0.88)", lineHeight:1.9, whiteSpace:"pre-wrap", margin:0 }}>{result.letter}</pre>
             </div>
           </div>
         </div>

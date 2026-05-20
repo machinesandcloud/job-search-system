@@ -929,3 +929,125 @@ select {
   z-index: 0;
 }
 .cta-card-animated > * { position: relative; z-index: 1; }
+
+/* ─── Zari Portal Responsive Utilities ───────────────────────────────────── */
+
+/* Two-column intake / form layout */
+.zari-two-col {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 28px;
+  align-items: start;
+}
+
+/* Sticky sidebar column inside two-col layouts */
+.zari-sticky-col {
+  position: sticky;
+  top: 24px;
+}
+
+/* Inner result sidebar (fixed-width 272-280px panel beside content) */
+.zari-inner-sidebar {
+  flex-shrink: 0;
+}
+
+/* Bridge Network two-panel grid: 220px persona list + content */
+.zari-bridge-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+/* Three-column salary range / stat grids */
+.zari-three-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+}
+
+/* Result content area shared padding */
+.zari-result-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px 32px 52px;
+}
+
+/* Result header in Career Change screens */
+.zari-cl-result-header {
+  flex-shrink: 0;
+}
+
+/* Loading wrapper */
+.zari-loading-wrap {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Form field two-column grid */
+.zari-form-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* ─── Mobile breakpoints ───────────────────────────────────────── */
+@media (max-width: 700px) {
+  /* Two-column intake → single column */
+  .zari-two-col {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 16px 16px 40px !important;
+  }
+
+  /* Sticky sidebar → normal flow on mobile */
+  .zari-sticky-col {
+    position: static;
+  }
+
+  /* Inner sidebar (Email / MarketIntel / ExecOutreach result panels):
+     stack vertically — sidebar on top, content below */
+  div:has(> .zari-inner-sidebar) {
+    flex-direction: column !important;
+  }
+  .zari-inner-sidebar {
+    width: 100% !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--z-bd);
+    max-height: 280px;
+    overflow-y: auto;
+  }
+
+  /* Bridge layout → single column */
+  .zari-bridge-layout {
+    grid-template-columns: 1fr !important;
+    padding: 16px 16px 40px !important;
+  }
+
+  /* Three-col salary range → single column */
+  .zari-three-col {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Reduce content padding globally */
+  .zari-result-content {
+    padding: 20px 16px 40px !important;
+  }
+
+  /* Form cols → single column */
+  .zari-form-cols {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Result header padding reduction */
+  .zari-cl-result-header {
+    padding: 18px 16px !important;
+  }
+
+  /* Loading card padding reduction */
+  .zari-loading-wrap > div {
+    padding: 48px 24px !important;
+  }
+}
