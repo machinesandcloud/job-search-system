@@ -42,6 +42,14 @@ function buildFallback(body: { currentTitle: string; targetRole: string }) {
       { title: "Build one boardroom-level relationship", move: "Identify one person at board or C-suite level who could speak about your capability and find a way to be directly useful to them.", why: "Executive positioning is almost entirely driven by sponsorship from the level above target, not the level at target." },
     ],
     boardBio: `[Name] is a [function] executive with [X] years of experience building and scaling [relevant scope] across [industry/company type]. [He/She/They] is known for [distinctive leadership trait] and has led [key outcome] that produced [measurable business result]. [Name] brings particular expertise in [domain strength] and has a track record of [strategic contribution]. Currently [current role/scope] at [company type], [he/she/they] is focused on [current strategic priority].`,
+    linkedInAbout: `I build and scale [function] teams that [deliver specific outcome]. Over [X] years, I have worked across [industry/company types], focusing on [domain] where the gap between strong execution and real business impact is largest.\n\nMy work spans [key area 1], [key area 2], and [key area 3]. I am most effective when the problem is genuinely ambiguous and the path forward requires both judgment and the ability to bring people along.\n\nCurrently [current role focus]. Open to conversations about [what they're building toward].`,
+    linkedInHeadlines: [
+      `${cur} → ${target} | [Key outcome or domain] | [What you uniquely do]`,
+      `Building [what] at [scope] | ${cur} focused on [strategic area]`,
+      `[Domain expert] driving [specific outcome] | ${cur} | Targeting ${target}`,
+    ],
+    elevatorPitch: `I'm a ${cur} focused on [what you uniquely solve]. Most recently I've been [specific work], which [specific outcome]. I work best when [type of challenge] — that's where I seem to add the most leverage. I'm [currently exploring / building toward] ${target}. Would love to [hear what you're working on / swap notes on X].`,
+    speakerBio: `[Name] is a ${cur} with [X] years of experience [specific focus area]. [He/She/They] has led [specific outcome] at [company type], with a track record of [distinctive contribution]. [Name] speaks and writes on [topic] and is known for [what peers say about them]. Currently [current focus], [he/she/they] is focused on [strategic priority].`,
     watchouts: [
       { pattern: "Leading with achievements instead of judgment", impact: "Signals strong operator, not strategic executive — managers track output, executives track decisions and their downstream effects.", fix: "Reframe every story: start with the ambiguity or the decision, not the delivery. What was uncertain, what did you decide, and why?" },
       { pattern: "Waiting to be discovered", impact: "Executive positioning is almost entirely driven by sponsor relationships and active narrative — not results alone.", fix: "Identify two people at the level above your target who can speak about your judgment. Make yourself specifically useful to them this quarter." },
@@ -92,7 +100,15 @@ Return ONLY valid JSON:
   "boardBio": "<a short, professional executive bio ready to use or adapt — third person, specific, strong opening>",
   "watchouts": [
     { "pattern": "<the behavior or pattern to avoid>", "impact": "<how this pattern undermines executive credibility>", "fix": "<the specific shift needed to correct it>" }
-  ]
+  ],
+  "linkedInAbout": "<3 short paragraphs for the LinkedIn About section — first person, executive voice, specific outcomes, ends with what they're building toward>",
+  "linkedInHeadlines": [
+    "<headline option 1: outcome-led, ~100 chars>",
+    "<headline option 2: thesis-led, different framing>",
+    "<headline option 3: authority-led, niche specific>"
+  ],
+  "elevatorPitch": "<~80-word networking pitch — conversational, confident, specific to their context, ends with an invitation>",
+  "speakerBio": "<~80-word third-person speaker/conference bio — strong opening, specific outcomes, current focus, no filler>"
 }
 
 Rules:
@@ -102,6 +118,10 @@ Rules:
 - presenceGaps should be specific to this person's situation, not a generic list.
 - boardBio should be strong and specific — use their actual context, not placeholder sentences.
 - Generate 3 presence gaps, 3 strengths (each with strength, evidence, howToLead), 3 positioning moves, 3 watchouts (each with pattern, impact, fix).
+- linkedInAbout: 3 distinct paragraphs — paragraph 1 hooks with what they do and the scale, paragraph 2 gives 2-3 specific outcomes or areas of expertise, paragraph 3 states current focus or what they're building toward.
+- linkedInHeadlines: each must be under 220 characters, no generic phrases like "experienced professional" or "passionate about X".
+- elevatorPitch: must feel like a real person talking, not a job description — include one specific achievement, not just a role summary.
+- speakerBio: write in third person, specific enough that a conference organizer could use it immediately.
 - CRITICAL: Everything must be anchored to their specific context — role, scope, outcomes, and goal.`;
 
   const userPrompt = [
@@ -121,7 +141,7 @@ Rules:
       { role: "system" as const, content: systemPrompt },
       { role: "user" as const, content: userPrompt || "Assess executive positioning." },
     ],
-    { model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o", temperature: 0.28, maxTokens: 1500, jsonMode: true }
+    { model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o", temperature: 0.28, maxTokens: 2800, jsonMode: true }
   );
 
   const fallback = buildFallback({ currentTitle, targetRole: body.targetRole ?? "" });
@@ -156,6 +176,12 @@ Rules:
         return title && move ? { title, move, why } : null;
       }, 4) : fallback.positioningMoves,
       boardBio: cleanStr(p.boardBio) || fallback.boardBio,
+      linkedInAbout: cleanStr(p.linkedInAbout) || fallback.linkedInAbout,
+      linkedInHeadlines: cleanList(p.linkedInHeadlines, 3).length > 0
+        ? cleanList(p.linkedInHeadlines, 3)
+        : fallback.linkedInHeadlines,
+      elevatorPitch: cleanStr(p.elevatorPitch) || fallback.elevatorPitch,
+      speakerBio: cleanStr(p.speakerBio) || fallback.speakerBio,
       watchouts: (() => {
         const parsed = mapList(p.watchouts, i => {
           const pattern = cleanStr(i.pattern), impact = cleanStr(i.impact), fix = cleanStr(i.fix);

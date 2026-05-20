@@ -75,6 +75,7 @@ type LlmPayload = {
   managerPitchExample?: unknown;
   actionPlan?: unknown;
   riskFlags?: unknown;
+  starStories?: unknown;
 };
 
 const LABELS = {
@@ -957,11 +958,22 @@ Return ONLY valid JSON:
     { "label": "<time label>", "action": "<what to do>" },
     { "label": "<time label>", "action": "<what to do>" }
   ],
-  "riskFlags": ["<what could still sink the case>", "<what could still sink the case>", "<what could still sink the case>"]
+  "riskFlags": ["<what could still sink the case>", "<what could still sink the case>", "<what could still sink the case>"],
+  "starStories": [
+    {
+      "title": "<short story name — what this proves>",
+      "proves": "<which gap or strength this story addresses>",
+      "situation": "<1-2 sentence context — what was the challenge or moment>",
+      "action": "<2-3 sentences — the specific decisions and moves YOU made>",
+      "result": "<1 sentence — the concrete outcome, with numbers if possible>",
+      "openingLine": "<1 sentence — how to introduce this story in the promotion conversation>"
+    }
+  ]
 }
 
 Rules:
 - Keep every item concise and concrete.
+- starStories: generate exactly 3 stories. Each must be directly derived from their actual questionnaire inputs — not generic. Use their real project details, their stated scope, their actual outcomes. The "proves" field must map to one of the identified gaps or strengths.
 - Tailor every item to the actual questionnaire and the core judgment below.
 - If the input quality is weak, the strengths should stay modest and the gaps should be blunt.
 - Never soften obvious lack of proof.
@@ -992,7 +1004,7 @@ Rules:
     {
       model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o",
       temperature: 0.22,
-      maxTokens: 2200,
+      maxTokens: 3200,
       jsonMode: true,
     },
   ));
@@ -1048,5 +1060,14 @@ Rules:
     managerPitchExample: cleanString(detailParsed?.managerPitchExample) || fallback.managerPitchExample,
     actionPlan: normalizeActionPlan(detailParsed?.actionPlan, fallback.actionPlan),
     riskFlags: normalizeStringArray(detailParsed?.riskFlags, fallback.riskFlags, 0, 4),
+    starStories: (() => {
+      if (!Array.isArray(detailParsed?.starStories)) return [];
+      return (detailParsed!.starStories as unknown[]).map(item => {
+        if (!item || typeof item !== "object") return null;
+        const s = item as Record<string, unknown>;
+        const title = cleanString(s.title), proves = cleanString(s.proves), situation = cleanString(s.situation), action = cleanString(s.action), result = cleanString(s.result), openingLine = cleanString(s.openingLine);
+        return title && situation && action ? { title, proves, situation, action, result, openingLine } : null;
+      }).filter(Boolean).slice(0, 4);
+    })(),
   });
 }

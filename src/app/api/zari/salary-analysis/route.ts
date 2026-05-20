@@ -48,6 +48,13 @@ function buildFallback() {
       { mistake: "Accepting the first number without a counter", why: "Instant acceptance signals you were expecting less, and leaves money on the table every year it compounds.", howToAvoid: "Always ask for 48 hours to review — then come back with your counter. Never accept on the spot." },
       { mistake: "Apologizing or hedging while negotiating", why: "Phrases like 'I know this might be a lot…' signal weakness before you've even named the number.", howToAvoid: "State your number plainly and stop talking. Silence after the anchor is your strongest next move." },
     ],
+    counterEmailDraft: `Hi [Name],\n\nThank you for the offer — I'm genuinely excited about this opportunity and the team. After reviewing the details carefully, I'd like to discuss the compensation package.\n\nBased on my research into market rates for this role at my experience level, and given [the specific value I bring — domain expertise, existing track record, or relevant outcomes], I'm targeting a base of [your target number]. I believe this accurately reflects market value for this scope and experience level.\n\nI'm committed to making this work and happy to connect whenever is convenient. Looking forward to it.\n\n[Your Name]`,
+    internalRaiseEmailDraft: `Hi [Manager's name],\n\nI wanted to request some time to discuss my compensation — I'll keep this brief.\n\nOver the past [time period], I've [specific contribution 1] and [specific contribution 2], and I'm currently [current scope / what you own]. I've done some research on market rates for my role and level and believe there's a meaningful gap worth discussing.\n\nI'm not looking for an immediate answer — I'd just like 20 minutes to have an honest conversation about it. Does [day/time] work?\n\n[Your Name]`,
+    anchoringStrategy: {
+      recommendedAsk: "[15-20% above your target — the specific number or range to open with]",
+      floor: "[The minimum you'd accept before walking away or pushing back hard]",
+      rationale: "Anchoring higher than your target gives room to negotiate while landing where you want. Your leverage points justify this range — name them before you name the number.",
+    },
   };
 }
 
@@ -94,7 +101,14 @@ Return ONLY valid JSON:
   "counterScript": "<full email or message ready to send, with [bracket placeholders] for personalization only>",
   "watchouts": [
     { "mistake": "<what to avoid>", "why": "<why it costs you in the negotiation>", "howToAvoid": "<the alternative move — specific words or actions>" }
-  ]
+  ],
+  "counterEmailDraft": "<full professional counter-offer email, ready to send — specific to their situation, with [bracket] placeholders only for info Zari doesn't know>",
+  "internalRaiseEmailDraft": "<email to their manager requesting a compensation review — specific, professional, easy to adapt>",
+  "anchoringStrategy": {
+    "recommendedAsk": "<specific number or range they should anchor with, based on their market position and leverage>",
+    "floor": "<the minimum they should accept — below this they walk or push back harder>",
+    "rationale": "<2 sentences explaining why this anchor is right for their situation>"
+  }
 }
 
 Rules:
@@ -104,6 +118,9 @@ Rules:
 - Benchmarks: give honest estimates or ranges. If data is limited, say so directly.
 - Generate 4-5 leverage points (each with title, explanation, tactic), 3 benchmarks, 3-4 negotiation moves, 3 watchouts (each with mistake, why, howToAvoid).
 - leveragePoints: title = short name (2-4 words), explanation = WHY this is leverage for them specifically, tactic = exactly what to say or do to deploy it.
+- counterEmailDraft: must be ready to copy and send — specific opening, named leverage, clear ask, professional close. Use [brackets] only for info like the hiring manager's name or exact offer number that Zari doesn't know.
+- internalRaiseEmailDraft: professional tone, references their contributions specifically, requests a meeting — not a one-sided demand.
+- anchoringStrategy: recommendedAsk should be 10-20% above target comp or above current market midpoint; floor should be realistic minimum; rationale should cite their actual leverage.
 - The counterScript must be ready to send, professional, and specific to their situation.`;
 
   const userPrompt = [
@@ -125,7 +142,7 @@ Rules:
       { role: "system" as const, content: systemPrompt },
       { role: "user" as const, content: userPrompt },
     ],
-    { model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o", temperature: 0.28, maxTokens: 1400, jsonMode: true }
+    { model: process.env.OPENAI_MODEL_QUALITY ?? process.env.OPENAI_MODEL ?? "gpt-4o", temperature: 0.28, maxTokens: 2800, jsonMode: true }
   );
 
   const fallback = buildFallback();
@@ -160,6 +177,16 @@ Rules:
         return title && move ? { title, move, when } : null;
       }, 4) : fallback.negotiationMoves,
       counterScript: cleanStr(p.counterScript) || fallback.counterScript,
+      counterEmailDraft: cleanStr(p.counterEmailDraft) || fallback.counterEmailDraft,
+      internalRaiseEmailDraft: cleanStr(p.internalRaiseEmailDraft) || fallback.internalRaiseEmailDraft,
+      anchoringStrategy: (() => {
+        const a = p.anchoringStrategy;
+        if (a && typeof a === "object") {
+          const ao = a as Record<string, unknown>;
+          return { recommendedAsk: cleanStr(ao.recommendedAsk) || fallback.anchoringStrategy.recommendedAsk, floor: cleanStr(ao.floor) || fallback.anchoringStrategy.floor, rationale: cleanStr(ao.rationale) || fallback.anchoringStrategy.rationale };
+        }
+        return fallback.anchoringStrategy;
+      })(),
       watchouts: (() => {
         const parsed = mapList(p.watchouts, i => {
           const mistake = cleanStr(i.mistake), why = cleanStr(i.why), howToAvoid = cleanStr(i.howToAvoid);

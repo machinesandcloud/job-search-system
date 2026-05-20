@@ -3241,7 +3241,7 @@ function loadResumeSession(): { resumeText:string; fileName:string; aiResult:Res
 }
 
 type PromotionReadinessVerdict = "Ready now" | "Close, but not airtight" | "Needs more proof" | "Too early";
-type PromotionAuditTab = "overview" | "gaps" | "plan" | "conversation" | "examples";
+type PromotionAuditTab = "overview" | "gaps" | "plan" | "conversation" | "examples" | "stories";
 
 type PromotionReadinessResult = {
   readinessScore: number;
@@ -3262,6 +3262,7 @@ type PromotionReadinessResult = {
   managerPitchExample: string;
   actionPlan: Array<{ label: string; action: string }>;
   riskFlags: string[];
+  starStories?: Array<{ title: string; proves: string; situation: string; action: string; result: string; openingLine: string }>;
 };
 
 type PromotionReadinessForm = {
@@ -4542,6 +4543,7 @@ function ScreenPromotionReadiness() {
       { id:"plan", label:"The Fix", badge:String(result.actionPlan.length) },
       { id:"conversation", label:"The Conversation", badge:String(result.managerQuestions.length) },
       { id:"examples", label:"Your Sprint" },
+      { id:"stories", label:"Story Arsenal", badge:"3" },
     ];
 
     const sc = result.readinessScore;
@@ -5019,6 +5021,63 @@ function ScreenPromotionReadiness() {
                 )}
               </div>
             )}
+
+            {resultTab === "stories" && (
+              <div style={{ display:"grid", gap:20, paddingBottom:40 }}>
+                <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.8, margin:"0 0 4px" }}>STAR stories built from your situation — each one structured so you can tell it in 90 seconds and land it cleanly. Practice the opening line until it's automatic.</p>
+
+                {(result.starStories && result.starStories.length > 0) ? result.starStories.map((story, si) => {
+                  const storyColors = ["#2563EB","#10B981","#D97706","#8B5CF6"];
+                  const sc = storyColors[si % storyColors.length];
+                  const scAlpha = sc + "12";
+                  return (
+                    <div key={si} style={{ position:"relative", borderRadius:20, background:`linear-gradient(135deg, ${sc}12 0%, ${sc}05 100%)`, border:`1px solid ${sc}2e`, overflow:"hidden" }}>
+                      <div style={{ position:"absolute", top:-40, right:-40, width:160, height:160, borderRadius:"50%", background:`radial-gradient(circle, ${sc}14 0%, transparent 70%)`, pointerEvents:"none" }} />
+                      <div style={{ padding:"18px 22px 14px", borderBottom:`1px solid ${sc}1a`, display:"flex", alignItems:"flex-start", gap:12 }}>
+                        <div style={{ width:32, height:32, borderRadius:10, background:`${sc}14`, border:`1px solid ${sc}2e`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:2 }}>
+                          <span style={{ fontSize:13, fontWeight:900, color:sc }}>{si + 1}</span>
+                        </div>
+                        <div style={{ flex:1, minWidth:0 }}>
+                          <div style={{ fontSize:15, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", lineHeight:1.3, marginBottom:4 }}>{story.title}</div>
+                          {story.proves && <div style={{ fontSize:11.5, color:sc, fontWeight:700, background:`${sc}12`, border:`1px solid ${sc}20`, borderRadius:99, padding:"3px 10px", display:"inline-block" }}>Proves: {story.proves}</div>}
+                        </div>
+                      </div>
+                      <div style={{ padding:"18px 22px 22px", display:"grid", gap:12 }}>
+                        {/* Opening Line */}
+                        {story.openingLine && (
+                          <div style={{ borderRadius:12, background:"var(--z-raise)", border:`1px solid ${sc}20`, padding:"14px 16px" }}>
+                            <div style={{ fontSize:10, fontWeight:800, color:sc, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Open With This</div>
+                            <p style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.75, margin:0, fontStyle:"italic", fontWeight:600 }}>"{story.openingLine}"</p>
+                          </div>
+                        )}
+                        {/* S/A/R breakdown */}
+                        <div style={{ display:"grid", gap:8 }}>
+                          {[
+                            { label:"Situation", text:story.situation, icon:"S" },
+                            { label:"Action", text:story.action, icon:"A" },
+                            { label:"Result", text:story.result, icon:"R" },
+                          ].filter(row => row.text).map(row => (
+                            <div key={row.label} style={{ borderRadius:10, background:"var(--z-raise)", border:"1px solid var(--z-bd)", padding:"12px 14px", display:"flex", gap:10, alignItems:"flex-start" }}>
+                              <div style={{ width:22, height:22, borderRadius:7, background:`${sc}14`, border:`1px solid ${sc}25`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>
+                                <span style={{ fontSize:10, fontWeight:900, color:sc }}>{row.icon}</span>
+                              </div>
+                              <div>
+                                <div style={{ fontSize:10, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:4 }}>{row.label}</div>
+                                <p style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.75, margin:0 }}>{row.text}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }) : (
+                  <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"32px 28px", textAlign:"center" }}>
+                    <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.7, margin:0 }}>STAR stories are generated when you run the analysis with additional context about your contributions. Add specific achievements in Step 3 and re-run to unlock this section.</p>
+                  </div>
+                )}
+              </div>
+            )}
         </div>
       </div>
     );
@@ -5245,6 +5304,9 @@ type SalaryAnalysisResult = {
   negotiationMoves: { title: string; move: string; when: string }[];
   counterScript: string;
   watchouts: (SalaryWatchout | string)[];
+  counterEmailDraft?: string;
+  internalRaiseEmailDraft?: string;
+  anchoringStrategy?: { recommendedAsk: string; floor: string; rationale: string };
 };
 
 function StageIntakeHeader({ eyebrow, title, subtitle, accent, totalSteps, currentStep, steps }: {
@@ -5281,7 +5343,7 @@ function ScreenSalaryCompensation() {
   const billing = useBillingCtx();
   const ACCENT = "#10B981";
   const BG_DARK = "var(--z-bg)";
-  type SalaryTab = "overview" | "leverage" | "moves" | "script";
+  type SalaryTab = "overview" | "leverage" | "moves" | "script" | "emails";
   const SAL_KEY = "zari_salary_session_v1";
   type SalSaved = { step: number; form: typeof _salForm; result: SalaryAnalysisResult | null; tab: SalaryTab };
   const _salForm = { title:"", level:"", industry:"", companySize:"", askType:"raise", currentComp:"", targetComp:"", packageContext:"", location:"", yearsExperience:"", additionalContext:"" };
@@ -5293,6 +5355,8 @@ function ScreenSalaryCompensation() {
   const [result, setResult] = useState<SalaryAnalysisResult | null>(_salSaved?.result ?? null);
   const [tab, setTab] = useState<SalaryTab>(_salSaved?.tab ?? "overview");
   const [copied, setCopied] = useState(false);
+  const [counterEmailCopied, setCounterEmailCopied] = useState(false);
+  const [raiseEmailCopied, setRaiseEmailCopied] = useState(false);
   useEffect(() => {
     if (form.title || result) lsSet(SAL_KEY, { step, form, result, tab });
   }, [step, form, result, tab]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -5364,6 +5428,7 @@ function ScreenSalaryCompensation() {
     const tabs: { id: SalaryTab; label: string }[] = [
       { id:"overview", label:"Overview" }, { id:"leverage", label:"Your Leverage" },
       { id:"moves", label:"Negotiation Moves" }, { id:"script", label:"Counter Script" },
+      { id:"emails", label:"Email Scripts" },
     ];
     return (
       <div style={{ height:"100%", display:"flex", flexDirection:"column", overflow:"hidden", background:"var(--z-raise)" }}>
@@ -5556,6 +5621,85 @@ function ScreenSalaryCompensation() {
                 <div style={{ padding:"26px 28px" }}>
                   <pre style={{ fontFamily:"inherit", fontSize:14, color:"var(--z-text)", lineHeight:1.9, whiteSpace:"pre-wrap", margin:0 }}>{result.counterScript}</pre>
                 </div>
+              </div>
+            )}
+
+            {tab === "emails" && (
+              <div style={{ display:"grid", gap:20, paddingBottom:40 }}>
+                <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.8, margin:"0 0 4px" }}>Ready-to-send emails and a concrete anchoring strategy. Personalise the brackets — everything else is written and structured for you.</p>
+
+                {/* Anchoring Strategy */}
+                {result.anchoringStrategy && (
+                  <div style={{ position:"relative", borderRadius:20, background:"linear-gradient(135deg, rgba(16,185,129,0.09) 0%, rgba(16,185,129,0.03) 100%)", border:"1px solid rgba(16,185,129,0.18)", overflow:"hidden" }}>
+                    <div style={{ position:"absolute", top:-30, right:-30, width:120, height:120, borderRadius:"50%", background:"radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%)", pointerEvents:"none" }} />
+                    <div style={{ padding:"18px 22px 14px", borderBottom:"1px solid rgba(16,185,129,0.12)", display:"flex", alignItems:"center", gap:10 }}>
+                      <div style={{ width:30, height:30, borderRadius:9, background:"rgba(16,185,129,0.12)", border:"1px solid rgba(16,185,129,0.2)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                        <svg viewBox="0 0 20 20" fill="none" stroke="#10B981" strokeWidth="2" style={{ width:14, height:14 }}><path d="M10 2v3M10 15v3M4.22 4.22l2.12 2.12M13.66 13.66l2.12 2.12M2 10h3M15 10h3M4.22 15.78l2.12-2.12M13.66 6.34l2.12-2.12"/></svg>
+                      </div>
+                      <div style={{ fontSize:11, fontWeight:800, color:"#10B981", textTransform:"uppercase", letterSpacing:"0.08em" }}>Anchoring Strategy</div>
+                    </div>
+                    <div style={{ padding:"18px 22px 22px", display:"grid", gap:12 }}>
+                      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                        <div style={{ borderRadius:12, background:"var(--z-raise)", border:"1px solid rgba(16,185,129,0.15)", padding:"14px 16px" }}>
+                          <div style={{ fontSize:10.5, fontWeight:800, color:"#10B981", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:6 }}>Open With</div>
+                          <div style={{ fontSize:15, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.01em" }}>{result.anchoringStrategy.recommendedAsk}</div>
+                        </div>
+                        <div style={{ borderRadius:12, background:"var(--z-raise)", border:"1px solid rgba(239,68,68,0.15)", padding:"14px 16px" }}>
+                          <div style={{ fontSize:10.5, fontWeight:800, color:"#EF4444", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:6 }}>Walk Away Below</div>
+                          <div style={{ fontSize:15, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.01em" }}>{result.anchoringStrategy.floor}</div>
+                        </div>
+                      </div>
+                      <div style={{ borderRadius:12, background:"var(--z-raise)", border:"1px solid rgba(16,185,129,0.12)", padding:"14px 16px" }}>
+                        <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:6 }}>Why This Anchor Works</div>
+                        <p style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.75, margin:0 }}>{result.anchoringStrategy.rationale}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Counter-offer Email */}
+                {result.counterEmailDraft && (
+                  <div style={{ position:"relative", borderRadius:20, background:"linear-gradient(135deg, rgba(37,99,235,0.09) 0%, rgba(37,99,235,0.03) 100%)", border:"1px solid rgba(37,99,235,0.18)", overflow:"hidden" }}>
+                    <div style={{ position:"absolute", top:-30, right:-30, width:120, height:120, borderRadius:"50%", background:"radial-gradient(circle, rgba(37,99,235,0.12) 0%, transparent 70%)", pointerEvents:"none" }} />
+                    <div style={{ padding:"18px 22px 14px", display:"flex", alignItems:"center", justifyContent:"space-between", borderBottom:"1px solid rgba(37,99,235,0.12)" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                        <div style={{ width:30, height:30, borderRadius:9, background:"rgba(37,99,235,0.12)", border:"1px solid rgba(37,99,235,0.2)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                          <svg viewBox="0 0 20 20" fill="none" stroke="#2563EB" strokeWidth="2" style={{ width:14, height:14 }}><path d="M3 8l7 5 7-5M3 8V16a1 1 0 001 1h12a1 1 0 001-1V8M3 8l1-3h12l1 3"/></svg>
+                        </div>
+                        <div>
+                          <div style={{ fontSize:11, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.08em" }}>Counter-Offer Email</div>
+                          <div style={{ fontSize:11, color:"var(--z-text3)", marginTop:2 }}>For new offers or written counter proposals</div>
+                        </div>
+                      </div>
+                      <button onClick={() => { navigator.clipboard.writeText(result.counterEmailDraft ?? "").then(() => { setCounterEmailCopied(true); setTimeout(() => setCounterEmailCopied(false), 2000); }).catch(() => {}); }} style={{ fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:10, border:"1px solid rgba(37,99,235,0.25)", background:counterEmailCopied ? "rgba(37,99,235,0.1)" : "transparent", color:counterEmailCopied ? "#2563EB" : "var(--z-text2)", cursor:"pointer", transition:"all 0.2s" }}>{counterEmailCopied ? "Copied ✓" : "Copy"}</button>
+                    </div>
+                    <div style={{ padding:"20px 22px 24px" }}>
+                      <pre style={{ fontFamily:"inherit", fontSize:14, color:"var(--z-text)", lineHeight:1.9, whiteSpace:"pre-wrap", margin:0 }}>{result.counterEmailDraft}</pre>
+                    </div>
+                  </div>
+                )}
+
+                {/* Internal Raise Email */}
+                {result.internalRaiseEmailDraft && (
+                  <div style={{ position:"relative", borderRadius:20, background:"linear-gradient(135deg, rgba(139,92,246,0.09) 0%, rgba(139,92,246,0.03) 100%)", border:"1px solid rgba(139,92,246,0.18)", overflow:"hidden" }}>
+                    <div style={{ position:"absolute", top:-30, right:-30, width:120, height:120, borderRadius:"50%", background:"radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 70%)", pointerEvents:"none" }} />
+                    <div style={{ padding:"18px 22px 14px", display:"flex", alignItems:"center", justifyContent:"space-between", borderBottom:"1px solid rgba(139,92,246,0.12)" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                        <div style={{ width:30, height:30, borderRadius:9, background:"rgba(139,92,246,0.12)", border:"1px solid rgba(139,92,246,0.2)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                          <svg viewBox="0 0 20 20" fill="none" stroke="#8B5CF6" strokeWidth="2" style={{ width:14, height:14 }}><path d="M3 8l7 5 7-5M3 8V16a1 1 0 001 1h12a1 1 0 001-1V8M3 8l1-3h12l1 3"/></svg>
+                        </div>
+                        <div>
+                          <div style={{ fontSize:11, fontWeight:800, color:"#8B5CF6", textTransform:"uppercase", letterSpacing:"0.08em" }}>Internal Raise Email</div>
+                          <div style={{ fontSize:11, color:"var(--z-text3)", marginTop:2 }}>Request a comp review with your current manager</div>
+                        </div>
+                      </div>
+                      <button onClick={() => { navigator.clipboard.writeText(result.internalRaiseEmailDraft ?? "").then(() => { setRaiseEmailCopied(true); setTimeout(() => setRaiseEmailCopied(false), 2000); }).catch(() => {}); }} style={{ fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:10, border:"1px solid rgba(139,92,246,0.25)", background:raiseEmailCopied ? "rgba(139,92,246,0.1)" : "transparent", color:raiseEmailCopied ? "#8B5CF6" : "var(--z-text2)", cursor:"pointer", transition:"all 0.2s" }}>{raiseEmailCopied ? "Copied ✓" : "Copy"}</button>
+                    </div>
+                    <div style={{ padding:"20px 22px 24px" }}>
+                      <pre style={{ fontFamily:"inherit", fontSize:14, color:"var(--z-text)", lineHeight:1.9, whiteSpace:"pre-wrap", margin:0 }}>{result.internalRaiseEmailDraft}</pre>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
         </div>
@@ -8133,13 +8277,17 @@ type ExecPositioningResult = {
   positioningMoves: { title: string; move: string; why: string }[];
   boardBio: string;
   watchouts: (ExecWatchout | string)[];
+  linkedInAbout?: string;
+  linkedInHeadlines?: string[];
+  elevatorPitch?: string;
+  speakerBio?: string;
 };
 
 function ScreenExecPositioning() {
   const billing = useBillingCtx();
   const ACCENT = "#F59E0B";
   const BG_DARK = "var(--z-bg)";
-  type ExecTab = "overview" | "gaps" | "moves" | "bio";
+  type ExecTab = "overview" | "gaps" | "moves" | "bio" | "copy";
   const EP_KEY = "zari_exec_positioning_v1";
   type EPSaved = { step: number; form: typeof _epForm; result: ExecPositioningResult | null; tab: ExecTab };
   const _epForm = { currentTitle:"", targetRole:"", currentScope:"", teamSize:"", businessOutcomes:"", execExposure:"", boardExperience:"", specificGoal:"", bioText:"" };
@@ -8151,6 +8299,10 @@ function ScreenExecPositioning() {
   const [result, setResult] = useState<ExecPositioningResult | null>(_epSaved?.result ?? null);
   const [tab, setTab] = useState<ExecTab>(_epSaved?.tab ?? "overview");
   const [bioCopied, setBioCopied] = useState(false);
+  const [aboutCopied, setAboutCopied] = useState(false);
+  const [headlineCopied, setHeadlineCopied] = useState<number|null>(null);
+  const [pitchCopied, setPitchCopied] = useState(false);
+  const [speakerBioCopied, setSpeakerBioCopied] = useState(false);
   useEffect(() => {
     if (form.currentTitle || result) lsSet(EP_KEY, { step, form, result, tab });
   }, [step, form, result, tab]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -8204,6 +8356,7 @@ function ScreenExecPositioning() {
     const tabs: { id: ExecTab; label: string }[] = [
       { id:"overview", label:"Overview" }, { id:"gaps", label:"Presence Gaps" },
       { id:"moves", label:"Positioning Moves" }, { id:"bio", label:"Board Bio" },
+      { id:"copy", label:"Copy Kit" },
     ];
     return (
       <div style={{ height:"100%", display:"flex", flexDirection:"column", overflow:"hidden", background:"var(--z-raise)" }}>
@@ -8432,6 +8585,101 @@ function ScreenExecPositioning() {
                 <div style={{ padding:"28px 30px" }}>
                   <p style={{ fontSize:15, color:"var(--z-text)", lineHeight:1.9, margin:0 }}>{result.boardBio}</p>
                 </div>
+              </div>
+            )}
+
+            {tab === "copy" && (
+              <div style={{ display:"grid", gap:20, paddingBottom:40 }}>
+                <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.8, margin:"0 0 4px" }}>Copy-ready assets built from your positioning analysis. Each section is tailored to your context — paste, personalise the brackets, and send.</p>
+
+                {/* LinkedIn About */}
+                {result.linkedInAbout && (
+                  <div style={{ position:"relative", borderRadius:20, background:"linear-gradient(135deg, rgba(214,119,6,0.09) 0%, rgba(214,119,6,0.03) 100%)", border:"1px solid rgba(214,119,6,0.18)", overflow:"hidden" }}>
+                    <div style={{ position:"absolute", top:-30, right:-30, width:120, height:120, borderRadius:"50%", background:"radial-gradient(circle, rgba(214,119,6,0.12) 0%, transparent 70%)", pointerEvents:"none" }} />
+                    <div style={{ padding:"18px 22px 14px", display:"flex", alignItems:"center", justifyContent:"space-between", borderBottom:"1px solid rgba(214,119,6,0.12)" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                        <div style={{ width:30, height:30, borderRadius:9, background:"rgba(214,119,6,0.12)", border:"1px solid rgba(214,119,6,0.2)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                          <svg viewBox="0 0 20 20" fill="none" stroke="#D97706" strokeWidth="2" style={{ width:14, height:14 }}><rect x="2" y="2" width="16" height="16" rx="3"/><path d="M6 9v6M6 6v.5M10 15v-6m0 0c0-2 4-2 4 0v6"/></svg>
+                        </div>
+                        <div style={{ fontSize:11, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.08em" }}>LinkedIn About</div>
+                      </div>
+                      <button onClick={() => { navigator.clipboard.writeText(result.linkedInAbout ?? "").then(() => { setAboutCopied(true); setTimeout(() => setAboutCopied(false), 2000); }).catch(() => {}); }} style={{ fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:10, border:"1px solid rgba(214,119,6,0.25)", background:aboutCopied ? "rgba(214,119,6,0.12)" : "transparent", color:aboutCopied ? "#D97706" : "var(--z-text2)", cursor:"pointer", transition:"all 0.2s" }}>{aboutCopied ? "Copied ✓" : "Copy"}</button>
+                    </div>
+                    <div style={{ padding:"20px 22px 22px" }}>
+                      <pre style={{ fontFamily:"inherit", fontSize:14, color:"var(--z-text)", lineHeight:1.9, whiteSpace:"pre-wrap", margin:0 }}>{result.linkedInAbout}</pre>
+                    </div>
+                  </div>
+                )}
+
+                {/* LinkedIn Headlines */}
+                {result.linkedInHeadlines && result.linkedInHeadlines.length > 0 && (
+                  <div style={{ position:"relative", borderRadius:20, background:"linear-gradient(135deg, rgba(37,99,235,0.09) 0%, rgba(37,99,235,0.03) 100%)", border:"1px solid rgba(37,99,235,0.18)", overflow:"hidden" }}>
+                    <div style={{ position:"absolute", top:-30, right:-30, width:120, height:120, borderRadius:"50%", background:"radial-gradient(circle, rgba(37,99,235,0.12) 0%, transparent 70%)", pointerEvents:"none" }} />
+                    <div style={{ padding:"18px 22px 14px", borderBottom:"1px solid rgba(37,99,235,0.12)" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                        <div style={{ width:30, height:30, borderRadius:9, background:"rgba(37,99,235,0.12)", border:"1px solid rgba(37,99,235,0.2)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                          <svg viewBox="0 0 20 20" fill="none" stroke="#2563EB" strokeWidth="2" style={{ width:14, height:14 }}><path d="M4 6h12M4 10h8M4 14h10"/></svg>
+                        </div>
+                        <div style={{ fontSize:11, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.08em" }}>LinkedIn Headline Variants</div>
+                      </div>
+                    </div>
+                    <div style={{ padding:"16px 22px 20px", display:"grid", gap:10 }}>
+                      {result.linkedInHeadlines.map((hl, hi) => (
+                        <div key={hi} style={{ borderRadius:12, background:"var(--z-raise)", border:"1px solid rgba(37,99,235,0.15)", padding:"14px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
+                          <div style={{ flex:1, minWidth:0 }}>
+                            <div style={{ fontSize:11, fontWeight:700, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:5 }}>Option {hi + 1}</div>
+                            <div style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.6 }}>{hl}</div>
+                          </div>
+                          <button onClick={() => { navigator.clipboard.writeText(hl).then(() => { setHeadlineCopied(hi); setTimeout(() => setHeadlineCopied(null), 2000); }).catch(() => {}); }} style={{ fontSize:11.5, fontWeight:700, padding:"6px 13px", borderRadius:9, border:"1px solid rgba(37,99,235,0.2)", background:headlineCopied === hi ? "rgba(37,99,235,0.1)" : "transparent", color:headlineCopied === hi ? "#2563EB" : "var(--z-text3)", cursor:"pointer", flexShrink:0, transition:"all 0.2s" }}>{headlineCopied === hi ? "✓" : "Copy"}</button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Elevator Pitch */}
+                {result.elevatorPitch && (
+                  <div style={{ position:"relative", borderRadius:20, background:"linear-gradient(135deg, rgba(16,185,129,0.09) 0%, rgba(16,185,129,0.03) 100%)", border:"1px solid rgba(16,185,129,0.18)", overflow:"hidden" }}>
+                    <div style={{ position:"absolute", top:-30, right:-30, width:120, height:120, borderRadius:"50%", background:"radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%)", pointerEvents:"none" }} />
+                    <div style={{ padding:"18px 22px 14px", display:"flex", alignItems:"center", justifyContent:"space-between", borderBottom:"1px solid rgba(16,185,129,0.12)" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                        <div style={{ width:30, height:30, borderRadius:9, background:"rgba(16,185,129,0.12)", border:"1px solid rgba(16,185,129,0.2)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                          <svg viewBox="0 0 20 20" fill="none" stroke="#10B981" strokeWidth="2" style={{ width:14, height:14 }}><path d="M10 2a8 8 0 100 16A8 8 0 0010 2z"/><path d="M10 6v4l3 2"/></svg>
+                        </div>
+                        <div>
+                          <div style={{ fontSize:11, fontWeight:800, color:"#10B981", textTransform:"uppercase", letterSpacing:"0.08em" }}>Elevator Pitch</div>
+                          <div style={{ fontSize:11, color:"var(--z-text3)", marginTop:2 }}>~80 words · conversational · use at networking events</div>
+                        </div>
+                      </div>
+                      <button onClick={() => { navigator.clipboard.writeText(result.elevatorPitch ?? "").then(() => { setPitchCopied(true); setTimeout(() => setPitchCopied(false), 2000); }).catch(() => {}); }} style={{ fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:10, border:"1px solid rgba(16,185,129,0.25)", background:pitchCopied ? "rgba(16,185,129,0.12)" : "transparent", color:pitchCopied ? "#10B981" : "var(--z-text2)", cursor:"pointer", transition:"all 0.2s" }}>{pitchCopied ? "Copied ✓" : "Copy"}</button>
+                    </div>
+                    <div style={{ padding:"20px 22px 22px" }}>
+                      <p style={{ fontSize:14.5, color:"var(--z-text)", lineHeight:1.9, margin:0, fontStyle:"italic" }}>{result.elevatorPitch}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Speaker Bio */}
+                {result.speakerBio && (
+                  <div style={{ position:"relative", borderRadius:20, background:"linear-gradient(135deg, rgba(139,92,246,0.09) 0%, rgba(139,92,246,0.03) 100%)", border:"1px solid rgba(139,92,246,0.18)", overflow:"hidden" }}>
+                    <div style={{ position:"absolute", top:-30, right:-30, width:120, height:120, borderRadius:"50%", background:"radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 70%)", pointerEvents:"none" }} />
+                    <div style={{ padding:"18px 22px 14px", display:"flex", alignItems:"center", justifyContent:"space-between", borderBottom:"1px solid rgba(139,92,246,0.12)" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                        <div style={{ width:30, height:30, borderRadius:9, background:"rgba(139,92,246,0.12)", border:"1px solid rgba(139,92,246,0.2)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                          <svg viewBox="0 0 20 20" fill="none" stroke="#8B5CF6" strokeWidth="2" style={{ width:14, height:14 }}><path d="M4 17h12M10 3v10M6 7l4-4 4 4"/></svg>
+                        </div>
+                        <div>
+                          <div style={{ fontSize:11, fontWeight:800, color:"#8B5CF6", textTransform:"uppercase", letterSpacing:"0.08em" }}>Speaker Bio</div>
+                          <div style={{ fontSize:11, color:"var(--z-text3)", marginTop:2 }}>~80 words · third person · conference-ready</div>
+                        </div>
+                      </div>
+                      <button onClick={() => { navigator.clipboard.writeText(result.speakerBio ?? "").then(() => { setSpeakerBioCopied(true); setTimeout(() => setSpeakerBioCopied(false), 2000); }).catch(() => {}); }} style={{ fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:10, border:"1px solid rgba(139,92,246,0.25)", background:speakerBioCopied ? "rgba(139,92,246,0.12)" : "transparent", color:speakerBioCopied ? "#8B5CF6" : "var(--z-text2)", cursor:"pointer", transition:"all 0.2s" }}>{speakerBioCopied ? "Copied ✓" : "Copy"}</button>
+                    </div>
+                    <div style={{ padding:"20px 22px 22px" }}>
+                      <p style={{ fontSize:14.5, color:"var(--z-text)", lineHeight:1.9, margin:0 }}>{result.speakerBio}</p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
         </div>
