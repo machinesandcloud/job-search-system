@@ -4689,8 +4689,14 @@ function ScreenPromotionReadiness() {
 
                 {/* What's solid / What's risky */}
                 <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:14 }}>
-                  <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #059669", padding:"18px 18px 16px" }}>
-                    <div style={{ fontSize:10.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>What&apos;s solid</div>
+                  <div style={{ borderRadius:20, background:"linear-gradient(135deg,rgba(5,150,105,0.09) 0%,rgba(5,150,105,0.03) 100%)", border:"1px solid rgba(5,150,105,0.2)", padding:"20px 20px 18px", position:"relative", overflow:"hidden" }}>
+                    <div style={{ position:"absolute", top:-16, right:-16, width:88, height:88, borderRadius:"50%", background:"radial-gradient(circle,rgba(5,150,105,0.13) 0%,transparent 70%)", pointerEvents:"none" }}/>
+                    <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:14, position:"relative" }}>
+                      <div style={{ width:24, height:24, borderRadius:"50%", background:"rgba(5,150,105,0.14)", border:"1px solid rgba(5,150,105,0.25)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                        <svg viewBox="0 0 12 12" fill="none" stroke="#059669" strokeWidth="2.4" style={{width:9,height:9}}><path d="M1.5 6l3 3 6-6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </div>
+                      <div style={{ fontSize:10.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em" }}>What&apos;s solid</div>
+                    </div>
                     <div style={{ display:"grid", gap:9 }}>
                       {result.strengths.map((item, si) => (
                         <div key={si} style={{ borderRadius:10, background:"var(--z-raise)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
@@ -4704,8 +4710,14 @@ function ScreenPromotionReadiness() {
                       ))}
                     </div>
                   </div>
-                  <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #DC2626", padding:"18px 18px 16px" }}>
-                    <div style={{ fontSize:10.5, fontWeight:800, color:"#DC2626", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:12 }}>What&apos;s risky</div>
+                  <div style={{ borderRadius:20, background:"linear-gradient(135deg,rgba(220,38,38,0.09) 0%,rgba(220,38,38,0.03) 100%)", border:"1px solid rgba(220,38,38,0.18)", padding:"20px 20px 18px", position:"relative", overflow:"hidden" }}>
+                    <div style={{ position:"absolute", top:-16, right:-16, width:88, height:88, borderRadius:"50%", background:"radial-gradient(circle,rgba(220,38,38,0.13) 0%,transparent 70%)", pointerEvents:"none" }}/>
+                    <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:14, position:"relative" }}>
+                      <div style={{ width:24, height:24, borderRadius:"50%", background:"rgba(220,38,38,0.13)", border:"1px solid rgba(220,38,38,0.22)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                        <svg viewBox="0 0 12 12" fill="none" style={{width:10,height:10}}><path d="M6 1L11.5 10H0.5L6 1z" fill="rgba(220,38,38,0.15)" stroke="#DC2626" strokeWidth="1.5" strokeLinejoin="round"/><path d="M6 4v2M6 7v.5" stroke="#DC2626" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                      </div>
+                      <div style={{ fontSize:10.5, fontWeight:800, color:"#DC2626", textTransform:"uppercase", letterSpacing:"0.1em" }}>What&apos;s risky</div>
+                    </div>
                     <div style={{ display:"grid", gap:9 }}>
                       {result.riskFlags.map((item, ri) => (
                         <div key={ri} style={{ borderRadius:10, background:"var(--z-raise)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
@@ -4723,9 +4735,15 @@ function ScreenPromotionReadiness() {
 
                 {/* Zari's read — AI rationale (replaces deterministic calibration section) */}
                 {result.rationale.length > 0 && (
-                  <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #1459CC", padding:"20px 24px" }}>
-                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:16, flexWrap:"wrap" }}>
-                      <div style={{ fontSize:10.5, fontWeight:800, color:"#1459CC", textTransform:"uppercase", letterSpacing:"0.1em" }}>Zari&apos;s read</div>
+                  <div style={{ borderRadius:20, background:"linear-gradient(135deg,rgba(20,89,204,0.09) 0%,rgba(20,89,204,0.03) 100%)", border:"1px solid rgba(20,89,204,0.18)", padding:"22px 26px", position:"relative", overflow:"hidden" }}>
+                    <div style={{ position:"absolute", top:-20, right:-20, width:110, height:110, borderRadius:"50%", background:"radial-gradient(circle,rgba(20,89,204,0.12) 0%,transparent 70%)", pointerEvents:"none" }}/>
+                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:18, flexWrap:"wrap", position:"relative" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:9 }}>
+                        <div style={{ width:26, height:26, borderRadius:"50%", background:"rgba(20,89,204,0.14)", border:"1px solid rgba(20,89,204,0.25)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                          <svg viewBox="0 0 12 12" fill="none" stroke="#1459CC" strokeWidth="1.8" style={{width:9,height:9}}><circle cx="6" cy="5.5" r="3"/><path d="M6 9.5v.5" strokeLinecap="round"/></svg>
+                        </div>
+                        <div style={{ fontSize:10.5, fontWeight:800, color:"#1459CC", textTransform:"uppercase", letterSpacing:"0.12em" }}>Zari&apos;s read</div>
+                      </div>
                       <span style={{ fontSize:10.5, fontWeight:700, padding:"3px 9px", borderRadius:999, background:"rgba(20,89,204,0.08)", color:"#1459CC", border:"1px solid rgba(20,89,204,0.2)" }}>AI analysis</span>
                     </div>
                     <div style={{ display:"grid", gap:12 }}>
@@ -4754,8 +4772,14 @@ function ScreenPromotionReadiness() {
                 </div>
 
                 {result.quickWins.length > 0 && (
-                  <div style={{ borderRadius:20, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #2563EB", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", padding:"20px 22px" }}>
-                    <div style={{ fontSize:10.5, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:14 }}>Start here — highest leverage moves</div>
+                  <div style={{ borderRadius:20, background:"linear-gradient(135deg,rgba(37,99,235,0.09) 0%,rgba(37,99,235,0.03) 100%)", border:"1px solid rgba(37,99,235,0.18)", boxShadow:"0 4px 24px rgba(37,99,235,0.08)", padding:"22px 24px", position:"relative", overflow:"hidden" }}>
+                    <div style={{ position:"absolute", top:-20, right:-20, width:120, height:120, borderRadius:"50%", background:"radial-gradient(circle,rgba(37,99,235,0.12) 0%,transparent 70%)", pointerEvents:"none" }}/>
+                    <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:16, position:"relative" }}>
+                      <div style={{ width:26, height:26, borderRadius:"50%", background:"rgba(37,99,235,0.13)", border:"1px solid rgba(37,99,235,0.25)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                        <svg viewBox="0 0 12 12" fill="none" stroke="#2563EB" strokeWidth="2" style={{width:9,height:9}}><path d="M2 6h8M7 3l3 3-3 3"/></svg>
+                      </div>
+                      <div style={{ fontSize:10.5, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.1em" }}>Start here — highest leverage moves</div>
+                    </div>
                     <div style={{ display:"grid", gap:10 }}>
                       {result.quickWins.map((item, index) => (
                         <div key={`${item.title}-${index}`} onClick={() => setResultTab(item.jumpTo)} style={{ padding:"16px 18px", borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)", cursor:"pointer", display:"flex", gap:12, alignItems:"flex-start", transition:"border-color 0.15s" }}>
@@ -4793,8 +4817,14 @@ function ScreenPromotionReadiness() {
                     </div>
                   </div>
                 ))}
-                <div style={{ borderRadius:18, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #D97706", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", padding:"20px 22px" }}>
-                  <div style={{ fontSize:10.5, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:14 }}>The proof bar — what they need to see</div>
+                <div style={{ borderRadius:20, background:"linear-gradient(135deg,rgba(217,119,6,0.09) 0%,rgba(217,119,6,0.03) 100%)", border:"1px solid rgba(217,119,6,0.2)", boxShadow:"0 4px 24px rgba(217,119,6,0.08)", padding:"22px 24px", position:"relative", overflow:"hidden" }}>
+                  <div style={{ position:"absolute", top:-18, right:-18, width:100, height:100, borderRadius:"50%", background:"radial-gradient(circle,rgba(217,119,6,0.12) 0%,transparent 70%)", pointerEvents:"none" }}/>
+                  <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:16, position:"relative" }}>
+                    <div style={{ width:26, height:26, borderRadius:"50%", background:"rgba(217,119,6,0.14)", border:"1px solid rgba(217,119,6,0.25)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                      <svg viewBox="0 0 12 12" fill="none" stroke="#D97706" strokeWidth="2" style={{width:9,height:9}}><path d="M6 1l1.5 3 3.5.5-2.5 2.5.5 3.5L6 9l-3 1.5.5-3.5L1 4.5 4.5 4z"/></svg>
+                    </div>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.1em" }}>The proof bar — what they need to see</div>
+                  </div>
                   <div style={{ display:"grid", gap:10 }}>
                     {result.evidenceChecklist.map((item, idx) => (
                       <div key={idx} style={{ borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
@@ -4833,9 +4863,10 @@ function ScreenPromotionReadiness() {
 
             {resultTab === "conversation" && (
               <div style={{ display:"grid", gap:16, paddingBottom:40 }}>
-                <div style={{ borderRadius:14, background:"rgba(37,99,235,0.04)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #2563EB", padding:"20px 24px" }}>
-                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:12, flexWrap:"wrap" }}>
-                    <div style={{ fontSize:10.5, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.08em" }}>How to open the conversation</div>
+                <div style={{ borderRadius:20, background:"linear-gradient(135deg,rgba(37,99,235,0.09) 0%,rgba(37,99,235,0.03) 100%)", border:"1px solid rgba(37,99,235,0.18)", padding:"22px 26px", position:"relative", overflow:"hidden" }}>
+                  <div style={{ position:"absolute", top:-20, right:-20, width:110, height:110, borderRadius:"50%", background:"radial-gradient(circle,rgba(37,99,235,0.12) 0%,transparent 70%)", pointerEvents:"none" }}/>
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, marginBottom:14, flexWrap:"wrap", position:"relative" }}>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.1em" }}>How to open the conversation</div>
                     <button
                       onClick={() => { navigator.clipboard.writeText(result.managerPitchExample).then(() => { setPitchCopied(true); setTimeout(() => setPitchCopied(false), 2000); }).catch(() => {}); }}
                       style={{ fontSize:11.5, fontWeight:700, padding:"6px 12px", borderRadius:10, border:"1px solid rgba(37,99,235,0.3)", background:"rgba(37,99,235,0.06)", color:"#2563EB", cursor:"pointer" }}
@@ -4865,8 +4896,14 @@ function ScreenPromotionReadiness() {
                   ))}
                 </div>
                 {result.managerQuestions.length > 0 && (
-                  <div style={{ borderRadius:18, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #059669", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", padding:"20px 22px" }}>
-                    <div style={{ fontSize:10.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:14 }}>Questions to bring to your manager</div>
+                  <div style={{ borderRadius:20, background:"linear-gradient(135deg,rgba(5,150,105,0.09) 0%,rgba(5,150,105,0.03) 100%)", border:"1px solid rgba(5,150,105,0.2)", boxShadow:"0 4px 24px rgba(5,150,105,0.08)", padding:"22px 24px", position:"relative", overflow:"hidden" }}>
+                    <div style={{ position:"absolute", top:-18, right:-18, width:100, height:100, borderRadius:"50%", background:"radial-gradient(circle,rgba(5,150,105,0.12) 0%,transparent 70%)", pointerEvents:"none" }}/>
+                    <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:16, position:"relative" }}>
+                      <div style={{ width:26, height:26, borderRadius:"50%", background:"rgba(5,150,105,0.14)", border:"1px solid rgba(5,150,105,0.25)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                        <svg viewBox="0 0 12 12" fill="none" stroke="#059669" strokeWidth="1.8" style={{width:9,height:9}}><path d="M2 2h8a1 1 0 011 1v5a1 1 0 01-1 1H5L2 11V3a1 1 0 011-1z" strokeLinejoin="round"/></svg>
+                      </div>
+                      <div style={{ fontSize:10.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.12em" }}>Questions to bring to your manager</div>
+                    </div>
                     <div style={{ display:"grid", gap:10 }}>
                       {result.managerQuestions.map((q, qi) => (
                         <div key={qi} style={{ borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
@@ -5396,9 +5433,15 @@ function ScreenSalaryCompensation() {
         <div className="zari-result-content" style={{ flex:1, overflowY:"auto", padding:"28px 32px 52px" }}>
             {tab === "overview" && (
               <div style={{ display:"grid", gap:18 }}>
-                <div style={{ borderRadius:14, background:"rgba(220,38,38,0.04)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #DC2626", padding:"22px 26px" }}>
-                  <div style={{ fontSize:10.5, fontWeight:800, color:"#DC2626", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Hard truth</div>
-                  <p style={{ fontSize:15, color:"var(--z-text)", lineHeight:1.8, margin:0 }}>{result.hardTruth}</p>
+                <div style={{ borderRadius:20, background:"linear-gradient(135deg,rgba(220,38,38,0.09) 0%,rgba(220,38,38,0.03) 100%)", border:"1px solid rgba(220,38,38,0.18)", padding:"26px 30px", position:"relative", overflow:"hidden" }}>
+                  <div style={{ position:"absolute", top:-20, right:-20, width:120, height:120, borderRadius:"50%", background:"radial-gradient(circle,rgba(220,38,38,0.13) 0%,transparent 70%)", pointerEvents:"none" }}/>
+                  <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, position:"relative" }}>
+                    <div style={{ width:28, height:28, borderRadius:"50%", background:"rgba(220,38,38,0.15)", border:"1px solid rgba(220,38,38,0.25)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                      <svg viewBox="0 0 14 14" fill="none" stroke="#DC2626" strokeWidth="1.8" style={{width:11,height:11}}><path d="M7 1L13 12H1L7 1z"/><path d="M7 5v2.5M7 9v.5" strokeLinecap="round"/></svg>
+                    </div>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"#DC2626", textTransform:"uppercase", letterSpacing:"0.12em" }}>The hard truth</div>
+                  </div>
+                  <p style={{ fontSize:15.5, color:"var(--z-text)", lineHeight:1.85, margin:0, fontWeight:500, position:"relative" }}>{result.hardTruth}</p>
                 </div>
                 <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))", gap:14 }}>
                   {result.benchmarks.map((b, i) => (
@@ -5409,8 +5452,14 @@ function ScreenSalaryCompensation() {
                     </div>
                   ))}
                 </div>
-                <div style={{ borderRadius:14, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #D97706", padding:"22px 26px" }}>
-                  <div style={{ fontSize:10.5, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:16 }}>Watchouts</div>
+                <div style={{ borderRadius:20, background:"linear-gradient(135deg,rgba(217,119,6,0.09) 0%,rgba(217,119,6,0.03) 100%)", border:"1px solid rgba(217,119,6,0.2)", padding:"24px 28px", position:"relative", overflow:"hidden" }}>
+                  <div style={{ position:"absolute", top:-20, right:-20, width:120, height:120, borderRadius:"50%", background:"radial-gradient(circle,rgba(217,119,6,0.12) 0%,transparent 70%)", pointerEvents:"none" }}/>
+                  <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:18, position:"relative" }}>
+                    <div style={{ width:28, height:28, borderRadius:"50%", background:"rgba(217,119,6,0.14)", border:"1px solid rgba(217,119,6,0.25)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                      <svg viewBox="0 0 14 14" fill="none" style={{width:11,height:11}}><path d="M7 1L13 12H1L7 1z" fill="rgba(217,119,6,0.15)" stroke="#D97706" strokeWidth="1.5" strokeLinejoin="round"/><path d="M7 4.5v2.5M7 8v.5" stroke="#D97706" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                    </div>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.12em" }}>Watchouts</div>
+                  </div>
                   <div style={{ display:"grid", gap:12 }}>
                     {result.watchouts.map((rawW, i) => {
                       const w: SalaryWatchout = typeof rawW === "string"
@@ -5483,13 +5532,14 @@ function ScreenSalaryCompensation() {
             {tab === "moves" && (
               <div style={{ display:"grid", gap:14 }}>
                 {result.negotiationMoves.map((m, i) => (
-                  <div key={i} style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #2563EB", padding:"22px 26px" }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:14 }}>
-                      <span style={{ fontSize:11, fontWeight:900, color:"#2563EB", background:"rgba(37,99,235,0.1)", border:"1px solid rgba(37,99,235,0.2)", borderRadius:999, width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{i+1}</span>
+                  <div key={i} style={{ borderRadius:20, background:"linear-gradient(135deg,rgba(37,99,235,0.08) 0%,rgba(37,99,235,0.02) 100%)", border:"1px solid rgba(37,99,235,0.18)", padding:"24px 28px", position:"relative", overflow:"hidden" }}>
+                    <div style={{ position:"absolute", top:-16, right:-16, width:90, height:90, borderRadius:"50%", background:"radial-gradient(circle,rgba(37,99,235,0.1) 0%,transparent 70%)", pointerEvents:"none" }}/>
+                    <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:14, position:"relative" }}>
+                      <span style={{ fontSize:11, fontWeight:900, color:"#2563EB", background:"rgba(37,99,235,0.12)", border:"1px solid rgba(37,99,235,0.25)", borderRadius:999, width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{i+1}</span>
                       <div style={{ fontSize:15, fontWeight:800, color:"var(--z-text)" }}>{m.title}</div>
                     </div>
-                    <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.8, margin:"0 0 12px" }}>{m.move}</p>
-                    <div style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"7px 12px", borderRadius:9, background:"rgba(37,99,235,0.06)", border:"1px solid rgba(37,99,235,0.2)" }}>
+                    <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.8, margin:"0 0 12px", position:"relative" }}>{m.move}</p>
+                    <div style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"7px 12px", borderRadius:9, background:"rgba(37,99,235,0.08)", border:"1px solid rgba(37,99,235,0.22)" }}>
                       <svg viewBox="0 0 12 12" fill="none" stroke="#2563EB" strokeWidth="1.8" style={{ width:11, height:11 }}><circle cx="6" cy="6" r="4.5"/><path d="M6 4v2.5M6 7.5v.5"/></svg>
                       <span style={{ fontSize:11.5, fontWeight:700, color:"#2563EB" }}>{m.when}</span>
                     </div>
@@ -8231,17 +8281,35 @@ function ScreenExecPositioning() {
         <div className="zari-result-content" style={{ flex:1, overflowY:"auto", padding:"28px 32px 52px" }}>
             {tab === "overview" && (
               <div style={{ display:"grid", gap:18 }}>
-                <div style={{ borderRadius:14, background:"rgba(220,38,38,0.04)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #DC2626", padding:"22px 26px" }}>
-                  <div style={{ fontSize:10.5, fontWeight:800, color:"#DC2626", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Hard truth</div>
-                  <p style={{ fontSize:15, color:"var(--z-text)", lineHeight:1.8, margin:0 }}>{result.hardTruth}</p>
+                <div style={{ borderRadius:20, background:"linear-gradient(135deg,rgba(220,38,38,0.09) 0%,rgba(220,38,38,0.03) 100%)", border:"1px solid rgba(220,38,38,0.18)", padding:"26px 30px", position:"relative", overflow:"hidden" }}>
+                  <div style={{ position:"absolute", top:-20, right:-20, width:120, height:120, borderRadius:"50%", background:"radial-gradient(circle,rgba(220,38,38,0.13) 0%,transparent 70%)", pointerEvents:"none" }}/>
+                  <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, position:"relative" }}>
+                    <div style={{ width:28, height:28, borderRadius:"50%", background:"rgba(220,38,38,0.15)", border:"1px solid rgba(220,38,38,0.25)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                      <svg viewBox="0 0 14 14" fill="none" stroke="#DC2626" strokeWidth="1.8" style={{width:11,height:11}}><path d="M7 1L13 12H1L7 1z"/><path d="M7 5v2.5M7 9v.5" strokeLinecap="round"/></svg>
+                    </div>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"#DC2626", textTransform:"uppercase", letterSpacing:"0.12em" }}>The hard truth</div>
+                  </div>
+                  <p style={{ fontSize:15.5, color:"var(--z-text)", lineHeight:1.85, margin:0, fontWeight:500, position:"relative" }}>{result.hardTruth}</p>
                 </div>
-                <div style={{ borderRadius:14, background:"rgba(37,99,235,0.04)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #2563EB", padding:"22px 26px" }}>
-                  <div style={{ fontSize:10.5, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:14 }}>The executive narrative</div>
-                  <p style={{ fontSize:15.5, color:"var(--z-text)", lineHeight:1.9, margin:0, fontStyle:"italic" }}>{result.executiveNarrative}</p>
+                <div style={{ borderRadius:20, background:"linear-gradient(135deg,rgba(37,99,235,0.09) 0%,rgba(37,99,235,0.03) 100%)", border:"1px solid rgba(37,99,235,0.18)", padding:"26px 30px", position:"relative", overflow:"hidden" }}>
+                  <div style={{ position:"absolute", top:-24, right:-24, width:130, height:130, borderRadius:"50%", background:"radial-gradient(circle,rgba(37,99,235,0.12) 0%,transparent 70%)", pointerEvents:"none" }}/>
+                  <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16, position:"relative" }}>
+                    <div style={{ width:28, height:28, borderRadius:"50%", background:"rgba(37,99,235,0.12)", border:"1px solid rgba(37,99,235,0.22)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                      <svg viewBox="0 0 14 14" fill="none" stroke="#2563EB" strokeWidth="1.8" style={{width:11,height:11}}><path d="M3 5c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2M8 5c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2" strokeLinecap="round"/></svg>
+                    </div>
+                    <div style={{ fontSize:10.5, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.12em" }}>The executive narrative</div>
+                  </div>
+                  <p style={{ fontSize:15.5, color:"var(--z-text)", lineHeight:1.9, margin:0, fontStyle:"italic", position:"relative" }}>{result.executiveNarrative}</p>
                 </div>
                 <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))", gap:14 }}>
-                  <div style={{ borderRadius:14, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #059669", padding:"20px 24px" }}>
-                    <div style={{ fontSize:10.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:14 }}>Executive strengths</div>
+                  <div style={{ borderRadius:20, background:"linear-gradient(135deg,rgba(5,150,105,0.09) 0%,rgba(5,150,105,0.03) 100%)", border:"1px solid rgba(5,150,105,0.2)", padding:"22px 24px", position:"relative", overflow:"hidden" }}>
+                    <div style={{ position:"absolute", top:-16, right:-16, width:95, height:95, borderRadius:"50%", background:"radial-gradient(circle,rgba(5,150,105,0.12) 0%,transparent 70%)", pointerEvents:"none" }}/>
+                    <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:16, position:"relative" }}>
+                      <div style={{ width:26, height:26, borderRadius:"50%", background:"rgba(5,150,105,0.14)", border:"1px solid rgba(5,150,105,0.25)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                        <svg viewBox="0 0 12 12" fill="none" stroke="#059669" strokeWidth="2.3" style={{width:9,height:9}}><path d="M1.5 6l3 3 6-6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </div>
+                      <div style={{ fontSize:10.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.12em" }}>Executive strengths</div>
+                    </div>
                     <div style={{ display:"grid", gap:12 }}>
                       {result.strengths.map((rawS, i) => {
                         const s: ExecStrength = typeof rawS === "string"
@@ -8274,8 +8342,14 @@ function ScreenExecPositioning() {
                       })}
                     </div>
                   </div>
-                  <div style={{ borderRadius:14, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #D97706", padding:"20px 24px" }}>
-                    <div style={{ fontSize:10.5, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:14 }}>Watchouts</div>
+                  <div style={{ borderRadius:20, background:"linear-gradient(135deg,rgba(217,119,6,0.09) 0%,rgba(217,119,6,0.03) 100%)", border:"1px solid rgba(217,119,6,0.2)", padding:"22px 24px", position:"relative", overflow:"hidden" }}>
+                    <div style={{ position:"absolute", top:-16, right:-16, width:95, height:95, borderRadius:"50%", background:"radial-gradient(circle,rgba(217,119,6,0.12) 0%,transparent 70%)", pointerEvents:"none" }}/>
+                    <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:16, position:"relative" }}>
+                      <div style={{ width:26, height:26, borderRadius:"50%", background:"rgba(217,119,6,0.14)", border:"1px solid rgba(217,119,6,0.25)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                        <svg viewBox="0 0 14 14" fill="none" style={{width:11,height:11}}><path d="M7 1L13 12H1L7 1z" fill="rgba(217,119,6,0.15)" stroke="#D97706" strokeWidth="1.5" strokeLinejoin="round"/><path d="M7 4.5v2.5M7 8v.5" stroke="#D97706" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                      </div>
+                      <div style={{ fontSize:10.5, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.12em" }}>Watchouts</div>
+                    </div>
                     <div style={{ display:"grid", gap:12 }}>
                       {result.watchouts.map((rawW, i) => {
                         const w: ExecWatchout = typeof rawW === "string"
@@ -8317,8 +8391,9 @@ function ScreenExecPositioning() {
                   const gColor = g.severity === "critical" ? "#DC2626" : "#D97706";
                   const gBg = g.severity === "critical" ? "rgba(220,38,38,0.04)" : "rgba(217,119,6,0.04)";
                   return (
-                    <div key={i} style={{ borderRadius:14, background:gBg, border:"1px solid var(--z-bd)", borderLeft:`4px solid ${gColor}`, padding:"20px 24px" }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
+                    <div key={i} style={{ borderRadius:20, background:`linear-gradient(135deg,${gColor}12 0%,${gColor}05 100%)`, border:`1px solid ${gColor}30`, padding:"22px 26px", position:"relative", overflow:"hidden" }}>
+                      <div style={{ position:"absolute", top:-18, right:-18, width:100, height:100, borderRadius:"50%", background:`radial-gradient(circle,${gColor}18 0%,transparent 70%)`, pointerEvents:"none" }}/>
+                      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, position:"relative" }}>
                         <div style={{ fontSize:15, fontWeight:800, color:"var(--z-text)", flex:1 }}>{g.area}</div>
                         <span style={{ fontSize:11, fontWeight:800, color:gColor, background:`${gColor}15`, border:`1px solid ${gColor}40`, padding:"4px 12px", borderRadius:999, textTransform:"uppercase", letterSpacing:"0.07em" }}>{g.severity}</span>
                       </div>
@@ -8333,13 +8408,14 @@ function ScreenExecPositioning() {
             {tab === "moves" && (
               <div style={{ display:"grid", gap:14 }}>
                 {result.positioningMoves.map((m, i) => (
-                  <div key={i} style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #2563EB", padding:"22px 26px" }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:14 }}>
-                      <span style={{ fontSize:11, fontWeight:900, color:"#2563EB", background:"rgba(37,99,235,0.1)", border:"1px solid rgba(37,99,235,0.2)", borderRadius:999, width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{i+1}</span>
+                  <div key={i} style={{ borderRadius:20, background:"linear-gradient(135deg,rgba(37,99,235,0.08) 0%,rgba(37,99,235,0.02) 100%)", border:"1px solid rgba(37,99,235,0.18)", padding:"24px 28px", position:"relative", overflow:"hidden" }}>
+                    <div style={{ position:"absolute", top:-16, right:-16, width:90, height:90, borderRadius:"50%", background:"radial-gradient(circle,rgba(37,99,235,0.1) 0%,transparent 70%)", pointerEvents:"none" }}/>
+                    <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:14, position:"relative" }}>
+                      <span style={{ fontSize:11, fontWeight:900, color:"#2563EB", background:"rgba(37,99,235,0.12)", border:"1px solid rgba(37,99,235,0.25)", borderRadius:999, width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{i+1}</span>
                       <div style={{ fontSize:15, fontWeight:800, color:"var(--z-text)" }}>{m.title}</div>
                     </div>
-                    <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.8, margin:"0 0 14px" }}>{m.move}</p>
-                    <div style={{ display:"flex", gap:10, alignItems:"flex-start", padding:"12px 14px", borderRadius:10, background:"rgba(37,99,235,0.05)", border:"1px solid rgba(37,99,235,0.15)" }}>
+                    <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.8, margin:"0 0 14px", position:"relative" }}>{m.move}</p>
+                    <div style={{ display:"flex", gap:10, alignItems:"flex-start", padding:"12px 14px", borderRadius:10, background:"rgba(37,99,235,0.06)", border:"1px solid rgba(37,99,235,0.18)" }}>
                       <svg viewBox="0 0 12 12" fill="none" stroke="#2563EB" strokeWidth="1.8" style={{ width:12,height:12,flexShrink:0,marginTop:2 }}><path d="M6 1l1.5 3 3.5.5-2.5 2.5.5 3.5L6 9l-3 1.5.5-3.5L1 4.5 4.5 4z"/></svg>
                       <span style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.7 }}>{m.why}</span>
                     </div>
