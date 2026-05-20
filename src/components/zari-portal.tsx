@@ -4669,20 +4669,47 @@ function ScreenPromotionReadiness() {
             {resultTab === "overview" && (
               <div style={{ display:"grid", gap:16, paddingBottom:40 }}>
 
-                {/* Dimension breakdown — 2-column grid */}
+                {/* #1 Priority card */}
+                {result.gaps.length > 0 && (() => {
+                  const topGap = result.gaps[0];
+                  return (
+                    <div style={{ position:"relative", borderRadius:20, background:"linear-gradient(160deg,#071525 0%,#0b1e38 60%,#0f172a 100%)", border:"1px solid rgba(255,255,255,0.08)", padding:"22px 26px", overflow:"hidden" }}>
+                      <div style={{ position:"absolute", top:-40, right:-40, width:180, height:180, borderRadius:"50%", background:`radial-gradient(circle, ${scoreColor}22 0%, transparent 70%)`, pointerEvents:"none" }} />
+                      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, position:"relative" }}>
+                        <div style={{ width:28, height:28, borderRadius:9, background:`${scoreColor}22`, border:`1px solid ${scoreColor}40`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                          <svg viewBox="0 0 14 14" fill="none" stroke={scoreColor} strokeWidth="2" style={{width:10,height:10}}><path d="M7 1v6M4 4l3-3 3 3M2 10h10a1 1 0 010 2H2a1 1 0 010-2z"/></svg>
+                        </div>
+                        <div style={{ fontSize:10.5, fontWeight:800, color:scoreColor, textTransform:"uppercase", letterSpacing:"0.1em" }}>Your #1 blocker right now</div>
+                      </div>
+                      <div style={{ fontSize:16, fontWeight:900, color:"white", letterSpacing:"-0.02em", marginBottom:10, lineHeight:1.3, position:"relative" }}>{topGap.area}</div>
+                      <p style={{ fontSize:14, color:"rgba(255,255,255,0.7)", lineHeight:1.75, margin:"0 0 14px", position:"relative" }}>{topGap.why}</p>
+                      <div style={{ display:"flex", alignItems:"flex-start", gap:8, position:"relative" }}>
+                        <div style={{ width:20, height:20, borderRadius:6, background:`${scoreColor}20`, border:`1px solid ${scoreColor}35`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>
+                          <svg viewBox="0 0 12 12" fill="none" stroke={scoreColor} strokeWidth="2" style={{ width:8,height:8 }}><path d="M2 6l3 3 5-5"/></svg>
+                        </div>
+                        <p style={{ fontSize:13, color:"rgba(255,255,255,0.55)", lineHeight:1.65, margin:0 }}>{topGap.nextStep}</p>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Dimension breakdown — premium gradient cards */}
                 <div>
-                  <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>How each dimension scored</div>
-                  <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))", gap:10 }}>
+                  <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:12 }}>How each dimension scored</div>
+                  <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))", gap:12 }}>
                     {result.dimensions.map((item) => {
                       const color = dimColor(item.score);
+                      const hexAlpha = color + "12";
+                      const borderAlpha = color + "28";
                       return (
-                        <div key={item.label} style={{ borderRadius:14, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderTop:`3px solid ${color}`, padding:"16px 18px" }}>
-                          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginBottom:8 }}>
+                        <div key={item.label} style={{ position:"relative", borderRadius:16, background:`linear-gradient(135deg, ${color}10 0%, ${color}04 100%)`, border:`1px solid ${borderAlpha}`, padding:"18px 20px", overflow:"hidden" }}>
+                          <div style={{ position:"absolute", top:-24, right:-24, width:80, height:80, borderRadius:"50%", background:`radial-gradient(circle, ${color}16 0%, transparent 70%)`, pointerEvents:"none" }} />
+                          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginBottom:10, position:"relative" }}>
                             <div style={{ fontSize:12.5, fontWeight:800, color:"var(--z-text)", flex:1 }}>{item.label}</div>
-                            <div style={{ fontSize:22, fontWeight:900, color, letterSpacing:"-0.04em", lineHeight:1 }}>{item.score}</div>
+                            <div style={{ fontSize:26, fontWeight:900, color, letterSpacing:"-0.04em", lineHeight:1 }}>{item.score}</div>
                           </div>
                           <Bar pct={item.score} color={color} h={5} />
-                          <div style={{ fontSize:12, color:"var(--z-text2)", lineHeight:1.65, marginTop:9 }}>{item.reason}</div>
+                          <div style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.65, marginTop:10, position:"relative" }}>{item.reason}</div>
                         </div>
                       );
                     })}
@@ -4761,15 +4788,17 @@ function ScreenPromotionReadiness() {
                   </div>
                 )}
 
-                {/* Timeline estimate */}
-                <div style={{ borderRadius:12, background:"var(--z-card)", border:"1px solid var(--z-bd)", padding:"20px 24px", display:"flex", gap:24, alignItems:"center", flexWrap:"wrap" }}>
-                  <div style={{ flexShrink:0, textAlign:"center", minWidth:120 }}>
-                    <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Realistic window</div>
-                    <div style={{ fontSize:30, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.04em", lineHeight:1 }}>{timelineWindow}</div>
-                    <div style={{ fontSize:11.5, color:"var(--z-text3)", marginTop:5 }}>{gapCount} gap{gapCount !== 1 ? "s" : ""} to close</div>
+                {/* Timeline estimate — dark editorial */}
+                <div style={{ borderRadius:18, background:"linear-gradient(160deg,#071525 0%,#0b1e38 60%,#0f172a 100%)", border:"1px solid rgba(255,255,255,0.08)", padding:"22px 26px", display:"flex", gap:24, alignItems:"center", flexWrap:"wrap", position:"relative", overflow:"hidden" }}>
+                  <div style={{ position:"absolute", top:-40, right:-40, width:160, height:160, borderRadius:"50%", background:`radial-gradient(circle, ${scoreColor}20 0%, transparent 70%)`, pointerEvents:"none" }} />
+                  <div style={{ flexShrink:0, textAlign:"center", minWidth:120, position:"relative" }}>
+                    <div style={{ fontSize:9.5, fontWeight:800, color:"rgba(255,255,255,0.35)", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:8 }}>Realistic window</div>
+                    <div style={{ fontSize:32, fontWeight:900, color:scoreColor, letterSpacing:"-0.04em", lineHeight:1, filter:`drop-shadow(0 0 8px ${scoreColor}60)` }}>{timelineWindow}</div>
+                    <div style={{ fontSize:11.5, color:"rgba(255,255,255,0.35)", marginTop:6 }}>{gapCount} gap{gapCount !== 1 ? "s" : ""} to close</div>
                   </div>
-                  <div style={{ flex:1, minWidth:200, borderLeft:"2px solid var(--z-bd)", paddingLeft:24 }}>
-                    <div style={{ fontSize:14, color:"var(--z-text)", lineHeight:1.78, fontWeight:500 }}>{result.scoreReason}</div>
+                  <div style={{ flex:1, minWidth:200, borderLeft:"1px solid rgba(255,255,255,0.1)", paddingLeft:24, position:"relative" }}>
+                    <div style={{ fontSize:9, fontWeight:800, color:"rgba(255,255,255,0.3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Zari&apos;s assessment</div>
+                    <div style={{ fontSize:14, color:"rgba(255,255,255,0.8)", lineHeight:1.78, fontWeight:500 }}>{result.scoreReason}</div>
                   </div>
                 </div>
 
@@ -4802,23 +4831,30 @@ function ScreenPromotionReadiness() {
             {resultTab === "gaps" && (
               <div style={{ display:"grid", gap:14, paddingBottom:40 }}>
                 <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.8, margin:"0 0 4px" }}>What makes the case harder to approve. Close them in order — start with the weakest signal.</p>
-                {result.gaps.map((item, index) => (
-                  <div key={item.area} style={{ borderRadius:20, background:"var(--z-card)", border:"1px solid var(--z-bd)", boxShadow:"0 4px 28px rgba(0,0,0,0.09)", overflow:"hidden" }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:14, padding:"18px 22px 14px", background:"var(--z-raise)", borderBottom:"1px solid var(--z-bd)" }}>
-                      <div style={{ width:36, height:36, borderRadius:10, background:"var(--z-card)", border:"1px solid var(--z-bd)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                        <span style={{ fontSize:15, fontWeight:900, color:"var(--z-text2)" }}>{index + 1}</span>
+                {result.gaps.map((item, index) => {
+                  const gapColors = ["#EF4444","#F59E0B","#8B5CF6","#3B82F6","#10B981"];
+                  const gc = gapColors[index % gapColors.length];
+                  return (
+                  <div key={item.area} style={{ position:"relative", borderRadius:20, background:`linear-gradient(135deg, ${gc}10 0%, ${gc}04 100%)`, border:`1px solid ${gc}28`, overflow:"hidden" }}>
+                    <div style={{ position:"absolute", top:-28, right:-28, width:120, height:120, borderRadius:"50%", background:`radial-gradient(circle, ${gc}16 0%, transparent 70%)`, pointerEvents:"none" }} />
+                    <div style={{ display:"flex", alignItems:"center", gap:14, padding:"18px 22px 14px", borderBottom:`1px solid ${gc}18`, position:"relative" }}>
+                      <div style={{ width:36, height:36, borderRadius:11, background:`${gc}16`, border:`1px solid ${gc}28`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                        <span style={{ fontSize:15, fontWeight:900, color:gc }}>{index + 1}</span>
                       </div>
                       <div style={{ fontSize:15, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.01em" }}>{item.area}</div>
                     </div>
-                    <div style={{ padding:"14px 22px 18px" }}>
+                    <div style={{ padding:"14px 22px 18px", position:"relative" }}>
                       <p style={{ fontSize:13.8, color:"var(--z-text2)", lineHeight:1.78, margin:"0 0 14px" }}>{item.why}</p>
-                      <div style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.72, padding:"14px 16px", borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)", display:"flex", gap:12, alignItems:"flex-start" }}>
-                        <svg viewBox="0 0 16 16" fill="none" stroke="var(--z-text3)" strokeWidth="2" style={{width:14,height:14,flexShrink:0,marginTop:3}}><path d="M3 8l3.5 3.5L13 4.5"/></svg>
-                        <span><strong style={{ color:"var(--z-text)" }}>Next step:</strong> {item.nextStep}</span>
+                      <div style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.72, padding:"14px 16px", borderRadius:12, background:`${gc}08`, border:`1px solid ${gc}18`, display:"flex", gap:12, alignItems:"flex-start" }}>
+                        <div style={{ width:18, height:18, borderRadius:5, background:`${gc}18`, border:`1px solid ${gc}28`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:2 }}>
+                          <svg viewBox="0 0 12 12" fill="none" stroke={gc} strokeWidth="2.2" style={{width:8,height:8}}><path d="M2 6l3 3 5-5"/></svg>
+                        </div>
+                        <span><strong style={{ color:gc }}>Next step:</strong> {item.nextStep}</span>
                       </div>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
                 <div style={{ borderRadius:20, background:"linear-gradient(135deg,rgba(217,119,6,0.09) 0%,rgba(217,119,6,0.03) 100%)", border:"1px solid rgba(217,119,6,0.2)", boxShadow:"0 4px 24px rgba(217,119,6,0.08)", padding:"22px 24px", position:"relative", overflow:"hidden" }}>
                   <div style={{ position:"absolute", top:-18, right:-18, width:100, height:100, borderRadius:"50%", background:"radial-gradient(circle,rgba(217,119,6,0.12) 0%,transparent 70%)", pointerEvents:"none" }}/>
                   <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:16, position:"relative" }}>
@@ -4846,20 +4882,26 @@ function ScreenPromotionReadiness() {
 
             {resultTab === "plan" && (
               <div style={{ display:"grid", gap:12, paddingBottom:40 }}>
-                {result.actionPlan.map((item, index) => (
-                  <div key={item.label} style={{ borderRadius:18, background:"var(--z-raise)", border:"1px solid var(--z-bd)", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", overflow:"hidden", display:"flex" }}>
-                    <div style={{ width:58, flexShrink:0, background:"var(--z-raise)", borderRight:"1px solid var(--z-bd)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                      <span style={{ fontSize:22, fontWeight:900, color:"var(--z-text3)" }}>{index + 1}</span>
+                <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.8, margin:"0 0 4px" }}>Your action plan in priority order. Each item is sequenced to build on the last — don&apos;t skip ahead.</p>
+                {result.actionPlan.map((item, index) => {
+                  const stepColors = ["#EF4444","#F59E0B","#10B981","#2563EB","#8B5CF6","#D97706"];
+                  const sc2 = stepColors[index % stepColors.length];
+                  return (
+                  <div key={item.label} style={{ position:"relative", borderRadius:18, background:`linear-gradient(135deg, ${sc2}09 0%, ${sc2}03 100%)`, border:`1px solid ${sc2}22`, overflow:"hidden", display:"flex" }}>
+                    <div style={{ position:"absolute", top:-20, right:-20, width:90, height:90, borderRadius:"50%", background:`radial-gradient(circle, ${sc2}14 0%, transparent 70%)`, pointerEvents:"none" }} />
+                    <div style={{ width:58, flexShrink:0, background:`${sc2}08`, borderRight:`1px solid ${sc2}18`, display:"flex", alignItems:"center", justifyContent:"center", position:"relative", zIndex:1 }}>
+                      <span style={{ fontSize:22, fontWeight:900, color:sc2 }}>{index + 1}</span>
                     </div>
-                    <div style={{ padding:"18px 20px", flex:1 }}>
-                      <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>{item.label}</div>
+                    <div style={{ padding:"18px 20px", flex:1, position:"relative", zIndex:1 }}>
+                      <div style={{ fontSize:10.5, fontWeight:800, color:sc2, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:5 }}>{item.label}</div>
                       <div style={{ fontSize:14.5, color:"var(--z-text)", lineHeight:1.72, marginBottom:item.action && result.nextMoves[index] ? 9 : 0 }}>{item.action}</div>
                       {result.nextMoves[index] && (
                         <div style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.65 }}>{result.nextMoves[index]}</div>
                       )}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
@@ -5498,6 +5540,69 @@ function ScreenSalaryCompensation() {
         <div className="zari-result-content" style={{ flex:1, overflowY:"auto", padding:"28px 32px 52px" }}>
             {tab === "overview" && (
               <div style={{ display:"grid", gap:18 }}>
+
+                {/* Market position spectrum */}
+                {(() => {
+                  const pos = result.marketPosition;
+                  const posMap: Record<string, { idx: number; color: string; label: string; desc: string }> = {
+                    below: { idx:0, color:"#EF4444", label:"Below Market", desc:"You have real room to negotiate up — the market pays more for this role." },
+                    at:    { idx:1, color:"#F59E0B", label:"At Market",    desc:"You're competitive. A well-anchored ask can move you into above-market territory." },
+                    above: { idx:2, color:"#10B981", label:"Above Market", desc:"You're ahead of market rate. Protect your package in any transition." },
+                  };
+                  const cur = posMap[pos] ?? posMap.at;
+                  const segments = [
+                    { label:"Below", color:"#EF4444" },
+                    { label:"At",    color:"#F59E0B" },
+                    { label:"Above", color:"#10B981" },
+                  ];
+                  return (
+                    <div style={{ position:"relative", borderRadius:20, background:"linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)", border:"1px solid var(--z-bd)", padding:"22px 26px", overflow:"hidden" }}>
+                      <div style={{ position:"absolute", top:-30, right:-30, width:120, height:120, borderRadius:"50%", background:`radial-gradient(circle, ${cur.color}18 0%, transparent 70%)`, pointerEvents:"none" }} />
+                      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
+                        <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em" }}>Your market position</div>
+                        <span style={{ fontSize:11, fontWeight:800, color:cur.color, background:`${cur.color}12`, border:`1px solid ${cur.color}30`, padding:"4px 12px", borderRadius:99, textTransform:"uppercase", letterSpacing:"0.08em" }}>{cur.label}</span>
+                      </div>
+                      {/* Track */}
+                      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:3, marginBottom:12 }}>
+                        {segments.map((seg, si) => (
+                          <div key={seg.label} style={{ position:"relative" }}>
+                            <div style={{ height:10, borderRadius:si===0?"8px 0 0 8px":si===2?"0 8px 8px 0":"0", background:si <= cur.idx ? seg.color : "var(--z-bd)", opacity:si < cur.idx ? 0.4 : 1, transition:"all 0.3s" }} />
+                            {si === cur.idx && (
+                              <div style={{ position:"absolute", top:-5, left:"50%", transform:"translateX(-50%)", width:20, height:20, borderRadius:"50%", background:cur.color, border:"3px solid var(--z-raise)", boxShadow:`0 0 10px ${cur.color}80`, zIndex:2 }} />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:3, marginBottom:14 }}>
+                        {segments.map((seg, si) => (
+                          <div key={seg.label} style={{ fontSize:10, fontWeight:700, color:si===cur.idx ? cur.color : "var(--z-text3)", textAlign:"center", letterSpacing:"0.04em" }}>{seg.label}</div>
+                        ))}
+                      </div>
+                      <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.7, margin:0 }}>{cur.desc}</p>
+                    </div>
+                  );
+                })()}
+
+                {/* #1 Priority card */}
+                {result.negotiationMoves.length > 0 && (() => {
+                  const top = typeof result.negotiationMoves[0] === "object" ? result.negotiationMoves[0] : null;
+                  if (!top) return null;
+                  return (
+                    <div style={{ position:"relative", borderRadius:20, background:"linear-gradient(160deg,#071525 0%,#0b1e38 60%,#0f172a 100%)", border:"1px solid rgba(255,255,255,0.08)", padding:"22px 26px", overflow:"hidden" }}>
+                      <div style={{ position:"absolute", top:-40, right:-40, width:180, height:180, borderRadius:"50%", background:`radial-gradient(circle, ${scoreColor}20 0%, transparent 70%)`, pointerEvents:"none" }} />
+                      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, position:"relative" }}>
+                        <div style={{ width:28, height:28, borderRadius:9, background:`${scoreColor}20`, border:`1px solid ${scoreColor}35`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                          <svg viewBox="0 0 14 14" fill="none" stroke={scoreColor} strokeWidth="2" style={{width:10,height:10}}><circle cx="7" cy="7" r="5.5"/><path d="M7 4v3l2 1.5"/></svg>
+                        </div>
+                        <div style={{ fontSize:10.5, fontWeight:800, color:scoreColor, textTransform:"uppercase", letterSpacing:"0.1em" }}>Your #1 move right now</div>
+                      </div>
+                      <div style={{ fontSize:16, fontWeight:900, color:"white", letterSpacing:"-0.02em", marginBottom:10, lineHeight:1.3, position:"relative" }}>{top.title}</div>
+                      <p style={{ fontSize:14, color:"rgba(255,255,255,0.7)", lineHeight:1.75, margin:"0 0 12px", position:"relative" }}>{top.move}</p>
+                      <div style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.35)", textTransform:"uppercase", letterSpacing:"0.08em", position:"relative" }}>When: {top.when}</div>
+                    </div>
+                  );
+                })()}
+
                 <div style={{ borderRadius:20, background:"linear-gradient(135deg,rgba(220,38,38,0.09) 0%,rgba(220,38,38,0.03) 100%)", border:"1px solid rgba(220,38,38,0.18)", padding:"26px 30px", position:"relative", overflow:"hidden" }}>
                   <div style={{ position:"absolute", top:-20, right:-20, width:120, height:120, borderRadius:"50%", background:"radial-gradient(circle,rgba(220,38,38,0.13) 0%,transparent 70%)", pointerEvents:"none" }}/>
                   <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, position:"relative" }}>
@@ -5510,9 +5615,10 @@ function ScreenSalaryCompensation() {
                 </div>
                 <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))", gap:14 }}>
                   {result.benchmarks.map((b, i) => (
-                    <div key={i} style={{ borderRadius:14, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderTop:`3px solid #2563EB`, padding:"20px 22px" }}>
-                      <div style={{ fontSize:10.5, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>{b.label}</div>
-                      <div style={{ fontSize:22, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", marginBottom:6 }}>{b.value}</div>
+                    <div key={i} style={{ position:"relative", borderRadius:16, background:"linear-gradient(135deg, rgba(37,99,235,0.09) 0%, rgba(37,99,235,0.03) 100%)", border:"1px solid rgba(37,99,235,0.18)", padding:"20px 22px", overflow:"hidden" }}>
+                      <div style={{ position:"absolute", top:-20, right:-20, width:70, height:70, borderRadius:"50%", background:"radial-gradient(circle, rgba(37,99,235,0.12) 0%, transparent 70%)", pointerEvents:"none" }} />
+                      <div style={{ fontSize:10.5, fontWeight:700, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>{b.label}</div>
+                      <div style={{ fontSize:24, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.03em", marginBottom:6 }}>{b.value}</div>
                       <div style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.65 }}>{b.context}</div>
                     </div>
                   ))}
@@ -5569,18 +5675,21 @@ function ScreenSalaryCompensation() {
                     ? { title: `Leverage Point ${i+1}`, explanation: rawPt as unknown as string, tactic: "Use this in your next negotiation conversation to anchor higher." }
                     : rawPt as LeveragePoint;
                   return (
-                  <div key={i} style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #059669", overflow:"hidden", boxShadow:"0 2px 16px rgba(0,0,0,0.06)" }}>
-                    <div style={{ padding:"20px 24px 16px", background:"rgba(5,150,105,0.03)" }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:10 }}>
-                        <span style={{ fontSize:10, fontWeight:900, color:"#059669", background:"rgba(5,150,105,0.12)", border:"1px solid rgba(5,150,105,0.25)", borderRadius:999, width:24, height:24, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{i+1}</span>
-                        <span style={{ fontSize:15, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.02em" }}>{pt.title}</span>
-                        <span style={{ fontSize:9.5, fontWeight:700, color:"#059669", background:"rgba(5,150,105,0.1)", border:"1px solid rgba(5,150,105,0.2)", padding:"2px 8px", borderRadius:99, textTransform:"uppercase", letterSpacing:"0.06em", marginLeft:"auto", flexShrink:0 }}>Leverage</span>
+                  <div key={i} style={{ position:"relative", borderRadius:20, background:"linear-gradient(135deg, rgba(5,150,105,0.09) 0%, rgba(5,150,105,0.03) 100%)", border:"1px solid rgba(5,150,105,0.2)", overflow:"hidden" }}>
+                    <div style={{ position:"absolute", top:-32, right:-32, width:130, height:130, borderRadius:"50%", background:"radial-gradient(circle, rgba(5,150,105,0.12) 0%, transparent 70%)", pointerEvents:"none" }} />
+                    <div style={{ padding:"20px 24px 16px", position:"relative" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:12 }}>
+                        <div style={{ width:28, height:28, borderRadius:9, background:"rgba(5,150,105,0.14)", border:"1px solid rgba(5,150,105,0.28)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                          <span style={{ fontSize:11, fontWeight:900, color:"#059669" }}>{i+1}</span>
+                        </div>
+                        <span style={{ fontSize:15, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.02em", flex:1 }}>{pt.title}</span>
+                        <span style={{ fontSize:9.5, fontWeight:700, color:"#059669", background:"rgba(5,150,105,0.1)", border:"1px solid rgba(5,150,105,0.2)", padding:"3px 9px", borderRadius:99, textTransform:"uppercase", letterSpacing:"0.06em", flexShrink:0 }}>Leverage</span>
                       </div>
-                      <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.75, margin:0 }}>{pt.explanation}</p>
+                      <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.78, margin:0 }}>{pt.explanation}</p>
                     </div>
-                    <div style={{ padding:"14px 24px 18px", borderTop:"1px solid var(--z-bd)", background:"var(--z-raise)" }}>
+                    <div style={{ padding:"14px 24px 18px", borderTop:"1px solid rgba(5,150,105,0.12)", background:"rgba(5,150,105,0.03)" }}>
                       <div style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
-                        <div style={{ flexShrink:0, width:20, height:20, borderRadius:6, background:"rgba(37,99,235,0.1)", border:"1px solid rgba(37,99,235,0.2)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
+                        <div style={{ flexShrink:0, width:22, height:22, borderRadius:7, background:"rgba(37,99,235,0.12)", border:"1px solid rgba(37,99,235,0.22)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
                           <svg viewBox="0 0 12 12" fill="none" stroke="#2563EB" strokeWidth="2" style={{ width:9,height:9 }}><path d="M2 6l3 3 5-5"/></svg>
                         </div>
                         <div>
@@ -5613,13 +5722,22 @@ function ScreenSalaryCompensation() {
               </div>
             )}
             {tab === "script" && (
-              <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
-                <div style={{ padding:"16px 26px", borderBottom:"1px solid var(--z-bd)", background:"var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-                  <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em" }}>Counter script</div>
-                  <button onClick={() => { navigator.clipboard.writeText(result.counterScript).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }).catch(() => {}); }} style={{ fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:10, border:"1px solid var(--z-bd)", background:copied ? "rgba(37,99,235,0.08)" : "var(--z-card)", color:copied ? "#2563EB" : "var(--z-text2)", cursor:"pointer", transition:"all 0.2s" }}>{copied ? "Copied ✓" : "Copy"}</button>
-                </div>
-                <div style={{ padding:"26px 28px" }}>
-                  <pre style={{ fontFamily:"inherit", fontSize:14, color:"var(--z-text)", lineHeight:1.9, whiteSpace:"pre-wrap", margin:0 }}>{result.counterScript}</pre>
+              <div style={{ display:"grid", gap:16, paddingBottom:40 }}>
+                <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.8, margin:"0 0 4px" }}>Your counter script — say this out loud before you use it. Confidence comes from rehearsal, not improvisation.</p>
+                <div style={{ position:"relative", borderRadius:20, background:"linear-gradient(160deg,#071525 0%,#0b1e38 60%,#0f172a 100%)", border:"1px solid rgba(255,255,255,0.08)", overflow:"hidden" }}>
+                  <div style={{ position:"absolute", top:-40, right:-40, width:180, height:180, borderRadius:"50%", background:`radial-gradient(circle, ${scoreColor}20 0%, transparent 70%)`, pointerEvents:"none" }} />
+                  <div style={{ padding:"18px 26px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", borderBottom:"1px solid rgba(255,255,255,0.07)", position:"relative" }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                      <div style={{ width:28, height:28, borderRadius:9, background:"rgba(16,185,129,0.14)", border:"1px solid rgba(16,185,129,0.28)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                        <svg viewBox="0 0 14 14" fill="none" stroke="#10B981" strokeWidth="2" style={{width:10,height:10}}><path d="M3 4h8M3 7h6M3 10h4"/></svg>
+                      </div>
+                      <div style={{ fontSize:10.5, fontWeight:800, color:"rgba(255,255,255,0.5)", textTransform:"uppercase", letterSpacing:"0.1em" }}>Counter script — ready to say</div>
+                    </div>
+                    <button onClick={() => { navigator.clipboard.writeText(result.counterScript).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }).catch(() => {}); }} style={{ fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:10, border:`1px solid ${copied?"rgba(16,185,129,0.4)":"rgba(255,255,255,0.12)"}`, background:copied ? "rgba(16,185,129,0.14)" : "rgba(255,255,255,0.06)", color:copied ? "#10B981" : "rgba(255,255,255,0.5)", cursor:"pointer", transition:"all 0.2s" }}>{copied ? "Copied ✓" : "Copy"}</button>
+                  </div>
+                  <div style={{ padding:"26px 28px", position:"relative" }}>
+                    <pre style={{ fontFamily:"inherit", fontSize:14, color:"rgba(255,255,255,0.82)", lineHeight:1.9, whiteSpace:"pre-wrap", margin:0 }}>{result.counterScript}</pre>
+                  </div>
                 </div>
               </div>
             )}
@@ -8434,6 +8552,27 @@ function ScreenExecPositioning() {
         <div className="zari-result-content" style={{ flex:1, overflowY:"auto", padding:"28px 32px 52px" }}>
             {tab === "overview" && (
               <div style={{ display:"grid", gap:18 }}>
+
+                {/* #1 Priority card */}
+                {result.presenceGaps.length > 0 && (() => {
+                  const critical = result.presenceGaps.find(g => g.severity === "critical") ?? result.presenceGaps[0];
+                  const execScoreColor = result.execScore >= 75 ? "#10B981" : result.execScore >= 55 ? "#D97706" : "#EF4444";
+                  return (
+                    <div style={{ position:"relative", borderRadius:20, background:"linear-gradient(160deg,#071525 0%,#0b1e38 60%,#0f172a 100%)", border:"1px solid rgba(255,255,255,0.08)", padding:"22px 26px", overflow:"hidden" }}>
+                      <div style={{ position:"absolute", top:-40, right:-40, width:180, height:180, borderRadius:"50%", background:`radial-gradient(circle, ${execScoreColor}20 0%, transparent 70%)`, pointerEvents:"none" }} />
+                      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, position:"relative" }}>
+                        <div style={{ width:28, height:28, borderRadius:9, background:"rgba(214,119,6,0.18)", border:"1px solid rgba(214,119,6,0.3)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                          <svg viewBox="0 0 14 14" fill="none" stroke="#D97706" strokeWidth="2" style={{width:10,height:10}}><circle cx="7" cy="7" r="5.5"/><path d="M7 4v3l2 1.5"/></svg>
+                        </div>
+                        <div style={{ fontSize:10.5, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.1em" }}>Your #1 gap to close</div>
+                        {critical.severity === "critical" && <span style={{ fontSize:9, fontWeight:800, color:"#EF4444", background:"rgba(239,68,68,0.12)", border:"1px solid rgba(239,68,68,0.25)", padding:"2px 8px", borderRadius:99, textTransform:"uppercase", letterSpacing:"0.08em" }}>Critical</span>}
+                      </div>
+                      <div style={{ fontSize:16, fontWeight:900, color:"white", letterSpacing:"-0.02em", marginBottom:10, lineHeight:1.3, position:"relative" }}>{critical.area}</div>
+                      <p style={{ fontSize:14, color:"rgba(255,255,255,0.65)", lineHeight:1.75, margin:0, position:"relative" }}>{critical.action}</p>
+                    </div>
+                  );
+                })()}
+
                 <div style={{ borderRadius:20, background:"linear-gradient(135deg,rgba(220,38,38,0.09) 0%,rgba(220,38,38,0.03) 100%)", border:"1px solid rgba(220,38,38,0.18)", padding:"26px 30px", position:"relative", overflow:"hidden" }}>
                   <div style={{ position:"absolute", top:-20, right:-20, width:120, height:120, borderRadius:"50%", background:"radial-gradient(circle,rgba(220,38,38,0.13) 0%,transparent 70%)", pointerEvents:"none" }}/>
                   <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, position:"relative" }}>
@@ -8577,13 +8716,22 @@ function ScreenExecPositioning() {
               </div>
             )}
             {tab === "bio" && (
-              <div style={{ borderRadius:16, background:"var(--z-card)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
-                <div style={{ padding:"16px 26px", borderBottom:"1px solid var(--z-bd)", background:"var(--z-raise)", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-                  <div style={{ fontSize:10.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em" }}>Board bio draft</div>
-                  <button onClick={() => { navigator.clipboard.writeText(result.boardBio).then(() => { setBioCopied(true); setTimeout(() => setBioCopied(false), 2000); }).catch(() => {}); }} style={{ fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:10, border:"1px solid var(--z-bd)", background:bioCopied ? "rgba(37,99,235,0.08)" : "var(--z-card)", color:bioCopied ? "#2563EB" : "var(--z-text2)", cursor:"pointer", transition:"all 0.2s" }}>{bioCopied ? "Copied ✓" : "Copy"}</button>
-                </div>
-                <div style={{ padding:"28px 30px" }}>
-                  <p style={{ fontSize:15, color:"var(--z-text)", lineHeight:1.9, margin:0 }}>{result.boardBio}</p>
+              <div style={{ display:"grid", gap:16, paddingBottom:40 }}>
+                <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.8, margin:"0 0 4px" }}>Your board bio — written to open doors with C-suite sponsors and search firms. Personalise the brackets before you use it.</p>
+                <div style={{ position:"relative", borderRadius:20, background:"linear-gradient(160deg,#071525 0%,#0b1e38 60%,#0f172a 100%)", border:"1px solid rgba(255,255,255,0.08)", overflow:"hidden" }}>
+                  <div style={{ position:"absolute", top:-40, right:-40, width:180, height:180, borderRadius:"50%", background:"radial-gradient(circle, rgba(214,119,6,0.18) 0%, transparent 70%)", pointerEvents:"none" }} />
+                  <div style={{ padding:"18px 26px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", borderBottom:"1px solid rgba(255,255,255,0.07)", position:"relative" }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                      <div style={{ width:28, height:28, borderRadius:9, background:"rgba(214,119,6,0.14)", border:"1px solid rgba(214,119,6,0.28)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                        <svg viewBox="0 0 14 14" fill="none" stroke="#D97706" strokeWidth="2" style={{width:10,height:10}}><path d="M7 2a3 3 0 100 6A3 3 0 007 2zM2 12s0-3 5-3 5 3 5 3"/></svg>
+                      </div>
+                      <div style={{ fontSize:10.5, fontWeight:800, color:"rgba(255,255,255,0.5)", textTransform:"uppercase", letterSpacing:"0.1em" }}>Board bio — conference & search firm ready</div>
+                    </div>
+                    <button onClick={() => { navigator.clipboard.writeText(result.boardBio).then(() => { setBioCopied(true); setTimeout(() => setBioCopied(false), 2000); }).catch(() => {}); }} style={{ fontSize:12, fontWeight:700, padding:"7px 16px", borderRadius:10, border:`1px solid ${bioCopied?"rgba(214,119,6,0.4)":"rgba(255,255,255,0.12)"}`, background:bioCopied ? "rgba(214,119,6,0.12)" : "rgba(255,255,255,0.06)", color:bioCopied ? "#D97706" : "rgba(255,255,255,0.5)", cursor:"pointer", transition:"all 0.2s" }}>{bioCopied ? "Copied ✓" : "Copy"}</button>
+                  </div>
+                  <div style={{ padding:"28px 30px", position:"relative" }}>
+                    <p style={{ fontSize:15, color:"rgba(255,255,255,0.82)", lineHeight:1.9, margin:0 }}>{result.boardBio}</p>
+                  </div>
                 </div>
               </div>
             )}
