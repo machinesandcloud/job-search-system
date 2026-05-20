@@ -29,8 +29,9 @@ export async function GET(request: Request) {
   const monthIndex = now.getMonth(); // 0–11
   const monthLabel = now.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 
-  // All users
+  // Member-role users only (excludes admin and support accounts)
   const users = await prisma.user.findMany({
+    where: { role: "member" },
     select: { email: true, firstName: true },
   }) as { email: string; firstName: string | null }[];
 

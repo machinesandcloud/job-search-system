@@ -99,10 +99,18 @@ export async function setCurrentUserSessionOnResponse(response: NextResponse, us
 
 const ACTIVATION_TTL = 120; // seconds — one-time token for cross-domain session handoff
 
+function getActivationSecret() {
+  const secret = process.env.APP_SECRET;
+  if (!secret && process.env.NODE_ENV === "production") {
+    throw new Error("APP_SECRET environment variable is required in production");
+  }
+  return (secret || "local-dev-secret").trim();
+}
+
 export function createActivationToken(userId: string): string {
   const exp = Math.floor(Date.now() / 1000) + ACTIVATION_TTL;
   const payload = Buffer.from(JSON.stringify({ userId, exp })).toString("base64url");
-  const secret = (process.env.APP_SECRET || "local-dev-secret").trim();
+  const secret = getActivationSecret();
   const sig = crypto.createHmac("sha256", secret).update(payload).digest("base64url");
   return `${payload}.${sig}`;
 }
@@ -113,7 +121,7 @@ export function verifyActivationToken(token: string): string | null {
     if (dotIdx === -1) return null;
     const payload = token.slice(0, dotIdx);
     const sig = token.slice(dotIdx + 1);
-    const secret = (process.env.APP_SECRET || "local-dev-secret").trim();
+    const secret = getActivationSecret();
     const expected = crypto.createHmac("sha256", secret).update(payload).digest("base64url");
     if (sig !== expected) return null;
     const parsed = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as { userId?: string; exp?: number };

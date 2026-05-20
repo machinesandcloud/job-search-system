@@ -145,11 +145,11 @@ function makeTemplates(meta: Meta, unsubUrl: string, npsUrl: string): Record<Zar
       t("Get a free month. Record a 2-minute video about Zari.", React.createElement(TestimonialAsk, { firstName, testimonialUrl, unsubscribeUrl: unsubUrl })),
     ],
     annual_upsell: [
-      t(`Switch to annual and save $${(39 - 32) * 12}. You've been on Zari 3 months.`, React.createElement(AnnualUpsell, {
+      t(`Switch to annual and save $${(39 - 33.25) * 12}. You've been on Zari 3 months.`, React.createElement(AnnualUpsell, {
         firstName,
         planName,
         monthlyPrice: 39,
-        annualMonthlyPrice: 32,
+        annualMonthlyPrice: 33.25,
         annualUrl,
         unsubscribeUrl: unsubUrl,
       })),

@@ -69,10 +69,14 @@ const PREVIEWS: Record<string, () => React.ReactElement> = {
   // Growth
   "referral":           () => React.createElement(ReferralAsk, { firstName: "Alex", referralUrl: `${APP}/signup?ref=alex`, unsubscribeUrl: UNSUB }),
   "testimonial":        () => React.createElement(TestimonialAsk, { firstName: "Alex", testimonialUrl: `${APP}/video-review`, unsubscribeUrl: UNSUB }),
-  "annual_upsell":      () => React.createElement(AnnualUpsell, { firstName: "Alex", planName: "Search", monthlyPrice: 39, annualMonthlyPrice: 32, annualUrl: `${APP}/settings/subscription?plan=annual`, unsubscribeUrl: UNSUB }),
+  "annual_upsell":      () => React.createElement(AnnualUpsell, { firstName: "Alex", planName: "Search", monthlyPrice: 39, annualMonthlyPrice: 33.25, annualUrl: `${APP}/settings/subscription?plan=annual`, unsubscribeUrl: UNSUB }),
 };
 
 export async function GET(req: NextRequest) {
+  if (process.env.NODE_ENV !== "development") {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
   const id = req.nextUrl.searchParams.get("id");
 
   if (!id) {

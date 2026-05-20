@@ -2,11 +2,18 @@ import { NextResponse } from "next/server";
 import { prisma, isDatabaseReady } from "@/lib/db";
 import { groqChatText } from "@/lib/llm";
 import { ensureSameOrigin } from "@/lib/utils";
+import { getCurrentUserId } from "@/lib/mvp/auth";
 
 export async function POST(request: Request) {
   if (!ensureSameOrigin(request)) {
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
   }
+
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   if (!isDatabaseReady()) {
     return NextResponse.json({ error: "Database not configured" }, { status: 500 });
   }

@@ -44,10 +44,10 @@ export async function POST(request: NextRequest) {
     // Find user's subscription to grant a free month
     const user = await prisma.user.findUnique({
       where: { id: review.userId },
-      select: { email: true, firstName: true, accounts: { select: { subscription: { select: { stripeCustomerId: true, stripeSubscriptionId: true, currentPeriodEnd: true } } } } },
+      select: { email: true, firstName: true, ownedAccounts: { select: { subscription: { select: { stripeCustomerId: true, stripeSubscriptionId: true, currentPeriodEnd: true } } } } },
     });
 
-    const subscription = user?.accounts?.[0]?.subscription;
+    const subscription = user?.ownedAccounts?.[0]?.subscription;
 
     if (subscription?.stripeSubscriptionId) {
       const stripe = getStripeClient();

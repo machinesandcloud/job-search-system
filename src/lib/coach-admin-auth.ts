@@ -13,7 +13,11 @@ import {
 const COOKIE_NAME = "coach_admin_session";
 
 function getSecret() {
-  return process.env.APP_SECRET || "local-dev-secret";
+  const secret = process.env.APP_SECRET;
+  if (!secret && process.env.NODE_ENV === "production") {
+    throw new Error("APP_SECRET environment variable is required in production");
+  }
+  return secret || "local-dev-secret";
 }
 
 function roleWeight(role: CoachAdminRole) {
@@ -26,6 +30,7 @@ function isTruthy(value: string | undefined) {
 }
 
 export function getCoachAdminBetaAutoLoginConfig() {
+  if (process.env.NODE_ENV === "production") return null;
   const raw = (process.env.COACH_ADMIN_BETA_AUTO_LOGIN || "").trim();
   if (!raw) return null;
 
@@ -46,7 +51,11 @@ export function getCoachAdminBetaAutoLoginConfig() {
 
 export function verifyCoachAdminPassword(password: string) {
   const expected = process.env.COACH_ADMIN_PASSWORD || "";
-  return Boolean(expected) && password === expected;
+  if (!expected) return false;
+  const a = Buffer.from(password);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length) return false;
+  return crypto.timingSafeEqual(a, b);
 }
 
 function signSession(payload: Record<string, unknown>) {

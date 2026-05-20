@@ -32,7 +32,9 @@ export function getClientIp(request: Request) {
 export function ensureSameOrigin(request: Request) {
   const origin = request.headers.get("origin");
   const host = request.headers.get("host");
-  if (!origin || !host) return true;
+  const isSafeMethod = request.method === "GET" || request.method === "HEAD" || request.method === "OPTIONS";
+  if (!origin) return isSafeMethod;
+  if (!host) return false;
   try {
     const originUrl = new URL(origin);
     return originUrl.host === host;

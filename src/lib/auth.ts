@@ -4,7 +4,11 @@ import { cookies } from "next/headers";
 const COOKIE_NAME = "admin_session";
 
 function getSecret() {
-  return process.env.APP_SECRET || "local-dev-secret";
+  const secret = process.env.APP_SECRET;
+  if (!secret && process.env.NODE_ENV === "production") {
+    throw new Error("APP_SECRET environment variable is required in production");
+  }
+  return secret || "local-dev-secret";
 }
 
 export function signSession(payload: Record<string, any>) {
