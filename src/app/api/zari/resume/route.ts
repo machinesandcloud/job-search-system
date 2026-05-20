@@ -230,7 +230,7 @@ Return ONLY a valid JSON object with exactly this structure:
   "ats": <number 0-100, use the hard threshold rubric above>,
   "impact": <number 0-100, use the hard threshold rubric above>,
   "clarity": <number 0-100, use the hard threshold rubric above>,
-  "tailoredScore": <ONLY in targeted mode: number 0-100 measuring how well-positioned this resume is for THIS specific job. Score formula: title/seniority alignment (20%) + required skills coverage (35%) + years of experience match (25%) + industry/domain match (20%). Calibrate strictly: title is completely different=0-5pts; adjacent title=10-15pts; same title=18-20pts. Skills: count required skills present / total required skills × 35. Experience: off by 3+ years=0-10pts; within 2 years=20-25pts; perfect match=25pts. Domain: different industry=0-5pts; adjacent=10-15pts; same=18-20pts. Sum the components. Do NOT conflate enthusiasm or transferable skills with actual alignment — be honest. A lab technician applying for CTO should score 5-15. A senior engineer with all required skills applying for an engineering manager role at the same seniority should score 75-85. OMIT this field entirely in general mode — do not include it at all.>,
+  "tailoredScore": <${hasJobContext ? "REQUIRED — you MUST include this field. Number 0-100 measuring how well-positioned this resume is for THIS specific job. Score formula: title/seniority alignment (20%) + required skills coverage (35%) + years of experience match (25%) + industry/domain match (20%). Calibrate strictly: title is completely different=0-5pts; adjacent title=10-15pts; same title=18-20pts. Skills: count required skills present / total required skills × 35. Experience: off by 3+ years=0-10pts; within 2 years=20-25pts; perfect match=25pts. Domain: different industry=0-5pts; adjacent=10-15pts; same=18-20pts. Sum the components. Do NOT conflate enthusiasm or transferable skills with actual alignment — be honest. A lab technician applying for CTO should score 5-15. A senior engineer with all required skills applying for an engineering manager role at the same seniority should score 75-85. This field is MANDATORY — never omit it in targeted mode." : "MUST BE OMITTED — this is general mode. Do not include this field at all. Its absence is what tells the UI to show the targeted-mode prompt. Including it in general mode is a critical error."}>,
   "bulletStats": {
     "total": <exact count of all bullet points in the resume>,
     "withMetrics": <count of bullets containing a number, %, $, time period, or other quantified result>,
@@ -391,6 +391,21 @@ Voice rules:
     result.impact  = impact;
     result.clarity = clarity;
     result.overall = Math.min(100, Math.max(0, Math.round(impact * 0.35 + ats * 0.30 + clarity * 0.35)));
+
+    // Guarantee tailoredScore is present in targeted mode — compute from keyword coverage if AI omitted it
+    if (hasJobContext && typeof result.tailoredScore !== "number") {
+      const kws = Array.isArray(result.keywords)
+        ? (result.keywords as Array<{ found: boolean; importance: string }>)
+        : [];
+      const required  = kws.filter(k => k.importance === "required");
+      const preferred = kws.filter(k => k.importance === "preferred");
+      const reqCov  = required.length  > 0 ? required.filter(k  => k.found).length  / required.length  : null;
+      const prefCov = preferred.length > 0 ? preferred.filter(k => k.found).length / preferred.length : null;
+      const kwScore = reqCov !== null
+        ? reqCov * 0.7 + (prefCov ?? reqCov) * 0.3
+        : prefCov ?? (ats / 100);
+      result.tailoredScore = Math.min(100, Math.max(0, Math.round(kwScore * 100)));
+    }
 
     // Persist score to history and fetch previous for delta display
     let previousScores: { overall: number; ats: number; impact: number; clarity: number } | null = null;
