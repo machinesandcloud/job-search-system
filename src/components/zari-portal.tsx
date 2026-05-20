@@ -4718,44 +4718,36 @@ function ScreenPromotionReadiness() {
 
                 {/* What's solid / What's risky */}
                 <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:14 }}>
-                  <div style={{ borderRadius:20, background:"linear-gradient(135deg,rgba(5,150,105,0.09) 0%,rgba(5,150,105,0.03) 100%)", border:"1px solid rgba(5,150,105,0.2)", padding:"20px 20px 18px", position:"relative", overflow:"hidden" }}>
+                  <div style={{ borderRadius:20, background:"linear-gradient(135deg,rgba(5,150,105,0.09) 0%,rgba(5,150,105,0.03) 100%)", border:"1px solid rgba(5,150,105,0.2)", padding:"22px 22px 18px", position:"relative", overflow:"hidden" }}>
                     <div style={{ position:"absolute", top:-16, right:-16, width:88, height:88, borderRadius:"50%", background:"radial-gradient(circle,rgba(5,150,105,0.13) 0%,transparent 70%)", pointerEvents:"none" }}/>
-                    <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:14, position:"relative" }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:16, position:"relative" }}>
                       <div style={{ width:24, height:24, borderRadius:"50%", background:"rgba(5,150,105,0.14)", border:"1px solid rgba(5,150,105,0.25)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                         <svg viewBox="0 0 12 12" fill="none" stroke="#059669" strokeWidth="2.4" style={{width:9,height:9}}><path d="M1.5 6l3 3 6-6" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       </div>
                       <div style={{ fontSize:10.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.1em" }}>What&apos;s solid</div>
                     </div>
-                    <div style={{ display:"grid", gap:9 }}>
+                    <div style={{ display:"grid", gap:0, position:"relative" }}>
                       {result.strengths.map((item, si) => (
-                        <div key={si} style={{ borderRadius:10, background:"var(--z-raise)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
-                          <div style={{ padding:"10px 12px 8px", display:"flex", gap:9, alignItems:"flex-start" }}>
-                            <div style={{ flexShrink:0, width:20, height:20, borderRadius:999, background:"rgba(5,150,105,0.12)", border:"1px solid rgba(5,150,105,0.25)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
-                              <svg viewBox="0 0 10 10" fill="none" stroke="#059669" strokeWidth="2.5" style={{ width:8,height:8 }}><path d="M1.5 5l2.5 2.5L8.5 2"/></svg>
-                            </div>
-                            <span style={{ fontSize:13, fontWeight:700, color:"var(--z-text)", lineHeight:1.65 }}>{item}</span>
-                          </div>
+                        <div key={si} style={{ display:"flex", gap:11, alignItems:"flex-start", padding:"11px 0", borderBottom: si < result.strengths.length - 1 ? "1px solid rgba(5,150,105,0.1)" : "none" }}>
+                          <div style={{ width:6, height:6, borderRadius:"50%", background:"#059669", flexShrink:0, marginTop:6, boxShadow:"0 0 6px rgba(5,150,105,0.5)" }}/>
+                          <span style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.65 }}>{item}</span>
                         </div>
                       ))}
                     </div>
                   </div>
-                  <div style={{ borderRadius:20, background:"linear-gradient(135deg,rgba(220,38,38,0.09) 0%,rgba(220,38,38,0.03) 100%)", border:"1px solid rgba(220,38,38,0.18)", padding:"20px 20px 18px", position:"relative", overflow:"hidden" }}>
+                  <div style={{ borderRadius:20, background:"linear-gradient(135deg,rgba(220,38,38,0.09) 0%,rgba(220,38,38,0.03) 100%)", border:"1px solid rgba(220,38,38,0.18)", padding:"22px 22px 18px", position:"relative", overflow:"hidden" }}>
                     <div style={{ position:"absolute", top:-16, right:-16, width:88, height:88, borderRadius:"50%", background:"radial-gradient(circle,rgba(220,38,38,0.13) 0%,transparent 70%)", pointerEvents:"none" }}/>
-                    <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:14, position:"relative" }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:16, position:"relative" }}>
                       <div style={{ width:24, height:24, borderRadius:"50%", background:"rgba(220,38,38,0.13)", border:"1px solid rgba(220,38,38,0.22)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                         <svg viewBox="0 0 12 12" fill="none" style={{width:10,height:10}}><path d="M6 1L11.5 10H0.5L6 1z" fill="rgba(220,38,38,0.15)" stroke="#DC2626" strokeWidth="1.5" strokeLinejoin="round"/><path d="M6 4v2M6 7v.5" stroke="#DC2626" strokeWidth="1.5" strokeLinecap="round"/></svg>
                       </div>
                       <div style={{ fontSize:10.5, fontWeight:800, color:"#DC2626", textTransform:"uppercase", letterSpacing:"0.1em" }}>What&apos;s risky</div>
                     </div>
-                    <div style={{ display:"grid", gap:9 }}>
+                    <div style={{ display:"grid", gap:0, position:"relative" }}>
                       {result.riskFlags.map((item, ri) => (
-                        <div key={ri} style={{ borderRadius:10, background:"var(--z-raise)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
-                          <div style={{ padding:"10px 12px 8px", display:"flex", gap:9, alignItems:"flex-start" }}>
-                            <div style={{ flexShrink:0, width:20, height:20, borderRadius:999, background:"rgba(220,38,38,0.1)", border:"1px solid rgba(220,38,38,0.25)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
-                              <svg viewBox="0 0 10 10" fill="none" style={{ width:9,height:9 }}><path d="M5 1L9.5 9H0.5L5 1z" fill="rgba(220,38,38,0.15)" stroke="#DC2626" strokeWidth="1.5" strokeLinejoin="round"/><path d="M5 4v2M5 7v.5" stroke="#DC2626" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                            </div>
-                            <span style={{ fontSize:13, fontWeight:700, color:"var(--z-text)", lineHeight:1.65 }}>{item}</span>
-                          </div>
+                        <div key={ri} style={{ display:"flex", gap:11, alignItems:"flex-start", padding:"11px 0", borderBottom: ri < result.riskFlags.length - 1 ? "1px solid rgba(220,38,38,0.1)" : "none" }}>
+                          <div style={{ width:6, height:6, borderRadius:"50%", background:"#DC2626", flexShrink:0, marginTop:6, boxShadow:"0 0 6px rgba(220,38,38,0.5)" }}/>
+                          <span style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.65 }}>{item}</span>
                         </div>
                       ))}
                     </div>
@@ -4775,14 +4767,9 @@ function ScreenPromotionReadiness() {
                       </div>
                       <span style={{ fontSize:10.5, fontWeight:700, padding:"3px 9px", borderRadius:999, background:"rgba(20,89,204,0.08)", color:"#1459CC", border:"1px solid rgba(20,89,204,0.2)" }}>AI analysis</span>
                     </div>
-                    <div style={{ display:"grid", gap:12 }}>
+                    <div style={{ display:"grid", gap:14 }}>
                       {result.rationale.map((line, i) => (
-                        <div key={i} style={{ display:"flex", gap:12, alignItems:"flex-start" }}>
-                          <div style={{ width:24, height:24, borderRadius:"50%", background:"rgba(124,58,237,0.1)", border:"1px solid rgba(124,58,237,0.2)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>
-                            <span style={{ fontSize:10, fontWeight:900, color:"#1459CC" }}>{i + 1}</span>
-                          </div>
-                          <p style={{ fontSize:14, color:"var(--z-text)", lineHeight:1.78, margin:0 }}>{line}</p>
-                        </div>
+                        <p key={i} style={{ fontSize:14, color:"var(--z-text)", lineHeight:1.82, margin:0, paddingLeft:14, borderLeft:"2px solid rgba(20,89,204,0.35)" }}>{line}</p>
                       ))}
                     </div>
                   </div>
@@ -4863,16 +4850,11 @@ function ScreenPromotionReadiness() {
                     </div>
                     <div style={{ fontSize:10.5, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.1em" }}>The proof bar — what they need to see</div>
                   </div>
-                  <div style={{ display:"grid", gap:10 }}>
+                  <div style={{ display:"grid", gap:0 }}>
                     {result.evidenceChecklist.map((item, idx) => (
-                      <div key={idx} style={{ borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
-                        <div style={{ padding:"12px 14px 10px", display:"flex", gap:12, alignItems:"flex-start" }}>
-                          <span style={{ fontSize:10, fontWeight:900, color:"#D97706", background:"rgba(217,119,6,0.1)", border:"1px solid rgba(217,119,6,0.25)", borderRadius:99, width:22, height:22, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>{idx+1}</span>
-                          <p style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.75, margin:0 }}>{item}</p>
-                        </div>
-                        <div style={{ padding:"8px 14px 11px", borderTop:"1px solid var(--z-bd)", background:"rgba(217,119,6,0.03)" }}>
-                          <span style={{ fontSize:10, fontWeight:700, color:"#D97706" }}>Every example in your case must clear this bar</span>
-                        </div>
+                      <div key={idx} style={{ display:"flex", gap:12, alignItems:"flex-start", padding:"12px 0", borderBottom: idx < result.evidenceChecklist.length - 1 ? "1px solid rgba(217,119,6,0.1)" : "none" }}>
+                        <span style={{ fontSize:10, fontWeight:900, color:"#D97706", background:"rgba(217,119,6,0.1)", border:"1px solid rgba(217,119,6,0.22)", borderRadius:99, width:22, height:22, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:2 }}>{idx+1}</span>
+                        <p style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.75, margin:0 }}>{item}</p>
                       </div>
                     ))}
                   </div>
@@ -5631,32 +5613,17 @@ function ScreenSalaryCompensation() {
                     </div>
                     <div style={{ fontSize:10.5, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.12em" }}>Watchouts</div>
                   </div>
-                  <div style={{ display:"grid", gap:12 }}>
+                  <div style={{ display:"grid", gap:0 }}>
                     {result.watchouts.map((rawW, i) => {
                       const w: SalaryWatchout = typeof rawW === "string"
                         ? { mistake: rawW, why: "", howToAvoid: "" }
                         : rawW as SalaryWatchout;
                       return (
-                        <div key={i} style={{ borderRadius:13, background:"var(--z-raise)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
-                          <div style={{ padding:"14px 16px 12px", display:"flex", gap:12, alignItems:"flex-start" }}>
-                            <div style={{ flexShrink:0, width:24, height:24, borderRadius:999, background:"rgba(217,119,6,0.12)", border:"1px solid rgba(217,119,6,0.25)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
-                              <svg viewBox="0 0 12 12" fill="none" style={{ width:10,height:10 }}><path d="M6 1L11.5 10H0.5L6 1z" fill="rgba(217,119,6,0.15)" stroke="#D97706" strokeWidth="1.5" strokeLinejoin="round"/><path d="M6 4v2.5M6 7.5v.5" stroke="#D97706" strokeWidth="1.8" strokeLinecap="round"/></svg>
-                            </div>
-                            <div style={{ flex:1 }}>
-                              <div style={{ fontSize:13.5, fontWeight:800, color:"var(--z-text)", marginBottom: w.why ? 6 : 0 }}>{w.mistake}</div>
-                              {w.why && <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.7, margin:0 }}>{w.why}</p>}
-                            </div>
-                          </div>
+                        <div key={i} style={{ paddingTop: i > 0 ? 14 : 0, paddingBottom: i < result.watchouts.length - 1 ? 14 : 0, borderBottom: i < result.watchouts.length - 1 ? "1px solid rgba(217,119,6,0.12)" : "none" }}>
+                          <div style={{ fontSize:14, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.01em", marginBottom: w.why ? 5 : w.howToAvoid ? 8 : 0 }}>{w.mistake}</div>
+                          {w.why && <p style={{ fontSize:13, color:"var(--z-text3)", lineHeight:1.7, margin: w.howToAvoid ? "0 0 8px" : 0 }}>{w.why}</p>}
                           {w.howToAvoid && (
-                            <div style={{ padding:"10px 16px 13px", borderTop:"1px solid var(--z-bd)", background:"rgba(217,119,6,0.04)", display:"flex", gap:10, alignItems:"flex-start" }}>
-                              <div style={{ flexShrink:0, width:18, height:18, borderRadius:5, background:"rgba(217,119,6,0.1)", border:"1px solid rgba(217,119,6,0.2)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
-                                <svg viewBox="0 0 12 12" fill="none" stroke="#D97706" strokeWidth="2" style={{ width:8,height:8 }}><path d="M2 6l3 3 5-5"/></svg>
-                              </div>
-                              <div>
-                                <span style={{ fontSize:9, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.08em", display:"block", marginBottom:3 }}>Instead</span>
-                                <p style={{ fontSize:12.5, color:"var(--z-text)", lineHeight:1.65, margin:0 }}>{w.howToAvoid}</p>
-                              </div>
-                            </div>
+                            <p style={{ fontSize:13, color:"#D97706", fontWeight:600, lineHeight:1.65, margin:0, paddingLeft:10, borderLeft:"2px solid rgba(217,119,6,0.3)" }}>{w.howToAvoid}</p>
                           )}
                         </div>
                       );
@@ -5667,55 +5634,64 @@ function ScreenSalaryCompensation() {
             )}
             {tab === "leverage" && (
               <div style={{ display:"grid", gap:16 }}>
-                <div style={{ padding:"4px 0 8px" }}>
-                  <p style={{ fontSize:11, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", margin:0 }}>Your negotiation advantages — use each one deliberately</p>
-                </div>
-                {result.leveragePoints.map((rawPt, i) => {
-                  const pt: LeveragePoint = typeof rawPt === "string"
-                    ? { title: `Leverage Point ${i+1}`, explanation: rawPt as unknown as string, tactic: "Use this in your next negotiation conversation to anchor higher." }
-                    : rawPt as LeveragePoint;
+                {/* Featured first leverage point */}
+                {result.leveragePoints.length > 0 && (() => {
+                  const rawPt0 = result.leveragePoints[0];
+                  const pt0: LeveragePoint = typeof rawPt0 === "string"
+                    ? { title: "Leverage Point 1", explanation: rawPt0 as unknown as string, tactic: "Use this in your next negotiation conversation to anchor higher." }
+                    : rawPt0 as LeveragePoint;
                   return (
-                  <div key={i} style={{ position:"relative", borderRadius:20, background:"linear-gradient(135deg, rgba(5,150,105,0.09) 0%, rgba(5,150,105,0.03) 100%)", border:"1px solid rgba(5,150,105,0.2)", overflow:"hidden" }}>
-                    <div style={{ position:"absolute", top:-32, right:-32, width:130, height:130, borderRadius:"50%", background:"radial-gradient(circle, rgba(5,150,105,0.12) 0%, transparent 70%)", pointerEvents:"none" }} />
-                    <div style={{ padding:"20px 24px 16px", position:"relative" }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:12 }}>
-                        <div style={{ width:28, height:28, borderRadius:9, background:"rgba(5,150,105,0.14)", border:"1px solid rgba(5,150,105,0.28)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                          <span style={{ fontSize:11, fontWeight:900, color:"#059669" }}>{i+1}</span>
-                        </div>
-                        <span style={{ fontSize:15, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.02em", flex:1 }}>{pt.title}</span>
-                        <span style={{ fontSize:9.5, fontWeight:700, color:"#059669", background:"rgba(5,150,105,0.1)", border:"1px solid rgba(5,150,105,0.2)", padding:"3px 9px", borderRadius:99, textTransform:"uppercase", letterSpacing:"0.06em", flexShrink:0 }}>Leverage</span>
+                    <div style={{ position:"relative", borderRadius:24, background:"linear-gradient(135deg,rgba(5,150,105,0.12) 0%,rgba(5,150,105,0.04) 100%)", border:"1px solid rgba(5,150,105,0.24)", overflow:"hidden", padding:"28px 30px" }}>
+                      <div style={{ position:"absolute", top:-10, right:18, fontSize:110, fontWeight:900, color:"rgba(5,150,105,0.06)", lineHeight:1, pointerEvents:"none", userSelect:"none" as const }}>1</div>
+                      <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:14 }}>
+                        <span style={{ fontSize:9.5, fontWeight:800, color:"#059669", background:"rgba(5,150,105,0.1)", border:"1px solid rgba(5,150,105,0.22)", padding:"3px 10px", borderRadius:99, textTransform:"uppercase" as const, letterSpacing:"0.08em" }}>Top leverage</span>
                       </div>
-                      <p style={{ fontSize:13.5, color:"var(--z-text2)", lineHeight:1.78, margin:0 }}>{pt.explanation}</p>
-                    </div>
-                    <div style={{ padding:"14px 24px 18px", borderTop:"1px solid rgba(5,150,105,0.12)", background:"rgba(5,150,105,0.03)" }}>
-                      <div style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
-                        <div style={{ flexShrink:0, width:22, height:22, borderRadius:7, background:"rgba(37,99,235,0.12)", border:"1px solid rgba(37,99,235,0.22)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
-                          <svg viewBox="0 0 12 12" fill="none" stroke="#2563EB" strokeWidth="2" style={{ width:9,height:9 }}><path d="M2 6l3 3 5-5"/></svg>
-                        </div>
-                        <div>
-                          <span style={{ fontSize:9.5, fontWeight:800, color:"#2563EB", textTransform:"uppercase", letterSpacing:"0.08em", display:"block", marginBottom:4 }}>How to use this</span>
-                          <p style={{ fontSize:13, color:"var(--z-text)", lineHeight:1.7, margin:0 }}>{pt.tactic}</p>
-                        </div>
+                      <div style={{ fontSize:21, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em", marginBottom:12, lineHeight:1.3 }}>{pt0.title}</div>
+                      <p style={{ fontSize:14.5, color:"var(--z-text2)", lineHeight:1.82, margin:"0 0 18px" }}>{pt0.explanation}</p>
+                      <div style={{ padding:"14px 16px", borderRadius:12, background:"rgba(37,99,235,0.07)", border:"1px solid rgba(37,99,235,0.18)" }}>
+                        <div style={{ fontSize:9.5, fontWeight:800, color:"#2563EB", textTransform:"uppercase" as const, letterSpacing:"0.08em", marginBottom:5 }}>How to deploy this</div>
+                        <p style={{ fontSize:13.5, color:"var(--z-text)", lineHeight:1.72, margin:0 }}>{pt0.tactic}</p>
                       </div>
                     </div>
-                  </div>
                   );
-                })}
+                })()}
+                {/* Remaining leverage points in responsive 2-col grid */}
+                {result.leveragePoints.length > 1 && (
+                  <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(230px,1fr))", gap:12 }}>
+                    {result.leveragePoints.slice(1).map((rawPt, i) => {
+                      const pt: LeveragePoint = typeof rawPt === "string"
+                        ? { title: `Leverage Point ${i+2}`, explanation: rawPt as unknown as string, tactic: "Use this in your negotiation." }
+                        : rawPt as LeveragePoint;
+                      return (
+                        <div key={i} style={{ position:"relative", borderRadius:18, background:"linear-gradient(135deg,rgba(5,150,105,0.08) 0%,rgba(5,150,105,0.02) 100%)", border:"1px solid rgba(5,150,105,0.18)", overflow:"hidden", padding:"20px 22px 16px" }}>
+                          <div style={{ position:"absolute", bottom:-4, right:14, fontSize:60, fontWeight:900, color:"rgba(5,150,105,0.07)", lineHeight:1, pointerEvents:"none" }}>{i+2}</div>
+                          <div style={{ fontSize:15, fontWeight:800, color:"var(--z-text)", marginBottom:9, letterSpacing:"-0.01em", paddingRight:32 }}>{pt.title}</div>
+                          <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.72, margin:"0 0 12px" }}>{pt.explanation}</p>
+                          <p style={{ fontSize:12.5, color:"#059669", fontWeight:600, lineHeight:1.65, margin:0, paddingLeft:10, borderLeft:"2px solid rgba(5,150,105,0.3)" }}>{pt.tactic}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
             {tab === "moves" && (
               <div style={{ display:"grid", gap:14 }}>
                 {result.negotiationMoves.map((m, i) => (
-                  <div key={i} style={{ borderRadius:20, background:"linear-gradient(135deg,rgba(37,99,235,0.08) 0%,rgba(37,99,235,0.02) 100%)", border:"1px solid rgba(37,99,235,0.18)", padding:"24px 28px", position:"relative", overflow:"hidden" }}>
-                    <div style={{ position:"absolute", top:-16, right:-16, width:90, height:90, borderRadius:"50%", background:"radial-gradient(circle,rgba(37,99,235,0.1) 0%,transparent 70%)", pointerEvents:"none" }}/>
-                    <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:14, position:"relative" }}>
-                      <span style={{ fontSize:11, fontWeight:900, color:"#2563EB", background:"rgba(37,99,235,0.12)", border:"1px solid rgba(37,99,235,0.25)", borderRadius:999, width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{i+1}</span>
-                      <div style={{ fontSize:15, fontWeight:800, color:"var(--z-text)" }}>{m.title}</div>
+                  <div key={i} style={{ position:"relative", borderRadius:22, background:"linear-gradient(135deg,rgba(37,99,235,0.08) 0%,rgba(37,99,235,0.02) 100%)", border:"1px solid rgba(37,99,235,0.18)", overflow:"hidden" }}>
+                    <div style={{ position:"absolute", top:-8, right:18, fontSize:96, fontWeight:900, color:"rgba(37,99,235,0.07)", lineHeight:1, pointerEvents:"none", userSelect:"none" as const }}>0{i+1}</div>
+                    <div style={{ padding:"26px 28px 20px", position:"relative" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+                        <div style={{ width:30, height:30, borderRadius:10, background:"rgba(37,99,235,0.12)", border:"1px solid rgba(37,99,235,0.25)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                          <span style={{ fontSize:13, fontWeight:900, color:"#2563EB" }}>{i+1}</span>
+                        </div>
+                        <div style={{ fontSize:17, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em" }}>{m.title}</div>
+                      </div>
+                      <p style={{ fontSize:14.5, color:"var(--z-text2)", lineHeight:1.82, margin:0 }}>{m.move}</p>
                     </div>
-                    <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.8, margin:"0 0 12px", position:"relative" }}>{m.move}</p>
-                    <div style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"7px 12px", borderRadius:9, background:"rgba(37,99,235,0.08)", border:"1px solid rgba(37,99,235,0.22)" }}>
-                      <svg viewBox="0 0 12 12" fill="none" stroke="#2563EB" strokeWidth="1.8" style={{ width:11, height:11 }}><circle cx="6" cy="6" r="4.5"/><path d="M6 4v2.5M6 7.5v.5"/></svg>
-                      <span style={{ fontSize:11.5, fontWeight:700, color:"#2563EB" }}>{m.when}</span>
+                    <div style={{ padding:"11px 28px 16px", borderTop:"1px solid rgba(37,99,235,0.1)", background:"rgba(37,99,235,0.04)", display:"flex", alignItems:"center", gap:8 }}>
+                      <svg viewBox="0 0 12 12" fill="none" stroke="#2563EB" strokeWidth="1.8" style={{ width:11, height:11, flexShrink:0 }}><circle cx="6" cy="6" r="4.5"/><path d="M6 4v2.5M6 7.5v.5"/></svg>
+                      <span style={{ fontSize:12.5, fontWeight:600, color:"#2563EB" }}>When: {m.when}</span>
                     </div>
                   </div>
                 ))}
@@ -8611,32 +8587,17 @@ function ScreenExecPositioning() {
                       </div>
                       <div style={{ fontSize:10.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.12em" }}>Executive strengths</div>
                     </div>
-                    <div style={{ display:"grid", gap:12 }}>
+                    <div style={{ display:"grid", gap:0 }}>
                       {result.strengths.map((rawS, i) => {
                         const s: ExecStrength = typeof rawS === "string"
                           ? { strength: rawS, evidence: "", howToLead: "" }
                           : rawS as ExecStrength;
                         return (
-                          <div key={i} style={{ borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
-                            <div style={{ padding:"12px 14px 10px", display:"flex", gap:10, alignItems:"flex-start" }}>
-                              <div style={{ flexShrink:0, width:22, height:22, borderRadius:999, background:"rgba(5,150,105,0.12)", border:"1px solid rgba(5,150,105,0.25)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
-                                <svg viewBox="0 0 12 12" fill="none" stroke="#059669" strokeWidth="2.5" style={{ width:9,height:9 }}><path d="M2 6l3 3 5-5"/></svg>
-                              </div>
-                              <div style={{ flex:1 }}>
-                                <div style={{ fontSize:13, fontWeight:800, color:"var(--z-text)", marginBottom: s.evidence ? 5 : 0 }}>{s.strength}</div>
-                                {s.evidence && <p style={{ fontSize:12, color:"var(--z-text3)", lineHeight:1.65, margin:0 }}>{s.evidence}</p>}
-                              </div>
-                            </div>
+                          <div key={i} style={{ paddingTop: i > 0 ? 14 : 0, paddingBottom: i < result.strengths.length - 1 ? 14 : 0, borderBottom: i < result.strengths.length - 1 ? "1px solid rgba(5,150,105,0.12)" : "none" }}>
+                            <div style={{ fontSize:14, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.01em", marginBottom: s.evidence ? 5 : s.howToLead ? 8 : 0 }}>{s.strength}</div>
+                            {s.evidence && <p style={{ fontSize:12.5, color:"var(--z-text3)", lineHeight:1.65, margin: s.howToLead ? "0 0 8px" : 0 }}>{s.evidence}</p>}
                             {s.howToLead && (
-                              <div style={{ padding:"9px 14px 12px", borderTop:"1px solid var(--z-bd)", background:"rgba(5,150,105,0.04)", display:"flex", gap:9, alignItems:"flex-start" }}>
-                                <div style={{ flexShrink:0, width:16, height:16, borderRadius:4, background:"rgba(5,150,105,0.1)", border:"1px solid rgba(5,150,105,0.2)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
-                                  <svg viewBox="0 0 12 12" fill="none" stroke="#059669" strokeWidth="2" style={{ width:7,height:7 }}><path d="M2 6l3 3 5-5"/></svg>
-                                </div>
-                                <div>
-                                  <span style={{ fontSize:8.5, fontWeight:800, color:"#059669", textTransform:"uppercase", letterSpacing:"0.08em", display:"block", marginBottom:3 }}>How to lead with this</span>
-                                  <p style={{ fontSize:12, color:"var(--z-text)", lineHeight:1.65, margin:0 }}>{s.howToLead}</p>
-                                </div>
-                              </div>
+                              <p style={{ fontSize:12.5, color:"#059669", fontWeight:600, lineHeight:1.65, margin:0, paddingLeft:10, borderLeft:"2px solid rgba(5,150,105,0.3)" }}>{s.howToLead}</p>
                             )}
                           </div>
                         );
@@ -8651,32 +8612,17 @@ function ScreenExecPositioning() {
                       </div>
                       <div style={{ fontSize:10.5, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.12em" }}>Watchouts</div>
                     </div>
-                    <div style={{ display:"grid", gap:12 }}>
+                    <div style={{ display:"grid", gap:0 }}>
                       {result.watchouts.map((rawW, i) => {
                         const w: ExecWatchout = typeof rawW === "string"
                           ? { pattern: rawW, impact: "", fix: "" }
                           : rawW as ExecWatchout;
                         return (
-                          <div key={i} style={{ borderRadius:12, background:"var(--z-raise)", border:"1px solid var(--z-bd)", overflow:"hidden" }}>
-                            <div style={{ padding:"12px 14px 10px", display:"flex", gap:10, alignItems:"flex-start" }}>
-                              <div style={{ flexShrink:0, width:22, height:22, borderRadius:999, background:"rgba(217,119,6,0.12)", border:"1px solid rgba(217,119,6,0.25)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
-                                <svg viewBox="0 0 12 12" fill="none" style={{ width:10,height:10 }}><path d="M6 1L11.5 10H0.5L6 1z" fill="rgba(217,119,6,0.15)" stroke="#D97706" strokeWidth="1.5" strokeLinejoin="round"/><path d="M6 4v2.5M6 7.5v.5" stroke="#D97706" strokeWidth="1.8" strokeLinecap="round"/></svg>
-                              </div>
-                              <div style={{ flex:1 }}>
-                                <div style={{ fontSize:13, fontWeight:800, color:"var(--z-text)", marginBottom: w.impact ? 5 : 0 }}>{w.pattern}</div>
-                                {w.impact && <p style={{ fontSize:12, color:"var(--z-text3)", lineHeight:1.65, margin:0 }}>{w.impact}</p>}
-                              </div>
-                            </div>
+                          <div key={i} style={{ paddingTop: i > 0 ? 14 : 0, paddingBottom: i < result.watchouts.length - 1 ? 14 : 0, borderBottom: i < result.watchouts.length - 1 ? "1px solid rgba(217,119,6,0.12)" : "none" }}>
+                            <div style={{ fontSize:14, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.01em", marginBottom: w.impact ? 5 : w.fix ? 8 : 0 }}>{w.pattern}</div>
+                            {w.impact && <p style={{ fontSize:12.5, color:"var(--z-text3)", lineHeight:1.65, margin: w.fix ? "0 0 8px" : 0 }}>{w.impact}</p>}
                             {w.fix && (
-                              <div style={{ padding:"9px 14px 12px", borderTop:"1px solid var(--z-bd)", background:"rgba(217,119,6,0.04)", display:"flex", gap:9, alignItems:"flex-start" }}>
-                                <div style={{ flexShrink:0, width:16, height:16, borderRadius:4, background:"rgba(217,119,6,0.1)", border:"1px solid rgba(217,119,6,0.2)", display:"flex", alignItems:"center", justifyContent:"center", marginTop:1 }}>
-                                  <svg viewBox="0 0 12 12" fill="none" stroke="#D97706" strokeWidth="2" style={{ width:7,height:7 }}><path d="M2 6l3 3 5-5"/></svg>
-                                </div>
-                                <div>
-                                  <span style={{ fontSize:8.5, fontWeight:800, color:"#D97706", textTransform:"uppercase", letterSpacing:"0.08em", display:"block", marginBottom:3 }}>The fix</span>
-                                  <p style={{ fontSize:12, color:"var(--z-text)", lineHeight:1.65, margin:0 }}>{w.fix}</p>
-                                </div>
-                              </div>
+                              <p style={{ fontSize:12.5, color:"#D97706", fontWeight:600, lineHeight:1.65, margin:0, paddingLeft:10, borderLeft:"2px solid rgba(217,119,6,0.3)" }}>{w.fix}</p>
                             )}
                           </div>
                         );
@@ -8687,41 +8633,69 @@ function ScreenExecPositioning() {
               </div>
             )}
             {tab === "gaps" && (
-              <div style={{ display:"grid", gap:14 }}>
-                {result.presenceGaps.map((g, i) => {
+              <div style={{ display:"grid", gap:18 }}>
+                {/* Featured first gap */}
+                {result.presenceGaps.length > 0 && (() => {
+                  const g = result.presenceGaps[0];
                   const gColor = g.severity === "critical" ? "#DC2626" : "#D97706";
-                  const gBg = g.severity === "critical" ? "rgba(220,38,38,0.04)" : "rgba(217,119,6,0.04)";
                   return (
-                    <div key={i} style={{ borderRadius:20, background:`linear-gradient(135deg,${gColor}12 0%,${gColor}05 100%)`, border:`1px solid ${gColor}30`, padding:"22px 26px", position:"relative", overflow:"hidden" }}>
-                      <div style={{ position:"absolute", top:-18, right:-18, width:100, height:100, borderRadius:"50%", background:`radial-gradient(circle,${gColor}18 0%,transparent 70%)`, pointerEvents:"none" }}/>
-                      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, position:"relative" }}>
-                        <div style={{ fontSize:15, fontWeight:800, color:"var(--z-text)", flex:1 }}>{g.area}</div>
-                        <span style={{ fontSize:11, fontWeight:800, color:gColor, background:`${gColor}15`, border:`1px solid ${gColor}40`, padding:"4px 12px", borderRadius:999, textTransform:"uppercase", letterSpacing:"0.07em" }}>{g.severity}</span>
+                    <div style={{ position:"relative", borderRadius:24, background:"linear-gradient(160deg,#071525 0%,#0b1e38 60%,#0f172a 100%)", border:`1px solid ${gColor}35`, overflow:"hidden", padding:"30px 32px" }}>
+                      <div style={{ position:"absolute", top:-50, right:-40, width:200, height:200, borderRadius:"50%", background:`radial-gradient(circle,${gColor}28 0%,transparent 65%)`, pointerEvents:"none" }}/>
+                      <div style={{ position:"absolute", bottom:-10, right:28, fontSize:120, fontWeight:900, color:"rgba(255,255,255,0.025)", lineHeight:1, pointerEvents:"none", userSelect:"none" as const }}>01</div>
+                      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16, position:"relative" }}>
+                        <span style={{ fontSize:9.5, fontWeight:800, color:gColor, background:`${gColor}22`, border:`1px solid ${gColor}40`, padding:"3px 10px", borderRadius:99, textTransform:"uppercase" as const, letterSpacing:"0.09em" }}>{g.severity}</span>
+                        <span style={{ fontSize:9.5, fontWeight:700, color:"rgba(255,255,255,0.28)", textTransform:"uppercase" as const, letterSpacing:"0.09em" }}>Priority gap</span>
                       </div>
-                      <div style={{ padding:"12px 14px", borderRadius:10, background:"var(--z-card)", border:"1px solid var(--z-bd)" }}>
-                        <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.8, margin:0 }}>{g.action}</p>
+                      <div style={{ fontSize:22, fontWeight:900, color:"white", letterSpacing:"-0.02em", marginBottom:14, lineHeight:1.3, position:"relative" }}>{g.area}</div>
+                      <p style={{ fontSize:14.5, color:"rgba(255,255,255,0.7)", lineHeight:1.82, margin:0, position:"relative" }}>{g.action}</p>
+                    </div>
+                  );
+                })()}
+                {/* Remaining gaps in responsive 2-col grid */}
+                {result.presenceGaps.length > 1 && (
+                  <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))", gap:14 }}>
+                    {result.presenceGaps.slice(1).map((g, i) => {
+                      const gColor = g.severity === "critical" ? "#DC2626" : "#D97706";
+                      return (
+                        <div key={i+1} style={{ position:"relative", borderRadius:20, background:`linear-gradient(135deg,${gColor}10 0%,${gColor}04 100%)`, border:`1px solid ${gColor}28`, overflow:"hidden", padding:"20px 22px" }}>
+                          <div style={{ position:"absolute", bottom:-6, right:14, fontSize:68, fontWeight:900, color:`${gColor}08`, lineHeight:1, pointerEvents:"none", userSelect:"none" as const }}>0{i+2}</div>
+                          <div style={{ marginBottom:12 }}>
+                            <span style={{ fontSize:9.5, fontWeight:800, color:gColor, background:`${gColor}15`, border:`1px solid ${gColor}32`, padding:"2px 9px", borderRadius:99, textTransform:"uppercase" as const, letterSpacing:"0.08em" }}>{g.severity}</span>
+                          </div>
+                          <div style={{ fontSize:15, fontWeight:800, color:"var(--z-text)", letterSpacing:"-0.01em", marginBottom:10 }}>{g.area}</div>
+                          <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.75, margin:0 }}>{g.action}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+            {tab === "moves" && (
+              <div style={{ display:"grid", gap:16 }}>
+                {result.positioningMoves.map((m, i) => {
+                  const moveAccents = ["#2563EB","#0891B2","#6366F1"];
+                  const ac = moveAccents[i % moveAccents.length];
+                  return (
+                    <div key={i} style={{ position:"relative", borderRadius:22, background:`linear-gradient(135deg,${ac}09 0%,${ac}03 100%)`, border:`1px solid ${ac}22`, overflow:"hidden" }}>
+                      <div style={{ position:"absolute", top:-8, right:18, fontSize:100, fontWeight:900, color:`${ac}07`, lineHeight:1, pointerEvents:"none", userSelect:"none" as const }}>0{i+1}</div>
+                      <div style={{ padding:"26px 28px 20px", position:"relative" }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+                          <div style={{ width:30, height:30, borderRadius:10, background:`${ac}16`, border:`1px solid ${ac}28`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                            <span style={{ fontSize:13, fontWeight:900, color:ac }}>{i+1}</span>
+                          </div>
+                          <div style={{ fontSize:17, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.02em" }}>{m.title}</div>
+                        </div>
+                        <p style={{ fontSize:14.5, color:"var(--z-text2)", lineHeight:1.82, margin:0 }}>{m.move}</p>
+                      </div>
+                      <div style={{ padding:"12px 28px 18px", borderTop:`1px solid ${ac}18`, background:`${ac}05` }}>
+                        <p style={{ fontSize:13, color:"var(--z-text2)", lineHeight:1.7, margin:0 }}>
+                          <strong style={{ color:ac, fontStyle:"normal" }}>Why this moves the needle: </strong>{m.why}
+                        </p>
                       </div>
                     </div>
                   );
                 })}
-              </div>
-            )}
-            {tab === "moves" && (
-              <div style={{ display:"grid", gap:14 }}>
-                {result.positioningMoves.map((m, i) => (
-                  <div key={i} style={{ borderRadius:20, background:"linear-gradient(135deg,rgba(37,99,235,0.08) 0%,rgba(37,99,235,0.02) 100%)", border:"1px solid rgba(37,99,235,0.18)", padding:"24px 28px", position:"relative", overflow:"hidden" }}>
-                    <div style={{ position:"absolute", top:-16, right:-16, width:90, height:90, borderRadius:"50%", background:"radial-gradient(circle,rgba(37,99,235,0.1) 0%,transparent 70%)", pointerEvents:"none" }}/>
-                    <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:14, position:"relative" }}>
-                      <span style={{ fontSize:11, fontWeight:900, color:"#2563EB", background:"rgba(37,99,235,0.12)", border:"1px solid rgba(37,99,235,0.25)", borderRadius:999, width:28, height:28, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{i+1}</span>
-                      <div style={{ fontSize:15, fontWeight:800, color:"var(--z-text)" }}>{m.title}</div>
-                    </div>
-                    <p style={{ fontSize:14, color:"var(--z-text2)", lineHeight:1.8, margin:"0 0 14px", position:"relative" }}>{m.move}</p>
-                    <div style={{ display:"flex", gap:10, alignItems:"flex-start", padding:"12px 14px", borderRadius:10, background:"rgba(37,99,235,0.06)", border:"1px solid rgba(37,99,235,0.18)" }}>
-                      <svg viewBox="0 0 12 12" fill="none" stroke="#2563EB" strokeWidth="1.8" style={{ width:12,height:12,flexShrink:0,marginTop:2 }}><path d="M6 1l1.5 3 3.5.5-2.5 2.5.5 3.5L6 9l-3 1.5.5-3.5L1 4.5 4.5 4z"/></svg>
-                      <span style={{ fontSize:12.5, color:"var(--z-text2)", lineHeight:1.7 }}>{m.why}</span>
-                    </div>
-                  </div>
-                ))}
               </div>
             )}
             {tab === "bio" && (
