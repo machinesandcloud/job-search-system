@@ -294,6 +294,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // International landing pages
     { url: `${base}/ai-career-coach-uk`,                        lastModified: now, changeFrequency: "monthly", priority: 0.95 },
     { url: `${base}/ai-career-coach-canada`,                    lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/ai-career-coach-australia`,                 lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+
+    // Wave 51 — High-volume new content
+    { url: `${base}/blog/amazon-behavioral-interview-questions`, lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/highest-paying-jobs-uk`,               lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/highest-paying-jobs-canada`,           lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/linkedin-profile-tips`,                lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/highest-paying-remote-jobs`,           lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/interview-preparation-checklist`,      lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/data-analyst-interview-questions`,     lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/how-to-get-a-job-in-uk`,              lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+
+    // Wave 51 — New compare pages
+    { url: `${base}/compare/zari-vs-topinterview`,              lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/compare/zari-vs-ladders`,                   lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/compare/zari-vs-talent-com`,                lastModified: now, changeFrequency: "monthly", priority: 0.88 },
 
     // Wave 50 — UK/Canada blog content
     { url: `${base}/blog/uk-cv-writing-tips`,                   lastModified: now, changeFrequency: "monthly", priority: 0.88 },

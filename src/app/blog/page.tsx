@@ -1453,6 +1453,79 @@ const POSTS = [
     date: "May 2025",
     accent: "#9B1D20",
   },
+  // Wave 51
+  {
+    slug: "amazon-behavioral-interview-questions",
+    title: "Amazon Behavioral Interview Questions 2025 — LP-Mapped STAR Answers",
+    excerpt: "The 30 most common Amazon behavioral questions with STAR answer frameworks mapped to Leadership Principles. Covers every LP with signals, question examples, and a full sample answer.",
+    tag: "Interview Prep",
+    readTime: "18 min read",
+    date: "May 2025",
+    accent: "#FF9900",
+  },
+  {
+    slug: "highest-paying-jobs-uk",
+    title: "Highest Paying Jobs in the UK 2025 — Real GBP Salary Data",
+    excerpt: "The 20 highest paying jobs in the UK with real salary data in GBP. Finance, tech, law, and medicine — by city across London, Edinburgh, Bristol, and Manchester.",
+    tag: "Salary",
+    readTime: "16 min read",
+    date: "May 2025",
+    accent: "#012169",
+  },
+  {
+    slug: "highest-paying-jobs-canada",
+    title: "Highest Paying Jobs in Canada 2025 — Real CAD Salary Data",
+    excerpt: "The 20 highest paying jobs in Canada with real CAD salary data across Toronto, Vancouver, Calgary, and Montréal. Tech, finance, energy, law, and healthcare.",
+    tag: "Salary",
+    readTime: "15 min read",
+    date: "May 2025",
+    accent: "#9B1D20",
+  },
+  {
+    slug: "linkedin-profile-tips",
+    title: "22 LinkedIn Profile Tips to Get Recruiter Visibility in 2025",
+    excerpt: "22 high-impact LinkedIn profile optimisations that increase recruiter search visibility and inbound messages. Headline formula, About section structure, experience rewrites, and more.",
+    tag: "LinkedIn",
+    readTime: "14 min read",
+    date: "May 2025",
+    accent: "#0A66C2",
+  },
+  {
+    slug: "highest-paying-remote-jobs",
+    title: "Highest Paying Remote Jobs 2025 — 25 Roles Over $100K",
+    excerpt: "The 25 highest paying remote jobs with real salary data. Software, ML/AI, product, data, and finance roles paying $100K–$350K+ that you can do from anywhere in the world.",
+    tag: "Job Search",
+    readTime: "14 min read",
+    date: "May 2025",
+    accent: "#7C3AED",
+  },
+  {
+    slug: "interview-preparation-checklist",
+    title: "Interview Preparation Checklist 2025 — Week-by-Week Plan",
+    excerpt: "A complete week-by-week interview preparation checklist: company research, behavioral story prep, technical prep, logistics, and follow-up. From invite to offer.",
+    tag: "Interview Prep",
+    readTime: "12 min read",
+    date: "May 2025",
+    accent: "#0D7182",
+  },
+  {
+    slug: "data-analyst-interview-questions",
+    title: "Data Analyst Interview Questions 2025 — SQL, Stats & Behavioral",
+    excerpt: "The 40 most common data analyst interview questions with answer frameworks. SQL, statistics, A/B testing, business case, and behavioral — with hints for every question.",
+    tag: "Interview Prep",
+    readTime: "16 min read",
+    date: "May 2025",
+    accent: "#0D7182",
+  },
+  {
+    slug: "how-to-get-a-job-in-uk",
+    title: "How to Get a Job in the UK 2025 — Visa, CV & Interview Guide",
+    excerpt: "Complete guide for international candidates: Skilled Worker visa, UK CV format differences, best UK job boards, competency-based interview prep, and salary negotiation in GBP.",
+    tag: "Job Search",
+    readTime: "18 min read",
+    date: "May 2025",
+    accent: "#012169",
+  },
 ];
 
 const FEATURED_SLUGS = [
@@ -1480,28 +1553,118 @@ function getCategoryId(tag: string): string {
   return "career";
 }
 
+function getCountryBadge(slug: string): { flag: string; label: string; color: string } | null {
+  if (slug.includes("-uk") || slug.includes("uk-") || slug.startsWith("cv-template") || slug.includes("graduate-jobs-uk")) {
+    return { flag: "🇬🇧", label: "UK", color: "#012169" };
+  }
+  if (slug.includes("canada") || slug.includes("canadian")) {
+    return { flag: "🇨🇦", label: "CA", color: "#9B1D20" };
+  }
+  if (slug.includes("australia") || slug.includes("australian")) {
+    return { flag: "🇦🇺", label: "AU", color: "#00008B" };
+  }
+  return null;
+}
+
 function PostCard({ post }: { post: typeof POSTS[0] }) {
+  const country = getCountryBadge(post.slug);
   return (
-    <Link href={`/blog/${post.slug}`} className="group flex flex-col rounded-2xl border border-[var(--border)] bg-white shadow-[var(--shadow)] transition-all hover:-translate-y-1 hover:shadow-[var(--shadow-lg)]">
-      <div className="flex-1 p-6">
-        <div className="mb-4 flex items-center gap-3">
-          <span className="rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider" style={{ background: `${post.accent}14`, color: post.accent }}>
+    <Link href={`/blog/${post.slug}`} className="group relative flex flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.09)]">
+      {/* Top accent bar */}
+      <div className="h-1 w-full" style={{ background: post.accent }} />
+      <div className="flex flex-1 flex-col p-6">
+        <div className="mb-4 flex items-center gap-2">
+          <span className="rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider" style={{ background: `${post.accent}15`, color: post.accent }}>
             {post.tag}
           </span>
-          <span className="text-[11px] text-[var(--muted)]">{post.readTime}</span>
+          {country && (
+            <span className="rounded-full px-2 py-0.5 text-[10px] font-bold" style={{ background: `${country.color}12`, color: country.color }}>
+              {country.flag} {country.label}
+            </span>
+          )}
+          <span className="ml-auto text-[11px] text-[var(--muted)]">{post.readTime}</span>
         </div>
-        <h2 className="mb-3 text-[15.5px] font-bold leading-snug text-[var(--ink)] transition-colors group-hover:text-[var(--brand)]">{post.title}</h2>
-        <p className="text-[13.5px] leading-6 text-[var(--muted)]">{post.excerpt}</p>
+        <h2 className="mb-3 flex-1 text-[15px] font-extrabold leading-snug tracking-[-0.01em] text-[var(--ink)] transition-colors group-hover:text-[var(--brand)]">{post.title}</h2>
+        <p className="text-[13px] leading-[1.6] text-[var(--muted)] line-clamp-3">{post.excerpt}</p>
       </div>
-      <div className="flex items-center justify-between border-t border-[var(--border)] px-6 py-4">
-        <span className="text-[12px] text-[var(--muted)]">{post.date}</span>
-        <span className="flex items-center gap-1 text-[12px] font-semibold transition-transform group-hover:translate-x-0.5" style={{ color: post.accent }}>
+      <div className="flex items-center justify-between border-t border-[var(--border)] bg-[var(--bg)]/60 px-6 py-3">
+        <span className="text-[11px] text-[var(--muted)]">{post.date}</span>
+        <span className="flex items-center gap-1 text-[11px] font-bold transition-all group-hover:gap-1.5" style={{ color: post.accent }}>
           Read <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M5 12h14M12 5l7 7-7 7" /></svg>
         </span>
       </div>
     </Link>
   );
 }
+
+function HeroPostCard({ post }: { post: typeof POSTS[0] }) {
+  const country = getCountryBadge(post.slug);
+  return (
+    <Link href={`/blog/${post.slug}`} className="group relative overflow-hidden rounded-3xl border border-[var(--border)] bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
+      <div className="h-2 w-full" style={{ background: `linear-gradient(90deg, ${post.accent}, ${post.accent}80)` }} />
+      <div className="p-8">
+        <div className="mb-5 flex items-center gap-2">
+          <span className="rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest" style={{ background: `${post.accent}15`, color: post.accent }}>
+            {post.tag}
+          </span>
+          {country && (
+            <span className="rounded-full px-2.5 py-0.5 text-[10px] font-bold" style={{ background: `${country.color}12`, color: country.color }}>
+              {country.flag} {country.label}
+            </span>
+          )}
+          <span className="ml-auto text-[12px] text-[var(--muted)]">{post.readTime}</span>
+        </div>
+        <h2 className="text-[1.35rem] font-extrabold leading-tight tracking-[-0.025em] text-[var(--ink)] transition-colors group-hover:text-[var(--brand)]">{post.title}</h2>
+        <p className="mt-3 text-[14px] leading-7 text-[var(--muted)]">{post.excerpt}</p>
+        <div className="mt-6 flex items-center gap-3">
+          <span className="flex items-center gap-1.5 text-[13px] font-bold transition-all group-hover:gap-2" style={{ color: post.accent }}>
+            Read article <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+          </span>
+          <span className="text-[12px] text-[var(--muted)]">{post.date}</span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+const REGION_GUIDES = [
+  {
+    flag: "🇺🇸", label: "United States", color: "#0D7182",
+    links: [
+      { label: "Software Engineer Resume", href: "/blog/software-engineer-resume" },
+      { label: "Behavioral Interview Questions", href: "/blog/behavioral-interview-questions" },
+      { label: "Salary Negotiation Tips", href: "/blog/salary-negotiation-tips" },
+      { label: "STAR Method", href: "/blog/star-method-interview" },
+    ],
+  },
+  {
+    flag: "🇬🇧", label: "United Kingdom", color: "#012169",
+    links: [
+      { label: "UK CV Writing Tips", href: "/blog/uk-cv-writing-tips" },
+      { label: "UK Interview Tips", href: "/blog/uk-interview-tips" },
+      { label: "Graduate Jobs UK", href: "/blog/graduate-jobs-uk" },
+      { label: "UK CV Template", href: "/blog/cv-template-uk" },
+    ],
+  },
+  {
+    flag: "🇨🇦", label: "Canada", color: "#9B1D20",
+    links: [
+      { label: "Job Search in Canada", href: "/blog/job-search-in-canada" },
+      { label: "Canada Salary Guide", href: "/blog/canada-salary-guide" },
+      { label: "Highest Paying Jobs Canada", href: "/blog/highest-paying-jobs-canada" },
+      { label: "AI Career Coach Canada", href: "/ai-career-coach-canada" },
+    ],
+  },
+  {
+    flag: "🇦🇺", label: "Australia", color: "#00008B",
+    links: [
+      { label: "AI Career Coach Australia", href: "/ai-career-coach-australia" },
+      { label: "SWE Salary Sydney", href: "/salary/software-engineer-salary-sydney" },
+      { label: "PM Salary Melbourne", href: "/salary/product-manager-salary-melbourne" },
+      { label: "Data Scientist Salary Sydney", href: "/salary/data-scientist-salary-sydney" },
+    ],
+  },
+];
 
 export default async function BlogPage() {
   const userId = await getCurrentUserId();
@@ -1510,58 +1673,121 @@ export default async function BlogPage() {
   const byCategory = Object.fromEntries(
     CATEGORIES.map(cat => [cat.id, POSTS.filter(p => getCategoryId(p.tag) === cat.id)])
   );
+  const totalPosts = POSTS.length;
 
   return (
     <PageFrame authenticated={Boolean(userId)}>
 
       {/* HERO */}
-      <section className="relative overflow-hidden bg-[var(--dark)] pb-16 pt-14 text-white">
+      <section className="relative overflow-hidden bg-[var(--dark)] pb-20 pt-16 text-white">
         <div className="pointer-events-none absolute inset-0 grid-pattern opacity-40" />
-        <div className="relative mx-auto max-w-4xl px-6 text-center">
-          <div className="mb-5 inline-flex items-center gap-2.5 rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-white/50">Career Advice · Guides · Tips</div>
-          <h1 className="text-[2.8rem] font-extrabold leading-[1.05] tracking-[-0.035em] md:text-[3.8rem]">Career advice backed<br /><span className="gradient-text-animated">by AI coaching data.</span></h1>
-          <p className="mx-auto mt-5 max-w-xl text-[16px] leading-relaxed text-white/50">Resume, LinkedIn, interviews, negotiation, and career strategy — from 10,000+ coaching sessions.</p>
-
-          {/* Category quick-nav */}
-          <div className="mt-10 flex flex-wrap justify-center gap-2.5">
-            {CATEGORIES.map(cat => (
-              <a key={cat.id} href={`#${cat.id}`} className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.06] px-4 py-2 text-[12px] font-semibold text-white/70 transition-all hover:border-white/20 hover:bg-white/10 hover:text-white">
-                <span>{cat.icon}</span> {cat.label}
-                <span className="ml-1 rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] text-white/50">{byCategory[cat.id]?.length ?? 0}</span>
-              </a>
-            ))}
+        <div className="pointer-events-none absolute -right-40 -top-40 h-96 w-96 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #7C3AED 0%, transparent 70%)" }} />
+        <div className="relative mx-auto max-w-5xl px-6">
+          <div className="grid gap-10 lg:grid-cols-[1fr_auto] items-center">
+            <div>
+              <div className="mb-5 inline-flex items-center gap-2.5 rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-white/50">
+                {totalPosts}+ Career Guides · 4 Countries · AI-backed
+              </div>
+              <h1 className="text-[2.8rem] font-extrabold leading-[1.05] tracking-[-0.035em] md:text-[3.8rem]">Career advice backed<br /><span className="gradient-text-animated">by AI coaching data.</span></h1>
+              <p className="mt-5 max-w-lg text-[16px] leading-relaxed text-white/50">Resume, LinkedIn, interviews, salary — for job seekers in the US, UK, Canada, and Australia.</p>
+              <div className="mt-8 flex flex-wrap gap-2.5">
+                {CATEGORIES.map(cat => (
+                  <a key={cat.id} href={`#${cat.id}`} className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.06] px-3.5 py-1.5 text-[12px] font-semibold text-white/70 transition-all hover:border-white/20 hover:bg-white/10 hover:text-white">
+                    {cat.icon} {cat.label}
+                    <span className="rounded-full bg-white/10 px-1.5 py-0.5 text-[9px] text-white/50">{byCategory[cat.id]?.length ?? 0}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+            <div className="hidden lg:grid grid-cols-2 gap-3 w-[240px]">
+              {[
+                { n: `${totalPosts}+`, label: "Career guides" },
+                { n: "4", label: "Countries covered" },
+                { n: "10K+", label: "Coaching sessions" },
+                { n: "#1", label: "AI career coach" },
+              ].map(s => (
+                <div key={s.label} className="rounded-2xl border border-white/10 bg-white/[0.05] p-4 text-center">
+                  <p className="text-[1.5rem] font-extrabold text-white">{s.n}</p>
+                  <p className="text-[11px] text-white/40">{s.label}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
       {/* FEATURED */}
-      <section className="bg-white py-14">
+      <section className="bg-white py-16">
         <div className="mx-auto max-w-6xl px-6">
-          <div className="mb-7 flex items-center justify-between">
-            <h2 className="text-[1.5rem] font-extrabold tracking-[-0.025em] text-[var(--ink)]">Most read this month</h2>
+          <div className="mb-8 flex items-center justify-between">
+            <div>
+              <h2 className="text-[1.6rem] font-extrabold tracking-[-0.025em] text-[var(--ink)]">Most read this month</h2>
+              <p className="mt-1 text-[13px] text-[var(--muted)]">The guides job seekers come back to most</p>
+            </div>
           </div>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {featured.map(post => <PostCard key={post.slug} post={post} />)}
+          <div className="grid gap-5 lg:grid-cols-[2fr_1fr_1fr]">
+            <HeroPostCard post={featured[0]} />
+            <div className="flex flex-col gap-5">
+              {[featured[1], featured[2]].filter(Boolean).map(post => <PostCard key={post.slug} post={post} />)}
+            </div>
+            <div className="flex flex-col gap-5">
+              {[featured[3], featured[4]].filter(Boolean).map(post => <PostCard key={post.slug} post={post} />)}
+            </div>
+          </div>
+          <div className="mt-5 grid gap-5 sm:grid-cols-3">
+            {[featured[5]].filter(Boolean).map(post => <PostCard key={post.slug} post={post} />)}
+          </div>
+        </div>
+      </section>
+
+      {/* GUIDES BY REGION */}
+      <section className="border-t border-[var(--border)] bg-[var(--bg)] py-14">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="mb-8">
+            <h2 className="text-[1.6rem] font-extrabold tracking-[-0.025em] text-[var(--ink)]">Guides by country</h2>
+            <p className="mt-1 text-[13px] text-[var(--muted)]">Career advice tailored to your job market — US, UK, Canada, and Australia</p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {REGION_GUIDES.map(region => (
+              <div key={region.label} className="overflow-hidden rounded-2xl border border-[var(--border)] bg-white">
+                <div className="border-b border-[var(--border)] p-4" style={{ background: `${region.color}08` }}>
+                  <span className="text-2xl">{region.flag}</span>
+                  <p className="mt-1 font-extrabold text-[var(--ink)]">{region.label}</p>
+                </div>
+                <div className="p-4 space-y-1.5">
+                  {region.links.map(link => (
+                    <Link key={link.href} href={link.href} className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[12.5px] text-[var(--muted)] hover:bg-[var(--bg)] hover:text-[var(--brand)] transition-all">
+                      <span className="h-1 w-1 flex-shrink-0 rounded-full" style={{ background: region.color }} />
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* CATEGORY SECTIONS */}
-      {CATEGORIES.map(cat => {
+      {CATEGORIES.map((cat, ci) => {
         const posts = byCategory[cat.id] ?? [];
         if (posts.length === 0) return null;
         return (
-          <section key={cat.id} id={cat.id} className="scroll-mt-20 border-t border-[var(--border)] bg-[var(--bg)] py-14">
+          <section key={cat.id} id={cat.id} className={`scroll-mt-20 border-t border-[var(--border)] py-16 ${ci % 2 === 0 ? "bg-white" : "bg-[var(--bg)]"}`}>
             <div className="mx-auto max-w-6xl px-6">
-              <div className="mb-7 flex items-center gap-3">
-                <span className="text-2xl">{cat.icon}</span>
-                <div>
+              <div className="mb-8 flex items-end gap-4">
+                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl text-2xl" style={{ background: `${cat.color}12` }}>
+                  {cat.icon}
+                </div>
+                <div className="flex-1">
                   <h2 className="text-[1.5rem] font-extrabold tracking-[-0.025em] text-[var(--ink)]">{cat.label}</h2>
                   <p className="text-[12px] text-[var(--muted)]">{posts.length} guides</p>
                 </div>
-                <div className="ml-auto h-px flex-1 bg-[var(--border)]" />
+                <div className="hidden sm:block">
+                  <span className="rounded-full border border-[var(--border)] bg-[var(--bg)] px-3 py-1 text-[11px] font-bold" style={{ color: cat.color }}>{posts.length} guides</span>
+                </div>
               </div>
-              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {posts.map(post => <PostCard key={post.slug} post={post} />)}
               </div>
             </div>
@@ -1570,17 +1796,18 @@ export default async function BlogPage() {
       })}
 
       {/* CTA */}
-      <section className="relative overflow-hidden bg-[var(--dark)] py-20 text-white">
+      <section className="noise-overlay relative overflow-hidden py-24 text-white" style={{ background: "linear-gradient(135deg, #052830 0%, var(--brand) 50%, #052830 100%)" }}>
         <div className="pointer-events-none absolute inset-0 grid-pattern opacity-40" />
         <div className="relative mx-auto max-w-2xl px-6 text-center">
-          <h2 className="text-[2.2rem] font-extrabold tracking-[-0.03em]">Ready to put this into practice?</h2>
-          <p className="mx-auto mt-4 max-w-md text-[16px] text-white/55">One free session on every coaching surface. Start with your resume, LinkedIn, or an interview — no card required.</p>
+          <p className="mb-2 text-[11px] font-bold uppercase tracking-widest text-white/40">Put it into practice</p>
+          <h2 className="text-[2.4rem] font-extrabold tracking-[-0.03em] leading-tight">Reading is prep.<br /><span className="text-white/60">Coaching is practice.</span></h2>
+          <p className="mx-auto mt-5 max-w-md text-[16px] text-white/55">One free session on every surface — resume, LinkedIn, interviews, and salary. No card required.</p>
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-            <Link href={userId ? "/dashboard" : "/signup"} className="group inline-flex h-12 items-center gap-2 rounded-xl bg-[var(--brand)] px-8 text-[15px] font-bold text-white shadow-[0_4px_20px_rgba(67,97,238,0.35)] transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(67,97,238,0.45)]">
+            <Link href={userId ? "/dashboard" : "/signup"} className="group inline-flex h-13 items-center gap-2 rounded-xl bg-white px-8 text-[15px] font-bold text-[var(--brand)] shadow-[0_4px_30px_rgba(255,255,255,0.2)] transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_40px_rgba(255,255,255,0.3)]">
               Start coaching free <svg className="h-4 w-4 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M5 12h14M12 5l7 7-7 7" /></svg>
             </Link>
-            <Link href="/compare" className="inline-flex h-12 items-center gap-2 rounded-xl border border-white/20 px-8 text-[15px] font-semibold text-white/80 transition-all hover:border-white/40 hover:text-white">
-              Compare tools
+            <Link href="/compare" className="inline-flex h-13 items-center gap-2 rounded-xl border border-white/20 px-7 text-[15px] font-semibold text-white/80 transition-all hover:border-white/40 hover:text-white">
+              Compare AI tools
             </Link>
           </div>
         </div>
