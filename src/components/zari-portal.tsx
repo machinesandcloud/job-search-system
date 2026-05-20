@@ -4641,15 +4641,43 @@ function ScreenPromotionReadiness() {
             {resultTab === "overview" && (
               <div style={{ display:"grid", gap:16, paddingBottom:40 }}>
 
-                {/* Hero verdict banner */}
-                <div style={{ borderRadius:18, background:"linear-gradient(135deg, rgba(37,99,235,0.07) 0%, rgba(124,58,237,0.05) 100%)", border:"1px solid var(--z-bd)", borderLeft:`4px solid ${scoreColor}`, padding:"22px 24px", display:"flex", gap:22, alignItems:"center", flexWrap:"wrap" }}>
-                  <div style={{ flexShrink:0, textAlign:"center" }}>
-                    <div style={{ fontSize:48, fontWeight:900, color:scoreColor, letterSpacing:"-0.05em", lineHeight:1 }}>{result.readinessScore}</div>
-                    <div style={{ fontSize:10, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginTop:4 }}>Readiness</div>
-                  </div>
-                  <div style={{ flex:1, minWidth:200 }}>
-                    <div style={{ fontSize:10.5, fontWeight:800, color:scoreColor, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>{result.verdict}</div>
-                    <p style={{ fontSize:15, color:"var(--z-text)", lineHeight:1.78, margin:0, fontWeight:500 }}>{result.realityCheck}</p>
+                {/* Hero verdict banner — premium */}
+                <div style={{ borderRadius:18, background:"linear-gradient(135deg,#071525 0%,#0b1e38 60%,#0f172a 100%)", border:`1px solid ${scoreColor}22`, padding:"24px 28px", position:"relative", overflow:"hidden" }}>
+                  <div style={{ position:"absolute", top:-50, right:-30, width:220, height:220, borderRadius:"50%", background:`radial-gradient(circle, ${scoreColor}1a 0%, transparent 65%)`, pointerEvents:"none" }}/>
+                  <div style={{ display:"flex", gap:22, alignItems:"flex-start", flexWrap:"wrap", position:"relative" }}>
+                    <div style={{ position:"relative", width:80, height:80, flexShrink:0 }}>
+                      <svg viewBox="0 0 90 90" style={{ position:"absolute", inset:0, width:"100%", height:"100%", transform:"rotate(-90deg)" }}>
+                        <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="7"/>
+                        <circle cx="45" cy="45" r="38" fill="none" stroke={scoreColor} strokeWidth="7" strokeLinecap="round" strokeDasharray={`${(result.readinessScore/100)*238.8} 238.8`} style={{ filter:`drop-shadow(0 0 6px ${scoreColor}80)` }}/>
+                      </svg>
+                      <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
+                        <div style={{ fontSize:22, fontWeight:900, color:"white", letterSpacing:"-0.05em", lineHeight:1 }}>{result.readinessScore}</div>
+                        <div style={{ fontSize:8, fontWeight:700, color:"rgba(255,255,255,0.4)", textTransform:"uppercase", letterSpacing:"0.06em" }}>score</div>
+                      </div>
+                    </div>
+                    <div style={{ flex:1, minWidth:200 }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10, flexWrap:"wrap" }}>
+                        <span style={{ fontSize:10.5, fontWeight:800, color:verdictStyle.color, background:verdictStyle.bg, border:`1px solid ${verdictStyle.border}`, padding:"3px 11px", borderRadius:99, textTransform:"uppercase", letterSpacing:"0.09em" }}>{result.verdict}</span>
+                        <span style={{ fontSize:10.5, fontWeight:700, padding:"3px 10px", borderRadius:99, background:`${scoreColor}22`, border:`1px solid ${scoreColor}44`, color:scoreColor }}>{letterGrade(result.readinessScore)}</span>
+                      </div>
+                      <p style={{ fontSize:14, color:"rgba(255,255,255,0.72)", lineHeight:1.65, margin:"0 0 16px" }}>{result.realityCheck}</p>
+                      <div style={{ display:"flex", gap:16, flexWrap:"wrap" }}>
+                        {result.dimensions.slice(0,3).map(dim => {
+                          const dc = dimColor(dim.score);
+                          return (
+                            <div key={dim.label} style={{ minWidth:72 }}>
+                              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
+                                <span style={{ fontSize:9, fontWeight:700, color:"rgba(255,255,255,0.38)", textTransform:"uppercase", letterSpacing:"0.06em" }}>{dim.label.split(" ")[0]}</span>
+                                <span style={{ fontSize:12, fontWeight:900, color:dc }}>{dim.score}</span>
+                              </div>
+                              <div style={{ height:3, borderRadius:99, background:"rgba(255,255,255,0.08)", overflow:"hidden" }}>
+                                <div style={{ width:`${dim.score}%`, height:"100%", borderRadius:99, background:dc, boxShadow:`0 0 4px ${dc}80` }}/>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -5369,6 +5397,39 @@ function ScreenSalaryCompensation() {
         <div className="zari-result-content" style={{ flex:1, overflowY:"auto", padding:"24px 28px 40px" }}>
             {tab === "overview" && (
               <div style={{ display:"grid", gap:18 }}>
+                {/* ── SCORE HERO ── */}
+                <div style={{ borderRadius:18, background:"linear-gradient(135deg,#071525 0%,#0b1e38 60%,#0f172a 100%)", border:`1px solid ${scoreColor}22`, padding:"24px 28px", position:"relative", overflow:"hidden" }}>
+                  <div style={{ position:"absolute", top:-50, right:-30, width:220, height:220, borderRadius:"50%", background:`radial-gradient(circle, ${scoreColor}1a 0%, transparent 65%)`, pointerEvents:"none" }}/>
+                  <div style={{ display:"flex", gap:22, alignItems:"center", flexWrap:"wrap", position:"relative" }}>
+                    <div style={{ position:"relative", width:80, height:80, flexShrink:0 }}>
+                      <svg viewBox="0 0 90 90" style={{ position:"absolute", inset:0, width:"100%", height:"100%", transform:"rotate(-90deg)" }}>
+                        <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="7"/>
+                        <circle cx="45" cy="45" r="38" fill="none" stroke={scoreColor} strokeWidth="7" strokeLinecap="round" strokeDasharray={`${(result.compensationScore/100)*238.8} 238.8`} style={{ filter:`drop-shadow(0 0 6px ${scoreColor}80)` }}/>
+                      </svg>
+                      <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
+                        <div style={{ fontSize:22, fontWeight:900, color:"white", letterSpacing:"-0.05em", lineHeight:1 }}>{result.compensationScore}</div>
+                        <div style={{ fontSize:8, fontWeight:700, color:"rgba(255,255,255,0.4)", textTransform:"uppercase", letterSpacing:"0.06em" }}>score</div>
+                      </div>
+                    </div>
+                    <div style={{ flex:1, minWidth:200 }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10, flexWrap:"wrap" }}>
+                        <span style={{ fontSize:10.5, fontWeight:800, color:badge.color, background:badge.bg, border:`1px solid ${badge.border}`, padding:"3px 11px", borderRadius:99, textTransform:"uppercase", letterSpacing:"0.09em" }}>{badge.label}</span>
+                        <span style={{ fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.3)", letterSpacing:"0.06em", textTransform:"uppercase" }}>Compensation Analysis</span>
+                      </div>
+                      <p style={{ fontSize:14, color:"rgba(255,255,255,0.72)", lineHeight:1.65, margin:"0 0 14px" }}>{result.marketPositionDetail}</p>
+                      {result.benchmarks.length > 0 && (
+                        <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+                          {result.benchmarks.slice(0,3).map((b, i) => (
+                            <div key={i} style={{ background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:10, padding:"7px 14px" }}>
+                              <div style={{ fontSize:9, fontWeight:700, color:"rgba(255,255,255,0.35)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:2 }}>{b.label}</div>
+                              <div style={{ fontSize:16, fontWeight:900, color:"rgba(255,255,255,0.88)", letterSpacing:"-0.02em" }}>{b.value}</div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
                 <div style={{ borderRadius:14, background:"rgba(220,38,38,0.04)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #DC2626", padding:"22px 26px" }}>
                   <div style={{ fontSize:10.5, fontWeight:800, color:"#DC2626", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Hard truth</div>
                   <p style={{ fontSize:15, color:"var(--z-text)", lineHeight:1.8, margin:0 }}>{result.hardTruth}</p>
@@ -8120,6 +8181,10 @@ function ScreenExecPositioning() {
   if (result) {
     const scoreColor = result.execScore >= 75 ? "#F59E0B" : result.execScore >= 55 ? "#D97706" : "#EF4444";
     const vMeta = verdictMeta[result.execVerdict] ?? verdictMeta["Emerging exec"];
+    const letterGrade = (s: number) =>
+      s >= 95 ? "A+" : s >= 88 ? "A" : s >= 82 ? "A-" :
+      s >= 76 ? "B+" : s >= 70 ? "B" : s >= 63 ? "B-" :
+      s >= 57 ? "C+" : s >= 50 ? "C" : s >= 40 ? "D" : "F";
     const tabs: { id: ExecTab; label: string }[] = [
       { id:"overview", label:"Overview" }, { id:"gaps", label:"Presence Gaps" },
       { id:"moves", label:"Positioning Moves" }, { id:"bio", label:"Board Bio" },
@@ -8178,6 +8243,41 @@ function ScreenExecPositioning() {
         <div className="zari-result-content" style={{ flex:1, overflowY:"auto", padding:"24px 28px 40px" }}>
             {tab === "overview" && (
               <div style={{ display:"grid", gap:18 }}>
+                {/* ── SCORE HERO ── */}
+                <div style={{ borderRadius:18, background:"linear-gradient(135deg,#071525 0%,#0b1e38 60%,#0f172a 100%)", border:`1px solid ${scoreColor}22`, padding:"24px 28px", position:"relative", overflow:"hidden" }}>
+                  <div style={{ position:"absolute", top:-50, right:-30, width:220, height:220, borderRadius:"50%", background:`radial-gradient(circle, ${scoreColor}1a 0%, transparent 65%)`, pointerEvents:"none" }}/>
+                  <div style={{ display:"flex", gap:22, alignItems:"flex-start", flexWrap:"wrap", position:"relative" }}>
+                    <div style={{ position:"relative", width:80, height:80, flexShrink:0 }}>
+                      <svg viewBox="0 0 90 90" style={{ position:"absolute", inset:0, width:"100%", height:"100%", transform:"rotate(-90deg)" }}>
+                        <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="7"/>
+                        <circle cx="45" cy="45" r="38" fill="none" stroke={scoreColor} strokeWidth="7" strokeLinecap="round" strokeDasharray={`${(result.execScore/100)*238.8} 238.8`} style={{ filter:`drop-shadow(0 0 6px ${scoreColor}80)` }}/>
+                      </svg>
+                      <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
+                        <div style={{ fontSize:22, fontWeight:900, color:"white", letterSpacing:"-0.05em", lineHeight:1 }}>{result.execScore}</div>
+                        <div style={{ fontSize:8, fontWeight:700, color:"rgba(255,255,255,0.4)", textTransform:"uppercase", letterSpacing:"0.06em" }}>score</div>
+                      </div>
+                    </div>
+                    <div style={{ flex:1, minWidth:200 }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10, flexWrap:"wrap" }}>
+                        <span style={{ fontSize:10.5, fontWeight:800, color:vMeta.color, background:vMeta.bg, border:`1px solid ${vMeta.border}`, padding:"3px 11px", borderRadius:99, textTransform:"uppercase" as const, letterSpacing:"0.09em" }}>{result.execVerdict}</span>
+                        <span style={{ fontSize:10.5, fontWeight:700, padding:"3px 10px", borderRadius:99, background:`${scoreColor}22`, border:`1px solid ${scoreColor}44`, color:scoreColor }}>{letterGrade(result.execScore)}</span>
+                      </div>
+                      <p style={{ fontSize:14, color:"rgba(255,255,255,0.72)", lineHeight:1.65, margin:"0 0 16px" }}>{result.hardTruth}</p>
+                      <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+                        {([
+                          { label:"Critical gaps", value:result.presenceGaps.filter(g => g.severity === "critical").length },
+                          { label:"Strengths",     value:result.strengths.length },
+                          { label:"Moves",         value:result.positioningMoves?.length ?? 0 },
+                        ] as { label: string; value: number }[]).map(stat => (
+                          <div key={stat.label} style={{ padding:"8px 14px", borderRadius:10, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", display:"flex", flexDirection:"column", alignItems:"center", gap:3 }}>
+                            <div style={{ fontSize:18, fontWeight:900, color:"white", letterSpacing:"-0.04em", lineHeight:1 }}>{stat.value}</div>
+                            <div style={{ fontSize:9, fontWeight:700, color:"rgba(255,255,255,0.38)", textTransform:"uppercase" as const, letterSpacing:"0.07em" }}>{stat.label}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div style={{ borderRadius:14, background:"rgba(220,38,38,0.04)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #DC2626", padding:"22px 26px" }}>
                   <div style={{ fontSize:10.5, fontWeight:800, color:"#DC2626", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Hard truth</div>
                   <p style={{ fontSize:15, color:"var(--z-text)", lineHeight:1.8, margin:0 }}>{result.hardTruth}</p>
