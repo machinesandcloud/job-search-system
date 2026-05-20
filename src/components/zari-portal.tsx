@@ -12233,7 +12233,7 @@ function ScreenPromotionPitch({ active = false, onNavigate }: { active?: boolean
         </div>
 
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))", gap:18, alignItems:"start" }}>
-          <div style={{ display:"grid", gap:18, position:"sticky", top:18 }}>
+          <div className="zari-sticky-col" style={{ display:"grid", gap:18, position:"sticky", top:18 }}>
             <div style={promotionPanelStyle(theme, true)}>
               <div style={{ fontSize:11.5, fontWeight:800, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Questions</div>
               <h2 style={{ fontSize:26, lineHeight:1.08, fontWeight:700, fontFamily:PROMOTION_DISPLAY_FONT, letterSpacing:"-0.03em", color:"var(--z-text)", margin:"0 0 14px" }}>Cover all of it.</h2>
