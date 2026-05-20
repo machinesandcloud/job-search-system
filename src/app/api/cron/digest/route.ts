@@ -14,9 +14,12 @@ export const maxDuration = 60;
 const FOUNDER_EMAIL = process.env.FOUNDER_EMAIL ?? "docteureminem@gmail.com";
 
 export async function GET(request: Request) {
-  const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const cronSecret = process.env.CRON_SECRET;
+  if (cronSecret) {
+    const authHeader = request.headers.get("authorization");
+    if (authHeader !== `Bearer ${cronSecret}`) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
   }
 
   const now = new Date();
@@ -63,10 +66,10 @@ export async function GET(request: Request) {
   // At-risk count (active subscribers with health score < 50)
   // Approximate: paid users with no session in 14 days
   const paidUsers = await prisma.user.findMany({
-    where: { subscription: { status: { in: ["active", "trialing"] } } },
+    where: { account: { subscription: { status: { in: ["active", "trialing"] } } } },
     select: {
       id: true,
-      coachingSessions: {
+      sessions: {
         where: { status: "complete" },
         orderBy: { createdAt: "desc" },
         take: 1,
@@ -74,8 +77,8 @@ export async function GET(request: Request) {
       },
     },
   });
-  const atRiskCount = paidUsers.filter((u: { coachingSessions: { createdAt: Date }[] }) => {
-    const last = u.coachingSessions[0]?.createdAt;
+  const atRiskCount = paidUsers.filter((u: { sessions: { createdAt: Date }[] }) => {
+    const last = u.sessions[0]?.createdAt;
     if (!last) return true;
     return (now.getTime() - last.getTime()) > 14 * 86_400_000;
   }).length;
@@ -88,7 +91,7 @@ export async function GET(request: Request) {
   const planPrices: Record<string, number> = {
     "Search": 39, "Pro": 39,
     "Growth": 89, "Premium": 89,
-    "Executive": 149, "Team": 149,
+    "Executive": 179, "Team": 179,
   };
   const mrr = activeSubs.reduce((sum: number, s: { planName: string | null }) => {
     const planKey = Object.keys(planPrices).find(k => s.planName?.includes(k));

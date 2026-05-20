@@ -6,17 +6,19 @@ export const config: Config = {
 };
 
 export default async function handler() {
-  const secret = process.env.CRON_SECRET;
   const baseUrl = process.env.URL;
 
-  if (!secret || !baseUrl) {
-    console.error("[cron-weekly] CRON_SECRET or URL env var is not set");
+  if (!baseUrl) {
+    console.error("[cron-weekly] URL env var is not set");
     return;
   }
 
+  const headers: Record<string, string> = {};
+  if (process.env.CRON_SECRET) headers["Authorization"] = `Bearer ${process.env.CRON_SECRET}`;
+
   const res = await fetch(`${baseUrl}/api/cron/digest`, {
     method: "GET",
-    headers: { Authorization: `Bearer ${secret}` },
+    headers,
   });
 
   const body = await res.json().catch(() => ({}));
