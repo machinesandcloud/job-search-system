@@ -1776,7 +1776,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
     <div style={{ display:"flex", flexDirection:"column", height:"100%", overflow:"hidden", background:"var(--z-raise)", position:"relative" }}>
 
       {/* ── TOP HEADER BAR ── */}
-      <div style={{
+      <div className="zari-session-topbar" style={{
         flexShrink:0, height:52,
         display:"flex", alignItems:"center", justifyContent:"space-between",
         padding:"0 20px",
@@ -1917,7 +1917,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
         {/* ── CHAT PANEL ── */}
         <div style={{ flex:1, display:"flex", flexDirection:"column", minWidth:0 }}>
           {/* Messages */}
-          <div ref={chatRef} style={{ flex:1, overflowY:"auto", padding:"24px 26px 8px" }}>
+          <div ref={chatRef} className="zari-chat-messages" style={{ flex:1, overflowY:"auto", padding:"24px 26px 8px" }}>
             {!sessionReady && msgs.length === 0 && !isLoading && (
               <div style={{ display:"flex", gap:10, marginBottom:14, animation:"bubble-appear 0.3s ease" }}>
                 <div style={{ width:32,height:32,borderRadius:"50%",flexShrink:0,background:"linear-gradient(135deg,#3730a3,#2563EB)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"white",boxShadow:"0 0 14px rgba(37,99,235,0.4)" }}>Z</div>
@@ -1937,7 +1937,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
                 }}>
                   {msg.role==="coach"?"Z":"S"}
                 </div>
-                <div style={{
+                <div className="zari-chat-bubble" style={{
                   maxWidth:"72%", padding:"11px 15px", fontSize:13.5, lineHeight:1.65,
                   borderRadius: msg.role==="coach" ? "4px 16px 16px 16px" : "16px 4px 16px 16px",
                   background: msg.role==="coach" ? "var(--z-card)" : "linear-gradient(135deg,#3730a3,#2563EB)",
@@ -1970,7 +1970,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
           )}
 
           {/* Quick prompts grid */}
-          <div style={{ flexShrink:0, padding:"0 26px 10px", display:"flex", gap:8, flexWrap:"wrap", justifyContent:"center" }}>
+          <div className="zari-quick-prompts" style={{ flexShrink:0, padding:"0 26px 10px", display:"flex", gap:8, flexWrap:"wrap", justifyContent:"center" }}>
             {STAGE_PROMPTS[stage].map(p => (
               <button key={p} onClick={() => void sendMessage(p)} disabled={isLoading} style={{
                 opacity: isLoading ? 0.4 : 1,
@@ -1987,7 +1987,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
           </div>
 
           {/* Input */}
-          <div style={{ flexShrink:0, padding:"0 24px 20px" }}>
+          <div className="zari-chat-input-wrap" style={{ flexShrink:0, padding:"0 24px 20px" }}>
             <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx,.txt" style={{ display:"none" }}
               onChange={e => { const f = e.target.files?.[0]; if (f) void handleFileUpload(f); e.target.value = ""; }} />
             <div style={{
@@ -1999,6 +1999,7 @@ function ScreenSession({ stage, onNavigate }: { stage: CareerStage; onNavigate?:
               transition:"border-color 0.2s, box-shadow 0.2s",
             }}>
               <textarea
+                className="zari-chat-input-textarea"
                 style={{ width:"100%", border:"none", outline:"none", fontSize:14, color:"var(--z-text)", background:"transparent", resize:"none", padding:"13px 148px 13px 16px", fontFamily:"inherit", lineHeight:1.6, display:"block", opacity: isLoading ? 0.55 : 1 }}
                 rows={3}
                 placeholder={fileProcessing ? "Reading your file…" : isRecording ? "Listening… click mic to stop" : isLoading ? "Zari is thinking…" : "Ask Zari anything, attach a file, or practice out loud…"}
@@ -9103,7 +9104,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
         </div>
 
         {/* Feature strip */}
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10 }}>
+        <div className="zari-four-col" style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10 }}>
           {[
             { icon:<svg viewBox="0 0 16 16" fill="none" stroke="var(--z-text2)" strokeWidth="1.8" style={{width:15,height:15}}><path d="M13 3L6 11l-3-3"/></svg>, label:"ATS-optimized" },
             { icon:<svg viewBox="0 0 16 16" fill="none" stroke="var(--z-text2)" strokeWidth="1.8" style={{width:15,height:15}}><path d="M8 2v8M4 7l4 4 4-4"/><path d="M2 13h12"/></svg>, label:"Download ready" },
@@ -9153,7 +9154,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
           {/* Career level */}
           <div style={{ marginBottom:20 }}>
             <p style={{ fontSize:11.5, fontWeight:700, color:"var(--z-text2)", marginBottom:8 }}>Your career level</p>
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:7 }}>
+            <div className="zari-four-col" style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:7 }}>
               {([["entry","Entry","0–2 yrs"],["mid","Mid-Level","3–7 yrs"],["senior","Senior","8–15 yrs"],["executive","Executive","VP+"]] as [CareerLevel,string,string][]).map(([lvl,label,sub])=>(
                 <button key={lvl} onClick={()=>setCareerLevel(lvl)} style={{ padding:"8px 6px", borderRadius:10, border:`1.5px solid ${careerLevel===lvl?"rgba(37,99,235,0.7)":"var(--z-bd)"}`, background:careerLevel===lvl?"rgba(37,99,235,0.10)":"var(--z-raise)", cursor:"pointer", textAlign:"center", transition:"all 0.12s" }}>
                   <p style={{ fontSize:12, fontWeight:700, color:careerLevel===lvl?"#2563EB":"var(--z-text2)", margin:0 }}>{label}</p>
@@ -14172,7 +14173,7 @@ function ScreenLinkedIn({ stage, active = false, onNavigate }: { stage: CareerSt
                       </div>
                       {/* Section score bars */}
                       {sectionScores.length > 0 && (
-                        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10, paddingTop:14, borderTop:"1px solid var(--z-bd2)" }}>
+                        <div className="zari-four-col" style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10, paddingTop:14, borderTop:"1px solid var(--z-bd2)" }}>
                           {sectionScores.map(({label,score}) => {
                             const c = score>=75?"#16A34A":score>=55?"#0077B5":"#D97706";
                             return (
@@ -18671,7 +18672,8 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
           .zari-session-topbar { padding:0 12px 0 10px !important; height:48px !important; }
           /* Tighten chat message bubbles on mobile */
           .zari-chat-bubble { max-width:85% !important; }
-          /* Reduce chat input padding on mobile */
+          /* Reduce chat messages + input padding on mobile */
+          .zari-chat-messages { padding:16px 14px 8px !important; }
           .zari-chat-input-wrap { padding:0 12px 14px !important; }
           .zari-chat-input-textarea { padding:12px 120px 12px 14px !important; font-size:15px !important; }
           .zari-quick-prompts { padding:0 12px 8px !important; gap:6px !important; }

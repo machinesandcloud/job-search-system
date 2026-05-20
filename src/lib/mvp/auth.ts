@@ -48,10 +48,10 @@ export async function getCurrentUserId() {
 
     return session.userId === parsed.userId ? session.userId : null;
   } catch (error) {
-    // DB unavailable or AppSession table missing — trust the cookie value so sessions
-    // survive DB outages and deployments before migrations have run.
-    console.error("[mvp-auth] failed to resolve current user session, falling back to cookie userId", error);
-    return parsed.userId;
+    // DB unavailable — fail closed. A brief log-out is safer than accepting an
+    // unvalidated cookie value that could be forged with any known userId.
+    console.error("[mvp-auth] DB error validating session — denying access", error);
+    return null;
   }
 }
 

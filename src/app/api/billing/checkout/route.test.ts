@@ -94,7 +94,7 @@ describe("billing checkout route", () => {
       })
     );
 
-    expect(mocks.getStripeSubscriptionPriceId).toHaveBeenCalledWith("growth");
+    expect(mocks.getStripeSubscriptionPriceId).toHaveBeenCalledWith("growth", "monthly");
     expect(mocks.getBillingSuccessUrl).toHaveBeenCalledWith("http://localhost:3000");
     expect(mocks.getBillingCancelUrl).toHaveBeenCalledWith("http://localhost:3000");
 

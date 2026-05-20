@@ -17,7 +17,13 @@ export async function GET(request: NextRequest) {
     request.nextUrl.searchParams.get("session_id") ||
     request.nextUrl.searchParams.get("sessionId");
 
-  if (access.ok && access.isFreeTier && sessionId && access.account) {
+  // Reconcile after checkout when either (a) free-tier user just paid, or
+  // (b) access is denied but we still have an account to sync against (e.g.
+  // subscription not yet written by the webhook when the success page polls).
+  const canReconcile = sessionId && access.account &&
+    ((access.ok && access.isFreeTier) || (!access.ok && "account" in access && access.account));
+
+  if (canReconcile) {
     try {
       const stripe = getStripeClient();
       const session = await stripe.checkout.sessions.retrieve(sessionId, {
@@ -58,7 +64,7 @@ export async function GET(request: NextRequest) {
       {
         ok: false,
         error: access.error,
-        subscriptionStatus: null,
+        subscriptionStatus: (access as { subscription?: { status?: string } | null }).subscription?.status ?? null,
       },
       { status: access.status }
     );

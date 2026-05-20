@@ -2,14 +2,19 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { suppress } from "@/lib/email-sequences";
 
-// GET: one-click unsubscribe from email link
+// GET: redirect to confirmation page — do NOT suppress yet.
+// Email clients (Outlook, Gmail) pre-fetch all links in an email before the user
+// opens it, for malware/phishing scanning. A GET that suppresses immediately would
+// unsubscribe the user before they ever clicked. Suppression only happens when the
+// user explicitly confirms via the POST handler below.
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const email = searchParams.get("email")?.toLowerCase().trim();
   if (!email) return NextResponse.redirect(new URL("/unsubscribe?status=error", request.url));
 
-  await suppress(email, "unsubscribe");
-  return NextResponse.redirect(new URL(`/unsubscribe?status=done&email=${encodeURIComponent(email)}`, request.url));
+  return NextResponse.redirect(
+    new URL(`/unsubscribe?action=confirm&email=${encodeURIComponent(email)}`, request.url)
+  );
 }
 
 // POST: from the unsubscribe page form

@@ -18,6 +18,7 @@ const mocks = vi.hoisted(() => ({
     user: {
       updateMany: vi.fn(),
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
     },
   },
   getStripeClient: vi.fn(),
@@ -53,6 +54,13 @@ vi.mock("@/lib/subscription-sync", () => ({
   syncStripeSubscriptionToAccount: mocks.syncStripeSubscriptionToAccount,
   syncUsersForAccountPlan: mocks.syncUsersForAccountPlan,
   mapStripePlanTier: mocks.mapStripePlanTier,
+}));
+
+vi.mock("@/lib/zoho-engine", () => ({
+  onSubscriptionChanged: vi.fn(),
+  onUserChurned: vi.fn(),
+  onPaymentFailed: vi.fn(),
+  onPaymentRecovered: vi.fn(),
 }));
 
 import { POST } from "./route";

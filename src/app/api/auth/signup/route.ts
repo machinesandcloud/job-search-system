@@ -35,14 +35,14 @@ export async function POST(request: Request) {
     const user = await createPlatformUser({ firstName, lastName, email, password });
 
     // Fire-and-forget: full CRM + campaign engine (non-blocking)
-    void onUserSignedUp({
+    onUserSignedUp({
       userId: user.userId,
       accountId: (user.profile as any)?.accountId ?? user.userId,
       email,
       firstName,
       lastName,
       source: "Direct",
-    });
+    }).catch((err) => console.error("[signup] onUserSignedUp failed for", email, err));
 
     const response = NextResponse.json({ ok: true, user: user.profile }, { status: 201 });
     return setCurrentUserSessionOnResponse(response, user.userId);

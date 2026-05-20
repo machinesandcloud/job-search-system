@@ -9,11 +9,11 @@ import { suppress } from "@/lib/email-sequences";
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  // Verify webhook secret
+  // Verify webhook secret — strict equality, not substring match.
   const secret = process.env.RESEND_WEBHOOK_SECRET;
   if (secret) {
-    const sig = request.headers.get("svix-signature") ?? request.headers.get("resend-signature");
-    if (!sig || !sig.includes(secret)) {
+    const sig = request.headers.get("svix-signature") ?? request.headers.get("resend-signature") ?? "";
+    if (sig !== secret) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }
