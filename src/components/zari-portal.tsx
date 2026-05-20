@@ -4589,97 +4589,83 @@ function ScreenPromotionReadiness() {
     ];
 
     return (
-      <div style={{ height:"100%", display:"flex", overflow:"hidden", background:"var(--z-raise)" }}>
-        {/* LEFT PANEL */}
-        <div className="zari-inner-sidebar" style={{ width:264, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
-          <div style={{ padding:"22px 16px 14px" }}>
-            <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:14 }}>
-              <div style={{ position:"relative", width:68, height:68, flexShrink:0 }}>
-                <svg viewBox="0 0 90 90" style={{ position:"absolute", inset:0, width:"100%", height:"100%", transform:"rotate(-90deg)" }}>
-                  <circle cx="45" cy="45" r="38" fill="none" stroke="var(--z-raise)" strokeWidth="7"/>
-                  <circle cx="45" cy="45" r="38" fill="none" stroke={scoreColor} strokeWidth="7" strokeLinecap="round" strokeDasharray={`${(result.readinessScore/100)*238.8} 238.8`}/>
-                </svg>
-                <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
-                  <div style={{ fontSize:20, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.05em", lineHeight:1 }}>{result.readinessScore}</div>
-                </div>
-              </div>
-              <div style={{ minWidth:0 }}>
-                <span style={{ fontSize:9.5, fontWeight:800, color:"var(--z-text2)", background:"var(--z-raise)", border:"1px solid var(--z-bd)", padding:"3px 8px", borderRadius:999, display:"inline-block", marginBottom:6, textTransform:"uppercase", letterSpacing:"0.08em" }}>{result.verdict}</span>
-                <div style={{ fontSize:13, fontWeight:800, color:"var(--z-text)", lineHeight:1.3 }}>{result.summary}</div>
+      <div style={{ height:"100%", display:"flex", flexDirection:"column", overflow:"hidden", background:"var(--z-raise)" }}>
+
+        {/* ── HERO ── */}
+        <div style={{ flexShrink:0, background:"linear-gradient(160deg,#071525 0%,#0b1e38 50%,#0f172a 100%)", borderBottom:"1px solid rgba(255,255,255,0.07)", padding:"26px 32px 22px", position:"relative", overflow:"hidden" }}>
+          <div style={{ position:"absolute", top:-70, right:-50, width:280, height:280, borderRadius:"50%", background:`radial-gradient(circle,${scoreColor}22 0%,transparent 65%)`, pointerEvents:"none" }}/>
+          <div style={{ display:"flex", alignItems:"flex-start", gap:22, position:"relative", flexWrap:"wrap" }}>
+            <div style={{ position:"relative", width:80, height:80, flexShrink:0 }}>
+              <svg viewBox="0 0 90 90" style={{ position:"absolute", inset:0, width:"100%", height:"100%", transform:"rotate(-90deg)" }}>
+                <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="7"/>
+                <circle cx="45" cy="45" r="38" fill="none" stroke={scoreColor} strokeWidth="7" strokeLinecap="round" strokeDasharray={`${(result.readinessScore/100)*238.8} 238.8`} style={{ filter:`drop-shadow(0 0 6px ${scoreColor}80)` }}/>
+              </svg>
+              <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
+                <div style={{ fontSize:22, fontWeight:900, color:"white", letterSpacing:"-0.05em", lineHeight:1 }}>{result.readinessScore}</div>
+                <div style={{ fontSize:8, fontWeight:700, color:"rgba(255,255,255,0.4)", textTransform:"uppercase", letterSpacing:"0.06em" }}>score</div>
               </div>
             </div>
-            <p style={{ fontSize:12, color:"var(--z-text2)", lineHeight:1.6, margin:"0 0 12px" }}>{result.scoreReason}</p>
-            <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
-              {snapshotCards.map(card => (
-                <div key={card.label} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"5px 9px", borderRadius:7, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
-                  <span style={{ fontSize:10, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em" }}>{card.label}</span>
-                  <span style={{ fontSize:11, fontWeight:800, color:"var(--z-text2)" }}>{card.value}</span>
+            <div style={{ flex:1, minWidth:200 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:10, flexWrap:"wrap" }}>
+                <span style={{ fontSize:10.5, fontWeight:800, color:verdictStyle.color, background:verdictStyle.bg, border:`1px solid ${verdictStyle.border}`, padding:"3px 11px", borderRadius:99, textTransform:"uppercase" as const, letterSpacing:"0.09em" }}>{result.verdict}</span>
+                <span style={{ fontSize:10.5, fontWeight:700, padding:"3px 10px", borderRadius:99, background:`${scoreColor}22`, border:`1px solid ${scoreColor}44`, color:scoreColor }}>{letterGrade(result.readinessScore)}</span>
+                <span style={{ fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.3)", letterSpacing:"0.06em", textTransform:"uppercase" as const }}>Promotion Readiness</span>
+              </div>
+              <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
+                {form.currentTitle && (
+                  <div style={{ background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:10, padding:"7px 14px" }}>
+                    <div style={{ fontSize:9, fontWeight:700, color:"rgba(255,255,255,0.35)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:2 }}>Current</div>
+                    <div style={{ fontSize:14, fontWeight:800, color:"rgba(255,255,255,0.82)" }}>{form.currentTitle}</div>
+                  </div>
+                )}
+                {form.currentTitle && form.desiredTitle && (
+                  <svg viewBox="0 0 28 14" fill="none" style={{width:28,flexShrink:0}}><path d="M1 7h24M20 3l5 4-5 4" stroke={scoreColor} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                )}
+                {form.desiredTitle && (
+                  <div style={{ background:`${scoreColor}18`, border:`1px solid ${scoreColor}30`, borderRadius:10, padding:"7px 14px" }}>
+                    <div style={{ fontSize:9, fontWeight:700, color:scoreColor, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:2 }}>Target</div>
+                    <div style={{ fontSize:14, fontWeight:800, color:"white" }}>{form.desiredTitle}</div>
+                  </div>
+                )}
+                <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                  {([
+                    { label:"Window", value:timelineWindow },
+                    { label:"Gaps",   value:String(gapCount) },
+                    { label:"Moves",  value:String(result.actionPlan.length) },
+                  ] as {label:string;value:string}[]).map(stat => (
+                    <div key={stat.label} style={{ padding:"6px 12px", borderRadius:9, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", display:"flex", flexDirection:"column", alignItems:"center" }}>
+                      <div style={{ fontSize:15, fontWeight:900, color:"white", lineHeight:1 }}>{stat.value}</div>
+                      <div style={{ fontSize:8.5, fontWeight:700, color:"rgba(255,255,255,0.35)", textTransform:"uppercase" as const, letterSpacing:"0.06em", marginTop:2 }}>{stat.label}</div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
             </div>
-          </div>
-          <div style={{ height:1, background:"var(--z-bd)" }}/>
-          <div style={{ padding:"8px 8px", flex:1 }}>
-            {resultTabs.map(tab => {
-              const active = resultTab === tab.id;
-              return (
-                <button key={tab.id} onClick={() => setResultTab(tab.id)} style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"9px 10px", borderRadius:8, border:"none", background:active ? "rgba(37,99,235,0.08)" : "transparent", color:active ? "#2563EB" : "var(--z-text2)", fontSize:13, fontWeight:active ? 700 : 500, cursor:"pointer", textAlign:"left", transition:"all 0.12s" }}>
-                  {tab.label}
-                  {tab.badge && <span style={{ fontSize:10, fontWeight:800, padding:"1px 6px", borderRadius:99, background:active ? "rgba(37,99,235,0.12)" : "var(--z-raise)", color:active ? "#2563EB" : "var(--z-text3)", border:"1px solid var(--z-bd)" }}>{tab.badge}</span>}
-                </button>
-              );
-            })}
-          </div>
-          <div style={{ padding:"10px 12px 14px", borderTop:"1px solid var(--z-bd)", display:"flex", gap:6 }}>
-            <button onClick={() => { setResult(null); setResultTab("overview"); setStep(1); }} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Edit</button>
-            <button onClick={() => { setResult(null); setResultTab("overview"); setStep(1); setForm(PROMOTION_READINESS_DEFAULT_FORM); setError(""); }} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Fresh</button>
+            <div style={{ display:"flex", gap:6, flexShrink:0, alignSelf:"flex-start" }}>
+              <button onClick={() => { setResult(null); setResultTab("overview"); setStep(1); }} style={{ fontSize:11, fontWeight:700, padding:"7px 13px", borderRadius:8, border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.05)", color:"rgba(255,255,255,0.5)", cursor:"pointer" }}>Edit</button>
+              <button onClick={() => { setResult(null); setResultTab("overview"); setStep(1); setForm(PROMOTION_READINESS_DEFAULT_FORM); setError(""); }} style={{ fontSize:11, fontWeight:700, padding:"7px 13px", borderRadius:8, border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.05)", color:"rgba(255,255,255,0.5)", cursor:"pointer" }}>Fresh start</button>
+            </div>
           </div>
         </div>
-        {/* RIGHT PANEL */}
-        <div className="zari-result-content" style={{ flex:1, overflowY:"auto", padding:"24px 28px 40px" }}>
+
+        {/* ── TAB BAR ── */}
+        <div style={{ flexShrink:0, borderBottom:"1px solid var(--z-bd)", background:"var(--z-card)", padding:"0 24px", display:"flex", gap:0, overflowX:"auto" }}>
+          {resultTabs.map(t => {
+            const active = resultTab === t.id;
+            return (
+              <button key={t.id} onClick={() => setResultTab(t.id)} style={{ display:"flex", alignItems:"center", gap:7, padding:"13px 16px", border:"none", borderBottom:active ? "2px solid #2563EB" : "2px solid transparent", background:"transparent", color:active ? "#2563EB" : "var(--z-text2)", fontSize:13, fontWeight:active ? 700 : 500, cursor:"pointer", transition:"all 0.15s", whiteSpace:"nowrap", flexShrink:0 }}>
+                {t.label}
+                {t.badge && <span style={{ fontSize:10, fontWeight:800, padding:"1px 7px", borderRadius:99, background:active ? "rgba(37,99,235,0.12)" : "var(--z-raise)", color:active ? "#2563EB" : "var(--z-text3)", border:`1px solid ${active ? "rgba(37,99,235,0.25)" : "var(--z-bd)"}` }}>{t.badge}</span>}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ── CONTENT ── */}
+        <div className="zari-result-content" style={{ flex:1, overflowY:"auto", padding:"28px 32px 52px" }}>
 
             {resultTab === "overview" && (
               <div style={{ display:"grid", gap:16, paddingBottom:40 }}>
-
-                {/* Hero verdict banner — premium */}
-                <div style={{ borderRadius:18, background:"linear-gradient(135deg,#071525 0%,#0b1e38 60%,#0f172a 100%)", border:`1px solid ${scoreColor}22`, padding:"24px 28px", position:"relative", overflow:"hidden" }}>
-                  <div style={{ position:"absolute", top:-50, right:-30, width:220, height:220, borderRadius:"50%", background:`radial-gradient(circle, ${scoreColor}1a 0%, transparent 65%)`, pointerEvents:"none" }}/>
-                  <div style={{ display:"flex", gap:22, alignItems:"flex-start", flexWrap:"wrap", position:"relative" }}>
-                    <div style={{ position:"relative", width:80, height:80, flexShrink:0 }}>
-                      <svg viewBox="0 0 90 90" style={{ position:"absolute", inset:0, width:"100%", height:"100%", transform:"rotate(-90deg)" }}>
-                        <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="7"/>
-                        <circle cx="45" cy="45" r="38" fill="none" stroke={scoreColor} strokeWidth="7" strokeLinecap="round" strokeDasharray={`${(result.readinessScore/100)*238.8} 238.8`} style={{ filter:`drop-shadow(0 0 6px ${scoreColor}80)` }}/>
-                      </svg>
-                      <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
-                        <div style={{ fontSize:22, fontWeight:900, color:"white", letterSpacing:"-0.05em", lineHeight:1 }}>{result.readinessScore}</div>
-                        <div style={{ fontSize:8, fontWeight:700, color:"rgba(255,255,255,0.4)", textTransform:"uppercase", letterSpacing:"0.06em" }}>score</div>
-                      </div>
-                    </div>
-                    <div style={{ flex:1, minWidth:200 }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10, flexWrap:"wrap" }}>
-                        <span style={{ fontSize:10.5, fontWeight:800, color:verdictStyle.color, background:verdictStyle.bg, border:`1px solid ${verdictStyle.border}`, padding:"3px 11px", borderRadius:99, textTransform:"uppercase", letterSpacing:"0.09em" }}>{result.verdict}</span>
-                        <span style={{ fontSize:10.5, fontWeight:700, padding:"3px 10px", borderRadius:99, background:`${scoreColor}22`, border:`1px solid ${scoreColor}44`, color:scoreColor }}>{letterGrade(result.readinessScore)}</span>
-                      </div>
-                      <p style={{ fontSize:14, color:"rgba(255,255,255,0.72)", lineHeight:1.65, margin:"0 0 16px" }}>{result.realityCheck}</p>
-                      <div style={{ display:"flex", gap:16, flexWrap:"wrap" }}>
-                        {result.dimensions.slice(0,3).map(dim => {
-                          const dc = dimColor(dim.score);
-                          return (
-                            <div key={dim.label} style={{ minWidth:72 }}>
-                              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
-                                <span style={{ fontSize:9, fontWeight:700, color:"rgba(255,255,255,0.38)", textTransform:"uppercase", letterSpacing:"0.06em" }}>{dim.label.split(" ")[0]}</span>
-                                <span style={{ fontSize:12, fontWeight:900, color:dc }}>{dim.score}</span>
-                              </div>
-                              <div style={{ height:3, borderRadius:99, background:"rgba(255,255,255,0.08)", overflow:"hidden" }}>
-                                <div style={{ width:`${dim.score}%`, height:"100%", borderRadius:99, background:dc, boxShadow:`0 0 4px ${dc}80` }}/>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                </div>
 
                 {/* Dimension breakdown — 2-column grid */}
                 <div>
@@ -5343,93 +5329,73 @@ function ScreenSalaryCompensation() {
       { id:"moves", label:"Negotiation Moves" }, { id:"script", label:"Counter Script" },
     ];
     return (
-      <div style={{ height:"100%", display:"flex", overflow:"hidden", background:"var(--z-raise)" }}>
-        {/* LEFT PANEL */}
-        <div className="zari-inner-sidebar" style={{ width:264, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
-          <div style={{ padding:"22px 16px 14px" }}>
-            <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:14 }}>
-              <div style={{ position:"relative", width:68, height:68, flexShrink:0 }}>
-                <svg viewBox="0 0 90 90" style={{ position:"absolute", inset:0, width:"100%", height:"100%", transform:"rotate(-90deg)" }}>
-                  <circle cx="45" cy="45" r="38" fill="none" stroke="var(--z-raise)" strokeWidth="7"/>
-                  <circle cx="45" cy="45" r="38" fill="none" stroke={scoreColor} strokeWidth="7" strokeLinecap="round" strokeDasharray={`${(result.compensationScore/100)*238.8} 238.8`}/>
-                </svg>
-                <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
-                  <div style={{ fontSize:20, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.05em", lineHeight:1 }}>{result.compensationScore}</div>
-                </div>
-              </div>
-              <div style={{ minWidth:0 }}>
-                <span style={{ fontSize:9.5, fontWeight:800, color:badge.color, background:"var(--z-raise)", border:"1px solid var(--z-bd)", padding:"3px 8px", borderRadius:999, display:"inline-block", marginBottom:6, textTransform:"uppercase", letterSpacing:"0.08em" }}>{badge.label}</span>
-                <div style={{ fontSize:12, fontWeight:800, color:"var(--z-text)", lineHeight:1.3 }}>Compensation Analysis</div>
+      <div style={{ height:"100%", display:"flex", flexDirection:"column", overflow:"hidden", background:"var(--z-raise)" }}>
+
+        {/* ── HERO ── */}
+        <div style={{ flexShrink:0, background:"linear-gradient(160deg,#071525 0%,#0b1e38 50%,#0f172a 100%)", borderBottom:"1px solid rgba(255,255,255,0.07)", padding:"26px 32px 22px", position:"relative", overflow:"hidden" }}>
+          <div style={{ position:"absolute", top:-70, right:-50, width:280, height:280, borderRadius:"50%", background:`radial-gradient(circle,${scoreColor}22 0%,transparent 65%)`, pointerEvents:"none" }}/>
+          <div style={{ display:"flex", alignItems:"flex-start", gap:22, position:"relative", flexWrap:"wrap" }}>
+            <div style={{ position:"relative", width:80, height:80, flexShrink:0 }}>
+              <svg viewBox="0 0 90 90" style={{ position:"absolute", inset:0, width:"100%", height:"100%", transform:"rotate(-90deg)" }}>
+                <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="7"/>
+                <circle cx="45" cy="45" r="38" fill="none" stroke={scoreColor} strokeWidth="7" strokeLinecap="round" strokeDasharray={`${(result.compensationScore/100)*238.8} 238.8`} style={{ filter:`drop-shadow(0 0 6px ${scoreColor}80)` }}/>
+              </svg>
+              <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
+                <div style={{ fontSize:22, fontWeight:900, color:"white", letterSpacing:"-0.05em", lineHeight:1 }}>{result.compensationScore}</div>
+                <div style={{ fontSize:8, fontWeight:700, color:"rgba(255,255,255,0.4)", textTransform:"uppercase", letterSpacing:"0.06em" }}>score</div>
               </div>
             </div>
-            <p style={{ fontSize:12, color:"var(--z-text2)", lineHeight:1.6, margin:"0 0 12px" }}>{result.marketPositionDetail}</p>
-            <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
-              {([
-                { label:"Title", value:form.title },
-                { label:"Comp", value:form.currentComp },
-                { label:"Target", value:form.targetComp },
-                { label:"Type", value:form.askType },
-              ] as {label:string;value:string}[]).filter(r => r.value).map(r => (
-                <div key={r.label} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"5px 9px", borderRadius:7, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
-                  <span style={{ fontSize:10, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em" }}>{r.label}</span>
-                  <span style={{ fontSize:11, fontWeight:800, color:"var(--z-text2)", maxWidth:120, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.value}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div style={{ height:1, background:"var(--z-bd)" }}/>
-          <div style={{ padding:"8px 8px", flex:1 }}>
-            {tabs.map(t => {
-              const active = tab === t.id;
-              return (
-                <button key={t.id} onClick={() => setTab(t.id)} style={{ width:"100%", display:"flex", alignItems:"center", padding:"9px 10px", borderRadius:8, border:"none", background:active ? "rgba(37,99,235,0.08)" : "transparent", color:active ? "#2563EB" : "var(--z-text2)", fontSize:13, fontWeight:active ? 700 : 500, cursor:"pointer", textAlign:"left", transition:"all 0.12s" }}>
-                  {t.label}
-                </button>
-              );
-            })}
-          </div>
-          <div style={{ padding:"10px 12px 14px", borderTop:"1px solid var(--z-bd)", display:"flex", gap:6 }}>
-            <button onClick={() => setResult(null)} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>New</button>
-            <button onClick={() => { setResult(null); setStep(1); setForm(_salForm); }} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Redo</button>
-          </div>
-        </div>
-        {/* RIGHT PANEL */}
-        <div className="zari-result-content" style={{ flex:1, overflowY:"auto", padding:"24px 28px 40px" }}>
-            {tab === "overview" && (
-              <div style={{ display:"grid", gap:18 }}>
-                {/* ── SCORE HERO ── */}
-                <div style={{ borderRadius:18, background:"linear-gradient(135deg,#071525 0%,#0b1e38 60%,#0f172a 100%)", border:`1px solid ${scoreColor}22`, padding:"24px 28px", position:"relative", overflow:"hidden" }}>
-                  <div style={{ position:"absolute", top:-50, right:-30, width:220, height:220, borderRadius:"50%", background:`radial-gradient(circle, ${scoreColor}1a 0%, transparent 65%)`, pointerEvents:"none" }}/>
-                  <div style={{ display:"flex", gap:22, alignItems:"center", flexWrap:"wrap", position:"relative" }}>
-                    <div style={{ position:"relative", width:80, height:80, flexShrink:0 }}>
-                      <svg viewBox="0 0 90 90" style={{ position:"absolute", inset:0, width:"100%", height:"100%", transform:"rotate(-90deg)" }}>
-                        <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="7"/>
-                        <circle cx="45" cy="45" r="38" fill="none" stroke={scoreColor} strokeWidth="7" strokeLinecap="round" strokeDasharray={`${(result.compensationScore/100)*238.8} 238.8`} style={{ filter:`drop-shadow(0 0 6px ${scoreColor}80)` }}/>
-                      </svg>
-                      <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
-                        <div style={{ fontSize:22, fontWeight:900, color:"white", letterSpacing:"-0.05em", lineHeight:1 }}>{result.compensationScore}</div>
-                        <div style={{ fontSize:8, fontWeight:700, color:"rgba(255,255,255,0.4)", textTransform:"uppercase", letterSpacing:"0.06em" }}>score</div>
-                      </div>
+            <div style={{ flex:1, minWidth:200 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:10, flexWrap:"wrap" }}>
+                <span style={{ fontSize:10.5, fontWeight:800, color:badge.color, background:badge.bg, border:`1px solid ${badge.border}`, padding:"3px 11px", borderRadius:99, textTransform:"uppercase" as const, letterSpacing:"0.09em" }}>{badge.label}</span>
+                {form.title && <span style={{ fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.3)", letterSpacing:"0.06em" }}>{form.title}</span>}
+              </div>
+              <p style={{ fontSize:14, color:"rgba(255,255,255,0.72)", lineHeight:1.65, margin:"0 0 12px" }}>{result.marketPositionDetail}</p>
+              {result.benchmarks.length > 0 && (
+                <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+                  {result.benchmarks.slice(0,3).map((b, i) => (
+                    <div key={i} style={{ background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:10, padding:"7px 14px" }}>
+                      <div style={{ fontSize:9, fontWeight:700, color:"rgba(255,255,255,0.35)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:2 }}>{b.label}</div>
+                      <div style={{ fontSize:16, fontWeight:900, color:"rgba(255,255,255,0.88)", letterSpacing:"-0.02em" }}>{b.value}</div>
                     </div>
-                    <div style={{ flex:1, minWidth:200 }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10, flexWrap:"wrap" }}>
-                        <span style={{ fontSize:10.5, fontWeight:800, color:badge.color, background:badge.bg, border:`1px solid ${badge.border}`, padding:"3px 11px", borderRadius:99, textTransform:"uppercase", letterSpacing:"0.09em" }}>{badge.label}</span>
-                        <span style={{ fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.3)", letterSpacing:"0.06em", textTransform:"uppercase" }}>Compensation Analysis</span>
+                  ))}
+                  <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginLeft:4 }}>
+                    {([
+                      { label:"Leverage",   value:String(result.leveragePoints.length) },
+                      { label:"Moves",      value:String(result.negotiationMoves.length) },
+                    ] as {label:string;value:string}[]).map(stat => (
+                      <div key={stat.label} style={{ padding:"6px 12px", borderRadius:9, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", display:"flex", flexDirection:"column", alignItems:"center" }}>
+                        <div style={{ fontSize:15, fontWeight:900, color:"white", lineHeight:1 }}>{stat.value}</div>
+                        <div style={{ fontSize:8.5, fontWeight:700, color:"rgba(255,255,255,0.35)", textTransform:"uppercase" as const, letterSpacing:"0.06em", marginTop:2 }}>{stat.label}</div>
                       </div>
-                      <p style={{ fontSize:14, color:"rgba(255,255,255,0.72)", lineHeight:1.65, margin:"0 0 14px" }}>{result.marketPositionDetail}</p>
-                      {result.benchmarks.length > 0 && (
-                        <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
-                          {result.benchmarks.slice(0,3).map((b, i) => (
-                            <div key={i} style={{ background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:10, padding:"7px 14px" }}>
-                              <div style={{ fontSize:9, fontWeight:700, color:"rgba(255,255,255,0.35)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:2 }}>{b.label}</div>
-                              <div style={{ fontSize:16, fontWeight:900, color:"rgba(255,255,255,0.88)", letterSpacing:"-0.02em" }}>{b.value}</div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                    ))}
                   </div>
                 </div>
+              )}
+            </div>
+            <div style={{ display:"flex", gap:6, flexShrink:0, alignSelf:"flex-start" }}>
+              <button onClick={() => setResult(null)} style={{ fontSize:11, fontWeight:700, padding:"7px 13px", borderRadius:8, border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.05)", color:"rgba(255,255,255,0.5)", cursor:"pointer" }}>New</button>
+              <button onClick={() => { setResult(null); setStep(1); setForm(_salForm); }} style={{ fontSize:11, fontWeight:700, padding:"7px 13px", borderRadius:8, border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.05)", color:"rgba(255,255,255,0.5)", cursor:"pointer" }}>Redo</button>
+            </div>
+          </div>
+        </div>
+
+        {/* ── TAB BAR ── */}
+        <div style={{ flexShrink:0, borderBottom:"1px solid var(--z-bd)", background:"var(--z-card)", padding:"0 24px", display:"flex", gap:0, overflowX:"auto" }}>
+          {tabs.map(t => {
+            const active = tab === t.id;
+            return (
+              <button key={t.id} onClick={() => setTab(t.id)} style={{ display:"flex", alignItems:"center", gap:7, padding:"13px 16px", border:"none", borderBottom:active ? `2px solid ${ACCENT}` : "2px solid transparent", background:"transparent", color:active ? ACCENT : "var(--z-text2)", fontSize:13, fontWeight:active ? 700 : 500, cursor:"pointer", transition:"all 0.15s", whiteSpace:"nowrap", flexShrink:0 }}>
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ── CONTENT ── */}
+        <div className="zari-result-content" style={{ flex:1, overflowY:"auto", padding:"28px 32px 52px" }}>
+            {tab === "overview" && (
+              <div style={{ display:"grid", gap:18 }}>
                 <div style={{ borderRadius:14, background:"rgba(220,38,38,0.04)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #DC2626", padding:"22px 26px" }}>
                   <div style={{ fontSize:10.5, fontWeight:800, color:"#DC2626", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Hard truth</div>
                   <p style={{ fontSize:15, color:"var(--z-text)", lineHeight:1.8, margin:0 }}>{result.hardTruth}</p>
@@ -8190,94 +8156,81 @@ function ScreenExecPositioning() {
       { id:"moves", label:"Positioning Moves" }, { id:"bio", label:"Board Bio" },
     ];
     return (
-      <div style={{ height:"100%", display:"flex", overflow:"hidden", background:"var(--z-raise)" }}>
-        {/* LEFT PANEL */}
-        <div className="zari-inner-sidebar" style={{ width:264, flexShrink:0, borderRight:"1px solid var(--z-bd)", background:"var(--z-card)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
-          <div style={{ padding:"22px 16px 14px" }}>
-            <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:14 }}>
-              <div style={{ position:"relative", width:68, height:68, flexShrink:0 }}>
-                <svg viewBox="0 0 90 90" style={{ position:"absolute", inset:0, width:"100%", height:"100%", transform:"rotate(-90deg)" }}>
-                  <circle cx="45" cy="45" r="38" fill="none" stroke="var(--z-raise)" strokeWidth="7"/>
-                  <circle cx="45" cy="45" r="38" fill="none" stroke={scoreColor} strokeWidth="7" strokeLinecap="round" strokeDasharray={`${(result.execScore/100)*238.8} 238.8`}/>
-                </svg>
-                <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
-                  <div style={{ fontSize:20, fontWeight:900, color:"var(--z-text)", letterSpacing:"-0.05em", lineHeight:1 }}>{result.execScore}</div>
-                </div>
-              </div>
-              <div style={{ minWidth:0 }}>
-                <span style={{ fontSize:9.5, fontWeight:800, color:"var(--z-text2)", background:"var(--z-raise)", border:"1px solid var(--z-bd)", padding:"3px 8px", borderRadius:999, display:"inline-block", marginBottom:6, textTransform:"uppercase", letterSpacing:"0.08em" }}>{result.execVerdict}</span>
-                <div style={{ fontSize:12, fontWeight:800, color:"var(--z-text)", lineHeight:1.3 }}>Exec Positioning</div>
+      <div style={{ height:"100%", display:"flex", flexDirection:"column", overflow:"hidden", background:"var(--z-raise)" }}>
+
+        {/* ── HERO ── */}
+        <div style={{ flexShrink:0, background:"linear-gradient(160deg,#071525 0%,#0b1e38 50%,#0f172a 100%)", borderBottom:"1px solid rgba(255,255,255,0.07)", padding:"26px 32px 22px", position:"relative", overflow:"hidden" }}>
+          <div style={{ position:"absolute", top:-70, right:-50, width:280, height:280, borderRadius:"50%", background:`radial-gradient(circle,${scoreColor}22 0%,transparent 65%)`, pointerEvents:"none" }}/>
+          <div style={{ display:"flex", alignItems:"flex-start", gap:22, position:"relative", flexWrap:"wrap" }}>
+            <div style={{ position:"relative", width:80, height:80, flexShrink:0 }}>
+              <svg viewBox="0 0 90 90" style={{ position:"absolute", inset:0, width:"100%", height:"100%", transform:"rotate(-90deg)" }}>
+                <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="7"/>
+                <circle cx="45" cy="45" r="38" fill="none" stroke={scoreColor} strokeWidth="7" strokeLinecap="round" strokeDasharray={`${(result.execScore/100)*238.8} 238.8`} style={{ filter:`drop-shadow(0 0 6px ${scoreColor}80)` }}/>
+              </svg>
+              <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
+                <div style={{ fontSize:22, fontWeight:900, color:"white", letterSpacing:"-0.05em", lineHeight:1 }}>{result.execScore}</div>
+                <div style={{ fontSize:8, fontWeight:700, color:"rgba(255,255,255,0.4)", textTransform:"uppercase", letterSpacing:"0.06em" }}>score</div>
               </div>
             </div>
-            <p style={{ fontSize:12, color:"var(--z-text2)", lineHeight:1.6, margin:"0 0 12px" }}>{result.hardTruth}</p>
-            <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
-              {([
-                { label:"Title", value:form.currentTitle },
-                { label:"Target", value:form.targetRole },
-                { label:"Scope", value:form.currentScope },
-              ] as {label:string;value:string}[]).filter(r => r.value).map(r => (
-                <div key={r.label} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"5px 9px", borderRadius:7, background:"var(--z-raise)", border:"1px solid var(--z-bd)" }}>
-                  <span style={{ fontSize:10, fontWeight:700, color:"var(--z-text3)", textTransform:"uppercase", letterSpacing:"0.08em" }}>{r.label}</span>
-                  <span style={{ fontSize:11, fontWeight:800, color:"var(--z-text2)", maxWidth:120, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.value}</span>
+            <div style={{ flex:1, minWidth:200 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:10, flexWrap:"wrap" }}>
+                <span style={{ fontSize:10.5, fontWeight:800, color:vMeta.color, background:vMeta.bg, border:`1px solid ${vMeta.border}`, padding:"3px 11px", borderRadius:99, textTransform:"uppercase" as const, letterSpacing:"0.09em" }}>{result.execVerdict}</span>
+                <span style={{ fontSize:10.5, fontWeight:700, padding:"3px 10px", borderRadius:99, background:`${scoreColor}22`, border:`1px solid ${scoreColor}44`, color:scoreColor }}>{letterGrade(result.execScore)}</span>
+                <span style={{ fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.3)", letterSpacing:"0.06em", textTransform:"uppercase" as const }}>Exec Positioning</span>
+              </div>
+              <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
+                {form.currentTitle && (
+                  <div style={{ background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:10, padding:"7px 14px" }}>
+                    <div style={{ fontSize:9, fontWeight:700, color:"rgba(255,255,255,0.35)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:2 }}>Current</div>
+                    <div style={{ fontSize:14, fontWeight:800, color:"rgba(255,255,255,0.82)" }}>{form.currentTitle}</div>
+                  </div>
+                )}
+                {form.currentTitle && form.targetRole && (
+                  <svg viewBox="0 0 28 14" fill="none" style={{width:28,flexShrink:0}}><path d="M1 7h24M20 3l5 4-5 4" stroke={scoreColor} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                )}
+                {form.targetRole && (
+                  <div style={{ background:`${scoreColor}18`, border:`1px solid ${scoreColor}30`, borderRadius:10, padding:"7px 14px" }}>
+                    <div style={{ fontSize:9, fontWeight:700, color:scoreColor, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:2 }}>Target</div>
+                    <div style={{ fontSize:14, fontWeight:800, color:"white" }}>{form.targetRole}</div>
+                  </div>
+                )}
+                <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                  {([
+                    { label:"Critical gaps", value:String(result.presenceGaps.filter(g => g.severity === "critical").length) },
+                    { label:"Strengths",     value:String(result.strengths.length) },
+                    { label:"Moves",         value:String(result.positioningMoves?.length ?? 0) },
+                  ] as {label:string;value:string}[]).map(stat => (
+                    <div key={stat.label} style={{ padding:"6px 12px", borderRadius:9, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", display:"flex", flexDirection:"column", alignItems:"center" }}>
+                      <div style={{ fontSize:15, fontWeight:900, color:"white", lineHeight:1 }}>{stat.value}</div>
+                      <div style={{ fontSize:8.5, fontWeight:700, color:"rgba(255,255,255,0.35)", textTransform:"uppercase" as const, letterSpacing:"0.06em", marginTop:2 }}>{stat.label}</div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
             </div>
-          </div>
-          <div style={{ height:1, background:"var(--z-bd)" }}/>
-          <div style={{ padding:"8px 8px", flex:1 }}>
-            {tabs.map(t => {
-              const active = tab === t.id;
-              return (
-                <button key={t.id} onClick={() => setTab(t.id)} style={{ width:"100%", display:"flex", alignItems:"center", padding:"9px 10px", borderRadius:8, border:"none", background:active ? "rgba(37,99,235,0.08)" : "transparent", color:active ? "#2563EB" : "var(--z-text2)", fontSize:13, fontWeight:active ? 700 : 500, cursor:"pointer", textAlign:"left", transition:"all 0.12s" }}>
-                  {t.label}
-                </button>
-              );
-            })}
-          </div>
-          <div style={{ padding:"10px 12px 14px", borderTop:"1px solid var(--z-bd)", display:"flex", gap:6 }}>
-            <button onClick={() => setResult(null)} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>New</button>
-            <button onClick={() => { setResult(null); setStep(1); setForm(_epForm); }} style={{ flex:1, fontSize:11.5, fontWeight:700, padding:"7px 8px", borderRadius:8, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>Redo</button>
+            <div style={{ display:"flex", gap:6, flexShrink:0, alignSelf:"flex-start" }}>
+              <button onClick={() => setResult(null)} style={{ fontSize:11, fontWeight:700, padding:"7px 13px", borderRadius:8, border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.05)", color:"rgba(255,255,255,0.5)", cursor:"pointer" }}>New</button>
+              <button onClick={() => { setResult(null); setStep(1); setForm(_epForm); }} style={{ fontSize:11, fontWeight:700, padding:"7px 13px", borderRadius:8, border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.05)", color:"rgba(255,255,255,0.5)", cursor:"pointer" }}>Redo</button>
+            </div>
           </div>
         </div>
-        {/* RIGHT PANEL */}
-        <div className="zari-result-content" style={{ flex:1, overflowY:"auto", padding:"24px 28px 40px" }}>
+
+        {/* ── TAB BAR ── */}
+        <div style={{ flexShrink:0, borderBottom:"1px solid var(--z-bd)", background:"var(--z-card)", padding:"0 24px", display:"flex", gap:0, overflowX:"auto" }}>
+          {tabs.map(t => {
+            const active = tab === t.id;
+            return (
+              <button key={t.id} onClick={() => setTab(t.id)} style={{ display:"flex", alignItems:"center", gap:7, padding:"13px 16px", border:"none", borderBottom:active ? `2px solid ${ACCENT}` : "2px solid transparent", background:"transparent", color:active ? ACCENT : "var(--z-text2)", fontSize:13, fontWeight:active ? 700 : 500, cursor:"pointer", transition:"all 0.15s", whiteSpace:"nowrap", flexShrink:0 }}>
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ── CONTENT ── */}
+        <div className="zari-result-content" style={{ flex:1, overflowY:"auto", padding:"28px 32px 52px" }}>
             {tab === "overview" && (
               <div style={{ display:"grid", gap:18 }}>
-                {/* ── SCORE HERO ── */}
-                <div style={{ borderRadius:18, background:"linear-gradient(135deg,#071525 0%,#0b1e38 60%,#0f172a 100%)", border:`1px solid ${scoreColor}22`, padding:"24px 28px", position:"relative", overflow:"hidden" }}>
-                  <div style={{ position:"absolute", top:-50, right:-30, width:220, height:220, borderRadius:"50%", background:`radial-gradient(circle, ${scoreColor}1a 0%, transparent 65%)`, pointerEvents:"none" }}/>
-                  <div style={{ display:"flex", gap:22, alignItems:"flex-start", flexWrap:"wrap", position:"relative" }}>
-                    <div style={{ position:"relative", width:80, height:80, flexShrink:0 }}>
-                      <svg viewBox="0 0 90 90" style={{ position:"absolute", inset:0, width:"100%", height:"100%", transform:"rotate(-90deg)" }}>
-                        <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="7"/>
-                        <circle cx="45" cy="45" r="38" fill="none" stroke={scoreColor} strokeWidth="7" strokeLinecap="round" strokeDasharray={`${(result.execScore/100)*238.8} 238.8`} style={{ filter:`drop-shadow(0 0 6px ${scoreColor}80)` }}/>
-                      </svg>
-                      <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
-                        <div style={{ fontSize:22, fontWeight:900, color:"white", letterSpacing:"-0.05em", lineHeight:1 }}>{result.execScore}</div>
-                        <div style={{ fontSize:8, fontWeight:700, color:"rgba(255,255,255,0.4)", textTransform:"uppercase", letterSpacing:"0.06em" }}>score</div>
-                      </div>
-                    </div>
-                    <div style={{ flex:1, minWidth:200 }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10, flexWrap:"wrap" }}>
-                        <span style={{ fontSize:10.5, fontWeight:800, color:vMeta.color, background:vMeta.bg, border:`1px solid ${vMeta.border}`, padding:"3px 11px", borderRadius:99, textTransform:"uppercase" as const, letterSpacing:"0.09em" }}>{result.execVerdict}</span>
-                        <span style={{ fontSize:10.5, fontWeight:700, padding:"3px 10px", borderRadius:99, background:`${scoreColor}22`, border:`1px solid ${scoreColor}44`, color:scoreColor }}>{letterGrade(result.execScore)}</span>
-                      </div>
-                      <p style={{ fontSize:14, color:"rgba(255,255,255,0.72)", lineHeight:1.65, margin:"0 0 16px" }}>{result.hardTruth}</p>
-                      <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
-                        {([
-                          { label:"Critical gaps", value:result.presenceGaps.filter(g => g.severity === "critical").length },
-                          { label:"Strengths",     value:result.strengths.length },
-                          { label:"Moves",         value:result.positioningMoves?.length ?? 0 },
-                        ] as { label: string; value: number }[]).map(stat => (
-                          <div key={stat.label} style={{ padding:"8px 14px", borderRadius:10, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", display:"flex", flexDirection:"column", alignItems:"center", gap:3 }}>
-                            <div style={{ fontSize:18, fontWeight:900, color:"white", letterSpacing:"-0.04em", lineHeight:1 }}>{stat.value}</div>
-                            <div style={{ fontSize:9, fontWeight:700, color:"rgba(255,255,255,0.38)", textTransform:"uppercase" as const, letterSpacing:"0.07em" }}>{stat.label}</div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
                 <div style={{ borderRadius:14, background:"rgba(220,38,38,0.04)", border:"1px solid var(--z-bd)", borderLeft:"4px solid #DC2626", padding:"22px 26px" }}>
                   <div style={{ fontSize:10.5, fontWeight:800, color:"#DC2626", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Hard truth</div>
                   <p style={{ fontSize:15, color:"var(--z-text)", lineHeight:1.8, margin:0 }}>{result.hardTruth}</p>
