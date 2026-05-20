@@ -17,6 +17,8 @@ Allow: /job-interview-preparation
 Allow: /blog
 Allow: /salary
 Allow: /salary-calculator
+Allow: /ai-career-coach-uk
+Allow: /ai-career-coach-canada
 Allow: /platform
 Allow: /pricing
 Allow: /use-cases

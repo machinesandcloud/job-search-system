@@ -291,6 +291,55 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/compare/zari-vs-topresume`,                  lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/compare/zari-vs-resumelab`,                  lastModified: now, changeFrequency: "monthly", priority: 0.88 },
 
+    // International landing pages
+    { url: `${base}/ai-career-coach-uk`,                        lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/ai-career-coach-canada`,                    lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+
+    // Wave 50 — UK/Canada blog content
+    { url: `${base}/blog/uk-cv-writing-tips`,                   lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/blog/uk-interview-tips`,                    lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/blog/graduate-jobs-uk`,                     lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/blog/cv-template-uk`,                       lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/blog/job-search-in-canada`,                 lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/blog/canada-salary-guide`,                  lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+
+    // UK salary pages
+    { url: `${base}/salary/software-engineer-salary-london`,          lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/salary/software-engineer-salary-manchester`,      lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/salary/software-engineer-salary-edinburgh`,       lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/salary/software-engineer-salary-bristol`,         lastModified: now, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/salary/software-engineer-salary-birmingham`,      lastModified: now, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/salary/product-manager-salary-london`,            lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/salary/product-manager-salary-manchester`,        lastModified: now, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/salary/data-scientist-salary-london`,             lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/salary/data-scientist-salary-manchester`,         lastModified: now, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/salary/machine-learning-engineer-salary-london`,  lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/salary/engineering-manager-salary-london`,        lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/salary/frontend-developer-salary-london`,         lastModified: now, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/salary/backend-developer-salary-london`,          lastModified: now, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/salary/devops-engineer-salary-london`,            lastModified: now, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/salary/cybersecurity-engineer-salary-london`,     lastModified: now, changeFrequency: "monthly", priority: 0.85 },
+
+    // Canada salary pages
+    { url: `${base}/salary/software-engineer-salary-toronto`,         lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/salary/software-engineer-salary-vancouver`,       lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/salary/software-engineer-salary-calgary`,         lastModified: now, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/salary/software-engineer-salary-montreal`,        lastModified: now, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/salary/product-manager-salary-toronto`,           lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/salary/product-manager-salary-vancouver`,         lastModified: now, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/salary/data-scientist-salary-toronto`,            lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/salary/data-scientist-salary-montreal`,           lastModified: now, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/salary/machine-learning-engineer-salary-toronto`, lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/salary/machine-learning-engineer-salary-montreal`, lastModified: now, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/salary/engineering-manager-salary-toronto`,       lastModified: now, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/salary/ai-engineer-salary-toronto`,               lastModified: now, changeFrequency: "monthly", priority: 0.85 },
+
+    // Australia salary pages
+    { url: `${base}/salary/software-engineer-salary-sydney`,          lastModified: now, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/salary/software-engineer-salary-melbourne`,       lastModified: now, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/salary/product-manager-salary-sydney`,            lastModified: now, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/salary/data-scientist-salary-sydney`,             lastModified: now, changeFrequency: "monthly", priority: 0.85 },
+
     // Salary guides index + calculator + research report
     { url: `${base}/salary`,                                    lastModified: now, changeFrequency: "monthly", priority: 0.92 },
     { url: `${base}/salary-calculator`,                         lastModified: now, changeFrequency: "monthly", priority: 0.92 },

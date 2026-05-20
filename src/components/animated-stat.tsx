@@ -68,6 +68,65 @@ export function StatCard({ value, suffix = "", prefix = "", label, accent = "var
   );
 }
 
+interface SalaryBarProps {
+  p25: number;
+  median: number;
+  p75: number;
+  currencySymbol: string;
+  label?: string;
+  color?: string;
+}
+
+function fmtK(n: number, sym: string) {
+  if (n >= 1_000_000) return `${sym}${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${sym}${Math.round(n / 1_000)}K`;
+  return `${sym}${n}`;
+}
+
+export function SalaryBar({ p25, median, p75, currencySymbol, label, color = "var(--brand)" }: SalaryBarProps) {
+  const [visible, setVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect(); } },
+      { threshold: 0.4 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const range = p75 - p25;
+  const medianPct = range > 0 ? ((median - p25) / range) * 100 : 50;
+
+  return (
+    <div ref={ref} className="space-y-2">
+      {label && <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">{label}</p>}
+      <div className="relative h-3 w-full overflow-hidden rounded-full bg-[var(--border)]">
+        <div
+          className="absolute inset-0 rounded-full transition-all duration-700"
+          style={{
+            background: `linear-gradient(90deg, ${color}50 0%, ${color} 100%)`,
+            transform: `scaleX(${visible ? 1 : 0})`,
+            transformOrigin: "left",
+          }}
+        />
+        <div
+          className="absolute top-0 h-full w-1 rounded-full bg-white shadow transition-all duration-700 delay-300"
+          style={{ left: `${medianPct}%`, opacity: visible ? 1 : 0 }}
+        />
+      </div>
+      <div className="flex justify-between text-[11px]">
+        <span className="text-[var(--muted)]">{fmtK(p25, currencySymbol)}</span>
+        <span className="font-extrabold" style={{ color }}>{fmtK(median, currencySymbol)} median</span>
+        <span className="text-[var(--muted)]">{fmtK(p75, currencySymbol)}</span>
+      </div>
+    </div>
+  );
+}
+
 interface WinScoreProps {
   zariWins: number;
   total: number;
