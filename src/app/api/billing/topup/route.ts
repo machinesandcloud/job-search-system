@@ -34,6 +34,9 @@ export async function POST(request: NextRequest) {
     if (!Number.isFinite(dollars) || dollars < 5) {
       return NextResponse.json({ error: "Minimum custom amount is $5." }, { status: 400 });
     }
+    if (dollars > 10000) {
+      return NextResponse.json({ error: "Maximum custom amount is $10,000." }, { status: 400 });
+    }
     const credits = dollars * CUSTOM_CREDITS_PER_DOLLAR;
     pack = {
       credits,

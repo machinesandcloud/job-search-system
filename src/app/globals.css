@@ -109,6 +109,19 @@ body {
 
   /* Readable font sizes across sections */
   .kleo-section { padding: 56px 20px !important; }
+
+  /* ── Auth form mobile fixes ── */
+  /* Reduce card padding on narrow screens */
+  .auth-card { padding: 24px 20px 20px !important; border-radius: 16px !important; }
+
+  /* Reduce top nav padding so logo + back link have room */
+  .auth-topnav { padding: 16px 20px !important; }
+
+  /* Stack name inputs vertically on signup step 1 */
+  .auth-name-grid { grid-template-columns: 1fr !important; }
+
+  /* Ensure Google + submit buttons meet 44px touch target */
+  .auth-card button { min-height: 44px !important; }
 }
 
 h1,

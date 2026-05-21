@@ -32,7 +32,7 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
 
         <h1 style={{ fontSize: 22, fontWeight: 800, color: "#0F172A", letterSpacing: "-0.03em", margin: "0 0 12px" }}>Something went wrong</h1>
         <p style={{ fontSize: 14, color: "#64748B", lineHeight: 1.65, margin: "0 0 32px" }}>
-          An unexpected error occurred. Our team has been notified. You can try again or go back to the dashboard.
+          An unexpected error occurred. You can try again or return to the home page.
         </p>
 
         {error.digest && (
@@ -46,8 +46,8 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
           >
             Try again
           </button>
-          <Link href="/dashboard" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "12px 24px", borderRadius: 12, border: "1px solid #E2E8F0", color: "#64748B", textDecoration: "none", fontSize: 14, fontWeight: 500 }}>
-            Go to dashboard
+          <Link href="/" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "12px 24px", borderRadius: 12, border: "1px solid #E2E8F0", color: "#64748B", textDecoration: "none", fontSize: 14, fontWeight: 500 }}>
+            Go home
           </Link>
         </div>
       </div>

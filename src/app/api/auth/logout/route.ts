@@ -17,7 +17,3 @@ export async function POST(request: Request) {
   return buildLogoutResponse(request);
 }
 
-export async function GET(request: Request) {
-  await clearCurrentUserSession();
-  return buildLogoutResponse(request);
-}

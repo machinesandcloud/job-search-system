@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { SupportTicketCategory } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { ensureSameOrigin } from "@/lib/utils";
 import { syncCurrentUserToBillingIdentity, logAppEvent } from "@/lib/billing";
@@ -35,9 +36,9 @@ export async function POST(request: NextRequest) {
 
   const subject = String(body.subject ?? "").trim();
   const description = String(body.description ?? "").trim();
-  const category = VALID_CATEGORIES.has(String(body.category ?? "").trim())
+  const category = (VALID_CATEGORIES.has(String(body.category ?? "").trim())
     ? String(body.category).trim()
-    : "other";
+    : "other") as SupportTicketCategory;
 
   if (!subject) return NextResponse.json({ error: "Subject is required." }, { status: 400 });
   if (!description) return NextResponse.json({ error: "Description is required." }, { status: 400 });

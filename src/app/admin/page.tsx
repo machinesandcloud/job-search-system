@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { prisma } from "@/lib/db";
+import { legacyPrisma as prisma } from "@/lib/db";
 import { getAdminSession } from "@/lib/auth";
 import { AdminLoginForm } from "@/components/admin-login-form";
 

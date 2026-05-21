@@ -3,6 +3,7 @@ import { getCurrentUserId } from "@/lib/mvp/auth";
 import { getDashboardForUser, updateProfile } from "@/lib/mvp/store";
 import { hashPlatformPassword, verifyPlatformPassword, syncPlatformProfile } from "@/lib/platform-users";
 import { prisma } from "@/lib/db";
+import { ensureSameOrigin } from "@/lib/utils";
 import {
   canAccessSubscriptionStatus,
   getCurrentPeriodTokenUsage,
@@ -62,6 +63,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (!ensureSameOrigin(request)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const userId = await getCurrentUserId();
   if (!userId) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
@@ -69,12 +71,12 @@ export async function POST(request: Request) {
 
   const body = await request.json();
   const profile = await updateProfile(userId, {
-    currentRole: String(body.currentRole || ""),
-    targetRole: String(body.targetRole || ""),
-    experienceLevel: String(body.experienceLevel || ""),
-    geography: String(body.geography || ""),
-    goals: Array.isArray(body.goals) ? body.goals.map(String) : [],
-    painPoints: Array.isArray(body.painPoints) ? body.painPoints.map(String) : [],
+    currentRole: String(body.currentRole || "").slice(0, 200),
+    targetRole: String(body.targetRole || "").slice(0, 200),
+    experienceLevel: String(body.experienceLevel || "").slice(0, 100),
+    geography: String(body.geography || "").slice(0, 200),
+    goals: Array.isArray(body.goals) ? body.goals.map(String).slice(0, 20) : [],
+    painPoints: Array.isArray(body.painPoints) ? body.painPoints.map(String).slice(0, 20) : [],
   });
 
   if (profile) {
@@ -87,6 +89,7 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
+  if (!ensureSameOrigin(request)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const userId = await getCurrentUserId();
   if (!userId) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
 
@@ -100,11 +103,14 @@ export async function PATCH(request: Request) {
   const updates: Record<string, unknown> = {};
 
   if (body.firstName !== undefined || body.lastName !== undefined) {
-    if (body.firstName !== undefined) updates.firstName = `${body.firstName}`.trim();
-    if (body.lastName !== undefined) updates.lastName = `${body.lastName}`.trim();
+    if (body.firstName !== undefined) updates.firstName = `${body.firstName}`.trim().slice(0, 100);
+    if (body.lastName !== undefined) updates.lastName = `${body.lastName}`.trim().slice(0, 100);
   }
 
   if (body.newPassword !== undefined) {
+    if (body.newPassword.length > 1024) {
+      return NextResponse.json({ error: "Password is too long." }, { status: 400 });
+    }
     if (body.newPassword.length < 8) {
       return NextResponse.json({ error: "Password must be at least 8 characters." }, { status: 400 });
     }

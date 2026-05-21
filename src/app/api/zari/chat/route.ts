@@ -183,13 +183,13 @@ export async function POST(request: Request) {
     isVoice?:          boolean;
   };
 
-  const message          = (body.message ?? "").toString().trim();
-  const stage            = (body.stage ?? "job-search").toString();
-  const history          = Array.isArray(body.history) ? body.history : [];
+  const message          = (body.message ?? "").toString().trim().slice(0, 8000);
+  const stage            = (body.stage ?? "job-search").toString().slice(0, 64);
+  const history          = Array.isArray(body.history) ? body.history.slice(-20) : [];
   const sessionId        = body.sessionId ?? null;
   const sectionContext   = body.sectionContext ?? null;
-  const uploadedContent  = body.uploadedContent;
-  const uploadedFileName = body.uploadedFileName;
+  const uploadedContent  = body.uploadedContent?.slice(0, 30000);
+  const uploadedFileName = body.uploadedFileName?.slice(0, 256);
   const isOpening        = body.isOpening ?? false;
   const isVoice          = body.isVoice   ?? false;
 

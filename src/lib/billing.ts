@@ -1,5 +1,6 @@
 import type Stripe from "stripe";
 import { NextResponse } from "next/server";
+import { type Prisma, type SubscriptionStatus } from "@prisma/client";
 import { prisma, isDatabaseReady } from "@/lib/db";
 import { getCurrentUserId } from "@/lib/mvp/auth";
 import { getUserById as getMvpUserById } from "@/lib/mvp/store";
@@ -615,7 +616,7 @@ export async function logAppEvent(eventName: string, input: { accountId?: string
       eventName,
       accountId: input.accountId || null,
       userId: input.userId || null,
-      metadataJson: input.metadataJson || undefined,
+      metadataJson: (input.metadataJson || undefined) as Prisma.InputJsonValue | undefined,
     },
   });
 }
@@ -643,7 +644,7 @@ export async function recordAiTokenUsage(input: {
       inputTokens,
       outputTokens,
       totalTokens,
-      metadataJson: input.metadataJson || undefined,
+      metadataJson: (input.metadataJson || undefined) as Prisma.InputJsonValue | undefined,
     },
   });
 }
@@ -938,20 +939,21 @@ export async function getCurrentSubscriptionAccess() {
   }
 
   if (!subscription || !canAccessSubscriptionStatus(subscription.status)) {
-    const repairedAccount = await prisma.account.findFirst({
+    type AccountWithSub = Prisma.AccountGetPayload<{ include: { subscription: true } }>;
+    const repairedAccount: AccountWithSub | null = await prisma.account.findFirst({
       where: {
         ownerUserId: identity.user.id,
         subscription: {
           is: {
             status: {
-              in: Array.from(ACTIVE_SUBSCRIPTION_STATUSES),
+              in: Array.from(ACTIVE_SUBSCRIPTION_STATUSES) as SubscriptionStatus[],
             },
           },
         },
       },
       include: { subscription: true },
       orderBy: { updatedAt: "desc" },
-    }).catch(() => null);
+    }).catch(() => null) as AccountWithSub | null;
 
     if (repairedAccount?.subscription && canAccessSubscriptionStatus(repairedAccount.subscription.status)) {
       if (identity.user.accountId !== repairedAccount.id) {
@@ -1251,7 +1253,7 @@ export async function recordFeatureUsage(featureName: string, metadataJson: Reco
   const access = await getCurrentSubscriptionAccess();
   if (!access.ok) return access;
   await logAppEvent("feature_used", {
-    accountId: access.account.id,
+    accountId: access.account?.id,
     userId: access.user.id,
     metadataJson: { featureName, ...metadataJson },
   });

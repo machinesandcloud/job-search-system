@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUserId } from "@/lib/mvp/auth";
 import { createReviewForUser, getLatestReviewForUser } from "@/lib/mvp/store";
+import { ensureSameOrigin } from "@/lib/utils";
 
 export async function GET() {
   const userId = await getCurrentUserId();
@@ -12,6 +13,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (!ensureSameOrigin(request)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const userId = await getCurrentUserId();
   if (!userId) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });

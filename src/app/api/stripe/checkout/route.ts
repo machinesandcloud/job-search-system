@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getStripeClient, getStripePriceId } from "@/lib/stripe";
-import { prisma } from "@/lib/db";
+import { legacyPrisma as prisma } from "@/lib/db";
 import { stripeCheckoutSchema } from "@/lib/validation";
 import { getBaseUrl, ensureSameOrigin } from "@/lib/utils";
 import { logEvent } from "@/lib/events";

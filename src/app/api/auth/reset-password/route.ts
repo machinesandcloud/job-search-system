@@ -20,6 +20,7 @@ export async function POST(request: NextRequest) {
 
   if (!rawToken) return NextResponse.json({ error: "Reset token is missing." }, { status: 400 });
   if (password.length < 8) return NextResponse.json({ error: "Password must be at least 8 characters." }, { status: 400 });
+  if (password.length > 1024) return NextResponse.json({ error: "Password is too long." }, { status: 400 });
 
   const tokenHash = createHash("sha256").update(rawToken).digest("hex");
 

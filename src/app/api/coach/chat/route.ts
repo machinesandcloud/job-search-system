@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma, isDatabaseReady } from "@/lib/db";
+import { legacyPrisma as prisma, isDatabaseReady } from "@/lib/db";
 import { groqChatText } from "@/lib/llm";
 import { ensureSameOrigin } from "@/lib/utils";
 import { getCurrentUserId } from "@/lib/mvp/auth";

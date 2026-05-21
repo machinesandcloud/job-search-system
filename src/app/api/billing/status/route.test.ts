@@ -70,12 +70,13 @@ describe("billing status route", () => {
   });
 
   it("reconciles a session during polling when access is still pending", async () => {
+    // Scenario: webhook hasn't fired yet — user looks like a free-tier account (ok:true, isFreeTier:true)
     mocks.getCurrentSubscriptionAccess
       .mockResolvedValueOnce({
-        ok: false,
-        status: 402,
-        error: "Active subscription required.",
-        account: { id: "account_1" },
+        ok: true,
+        isFreeTier: true,
+        account: { id: "account_1", name: "Acme", status: "active", paymentIssue: false },
+        subscription: null,
       })
       .mockResolvedValueOnce({
         ok: true,
@@ -113,12 +114,13 @@ describe("billing status route", () => {
   });
 
   it("treats a completed paid checkout as active during reconciliation", async () => {
+    // Scenario: webhook hasn't fired yet — user looks like a free-tier account (ok:true, isFreeTier:true)
     mocks.getCurrentSubscriptionAccess
       .mockResolvedValueOnce({
-        ok: false,
-        status: 402,
-        error: "Active subscription required.",
-        account: { id: "account_1" },
+        ok: true,
+        isFreeTier: true,
+        account: { id: "account_1", name: "Acme", status: "active", paymentIssue: false },
+        subscription: null,
       })
       .mockResolvedValueOnce({
         ok: true,

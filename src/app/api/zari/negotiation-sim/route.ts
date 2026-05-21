@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     lastAssistantMessage?: string;
   };
 
-  const role = (body.role ?? "").trim();
+  const role = (body.role ?? "").trim().slice(0, 200);
   const type = body.type ?? "open";
 
   const userId = await getCurrentUserId();
@@ -117,8 +117,8 @@ Return ONLY valid JSON:
 
 Be specific to what they actually said. Not generic advice.`;
 
-    const userPrompt = `HIRING MANAGER SAID: "${body.lastAssistantMessage}"
-CANDIDATE SAID: "${body.lastUserMessage}"
+    const userPrompt = `HIRING MANAGER SAID: "${(body.lastAssistantMessage ?? "").slice(0, 2000)}"
+CANDIDATE SAID: "${(body.lastUserMessage ?? "").slice(0, 2000)}"
 
 Coach the candidate on their response.`;
 

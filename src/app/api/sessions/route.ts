@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requirePaidRouteAccess } from "@/lib/billing";
 import { getCurrentUserId } from "@/lib/mvp/auth";
 import { createSessionForUser, listSessionsForUser } from "@/lib/mvp/store";
+import { ensureSameOrigin } from "@/lib/utils";
 
 export const maxDuration = 15;
 
@@ -19,6 +20,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (!ensureSameOrigin(request)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const access = await requirePaidRouteAccess("sessions_create", {}, { enforceTokenLimit: false });
   if (!access.ok) return access.response;
   const userId = await getCurrentUserId();

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { isDatabaseReady, prisma } from "@/lib/db";
 
 export const runtime = "nodejs";
@@ -184,7 +185,7 @@ export async function POST(request: NextRequest) {
           pageViewId: pageViewId || null,
           type:       (e.type || "unknown").slice(0, 50),
           page:       (e.page || "/").slice(0, 2000),
-          data:       e.data ?? null,
+          data:       e.data !== undefined ? (e.data as Prisma.InputJsonValue) : Prisma.DbNull,
           createdAt:  e.timestamp ? new Date(e.timestamp) : new Date(),
         })),
       });

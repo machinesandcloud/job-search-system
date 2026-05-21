@@ -538,13 +538,13 @@ Rules:
   }
 
   /* ── Score an answer ── */
-  const question = (body.question ?? "").trim();
-  const answer = (body.answer ?? "").trim();
-  const category = body.category ?? "";
-  const resumeText = (body.resumeText ?? "").trim();
-  const jobDescription = (body.jobDescription ?? "").trim();
-  const criteriaText = (body.criteriaText ?? "").trim();
-  const contextText = (body.contextText ?? "").trim();
+  const question = (body.question ?? "").trim().slice(0, 2000);
+  const answer = (body.answer ?? "").trim().slice(0, 8000);
+  const category = (body.category ?? "").slice(0, 100);
+  const resumeText = (body.resumeText ?? "").trim().slice(0, 8000);
+  const jobDescription = (body.jobDescription ?? "").trim().slice(0, 4000);
+  const criteriaText = (body.criteriaText ?? "").trim().slice(0, 4000);
+  const contextText = (body.contextText ?? "").trim().slice(0, 2000);
 
   if (!question || !answer) {
     return NextResponse.json({ error: "Question and answer required" }, { status: 400 });

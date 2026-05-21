@@ -5,6 +5,12 @@ import { isDatabaseReady } from "@/lib/db";
 
 export const runtime = "nodejs";
 
+// Allowlist of metadata keys accepted from the client
+const ALLOWED_METADATA_KEYS = new Set([
+  "planId", "planName", "source", "feature", "step", "modal", "page",
+  "variant", "value", "from", "to", "reason", "sessionId", "sessionMode",
+]);
+
 // Allowlist of client-side funnel and UX events
 const ALLOWED_EVENTS = new Set([
   "viewed_pricing_page",
@@ -65,10 +71,15 @@ export async function POST(request: NextRequest) {
     }
   } catch { /* log anonymously */ }
 
+  const rawMeta = body.metadata ?? {};
+  const filteredMeta = Object.fromEntries(
+    Object.entries(rawMeta).filter(([k]) => ALLOWED_METADATA_KEYS.has(k)),
+  );
+
   await logAppEvent(eventName, {
     accountId,
     userId,
-    metadataJson: { ...(body.metadata ?? {}), source: "client" },
+    metadataJson: { ...filteredMeta, source: "client" },
   });
 
   return NextResponse.json({ ok: true });

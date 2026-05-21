@@ -4,8 +4,10 @@ import { getCurrentUserId } from "@/lib/mvp/auth";
 import { completeSessionForUser } from "@/lib/mvp/store";
 import { prisma } from "@/lib/db";
 import { onSessionCompleted, onUserReengaged } from "@/lib/zoho-engine";
+import { ensureSameOrigin } from "@/lib/utils";
 
-export async function POST(_: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (!ensureSameOrigin(request)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const access = await requirePaidRouteAccess("sessions_complete", {}, { enforceTokenLimit: false });
   if (!access.ok) return access.response;
   const userId = await getCurrentUserId();

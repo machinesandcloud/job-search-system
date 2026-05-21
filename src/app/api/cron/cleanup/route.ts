@@ -17,8 +17,10 @@ export async function POST(request: Request) {
   }
 
   const now = new Date();
+  const ninetyDaysAgo = new Date(now.getTime() - 90 * 86_400_000);
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 86_400_000);
 
-  const [sessions, resetTokens] = await Promise.all([
+  const [sessions, resetTokens, phoneVerifications, oldVisitorSessions, processedStripeEvents] = await Promise.all([
     prisma.appSession.deleteMany({ where: { expiresAt: { lt: now } } }),
     prisma.passwordResetToken.deleteMany({
       where: {
@@ -28,6 +30,14 @@ export async function POST(request: Request) {
         ],
       },
     }),
+    prisma.phoneVerification.deleteMany({ where: { expiresAt: { lt: now } } }),
+    prisma.visitorSession.deleteMany({ where: { lastSeenAt: { lt: ninetyDaysAgo } } }),
+    prisma.stripeEvent.deleteMany({
+      where: {
+        status: { in: ["processed", "skipped"] },
+        processedAt: { lt: thirtyDaysAgo },
+      },
+    }),
   ]);
 
   return NextResponse.json({
@@ -35,6 +45,9 @@ export async function POST(request: Request) {
     deleted: {
       expiredSessions: sessions.count,
       usedOrExpiredResetTokens: resetTokens.count,
+      expiredPhoneVerifications: phoneVerifications.count,
+      oldVisitorSessions: oldVisitorSessions.count,
+      processedStripeEvents: processedStripeEvents.count,
     },
     ts: now.toISOString(),
   });

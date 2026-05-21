@@ -5,7 +5,7 @@ import { requireCoachAdminActor } from "@/lib/coach-admin-auth";
 
 export async function POST(
   request: NextRequest,
-  { params }: RouteContext<"/api/coach-admin/accounts/[accountId]/notes">
+  { params }: { params: Promise<{ accountId: string }> }
 ) {
   if (!ensureSameOrigin(request)) {
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 });

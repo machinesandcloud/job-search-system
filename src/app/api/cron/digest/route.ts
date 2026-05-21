@@ -15,11 +15,11 @@ const FOUNDER_EMAIL = process.env.FOUNDER_EMAIL ?? "docteureminem@gmail.com";
 
 export async function GET(request: Request) {
   const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret) {
-    const authHeader = request.headers.get("authorization");
-    if (authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  if (!cronSecret) {
+    return NextResponse.json({ error: "CRON_SECRET is not configured" }, { status: 500 });
+  }
+  if (request.headers.get("authorization") !== `Bearer ${cronSecret}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const now = new Date();
@@ -98,8 +98,14 @@ export async function GET(request: Request) {
     return sum + (planKey ? planPrices[planKey] : 39);
   }, 0);
 
-  const prevActiveSubs = await prisma.subscription.count({ where: { status: "active", createdAt: { lt: weekAgo } } });
-  const mrrLastWeek = prevActiveSubs * 39;
+  const prevActiveSubsList = await prisma.subscription.findMany({
+    where: { status: "active", createdAt: { lt: weekAgo } },
+    select: { planName: true },
+  });
+  const mrrLastWeek = prevActiveSubsList.reduce((sum: number, s: { planName: string | null }) => {
+    const planKey = Object.keys(planPrices).find(k => s.planName?.includes(k));
+    return sum + (planKey ? planPrices[planKey] : 39);
+  }, 0);
   const mrrDelta = mrr - mrrLastWeek;
 
   // NPS score this week (true NPS = % promoters - % detractors, scaled 0-100)

@@ -1,8 +1,12 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import Stripe from "stripe";
 import { verifyStripeSignature } from "./stripe-webhook";
 
-const stripe = new Stripe("sk_test_123");
+const TEST_KEY = "sk_test_123";
+const stripe = new Stripe(TEST_KEY);
+
+beforeAll(() => { process.env.STRIPE_SECRET_KEY = TEST_KEY; });
+afterAll(() => { delete process.env.STRIPE_SECRET_KEY; });
 
 describe("stripe webhook signature", () => {
   it("verifies a valid signature", () => {

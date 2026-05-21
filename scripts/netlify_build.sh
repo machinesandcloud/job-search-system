@@ -26,4 +26,5 @@ if [[ -n "${NETLIFY_DATABASE_URL:-}" ]]; then
   export DATABASE_URL="${NETLIFY_DATABASE_URL}"
 fi
 
+npm run typecheck
 npm run build

@@ -20,8 +20,9 @@ export async function GET(request: NextRequest) {
   // Reconcile after checkout when either (a) free-tier user just paid, or
   // (b) access is denied but we still have an account to sync against (e.g.
   // subscription not yet written by the webhook when the success page polls).
-  const canReconcile = sessionId && access.account &&
-    ((access.ok && access.isFreeTier) || (!access.ok && "account" in access && access.account));
+  const accessAccount = access.ok ? access.account : null;
+  const canReconcile = sessionId && accessAccount &&
+    (access.ok && access.isFreeTier);
 
   if (canReconcile) {
     try {
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest) {
             trialEnd: subscription.trial_end,
           }) || subscription.status;
 
-        await syncStripeSubscriptionToAccount(access.account.id, subscription, {
+        await syncStripeSubscriptionToAccount(accessAccount.id, subscription, {
           status: effectiveStatus,
         });
         access = await getCurrentSubscriptionAccess();
@@ -53,7 +54,7 @@ export async function GET(request: NextRequest) {
     } catch (error) {
       console.error("[billing/status] unable to reconcile subscription during status poll", {
         sessionId,
-        accountId: access.ok ? access.account?.id : undefined,
+        accountId: accessAccount?.id,
         error,
       });
     }
@@ -68,6 +69,10 @@ export async function GET(request: NextRequest) {
       },
       { status: access.status }
     );
+  }
+
+  if (!access.account) {
+    return NextResponse.json({ ok: false, error: "Account not found" }, { status: 404 });
   }
 
   const usage = await getCurrentPeriodTokenUsage(access.account.id);

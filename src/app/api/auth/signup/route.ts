@@ -30,6 +30,9 @@ export async function POST(request: Request) {
   if (password.length < 8) {
     return NextResponse.json({ error: "Password must be at least 8 characters." }, { status: 400 });
   }
+  if (password.length > 1024) {
+    return NextResponse.json({ error: "Password is too long." }, { status: 400 });
+  }
 
   try {
     const user = await createPlatformUser({ firstName, lastName, email, password });

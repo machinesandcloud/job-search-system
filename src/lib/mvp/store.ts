@@ -408,16 +408,17 @@ export async function appendSessionEvent(
   if (!isDatabaseReady()) return null;
   try {
     if (input.message) {
+      const updated = await prisma.coachingSession.updateMany({
+        where: { id: sessionId, userId },
+        data: { summary: "Session in progress.", updatedAt: new Date() },
+      });
+      if (updated.count === 0) return null;
       await prisma.sessionMessage.create({
         data: {
           sessionId,
           role: input.role === "coach" ? "assistant" : "user",
           content: input.message,
         },
-      });
-      await prisma.coachingSession.update({
-        where: { id: sessionId },
-        data: { summary: "Session in progress.", updatedAt: new Date() },
       });
     }
     return getSessionForUser(userId, sessionId);
@@ -429,14 +430,15 @@ export async function appendSessionEvent(
 export async function completeSessionForUser(userId: string, sessionId: string): Promise<StoredSession | null> {
   if (!isDatabaseReady()) return null;
   try {
-    await prisma.coachingSession.update({
-      where: { id: sessionId },
+    const result = await prisma.coachingSession.updateMany({
+      where: { id: sessionId, userId },
       data: {
         status: "complete",
         endedAt: new Date(),
         summary: "Session complete.",
       },
     });
+    if (result.count === 0) return null;
     return getSessionForUser(userId, sessionId);
   } catch {
     return null;

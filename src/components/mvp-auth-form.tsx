@@ -96,7 +96,7 @@ export function MvpAuthForm({ mode, authError = null }: { mode: AuthMode; authEr
       </div>
 
       {/* Top nav */}
-      <div style={{ position: "relative", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 32px" }}>
+      <div className="auth-topnav" style={{ position: "relative", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 32px" }}>
         <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
           <ZariLogo size={28} />
           <span style={{ fontSize: 19, fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 1, color: "#0A0A0F" }}>
@@ -111,7 +111,7 @@ export function MvpAuthForm({ mode, authError = null }: { mode: AuthMode; authEr
 
       {/* Card */}
       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px 16px 48px", position: "relative", zIndex: 10 }}>
-        <div style={{ width: "100%", maxWidth: 420, background: "#fff", borderRadius: 20, boxShadow: "0 4px 24px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04)", padding: "36px 36px 32px" }}>
+        <div className="auth-card" style={{ width: "100%", maxWidth: 420, background: "#fff", borderRadius: 20, boxShadow: "0 4px 24px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04)", padding: "36px 36px 32px" }}>
 
           {/* Heading */}
           <div style={{ marginBottom: 24, textAlign: "center" }}>
@@ -214,7 +214,7 @@ export function MvpAuthForm({ mode, authError = null }: { mode: AuthMode; authEr
               {/* Step 1: profile */}
               {step === 1 && (
                 <>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  <div className="auth-name-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                     <div>
                       <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 6 }}>First name</label>
                       <input style={inputStyle} placeholder="First" value={firstName} onChange={e => setFirstName(e.target.value)}

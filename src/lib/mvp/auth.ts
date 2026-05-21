@@ -28,8 +28,7 @@ export async function getCurrentUserId() {
   if (!raw) return null;
 
   const parsed = parseSessionCookie(raw);
-  if (!parsed.token) return parsed.userId;
-  if (!isDatabaseReady()) return parsed.userId;
+  if (!parsed.token || !isDatabaseReady()) return null;
 
   try {
     const session = await prisma.appSession.findUnique({
@@ -123,7 +122,9 @@ export function verifyActivationToken(token: string): string | null {
     const sig = token.slice(dotIdx + 1);
     const secret = getActivationSecret();
     const expected = crypto.createHmac("sha256", secret).update(payload).digest("base64url");
-    if (sig !== expected) return null;
+    const sigBuf = Buffer.from(sig);
+    const expBuf = Buffer.from(expected);
+    if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) return null;
     const parsed = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as { userId?: string; exp?: number };
     if (!parsed.userId || !parsed.exp || Math.floor(Date.now() / 1000) > parsed.exp) return null;
     return parsed.userId;

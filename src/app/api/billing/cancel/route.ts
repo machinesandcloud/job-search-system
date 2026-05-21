@@ -4,6 +4,7 @@ import { syncCurrentUserToBillingIdentity, logAppEvent } from "@/lib/billing";
 import { getStripeClient } from "@/lib/stripe";
 import { prisma, isDatabaseReady } from "@/lib/db";
 import { onUserChurned } from "@/lib/zoho-engine";
+import { ensureSameOrigin } from "@/lib/utils";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -16,6 +17,7 @@ type CancelReason = (typeof VALID_REASONS)[number];
 //   acceptOffer: true  → apply 50% coupon for 1 month, do NOT cancel
 //   acceptOffer: false → cancel at period end
 export async function POST(request: Request) {
+  if (!ensureSameOrigin(request)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const userId = await getCurrentUserId();
   if (!userId) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
 
@@ -69,6 +71,18 @@ export async function POST(request: Request) {
   if (acceptOffer) {
     try {
       const stripe = getStripeClient();
+
+      // Guard against re-applying the same coupon on already-discounted subscription
+      const existingSub = await stripe.subscriptions.retrieve(subscription.stripeSubscriptionId);
+      const alreadyDiscounted = existingSub.discounts?.some(
+        (d) => typeof d !== "string" && (d as { coupon?: { id?: string } }).coupon?.id === "ZARI_SAVE50_ONCE",
+      );
+      if (alreadyDiscounted) {
+        return NextResponse.json({
+          outcome: "offer_already_applied",
+          message: "The save offer has already been applied to your subscription.",
+        });
+      }
 
       let coupon;
       try {

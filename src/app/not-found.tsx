@@ -23,8 +23,8 @@ export default function NotFound() {
         </p>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <Link href="/dashboard" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "12px 24px", borderRadius: 12, background: "linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)", color: "#fff", textDecoration: "none", fontSize: 14, fontWeight: 700, boxShadow: "0 4px 16px rgba(37,99,235,0.35)" }}>
-            Go to dashboard
+          <Link href="/" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "12px 24px", borderRadius: 12, background: "linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)", color: "#fff", textDecoration: "none", fontSize: 14, fontWeight: 700, boxShadow: "0 4px 16px rgba(37,99,235,0.35)" }}>
+            Go home
           </Link>
           <Link href="/" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "12px 24px", borderRadius: 12, border: "1px solid #E2E8F0", color: "#64748B", textDecoration: "none", fontSize: 14, fontWeight: 500 }}>
             Back to home

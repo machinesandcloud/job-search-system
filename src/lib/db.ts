@@ -22,10 +22,13 @@ const prismaClient =
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prismaClient;
 
-// Legacy routes still reference retired Prisma models from the old assessment product.
-// Keep the runtime client intact, but export a loose type so the rebuilt MVP can deploy
-// without rewriting every untouched legacy endpoint in the same change.
-export const prisma = prismaClient as any;
+export const prisma = prismaClient;
+
+// Legacy routes reference models removed from the schema (assessment, userSession,
+// taskCompletion, appliedFix). Import legacyPrisma in those routes only — never use
+// it in new code. This isolates the any-cast to its call sites.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const legacyPrisma = prismaClient as any;
 
 export function isDatabaseReady() {
   return Boolean(safeDatabaseUrl);

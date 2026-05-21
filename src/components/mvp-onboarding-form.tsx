@@ -150,7 +150,7 @@ export function MvpOnboardingForm({ profile }: { profile: UserProfile }) {
           </div>
         )}
 
-        <div className="mt-7 flex items-center justify-between gap-4">
+        <div className="mt-7 flex flex-wrap items-center justify-between gap-4">
           <p className="text-xs text-[var(--muted)]">
             This information is stored only to personalize your coaching sessions.
           </p>

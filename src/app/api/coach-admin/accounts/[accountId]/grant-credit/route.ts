@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { type Prisma } from "@prisma/client";
 import { requireCoachAdminActor } from "@/lib/coach-admin-auth";
 import { prisma } from "@/lib/db";
 import { ensureSameOrigin } from "@/lib/utils";
@@ -110,7 +111,7 @@ export async function POST(
       accountId,
       userId: user.id,
       eventName: "admin_credit_granted",
-      metadataJson: eventMeta,
+      metadataJson: eventMeta as Prisma.InputJsonValue,
     },
   }).catch(() => null);
 
@@ -175,7 +176,7 @@ export async function DELETE(
       accountId,
       userId: account.ownerUser.id,
       eventName: "admin_credit_revoked",
-      metadataJson: { revokedBy: actor.session.email, originalType: meta?.type, originalMeta: meta },
+      metadataJson: { revokedBy: actor.session.email, originalType: meta?.type, originalMeta: meta } as Prisma.InputJsonValue,
     },
   }).catch(() => null);
 

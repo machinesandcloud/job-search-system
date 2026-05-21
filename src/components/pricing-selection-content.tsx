@@ -83,7 +83,7 @@ export function PricingSelectionContent({
 
       <section className="px-6 pb-20 pt-2 md:px-8">
         <div className="mx-auto max-w-[1220px]">
-          <div className="grid gap-6 xl:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             {PRICING_PLANS.map((plan) => (
               <Reveal key={plan.id}>
                 <PricingPlanCard

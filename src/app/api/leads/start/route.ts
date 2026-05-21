@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma, isDatabaseReady } from "@/lib/db";
+import { legacyPrisma as prisma, isDatabaseReady } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { assessmentStartSchema, sanitizeAnswers } from "@/lib/validation";
 import { getClientIp, ensureSameOrigin } from "@/lib/utils";

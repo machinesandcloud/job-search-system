@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db";
+import { legacyPrisma as prisma } from "@/lib/db";
 import { getAdminSession } from "@/lib/auth";
 
 export default async function AdminLeadPage({ params }: { params: Promise<{ id: string }> }) {

@@ -170,6 +170,7 @@ async function ensureDatabaseUserShape(user: any) {
   if (!account) {
     account = await prisma.account.findFirst({
       where: { ownerUserId: ensuredUser.id },
+      include: { subscription: true },
       orderBy: { createdAt: "asc" },
     });
   }
@@ -182,6 +183,7 @@ async function ensureDatabaseUserShape(user: any) {
         status: "incomplete",
         paymentIssue: false,
       },
+      include: { subscription: true },
     });
   }
 

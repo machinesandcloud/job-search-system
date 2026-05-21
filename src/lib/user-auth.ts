@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import { cookies } from "next/headers";
-import { prisma } from "@/lib/db";
+import { legacyPrisma as prisma } from "@/lib/db";
 
 const COOKIE_NAME = "user_session";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30;

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { type Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { ensureSameOrigin } from "@/lib/utils";
 import { requireCoachAdminActor } from "@/lib/coach-admin-auth";
@@ -7,7 +8,7 @@ const VALID_STATUS = new Set(["open", "in_progress", "resolved", "closed"]);
 
 export async function PATCH(
   request: NextRequest,
-  { params }: RouteContext<"/api/coach-admin/tickets/[ticketId]">
+  { params }: { params: Promise<{ ticketId: string }> }
 ) {
   if (!ensureSameOrigin(request)) {
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
@@ -30,7 +31,7 @@ export async function PATCH(
       ...(VALID_STATUS.has(status) ? { status } : {}),
       ...(body.hasOwnProperty("assignedTo") ? { assignedToId: assignedToId || null } : {}),
       ...(status === "resolved" || status === "closed" ? { resolvedAt: new Date() } : body.hasOwnProperty("status") ? { resolvedAt: null } : {}),
-    },
+    } as Prisma.SupportTicketUpdateInput,
   });
 
   await prisma.adminNote.create({

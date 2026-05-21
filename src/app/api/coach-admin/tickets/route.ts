@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { SupportTicketCategory, SupportTicketPriority } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { ensureSameOrigin } from "@/lib/utils";
 import { logAppEvent } from "@/lib/billing";
@@ -17,8 +18,8 @@ export async function POST(request: NextRequest) {
   const accountId = String(body.accountId || "").trim();
   const subject = String(body.subject || "").trim();
   const description = String(body.description || "").trim();
-  const category = VALID_CATEGORIES.has(String(body.category || "").trim()) ? String(body.category).trim() : "other";
-  const priority = VALID_PRIORITIES.has(String(body.priority || "").trim()) ? String(body.priority).trim() : "medium";
+  const category = (VALID_CATEGORIES.has(String(body.category || "").trim()) ? String(body.category).trim() : "other") as SupportTicketCategory;
+  const priority = (VALID_PRIORITIES.has(String(body.priority || "").trim()) ? String(body.priority).trim() : "medium") as SupportTicketPriority;
   const reporterId = String(body.userId || "").trim() || null;
 
   if (!accountId || !subject || !description) {

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { legacyPrisma as prisma } from "@/lib/db";
 import path from "path";
 import fs from "fs/promises";
 import { ensureSameOrigin } from "@/lib/utils";
