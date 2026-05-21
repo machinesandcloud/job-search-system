@@ -65,7 +65,12 @@ export function SiteHeader({ authenticated = false }: { authenticated?: boolean 
         {/* Actions */}
         <div className="flex items-center gap-2">
           {authenticated ? (
-            <LogoutButton className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--muted)] transition-colors hover:border-[var(--brand)] hover:text-[var(--brand)]" />
+            <>
+              <Link href="/dashboard" className="rounded-lg border border-[var(--border)] px-3 py-2 text-[13px] font-semibold text-[var(--brand)] transition-colors hover:bg-[var(--brand-light)] lg:hidden">
+                Dashboard
+              </Link>
+              <LogoutButton className="hidden rounded-lg border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--muted)] transition-colors hover:border-[var(--brand)] hover:text-[var(--brand)] sm:flex" />
+            </>
           ) : (
             <>
               <Link href="/login" className="rounded-lg px-4 py-2 text-[13.5px] font-medium text-[var(--muted)] transition-colors hover:text-[var(--ink)]">
@@ -100,6 +105,8 @@ function SiteFooter() {
         { label: "AI Career Coach UK 🇬🇧", href: "/ai-career-coach-uk" },
         { label: "AI Career Coach Canada 🇨🇦", href: "/ai-career-coach-canada" },
         { label: "AI Career Coach Australia 🇦🇺", href: "/ai-career-coach-australia" },
+        { label: "Online Career Coach", href: "/online-career-coach" },
+        { label: "Career Coach Near Me", href: "/career-coach-near-me" },
       ],
     },
     {
@@ -177,6 +184,18 @@ function SiteFooter() {
         { label: "LinkedIn Profile Tips", href: "/blog/linkedin-profile-tips" },
         { label: "Highest Paying Remote Jobs", href: "/blog/highest-paying-remote-jobs" },
         { label: "Data Analyst Interview Questions", href: "/blog/data-analyst-interview-questions" },
+        { label: "How to Get a Job in Australia 🇦🇺", href: "/blog/how-to-get-a-job-in-australia" },
+        { label: "How to Get a Job in Canada 🇨🇦", href: "/blog/how-to-get-a-job-in-canada" },
+        { label: "Australia Salary Guide 🇦🇺", href: "/blog/australia-salary-guide" },
+        { label: "Google Behavioral Interview Questions", href: "/blog/google-behavioral-interview-questions" },
+        { label: "Microsoft Behavioral Interview Questions", href: "/blog/microsoft-behavioral-interview-questions" },
+        { label: "Meta Interview Questions", href: "/blog/meta-interview-questions" },
+        { label: "Panel Interview Questions", href: "/blog/panel-interview-questions" },
+        { label: "Negotiating a Raise", href: "/blog/negotiating-a-raise" },
+        { label: "LinkedIn Summary Guide", href: "/blog/how-to-write-a-linkedin-summary" },
+        { label: "Resume Skills Section", href: "/blog/resume-skills-section" },
+        { label: "Career Change at 30", href: "/blog/career-change-at-30" },
+        { label: "Highest Paying Jobs No Degree", href: "/blog/highest-paying-jobs-no-degree" },
         { label: "SWE Salary Sydney 🇦🇺", href: "/salary/software-engineer-salary-sydney" },
         { label: "Salary Guides", href: "/salary" },
         { label: "Salary Calculator", href: "/salary-calculator" },
@@ -229,6 +248,10 @@ function SiteFooter() {
         { label: "Zari vs Job Hero", href: "/compare/zari-vs-job-hero" },
         { label: "Zari vs Careerly", href: "/compare/zari-vs-careerly" },
         { label: "Zari vs Huntr", href: "/compare/zari-vs-huntr" },
+        { label: "Zari vs Springboard", href: "/compare/zari-vs-springboard" },
+        { label: "Zari vs Pathrise", href: "/compare/zari-vs-pathrise" },
+        { label: "Zari vs CareerCoach.io", href: "/compare/zari-vs-careercoach-io" },
+        { label: "Zari vs CoachUp", href: "/compare/zari-vs-coachup" },
       ],
     },
   ];

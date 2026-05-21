@@ -311,6 +311,33 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/compare/zari-vs-ladders`,                   lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/compare/zari-vs-talent-com`,                lastModified: now, changeFrequency: "monthly", priority: 0.88 },
 
+    // Wave 52 — Landing pages
+    { url: `${base}/online-career-coach`,                       lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/career-coach-near-me`,                      lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+
+    // Wave 52 — Blog posts
+    { url: `${base}/blog/google-behavioral-interview-questions`, lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/video-interview-tips`,                  lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/how-to-get-into-tech`,                  lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/highest-paying-jobs-no-degree`,         lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/career-change-at-30`,                   lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/panel-interview-questions`,             lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/resume-skills-section`,                 lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/australia-interview-tips`,              lastModified: now, changeFrequency: "monthly", priority: 0.90 },
+    { url: `${base}/blog/how-to-get-a-job-in-australia`,         lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/how-to-get-a-job-in-canada`,            lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/australia-salary-guide`,                lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/microsoft-behavioral-interview-questions`, lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/how-to-write-a-linkedin-summary`,       lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/negotiating-a-raise`,                   lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/meta-interview-questions`,              lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+
+    // Wave 52 — New compare pages
+    { url: `${base}/compare/zari-vs-careercoach-io`,             lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/compare/zari-vs-coachup`,                    lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/compare/zari-vs-springboard`,                lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+    { url: `${base}/compare/zari-vs-pathrise`,                   lastModified: now, changeFrequency: "monthly", priority: 0.88 },
+
     // Wave 50 — UK/Canada blog content
     { url: `${base}/blog/uk-cv-writing-tips`,                   lastModified: now, changeFrequency: "monthly", priority: 0.88 },
     { url: `${base}/blog/uk-interview-tips`,                    lastModified: now, changeFrequency: "monthly", priority: 0.88 },

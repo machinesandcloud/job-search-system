@@ -20,6 +20,9 @@ Allow: /salary-calculator
 Allow: /ai-career-coach-uk
 Allow: /ai-career-coach-canada
 Allow: /ai-career-coach-australia
+Allow: /online-career-coach
+Allow: /career-coach-near-me
+Allow: /free-ats-checker
 Allow: /platform
 Allow: /pricing
 Allow: /use-cases
