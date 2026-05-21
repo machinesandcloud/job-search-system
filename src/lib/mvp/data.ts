@@ -19,7 +19,7 @@ export const dashboardData: DashboardPayload = {
     { key: "voice_minutes", label: "Voice minutes", used: 12, limit: 30, unit: "minutes" },
   ],
   documents: [
-    { id: "doc_resume", title: "Steve_Ngoumnai_Resume.pdf", type: "resume", updatedAt: "2 hours ago", status: "indexed" },
+    { id: "doc_resume", title: "Steve_N_Resume.pdf", type: "resume", updatedAt: "2 hours ago", status: "indexed" },
     { id: "doc_linkedin", title: "linkedin-profile-export.docx", type: "linkedin", updatedAt: "Yesterday", status: "ready" },
     { id: "doc_notes", title: "interview-notes-q2.pdf", type: "notes", updatedAt: "3 days ago", status: "reviewing" },
   ],

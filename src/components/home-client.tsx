@@ -148,30 +148,30 @@ const STATS = [
 const FOUNDERS = [
   {
     photo: "/images/steve.jpg",
-    name: "Steve J Ngoumnai",
+    name: "Steve J N.",
     title: "Founder & CEO",
     h3: "From Platform Engineer to career coach at scale.",
     story1: `"I spent years watching talented people get passed over — not because they lacked ability, but because they couldn't tell their story. As a Platform Engineer and career advisor, I saw the same pattern repeat: vague bullets, weak interview stories, salary negotiations abandoned too early.`,
     story2: `Owen and Leanne brought 15+ years of executive coaching and career transition expertise. Together, we built Zari to give every professional access to the same coaching that used to cost thousands — specific, memory-driven, and built for people serious about their next move."`,
-    sig: "– Steve J Ngoumnai",
+    sig: "– Steve J N.",
   },
   {
     photo: "/images/owen.png",
-    name: "Owen Thomas",
+    name: "Owen T.",
     title: "Head of Coaching",
     h3: "Fifteen years of executive coaching, now available to everyone.",
     story1: `"I spent 15 years coaching C-suite executives and senior leaders at Fortune 500 companies — people who had access to world-class career development because they could afford it. I watched equally talented professionals at lower levels struggle with no real support.`,
     story2: `When Steve showed me what Zari could do, I saw the chance to change that equation. The coaching rigor I've applied at the executive level is now inside every Zari session — the same frameworks, the same questions, the same standards. Just accessible to everyone."`,
-    sig: "– Owen Thomas",
+    sig: "– Owen T.",
   },
   {
     photo: "/images/leanne.jpg",
-    name: "Leanne Adair",
+    name: "Leanne A.",
     title: "Performance Coach",
     h3: "Career transitions are the hardest professional challenge most people face.",
     story1: `"I've guided hundreds of professionals through career transitions — from individual contributors stepping into management, to executives pivoting industries, to new grads navigating their first real career decision. The common thread: most people don't fail for lack of skill. They fail for lack of preparation and narrative clarity.`,
     story2: `Zari gives every professional the same preparation I offer in person. The mock sessions, the story coaching, the negotiation drills — built into a platform that meets you where you are and pushes you to where you need to be."`,
-    sig: "– Leanne Adair",
+    sig: "– Leanne A.",
   },
 ];
 
@@ -1714,7 +1714,7 @@ function PlatformWalkthrough() {
                                 <span style={{ fontSize:7.5,fontWeight:800,color:"#EF4444" }}>PDF</span>
                               </div>
                               <div style={{ flex:1,minWidth:0 }}>
-                                <div style={{ fontSize:9,fontWeight:600,color:"rgba(255,255,255,0.82)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>Steve_J_Ngoumnai_Resume.pdf</div>
+                                <div style={{ fontSize:9,fontWeight:600,color:"rgba(255,255,255,0.82)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>Steve_J_N_Resume.pdf</div>
                                 <div style={{ fontSize:7.5,color:"rgba(255,255,255,0.28)",marginTop:2 }}>142 KB &middot; Score 82 A&#8722; &middot; 11/11 bullets</div>
                                 <div style={{ marginTop:5,display:"flex",alignItems:"center",gap:4 }}>
                                   <div style={{ height:3,flex:1,borderRadius:99,background:"rgba(255,255,255,0.06)" }}><div style={{ width:"82%",height:"100%",borderRadius:99,background:"linear-gradient(90deg,#22C55E88,#22C55E)" }}/></div>
@@ -1855,7 +1855,7 @@ function PlatformWalkthrough() {
                         {/* Right: letter preview */}
                         <div style={{ width:205,flexShrink:0,background:"linear-gradient(160deg,#0D1320,#101828)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:10,padding:"11px 13px",overflow:"hidden",display:"flex",flexDirection:"column",gap:5 }}>
                           <div style={{ fontSize:7.5,fontWeight:700,color:"rgba(255,255,255,0.22)",textTransform:"uppercase",letterSpacing:"0.1em" }}>Letter Preview</div>
-                          <div style={{ fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.55)" }}>Steve J. Ngoumnai</div>
+                          <div style={{ fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.55)" }}>Steve J. N.</div>
                           <div style={{ fontSize:7.5,color:"rgba(255,255,255,0.22)",marginBottom:3 }}>steve@machinesandcloud.com &middot; LinkedIn</div>
                           <div style={{ fontSize:8,fontWeight:600,color:"rgba(255,255,255,0.65)",marginBottom:2 }}>Dear Stripe Hiring Team,</div>
                           <div style={{ fontSize:8,color:"rgba(255,255,255,0.4)",lineHeight:1.75,fontFamily:"Georgia,serif",flex:1,overflow:"hidden" }}>
@@ -1883,7 +1883,7 @@ function PlatformWalkthrough() {
                 <div style={{ height:"100%",display:"flex",flexDirection:"column" }}>
                   <div style={{ padding:"9px 16px",borderBottom:"1px solid rgba(255,255,255,0.06)",background:"rgba(8,12,26,0.95)",display:"flex",alignItems:"center",gap:8,flexShrink:0 }}>
                     <span style={{ fontSize:13,fontWeight:700,color:"white" }}>LinkedIn Optimizer</span>
-                    <span style={{ fontSize:8.5,color:"rgba(255,255,255,0.28)" }}>Steve J. Ngoumnai</span>
+                    <span style={{ fontSize:8.5,color:"rgba(255,255,255,0.28)" }}>Steve J. N.</span>
                     <div style={{ marginLeft:"auto",display:"flex",gap:8,alignItems:"center" }}>
                       <span style={{ fontSize:9,color:"rgba(255,255,255,0.3)" }}>Before: <b style={{ color:"#F87171" }}>54</b></span>
                       <svg viewBox="0 0 12 12" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" style={{ width:10,height:10 }}><path d="M2 6h8M6 2l4 4-4 4"/></svg>
@@ -2010,7 +2010,7 @@ function PlatformWalkthrough() {
                             <div style={{ position:"absolute",top:8,right:10,fontSize:7.5,fontWeight:700,color:"rgba(255,255,255,0.6)",background:"rgba(0,0,0,0.3)",borderRadius:4,padding:"2px 8px" }}>&#10022; AI Optimized</div>
                           </div>
                           <div style={{ padding:"20px 13px 10px" }}>
-                            <div style={{ fontSize:10.5,fontWeight:700,color:"rgba(255,255,255,0.9)" }}>Steve J. Ngoumnai</div>
+                            <div style={{ fontSize:10.5,fontWeight:700,color:"rgba(255,255,255,0.9)" }}>Steve J. N.</div>
                             <div style={{ fontSize:8,color:"rgba(255,255,255,0.38)",lineHeight:1.5,marginTop:2 }}>Senior PM &middot; I Help Job Seekers Land $150K&ndash;$350K Roles Using AI | $4.2M Impact | Payments &amp; Ops</div>
                             <div style={{ marginTop:5,display:"flex",gap:10,flexWrap:"wrap" }}>
                               <div style={{ fontSize:7.5,color:"rgba(255,255,255,0.25)" }}>Profile views <span style={{ color:"#60A5FA",fontWeight:700 }}>1,315</span></div>
