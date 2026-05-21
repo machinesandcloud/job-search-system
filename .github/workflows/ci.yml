@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Typecheck · Test · Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      NODE_VERSION: "20"
+      # Minimal stubs so typecheck and build don't abort on missing env guards
+      DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci_stub"
+      DIRECT_URL: "postgresql://ci:ci@localhost:5432/ci_stub"
+      APP_SECRET: "ci-secret-not-for-production"
+      NEXTAUTH_SECRET: "ci-secret-not-for-production"
+      OPENAI_API_KEY: "sk-test-ci-stub"
+      STRIPE_SECRET_KEY: "sk_test_ci_stub"
+      STRIPE_WEBHOOK_SECRET: "whsec_ci_stub"
+      RESEND_API_KEY: "re_ci_stub"
+      UPSTASH_REDIS_REST_URL: "https://ci.upstash.io"
+      UPSTASH_REDIS_REST_TOKEN: "ci_token"
+      NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit & integration tests
+        run: npm test
+
+      - name: Build
+        run: npm run build

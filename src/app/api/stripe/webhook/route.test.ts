@@ -31,11 +31,12 @@ const mocks = vi.hoisted(() => ({
   syncStripeSubscriptionToAccount: vi.fn(),
   syncUsersForAccountPlan: vi.fn(),
   mapStripePlanTier: vi.fn(),
+  isDatabaseReady: vi.fn().mockReturnValue(true),
 }));
 
 vi.mock("@/lib/db", () => ({
   prisma: mocks.prisma,
-  isDatabaseReady: () => true,
+  isDatabaseReady: () => mocks.isDatabaseReady(),
 }));
 
 vi.mock("@/lib/stripe", () => ({
@@ -61,6 +62,7 @@ vi.mock("@/lib/zoho-engine", () => ({
   onUserChurned: vi.fn(),
   onPaymentFailed: vi.fn(),
   onPaymentRecovered: vi.fn(),
+  onTrialEnding: vi.fn(),
 }));
 
 import { POST } from "./route";
@@ -68,6 +70,7 @@ import { POST } from "./route";
 describe("stripe webhook route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.isDatabaseReady.mockReturnValue(true);
     process.env.STRIPE_WEBHOOK_SECRET = "whsec_test";
     mocks.canAccessSubscriptionStatus.mockImplementation((status?: string | null) =>
       ["active", "trialing"].includes(String(status || "").toLowerCase())
@@ -231,6 +234,168 @@ describe("stripe webhook route", () => {
         status: "canceled",
         paymentIssue: false,
       })
+    );
+  });
+
+  it("returns 400 when stripe-signature header is missing", async () => {
+    const response = await POST(
+      new Request("http://localhost:3000/api/stripe/webhook", {
+        method: "POST",
+        body: "{}",
+      })
+    );
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.error).toMatch(/signature/i);
+  });
+
+  it("returns 400 when STRIPE_WEBHOOK_SECRET is not configured", async () => {
+    delete process.env.STRIPE_WEBHOOK_SECRET;
+    const response = await POST(
+      new Request("http://localhost:3000/api/stripe/webhook", {
+        method: "POST",
+        headers: { "stripe-signature": "sig" },
+        body: "{}",
+      })
+    );
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.error).toMatch(/signature/i);
+  });
+
+  it("returns 400 when webhook signature is invalid", async () => {
+    mocks.getStripeClient.mockReturnValue({
+      webhooks: {
+        constructEvent: vi.fn().mockImplementation(() => {
+          throw new Error("No signatures found matching the expected signature for payload.");
+        }),
+      },
+    });
+    const response = await POST(
+      new Request("http://localhost:3000/api/stripe/webhook", {
+        method: "POST",
+        headers: { "stripe-signature": "bad_sig" },
+        body: "{}",
+      })
+    );
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.error).toMatch(/invalid signature/i);
+  });
+
+  it("returns 503 when the database is not ready", async () => {
+    mocks.isDatabaseReady.mockReturnValue(false);
+    const response = await POST(
+      new Request("http://localhost:3000/api/stripe/webhook", {
+        method: "POST",
+        headers: { "stripe-signature": "sig" },
+        body: "{}",
+      })
+    );
+    expect(response.status).toBe(503);
+    const body = await response.json();
+    expect(body.error).toMatch(/database/i);
+  });
+
+  it("returns 200 with skipped:true for unhandled event types", async () => {
+    mocks.prisma.stripeEvent.findUnique.mockResolvedValue(null);
+    mocks.getStripeClient.mockReturnValue({
+      webhooks: {
+        constructEvent: vi.fn().mockReturnValue({
+          id: "evt_unknown",
+          type: "payment_intent.created",
+          data: { object: {} },
+        }),
+      },
+    });
+    const response = await POST(
+      new Request("http://localhost:3000/api/stripe/webhook", {
+        method: "POST",
+        headers: { "stripe-signature": "sig" },
+        body: "{}",
+      })
+    );
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.received).toBe(true);
+    expect(body.skipped).toBe(true);
+  });
+
+  it("records event as failed and returns 500 when processing throws", async () => {
+    mocks.prisma.stripeEvent.findUnique.mockResolvedValue(null);
+    mocks.prisma.subscription.findUnique.mockResolvedValue({ accountId: "account_1" });
+    mocks.syncStripeSubscriptionToAccount.mockRejectedValue(new Error("Sync failure"));
+    mocks.getStripeClient.mockReturnValue({
+      webhooks: {
+        constructEvent: vi.fn().mockReturnValue({
+          id: "evt_err",
+          type: "customer.subscription.deleted",
+          data: {
+            object: {
+              id: "sub_err",
+              customer: "cus_err",
+              status: "canceled",
+              metadata: {},
+              cancel_at_period_end: false,
+              canceled_at: null,
+              trial_end: null,
+              items: { data: [{ current_period_start: 0, current_period_end: 0, price: { id: "price_1" } }] },
+            },
+          },
+        }),
+      },
+    });
+    const response = await POST(
+      new Request("http://localhost:3000/api/stripe/webhook", {
+        method: "POST",
+        headers: { "stripe-signature": "sig" },
+        body: "{}",
+      })
+    );
+    expect(response.status).toBe(500);
+    expect(mocks.prisma.stripeEvent.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ status: "failed" }),
+      })
+    );
+  });
+
+  it("processes subscription.updated and syncs the account", async () => {
+    mocks.prisma.stripeEvent.findUnique.mockResolvedValue(null);
+    mocks.prisma.subscription.findUnique.mockResolvedValue({ accountId: "account_1" });
+    mocks.prisma.user.findFirst.mockResolvedValue(null);
+    mocks.getStripeClient.mockReturnValue({
+      webhooks: {
+        constructEvent: vi.fn().mockReturnValue({
+          id: "evt_updated",
+          type: "customer.subscription.updated",
+          data: {
+            object: {
+              id: "sub_123",
+              customer: "cus_123",
+              status: "active",
+              metadata: {},
+              cancel_at_period_end: false,
+              canceled_at: null,
+              trial_end: null,
+              items: { data: [{ current_period_start: 0, current_period_end: 0, price: { id: "price_pro_monthly" } }] },
+            },
+          },
+        }),
+      },
+    });
+    const response = await POST(
+      new Request("http://localhost:3000/api/stripe/webhook", {
+        method: "POST",
+        headers: { "stripe-signature": "sig" },
+        body: "{}",
+      })
+    );
+    expect(response.status).toBe(200);
+    expect(mocks.syncStripeSubscriptionToAccount).toHaveBeenCalledWith(
+      "account_1",
+      expect.objectContaining({ id: "sub_123" }),
+      expect.objectContaining({ status: undefined })
     );
   });
 });
