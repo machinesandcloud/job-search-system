@@ -80,13 +80,12 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/assets/zari-icon-512x512.png", sizes: "512x512", type: "image/png" },
+      { url: "/icon.png", sizes: "512x512", type: "image/png" },
       { url: "/assets/zari-icon-192x192.png", sizes: "192x192", type: "image/png" },
       { url: "/assets/zari-icon-32x32.png",   sizes: "32x32",   type: "image/png" },
-      { url: "/assets/favicon.ico",            sizes: "any" },
     ],
-    shortcut: "/assets/zari-icon-192x192.png",
-    apple: "/assets/zari-icon-180x180.png",
+    shortcut: "/icon.png",
+    apple: "/apple-icon.png",
   },
   openGraph: {
     title: "Zari — AI Career Coach | Resume, LinkedIn & Interview Prep",
