@@ -150,7 +150,7 @@ const FOUNDERS = [
     photo: "/images/steve.jpg",
     name: "Steve J N.",
     title: "Founder & CEO",
-    h3: "From Platform Engineer to career coach at scale.",
+    h3: "From Tech Leader and hiring manager to career coach at scale.",
     story1: `"I spent years watching talented people get passed over — not because they lacked ability, but because they couldn't tell their story. As a Platform Engineer and career advisor, I saw the same pattern repeat: vague bullets, weak interview stories, salary negotiations abandoned too early.`,
     story2: `Owen and Leanne brought 15+ years of executive coaching and career transition expertise. Together, we built Zari to give every professional access to the same coaching that used to cost thousands — specific, memory-driven, and built for people serious about their next move."`,
     sig: "– Steve J N.",
