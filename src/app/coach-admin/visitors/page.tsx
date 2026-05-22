@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCoachAdminSession } from "@/lib/coach-admin-auth";
 import { isDatabaseReady, prisma } from "@/lib/db";
+import { GeoBackfillButton } from "./geo-backfill-button";
 
 function ago(v?: Date | null): string {
   if (!v) return "—";
@@ -212,11 +213,14 @@ export default async function VisitorsPage() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
-      {/* Breadcrumb */}
-      <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--ca-text3)" }}>
-        <Link href="/coach-admin" style={{ color: "var(--ca-text3)", textDecoration: "none" }}>Overview</Link>
-        <span>›</span>
-        <span style={{ color: "var(--ca-text)" }}>Visitors</span>
+      {/* Breadcrumb + actions */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--ca-text3)" }}>
+          <Link href="/coach-admin" style={{ color: "var(--ca-text3)", textDecoration: "none" }}>Overview</Link>
+          <span>›</span>
+          <span style={{ color: "var(--ca-text)" }}>Visitors</span>
+        </div>
+        <GeoBackfillButton />
       </div>
 
       {/* KPI strip */}
