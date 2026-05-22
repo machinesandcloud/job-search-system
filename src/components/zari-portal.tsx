@@ -18420,6 +18420,12 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
   const [askZariOpen, setAskZariOpen] = useState(false);
   const [askZariText, setAskZariText] = useState("");
   const askZariInputRef = useRef<HTMLTextAreaElement>(null);
+  const [askZariMode, setAskZariMode] = useState<"ask" | "support">("ask");
+  const [ticketSubject, setTicketSubject] = useState("");
+  const [ticketCategory, setTicketCategory] = useState("technical");
+  const [ticketDesc, setTicketDesc] = useState("");
+  const [ticketState, setTicketState] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [ticketError, setTicketError] = useState("");
   const [comparePlansOpen, setComparePlansOpen] = useState(false);
   const [billingPortalLoading, setBillingPortalLoading] = useState(false);
   const [phoneInput, setPhoneInput] = useState("");
@@ -19611,51 +19617,160 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
         <div className="zari-ask-bubble-wrap">
           {askZariOpen && (
             <div className="zari-ask-popover">
-              <p className="zari-ask-popover-label">Ask Zari anything</p>
-              <textarea
-                ref={askZariInputRef}
-                className="zari-ask-textarea"
-                placeholder="What would you like Zari to explain or help with?"
-                value={askZariText}
-                onChange={e => setAskZariText(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    if (askZariText.trim()) {
-                      window.dispatchEvent(new CustomEvent("zari-quick-ask", { detail: askZariText.trim() }));
-                      setAskZariText("");
-                      setAskZariOpen(false);
-                      navigate("session");
-                    }
-                  }
-                }}
-                rows={3}
-              />
-              <div style={{ display:"flex", gap:8, justifyContent:"flex-end", marginTop:8 }}>
-                <button className="zari-ask-cancel-btn" onClick={() => { setAskZariOpen(false); setAskZariText(""); }}>
-                  Cancel
-                </button>
-                <button
-                  className="zari-ask-submit-btn"
-                  onClick={() => {
-                    if (askZariText.trim()) {
-                      window.dispatchEvent(new CustomEvent("zari-quick-ask", { detail: askZariText.trim() }));
-                      setAskZariText("");
-                      setAskZariOpen(false);
-                      navigate("session");
-                    }
-                  }}
-                >
-                  Ask Zari →
-                </button>
-              </div>
+              {askZariMode === "ask" ? (
+                <>
+                  <p className="zari-ask-popover-label">Ask Zari anything</p>
+                  <textarea
+                    ref={askZariInputRef}
+                    className="zari-ask-textarea"
+                    placeholder="What would you like Zari to explain or help with?"
+                    value={askZariText}
+                    onChange={e => setAskZariText(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        if (askZariText.trim()) {
+                          window.dispatchEvent(new CustomEvent("zari-quick-ask", { detail: askZariText.trim() }));
+                          setAskZariText("");
+                          setAskZariOpen(false);
+                          navigate("session");
+                        }
+                      }
+                    }}
+                    rows={3}
+                  />
+                  <div style={{ display:"flex", gap:8, justifyContent:"flex-end", marginTop:8 }}>
+                    <button className="zari-ask-cancel-btn" onClick={() => { setAskZariOpen(false); setAskZariText(""); }}>
+                      Cancel
+                    </button>
+                    <button
+                      className="zari-ask-submit-btn"
+                      onClick={() => {
+                        if (askZariText.trim()) {
+                          window.dispatchEvent(new CustomEvent("zari-quick-ask", { detail: askZariText.trim() }));
+                          setAskZariText("");
+                          setAskZariOpen(false);
+                          navigate("session");
+                        }
+                      }}
+                    >
+                      Ask Zari →
+                    </button>
+                  </div>
+                  <div style={{ borderTop:"1px solid var(--z-bd)", marginTop:12, paddingTop:10, textAlign:"center" }}>
+                    <button
+                      onClick={() => { setAskZariMode("support"); setTicketState("idle"); setTicketError(""); }}
+                      style={{ background:"none", border:"none", cursor:"pointer", fontSize:12, color:"var(--z-text3)", textDecoration:"underline", textDecorationStyle:"dotted", textUnderlineOffset:3 }}
+                    >
+                      Open a support ticket
+                    </button>
+                  </div>
+                </>
+              ) : ticketState === "done" ? (
+                <>
+                  <div style={{ textAlign:"center", padding:"8px 0 4px" }}>
+                    <div style={{ fontSize:28, marginBottom:8 }}>✓</div>
+                    <p style={{ margin:"0 0 4px", fontSize:14, fontWeight:700, color:"var(--z-text)" }}>Ticket submitted</p>
+                    <p style={{ margin:"0 0 14px", fontSize:12, color:"var(--z-text3)" }}>We&apos;ll follow up by email.</p>
+                    <button
+                      className="zari-ask-cancel-btn"
+                      onClick={() => {
+                        setAskZariOpen(false);
+                        setAskZariMode("ask");
+                        setTicketSubject(""); setTicketDesc(""); setTicketCategory("technical"); setTicketState("idle");
+                      }}
+                    >
+                      Close
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
+                    <button
+                      onClick={() => { setAskZariMode("ask"); setTicketState("idle"); setTicketError(""); }}
+                      style={{ background:"none", border:"none", cursor:"pointer", color:"var(--z-text3)", padding:0, display:"flex", alignItems:"center" }}
+                      aria-label="Back"
+                    >
+                      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{width:14,height:14}}><path d="M10 3L5 8l5 5"/></svg>
+                    </button>
+                    <p style={{ margin:0, fontSize:13, fontWeight:700, color:"var(--z-text)" }}>Open a support ticket</p>
+                  </div>
+                  <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                    <input
+                      className="zari-ask-textarea"
+                      style={{ resize:"none", padding:"8px 12px", borderRadius:10, fontSize:13 }}
+                      placeholder="Subject"
+                      value={ticketSubject}
+                      maxLength={200}
+                      onChange={e => setTicketSubject(e.target.value)}
+                    />
+                    <select
+                      value={ticketCategory}
+                      onChange={e => setTicketCategory(e.target.value)}
+                      style={{ border:"1px solid var(--z-bd)", borderRadius:10, padding:"8px 12px", fontSize:13, background:"var(--z-bg)", color:"var(--z-text)", outline:"none", fontFamily:"inherit", cursor:"pointer" }}
+                    >
+                      <option value="technical">Technical issue</option>
+                      <option value="billing">Billing</option>
+                      <option value="product">Product feedback</option>
+                      <option value="account">Account</option>
+                      <option value="other">Other</option>
+                    </select>
+                    <textarea
+                      className="zari-ask-textarea"
+                      placeholder="Describe the issue…"
+                      value={ticketDesc}
+                      onChange={e => setTicketDesc(e.target.value)}
+                      rows={3}
+                      maxLength={5000}
+                    />
+                    {ticketError && <p style={{ margin:0, fontSize:12, color:"#EF4444" }}>{ticketError}</p>}
+                  </div>
+                  <div style={{ display:"flex", gap:8, justifyContent:"flex-end", marginTop:10 }}>
+                    <button className="zari-ask-cancel-btn" onClick={() => { setAskZariOpen(false); setAskZariMode("ask"); setTicketState("idle"); setTicketError(""); }}>
+                      Cancel
+                    </button>
+                    <button
+                      className="zari-ask-submit-btn"
+                      disabled={ticketState === "loading"}
+                      onClick={async () => {
+                        if (!ticketSubject.trim() || !ticketDesc.trim()) {
+                          setTicketError("Subject and description are required.");
+                          return;
+                        }
+                        setTicketState("loading");
+                        setTicketError("");
+                        try {
+                          const res = await fetch("/api/support/ticket", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ subject: ticketSubject.trim(), description: ticketDesc.trim(), category: ticketCategory }),
+                          });
+                          if (!res.ok) {
+                            const d = await res.json().catch(() => ({})) as { error?: string };
+                            setTicketError(d.error ?? "Something went wrong. Please try again.");
+                            setTicketState("idle");
+                          } else {
+                            setTicketState("done");
+                          }
+                        } catch {
+                          setTicketError("Network error. Please try again.");
+                          setTicketState("idle");
+                        }
+                      }}
+                    >
+                      {ticketState === "loading" ? "Sending…" : "Submit ticket"}
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           )}
           <button
             className="zari-ask-bubble-btn"
             onClick={() => {
               setAskZariOpen(o => !o);
-              if (!askZariOpen) setTimeout(() => askZariInputRef.current?.focus(), 50);
+              if (!askZariOpen) { setAskZariMode("ask"); setTimeout(() => askZariInputRef.current?.focus(), 50); }
             }}
             aria-label="Ask Zari"
           >
