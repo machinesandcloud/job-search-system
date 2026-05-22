@@ -34,7 +34,8 @@ function buildPortalViewer(input: {
   const planId = getPricingCatalogPlanId(subscriptionSource?.planName, subscriptionSource?.stripePriceId);
   const subscriptionStatus = subscriptionSource?.status || null;
   const isPaid = role === "admin" || role === "support" || canAccessSubscriptionStatus(subscriptionStatus);
-  const phoneVerified = role === "admin" || role === "support" || Boolean(identity?.user?.phoneVerified);
+  // emailVerified is the active gate; phoneVerified kept as fallback for users verified before the switch
+  const phoneVerified = role === "admin" || role === "support" || Boolean(identity?.user?.emailVerified) || Boolean(identity?.user?.phoneVerified);
 
   return {
     name,

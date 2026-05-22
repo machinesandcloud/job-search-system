@@ -137,6 +137,7 @@ model User {
   marketingOptIn      Boolean        @default(false)
   phone               String?        @unique
   phoneVerified       Boolean        @default(false)
+  emailVerified       Boolean        @default(false)
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
   account             Account?       @relation("AccountMembers", fields: [accountId], references: [id], onDelete: SetNull)
@@ -157,6 +158,7 @@ model User {
   adminNotes          AdminNote[]    @relation("AdminNoteAuthor")
   tokenUsageEntries   AiTokenUsage[]
   phoneVerifications  PhoneVerification[]
+  emailVerifications  EmailVerification[]
 }
 
 model Account {
@@ -218,6 +220,16 @@ model PhoneVerification {
   id        String   @id @default(uuid()) @db.Uuid
   userId    String   @unique @db.Uuid
   phone     String
+  codeHash  String
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model EmailVerification {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @unique @db.Uuid
   codeHash  String
   expiresAt DateTime
   attempts  Int      @default(0)

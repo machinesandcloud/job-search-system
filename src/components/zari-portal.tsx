@@ -17954,6 +17954,84 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
 
 
 /* ═══════════════════════════════════════════════════
+   REFERRAL WIDGET
+═══════════════════════════════════════════════════ */
+function ReferralWidget() {
+  const [data, setData] = React.useState<{ url: string; signedUp: number; converted: number; creditsEarned: number } | null>(null);
+  const [copied, setCopied] = React.useState(false);
+
+  React.useEffect(() => {
+    fetch("/api/referral/link")
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.url) setData(d); })
+      .catch(() => {});
+  }, []);
+
+  function handleCopy() {
+    if (!data?.url) return;
+    try {
+      navigator.clipboard.writeText(data.url).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2500);
+      });
+    } catch { /* noop */ }
+  }
+
+  const sectionStyle: React.CSSProperties = { background: "var(--z-raise)", borderRadius: 12, border: "1px solid var(--z-bd)", padding: "18px 18px 16px", marginBottom: 12 };
+  const labelStyle: React.CSSProperties = { fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--z-text3)", marginBottom: 12 };
+
+  return (
+    <div style={sectionStyle}>
+      <div style={labelStyle}>Refer &amp; Earn</div>
+      <div style={{ fontSize: 13, color: "var(--z-text2)", lineHeight: 1.6, marginBottom: 14 }}>
+        Share Zari with a friend and get <strong style={{ color: "var(--z-text)" }}>1 free month</strong> when they subscribe. No limits.
+      </div>
+
+      {data && (data.signedUp > 0 || data.creditsEarned > 0) && (
+        <div style={{ display: "flex", gap: 12, marginBottom: 14 }}>
+          <div style={{ flex: 1, background: "var(--z-bg)", borderRadius: 8, padding: "10px 12px", border: "1px solid var(--z-bd)", textAlign: "center" }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: "var(--z-text)" }}>{data.signedUp}</div>
+            <div style={{ fontSize: 11, color: "var(--z-text3)", marginTop: 2 }}>Signed up</div>
+          </div>
+          <div style={{ flex: 1, background: "var(--z-bg)", borderRadius: 8, padding: "10px 12px", border: "1px solid var(--z-bd)", textAlign: "center" }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: "var(--z-text)" }}>{data.converted}</div>
+            <div style={{ fontSize: 11, color: "var(--z-text3)", marginTop: 2 }}>Subscribed</div>
+          </div>
+          <div style={{ flex: 1, background: "var(--z-bg)", borderRadius: 8, padding: "10px 12px", border: "1px solid rgba(124,58,237,0.18)", textAlign: "center" }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: "#7c3aed" }}>{data.creditsEarned}</div>
+            <div style={{ fontSize: 11, color: "var(--z-text3)", marginTop: 2 }}>Free months</div>
+          </div>
+        </div>
+      )}
+
+      <button
+        onClick={handleCopy}
+        disabled={!data}
+        style={{
+          fontSize: 12.5, fontWeight: 600, padding: "8px 16px", borderRadius: 9,
+          border: copied ? "1px solid rgba(34,197,94,0.4)" : "1px solid var(--z-bd)",
+          background: copied ? "rgba(34,197,94,0.08)" : "var(--z-bg)",
+          color: copied ? "#16a34a" : "var(--z-text)",
+          cursor: data ? "pointer" : "default",
+          display: "inline-flex", alignItems: "center", gap: 6,
+          transition: "all 0.2s",
+          opacity: data ? 1 : 0.5,
+        }}
+      >
+        {copied
+          ? <><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 12, height: 12 }}><path d="M2 8l4 4 8-8"/></svg>Copied!</>
+          : <><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 12, height: 12 }}><path d="M10 2H6a1 1 0 00-1 1v9a1 1 0 001 1h6a1 1 0 001-1V5l-3-3z"/><path d="M10 2v3h3"/><path d="M4 9H2a1 1 0 01-1-1V3a1 1 0 011-1h4"/></svg>Copy referral link</>
+        }
+      </button>
+
+      {data?.url && (
+        <div style={{ fontSize: 11, color: "var(--z-text3)", marginTop: 8, wordBreak: "break-all" }}>{data.url}</div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
    SCREEN: ACCOUNT
 ═══════════════════════════════════════════════════ */
 function ScreenAccount({ viewer, onNavigate, onBuyCredits, onComparePlans }: { viewer: PortalViewer; onNavigate: (s: Screen) => void; onBuyCredits: () => void; onComparePlans: () => void }) {
@@ -18309,19 +18387,7 @@ function ScreenAccount({ viewer, onNavigate, onBuyCredits, onComparePlans }: { v
       </div>
 
       {/* Referrals */}
-      <div style={sectionStyle}>
-        <div style={labelStyle}>Refer &amp; Earn</div>
-        <div style={{ fontSize: 13, color: "var(--z-text2)", lineHeight: 1.6, marginBottom: 14 }}>
-          Share Zari with a friend and get <strong style={{ color: "var(--z-text)" }}>1 free month</strong> when they subscribe. No limits.
-        </div>
-        <button
-          onClick={() => { try { navigator.clipboard.writeText("https://zari.app?ref=" + encodeURIComponent(viewer.email)); } catch {} }}
-          style={{ fontSize: 12.5, fontWeight: 600, padding: "8px 16px", borderRadius: 9, border: "1px solid var(--z-bd)", background: "var(--z-raise)", color: "var(--z-text)", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}
-        >
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 12, height: 12 }}><path d="M10 2H6a1 1 0 00-1 1v9a1 1 0 001 1h6a1 1 0 001-1V5l-3-3z"/><path d="M10 2v3h3"/><path d="M4 9H2a1 1 0 01-1-1V3a1 1 0 011-1h4"/></svg>
-          Copy referral link
-        </button>
-      </div>
+      <ReferralWidget />
 
       {/* Help & Support */}
       <div style={sectionStyle}>
@@ -18388,6 +18454,23 @@ function ScreenAccount({ viewer, onNavigate, onBuyCredits, onComparePlans }: { v
    MAIN PORTAL SHELL
 ═══════════════════════════════════════════════════ */
 export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
+  // ── Session identity guard ────────────────────────────────────────────────
+  // Runs synchronously before any useState lazy initializer so every
+  // localStorage read below sees clean state for the current user.
+  // Prevents a previous user's cached data from leaking into a new session.
+  if (typeof localStorage !== "undefined") {
+    const storedIdentity = localStorage.getItem("zari_session_identity");
+    if (storedIdentity !== viewer.email) {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        // Preserve only the dark-mode preference — it's not user data
+        if (k && k.startsWith("zari") && k !== "zari_dark") localStorage.removeItem(k);
+      }
+      localStorage.setItem("zari_session_identity", viewer.email);
+    }
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
   const [screen, setScreen] = useState<Screen>(() => {
     try { return (localStorage.getItem("zari_screen") as Screen) || "session"; } catch { return "session"; }
   });
@@ -18428,11 +18511,10 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
   const [ticketError, setTicketError] = useState("");
   const [comparePlansOpen, setComparePlansOpen] = useState(false);
   const [billingPortalLoading, setBillingPortalLoading] = useState(false);
-  const [phoneInput, setPhoneInput] = useState("");
-  const [otpInput, setOtpInput] = useState("");
-  const [phoneStep, setPhoneStep] = useState<"phone"|"otp">("phone");
-  const [phoneLoading, setPhoneLoading] = useState(false);
-  const [phoneError, setPhoneError] = useState<string|null>(null);
+  const [emailOtpInput, setEmailOtpInput] = useState("");
+  const [emailVerifStep, setEmailVerifStep] = useState<"prompt"|"otp">("prompt");
+  const [emailVerifLoading, setEmailVerifLoading] = useState(false);
+  const [emailVerifError, setEmailVerifError] = useState<string|null>(null);
   const [phoneVerified, setPhoneVerified] = useState(viewer.phoneVerified);
   const formatCredits = (value?: number | null) =>
     new Intl.NumberFormat("en-US", {
@@ -18568,7 +18650,7 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
     if (countdownRef.current) { clearInterval(countdownRef.current); countdownRef.current = null; }
     const remaining = WARN_DURATION_S - Math.floor((Date.now() - warnStartedAtRef.current) / 1000);
     if (remaining <= 0) {
-      void fetch("/api/auth/logout", { method:"POST", credentials:"same-origin" }).finally(() => { window.location.assign("/login"); });
+      void fetch("/api/auth/logout", { method:"POST", credentials:"same-origin" }).finally(() => { try { localStorage.removeItem("zari_session_identity"); } catch { /* noop */ } window.location.assign("/login"); });
       return;
     }
     setIdleCountdown(remaining);
@@ -18576,7 +18658,7 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
       const r = WARN_DURATION_S - Math.floor((Date.now() - warnStartedAtRef.current) / 1000);
       if (r <= 0) {
         clearInterval(countdownRef.current!); countdownRef.current = null;
-        void fetch("/api/auth/logout", { method:"POST", credentials:"same-origin" }).finally(() => { window.location.assign("/login"); });
+        void fetch("/api/auth/logout", { method:"POST", credentials:"same-origin" }).finally(() => { try { localStorage.removeItem("zari_session_identity"); } catch { /* noop */ } window.location.assign("/login"); });
       } else {
         setIdleCountdown(r);
       }
@@ -18629,113 +18711,84 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
     };
   }, [resetIdleTimer, clearIdleTimers, startCountdown]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  function normalizePhone(raw: string): string {
-    // Strip everything except leading + and digits
-    const hasPlus = raw.trimStart().startsWith("+");
-    const digits = raw.replace(/\D/g, "");
-    if (!digits) return "";
-    if (hasPlus) return "+" + digits;
-    // Auto-prepend +1 for bare 10-digit US numbers
-    if (digits.length === 10) return "+1" + digits;
-    if (digits.length === 11 && digits.startsWith("1")) return "+" + digits;
-    return "+" + digits;
+  async function sendEmailOtp() {
+    setEmailVerifLoading(true); setEmailVerifError(null);
+    try {
+      const res = await fetch("/api/auth/email/send", { method:"POST", headers:{"Content-Type":"application/json"} });
+      const data = await res.json().catch(() => ({})) as { error?: string; alreadyVerified?: boolean };
+      if (!res.ok) { setEmailVerifError(data.error || "Failed to send code."); setEmailVerifLoading(false); return; }
+      if (data.alreadyVerified) { setPhoneVerified(true); return; }
+      setEmailVerifStep("otp");
+    } catch { setEmailVerifError("Network error. Please try again."); }
+    setEmailVerifLoading(false);
   }
 
-  async function sendPhoneOtp() {
-    setPhoneLoading(true); setPhoneError(null);
-    const phone = normalizePhone(phoneInput);
+  async function verifyEmailOtp() {
+    setEmailVerifLoading(true); setEmailVerifError(null);
     try {
-      const res = await fetch("/api/auth/phone/send", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ phone }) });
+      const res = await fetch("/api/auth/email/verify", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ code: emailOtpInput }) });
       const data = await res.json().catch(() => ({})) as { error?: string };
-      if (!res.ok) { setPhoneError(data.error || "Failed to send code."); setPhoneLoading(false); return; }
-      setPhoneStep("otp");
-    } catch { setPhoneError("Network error. Please try again."); }
-    setPhoneLoading(false);
-  }
-
-  async function verifyPhoneOtp() {
-    setPhoneLoading(true); setPhoneError(null);
-    try {
-      const res = await fetch("/api/auth/phone/verify", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ code: otpInput }) });
-      const data = await res.json().catch(() => ({})) as { error?: string };
-      if (!res.ok) { setPhoneError(data.error || "Verification failed."); setPhoneLoading(false); return; }
+      if (!res.ok) { setEmailVerifError(data.error || "Verification failed."); setEmailVerifLoading(false); return; }
       setPhoneVerified(true);
-    } catch { setPhoneError("Network error. Please try again."); }
-    setPhoneLoading(false);
+    } catch { setEmailVerifError("Network error. Please try again."); }
+    setEmailVerifLoading(false);
   }
 
   return (
     <BillingContext.Provider value={billingCtx}>
 
-    {/* ── Phone Verification Gate (free tier, unverified) ── */}
+    {/* ── Email Verification Gate (free tier, unverified) ── */}
     {!isOperatorViewer && !viewer.isPaid && !phoneVerified && (
       <div style={{ position:"fixed", inset:0, zIndex:99999, display:"flex", alignItems:"center", justifyContent:"center", background:"linear-gradient(135deg,#0F172A 0%,#1E1B4B 50%,#0F172A 100%)", padding:24 }}>
         <div className="zari-modal-inner" style={{ background:"#FFFFFF", borderRadius:28, boxShadow:"0 32px 96px rgba(0,0,0,0.45)", padding:"44px 40px 40px", maxWidth:440, width:"100%", textAlign:"center" }}>
           {/* Icon */}
           <div style={{ width:72, height:72, borderRadius:"50%", background:"linear-gradient(135deg,#4F46E5 0%,#7C3AED 100%)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 22px", boxShadow:"0 8px 24px rgba(79,70,229,0.4)" }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" style={{width:32,height:32}}><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" style={{width:32,height:32}}><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
           </div>
-          <p style={{ fontSize:24, fontWeight:900, color:"#0F172A", letterSpacing:"-0.03em", marginBottom:10 }}>Verify your phone</p>
-          <p style={{ fontSize:15, color:"#64748B", lineHeight:1.6, marginBottom:32 }}>
-            One quick step before you start. We verify your phone to keep one free account per person.
-          </p>
+          <p style={{ fontSize:24, fontWeight:900, color:"#0F172A", letterSpacing:"-0.03em", marginBottom:10 }}>Verify your email</p>
 
-          {phoneStep === "phone" ? (
+          {emailVerifStep === "prompt" ? (
             <>
-              <input
-                type="tel"
-                placeholder="+1 (555) 000-0000"
-                value={phoneInput}
-                onChange={e => {
-                  const raw = e.target.value;
-                  // Auto-format: if user types only digits (no +), prepend +1 live
-                  const digits = raw.replace(/\D/g, "");
-                  const hasPlus = raw.trimStart().startsWith("+");
-                  let formatted = raw;
-                  if (!hasPlus && digits.length > 0) formatted = "+1" + digits;
-                  setPhoneInput(formatted);
-                  setPhoneError(null);
-                }}
-                onKeyDown={e => e.key === "Enter" && !phoneLoading && sendPhoneOtp()}
-                onFocus={e => { e.currentTarget.style.borderColor = "#4F46E5"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(79,70,229,0.15)"; }}
-                onBlur={e => { e.currentTarget.style.borderColor = "#E2E8F0"; e.currentTarget.style.boxShadow = "none"; }}
-                style={{ width:"100%", boxSizing:"border-box", fontSize:17, fontWeight:500, padding:"14px 18px", borderRadius:14, border:"2px solid #E2E8F0", background:"#F8FAFC", color:"#0F172A", outline:"none", marginBottom:12, fontFamily:"inherit", transition:"border-color 0.15s, box-shadow 0.15s" }}
-              />
-              {phoneError && <p style={{ fontSize:13, color:"#EF4444", marginBottom:12, textAlign:"left" }}>{phoneError}</p>}
+              <p style={{ fontSize:15, color:"#64748B", lineHeight:1.6, marginBottom:32 }}>
+                One quick step before you start. We&apos;ll send a 6-digit code to <strong style={{ color:"#1E1B4B" }}>{viewer.email}</strong> to confirm your account.
+              </p>
+              {emailVerifError && <p style={{ fontSize:13, color:"#EF4444", marginBottom:12, textAlign:"left" }}>{emailVerifError}</p>}
               <button
-                onClick={sendPhoneOtp}
-                disabled={phoneLoading || !phoneInput.trim()}
-                style={{ width:"100%", padding:"15px", borderRadius:14, border:"none", background: phoneLoading || !phoneInput.trim() ? "#CBD5E1" : "linear-gradient(135deg,#4F46E5 0%,#7C3AED 100%)", color:"#fff", fontSize:16, fontWeight:700, cursor: phoneLoading || !phoneInput.trim() ? "not-allowed" : "pointer", letterSpacing:"-0.01em", transition:"background 0.15s, opacity 0.15s", boxShadow: "0 4px 14px rgba(79,70,229,0.35)" }}>
-                {phoneLoading ? "Sending…" : "Send verification code"}
+                onClick={sendEmailOtp}
+                disabled={emailVerifLoading}
+                style={{ width:"100%", padding:"15px", borderRadius:14, border:"none", background: emailVerifLoading ? "#CBD5E1" : "linear-gradient(135deg,#4F46E5 0%,#7C3AED 100%)", color:"#fff", fontSize:16, fontWeight:700, cursor: emailVerifLoading ? "not-allowed" : "pointer", letterSpacing:"-0.01em", transition:"background 0.15s", boxShadow:"0 4px 14px rgba(79,70,229,0.35)" }}>
+                {emailVerifLoading ? "Sending…" : "Send verification code"}
               </button>
             </>
           ) : (
             <>
-              <p style={{ fontSize:13, color:"#64748B", marginBottom:14, textAlign:"left" }}>SMS is currently in test mode. Use code: <strong style={{ color:"#4F46E5", letterSpacing:"0.1em" }}>123456</strong></p>
+              <p style={{ fontSize:15, color:"#64748B", lineHeight:1.6, marginBottom:24 }}>
+                We sent a 6-digit code to <strong style={{ color:"#1E1B4B" }}>{viewer.email}</strong>. Enter it below.
+              </p>
               <input
                 type="text"
                 inputMode="numeric"
                 pattern="[0-9]*"
                 placeholder="— — — — — —"
                 maxLength={6}
-                value={otpInput}
-                onChange={e => { setOtpInput(e.target.value.replace(/\D/g,"")); setPhoneError(null); }}
-                onKeyDown={e => e.key === "Enter" && !phoneLoading && verifyPhoneOtp()}
+                value={emailOtpInput}
+                onChange={e => { setEmailOtpInput(e.target.value.replace(/\D/g,"")); setEmailVerifError(null); }}
+                onKeyDown={e => e.key === "Enter" && !emailVerifLoading && verifyEmailOtp()}
                 onFocus={e => { e.currentTarget.style.borderColor = "#4F46E5"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(79,70,229,0.15)"; e.currentTarget.style.background = "#FAFAFE"; }}
-                onBlur={e => { e.currentTarget.style.borderColor = otpInput.length === 6 ? "#4F46E5" : "#E2E8F0"; e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.background = "#F8FAFC"; }}
+                onBlur={e => { e.currentTarget.style.borderColor = emailOtpInput.length === 6 ? "#4F46E5" : "#E2E8F0"; e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.background = "#F8FAFC"; }}
                 style={{ width:"100%", boxSizing:"border-box", fontSize:32, fontWeight:800, padding:"16px 18px", borderRadius:14, border:"2px solid #E2E8F0", background:"#F8FAFC", color:"#1E1B4B", outline:"none", marginBottom:12, letterSpacing:"0.45em", textAlign:"center", fontFamily:"monospace", transition:"border-color 0.15s, box-shadow 0.15s, background 0.15s" }}
               />
-              {phoneError && <p style={{ fontSize:13, color:"#EF4444", marginBottom:12, textAlign:"left" }}>{phoneError}</p>}
+              {emailVerifError && <p style={{ fontSize:13, color:"#EF4444", marginBottom:12, textAlign:"left" }}>{emailVerifError}</p>}
               <button
-                onClick={verifyPhoneOtp}
-                disabled={phoneLoading || otpInput.length !== 6}
-                style={{ width:"100%", padding:"15px", borderRadius:14, border:"none", background: phoneLoading || otpInput.length !== 6 ? "#CBD5E1" : "linear-gradient(135deg,#4F46E5 0%,#7C3AED 100%)", color:"#fff", fontSize:16, fontWeight:700, cursor: phoneLoading || otpInput.length !== 6 ? "not-allowed" : "pointer", letterSpacing:"-0.01em", transition:"background 0.15s", marginBottom:10, boxShadow: otpInput.length === 6 ? "0 4px 14px rgba(79,70,229,0.35)" : "none" }}>
-                {phoneLoading ? "Verifying…" : "Confirm code"}
+                onClick={verifyEmailOtp}
+                disabled={emailVerifLoading || emailOtpInput.length !== 6}
+                style={{ width:"100%", padding:"15px", borderRadius:14, border:"none", background: emailVerifLoading || emailOtpInput.length !== 6 ? "#CBD5E1" : "linear-gradient(135deg,#4F46E5 0%,#7C3AED 100%)", color:"#fff", fontSize:16, fontWeight:700, cursor: emailVerifLoading || emailOtpInput.length !== 6 ? "not-allowed" : "pointer", letterSpacing:"-0.01em", transition:"background 0.15s", marginBottom:10, boxShadow: emailOtpInput.length === 6 ? "0 4px 14px rgba(79,70,229,0.35)" : "none" }}>
+                {emailVerifLoading ? "Verifying…" : "Confirm code"}
               </button>
               <button
-                onClick={() => { setPhoneStep("phone"); setOtpInput(""); setPhoneError(null); }}
+                onClick={() => { setEmailVerifStep("prompt"); setEmailOtpInput(""); setEmailVerifError(null); }}
                 style={{ background:"none", border:"none", color:"#94A3B8", fontSize:13, cursor:"pointer", textDecoration:"underline" }}>
-                Wrong number? Go back
+                Resend code
               </button>
             </>
           )}
@@ -18757,7 +18810,7 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
             </p>
             <div style={{ display:"flex", gap:10 }}>
               <button
-                onClick={() => { void fetch("/api/auth/logout", { method:"POST", credentials:"same-origin" }).finally(() => { window.location.assign("/login"); }); }}
+                onClick={() => { void fetch("/api/auth/logout", { method:"POST", credentials:"same-origin" }).finally(() => { try { localStorage.removeItem("zari_session_identity"); } catch { /* noop */ } window.location.assign("/login"); }); }}
                 style={{ flex:1, fontSize:13.5, fontWeight:600, padding:"11px 16px", borderRadius:11, border:"1px solid var(--z-bd)", background:"var(--z-raise)", color:"var(--z-text2)", cursor:"pointer" }}>
                 Sign out
               </button>
