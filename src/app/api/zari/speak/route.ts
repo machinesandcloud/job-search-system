@@ -45,9 +45,15 @@ export async function POST(request: Request) {
       return new Response(audio, { headers: { "Content-Type": "audio/mpeg", "Cache-Control": "no-store" } });
     }
     console.error(`ElevenLabs TTS ${res.status} for voice "${elVoice}": ${await res.text().catch(() => "")}`);
+    // If the requested voice is an EL voice ID (not an OpenAI voice name), don't fall back to
+    // OpenAI — the voices sound completely different and cause jarring mid-response changes.
+    // Return 500 so the client uses browser SpeechSynthesis instead.
+    if (!(OPENAI_VOICES as readonly string[]).includes(voice)) {
+      return new Response("ElevenLabs TTS failed", { status: 500 });
+    }
   }
 
-  /* ── OpenAI TTS fallback ── */
+  /* ── OpenAI TTS fallback (only used when no EL key, or voice is explicitly an OAI voice) ── */
   if (!oaiKey) return new Response("No TTS provider configured", { status: 500 });
   const oaiVoice = (OPENAI_VOICES as readonly string[]).includes(voice as typeof OPENAI_VOICES[number]) ? voice : "shimmer";
   const res = await fetch("https://api.openai.com/v1/audio/speech", {

@@ -2096,6 +2096,7 @@ function ZariLiveMode({
   type SR = { continuous: boolean; interimResults: boolean; lang: string; start(): void; stop(): void; onresult: ((e: { results: { length: number; [i: number]: { isFinal: boolean; [j: number]: { transcript: string } } } }) => void) | null; onerror: ((e: { error: string }) => void) | null; onend: (() => void) | null };
   const audioCtxRef           = useRef<AudioContext | null>(null);
   const sourceNodeRef         = useRef<AudioBufferSourceNode | null>(null);
+  const audioSchedRef         = useRef(0); // next scheduled AudioContext start time (gapless playback)
   const newMsgsRef            = useRef<ChatMsg[]>([]);
   const liveStateRef          = useRef<LiveState>("idle");
   const autoLoopRef           = useRef(false);
@@ -2124,6 +2125,7 @@ function ZariLiveMode({
   function stopAll() {
     try { sourceNodeRef.current?.stop(); } catch {}
     sourceNodeRef.current = null;
+    audioSchedRef.current = 0; // reset gapless schedule on stop
     try { recognitionRef.current?.stop(); } catch {}
     recognitionRef.current = null;
   }
@@ -2164,9 +2166,12 @@ function ZariLiveMode({
         const src = ctx.createBufferSource();
         src.buffer = audioBuf;
         src.connect(ctx.destination);
+        // Schedule immediately after previous buffer ends; if late, start now (+5ms headroom)
+        const startAt = Math.max(ctx.currentTime + 0.005, audioSchedRef.current);
+        audioSchedRef.current = startAt + audioBuf.duration;
         src.onended = () => { sourceNodeRef.current = null; resolve(); };
         sourceNodeRef.current = src;
-        src.start(0);
+        src.start(startAt);
       });
       return true;
     } catch (e) {
@@ -2181,6 +2186,9 @@ function ZariLiveMode({
     setInterimText("");
     setLiveState("thinking");
     setStatusText("Thinking…");
+
+    audioSchedRef.current = 0; // reset gapless schedule for new response
+    const voiceSnapshot = activeVoiceRef.current; // lock voice for entire response
 
     const userMsg: ChatMsg = { role: "user", text };
     setTranscript(t => [...t, userMsg]);
@@ -2200,7 +2208,7 @@ function ZariLiveMode({
       if (!ttsText) return;
       const bufPromise = fetch("/api/zari/speak", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: ttsText, voice: activeVoiceRef.current }),
+        body: JSON.stringify({ text: ttsText, voice: voiceSnapshot }),
       }).then(r => {
         if (!r.ok) { console.error(`[Zari] speak API ${r.status}`); return null; }
         return r.arrayBuffer();
@@ -3231,11 +3239,12 @@ function renderWordTemplate(d: ResumeStructuredData): string {
   const e = escHtml;
   const contact = [d.phone, d.email, d.location].filter(Boolean).map(s => e(s!)).join(" &middot; ");
 
-  // Three-column table: thin border cell | centered title text | expanding border cell
-  // Using HTML attributes (cellpadding/cellspacing/width/valign) for Word compatibility alongside CSS.
-  // Empty border cells get &nbsp; so Word doesn't collapse them.
+  // Three-column table: equal-width border cells flanking the section title.
+  // Both border cells use width="44%" so the lines are balanced on each side,
+  // matching the flex:1 / flex:1 split that the PDF template uses.
+  // The middle text cell takes its natural width (no explicit constraint).
   function wordSection(title: string): string {
-    return `<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-top:13pt;margin-bottom:5pt"><tr valign="middle"><td width="18" style="border-bottom:1pt solid #999;padding:0;font-size:1pt">&nbsp;</td><td style="white-space:nowrap;padding:0 7pt;font-family:Calibri,Arial,sans-serif;font-size:10pt;font-weight:bold;text-transform:uppercase;letter-spacing:0.08em;color:#222;mso-line-height-rule:exactly;line-height:14pt"><b>${title}</b></td><td style="border-bottom:1pt solid #999;padding:0;font-size:1pt;width:100%">&nbsp;</td></tr></table>`;
+    return `<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-top:13pt;margin-bottom:5pt"><tr valign="middle"><td width="44%" style="border-bottom:1pt solid #999;padding:0;font-size:1pt">&nbsp;</td><td style="white-space:nowrap;padding:0 7pt;font-family:Calibri,Arial,sans-serif;font-size:10pt;font-weight:bold;text-transform:uppercase;letter-spacing:0.08em;color:#222;mso-line-height-rule:exactly;line-height:14pt"><b>${title}</b></td><td width="44%" style="border-bottom:1pt solid #999;padding:0;font-size:1pt">&nbsp;</td></tr></table>`;
   }
 
   // Skills rows: bold category label + comma-separated items
