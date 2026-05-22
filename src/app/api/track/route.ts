@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { isDatabaseReady, prisma } from "@/lib/db";
+import { lookupCity } from "@/lib/geoip";
 
 export const runtime = "nodejs";
 
@@ -78,10 +79,14 @@ function getGeo(req: NextRequest) {
   };
 }
 
-async function enrichGeoByIp(ip: string): Promise<{ city?: string | null; region?: string | null; country?: string | null } | null> {
+async function enrichGeoByIp(ip: string): Promise<{ city?: string | null; region?: string | null; country?: string | null; timezone?: string | null } | null> {
+  // 1. Try local GeoLite2 database (bundled at build time — fast, no rate limit)
+  const local = await lookupCity(ip);
+  if (local) return local;
+
+  // 2. Fall back to ipapi.co when the local db isn't available (e.g. dev environment)
   try {
-    // Skip private/loopback addresses
-    if (/^(127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|::1|fc|fd)/i.test(ip)) return null;
+    if (/^(127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|::1$|fc|fd)/i.test(ip)) return null;
     const res = await fetch(`https://ipapi.co/${ip}/json/`, {
       signal: AbortSignal.timeout(2500),
       headers: { "User-Agent": "zaricoach-analytics/1.0" },
@@ -90,9 +95,10 @@ async function enrichGeoByIp(ip: string): Promise<{ city?: string | null; region
     const d = await res.json() as Record<string, unknown>;
     if (d.error) return null;
     return {
-      city:    typeof d.city === "string"         ? d.city         : null,
-      region:  typeof d.region_code === "string"  ? d.region_code  : (typeof d.region === "string" ? d.region : null),
-      country: typeof d.country_code === "string" ? d.country_code : null,
+      city:     typeof d.city === "string"         ? d.city         : null,
+      region:   typeof d.region_code === "string"  ? d.region_code  : (typeof d.region === "string" ? d.region : null),
+      country:  typeof d.country_code === "string" ? d.country_code : null,
+      timezone: typeof d.timezone === "string"     ? d.timezone     : null,
     };
   } catch {
     return null;
@@ -124,14 +130,15 @@ export async function POST(request: NextRequest) {
       const ip  = getIp(request);
       const geo = getGeo(request);
 
-      // When Netlify headers don't carry city/region (not uncommon for some IPs),
-      // fall back to a public IP geolocation lookup so the admin always sees location detail.
+      // When Netlify headers don't carry full city/region data, enrich via GeoLite2
+      // (bundled mmdb, no rate limit) falling back to ipapi.co in dev environments.
       if ((!geo.city || !geo.region) && ip) {
         const enriched = await enrichGeoByIp(ip);
         if (enriched) {
-          if (!geo.city    && enriched.city)    geo.city    = enriched.city;
-          if (!geo.region  && enriched.region)  geo.region  = enriched.region;
-          if (!geo.country && enriched.country) geo.country = enriched.country;
+          if (!geo.city     && enriched.city)     geo.city     = enriched.city;
+          if (!geo.region   && enriched.region)   geo.region   = enriched.region;
+          if (!geo.country  && enriched.country)  geo.country  = enriched.country;
+          if (!geo.timezone && enriched.timezone) geo.timezone = enriched.timezone;
         }
       }
 

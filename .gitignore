@@ -51,3 +51,6 @@ deno.lock
 
 # Local reference photos (not part of the app)
 reference-photos/
+
+# MaxMind GeoLite2 database (downloaded at build time via scripts/netlify_build.sh)
+data/*.mmdb
