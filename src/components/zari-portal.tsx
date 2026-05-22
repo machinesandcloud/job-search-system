@@ -3227,6 +3227,77 @@ ${certsHtml}
 </html>`;
 }
 
+function renderWordTemplate(d: ResumeStructuredData): string {
+  const e = escHtml;
+  const contact = [d.phone, d.email, d.location].filter(Boolean).map(s => e(s!)).join(" &middot; ");
+
+  // Three-column table: thin border cell | centered title text | expanding border cell
+  // Using HTML attributes (cellpadding/cellspacing/width/valign) for Word compatibility alongside CSS.
+  // Empty border cells get &nbsp; so Word doesn't collapse them.
+  function wordSection(title: string): string {
+    return `<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-top:13pt;margin-bottom:5pt"><tr valign="middle"><td width="18" style="border-bottom:1pt solid #999;padding:0;font-size:1pt">&nbsp;</td><td style="white-space:nowrap;padding:0 7pt;font-family:Calibri,Arial,sans-serif;font-size:10pt;font-weight:bold;text-transform:uppercase;letter-spacing:0.08em;color:#222;mso-line-height-rule:exactly;line-height:14pt"><b>${title}</b></td><td style="border-bottom:1pt solid #999;padding:0;font-size:1pt;width:100%">&nbsp;</td></tr></table>`;
+  }
+
+  // Skills rows: bold category label + comma-separated items
+  const skillsHtml = d.skills.map(s =>
+    `<p style="margin:0 0 2pt;padding:0;font-family:Calibri,Arial,sans-serif;font-size:10pt;line-height:1.5;mso-line-height-rule:exactly"><b>${e(s.category)}:</b> ${s.items.map(e).join(", ")}</p>`
+  ).join("");
+
+  // Experience: two-column table for company (left) + dates (right), then title + bullets
+  // HTML nowrap attribute + CSS white-space:nowrap ensures dates never wrap in Word.
+  // No explicit column widths — Word allocates minimum width to the dates cell and rest to company.
+  const expHtml = d.experience.map(ex =>
+    `<div style="margin-bottom:9pt"><table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tr valign="baseline"><td style="font-family:Calibri,Arial,sans-serif;font-size:10.5pt;font-weight:bold;padding:0"><b>${e(ex.company)}</b></td><td nowrap align="right" style="font-family:Calibri,Arial,sans-serif;font-size:10pt;color:#333;white-space:nowrap;text-align:right;padding:0 0 0 8pt">${e(ex.dates)}</td></tr></table><p style="font-family:Calibri,Arial,sans-serif;font-size:10.5pt;font-style:italic;margin:2pt 0 4pt;padding:0;mso-line-height-rule:exactly"><i>${e(ex.title)}</i></p><ul style="margin:0 0 0 0;padding:0">${ex.bullets.map(b => `<li style="font-family:Calibri,Arial,sans-serif;font-size:10.5pt;margin-left:18pt;margin-bottom:2pt;line-height:1.42;mso-line-height-rule:exactly">${e(b)}</li>`).join("")}</ul></div>`
+  ).join("\n");
+
+  // Education: school bold + degree italic
+  const eduHtml = d.education.map(ed =>
+    `<div style="margin-bottom:6pt"><p style="font-family:Calibri,Arial,sans-serif;font-size:10.5pt;font-weight:bold;margin:0;padding:0"><b>${e(ed.school)}</b></p><p style="font-family:Calibri,Arial,sans-serif;font-size:10pt;font-style:italic;color:#333;margin:1pt 0 0;padding:0"><i>${e(ed.degree)}</i></p></div>`
+  ).join("\n");
+
+  const certsHtml = d.certifications.length
+    ? `${wordSection("CERTIFICATIONS")}<p style="font-family:Calibri,Arial,sans-serif;font-size:10pt;margin:0;padding:0;line-height:1.5">${d.certifications.map(e).join(" &bull; ")}</p>`
+    : "";
+
+  // No <!DOCTYPE> here — triggerWordDownload strips <html> and re-wraps with Word xmlns attributes,
+  // so a DOCTYPE would land inside <html xmlns:...> and corrupt the document.
+  return `<html>
+<head>
+<meta charset="utf-8">
+<title></title>
+<!--[if gte mso 9]><xml>
+<w:WordDocument>
+  <w:View>Print</w:View>
+  <w:Zoom>90</w:Zoom>
+  <w:DoNotOptimizeForBrowser/>
+</w:WordDocument>
+</xml><![endif]-->
+<style>
+@page Section1{size:8.5in 11.0in;margin:0.75in 0.80in;mso-header-margin:.5in;mso-footer-margin:.5in;mso-paper-source:0}
+div.Section1{page:Section1}
+body{font-family:Calibri,Arial,sans-serif;font-size:10.5pt;color:#111;line-height:1.35;margin:0;padding:0}
+p{margin:0;padding:0;font-family:Calibri,Arial,sans-serif}
+ul{margin:0;padding:0;list-style-type:disc}
+li{font-family:Calibri,Arial,sans-serif;font-size:10.5pt}
+table{border-collapse:collapse}
+b{font-weight:bold}
+i{font-style:italic}
+</style>
+</head>
+<body>
+<div class="Section1">
+<p style="text-align:center;font-family:Calibri,Arial,sans-serif;font-size:17pt;font-weight:bold;text-transform:uppercase;letter-spacing:0.07em;margin:0 0 3pt;mso-line-height-rule:exactly"><b>${e(d.name)}</b></p>
+${contact ? `<p style="text-align:center;font-family:Calibri,Arial,sans-serif;font-size:9.5pt;color:#444;margin:0 0 14pt;mso-line-height-rule:exactly">${contact}</p>` : ""}
+${d.summary ? `${wordSection("PROFESSIONAL SUMMARY")}<p style="font-family:Calibri,Arial,sans-serif;font-size:10.5pt;line-height:1.5;margin:0;padding:0;mso-line-height-rule:exactly">${e(d.summary)}</p>` : ""}
+${d.skills.length ? `${wordSection("SKILLS")}${skillsHtml}` : ""}
+${d.experience.length ? `${wordSection("PROFESSIONAL EXPERIENCE")}${expHtml}` : ""}
+${d.education.length ? `${wordSection("EDUCATION")}${eduHtml}` : ""}
+${certsHtml}
+</div>
+</body>
+</html>`;
+}
+
 const RESUME_SESSION_KEY = "zari_resume_session_v2";
 const RESUME_PDF_KEY     = "zari_resume_pdf_v2";
 function loadResumeSession(): { resumeText:string; fileName:string; aiResult:ResumeAnalysis; reviewMode:"general"|"targeted"; targetRoleInput:string; careerLevel:CareerLevel; jobDescription:string } | null {
@@ -4651,7 +4722,7 @@ function ScreenPromotionReadiness() {
         </div>
 
         {/* ── TAB BAR ── */}
-        <div style={{ flexShrink:0, borderBottom:"1px solid var(--z-bd)", background:"var(--z-card)", padding:"0 24px", display:"flex", gap:0, overflowX:"auto" }}>
+        <div className="zari-result-tab-bar" style={{ flexShrink:0, borderBottom:"1px solid var(--z-bd)", background:"var(--z-card)", padding:"0 24px", display:"flex", gap:0, overflowX:"auto" }}>
           {resultTabs.map(t => {
             const active = resultTab === t.id;
             return (
@@ -5507,7 +5578,7 @@ function ScreenSalaryCompensation() {
         </div>
 
         {/* ── TAB BAR ── */}
-        <div style={{ flexShrink:0, borderBottom:"1px solid var(--z-bd)", background:"var(--z-card)", padding:"0 24px", display:"flex", gap:0, overflowX:"auto" }}>
+        <div className="zari-result-tab-bar" style={{ flexShrink:0, borderBottom:"1px solid var(--z-bd)", background:"var(--z-card)", padding:"0 24px", display:"flex", gap:0, overflowX:"auto" }}>
           {tabs.map(t => {
             const active = tab === t.id;
             return (
@@ -6146,7 +6217,7 @@ function ScreenPivotAnalysis() {
         </div>
 
         {/* ── TAB BAR ── */}
-        <div style={{ flexShrink:0, borderBottom:"1px solid var(--z-bd)", background:"var(--z-card)", padding:"0 24px", display:"flex", gap:0, overflowX:"auto" }}>
+        <div className="zari-result-tab-bar" style={{ flexShrink:0, borderBottom:"1px solid var(--z-bd)", background:"var(--z-card)", padding:"0 24px", display:"flex", gap:0, overflowX:"auto" }}>
           {tabs.map(t => {
             const active = tab === t.id;
             return (
@@ -8522,7 +8593,7 @@ function ScreenExecPositioning() {
         </div>
 
         {/* ── TAB BAR ── */}
-        <div style={{ flexShrink:0, borderBottom:"1px solid var(--z-bd)", background:"var(--z-card)", padding:"0 24px", display:"flex", gap:0, overflowX:"auto" }}>
+        <div className="zari-result-tab-bar" style={{ flexShrink:0, borderBottom:"1px solid var(--z-bd)", background:"var(--z-card)", padding:"0 24px", display:"flex", gap:0, overflowX:"auto" }}>
           {tabs.map(t => {
             const active = tab === t.id;
             return (
@@ -9085,8 +9156,8 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
     }, { once: true });
   }
 
-  async function buildRevisedHtml(): Promise<{ html: string; revisedText: string }> {
-    if (!aiResult) return { html: "", revisedText: "" };
+  async function buildRevisedHtml(): Promise<{ html: string; revisedText: string; resumeData: ResumeStructuredData }> {
+    if (!aiResult) return { html: "", revisedText: "", resumeData: {} as ResumeStructuredData };
 
     const missingKeywords = (aiResult.keywords ?? []).filter(k => !k.found).map(k => ({ word: k.word, importance: k.importance, skillType: k.skillType ?? null }));
     const criticalFindings = (aiResult.findings ?? []).filter(f => f.type === "critical").map(f => f.text);
@@ -9113,7 +9184,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
       const data = await res.json().catch(() => ({})) as { resumeData?: ResumeStructuredData; error?: string };
       if (data.resumeData) {
         const revisedText = serializeToPlainText(data.resumeData);
-        return { html: renderResumeTemplate(data.resumeData, true), revisedText };
+        return { html: renderResumeTemplate(data.resumeData, true), revisedText, resumeData: data.resumeData };
       }
       // If the API returned an error or null data, surface it rather than silently returning unchanged resume
       const errMsg = data.error ?? "Apply fixes returned no content — try again.";
@@ -9152,9 +9223,9 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
       printWin.document.write('<p style="font-family:sans-serif;padding:40px;color:#555">Generating your resume…</p>');
     }
 
-    function deliverHtml(html: string, filename: string) {
+    function deliverHtml(html: string, filename: string, wordHtml?: string) {
       if (format === "word") {
-        triggerWordDownload(html, filename);
+        triggerWordDownload(wordHtml ?? html, filename);
       } else if (printWin) {
         // For PDF: popup shows a step-by-step guide; user clicks the Print button inside it
         printWin.document.open();
@@ -9167,9 +9238,9 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
     if (modal?.type === "revised") {
       setRevisedApplying(true);
       try {
-        const { html, revisedText } = await buildRevisedHtml();
+        const { html, revisedText, resumeData: revisedData } = await buildRevisedHtml();
         if (!html) { printWin?.close(); return; }
-        deliverHtml(html, `${baseName}-revised.html`);
+        deliverHtml(html, `${baseName}-revised.html`, renderWordTemplate(revisedData));
         // Save snapshot in background (best-effort)
         fetch("/api/zari/resume/snapshots", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ type:"revised", label:"Revised Resume", filename: fileName || "resume", resumeText: revisedText, scores: aiResult ? { overall:aiResult.overall, ats:aiResult.ats, impact:aiResult.impact, clarity:aiResult.clarity } : undefined }) }).then(r=>r.json()).then(d=>{ if(d.id) setGenHistory(prev=>([{ id:d.id, type:"revised" as string, label:"Revised", filename: fileName||"resume", resumeText: revisedText, scores: aiResult ? { overall:aiResult.overall, ats:aiResult.ats, impact:aiResult.impact, clarity:aiResult.clarity } : undefined, createdAt:new Date().toISOString() }, ...prev] as typeof prev).slice(0,10)); }).catch(()=>{});
       } catch { setAnalyzeErr("Download failed — try again."); printWin?.close(); }
@@ -9200,7 +9271,7 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
       if (!data.resumeData) { setAnalyzeErr(data.error ?? "Download failed — try again."); printWin?.close(); setPowerOptimizing(false); return; }
       const optimizedText = serializeToPlainText(data.resumeData);
       const optimizedHtml = renderResumeTemplate(data.resumeData, true);
-      deliverHtml(optimizedHtml, `${baseName}-power-optimized.html`);
+      deliverHtml(optimizedHtml, `${baseName}-power-optimized.html`, renderWordTemplate(data.resumeData));
       // Save snapshot in background (best-effort)
       fetch("/api/zari/resume/snapshots", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ type:"power_optimized", label:"Power Optimized", filename: fileName||"resume", resumeText: optimizedText, scores: aiResult ? { overall:aiResult.overall, ats:aiResult.ats, impact:aiResult.impact, clarity:aiResult.clarity } : undefined }) }).then(r=>r.json()).then(d=>{ if(d.id) setGenHistory(prev=>([{ id:d.id, type:"power_optimized" as string, label:"Power Optimized", filename: fileName||"resume", resumeText: optimizedText, scores: aiResult ? { overall:aiResult.overall, ats:aiResult.ats, impact:aiResult.impact, clarity:aiResult.clarity } : undefined, createdAt:new Date().toISOString() }, ...prev] as typeof prev).slice(0,10)); }).catch(()=>{});
     } catch { setAnalyzeErr("Download failed — try again."); printWin?.close(); }
@@ -17404,10 +17475,19 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
     generatePlan();
   }, [intakeComplete, stage, isReady]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const STAGE_SECTION_META: Record<CareerStage, { resume: string; linkedin: string; coverLetter: string | null }> = {
+    "job-search":    { resume:"Analyze your resume — Zari scores it and finds gaps.",        linkedin:"Review your LinkedIn and get an overall profile score.",     coverLetter:"Generate a tailored cover letter for a specific role." },
+    "promotion":     { resume:"Run the reality check — Zari scores your promotion readiness.", linkedin:"Map your internal allies and political landscape.",          coverLetter:"Build the evidence document to support your promotion ask." },
+    "salary":        { resume:"Run salary research — Zari benchmarks your pay against real market data.", linkedin:"Build market intel — Zari sizes up your negotiation leverage.", coverLetter:null },
+    "career-change": { resume:"Run the pivot analysis — Zari maps your transferable skills.",  linkedin:"Build your bridge network for the new field.",               coverLetter:"Build your credibility sprint to prove fit in the new role." },
+    "leadership":    { resume:"Complete executive positioning — Zari assesses your exec presence.", linkedin:"Optimize your LinkedIn for executive-level visibility.",  coverLetter:null },
+  };
+  const stageMeta = STAGE_SECTION_META[stage];
+  const stageLabels = STAGE_NAV_LABELS[stage];
   const SECTION_CARDS = [
-    { type:"resume"       as DocType, key:"resume",       label:"Resume Review",   desc:"Analyze your resume — Zari scores it and finds gaps", color:"var(--z-text2)", bg:"#F0FDFA", done:hasResume },
-    { type:"linkedin"     as DocType, key:"linkedin",     label:"LinkedIn Profile", desc:"Review your profile and get an overall LinkedIn score", color:"#0A66C2", bg:"#EFF6FF", done:hasLI },
-    { type:"cover-letter" as DocType, key:"cover-letter", label:"Cover Letter",     desc:"Generate a tailored cover letter for a specific role",  color:"#059669", bg:"#ECFDF5", done:hasCL },
+    { type:"resume"       as DocType, key:"resume",       label:stageLabels.resume,             desc:stageMeta.resume,      color:"var(--z-text2)", bg:"#F0FDFA", done:hasResume },
+    { type:"linkedin"     as DocType, key:"linkedin",     label:stageLabels.linkedin,           desc:stageMeta.linkedin,    color:"#0A66C2", bg:"#EFF6FF", done:hasLI },
+    ...(stageMeta.coverLetter ? [{ type:"cover-letter" as DocType, key:"cover-letter", label:stageLabels["cover-letter"], desc:stageMeta.coverLetter, color:"#059669", bg:"#ECFDF5", done:hasCL }] : []),
   ];
 
   // ── Intake form (job-search only) ──
@@ -18456,42 +18536,72 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
   const [idleCountdown, setIdleCountdown] = useState(WARN_DURATION_S);
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Refs keep current values accessible inside timer callbacks without causing dep changes.
+  // idleWarningRef mirrors idleWarning state so resetIdleTimer doesn't need it as a dep
+  // (avoiding an effect re-run on every warning toggle, which would clear the countdown).
+  const idleWarningRef = useRef(false);
+  const warnStartedAtRef = useRef<number>(0); // wall-clock ms when the warning appeared
 
   const clearIdleTimers = useCallback(() => {
     if (idleTimerRef.current) { clearTimeout(idleTimerRef.current); idleTimerRef.current = null; }
     if (countdownRef.current) { clearInterval(countdownRef.current); countdownRef.current = null; }
   }, []);
 
+  // Starts (or resumes after a tab-switch) the 60-second countdown using wall-clock elapsed time.
+  // Calling this when the tab becomes visible again correctly fast-forwards or immediately logs out.
+  const startCountdown = useCallback(() => {
+    if (countdownRef.current) { clearInterval(countdownRef.current); countdownRef.current = null; }
+    const remaining = WARN_DURATION_S - Math.floor((Date.now() - warnStartedAtRef.current) / 1000);
+    if (remaining <= 0) {
+      void fetch("/api/auth/logout", { method:"POST", credentials:"same-origin" }).finally(() => { window.location.assign("/login"); });
+      return;
+    }
+    setIdleCountdown(remaining);
+    countdownRef.current = setInterval(() => {
+      const r = WARN_DURATION_S - Math.floor((Date.now() - warnStartedAtRef.current) / 1000);
+      if (r <= 0) {
+        clearInterval(countdownRef.current!); countdownRef.current = null;
+        void fetch("/api/auth/logout", { method:"POST", credentials:"same-origin" }).finally(() => { window.location.assign("/login"); });
+      } else {
+        setIdleCountdown(r);
+      }
+    }, 1000);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Uses idleWarningRef (not idleWarning state) so this callback's reference is stable.
+  // A stable reference means the useEffect below doesn't re-run when the warning appears,
+  // which would otherwise trigger cleanup → clearIdleTimers() → kill the countdown interval.
   const resetIdleTimer = useCallback(() => {
-    if (idleWarning) return; // don't reset while warning is showing — user must explicitly confirm
+    if (idleWarningRef.current) return; // don't reset while warning is showing
     clearIdleTimers();
     idleTimerRef.current = setTimeout(() => {
+      warnStartedAtRef.current = Date.now();
+      idleWarningRef.current = true;
       setIdleWarning(true);
       setIdleCountdown(WARN_DURATION_S);
-      countdownRef.current = setInterval(() => {
-        setIdleCountdown(n => {
-          if (n <= 1) {
-            clearInterval(countdownRef.current!);
-            void fetch("/api/auth/logout", { method:"POST", credentials:"same-origin" }).finally(() => { window.location.assign("/login"); });
-            return 0;
-          }
-          return n - 1;
-        });
-      }, 1000);
+      startCountdown();
     }, IDLE_TIMEOUT_MS);
-  }, [idleWarning, clearIdleTimers, IDLE_TIMEOUT_MS]);
+  }, [clearIdleTimers, startCountdown, IDLE_TIMEOUT_MS]);
 
   useEffect(() => {
     const events = ["mousemove","keydown","click","scroll","touchstart"] as const;
     const onActivity = () => resetIdleTimer();
     events.forEach(e => window.addEventListener(e, onActivity, { passive: true }));
 
-    // Freeze timer when tab is hidden; reset when user comes back
     const onVisibility = () => {
       if (document.hidden) {
-        clearIdleTimers();
+        // Tab hidden — pause the countdown interval (browser throttles timers anyway).
+        // Keep warnStartedAt intact so we compute true elapsed time when user returns.
+        if (countdownRef.current) { clearInterval(countdownRef.current); countdownRef.current = null; }
+        if (!idleWarningRef.current) { clearIdleTimers(); }
       } else {
-        resetIdleTimer();
+        if (idleWarningRef.current) {
+          // Warning was active when tab was hidden — resume using wall-clock elapsed time.
+          // If 60s has already elapsed while the tab was away, this logs out immediately.
+          startCountdown();
+        } else {
+          resetIdleTimer();
+        }
       }
     };
     document.addEventListener("visibilitychange", onVisibility);
@@ -18502,7 +18612,7 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
       document.removeEventListener("visibilitychange", onVisibility);
       clearIdleTimers();
     };
-  }, [resetIdleTimer, clearIdleTimers]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [resetIdleTimer, clearIdleTimers, startCountdown]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function normalizePhone(raw: string): string {
     // Strip everything except leading + and digits
@@ -18637,7 +18747,7 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
                 Sign out
               </button>
               <button
-                onClick={() => { clearIdleTimers(); setIdleWarning(false); setIdleCountdown(WARN_DURATION_S); resetIdleTimer(); }}
+                onClick={() => { clearIdleTimers(); idleWarningRef.current = false; setIdleWarning(false); setIdleCountdown(WARN_DURATION_S); resetIdleTimer(); }}
                 style={{ flex:2, fontSize:13.5, fontWeight:700, padding:"11px 16px", borderRadius:11, border:"none", background:"#2563EB", color:"white", cursor:"pointer" }}>
                 Stay signed in
               </button>
@@ -19246,10 +19356,10 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
           /* Ask Zari bubble — raise above bottom nav on mobile */
           .zari-ask-bubble-wrap { bottom:74px !important; right:16px !important; }
           .zari-ask-popover { width:calc(100vw - 32px) !important; max-width:320px; }
-          /* Result right-panel content — reduce padding */
-          .zari-result-content { padding: 14px 14px 40px !important; }
-          /* Result tab bars — scrollable instead of overflow */
-          .zari-result-tab-bar { overflow-x: auto !important; overflow-y: hidden !important; -webkit-overflow-scrolling: touch; flex-wrap: nowrap !important; scrollbar-width: none !important; padding-bottom: 14px !important; }
+          /* Result right-panel content — reduce padding, ensure content clears 58px bottom nav + Ask Zari button */
+          .zari-result-content { padding: 14px 14px 88px !important; }
+          /* Result tab bars — scrollable, right padding clears the fixed Ask Zari button */
+          .zari-result-tab-bar { overflow-x: auto !important; overflow-y: hidden !important; -webkit-overflow-scrolling: touch; flex-wrap: nowrap !important; scrollbar-width: none !important; padding-bottom: 0 !important; padding-right: 120px !important; }
           .zari-result-tab-bar::-webkit-scrollbar { display: none !important; }
           /* Cover letter result header — tighter padding and wrap controls */
           .zari-cl-result-header { padding: 12px 16px !important; }

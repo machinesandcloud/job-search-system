@@ -73,8 +73,8 @@ describe("requirePaidRouteAccess — authentication gate", () => {
     mocks.getCurrentUserId.mockResolvedValue(null);
     const result = await requirePaidRouteAccess("zari_resume_review");
     expect(result.ok).toBe(false);
-    expect(result.response.status).toBe(401);
-    const body = await result.response.json();
+    expect(result.response!.status).toBe(401);
+    const body = await result.response!.json();
     expect(body.code).toBe("subscription_required");
   });
 
@@ -119,8 +119,8 @@ describe("requirePaidRouteAccess — free tier gating", () => {
     for (const feature of premiumFeatures) {
       const result = await requirePaidRouteAccess(feature);
       expect(result.ok).toBe(false);
-      expect(result.response.status).toBe(402);
-      const body = await result.response.json();
+      expect(result.response!.status).toBe(402);
+      const body = await result.response!.json();
       expect(body.code).toBe("plan_upgrade_required");
     }
   });
@@ -129,7 +129,7 @@ describe("requirePaidRouteAccess — free tier gating", () => {
     mocks.getPlatformIdentityByUserId.mockResolvedValue(makeIdentity());
     const result = await requirePaidRouteAccess("zari_exec_positioning");
     expect(result.ok).toBe(false);
-    const body = await result.response.json();
+    const body = await result.response!.json();
     expect(body.requiredPlanId).toBeDefined();
     expect(body.featureName).toBe("zari_exec_positioning");
   });
@@ -140,8 +140,8 @@ describe("requirePaidRouteAccess — free tier gating", () => {
     mocks.prisma.aiTokenUsage.count.mockResolvedValue(1); // already used once
     const result = await requirePaidRouteAccess("zari_resume_review");
     expect(result.ok).toBe(false);
-    expect(result.response.status).toBe(402);
-    const body = await result.response.json();
+    expect(result.response!.status).toBe(402);
+    const body = await result.response!.json();
     expect(body.code).toBe("plan_upgrade_required");
   });
 
@@ -150,8 +150,8 @@ describe("requirePaidRouteAccess — free tier gating", () => {
     mocks.prisma.aiTokenUsage.aggregate.mockResolvedValue({ _sum: { totalTokens: 20_000 } }); // over 18k limit
     const result = await requirePaidRouteAccess("zari_resume_review");
     expect(result.ok).toBe(false);
-    expect(result.response.status).toBe(429);
-    const body = await result.response.json();
+    expect(result.response!.status).toBe(429);
+    const body = await result.response!.json();
     expect(body.code).toBe("credit_limit_reached");
   });
 });
@@ -163,8 +163,8 @@ describe("requirePaidRouteAccess — plan tier enforcement", () => {
     );
     const result = await requirePaidRouteAccess("zari_exec_positioning");
     expect(result.ok).toBe(false);
-    expect(result.response.status).toBe(402);
-    const body = await result.response.json();
+    expect(result.response!.status).toBe(402);
+    const body = await result.response!.json();
     expect(body.code).toBe("plan_upgrade_required");
     expect(body.requiredPlanId).toBe("executive");
   });
@@ -228,7 +228,7 @@ describe("requirePaidRouteAccess — service failure handling", () => {
     mocks.getPlatformIdentityByUserId.mockRejectedValue(new Error("DB connection failed"));
     const result = await requirePaidRouteAccess("zari_exec_positioning");
     expect(result.ok).toBe(false);
-    expect(result.response.status).toBe(402);
+    expect(result.response!.status).toBe(402);
   });
 
   it("when DB is not ready getCurrentSubscriptionAccess returns anonymous access — plan check fails without plan info", async () => {
@@ -237,6 +237,6 @@ describe("requirePaidRouteAccess — service failure handling", () => {
     mocks.isDatabaseReady.mockReturnValue(false);
     const result = await requirePaidRouteAccess("zari_exec_positioning");
     expect(result.ok).toBe(false);
-    expect(result.response.status).toBe(402);
+    expect(result.response!.status).toBe(402);
   });
 });

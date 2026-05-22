@@ -4,6 +4,7 @@ import { createPlatformUser } from "@/lib/platform-users";
 import { rateLimit } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/utils";
 import { onUserSignedUp } from "@/lib/zoho-engine";
+import { sendNewUserNotification } from "@/lib/email";
 
 export const maxDuration = 15;
 
@@ -36,6 +37,15 @@ export async function POST(request: Request) {
 
   try {
     const user = await createPlatformUser({ firstName, lastName, email, password });
+
+    // Fire-and-forget: notify team of new signup (non-blocking)
+    sendNewUserNotification({
+      firstName,
+      lastName,
+      email,
+      userId: user.userId,
+      method: "email",
+    }).catch(() => {});
 
     // Fire-and-forget: full CRM + campaign engine (non-blocking)
     onUserSignedUp({

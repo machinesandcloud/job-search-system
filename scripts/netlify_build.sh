@@ -26,5 +26,10 @@ if [[ -n "${NETLIFY_DATABASE_URL:-}" ]]; then
   export DATABASE_URL="${NETLIFY_DATABASE_URL}"
 fi
 
+# Clear TypeScript incremental cache so tsc re-reads regenerated Prisma types.
+# Without this, a cached .tsbuildinfo (from before a schema change) can make
+# tsc report "property X does not exist" even though prisma generate just added it.
+rm -rf .next/cache/tsbuildinfo/ 2>/dev/null || true
+
 npm run typecheck
 npm run build

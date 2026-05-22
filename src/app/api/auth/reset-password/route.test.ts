@@ -27,12 +27,13 @@ vi.mock("@/lib/db", () => ({
 
 import { POST } from "./route";
 
+import type { NextRequest } from "next/server";
 function makeRequest(body: Record<string, unknown>) {
   return new Request("http://localhost:3000/api/auth/reset-password", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body),
-  });
+  }) as unknown as NextRequest;
 }
 
 const validToken = "a".repeat(64);

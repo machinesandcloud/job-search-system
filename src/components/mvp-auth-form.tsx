@@ -271,9 +271,9 @@ export function MvpAuthForm({ mode, authError = null }: { mode: AuthMode; authEr
               <>
                 <p style={{ fontSize: 12.5, color: "#94A3B8", margin: "0 0 8px" }}>
                   By signing in, you agree to our{" "}
-                  <Link href="#" style={{ color: "#2563EB", textDecoration: "none" }}>Terms of Service</Link>
+                  <Link href="/terms" style={{ color: "#2563EB", textDecoration: "none" }}>Terms of Service</Link>
                   {" "}and{" "}
-                  <Link href="#" style={{ color: "#2563EB", textDecoration: "none" }}>Privacy Policy</Link>
+                  <Link href="/privacy" style={{ color: "#2563EB", textDecoration: "none" }}>Privacy Policy</Link>
                 </p>
                 <p style={{ fontSize: 13.5, color: "#64748B", margin: 0 }}>
                   Don&apos;t have an account?{" "}

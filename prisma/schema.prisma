@@ -642,6 +642,16 @@ model VisitorEvent {
   @@index([type, createdAt])
 }
 
+model LinkedInCredential {
+  id              String   @id @default("singleton")
+  accessToken     String   @db.Text
+  refreshToken    String?  @db.Text
+  expiresAt       DateTime
+  organizationUrn String?
+  memberUrn       String?
+  updatedAt       DateTime @updatedAt
+}
+
 model VisitorPageView {
   id        String         @id @default(uuid()) @db.Uuid
   sessionId String         @db.Uuid

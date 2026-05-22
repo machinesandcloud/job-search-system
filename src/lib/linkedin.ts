@@ -110,6 +110,7 @@ export async function getValidToken(): Promise<string> {
       organizationUrn: cred.organizationUrn,
       memberUrn: cred.memberUrn,
     });
+    if (!cred) throw new Error("Failed to persist refreshed LinkedIn credentials");
   }
 
   return cred.accessToken;

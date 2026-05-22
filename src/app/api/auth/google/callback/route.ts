@@ -7,6 +7,7 @@ import {
 } from "@/lib/google-auth";
 import { createActivationToken } from "@/lib/mvp/auth";
 import { authenticateGooglePlatformUser } from "@/lib/platform-users";
+import { sendNewUserNotification } from "@/lib/email";
 
 export const maxDuration = 15;
 export const runtime = "nodejs";
@@ -92,6 +93,16 @@ export async function GET(request: Request) {
       lastName: profile.family_name || null,
       name: profile.name || null,
     });
+
+    if (auth.isNewUser) {
+      sendNewUserNotification({
+        firstName: profile.given_name || "",
+        lastName: profile.family_name || "",
+        email: profile.email!,
+        userId: auth.userId,
+        method: "google",
+      }).catch(() => {});
+    }
 
     const next =
       auth.isNewUser || !auth.profile.onboardingComplete

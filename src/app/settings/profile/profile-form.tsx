@@ -93,7 +93,7 @@ export function ProfileSettingsForm({
     <>
       {/* Name section */}
       <Section title="Name">
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
+        <div className="auth-name-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
           <div>
             <label style={labelStyle}>First name</label>
             <input style={inputStyle} value={firstName} onChange={e => setFirstName(e.target.value)}

@@ -124,7 +124,7 @@ export default function ResetPasswordPage() {
         <div style={{ position: "absolute", width: 500, height: 500, top: -100, left: -100, background: "radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)", borderRadius: "50%" }} />
       </div>
 
-      <div style={{ position: "relative", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 32px" }}>
+      <div className="auth-topnav" style={{ position: "relative", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 32px" }}>
         <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
           <ZariLogo size={30} />
           <span style={{ fontSize: 17, fontWeight: 800, letterSpacing: "-0.02em", background: "linear-gradient(135deg, #1459CC, #1868E8)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Zari</span>
@@ -132,7 +132,7 @@ export default function ResetPasswordPage() {
       </div>
 
       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px 16px 48px", position: "relative", zIndex: 10 }}>
-        <div style={{ width: "100%", maxWidth: 420, background: "#fff", borderRadius: 20, boxShadow: "0 4px 24px rgba(0,0,0,0.07)", padding: "36px 36px 32px" }}>
+        <div className="auth-card" style={{ width: "100%", maxWidth: 420, background: "#fff", borderRadius: 20, boxShadow: "0 4px 24px rgba(0,0,0,0.07)", padding: "36px 36px 32px" }}>
           <Suspense fallback={<div style={{ textAlign: "center", color: "#94A3B8", fontSize: 14 }}>Loading…</div>}>
             <ResetForm />
           </Suspense>
