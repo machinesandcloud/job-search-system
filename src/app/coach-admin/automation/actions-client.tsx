@@ -311,6 +311,74 @@ export function BroadcastForm({ isAdmin }: { isAdmin: boolean }) {
   );
 }
 
+export function ResendWelcomeForm({ isAdmin }: { isAdmin: boolean }) {
+  const [email, setEmail] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "ok" | "err">("idle");
+  const [errMsg, setErrMsg] = useState("");
+
+  if (!isAdmin) return null;
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setStatus("loading");
+    setErrMsg("");
+    const res = await fetch("/api/coach-admin/automation/resend-welcome", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email.trim(), firstName: firstName.trim(), lastName: lastName.trim() }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      setStatus("ok");
+      setTimeout(() => { setStatus("idle"); setEmail(""); setFirstName(""); setLastName(""); }, 3000);
+    } else {
+      setErrMsg((data as any)?.error || `Error ${res.status}`);
+      setStatus("err");
+      setTimeout(() => setStatus("idle"), 3000);
+    }
+  }
+
+  return (
+    <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+      <div style={{ fontSize: 11, color: "var(--ca-text3)", lineHeight: 1.5 }}>
+        Force-sends the welcome email to an existing user, bypassing the enrollment guard.
+      </div>
+      <input
+        value={email}
+        onChange={e => setEmail(e.target.value)}
+        placeholder="user@example.com"
+        type="email"
+        required
+        style={{ fontSize: 12, padding: "6px 10px", borderRadius: 7, border: "1px solid var(--ca-bd)", background: "var(--ca-raise)", color: "var(--ca-text)", outline: "none" }}
+      />
+      <div style={{ display: "flex", gap: 6 }}>
+        <input
+          value={firstName}
+          onChange={e => setFirstName(e.target.value)}
+          placeholder="First name (optional)"
+          style={{ fontSize: 12, padding: "6px 10px", borderRadius: 7, border: "1px solid var(--ca-bd)", background: "var(--ca-raise)", color: "var(--ca-text)", outline: "none", flex: 1 }}
+        />
+        <input
+          value={lastName}
+          onChange={e => setLastName(e.target.value)}
+          placeholder="Last name (optional)"
+          style={{ fontSize: 12, padding: "6px 10px", borderRadius: 7, border: "1px solid var(--ca-bd)", background: "var(--ca-raise)", color: "var(--ca-text)", outline: "none", flex: 1 }}
+        />
+      </div>
+      <button
+        type="submit"
+        disabled={status === "loading" || !email.trim()}
+        style={{ ...btn("#F59E0B"), padding: "5px 12px", opacity: status === "loading" || !email.trim() ? 0.4 : 1, alignSelf: "flex-start" }}
+      >
+        {status === "loading" ? "Sending…" : status === "ok" ? "Sent ✓" : status === "err" ? "Error" : "Resend welcome email"}
+      </button>
+      {status === "err" && <div style={{ fontSize: 11, color: "#F43F5E" }}>{errMsg}</div>}
+    </form>
+  );
+}
+
 export function SendTestButton() {
   const [to, setTo] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "ok" | "err">("idle");
