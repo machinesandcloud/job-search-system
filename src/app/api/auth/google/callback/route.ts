@@ -8,7 +8,9 @@ import {
 import { createActivationToken } from "@/lib/mvp/auth";
 import { authenticateGooglePlatformUser } from "@/lib/platform-users";
 import { sendNewUserNotification } from "@/lib/email";
+import { onUserSignedUp } from "@/lib/zoho-engine";
 import { recordReferralSignup } from "@/lib/referral";
+import { enroll, sendNow } from "@/lib/email-sequences";
 
 export const maxDuration = 15;
 export const runtime = "nodejs";
@@ -106,6 +108,21 @@ export async function GET(request: Request) {
         userId: auth.userId,
         method: "google",
       }).catch(() => {});
+      onUserSignedUp({
+        userId: auth.userId,
+        accountId: auth.userId,
+        email: profile.email!,
+        firstName: profile.given_name || "",
+        lastName: profile.family_name || "",
+        source: "Google",
+      }).catch((err) => console.error("[google-auth] onUserSignedUp failed", err));
+      // Await welcome email before redirect — must survive serverless response flush
+      try {
+        await enroll("trial_onboarding", profile.email!, { firstName: profile.given_name || "", lastName: profile.family_name || "" });
+        await sendNow("trial_onboarding", profile.email!);
+      } catch (err) {
+        console.error("[google-auth] welcome email failed", err);
+      }
     }
 
     const next =

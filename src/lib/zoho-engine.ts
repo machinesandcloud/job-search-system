@@ -140,6 +140,7 @@ export interface PaymentRecoveredEvent {
  * Email: stop lead_nurture if from cold email, start trial_onboarding.
  */
 export async function onUserSignedUp(event: UserSignedUpEvent): Promise<void> {
+  // CRM sync is isolated — a Zoho failure must never block email delivery
   try {
     await syncNewUser({
       userId: event.userId,
@@ -149,21 +150,23 @@ export async function onUserSignedUp(event: UserSignedUpEvent): Promise<void> {
       lastName: event.lastName,
       source: event.source,
     });
-
-    const meta = { firstName: event.firstName, lastName: event.lastName };
-
     if (event.source === "Cold Email") {
       void cancel(event.email, "lead_nurture");
     }
+  } catch (err) {
+    console.error("[zoho-engine] onUserSignedUp CRM sync failed (non-fatal):", err);
+  }
 
+  // Email sequences run independently of CRM
+  try {
+    const meta = { firstName: event.firstName, lastName: event.lastName };
     await enroll("trial_onboarding", event.email, meta);
     // Send the welcome email immediately — don't make new users wait for the daily cron
-    void sendNow("trial_onboarding", event.email);
+    await sendNow("trial_onboarding", event.email);
     // Non-starter nudge fires if they don't complete a session within 48h
-    // The cron will cancel this once a session is detected
     void enroll("non_starter", event.email, meta);
   } catch (err) {
-    console.error("[zoho-engine] onUserSignedUp error:", err);
+    console.error("[zoho-engine] onUserSignedUp email sequence error:", err);
   }
 }
 
