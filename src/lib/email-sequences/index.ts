@@ -77,22 +77,22 @@ function makeTemplates(meta: Meta, unsubUrl: string, npsUrl: string): Record<Zar
       t("Why recruiters can't find your LinkedIn profile.", React.createElement(LeadNurture3, { unsubscribeUrl: unsubUrl })),
       t("6 months of nothing. Then 3 offers in 5 weeks.", React.createElement(LeadNurture4, { unsubscribeUrl: unsubUrl })),
       t("The interview mistake 93% of candidates make.", React.createElement(LeadNurture5, { unsubscribeUrl: unsubUrl })),
-      t("Your free Zari account is ready.", React.createElement(LeadNurture6, { unsubscribeUrl: unsubUrl })),
+      t("Your Zari account is ready.", React.createElement(LeadNurture6, { unsubscribeUrl: unsubUrl })),
       t("My last email to you.", React.createElement(LeadNurture7, { unsubscribeUrl: unsubUrl })),
     ],
     trial_onboarding: [
-      t("Welcome to Zari. Here's how to use your free credits.", React.createElement(TrialOnboarding1, { firstName, unsubscribeUrl: unsubUrl })),
-      t("Your free credits are waiting. Here's the best first move.", React.createElement(TrialOnboarding2, { firstName, unsubscribeUrl: unsubUrl })),
+      t("Welcome to Zari. Here's where to start.", React.createElement(TrialOnboarding1, { firstName, unsubscribeUrl: unsubUrl })),
+      t("Still haven't started? Here's your best first move.", React.createElement(TrialOnboarding2, { firstName, unsubscribeUrl: unsubUrl })),
       t("The one habit top Zari users share.", React.createElement(TrialOnboarding3, { unsubscribeUrl: unsubUrl })),
       t("How's the search going?", React.createElement(TrialOnboarding4, { firstName, unsubscribeUrl: unsubUrl })),
-      t("Free gets you started. Here's what's on the other side.", React.createElement(TrialOnboarding5, { firstName, unsubscribeUrl: unsubUrl })),
+      t("Here's what Pro users get that you don't yet.", React.createElement(TrialOnboarding5, { firstName, unsubscribeUrl: unsubUrl })),
     ],
     trial_ending: [
-      t("Your free credits are almost up. Here's how to keep going.", React.createElement(TrialEnding1, { firstName, unsubscribeUrl: unsubUrl })),
-      t("You've hit your free limit. Here's how to continue.", React.createElement(TrialEnding2, { firstName, unsubscribeUrl: unsubUrl })),
+      t("You're almost at your limit. Here's how to keep going.", React.createElement(TrialEnding1, { firstName, unsubscribeUrl: unsubUrl })),
+      t("You've hit your limit. Here's how to continue.", React.createElement(TrialEnding2, { firstName, unsubscribeUrl: unsubUrl })),
     ],
     paid_welcome: [
-      t("You're in. Here's everything you've unlocked with Zari.", React.createElement(PaidWelcome1, { firstName, planTier, unsubscribeUrl: unsubUrl })),
+      t("You're in. Here's what to do first.", React.createElement(PaidWelcome1, { firstName, planTier, unsubscribeUrl: unsubUrl })),
       t("The Zari feature most people find too late.", React.createElement(PaidWelcome2, { firstName, unsubscribeUrl: unsubUrl })),
       t("One week in. How's it going?", React.createElement(PaidWelcome3, { firstName, unsubscribeUrl: unsubUrl })),
     ],
@@ -124,28 +124,28 @@ function makeTemplates(meta: Meta, unsubUrl: string, npsUrl: string): Record<Zar
       t("Quick question: how likely are you to recommend Zari?", React.createElement(NpsSurvey, { firstName, npsUrl, unsubscribeUrl: unsubUrl })),
     ],
     dunning: [
-      t("Action needed: your payment didn't go through.", React.createElement(Dunning1, { firstName, unsubscribeUrl: unsubUrl })),
-      t("Your Zari access is at risk. Please update your payment.", React.createElement(Dunning2, { firstName, unsubscribeUrl: unsubUrl })),
+      t("Your payment didn't go through.", React.createElement(Dunning1, { firstName, unsubscribeUrl: unsubUrl })),
+      t("Quick heads up — your payment needs attention.", React.createElement(Dunning2, { firstName, unsubscribeUrl: unsubUrl })),
       t("Your Zari account has been paused.", React.createElement(Dunning3, { firstName, unsubscribeUrl: unsubUrl })),
     ],
     non_starter: [
       t("You haven't started yet. Here's the fastest way in.", React.createElement(NonStarter1, { firstName, unsubscribeUrl: unsubUrl })),
       t("What's stopping you from using Zari?", React.createElement(NonStarter2, { firstName, unsubscribeUrl: unsubUrl })),
-      t("Your free credits are still unused. Last nudge.", React.createElement(NonStarter3, { firstName, unsubscribeUrl: unsubUrl })),
+      t("You haven't started yet. One more note.", React.createElement(NonStarter3, { firstName, unsubscribeUrl: unsubUrl })),
     ],
     feature_activation: [
       t("The Zari feature that compounds over time.", React.createElement(FeatureActivation1, { firstName, unsubscribeUrl: unsubUrl })),
-      t("Most candidates leave $10K–$30K on the table in negotiations.", React.createElement(FeatureActivation2, { firstName, unsubscribeUrl: unsubUrl })),
+      t("Most candidates leave serious money on the table in salary talks.", React.createElement(FeatureActivation2, { firstName, unsubscribeUrl: unsubUrl })),
       t("The question most job seekers don't ask until it's too late.", React.createElement(FeatureActivation3, { firstName, unsubscribeUrl: unsubUrl })),
     ],
     referral: [
-      t("Get one free month. Just share Zari with one person.", React.createElement(ReferralAsk, { firstName, referralUrl, unsubscribeUrl: unsubUrl })),
+      t("Know someone job hunting? Share Zari, get a month on us.", React.createElement(ReferralAsk, { firstName, referralUrl, unsubscribeUrl: unsubUrl })),
     ],
     testimonial: [
-      t("Get a free month. Record a 2-minute video about Zari.", React.createElement(TestimonialAsk, { firstName, testimonialUrl, unsubscribeUrl: unsubUrl })),
+      t("Two minutes of your time, a month on us.", React.createElement(TestimonialAsk, { firstName, testimonialUrl, unsubscribeUrl: unsubUrl })),
     ],
     annual_upsell: [
-      t(`Switch to annual and save $${(39 - 33.25) * 12}. You've been on Zari 3 months.`, React.createElement(AnnualUpsell, {
+      t("Switch to annual and pay less each month. You've been on Zari 3 months.", React.createElement(AnnualUpsell, {
         firstName,
         planName,
         monthlyPrice: 39,

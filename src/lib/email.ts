@@ -124,7 +124,7 @@ export async function sendResultsEmail(email: string, token: string, hasPro: boo
     </div>
   `;
   try {
-    await sendEmail({ to: email, subject: "Your Job Search System is ready", html });
+    await sendEmail({ to: email, subject: "Your Zari plan is ready", html });
     return { ok: true } as const;
   } catch (err: unknown) {
     return { ok: false, error: (err as Error)?.message || "Email send failed" } as const;

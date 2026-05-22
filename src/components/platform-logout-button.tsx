@@ -52,6 +52,7 @@ export function PlatformLogoutButton({
     try {
       await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" });
     } finally {
+      try { localStorage.removeItem("zari_session_identity"); } catch { /* noop */ }
       window.location.assign(redirectTo);
     }
   }

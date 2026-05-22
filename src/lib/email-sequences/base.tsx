@@ -11,7 +11,6 @@ import {
   Button,
   Hr,
   Preview,
-  Img,
 } from "@react-email/components";
 import * as React from "react";
 
@@ -39,12 +38,6 @@ export const font = `Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helv
 export const SITE_URL =
   (process.env.URL || process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || "").replace(/\/$/, "") ||
   "https://app.zaricoach.com";
-
-const LOGO_URL = `${(
-  process.env.URL ||              // Netlify auto-injects: always the correct deploy URL
-  process.env.NEXT_PUBLIC_APP_URL ||
-  process.env.NEXT_PUBLIC_BASE_URL
-)?.replace(/\/$/, "")}/assets/zari-logo-transparent-400w.png`;
 
 function getMonthYear() {
   return new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
@@ -91,7 +84,36 @@ export function Layout({ preview, headline, badge, unsubscribeUrl, children }: L
             {/* ── Header: logo left · date right ── */}
             <Row>
               <Column style={{ padding: "22px 28px 18px", verticalAlign: "middle" }}>
-                <Img src={LOGO_URL} width={100} height={46} alt="Zari" style={{ display: "block" }} />
+                <table cellPadding={0} cellSpacing={0} style={{ borderCollapse: "collapse" }}>
+                  <tbody>
+                    <tr>
+                      <td style={{
+                        background: "#2563EB",
+                        borderRadius: "7px",
+                        width: "34px",
+                        height: "34px",
+                        textAlign: "center",
+                        verticalAlign: "middle",
+                        fontFamily: "Arial, sans-serif",
+                        fontSize: "20px",
+                        fontWeight: 900,
+                        color: "#ffffff",
+                        lineHeight: "34px",
+                        padding: "0",
+                      }}>Z</td>
+                      <td style={{
+                        paddingLeft: "9px",
+                        verticalAlign: "middle",
+                        fontFamily: "Arial, sans-serif",
+                        fontSize: "21px",
+                        fontWeight: 800,
+                        color: "#111827",
+                        letterSpacing: "-0.6px",
+                        lineHeight: "1",
+                      }}>Zari</td>
+                    </tr>
+                  </tbody>
+                </table>
               </Column>
               <Column style={{ padding: "22px 28px 18px", textAlign: "right", verticalAlign: "middle" }}>
                 <Text style={{
