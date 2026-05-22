@@ -17958,13 +17958,16 @@ function ScreenPlan({ stage, onNavigate, active = false }: { stage: CareerStage;
 ═══════════════════════════════════════════════════ */
 function ReferralWidget() {
   const [data, setData] = React.useState<{ url: string; signedUp: number; converted: number; creditsEarned: number } | null>(null);
+  const [fetching, setFetching] = React.useState(true);
   const [copied, setCopied] = React.useState(false);
 
   React.useEffect(() => {
+    setFetching(true);
     fetch("/api/referral/link")
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d?.url) setData(d); })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setFetching(false));
   }, []);
 
   function handleCopy() {
@@ -18004,28 +18007,31 @@ function ReferralWidget() {
         </div>
       )}
 
-      <button
-        onClick={handleCopy}
-        disabled={!data}
-        style={{
-          fontSize: 12.5, fontWeight: 600, padding: "8px 16px", borderRadius: 9,
-          border: copied ? "1px solid rgba(34,197,94,0.4)" : "1px solid var(--z-bd)",
-          background: copied ? "rgba(34,197,94,0.08)" : "var(--z-bg)",
-          color: copied ? "#16a34a" : "var(--z-text)",
-          cursor: data ? "pointer" : "default",
-          display: "inline-flex", alignItems: "center", gap: 6,
-          transition: "all 0.2s",
-          opacity: data ? 1 : 0.5,
-        }}
-      >
-        {copied
-          ? <><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 12, height: 12 }}><path d="M2 8l4 4 8-8"/></svg>Copied!</>
-          : <><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 12, height: 12 }}><path d="M10 2H6a1 1 0 00-1 1v9a1 1 0 001 1h6a1 1 0 001-1V5l-3-3z"/><path d="M10 2v3h3"/><path d="M4 9H2a1 1 0 01-1-1V3a1 1 0 011-1h4"/></svg>Copy referral link</>
-        }
-      </button>
-
-      {data?.url && (
-        <div style={{ fontSize: 11, color: "var(--z-text3)", marginTop: 8, wordBreak: "break-all" }}>{data.url}</div>
+      {fetching ? (
+        <div style={{ fontSize: 12.5, color: "var(--z-text3)", padding: "8px 0" }}>Loading your referral link…</div>
+      ) : data ? (
+        <>
+          <button
+            onClick={handleCopy}
+            style={{
+              fontSize: 13, fontWeight: 700, padding: "9px 18px", borderRadius: 9,
+              border: copied ? "1px solid rgba(34,197,94,0.4)" : "1.5px solid #7c3aed",
+              background: copied ? "rgba(34,197,94,0.08)" : "rgba(124,58,237,0.10)",
+              color: copied ? "#16a34a" : "#7c3aed",
+              cursor: "pointer",
+              display: "inline-flex", alignItems: "center", gap: 7,
+              transition: "all 0.2s",
+            }}
+          >
+            {copied
+              ? <><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 13, height: 13 }}><path d="M2 8l4 4 8-8"/></svg>Copied!</>
+              : <><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 13, height: 13 }}><path d="M10 2H6a1 1 0 00-1 1v9a1 1 0 001 1h6a1 1 0 001-1V5l-3-3z"/><path d="M10 2v3h3"/><path d="M4 9H2a1 1 0 01-1-1V3a1 1 0 011-1h4"/></svg>Copy referral link</>
+            }
+          </button>
+          <div style={{ fontSize: 11, color: "var(--z-text3)", marginTop: 8, wordBreak: "break-all" }}>{data.url}</div>
+        </>
+      ) : (
+        <div style={{ fontSize: 12.5, color: "var(--z-text3)" }}>Couldn&apos;t load your referral link — refresh to try again.</div>
       )}
     </div>
   );
