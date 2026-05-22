@@ -23,6 +23,11 @@ Allow: /ai-career-coach-australia
 Allow: /online-career-coach
 Allow: /career-coach-near-me
 Allow: /free-ats-checker
+Allow: /cover-letter-generator
+Allow: /linkedin-profile-writer
+Allow: /resume-checker
+Allow: /ai-career-coach-india
+Allow: /ai-career-coach-singapore
 Allow: /platform
 Allow: /pricing
 Allow: /use-cases

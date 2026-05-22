@@ -430,6 +430,25 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/salary/scrum-master-salary-san-francisco`,        lastModified: now, changeFrequency: "monthly", priority: 0.82 },
     { url: `${base}/salary/data-analyst-salary-new-york-city`,        lastModified: now, changeFrequency: "monthly", priority: 0.82 },
 
+    // Wave 53 — Landing pages
+    { url: `${base}/cover-letter-generator`,   lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/linkedin-profile-writer`,  lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/resume-checker`,           lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/ai-career-coach-india`,    lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/ai-career-coach-singapore`,lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+
+    // Wave 53 — Blog posts
+    { url: `${base}/blog/highest-paying-jobs-australia`,    lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/career-development-plan`,          lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/management-interview-questions`,   lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/how-to-get-a-job-in-dubai`,        lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/chronological-vs-functional-resume`, lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/best-tech-companies-to-work-for`,  lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/how-to-use-linkedin-to-find-a-job`,lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/how-to-get-a-job-abroad`,          lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/how-to-write-a-personal-statement`,lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/work-from-home-jobs`,              lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+
     // Auth / conversion
     { url: `${base}/signup`,  lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/login`,   lastModified: now, changeFrequency: "monthly", priority: 0.6 },
