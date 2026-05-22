@@ -683,6 +683,24 @@ export async function syncNpsScore(opts: {
 }
 
 /**
+ * Delete a contact from Zoho CRM by email. Looks up by Email field,
+ * then issues a DELETE. No-op if not found or Zoho is unconfigured.
+ */
+export async function deleteContact(email: string): Promise<void> {
+  if (!process.env.ZOHO_REFRESH_TOKEN) return;
+  try {
+    const search = await crmFetch(
+      `/Contacts/search?criteria=(Email:equals:${encodeURIComponent(email)})&fields=id`
+    ) as { data?: Array<{ id: string }> } | null;
+    const contactId = search?.data?.[0]?.id;
+    if (!contactId) return;
+    await crmFetch(`/Contacts?ids=${contactId}`, { method: "DELETE" });
+  } catch (err) {
+    console.error("[zoho-crm] deleteContact error:", err);
+  }
+}
+
+/**
  * Create a high-priority follow-up task for enterprise/team signups.
  * These are high-value accounts worth personal outreach.
  */

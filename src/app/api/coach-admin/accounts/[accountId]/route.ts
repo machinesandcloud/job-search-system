@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { ensureSameOrigin } from "@/lib/utils";
 import { getStripeClient } from "@/lib/stripe";
 import { logAppEvent } from "@/lib/billing";
+import { deleteContact } from "@/lib/zoho-crm";
 
 function isOperatorRole(role?: string | null) {
   const v = `${role || ""}`.trim().toLowerCase();
@@ -34,6 +35,9 @@ export async function DELETE(
     return NextResponse.json({ error: "Internal operator accounts cannot be deleted." }, { status: 400 });
   }
 
+  const memberEmails = account.users.map((u: { email: string }) => u.email).filter(Boolean);
+  const memberUserIds = account.users.map((u: { id: string }) => u.id);
+
   // Cancel Stripe subscription if one exists.
   if (account.subscription?.stripeSubscriptionId) {
     try {
@@ -41,11 +45,21 @@ export async function DELETE(
       await stripe.subscriptions.cancel(account.subscription.stripeSubscriptionId);
     } catch (error: any) {
       console.error("[coach-admin/delete-account] stripe cancel failed", error?.message || error);
-      // Non-fatal — continue with DB deletion.
     }
   }
 
-  const memberUserIds = account.users.map((u: { id: string }) => u.id);
+  // Cancel all active email sequences and remove suppressions for every member email.
+  // Run in parallel — these are non-fatal if they fail.
+  await Promise.allSettled(
+    memberEmails.flatMap((email) => [
+      prisma.emailSequenceEnrollment.updateMany({
+        where: { email, canceledAt: null, completedAt: null },
+        data: { canceledAt: new Date() },
+      }),
+      prisma.emailSuppression.deleteMany({ where: { email } }),
+      deleteContact(email),
+    ])
+  );
 
   try {
     // Delete the account (cascades: subscription, tickets, events, notes, token usage).
