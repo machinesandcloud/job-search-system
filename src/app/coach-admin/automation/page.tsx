@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireCoachAdminActor } from "@/lib/coach-admin-auth";
 import { prisma } from "@/lib/db";
 import { CoachAdminPill } from "@/components/coach-admin-ui";
-import { CancelEnrollmentButton, UnsuppressButton, EnrollForm, TriggerQueueButton, BackfillButton, BroadcastForm, SendTestButton, ResendWelcomeForm } from "./actions-client";
+import { CancelEnrollmentButton, UnsuppressButton, EnrollForm, TriggerQueueButton, BackfillButton, BroadcastForm, SendTestButton, ResendWelcomeForm, CleanupOrphansButton } from "./actions-client";
 
 export const dynamic = "force-dynamic";
 
@@ -132,6 +132,7 @@ export default async function AutomationPage() {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <Link href="/coach-admin/automation/emails" style={{ fontSize: 12, fontWeight: 500, color: "var(--ca-text2)", textDecoration: "none", padding: "5px 10px", borderRadius: 6, border: "1px solid var(--ca-bd)", background: "var(--ca-card)" }}>Email log →</Link>
+          {isAdmin && <CleanupOrphansButton isAdmin={isAdmin} />}
           {isAdmin && <BackfillButton isAdmin={isAdmin} />}
         </div>
       </div>

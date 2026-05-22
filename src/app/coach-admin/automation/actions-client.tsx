@@ -311,6 +311,49 @@ export function BroadcastForm({ isAdmin }: { isAdmin: boolean }) {
   );
 }
 
+export function CleanupOrphansButton({ isAdmin }: { isAdmin: boolean }) {
+  const [status, setStatus] = useState<"idle" | "loading" | "ok" | "err">("idle");
+  const [result, setResult] = useState<{ orphans: number; enrollmentsCanceled: number; suppressionsRemoved: number; zohoDeleted: number } | null>(null);
+  const router = useRouter();
+
+  if (!isAdmin) return null;
+
+  async function run() {
+    setStatus("loading");
+    setResult(null);
+    const res = await fetch("/api/coach-admin/automation/cleanup-orphans", { method: "POST" });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      setResult(data);
+      setStatus("ok");
+      router.refresh();
+    } else {
+      setStatus("err");
+      setTimeout(() => setStatus("idle"), 3000);
+    }
+  }
+
+  if (status === "ok" && result) {
+    return (
+      <div style={{ fontSize: 11, color: result.orphans > 0 ? "#22C55E" : "var(--ca-text3)", fontWeight: 600 }}>
+        {result.orphans === 0
+          ? "No orphans found — all clean."
+          : `${result.orphans} orphans · ${result.enrollmentsCanceled} enrollments canceled · ${result.suppressionsRemoved} suppressions removed · ${result.zohoDeleted} Zoho contacts deleted`}
+      </div>
+    );
+  }
+
+  return (
+    <button
+      disabled={status === "loading"}
+      onClick={run}
+      style={{ ...btn("#F43F5E"), padding: "5px 12px", opacity: status === "loading" ? 0.5 : 1 }}
+    >
+      {status === "loading" ? "Cleaning…" : status === "err" ? "Error — retry?" : "Clean up deleted accounts"}
+    </button>
+  );
+}
+
 export function ResendWelcomeForm({ isAdmin }: { isAdmin: boolean }) {
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
