@@ -1,6 +1,9 @@
 [build]
-  command = "bash ./scripts/netlify_build.sh"
-  publish = ".next"
+  command   = "bash ./scripts/netlify_build.sh"
+  publish   = ".next"
+  # Cancel any build NOT triggered by our GitHub Actions deploy hook.
+  # Exit 0 = skip. Exit 1 = proceed. See scripts/netlify_ci_gate.sh.
+  ignore    = "bash ./scripts/netlify_ci_gate.sh"
 
 [build.environment]
   NODE_VERSION = "20"
