@@ -78,6 +78,27 @@ function getGeo(req: NextRequest) {
   };
 }
 
+async function enrichGeoByIp(ip: string): Promise<{ city?: string | null; region?: string | null; country?: string | null } | null> {
+  try {
+    // Skip private/loopback addresses
+    if (/^(127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|::1|fc|fd)/i.test(ip)) return null;
+    const res = await fetch(`https://ipapi.co/${ip}/json/`, {
+      signal: AbortSignal.timeout(2500),
+      headers: { "User-Agent": "zaricoach-analytics/1.0" },
+    });
+    if (!res.ok) return null;
+    const d = await res.json() as Record<string, unknown>;
+    if (d.error) return null;
+    return {
+      city:    typeof d.city === "string"         ? d.city         : null,
+      region:  typeof d.region_code === "string"  ? d.region_code  : (typeof d.region === "string" ? d.region : null),
+      country: typeof d.country_code === "string" ? d.country_code : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function POST(request: NextRequest) {
   if (!isDatabaseReady()) {
     return NextResponse.json({ ok: true, skipped: true });
@@ -102,6 +123,17 @@ export async function POST(request: NextRequest) {
       const { browser, os, device } = parseUA(ua);
       const ip  = getIp(request);
       const geo = getGeo(request);
+
+      // When Netlify headers don't carry city/region (not uncommon for some IPs),
+      // fall back to a public IP geolocation lookup so the admin always sees location detail.
+      if ((!geo.city || !geo.region) && ip) {
+        const enriched = await enrichGeoByIp(ip);
+        if (enriched) {
+          if (!geo.city    && enriched.city)    geo.city    = enriched.city;
+          if (!geo.region  && enriched.region)  geo.region  = enriched.region;
+          if (!geo.country && enriched.country) geo.country = enriched.country;
+        }
+      }
 
       const session = await prisma.visitorSession.create({
         data: {
