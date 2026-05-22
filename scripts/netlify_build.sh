@@ -32,4 +32,5 @@ fi
 rm -rf .next/cache/tsbuildinfo/ 2>/dev/null || true
 
 npm run typecheck
+npm test
 npm run build
