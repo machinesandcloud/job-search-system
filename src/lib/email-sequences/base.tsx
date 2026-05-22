@@ -66,9 +66,6 @@ export function Layout({ preview, headline, badge, unsubscribeUrl, children }: L
       <Head>
         <meta name="color-scheme" content="light" />
         <meta name="supported-color-schemes" content="light" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" />
-        <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet" />
       </Head>
       {preview && <Preview>{preview}</Preview>}
       <Body style={{
@@ -309,11 +306,12 @@ export function Signature({ name = "Steve", title = "Founder, Zari" }: { name?: 
         Best,
       </Text>
       <Text style={{
-        fontFamily: "'Great Vibes', cursive",
+        fontFamily: "Georgia, 'Times New Roman', serif",
         margin: "0 0 3px",
         color: colors.text,
-        fontSize: "38px",
+        fontSize: "28px",
         fontWeight: "400",
+        fontStyle: "italic",
         lineHeight: "1.2",
         letterSpacing: "0.5px",
       }}>
@@ -328,13 +326,6 @@ export function Signature({ name = "Steve", title = "Founder, Zari" }: { name?: 
       }}>
         {title}
       </Text>
-      <Img
-        src={`${SITE_URL}/assets/steve-photo.jpg`}
-        width={56}
-        height={56}
-        alt={name}
-        style={{ borderRadius: "50%", display: "block" }}
-      />
     </Section>
   );
 }

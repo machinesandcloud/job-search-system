@@ -1,8 +1,5 @@
-import { Resend } from "resend";
+import { sendEmail } from "./resend";
 import { getBaseUrl } from "./utils";
-
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-const fromAddress = process.env.RESEND_FROM_EMAIL ?? process.env.RESEND_FROM ?? "coach@zaricoach.com";
 
 const SIGNUP_NOTIFY_RECIPIENTS = [
   "sales@askia.tech",
@@ -17,7 +14,6 @@ export async function sendNewUserNotification(user: {
   userId: string;
   method: "email" | "google";
 }) {
-  if (!resend) return;
   const signedUpAt = new Intl.DateTimeFormat("en-US", {
     dateStyle: "full",
     timeStyle: "short",
@@ -49,8 +45,7 @@ export async function sendNewUserNotification(user: {
     </div>
   `;
 
-  await resend.emails.send({
-    from: `Zari <${fromAddress}>`,
+  await sendEmail({
     to: SIGNUP_NOTIFY_RECIPIENTS,
     subject: `New signup: ${user.firstName} ${user.lastName} (${user.email})`,
     html,
@@ -66,7 +61,6 @@ export async function sendSupportTicketNotification(ticket: {
   userLastName: string;
   userEmail: string;
 }) {
-  if (!resend) return;
   const submittedAt = new Intl.DateTimeFormat("en-US", {
     dateStyle: "full",
     timeStyle: "short",
@@ -107,8 +101,7 @@ export async function sendSupportTicketNotification(ticket: {
     </div>
   `;
 
-  await resend.emails.send({
-    from: `Zari <${fromAddress}>`,
+  await sendEmail({
     to: SIGNUP_NOTIFY_RECIPIENTS,
     subject: `[Support] ${ticket.subject} — ${ticket.userFirstName} ${ticket.userLastName}`,
     html,
@@ -116,9 +109,8 @@ export async function sendSupportTicketNotification(ticket: {
 }
 
 export async function sendResultsEmail(email: string, token: string, hasPro: boolean) {
-  if (!resend) return { skipped: true, reason: "RESEND_API_KEY missing" } as const;
+  if (!process.env.RESEND_API_KEY) return { skipped: true, reason: "RESEND_API_KEY missing" } as const;
   const url = `${getBaseUrl()}/job-search-system/results/${token}`;
-  const subject = "Your Job Search System is ready";
   const html = `
     <div style="font-family:Arial,sans-serif;line-height:1.5;color:#0b1220;">
       <h2>Your Job Search System is ready</h2>
@@ -132,23 +124,15 @@ export async function sendResultsEmail(email: string, token: string, hasPro: boo
     </div>
   `;
   try {
-    const result = await resend.emails.send({
-      from: `Job Search System <${fromAddress}>`,
-      to: email,
-      subject,
-      html,
-    });
-    if ("error" in result && result.error) {
-      return { ok: false, error: result.error.message || "Resend error" } as const;
-    }
+    await sendEmail({ to: email, subject: "Your Job Search System is ready", html });
     return { ok: true } as const;
-  } catch (err: any) {
-    return { ok: false, error: err?.message || "Email send failed" } as const;
+  } catch (err: unknown) {
+    return { ok: false, error: (err as Error)?.message || "Email send failed" } as const;
   }
 }
 
 export async function sendPasswordResetEmail(email: string, token: string) {
-  if (!resend) return { skipped: true, reason: "RESEND_API_KEY missing" } as const;
+  if (!process.env.RESEND_API_KEY) return { skipped: true, reason: "RESEND_API_KEY missing" } as const;
   const url = `${getBaseUrl()}/reset-password?token=${encodeURIComponent(token)}`;
   const html = `
     <div style="font-family:Arial,sans-serif;line-height:1.6;color:#0F172A;max-width:480px;margin:0 auto;">
@@ -159,15 +143,7 @@ export async function sendPasswordResetEmail(email: string, token: string) {
     </div>
   `;
   try {
-    const result = await resend.emails.send({
-      from: `Zari <${fromAddress}>`,
-      to: email,
-      subject: "Reset your Zari password",
-      html,
-    });
-    if ("error" in result && result.error) {
-      return { ok: false, error: result.error.message || "Resend error" } as const;
-    }
+    await sendEmail({ to: email, subject: "Reset your Zari password", html });
     return { ok: true } as const;
   } catch (err: unknown) {
     return { ok: false, error: (err as Error)?.message || "Email send failed" } as const;
@@ -175,7 +151,7 @@ export async function sendPasswordResetEmail(email: string, token: string) {
 }
 
 export async function sendAdminMagicLink(email: string, token: string) {
-  if (!resend) return { skipped: true } as const;
+  if (!process.env.RESEND_API_KEY) return { skipped: true } as const;
   const url = `${getBaseUrl()}/admin/verify?token=${token}`;
   const html = `
     <div style="font-family:Arial,sans-serif;line-height:1.5;color:#0b1220;">
@@ -184,10 +160,10 @@ export async function sendAdminMagicLink(email: string, token: string) {
       <p><a href="${url}" style="background:#111827;color:#fff;padding:12px 18px;border-radius:999px;text-decoration:none;display:inline-block;">Open admin</a></p>
     </div>
   `;
-  return resend.emails.send({
-    from: "Zari <no-reply@zaricoach.com>",
-    to: email,
-    subject: "Admin login link",
-    html,
-  });
+  try {
+    await sendEmail({ to: email, subject: "Admin login link", html });
+    return { ok: true } as const;
+  } catch (err: unknown) {
+    return { ok: false, error: (err as Error)?.message || "Email send failed" } as const;
+  }
 }

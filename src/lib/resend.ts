@@ -15,7 +15,7 @@ export const FROM_EMAIL = process.env.RESEND_FROM_EMAIL ?? "Steve from Zari <coa
 export const REPLY_TO = process.env.RESEND_REPLY_TO ?? "support@zaricoach.com";
 
 export async function sendEmail(opts: {
-  to: string;
+  to: string | string[];
   subject: string;
   html: string;
   text?: string;
