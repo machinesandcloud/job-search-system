@@ -27,12 +27,14 @@ export function encodeGoogleOauthState(input: {
   mode: GoogleAuthMode;
   next: string;
   redirectUri: string;
+  ref?: string;
 }): string {
   const payload = {
     nonce: crypto.randomBytes(24).toString("hex"),
     mode: input.mode,
     next: input.next,
     redirectUri: input.redirectUri,
+    ...(input.ref ? { ref: input.ref } : {}),
   };
   return Buffer.from(JSON.stringify(payload)).toString("base64url");
 }
@@ -42,6 +44,7 @@ export function decodeGoogleOauthState(state: string | null | undefined): {
   mode: GoogleAuthMode;
   next: string;
   redirectUri: string;
+  ref?: string;
 } | null {
   if (!state) return null;
   try {
@@ -50,6 +53,7 @@ export function decodeGoogleOauthState(state: string | null | undefined): {
       mode?: GoogleAuthMode;
       next?: string;
       redirectUri?: string;
+      ref?: string;
     };
     if (
       !parsed.nonce ||
@@ -61,6 +65,7 @@ export function decodeGoogleOauthState(state: string | null | undefined): {
       mode: parsed.mode,
       next: sanitizeInternalNext(parsed.next, getDefaultGoogleNext(parsed.mode)),
       redirectUri: parsed.redirectUri,
+      ...(parsed.ref ? { ref: parsed.ref } : {}),
     };
   } catch {
     return null;

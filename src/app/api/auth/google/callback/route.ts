@@ -8,6 +8,7 @@ import {
 import { createActivationToken } from "@/lib/mvp/auth";
 import { authenticateGooglePlatformUser } from "@/lib/platform-users";
 import { sendNewUserNotification } from "@/lib/email";
+import { recordReferralSignup } from "@/lib/referral";
 
 export const maxDuration = 15;
 export const runtime = "nodejs";
@@ -95,6 +96,9 @@ export async function GET(request: Request) {
     });
 
     if (auth.isNewUser) {
+      if (flow.ref) {
+        recordReferralSignup(flow.ref, profile.email!).catch(() => {});
+      }
       sendNewUserNotification({
         firstName: profile.given_name || "",
         lastName: profile.family_name || "",

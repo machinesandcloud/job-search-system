@@ -5,6 +5,7 @@ import "./globals.css";
 import { OrganizationJsonLd, SoftwareAppJsonLd } from "@/components/json-ld";
 import { VisitorTracker } from "@/components/visitor-tracker";
 import { GlobalScrollReveal } from "@/components/global-scroll-reveal";
+import { ReferralCapture } from "@/components/referral-capture";
 
 const display = Sora({
   subsets: ["latin"],
@@ -122,6 +123,9 @@ export default function RootLayout({
       <body>
         <Suspense fallback={null}>
           <VisitorTracker />
+        </Suspense>
+        <Suspense fallback={null}>
+          <ReferralCapture />
         </Suspense>
         <GlobalScrollReveal />
         {children}

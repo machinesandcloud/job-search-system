@@ -5,6 +5,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/utils";
 import { onUserSignedUp } from "@/lib/zoho-engine";
 import { sendNewUserNotification } from "@/lib/email";
+import { recordReferralSignup } from "@/lib/referral";
 
 export const maxDuration = 15;
 
@@ -23,6 +24,7 @@ export async function POST(request: Request) {
   const lastName = String(body.lastName || "").trim();
   const email = String(body.email || "").trim().toLowerCase();
   const password = String(body.password || "");
+  const refCode = String(body.ref || "").trim().slice(0, 32);
 
   if (!firstName || !lastName || !email || !password) {
     return NextResponse.json({ error: "All fields are required." }, { status: 400 });
@@ -37,6 +39,11 @@ export async function POST(request: Request) {
 
   try {
     const user = await createPlatformUser({ firstName, lastName, email, password });
+
+    // Fire-and-forget: track referral (non-blocking)
+    if (refCode) {
+      recordReferralSignup(refCode, email).catch(() => {});
+    }
 
     // Fire-and-forget: notify team of new signup (non-blocking)
     sendNewUserNotification({

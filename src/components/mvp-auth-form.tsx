@@ -12,6 +12,23 @@ export function MvpAuthForm({ mode, authError = null }: { mode: AuthMode; authEr
   const searchParams = useSearchParams();
   const selectedPlan = `${searchParams.get("plan") || ""}`.trim().toLowerCase();
   const onboardingPlanHref = selectedPlan ? `/onboarding/plan?plan=${encodeURIComponent(selectedPlan)}` : "/onboarding/plan";
+  // Capture referral code: URL param → localStorage → cookie (cookie survives OAuth redirects)
+  const refCode = (() => {
+    const fromUrl = searchParams.get("ref")?.trim() ?? "";
+    if (fromUrl) {
+      try { if (typeof localStorage !== "undefined") localStorage.setItem("zari_ref", fromUrl); } catch { /* noop */ }
+      return fromUrl;
+    }
+    try {
+      const fromStorage = typeof localStorage !== "undefined" ? localStorage.getItem("zari_ref") : null;
+      if (fromStorage) return fromStorage;
+    } catch { /* noop */ }
+    try {
+      const match = document.cookie.match(/(?:^|;\s*)zari_ref=([^;]+)/);
+      if (match) return decodeURIComponent(match[1]);
+    } catch { /* noop */ }
+    return "";
+  })();
 
   const inputStyle: React.CSSProperties = {
     width: "100%", padding: "11px 14px", fontSize: 14, borderRadius: 10,
@@ -44,7 +61,8 @@ export function MvpAuthForm({ mode, authError = null }: { mode: AuthMode; authEr
     setSignErr(null);
     setGoogleLoading(true);
     const next = targetMode === "signup" ? onboardingPlanHref : "/dashboard";
-    window.location.href = `/api/auth/google/start?mode=${targetMode}&next=${encodeURIComponent(next)}`;
+    const refParam = refCode ? `&ref=${encodeURIComponent(refCode)}` : "";
+    window.location.href = `/api/auth/google/start?mode=${targetMode}&next=${encodeURIComponent(next)}${refParam}`;
   }
 
   // ── Signup wizard ────────────────────────────────────────────────────────
@@ -70,7 +88,7 @@ export function MvpAuthForm({ mode, authError = null }: { mode: AuthMode; authEr
     const res = await fetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ firstName, lastName, email: signEmail, password: signPwd }),
+      body: JSON.stringify({ firstName, lastName, email: signEmail, password: signPwd, ...(refCode ? { ref: refCode } : {}) }),
     });
     const payload = await res.json().catch(() => ({}));
     if (!res.ok) { setSignErr(payload.error || "Unable to create account."); setSignLoad(false); return; }

@@ -13,6 +13,7 @@ import {
 } from "@/lib/billing";
 import { mapStripePlanTier, syncStripeSubscriptionToAccount, syncUsersForAccountPlan } from "@/lib/subscription-sync";
 import { onSubscriptionChanged, onUserChurned, onPaymentFailed, onPaymentRecovered, onTrialEnding } from "@/lib/zoho-engine";
+import { processReferralConversion } from "@/lib/referral";
 
 export const runtime = "nodejs";
 
@@ -204,6 +205,12 @@ export async function POST(request: Request) {
         if (typeof session.subscription === "string") {
           const subscription = await stripe.subscriptions.retrieve(session.subscription);
         await syncStripeSubscriptionToAccount(accountId, subscription);
+        }
+
+        // Fire-and-forget: reward referrer if this subscriber was referred
+        const checkoutEmail = session.customer_details?.email || session.customer_email;
+        if (checkoutEmail) {
+          void processReferralConversion(checkoutEmail.toLowerCase());
         }
 
         await logAppEvent("checkout_completed", {

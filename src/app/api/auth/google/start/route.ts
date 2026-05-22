@@ -19,6 +19,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const mode = getMode(url.searchParams.get("mode"));
   const next = sanitizeInternalNext(url.searchParams.get("next"), getDefaultGoogleNext(mode));
+  const ref = url.searchParams.get("ref")?.slice(0, 32) ?? undefined;
 
   if (!creds) {
     const dest = new URL(mode === "signup" ? "/signup" : "/login", request.url);
@@ -31,7 +32,7 @@ export async function GET(request: Request) {
   const redirectUri =
     (process.env.GOOGLE_REDIRECT_URI || "").trim() ||
     `${url.origin}/api/auth/google/callback`;
-  const state = encodeGoogleOauthState({ mode, next, redirectUri });
+  const state = encodeGoogleOauthState({ mode, next, redirectUri, ref });
 
   try {
     const googleUrl = buildGoogleAuthUrl({ state, redirectUri });
