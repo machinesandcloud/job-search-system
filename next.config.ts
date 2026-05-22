@@ -29,13 +29,8 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["@react-pdf/renderer", "pdf-parse", "pdfjs-dist", "maxmind"],
+  serverExternalPackages: ["@react-pdf/renderer", "pdf-parse", "pdfjs-dist"],
   turbopack: {},
-  // Bundle the GeoLite2-City database with the tracking API route so it's
-  // available inside the Netlify / Lambda function at runtime.
-  outputFileTracingIncludes: {
-    "/api/track": ["./data/GeoLite2-City.mmdb"],
-  },
   async headers() {
     return [
       // Security headers on page routes only.

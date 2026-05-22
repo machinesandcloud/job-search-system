@@ -26,7 +26,6 @@
     "@upstash/redis": "^1.38.0",
     "clsx": "^2.1.1",
     "mammoth": "^1.11.0",
-    "maxmind": "^5.0.6",
     "next": "16.1.6",
     "pdf-parse": "^1.1.4",
     "pdfjs-dist": "^4.10.38",
