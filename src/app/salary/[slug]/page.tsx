@@ -327,7 +327,7 @@ export default async function SalaryPage({ params }: { params: Promise<{ slug: s
             </div>
           </div>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="/salary" className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-white px-4 py-2 text-[13px] font-semibold text-[var(--brand)] hover:bg-[var(--brand)]/[0.03] transition-all">
+            <Link href="/salary" className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-white px-4 py-2 text-[13px] font-semibold text-[#4361EE] hover:bg-[var(--brand)]/[0.03] transition-all">
               All salary guides →
             </Link>
             <Link href="/salary-calculator" className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-white px-4 py-2 text-[13px] font-semibold text-[var(--ink)] hover:bg-[var(--bg)] transition-all">
@@ -353,7 +353,7 @@ export default async function SalaryPage({ params }: { params: Promise<{ slug: s
             Zari coaches the exact negotiation conversation — what to say when the recruiter asks your number, how to counter, and how to use competing offers. Free to start.
           </p>
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-            <Link href={userId ? "/dashboard" : "/signup"} className="inline-flex h-12 items-center gap-2 rounded-xl bg-white px-8 text-[14px] font-bold text-[var(--brand)] transition-all hover:-translate-y-0.5">
+            <Link href={userId ? "/dashboard" : "/signup"} className="inline-flex h-12 items-center gap-2 rounded-xl bg-white px-8 text-[14px] font-bold text-[#4361EE] transition-all hover:-translate-y-0.5">
               Practice negotiating free <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M5 12h14M12 5l7 7-7 7" /></svg>
             </Link>
             <Link href="/salary-calculator" className="inline-flex h-12 items-center gap-2 rounded-xl border border-white/20 bg-white/[0.08] px-6 text-[14px] font-semibold text-white transition-all hover:bg-white/[0.12]">

@@ -251,7 +251,7 @@ export default async function AiCareerCoachCanadaPage() {
               { href: "/compare/zari-vs-otta", label: "Zari vs Otta" },
               { href: "/ai-career-coach", label: "AI Career Coach (Global)" },
             ].map((link) => (
-              <Link key={link.href} href={link.href} className="rounded-full border border-[var(--border)] bg-white px-3 py-1.5 text-[12px] font-medium text-[var(--brand)] hover:bg-[var(--brand)]/5 transition-all">
+              <Link key={link.href} href={link.href} className="rounded-full border border-[var(--border)] bg-white px-3 py-1.5 text-[12px] font-medium text-[#4361EE] hover:bg-[var(--brand)]/5 transition-all">
                 {link.label}
               </Link>
             ))}

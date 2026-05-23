@@ -63,7 +63,7 @@ export default async function PersonalCareerCoachPage() {
           <h2 className="text-[2.8rem] font-extrabold tracking-[-0.03em]">Your personal career coach — free to start.</h2>
           <p className="mx-auto mt-4 max-w-md text-[17px] text-white/55">No scheduling. No $300 session fees. Available right now.</p>
           <div className="mt-9">
-            <Link href={userId ? "/dashboard" : "/signup"} className="group inline-flex h-14 items-center gap-2.5 rounded-xl bg-white px-10 text-[15px] font-bold text-[var(--brand)] transition-all hover:-translate-y-0.5">
+            <Link href={userId ? "/dashboard" : "/signup"} className="group inline-flex h-14 items-center gap-2.5 rounded-xl bg-white px-10 text-[15px] font-bold text-[#4361EE] transition-all hover:-translate-y-0.5">
               {userId ? "Go to dashboard" : "Start free"} <svg className="h-4 w-4 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M5 12h14M12 5l7 7-7 7" /></svg>
             </Link>
           </div>

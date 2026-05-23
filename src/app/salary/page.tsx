@@ -116,7 +116,7 @@ export default async function SalaryIndexPage() {
                 <p className="font-bold text-[var(--ink)]">{city.displayName} <span className="font-normal text-[var(--muted)]">· {city.stateOrCountry}</span></p>
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {["software-engineer", "product-manager", "data-scientist", "machine-learning-engineer", "engineering-manager"].map((roleKey) => (
-                    <Link key={roleKey} href={`/salary/${roleKey}-salary-${cityKey}`} className="rounded-full border border-[var(--border)] bg-white px-2.5 py-0.5 text-[11px] font-medium text-[var(--brand)] hover:bg-[var(--brand)]/5">
+                    <Link key={roleKey} href={`/salary/${roleKey}-salary-${cityKey}`} className="rounded-full border border-[var(--border)] bg-white px-2.5 py-0.5 text-[11px] font-medium text-[#4361EE] hover:bg-[var(--brand)]/5">
                       {ROLE_SALARIES[roleKey].shortName}
                     </Link>
                   ))}

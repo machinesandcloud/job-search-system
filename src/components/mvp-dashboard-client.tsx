@@ -107,7 +107,7 @@ export function MvpDashboardClient() {
             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
             LinkedIn
           </Link>
-          <Link href="/onboarding" className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-[var(--border)] bg-white px-4 text-[13px] font-semibold text-[var(--ink)] shadow-[var(--shadow)] transition-all hover:border-[var(--brand)] hover:text-[var(--brand)]">
+          <Link href="/onboarding" className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-[var(--border)] bg-white px-4 text-[13px] font-semibold text-[var(--ink)] shadow-[var(--shadow)] transition-all hover:border-[var(--brand)] hover:text-[#4361EE]">
             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             Edit profile
           </Link>

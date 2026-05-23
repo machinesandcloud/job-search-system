@@ -225,7 +225,7 @@ export default async function JobSearchStatistics2025Page() {
               { href: "/blog/technical-interview-preparation", label: "Technical Interview Preparation" },
               { href: "/salary-calculator", label: "Salary Calculator" },
             ].map((link) => (
-              <Link key={link.href} href={link.href} className="rounded-full border border-[var(--border)] bg-white px-3 py-1.5 text-[12px] font-medium text-[var(--brand)] hover:bg-[var(--brand)]/5 transition-all">
+              <Link key={link.href} href={link.href} className="rounded-full border border-[var(--border)] bg-white px-3 py-1.5 text-[12px] font-medium text-[#4361EE] hover:bg-[var(--brand)]/5 transition-all">
                 {link.label}
               </Link>
             ))}

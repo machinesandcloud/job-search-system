@@ -2157,7 +2157,7 @@ export default async function BlogPage() {
           <h2 className="text-[2.4rem] font-extrabold tracking-[-0.03em] leading-tight">Reading is prep.<br /><span className="text-white/60">Coaching is practice.</span></h2>
           <p className="mx-auto mt-5 max-w-md text-[16px] text-white/55">One free session on every surface — resume, LinkedIn, interviews, and salary. No card required.</p>
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-            <Link href={userId ? "/dashboard" : "/signup"} className="group inline-flex h-13 items-center gap-2 rounded-xl bg-white px-8 text-[15px] font-bold text-[var(--brand)] shadow-[0_4px_30px_rgba(255,255,255,0.2)] transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_40px_rgba(255,255,255,0.3)]">
+            <Link href={userId ? "/dashboard" : "/signup"} className="group inline-flex h-13 items-center gap-2 rounded-xl bg-white px-8 text-[15px] font-bold text-[#4361EE] shadow-[0_4px_30px_rgba(255,255,255,0.2)] transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_40px_rgba(255,255,255,0.3)]">
               Start coaching free <svg className="h-4 w-4 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M5 12h14M12 5l7 7-7 7" /></svg>
             </Link>
             <Link href="/compare" className="inline-flex h-13 items-center gap-2 rounded-xl border border-white/20 px-7 text-[15px] font-semibold text-white/80 transition-all hover:border-white/40 hover:text-white">

@@ -257,7 +257,7 @@ export default async function ZariVsKickresumePage() {
           <h2 className="text-[2.2rem] font-extrabold tracking-[-0.03em]">Beyond the document. Try Zari free.</h2>
           <p className="mx-auto mt-4 text-[16px] text-white/55">Resume coaching, ATS optimization, interview prep, and salary negotiation — one AI for the full job search.</p>
           <div className="mt-8">
-            <Link href={userId ? "/dashboard" : "/signup"} className="group inline-flex h-13 items-center gap-2 rounded-xl bg-white px-8 text-[14px] font-bold text-[var(--brand)] transition-all hover:-translate-y-0.5">
+            <Link href={userId ? "/dashboard" : "/signup"} className="group inline-flex h-13 items-center gap-2 rounded-xl bg-white px-8 text-[14px] font-bold text-[#4361EE] transition-all hover:-translate-y-0.5">
               Start for free <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M5 12h14M12 5l7 7-7 7" /></svg>
             </Link>
           </div>

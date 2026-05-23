@@ -59,7 +59,7 @@ export function MarketingShell({
                   {secondaryCta && (
                     <Link
                       href={secondaryCta.href}
-                      className="inline-flex h-11 items-center rounded-xl border border-[var(--border)] bg-white px-6 text-sm font-semibold text-[var(--ink)] transition-colors hover:border-[var(--brand)] hover:text-[var(--brand)]"
+                      className="inline-flex h-11 items-center rounded-xl border border-[var(--border)] bg-white px-6 text-sm font-semibold text-[var(--ink)] transition-colors hover:border-[var(--brand)] hover:text-[#4361EE]"
                     >
                       {secondaryCta.label}
                     </Link>
@@ -127,7 +127,7 @@ export function MarketingShell({
           <div className="mt-7 flex flex-wrap items-center justify-center gap-4">
             <Link
               href="/signup"
-              className="inline-flex h-11 items-center rounded-xl bg-white px-7 text-sm font-bold text-[var(--brand)] shadow-[0_4px_20px_rgba(0,0,0,0.15)] transition-colors hover:bg-white/90"
+              className="inline-flex h-11 items-center rounded-xl bg-white px-7 text-sm font-bold text-[#4361EE] shadow-[0_4px_20px_rgba(0,0,0,0.15)] transition-colors hover:bg-white/90"
             >
               Get started free →
             </Link>

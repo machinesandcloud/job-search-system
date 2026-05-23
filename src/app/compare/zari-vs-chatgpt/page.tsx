@@ -268,7 +268,7 @@ export default async function ZariVsChatGPTPage() {
           <h2 className="text-[2.2rem] font-extrabold tracking-[-0.03em]">Career coaching without the prompt engineering.</h2>
           <p className="mx-auto mt-4 text-[16px] text-white/55">ATS scoring, resume rewrites, interview coaching, and salary negotiation — built in. Free to start.</p>
           <div className="mt-8">
-            <Link href={userId ? "/dashboard" : "/signup"} className="group inline-flex h-13 items-center gap-2 rounded-xl bg-white px-8 text-[14px] font-bold text-[var(--brand)] transition-all hover:-translate-y-0.5">
+            <Link href={userId ? "/dashboard" : "/signup"} className="group inline-flex h-13 items-center gap-2 rounded-xl bg-white px-8 text-[14px] font-bold text-[#4361EE] transition-all hover:-translate-y-0.5">
               Try Zari free <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M5 12h14M12 5l7 7-7 7" /></svg>
             </Link>
           </div>
