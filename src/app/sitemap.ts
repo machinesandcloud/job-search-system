@@ -449,6 +449,53 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/blog/how-to-write-a-personal-statement`,lastModified: now, changeFrequency: "monthly", priority: 0.92 },
     { url: `${base}/blog/work-from-home-jobs`,              lastModified: now, changeFrequency: "monthly", priority: 0.92 },
 
+    // Wave 54 — City career coach pages
+    { url: `${base}/career-coach-new-york`,       lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/career-coach-los-angeles`,    lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/career-coach-chicago`,        lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/career-coach-san-francisco`,  lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/career-coach-seattle`,        lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/career-coach-boston`,         lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/career-coach-austin`,         lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/career-coach-houston`,        lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/career-coach-atlanta`,        lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/career-coach-denver`,         lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/career-coach-miami`,          lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/career-coach-washington-dc`,  lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/career-coach-dallas`,         lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/career-coach-philadelphia`,   lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+
+    // Wave 54 — Service pages
+    { url: `${base}/best-resume-writing-service`,  lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/mock-interview-online`,         lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/professional-resume-writer`,    lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/executive-resume-writer`,       lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/resume-optimizer`,              lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/career-counseling-online`,      lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/interview-coaching-service`,    lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/job-search-coaching`,           lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/executive-career-coaching`,     lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+
+    // Wave 54 — International pages
+    { url: `${base}/ai-career-coach-germany`,       lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/ai-career-coach-dubai`,         lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+
+    // Wave 54 — Blog posts
+    { url: `${base}/blog/what-is-a-good-ats-score`,             lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/how-long-should-a-resume-be`,          lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/should-i-use-chatgpt-to-write-my-resume`, lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/is-linkedin-premium-worth-it`,         lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/tech-layoff-survival-guide`,           lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/first-90-days-new-job`,                lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/how-to-get-into-product-management`,   lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/how-to-become-a-software-engineer`,    lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/how-many-jobs-to-apply-per-day`,       lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/how-long-does-it-take-to-find-a-job`,  lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/what-to-put-on-a-resume`,              lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/how-to-get-a-job-in-germany`,          lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/highest-paying-jobs-singapore`,        lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/highest-paying-jobs-dubai`,            lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+
     // Auth / conversion
     { url: `${base}/signup`,  lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/login`,   lastModified: now, changeFrequency: "monthly", priority: 0.6 },
