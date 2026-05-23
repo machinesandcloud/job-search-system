@@ -98,7 +98,7 @@ export default async function ZariVsClaudePage() {
               <p className="mt-3 text-[13px] leading-6 text-white/50">Brilliant across thousands of domains. You bring the expertise about your situation — Claude brings the reasoning. Every session starts fresh.</p>
             </div>
             <div className="rounded-2xl border border-[var(--brand)]/30 bg-[var(--brand)]/[0.08] p-6">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--brand)]/70">Zari is</p>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-[#4361EE]/70">Zari is</p>
               <p className="mt-2 text-[20px] font-extrabold text-white">A career specialist</p>
               <p className="mt-3 text-[13px] leading-6 text-white/60">Purpose-built for job search with ATS scoring, interview evaluation, and session memory. It knows your background and coaches to your situation.</p>
             </div>
@@ -115,7 +115,7 @@ export default async function ZariVsClaudePage() {
               <div key={s.scenario} className="overflow-hidden rounded-2xl border border-[var(--border)]">
                 <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--bg)] px-6 py-4">
                   <p className="font-bold text-[var(--ink)]">{s.scenario}</p>
-                  <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${s.edge === "zari" ? "bg-[var(--brand)]/10 text-[var(--brand)]" : s.edge === "tie" ? "bg-slate-100 text-slate-500" : "bg-slate-100 text-slate-500"}`}>
+                  <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${s.edge === "zari" ? "bg-[var(--brand)]/10 text-[#4361EE]" : s.edge === "tie" ? "bg-slate-100 text-slate-500" : "bg-slate-100 text-slate-500"}`}>
                     {s.edge === "zari" ? "Zari wins" : "Roughly equal"}
                   </span>
                 </div>
@@ -125,7 +125,7 @@ export default async function ZariVsClaudePage() {
                     <p className="text-[13.5px] leading-6 text-[var(--muted)]">{s.claude}</p>
                   </div>
                   <div className="p-5">
-                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">Zari</p>
+                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">Zari</p>
                     <p className="text-[13.5px] leading-6 text-[var(--muted)]">{s.zari}</p>
                   </div>
                 </div>

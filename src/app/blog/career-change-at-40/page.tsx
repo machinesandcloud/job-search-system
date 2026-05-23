@@ -127,12 +127,12 @@ export default async function CareerChangeAt40Page() {
                 <p className="px-5 py-4 text-[13.5px] leading-6 text-[var(--muted)]">{f.truth}</p>
               </div>
             ))}
-            <p className="pt-3 text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--brand)]">Fears you can stop carrying</p>
+            <p className="pt-3 text-[11px] font-bold uppercase tracking-[0.18em] text-[#4361EE]">Fears you can stop carrying</p>
             {notRealFears.map((f) => (
               <div key={f.fear} className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg)]">
                 <div className="flex items-center gap-2 border-b border-[var(--border)] bg-[var(--brand)]/[0.06] px-5 py-3">
                   <span className="h-1.5 w-1.5 rounded-full bg-[var(--brand)]" />
-                  <p className="font-bold text-[var(--brand)]">{f.fear}</p>
+                  <p className="font-bold text-[#4361EE]">{f.fear}</p>
                 </div>
                 <p className="px-5 py-4 text-[13.5px] leading-6 text-[var(--muted)]">{f.truth}</p>
               </div>

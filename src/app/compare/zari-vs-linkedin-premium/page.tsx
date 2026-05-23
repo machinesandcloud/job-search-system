@@ -147,7 +147,7 @@ export default async function ZariVsLinkedInPremiumPage() {
               </ul>
             </div>
             <div className="rounded-2xl border border-[var(--brand)]/30 bg-[var(--brand)]/[0.08] p-5">
-              <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-[var(--brand)]/70">Zari is better for</p>
+              <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-[#4361EE]/70">Zari is better for</p>
               <ul className="mt-3 space-y-2">
                 {[
                   "Making your LinkedIn profile actually appear in recruiter searches",
@@ -156,7 +156,7 @@ export default async function ZariVsLinkedInPremiumPage() {
                   "Salary negotiation practice when the offer comes in",
                 ].map(item => (
                   <li key={item} className="flex items-start gap-2 text-[13px] text-white/80">
-                    <span className="mt-0.5 text-[var(--brand)]">✓</span> {item}
+                    <span className="mt-0.5 text-[#4361EE]">✓</span> {item}
                   </li>
                 ))}
               </ul>
@@ -181,11 +181,11 @@ export default async function ZariVsLinkedInPremiumPage() {
               <p className="text-[12px] font-semibold text-slate-600">Premium helps here: profile view data, InMail outreach, higher applicant placement.</p>
             </div>
             <div className="rounded-xl border border-[var(--brand)]/20 bg-[var(--brand)]/[0.04] p-5">
-              <p className="text-[12px] font-bold uppercase tracking-wider text-[var(--brand)] mb-3">Competitiveness problem</p>
+              <p className="text-[12px] font-bold uppercase tracking-wider text-[#4361EE] mb-3">Competitiveness problem</p>
               <p className="text-[14px] leading-6 text-[var(--muted)] mb-3">
                 People see your profile but don&apos;t reach out. You apply but don&apos;t get callbacks. You get interviews but not offers. Your materials or preparation aren&apos;t strong enough.
               </p>
-              <p className="text-[12px] font-semibold text-[var(--brand)]">Zari helps here: profile optimization, resume rewrites, interview coaching.</p>
+              <p className="text-[12px] font-semibold text-[#4361EE]">Zari helps here: profile optimization, resume rewrites, interview coaching.</p>
             </div>
           </div>
           <div className="mt-5 rounded-xl border border-amber-100 bg-amber-50/50 p-5">
@@ -208,7 +208,7 @@ export default async function ZariVsLinkedInPremiumPage() {
                 <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--bg)] px-6 py-4">
                   <p className="font-bold text-[var(--ink)]">{dim.category}</p>
                   <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${
-                    dim.winner === "zari" ? "bg-[var(--brand)]/10 text-[var(--brand)]" :
+                    dim.winner === "zari" ? "bg-[var(--brand)]/10 text-[#4361EE]" :
                     dim.winner === "li" ? "bg-blue-50 text-blue-600" :
                     "bg-slate-100 text-slate-500"
                   }`}>
@@ -221,7 +221,7 @@ export default async function ZariVsLinkedInPremiumPage() {
                     <p className="text-[13.5px] leading-6 text-[var(--muted)]">{dim.li}</p>
                   </div>
                   <div className="p-5">
-                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">Zari</p>
+                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">Zari</p>
                     <p className="text-[13.5px] leading-6 text-[var(--muted)]">{dim.zari}</p>
                   </div>
                 </div>

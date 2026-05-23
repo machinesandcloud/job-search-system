@@ -151,7 +151,7 @@ export default async function TeacherResumePage() {
                   </div>
                 </div>
                 <div className="border-t border-[var(--border)] bg-[var(--bg)] px-5 py-3">
-                  <p className="text-[12px] text-[var(--muted)]"><span className="font-bold text-[var(--brand)]">What changed: </span>{item.fix}</p>
+                  <p className="text-[12px] text-[var(--muted)]"><span className="font-bold text-[#4361EE]">What changed: </span>{item.fix}</p>
                 </div>
               </div>
             ))}

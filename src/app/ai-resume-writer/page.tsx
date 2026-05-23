@@ -85,9 +85,9 @@ export default async function AiResumeWriterPage() {
               <p className="text-[2rem] font-extrabold text-white/30">52</p>
               <p className="text-[11px] text-white/25">Before Zari</p>
             </div>
-            <svg className="h-5 w-5 text-[var(--brand)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+            <svg className="h-5 w-5 text-[#4361EE]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M5 12h14M12 5l7 7-7 7" /></svg>
             <div className="text-center">
-              <p className="text-[2rem] font-extrabold text-[var(--brand)]">89</p>
+              <p className="text-[2rem] font-extrabold text-[#4361EE]">89</p>
               <p className="text-[11px] text-white/40">ATS Score</p>
             </div>
             <div className="border-l border-white/10 pl-6 text-left">
@@ -107,7 +107,7 @@ export default async function AiResumeWriterPage() {
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {STEPS.map((s) => (
               <div key={s.step} className="rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-6">
-                <p className="mb-3 text-[2rem] font-extrabold text-[var(--brand)]/20">{s.step}</p>
+                <p className="mb-3 text-[2rem] font-extrabold text-[#4361EE]/20">{s.step}</p>
                 <h3 className="mb-2 text-[15px] font-bold text-[var(--ink)]">{s.title}</h3>
                 <p className="text-[13.5px] leading-6 text-[var(--muted)]">{s.body}</p>
               </div>

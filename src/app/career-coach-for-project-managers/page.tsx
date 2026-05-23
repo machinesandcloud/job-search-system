@@ -103,7 +103,7 @@ export default async function CareerCoachProjectManagersPage() {
             {CAREER_PATHS.map((path) => (
               <div key={path.from} className="rounded-2xl border border-[var(--border)] bg-white p-6">
                 <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">
-                  <span className="text-[var(--brand)]">{path.from}</span> → {path.to}
+                  <span className="text-[#4361EE]">{path.from}</span> → {path.to}
                 </p>
                 <p className="mt-3 text-[13.5px] leading-6 text-[var(--muted)]">{path.key}</p>
               </div>

@@ -104,7 +104,7 @@ export default async function HowToJobSearchAfterLayoffPage() {
                 },
               ].map((item, i) => (
                 <div key={i} className="flex gap-4 rounded-xl border border-[var(--border)] bg-[var(--bg)] p-4">
-                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[11px] font-bold text-[var(--brand)]">{i + 1}</div>
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[11px] font-bold text-[#4361EE]">{i + 1}</div>
                   <div>
                     <p className="font-semibold text-[var(--ink)] text-[14px]">{item.action}</p>
                     <p className="mt-1 text-[13.5px] leading-6 text-[var(--muted)]">{item.detail}</p>
@@ -210,7 +210,7 @@ export default async function HowToJobSearchAfterLayoffPage() {
                 <div key={item.channel} className="rounded-xl border border-[var(--border)] bg-white p-5">
                   <div className="flex items-start justify-between gap-4 mb-2">
                     <p className="font-bold text-[var(--ink)] text-[14px]">{item.channel}</p>
-                    <span className="shrink-0 rounded-full bg-[var(--brand)]/10 px-3 py-0.5 text-[11px] font-bold text-[var(--brand)]">{item.target}</span>
+                    <span className="shrink-0 rounded-full bg-[var(--brand)]/10 px-3 py-0.5 text-[11px] font-bold text-[#4361EE]">{item.target}</span>
                   </div>
                   <p className="text-[13.5px] leading-6 text-[var(--muted)]">{item.guidance}</p>
                 </div>
@@ -254,7 +254,7 @@ export default async function HowToJobSearchAfterLayoffPage() {
                 { tip: "Tell people you trust, early", detail: "The instinct is to hide a layoff until you have a new job. The reality is that the people in your network are your best job search asset, and they can&apos;t help you if they don&apos;t know. Tell the people who can actually help — managers, mentors, close colleagues — within the first two weeks." },
               ].map((item, i) => (
                 <div key={i} className="flex gap-4 rounded-xl border border-[var(--border)] bg-[var(--bg)] p-4">
-                  <span className="mt-0.5 text-[var(--brand)] shrink-0">→</span>
+                  <span className="mt-0.5 text-[#4361EE] shrink-0">→</span>
                   <div>
                     <p className="font-semibold text-[var(--ink)] text-[14px]">{item.tip}</p>
                     <p className="mt-1 text-[13.5px] leading-6 text-[var(--muted)]">{item.detail}</p>

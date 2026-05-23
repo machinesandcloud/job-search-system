@@ -142,7 +142,7 @@ export default async function HowToNegotiateRemoteWorkPage() {
                     </div>
                   </div>
                   <div className="px-6 py-5">
-                    <p className="mb-3 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">Opening script</p>
+                    <p className="mb-3 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">Opening script</p>
                     <blockquote className="rounded-xl border border-[var(--brand)]/20 bg-[var(--brand)]/[0.04] px-5 py-4 text-[13.5px] leading-7 text-[var(--ink)] italic">{item.script}</blockquote>
                   </div>
                   <div className="px-6 py-4">

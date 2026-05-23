@@ -154,7 +154,7 @@ export default async function NegotiateJobOfferPage() {
 
             <h2 className="mt-10 text-[1.7rem] font-extrabold tracking-[-0.025em] text-[var(--ink)]">Practice your negotiation before the call</h2>
             <p className="mt-4 text-[15px] leading-7 text-[var(--muted)]">
-              Negotiating under pressure feels different from reading scripts. Zari's <Link href="/salary-negotiation-coach" className="text-[var(--brand)] underline underline-offset-2">salary negotiation coach</Link> runs live negotiation simulations — you say your counter, Zari plays the recruiter and throws the objections you're likely to face, and you get feedback on your response in real time. So the real call isn't the first time you've practiced.
+              Negotiating under pressure feels different from reading scripts. Zari's <Link href="/salary-negotiation-coach" className="text-[#4361EE] underline underline-offset-2">salary negotiation coach</Link> runs live negotiation simulations — you say your counter, Zari plays the recruiter and throws the objections you're likely to face, and you get feedback on your response in real time. So the real call isn't the first time you've practiced.
             </p>
           </div>
 

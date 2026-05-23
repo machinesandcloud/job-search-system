@@ -117,7 +117,7 @@ export default async function ExecutivePresencePage() {
                 </div>
                 <div className="p-5 grid sm:grid-cols-3 gap-5">
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand)] mb-2">What it is</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#4361EE] mb-2">What it is</p>
                     <p className="text-[13px] leading-6 text-[var(--muted)]">{item.what_it_is}</p>
                   </div>
                   <div>

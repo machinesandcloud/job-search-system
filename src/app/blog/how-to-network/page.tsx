@@ -152,11 +152,11 @@ export default async function HowToNetworkPage() {
                   <div>
                     <div className="flex flex-wrap items-center gap-3">
                       <h3 className="font-bold text-[var(--ink)]">{item.tactic}</h3>
-                      <span className="rounded-full bg-[var(--brand)]/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">{item.when}</span>
+                      <span className="rounded-full bg-[var(--brand)]/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">{item.when}</span>
                     </div>
                     <p className="mt-2 text-[13.5px] leading-6 text-[var(--muted)]"><span className="font-semibold">How: </span>{item.how}</p>
                     <div className="mt-3 rounded-xl bg-[var(--brand)]/[0.05] p-3">
-                      <p className="text-[12px] font-semibold text-[var(--brand)]">Why it works: {item.why}</p>
+                      <p className="text-[12px] font-semibold text-[#4361EE]">Why it works: {item.why}</p>
                     </div>
                   </div>
                 </div>
@@ -174,7 +174,7 @@ export default async function HowToNetworkPage() {
           <div className="mt-8 space-y-4">
             {LINKEDIN_NETWORKING.map((item, i) => (
               <div key={item.action} className="flex gap-4 rounded-xl border border-[var(--border)] bg-white p-5">
-                <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[12px] font-extrabold text-[var(--brand)]">{i + 1}</span>
+                <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[12px] font-extrabold text-[#4361EE]">{i + 1}</span>
                 <div>
                   <p className="font-bold text-[var(--ink)]">{item.action}</p>
                   <p className="mt-1 text-[13.5px] text-[var(--muted)]">{item.detail}</p>

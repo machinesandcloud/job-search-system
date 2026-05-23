@@ -129,7 +129,7 @@ export default async function JobOfferLetterPage() {
                     <p className="text-[13px] leading-6 text-[var(--muted)]">{item.red_flags}</p>
                   </div>
                   <div className="rounded-xl bg-[var(--brand)]/[0.05] p-4">
-                    <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">What to ask</p>
+                    <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">What to ask</p>
                     <p className="text-[13px] leading-6 italic text-[var(--muted)]">{item.what_to_ask}</p>
                   </div>
                 </div>

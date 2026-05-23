@@ -107,7 +107,7 @@ export default async function UxDesignerResumePage() {
                 { signal: "Company / product context", detail: "Working on consumer products, enterprise SaaS, fintech, or healthcare each requires different UX knowledge. Your bullets should establish what kind of product you designed for — scale, domain, user type." },
               ].map((item, i) => (
                 <div key={i} className="flex gap-4 rounded-xl border border-[var(--border)] bg-[var(--bg)] p-4">
-                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[11px] font-bold text-[var(--brand)]">{i + 1}</div>
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[11px] font-bold text-[#4361EE]">{i + 1}</div>
                   <div>
                     <p className="font-semibold text-[var(--ink)] text-[14px]">{item.signal}</p>
                     <p className="mt-1 text-[13.5px] leading-6 text-[var(--muted)]">{item.detail}</p>
@@ -213,7 +213,7 @@ export default async function UxDesignerResumePage() {
                 <div key={item.section} className="rounded-xl border border-[var(--border)] bg-[var(--bg)] p-5">
                   <div className="flex items-center gap-3 mb-2">
                     <p className="font-bold text-[var(--ink)]">{item.section}</p>
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${item.required ? 'bg-[var(--brand)]/10 text-[var(--brand)]' : 'bg-slate-100 text-slate-400'}`}>
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${item.required ? 'bg-[var(--brand)]/10 text-[#4361EE]' : 'bg-slate-100 text-slate-400'}`}>
                       {item.required ? 'Required' : 'Optional'}
                     </span>
                   </div>
@@ -249,7 +249,7 @@ export default async function UxDesignerResumePage() {
                 },
               ].map(group => (
                 <div key={group.category} className="rounded-xl border border-[var(--border)] bg-[var(--bg)] p-4">
-                  <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-[var(--brand)]">{group.category}</p>
+                  <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-[#4361EE]">{group.category}</p>
                   <div className="flex flex-wrap gap-2">
                     {group.keywords.map(kw => (
                       <span key={kw} className="rounded-full border border-[var(--border)] bg-white px-3 py-1 text-[12px] text-[var(--ink)]">{kw}</span>

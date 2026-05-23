@@ -178,7 +178,7 @@ export default async function RemoteJobSearchTipsPage() {
                   <p className="mt-1 text-[13px] text-[var(--muted)]">{item.why}</p>
                 </div>
                 <div className="px-6 py-4">
-                  <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">How to signal this</p>
+                  <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">How to signal this</p>
                   <p className="text-[13.5px] leading-6 text-[var(--muted)]">{item.howToSignal}</p>
                 </div>
               </div>
@@ -195,7 +195,7 @@ export default async function RemoteJobSearchTipsPage() {
             {RESUME_SIGNALS.map((s) => (
               <div key={s.signal} className="rounded-xl border border-[var(--border)] bg-white p-5">
                 <p className="mb-2 font-bold text-[var(--ink)]">{s.signal}</p>
-                <code className="block rounded-lg bg-[var(--bg)] px-4 py-2.5 text-[13px] text-[var(--brand)]">{s.example}</code>
+                <code className="block rounded-lg bg-[var(--bg)] px-4 py-2.5 text-[13px] text-[#4361EE]">{s.example}</code>
               </div>
             ))}
           </div>

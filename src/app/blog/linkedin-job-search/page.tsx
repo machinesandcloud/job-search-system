@@ -162,7 +162,7 @@ export default async function LinkedInJobSearchPage() {
               </div>
             </div>
             <div className="rounded-xl border border-[var(--border)] bg-[var(--bg)] p-5">
-              <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">How to use Easy Apply effectively</p>
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">How to use Easy Apply effectively</p>
               <p className="text-[13.5px] leading-6 text-[var(--muted)]">{LINKEDIN_EASY_APPLY.how_to_use_it_well}</p>
             </div>
           </div>

@@ -166,7 +166,7 @@ export default async function HowToGetJobAtMicrosoftPage() {
               {HIRING_STAGES.map((stage, i) => (
                 <div key={i} className="overflow-hidden rounded-2xl border border-[var(--border)]">
                   <div className="flex items-start gap-4 border-b border-[var(--border)] bg-[var(--bg)] px-6 py-4">
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[12px] font-bold text-[var(--brand)]">{i + 1}</div>
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[12px] font-bold text-[#4361EE]">{i + 1}</div>
                     <div>
                       <p className="font-bold text-[var(--ink)]">{stage.stage}</p>
                       <p className="text-[12px] text-[var(--muted)]">{stage.duration}</p>
@@ -175,7 +175,7 @@ export default async function HowToGetJobAtMicrosoftPage() {
                   <div className="p-6 space-y-3">
                     <p className="text-[13.5px] leading-6 text-[var(--muted)]">{stage.what}</p>
                     <div className="rounded-lg border border-[var(--brand)]/15 bg-[var(--brand)]/[0.03] px-4 py-3">
-                      <p className="text-[12px] font-bold text-[var(--brand)] mb-1">Prep tip</p>
+                      <p className="text-[12px] font-bold text-[#4361EE] mb-1">Prep tip</p>
                       <p className="text-[13px] leading-6 text-[var(--muted)]">{stage.tip}</p>
                     </div>
                   </div>
@@ -224,7 +224,7 @@ export default async function HowToGetJobAtMicrosoftPage() {
                 { signal: "Collaboration signals in all stories", detail: "Microsoft values 'we' outcomes. If all your STAR stories make you the sole hero — 'I built this, I fixed this, I drove this result' — it reads as poor collaborative instinct. Strong Microsoft candidates give credit in their stories naturally." },
               ].map((item, i) => (
                 <div key={i} className="flex gap-4 rounded-xl border border-[var(--border)] bg-[var(--bg)] p-4">
-                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[11px] font-bold text-[var(--brand)]">{i + 1}</div>
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[11px] font-bold text-[#4361EE]">{i + 1}</div>
                   <div>
                     <p className="font-semibold text-[var(--ink)] text-[14px]">{item.signal}</p>
                     <p className="mt-1 text-[13.5px] leading-6 text-[var(--muted)]">{item.detail}</p>

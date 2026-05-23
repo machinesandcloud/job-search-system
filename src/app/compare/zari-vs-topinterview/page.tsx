@@ -139,7 +139,7 @@ export default async function ZariVsTopInterviewPage() {
               </ul>
             </div>
             <div className="rounded-2xl border border-[var(--brand)]/30 bg-[var(--brand)]/[0.08] p-5">
-              <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-[var(--brand)]/70">Zari is better for</p>
+              <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-[#4361EE]/70">Zari is better for</p>
               <ul className="mt-3 space-y-2">
                 {[
                   "Unlimited practice across a full job search with multiple interview rounds",
@@ -148,7 +148,7 @@ export default async function ZariVsTopInterviewPage() {
                   "Full career coaching beyond just interviews — resume, LinkedIn, salary",
                 ].map(item => (
                   <li key={item} className="flex items-start gap-2 text-[13px] text-white/80">
-                    <span className="mt-0.5 text-[var(--brand)]">✓</span> {item}
+                    <span className="mt-0.5 text-[#4361EE]">✓</span> {item}
                   </li>
                 ))}
               </ul>
@@ -168,7 +168,7 @@ export default async function ZariVsTopInterviewPage() {
                 <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--bg)] px-6 py-4">
                   <p className="font-bold text-[var(--ink)]">{dim.category}</p>
                   <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${
-                    dim.winner === "zari" ? "bg-[var(--brand)]/10 text-[var(--brand)]" : "bg-slate-100 text-slate-500"
+                    dim.winner === "zari" ? "bg-[var(--brand)]/10 text-[#4361EE]" : "bg-slate-100 text-slate-500"
                   }`}>
                     {dim.winner === "zari" ? "Zari wins" : dim.winner === "topinterview" ? "TopInterview wins" : "Tie"}
                   </span>
@@ -179,7 +179,7 @@ export default async function ZariVsTopInterviewPage() {
                     <p className="text-[13.5px] leading-6 text-[var(--muted)]">{dim.topinterview}</p>
                   </div>
                   <div className="p-5">
-                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">Zari</p>
+                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">Zari</p>
                     <p className="text-[13.5px] leading-6 text-[var(--muted)]">{dim.zari}</p>
                   </div>
                 </div>

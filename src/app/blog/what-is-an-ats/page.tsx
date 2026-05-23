@@ -113,10 +113,10 @@ export default async function WhatIsAnAtsPage() {
 
             <h2 className="mt-10 text-[1.7rem] font-extrabold tracking-[-0.025em] text-[var(--ink)]">The fastest way to check your resume's ATS score</h2>
             <p className="mt-4 text-[15px] leading-7 text-[var(--muted)]">
-              The quickest way to know if your resume passes ATS is to test it. Zari's <Link href="/free-ats-checker" className="text-[var(--brand)] underline underline-offset-2">free ATS checker</Link> parses your resume the same way ATS software does and returns a detailed score — formatting errors, keyword gaps, section issues — with specific fixes for each.
+              The quickest way to know if your resume passes ATS is to test it. Zari's <Link href="/free-ats-checker" className="text-[#4361EE] underline underline-offset-2">free ATS checker</Link> parses your resume the same way ATS software does and returns a detailed score — formatting errors, keyword gaps, section issues — with specific fixes for each.
             </p>
             <p className="mt-4 text-[15px] leading-7 text-[var(--muted)]">
-              If you want to go deeper, <Link href="/ai-resume-writer" className="text-[var(--brand)] underline underline-offset-2">Zari's AI resume writer</Link> rewrites every weak bullet with ATS-targeted language so you don't just pass the filter — you rank near the top of it.
+              If you want to go deeper, <Link href="/ai-resume-writer" className="text-[#4361EE] underline underline-offset-2">Zari's AI resume writer</Link> rewrites every weak bullet with ATS-targeted language so you don't just pass the filter — you rank near the top of it.
             </p>
           </div>
 

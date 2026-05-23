@@ -122,7 +122,7 @@ export default async function LegalResumePage() {
                 <p className="font-bold text-[var(--ink)]">{item.signal}</p>
                 <p className="mt-2 text-[13.5px] leading-6 text-[var(--muted)]">{item.why}</p>
                 <div className="mt-3 rounded-xl bg-[var(--bg)] p-3">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--brand)] mb-1">ATS tip</p>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-[#4361EE] mb-1">ATS tip</p>
                   <p className="text-[12.5px] text-[var(--muted)]">{item.ats_tip}</p>
                 </div>
               </div>
@@ -174,7 +174,7 @@ export default async function LegalResumePage() {
                     <p className="text-[12.5px] leading-5 text-[var(--muted)]">{area.what_they_look_for}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand)] mb-1">ATS keywords</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#4361EE] mb-1">ATS keywords</p>
                     <p className="text-[12.5px] leading-5 text-[var(--muted)]">{area.keywords}</p>
                   </div>
                   <div>

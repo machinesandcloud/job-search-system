@@ -44,7 +44,7 @@ export default async function CareerCoachToolPage() {
               { href: "/salary-negotiation-coach", title: "Salary Negotiation", body: "Market benchmarks, counter-offer scripts, and live negotiation simulation." },
             ].map((item) => (
               <Link key={item.title} href={item.href} className="group rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-6 transition-all hover:-translate-y-1 hover:border-[var(--brand)]/30">
-                <h3 className="mb-2 text-[15px] font-bold text-[var(--ink)] group-hover:text-[var(--brand)]">{item.title}</h3>
+                <h3 className="mb-2 text-[15px] font-bold text-[var(--ink)] group-hover:text-[#4361EE]">{item.title}</h3>
                 <p className="text-[13.5px] leading-6 text-[var(--muted)]">{item.body}</p>
               </Link>
             ))}

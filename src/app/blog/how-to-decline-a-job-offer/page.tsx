@@ -161,7 +161,7 @@ export default async function HowToDeclineAJobOfferPage() {
             {THE_RULES.map((item, i) => (
               <div key={item.rule} className="rounded-xl border border-[var(--border)] bg-white p-5">
                 <div className="flex items-start gap-3">
-                  <span className="flex-shrink-0 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[11px] font-bold text-[var(--brand)]">{i + 1}</span>
+                  <span className="flex-shrink-0 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[11px] font-bold text-[#4361EE]">{i + 1}</span>
                   <div>
                     <p className="font-bold text-[var(--ink)]">{item.rule}</p>
                     <p className="mt-1.5 text-[13px] leading-6 text-[var(--muted)]">{item.detail}</p>

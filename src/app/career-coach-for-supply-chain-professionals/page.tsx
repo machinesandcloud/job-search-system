@@ -158,7 +158,7 @@ export default async function CareerCoachSupplyChainPage() {
               <div key={rp.problem} className="rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-6">
                 <p className="mb-3 font-bold text-[var(--ink)]">{rp.problem}</p>
                 <div className="rounded-lg bg-[var(--brand)]/[0.06] p-3">
-                  <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">The fix</p>
+                  <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">The fix</p>
                   <p className="text-[13px] leading-6 text-[var(--muted)]">{rp.fix}</p>
                 </div>
               </div>

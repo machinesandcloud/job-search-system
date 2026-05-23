@@ -115,7 +115,7 @@ export default async function SalaryBandsPage() {
                     <h3 className="font-bold text-[var(--ink)]">{item.concept}</h3>
                     <p className="mt-2 text-[13.5px] leading-6 text-[var(--muted)]">{item.explanation}</p>
                     <div className="mt-4 rounded-xl bg-[var(--brand)]/[0.05] p-4">
-                      <p className="text-[12px] font-semibold text-[var(--brand)]">Key insight: {item.insight}</p>
+                      <p className="text-[12px] font-semibold text-[#4361EE]">Key insight: {item.insight}</p>
                     </div>
                   </div>
                 </div>
@@ -142,7 +142,7 @@ export default async function SalaryBandsPage() {
                     <p className="text-[13.5px] leading-6 text-[var(--muted)]">{item.whatItActuallyMeans}</p>
                   </div>
                   <div className="rounded-xl border border-[var(--brand)]/20 bg-[var(--brand)]/[0.04] p-4">
-                    <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">How to respond</p>
+                    <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">How to respond</p>
                     <p className="text-[13px] italic leading-6 text-[var(--muted)]">{item.howToRespond}</p>
                   </div>
                   <div className="rounded-xl bg-emerald-50 p-3">

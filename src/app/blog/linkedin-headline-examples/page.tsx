@@ -174,7 +174,7 @@ export default async function LinkedinHeadlineExamplesPage() {
 
             <h2 className="mt-10 text-[1.7rem] font-extrabold tracking-[-0.025em] text-[var(--ink)]">Optimize your full LinkedIn profile, not just the headline</h2>
             <p className="mt-4 text-[15px] leading-7 text-[var(--muted)]">
-              The headline is the highest-leverage element, but recruiters who click through also read your About section, your featured section, and your experience bullets. Zari's <Link href="/ai-linkedin-optimizer" className="text-[var(--brand)] underline underline-offset-2">AI LinkedIn optimizer</Link> rewrites all of it — headline, About, experience — for the role you're targeting, not the role you have.
+              The headline is the highest-leverage element, but recruiters who click through also read your About section, your featured section, and your experience bullets. Zari's <Link href="/ai-linkedin-optimizer" className="text-[#4361EE] underline underline-offset-2">AI LinkedIn optimizer</Link> rewrites all of it — headline, About, experience — for the role you're targeting, not the role you have.
             </p>
           </div>
 

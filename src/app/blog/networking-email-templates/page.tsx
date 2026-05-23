@@ -159,7 +159,7 @@ export default async function NetworkingEmailTemplatesPage() {
                 { rule: "Brevity", detail: "5–7 sentences max. If you can't say it in that space, you haven't figured out what you're actually asking." },
               ].map((item) => (
                 <div key={item.rule} className="flex gap-3 rounded-xl border border-[var(--border)] bg-[var(--bg)] p-4">
-                  <span className="mt-0.5 text-[var(--brand)] font-bold">→</span>
+                  <span className="mt-0.5 text-[#4361EE] font-bold">→</span>
                   <div>
                     <p className="font-bold text-[var(--ink)]">{item.rule}</p>
                     <p className="text-[13.5px] leading-5 text-[var(--muted)]">{item.detail}</p>

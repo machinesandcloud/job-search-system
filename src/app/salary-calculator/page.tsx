@@ -96,7 +96,7 @@ export default function SalaryCalculatorPage() {
             {/* Result */}
             {salaryRange && data && (
               <div className="mt-8 rounded-xl border-2 border-[var(--brand)]/20 bg-[var(--brand)]/[0.03] p-6">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--brand)]">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-[#4361EE]">
                   {ROLE_SALARIES[roleKey].displayName} · {data.city.displayName} · {LEVELS.find(l => l.key === level)?.label}
                 </p>
                 <div className="mt-4 grid grid-cols-3 gap-4">
@@ -106,8 +106,8 @@ export default function SalaryCalculatorPage() {
                     <p className="text-[11px] text-[var(--muted)]">base salary</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">Median</p>
-                    <p className="mt-1 text-[1.6rem] font-extrabold text-[var(--brand)]">{formatSalary(salaryRange.median, sym)}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">Median</p>
+                    <p className="mt-1 text-[1.6rem] font-extrabold text-[#4361EE]">{formatSalary(salaryRange.median, sym)}</p>
                     <p className="text-[11px] text-[var(--muted)]">base salary</p>
                   </div>
                   <div className="text-center">

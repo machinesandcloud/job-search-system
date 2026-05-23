@@ -227,7 +227,7 @@ export default async function AiCareerCoachAustraliaPage() {
           </h2>
           <p className="mb-8 text-[14px] text-[var(--muted)]">
             Senior software engineer median salaries by city. Full breakdowns at{" "}
-            <Link href="/salary" className="text-[var(--brand)] hover:underline">zaricoach.com/salary</Link>.
+            <Link href="/salary" className="text-[#4361EE] hover:underline">zaricoach.com/salary</Link>.
           </p>
           <div className="grid gap-5 sm:grid-cols-2">
             {CITIES.map(({ name, flag, topRole, salary, description, color }) => (

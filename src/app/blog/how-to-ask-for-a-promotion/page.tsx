@@ -168,7 +168,7 @@ export default async function HowToAskForAPromotionPage() {
                       <p className="text-[13.5px] leading-6 italic text-[var(--ink)]">{item.script}</p>
                     </div>
                     <div className="mt-3 rounded-xl bg-[var(--brand)]/[0.05] p-3">
-                      <p className="text-[12px] font-semibold text-[var(--brand)]"><span className="font-bold">Why this works: </span>{item.why}</p>
+                      <p className="text-[12px] font-semibold text-[#4361EE]"><span className="font-bold">Why this works: </span>{item.why}</p>
                     </div>
                   </div>
                 </div>
@@ -186,7 +186,7 @@ export default async function HowToAskForAPromotionPage() {
           <div className="mt-8 space-y-5">
             {BY_SENIORITY.map((item) => (
               <div key={item.level} className="rounded-2xl border border-[var(--border)] bg-white p-6">
-                <h3 className="font-bold text-[var(--brand)]">{item.level}</h3>
+                <h3 className="font-bold text-[#4361EE]">{item.level}</h3>
                 <div className="mt-4 space-y-3 text-[13.5px] text-[var(--muted)]">
                   <div>
                     <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">What they look for</p>

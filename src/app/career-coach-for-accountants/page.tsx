@@ -139,7 +139,7 @@ export default async function CareerCoachAccountantsPage() {
                     <p className="text-[13.5px] leading-6 text-[var(--muted)]">{t.challenge}</p>
                   </div>
                   <div className="p-5">
-                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">What Zari coaches</p>
+                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">What Zari coaches</p>
                     <p className="text-[13.5px] leading-6 text-[var(--muted)]">{t.coaching}</p>
                   </div>
                 </div>

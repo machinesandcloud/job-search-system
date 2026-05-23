@@ -176,7 +176,7 @@ export default async function SoftwareEngineerInterviewQuestionsPage() {
                     <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted)] mb-3">Sample questions</p>
                     <ul className="space-y-2">
                       {cat.sample_questions.map((q) => (
-                        <li key={q} className="flex gap-2 text-[12.5px] leading-5 text-[var(--ink)]"><span className="text-[var(--brand)] font-bold flex-shrink-0">→</span>{q}</li>
+                        <li key={q} className="flex gap-2 text-[12.5px] leading-5 text-[var(--ink)]"><span className="text-[#4361EE] font-bold flex-shrink-0">→</span>{q}</li>
                       ))}
                     </ul>
                   </div>
@@ -197,7 +197,7 @@ export default async function SoftwareEngineerInterviewQuestionsPage() {
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             {COMPANY_DIFFERENCES.map((item) => (
               <div key={item.company} className="rounded-xl border border-[var(--border)] bg-white p-5">
-                <p className="font-bold text-[var(--brand)] mb-2">{item.company}</p>
+                <p className="font-bold text-[#4361EE] mb-2">{item.company}</p>
                 <p className="text-[13px] leading-6 text-[var(--muted)]">{item.focus}</p>
               </div>
             ))}

@@ -105,7 +105,7 @@ export default async function CareerCoachRecentGradsPage() {
                 </div>
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">{step.week}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">{step.week}</p>
                     <p className="font-bold text-[var(--ink)]">— {step.action}</p>
                   </div>
                   <p className="text-[13.5px] leading-6 text-[var(--muted)]">{step.detail}</p>

@@ -1975,7 +1975,7 @@ function PostCard({ post }: { post: typeof POSTS[0] }) {
           )}
           <span className="ml-auto text-[11px] text-[var(--muted)]">{post.readTime}</span>
         </div>
-        <h2 className="mb-3 flex-1 text-[15px] font-extrabold leading-snug tracking-[-0.01em] text-[var(--ink)] transition-colors group-hover:text-[var(--brand)]">{post.title}</h2>
+        <h2 className="mb-3 flex-1 text-[15px] font-extrabold leading-snug tracking-[-0.01em] text-[var(--ink)] transition-colors group-hover:text-[#4361EE]">{post.title}</h2>
         <p className="text-[13px] leading-[1.6] text-[var(--muted)] line-clamp-3">{post.excerpt}</p>
       </div>
       <div className="flex items-center justify-between border-t border-[var(--border)] bg-[var(--bg)]/60 px-6 py-3">
@@ -2005,7 +2005,7 @@ function HeroPostCard({ post }: { post: typeof POSTS[0] }) {
           )}
           <span className="ml-auto text-[12px] text-[var(--muted)]">{post.readTime}</span>
         </div>
-        <h2 className="text-[1.35rem] font-extrabold leading-tight tracking-[-0.025em] text-[var(--ink)] transition-colors group-hover:text-[var(--brand)]">{post.title}</h2>
+        <h2 className="text-[1.35rem] font-extrabold leading-tight tracking-[-0.025em] text-[var(--ink)] transition-colors group-hover:text-[#4361EE]">{post.title}</h2>
         <p className="mt-3 text-[14px] leading-7 text-[var(--muted)]">{post.excerpt}</p>
         <div className="mt-6 flex items-center gap-3">
           <span className="flex items-center gap-1.5 text-[13px] font-bold transition-all group-hover:gap-2" style={{ color: post.accent }}>
@@ -2147,7 +2147,7 @@ export default async function BlogPage() {
                 </div>
                 <div className="p-4 space-y-1.5">
                   {region.links.map(link => (
-                    <Link key={link.href} href={link.href} className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[12.5px] text-[var(--muted)] hover:bg-[var(--bg)] hover:text-[var(--brand)] transition-all">
+                    <Link key={link.href} href={link.href} className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[12.5px] text-[var(--muted)] hover:bg-[var(--bg)] hover:text-[#4361EE] transition-all">
                       <span className="h-1 w-1 flex-shrink-0 rounded-full" style={{ background: region.color }} />
                       {link.label}
                     </Link>

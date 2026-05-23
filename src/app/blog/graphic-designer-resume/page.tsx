@@ -135,7 +135,7 @@ export default async function GraphicDesignerResumePage() {
             {PORTFOLIO_VS_RESUME.map((item) => (
               <div key={item.item} className="rounded-2xl border border-[var(--border)] bg-white p-6">
                 <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-[var(--brand)]/10 px-3 py-1">
-                  <p className="text-[12px] font-bold text-[var(--brand)]">{item.item}</p>
+                  <p className="text-[12px] font-bold text-[#4361EE]">{item.item}</p>
                 </div>
                 <p className="font-bold text-[var(--ink)]">{item.role}</p>
                 <p className="mt-2 text-[13px] text-[var(--muted)]"><span className="font-semibold">When it matters: </span>{item.when}</p>
@@ -160,7 +160,7 @@ export default async function GraphicDesignerResumePage() {
                 <div className="flex flex-wrap items-center gap-3 mb-3">
                   <h3 className="font-bold text-[var(--ink)]">{item.tool}</h3>
                   {item.differentiator && (
-                    <span className="rounded-full bg-[var(--brand)]/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">Differentiator</span>
+                    <span className="rounded-full bg-[var(--brand)]/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">Differentiator</span>
                   )}
                 </div>
                 <p className="text-[13.5px] leading-6 text-[var(--muted)]">{item.what_it_signals}</p>
@@ -195,7 +195,7 @@ export default async function GraphicDesignerResumePage() {
                   </div>
                 </div>
                 <div className="border-t border-[var(--border)] bg-[var(--bg)] px-5 py-3">
-                  <p className="text-[12px] text-[var(--muted)]"><span className="font-bold text-[var(--brand)]">What changed: </span>{item.fix}</p>
+                  <p className="text-[12px] text-[var(--muted)]"><span className="font-bold text-[#4361EE]">What changed: </span>{item.fix}</p>
                 </div>
               </div>
             ))}

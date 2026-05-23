@@ -101,7 +101,7 @@ export default async function ZariVsMicrosoftCopilotPage() {
               <p className="mt-3 text-[13.5px] leading-6 text-[var(--muted)]">Copilot is embedded in Word, Outlook, LinkedIn, Teams, and other Microsoft products. It&apos;s a powerful general-purpose AI that can edit documents, summarize meetings, draft emails, and search the web. It has no career coaching framework and no model of your job search — it&apos;s a smart assistant that does whatever you prompt it to do.</p>
             </div>
             <div className="rounded-2xl border border-[var(--brand)]/20 bg-[var(--brand)]/[0.04] p-6">
-              <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-[var(--brand)]">What Zari is</p>
+              <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-[#4361EE]">What Zari is</p>
               <p className="text-[15px] font-bold text-[var(--ink)]">A purpose-built AI career coaching platform</p>
               <p className="mt-3 text-[13.5px] leading-6 text-[var(--muted)]">Zari is built specifically for job search — ATS resume scoring, STAR interview coaching, LinkedIn profile optimization, and salary negotiation strategy. It has session memory that tracks your search context, role targets, and coaching history. Unlike general AI, Zari brings a coaching framework to every interaction rather than responding to open-ended prompts.</p>
             </div>
@@ -110,7 +110,7 @@ export default async function ZariVsMicrosoftCopilotPage() {
           {/* Score summary */}
           <div className="mt-6 grid grid-cols-2 gap-4">
             <div className="rounded-xl border border-[var(--border)] bg-[var(--bg)] p-4 text-center">
-              <p className="text-3xl font-extrabold text-[var(--brand)]">{zariWins}<span className="text-[16px]">/{SCENARIOS.length}</span></p>
+              <p className="text-3xl font-extrabold text-[#4361EE]">{zariWins}<span className="text-[16px]">/{SCENARIOS.length}</span></p>
               <p className="mt-1 text-[12px] text-[var(--muted)]">scenarios where Zari wins</p>
             </div>
             <div className="rounded-xl border border-[var(--border)] bg-[var(--bg)] p-4 text-center">
@@ -130,7 +130,7 @@ export default async function ZariVsMicrosoftCopilotPage() {
               <div key={s.task} className="overflow-hidden rounded-2xl border border-[var(--border)] bg-white">
                 <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--bg)] px-6 py-4">
                   <p className="font-bold text-[var(--ink)]">{s.task}</p>
-                  <span className={`rounded-full px-3 py-1 text-[11px] font-bold ${s.winner === "Zari" ? "bg-[var(--brand)]/10 text-[var(--brand)]" : "bg-gray-100 text-gray-700"}`}>{s.winner} wins</span>
+                  <span className={`rounded-full px-3 py-1 text-[11px] font-bold ${s.winner === "Zari" ? "bg-[var(--brand)]/10 text-[#4361EE]" : "bg-gray-100 text-gray-700"}`}>{s.winner} wins</span>
                 </div>
                 <div className="grid sm:grid-cols-2">
                   <div className="border-b border-[var(--border)] p-5 sm:border-b-0 sm:border-r">
@@ -142,8 +142,8 @@ export default async function ZariVsMicrosoftCopilotPage() {
                   </div>
                   <div className="p-5">
                     <div className="mb-2 flex items-center gap-2">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">Zari</p>
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${s.zari.verdict === "Built for this" ? "bg-[var(--brand)]/10 text-[var(--brand)]" : "bg-gray-50 text-gray-500"}`}>{s.zari.verdict}</span>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">Zari</p>
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${s.zari.verdict === "Built for this" ? "bg-[var(--brand)]/10 text-[#4361EE]" : "bg-gray-50 text-gray-500"}`}>{s.zari.verdict}</span>
                     </div>
                     <p className="text-[13.5px] leading-6 text-[var(--muted)]">{s.zari.detail}</p>
                   </div>
@@ -158,13 +158,13 @@ export default async function ZariVsMicrosoftCopilotPage() {
       <section className="bg-white py-14">
         <div className="mx-auto max-w-3xl px-6">
           <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-8">
-            <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-[var(--brand)]">Honest verdict</p>
+            <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-[#4361EE]">Honest verdict</p>
             <p className="text-[17px] font-bold text-[var(--ink)]">Use both — they don&apos;t actually compete for most job search tasks</p>
             <p className="mt-4 text-[14px] leading-7 text-[var(--muted)]">Copilot is genuinely good at company research, email drafting, and document editing. If you have Microsoft 365, you already have access to it and there&apos;s no reason not to use it for those tasks.</p>
             <p className="mt-4 text-[14px] leading-7 text-[var(--muted)]">But Copilot has no model of your job search, no ATS framework, no STAR coaching, and no session memory. For everything that directly affects your candidacy — resume scoring, interview prep, LinkedIn optimization, salary negotiation — Zari is built for the problem in a way a general-purpose AI fundamentally isn&apos;t.</p>
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               <div className="rounded-xl bg-[var(--brand)]/[0.06] p-4">
-                <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-[var(--brand)]">Use Copilot for</p>
+                <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-[#4361EE]">Use Copilot for</p>
                 <ul className="space-y-1.5 text-[13px] text-[var(--muted)]">
                   <li>→ Company and industry research</li>
                   <li>→ Email drafting and editing</li>
@@ -173,7 +173,7 @@ export default async function ZariVsMicrosoftCopilotPage() {
                 </ul>
               </div>
               <div className="rounded-xl bg-[var(--brand)]/[0.06] p-4">
-                <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-[var(--brand)]">Use Zari for</p>
+                <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-[#4361EE]">Use Zari for</p>
                 <ul className="space-y-1.5 text-[13px] text-[var(--muted)]">
                   <li>→ ATS resume scoring and rewriting</li>
                   <li>→ Behavioral interview coaching</li>

@@ -114,7 +114,7 @@ export default async function CareerCoachLawyersPage() {
                     <p className="text-[13.5px] leading-6 text-[var(--muted)]">{t.challenge}</p>
                   </div>
                   <div className="p-5">
-                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">How Zari helps</p>
+                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">How Zari helps</p>
                     <p className="text-[13.5px] leading-6 text-[var(--muted)]">{t.howZariHelps}</p>
                   </div>
                 </div>

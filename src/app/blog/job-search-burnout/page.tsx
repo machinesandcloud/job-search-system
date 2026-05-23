@@ -130,7 +130,7 @@ export default async function JobSearchBurnoutPage() {
                     <p className="text-[13px] leading-6 text-[var(--muted)]">{stage.whyItHappens}</p>
                   </div>
                   <div className="rounded-xl bg-[var(--brand)]/[0.05] p-4">
-                    <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">What actually helps</p>
+                    <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">What actually helps</p>
                     <p className="text-[13px] leading-6 text-[var(--muted)]">{stage.whatHelps}</p>
                   </div>
                 </div>

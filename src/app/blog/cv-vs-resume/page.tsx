@@ -153,7 +153,7 @@ export default async function CvVsResumePage() {
                     <p className="text-[12.5px] leading-6 text-[var(--muted)]">{row.cv.detail}</p>
                   </div>
                   <div className="bg-[var(--brand)]/[0.03] px-6 py-4">
-                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">Resume</p>
+                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">Resume</p>
                     <p className="mb-2 font-semibold text-[13.5px] text-[var(--ink)]">{row.resume.answer}</p>
                     <p className="text-[12.5px] leading-6 text-[var(--muted)]">{row.resume.detail}</p>
                   </div>

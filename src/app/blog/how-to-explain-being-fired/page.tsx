@@ -164,7 +164,7 @@ export default async function HowToExplainBeingFiredPage() {
                 { response: "Ask: 'Is this something we'd be likely to encounter here?'", action: "This is a real question. Answer it directly: 'I don't think so, and here's why — [specific reason this context is different or what you've changed].'" },
               ].map(item => (
                 <div key={item.response} className="flex gap-4 rounded-xl border border-[var(--border)] bg-white p-4">
-                  <span className="mt-0.5 text-[var(--brand)]">→</span>
+                  <span className="mt-0.5 text-[#4361EE]">→</span>
                   <div>
                     <p className="font-semibold text-[var(--ink)] text-[14px]">{item.response}</p>
                     <p className="mt-1 text-[13.5px] leading-6 text-[var(--muted)]">{item.action}</p>

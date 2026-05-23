@@ -35,7 +35,7 @@ export default async function BestAiCareerCoachPage() {
             All articles
           </Link>
           <div className="mb-4 flex items-center gap-3">
-            <span className="rounded-full bg-[var(--brand)]/20 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">Comparison</span>
+            <span className="rounded-full bg-[var(--brand)]/20 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">Comparison</span>
             <span className="text-[12px] text-white/35">8 min read · May 2025</span>
           </div>
           <h1 className="mb-5 text-[2.4rem] font-extrabold leading-[1.1] tracking-[-0.03em] md:text-[3rem]">Best AI Career Coach in 2025 — Honest Comparison</h1>
@@ -50,10 +50,10 @@ export default async function BestAiCareerCoachPage() {
             <div className="mb-10 rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-6">
               <p className="text-[13px] font-bold uppercase tracking-wider text-[var(--muted)] mb-3">Quick summary</p>
               <ul className="space-y-2 text-[14px] text-[var(--ink-2)]">
-                <li className="flex gap-2"><span className="text-[var(--brand)] font-bold">→</span> <strong>Best overall AI career coach:</strong> Zari — resume, LinkedIn, interviews, and strategy in one platform with session memory</li>
-                <li className="flex gap-2"><span className="text-[var(--brand)] font-bold">→</span> <strong>Best for resume only:</strong> Resume.io (though lacks coaching depth)</li>
-                <li className="flex gap-2"><span className="text-[var(--brand)] font-bold">→</span> <strong>Best for job tracking:</strong> Teal (not a coaching tool — a job search tracker)</li>
-                <li className="flex gap-2"><span className="text-[var(--brand)] font-bold">→</span> <strong>Key finding:</strong> Most "AI career coaches" are one-trick tools. Only Zari offers multi-surface coaching with session memory.</li>
+                <li className="flex gap-2"><span className="text-[#4361EE] font-bold">→</span> <strong>Best overall AI career coach:</strong> Zari — resume, LinkedIn, interviews, and strategy in one platform with session memory</li>
+                <li className="flex gap-2"><span className="text-[#4361EE] font-bold">→</span> <strong>Best for resume only:</strong> Resume.io (though lacks coaching depth)</li>
+                <li className="flex gap-2"><span className="text-[#4361EE] font-bold">→</span> <strong>Best for job tracking:</strong> Teal (not a coaching tool — a job search tracker)</li>
+                <li className="flex gap-2"><span className="text-[#4361EE] font-bold">→</span> <strong>Key finding:</strong> Most "AI career coaches" are one-trick tools. Only Zari offers multi-surface coaching with session memory.</li>
               </ul>
             </div>
 
@@ -74,7 +74,7 @@ export default async function BestAiCareerCoachPage() {
             <p className="text-[15.5px] leading-8 text-[var(--muted)]">The standout feature is specificity. Zari doesn&apos;t say &quot;make this bullet more impactful.&quot; It writes the improved version. That&apos;s the difference between a tool and a coach.</p>
             <div className="my-4 rounded-xl border border-[var(--brand)]/20 bg-[var(--brand)]/[0.04] p-4">
               <p className="text-[13.5px] text-[var(--muted)]"><strong className="text-[var(--ink)]">Best for:</strong> Job seekers who want complete career support in one place. Career changers. Professionals preparing for promotions. Anyone who wants coaching that builds over time.</p>
-              <p className="mt-2 text-[13px] text-[var(--brand)] font-semibold">Free to start · No credit card</p>
+              <p className="mt-2 text-[13px] text-[#4361EE] font-semibold">Free to start · No credit card</p>
             </div>
 
             <h3 className="text-[1.3rem] font-bold text-[var(--ink)]">2. Kleo — Good for LinkedIn-only</h3>
@@ -116,8 +116,8 @@ export default async function BestAiCareerCoachPage() {
               { href: "/blog/how-to-prepare-for-job-interview", title: "How to Prepare for a Job Interview: Complete Guide", tag: "Interviews" },
             ].map((a) => (
               <Link key={a.href} href={a.href} className="group rounded-2xl border border-[var(--border)] bg-white p-5 transition-all hover:-translate-y-0.5">
-                <span className="mb-2 inline-block rounded-full bg-[var(--brand)]/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">{a.tag}</span>
-                <p className="text-[14px] font-semibold text-[var(--ink)] group-hover:text-[var(--brand)]">{a.title}</p>
+                <span className="mb-2 inline-block rounded-full bg-[var(--brand)]/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">{a.tag}</span>
+                <p className="text-[14px] font-semibold text-[var(--ink)] group-hover:text-[#4361EE]">{a.title}</p>
               </Link>
             ))}
           </div>

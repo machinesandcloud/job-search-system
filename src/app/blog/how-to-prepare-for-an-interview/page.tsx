@@ -150,7 +150,7 @@ export default async function HowToPrepareForAnInterviewPage() {
                   <ul className="space-y-1.5">
                     {layer.how_to.map((step, j) => (
                       <li key={j} className="flex gap-2 text-[12.5px] leading-5 text-[var(--muted)]">
-                        <span className="text-[var(--brand)] font-bold flex-shrink-0">→</span>
+                        <span className="text-[#4361EE] font-bold flex-shrink-0">→</span>
                         {step}
                       </li>
                     ))}

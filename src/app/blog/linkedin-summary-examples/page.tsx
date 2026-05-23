@@ -175,7 +175,7 @@ export default async function LinkedInSummaryExamplesPage() {
 
             <h2 className="mt-10 text-[1.7rem] font-extrabold tracking-[-0.025em] text-[var(--ink)]">Get your LinkedIn About written with AI — free</h2>
             <p className="mt-4 text-[15px] leading-7 text-[var(--muted)]">
-              Zari&apos;s <Link href="/ai-linkedin-optimizer" className="text-[var(--brand)] underline underline-offset-2">AI LinkedIn optimizer</Link> reads your experience and target role and writes a LinkedIn About section that follows this formula — in under 3 minutes. Your profile, your voice, recruiter-optimized.
+              Zari&apos;s <Link href="/ai-linkedin-optimizer" className="text-[#4361EE] underline underline-offset-2">AI LinkedIn optimizer</Link> reads your experience and target role and writes a LinkedIn About section that follows this formula — in under 3 minutes. Your profile, your voice, recruiter-optimized.
             </p>
           </div>
 

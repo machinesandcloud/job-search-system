@@ -172,7 +172,7 @@ export default async function OperationsManagerResumePage() {
                   </div>
                 </div>
                 <div className="border-t border-[var(--border)] bg-[var(--bg)] px-5 py-3">
-                  <p className="text-[12px] text-[var(--muted)]"><span className="font-bold text-[var(--brand)]">What changed: </span>{item.fix}</p>
+                  <p className="text-[12px] text-[var(--muted)]"><span className="font-bold text-[#4361EE]">What changed: </span>{item.fix}</p>
                 </div>
               </div>
             ))}
@@ -199,7 +199,7 @@ export default async function OperationsManagerResumePage() {
                     <p className="leading-6">{sector.atsKeywords}</p>
                   </div>
                   <div className="rounded-lg bg-[var(--brand)]/[0.05] p-3">
-                    <p className="font-semibold text-[var(--brand)]">Certifications: {sector.certifications}</p>
+                    <p className="font-semibold text-[#4361EE]">Certifications: {sector.certifications}</p>
                   </div>
                 </div>
               </div>

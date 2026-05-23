@@ -131,7 +131,7 @@ export default async function HowToGetAJobAtApplePage() {
           <div className="mt-6 space-y-4">
             {APPLE_DIFFERENTIATORS.map((item, i) => (
               <div key={i} className="flex gap-5 rounded-2xl border border-[var(--border)] bg-white p-5">
-                <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[13px] font-bold text-[var(--brand)]">{i + 1}</span>
+                <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[13px] font-bold text-[#4361EE]">{i + 1}</span>
                 <div>
                   <p className="font-bold text-[var(--ink)]">{item.signal}</p>
                   <p className="mt-2 text-[13px] leading-6 text-[var(--muted)]">{item.detail}</p>
@@ -175,7 +175,7 @@ export default async function HowToGetAJobAtApplePage() {
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             {WHAT_SETS_APPLE_APART.map((item) => (
               <div key={item.label} className="rounded-xl border border-[var(--border)] bg-[var(--bg)] p-5">
-                <p className="font-bold text-[var(--brand)] mb-2">{item.label}</p>
+                <p className="font-bold text-[#4361EE] mb-2">{item.label}</p>
                 <p className="text-[13px] leading-6 text-[var(--muted)]">{item.detail}</p>
               </div>
             ))}

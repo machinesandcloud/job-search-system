@@ -205,7 +205,7 @@ export default async function AiCareerCoachPage() {
               { label: "Zari AI Coach", items: ["Free to start", "Available 24/7", "Specific rewrites", "ATS scoring", "Builds session-over-session", "Role-matched feedback"], highlight: true },
             ].map((col) => (
               <div key={col.label} className={`rounded-2xl border p-6 ${col.highlight ? "border-[var(--brand)]/40 bg-[var(--brand)]/[0.04]" : "border-[var(--border)] bg-[var(--bg)]"}`}>
-                <p className={`mb-4 text-[13px] font-bold uppercase tracking-wider ${col.highlight ? "text-[var(--brand)]" : "text-[var(--muted)]"}`}>{col.label}</p>
+                <p className={`mb-4 text-[13px] font-bold uppercase tracking-wider ${col.highlight ? "text-[#4361EE]" : "text-[var(--muted)]"}`}>{col.label}</p>
                 <ul className="space-y-2">
                   {col.items.map((item) => (
                     <li key={item} className="flex items-center gap-2 text-[13.5px] text-[var(--ink-2)]">
@@ -268,7 +268,7 @@ export default async function AiCareerCoachPage() {
                     <p className="text-[13px] font-semibold text-[var(--ink)]">{t.name}</p>
                     <p className="text-[12px] text-[var(--muted)]">{t.role}</p>
                   </div>
-                  <span className="rounded-full border border-[var(--brand)]/20 bg-[var(--brand)]/[0.06] px-3 py-1 text-[11px] font-semibold text-[var(--brand)]">{t.tag}</span>
+                  <span className="rounded-full border border-[var(--brand)]/20 bg-[var(--brand)]/[0.06] px-3 py-1 text-[11px] font-semibold text-[#4361EE]">{t.tag}</span>
                 </div>
               </div>
             ))}

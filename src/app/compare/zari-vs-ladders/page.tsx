@@ -140,7 +140,7 @@ export default async function ZariVsLaddersPage() {
               </ul>
             </div>
             <div className="rounded-2xl border border-[var(--brand)]/30 bg-[var(--brand)]/[0.08] p-5">
-              <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-[var(--brand)]/70">Zari is better for</p>
+              <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-[#4361EE]/70">Zari is better for</p>
               <ul className="mt-3 space-y-2">
                 {[
                   "ATS-optimised resume preparation for senior and executive roles",
@@ -149,7 +149,7 @@ export default async function ZariVsLaddersPage() {
                   "Full career coaching from application through offer",
                 ].map(item => (
                   <li key={item} className="flex items-start gap-2 text-[13px] text-white/80">
-                    <span className="mt-0.5 text-[var(--brand)]">✓</span> {item}
+                    <span className="mt-0.5 text-[#4361EE]">✓</span> {item}
                   </li>
                 ))}
               </ul>
@@ -169,7 +169,7 @@ export default async function ZariVsLaddersPage() {
                 <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--bg)] px-6 py-4">
                   <p className="font-bold text-[var(--ink)]">{dim.category}</p>
                   <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${
-                    dim.winner === "zari" ? "bg-[var(--brand)]/10 text-[var(--brand)]" :
+                    dim.winner === "zari" ? "bg-[var(--brand)]/10 text-[#4361EE]" :
                     dim.winner === "ladders" ? "bg-slate-100 text-slate-500" :
                     "bg-slate-100 text-slate-500"
                   }`}>
@@ -182,7 +182,7 @@ export default async function ZariVsLaddersPage() {
                     <p className="text-[13.5px] leading-6 text-[var(--muted)]">{dim.ladders}</p>
                   </div>
                   <div className="p-5">
-                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">Zari</p>
+                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">Zari</p>
                     <p className="text-[13.5px] leading-6 text-[var(--muted)]">{dim.zari}</p>
                   </div>
                 </div>

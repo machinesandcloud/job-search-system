@@ -173,7 +173,7 @@ export default async function HowToCounterOfferPage() {
                   <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-[var(--border)]">
                     <div className="px-6 py-4">
                       <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">Formula</p>
-                      <p className="text-[15px] font-bold text-[var(--brand)] font-mono">{item.formula}</p>
+                      <p className="text-[15px] font-bold text-[#4361EE] font-mono">{item.formula}</p>
                     </div>
                     <div className="bg-[var(--brand)]/[0.03] px-6 py-4">
                       <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">Example</p>
@@ -224,7 +224,7 @@ export default async function HowToCounterOfferPage() {
                 </div>
                 <div className="divide-y divide-[var(--border)]">
                   <div className="px-5 py-4">
-                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">What to say</p>
+                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">What to say</p>
                     <p className="text-[13.5px] leading-6 text-[var(--muted)] italic">{item.script}</p>
                   </div>
                   <div className="bg-[var(--bg)] px-5 py-3">
@@ -254,7 +254,7 @@ export default async function HowToCounterOfferPage() {
                     <p className="text-[13px] leading-6 text-[var(--muted)]">{item.why}</p>
                   </div>
                   <div className="bg-[var(--brand)]/[0.04] px-5 py-4">
-                    <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">How to ask</p>
+                    <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">How to ask</p>
                     <p className="text-[13px] leading-6 text-[var(--muted)] italic">{item.howToAsk}</p>
                   </div>
                 </div>

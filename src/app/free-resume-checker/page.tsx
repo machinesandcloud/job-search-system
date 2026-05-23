@@ -64,7 +64,7 @@ export default async function FreeResumeCheckerPage() {
               { num: "06", title: "Overall ATS score", body: "A composite score benchmarked against resumes from candidates who received interviews — with a clear breakdown of where you're losing points." },
             ].map((item) => (
               <div key={item.num} className="rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-6">
-                <p className="mb-3 text-[11px] font-bold uppercase tracking-widest text-[var(--brand)]/60">{item.num}</p>
+                <p className="mb-3 text-[11px] font-bold uppercase tracking-widest text-[#4361EE]/60">{item.num}</p>
                 <h3 className="mb-2 text-[14.5px] font-bold text-[var(--ink)]">{item.title}</h3>
                 <p className="text-[13.5px] leading-6 text-[var(--muted)]">{item.body}</p>
               </div>

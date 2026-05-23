@@ -168,7 +168,7 @@ export default async function BehavioralInterviewQuestionsPage() {
                 <div className="mt-4 space-y-2">
                   {group.qs.map((q, i) => (
                     <div key={i} className="flex items-start gap-3 rounded-xl border border-[var(--border)] bg-[var(--bg)] p-4 text-[14px] text-[var(--ink)]">
-                      <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[10px] font-bold text-[var(--brand)]">{i + 1}</span>
+                      <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[10px] font-bold text-[#4361EE]">{i + 1}</span>
                       {q}
                     </div>
                   ))}
@@ -178,10 +178,10 @@ export default async function BehavioralInterviewQuestionsPage() {
 
             <h2 className="mt-12 text-[1.7rem] font-extrabold tracking-[-0.025em] text-[var(--ink)]">How to structure your answer for every question on this list</h2>
             <p className="mt-4 text-[15px] leading-7 text-[var(--muted)]">
-              Every behavioral question on this list is answered with the same framework: <Link href="/blog/star-method-interview" className="text-[var(--brand)] underline underline-offset-2">STAR (Situation, Task, Action, Result)</Link>. The specific question determines which element to emphasize — conflict questions emphasize Action, failure questions emphasize Result and learning, leadership questions emphasize the "I" in your Action.
+              Every behavioral question on this list is answered with the same framework: <Link href="/blog/star-method-interview" className="text-[#4361EE] underline underline-offset-2">STAR (Situation, Task, Action, Result)</Link>. The specific question determines which element to emphasize — conflict questions emphasize Action, failure questions emphasize Result and learning, leadership questions emphasize the "I" in your Action.
             </p>
             <p className="mt-4 text-[15px] leading-7 text-[var(--muted)]">
-              The best preparation is to practice out loud, not just in your head. You need to hear yourself say the words under mild pressure before the real interview. Zari's <Link href="/ai-interview-coach" className="text-[var(--brand)] underline underline-offset-2">AI interview coach</Link> asks you any question from this list, records your answer, and gives you a score on structure, ownership, specificity, and result quantification — so you can fix the weakest part before it costs you an offer.
+              The best preparation is to practice out loud, not just in your head. You need to hear yourself say the words under mild pressure before the real interview. Zari's <Link href="/ai-interview-coach" className="text-[#4361EE] underline underline-offset-2">AI interview coach</Link> asks you any question from this list, records your answer, and gives you a score on structure, ownership, specificity, and result quantification — so you can fix the weakest part before it costs you an offer.
             </p>
           </div>
 
@@ -197,7 +197,7 @@ export default async function BehavioralInterviewQuestionsPage() {
                 { href: "/blog/weakness-interview-answer", label: "Interview Weakness Answer" },
                 { href: "/blog/job-search-statistics-2025", label: "Job Search Statistics 2025" },
               ].map((link) => (
-                <Link key={link.href} href={link.href} className="rounded-full border border-[var(--border)] bg-[var(--bg)] px-3 py-1.5 text-[12px] font-medium text-[var(--brand)] hover:bg-[var(--brand)]/5 transition-all">
+                <Link key={link.href} href={link.href} className="rounded-full border border-[var(--border)] bg-[var(--bg)] px-3 py-1.5 text-[12px] font-medium text-[#4361EE] hover:bg-[var(--brand)]/5 transition-all">
                   {link.label}
                 </Link>
               ))}

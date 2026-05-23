@@ -124,7 +124,7 @@ export default async function ResumeFormatGuidePage() {
                 <div key={item.situation} className="flex gap-4 rounded-xl border border-[var(--border)] bg-[var(--bg)] p-4">
                   <div className="min-w-0 flex-1">
                     <p className="font-bold text-[var(--ink)]">{item.situation}</p>
-                    <p className="text-[12px] font-semibold text-[var(--brand)]">→ {item.format}</p>
+                    <p className="text-[12px] font-semibold text-[#4361EE]">→ {item.format}</p>
                     <p className="mt-1 text-[13px] leading-5 text-[var(--muted)]">{item.why}</p>
                   </div>
                 </div>
@@ -150,7 +150,7 @@ export default async function ResumeFormatGuidePage() {
 
             <h2 className="mt-10 text-[1.7rem] font-extrabold tracking-[-0.025em] text-[var(--ink)]">Get your resume format analyzed — free</h2>
             <p className="mt-4 text-[15px] leading-7 text-[var(--muted)]">
-              Zari&apos;s <Link href="/ai-resume-writer" className="text-[var(--brand)] underline underline-offset-2">AI resume writer</Link> checks your format for ATS compatibility, rewrites your bullets to lead with impact, and scores your resume against the specific job you&apos;re targeting — in under 3 minutes.
+              Zari&apos;s <Link href="/ai-resume-writer" className="text-[#4361EE] underline underline-offset-2">AI resume writer</Link> checks your format for ATS compatibility, rewrites your bullets to lead with impact, and scores your resume against the specific job you&apos;re targeting — in under 3 minutes.
             </p>
           </div>
 

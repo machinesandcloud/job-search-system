@@ -56,7 +56,7 @@ export default async function ZariVsLunchclubPage() {
                 <div className="border-b border-[var(--border)] bg-[var(--brand)]/[0.04] px-5 py-3"><p className="font-bold text-[var(--ink)]">{item.timing}</p></div>
                 <div className="grid sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-[var(--border)]">
                   <div className="p-5"><p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 mb-2">Lunchclub</p><p className="text-[13px] leading-6 text-[var(--muted)]">{item.lunchclub}</p></div>
-                  <div className="p-5"><p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand)] mb-2">Zari</p><p className="text-[13px] leading-6 text-[var(--muted)]">{item.zari}</p></div>
+                  <div className="p-5"><p className="text-[10px] font-bold uppercase tracking-wider text-[#4361EE] mb-2">Zari</p><p className="text-[13px] leading-6 text-[var(--muted)]">{item.zari}</p></div>
                 </div>
               </div>
             ))}

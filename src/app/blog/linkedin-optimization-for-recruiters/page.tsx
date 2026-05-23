@@ -150,14 +150,14 @@ export default async function LinkedInOptimizationForRecruitersPage() {
           <p className="mt-3 text-[15px] text-[var(--muted)]">Your headline is the highest-weight field for keyword matching. Most people waste it with their job title + company — which is the default, not an optimization.</p>
           <div className="mt-7 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg)]">
             <div className="border-b border-[var(--border)] px-6 py-4">
-              <p className="font-mono text-[13px] text-[var(--brand)]">Senior Product Manager | B2B SaaS &amp; Fintech | 0→1 products &amp; platform scale</p>
+              <p className="font-mono text-[13px] text-[#4361EE]">Senior Product Manager | B2B SaaS &amp; Fintech | 0→1 products &amp; platform scale</p>
             </div>
             {HEADLINE_FORMULA.map((h, i) => (
               <div key={h.component} className={`flex items-start gap-4 px-6 py-4 ${i < HEADLINE_FORMULA.length - 1 ? "border-b border-[var(--border)]" : ""}`}>
                 <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-[var(--brand)] text-[11px] font-bold text-white">{i + 1}</span>
                 <div>
                   <p className="font-semibold text-[var(--ink)]">{h.component}</p>
-                  <p className="mt-0.5 font-mono text-[11.5px] text-[var(--brand)]">{h.example}</p>
+                  <p className="mt-0.5 font-mono text-[11.5px] text-[#4361EE]">{h.example}</p>
                   <p className="mt-1 text-[12.5px] text-[var(--muted)]">{h.why}</p>
                 </div>
               </div>

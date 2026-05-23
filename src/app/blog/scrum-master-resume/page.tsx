@@ -91,7 +91,7 @@ export default async function ScrumMasterResumePage() {
           <div className="mt-6 space-y-4">
             {HIRING_SIGNALS.map((item, i) => (
               <div key={i} className="flex gap-5 rounded-2xl border border-[var(--border)] bg-white p-5">
-                <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[13px] font-bold text-[var(--brand)]">{i + 1}</span>
+                <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[13px] font-bold text-[#4361EE]">{i + 1}</span>
                 <div><p className="font-bold text-[var(--ink)]">{item.signal}</p><p className="mt-2 text-[13px] leading-6 text-[var(--muted)]">{item.detail}</p></div>
               </div>
             ))}
@@ -105,7 +105,7 @@ export default async function ScrumMasterResumePage() {
           <div className="mt-6 space-y-6">
             {BEFORE_AFTER.map((item) => (
               <div key={item.level} className="rounded-2xl border border-[var(--border)] overflow-hidden">
-                <div className="border-b border-[var(--border)] bg-[var(--brand)]/[0.04] px-5 py-3"><p className="font-bold text-[var(--brand)]">{item.level}</p></div>
+                <div className="border-b border-[var(--border)] bg-[var(--brand)]/[0.04] px-5 py-3"><p className="font-bold text-[#4361EE]">{item.level}</p></div>
                 <div className="grid sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-[var(--border)]">
                   <div className="p-5 bg-red-50/40">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-red-500 mb-3">Before</p>
@@ -130,7 +130,7 @@ export default async function ScrumMasterResumePage() {
           <div className="mt-6 space-y-3">
             {ATS_KEYWORDS.map((tier) => (
               <div key={tier.tier} className="rounded-xl border border-[var(--border)] p-4">
-                <p className="mb-2.5 text-[11px] font-bold uppercase tracking-wider text-[var(--brand)]">{tier.tier}</p>
+                <p className="mb-2.5 text-[11px] font-bold uppercase tracking-wider text-[#4361EE]">{tier.tier}</p>
                 <div className="flex flex-wrap gap-1.5">{tier.keywords.map((kw) => <span key={kw} className="rounded-full border border-[var(--border)] bg-[var(--bg)] px-2.5 py-0.5 text-[12px] font-medium text-[var(--ink)]">{kw}</span>)}</div>
               </div>
             ))}

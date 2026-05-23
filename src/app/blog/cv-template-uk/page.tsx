@@ -157,7 +157,7 @@ export default async function CvTemplateUkPage() {
                 { href: "/blog/ats-resume-tips", label: "ATS Optimisation" },
                 { href: "/blog/professional-summary-for-resume", label: "Professional Summary Guide" },
               ].map((link) => (
-                <Link key={link.href} href={link.href} className="rounded-full border border-[var(--border)] bg-[var(--bg)] px-3 py-1.5 text-[12px] font-medium text-[var(--brand)] hover:bg-[var(--brand)]/5 transition-all">
+                <Link key={link.href} href={link.href} className="rounded-full border border-[var(--border)] bg-[var(--bg)] px-3 py-1.5 text-[12px] font-medium text-[#4361EE] hover:bg-[var(--brand)]/5 transition-all">
                   {link.label}
                 </Link>
               ))}

@@ -91,234 +91,10 @@ export function SiteHeader({ authenticated = false }: { authenticated?: boolean 
 }
 
 function SiteFooter() {
-  const footerCols = [
-    {
-      heading: "AI Coaching",
-      links: [
-        { label: "AI Career Coach", href: "/ai-career-coach" },
-        { label: "AI Resume Writer", href: "/ai-resume-writer" },
-        { label: "AI Interview Coach", href: "/ai-interview-coach" },
-        { label: "AI LinkedIn Optimizer", href: "/ai-linkedin-optimizer" },
-        { label: "Cover Letter Writer", href: "/cover-letter-writer" },
-        { label: "Salary Negotiation Coach", href: "/salary-negotiation-coach" },
-        { label: "Promotion Coach", href: "/promotion-coach" },
-        { label: "AI Career Coach UK 🇬🇧", href: "/ai-career-coach-uk" },
-        { label: "AI Career Coach Canada 🇨🇦", href: "/ai-career-coach-canada" },
-        { label: "AI Career Coach Australia 🇦🇺", href: "/ai-career-coach-australia" },
-        { label: "Online Career Coach", href: "/online-career-coach" },
-        { label: "Career Coach Near Me", href: "/career-coach-near-me" },
-        { label: "AI Career Coach India 🇮🇳", href: "/ai-career-coach-india" },
-        { label: "AI Career Coach Singapore 🇸🇬", href: "/ai-career-coach-singapore" },
-        { label: "Cover Letter Generator", href: "/cover-letter-generator" },
-        { label: "LinkedIn Profile Writer", href: "/linkedin-profile-writer" },
-        { label: "Resume Checker", href: "/resume-checker" },
-      ],
-    },
-    {
-      heading: "Coaching by Need",
-      links: [
-        { label: "Career Change Coach", href: "/career-change-coach" },
-        { label: "Personal Career Coach", href: "/personal-career-coach" },
-        { label: "Free Career Coach", href: "/free-career-coach" },
-        { label: "Career Coach Tool", href: "/career-coach-tool" },
-        { label: "Resume Review Service", href: "/resume-review-service" },
-        { label: "Career Coaching Software", href: "/career-coaching-software" },
-        { label: "Best Resume Writing Service", href: "/best-resume-writing-service" },
-        { label: "Mock Interview Online", href: "/mock-interview-online" },
-        { label: "Professional Resume Writer", href: "/professional-resume-writer" },
-        { label: "Executive Resume Writer", href: "/executive-resume-writer" },
-        { label: "Resume Optimizer", href: "/resume-optimizer" },
-        { label: "Career Counseling Online", href: "/career-counseling-online" },
-        { label: "Interview Coaching Service", href: "/interview-coaching-service" },
-        { label: "Job Search Coaching", href: "/job-search-coaching" },
-        { label: "Executive Career Coaching", href: "/executive-career-coaching" },
-      ],
-    },
-    {
-      heading: "By City",
-      links: [
-        { label: "Career Coach New York", href: "/career-coach-new-york" },
-        { label: "Career Coach Los Angeles", href: "/career-coach-los-angeles" },
-        { label: "Career Coach Chicago", href: "/career-coach-chicago" },
-        { label: "Career Coach San Francisco", href: "/career-coach-san-francisco" },
-        { label: "Career Coach Seattle", href: "/career-coach-seattle" },
-        { label: "Career Coach Boston", href: "/career-coach-boston" },
-        { label: "Career Coach Austin", href: "/career-coach-austin" },
-        { label: "Career Coach Houston", href: "/career-coach-houston" },
-        { label: "Career Coach Atlanta", href: "/career-coach-atlanta" },
-        { label: "Career Coach Denver", href: "/career-coach-denver" },
-        { label: "Career Coach Miami", href: "/career-coach-miami" },
-        { label: "Career Coach Washington DC", href: "/career-coach-washington-dc" },
-        { label: "Career Coach Dallas", href: "/career-coach-dallas" },
-        { label: "Career Coach Philadelphia", href: "/career-coach-philadelphia" },
-        { label: "AI Career Coach Germany 🇩🇪", href: "/ai-career-coach-germany" },
-        { label: "AI Career Coach Dubai 🇦🇪", href: "/ai-career-coach-dubai" },
-      ],
-    },
-    {
-      heading: "By Profession",
-      links: [
-        { label: "Software Engineers", href: "/career-coach-for-software-engineers" },
-        { label: "Product Managers", href: "/career-coach-for-product-managers" },
-        { label: "Data Scientists", href: "/career-coach-for-data-scientists" },
-        { label: "Finance Professionals", href: "/career-coach-for-finance-professionals" },
-        { label: "Sales Professionals", href: "/career-coach-for-sales-professionals" },
-        { label: "Designers", href: "/career-coach-for-designers" },
-        { label: "HR Professionals", href: "/career-coach-for-hr-professionals" },
-        { label: "Cybersecurity", href: "/career-coach-for-cybersecurity-professionals" },
-        { label: "Executives", href: "/career-coach-for-executives" },
-        { label: "Nurses", href: "/career-coach-for-nurses" },
-        { label: "Teachers", href: "/career-coach-for-teachers" },
-        { label: "Marketing Professionals", href: "/career-coach-for-marketing-professionals" },
-        { label: "Operations Professionals", href: "/career-coach-for-operations-professionals" },
-        { label: "Lawyers", href: "/career-coach-for-lawyers" },
-        { label: "Accountants & CPAs", href: "/career-coach-for-accountants" },
-        { label: "Project Managers", href: "/career-coach-for-project-managers" },
-        { label: "Recent Graduates", href: "/career-coach-for-recent-graduates" },
-        { label: "UX Designers", href: "/career-coach-for-ux-designers" },
-        { label: "Consultants", href: "/career-coach-for-consultants" },
-        { label: "Supply Chain", href: "/career-coach-for-supply-chain-professionals" },
-        { label: "Medical Professionals", href: "/career-coach-for-medical-professionals" },
-        { label: "Veterans", href: "/career-coach-for-veterans" },
-        { label: "Real Estate Professionals", href: "/career-coach-for-real-estate-professionals" },
-        { label: "Entrepreneurs", href: "/career-coach-for-entrepreneurs" },
-      ],
-    },
-    {
-      heading: "Product",
-      links: [
-        { label: "Platform", href: "/platform" },
-        { label: "Use Cases", href: "/use-cases" },
-        { label: "Pricing", href: "/pricing" },
-        { label: "Security", href: "/security" },
-        { label: "Terms", href: "/terms" },
-        { label: "Privacy", href: "/privacy" },
-      ],
-    },
-    {
-      heading: "Resources",
-      links: [
-        { label: "Blog", href: "/blog" },
-        { label: "Best AI Career Coach", href: "/blog/best-ai-career-coach" },
-        { label: "How to Write a Resume with AI", href: "/blog/how-to-write-resume-with-ai" },
-        { label: "ATS Resume Tips", href: "/blog/ats-resume-tips" },
-        { label: "STAR Method Interview", href: "/blog/star-method-interview" },
-        { label: "Behavioral Interview Questions", href: "/blog/behavioral-interview-questions" },
-        { label: "How to Write a Cover Letter", href: "/blog/how-to-write-a-cover-letter" },
-        { label: "Interview Prep Guide", href: "/blog/how-to-prepare-for-job-interview" },
-        { label: "Job Search Statistics 2025", href: "/blog/job-search-statistics-2025" },
-        { label: "UK CV Writing Tips 🇬🇧", href: "/blog/uk-cv-writing-tips" },
-        { label: "UK Interview Tips 🇬🇧", href: "/blog/uk-interview-tips" },
-        { label: "Graduate Jobs UK 🇬🇧", href: "/blog/graduate-jobs-uk" },
-        { label: "Job Search in Canada 🇨🇦", href: "/blog/job-search-in-canada" },
-        { label: "Canada Salary Guide 🇨🇦", href: "/blog/canada-salary-guide" },
-        { label: "How to Get a Job in the UK 🇬🇧", href: "/blog/how-to-get-a-job-in-uk" },
-        { label: "Highest Paying Jobs UK 🇬🇧", href: "/blog/highest-paying-jobs-uk" },
-        { label: "Highest Paying Jobs Canada 🇨🇦", href: "/blog/highest-paying-jobs-canada" },
-        { label: "Amazon Behavioral Interview Questions", href: "/blog/amazon-behavioral-interview-questions" },
-        { label: "LinkedIn Profile Tips", href: "/blog/linkedin-profile-tips" },
-        { label: "Highest Paying Remote Jobs", href: "/blog/highest-paying-remote-jobs" },
-        { label: "Data Analyst Interview Questions", href: "/blog/data-analyst-interview-questions" },
-        { label: "How to Get a Job in Australia 🇦🇺", href: "/blog/how-to-get-a-job-in-australia" },
-        { label: "How to Get a Job in Canada 🇨🇦", href: "/blog/how-to-get-a-job-in-canada" },
-        { label: "Australia Salary Guide 🇦🇺", href: "/blog/australia-salary-guide" },
-        { label: "Google Behavioral Interview Questions", href: "/blog/google-behavioral-interview-questions" },
-        { label: "Microsoft Behavioral Interview Questions", href: "/blog/microsoft-behavioral-interview-questions" },
-        { label: "Meta Interview Questions", href: "/blog/meta-interview-questions" },
-        { label: "Panel Interview Questions", href: "/blog/panel-interview-questions" },
-        { label: "Negotiating a Raise", href: "/blog/negotiating-a-raise" },
-        { label: "LinkedIn Summary Guide", href: "/blog/how-to-write-a-linkedin-summary" },
-        { label: "Resume Skills Section", href: "/blog/resume-skills-section" },
-        { label: "Career Change at 30", href: "/blog/career-change-at-30" },
-        { label: "Highest Paying Jobs No Degree", href: "/blog/highest-paying-jobs-no-degree" },
-        { label: "Highest Paying Jobs Australia 🇦🇺", href: "/blog/highest-paying-jobs-australia" },
-        { label: "Career Development Plan", href: "/blog/career-development-plan" },
-        { label: "Management Interview Questions", href: "/blog/management-interview-questions" },
-        { label: "How to Get a Job in Dubai 🇦🇪", href: "/blog/how-to-get-a-job-in-dubai" },
-        { label: "Chronological vs Functional Resume", href: "/blog/chronological-vs-functional-resume" },
-        { label: "Best Tech Companies to Work For", href: "/blog/best-tech-companies-to-work-for" },
-        { label: "How to Use LinkedIn to Find a Job", href: "/blog/how-to-use-linkedin-to-find-a-job" },
-        { label: "How to Get a Job Abroad", href: "/blog/how-to-get-a-job-abroad" },
-        { label: "How to Write a Personal Statement", href: "/blog/how-to-write-a-personal-statement" },
-        { label: "Work From Home Jobs", href: "/blog/work-from-home-jobs" },
-        { label: "What Is a Good ATS Score", href: "/blog/what-is-a-good-ats-score" },
-        { label: "How Long Should a Resume Be", href: "/blog/how-long-should-a-resume-be" },
-        { label: "ChatGPT Resume Guide", href: "/blog/should-i-use-chatgpt-to-write-my-resume" },
-        { label: "Is LinkedIn Premium Worth It", href: "/blog/is-linkedin-premium-worth-it" },
-        { label: "Tech Layoff Survival Guide", href: "/blog/tech-layoff-survival-guide" },
-        { label: "First 90 Days New Job", href: "/blog/first-90-days-new-job" },
-        { label: "How to Get Into Product Management", href: "/blog/how-to-get-into-product-management" },
-        { label: "How to Become a Software Engineer", href: "/blog/how-to-become-a-software-engineer" },
-        { label: "How Many Jobs to Apply Per Day", href: "/blog/how-many-jobs-to-apply-per-day" },
-        { label: "How Long to Find a Job", href: "/blog/how-long-does-it-take-to-find-a-job" },
-        { label: "What to Put on a Resume", href: "/blog/what-to-put-on-a-resume" },
-        { label: "How to Get a Job in Germany 🇩🇪", href: "/blog/how-to-get-a-job-in-germany" },
-        { label: "Highest Paying Jobs Singapore 🇸🇬", href: "/blog/highest-paying-jobs-singapore" },
-        { label: "Highest Paying Jobs Dubai 🇦🇪", href: "/blog/highest-paying-jobs-dubai" },
-        { label: "SWE Salary Sydney 🇦🇺", href: "/salary/software-engineer-salary-sydney" },
-        { label: "Salary Guides", href: "/salary" },
-        { label: "Salary Calculator", href: "/salary-calculator" },
-        { label: "Software Engineer Salary SF", href: "/salary/software-engineer-salary-san-francisco" },
-        { label: "SWE Salary London 🇬🇧", href: "/salary/software-engineer-salary-london" },
-        { label: "SWE Salary Toronto 🇨🇦", href: "/salary/software-engineer-salary-toronto" },
-        { label: "Product Manager Salary NYC", href: "/salary/product-manager-salary-new-york-city" },
-        { label: "Data Scientist Salary Seattle", href: "/salary/data-scientist-salary-seattle" },
-        { label: "Zari vs Enhancv", href: "/compare/zari-vs-enhancv" },
-        { label: "Zari vs Novoresume", href: "/compare/zari-vs-novoresume" },
-        { label: "Zari vs Zety", href: "/compare/zari-vs-zety" },
-        { label: "Zari vs Microsoft Copilot", href: "/compare/zari-vs-microsoft-copilot" },
-        { label: "Zari vs Careerflow", href: "/compare/zari-vs-careerflow" },
-        { label: "Zari vs Copy.ai", href: "/compare/zari-vs-copy-ai" },
-        { label: "Zari vs Jasper", href: "/compare/zari-vs-jasper" },
-        { label: "Zari vs Resume.io", href: "/compare/zari-vs-resume-io" },
-        { label: "Zari vs Indeed", href: "/compare/zari-vs-indeed" },
-        { label: "Zari vs Glassdoor", href: "/compare/zari-vs-glassdoor" },
-        { label: "Zari vs Wellfound", href: "/compare/zari-vs-wellfound" },
-        { label: "Zari vs Handshake", href: "/compare/zari-vs-handshake" },
-        { label: "Zari vs ZipRecruiter", href: "/compare/zari-vs-ziprecruiter" },
-        { label: "Zari vs Monster", href: "/compare/zari-vs-monster" },
-        { label: "Zari vs Dice", href: "/compare/zari-vs-dice" },
-        { label: "Zari vs LinkedIn Jobs", href: "/compare/zari-vs-linkedin-jobs" },
-        { label: "Zari vs SimplyHired", href: "/compare/zari-vs-simplyhired" },
-        { label: "Zari vs CareerBuilder", href: "/compare/zari-vs-careerbuilder" },
-        { label: "Zari vs Google for Jobs", href: "/compare/zari-vs-google-for-jobs" },
-        { label: "Zari vs Seek", href: "/compare/zari-vs-seek" },
-        { label: "Zari vs Workopolis", href: "/compare/zari-vs-workopolis" },
-        { label: "Zari vs Reed.co.uk", href: "/compare/zari-vs-reed-co-uk" },
-        { label: "Zari vs JobStreet", href: "/compare/zari-vs-jobstreet" },
-        { label: "Zari vs Totaljobs", href: "/compare/zari-vs-totaljobs" },
-        { label: "Zari vs CV-Library", href: "/compare/zari-vs-cv-library" },
-        { label: "Zari vs CareerOne", href: "/compare/zari-vs-careerone" },
-        { label: "Zari vs Naukri", href: "/compare/zari-vs-naukri" },
-        { label: "Zari vs eFinancialCareers", href: "/compare/zari-vs-efinancialcareers" },
-        { label: "Zari vs BrighterMonday", href: "/compare/zari-vs-brightermonday" },
-        { label: "Zari vs We Work Remotely", href: "/compare/zari-vs-weworkremotely" },
-        { label: "Zari vs FlexJobs", href: "/compare/zari-vs-flexjobs" },
-        { label: "Zari vs Bayt.com", href: "/compare/zari-vs-bayt" },
-        { label: "Zari vs XING", href: "/compare/zari-vs-xing" },
-        { label: "Zari vs GulfTalent", href: "/compare/zari-vs-gulftalent" },
-        { label: "Zari vs Stepstone", href: "/compare/zari-vs-stepstone" },
-        { label: "Zari vs SEEK", href: "/compare/zari-vs-seek-australia" },
-        { label: "Zari vs Remote.co", href: "/compare/zari-vs-remote-co" },
-        { label: "Zari vs LinkedIn Learning", href: "/compare/zari-vs-linkedin-learning" },
-        { label: "Zari vs Himalayas", href: "/compare/zari-vs-himalayas" },
-        { label: "Zari vs Levels.fyi", href: "/compare/zari-vs-levels-fyi" },
-        { label: "Zari vs PayScale", href: "/compare/zari-vs-payscale" },
-        { label: "Zari vs Job Hero", href: "/compare/zari-vs-job-hero" },
-        { label: "Zari vs Careerly", href: "/compare/zari-vs-careerly" },
-        { label: "Zari vs Huntr", href: "/compare/zari-vs-huntr" },
-        { label: "Zari vs Springboard", href: "/compare/zari-vs-springboard" },
-        { label: "Zari vs Pathrise", href: "/compare/zari-vs-pathrise" },
-        { label: "Zari vs CareerCoach.io", href: "/compare/zari-vs-careercoach-io" },
-        { label: "Zari vs CoachUp", href: "/compare/zari-vs-coachup" },
-      ],
-    },
-  ];
-
   return (
     <footer className="border-t border-[var(--border)] bg-[var(--bg)]">
       <div className="mx-auto max-w-7xl px-6 py-14">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-6">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link href="/" className="flex items-center gap-2.5">
@@ -338,21 +114,87 @@ function SiteFooter() {
             </div>
           </div>
 
-          {/* Link columns */}
-          {footerCols.map((col) => (
-            <div key={col.heading}>
-              <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">{col.heading}</p>
-              <ul className="space-y-2.5">
-                {col.links.map((link) => (
-                  <li key={link.href}>
-                    <Link href={link.href} className="text-[12.5px] text-[var(--muted)] transition-colors hover:text-[var(--ink)]">
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          {/* Tools */}
+          <div>
+            <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Tools</p>
+            <ul className="space-y-2.5">
+              {[
+                { label: "AI Career Coach", href: "/ai-career-coach" },
+                { label: "AI Resume Writer", href: "/ai-resume-writer" },
+                { label: "AI Interview Coach", href: "/ai-interview-coach" },
+                { label: "AI LinkedIn Optimizer", href: "/ai-linkedin-optimizer" },
+                { label: "Cover Letter Writer", href: "/cover-letter-writer" },
+                { label: "Salary Negotiation Coach", href: "/salary-negotiation-coach" },
+                { label: "Salary Calculator", href: "/salary-calculator" },
+                { label: "Resume Checker", href: "/resume-checker" },
+              ].map(({ label, href }) => (
+                <li key={href}>
+                  <Link href={href} className="text-[12.5px] text-[var(--muted)] transition-colors hover:text-[var(--ink)]">{label}</Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Resources */}
+          <div>
+            <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Resources</p>
+            <ul className="space-y-2.5">
+              {[
+                { label: "Blog", href: "/blog" },
+                { label: "Interview Prep Guide", href: "/blog/how-to-prepare-for-job-interview" },
+                { label: "STAR Method", href: "/blog/star-method-interview" },
+                { label: "ATS Resume Tips", href: "/blog/ats-resume-tips" },
+                { label: "Behavioral Questions", href: "/blog/behavioral-interview-questions" },
+                { label: "Salary Guides", href: "/salary" },
+                { label: "How to Write a Cover Letter", href: "/blog/how-to-write-a-cover-letter" },
+                { label: "LinkedIn Profile Tips", href: "/blog/linkedin-profile-tips" },
+              ].map(({ label, href }) => (
+                <li key={href}>
+                  <Link href={href} className="text-[12.5px] text-[var(--muted)] transition-colors hover:text-[var(--ink)]">{label}</Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Explore */}
+          <div>
+            <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Explore</p>
+            <ul className="space-y-2.5">
+              {[
+                { label: "Software Engineers", href: "/career-coach-for-software-engineers" },
+                { label: "Product Managers", href: "/career-coach-for-product-managers" },
+                { label: "Finance Professionals", href: "/career-coach-for-finance-professionals" },
+                { label: "Data Scientists", href: "/career-coach-for-data-scientists" },
+                { label: "Recent Graduates", href: "/career-coach-for-recent-graduates" },
+                { label: "Career Coach New York", href: "/career-coach-new-york" },
+                { label: "Career Coach San Francisco", href: "/career-coach-san-francisco" },
+                { label: "Career Coach London", href: "/ai-career-coach-uk" },
+              ].map(({ label, href }) => (
+                <li key={href}>
+                  <Link href={href} className="text-[12.5px] text-[var(--muted)] transition-colors hover:text-[var(--ink)]">{label}</Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Company */}
+          <div>
+            <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Company</p>
+            <ul className="space-y-2.5">
+              {[
+                { label: "Platform", href: "/platform" },
+                { label: "Use Cases", href: "/use-cases" },
+                { label: "Pricing", href: "/pricing" },
+                { label: "Security", href: "/security" },
+                { label: "Terms", href: "/terms" },
+                { label: "Privacy", href: "/privacy" },
+              ].map(({ label, href }) => (
+                <li key={href}>
+                  <Link href={href} className="text-[12.5px] text-[var(--muted)] transition-colors hover:text-[var(--ink)]">{label}</Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
 
         <div className="mt-12 flex flex-col gap-2 border-t border-[var(--border)] pt-6 sm:flex-row sm:items-center sm:justify-between">

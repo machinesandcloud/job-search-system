@@ -138,7 +138,7 @@ export default async function ZariVsGlassdoorPage() {
                     <div className="mb-2 flex items-center gap-2">
                       <span className={`h-2 w-2 rounded-full ${row.zari.capable ? "bg-emerald-500" : "bg-red-400"}`} />
                       <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">Zari {row.zari.capable ? "✓" : "✗"}</p>
-                      {row.winner === "zari" && <span className="ml-auto rounded-full bg-[var(--brand)]/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[var(--brand)]">Wins</span>}
+                      {row.winner === "zari" && <span className="ml-auto rounded-full bg-[var(--brand)]/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#4361EE]">Wins</span>}
                     </div>
                     <p className="text-[13px] leading-6 text-[var(--muted)]">{row.zari.detail}</p>
                   </div>
@@ -166,7 +166,7 @@ export default async function ZariVsGlassdoorPage() {
                     <p className="text-[13px] leading-6 text-[var(--muted)]">{item.glassdoorRole}</p>
                   </div>
                   <div className="bg-[var(--brand)]/[0.03] px-6 py-4">
-                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">Use Zari for</p>
+                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">Use Zari for</p>
                     <p className="text-[13px] leading-6 text-[var(--muted)]">{item.zariRole}</p>
                   </div>
                 </div>

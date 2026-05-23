@@ -81,7 +81,7 @@ export default async function HowToWriteResumeWithAiPage() {
               "Generating a keyword-dense summary section that captures your positioning",
             ].map((item) => (
               <li key={item} className="flex items-start gap-3">
-                <svg className="mt-1 h-4 w-4 flex-shrink-0 text-[var(--brand)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><polyline points="20,6 9,17 4,12" /></svg>
+                <svg className="mt-1 h-4 w-4 flex-shrink-0 text-[#4361EE]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><polyline points="20,6 9,17 4,12" /></svg>
                 <span>{item}</span>
               </li>
             ))}
@@ -110,8 +110,8 @@ export default async function HowToWriteResumeWithAiPage() {
               { href: "/blog/best-ai-career-coach", title: "Best AI Career Coach 2025 — Honest Comparison", tag: "Comparison" },
             ].map((a) => (
               <Link key={a.href} href={a.href} className="group rounded-2xl border border-[var(--border)] bg-white p-5 transition-all hover:-translate-y-0.5">
-                <span className="mb-2 inline-block rounded-full bg-[var(--brand)]/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">{a.tag}</span>
-                <p className="text-[14px] font-semibold text-[var(--ink)] group-hover:text-[var(--brand)]">{a.title}</p>
+                <span className="mb-2 inline-block rounded-full bg-[var(--brand)]/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">{a.tag}</span>
+                <p className="text-[14px] font-semibold text-[var(--ink)] group-hover:text-[#4361EE]">{a.title}</p>
               </Link>
             ))}
           </div>

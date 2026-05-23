@@ -213,7 +213,7 @@ export default async function ProductManagerResumePage() {
             {BULLET_TRANSFORMATIONS.map((item) => (
               <div key={item.level} className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg)]">
                 <div className="border-b border-[var(--border)] bg-white px-6 py-3.5">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--brand)]">{item.level}</p>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-[#4361EE]">{item.level}</p>
                 </div>
                 <div className="divide-y divide-[var(--border)]">
                   <div className="bg-red-50/30 px-6 py-4">
@@ -254,7 +254,7 @@ export default async function ProductManagerResumePage() {
                   </div>
                   <div className="grid gap-0 md:grid-cols-2 md:divide-x divide-[var(--border)] divide-y md:divide-y-0">
                     <div className="bg-[var(--brand)]/[0.03] px-6 py-4">
-                      <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">Resume strategy</p>
+                      <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">Resume strategy</p>
                       <p className="text-[13px] leading-6 text-[var(--muted)]">{item.resumeStrategy}</p>
                     </div>
                     <div className="bg-red-50/30 px-6 py-4">

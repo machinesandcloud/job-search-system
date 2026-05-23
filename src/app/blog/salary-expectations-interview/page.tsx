@@ -141,7 +141,7 @@ export default async function SalaryExpectationsInterviewPage() {
                   <div className="p-6 space-y-4">
                     {section.scripts.map(s => (
                       <div key={s.label}>
-                        <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-[var(--brand)]">{s.label}</p>
+                        <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-[#4361EE]">{s.label}</p>
                         <blockquote className="rounded-lg border border-[var(--border)] bg-[var(--bg)] px-5 py-4 text-[14px] leading-7 text-[var(--ink)] italic">
                           &ldquo;{s.script}&rdquo;
                         </blockquote>
@@ -196,7 +196,7 @@ export default async function SalaryExpectationsInterviewPage() {
                 { source: "Informational conversations", detail: "The most accurate data comes from people in the role at the target company or similar companies. One honest conversation with someone at the company beats 10 data points from aggregators." },
               ].map((item, i) => (
                 <div key={i} className="flex gap-4 rounded-xl border border-[var(--border)] bg-[var(--bg)] p-4">
-                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[11px] font-bold text-[var(--brand)]">{i + 1}</div>
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[11px] font-bold text-[#4361EE]">{i + 1}</div>
                   <div>
                     <p className="font-semibold text-[var(--ink)] text-[14px]">{item.source}</p>
                     <p className="mt-1 text-[13.5px] leading-6 text-[var(--muted)]">{item.detail}</p>

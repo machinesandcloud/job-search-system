@@ -122,7 +122,7 @@ export default async function CoverLetterNoExperiencePage() {
                 { what: "One personality signal", detail: "Not 'I'm passionate and hardworking' — everyone writes that. One specific detail about how you work, what you care about, or what you've taught yourself that tells a real story about you as a professional." },
               ].map((item) => (
                 <div key={item.what} className="flex gap-3 rounded-xl border border-[var(--border)] bg-[var(--bg)] p-4">
-                  <span className="text-[var(--brand)] font-bold mt-0.5">→</span>
+                  <span className="text-[#4361EE] font-bold mt-0.5">→</span>
                   <div>
                     <p className="font-bold text-[var(--ink)]">{item.what}</p>
                     <p className="text-[13.5px] leading-5 text-[var(--muted)]">{item.detail}</p>

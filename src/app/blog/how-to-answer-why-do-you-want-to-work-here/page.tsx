@@ -169,7 +169,7 @@ export default async function WhyDoYouWantToWorkHerePage() {
                 "Use the product, if it's consumer-facing — have a real reaction to it",
               ].map((item) => (
                 <div key={item} className="flex items-start gap-2.5 rounded-lg border border-[var(--border)] bg-[var(--bg)] px-4 py-2.5">
-                  <span className="text-[var(--brand)] font-bold mt-0.5">✓</span>
+                  <span className="text-[#4361EE] font-bold mt-0.5">✓</span>
                   <p className="text-[13.5px] text-[var(--muted)]">{item}</p>
                 </div>
               ))}

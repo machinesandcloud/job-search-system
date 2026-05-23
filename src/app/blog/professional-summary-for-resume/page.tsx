@@ -66,7 +66,7 @@ export default async function ProfessionalSummaryPage() {
             <h2 className="mt-10 text-[1.7rem] font-extrabold tracking-[-0.025em] text-[var(--ink)]">Resume summary vs. objective: which to use</h2>
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <div className="rounded-2xl border-2 border-[var(--brand)] bg-[var(--brand)]/[0.03] p-5">
-                <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-[var(--brand)]">Use a Summary (recommended for most)</p>
+                <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-[#4361EE]">Use a Summary (recommended for most)</p>
                 <p className="text-[13.5px] leading-6 text-[var(--muted)]">3–4 sentences. Leads with what you offer: experience, a key achievement, and what you&apos;re targeting. Works for anyone with 2+ years of experience.</p>
               </div>
               <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-5">
@@ -124,7 +124,7 @@ export default async function ProfessionalSummaryPage() {
 
             <h2 className="mt-10 text-[1.7rem] font-extrabold tracking-[-0.025em] text-[var(--ink)]">Get your resume summary written with AI — free</h2>
             <p className="mt-4 text-[15px] leading-7 text-[var(--muted)]">
-              Zari&apos;s <Link href="/ai-resume-writer" className="text-[var(--brand)] underline underline-offset-2">AI resume writer</Link> reads your experience and target role and writes a summary that follows this formula — in under 3 minutes.
+              Zari&apos;s <Link href="/ai-resume-writer" className="text-[#4361EE] underline underline-offset-2">AI resume writer</Link> reads your experience and target role and writes a summary that follows this formula — in under 3 minutes.
             </p>
           </div>
 

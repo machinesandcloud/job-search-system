@@ -94,7 +94,7 @@ export default async function JobSearchInCanadaPage() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <p className="font-bold text-[var(--ink)]">{board.name}</p>
-                    <span className="rounded-full bg-[var(--brand)]/10 px-2 py-0.5 text-[10px] font-bold text-[var(--brand)]">{board.note}</span>
+                    <span className="rounded-full bg-[var(--brand)]/10 px-2 py-0.5 text-[10px] font-bold text-[#4361EE]">{board.note}</span>
                   </div>
                   <p className="mt-0.5 text-[12px] text-[var(--muted)]">{board.focus} · {board.strength}</p>
                 </div>
@@ -183,7 +183,7 @@ export default async function JobSearchInCanadaPage() {
                 { href: "/blog/salary-negotiation-tips", label: "Salary Negotiation Tips" },
                 { href: "/blog/how-to-network", label: "How to Network" },
               ].map((link) => (
-                <Link key={link.href} href={link.href} className="rounded-full border border-[var(--border)] bg-[var(--bg)] px-3 py-1.5 text-[12px] font-medium text-[var(--brand)] hover:bg-[var(--brand)]/5 transition-all">
+                <Link key={link.href} href={link.href} className="rounded-full border border-[var(--border)] bg-[var(--bg)] px-3 py-1.5 text-[12px] font-medium text-[#4361EE] hover:bg-[var(--brand)]/5 transition-all">
                   {link.label}
                 </Link>
               ))}

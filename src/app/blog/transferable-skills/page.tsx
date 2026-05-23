@@ -146,7 +146,7 @@ export default async function TransferableSkillsPage() {
                   ))}
                 </div>
                 <div className="mt-4 rounded-xl bg-[var(--brand)]/[0.05] p-4">
-                  <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">How to articulate it</p>
+                  <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">How to articulate it</p>
                   <p className="text-[13px] leading-6 text-[var(--muted)]">{item.how_to_articulate}</p>
                 </div>
               </div>
@@ -169,7 +169,7 @@ export default async function TransferableSkillsPage() {
                     <h3 className="font-bold text-[var(--ink)]">{item.step}</h3>
                     <p className="mt-2 text-[13.5px] leading-6 text-[var(--muted)]">{item.detail}</p>
                     <div className="mt-3 rounded-xl bg-[var(--brand)]/[0.05] p-3">
-                      <p className="text-[12px] font-semibold text-[var(--brand)]">{item.example}</p>
+                      <p className="text-[12px] font-semibold text-[#4361EE]">{item.example}</p>
                     </div>
                   </div>
                 </div>

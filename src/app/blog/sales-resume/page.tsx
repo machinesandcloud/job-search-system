@@ -171,7 +171,7 @@ export default async function SalesResumePage() {
                   </div>
                 </div>
                 <div className="border-t border-[var(--border)] bg-[var(--bg)] px-5 py-3">
-                  <p className="text-[12px] text-[var(--muted)]"><span className="font-bold text-[var(--brand)]">What changed: </span>{item.fix}</p>
+                  <p className="text-[12px] text-[var(--muted)]"><span className="font-bold text-[#4361EE]">What changed: </span>{item.fix}</p>
                 </div>
               </div>
             ))}
@@ -198,7 +198,7 @@ export default async function SalesResumePage() {
                     <p className="leading-6">{motion.atsKeywords}</p>
                   </div>
                   <div className="rounded-lg bg-[var(--brand)]/[0.05] p-3">
-                    <p className="font-semibold text-[var(--brand)]">Top tools: {motion.topTools}</p>
+                    <p className="font-semibold text-[#4361EE]">Top tools: {motion.topTools}</p>
                   </div>
                 </div>
               </div>

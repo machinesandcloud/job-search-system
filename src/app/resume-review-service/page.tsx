@@ -46,7 +46,7 @@ export default async function ResumeReviewServicePage() {
             ].map((item) => (
               <div key={item.title} className="flex gap-4 rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-5">
                 <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/15">
-                  <svg className="h-3 w-3 text-[var(--brand)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><polyline points="20,6 9,17 4,12" /></svg>
+                  <svg className="h-3 w-3 text-[#4361EE]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><polyline points="20,6 9,17 4,12" /></svg>
                 </div>
                 <div>
                   <p className="mb-1 text-[14px] font-bold text-[var(--ink)]">{item.title}</p>

@@ -67,7 +67,7 @@ export default async function ZariVsPerplexityPage() {
               <p className="mt-3 text-[13px] leading-6 text-white/50">Excellent for company research, salary data, industry knowledge. Sources its answers from the live web. Great for learning and research tasks.</p>
             </div>
             <div className="rounded-2xl border border-[var(--brand)]/30 bg-[var(--brand)]/[0.08] p-6">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--brand)]/70">Zari is</p>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-[#4361EE]/70">Zari is</p>
               <p className="mt-2 text-[20px] font-extrabold text-white">An AI career coach</p>
               <p className="mt-3 text-[13px] leading-6 text-white/60">Purpose-built for job search execution: resume coaching, interview practice, LinkedIn optimization, and salary negotiation.</p>
             </div>
@@ -85,7 +85,7 @@ export default async function ZariVsPerplexityPage() {
               <div key={uc.useCase} className="overflow-hidden rounded-2xl border border-[var(--border)]">
                 <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--bg)] px-6 py-4">
                   <p className="font-bold text-[var(--ink)]">{uc.useCase}</p>
-                  <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${uc.winner === "zari" ? "bg-[var(--brand)]/10 text-[var(--brand)]" : uc.winner === "perplexity" ? "bg-slate-100 text-slate-600" : "bg-slate-100 text-slate-500"}`}>
+                  <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${uc.winner === "zari" ? "bg-[var(--brand)]/10 text-[#4361EE]" : uc.winner === "perplexity" ? "bg-slate-100 text-slate-600" : "bg-slate-100 text-slate-500"}`}>
                     {uc.winner === "zari" ? "Zari wins" : uc.winner === "perplexity" ? "Perplexity wins" : "Complementary"}
                   </span>
                 </div>
@@ -95,7 +95,7 @@ export default async function ZariVsPerplexityPage() {
                     <p className="text-[13.5px] leading-6 text-[var(--muted)]">{uc.perplexity}</p>
                   </div>
                   <div className="p-5">
-                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">Zari</p>
+                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">Zari</p>
                     <p className="text-[13.5px] leading-6 text-[var(--muted)]">{uc.zari}</p>
                   </div>
                 </div>

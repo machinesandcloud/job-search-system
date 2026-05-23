@@ -164,7 +164,7 @@ export default async function JobAcceptanceLetterPage() {
               <div key={item.item} className="rounded-2xl border border-[var(--border)] bg-white p-5">
                 <p className="font-bold text-[var(--ink)]">{item.item}</p>
                 <p className="mt-2 text-[13px] leading-6 text-[var(--muted)]">{item.why}</p>
-                <div className="mt-3 rounded-lg bg-[var(--bg)] px-4 py-2.5 font-mono text-[12px] text-[var(--brand)]">{item.example}</div>
+                <div className="mt-3 rounded-lg bg-[var(--bg)] px-4 py-2.5 font-mono text-[12px] text-[#4361EE]">{item.example}</div>
               </div>
             ))}
           </div>
@@ -183,7 +183,7 @@ export default async function JobAcceptanceLetterPage() {
                 </div>
                 <div className="px-5 py-4 font-mono text-[12.5px] leading-7 text-[var(--muted)] whitespace-pre-line bg-white">{tpl.body}</div>
                 <div className="border-t border-[var(--border)] bg-[var(--brand)]/[0.03] px-5 py-3">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand)] mb-1">Usage note</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#4361EE] mb-1">Usage note</p>
                   <p className="text-[12.5px] leading-5 text-[var(--muted)]">{tpl.notes}</p>
                 </div>
               </div>

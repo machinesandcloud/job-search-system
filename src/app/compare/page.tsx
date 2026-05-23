@@ -92,10 +92,10 @@ export default async function ComparePage() {
           {COMPARISONS.map((c) => (
             <Link key={c.href} href={c.href} className="group flex items-center justify-between rounded-2xl border border-[var(--border)] bg-white p-6 shadow-[var(--shadow)] transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-lg)]">
               <div>
-                <p className="font-bold text-[var(--ink)] group-hover:text-[var(--brand)]">{c.title}</p>
+                <p className="font-bold text-[var(--ink)] group-hover:text-[#4361EE]">{c.title}</p>
                 <p className="mt-1 text-[13.5px] text-[var(--muted)]">{c.summary}</p>
               </div>
-              <svg className="h-5 w-5 flex-shrink-0 text-[var(--muted)] transition-transform group-hover:translate-x-1 group-hover:text-[var(--brand)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+              <svg className="h-5 w-5 flex-shrink-0 text-[var(--muted)] transition-transform group-hover:translate-x-1 group-hover:text-[#4361EE]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path d="M5 12h14M12 5l7 7-7 7" /></svg>
             </Link>
           ))}
         </div>

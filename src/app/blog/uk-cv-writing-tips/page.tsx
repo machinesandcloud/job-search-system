@@ -153,7 +153,7 @@ export default async function UkCvWritingTipsPage() {
             ].map((item) => (
               <div key={item.mistake} className="rounded-xl border border-[var(--border)] p-5">
                 <p className="flex items-center gap-2 font-bold text-[var(--ink)]"><span className="text-red-500">✗</span> {item.mistake}</p>
-                <p className="mt-2 text-[13px] leading-6"><span className="font-semibold text-[var(--brand)]">Fix: </span>{item.fix}</p>
+                <p className="mt-2 text-[13px] leading-6"><span className="font-semibold text-[#4361EE]">Fix: </span>{item.fix}</p>
               </div>
             ))}
           </div>
@@ -189,7 +189,7 @@ export default async function UkCvWritingTipsPage() {
                 { href: "/blog/star-method-interview", label: "STAR Method" },
                 { href: "/blog/ats-resume-tips", label: "ATS Optimisation Guide" },
               ].map((link) => (
-                <Link key={link.href} href={link.href} className="rounded-full border border-[var(--border)] bg-[var(--bg)] px-3 py-1.5 text-[12px] font-medium text-[var(--brand)] hover:bg-[var(--brand)]/5 transition-all">
+                <Link key={link.href} href={link.href} className="rounded-full border border-[var(--border)] bg-[var(--bg)] px-3 py-1.5 text-[12px] font-medium text-[#4361EE] hover:bg-[var(--brand)]/5 transition-all">
                   {link.label}
                 </Link>
               ))}

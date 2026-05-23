@@ -105,7 +105,7 @@ export default async function HowToGetAJobAtOpenAIPage() {
             {ROLE_TRACKS.map((item) => (
               <div key={item.track} className="rounded-2xl border border-[var(--border)] overflow-hidden">
                 <div className="border-b border-[var(--border)] bg-[var(--brand)]/[0.04] px-5 py-3">
-                  <p className="font-bold text-[var(--brand)]">{item.track}</p>
+                  <p className="font-bold text-[#4361EE]">{item.track}</p>
                 </div>
                 <div className="grid sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-[var(--border)]">
                   <div className="p-5">

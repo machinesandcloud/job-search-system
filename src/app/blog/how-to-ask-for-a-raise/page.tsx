@@ -97,7 +97,7 @@ export default async function HowToAskForRaisePage() {
                   { label: "Competing offer leverage", range: "15–30%+", context: "The most powerful lever. Your ask is anchored by the market offer, not internal politics." },
                 ].map((item) => (
                   <div key={item.label} className="flex items-start gap-4">
-                    <div className="min-w-[100px] text-center rounded-lg bg-[var(--brand)]/10 px-3 py-1.5 text-[13px] font-bold text-[var(--brand)]">{item.range}</div>
+                    <div className="min-w-[100px] text-center rounded-lg bg-[var(--brand)]/10 px-3 py-1.5 text-[13px] font-bold text-[#4361EE]">{item.range}</div>
                     <div>
                       <p className="font-semibold text-[var(--ink)]">{item.label}</p>
                       <p className="text-[13px] text-[var(--muted)]" dangerouslySetInnerHTML={{ __html: item.context }} />
@@ -154,7 +154,7 @@ export default async function HowToAskForRaisePage() {
 
             <h2 className="mt-10 text-[1.7rem] font-extrabold tracking-[-0.025em] text-[var(--ink)]">Practice the conversation before it happens</h2>
             <p className="mt-4 text-[15px] leading-7 text-[var(--muted)]">
-              The biggest mistake in salary conversations is winging it. Your manager has had this conversation dozens of times. You might be having it for the first time. Zari&apos;s <Link href="/salary-negotiation-coach" className="text-[var(--brand)] underline underline-offset-2">AI salary negotiation coach</Link> simulates the conversation — giving you real-time feedback on your arguments and responses so you go in prepared.
+              The biggest mistake in salary conversations is winging it. Your manager has had this conversation dozens of times. You might be having it for the first time. Zari&apos;s <Link href="/salary-negotiation-coach" className="text-[#4361EE] underline underline-offset-2">AI salary negotiation coach</Link> simulates the conversation — giving you real-time feedback on your arguments and responses so you go in prepared.
             </p>
           </div>
 

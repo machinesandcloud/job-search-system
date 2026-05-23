@@ -76,7 +76,7 @@ export default async function TellMeAboutYourselfPage() {
                 { part: "Future", desc: "Why this role. A specific reason you're interested in this company or role — not generic excitement, but something that connects your background to what they're building." },
               ].map((item) => (
                 <div key={item.part} className="flex gap-4 rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-5">
-                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[12px] font-bold text-[var(--brand)]">{item.part[0]}</div>
+                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[12px] font-bold text-[#4361EE]">{item.part[0]}</div>
                   <div>
                     <p className="mb-1 font-bold text-[var(--ink)]">{item.part}</p>
                     <p className="text-[13.5px] leading-6 text-[var(--muted)]">{item.desc}</p>
@@ -129,7 +129,7 @@ export default async function TellMeAboutYourselfPage() {
 
             <h2 className="mt-10 text-[1.7rem] font-extrabold tracking-[-0.025em] text-[var(--ink)]">Practice with an AI interview coach</h2>
             <p className="mt-4 text-[15px] leading-7 text-[var(--muted)]">
-              Knowing the formula and delivering it confidently under pressure are different skills. Zari's <Link href="/ai-interview-coach" className="text-[var(--brand)] underline underline-offset-2">AI interview coach</Link> runs you through "Tell me about yourself" and the 20 most common interview questions, scores your answer, and gives specific feedback on structure, relevance, and delivery — so the real interview doesn't feel like the first time you've said it out loud.
+              Knowing the formula and delivering it confidently under pressure are different skills. Zari's <Link href="/ai-interview-coach" className="text-[#4361EE] underline underline-offset-2">AI interview coach</Link> runs you through "Tell me about yourself" and the 20 most common interview questions, scores your answer, and gives specific feedback on structure, relevance, and delivery — so the real interview doesn't feel like the first time you've said it out loud.
             </p>
           </div>
 

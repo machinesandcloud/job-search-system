@@ -30,7 +30,7 @@ export default async function AtsResumeTipsPage() {
             All articles
           </Link>
           <div className="mb-4 flex items-center gap-3">
-            <span className="rounded-full bg-[var(--brand)]/20 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">Resume</span>
+            <span className="rounded-full bg-[var(--brand)]/20 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">Resume</span>
             <span className="text-[12px] text-white/35">8 min read · March 2025</span>
           </div>
           <h1 className="mb-5 text-[2.4rem] font-extrabold leading-[1.1] tracking-[-0.03em] md:text-[3rem]">ATS Resume Tips: How to Beat<br />Applicant Tracking Systems</h1>
@@ -71,7 +71,7 @@ export default async function AtsResumeTipsPage() {
               { num: "07", title: "Score your resume before submitting", body: "Use a purpose-built ATS scanner (Zari does this) to get a score against the specific job description before you apply. Anything below 70 is likely to be filtered. Aim for 80+." },
             ].map((item) => (
               <div key={item.num} className="flex gap-5 rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-5">
-                <p className="text-[1.8rem] font-extrabold text-[var(--brand)]/20 flex-shrink-0">{item.num}</p>
+                <p className="text-[1.8rem] font-extrabold text-[#4361EE]/20 flex-shrink-0">{item.num}</p>
                 <div>
                   <p className="mb-2 font-bold text-[var(--ink)]">{item.title}</p>
                   <p className="text-[14px] leading-7">{item.body}</p>

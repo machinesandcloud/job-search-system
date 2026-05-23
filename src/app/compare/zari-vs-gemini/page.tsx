@@ -117,7 +117,7 @@ export default async function ZariVsGeminiPage() {
               <p className="mt-3 text-[13px] leading-6 text-white/50">Best for: company research, salary benchmarking, real-time information, Google Workspace integration. No ATS scoring, no session memory, no coaching framework.</p>
             </div>
             <div className="rounded-2xl border border-[var(--brand)]/30 bg-[var(--brand)]/[0.08] p-6">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--brand)]/70">Zari</p>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-[#4361EE]/70">Zari</p>
               <p className="mt-2 text-[20px] font-extrabold text-white">Purpose-built career coach</p>
               <p className="mt-3 text-[13px] leading-6 text-white/60">Built for the coaching phase: ATS resume scoring, mock interview evaluation, LinkedIn optimization, salary negotiation. Knows your career across sessions.</p>
             </div>
@@ -142,7 +142,7 @@ export default async function ZariVsGeminiPage() {
               <div key={d.dimension} className="overflow-hidden rounded-2xl border border-[var(--border)]">
                 <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--bg)] px-6 py-4">
                   <p className="font-bold text-[var(--ink)]">{d.dimension}</p>
-                  <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${d.winner === "zari" ? "bg-[var(--brand)]/10 text-[var(--brand)]" : "bg-slate-100 text-slate-600"}`}>
+                  <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${d.winner === "zari" ? "bg-[var(--brand)]/10 text-[#4361EE]" : "bg-slate-100 text-slate-600"}`}>
                     {d.winner === "zari" ? "Zari wins" : "Gemini wins"}
                   </span>
                 </div>
@@ -152,7 +152,7 @@ export default async function ZariVsGeminiPage() {
                     <p className="text-[13.5px] leading-6 text-[var(--muted)]">{d.gemini}</p>
                   </div>
                   <div className="p-5">
-                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">Zari</p>
+                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">Zari</p>
                     <p className="text-[13.5px] leading-6 text-[var(--muted)]">{d.zari}</p>
                   </div>
                 </div>

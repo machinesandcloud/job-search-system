@@ -158,11 +158,11 @@ export default async function PersonalBrandPage() {
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-3">
                       <h3 className="font-bold text-[var(--ink)]">{layer.layer}</h3>
-                      <span className="rounded-full bg-[var(--brand)]/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">{layer.priority}</span>
+                      <span className="rounded-full bg-[var(--brand)]/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">{layer.priority}</span>
                     </div>
                     <p className="mt-2 text-[13.5px] leading-6 text-[var(--muted)]">{layer.what}</p>
                     <div className="mt-4 rounded-xl border border-[var(--border)] bg-white p-4">
-                      <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">How to do it</p>
+                      <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">How to do it</p>
                       <p className="text-[13px] leading-6 text-[var(--muted)]">{layer.howTo}</p>
                     </div>
                     <p className="mt-3 text-[12px] text-[var(--muted)]"><span className="font-semibold">Where it shows up: </span>{layer.whereItGoes}</p>
@@ -192,7 +192,7 @@ export default async function PersonalBrandPage() {
                   ))}
                 </ul>
                 <div className="mt-4 rounded-lg bg-[var(--brand)]/[0.05] p-3">
-                  <p className="text-[12px] font-semibold text-[var(--brand)]">Impact: {tier.impact}</p>
+                  <p className="text-[12px] font-semibold text-[#4361EE]">Impact: {tier.impact}</p>
                 </div>
               </div>
             ))}

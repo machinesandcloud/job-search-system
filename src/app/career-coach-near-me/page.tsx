@@ -88,13 +88,13 @@ export default async function CareerCoachNearMePage() {
           <p className="mb-8 text-[14px] text-[var(--muted)]">Where each approach actually wins.</p>
           <div className="overflow-hidden rounded-2xl border border-[var(--border)]">
             <div className="grid grid-cols-3 bg-[var(--bg)] border-b border-[var(--border)] p-3 text-[11px] font-bold uppercase text-[var(--muted)]">
-              <span>Dimension</span><span>Local career coach</span><span className="text-[var(--brand)]">Zari</span>
+              <span>Dimension</span><span>Local career coach</span><span className="text-[#4361EE]">Zari</span>
             </div>
             {COMPARE.map(({ dimension, local, zari }) => (
               <div key={dimension} className="grid grid-cols-3 border-b border-[var(--border)] p-4 text-[13px] last:border-0 items-start gap-3">
                 <span className="font-bold">{dimension}</span>
                 <span className="text-[var(--muted)]">{local}</span>
-                <span className="font-semibold text-[var(--brand)]">{zari}</span>
+                <span className="font-semibold text-[#4361EE]">{zari}</span>
               </div>
             ))}
           </div>

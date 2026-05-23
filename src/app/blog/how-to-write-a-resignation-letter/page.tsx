@@ -168,7 +168,7 @@ export default async function HowToWriteAResignationLetterPage() {
         <div className="mx-auto max-w-4xl px-6">
           <div className="rounded-2xl border border-[var(--brand)]/20 bg-[var(--brand)]/[0.04] p-6 space-y-3">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand)] mb-1">What it is</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[#4361EE] mb-1">What it is</p>
               <p className="text-[14px] font-semibold leading-6 text-[var(--ink)]">{THE_RULES.what_it_is}</p>
             </div>
             <div>
@@ -201,7 +201,7 @@ export default async function HowToWriteAResignationLetterPage() {
                 </div>
                 <div className="px-5 py-4 font-mono text-[12px] leading-7 text-[var(--muted)] whitespace-pre-line bg-white">{tpl.template}</div>
                 <div className="border-t border-[var(--border)] bg-[var(--brand)]/[0.03] px-5 py-3">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand)] mb-1">Usage note</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#4361EE] mb-1">Usage note</p>
                   <p className="text-[12.5px] leading-5 text-[var(--muted)]">{tpl.notes}</p>
                 </div>
               </div>

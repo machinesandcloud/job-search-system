@@ -220,7 +220,7 @@ export default async function ProjectManagerResumePage() {
                     </div>
                   </div>
                   <div className="bg-[var(--brand)]/[0.04] px-6 py-4">
-                    <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">Sample bullet</p>
+                    <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">Sample bullet</p>
                     <p className="text-[13px] leading-6 text-[var(--ink)] italic">&ldquo;{item.sampleBullet}&rdquo;</p>
                   </div>
                 </div>

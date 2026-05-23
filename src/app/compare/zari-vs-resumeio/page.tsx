@@ -114,7 +114,7 @@ export default async function ZariVsResumeIoPage() {
               <p className="mt-3 text-[13px] leading-6 text-white/50">100+ clean templates, step-by-step guided editing, PDF export. Best for candidates who need a professional-looking document quickly and already have strong content.</p>
             </div>
             <div className="rounded-2xl border border-[var(--brand)]/30 bg-[var(--brand)]/[0.08] p-6">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--brand)]/70">Zari</p>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-[#4361EE]/70">Zari</p>
               <p className="mt-2 text-[20px] font-extrabold text-white">An AI job search coach</p>
               <p className="mt-3 text-[13px] leading-6 text-white/60">ATS optimization, interview coaching, LinkedIn, and salary negotiation — coaching from application to offer. No visual templates; built for outcomes, not documents.</p>
             </div>
@@ -139,7 +139,7 @@ export default async function ZariVsResumeIoPage() {
               <div key={d.feature} className="overflow-hidden rounded-2xl border border-[var(--border)]">
                 <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--bg)] px-6 py-4">
                   <p className="font-bold text-[var(--ink)]">{d.feature}</p>
-                  <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${d.winner === "zari" ? "bg-[var(--brand)]/10 text-[var(--brand)]" : d.winner === "resumeio" ? "bg-slate-100 text-slate-600" : "bg-slate-100 text-slate-500"}`}>
+                  <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${d.winner === "zari" ? "bg-[var(--brand)]/10 text-[#4361EE]" : d.winner === "resumeio" ? "bg-slate-100 text-slate-600" : "bg-slate-100 text-slate-500"}`}>
                     {d.winner === "zari" ? "Zari wins" : d.winner === "resumeio" ? "Resume.io wins" : "Tie"}
                   </span>
                 </div>
@@ -149,7 +149,7 @@ export default async function ZariVsResumeIoPage() {
                     <p className="text-[13.5px] leading-6 text-[var(--muted)]">{d.resumeio}</p>
                   </div>
                   <div className="p-5">
-                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">Zari</p>
+                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">Zari</p>
                     <p className="text-[13.5px] leading-6 text-[var(--muted)]">{d.zari}</p>
                   </div>
                 </div>

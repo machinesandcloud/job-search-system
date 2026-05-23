@@ -128,7 +128,7 @@ export default async function ReferencesOnResumePage() {
       <section className="bg-[var(--bg)] py-14">
         <div className="mx-auto max-w-4xl px-6">
           <div className="rounded-2xl border border-[var(--brand)]/20 bg-[var(--brand)]/[0.04] p-6">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand)] mb-2">The current standard</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[#4361EE] mb-2">The current standard</p>
             <p className="text-[16px] font-bold text-[var(--ink)] mb-3">{THE_CURRENT_CONSENSUS.rule}</p>
             <p className="text-[13.5px] leading-6 text-[var(--muted)]">{THE_CURRENT_CONSENSUS.why}</p>
           </div>
@@ -160,7 +160,7 @@ export default async function ReferencesOnResumePage() {
                     <p className="text-[12.5px] leading-5 text-[var(--muted)]">{ref.what_employers_learn}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand)] mb-1">Who to choose</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#4361EE] mb-1">Who to choose</p>
                     <p className="text-[12.5px] leading-5 text-[var(--muted)]">{ref.who_to_choose}</p>
                   </div>
                   <div>

@@ -95,7 +95,7 @@ export default async function ResumeCheckerPage() {
           <h2 className="mb-8 text-[2rem] font-extrabold tracking-[-0.02em]">Resume checker vs. resume coach — what&apos;s the difference?</h2>
           <div className="overflow-hidden rounded-2xl border border-[var(--border)]">
             <div className="grid grid-cols-3 border-b border-[var(--border)] bg-[var(--bg)] p-3 text-[11px] font-bold uppercase text-[var(--muted)]">
-              <span>Feature</span><span>Basic checker</span><span className="text-[var(--brand)]">Zari (checker + coach)</span>
+              <span>Feature</span><span>Basic checker</span><span className="text-[#4361EE]">Zari (checker + coach)</span>
             </div>
             {[
               { f: "ATS compatibility score", basic: "✓ Score only", zari: "✓ Score + specific issues" },
@@ -108,7 +108,7 @@ export default async function ResumeCheckerPage() {
               <div key={f} className="grid grid-cols-3 border-b border-[var(--border)] p-4 text-[13px] last:border-0 items-start gap-3">
                 <span className="font-bold">{f}</span>
                 <span className="text-[var(--muted)]">{basic}</span>
-                <span className="font-semibold text-[var(--brand)]">{zari}</span>
+                <span className="font-semibold text-[#4361EE]">{zari}</span>
               </div>
             ))}
           </div>

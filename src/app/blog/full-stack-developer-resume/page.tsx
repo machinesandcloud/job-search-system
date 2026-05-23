@@ -152,7 +152,7 @@ export default async function FullStackDeveloperResumePage() {
                 <p className="mt-2 text-[13px] leading-6 text-[var(--muted)]">{item.detail}</p>
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {item.keywords.map((kw) => (
-                    <span key={kw} className="rounded-full bg-[var(--brand)]/[0.08] px-2.5 py-0.5 text-[11px] font-semibold text-[var(--brand)]">{kw}</span>
+                    <span key={kw} className="rounded-full bg-[var(--brand)]/[0.08] px-2.5 py-0.5 text-[11px] font-semibold text-[#4361EE]">{kw}</span>
                   ))}
                 </div>
               </div>
@@ -181,7 +181,7 @@ export default async function FullStackDeveloperResumePage() {
                     <p className="text-[13px] leading-6 text-[var(--muted)]">{ex.after}</p>
                   </div>
                   <div className="rounded-xl bg-[var(--bg)] p-3.5">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand)] mb-1">What changed</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#4361EE] mb-1">What changed</p>
                     <p className="text-[12.5px] leading-5 text-[var(--muted)]">{ex.what_changed}</p>
                   </div>
                 </div>
@@ -203,7 +203,7 @@ export default async function FullStackDeveloperResumePage() {
                 <p className="text-[12px] text-[var(--muted)] mb-3">{s.stack}</p>
                 <div className="flex flex-wrap gap-1.5 mb-4">
                   {s.keywords.map((kw) => (
-                    <span key={kw} className="rounded-full bg-[var(--brand)]/[0.08] px-2.5 py-0.5 text-[11px] font-semibold text-[var(--brand)]">{kw}</span>
+                    <span key={kw} className="rounded-full bg-[var(--brand)]/[0.08] px-2.5 py-0.5 text-[11px] font-semibold text-[#4361EE]">{kw}</span>
                   ))}
                 </div>
                 <p className="text-[12px] leading-5 text-[var(--muted)]"><span className="font-bold text-[var(--ink)]">Tip: </span>{s.tip}</p>

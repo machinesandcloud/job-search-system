@@ -75,7 +75,7 @@ export default async function CanadaSalaryGuidePage() {
               <thead>
                 <tr className="border-b border-[var(--border)] bg-[var(--bg)]">
                   <th className="px-5 py-3.5 text-left text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">City</th>
-                  <th className="px-4 py-3.5 text-right text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">SWE Senior</th>
+                  <th className="px-4 py-3.5 text-right text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">SWE Senior</th>
                   <th className="px-4 py-3.5 text-right text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">PM Senior</th>
                   <th className="px-5 py-3.5 text-right text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">Data Scientist</th>
                 </tr>
@@ -92,7 +92,7 @@ export default async function CanadaSalaryGuidePage() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-4 text-right font-extrabold text-[var(--brand)]">{row.swe}</td>
+                    <td className="px-4 py-4 text-right font-extrabold text-[#4361EE]">{row.swe}</td>
                     <td className="px-4 py-4 text-right font-medium text-[var(--ink)]">{row.pm}</td>
                     <td className="px-5 py-4 text-right font-medium text-[var(--ink)]">{row.ds}</td>
                   </tr>
@@ -108,11 +108,11 @@ export default async function CanadaSalaryGuidePage() {
                   <span className="text-xl">{c.flag}</span>
                   <div>
                     <p className="font-extrabold text-[var(--ink)]">{c.city}</p>
-                    <p className="text-[11px] text-[var(--muted)]">{c.province} · Senior SWE median: <strong className="text-[var(--brand)]">{c.swe}</strong></p>
+                    <p className="text-[11px] text-[var(--muted)]">{c.province} · Senior SWE median: <strong className="text-[#4361EE]">{c.swe}</strong></p>
                   </div>
                 </div>
                 <p className="text-[13px] leading-6">{c.note}</p>
-                <Link href={c.href} className="mt-3 inline-flex items-center gap-1 text-[12px] font-semibold text-[var(--brand)] hover:underline">
+                <Link href={c.href} className="mt-3 inline-flex items-center gap-1 text-[12px] font-semibold text-[#4361EE] hover:underline">
                   Full salary guide →
                 </Link>
               </div>
@@ -185,7 +185,7 @@ export default async function CanadaSalaryGuidePage() {
                 { href: "/ai-career-coach-canada", label: "AI Career Coach Canada" },
                 { href: "/blog/salary-negotiation-tips", label: "Salary Negotiation Tips" },
               ].map((link) => (
-                <Link key={link.href} href={link.href} className="rounded-full border border-[var(--border)] bg-[var(--bg)] px-3 py-1.5 text-[12px] font-medium text-[var(--brand)] hover:bg-[var(--brand)]/5 transition-all">
+                <Link key={link.href} href={link.href} className="rounded-full border border-[var(--border)] bg-[var(--bg)] px-3 py-1.5 text-[12px] font-medium text-[#4361EE] hover:bg-[var(--brand)]/5 transition-all">
                   {link.label}
                 </Link>
               ))}

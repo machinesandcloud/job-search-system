@@ -121,7 +121,7 @@ export default async function ZariVsCareerflowPage() {
               <p className="mt-3 text-[13.5px] leading-6 text-[var(--muted)]">Careerflow&apos;s Chrome extension saves job postings from LinkedIn and other boards into a visual pipeline, scores your LinkedIn profile, provides InMail templates for recruiter outreach, and does basic ATS resume checking. It&apos;s strongest as an organizational layer on top of your job search — keeping track of where you are in each process.</p>
             </div>
             <div className="rounded-2xl border border-[var(--brand)]/20 bg-[var(--brand)]/[0.04] p-6">
-              <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-[var(--brand)]">What Zari is</p>
+              <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-[#4361EE]">What Zari is</p>
               <p className="text-[15px] font-bold text-[var(--ink)]">An AI career coaching platform</p>
               <p className="mt-3 text-[13.5px] leading-6 text-[var(--muted)]">Zari coaches resume writing with ATS scoring against specific job descriptions, interview preparation with STAR framework evaluation, full LinkedIn profile optimization, and salary negotiation. It has session memory and adapts to your specific search context. Zari doesn&apos;t track applications — it coaches the activities that make applications succeed.</p>
             </div>
@@ -138,7 +138,7 @@ export default async function ZariVsCareerflowPage() {
               <div key={row.feature} className="overflow-hidden rounded-2xl border border-[var(--border)] bg-white">
                 <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--bg)] px-6 py-3">
                   <p className="font-bold text-[var(--ink)]">{row.feature}</p>
-                  <span className={`rounded-full px-3 py-1 text-[11px] font-bold ${row.winner === "Zari" ? "bg-[var(--brand)]/10 text-[var(--brand)]" : row.winner === "Careerflow" ? "bg-gray-100 text-gray-700" : "bg-amber-50 text-amber-700"}`}>{row.winner === "Depends" ? "Context-dependent" : `${row.winner} wins`}</span>
+                  <span className={`rounded-full px-3 py-1 text-[11px] font-bold ${row.winner === "Zari" ? "bg-[var(--brand)]/10 text-[#4361EE]" : row.winner === "Careerflow" ? "bg-gray-100 text-gray-700" : "bg-amber-50 text-amber-700"}`}>{row.winner === "Depends" ? "Context-dependent" : `${row.winner} wins`}</span>
                 </div>
                 <div className="grid sm:grid-cols-2">
                   <div className="border-b border-[var(--border)] p-5 sm:border-b-0 sm:border-r">
@@ -150,11 +150,11 @@ export default async function ZariVsCareerflowPage() {
                   </div>
                   <div className="p-5">
                     <div className="mb-2 flex items-center gap-2">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">Zari</p>
-                      <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold ${row.zari.has ? "bg-[var(--brand)]/10 text-[var(--brand)]" : "bg-gray-100 text-gray-500"}`}>{row.zari.has ? "✓" : "—"}</span>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">Zari</p>
+                      <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold ${row.zari.has ? "bg-[var(--brand)]/10 text-[#4361EE]" : "bg-gray-100 text-gray-500"}`}>{row.zari.has ? "✓" : "—"}</span>
                     </div>
                     <p className="text-[13.5px] leading-6 text-[var(--muted)]">{row.zari.detail}</p>
-                    {row.winnerNote && <p className="mt-2 text-[12px] italic text-[var(--brand)]">{row.winnerNote}</p>}
+                    {row.winnerNote && <p className="mt-2 text-[12px] italic text-[#4361EE]">{row.winnerNote}</p>}
                   </div>
                 </div>
               </div>
@@ -167,7 +167,7 @@ export default async function ZariVsCareerflowPage() {
       <section className="bg-white py-14">
         <div className="mx-auto max-w-3xl px-6">
           <div className="rounded-2xl border border-[var(--brand)]/20 bg-[var(--brand)]/[0.04] p-8">
-            <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-[var(--brand)]">Honest verdict</p>
+            <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-[#4361EE]">Honest verdict</p>
             <p className="text-[17px] font-bold text-[var(--ink)]">Complementary tools — but Zari covers the parts that matter more</p>
             <p className="mt-4 text-[14px] leading-7 text-[var(--muted)]">Careerflow&apos;s job tracker is genuinely useful for organized job seekers applying to many roles. If you want a visual pipeline and LinkedIn profile score, Careerflow delivers that efficiently.</p>
             <p className="mt-4 text-[14px] leading-7 text-[var(--muted)]">But tracking your applications doesn&apos;t make your applications succeed. The coaching activities that actually improve your outcomes — resume targeting, interview preparation, LinkedIn depth optimization, salary negotiation — are where Zari operates and Careerflow doesn&apos;t.</p>

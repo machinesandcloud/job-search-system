@@ -93,7 +93,7 @@ export default async function StarMethodPage() {
                 "Tell me about a time you had to push back on leadership.",
               ].map((q, i) => (
                 <div key={i} className="flex items-start gap-3 rounded-xl border border-[var(--border)] bg-[var(--bg)] p-4 text-[13.5px] text-[var(--ink)]">
-                  <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[10px] font-bold text-[var(--brand)]">{i + 1}</span>
+                  <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[10px] font-bold text-[#4361EE]">{i + 1}</span>
                   {q}
                 </div>
               ))}
@@ -146,7 +146,7 @@ export default async function StarMethodPage() {
 
             <h2 className="mt-10 text-[1.7rem] font-extrabold tracking-[-0.025em] text-[var(--ink)]">Get your STAR answers scored by AI</h2>
             <p className="mt-4 text-[15px] leading-7 text-[var(--muted)]">
-              Reading about STAR and delivering it under pressure are different skills. Zari's <Link href="/ai-interview-coach" className="text-[var(--brand)] underline underline-offset-2">AI interview coach</Link> runs you through behavioral questions, scores each answer across 6 dimensions (situation clarity, task ownership, action specificity, result quantification, conciseness, leadership signal), and gives specific feedback on exactly which part of your answer is weakest — so you fix it before the real interview.
+              Reading about STAR and delivering it under pressure are different skills. Zari's <Link href="/ai-interview-coach" className="text-[#4361EE] underline underline-offset-2">AI interview coach</Link> runs you through behavioral questions, scores each answer across 6 dimensions (situation clarity, task ownership, action specificity, result quantification, conciseness, leadership signal), and gives specific feedback on exactly which part of your answer is weakest — so you fix it before the real interview.
             </p>
           </div>
 

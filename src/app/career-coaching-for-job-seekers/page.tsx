@@ -47,7 +47,7 @@ export default async function CareerCoachingForJobSeekersPage() {
               { href: "/career-change-coach", title: "Strategy — stop applying blindly", body: "Role fit mapping, target company shortlist, 30-day action plan. Stop sending 50 applications into the void." },
             ].map((item) => (
               <Link key={item.href} href={item.href} className="group rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-6 transition-all hover:-translate-y-1 hover:border-[var(--brand)]/30">
-                <h3 className="mb-2 text-[15px] font-bold text-[var(--ink)] group-hover:text-[var(--brand)]">{item.title}</h3>
+                <h3 className="mb-2 text-[15px] font-bold text-[var(--ink)] group-hover:text-[#4361EE]">{item.title}</h3>
                 <p className="text-[13.5px] leading-6 text-[var(--muted)]">{item.body}</p>
               </Link>
             ))}

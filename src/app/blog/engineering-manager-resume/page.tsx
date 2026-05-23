@@ -151,7 +151,7 @@ export default async function EngineeringManagerResumePage() {
                 <div key={item.dimension} className="overflow-hidden rounded-2xl border border-[var(--border)]">
                   <div className="border-b border-[var(--border)] bg-[var(--bg)] px-6 py-4 flex items-center justify-between">
                     <h3 className="font-bold text-[var(--ink)]">{item.dimension}</h3>
-                    <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${item.weight === 'Very High' ? 'bg-[var(--brand)]/10 text-[var(--brand)]' : item.weight === 'High' ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-500'}`}>
+                    <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${item.weight === 'Very High' ? 'bg-[var(--brand)]/10 text-[#4361EE]' : item.weight === 'High' ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-500'}`}>
                       {item.weight}
                     </span>
                   </div>
@@ -240,7 +240,7 @@ export default async function EngineeringManagerResumePage() {
                 },
               ].map(group => (
                 <div key={group.category} className="rounded-xl border border-[var(--border)] bg-[var(--bg)] p-4">
-                  <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-[var(--brand)]">{group.category}</p>
+                  <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-[#4361EE]">{group.category}</p>
                   <div className="flex flex-wrap gap-2">
                     {group.keywords.map(kw => (
                       <span key={kw} className="rounded-full border border-[var(--border)] bg-white px-3 py-1 text-[12px] text-[var(--ink)]">{kw}</span>

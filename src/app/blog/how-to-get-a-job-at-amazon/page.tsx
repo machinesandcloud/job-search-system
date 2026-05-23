@@ -129,7 +129,7 @@ export default async function HowToGetAJobAtAmazonPage() {
               ].map((item, i) => (
                 <div key={i} className="overflow-hidden rounded-2xl border border-[var(--border)]">
                   <div className="border-b border-[var(--border)] bg-[var(--bg)] px-6 py-4 flex items-center gap-3">
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[12px] font-bold text-[var(--brand)]">{i + 1}</div>
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[12px] font-bold text-[#4361EE]">{i + 1}</div>
                     <h3 className="font-bold text-[var(--ink)]">{item.stage}</h3>
                   </div>
                   <div className="p-6">

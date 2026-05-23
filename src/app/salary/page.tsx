@@ -71,8 +71,8 @@ export default async function SalaryIndexPage() {
               const slug = `${roleKey}-salary-${cityKey}`;
               return (
                 <Link key={slug} href={`/salary/${slug}`} className="group rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-5 transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-lg)] hover:border-[var(--brand)]/30">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--brand)]">{city.displayName}, {city.stateOrCountry}</p>
-                  <p className="mt-1 font-bold text-[var(--ink)] group-hover:text-[var(--brand)]">{role.displayName}</p>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-[#4361EE]">{city.displayName}, {city.stateOrCountry}</p>
+                  <p className="mt-1 font-bold text-[var(--ink)] group-hover:text-[#4361EE]">{role.displayName}</p>
                   <div className="mt-3 flex items-baseline gap-1">
                     <span className="text-[1.3rem] font-extrabold text-[var(--ink)]">{formatSalary(salaries.senior.median, sym)}</span>
                     <span className="text-[12px] text-[var(--muted)]">median senior base</span>
@@ -95,7 +95,7 @@ export default async function SalaryIndexPage() {
                 <p className="font-bold text-[var(--ink)]">{role.displayName}</p>
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {["san-francisco", "new-york-city", "seattle", "austin", "remote"].map((cityKey) => (
-                    <Link key={cityKey} href={`/salary/${roleKey}-salary-${cityKey}`} className="rounded-full border border-[var(--border)] bg-[var(--bg)] px-2.5 py-0.5 text-[11px] font-medium text-[var(--brand)] hover:bg-[var(--brand)]/5">
+                    <Link key={cityKey} href={`/salary/${roleKey}-salary-${cityKey}`} className="rounded-full border border-[var(--border)] bg-[var(--bg)] px-2.5 py-0.5 text-[11px] font-medium text-[#4361EE] hover:bg-[var(--brand)]/5">
                       {CITIES[cityKey].displayName}
                     </Link>
                   ))}

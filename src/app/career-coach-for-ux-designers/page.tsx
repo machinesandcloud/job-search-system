@@ -106,7 +106,7 @@ export default async function CareerCoachUXDesignersPage() {
                   <p className="mt-1 text-[13px] text-[var(--muted)]">{t.what}</p>
                 </div>
                 <div className="px-6 py-4">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand)] mb-2">How to prep</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#4361EE] mb-2">How to prep</p>
                   <p className="text-[13.5px] leading-6 text-[var(--muted)]">{t.prep}</p>
                 </div>
               </div>

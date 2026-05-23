@@ -137,12 +137,12 @@ export default async function GoogleInterviewPrepPage() {
                   <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[var(--brand)] text-[13px] font-extrabold text-white">{i + 1}</span>
                   <div>
                     <p className="font-bold text-[var(--ink)]">{s.stage}</p>
-                    <p className="text-[12px] text-[var(--brand)]">{s.duration}</p>
+                    <p className="text-[12px] text-[#4361EE]">{s.duration}</p>
                     <p className="mt-2 text-[13.5px] leading-6 text-[var(--muted)]">{s.what}</p>
                   </div>
                 </div>
                 <div className="px-6 py-4">
-                  <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">How to pass this stage</p>
+                  <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">How to pass this stage</p>
                   <p className="text-[13.5px] leading-6 text-[var(--muted)]">{s.howToPass}</p>
                 </div>
               </div>
@@ -162,7 +162,7 @@ export default async function GoogleInterviewPrepPage() {
                 <p className="mb-2 text-[17px] font-bold text-[var(--ink)]">{c.criterion}</p>
                 <p className="text-[14px] leading-7 text-[var(--muted)]">{c.description}</p>
                 <div className="mt-4 rounded-xl bg-[var(--bg)] px-4 py-3">
-                  <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">What it looks like in the room</p>
+                  <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">What it looks like in the room</p>
                   <p className="text-[13px] leading-6 text-[var(--muted)]">{c.example}</p>
                 </div>
               </div>

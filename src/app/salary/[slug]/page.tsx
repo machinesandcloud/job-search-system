@@ -199,7 +199,7 @@ export default async function SalaryPage({ params }: { params: Promise<{ slug: s
                   <th className="px-5 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">Level</th>
                   <th className="px-4 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">Experience</th>
                   <th className="px-4 py-3.5 text-right text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">25th %ile</th>
-                  <th className="px-4 py-3.5 text-right text-[11px] font-bold uppercase tracking-wider text-[var(--brand)]">Median</th>
+                  <th className="px-4 py-3.5 text-right text-[11px] font-bold uppercase tracking-wider text-[#4361EE]">Median</th>
                   <th className="px-5 py-3.5 text-right text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">75th %ile</th>
                 </tr>
               </thead>
@@ -213,7 +213,7 @@ export default async function SalaryPage({ params }: { params: Promise<{ slug: s
                     </td>
                     <td className="px-4 py-4 text-[var(--muted)]">{LEVEL_LABELS[lvl].years}</td>
                     <td className="px-4 py-4 text-right font-medium text-[var(--muted)]">{formatSalary(salaries[lvl].p25, sym)}</td>
-                    <td className="px-4 py-4 text-right font-extrabold text-[var(--brand)]">{formatSalary(salaries[lvl].median, sym)}</td>
+                    <td className="px-4 py-4 text-right font-extrabold text-[#4361EE]">{formatSalary(salaries[lvl].median, sym)}</td>
                     <td className="px-5 py-4 text-right font-medium text-[var(--ink)]">{formatSalary(salaries[lvl].p75, sym)}</td>
                   </tr>
                 ))}
@@ -231,7 +231,7 @@ export default async function SalaryPage({ params }: { params: Promise<{ slug: s
             <div className="grid sm:grid-cols-2">
               <div className="p-8 border-b sm:border-b-0 sm:border-r border-[var(--border)]">
                 <p className="text-[11px] font-bold uppercase tracking-widest text-[var(--muted)]">Senior {role.shortName} · Total Compensation</p>
-                <p className="mt-3 text-[2.8rem] font-extrabold tracking-[-0.04em] leading-none text-[var(--brand)]">{formatSalary(totalCompSenior.median, sym)}</p>
+                <p className="mt-3 text-[2.8rem] font-extrabold tracking-[-0.04em] leading-none text-[#4361EE]">{formatSalary(totalCompSenior.median, sym)}</p>
                 <p className="mt-2 text-[13px] text-[var(--muted)]">Median total comp (base + equity + bonus)</p>
                 <div className="mt-5">
                   <SalaryBar p25={totalCompSenior.p25} median={totalCompSenior.median} p75={totalCompSenior.p75} currencySymbol={sym} label="Total comp range" />

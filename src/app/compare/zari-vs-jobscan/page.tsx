@@ -129,7 +129,7 @@ export default async function ZariVsJobscanPage() {
               </ul>
             </div>
             <div className="rounded-2xl border border-[var(--brand)]/30 bg-[var(--brand)]/[0.08] p-5">
-              <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-[var(--brand)]/70">Zari is better for</p>
+              <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-[#4361EE]/70">Zari is better for</p>
               <ul className="mt-3 space-y-2">
                 {[
                   "ATS analysis + actual bullet rewrites in one session",
@@ -138,7 +138,7 @@ export default async function ZariVsJobscanPage() {
                   "Anyone who needs more than a score — they need the fix",
                 ].map(item => (
                   <li key={item} className="flex items-start gap-2 text-[13px] text-white/80">
-                    <span className="mt-0.5 text-[var(--brand)]">✓</span> {item}
+                    <span className="mt-0.5 text-[#4361EE]">✓</span> {item}
                   </li>
                 ))}
               </ul>
@@ -171,7 +171,7 @@ export default async function ZariVsJobscanPage() {
             ].map((item, i) => (
               <div key={i} className="rounded-xl border border-[var(--border)] bg-white p-5">
                 <div className="flex items-start gap-4">
-                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[11px] font-bold text-[var(--brand)]">{i + 1}</span>
+                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[11px] font-bold text-[#4361EE]">{i + 1}</span>
                   <div>
                     <p className="font-semibold text-[var(--ink)] text-[14px]">{item.step}</p>
                     <p className="mt-1 text-[13.5px] text-[var(--muted)]">{item.result}</p>
@@ -200,7 +200,7 @@ export default async function ZariVsJobscanPage() {
                 <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--bg)] px-6 py-4">
                   <p className="font-bold text-[var(--ink)]">{dim.category}</p>
                   <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${
-                    dim.winner === "zari" ? "bg-[var(--brand)]/10 text-[var(--brand)]" :
+                    dim.winner === "zari" ? "bg-[var(--brand)]/10 text-[#4361EE]" :
                     dim.winner === "tie" ? "bg-slate-100 text-slate-500" :
                     "bg-slate-100 text-slate-500"
                   }`}>
@@ -213,7 +213,7 @@ export default async function ZariVsJobscanPage() {
                     <p className="text-[13.5px] leading-6 text-[var(--muted)]">{dim.jobscan}</p>
                   </div>
                   <div className="p-5">
-                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">Zari</p>
+                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">Zari</p>
                     <p className="text-[13.5px] leading-6 text-[var(--muted)]">{dim.zari}</p>
                   </div>
                 </div>

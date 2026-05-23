@@ -118,7 +118,7 @@ export default async function RemoteWorkResumePage() {
                 <p className="font-bold text-[var(--ink)]">{item.signal}</p>
                 <p className="mt-2 text-[13.5px] leading-6 text-[var(--muted)]">{item.detail}</p>
                 <div className="mt-3 rounded-xl bg-[var(--bg)] p-3">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand)] mb-1">How to show it</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#4361EE] mb-1">How to show it</p>
                   <p className="text-[12.5px] text-[var(--muted)]">{item.how_to_show}</p>
                 </div>
               </div>

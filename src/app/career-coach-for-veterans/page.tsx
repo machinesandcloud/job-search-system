@@ -142,7 +142,7 @@ export default async function CareerCoachForVeteransPage() {
                   <p className="mb-1 font-bold text-[var(--ink)]">{rp.problem}</p>
                   <p className="mb-3 text-[13px] italic text-[var(--muted)]">{rp.example}</p>
                   <div className="rounded-lg bg-[var(--brand)]/[0.06] p-3">
-                    <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">The fix</p>
+                    <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">The fix</p>
                     <p className="text-[13.5px] leading-6 text-[var(--muted)]">{rp.fix}</p>
                   </div>
                 </div>

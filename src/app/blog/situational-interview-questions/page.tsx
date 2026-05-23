@@ -127,7 +127,7 @@ export default async function SituationalInterviewQuestionsPage() {
           <h2 className="text-[1.9rem] font-extrabold tracking-[-0.025em] text-[var(--ink)]">Situational vs behavioral questions</h2>
           <div className="mt-5 grid md:grid-cols-2 gap-4">
             <div className="rounded-2xl border border-[var(--border)] bg-white p-5">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand)] mb-2">Situational</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[#4361EE] mb-2">Situational</p>
               <p className="text-[13px] font-semibold text-[var(--ink)] italic mb-2">{SITUATIONAL_VS_BEHAVIORAL.situational.format}</p>
               <p className="text-[12.5px] leading-5 text-[var(--muted)] mb-2"><span className="font-semibold">Tests:</span> {SITUATIONAL_VS_BEHAVIORAL.situational.what_it_tests}</p>
               <p className="text-[12.5px] leading-5 text-[var(--muted)]"><span className="font-semibold">Common in:</span> {SITUATIONAL_VS_BEHAVIORAL.situational.when_used}</p>
@@ -178,7 +178,7 @@ export default async function SituationalInterviewQuestionsPage() {
                         <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 mb-2">Strong answer approach</p>
                         <p className="text-[13px] leading-6 text-[var(--muted)]">{qa.strong_answer}</p>
                         <div className="mt-3 rounded-xl bg-[var(--bg)] p-3">
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand)] mb-1">What it demonstrates</p>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-[#4361EE] mb-1">What it demonstrates</p>
                           <p className="text-[12.5px] text-[var(--muted)]">{qa.what_it_demonstrates}</p>
                         </div>
                       </div>

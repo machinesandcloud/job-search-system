@@ -64,13 +64,13 @@ export default async function ZariVsCareerCoachIOPage() {
           <div className="overflow-hidden rounded-2xl border border-[var(--border)]">
             <div className="grid grid-cols-3 border-b border-[var(--border)] bg-[var(--bg)] p-3 text-[11px] font-bold uppercase text-[var(--muted)]">
               <span>Dimension</span>
-              <span className="text-[var(--brand)]">Zari</span>
+              <span className="text-[#4361EE]">Zari</span>
               <span>CareerCoach.io</span>
             </div>
             {COMPARE.map(({ dimension, zari, them, winner }) => (
               <div key={dimension} className="grid grid-cols-3 border-b border-[var(--border)] p-4 text-[13px] last:border-0 items-start gap-3">
                 <span className="font-bold">{dimension}</span>
-                <span className={winner === "zari" ? "font-semibold text-[var(--brand)]" : "text-[var(--muted)]"}>{zari}</span>
+                <span className={winner === "zari" ? "font-semibold text-[#4361EE]" : "text-[var(--muted)]"}>{zari}</span>
                 <span className={winner === "them" ? "font-semibold text-[var(--ink)]" : "text-[var(--muted)]"}>{them}</span>
               </div>
             ))}
@@ -83,10 +83,10 @@ export default async function ZariVsCareerCoachIOPage() {
           <h2 className="mb-6 text-[1.9rem] font-extrabold tracking-[-0.02em]">Which should you use?</h2>
           <div className="grid gap-5 sm:grid-cols-2">
             <div className="rounded-2xl border border-[var(--brand)]/30 bg-white p-6">
-              <h3 className="mb-3 font-bold text-[15px] text-[var(--brand)]">Choose Zari if you need:</h3>
+              <h3 className="mb-3 font-bold text-[15px] text-[#4361EE]">Choose Zari if you need:</h3>
               <ul className="space-y-2 text-[13px] text-[var(--muted)]">
                 {["Live salary negotiation simulations with market data", "Unlimited STAR-scored mock interviews 24/7", "ATS scoring with keyword gap analysis against your JD", "LinkedIn headline + About rewrites with visibility scoring", "Promotion case builder and manager conversation prep"].map(p => (
-                  <li key={p} className="flex items-start gap-2"><span className="mt-0.5 flex-shrink-0 text-[var(--brand)]">✓</span>{p}</li>
+                  <li key={p} className="flex items-start gap-2"><span className="mt-0.5 flex-shrink-0 text-[#4361EE]">✓</span>{p}</li>
                 ))}
               </ul>
             </div>

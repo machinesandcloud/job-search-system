@@ -186,7 +186,7 @@ export default async function MarketingManagerResumePage() {
             {BULLET_TRANSFORMATIONS.map((item) => (
               <div key={item.level} className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg)]">
                 <div className="border-b border-[var(--border)] bg-white px-6 py-3.5">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--brand)]">{item.level}</p>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-[#4361EE]">{item.level}</p>
                 </div>
                 <div className="divide-y divide-[var(--border)]">
                   <div className="bg-red-50/30 px-6 py-4">
@@ -242,7 +242,7 @@ export default async function MarketingManagerResumePage() {
                     </div>
                   </div>
                   <div className="bg-[var(--brand)]/[0.04] px-6 py-3.5">
-                    <p className="text-[12px] text-[var(--muted)]"><span className="font-bold text-[var(--brand)]">Senior signal: </span>{item.seniorSignal}</p>
+                    <p className="text-[12px] text-[var(--muted)]"><span className="font-bold text-[#4361EE]">Senior signal: </span>{item.seniorSignal}</p>
                   </div>
                 </div>
               </div>

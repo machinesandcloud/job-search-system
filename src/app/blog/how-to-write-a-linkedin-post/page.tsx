@@ -158,7 +158,7 @@ export default async function HowToWriteLinkedInPostPage() {
                 <div key={i} className="overflow-hidden rounded-2xl border border-[var(--border)]">
                   <div className="border-b border-[var(--border)] bg-[var(--bg)] px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[12px] font-bold text-[var(--brand)]">{i + 1}</div>
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[12px] font-bold text-[#4361EE]">{i + 1}</div>
                       <h3 className="font-bold text-[var(--ink)]">{structure.name}</h3>
                     </div>
                   </div>
@@ -176,7 +176,7 @@ export default async function HowToWriteLinkedInPostPage() {
                       <p className="text-[13.5px] leading-6 text-[var(--muted)]">{structure.bestFor}</p>
                     </div>
                     <div className="rounded-lg border border-[var(--brand)]/15 bg-[var(--brand)]/[0.03] px-5 py-4">
-                      <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--brand)] mb-2">Example</p>
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-[#4361EE] mb-2">Example</p>
                       <p className="text-[13.5px] leading-6 text-[var(--muted)] whitespace-pre-line">{structure.example}</p>
                     </div>
                   </div>
@@ -197,7 +197,7 @@ export default async function HowToWriteLinkedInPostPage() {
                 { rule: "Post timing", detail: "Tuesday–Thursday, 8–10am or 5–6pm in your audience's timezone. But timing is a distant second to hook quality. A great hook at 11pm outperforms a weak hook at peak hours." },
               ].map((item, i) => (
                 <div key={i} className="flex gap-4 rounded-xl border border-[var(--border)] bg-[var(--bg)] p-4">
-                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[11px] font-bold text-[var(--brand)]">{i + 1}</div>
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[11px] font-bold text-[#4361EE]">{i + 1}</div>
                   <div>
                     <p className="font-semibold text-[var(--ink)] text-[14px]">{item.rule}</p>
                     <p className="mt-1 text-[13.5px] leading-6 text-[var(--muted)]">{item.detail}</p>

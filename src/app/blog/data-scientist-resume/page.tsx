@@ -173,7 +173,7 @@ export default async function DataScientistResumePage() {
                     </div>
                   </div>
                   <div className="rounded-lg border border-[var(--brand)]/15 bg-[var(--brand)]/[0.04] p-3">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand)] mb-1">Emphasize in bullets</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#4361EE] mb-1">Emphasize in bullets</p>
                     <p className="text-[12.5px] text-[var(--muted)] leading-5">{track.whatToEmphasize}</p>
                   </div>
                 </div>

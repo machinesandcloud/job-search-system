@@ -141,7 +141,7 @@ export default async function NursingInterviewQuestionsPage() {
                     <p className="text-[13px] leading-6 text-[var(--muted)]">{item.strong_answer}</p>
                   </div>
                   <div className="rounded-xl bg-[var(--brand)]/[0.05] p-3">
-                    <p className="text-[12px] font-semibold text-[var(--brand)]"><span className="font-bold">Key elements: </span>{item.key_elements}</p>
+                    <p className="text-[12px] font-semibold text-[#4361EE]"><span className="font-bold">Key elements: </span>{item.key_elements}</p>
                   </div>
                 </div>
               </div>
@@ -160,7 +160,7 @@ export default async function NursingInterviewQuestionsPage() {
               <div key={item.scenario} className="rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-6">
                 <div className="flex flex-wrap items-center gap-3 mb-3">
                   <h3 className="font-bold text-[var(--ink)]">&ldquo;{item.scenario}&rdquo;</h3>
-                  <span className="rounded-full bg-[var(--brand)]/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">{item.category}</span>
+                  <span className="rounded-full bg-[var(--brand)]/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">{item.category}</span>
                 </div>
                 <div className="rounded-xl bg-emerald-50 p-4 mb-3">
                   <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-emerald-600">Strong approach</p>
@@ -183,7 +183,7 @@ export default async function NursingInterviewQuestionsPage() {
           <div className="mt-8 space-y-5">
             {BY_INTERVIEW_TYPE.map((item) => (
               <div key={item.type} className="rounded-2xl border border-[var(--border)] bg-white p-6">
-                <h3 className="font-bold text-[var(--brand)]">{item.type}</h3>
+                <h3 className="font-bold text-[#4361EE]">{item.type}</h3>
                 <p className="mt-2 text-[13.5px] leading-6 text-[var(--muted)]">{item.focus}</p>
                 <div className="mt-3 rounded-xl bg-[var(--bg)] p-4 space-y-2">
                   <p className="text-[12px] font-bold text-[var(--muted)]">Specific questions to prepare for:</p>

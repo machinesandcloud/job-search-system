@@ -220,7 +220,7 @@ export default async function HowToRespondToJobRejectionPage() {
                     </div>
                   </div>
                   <div className="px-6 py-5">
-                    <p className="mb-3 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">Email template</p>
+                    <p className="mb-3 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">Email template</p>
                     <pre className="whitespace-pre-wrap rounded-xl bg-white border border-[var(--border)] px-5 py-4 font-mono text-[12.5px] leading-7 text-[var(--ink)]">{item.emailTemplate}</pre>
                   </div>
                 </div>
@@ -242,7 +242,7 @@ export default async function HowToRespondToJobRejectionPage() {
                 </div>
                 <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-[var(--border)]">
                   <div className="px-5 py-4">
-                    <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">How to ask</p>
+                    <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">How to ask</p>
                     <p className="text-[13.5px] leading-6 text-[var(--muted)] italic">{item.howToAsk}</p>
                   </div>
                   <div className="px-5 py-4">

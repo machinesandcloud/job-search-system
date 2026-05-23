@@ -214,7 +214,7 @@ export default async function FinanceResumePage() {
                 },
               ].map(item => (
                 <div key={item.track} className="rounded-xl border border-[var(--border)] bg-[var(--bg)] p-5">
-                  <p className="mb-3 text-[12px] font-bold uppercase tracking-wider text-[var(--brand)]">{item.track}</p>
+                  <p className="mb-3 text-[12px] font-bold uppercase tracking-wider text-[#4361EE]">{item.track}</p>
                   <div className="flex flex-wrap gap-2">
                     {item.keywords.map(kw => (
                       <span key={kw} className="rounded-md border border-[var(--border)] bg-white px-2.5 py-1 text-[11.5px] text-[var(--muted)]">{kw}</span>
@@ -237,7 +237,7 @@ export default async function FinanceResumePage() {
                 { section: "Certifications", detail: "CFA Level I/II/III, CPA, CAIA, CQF, Series 7/63/65. List exam date if candidate status. These are signal-dense and often ATS keywords." },
               ].map((item, i) => (
                 <div key={i} className="flex gap-4 rounded-xl border border-[var(--border)] bg-white p-4">
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[11px] font-bold text-[var(--brand)]">{i + 1}</div>
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[11px] font-bold text-[#4361EE]">{i + 1}</div>
                   <div>
                     <p className="font-semibold text-[var(--ink)]">{item.section}</p>
                     <p className="mt-1 text-[13.5px] leading-6 text-[var(--muted)]">{item.detail}</p>

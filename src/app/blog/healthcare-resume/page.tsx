@@ -145,7 +145,7 @@ export default async function HealthcareResumePage() {
                 { signal: "Patient volume and ratio", detail: "Patient-to-nurse ratio, daily patient volume (for outpatient), or case load size contextualizes the complexity of your work. A 1:2 ICU ratio reads differently than a 1:8 med-surg ratio. Include it — it's the fastest way to communicate acuity." },
               ].map((item, i) => (
                 <div key={i} className="flex gap-4 rounded-xl border border-[var(--border)] bg-[var(--bg)] p-4">
-                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[11px] font-bold text-[var(--brand)]">{i + 1}</div>
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[11px] font-bold text-[#4361EE]">{i + 1}</div>
                   <div>
                     <p className="font-semibold text-[var(--ink)] text-[14px]">{item.signal}</p>
                     <p className="mt-1 text-[13.5px] leading-6 text-[var(--muted)]">{item.detail}</p>
@@ -184,7 +184,7 @@ export default async function HealthcareResumePage() {
             <div className="mt-5 space-y-4">
               {ATS_KEYWORDS.map(group => (
                 <div key={group.category} className="rounded-xl border border-[var(--border)] bg-[var(--bg)] p-4">
-                  <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-[var(--brand)]">{group.category}</p>
+                  <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-[#4361EE]">{group.category}</p>
                   <div className="flex flex-wrap gap-2">
                     {group.keywords.map(kw => (
                       <span key={kw} className="rounded-full border border-[var(--border)] bg-white px-3 py-1 text-[12px] text-[var(--ink)]">{kw}</span>

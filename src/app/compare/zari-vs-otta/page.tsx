@@ -95,7 +95,7 @@ export default async function ZariVsOttaPage() {
                     <p className="text-[13px] leading-6 text-[var(--muted)]">{row.otta.detail}</p>
                   </div>
                   <div className="p-5">
-                    <p className={`text-[10px] font-bold uppercase tracking-wider mb-2 ${row.zari.score === "win" ? "text-[var(--brand)]" : row.zari.score === "partial" ? "text-amber-500" : "text-[var(--muted)]"}`}>Zari — {row.zari.verdict}</p>
+                    <p className={`text-[10px] font-bold uppercase tracking-wider mb-2 ${row.zari.score === "win" ? "text-[#4361EE]" : row.zari.score === "partial" ? "text-amber-500" : "text-[var(--muted)]"}`}>Zari — {row.zari.verdict}</p>
                     <p className="text-[13px] leading-6 text-[var(--muted)]">{row.zari.detail}</p>
                   </div>
                 </div>

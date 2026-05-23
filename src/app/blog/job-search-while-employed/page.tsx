@@ -231,7 +231,7 @@ export default async function JobSearchWhileEmployedPage() {
                     <p className="text-[13.5px] leading-6 text-[var(--muted)]">{item.strategy}</p>
                   </div>
                   <div className="bg-[var(--brand)]/[0.04] px-5 py-4">
-                    <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">What to say</p>
+                    <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">What to say</p>
                     <p className="text-[13.5px] leading-6 text-[var(--muted)] italic">{item.script}</p>
                   </div>
                 </div>
@@ -255,7 +255,7 @@ export default async function JobSearchWhileEmployedPage() {
                 </div>
                 <div className="divide-y divide-[var(--border)]">
                   <div className="px-5 py-4">
-                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">What to say</p>
+                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">What to say</p>
                     <p className="text-[13.5px] leading-6 text-[var(--muted)]">{item.answer}</p>
                   </div>
                   <div className="px-5 py-4">

@@ -156,13 +156,13 @@ export default async function AiCareerCoachCanadaPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-[1.4rem] font-extrabold text-[var(--brand)]">{p.salary}</p>
+                    <p className="text-[1.4rem] font-extrabold text-[#4361EE]">{p.salary}</p>
                     <p className="text-[10px] text-[var(--muted)]">senior SWE median</p>
                   </div>
                 </div>
                 <div className="p-5">
                   <p className="text-[13.5px] leading-6 text-[var(--muted)]">{p.description}</p>
-                  <Link href={p.href} className="mt-4 inline-flex items-center gap-1 text-[12px] font-semibold text-[var(--brand)] hover:underline">
+                  <Link href={p.href} className="mt-4 inline-flex items-center gap-1 text-[12px] font-semibold text-[#4361EE] hover:underline">
                     Full salary guide →
                   </Link>
                 </div>
@@ -191,7 +191,7 @@ export default async function AiCareerCoachCanadaPage() {
                     "Canadian salary benchmarks in CAD",
                   ].map((item) => (
                     <li key={item} className="flex items-start gap-2 text-[13px] text-[var(--muted)]">
-                      <span className="mt-0.5 text-[var(--brand)]">✓</span> {item}
+                      <span className="mt-0.5 text-[#4361EE]">✓</span> {item}
                     </li>
                   ))}
                 </ul>
@@ -210,7 +210,7 @@ export default async function AiCareerCoachCanadaPage() {
                     "Language requirement preparation (French/English)",
                   ].map((item) => (
                     <li key={item} className="flex items-start gap-2 text-[13px] text-[var(--muted)]">
-                      <span className="mt-0.5 text-[var(--brand)]">✓</span> {item}
+                      <span className="mt-0.5 text-[#4361EE]">✓</span> {item}
                     </li>
                   ))}
                 </ul>

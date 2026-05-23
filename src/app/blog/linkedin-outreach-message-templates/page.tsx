@@ -204,7 +204,7 @@ export default async function LinkedInOutreachTemplatesPage() {
                 </div>
                 <div className="grid sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-[var(--border)]">
                   <div className="p-5">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand)] mb-3">Template</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#4361EE] mb-3">Template</p>
                     <pre className="text-[12.5px] leading-6 text-[var(--ink)] whitespace-pre-wrap font-mono bg-[var(--bg)] border border-[var(--border)] rounded-xl p-4">{t.template}</pre>
                   </div>
                   <div className="p-5">

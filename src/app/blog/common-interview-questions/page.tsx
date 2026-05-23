@@ -119,7 +119,7 @@ export default async function CommonInterviewQuestionsPage() {
             <div className="mt-6 space-y-6">
               {QUESTIONS.map((q) => (
                 <div key={q.question} className="rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-6">
-                  <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-[var(--brand)]">{q.category}</p>
+                  <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-[#4361EE]">{q.category}</p>
                   <h3 className="mb-3 text-[16px] font-extrabold text-[var(--ink)]">{q.question}</h3>
                   <p className="mb-2 text-[13px] font-semibold text-[var(--muted)]">Why they ask it: <span className="font-normal">{q.why}</span></p>
                   <p className="mb-3 text-[13px] font-semibold text-[var(--muted)]">How to answer: <span className="font-normal">{q.answer}</span></p>
@@ -165,7 +165,7 @@ export default async function CommonInterviewQuestionsPage() {
 
             <h2 className="mt-10 text-[1.7rem] font-extrabold tracking-[-0.025em] text-[var(--ink)]">Prepare your answers in minutes, not hours</h2>
             <p className="mt-4 text-[15px] leading-7 text-[var(--muted)]">
-              Zari&apos;s <Link href="/ai-interview-coach" className="text-[var(--brand)] underline underline-offset-2">AI interview coach</Link> generates role-specific question sets for any job and coaches you through STAR answers live — giving you feedback on structure, specificity, and confidence before the real interview.
+              Zari&apos;s <Link href="/ai-interview-coach" className="text-[#4361EE] underline underline-offset-2">AI interview coach</Link> generates role-specific question sets for any job and coaches you through STAR answers live — giving you feedback on structure, specificity, and confidence before the real interview.
             </p>
           </div>
 

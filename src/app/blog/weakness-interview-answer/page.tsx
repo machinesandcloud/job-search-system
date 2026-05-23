@@ -102,7 +102,7 @@ export default async function WeaknessInterviewAnswerPage() {
             <div className="mt-5 space-y-5">
               {EXAMPLES.map((ex, i) => (
                 <div key={ex.weakness} className="rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-6">
-                  <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-[var(--brand)]">Weakness {i + 1}: {ex.weakness}</p>
+                  <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-[#4361EE]">Weakness {i + 1}: {ex.weakness}</p>
                   <div className="mb-3 rounded-xl border border-emerald-100 bg-emerald-50/30 p-4">
                     <p className="text-[13.5px] italic leading-7 text-[var(--muted)]">&ldquo;{ex.answer}&rdquo;</p>
                   </div>
@@ -113,7 +113,7 @@ export default async function WeaknessInterviewAnswerPage() {
 
             <h2 className="mt-10 text-[1.7rem] font-extrabold tracking-[-0.025em] text-[var(--ink)]">Practice your answer before the interview</h2>
             <p className="mt-4 text-[15px] leading-7 text-[var(--muted)]">
-              The weakness question is harder than it looks because it requires genuine reflection, not just a script. Zari&apos;s <Link href="/ai-interview-coach" className="text-[var(--brand)] underline underline-offset-2">AI interview coach</Link> surfaces this question, evaluates your answer in real-time, and gives feedback on whether it sounds genuine or rehearsed.
+              The weakness question is harder than it looks because it requires genuine reflection, not just a script. Zari&apos;s <Link href="/ai-interview-coach" className="text-[#4361EE] underline underline-offset-2">AI interview coach</Link> surfaces this question, evaluates your answer in real-time, and gives feedback on whether it sounds genuine or rehearsed.
             </p>
           </div>
 

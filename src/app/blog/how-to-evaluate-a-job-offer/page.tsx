@@ -153,7 +153,7 @@ export default async function HowToEvaluateJobOfferPage() {
                     <ul className="space-y-2">
                       {dim.questions.map((q) => (
                         <li key={q} className="flex items-start gap-2 text-[13.5px] leading-6 text-[var(--muted)]">
-                          <span className="mt-0.5 flex-shrink-0 text-[var(--brand)]">→</span>
+                          <span className="mt-0.5 flex-shrink-0 text-[#4361EE]">→</span>
                           <span>{q}</span>
                         </li>
                       ))}

@@ -135,13 +135,13 @@ export default async function InternalSalaryNegotiationPage() {
           <div className="mt-8 overflow-hidden rounded-2xl border border-[var(--border)] bg-white">
             <div className="grid grid-cols-3 border-b border-[var(--border)] bg-[var(--bg)] px-5 py-3">
               <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">Dimension</p>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">Internal</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">Internal</p>
               <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">External offer</p>
             </div>
             {INTERNAL_VS_EXTERNAL.map((row) => (
               <div key={row.dimension} className="grid grid-cols-3 border-b border-[var(--border)] px-5 py-4 last:border-0">
                 <p className="text-[13px] font-semibold text-[var(--ink)]">{row.dimension}</p>
-                <p className="text-[13px] text-[var(--brand)] leading-5 pr-3">{row.internal}</p>
+                <p className="text-[13px] text-[#4361EE] leading-5 pr-3">{row.internal}</p>
                 <p className="text-[13px] text-[var(--muted)] leading-5">{row.external}</p>
               </div>
             ))}

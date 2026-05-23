@@ -83,7 +83,7 @@ export default async function GraduateJobsUkPage() {
               { month: "September", event: "Graduate intake", detail: "Most schemes start in September or October, aligned with the end of the academic year." },
             ].map((item) => (
               <div key={item.month} className="flex gap-4 rounded-xl border border-[var(--border)] bg-[var(--bg)] p-4">
-                <span className="flex-shrink-0 w-28 text-[11px] font-bold text-[var(--brand)]">{item.month}</span>
+                <span className="flex-shrink-0 w-28 text-[11px] font-bold text-[#4361EE]">{item.month}</span>
                 <div>
                   <p className="font-bold text-[var(--ink)]">{item.event}</p>
                   <p className="mt-0.5 text-[13px]">{item.detail}</p>
@@ -99,7 +99,7 @@ export default async function GraduateJobsUkPage() {
                 <tr className="border-b border-[var(--border)] bg-[var(--bg)]">
                   <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">Employer</th>
                   <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">Industry</th>
-                  <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">Starting Salary</th>
+                  <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">Starting Salary</th>
                   <th className="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">Difficulty</th>
                 </tr>
               </thead>
@@ -108,7 +108,7 @@ export default async function GraduateJobsUkPage() {
                   <tr key={s.employer} className={`border-b border-[var(--border)] last:border-0 ${i % 2 === 1 ? "bg-[var(--bg)]/50" : "bg-white"}`}>
                     <td className="px-4 py-3.5 font-bold text-[var(--ink)]">{s.employer}</td>
                     <td className="px-4 py-3.5 text-[var(--muted)]">{s.industry}</td>
-                    <td className="px-4 py-3.5 text-right font-bold text-[var(--brand)]">{s.startingSalary}</td>
+                    <td className="px-4 py-3.5 text-right font-bold text-[#4361EE]">{s.startingSalary}</td>
                     <td className="px-4 py-3.5 text-center">
                       <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
                         s.difficulty === "Extremely High" ? "bg-red-100 text-red-600" :
@@ -171,7 +171,7 @@ export default async function GraduateJobsUkPage() {
                 { href: "/blog/star-method-interview", label: "STAR Method" },
                 { href: "/blog/how-to-get-a-job-with-no-experience", label: "Getting a Job With No Experience" },
               ].map((link) => (
-                <Link key={link.href} href={link.href} className="rounded-full border border-[var(--border)] bg-[var(--bg)] px-3 py-1.5 text-[12px] font-medium text-[var(--brand)] hover:bg-[var(--brand)]/5 transition-all">
+                <Link key={link.href} href={link.href} className="rounded-full border border-[var(--border)] bg-[var(--bg)] px-3 py-1.5 text-[12px] font-medium text-[#4361EE] hover:bg-[var(--brand)]/5 transition-all">
                   {link.label}
                 </Link>
               ))}

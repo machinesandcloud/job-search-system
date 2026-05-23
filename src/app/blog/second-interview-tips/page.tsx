@@ -142,7 +142,7 @@ export default async function SecondInterviewTipsPage() {
             {WHAT_CHANGES.map((item, i) => (
               <div key={item.dimension} className="rounded-xl border border-[var(--border)] bg-white p-5">
                 <div className="flex gap-3 items-start">
-                  <span className="flex-shrink-0 h-6 w-6 rounded-full bg-[var(--brand)]/10 flex items-center justify-center text-[11px] font-bold text-[var(--brand)]">{i + 1}</span>
+                  <span className="flex-shrink-0 h-6 w-6 rounded-full bg-[var(--brand)]/10 flex items-center justify-center text-[11px] font-bold text-[#4361EE]">{i + 1}</span>
                   <div>
                     <p className="font-bold text-[var(--ink)]">{item.dimension}</p>
                     <p className="mt-1.5 text-[13px] leading-6 text-[var(--muted)]">{item.detail}</p>
@@ -186,7 +186,7 @@ export default async function SecondInterviewTipsPage() {
                     ))}
                   </div>
                   <div className="rounded-xl bg-[var(--bg)] p-3.5">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand)] mb-1">How to answer</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#4361EE] mb-1">How to answer</p>
                     <p className="text-[12.5px] leading-5 text-[var(--muted)]">{q.how_to_answer}</p>
                   </div>
                 </div>

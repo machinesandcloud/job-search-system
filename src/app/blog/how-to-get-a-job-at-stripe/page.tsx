@@ -76,7 +76,7 @@ export default async function HowToGetAJobAtStripePage() {
           <div className="mt-6 space-y-4">
             {STRIPE_DIFFERENTIATORS.map((item, i) => (
               <div key={i} className="flex gap-5 rounded-2xl border border-[var(--border)] bg-white p-5">
-                <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[13px] font-bold text-[var(--brand)]">{i + 1}</span>
+                <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[13px] font-bold text-[#4361EE]">{i + 1}</span>
                 <div><p className="font-bold text-[var(--ink)]">{item.signal}</p><p className="mt-2 text-[13px] leading-6 text-[var(--muted)]">{item.detail}</p></div>
               </div>
             ))}

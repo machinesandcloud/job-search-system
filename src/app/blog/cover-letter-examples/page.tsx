@@ -131,7 +131,7 @@ export default async function CoverLetterExamplesPage() {
                     <h3 className="font-bold text-[var(--ink)]">{item.principle}</h3>
                     <p className="mt-2 text-[13.5px] leading-6 text-[var(--muted)]">{item.detail}</p>
                     <div className="mt-3 rounded-xl bg-[var(--brand)]/[0.05] p-4">
-                      <p className="text-[12px] font-semibold text-[var(--brand)]">{item.example}</p>
+                      <p className="text-[12px] font-semibold text-[#4361EE]">{item.example}</p>
                     </div>
                   </div>
                 </div>

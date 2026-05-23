@@ -172,7 +172,7 @@ export default async function HowToGetPromotedFastPage() {
                   {i < SPRINT_WEEKS.length - 1 && <div className="mt-2 w-px flex-1 bg-[var(--border)]" />}
                 </div>
                 <div className="pb-8 pt-0.5">
-                  <p className="text-[12px] font-semibold text-[var(--brand)]">{phase.week}</p>
+                  <p className="text-[12px] font-semibold text-[#4361EE]">{phase.week}</p>
                   <p className="mb-3 text-[17px] font-bold text-[var(--ink)]">{phase.title}</p>
                   <ul className="space-y-3">
                     {phase.actions.map((action, j) => (

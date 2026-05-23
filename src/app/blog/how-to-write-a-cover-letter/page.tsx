@@ -122,7 +122,7 @@ export default async function HowToWriteCoverLetterPage() {
 
             <h2 className="mt-10 text-[1.7rem] font-extrabold tracking-[-0.025em] text-[var(--ink)]">Write your cover letter in minutes, not hours</h2>
             <p className="mt-4 text-[15px] leading-7 text-[var(--muted)]">
-              The hardest part of a cover letter is the blank page. Zari's <Link href="/cover-letter-writer" className="text-[var(--brand)] underline underline-offset-2">AI cover letter writer</Link> reads the job description and your background and writes a tailored, recruiter-tested cover letter that follows this structure — in under 3 minutes. You review, adjust the personal touches, and send.
+              The hardest part of a cover letter is the blank page. Zari's <Link href="/cover-letter-writer" className="text-[#4361EE] underline underline-offset-2">AI cover letter writer</Link> reads the job description and your background and writes a tailored, recruiter-tested cover letter that follows this structure — in under 3 minutes. You review, adjust the personal touches, and send.
             </p>
           </div>
 

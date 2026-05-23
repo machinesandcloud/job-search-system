@@ -126,7 +126,7 @@ export default async function ResumeSummaryExamplesPage() {
 
             <h2 className="mt-10 text-[1.7rem] font-extrabold tracking-[-0.025em] text-[var(--ink)]">Get your resume summary written by AI</h2>
             <p className="mt-4 text-[15px] leading-7 text-[var(--muted)]">
-              Writing your own resume summary is hard because you're too close to your own experience to see what's relevant. Zari's <Link href="/ai-resume-writer" className="text-[var(--brand)] underline underline-offset-2">AI resume writer</Link> writes a targeted summary based on your background and the specific role you're applying for — with keywords, a metric, and the right positioning for your career stage.
+              Writing your own resume summary is hard because you're too close to your own experience to see what's relevant. Zari's <Link href="/ai-resume-writer" className="text-[#4361EE] underline underline-offset-2">AI resume writer</Link> writes a targeted summary based on your background and the specific role you're applying for — with keywords, a metric, and the right positioning for your career stage.
             </p>
           </div>
 

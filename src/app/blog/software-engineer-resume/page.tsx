@@ -214,7 +214,7 @@ export default async function SoftwareEngineerResumePage() {
                     <p className="text-[12.5px] text-red-800 leading-5">{lvl.keyMistake}</p>
                   </div>
                   <div className="rounded-lg border border-[var(--brand)]/15 bg-[var(--brand)]/[0.04] px-4 py-3">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand)] mb-1">Zari coaches</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#4361EE] mb-1">Zari coaches</p>
                     <p className="text-[12.5px] text-[var(--muted)] leading-5">{lvl.zariHelps}</p>
                   </div>
                 </div>

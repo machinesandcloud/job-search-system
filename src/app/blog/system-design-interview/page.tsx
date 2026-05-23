@@ -232,7 +232,7 @@ export default async function SystemDesignInterviewPage() {
                     <p className="text-[13.5px] leading-6 text-[var(--muted)]">{dim.commonFail}</p>
                   </div>
                   <div className="bg-[var(--brand)]/[0.03] px-6 py-4">
-                    <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">How Zari coaches this</p>
+                    <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">How Zari coaches this</p>
                     <p className="text-[13.5px] leading-6 text-[var(--muted)]">{dim.zariCoaches}</p>
                   </div>
                 </div>
@@ -264,7 +264,7 @@ export default async function SystemDesignInterviewPage() {
                     ))}
                   </ul>
                   <div className="rounded-xl bg-[var(--brand)]/[0.06] px-4 py-3">
-                    <p className="text-[12px] font-bold uppercase tracking-wider text-[var(--brand)] mb-1">Why it matters</p>
+                    <p className="text-[12px] font-bold uppercase tracking-wider text-[#4361EE] mb-1">Why it matters</p>
                     <p className="text-[13px] text-[var(--muted)]">{item.whyItMatters}</p>
                   </div>
                 </div>
@@ -301,7 +301,7 @@ export default async function SystemDesignInterviewPage() {
                     <p className="text-[12.5px] leading-6 text-[var(--muted)]">{sys.storageEngine}</p>
                   </div>
                   <div className="bg-[var(--brand)]/[0.03] px-5 py-4">
-                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">Senior signals</p>
+                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">Senior signals</p>
                     <ul className="space-y-1.5">
                       {sys.seniorSignals.map((s) => (
                         <li key={s} className="flex items-start gap-2 text-[12.5px] text-[var(--muted)]">

@@ -117,7 +117,7 @@ export default async function ImposterSyndromeAtWorkPage() {
             {FIVE_TYPES.map((item, i) => (
               <div key={item.type} className="rounded-2xl border border-[var(--border)] bg-white p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[13px] font-extrabold text-[var(--brand)]">{i + 1}</span>
+                  <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[13px] font-extrabold text-[#4361EE]">{i + 1}</span>
                   <h3 className="font-bold text-[var(--ink)]">{item.type}</h3>
                 </div>
                 <div className="space-y-3">
@@ -151,7 +151,7 @@ export default async function ImposterSyndromeAtWorkPage() {
                 <h3 className="font-bold text-[var(--ink)]">{item.moment}</h3>
                 <p className="mt-2 text-[13.5px] leading-6 text-[var(--muted)]">{item.impact}</p>
                 <div className="mt-4 rounded-xl bg-[var(--brand)]/[0.05] p-4">
-                  <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">Reframe</p>
+                  <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[#4361EE]">Reframe</p>
                   <p className="text-[13px] leading-6 text-[var(--muted)]">{item.reframe}</p>
                 </div>
               </div>

@@ -207,7 +207,7 @@ export default async function UkInterviewTipsPage() {
                 { href: "/ai-career-coach-uk", label: "AI Career Coach UK" },
                 { href: "/blog/how-to-prepare-for-job-interview", label: "Interview Prep Guide" },
               ].map((link) => (
-                <Link key={link.href} href={link.href} className="rounded-full border border-[var(--border)] bg-[var(--bg)] px-3 py-1.5 text-[12px] font-medium text-[var(--brand)] hover:bg-[var(--brand)]/5 transition-all">
+                <Link key={link.href} href={link.href} className="rounded-full border border-[var(--border)] bg-[var(--bg)] px-3 py-1.5 text-[12px] font-medium text-[#4361EE] hover:bg-[var(--brand)]/5 transition-all">
                   {link.label}
                 </Link>
               ))}

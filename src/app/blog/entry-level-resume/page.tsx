@@ -149,7 +149,7 @@ export default async function EntryLevelResumePage() {
             {RESUME_SECTIONS.map((item, i) => (
               <div key={item.section} className="rounded-2xl border border-[var(--border)] bg-white p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[12px] font-extrabold text-[var(--brand)]">{i + 1}</span>
+                  <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-[var(--brand)]/10 text-[12px] font-extrabold text-[#4361EE]">{i + 1}</span>
                   <h3 className="font-bold text-[var(--ink)]">{item.section}</h3>
                 </div>
                 <div className="grid gap-3 md:grid-cols-2 mb-3">
@@ -163,7 +163,7 @@ export default async function EntryLevelResumePage() {
                   </div>
                 </div>
                 <div className="rounded-xl bg-[var(--brand)]/[0.04] p-3">
-                  <p className="text-[12px] text-[var(--muted)]"><span className="font-bold text-[var(--brand)]">ATS note: </span>{item.ats_note}</p>
+                  <p className="text-[12px] text-[var(--muted)]"><span className="font-bold text-[#4361EE]">ATS note: </span>{item.ats_note}</p>
                 </div>
               </div>
             ))}
@@ -193,7 +193,7 @@ export default async function EntryLevelResumePage() {
                   </div>
                 </div>
                 <div className="border-t border-[var(--border)] bg-[var(--bg)] px-5 py-3">
-                  <p className="text-[12px] text-[var(--muted)]"><span className="font-bold text-[var(--brand)]">Key change: </span>{item.key_change}</p>
+                  <p className="text-[12px] text-[var(--muted)]"><span className="font-bold text-[#4361EE]">Key change: </span>{item.key_change}</p>
                 </div>
               </div>
             ))}

@@ -114,7 +114,7 @@ export default async function ZariVsLinkedInLearningPage() {
       <section className="bg-[var(--bg)] py-10">
         <div className="mx-auto max-w-4xl px-6">
           <div className="rounded-2xl border border-[var(--border)] bg-white p-6">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand)] mb-3">The core distinction</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[#4361EE] mb-3">The core distinction</p>
             <p className="text-[14px] leading-7 text-[var(--muted)]">LinkedIn Learning is a skills library — it makes you more capable over time. Zari is a job-search engine — it converts your existing capabilities into offers. Using LinkedIn Learning when you need job search help is like reading about swimming when you need a lifeguard. Use the right tool for the right phase.</p>
           </div>
         </div>
@@ -138,7 +138,7 @@ export default async function ZariVsLinkedInLearningPage() {
                     <p className="text-[13px] leading-6 text-[var(--muted)]">{row.linkedInLearning.detail}</p>
                   </div>
                   <div className="p-5">
-                    <p className={`text-[10px] font-bold uppercase tracking-wider mb-2 ${row.zari.score === "win" ? "text-[var(--brand)]" : row.zari.score === "partial" ? "text-amber-500" : "text-[var(--muted)]"}`}>
+                    <p className={`text-[10px] font-bold uppercase tracking-wider mb-2 ${row.zari.score === "win" ? "text-[#4361EE]" : row.zari.score === "partial" ? "text-amber-500" : "text-[var(--muted)]"}`}>
                       Zari — {row.zari.verdict}
                     </p>
                     <p className="text-[13px] leading-6 text-[var(--muted)]">{row.zari.detail}</p>
@@ -162,7 +162,7 @@ export default async function ZariVsLinkedInLearningPage() {
                     <p className="font-bold text-[var(--ink)]">{item.stage}</p>
                     <p className="mt-1 text-[13px] leading-6 text-[var(--muted)]">{item.detail}</p>
                   </div>
-                  <span className={`flex-shrink-0 rounded-full px-3 py-1 text-[11px] font-bold ${item.recommendation === "Zari" ? "bg-[var(--brand)]/10 text-[var(--brand)]" : "bg-emerald-50 text-emerald-700"}`}>
+                  <span className={`flex-shrink-0 rounded-full px-3 py-1 text-[11px] font-bold ${item.recommendation === "Zari" ? "bg-[var(--brand)]/10 text-[#4361EE]" : "bg-emerald-50 text-emerald-700"}`}>
                     → {item.recommendation}
                   </span>
                 </div>

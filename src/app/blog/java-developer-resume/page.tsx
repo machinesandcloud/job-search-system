@@ -151,7 +151,7 @@ export default async function JavaDeveloperResumePage() {
                 <p className="mt-2 text-[13px] leading-6 text-[var(--muted)]">{item.detail}</p>
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {item.keywords.map((kw) => (
-                    <span key={kw} className="rounded-full bg-[var(--brand)]/[0.08] px-2.5 py-0.5 text-[11px] font-semibold text-[var(--brand)]">{kw}</span>
+                    <span key={kw} className="rounded-full bg-[var(--brand)]/[0.08] px-2.5 py-0.5 text-[11px] font-semibold text-[#4361EE]">{kw}</span>
                   ))}
                 </div>
               </div>
@@ -180,7 +180,7 @@ export default async function JavaDeveloperResumePage() {
                     <p className="text-[13px] leading-6 text-[var(--muted)]">{ex.after}</p>
                   </div>
                   <div className="rounded-xl bg-[var(--bg)] p-3.5">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand)] mb-1">What changed</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#4361EE] mb-1">What changed</p>
                     <p className="text-[12.5px] leading-5 text-[var(--muted)]">{ex.what_changed}</p>
                   </div>
                 </div>
@@ -218,12 +218,12 @@ export default async function JavaDeveloperResumePage() {
                 <ul className="space-y-1.5 mb-4">
                   {item.signals.map((s) => (
                     <li key={s} className="flex gap-2 text-[13px] text-[var(--muted)]">
-                      <span className="text-[var(--brand)] font-bold flex-shrink-0">→</span> {s}
+                      <span className="text-[#4361EE] font-bold flex-shrink-0">→</span> {s}
                     </li>
                   ))}
                 </ul>
                 <div className="rounded-lg bg-[var(--brand)]/[0.04] border border-[var(--brand)]/10 p-3">
-                  <p className="text-[12px] leading-5 text-[var(--muted)]"><span className="font-bold text-[var(--brand)]">Tip: </span>{item.resume_tip}</p>
+                  <p className="text-[12px] leading-5 text-[var(--muted)]"><span className="font-bold text-[#4361EE]">Tip: </span>{item.resume_tip}</p>
                 </div>
               </div>
             ))}

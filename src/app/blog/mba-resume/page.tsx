@@ -142,7 +142,7 @@ export default async function MbaResumePage() {
             {MBA_RESUME_RULES.map((item, i) => (
               <div key={item.rule} className="rounded-xl border border-[var(--border)] bg-white p-5">
                 <div className="flex gap-3 items-start">
-                  <span className="flex-shrink-0 h-6 w-6 rounded-full bg-[var(--brand)]/10 flex items-center justify-center text-[11px] font-bold text-[var(--brand)]">{i + 1}</span>
+                  <span className="flex-shrink-0 h-6 w-6 rounded-full bg-[var(--brand)]/10 flex items-center justify-center text-[11px] font-bold text-[#4361EE]">{i + 1}</span>
                   <div>
                     <p className="font-bold text-[var(--ink)]">{item.rule}</p>
                     <p className="mt-1.5 text-[13px] leading-6 text-[var(--muted)]">{item.detail}</p>
@@ -174,7 +174,7 @@ export default async function MbaResumePage() {
                     <p className="text-[13px] leading-6 text-[var(--muted)]">{ex.strong}</p>
                   </div>
                   <div className="rounded-xl bg-[var(--bg)] p-3.5">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand)] mb-1">What changed</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#4361EE] mb-1">What changed</p>
                     <p className="text-[12.5px] leading-5 text-[var(--muted)]">{ex.why}</p>
                   </div>
                 </div>
@@ -196,7 +196,7 @@ export default async function MbaResumePage() {
                 <ul className="mt-3 space-y-1.5">
                   {track.specific_tips.map((tip) => (
                     <li key={tip} className="flex gap-2 text-[12.5px] text-[var(--muted)]">
-                      <span className="text-[var(--brand)] font-bold flex-shrink-0">→</span>
+                      <span className="text-[#4361EE] font-bold flex-shrink-0">→</span>
                       {tip}
                     </li>
                   ))}

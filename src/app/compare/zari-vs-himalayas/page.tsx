@@ -107,7 +107,7 @@ export default async function ZariVsHimalayasPage() {
               <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted)] mb-2">Zari wins for</p>
               <ul className="space-y-1.5">
                 {["ATS resume tailoring per listing", "Async-first interview preparation", "Remote package negotiation coaching", "LinkedIn visibility for remote recruiters"].map((item) => (
-                  <li key={item} className="flex gap-2 text-[13px] text-[var(--ink)]"><span className="text-[var(--brand)] font-bold">✓</span>{item}</li>
+                  <li key={item} className="flex gap-2 text-[13px] text-[var(--ink)]"><span className="text-[#4361EE] font-bold">✓</span>{item}</li>
                 ))}
               </ul>
             </div>
@@ -133,7 +133,7 @@ export default async function ZariVsHimalayasPage() {
                     <p className="text-[13px] leading-6 text-[var(--muted)]">{row.himalayas.detail}</p>
                   </div>
                   <div className="p-5">
-                    <p className={`text-[10px] font-bold uppercase tracking-wider mb-2 ${row.zari.score === "win" ? "text-[var(--brand)]" : row.zari.score === "partial" ? "text-amber-500" : "text-[var(--muted)]"}`}>
+                    <p className={`text-[10px] font-bold uppercase tracking-wider mb-2 ${row.zari.score === "win" ? "text-[#4361EE]" : row.zari.score === "partial" ? "text-amber-500" : "text-[var(--muted)]"}`}>
                       Zari — {row.zari.verdict}
                     </p>
                     <p className="text-[13px] leading-6 text-[var(--muted)]">{row.zari.detail}</p>

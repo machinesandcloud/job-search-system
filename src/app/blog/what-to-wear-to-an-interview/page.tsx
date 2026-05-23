@@ -125,7 +125,7 @@ export default async function WhatToWearToAnInterviewPage() {
       <section className="bg-[var(--bg)] py-12">
         <div className="mx-auto max-w-4xl px-6">
           <div className="rounded-2xl border border-[var(--brand)]/20 bg-[var(--brand)]/[0.04] p-6">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand)] mb-2">The principle</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[#4361EE] mb-2">The principle</p>
             <p className="text-[15px] font-semibold leading-7 text-[var(--ink)]">{THE_CORE_PRINCIPLE}</p>
           </div>
         </div>
@@ -166,7 +166,7 @@ export default async function WhatToWearToAnInterviewPage() {
                 <p className="font-bold text-[var(--ink)]">{item.company_type}</p>
                 <p className="mt-2 text-[13.5px] leading-6 text-[var(--muted)]">{item.guidance}</p>
                 <div className="mt-3 rounded-xl bg-[var(--bg)] p-3">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand)] mb-1">Research tip</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#4361EE] mb-1">Research tip</p>
                   <p className="text-[12.5px] text-[var(--muted)]">{item.research_tip}</p>
                 </div>
               </div>

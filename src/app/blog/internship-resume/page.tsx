@@ -102,7 +102,7 @@ export default async function InternshipResumePage() {
       <section className="bg-[var(--bg)] py-12">
         <div className="mx-auto max-w-4xl px-6">
           <div className="rounded-2xl border border-[var(--brand)]/20 bg-[var(--brand)]/[0.04] p-6">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand)] mb-2">The key insight</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[#4361EE] mb-2">The key insight</p>
             <p className="text-[15px] font-semibold leading-7 text-[var(--ink)] mb-2">{THE_CORE_INSIGHT.rule}</p>
             <p className="text-[13.5px] leading-6 text-[var(--muted)]">{THE_CORE_INSIGHT.detail}</p>
           </div>

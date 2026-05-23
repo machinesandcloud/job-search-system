@@ -64,7 +64,7 @@ export default async function FollowUpJobApplicationPage() {
               ].map((item) => (
                 <div key={item.scenario} className="rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-5">
                   <p className="mb-1 font-bold text-[var(--ink)]">{item.scenario}</p>
-                  <p className="mb-2 text-[13px] font-semibold text-[var(--brand)]">{item.timing}</p>
+                  <p className="mb-2 text-[13px] font-semibold text-[#4361EE]">{item.timing}</p>
                   <p className="text-[13px] leading-5 text-[var(--muted)]">{item.note}</p>
                 </div>
               ))}

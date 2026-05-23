@@ -92,7 +92,7 @@ export default async function ConsultingResumePage() {
                 </ul>
               </div>
               <div className="rounded-xl border border-[var(--brand)]/20 bg-[var(--brand)]/[0.04] p-5">
-                <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-[var(--brand)]">Consulting resume conventions</p>
+                <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-[#4361EE]">Consulting resume conventions</p>
                 <ul className="space-y-2 text-[13.5px] leading-6 text-[var(--muted)]">
                   <li>→ No summary section (experience leads)</li>
                   <li>→ Skills section minimal or absent</li>
@@ -118,7 +118,7 @@ export default async function ConsultingResumePage() {
             <div className="mt-4 rounded-xl border border-[var(--border)] bg-[var(--bg)] p-5">
               <p className="font-semibold text-[var(--ink)] mb-2">The formula</p>
               <p className="text-[15px] leading-7 text-[var(--ink)]">
-                <span className="font-bold text-[var(--brand)]">[Action verb]</span> + <span className="font-bold text-[var(--brand)]">[what you did / analysis you ran / problem you solved]</span> + <span className="font-bold text-[var(--brand)]">[quantified outcome or business impact]</span>
+                <span className="font-bold text-[#4361EE]">[Action verb]</span> + <span className="font-bold text-[#4361EE]">[what you did / analysis you ran / problem you solved]</span> + <span className="font-bold text-[#4361EE]">[quantified outcome or business impact]</span>
               </p>
               <p className="mt-3 text-[13.5px] leading-6 text-[var(--muted)]">The action verb should be specific to consulting work: Developed, Analyzed, Built, Designed, Led, Presented, Synthesized, Identified, Structured, Recommended. &quot;Helped&quot; and &quot;Assisted&quot; signal a supporting role — avoid them unless accurate.</p>
             </div>

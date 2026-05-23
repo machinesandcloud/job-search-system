@@ -147,7 +147,7 @@ export default async function ExplainEmploymentGapsPage() {
 
             <h2 className="mt-10 text-[1.7rem] font-extrabold tracking-[-0.025em] text-[var(--ink)]">Practice your gap explanation before the interview</h2>
             <p className="mt-4 text-[15px] leading-7 text-[var(--muted)]">
-              The gap question will come up. Rehearse your answer until it sounds natural — not memorized, but confident. Zari&apos;s <Link href="/ai-interview-coach" className="text-[var(--brand)] underline underline-offset-2">AI interview coach</Link> will surface this question and give you real-time feedback on how your answer lands.
+              The gap question will come up. Rehearse your answer until it sounds natural — not memorized, but confident. Zari&apos;s <Link href="/ai-interview-coach" className="text-[#4361EE] underline underline-offset-2">AI interview coach</Link> will surface this question and give you real-time feedback on how your answer lands.
             </p>
           </div>
 
