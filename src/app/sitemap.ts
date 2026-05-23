@@ -496,6 +496,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/blog/highest-paying-jobs-singapore`,        lastModified: now, changeFrequency: "monthly", priority: 0.92 },
     { url: `${base}/blog/highest-paying-jobs-dubai`,            lastModified: now, changeFrequency: "monthly", priority: 0.92 },
 
+    // Wave 55 — City career coach pages
+    { url: `${base}/career-coach-phoenix`,     lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/career-coach-charlotte`,   lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/career-coach-nashville`,   lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/career-coach-raleigh`,     lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/career-coach-minneapolis`, lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/career-coach-portland`,    lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/career-coach-san-diego`,   lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/career-coach-columbus`,    lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+
+    // Wave 55 — Blog posts
+    { url: `${base}/blog/how-to-get-a-job-at-goldman-sachs`, lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/how-to-get-a-job-at-nvidia`,        lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/how-to-get-a-job-at-jpmorgan`,      lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+    { url: `${base}/blog/highest-paying-jobs-in-usa`,        lastModified: now, changeFrequency: "monthly", priority: 0.92 },
+
     // Auth / conversion
     { url: `${base}/signup`,  lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/login`,   lastModified: now, changeFrequency: "monthly", priority: 0.6 },

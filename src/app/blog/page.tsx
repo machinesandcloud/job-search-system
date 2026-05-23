@@ -1880,6 +1880,43 @@ const POSTS = [
     date: "June 2025",
     accent: "#D97706",
   },
+  // Wave 55
+  {
+    slug: "how-to-get-a-job-at-goldman-sachs",
+    title: "How to Get a Job at Goldman Sachs — The Complete Guide (2025)",
+    excerpt: "The full Goldman Sachs hiring funnel — application, HireVue, superday, and what separates candidates who get offers. Finance technical prep and what GS really looks for.",
+    tag: "Company Guides",
+    readTime: "10 min read",
+    date: "June 2025",
+    accent: "#0A1628",
+  },
+  {
+    slug: "how-to-get-a-job-at-nvidia",
+    title: "How to Get a Job at Nvidia — The Complete Guide (2025)",
+    excerpt: "GPU computing, CUDA, chip design, and AI/ML roles at Nvidia — the full hiring process, what each role requires, and how Nvidia's domain-depth interviews differ from other tech companies.",
+    tag: "Company Guides",
+    readTime: "10 min read",
+    date: "June 2025",
+    accent: "#76B900",
+  },
+  {
+    slug: "how-to-get-a-job-at-jpmorgan",
+    title: "How to Get a Job at JPMorgan Chase — The Complete Guide (2025)",
+    excerpt: "Investment banking, technology, and operations at JPMorgan — the HireVue process, superday format, what divisions pay, and how to compete from non-target schools.",
+    tag: "Company Guides",
+    readTime: "9 min read",
+    date: "June 2025",
+    accent: "#003087",
+  },
+  {
+    slug: "highest-paying-jobs-in-usa",
+    title: "Highest Paying Jobs in the USA 2025 — Salaries by Industry and City",
+    excerpt: "Total compensation data for the highest paying careers in America — finance, tech, medicine, law, and what you actually keep after federal and state taxes in different cities.",
+    tag: "Salary",
+    readTime: "9 min read",
+    date: "June 2025",
+    accent: "#4361EE",
+  },
 ];
 
 const FEATURED_SLUGS = [

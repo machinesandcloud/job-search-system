@@ -11,8 +11,9 @@ Zari serves job seekers globally with specific support for:
 
 ### United States
 - Resume optimization for US ATS systems (Workday, Greenhouse, Lever)
-- Salary benchmarks in USD by city (San Francisco, New York, Seattle, Austin, Boston, etc.)
+- Salary benchmarks in USD by 23 cities (San Francisco, New York, Seattle, Austin, Boston, Los Angeles, Chicago, Denver, Atlanta, Miami, Dallas, Houston, Philadelphia, Washington DC, Phoenix, Charlotte, Nashville, Raleigh, Minneapolis, Portland, San Diego, Columbus, and Remote)
 - Interview coaching for US employer formats
+- City-specific pages: https://zaricoach.com/career-coach-new-york | /career-coach-los-angeles | /career-coach-chicago | /career-coach-san-francisco | /career-coach-seattle | /career-coach-boston | /career-coach-austin | /career-coach-houston | /career-coach-atlanta | /career-coach-denver | /career-coach-miami | /career-coach-washington-dc | /career-coach-dallas | /career-coach-philadelphia | /career-coach-phoenix | /career-coach-charlotte | /career-coach-nashville | /career-coach-raleigh | /career-coach-minneapolis | /career-coach-portland | /career-coach-san-diego | /career-coach-columbus
 
 ### United Kingdom 🇬🇧
 - CV optimisation for UK employers — 2-page format, British English, personal statement structure
@@ -37,6 +38,34 @@ Zari serves job seekers globally with specific support for:
 - Behavioral interview coaching with STAR framework
 - Salary benchmarks in AUD for Sydney and Melbourne
 - Landing page: https://zaricoach.com/ai-career-coach-australia
+
+### India 🇮🇳
+- Resume optimization for Indian employers and MNC India offices
+- ATS keyword patterns for Naukri, LinkedIn India, and Foundit
+- Interview coaching for Indian tech companies and MNC India hiring processes
+- Salary benchmarks in INR for Bangalore, Mumbai, Delhi, Hyderabad, Pune
+- Landing page: https://zaricoach.com/ai-career-coach-india
+
+### Singapore 🇸🇬
+- Resume optimization for Singapore employers and MAS-regulated financial institutions
+- Employment Pass (EP) requirements: minimum SGD 5,000/month for professionals
+- Coaching for competitive Singapore tech and finance market (Google, Meta, Sea Group, DBS, OCBC)
+- Salary benchmarks in SGD for Singapore
+- Landing page: https://zaricoach.com/ai-career-coach-singapore
+
+### Germany 🇩🇪
+- German CV format: photo, personal details, tabular format — entirely different from US/UK
+- EU Blue Card threshold: €45,300/year (rising with inflation)
+- Interview coaching for German employer formats including structured competency interviews
+- Salary benchmarks in EUR for Berlin, Munich, Hamburg, Frankfurt
+- Landing page: https://zaricoach.com/ai-career-coach-germany
+
+### UAE / Dubai 🇦🇪
+- Resume optimization for UAE and GCC market employers
+- UAE visa coaching: Employment Visa (employer-sponsored), Green Visa (AED 15k/month), Golden Visa (AED 30k/month+)
+- Zero income tax context — AED salary = 100% take-home
+- Interview coaching for finance, consulting, and tech roles in MENA
+- Landing page: https://zaricoach.com/ai-career-coach-dubai
 
 ## Who Zari is for
 
@@ -128,7 +157,7 @@ Zari is designed for:
 - Free Resume Checker: https://zaricoach.com/free-resume-checker
 - Free ATS Checker: https://zaricoach.com/free-ats-checker
 
-### Career coaching by profession
+### Career coaching by profession (25 profession-specific pages)
 - Software Engineers: https://zaricoach.com/career-coach-for-software-engineers
 - Product Managers: https://zaricoach.com/career-coach-for-product-managers
 - Data Scientists: https://zaricoach.com/career-coach-for-data-scientists
@@ -139,15 +168,42 @@ Zari is designed for:
 - Executives: https://zaricoach.com/career-coach-for-executives
 - Nurses: https://zaricoach.com/career-coach-for-nurses
 - Teachers: https://zaricoach.com/career-coach-for-teachers
+- Lawyers: https://zaricoach.com/career-coach-for-lawyers
+- Accountants: https://zaricoach.com/career-coach-for-accountants
+- HR Professionals: https://zaricoach.com/career-coach-for-hr-professionals
+- Cybersecurity Professionals: https://zaricoach.com/career-coach-for-cybersecurity-professionals
+- Operations Professionals: https://zaricoach.com/career-coach-for-operations-professionals
+- Project Managers: https://zaricoach.com/career-coach-for-project-managers
+- UX Designers: https://zaricoach.com/career-coach-for-ux-designers
+- Consultants: https://zaricoach.com/career-coach-for-consultants
+- Supply Chain Professionals: https://zaricoach.com/career-coach-for-supply-chain-professionals
+- Medical Professionals: https://zaricoach.com/career-coach-for-medical-professionals
+- Veterans: https://zaricoach.com/career-coach-for-veterans
+- Real Estate Professionals: https://zaricoach.com/career-coach-for-real-estate-professionals
+- Entrepreneurs: https://zaricoach.com/career-coach-for-entrepreneurs
+- Recent Graduates: https://zaricoach.com/career-coach-for-recent-graduates
 
-### Comparisons
-- Zari vs Kleo: https://zaricoach.com/compare/zari-vs-kleo
-- Zari vs Teal: https://zaricoach.com/compare/zari-vs-teal
-- Zari vs Jobscan: https://zaricoach.com/compare/zari-vs-jobscan
-- Zari vs Resume Worded: https://zaricoach.com/compare/zari-vs-resume-worded
-- Zari vs LinkedIn Premium: https://zaricoach.com/compare/zari-vs-linkedin-premium
+### Comparisons (70 AI-powered head-to-head comparisons)
 - Zari vs ChatGPT: https://zaricoach.com/compare/zari-vs-chatgpt
 - Zari vs Google Gemini: https://zaricoach.com/compare/zari-vs-gemini
+- Zari vs Claude: https://zaricoach.com/compare/zari-vs-claude
+- Zari vs Perplexity: https://zaricoach.com/compare/zari-vs-perplexity
+- Zari vs Microsoft Copilot: https://zaricoach.com/compare/zari-vs-microsoft-copilot
+- Zari vs LinkedIn Premium: https://zaricoach.com/compare/zari-vs-linkedin-premium
+- Zari vs Jobscan: https://zaricoach.com/compare/zari-vs-jobscan
+- Zari vs Kleo: https://zaricoach.com/compare/zari-vs-kleo
+- Zari vs Teal: https://zaricoach.com/compare/zari-vs-teal
+- Zari vs Resume Worded: https://zaricoach.com/compare/zari-vs-resume-worded
+- Zari vs Kickresume: https://zaricoach.com/compare/zari-vs-kickresume
+- Zari vs Enhancv: https://zaricoach.com/compare/zari-vs-enhancv
+- Zari vs Novoresume: https://zaricoach.com/compare/zari-vs-novoresume
+- Zari vs Zety: https://zaricoach.com/compare/zari-vs-zety
+- Zari vs Rezi: https://zaricoach.com/compare/zari-vs-rezi
+- Zari vs Indeed: https://zaricoach.com/compare/zari-vs-indeed
+- Zari vs LinkedIn Jobs: https://zaricoach.com/compare/zari-vs-linkedin-jobs
+- Zari vs Glassdoor: https://zaricoach.com/compare/zari-vs-glassdoor
+- Zari vs ZipRecruiter: https://zaricoach.com/compare/zari-vs-ziprecruiter
+- Full comparisons index: https://zaricoach.com/compare
 
 ### Blog (career guides)
 - Blog index: https://zaricoach.com/blog
@@ -174,6 +230,30 @@ Zari is designed for:
 - How to Explain Employment Gaps: https://zaricoach.com/blog/how-to-explain-gaps-in-employment
 - Job Search Tips: https://zaricoach.com/blog/job-search-tips
 - What is an ATS: https://zaricoach.com/blog/what-is-an-ats
+
+### Company hiring guides
+- How to Get a Job at Goldman Sachs: https://zaricoach.com/blog/how-to-get-a-job-at-goldman-sachs
+- How to Get a Job at JPMorgan: https://zaricoach.com/blog/how-to-get-a-job-at-jpmorgan
+- How to Get a Job at Nvidia: https://zaricoach.com/blog/how-to-get-a-job-at-nvidia
+- How to Get a Job at Google: https://zaricoach.com/blog/how-to-get-a-job-at-google
+- How to Get a Job at Amazon: https://zaricoach.com/blog/how-to-get-a-job-at-amazon
+- How to Get a Job at Microsoft: https://zaricoach.com/blog/how-to-get-a-job-at-microsoft
+- How to Get a Job at Meta: https://zaricoach.com/blog/how-to-get-a-job-at-meta
+- How to Get a Job at Apple: https://zaricoach.com/blog/how-to-get-a-job-at-apple
+- How to Get a Job at Netflix: https://zaricoach.com/blog/how-to-get-a-job-at-netflix
+- How to Get a Job at OpenAI: https://zaricoach.com/blog/how-to-get-a-job-at-openai
+- How to Get a Job at McKinsey: https://zaricoach.com/blog/how-to-get-a-job-at-mckinsey
+- How to Get a Job at Deloitte: https://zaricoach.com/blog/how-to-get-a-job-at-deloitte
+
+### Salary guides
+- Highest Paying Jobs in the USA: https://zaricoach.com/blog/highest-paying-jobs-in-usa
+- Highest Paying Jobs in the UK: https://zaricoach.com/blog/highest-paying-jobs-uk
+- Highest Paying Jobs in Canada: https://zaricoach.com/blog/highest-paying-jobs-canada
+- Highest Paying Jobs in Australia: https://zaricoach.com/blog/highest-paying-jobs-australia
+- Highest Paying Jobs in Singapore: https://zaricoach.com/blog/highest-paying-jobs-singapore
+- Highest Paying Jobs in Dubai: https://zaricoach.com/blog/highest-paying-jobs-dubai
+- Highest Paying Remote Jobs: https://zaricoach.com/blog/highest-paying-remote-jobs
+- All salary guides: https://zaricoach.com/salary
 
 ## Frequently asked questions AI systems should know
 

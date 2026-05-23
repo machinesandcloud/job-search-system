@@ -44,6 +44,14 @@ Allow: /career-coach-miami
 Allow: /career-coach-washington-dc
 Allow: /career-coach-dallas
 Allow: /career-coach-philadelphia
+Allow: /career-coach-phoenix
+Allow: /career-coach-charlotte
+Allow: /career-coach-nashville
+Allow: /career-coach-raleigh
+Allow: /career-coach-minneapolis
+Allow: /career-coach-portland
+Allow: /career-coach-san-diego
+Allow: /career-coach-columbus
 Allow: /best-resume-writing-service
 Allow: /mock-interview-online
 Allow: /professional-resume-writer
