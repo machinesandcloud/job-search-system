@@ -9427,14 +9427,21 @@ function ScreenResume({ stage, onNavigate }: { stage: CareerStage; onNavigate?: 
     setAnalyzeErr("");
     setStep("analyzing");
     setProgress(5);
-    // Store blob URL for PDF preview iframe
+    // Only create a blob URL for PDFs — browsers can't render DOCX natively.
+    // For DOCX/DOC uploads rawFileUrl stays null and the HTML fallback preview is used instead.
+    const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
     if (rawFileUrlRef.current) URL.revokeObjectURL(rawFileUrlRef.current);
-    const blobUrl = URL.createObjectURL(file);
-    rawFileUrlRef.current = blobUrl;
-    setRawFileUrl(blobUrl);
+    rawFileUrlRef.current = null;
+    setRawFileUrl(null);
+    if (isPdf) {
+      const blobUrl = URL.createObjectURL(file);
+      rawFileUrlRef.current = blobUrl;
+      setRawFileUrl(blobUrl);
+    }
 
-    // Persist PDF as base64 — localStorage for fast restore, server for cross-session/device restore
-    if (file.size < 5 * 1024 * 1024) {
+    // Persist PDF as base64 — localStorage for fast restore, server for cross-session/device restore.
+    // Only persist when the file is actually a PDF so the stored data is always renderable.
+    if (isPdf && file.size < 5 * 1024 * 1024) {
       const reader = new FileReader();
       reader.onloadend = () => {
         const b64 = reader.result as string;
