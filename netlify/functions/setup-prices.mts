@@ -11,8 +11,43 @@ const OLD_PRICE_IDS = {
   executive: "price_1TS15vJW47xiUUpYFhRx5NzK",
 };
 
+const MONTHLY_CONFIGS: Record<string, { amount: number; nickname: string; lookupKey: string }> = {
+  search:    { amount: 2900,   nickname: "Search Monthly $29",     lookupKey: "search_monthly_v2" },
+  growth:    { amount: 9900,   nickname: "Growth Monthly $99",     lookupKey: "growth_monthly_v2" },
+  executive: { amount: 24900,  nickname: "Executive Monthly $249", lookupKey: "executive_monthly_v2" },
+};
+
+const ANNUAL_CONFIGS: Record<string, { amount: number; nickname: string; lookupKey: string }> = {
+  search:    { amount: 27600,  nickname: "Search Annual $276",     lookupKey: "search_annual_v2" },
+  growth:    { amount: 94800,  nickname: "Growth Annual $948",     lookupKey: "growth_annual_v2" },
+  executive: { amount: 238800, nickname: "Executive Annual $2388", lookupKey: "executive_annual_v2" },
+};
+
+async function getOrCreatePrice(
+  stripe: Stripe,
+  productId: string,
+  cfg: { amount: number; nickname: string; lookupKey: string },
+  interval: "month" | "year",
+): Promise<string> {
+  // Check if a price with this lookup key already exists
+  const existing = await stripe.prices.list({ lookup_keys: [cfg.lookupKey], limit: 1 });
+  if (existing.data.length > 0) {
+    return existing.data[0].id;
+  }
+  // Create fresh
+  const price = await stripe.prices.create({
+    product: productId,
+    unit_amount: cfg.amount,
+    currency: "usd",
+    recurring: { interval },
+    nickname: cfg.nickname,
+    lookup_key: cfg.lookupKey,
+    transfer_lookup_key: true,
+  });
+  return price.id;
+}
+
 export default async function handler(request: Request) {
-  // Auth gate — must send the admin password
   const auth = request.headers.get("x-admin-password") || "";
   const expected = process.env.COACH_ADMIN_PASSWORD || "";
   if (!expected || auth !== expected) {
@@ -34,52 +69,30 @@ export default async function handler(request: Request) {
       productIds[plan] = typeof price.product === "string" ? price.product : price.product.id;
     }
 
-    // Create new monthly prices
+    // Get or create monthly prices
     const monthly: Record<string, string> = {};
-    const monthlyConfigs: Record<string, { amount: number; nickname: string }> = {
-      search:    { amount: 2900,   nickname: "Search Monthly $29" },
-      growth:    { amount: 9900,   nickname: "Growth Monthly $99" },
-      executive: { amount: 24900,  nickname: "Executive Monthly $249" },
-    };
-    for (const [plan, cfg] of Object.entries(monthlyConfigs)) {
-      const price = await stripe.prices.create({
-        product: productIds[plan],
-        unit_amount: cfg.amount,
-        currency: "usd",
-        recurring: { interval: "month" },
-        nickname: cfg.nickname,
-        lookup_key: `${plan}_monthly_v2`,
-        transfer_lookup_key: true,
-      });
-      monthly[plan] = price.id;
+    for (const [plan, cfg] of Object.entries(MONTHLY_CONFIGS)) {
+      monthly[plan] = await getOrCreatePrice(stripe, productIds[plan], cfg, "month");
     }
 
-    // Create new annual prices
+    // Get or create annual prices
     const annual: Record<string, string> = {};
-    const annualConfigs: Record<string, { amount: number; nickname: string }> = {
-      search:    { amount: 27600,  nickname: "Search Annual $276" },
-      growth:    { amount: 94800,  nickname: "Growth Annual $948" },
-      executive: { amount: 238800, nickname: "Executive Annual $2388" },
-    };
-    for (const [plan, cfg] of Object.entries(annualConfigs)) {
-      const price = await stripe.prices.create({
-        product: productIds[plan],
-        unit_amount: cfg.amount,
-        currency: "usd",
-        recurring: { interval: "year" },
-        nickname: cfg.nickname,
-        lookup_key: `${plan}_annual_v2`,
-        transfer_lookup_key: true,
-      });
-      annual[plan] = price.id;
+    for (const [plan, cfg] of Object.entries(ANNUAL_CONFIGS)) {
+      annual[plan] = await getOrCreatePrice(stripe, productIds[plan], cfg, "year");
     }
 
-    // Archive old monthly prices
-    for (const priceId of Object.values(OLD_PRICE_IDS)) {
-      await stripe.prices.update(priceId, { active: false });
+    // Archive old prices — skip if they are a product's default price
+    const archiveResults: Record<string, string> = {};
+    for (const [plan, priceId] of Object.entries(OLD_PRICE_IDS)) {
+      try {
+        await stripe.prices.update(priceId, { active: false });
+        archiveResults[plan] = "archived";
+      } catch (err: unknown) {
+        archiveResults[plan] = err instanceof Error ? err.message : "skipped";
+      }
     }
 
-    return new Response(JSON.stringify({ ok: true, monthly, annual, productIds }), {
+    return new Response(JSON.stringify({ ok: true, monthly, annual, productIds, archiveResults }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
