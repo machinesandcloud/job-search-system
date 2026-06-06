@@ -36,7 +36,7 @@ export function UpsellLimit1({ firstName, topFeature, unsubscribeUrl }: { firstN
         </Text>
       )}
       <Text style={p()}>
-        On Growth ($89/mo) you get 400 credits/month: longer conversations, richer context, no interruptions mid-session. The upgrade takes 60 seconds.
+        On Growth ($99/mo) you get 1,000 credits/month: longer conversations, richer context, no interruptions mid-session. The upgrade takes 60 seconds.
       </Text>
       <CtaButton href={`${APP}/settings/subscription`}>Upgrade to Growth →</CtaButton>
       <Divider />
@@ -66,8 +66,8 @@ export function UpsellLimit2({ firstName, topFeature, unsubscribeUrl }: { firstN
           <thead>
             <tr>
               <td style={{ padding: "10px 14px", borderBottom: "2px solid #E5E7EB", color: "#6B7280", fontWeight: "600", fontSize: "12px" }}></td>
-              <td style={{ padding: "10px 14px", borderBottom: "2px solid #E5E7EB", color: "#6B7280", fontWeight: "600", fontSize: "12px", textAlign: "center" }}>Search ($39/mo)</td>
-              <td style={{ padding: "10px 14px", borderBottom: `2px solid ${colors.brand}`, color: colors.brand, fontWeight: "700", fontSize: "12px", textAlign: "center" }}>Growth ($89/mo)</td>
+              <td style={{ padding: "10px 14px", borderBottom: "2px solid #E5E7EB", color: "#6B7280", fontWeight: "600", fontSize: "12px", textAlign: "center" }}>Search ($29/mo)</td>
+              <td style={{ padding: "10px 14px", borderBottom: `2px solid ${colors.brand}`, color: colors.brand, fontWeight: "700", fontSize: "12px", textAlign: "center" }}>Growth ($99/mo)</td>
             </tr>
           </thead>
           <tbody>
@@ -86,7 +86,7 @@ export function UpsellLimit2({ firstName, topFeature, unsubscribeUrl }: { firstN
           </tbody>
         </table>
       </Section>
-      <CtaButton href={`${APP}/settings/subscription`}>Upgrade to Growth ($89/mo) →</CtaButton>
+      <CtaButton href={`${APP}/settings/subscription`}>Upgrade to Growth ($99/mo) →</CtaButton>
       <Divider />
       <Text style={muted()}>Want to stay on Search and wait for your reset? No problem. Your account stays active and sessions resume automatically.</Text>
       <Signature />

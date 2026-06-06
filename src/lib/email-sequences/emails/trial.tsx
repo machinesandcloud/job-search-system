@@ -110,7 +110,7 @@ export function TrialOnboarding4({ firstName, unsubscribeUrl }: { firstName?: st
         </Step>
       </Section>
       <Text style={p()}>
-        If you've been finding the free plan useful and want more depth: Search is $39/mo and Growth is $89/mo. No pressure, but worth knowing if you're mid-search.
+        If you've been finding the free plan useful and want more depth: Search is $29/mo and Growth is $99/mo. No pressure, but worth knowing if you're mid-search.
       </Text>
       <CtaButton href={APP}>Open Zari →</CtaButton>
       <Divider />
@@ -138,8 +138,8 @@ export function TrialOnboarding5({ firstName, unsubscribeUrl }: { firstName?: st
             <tr>
               <td style={{ padding: "10px 14px", borderBottom: "2px solid #E5E7EB", color: "#6B7280", fontWeight: "600", fontSize: "12px" }}></td>
               <td style={{ padding: "10px 14px", borderBottom: "2px solid #E5E7EB", color: "#6B7280", fontWeight: "600", fontSize: "12px", textAlign: "center" }}>Free</td>
-              <td style={{ padding: "10px 14px", borderBottom: "2px solid #E5E7EB", color: "#6B7280", fontWeight: "600", fontSize: "12px", textAlign: "center" }}>Search ($39/mo)</td>
-              <td style={{ padding: "10px 14px", borderBottom: `2px solid ${colors.brand}`, color: colors.brand, fontWeight: "700", fontSize: "12px", textAlign: "center" }}>Growth ($89/mo)</td>
+              <td style={{ padding: "10px 14px", borderBottom: "2px solid #E5E7EB", color: "#6B7280", fontWeight: "600", fontSize: "12px", textAlign: "center" }}>Search ($29/mo)</td>
+              <td style={{ padding: "10px 14px", borderBottom: `2px solid ${colors.brand}`, color: colors.brand, fontWeight: "700", fontSize: "12px", textAlign: "center" }}>Growth ($99/mo)</td>
             </tr>
           </thead>
           <tbody>
@@ -186,7 +186,7 @@ export function TrialEnding1({ firstName, unsubscribeUrl }: { firstName?: string
         When they run out, you won't lose anything. Your history, your resume context, everything Zari has learned about you is all saved. You just won't be able to run new sessions until you pick a plan.
       </Text>
       <Text style={p()}>
-        If you're in an active search right now, this isn't the moment to pause. Search is $39/mo. It takes 60 seconds to upgrade and your sessions continue uninterrupted.
+        If you're in an active search right now, this isn't the moment to pause. Search is $29/mo. It takes 60 seconds to upgrade and your sessions continue uninterrupted.
       </Text>
       <CtaButton href={`${APP}/settings/subscription`}>Choose a plan →</CtaButton>
       <Divider />
@@ -213,10 +213,10 @@ export function TrialEnding2({ firstName, unsubscribeUrl }: { firstName?: string
         Two options:
       </Text>
       <Section style={{ margin: "16px 0 24px" }}>
-        <Step number={1} title="Search ($39/mo)">
+        <Step number={1} title="Search ($29/mo)">
           Unlimited sessions, full session depth, memory across everything. Best for candidates actively applying and interviewing.
         </Step>
-        <Step number={2} title="Growth ($89/mo)">
+        <Step number={2} title="Growth ($99/mo)">
           Everything in Search, plus extended session depth for longer, more complex conversations, ideal if you're doing deep interview prep or navigating a career pivot.
         </Step>
       </Section>

@@ -131,7 +131,7 @@ export function Milestone5({ firstName, planTier, unsubscribeUrl }: { firstName?
         <>
           <Divider />
           <Text style={p()}>
-            One thing worth flagging: on your current plan, there's a cap on session depth. Users on Growth ($89/mo) get significantly longer, richer conversations per session, which matters when you're deep in a final-round prep or working through a complex pivot.
+            One thing worth flagging: on your current plan, there's a cap on session depth. Users on Growth ($99/mo) get significantly longer, richer conversations per session, which matters when you're deep in a final-round prep or working through a complex pivot.
           </Text>
           <Blockquote>
             If you're actively interviewing right now, the upgrade is worth it. The quality difference in session depth is noticeable.

@@ -15,12 +15,12 @@ const PLAN_FEATURES: Record<string, { color: string; emoji: string; features: st
   growth: {
     color: "#7C3AED",
     emoji: "🚀",
-    features: ["Everything in Search", "Zari Live Coach sessions", "Promotion & salary tools", "Negotiation simulator", "400 monthly credits"],
+    features: ["Everything in Search", "Zari Live Coach sessions", "Promotion & salary tools", "Negotiation simulator", "1,000 monthly credits"],
   },
   executive: {
     color: "#D97706",
     emoji: "⭐",
-    features: ["Everything in Growth", "Executive positioning", "Market intelligence", "Leadership coaching", "1,000 monthly credits"],
+    features: ["Everything in Growth", "Executive positioning", "Market intelligence", "Leadership coaching", "3,000 monthly credits"],
   },
 };
 
