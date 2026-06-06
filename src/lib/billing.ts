@@ -297,13 +297,13 @@ export function getPlanMonthlyAmountCents(planName?: string | null, priceId?: st
   const pricingPlan = getPricingPlanById(planId);
 
   if (planId === "search") {
-    return pricingPlan?.priceCents ?? 3900;
+    return pricingPlan?.priceCents ?? 2900;
   }
   if (planId === "growth") {
-    return pricingPlan?.priceCents ?? 8900;
+    return pricingPlan?.priceCents ?? 9900;
   }
   if (planId === "executive") {
-    return pricingPlan?.priceCents ?? 17900;
+    return pricingPlan?.priceCents ?? 24900;
   }
 
   const normalizedPlan = `${planName || ""}`.toLowerCase();

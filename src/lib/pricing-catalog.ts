@@ -27,13 +27,13 @@ export const PRICING_PLANS: PricingPlan[] = [
   {
     id: "search",
     name: "Search",
-    priceCents: 3900,
-    annualPriceCents: 39900,       // $399/yr — saves $69 vs monthly
-    annualMonthlyPriceCents: 3325, // $33.25/mo
-    price: "$39",
-    annualPrice: "$399/year",
-    annualMonthlyPrice: "$33/mo",
-    annualSavings: "Save $69",
+    priceCents: 2900,
+    annualPriceCents: 27600,        // $276/yr — saves $72 vs monthly (20% off)
+    annualMonthlyPriceCents: 2300,  // $23/mo
+    price: "$29",
+    annualPrice: "$276/year",
+    annualMonthlyPrice: "$23/mo",
+    annualSavings: "Save $72",
     period: "/month",
     tag: "Job search only",
     accessLabel: "Resume, LinkedIn, cover letter, interview prep, and action plans",
@@ -54,20 +54,20 @@ export const PRICING_PLANS: PricingPlan[] = [
   {
     id: "growth",
     name: "Growth",
-    priceCents: 8900,
-    annualPriceCents: 89900,        // $899/yr — saves $169 vs monthly
-    annualMonthlyPriceCents: 7492,  // $74.92/mo
-    price: "$89",
-    annualPrice: "$899/year",
-    annualMonthlyPrice: "$75/mo",
-    annualSavings: "Save $169",
+    priceCents: 9900,
+    annualPriceCents: 94800,        // $948/yr — saves $240 vs monthly (20% off)
+    annualMonthlyPriceCents: 7900,  // $79/mo
+    price: "$99",
+    annualPrice: "$948/year",
+    annualMonthlyPrice: "$79/mo",
+    annualSavings: "Save $240",
     period: "/month",
     tag: "Most popular",
     accessLabel: "Everything except executive leadership tools",
     summary: "For people navigating job search plus the next move after it.",
     description: "Unlock promotion, salary, and career-change workflows, plus Zari Live Coach.",
-    includedCredits: 400,
-    tokenLine: "400 credits every month",
+    includedCredits: 1000,
+    tokenLine: "1,000 credits every month",
     cta: "Choose Growth",
     featured: true,
     features: [
@@ -82,20 +82,20 @@ export const PRICING_PLANS: PricingPlan[] = [
   {
     id: "executive",
     name: "Executive",
-    priceCents: 17900,
-    annualPriceCents: 179900,        // $1799/yr — saves $349 vs monthly
-    annualMonthlyPriceCents: 14992,  // $149.92/mo
-    price: "$179",
-    annualPrice: "$1,799/year",
-    annualMonthlyPrice: "$150/mo",
-    annualSavings: "Save $349",
+    priceCents: 24900,
+    annualPriceCents: 238800,        // $2,388/yr — saves $600 vs monthly (20% off)
+    annualMonthlyPriceCents: 19900,  // $199/mo
+    price: "$249",
+    annualPrice: "$2,388/year",
+    annualMonthlyPrice: "$199/mo",
+    annualSavings: "Save $600",
     period: "/month",
     tag: "Leadership included",
     accessLabel: "Everything, including leadership and executive positioning",
     summary: "For senior operators, directors, VPs, and exec-track candidates.",
     description: "Adds the leadership and executive surfaces that stay locked in Growth.",
-    includedCredits: 1000,
-    tokenLine: "1,000 credits every month",
+    includedCredits: 3000,
+    tokenLine: "3,000 credits every month",
     cta: "Choose Executive",
     features: [
       "Everything in Growth",
