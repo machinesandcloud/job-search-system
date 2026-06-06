@@ -18906,7 +18906,7 @@ export function ZariPortal({ viewer }: { viewer: PortalViewer }) {
           {
             id: "search",
             name: "Search",
-            price: "$39/mo",
+            price: "$29/mo",
             credits: "120 credits / mo",
             color: "#64748B",
             features: ["Resume review & Magic Rewrite", "LinkedIn optimization", "Mock interviews & scoring", "Cover letter generation", "Job search workspace"],

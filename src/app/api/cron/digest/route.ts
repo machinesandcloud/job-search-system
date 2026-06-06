@@ -89,13 +89,13 @@ export async function GET(request: Request) {
     select: { planName: true },
   });
   const planPrices: Record<string, number> = {
-    "Search": 39, "Pro": 39,
-    "Growth": 89, "Premium": 89,
-    "Executive": 179, "Team": 179,
+    "Search": 29, "Pro": 29,
+    "Growth": 99, "Premium": 99,
+    "Executive": 249, "Team": 249,
   };
   const mrr = activeSubs.reduce((sum: number, s: { planName: string | null }) => {
     const planKey = Object.keys(planPrices).find(k => s.planName?.includes(k));
-    return sum + (planKey ? planPrices[planKey] : 39);
+    return sum + (planKey ? planPrices[planKey] : 29);
   }, 0);
 
   const prevActiveSubsList = await prisma.subscription.findMany({
@@ -104,7 +104,7 @@ export async function GET(request: Request) {
   });
   const mrrLastWeek = prevActiveSubsList.reduce((sum: number, s: { planName: string | null }) => {
     const planKey = Object.keys(planPrices).find(k => s.planName?.includes(k));
-    return sum + (planKey ? planPrices[planKey] : 39);
+    return sum + (planKey ? planPrices[planKey] : 29);
   }, 0);
   const mrrDelta = mrr - mrrLastWeek;
 
