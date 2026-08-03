@@ -6,10 +6,11 @@ import { coachAdminGhostButtonClass, coachAdminInputClass, coachAdminPrimaryButt
 
 type GrantType = "months" | "discount";
 
-export function CoachAdminGrantModal({ accountId, userName }: { accountId: string; userName: string }) {
+export function CoachAdminGrantModal({ accountId, userName, hasPlan = true }: { accountId: string; userName: string; hasPlan?: boolean }) {
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<GrantType>("months");
   const [months, setMonths] = useState(1);
+  const [tier, setTier] = useState<"search" | "growth" | "executive">("growth");
   const [discountPct, setDiscountPct] = useState(25);
   const [discountMonths, setDiscountMonths] = useState(1);
   const [reason, setReason] = useState("");
@@ -20,6 +21,7 @@ export function CoachAdminGrantModal({ accountId, userName }: { accountId: strin
   function reset() {
     setType("months");
     setMonths(1);
+    setTier("growth");
     setDiscountPct(25);
     setDiscountMonths(1);
     setReason("");
@@ -31,7 +33,7 @@ export function CoachAdminGrantModal({ accountId, userName }: { accountId: strin
     setLoading(true);
     setError("");
     const body = type === "months"
-      ? { type, months, reason }
+      ? { type, months, reason, ...(hasPlan ? {} : { tier }) }
       : { type, discountPct, discountMonths, reason };
 
     const res = await fetch(`/api/coach-admin/accounts/${accountId}/grant-credit`, {
@@ -77,18 +79,38 @@ export function CoachAdminGrantModal({ accountId, userName }: { accountId: strin
                 <h3 style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 700, color: "var(--ca-text, #0F172A)" }}>Grant credit</h3>
                 <p style={{ margin: "0 0 20px", fontSize: 13, color: "var(--ca-text3, #64748B)" }}>{userName}</p>
 
-                {/* Type toggle */}
-                <div style={{ display: "flex", gap: 0, marginBottom: 20, border: "1px solid var(--ca-bd, #E2E8F0)", borderRadius: 8, overflow: "hidden" }}>
-                  {(["months", "discount"] as GrantType[]).map(t => (
-                    <button key={t} onClick={() => setType(t)} style={{
-                      flex: 1, padding: "8px 0", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600,
-                      background: type === t ? "var(--ca-text, #0F172A)" : "transparent",
-                      color: type === t ? "#fff" : "var(--ca-text3, #64748B)",
-                    }}>
-                      {t === "months" ? "Free months" : "Discount %"}
-                    </button>
-                  ))}
-                </div>
+                {hasPlan ? (
+                  /* Type toggle */
+                  <div style={{ display: "flex", gap: 0, marginBottom: 20, border: "1px solid var(--ca-bd, #E2E8F0)", borderRadius: 8, overflow: "hidden" }}>
+                    {(["months", "discount"] as GrantType[]).map(t => (
+                      <button key={t} onClick={() => setType(t)} style={{
+                        flex: 1, padding: "8px 0", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600,
+                        background: type === t ? "var(--ca-text, #0F172A)" : "transparent",
+                        color: type === t ? "#fff" : "var(--ca-text3, #64748B)",
+                      }}>
+                        {t === "months" ? "Free months" : "Discount %"}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <>
+                    <p style={{ margin: "0 0 16px", fontSize: 12.5, color: "var(--ca-text3, #64748B)", background: "var(--ca-raise, #F1F5F9)", border: "1px solid var(--ca-bd, #E2E8F0)", borderRadius: 8, padding: "8px 10px", lineHeight: 1.5 }}>
+                      This account has no plan. You&apos;re granting <strong>complimentary access</strong> at the tier and length below. Discounts apply once an account has a paid plan.
+                    </p>
+                    <label style={labelStyle}>Plan tier</label>
+                    <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+                      {(["search", "growth", "executive"] as const).map(tr => (
+                        <button key={tr} onClick={() => setTier(tr)} style={{
+                          flex: 1, padding: "9px 0", borderRadius: 8, border: "1.5px solid",
+                          borderColor: tier === tr ? "#2563EB" : "var(--ca-bd, #E2E8F0)",
+                          background: tier === tr ? "#EFF6FF" : "transparent",
+                          color: tier === tr ? "#1D4ED8" : "var(--ca-text2, #334155)",
+                          fontWeight: 700, fontSize: 12.5, cursor: "pointer", textTransform: "capitalize",
+                        }}>{tr}</button>
+                      ))}
+                    </div>
+                  </>
+                )}
 
                 {type === "months" ? (
                   <>

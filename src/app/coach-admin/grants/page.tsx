@@ -30,7 +30,6 @@ export default async function GrantsPage() {
 
   const [accounts, grantEvents] = await Promise.all([
     prisma.account.findMany({
-      where: { subscription: { isNot: null } },
       include: {
         ownerUser: { select: { id: true, email: true, firstName: true, lastName: true } },
         subscription: { select: { stripeSubscriptionId: true, status: true, planName: true, currentPeriodEnd: true } },
@@ -79,7 +78,7 @@ export default async function GrantsPage() {
         )}
 
         {accounts.map((account: typeof accounts[0], i: number) => {
-          const sub = account.subscription!;
+          const sub = account.subscription;
           const lastGrant = lastGrantByAccount.get(account.id);
           const meta = lastGrant?.metadataJson as Record<string, unknown> | null;
           const name = [account.ownerUser.firstName, account.ownerUser.lastName].filter(Boolean).join(" ") || account.ownerUser.email;
@@ -99,13 +98,13 @@ export default async function GrantsPage() {
               </div>
 
               {/* Plan */}
-              <span style={{ fontSize: 12.5, color: "var(--ca-text2)" }}>{sub.planName ?? "—"}</span>
+              <span style={{ fontSize: 12.5, color: "var(--ca-text2)" }}>{sub?.planName ?? "No plan"}</span>
 
               {/* Status */}
-              <StatusPill status={sub.status} />
+              <StatusPill status={sub?.status ?? "no plan"} />
 
               {/* Renews */}
-              <span style={{ fontSize: 12, color: "var(--ca-text2)" }}>{fmt(sub.currentPeriodEnd)}</span>
+              <span style={{ fontSize: 12, color: "var(--ca-text2)" }}>{fmt(sub?.currentPeriodEnd)}</span>
 
               {/* Last grant info */}
               <div style={{ minWidth: 0 }}>
@@ -138,6 +137,7 @@ export default async function GrantsPage() {
                 <CoachAdminGrantModal
                   accountId={account.id}
                   userName={name || account.ownerUser.email}
+                  hasPlan={!!sub}
                 />
               </div>
             </div>
