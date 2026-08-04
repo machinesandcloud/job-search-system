@@ -1,3 +1,5 @@
+"use client";
+
 const WALL_REVIEWS = [
   { name:"Marcus J.",    role:"Backend Eng → Staff Eng",           photo:"/avatars/36.jpg", color1:"#4361EE", color2:"#818CF8", quote:"4 years stuck at Senior. My manager kept saying 'keep doing what you're doing.' Zari showed me I was solving the wrong problems — impressive work that didn't register at the promo committee level. Promoted 5 months after my first session. My manager's exact words: 'You finally get it.'", highlights:["Promoted 5 months after my first session"] },
   { name:"Priya M.",     role:"PM → Senior PM, Notion",            photo:"/avatars/1.jpg",  color1:"#7C3AED", color2:"#A78BFA", quote:"Zari went line by line through my resume and told me what was actually wrong. Not vague feedback — specific bullets, specific fixes, specific reasons. Got the Notion offer 3 weeks later. I'd been applying for 6 months with nothing.", highlights:["line by line", "Got the Notion offer 3 weeks later"] },
