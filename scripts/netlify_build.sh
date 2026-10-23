@@ -12,6 +12,11 @@ if [[ -n "${MC_ACCEPTANCE_BUILD_COMMIT:-}" ]]; then
     echo "Acceptance build commit does not match the reviewed source." >&2
     exit 1
   fi
+  if ! git diff --quiet "$MC_ACCEPTANCE_BUILD_COMMIT" -- ||
+     [[ -n "$(git ls-files --others -- prisma src/lib/roles.ts src/lib/company-data.ts)" ]]; then
+    echo "Acceptance build working source differs from the reviewed commit." >&2
+    exit 1
+  fi
   # Pinned from the currently published 421f1c2 source: complete Prisma tree
   # (schema, all migrations, seed files) and both imported seed-data modules.
   for entry in \
