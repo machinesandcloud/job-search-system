@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { OPENAI_VOICES } from "../speak/route";
+import { OPENAI_VOICES } from "@/lib/zari-voices";
 import { getCurrentUserId } from "@/lib/mvp/auth";
 
 type Gender = "f" | "m";
