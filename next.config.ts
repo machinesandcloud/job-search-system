@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
+import { acceptanceHeaders, acceptancePath } from "./src/lib/mc-acceptance";
 
 const securityHeaders = [
   { key: "X-DNS-Prefetch-Control", value: "on" },
@@ -48,6 +49,9 @@ const nextConfig: NextConfig = {
           { key: "X-DNS-Prefetch-Control", value: "on" },
         ],
       },
+      // Exact temporary page only. Next applies these after the normal headers;
+      // ordinary coaching routes retain their existing CSP and permissions.
+      { source: acceptancePath, headers: acceptanceHeaders },
     ];
   },
 };
