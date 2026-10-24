@@ -1,6 +1,6 @@
 // Temporary, owner-controlled acceptance page. No coaching account or customer data.
 export const acceptancePath = "/mc-front-desk-acceptance-20261023";
-export const acceptancePhase = "hosted-onboarding-zaricoach-20261023-v1";
+export const acceptancePhase = "hosted-onboarding-zaricoach-20261024-v2";
 export const acceptanceExpiresAt = "2026-10-24T23:59:59Z";
 export const acceptancePlatform = "https://machinesandcloud.com";
 
